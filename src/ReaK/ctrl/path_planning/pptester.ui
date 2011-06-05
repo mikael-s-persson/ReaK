@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PPTestWindow</class>
+ <widget class="QMainWindow" name="PPTestWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>809</width>
+    <height>650</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Path Planning Tester</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <property name="margin">
+     <number>0</number>
+    </property>
+    <item row="0" column="0">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <property name="documentMode">
+       <bool>true</bool>
+      </property>
+      <property name="tabsClosable">
+       <bool>false</bool>
+      </property>
+      <widget class="QWidget" name="map_tab">
+       <attribute name="title">
+        <string>Map</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <property name="margin">
+         <number>0</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QGraphicsView" name="map_view">
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="resizeAnchor">
+           <enum>QGraphicsView::NoAnchor</enum>
+          </property>
+          <property name="viewportUpdateMode">
+           <enum>QGraphicsView::FullViewportUpdate</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>809</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionLoad_Map"/>
+    <addaction name="actionLoad_Planner"/>
+    <addaction name="actionSave_Results"/>
+    <addaction name="actionClose_Map"/>
+    <addaction name="actionQuit"/>
+   </widget>
+   <widget class="QMenu" name="menuRun">
+    <property name="title">
+     <string>Run</string>
+    </property>
+    <addaction name="actionRun"/>
+    <addaction name="actionStop_4"/>
+   </widget>
+   <widget class="QMenu" name="menuPlanner">
+    <property name="title">
+     <string>Planner</string>
+    </property>
+    <addaction name="actionProperties"/>
+   </widget>
+   <widget class="QMenu" name="menuPlayer_Stage">
+    <property name="title">
+     <string>Player-Stage</string>
+    </property>
+    <addaction name="actionLoad_World"/>
+    <addaction name="actionStart_Robot"/>
+    <addaction name="actionStop_Robot"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuRun"/>
+   <addaction name="menuPlanner"/>
+   <addaction name="menuPlayer_Stage"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionLoad_Map">
+   <property name="text">
+    <string>Load Map...</string>
+   </property>
+  </action>
+  <action name="actionLoad_Planner">
+   <property name="text">
+    <string>Load Planner...</string>
+   </property>
+  </action>
+  <action name="actionSave_Results">
+   <property name="text">
+    <string>Save Results...</string>
+   </property>
+  </action>
+  <action name="actionClose_Map">
+   <property name="text">
+    <string>Close</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionRun">
+   <property name="text">
+    <string>Run</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="text">
+    <string>Pause</string>
+   </property>
+  </action>
+  <action name="actionStop_2">
+   <property name="text">
+    <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionProperties">
+   <property name="text">
+    <string>Properties...</string>
+   </property>
+  </action>
+  <action name="actionLoad_World">
+   <property name="text">
+    <string>Load World...</string>
+   </property>
+  </action>
+  <action name="actionStop_3">
+   <property name="text">
+    <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionStop_4">
+   <property name="text">
+    <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionStart_Robot">
+   <property name="text">
+    <string>Start Robot</string>
+   </property>
+  </action>
+  <action name="actionStop_Robot">
+   <property name="text">
+    <string>Stop Robot</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>actionQuit</sender>
+   <signal>triggered()</signal>
+   <receiver>PPTestWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>404</x>
+     <y>276</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

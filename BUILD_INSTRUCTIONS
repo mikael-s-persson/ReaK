@@ -1,0 +1,44 @@
+**BUILD_INSTRUCTIONS**
+
+To build all the sources of the ReaK platform, including all test programs, the process should be familiar to anyone who has ever used the CMake build system before.
+
+Required:
+ - CMake version 2.6 or later.
+
+Dependencies:
+ - The Boost Library version 1.42.0 or later. Use:
+     $ sudo apt-get install libboost-all-dev
+
+Optional Dependencies for the Path-planning GUI and test programs:
+ - OpenCV version 4 or later. Use:
+     $ sudo apt-get install libcv4 libcv-dev libcvaux4 libcvaux-dev
+ - FreeImage. Use:
+     $ sudo apt-get install libfreeimage3 libfreeimage-dev
+ - Qt version 4.6 or later. Use:
+     $ sudo apt-get install libqtcore4 libqtgui4 libqt4-dev
+
+
+To build the ReaK platform, run the following commands:
+
+ - Go to the source top-level directory:
+     $ cd /path/to/ReaK/src
+ - Create a build folder (out-of-source build), and change to that directory:
+     $ mkdir build
+     $ cd build
+ - Run cmake on the top-level source folder:
+     $ cmake ..
+ - Compile:
+     $ make
+ - (Alternative) To compile a specific module or text program (and its internal dependencies), run this command:
+     $ make [specific_target]
+   where [specific_target] is replaced by the list of targets to be built (e.g. reak_core or test_math).
+
+To install the ReaK platform, run the following command:
+     $ make install
+ you might need to sudo this command. Note that the installation of ReaK is not really maintained or guaranteed to work in any way, it is at the bottom of the priorities in this project since the ReaK platform is meant to be an open-architecture library and not an end-user, development-package distribution.
+
+
+
+
+
+

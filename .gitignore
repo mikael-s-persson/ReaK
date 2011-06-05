@@ -1,0 +1,8 @@
+libreak*
+*.o
+bin/*
+build
+.kdev4
+include/*
+*~
+*.backup

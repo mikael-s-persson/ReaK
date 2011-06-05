@@ -1,0 +1,73 @@
+**README**
+
+ReaK
+
+Version: 0.2.0.0
+
+Brief description: Software platform and algorithms for multi-body dynamics simulation, control, estimation, and path-planning. Intended for robotics software development and testing.
+
+
+
+Copyright 2011 Sven Mikael Persson
+
+    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program (as LICENSE in the root folder).  
+    If not, see <http://www.gnu.org/licenses/>.
+
+
+Main contributor and founder: Sven Mikael Persson, M.Sc.(Tech.) <mikael.s.persson@gmail.com>
+
+
+
+Detailed description: 
+
+ReaK (pronounced as the 'reac' in 'reaction' or 'reactor') is a software platform which is the result of many years of accumulation of C++ code used by the original author (Sven Mikael Persson) for various project in the fields of multibody dynamics and control. At the core of the ReaK platform are several general-purpose utilities which facilitate serialization / deserialization of objects, memory sharing between distributed software modules, run-time type identification, and data input / output. 
+
+The core math libraries included in ReaK handle basic linear algebra methods (fixed and variable size vectors, variable size matrices of various structures and alignments, and matrix composition, views and slices), 2D and 3D geometric calculations (rotations and kinetostatic frame transformations), matrix numerical methods (LU, Cholesky, QR, Jacobi, SVD, PadeSAS matrix exponentials, Redheffer star-product, and matrix norms), numerical integration methods (fixed-step, variable-step, and multi-step predictor-correctors, both closed-form and iterative), and a set of optimization routines (although out-dated and seldom used). Performance optimization of these libraries is limited to good coding style, but do not expect these math libraries to be the fastest available, they were designed to be easy to use and interoperable, not for performance-critical applications.
+
+The multibody dynamics elements of this library were developed according to the Kinetostatic Transmission Elements (KTEs) framework, as originally developed by Prof. Andres Kesckemethy at Graz University (now at the University of Duisburg-Essen), this is not, however, developed from other existing code that use KTEs, this is an original implementation which was done during the course of a Master's degree, by the original author, in Space Robotics and Automation at Aalto University, School of Science and Technology in Helsinki, Finland. This framework allows serial kinematic chains to be modeled in a modular and flexible fashion, to be used for model-based control of a robotic system and high-fidelity dynamics simulations [1]. The construction of a dynamics model is done via a serial chain of KTEs which model simple (or complex) transmission of motion and forces (hence the 'kineto' and 'static' in Kinetostatic Transmission Elements). Available KTEs include, but not limited to, the following: inertial elements, (torsional) springs, (torsional) dampers, revolute joints, prismatic joints, free joints, rigid links, flexible Euler-Bernoulli beams, force actuators, driving actuators, geometric constraints (point-on-line and point-on-plane), dry and viscous friction, virtual-to-real model interfaces (for Virtual Model Control (VMC)), and state measurements and direct controls (no motor/controller model). Additionally, some utility classes are available, which are not KTEs but work in parallel to KTEs to extract higher-level information about the KTE chain. The main utility class is the mass_matrix_calc class which can, once given a list of degrees-of-freedom, joint motion jacobians and inertial elements, be used to compute the system's mass-matrix as well as its composing elements (twist-shaping matrix and aggregate, constant mass matrix), and their derivatives (and thus, also the time-derivative of the system mass matrix, which is useful in model-based control and estimation).
+
+Finally, for the purpose of estimation and path-planning, the ReaK platform includes several generic algorithms and concepts for state representation and estimation, and probabilistic path-planning methods. Note that this part of ReaK is under active development (as part of the author's Ph.D. research), so it should be considered as very experimental at this stage and incomplete parts are to be expected. First, the state estimation algorithms and concepts include several variations of the Kalman filtering method, including the '(Extended-)Kalman Filter' ([E]KF), the '(Extended-)Kalman-Bucy Filter' ([E]KBF), the 'Hybrid Kalman Filter' (HKF), the 'Unscented Kalman Filter' (UKF), the 'Aggregate Kalman Filter' (AKF), the 'Symplectic Kalman Filter' (SKF), and 'Invariant' versions of most of the filters (IKF, IKBF, IAKF, and ISKF). The implementations are all generic, based on a certain number of concepts (using the 'Boost.Concept-Check' library) that define fundamental constructs such as a continuous-time state-space system, a continuous-time linear state-space system (including linear-time-invariant (LTI), linear-time-varying (LTV), and linearized at the current time, state and input), discrete-time versions of those state-space system concepts, an invariant state-space system, a covariance matrix representation, and a belief-state representation. Additionally, a Gaussian belief-state class is also provided for convenience. Second, the path-planning algorithms include several basic implementations and concepts related to classic probabilistic path-planning methods and other related utilities. Most algorithms build upon the framework of the Boost.Graph library, in the same programming style. Algorithms include the 'Anytime Dynamic A*' (AD*), the 'Rapidly-exploring Random Tree' (RRT), the 'Probabilistic Roadmap' (PRM), and the 'Flexible Anytime Dynamic Probabilistic Roadmap' (FADPRM). Several concepts are defined such as a metric space, a temporal space, a reachability space, as well as spatial paths and trajectories. Additionally, some of the utilities provided include linear-search through topological point-sets (for nearest-neighbor queries, through extensive search), a 'Dynamic Vantage-Point Tree' (DVP-tree) implementation for fast nearest-neighbor queries via the partitioning of a general metric space, and a multi-index sorting of points of a reachability space for fast nearest-reachable-neighbor queries. This part of ReaK will be under heavy development during the summer of 2011, contributers are welcomed!
+
+
+External Dependencies:
+
+ - CMake build system.
+ - The Boost Library (www.boost.org), version 1.42.0 or later.
+
+Optional External Dependencies (for test-programs):
+
+ - OpenCV
+ - FreeImage
+ - Qt 4.6 or later
+
+
+Folder Descriptions:
+
+ - ./src is the top-level folder for all source files and the top-level CMakeLists.txt file.
+ - ./bin is the folder in which all compiled, executable binary will be put when built with cmake.
+ - ./lib is the folder in which all compiled libraries will be put when built with cmake.
+ - ./dox is the folder where the Doxyfile is and is the working directory for generating doxygen documentation for the ReaK platform.
+ - ./include is the folder where headers for the platform are installed after running "make install"
+
+
+File Descriptions:
+ - README is this file.
+ - LICENSE contains the text version of the GNU GPLv3 license agreement.
+ - TODO_list.txt is the current list of things to be implemented in the near future.
+
+
+
+

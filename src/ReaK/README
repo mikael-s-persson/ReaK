@@ -1,0 +1,32 @@
+This folder is the top-level of all the source files for the ReaK platform.
+
+The files included are:
+
+ - CMakeLists.txt: is the cmake file that includes the subfolders in the build process.
+
+ - TypeIDList.txt: is a repository listing of all the classes that exist in the ReaK platform, or more
+                   specifically, in the ReaK::rtti system. In RTTI, each class is associated with a unique
+                   hexadecimal 32-bit value that identifies it. It is important that this value be unique
+                   and that is the purpose of this repository: to list all classes with their ID to make sure
+                   they are all unique and in a logical hierarchy. Furthermore, this repository is not used
+                   to link with the classes, so it is the programmers responsibility to keep this repository 
+                   up-to-date and make sure the classes are implemented with their assigned TypeID.
+
+
+The subfolders are:
+
+ - core: includes all the core elements of the ReaK platform: RTTI, data recorders, serialization, foundation classes (base), math libraries (math) and numerical integrators (integrators).
+
+ - ctrl: includes all the libraries for multibody dynamics classes (KTE models), graph search and generation algorithms (AD*, RRT, PRM, etc.), path-planning algorithms and concepts (reachability sort, metric-space partitioning, etc.), and estimation algorithms (several Kalman filtering algorithms and related concepts and utilities).
+
+ - examples: includes application-specific code that uses this platform, for the purpose of simple examples.
+
+
+DEBUG VERBOSITY:
+
+Most of the ReaK source files include a number of debug printing (the "RK_NOTICE" MACRO) which are conditionally
+built against a verbosity level (the "RK_VERBOSITY" define) going from 0 (no debug output) to 10 (full debug output).
+
+To change the debug verbosity, follow this procedure:
+ - Open the file CMakeLists.txt in a text editor of your choice.
+ - Change the verbosity level in the line "add_definitions(-DRK_VERBOSITY=0)" to which ever level you wish.

@@ -1,0 +1,293 @@
+                            Hex          bin: -FC- -GR- -BA- -US- -US- -US- -US- [PR]   --> FC: Foundation Class;
+//Foundation classes                                                                        GR: Group; 
+typed_object                0x00000000   bin: 0000 0000 0000 0000 0000 0000 0000 0000  D    BA: Base class; 
+serializable                0x80000000   bin: 1000 0000 0000 0000 0000 0000 0000 0000  D    US: User defined;
+shared_object               0x80000001   bin: 1000 0000 0000 0000 0000 0000 0000 0001  D    PR: Primitive [if applicable]
+named_object                0xC0000000   bin: 1100 0000 0000 0000 0000 0000 0000 0000  D
+
+//Recorders
+data_recorder               0x81100001   bin: 1000 0001 0001 0000 0000 0000 0000 0001  D
+ssv_recorder                0x81100002   bin: 1000 0001 0001 0000 0000 0000 0000 0010  D
+tsv_recorder                0x81100003   bin: 1000 0001 0001 0000 0000 0000 0000 0011  D
+bin_recorder                0x81100004   bin: 1000 0001 0001 0000 0000 0000 0000 0100  D
+data_extractor              0x81200001   bin: 1000 0001 0010 0000 0000 0000 0000 0001  D
+ssv_extractor               0x81200002   bin: 1000 0001 0010 0000 0000 0000 0000 0010  D
+tsv_extractor               0x81200003   bin: 1000 0001 0010 0000 0000 0000 0000 0011  D
+bin_extractor               0x81200004   bin: 1000 0001 0010 0000 0000 0000 0000 0100  D
+event_log                   0x81000001   bin: 1000 0001 0000 0000 0000 0000 0000 0001
+
+
+//Primitive type IDs
+int                         0x00000001   bin: 0000 0000 0000 0000 0000 0000 0000 0001  R
+uint                        0x00000002   bin: 0000 0000 0000 0000 0000 0000 0000 0010  R
+float                       0x00000003   bin: 0000 0000 0000 0000 0000 0000 0000 0011  R
+double                      0x00000004   bin: 0000 0000 0000 0000 0000 0000 0000 0100  R
+bool                        0x00000005   bin: 0000 0000 0000 0000 0000 0000 0000 0101  R
+std::string                 0x00000006   bin: 0000 0000 0000 0000 0000 0000 0000 0110  R
+complex<T>                  0x00000007   bin: 0000 0000 0000 0000 0000 0000 0000 0111  D-R
+long unsigned int           0x0000000F   bin: 0000 0000 0000 0000 0000 0000 0000 1111
+
+//STL containers
+std::vector<T>              0x00000008   bin: 0000 0000 0000 0000 0000 0000 0000 1000  R
+std::list<T>                0x00000009   bin: 0000 0000 0000 0000 0000 0000 0000 1001  R
+std::map<K,T>               0x0000000A   bin: 0000 0000 0000 0000 0000 0000 0000 1010  R
+std::set<T>                 0x0000000B   bin: 0000 0000 0000 0000 0000 0000 0000 1011  R
+                            0x0000000C
+                            0x0000000D
+                            0x0000000E
+
+//Pseudo-Primitive type IDs (at least derived from serializable)
+gen_coord<T>                0x0000000F   bin: 0000 0000 0000 0000 0000 0000 0000 1111  D
+vect_n<T>                   0x00000010   bin: 0000 0000 0000 0000 0000 0000 0001 0000  D
+vect<T,Size>                0x00000011   bin: 0000 0000 0000 0000 0000 0000 0001 0001  D
+mat<T,S,A>                  0x00000012   bin: 0000 0000 0000 0000 0000 0000 0001 0010  D
+mat_fix<T,S,R,C,A>          0x00000013   bin: 0000 0000 0000 0000 0000 0000 0001 0011  
+rot_2D<T>                   0x00000016   bin: 0000 0000 0000 0000 0000 0000 0001 0110  D
+trans_2D<T>                 0x00000017   bin: 0000 0000 0000 0000 0000 0000 0001 0111  D
+rot_3D<T>                   0x00000018   bin: 0000 0000 0000 0000 0000 0000 0001 1000  D
+trans_3D<T>                 0x00000019   bin: 0000 0000 0000 0000 0000 0000 0001 1001  D
+quaternion<T>               0x0000001A   bin: 0000 0000 0000 0000 0000 0000 0001 1010  D
+euler_angles_TB<T>          0x0000001B   bin: 0000 0000 0000 0000 0000 0000 0001 1011  D
+axis_angle<T>               0x0000001C   bin: 0000 0000 0000 0000 0000 0000 0001 1100  D
+pose_2D<T>                  0x0000001D   bin: 0000 0000 0000 0000 0000 0000 0001 1101  D
+pose_3D<T>                  0x0000001E   bin: 0000 0000 0000 0000 0000 0000 0001 1110  D
+frame_2D<T>                 0x0000001F   bin: 0000 0000 0000 0000 0000 0000 0001 1111  D
+frame_3D<T>                 0x00000020   bin: 0000 0000 0000 0000 0000 0000 0010 0000  D
+time_tagged<T>              0x00000021   bin: 0000 0000 0000 0000 0000 0000 0010 0001  D
+jacobian_gen_gen<T>         0x00000022   bin: 0000 0000 0000 0000 0000 0000 0010 0010  D
+jacobian_gen_2D<T>          0x00000023   bin: 0000 0000 0000 0000 0000 0000 0010 0011  D
+jacobian_gen_3D<T>          0x00000024   bin: 0000 0000 0000 0000 0000 0000 0010 0100  D
+jacobian_2D_gen<T>          0x00000025   bin: 0000 0000 0000 0000 0000 0000 0010 0101  D
+jacobian_2D_2D<T>           0x00000026   bin: 0000 0000 0000 0000 0000 0000 0010 0110  D
+jacobian_2D_3D<T>           0x00000027   bin: 0000 0000 0000 0000 0000 0000 0010 0111  D
+jacobian_3D_gen<T>          0x00000028   bin: 0000 0000 0000 0000 0000 0000 0010 1000  D
+jacobian_3D_2D<T>           0x00000029   bin: 0000 0000 0000 0000 0000 0000 0010 1001  D
+jacobian_3D_3D<T>           0x0000002A   bin: 0000 0000 0000 0000 0000 0000 0010 1010  D
+
+//Subsumption architecture  0xC14*****
+node                        0xC1400001   bin: 1100 0001 0100[0000 0000 0000 0000 0001] D-R
+node_group                  0xC1400002   bin:                0000 0000 0000 0000 0010  D-R
+connection                  0xC1400003   bin:                0000 0000 0000 0000 0011  D-R
+root_node                   0xC1400004   bin:                0000 0000 0000 0000 0100  D-R
+
+signal<T>                   0xC110****   bin: 1100 0001 0001 0000[*********T*********] D-R
+inhibitor<T>                0xC120****   bin: 1100 0001 0010 0000[*********T*********] D-R
+suppressor<T>               0xC130****   bin: 1100 0001 0011 0000[*********T*********] D-R
+summation_node<T>           0xC111****
+
+
+//Kinetostatic transmission elements 0xC21*****
+kte_map                     0xC2100001   bin: 1100 0010 0001 0000 0000 0000 0000 0001  D-R
+kte_map_chain               0xC2100002   bin: 1100 0010 0001 0000 0000 0000 0000 0010  D-R
+
+mass_matrix_calc            0xC2000001   bin: 1100 0010 0000 0000 0000 0000 0000 0001  D-R
+
+revolute_joint_2D           0xC2100003   bin: 1100 0010 0001 0000 0000 0000 0000 0011  D-R
+revolute_joint_3D           0xC2100004   bin: 1100 0010 0001 0000 0000 0000 0000 0100  D-R
+prismatic_joint_2D          0xC2100005   bin: 1100 0010 0001 0000 0000 0000 0000 0101  D-R
+prismatic_joint_3D          0xC2100006   bin: 1100 0010 0001 0000 0000 0000 0000 0110  D-R
+rigid_link_gen              0xC2100007   bin: 1100 0010 0001 0000 0000 0000 0000 0111  D-R
+rigid_link_2D               0xC2100008   bin: 1100 0010 0001 0000 0000 0000 0000 1000  D-R
+rigid_link_3D               0xC2100009   bin: 1100 0010 0001 0000 0000 0000 0000 1001  D-R
+inertia_gen                 0xC210000A   bin: 1100 0010 0001 0000 0000 0000 0000 1010  D-R
+inertia_2D                  0xC210000B   bin: 1100 0010 0001 0000 0000 0000 0000 1011  D-R
+inertia_3D                  0xC210000C   bin: 1100 0010 0001 0000 0000 0000 0000 1100  D-R
+spring_gen                  0xC210000D   bin: 1100 0010 0001 0000 0000 0000 0000 1101  D-R
+spring_2D                   0xC210000E   bin: 1100 0010 0001 0000 0000 0000 0000 1110  D-R
+spring_3D                   0xC210000F   bin: 1100 0010 0001 0000 0000 0000 0000 1111  D-R
+damper_gen                  0xC2100010   bin: 1100 0010 0001 0000 0000 0000 0001 0000  D-R
+damper_2D                   0xC2100011   bin: 1100 0010 0001 0000 0000 0000 0001 0001  D-R
+damper_3D                   0xC2100012   bin: 1100 0010 0001 0000 0000 0000 0001 0010  D-R
+virtual_kte_int_gen         0xC2100013   bin: 1100 0010 0001 0000 0000 0000 0001 0011  D-R
+virtual_kte_int_2D          0xC2100014   bin: 1100 0010 0001 0000 0000 0000 0001 0100  D-R
+virtual_kte_int_3D          0xC2100015   bin: 1100 0010 0001 0000 0000 0000 0001 0101  D-R
+reacting_kte_gen            0xC2100016   bin: 1100 0010 0001 0000 0000 0000 0001 0110  D-R
+reacting_kte_2D             0xC2100017   bin: 1100 0010 0001 0000 0000 0000 0001 0111  D-R
+reacting_kte_3D             0xC2100018   bin: 1100 0010 0001 0000 0000 0000 0001 1000  D-R
+force_actuator_gen          0xC2100019   bin: 1100 0010 0001 0000 0000 0000 0001 1001  D-R
+force_actuator_2D           0xC210001A   bin: 1100 0010 0001 0000 0000 0000 0001 1010  D-R
+force_actuator_3D           0xC210001B   bin: 1100 0010 0001 0000 0000 0000 0001 1011  D-R
+flexible_beam_2D            0xC210001C   bin: 1100 0010 0001 0000 0000 0000 0001 1100  D-R
+flexible_beam_3D            0xC210001D   bin: 1100 0010 0001 0000 0000 0000 0001 1101  D-R
+inertial_beam_2D            0xC210001E   bin: 1100 0010 0001 0000 0000 0000 0001 1110  D-R
+inertial_beam_3D            0xC210001F   bin: 1100 0010 0001 0000 0000 0000 0001 1111  D-R
+joint_dry_microslip_gen     0xC2100020   bin: 1100 0010 0001 0000 0000 0000 0010 0000  D-R
+joint_viscosity_gen         0xC2100021   bin: 1100 0010 0001 0000 0000 0000 0010 0001  D-R
+joint_backlash_gen          0xC2100022   bin: 1100 0010 0001 0000 0000 0000 0010 0010  D-R
+driving_actuator_gen        0xC2100023   bin: 1100 0010 0001 0000 0000 0000 0010 0011  D-R
+driving_actuator_2D         0xC2100024   bin: 1100 0010 0001 0000 0000 0000 0010 0100  D-R
+driving_actuator_3D         0xC2100025   bin: 1100 0010 0001 0000 0000 0000 0010 0101  D-R
+vmc_revolute_joint_2D       0xC2100026   bin: 1100 0010 0001 0000 0000 0000 0010 0110  D-R
+vmc_revolute_joint_3D       0xC2100027   bin: 1100 0010 0001 0000 0000 0000 0010 0111  D-R
+manipulator_Nrev_3D         0xC2100028   bin: 1100 0010 0001 0000 0000 0000 0010 1000  D-R
+vmc_manipulator_Nrev_3D     0xC2100029   bin: 1100 0010 0001 0000 0000 0000 0010 1001  
+dry_revolute_joint_2D       0xC210002A   bin: 1100 0010 0001 0000 0000 0000 0010 1010  D-R
+dry_revolute_joint_3D       0xC210002B   bin: 1100 0010 0001 0000 0000 0000 0010 1011  D-R
+torsion_spring_2D           0xC210002C   bin: 1100 0010 0001 0000 0000 0000 0010 1100  D-R
+torsion_spring_3D           0xC210002D   bin: 1100 0010 0001 0000 0000 0000 0010 1101  D-R
+torsion_damper_2D           0xC210002E   bin: 1100 0010 0001 0000 0000 0000 0010 1110  D-R
+torsion_damper_3D           0xC210002F   bin: 1100 0010 0001 0000 0000 0000 0010 1111  D-R
+plane_point_mindist_3D      0xC2100030   bin: 1100 0010 0001 0000 0000 0000 0011 0000  D-R
+line_point_mindist_2D       0xC2100031   bin: 1100 0010 0001 0000 0000 0000 0011 0001  D-R
+line_point_mindist_3D       0xC2100032   bin: 1100 0010 0001 0000 0000 0000 0011 0010  D-R
+system_input                0xC2100033   bin: 1100 0010 0001 0000 0000 0000 0011 0011  D-R
+system_output               0xC2100034   bin: 1100 0010 0001 0000 0000 0000 0011 0100  D-R
+position_measure_gen        0xC2100035   bin: 1100 0010 0001 0000 0000 0000 0011 0101  D-R
+position_measure_2D         0xC2100036   bin: 1100 0010 0001 0000 0000 0000 0011 0110  D-R
+position_measure_3D         0xC2100037   bin: 1100 0010 0001 0000 0000 0000 0011 0111  D-R
+rotation_measure_2D         0xC2100038   bin: 1100 0010 0001 0000 0000 0000 0011 1000  D-R
+rotation_measure_3D         0xC2100039   bin: 1100 0010 0001 0000 0000 0000 0011 1001  D-R
+velocity_measure_gen        0xC210003A   bin: 1100 0010 0001 0000 0000 0000 0011 1010  D-R
+velocity_measure_2D         0xC210003B   bin: 1100 0010 0001 0000 0000 0000 0011 1011  D-R
+velocity_measure_3D         0xC210003C   bin: 1100 0010 0001 0000 0000 0000 0011 1100  D-R
+ang_velocity_measure_2D     0xC210003D   bin: 1100 0010 0001 0000 0000 0000 0011 1101  D-R
+ang_velocity_measure_3D     0xC210003E   bin: 1100 0010 0001 0000 0000 0000 0011 1110  D-R
+output_noise                0xC210003F   bin: 1100 0010 0001 0000 0000 0000 0011 1111  
+input_noise                 0xC2100040   bin: 1100 0010 0001 0000 0000 0000 0100 0000  
+free_joint_2D               0xC2100041   bin: 1100 0010 0001 0000 0000 0000 0100 0001  D-R
+free_joint_3D               0xC2100042   bin: 1100 0010 0001 0000 0000 0000 0100 0010  D-R
+position_control_gen        0xC2100043   bin: 1100 0010 0001 0000 0000 0000 0100 0011  D-R
+position_control_2D         0xC2100044   bin: 1100 0010 0001 0000 0000 0000 0100 0100  D-R
+position_control_3D         0xC2100045   bin: 1100 0010 0001 0000 0000 0000 0100 0101  D-R
+rotation_control_2D         0xC2100046   bin: 1100 0010 0001 0000 0000 0000 0100 0110  D-R
+rotation_control_3D         0xC2100047   bin: 1100 0010 0001 0000 0000 0000 0100 0111  D-R
+velocity_control_gen        0xC2100048   bin: 1100 0010 0001 0000 0000 0000 0100 1000  D-R
+velocity_control_2D         0xC2100049   bin: 1100 0010 0001 0000 0000 0000 0100 1001  D-R
+velocity_control_3D         0xC210004A   bin: 1100 0010 0001 0000 0000 0000 0100 1010  D-R
+ang_velocity_control_2D     0xC210004B   bin: 1100 0010 0001 0000 0000 0000 0100 1011  D-R
+ang_velocity_control_3D     0xC210004C   bin: 1100 0010 0001 0000 0000 0000 0100 1100  D-R
+
+
+
+//Numerical Integrators     0xC22*****
+state_rate_function<T>      0xC2200001   bin: 1100 0010 0010 0000 0000 0000 0000 0001  D-R
+integrator<T>               0xC2210000   bin: 1100 0010 0010 0001 0000 0000 0000 0000  D-R
+variable_step_integrator<T> 0xC2220000   bin: 1100 0010 0010 0010 0000 0000 0000 0000  D-R
+euler_integrator<T>         0xC2210001   bin: 1100 0010 0010 0001 0000 0000 0000 0001  D-R
+midpoint_integrator<T>      0xC2210002   bin: 1100 0010 0010 0001 0000 0000 0000 0010  D-R
+runge_kutta4_integrator<T>  0xC2210003   bin: 1100 0010 0010 0001 0000 0000 0000 0011  D-R
+runge_kutta5_integrator<T>  0xC2210004   bin: 1100 0010 0010 0001 0000 0000 0000 0100  D-R
+adamsBM3_integrator<T>      0xC2210005   bin: 1100 0010 0010 0001 0000 0000 0000 0101  D-R
+adamsBM5_integrator<T>      0xC2210006   bin: 1100 0010 0010 0001 0000 0000 0000 0110  D-R
+newtonBDF_integrator<T>     0xC2210007   bin: 1100 0010 0010 0001 0000 0000 0000 0111  
+hamming_mod_integrator<T>   0xC2210008   bin: 1100 0010 0010 0001 0000 0000 0000 1000  D-R
+hamming_iter_mod_integrator<T> 0xC2210009bin: 1100 0010 0010 0001 0000 0000 0000 1001  D-R
+fehlberg45_integrator<T>    0xC2220001   bin: 1100 0010 0010 0010 0000 0000 0000 0001  D-R
+dormand_prince45_integrator<T> 0xC2220002bin: 1100 0010 0010 0010 0000 0000 0000 0010  D-R
+adamsBM_var_integrator<T>   0xC2220003   bin: 1100 0010 0010 0010 0000 0000 0000 0011  
+newtonBDF_var_integrator<T> 0xC2220004   bin: 1100 0010 0010 0010 0000 0000 0000 0100  
+
+//Control And Estimation    0xC23*****
+lti_system_ss<T>            0xC2300001   bin: 1100 0010 0011 0000 0000 0000 0000 0001  D-R
+kte_nl_system               0xC2300002   bin: 1100 0010 0011 0000 0000 0000 0000 0010  D-R
+kte_lin_system              0xC2300003   bin: 1100 0010 0011 0000 0000 0000 0000 0011  
+lti_discrete_sys<T>         0xC2300004   bin: 1100 0010 0011 0000 0000 0000 0000 0100  D-R
+discretized_lti_sys<Sys>    0xC2300005   bin: 1100 0010 0011 0000 0000 0000 0000 0101  D-R
+num_int_dtnl_sys<Sys>       0xC2300006   bin: 1100 0010 0011 0000 0000 0000 0000 0110  D-R
+num_int_dtlin_sys<Sys>      0xC2300007   bin: 1100 0010 0011 0000 0000 0000 0000 0111  
+
+covariance_matrix<T>        0xC2300008   bin: 1100 0010 0011 0000 0000 0000 0000 1000  D-R
+covariance_info_matrix<T>   0xC2300009   bin: 1100 0010 0011 0000 0000 0000 0000 1001  D-R
+decomp_covariance_matrix<T> 0xC230000A   bin: 1100 0010 0011 0000 0000 0000 0000 1010  D-R
+
+gaussian_belief_state<Cov>  0xC2300010   bin: 1100 0010 0011 0000 0000 0000 0001 0000  D-R
+
+
+//Robot-Airship specific classes 0xC231****
+airship2D_lin_model         0xC2310001   bin: 1100 0010 0011 0001 0000 0000 0000 0001  D-R
+airship2D_inv_system        0xC2310002   bin: 1100 0010 0011 0001 0000 0000 0000 0010  D-R
+airship2D_lin_dt_system     0xC2310003   bin: 1100 0010 0011 0001 0000 0000 0000 0011  D-R
+
+
+//WoPa specific classes     0xC141****
+interface_node(sim)         0xC1410001   bin: 1100 0001 0100 0001 0000 0000 0000 0001  D-R
+interface_node(MaCI)        0xC1410002   bin: 1100 0001 0100 0001 0000 0000 0000 0010  D-R
+feedback_lin_ctrl           0xC1410003   bin: 1100 0001 0100 0001 0000 0000 0000 0011  D-R
+adaptive_model_ctrl         0xC1410004   bin: 1100 0001 0100 0001 0000 0000 0000 0100  
+inner_loop_ctrl             0xC1410005   bin: 1100 0001 0100 0001 0000 0000 0000 0101  D-R
+impact_reaction             0xC1410006   bin: 1100 0001 0100 0001 0000 0000 0000 0110  
+object_handling             0xC1410007   bin: 1100 0001 0100 0001 0000 0000 0000 0111  D-R
+object_adaptation           0xC1410008   bin: 1100 0001 0100 0001 0000 0000 0000 1000  
+vmc_attract_EE              0xC1410009   bin: 1100 0001 0100 0001 0000 0000 0000 1001  D-R
+vmc_retract_EE              0xC141000A   bin: 1100 0001 0100 0001 0000 0000 0000 1010  
+vmc_ctrl_mission            0xC141000B   bin: 1100 0001 0100 0001 0000 0000 0000 1011  
+constant_attract_point      0xC141000C   bin: 1100 0001 0100 0001 0000 0000 0000 1100  D-R
+elmo_interface_node         0xC141000D   bin: 1100 0001 0100 0001 0000 0000 0000 1101  D-R
+elmo_axis_interface         0xC141000E   bin: 1100 0001 0100 0001 0000 0000 0000 1110  D-R
+oscil_attract_point         0xC141000F   bin: 1100 0001 0100 0001 0000 0000 0000 1111  D-R
+base_interface_node(MaCI)   0xC1410010   bin: 1100 0001 0100 0001 0000 0000 0001 0000  D-R
+joint_pulses                0xC1410011   bin: 1100 0001 0100 0001 0000 0000 0001 0001  D-R
+singularity_avoidance       0xC1410012   bin: 1100 0001 0100 0001 0000 0000 0001 0010  D-R
+object_on_plane_ctrl        0xC1410013   bin: 1100 0001 0100 0001 0000 0000 0001 0011  D-R
+ext_force_estimator         0xC1410014   bin: 1100 0001 0100 0001 0000 0000 0001 0100  D-R
+sim_interface_ext           0xC1410015   bin: 1100 0001 0100 0001 0000 0000 0001 0101  D-R
+collision_detector          0xC1410016   bin: 1100 0001 0100 0001 0000 0000 0001 0110  D-R
+
+
+//Artificial Intelligence library classes 0xC142****
+play_ground                 0xC1420001   bin: 1100 0001 0100 0010 0000 0000 0000 0001  D-R
+diff_play_ground            0xC1420002   bin: 1100 0001 0100 0010 0000 0000 0000 0010  D-R
+
+agent                       0xC1428001   bin: 1100 0001 0100 0010 1000 0000 0000 0001  D-R
+diff_agent                  0xC1428002   bin: 1100 0001 0100 0010 1000 0000 0000 0010  D-R
+
+
+//Cat and Mice Game
+cat_mice_game               0xC1420101   bin: 1100 0001 0100 0010 1000 0001 0000 0001  R
+cat_agent                   0xC1428101   bin: 1100 0001 0100 0010 1000 0001 0000 0001  D-R
+mouse_agent                 0xC1428102   bin: 1100 0001 0100 0010 1000 0001 0000 0010  D-R
+knn_mouse_immature          0xC1428103   bin: 1100 0001 0100 0010 1000 0001 0000 0011  D-R
+knn_mouse_mature            0xC1428104   bin: 1100 0001 0100 0010 1000 0001 0000 0100  D-R
+gen_mouse_immature          0xC1428105   bin: 1100 0001 0100 0010 1000 0001 0000 0101  D-R
+gen_mouse_mature            0xC1428106   bin: 1100 0001 0100 0010 1000 0001 0000 0110  D-R
+rl_mouse_immature           0xC1428107   bin: 1100 0001 0100 0010 1000 0001 0000 0111  D-R
+rl_mouse_mature             0xC1428108   bin: 1100 0001 0100 0010 1000 0001 0000 1000  D-R
+opt_mouse                   0xC1428109   bin: 1100 0001 0100 0010 1000 0001 0000 1001  D-R
+knn_cat_immature            0xC142810A   bin: 1100 0001 0100 0010 1000 0001 0000 1010  D-R
+knn_cat_mature              0xC142810B   bin: 1100 0001 0100 0010 1000 0001 0000 1011  D-R
+rl_cat_immature             0xC142810C   bin: 1100 0001 0100 0010 1000 0001 0000 1100  D-R 
+rl_cat_mature               0xC142810D   bin: 1100 0001 0100 0010 1000 0001 0000 1101  D-R
+gen_cat_immature            0xC142810E   bin: 1100 0001 0100 0010 1000 0001 0000 1110  D-R
+gen_cat_mature              0xC142810F   bin: 1100 0001 0100 0010 1000 0001 0000 1111  D-R
+opt_cat                     0xC1428110   bin: 1100 0001 0100 0010 1000 0001 0001 0000  D-R
+
+
+//Renderer classes          0xCF******
+window_base                 0xCF010000   bin: 1100 1111 0000 0000 0000 0000 0000 0000  D
+scene_base                  0xCF020000   bin: 1100 1111 0000 0001 0000 0000 0000 0000  D
+scene                       0xCF*2****   bin: 1100 1111 **** 0001 **** **** **** ****  D
+visible_object_base         0xCF030000   bin: 1100 1111 0000 0011 0000 0000 0000 0000  D-R
+visible_object              0xCF*3****   bin: 1100 1111 **** 0011 **** **** **** ****  D-R
+mouse_event                 0xCF040001   bin: 1100 1111 0000 0010 0000 0000 0000 0001  D-R
+keyboard_event              0xCF040002   bin: 1100 1111 0000 0010 0000 0000 0000 0010  D-R
+render_area_event           0xCF040003   bin: 1100 1111 0000 0010 0000 0000 0000 0011  D-R
+
+//OpenGL rendering          0x**1*****   bin: **** **** ***1 **** **** **** **** ****    (options: GLUT (3), GLUI (B), Qt (5), SDL (9), or MFC (D))
+
+//DirectX rendering         0x**2*****   bin: **** **** **10 **** **** **** **** ****    (options: Qt (6), or MFC (E))
+
+//Software rendering        0x**0*****   bin: **** **** **00 **** **** **** **** ****    (options: SDL (8), Qt (4), or MFC (C))
+
+//GLUT window               0x**3*****   bin: **** **** *011 **** **** **** **** ****    (options: GLUI (B), just GLUT (3))
+glut::window                0xCF300000   bin: 1100 1111 0011 0000 0000 0000 0000 0000  R
+
+//GLUI window               0x**B*****   bin: **** **** 1011 **** **** **** **** ****  
+
+//Qt window                 0x**4*****   bin: **** **** 01** **** **** **** **** ****    (options: OpenGL (5), DirectX (6), or QCanvas (4))
+ 
+//SDL window                0x**8*****   bin: **** **** 100* **** **** **** **** ****    (options: openGL (9) or SDL_draw (8))
+
+//MFC window                0x**C*****   bin: **** **** 11** **** **** **** **** ****    (options: OpenGL (D) or DirectX (E) or some MFC Canvas (C))
+
+
+
+
+
+
+
+
+
+
+
+
+

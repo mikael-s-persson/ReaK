@@ -1,0 +1,191 @@
+
+
+///----------------PATH PLANNING-------------
+
+///----------------ALGORITHMS----------------
+
+finish reachability sorting algorithm
+  test it on 1D+T space
+
+implement sequential EKF on target trajectory
+  define trajectory concept    --------------------------------------------------X
+    define way-point based trajectory concept    --------------------------------|
+      implement point-to-point (reachable) trajectories   
+  define motion-prediction concept
+    define state-space system concept    ----------------------------------------X
+      define linear state-space system concept    -------------------------------X
+        define LTI state-sapce system concept    --------------------------------X
+          implement LTI systems (A,B,C,D)   -------------------------------------X
+      define non-linear state-space system concept    ---------------------------X
+        implement non-linear multi-body dynamics systems based on a KTE chain   -X
+      define linearized state-space system concept    ---------------------------X
+        implement linearized multi-body dynamics systems based on a KTE chain   -O  : I don't think this is possible
+    define discrete-time state-space system concept   ---------------------------X
+      define linear discrete-time state-space system concept   ------------------X
+        implement Discrete-time LTI system   ------------------------------------X
+        implement integration of LTI system into a discrete-time system   -------X
+      define non-linear discrete-time state-space system concept   --------------X
+      define linearized discrete-time state-space system concept   --------------X
+      implement numerically-integrated discrete-time state-space systems   ------X
+    define covariance concept   -------------------------------------------------X
+      implement covariance matrix   ---------------------------------------------X
+      implement covariance info matrix   ----------------------------------------X
+      implement decomposed covariance matrix   ----------------------------------X
+    define belief-state concept   -----------------------------------------------X
+      implement Gaussian belief-state   -----------------------------------------X
+      implement point-based belief-state   
+    implement transitioner templates (free functions)
+      implement Bayes updates on gaussian belief states   -----------------------X
+        Kalman Filter   ---------------------------------------------------------X
+        Extended Kalman Filter   ------------------------------------------------X
+        Kalman-Bucy Filter   ----------------------------------------------------X
+        Hybrid Kalman Filter   --------------------------------------------------X
+        Invariant Extended Kalman-Bucy Filter   ---------------------------------X
+        Invariant Extended Kalman Filter   --------------------------------------X
+        Unscented Kalman Filter   -----------------------------------------------X
+        Aggregate Kalman Filter   -----------------------------------------------X
+        Invariant Aggregate Kalman Filter   -------------------------------------X
+        Symplectic Kalman Filter   ----------------------------------------------X
+        Invariant Symplectic Kalman Filter   ------------------------------------X
+      implement belief-state overloads of transitioner templates
+  implement belief-state point-to-point (reachable) trajectories
+
+implement Elastic Roadmap
+  define transition function concept
+    add gradient computation
+    add "pushing" a vertex
+  implement vertex motion control loop
+  test it on AD*-like world (2D-particle robot with growing obstables)
+
+
+///----------------TEST SCENARIOS------------
+
+Kalman filtering tests
+  implement airship2D test models   ---------------------------------------------X
+    implement airship2D model   -------------------------------------------------X
+    implement airship2D simulator   ---------------------------------------------X
+      with input-disturbance   --------------------------------------------------X
+  implement data extractor (inverse of data-recorders)   ------------------------X
+  implement airship2D estimator systems   
+    implement airship2D linearized discrete-time model   
+    implement invariant airship2D discrete-time model   
+  implement airship3D test models   
+    implement airship3D model   
+    implement airship3D simulator   
+      with input disturbance   
+  implement airship3D estimator systems   
+    implement airship3D linearized discrete-time model   
+    implement invariant airship3D discrete-time model   
+  integrate airship models with Kalman filters   
+    test all Kalman filters   
+
+///----------------CORE(2)----------------------
+
+update everything into the new folder core2   -----------------------------------X
+
+///----------------RTTI-----------------------
+
+implement the repo as a reference ring (circular linked-list)  ------------------X
+
+explore template-based (or tmp) solutions for registering data types   ----------X
+  encode type IDs so that template arguments are scalably embedded in them   ----X
+  provide a more convenient way of registering types and IDs   ------------------X
+  provide trait specializations for primitive types   ---------------------------X
+
+
+///----------------SERIALIZATION--------------
+
+implement the virtual functions as protected member functions,   ----------------X
+  avoid overload-hiding problem   -----------------------------------------------X
+  PImpl the archiver   ----------------------------------------------------------X
+  make operators friends (no virtual overloads)   -------------------------------X
+
+implement protobuf-based archiver
+
+implement RPC-based archiver (both XML-RPC and Protobuf-RPC)
+
+
+///----------------MATH----------------------
+
+define generic matrix concepts   ------------------------------------------------X
+  refactor matrix library using generic concepts   ------------------------------X
+  extend support for ortho, lo-tri, hi-tri and tridiag  
+  implement vector-to-matrix adaptor   ------------------------------------------X
+  implement matrix views   ------------------------------------------------------X
+  implement matrix composition   ------------------------------------------------X
+  implement matrix slicing (matrix-to-vector adaptor)   -------------------------X
+  refactor matrix numerical methods to generic matrices  ------------------------X
+    gaussian_elim  --------------------------------------------------------------X
+    cholesky  -------------------------------------------------------------------X
+    qr_decomp  ------------------------------------------------------------------X
+    jacobi_method  --------------------------------------------------------------X
+    svd_method  -----------------------------------------------------------------X
+  implement matrix exponential method   -----------------------------------------X
+  implement Redheffer star product (hamiltonian matrices)   ---------------------X
+idem for vectors  ---------------------------------------------------------------X
+idem for rotation  --------------------------------------------------------------X
+idem for kinetostatics  ---------------------------------------------------------X
+
+port optimization library to generic functions
+
+make tensor library with compliance to generic concepts of matrix and vectors
+
+
+///----------------INTEGRATORS---------------
+
+port integrators to generic continuous SSS concepts  --- made an adaptor instead.
+
+
+///----------------SIGNALS AND SYSTEMS-------
+
+reimplement as non-blocking using Boost.Atomic
+
+implement RPC-based (from serialization) signals (network and local) based on Boost.Asio
+
+reimplement connections as a Cloud-computing system
+
+
+
+
+
+///----------------KTE-----------------------
+
+///----------------GENERAL--------------------
+
+
+encapsulate manipulator simulation loops:
+  simulated step;
+  ext_force_estimator;
+  adaptive step;
+  virtual model ctrl;
+
+
+
+///-----------------ADAPTATION----------------------
+
+adaptation for all kte model:
+  inertia
+  spring
+  damper
+  dry_friction
+  vmc_dry_friction or vmc_joints
+
+adaptation loop;
+
+associate adaptive model and vmc model somehow;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

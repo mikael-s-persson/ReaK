@@ -1,0 +1,40 @@
+Have a non-directory at the top, so creating directory top_dir
+Adding /media/S_M_P_2/ReaK_github/src/ReaK/CMakeLists.txt to top_dir
+Adding /media/S_M_P_2/ReaK_github/src/ReaK/README to top_dir
+Adding /media/S_M_P_2/ReaK_github/src/ReaK/TypeIDList.txt to top_dir
+Creating filelist for core
+Creating filelist for ctrl
+Creating filelist for examples
+Categorizing files.
+Finding a working MD5 command....
+Found a working MD5 command.
+Computing results.
+
+
+SLOC	Directory	SLOC-by-Language (Sorted)
+21780   core            cpp=21780
+14088   ctrl            cpp=14088
+412     examples        cpp=412
+0       top_dir         (none)
+
+
+Totals grouped by language (dominant language first):
+cpp:          36280 (100.00%)
+
+
+
+
+Total Physical Source Lines of Code (SLOC)                = 36,280
+Development Effort Estimate, Person-Years (Person-Months) = 8.68 (104.20)
+ (Basic COCOMO model, Person-Months = 2.4 * (KSLOC**1.05))
+Schedule Estimate, Years (Months)                         = 1.22 (14.61)
+ (Basic COCOMO model, Months = 2.5 * (person-months**0.38))
+Estimated Average Number of Developers (Effort/Schedule)  = 7.13
+Total Estimated Cost to Develop                           = $ 1,172,984
+ (average salary = $56,286/year, overhead = 2.40).
+SLOCCount, Copyright (C) 2001-2004 David A. Wheeler
+SLOCCount is Open Source Software/Free Software, licensed under the GNU GPL.
+SLOCCount comes with ABSOLUTELY NO WARRANTY, and you are welcome to
+redistribute it under certain conditions as specified by the GNU GPL license;
+see the documentation for details.
+Please credit this data as "generated using David A. Wheeler's 'SLOCCount'."

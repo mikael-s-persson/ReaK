@@ -1,0 +1,13 @@
+# These are the main sub-directories
+set(RKROBOTAIRSHIPDIR "${RKEXAMPLESDIR}/robot_airship")
+
+set(RKEXAMPLESSUBDIRS ${RKROBOTAIRSHIPDIR})
+
+# Add the sub-directories to cmake process.
+foreach(CURRENT_RKEXAMPLESSUBDIR ${RKEXAMPLESSUBDIRS})
+add_subdirectory("${SRCROOT}${CURRENT_RKEXAMPLESSUBDIR}")
+endforeach(CURRENT_RKEXAMPLESSUBDIR)
+
+
+
+
