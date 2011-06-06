@@ -50,8 +50,8 @@ typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
 					  BeliefState& b,
-					  const discrete_sss_traits<InvariantSystem>::input_type& u,
-					  const discrete_sss_traits<InvariantSystem>::output_type& z,
+					  const typename discrete_sss_traits<InvariantSystem>::input_type& u,
+					  const typename discrete_sss_traits<InvariantSystem>::output_type& z,
 					  const SystemNoiseCovariance& Q,
 					  const MeasurementNoiseCovariance& R,
 					  typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
@@ -84,11 +84,11 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   x = sys.get_next_state(x,u,t);
   P = ( A * P * transpose(A)) + Q.get_matrix();
   
-  sys.get_output_error(e, t, x, u, z);
-  sys.get_invariant_frame(W, t, x);
+  sys.get_output_error(e, t + sys.get_time_step(), x, u, z);
+  sys.get_invariant_frame(W, t + sys.get_time_step(), x);
   
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S = CP * transpose(C) + R.get_matrix();
+  mat< ValueType, mat_structure::symmetric > S(CP * transpose(C) + R.get_matrix());
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
    

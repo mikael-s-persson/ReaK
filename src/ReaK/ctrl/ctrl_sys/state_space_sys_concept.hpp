@@ -52,7 +52,7 @@ struct ss_system_traits {
 };
   
   
-template <typename SSSystem, typename Topology>
+template <typename SSSystem>
 struct SSSystemConcept {
   SSSystem sys;
   typename ss_system_traits<SSSystem>::point_type p;

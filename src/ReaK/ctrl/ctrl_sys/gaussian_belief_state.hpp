@@ -96,7 +96,7 @@ struct gaussian_pdf {
     state_difference_type d = v - mean_state;
     mat< typename mat_traits<matrix_type>::value_type, mat_structure::rectangular> b(d.size(),1);
     for(size_type i = 0; i < d.size(); ++i) b(i,0) = d[i];
-    detail::backsub_Cholesky_impl(L,b);
+    ::ReaK::detail::backsub_Cholesky_impl(L,b);
     scalar_type sum = scalar_type(0);
     for(size_type i = 0; i < d.size(); ++i) 
       sum += d[i] * b(i,0);
@@ -246,39 +246,39 @@ class gaussian_belief_state : public virtual shared_object {
     
   private:
     state_type mean_state;
-    covariance_type cov;
+    covariance_type covar;
     mutable boost::shared_ptr<boost::minstd_rand> rng;
     
   public:
     
-    pdf_type get_pdf() const { return pdf_type(mean_state,cov); };
+    pdf_type get_pdf() const { return pdf_type(mean_state,covar); };
     
     const state_type& get_most_likely_state() const { return mean_state; };
     
     random_sampler_type get_random_sampler() const { 
-      return random_sampler_type(mean_state, cov, rng);
+      return random_sampler_type(mean_state, covar, rng);
     };
     
     const state_type& get_mean_state() const { return mean_state; };
-    const covariance_type& get_covariance() const { return cov; };
+    const covariance_type& get_covariance() const { return covar; };
     
     void set_mean_state(const state_type& aMeanState) { mean_state = aMeanState; };
-    void set_covariance(const covariance_type& aCov) { cov = aCov; };
+    void set_covariance(const covariance_type& aCov) { covar = aCov; };
     
     size_type size() const { return mean_state.size(); };
     
     gaussian_belief_state(const state_type& aMeanState = state_type(), 
 			  const covariance_type& aCov = covariance_type()) : 
 			  mean_state(aMeanState), 
-			  cov(aCov), 
+			  covar(aCov), 
 			  rng(new boost::minstd_rand(static_cast<unsigned int>(time(NULL)))) { };
 
-    gaussian_belief_state(const self& rhs) : mean_state(rhs.mean_state), cov(rhs.cov), rng(rhs.rng) { };
+    gaussian_belief_state(const self& rhs) : mean_state(rhs.mean_state), covar(rhs.covar), rng(rhs.rng) { };
     
     friend void swap(self& lhs, self& rhs) {
       using std::swap;
       swap(lhs.mean_state,rhs.mean_state);
-      swap(lhs.cov,rhs.cov);
+      swap(lhs.covar,rhs.covar);
       swap(lhs.rng,rhs.rng);
     };
     
@@ -290,19 +290,29 @@ class gaussian_belief_state : public virtual shared_object {
     virtual void RK_CALL save(ReaK::serialization::oarchive& aA, unsigned int) const {
       ReaK::shared_object::save(aA,ReaK::shared_object::getStaticObjectType()->TypeVersion());
       aA & RK_SERIAL_SAVE_WITH_NAME(mean_state)
-         & RK_SERIAL_SAVE_WITH_NAME(cov);
+         & RK_SERIAL_SAVE_WITH_NAME(covar);
     };
     virtual void RK_CALL load(ReaK::serialization::iarchive& aA, unsigned int) {
       ReaK::shared_object::load(aA,ReaK::shared_object::getStaticObjectType()->TypeVersion());
-      aA & RK_SERIAL_LOAD_WITH_NAME(mean_state);
-         & RK_SERIAL_LOAD_WITH_NAME(cov);
+      aA & RK_SERIAL_LOAD_WITH_NAME(mean_state)
+         & RK_SERIAL_LOAD_WITH_NAME(covar);
     };
     
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2300010,1,"gaussian_belief_state",shared_object)
     
 };
 
+template <typename Covariance>
+struct is_belief_state< gaussian_belief_state<Covariance> > {
+  BOOST_STATIC_CONSTANT(bool, value = true);
+  typedef is_belief_state< gaussian_belief_state<Covariance> > type;
+};
 
+template <typename Covariance>
+struct is_continuous_belief_state< gaussian_belief_state<Covariance> > {
+  BOOST_STATIC_CONSTANT(bool, value = true);
+  typedef is_continuous_belief_state< gaussian_belief_state<Covariance> > type;
+};
 
 
 };

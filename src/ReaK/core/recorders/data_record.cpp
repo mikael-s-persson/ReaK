@@ -181,6 +181,11 @@ data_extractor& data_extractor::operator >>(double& value) {
   boost::unique_lock< boost::mutex > lock_here(access_mutex);
   if(colCount != 0) {
     if(currentColumn < colCount) {
+      if(values_rm.empty()) {
+	while((values_rm.size() < minBufferSize) && (readRow())) ;
+	if(values_rm.empty())
+	  throw end_of_record();
+      };
       value = values_rm.front();
       values_rm.pop();
       ++currentColumn;
@@ -192,9 +197,10 @@ data_extractor& data_extractor::operator >>(double& value) {
 
 data_extractor& data_extractor::operator >>(std::string& name) {
   boost::unique_lock< boost::mutex > lock_here(access_mutex);
-  if(colCount == 0) {
-    names.push_back(name);
-  };
+  if(currentNameCol < colCount) {
+    name = names[currentNameCol++];
+  } else
+    throw out_of_bounds();
   return *this;
 };
 

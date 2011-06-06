@@ -94,7 +94,7 @@ struct continuous_belief_state_traits {
   typedef typename ContBeliefState::state_difference_type state_difference_type;
   typedef typename ContBeliefState::size_type size_type;
   typedef typename ContBeliefState::scalar_type scalar_type;
-  typedef typename BeliefState::random_sampler_type random_sampler_type;
+  typedef typename ContBeliefState::random_sampler_type random_sampler_type;
   
   typedef typename ContBeliefState::covariance_type covariance_type;
   

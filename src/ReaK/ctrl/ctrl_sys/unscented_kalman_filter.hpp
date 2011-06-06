@@ -49,7 +49,7 @@ typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type unscented_kalman_predict(const System& sys,
 				      BeliefState& b,
-				      const discrete_sss_traits<System>::input_type& u,
+				      const typename discrete_sss_traits<System>::input_type& u,
 				      const SystemNoiseCovariance& Q,
 				      typename discrete_sss_traits<System>::time_type t = 0,
 				      typename belief_state_traits<BeliefState>::scalar_type alpha = 1E-3,
@@ -112,7 +112,7 @@ void >::type unscented_kalman_predict(const System& sys,
         P(i,j) += W_c * X_a[k][i] * X_a[k][j];
   
   b.set_mean_state(x);
-  b.set_covariance( CovType( P + Q.get_matrix() ) );
+  b.set_covariance( CovType( MatType( P + Q.get_matrix() ) ) );
 };
 
 
@@ -124,10 +124,10 @@ typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type unscented_kalman_update(const System& sys,
 				     BeliefState& b,
-				     const discrete_sss_traits<LinearSystem>::input_type& u,
-				     const discrete_sss_traits<LinearSystem>::output_type& z,
+				     const typename discrete_sss_traits<System>::input_type& u,
+				     const typename discrete_sss_traits<System>::output_type& z,
 				     const MeasurementNoiseCovariance& R,
-				     typename discrete_sss_traits<LinearSystem>::time_type t = 0,
+				     typename discrete_sss_traits<System>::time_type t = 0,
 				     typename belief_state_traits<BeliefState>::scalar_type alpha = 1E-3,
 				     typename belief_state_traits<BeliefState>::scalar_type kappa = 1,
 				     typename belief_state_traits<BeliefState>::scalar_type beta = 2) {
@@ -210,7 +210,7 @@ void >::type unscented_kalman_update(const System& sys,
   linsolve_Cholesky(P_zz,Kt);
   
   b.set_mean_state( x + (z - z_p) * Kt );
-  b.set_covariance( CovType( P - transpose_move(Kt) * P_xz_t ) );
+  b.set_covariance( CovType( MatType( P - transpose_move(Kt) * P_xz_t ) ) );
 };
 
 
@@ -224,8 +224,8 @@ typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type unscented_kalman_filter_step(const System& sys,
 					  BeliefState& b,
-					  const discrete_sss_traits<System>::input_type& u,
-					  const discrete_sss_traits<System>::output_type& z,
+					  const typename discrete_sss_traits<System>::input_type& u,
+					  const typename discrete_sss_traits<System>::output_type& z,
 					  const SystemNoiseCovariance& Q,
 					  const MeasurementNoiseCovariance& R,
 					  typename discrete_sss_traits<System>::time_type t = 0,

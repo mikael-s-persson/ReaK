@@ -467,11 +467,11 @@ class mat<T,mat_structure::symmetric,Alignment,Allocator> : public serialization
         throw std::range_error("Matrix dimension mismatch.");
       result_type result(M1.get_row_count(),M2.rowCount,value_type(0),M2.get_allocator());
       size_type k=0; size_type i=0;
-      for(;i<M1.rowCount;k += ++i) {
+      for(;i<M2.rowCount;k += ++i) {
 	for(size_type l=0;l<M1.get_row_count();++l) {
 	  for(size_type j=0;j<i;++j) {
-	    result(l,i) += M2.q[k+j] * M1(l,i);
-	    result(l,j) += M2.q[k+j] * M1(l,j);
+	    result(l,i) += M2.q[k+j] * M1(l,j);
+	    result(l,j) += M2.q[k+j] * M1(l,i);
 	  };
 	  result(l,i) += M2.q[k+i] * M1(l,i);
 	};

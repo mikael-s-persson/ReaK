@@ -48,10 +48,12 @@ int main(int argc, char** argv) {
   
   if(argc < 8) {
     std::cout << "Usage:\n"
-	      << "\t./run_airship2D [model_filename.xml] [init_conditions.xml] [result_filename.ssv] [time_step] [end_time] [stddev_force] [stddev_torque]\n"
+	      << "\t./run_airship2D [model_filename.xml] [init_conditions.xml] [result_filename.ssv] [time_step] [end_time] [Qu.xml] [R.xml]\n"
 	      << "\t\t model_filename.xml:\t The filename for the airship model to use.\n"
 	      << "\t\t init_conditions.xml:\t The filename for the airship's initial conditions.\n"
-	      << "\t\t result_filename.xml:\t The filename where to record the results as a space-separated values file." << std::endl;
+	      << "\t\t result_filename.xml:\t The filename where to record the results as a space-separated values file.\n"
+	      << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
+	      << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix." << std::endl;
     return 0;
   };
   
@@ -66,11 +68,8 @@ int main(int argc, char** argv) {
   
   boost::variate_generator< boost::minstd_rand, boost::normal_distribution<double> > var_rnd(boost::minstd_rand(static_cast<unsigned int>(time(NULL))), boost::normal_distribution<double>());
   
-  double stddev_force = 0.1;
-  std::stringstream(argv[6]) >> stddev_force;
-  double stddev_torque = 0.01;
-  std::stringstream(argv[7]) >> stddev_torque;
-  
+  std::string Qu_filename(argv[6]);
+  std::string R_filename(argv[7]);
   
   boost::shared_ptr< frame_2D<double> > airship2D_frame;
   boost::shared_ptr< kte::position_measure_2D > airship2D_position;
@@ -103,6 +102,26 @@ int main(int argc, char** argv) {
     return 2;
   };
   
+  /* input disturbance */
+  mat<double,mat_structure::diagonal> Qu;
+  try {
+    serialization::xml_iarchive in(Qu_filename);
+    in & RK_SERIAL_LOAD_WITH_ALIAS("input_disturbance",Qu);
+  } catch(...) {
+    RK_ERROR("An exception occurred during the loading of the input disturbance covariance matrix!");
+    return 2;
+  };
+  
+  /* measurement noise */
+  mat<double,mat_structure::diagonal> R;
+  try {
+    serialization::xml_iarchive in(R_filename);
+    in & RK_SERIAL_LOAD_WITH_ALIAS("measurement_noise",R);
+  } catch(...) {
+    RK_ERROR("An exception occurred during the loading of the measurement noise covariance matrix!");
+    return 2;
+  };
+  
   ctrl::kte_nl_system airship2D_system("airship2D_system");
   
   airship2D_system.dofs_2D.push_back(airship2D_frame);
@@ -121,14 +140,14 @@ int main(int argc, char** argv) {
 							  1e-4,
 							  boost::weak_ptr< state_rate_function<double> >(),
 							  time_step,
-							  time_step * 0.0001,
+							  time_step * 0.000001,
 							  1e-3),
 		      time_step,
 		      "airship2D_dt_sys");
   
   recorder::ssv_recorder results(results_filename);
   
-  results << "time" << "pos_x" << "pos_y" << "angle" << recorder::data_recorder::end_name_row;
+  results << "time" << "pos_x" << "pos_y" << "angle" << "meas_x" << "meas_y" << "meas_ca" << "meas_sa" << recorder::data_recorder::end_name_row;
   
   sys_type::point_type x(7);
   x[0] = airship2D_frame->Position[0];
@@ -144,16 +163,20 @@ int main(int argc, char** argv) {
   for(double t = 0.0; t < end_time; t += time_step) {
     
     sys_type::input_type u = sys_type::input_type(3);
-    u[0] = var_rnd() * stddev_force;
-    u[1] = var_rnd() * stddev_force;
-    u[2] = var_rnd() * stddev_torque;
+    u[0] = var_rnd() * sqrt(Qu(0,0));
+    u[1] = var_rnd() * sqrt(Qu(1,1));
+    u[2] = var_rnd() * sqrt(Qu(2,2));
     
     x = airship2D_dt_sys.get_next_state(x,u,t);
     sys_type::output_type y = airship2D_dt_sys.get_output(x,u,t);
     
     std::cout << "\r" << std::setw(20) << t;
     
-    results << t << y[0] << y[1] << y[2] << recorder::data_recorder::end_value_row;
+    results << t << y[0] << y[1] << y[2] 
+            << (y[0] + var_rnd() * sqrt(R(0,0))) 
+	    << (y[1] + var_rnd() * sqrt(R(1,1)))
+	    << (cos(y[2]) + var_rnd() * sqrt(R(2,2)))
+	    << (sin(y[2]) + var_rnd() * sqrt(R(3,3))) << recorder::data_recorder::end_value_row;
     
   };
   

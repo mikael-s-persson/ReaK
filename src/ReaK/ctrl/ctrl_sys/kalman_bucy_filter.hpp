@@ -56,8 +56,6 @@ namespace detail {
     typedef typename ss_system_traits<LinearSystem>::point_difference_type state_diff_type;
     typedef typename ss_system_traits<LinearSystem>::input_type input_type;
     typedef typename ss_system_traits<LinearSystem>::output_type output_type;
-    typedef typename continuous_belief_state_traits<BeliefState>::covariance_type cov_type;
-    typedef typename covariance_mat_traits< CovType >::matrix_type cov_mat_type;
   
     typedef typename linear_ss_system_traits<LinearSystem>::matrixA_type matrixA_type;
     typedef typename linear_ss_system_traits<LinearSystem>::matrixB_type matrixB_type;
@@ -148,26 +146,29 @@ void >::type kalman_bucy_filter_step(const LinearSystem& sys,
   typedef typename mat_traits< MatType >::value_type ValueType;
   typedef typename mat_traits< MatType >::size_type SizeType;
   
+  
   integ.setTime(t);
   integ.clearStateVector();
   StateType x = b.get_mean_state();
   integ.addStateElements(x);
-  mat<ValueType, mat_structure::square> P = b.get_covariance().get_matrix();
+  mat<ValueType, mat_structure::square> P(b.get_covariance().get_matrix());
   
   for(SizeType j = 0; j < P.get_col_count(); ++j) 
     for(SizeType i = 0; i < P.get_row_count(); ++i)
       integ.addStateElement(P(i,j));
   
-  integ.setStateRateFunc(
+  boost::shared_ptr< state_rate_function<ValueType> > integ_sys =
     boost::shared_ptr< state_rate_function<ValueType> >( 
       new detail::kalman_bucy_system<ValueType, 
                                      LinearSystem, 
 				     SystemNoiseCovariance, 
-				     MeasurementNoiseCovariance>( sys, u, z, Q, R ) ));
+				     MeasurementNoiseCovariance>( sys, u, z, Q, R ) );
+    
+  integ.setStateRateFunc( integ_sys );
   
   integ.integrate(t + dt);
   
-  std::vector<ValueType>::const_iterator it = integ.getStateBegin();
+  typename std::vector<ValueType>::const_iterator it = integ.getStateBegin();
   for(SizeType i = 0; i < x.size(); ++it, ++i)
     x[i] = *it;
   

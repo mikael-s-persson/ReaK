@@ -61,7 +61,7 @@ class covariance_matrix : public named_object {
     explicit covariance_matrix(const matrix_type& aMat = matrix_type(), const std::string& aName = "") : mat_cov(aMat) { setName(aName); };
     
     explicit covariance_matrix(size_type aSize, 
-			       covariance_initial_level aLevel = covariance_initial_level::full_info, 
+			       covariance_initial_level::tag aLevel = covariance_initial_level::full_info, 
 			       const std::string& aName = "") : 
 			       mat_cov(aSize, value_type( ( aLevel == covariance_initial_level::full_info ? 0 : std::numeric_limits< value_type >::infinity() ) )) { 
       setName(aName); 

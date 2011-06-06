@@ -55,7 +55,7 @@ struct invariant_system_traits {
 };
   
   
-template <typename InvariantSystem, typename Topology>
+template <typename InvariantSystem>
 struct InvariantSystemConcept {
   InvariantSystem sys;
   typename invariant_system_traits<InvariantSystem>::point_type p;

@@ -109,7 +109,7 @@ void >::type kalman_update(const LinearSystem& sys,
   
   OutputType y = z - C * x - D * u;
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S = CP * transpose(C) + R.get_matrix();
+  mat< ValueType, mat_structure::symmetric > S( CP * transpose(C) + R.get_matrix() );
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
    
@@ -128,8 +128,8 @@ typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type kalman_filter_step(const LinearSystem& sys,
 			        BeliefState& b,
-				const discrete_sss_traits<LinearSystem>::input_type& u,
-				const discrete_sss_traits<LinearSystem>::output_type& z,
+				const typename discrete_sss_traits<LinearSystem>::input_type& u,
+				const typename discrete_sss_traits<LinearSystem>::output_type& z,
 				const SystemNoiseCovariance& Q,
 				const MeasurementNoiseCovariance& R,
 				typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
@@ -159,7 +159,7 @@ void >::type kalman_filter_step(const LinearSystem& sys,
   
   OutputType y = z - C * x - D * u;
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S = CP * transpose(C) + R.get_matrix();
+  mat< ValueType, mat_structure::symmetric > S(CP * transpose(C) + R.get_matrix());  
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
    

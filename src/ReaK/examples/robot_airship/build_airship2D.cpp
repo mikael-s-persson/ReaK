@@ -109,6 +109,25 @@ int main() {
     out & RK_SERIAL_SAVE_WITH_ALIAS("initial_motion",*airship2D_frame);
   };
   
+  {
+    mat<double,mat_structure::diagonal> Qu(3);
+    Qu(0,0) = 0.1;
+    Qu(1,1) = 0.1;
+    Qu(2,2) = 0.1;
+    serialization::xml_oarchive out("airship2D_Qu.xml");
+    out & RK_SERIAL_SAVE_WITH_ALIAS("input_disturbance",Qu);
+  };
+  
+  {
+    mat<double,mat_structure::diagonal> R(4);
+    R(0,0) = 0.01;
+    R(1,1) = 0.01;
+    R(2,2) = 0.01;
+    R(3,3) = 0.01;
+    serialization::xml_oarchive out("airship2D_R.xml");
+    out & RK_SERIAL_SAVE_WITH_ALIAS("measurement_noise",R);
+  };
+  
 };
 
 

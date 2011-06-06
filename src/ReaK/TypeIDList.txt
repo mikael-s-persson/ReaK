@@ -177,6 +177,8 @@ dormand_prince45_integrator<T> 0xC2220002bin: 1100 0010 0010 0010 0000 0000 0000
 adamsBM_var_integrator<T>   0xC2220003   bin: 1100 0010 0010 0010 0000 0000 0000 0011  
 newtonBDF_var_integrator<T> 0xC2220004   bin: 1100 0010 0010 0010 0000 0000 0000 0100  
 
+
+
 //Control And Estimation    0xC23*****
 lti_system_ss<T>            0xC2300001   bin: 1100 0010 0011 0000 0000 0000 0000 0001  D-R
 kte_nl_system               0xC2300002   bin: 1100 0010 0011 0000 0000 0000 0000 0010  D-R
@@ -193,10 +195,18 @@ decomp_covariance_matrix<T> 0xC230000A   bin: 1100 0010 0011 0000 0000 0000 0000
 gaussian_belief_state<Cov>  0xC2300010   bin: 1100 0010 0011 0000 0000 0000 0001 0000  D-R
 
 
+
+
 //Robot-Airship specific classes 0xC231****
-airship2D_lin_model         0xC2310001   bin: 1100 0010 0011 0001 0000 0000 0000 0001  D-R
+airship2D_lin_system        0xC2310001   bin: 1100 0010 0011 0001 0000 0000 0000 0001  D-R
 airship2D_inv_system        0xC2310002   bin: 1100 0010 0011 0001 0000 0000 0000 0010  D-R
 airship2D_lin_dt_system     0xC2310003   bin: 1100 0010 0011 0001 0000 0000 0000 0011  D-R
+airship2D_inv_dt_system     0xC2310004   bin: 1100 0010 0011 0001 0000 0000 0000 0100  
+airship3D_lin_system        0xC2310005   bin: 1100 0010 0011 0001 0000 0000 0000 0101  
+airship3D_inv_system        0xC2310006   bin: 1100 0010 0011 0001 0000 0000 0000 0110  
+airship3D_lin_dt_system     0xC2310007   bin: 1100 0010 0011 0001 0000 0000 0000 0111  
+airship3D_inv_dt_system     0xC2310008   bin: 1100 0010 0011 0001 0000 0000 0000 1000  
+
 
 
 //WoPa specific classes     0xC141****
@@ -250,34 +260,6 @@ rl_cat_mature               0xC142810D   bin: 1100 0001 0100 0010 1000 0001 0000
 gen_cat_immature            0xC142810E   bin: 1100 0001 0100 0010 1000 0001 0000 1110  D-R
 gen_cat_mature              0xC142810F   bin: 1100 0001 0100 0010 1000 0001 0000 1111  D-R
 opt_cat                     0xC1428110   bin: 1100 0001 0100 0010 1000 0001 0001 0000  D-R
-
-
-//Renderer classes          0xCF******
-window_base                 0xCF010000   bin: 1100 1111 0000 0000 0000 0000 0000 0000  D
-scene_base                  0xCF020000   bin: 1100 1111 0000 0001 0000 0000 0000 0000  D
-scene                       0xCF*2****   bin: 1100 1111 **** 0001 **** **** **** ****  D
-visible_object_base         0xCF030000   bin: 1100 1111 0000 0011 0000 0000 0000 0000  D-R
-visible_object              0xCF*3****   bin: 1100 1111 **** 0011 **** **** **** ****  D-R
-mouse_event                 0xCF040001   bin: 1100 1111 0000 0010 0000 0000 0000 0001  D-R
-keyboard_event              0xCF040002   bin: 1100 1111 0000 0010 0000 0000 0000 0010  D-R
-render_area_event           0xCF040003   bin: 1100 1111 0000 0010 0000 0000 0000 0011  D-R
-
-//OpenGL rendering          0x**1*****   bin: **** **** ***1 **** **** **** **** ****    (options: GLUT (3), GLUI (B), Qt (5), SDL (9), or MFC (D))
-
-//DirectX rendering         0x**2*****   bin: **** **** **10 **** **** **** **** ****    (options: Qt (6), or MFC (E))
-
-//Software rendering        0x**0*****   bin: **** **** **00 **** **** **** **** ****    (options: SDL (8), Qt (4), or MFC (C))
-
-//GLUT window               0x**3*****   bin: **** **** *011 **** **** **** **** ****    (options: GLUI (B), just GLUT (3))
-glut::window                0xCF300000   bin: 1100 1111 0011 0000 0000 0000 0000 0000  R
-
-//GLUI window               0x**B*****   bin: **** **** 1011 **** **** **** **** ****  
-
-//Qt window                 0x**4*****   bin: **** **** 01** **** **** **** **** ****    (options: OpenGL (5), DirectX (6), or QCanvas (4))
- 
-//SDL window                0x**8*****   bin: **** **** 100* **** **** **** **** ****    (options: openGL (9) or SDL_draw (8))
-
-//MFC window                0x**C*****   bin: **** **** 11** **** **** **** **** ****    (options: OpenGL (D) or DirectX (E) or some MFC Canvas (C))
 
 
 

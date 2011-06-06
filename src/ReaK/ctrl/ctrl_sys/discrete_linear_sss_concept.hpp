@@ -38,10 +38,10 @@ namespace ctrl {
 
 template <typename DiscreteSystem>
 struct discrete_linear_sss_traits {
-  typedef DiscreteSystem::matrixA_type matrixA_type;
-  typedef DiscreteSystem::matrixB_type matrixB_type;
-  typedef DiscreteSystem::matrixC_type matrixC_type;
-  typedef DiscreteSystem::matrixD_type matrixD_type;
+  typedef typename DiscreteSystem::matrixA_type matrixA_type;
+  typedef typename DiscreteSystem::matrixB_type matrixB_type;
+  typedef typename DiscreteSystem::matrixC_type matrixC_type;
+  typedef typename DiscreteSystem::matrixD_type matrixD_type;
   
 };
 

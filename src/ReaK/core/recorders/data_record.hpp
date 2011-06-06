@@ -69,6 +69,22 @@ class out_of_bounds : public std::exception {
 };
 
 /**
+ * This exception is thrown whenever a data entry is read passed the
+ * number of rows in the record.
+ */
+class end_of_record : public std::exception {
+  public:
+
+    end_of_record() { };
+
+    ~end_of_record() throw() {};
+
+    const char* what() const throw() {
+      return "No more data rows in the record!";
+    };
+};
+
+/**
  * This exception is thrown whenever a special flag was given to the data
  * recorder that is not valid, such as terminating the column name list
  * when it has already been closed.
@@ -217,6 +233,7 @@ class data_extractor : public shared_object {
   protected:
     unsigned int colCount; ///< Holds the column count.
     unsigned int currentColumn; ///< Holds the current column to which the next data entry will be read from.
+    unsigned int currentNameCol; ///< Holds the current column to which the next name entry will be read from.
     unsigned int flushSampleRate; ///< Holds the sample rate at which the data is automatically flushed to the file.
     unsigned int minBufferSize; ///< Holds the minimum size for the data buffer, underload will trigger a file-read.
     std::string fileName; ///< Holds the filename of the data record.
@@ -264,6 +281,7 @@ class data_extractor : public shared_object {
     data_extractor() : shared_object(),
                       colCount(0),
 		      currentColumn(0),
+		      currentNameCol(0),
 		      flushSampleRate(50),
 		      minBufferSize(20),
 		      fileName(),
@@ -321,6 +339,7 @@ class data_extractor : public shared_object {
 	& RK_SERIAL_LOAD_WITH_NAME(fileName)
 	& RK_SERIAL_LOAD_WITH_NAME(names);
       currentColumn = 0;
+      currentNameCol = 0;
       values_rm = std::queue<double>();
       lock_here.unlock();
       setFileName(fileName);

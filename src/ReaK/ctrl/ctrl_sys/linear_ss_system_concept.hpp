@@ -73,7 +73,7 @@ struct LinearizedSystemType {
 };
 
   
-template <typename LinearSSSystem, typename Topology, typename SystemType = LTISystemType >
+template <typename LinearSSSystem, typename SystemType = LTISystemType >
 struct LinearSSSystemConcept {
   LinearSSSystem sys;
   SystemType sys_type;
@@ -91,7 +91,7 @@ struct LinearSSSystemConcept {
   typename linear_ss_system_traits<LinearSSSystem>::matrixD_type D;
   
   void constraints() {
-    boost::function_requires< SSSystemConcept<LinearSSSystem,Topology> >();
+    boost::function_requires< SSSystemConcept<LinearSSSystem> >();
     
     sys_type.constraints(sys,p,u,t, A, B, C, D);
     dp_dt = A * p + B * u;

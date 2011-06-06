@@ -48,13 +48,13 @@ namespace covariance_storage {
 template <typename CovarianceMatrix>
 struct covariance_mat_traits {
   
-  typedef CovarianceMatrix::point_type point_type;
-  typedef CovarianceMatrix::point_difference_type point_difference_type;
+  typedef typename CovarianceMatrix::point_type point_type;
+  typedef typename CovarianceMatrix::point_difference_type point_difference_type;
   
-  typedef CovarianceMatrix::value_type value_type;
-  typedef CovarianceMatrix::size_type size_type;
+  typedef typename CovarianceMatrix::value_type value_type;
+  typedef typename CovarianceMatrix::size_type size_type;
   
-  typedef CovarianceMatrix::matrix_type matrix_type;
+  typedef typename CovarianceMatrix::matrix_type matrix_type;
   
   BOOST_STATIC_CONSTANT(std::size_t, dimensions = CovarianceMatrix::dimensions);
   BOOST_STATIC_CONSTANT(covariance_storage::tag, storage = CovarianceMatrix::storage);
@@ -62,9 +62,11 @@ struct covariance_mat_traits {
 };
 
 
-enum covariance_initial_level {
-  no_info = 0,
-  full_info
+namespace covariance_initial_level {
+  enum tag {
+    no_info = 0,
+    full_info
+  };
 };
 
 
@@ -100,7 +102,7 @@ struct CovarianceMatrixConcept {
 template <typename CovarianceMatrix>
 struct decomp_covariance_mat_traits {
   
-  typedef CovarianceMatrix::matrix_block_type matrix_block_type;
+  typedef typename CovarianceMatrix::matrix_block_type matrix_block_type;
   
 };
 
