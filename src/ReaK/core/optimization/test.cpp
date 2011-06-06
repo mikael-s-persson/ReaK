@@ -21,6 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cmath>
 #include "line_search.hpp"
 
 #include <iostream>
