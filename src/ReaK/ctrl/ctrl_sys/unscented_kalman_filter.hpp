@@ -30,6 +30,7 @@
 #include <math/vect_concepts.hpp>
 #include <math/mat_alg.hpp>
 #include <math/mat_cholesky.hpp>
+#include "math/mat_svd_method.hpp"
 
 #include <boost/static_assert.hpp>
 #include "covariance_concept.hpp"
@@ -75,7 +76,25 @@ void >::type unscented_kalman_predict(const System& sys,
   MatType P = b.get_covariance().get_matrix();
   
   mat<ValueType, mat_structure::square> L_p(P.get_row_count());
-  decompose_Cholesky(P,L_p);
+  try {
+    decompose_Cholesky(P,L_p);
+  } catch(singularity_error&) {
+    //use SVD instead.
+    mat<ValueType, mat_structure::square> svd_U, svd_V;
+    mat<ValueType, mat_structure::diagonal> svd_E;
+    decompose_SVD(P,svd_U,svd_E,svd_V);
+    if(svd_E(0,0) < 0)
+      throw singularity_error("'A-Priori Covariance P, in UKF prediction is singular, beyond repair!'");
+    ValueType min_tolerable_sigma = sqrt(svd_E(0,0)) * 1E-2;
+    for(unsigned int i = 0; i < svd_E.get_row_count(); ++i) {
+      if(svd_E(i,i) < min_tolerable_sigma*min_tolerable_sigma)
+	svd_E(i,i) = min_tolerable_sigma;
+      else
+	svd_E(i,i) = sqrt(svd_E(i,i));      
+    };
+    L_p = svd_U * svd_E;
+    RK_WARNING("A-Priori Covariance P, in UKF prediction is singular, SVD was used, but this could hide a flaw in the system's setup.");
+  };
   
   SizeType N = P.get_row_count();
   
@@ -85,9 +104,11 @@ void >::type unscented_kalman_predict(const System& sys,
   vect_n< StateType > X_a(1 + 2*N);
   X_a[0] = sys.get_next_state(x, u, t);
   for(SizeType j = 0; j < N; ++j) {
+    X_a[1+2*j] = x;
+    X_a[2+2*j] = x;
     for(SizeType i = 0; i < N; ++i) {
-      X_a[1+2*j][i] = x[i] + gamma * L_p(i,j);
-      X_a[2+2*j][i] = x[i] - gamma * L_p(i,j);
+      X_a[1+2*j][i] += gamma * L_p(i,j);
+      X_a[2+2*j][i] -= gamma * L_p(i,j);
     };
     X_a[1+2*j] = sys.get_next_state(X_a[1+2*j], u, t);
     X_a[2+2*j] = sys.get_next_state(X_a[2+2*j], u, t);
@@ -151,7 +172,25 @@ void >::type unscented_kalman_update(const System& sys,
   const MatType& P = b.get_covariance().get_matrix();
   
   mat<ValueType, mat_structure::square> L_p(P.get_row_count());
-  decompose_Cholesky(P,L_p);
+    try {
+    decompose_Cholesky(P,L_p);
+  } catch(singularity_error&) {
+    //use SVD instead.
+    mat<ValueType, mat_structure::square> svd_U, svd_V;
+    mat<ValueType, mat_structure::diagonal> svd_E;
+    decompose_SVD(P,svd_U,svd_E,svd_V);
+    if(svd_E(0,0) < 0)
+      throw singularity_error("'A-Priori Covariance P, in UKF prediction is singular, beyond repair!'");
+    ValueType min_tolerable_sigma = sqrt(svd_E(0,0)) * 1E-2;
+    for(unsigned int i = 0; i < svd_E.get_row_count(); ++i) {
+      if(svd_E(i,i) < min_tolerable_sigma*min_tolerable_sigma)
+	svd_E(i,i) = min_tolerable_sigma;
+      else
+	svd_E(i,i) = sqrt(svd_E(i,i));      
+    };
+    L_p = svd_U * svd_E;
+    RK_WARNING("A-Posteriori Covariance P, in UKF update is singular, SVD was used, but this could hide a flaw in the system's setup.");
+  };
   
   SizeType N = P.get_row_count();
   
@@ -161,9 +200,11 @@ void >::type unscented_kalman_update(const System& sys,
   vect_n< StateType > X_a(1 + 2*N);
   X_a[0] = x;
   for(SizeType j = 0; j < N; ++j) {
+    X_a[1+2*j] = x;
+    X_a[2+2*j] = x;
     for(SizeType i = 0; i < N; ++i) {
-      X_a[1+2*j][i] = x[i] + gamma * L_p(i,j);
-      X_a[2+2*j][i] = x[i] - gamma * L_p(i,j);
+      X_a[1+2*j][i] += gamma * L_p(i,j);
+      X_a[2+2*j][i] -= gamma * L_p(i,j);
     };
   };
   
@@ -207,7 +248,17 @@ void >::type unscented_kalman_update(const System& sys,
         P_xz_t(j,i) += W_c * (X_a[k][i] - x[i]) * Y_a[k][j];
   
   mat<ValueType, mat_structure::rectangular> Kt(P_xz_t);
-  linsolve_Cholesky(P_zz,Kt);
+
+  try {
+    linsolve_Cholesky(P_zz,Kt);
+  } catch(singularity_error&) {
+    //use SVD instead.
+    mat<ValueType, mat_structure::square> Pzz_pinv(P_zz.get_row_count());
+    pseudoinvert_SVD(P_zz,Pzz_pinv);
+    Kt = Pzz_pinv * Kt;
+    RK_WARNING("A-Posteriori Measurement Covariance Pzz, in UKF update is singular, SVD was used, but this could hide a flaw in the system's setup.");
+    throw singularity_error("'A-Posteriori Measurement Covariance Pzz, in UKF update'");
+  };
   
   b.set_mean_state( x + (z - z_p) * Kt );
   b.set_covariance( CovType( MatType( P - transpose_move(Kt) * P_xz_t ) ) );

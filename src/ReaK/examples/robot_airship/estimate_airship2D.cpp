@@ -199,7 +199,7 @@ int main(int argc, char** argv) {
   std::cout << "Done." << std::endl;
 #endif
   
-#if 0
+#if 1
   std::cout << "Running Unscented Kalman Filter..." << std::endl;
   {
   ctrl::gaussian_belief_state< ctrl::covariance_matrix<double> > b = b_init;
@@ -214,7 +214,20 @@ int main(int argc, char** argv) {
     mdl_lin_dt.get_linear_blocks(A,B,C,D,it->first,b.get_mean_state(),vect_n<double>(0.0,0.0,0.0));
     ctrl::covariance_matrix<double> Qcov(ctrl::covariance_matrix<double>::matrix_type( B * Qu * transpose(B) ));
     
-    ctrl::unscented_kalman_filter_step(mdl_lin_dt,b,vect_n<double>(0.0,0.0,0.0),it->second,Qcov,Rcov,it->first);
+    try {
+      ctrl::unscented_kalman_filter_step(mdl_lin_dt,b,vect_n<double>(0.0,0.0,0.0),it->second,Qcov,Rcov,it->first);
+    } catch(singularity_error& e) {
+      RK_ERROR("The Unscented Kalman filtering was interupted by a singularity, at time " << it->first << " with message: " << e.what());
+      break;
+    } catch(std::exception& e) {
+      RK_ERROR("The Unscented Kalman filtering was interupted by an exception, at time " << it->first << " with message: " << e.what());   
+      break;
+    };
+    
+    vect_n<double> b_mean = b.get_mean_state();
+    vect<double,2> tmp = unit(vect<double,2>(b_mean[2],b_mean[3]));
+    b_mean[2] = tmp[0]; b_mean[3] = tmp[1];
+    b.set_mean_state(b_mean);
     
     results << it->first << b.get_mean_state()[0] << b.get_mean_state()[1] << b.get_mean_state()[2] << b.get_mean_state()[3] << recorder::data_recorder::end_value_row;
     
