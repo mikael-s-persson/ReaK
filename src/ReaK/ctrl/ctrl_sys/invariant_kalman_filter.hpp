@@ -59,7 +59,7 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
   boost::function_requires< DiscreteLinearSSSConcept< InvariantSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< InvariantSystemConcept<InvariantSystem> >();
+  boost::function_requires< InvariantDiscreteSystemConcept<InvariantSystem> >();
   boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
 
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
@@ -74,8 +74,7 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   typename discrete_linear_sss_traits<InvariantSystem>::matrixC_type C;
   typename discrete_linear_sss_traits<InvariantSystem>::matrixD_type D;
   
-  typename invariant_system_traits<InvariantSystem>::invariant_frame_type W;
-  typename invariant_system_traits<InvariantSystem>::output_error_type e;
+  typename invariant_system_traits<InvariantSystem>::invariant_error_type e;
   
   StateType x = b.get_mean_state();
   MatType P = b.get_covariance().get_matrix();
@@ -84,15 +83,14 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   x = sys.get_next_state(x,u,t);
   P = ( A * P * transpose(A)) + Q.get_matrix();
   
-  sys.get_output_error(e, t + sys.get_time_step(), x, u, z);
-  sys.get_invariant_frame(W, t + sys.get_time_step(), x);
+  e = sys.get_invariant_error(x, u, z, t + sys.get_time_step());
   
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
   mat< ValueType, mat_structure::symmetric > S(CP * transpose(C) + R.get_matrix());
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
    
-  b.set_mean_state( x + W * K * e );
+  b.set_mean_state( sys.apply_correction(x, K * e, u, t + sys.get_time_step()) );
   b.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
 };
 

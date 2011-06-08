@@ -186,11 +186,7 @@ class airship2D_inv_system : public airship2D_lin_system {
       
       D = mat<double,mat_structure::nil>(4,3);
     };
-    
-    void get_invariant(invariant_type& i, const time_type& t, const point_type& x, const input_type& u) const {
-      i = u;
-    };
-    
+        
     void get_output_error(output_error_type& e, const time_type& t, const point_type& x, const input_type& u, const output_type& y) const {
       vect<double,2> qy(y[2],y[3]); qy = unit(qy);
       vect<double,2> qx(x[2],x[3]); qx = unit(qx);
@@ -269,19 +265,14 @@ class airship2D_lin_dt_system : public airship2D_lin_system {
     
     point_type get_next_state(const point_type& x, const input_type& u, const time_type t = 0.0) const {
       input_type dv(mDt * u[0] / mMass, mDt * u[1] / mMass, mDt * u[2] / mInertiaMoment);
-      double delta_theta = mDt * (x[6] + 0.5 * dv[2]); double cdt = cos(delta_theta) - 1.0; double sdt = sin(delta_theta);
-      point_type r = x + point_difference_type( mDt * (x[4] + 0.5 * dv[0]),
-						mDt * (x[5] + 0.5 * dv[1]),
-					        x[3] * cdt - x[4] * sdt,
-						x[3] * sdt + x[4] * cdt,
-						dv[0],
-						dv[1],
-						dv[2]);
-      using std::sqrt;
-      double rcs_mag = sqrt( r[2] * r[2] + r[3] * r[3] );
-      r[2] /= rcs_mag;
-      r[3] /= rcs_mag;
-      return r;
+      double delta_theta = mDt * (x[6] + 0.5 * dv[2]); double cdt = cos(delta_theta); double sdt = sin(delta_theta);
+      return point_type( x[0] + mDt * (x[4] + 0.5 * dv[0]),
+			 x[1] + mDt * (x[5] + 0.5 * dv[1]),
+			 x[2] * cdt - x[3] * sdt,
+			 x[2] * sdt + x[3] * cdt,
+			 x[4] + dv[0],
+			 x[5] + dv[1],
+			 x[6] + dv[2]);
     };
     
     output_type get_output(const point_type& x, const input_type& u, const time_type t = 0.0) const {
@@ -343,15 +334,14 @@ class airship2D_inv_dt_system : public airship2D_lin_dt_system {
     typedef vect_n<double> input_type;
     typedef vect_n<double> output_type;
   
-    typedef vect_n<double> invariant_type;
-    typedef vect_n<double> output_error_type;
-    typedef mat<double,mat_structure::square> invariant_frame_type;
+    typedef vect_n<double> invariant_error_type;
+    typedef vect_n<double> invariant_correction_type;
   
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 7);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 3);
     BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 4);
-    BOOST_STATIC_CONSTANT(std::size_t, invariant_dimensions = 3);
-    BOOST_STATIC_CONSTANT(std::size_t, output_error_dimensions = 4);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 3);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 6);
     
     typedef mat<double,mat_structure::square> matrixA_type;
     typedef mat<double,mat_structure::rectangular> matrixB_type;
@@ -368,40 +358,45 @@ class airship2D_inv_dt_system : public airship2D_lin_dt_system {
     virtual ~airship2D_inv_dt_system() { };
         
     void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const time_type& t, const point_type& x, const input_type& u) const {
-      A = mat<double,mat_structure::identity>(7);
-      A(0,4) = mDt;
-      A(1,5) = mDt;  
-      A(3,6) = mDt;
+      A = mat<double,mat_structure::identity>(6);
+      A(0,3) = mDt;
+      A(1,4) = mDt;  
+      A(2,5) = mDt;
       
-      B = mat<double,mat_structure::nil>(7,3);
+      B = mat<double,mat_structure::nil>(6,3);
       B(0,0) = 0.5 * mDt * mDt / mMass;
       B(1,1) = 0.5 * mDt * mDt / mMass;
-      B(3,2) = 0.5 * mDt * mDt / mInertiaMoment;
-      B(4,0) = mDt / mMass;
-      B(5,1) = mDt / mMass;
-      B(6,2) = mDt / mInertiaMoment;
+      B(2,2) = 0.5 * mDt * mDt / mInertiaMoment;
+      B(3,0) = mDt / mMass;
+      B(4,1) = mDt / mMass;
+      B(5,2) = mDt / mInertiaMoment;
       
-      C = mat<double,mat_structure::nil>(4,7);
-      set_block(C,mat<double,mat_structure::identity>(4),0,0);
+      C = mat<double,mat_structure::nil>(3,6);
+      set_block(C,mat<double,mat_structure::identity>(3),0,0);
       
-      D = mat<double,mat_structure::nil>(4,3);
+      D = mat<double,mat_structure::nil>(3,3);
+    };
+        
+    invariant_error_type get_invariant_error(const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
+      return invariant_error_type(y[0] - x[0],
+			          y[1] - x[1],
+			          y[3] * x[2] - y[2] * x[3]); // s_y * c_x - c_y * s_x
     };
     
-    void get_invariant(invariant_type& i, const time_type& t, const point_type& x, const input_type& u) const {
-      i = u;
-    };
-    
-    void get_output_error(output_error_type& e, const time_type& t, const point_type& x, const input_type& u, const output_type& y) const {
-      e = output_error_type(y[0] - x[0],
-			    y[1] - x[1],
-			    y[2] * x[2] + y[3] * x[3], // c_y * c_x + s_y * s_x
-			    y[3] * x[2] - y[2] * x[3]); // s_y * c_x - c_y * s_x
-    };
-    
-    void get_invariant_frame(invariant_frame_type& W, const time_type& t, const point_type& x) const {
-      W = mat<double,mat_structure::identity>(7);
-      W(2,2) = x[2]; W(2,3) = -x[3];  // R(q)
-      W(3,2) = x[3]; W(3,3) = x[2];   //
+    point_type apply_correction(const point_type& x, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
+      using std::fabs;
+      using std::sqrt;
+      double sc = c[2];
+      if(fabs(sc) > 1) 
+	sc /= (fabs(sc) + std::numeric_limits< double >::epsilon());
+      double cc = sqrt(1 - sc * sc);
+      return point_type(x[0] + c[0],
+	                x[1] + c[1],
+			x[2] * cc - x[3] * sc,
+			x[3] * cc + x[2] * sc,
+			x[4] + c[3],
+			x[5] + c[4],
+			x[6] + c[5]);
     };
     
 /*******************************************************************************

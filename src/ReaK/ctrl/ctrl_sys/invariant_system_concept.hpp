@@ -24,6 +24,8 @@
 #ifndef INVARIANT_SYSTEM_CONCEPT_HPP
 #define INVARIANT_SYSTEM_CONCEPT_HPP
 
+#include "discrete_linear_sss_concept.hpp"
+#include "linear_ss_system_concept.hpp"
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
@@ -42,38 +44,74 @@ struct invariant_system_traits {
   typedef typename InvariantSystem::input_type input_type;
   typedef typename InvariantSystem::output_type output_type;
   
-  typedef typename InvariantSystem::invariant_type invariant_type;
-  typedef typename InvariantSystem::output_error_type output_error_type;
-  typedef typename InvariantSystem::invariant_frame_type invariant_frame_type;
+  typedef typename InvariantSystem::invariant_error_type invariant_error_type;
+  typedef typename InvariantSystem::invariant_correction_type invariant_correction_type;
   
   BOOST_STATIC_CONSTANT(std::size_t, dimensions = InvariantSystem::dimensions);
   BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = InvariantSystem::input_dimensions);
   BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = InvariantSystem::output_dimensions);
-  BOOST_STATIC_CONSTANT(std::size_t, invariant_dimensions = InvariantSystem::invariant_dimensions);
-  BOOST_STATIC_CONSTANT(std::size_t, output_error_dimensions = InvariantSystem::output_error_dimensions);
+  BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = InvariantSystem::invariant_error_dimensions);
+  BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = InvariantSystem::invariant_correction_dimensions);
   
 };
   
   
-template <typename InvariantSystem>
-struct InvariantSystemConcept {
-  InvariantSystem sys;
-  typename invariant_system_traits<InvariantSystem>::point_type p;
-  typename invariant_system_traits<InvariantSystem>::time_type t;
-  typename invariant_system_traits<InvariantSystem>::input_type u;
-  typename invariant_system_traits<InvariantSystem>::output_type y;
-  typename invariant_system_traits<InvariantSystem>::invariant_type i;
-  typename invariant_system_traits<InvariantSystem>::output_error_type e;
-  typename invariant_system_traits<InvariantSystem>::invariant_frame_type W;
+template <typename InvariantDiscreteSystem>
+struct InvariantDiscreteSystemConcept {
+  InvariantDiscreteSystem sys;
+  typename invariant_system_traits<InvariantDiscreteSystem>::point_type p;
+  typename invariant_system_traits<InvariantDiscreteSystem>::time_type t;
+  typename invariant_system_traits<InvariantDiscreteSystem>::input_type u;
+  typename invariant_system_traits<InvariantDiscreteSystem>::output_type y;
+  typename invariant_system_traits<InvariantDiscreteSystem>::invariant_error_type e;
+  typename invariant_system_traits<InvariantDiscreteSystem>::invariant_correction_type c;
+    
+  typename discrete_linear_sss_traits<InvariantDiscreteSystem>::matrixA_type A;
+  typename discrete_linear_sss_traits<InvariantDiscreteSystem>::matrixB_type B;
+  typename discrete_linear_sss_traits<InvariantDiscreteSystem>::matrixC_type C;
+  typename discrete_linear_sss_traits<InvariantDiscreteSystem>::matrixD_type D;
+  
   void constraints() {
-    sys.get_invariant(i,t,p,u);
-    sys.get_output_error(e,t,p,u,y);
-    sys.get_invariant_frame(W,t,p);
+    boost::function_requires< DiscreteSSSConcept<InvariantDiscreteSystem> >();
+    
+    DiscreteLinearizedSystemType().constraints(sys, p, u, t, A, B, C, D);
+    
+    e = sys.get_invariant_error(p,u,y,t);
+    c = transpose(C) * e;
+    p = sys.apply_correction(p,c,u,t);
   };
   
 };
 
 
+  
+template <typename InvariantContinuousSystem>
+struct InvariantContinuousSystemConcept {
+  InvariantContinuousSystem sys;
+  typename invariant_system_traits<InvariantContinuousSystem>::point_type p;
+  typename ss_system_traits<InvariantContinuousSystem>::point_derivative_type dp_dt;
+  typename invariant_system_traits<InvariantContinuousSystem>::time_type t;
+  typename invariant_system_traits<InvariantContinuousSystem>::input_type u;
+  typename invariant_system_traits<InvariantContinuousSystem>::output_type y;
+  typename invariant_system_traits<InvariantContinuousSystem>::invariant_error_type e;
+  typename invariant_system_traits<InvariantContinuousSystem>::invariant_correction_type c;
+    
+  typename linear_ss_system_traits<InvariantContinuousSystem>::matrixA_type A;
+  typename linear_ss_system_traits<InvariantContinuousSystem>::matrixB_type B;
+  typename linear_ss_system_traits<InvariantContinuousSystem>::matrixC_type C;
+  typename linear_ss_system_traits<InvariantContinuousSystem>::matrixD_type D;
+  
+  void constraints() {
+    boost::function_requires< SSSystemConcept<InvariantContinuousSystem> >();
+    
+    LinearizedSystemType().constraints(sys, p, u, t, A, B, C, D);
+    
+    e     = sys.get_invariant_error(p,u,y,t);
+    c     = transpose(C) * e;
+    dp_dt = sys.apply_correction(p,c,u,t);
+  };
+  
+};
 
 
 };

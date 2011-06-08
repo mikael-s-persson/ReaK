@@ -225,13 +225,13 @@ struct gaussian_sampler {
 
 
 
-template <typename Covariance>
+template <typename Covariance, typename StateType = typename covariance_mat_traits<Covariance>::point_type >
 class gaussian_belief_state : public virtual shared_object {
   public:
     typedef gaussian_belief_state<Covariance> self;
     
     typedef typename covariance_mat_traits<Covariance>::value_type scalar_type;
-    typedef typename covariance_mat_traits<Covariance>::point_type state_type;
+    typedef StateType state_type;
     typedef typename covariance_mat_traits<Covariance>::size_type size_type;
     typedef typename covariance_mat_traits<Covariance>::point_difference_type state_difference_type;
     
@@ -302,16 +302,16 @@ class gaussian_belief_state : public virtual shared_object {
     
 };
 
-template <typename Covariance>
-struct is_belief_state< gaussian_belief_state<Covariance> > {
+template <typename Covariance, typename StateType>
+struct is_belief_state< gaussian_belief_state<Covariance,StateType> > {
   BOOST_STATIC_CONSTANT(bool, value = true);
-  typedef is_belief_state< gaussian_belief_state<Covariance> > type;
+  typedef is_belief_state< gaussian_belief_state<Covariance,StateType> > type;
 };
 
-template <typename Covariance>
-struct is_continuous_belief_state< gaussian_belief_state<Covariance> > {
+template <typename Covariance, typename StateType>
+struct is_continuous_belief_state< gaussian_belief_state<Covariance,StateType> > {
   BOOST_STATIC_CONSTANT(bool, value = true);
-  typedef is_continuous_belief_state< gaussian_belief_state<Covariance> > type;
+  typedef is_continuous_belief_state< gaussian_belief_state<Covariance,StateType> > type;
 };
 
 

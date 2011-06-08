@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
     x = airship2D_dt_sys.get_next_state(x,u,t);
     sys_type::output_type y = airship2D_dt_sys.get_output(x,u,t);
     
-    std::cout << "\r" << std::setw(20) << t;
+    std::cout << "\r" << std::setw(20) << t; std::cout.flush();
     
     results << t << y[0] << y[1] << y[2] 
             << (y[0] + var_rnd() * sqrt(R(0,0))) 

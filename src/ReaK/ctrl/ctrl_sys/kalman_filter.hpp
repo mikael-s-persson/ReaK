@@ -68,7 +68,7 @@ void >::type kalman_predict(const LinearSystem& sys,
   StateType x = b.get_mean_state();
   sys.get_linear_blocks(A, B, C, D, t, x, u);
   
-  b.set_mean_state(A * x + B * u);
+  b.set_mean_state( sys.get_next_state(x, u, t) );
   const MatType& P = b.get_covariance().get_matrix(); 
   b.set_covariance( CovType( ( A * P * transpose(A)) + Q.get_matrix() ) );
 };
@@ -154,7 +154,7 @@ void >::type kalman_filter_step(const LinearSystem& sys,
   MatType P = b.get_covariance().get_matrix();
   sys.get_linear_blocks(A, B, C, D, t, x, u);
 
-  x = A * x + B * u;
+  x = sys.get_next_state(x, u, t);
   P = ( A * P * transpose(A)) + Q.get_matrix();
   
   OutputType y = z - C * x - D * u;

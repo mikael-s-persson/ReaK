@@ -241,7 +241,15 @@ int main(int argc, char** argv) {
 #if 1
   std::cout << "Running Invariant Extended Kalman Filter..." << std::endl;
   {
-  ctrl::gaussian_belief_state< ctrl::covariance_matrix<double> > b = b_init;
+    
+  ctrl::gaussian_belief_state< ctrl::covariance_matrix<double> > 
+    b(b_init.get_mean_state(),
+      ctrl::covariance_matrix<double>(ctrl::covariance_matrix<double>::matrix_type(mat<double,mat_structure::diagonal>(6,10.0))));
+  
+  mat<double,mat_structure::diagonal> R_inv(3);
+  R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(3,3);
+  ctrl::covariance_matrix<double> Rcovinv = ctrl::covariance_matrix<double>(ctrl::covariance_matrix<double>::matrix_type(R_inv));
+    
   recorder::ssv_recorder results(result_filename + "_iekf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
@@ -253,7 +261,7 @@ int main(int argc, char** argv) {
     mdl_inv_dt.get_linear_blocks(A,B,C,D,it->first,b.get_mean_state(),vect_n<double>(0.0,0.0,0.0));
     ctrl::covariance_matrix<double> Qcov(ctrl::covariance_matrix<double>::matrix_type( B * Qu * transpose(B) ));
     
-    ctrl::invariant_kalman_filter_step(mdl_inv_dt,b,vect_n<double>(0.0,0.0,0.0),it->second,Qcov,Rcov,it->first);
+    ctrl::invariant_kalman_filter_step(mdl_inv_dt,b,vect_n<double>(0.0,0.0,0.0),it->second,Qcov,Rcovinv,it->first);
     
     vect_n<double> b_mean = b.get_mean_state();
     vect<double,2> tmp = unit(vect<double,2>(b_mean[2],b_mean[3]));

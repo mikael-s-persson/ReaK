@@ -65,9 +65,7 @@ namespace detail {
     typedef typename linear_ss_system_traits<InvariantSystem>::matrixC_type matrixC_type;
     typedef typename linear_ss_system_traits<InvariantSystem>::matrixD_type matrixD_type;
     
-    typedef typename invariant_system_traits<InvariantSystem>::invariant_type invariant_type;
-    typedef typename invariant_system_traits<InvariantSystem>::invariant_frame_type invariant_frame_type;
-    typedef typename invariant_system_traits<InvariantSystem>::output_error_type output_error_type;
+    typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type invariant_error_type;
     
     const InvariantSystem& sys;
     const input_type& u;
@@ -77,8 +75,6 @@ namespace detail {
     mat<value_type, mat_structure::symmetric> R_inv;
     mat<value_type, mat_structure::rectangular> K;
     mat<value_type, mat_structure::square> P;
-    
-    invariant_frame_type W;
     
     matrixA_type A;
     matrixB_type B;
@@ -96,47 +92,28 @@ namespace detail {
     
     virtual void RK_CALL computeStateRate(double aTime,const ReaK::vect_n<value_type>& aState, ReaK::vect_n<value_type>& aStateRate) {
       state_type x;
-      x.resize(Q.get_row_count());
+      x.resize(aState.size() - Q.get_row_count() * Q.get_row_count());
       for(size_type i = 0; i < x.size(); ++i) 
 	x[i] = aState[i];
       
-      //std::cout << "x = " << x << std::endl;
-      
       sys.get_linear_blocks(A, B, C, D, aTime, x, u);
-      output_error_type e;
-      sys.get_output_error(e, aTime, x, u, z);
-      //std::cout << "e = " << e << std::endl;
+      invariant_error_type e = sys.get_invariant_error(x, u, z, aTime);
       
-      sys.get_invariant_frame(W, aTime, x);
-      //std::cout << "W = " << W << std::endl;
-      
-      for(size_type j = 0; j < x.size(); ++j)
-	for(size_type i = 0; i < x.size(); ++i)
-	  P(i,j) = aState[x.size() * (j + 1) + i];
-      
-      //std::cout << "P = " << P << std::endl;
-      //std::cout << "C = " << C << std::endl;
-      //std::cout << "R_inv = " << R_inv << std::endl;
+      for(size_type j = 0; j < Q.get_row_count(); ++j)
+	for(size_type i = 0; i < Q.get_row_count(); ++i)
+	  P(i,j) = aState[x.size() + Q.get_row_count() * j + i];
       
       K = P * transpose(C) * R_inv;
-      //std::cout << "K = " << K << std::endl;
       
-      x = sys.get_state_derivative(x, u, aTime) + W * K * e;
+      x = sys.get_state_derivative(x, u, aTime) + sys.apply_correction(x, K * e, u, aTime);
       P = (A  - K * C) * P + Q + P * transpose(A);
-      //std::cout << "xd = " << x << std::endl;
-      //std::cout << "Pd = " << P << std::endl;
-      
-      //static unsigned int cutoff = 0;
-      //if(cutoff >= 10005)
-       // throw 3;
-      //++cutoff;
       
       for(size_type i = 0; i < x.size(); ++i) 
 	aStateRate[i] = x[i];
 
-      for(size_type j = 0; j < x.size(); ++j)
-	for(size_type i = 0; i < x.size(); ++i)
-	  aStateRate[x.size() * (j + 1) + i] = 0.5 * (P(i,j) + P(j,i));
+      for(size_type j = 0; j < Q.get_row_count(); ++j)
+	for(size_type i = 0; i < Q.get_row_count(); ++i)
+	  aStateRate[x.size() + Q.get_row_count() * j + i] = 0.5 * (P(i,j) + P(j,i));
     };
   };
   
@@ -167,7 +144,7 @@ void >::type invariant_kalman_bucy_filter_step(const InvariantSystem& sys,
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
   boost::function_requires< LinearSSSystemConcept< InvariantSystem, LinearizedSystemType > >();
-  boost::function_requires< InvariantSystemConcept<InvariantSystem> >();
+  boost::function_requires< InvariantContinuousSystemConcept<InvariantSystem> >();
   boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
   
   typedef typename ss_system_traits<InvariantSystem>::point_type StateType;
