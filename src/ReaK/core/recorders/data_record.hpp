@@ -33,10 +33,18 @@
 #ifndef DATA_RECORD_HPP
 #define DATA_RECORD_HPP
 
-#include <boost/shared_ptr.hpp>
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+
+#include <thread>
+
+#else
+
 #include <boost/thread/mutex.hpp>
 #include <boost/thread.hpp>
-#include <boost/date_time/time.hpp>
+
+#endif
+
+#include <boost/shared_ptr.hpp>
 
 #include <string>
 #include <exception>
@@ -116,8 +124,17 @@ class data_recorder : public shared_object {
     std::vector<std::string> names; ///< Holds the list of column names.
     std::queue<double> values_rm; ///< Holds the data buffer.
 
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+
+    std::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
+    boost::shared_ptr<std::thread> writing_thread; ///< Holds the instance of the data writing thread.
+
+#else
+
     boost::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
     boost::shared_ptr<boost::thread> writing_thread; ///< Holds the instance of the data writing thread.
+
+#endif
 
     /**
      * This class is used as a callable function-object for data writing thread.
@@ -196,8 +213,12 @@ class data_recorder : public shared_object {
 	& RK_SERIAL_SAVE_WITH_NAME(fileName)
 	& RK_SERIAL_SAVE_WITH_NAME(names);
     };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+      std::unique_lock< std::mutex > lock_here(access_mutex);
+#else
       boost::unique_lock< boost::mutex > lock_here(access_mutex);
+#endif
       colCount = 0;
       if(writing_thread) {
         lock_here.unlock();
@@ -216,7 +237,11 @@ class data_recorder : public shared_object {
       values_rm = std::queue<double>();
       lock_here.unlock();
       setFileName(fileName);
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+      writing_thread = boost::shared_ptr<std::thread>(new std::thread(record_process(*this)));
+#else
       writing_thread = boost::shared_ptr<boost::thread>(new boost::thread(record_process(*this)));
+#endif
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(data_recorder,0x81100001,1,"data_recorder",shared_object)
@@ -240,8 +265,13 @@ class data_extractor : public shared_object {
     std::vector<std::string> names; ///< Holds the list of column names.
     std::queue<double> values_rm; ///< Holds the data buffer.
 
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+    std::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
+    boost::shared_ptr< std::thread > reading_thread; ///< Holds the instance of the data writing thread.
+#else
     boost::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
     boost::shared_ptr<boost::thread> reading_thread; ///< Holds the instance of the data writing thread.
+#endif
 
     /**
      * This class is used as a callable function-object for data writing thread.
@@ -324,7 +354,11 @@ class data_extractor : public shared_object {
 	& RK_SERIAL_SAVE_WITH_NAME(names);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+      std::unique_lock< std::mutex > lock_here(access_mutex);
+#else
       boost::unique_lock< boost::mutex > lock_here(access_mutex);
+#endif
       colCount = 0;
       if(reading_thread) {
         lock_here.unlock();
@@ -343,7 +377,12 @@ class data_extractor : public shared_object {
       values_rm = std::queue<double>();
       lock_here.unlock();
       setFileName(fileName);
+      
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+      reading_thread = boost::shared_ptr< std::thread >( new std::thread(extract_process(*this)));
+#else
       reading_thread = boost::shared_ptr<boost::thread>(new boost::thread(extract_process(*this)));
+#endif
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(data_extractor,0x81200001,1,"data_extractor",shared_object)

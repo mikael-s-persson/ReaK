@@ -403,7 +403,7 @@ try {
 
     rot_mat_3D<float> r_ident;
     RK_NOTICE(2,"Rotation identity = " << r_ident);
-    float r_45z_a[] = {cos(0.25*M_PI),sin(0.25*M_PI),0.0,-sin(0.25*M_PI),cos(0.25*M_PI),0.0,0.0,0.0,1.0};
+    float r_45z_a[] = {float(std::cos(0.25*M_PI)),float(std::sin(0.25*M_PI)),0.0,float(-std::sin(0.25*M_PI)),float(std::cos(0.25*M_PI)),0.0,0.0,0.0,1.0};
     rot_mat_3D<float> r_45z(r_45z_a);
     RK_NOTICE(2,"Rotation 45 deg about z = " << r_45z);
     rot_mat_3D<float> r_45z_cpy(r_45z);
@@ -543,7 +543,7 @@ try {
 
     trans_mat_3D<float> t_ident;
     RK_NOTICE(2,"t_ident = " << t_ident);
-    float t_45z_array[] = {cos(0.25*M_PI),sin(0.25*M_PI),0.0,0.0,-sin(0.25*M_PI),cos(0.25*M_PI),0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0};
+    float t_45z_array[] = {float(std::cos(0.25*M_PI)),float(std::sin(0.25*M_PI)),0.0,0.0,float(-std::sin(0.25*M_PI)),float(std::cos(0.25*M_PI)),0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0};
     trans_mat_3D<float> t_45z(t_45z_array);
     RK_NOTICE(2,"Rotation 45 deg about z = " << t_45z);
     trans_mat_3D<float> t_45z_cpy(t_45z);

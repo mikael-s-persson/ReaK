@@ -41,6 +41,8 @@
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 
+#include <iomanip>
+
 #include <ctime>
 
 int main(int argc, char** argv) {

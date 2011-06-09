@@ -55,8 +55,11 @@ class frame_2D : public pose_2D<T> {
     typedef vect<T,2> linear_vector_type;
     typedef T angular_vector_type;
 
-
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+    typedef std::unique_lock<std::recursive_mutex> frame_lock;
+#else
     typedef boost::unique_lock<boost::recursive_mutex> frame_lock;
+#endif
 
     linear_vector_type Velocity; ///< Velocity vector of this kinematic frame, relative-to and expressed-in parent coordinates.
     angular_vector_type AngVelocity; ///< Angular velocity of this kinematic frame, relative to parent coordinates.

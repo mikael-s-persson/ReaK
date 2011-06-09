@@ -32,28 +32,25 @@
 
 #include <algorithm>
 
-using namespace std;
-using namespace boost;
-
 namespace ReaK {
 
 namespace serialization {
 
 
 
-bin_iarchive::bin_iarchive(const string& FileName) {
+bin_iarchive::bin_iarchive(const std::string& FileName) {
 
-  file_stream.open(FileName.c_str(),ios::binary|ios::in);
+  file_stream.open(FileName.c_str(),std::ios::binary | std::ios::in);
 
-  string header;
+  std::string header;
   *this >> header;
   unsigned int version;
   *this >> version;
 
   if(!(header == "reak_serialization::bin_archive"))
-    throw ios_base::failure("Binary Archive has a corrupt header!");
+    throw std::ios_base::failure("Binary Archive has a corrupt header!");
   if(version != 2)
-    throw ios_base::failure("Binary Archive is of an unknown file version!");
+    throw std::ios_base::failure("Binary Archive is of an unknown file version!");
 
 };
 
@@ -62,7 +59,7 @@ bin_iarchive::~bin_iarchive() {
   file_stream.close();
 };
 
-iarchive& RK_CALL bin_iarchive::load_serializable_ptr(shared_ptr<serializable>& Item) {
+iarchive& RK_CALL bin_iarchive::load_serializable_ptr(boost::shared_ptr<serializable>& Item) {
   archive_object_header hdr;
 
   std::vector<unsigned int> typeIDvect;
@@ -82,11 +79,11 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(shared_ptr<serializable>& 
 
   if(hdr.is_external) {
     std::string ext_filename;
-    streampos start_pos = file_stream.tellg();
+    std::streampos start_pos = file_stream.tellg();
     *this >> ext_filename;
-    streampos end_pos = file_stream.tellg();
+    std::streampos end_pos = file_stream.tellg();
     if (hdr.size + start_pos != end_pos)
-      file_stream.seekg(start_pos + streampos(hdr.size));
+      file_stream.seekg(start_pos + std::streampos(hdr.size));
 
     bin_iarchive a(ext_filename);
     a >> Item;
@@ -97,17 +94,17 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(shared_ptr<serializable>& 
   hdr.type_ID = new unsigned int[typeIDvect.size()];
   std::copy(typeIDvect.begin(),typeIDvect.end(),hdr.type_ID);
   //Find the class in question in the repository.
-  weak_ptr<rtti::so_type> p( rtti::so_type_repo::getInstance().findType(hdr.type_ID) );
+  boost::weak_ptr<rtti::so_type> p( rtti::so_type_repo::getInstance().findType(hdr.type_ID) );
   delete[] hdr.type_ID;
   if((p.expired()) || (p.lock()->TypeVersion() < hdr.type_version)) {
     file_stream.ignore(hdr.size);
-    Item = shared_ptr<serializable>();
+    Item = boost::shared_ptr<serializable>();
     return *this;
   };
-  shared_ptr<shared_object> po(p.lock()->CreateObject());
+  boost::shared_ptr<shared_object> po(p.lock()->CreateObject());
   if(!po) {
     file_stream.ignore(hdr.size);
-    Item = shared_ptr<serializable>();
+    Item = boost::shared_ptr<serializable>();
     return *this;
   };
 
@@ -121,17 +118,17 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(shared_ptr<serializable>& 
     mObjRegistry[hdr.object_ID] = Item;
   };
 
-  streampos start_pos = file_stream.tellg();
+  std::streampos start_pos = file_stream.tellg();
   Item->load(*this,hdr.type_version);
-  streampos end_pos = file_stream.tellg();
+  std::streampos end_pos = file_stream.tellg();
 
   if (hdr.size + start_pos != end_pos)
-    file_stream.seekg(start_pos + streampos(hdr.size));
+    file_stream.seekg(start_pos + std::streampos(hdr.size));
 
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_serializable_ptr(const pair<string, shared_ptr<serializable>& >& Item) {
+iarchive& RK_CALL bin_iarchive::load_serializable_ptr(const std::pair<std::string, boost::shared_ptr<serializable>& >& Item) {
   return bin_iarchive::load_serializable_ptr(Item.second);
 };
 
@@ -147,17 +144,17 @@ iarchive& RK_CALL bin_iarchive::load_serializable(serializable& Item) {
   
   *this >> hdr.type_version >> hdr.size;
 
-  streampos start_pos = file_stream.tellg();
+  std::streampos start_pos = file_stream.tellg();
   Item.load(*this,hdr.type_version);
-  streampos end_pos = file_stream.tellg();
+  std::streampos end_pos = file_stream.tellg();
 
   if (hdr.size + start_pos != end_pos)
-    file_stream.seekg(start_pos + streampos(hdr.size));
+    file_stream.seekg(start_pos + std::streampos(hdr.size));
 
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_serializable(const pair<std::string, serializable& >& Item) {
+iarchive& RK_CALL bin_iarchive::load_serializable(const std::pair<std::string, serializable& >& Item) {
   return bin_iarchive::load_serializable(Item.second);
 };
 
@@ -166,7 +163,7 @@ iarchive& RK_CALL bin_iarchive::load_int(int& i) {
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_int(const pair<string, int& >& i) {
+iarchive& RK_CALL bin_iarchive::load_int(const std::pair<std::string, int& >& i) {
   return bin_iarchive::load_int(i.second);
 };
 
@@ -175,7 +172,7 @@ iarchive& RK_CALL bin_iarchive::load_unsigned_int(unsigned int& u) {
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_unsigned_int(const pair<string, unsigned int& >& u) {
+iarchive& RK_CALL bin_iarchive::load_unsigned_int(const std::pair<std::string, unsigned int& >& u) {
   return bin_iarchive::load_unsigned_int(u.second);
 };
 
@@ -184,7 +181,7 @@ iarchive& RK_CALL bin_iarchive::load_float(float& f) {
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_float(const pair<string, float& >& f) {
+iarchive& RK_CALL bin_iarchive::load_float(const std::pair<std::string, float& >& f) {
   return bin_iarchive::load_float(f.second);
 };
 
@@ -193,7 +190,7 @@ iarchive& RK_CALL bin_iarchive::load_double(double& d) {
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_double(const pair<string, double& >& d) {
+iarchive& RK_CALL bin_iarchive::load_double(const std::pair<std::string, double& >& d) {
   return bin_iarchive::load_double(d.second);
 };
 
@@ -202,16 +199,16 @@ iarchive& RK_CALL bin_iarchive::load_bool(bool& b) {
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_bool(const pair<string, bool& >& b) {
+iarchive& RK_CALL bin_iarchive::load_bool(const std::pair<std::string, bool& >& b) {
   return bin_iarchive::load_bool(b.second);
 };
 
-iarchive& RK_CALL bin_iarchive::load_string(string& s) {
+iarchive& RK_CALL bin_iarchive::load_string(std::string& s) {
   std::getline(file_stream,s,'\0');
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_string(const pair<string, string& >& s) {
+iarchive& RK_CALL bin_iarchive::load_string(const std::pair<std::string, std::string& >& s) {
   return bin_iarchive::load_string(s.second);
 };
 
@@ -225,8 +222,8 @@ iarchive& RK_CALL bin_iarchive::load_string(const pair<string, string& >& s) {
 
 
 
-bin_oarchive::bin_oarchive(const string& FileName) {
-  file_stream.open(FileName.c_str(),ios::binary|ios::out);
+bin_oarchive::bin_oarchive(const std::string& FileName) {
+  file_stream.open(FileName.c_str(),std::ios::binary | std::ios::out);
 
   char header[] = "reak_serialization::bin_archive";
   file_stream.write(header,std::strlen(header)+1);
@@ -247,7 +244,7 @@ oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const boost::shared_ptr<se
   const unsigned int* type_ID = NULL;
 
   if(Item) {
-    map< shared_ptr<serializable>, unsigned int>::const_iterator it = mObjRegMap.find(Item);
+    std::map< boost::shared_ptr<serializable>, unsigned int>::const_iterator it = mObjRegMap.find(Item);
 
     if(it != mObjRegMap.end()) {
       hdr.object_ID = it->second;
@@ -258,7 +255,7 @@ oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const boost::shared_ptr<se
       mObjRegMap[Item] = hdr.object_ID;
     };
 
-    shared_ptr<rtti::so_type> obj_type = Item->getObjectType();
+    boost::shared_ptr<rtti::so_type> obj_type = Item->getObjectType();
     type_ID = obj_type->TypeID_begin();
     hdr.type_version = obj_type->TypeVersion();
     hdr.is_external = true;
@@ -284,10 +281,10 @@ oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const boost::shared_ptr<se
   if(already_saved) {
     bin_oarchive::save_unsigned_int(hdr.size);
   } else {
-    streampos size_pos = file_stream.tellp();
+    std::streampos size_pos = file_stream.tellp();
     bin_oarchive::save_unsigned_int(hdr.size);
     bin_oarchive::save_string(FileName);
-    streampos end_pos = file_stream.tellp();
+    std::streampos end_pos = file_stream.tellp();
     hdr.size = end_pos - size_pos - sizeof(unsigned int);
     file_stream.seekp(size_pos);
     bin_oarchive::save_unsigned_int(hdr.size);
@@ -305,13 +302,13 @@ oarchive& RK_CALL bin_oarchive::saveToNewArchiveNamed_impl(const std::pair<std::
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const shared_ptr<serializable>& Item) {
+oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const boost::shared_ptr<serializable>& Item) {
   archive_object_header hdr;
   bool already_saved(false);
   const unsigned int* type_ID = NULL;
 
   if(Item) {
-    map< shared_ptr<serializable>, unsigned int>::const_iterator it = mObjRegMap.find(Item);
+    std::map< boost::shared_ptr<serializable>, unsigned int>::const_iterator it = mObjRegMap.find(Item);
 
     if(it != mObjRegMap.end()) {
       hdr.object_ID = it->second;
@@ -322,7 +319,7 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const shared_ptr<serializa
       mObjRegMap[Item] = hdr.object_ID;
     };
 
-    shared_ptr<rtti::so_type> obj_type = Item->getObjectType();
+    boost::shared_ptr<rtti::so_type> obj_type = Item->getObjectType();
     type_ID = obj_type->TypeID_begin();
     hdr.type_version = obj_type->TypeVersion();
     hdr.is_external = false;
@@ -348,12 +345,12 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const shared_ptr<serializa
   if(already_saved) {
     bin_oarchive::save_unsigned_int(hdr.size);
   } else {
-    streampos size_pos = file_stream.tellp();
+    std::streampos size_pos = file_stream.tellp();
     bin_oarchive::save_unsigned_int(hdr.size);
 
     Item->save(*this,hdr.type_version);
 
-    streampos end_pos = file_stream.tellp();
+    std::streampos end_pos = file_stream.tellp();
     hdr.size = end_pos - size_pos - sizeof(unsigned int);
     file_stream.seekp(size_pos);
     bin_oarchive::save_unsigned_int(hdr.size);
@@ -364,7 +361,7 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const shared_ptr<serializa
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const pair<string, const shared_ptr<serializable>& >& Item) {
+oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const std::pair<std::string, const boost::shared_ptr<serializable>& >& Item) {
   return bin_oarchive::save_serializable_ptr(Item.second);
 };
 
@@ -385,12 +382,12 @@ oarchive& RK_CALL bin_oarchive::save_serializable(const serializable& Item) {
 
   bin_oarchive::save_unsigned_int(hdr.type_version);
 
-  streampos size_pos = file_stream.tellp();
+  std::streampos size_pos = file_stream.tellp();
   bin_oarchive::save_unsigned_int(hdr.size);
 
   Item.save(*this,hdr.type_version);
 
-  streampos end_pos = file_stream.tellp();
+  std::streampos end_pos = file_stream.tellp();
   hdr.size = end_pos - size_pos - sizeof(unsigned int);
   file_stream.seekp(size_pos);
   bin_oarchive::save_unsigned_int(hdr.size);
@@ -399,7 +396,7 @@ oarchive& RK_CALL bin_oarchive::save_serializable(const serializable& Item) {
   return *this;
 };
 
-oarchive& RK_CALL bin_oarchive::save_serializable(const pair<std::string, const serializable& >& Item) {
+oarchive& RK_CALL bin_oarchive::save_serializable(const std::pair<std::string, const serializable& >& Item) {
   return bin_oarchive::save_serializable(Item.second);
 };
 
@@ -409,7 +406,7 @@ oarchive& RK_CALL bin_oarchive::save_int(int i) {
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_int(const pair<string, int >& i) {
+oarchive& RK_CALL bin_oarchive::save_int(const std::pair<std::string, int >& i) {
   return bin_oarchive::save_int(i.second);
 };
 
@@ -419,7 +416,7 @@ oarchive& RK_CALL bin_oarchive::save_unsigned_int(unsigned int u) {
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_unsigned_int(const pair<string, unsigned int >& u) {
+oarchive& RK_CALL bin_oarchive::save_unsigned_int(const std::pair<std::string, unsigned int >& u) {
   return bin_oarchive::save_unsigned_int(u.second);
 };
 
@@ -430,7 +427,7 @@ oarchive& RK_CALL bin_oarchive::save_float(float f) {
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_float(const pair<string, float >& f) {
+oarchive& RK_CALL bin_oarchive::save_float(const std::pair<std::string, float >& f) {
   return bin_oarchive::save_float(f.second);
 };
 
@@ -441,7 +438,7 @@ oarchive& RK_CALL bin_oarchive::save_double(double d) {
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_double(const pair<string, double >& d) {
+oarchive& RK_CALL bin_oarchive::save_double(const std::pair<std::string, double >& d) {
   return bin_oarchive::save_double(d.second);
 };
 
@@ -452,18 +449,18 @@ oarchive& RK_CALL bin_oarchive::save_bool(bool b) {
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_bool(const pair<string, bool >& b) {
+oarchive& RK_CALL bin_oarchive::save_bool(const std::pair<std::string, bool >& b) {
   return bin_oarchive::save_bool(b.second);
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_string(const string& s) {
-  file_stream.write(s.c_str(),strlen(s.c_str())+1);
+oarchive& RK_CALL bin_oarchive::save_string(const std::string& s) {
+  file_stream.write(s.c_str(),std::strlen(s.c_str())+1);
   return *this;
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_string(const pair<string, const string& >& s) {
+oarchive& RK_CALL bin_oarchive::save_string(const std::pair<std::string, const std::string& >& s) {
   return bin_oarchive::save_string(s.second);
 };
 

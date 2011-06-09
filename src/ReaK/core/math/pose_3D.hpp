@@ -28,8 +28,16 @@
 
 #include "base/shared_object.hpp"
 
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+
+#include <thread>
+
+#else
+
 #include <boost/thread/thread.hpp>
 #include <boost/thread/recursive_mutex.hpp>
+
+#endif
 
 namespace ReaK {
 
@@ -54,8 +62,13 @@ class pose_3D : public shared_object {
     typedef quaternion<T> rotation_type;
     
     boost::weak_ptr< self > Parent; ///< Holds a weak pointer to the pose relative to which this pose is expressed.
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+    std::recursive_mutex AccessMutex; ///< Holds the locking mutex.
+    typedef std::unique_lock<std::recursive_mutex> pose_lock;
+#else
     boost::recursive_mutex AccessMutex; ///< Holds the locking mutex.
     typedef boost::unique_lock<boost::recursive_mutex> pose_lock;
+#endif
 
     position_type Position; ///< Position vector of this coordinate system, expressed in parent coordinates.
     rotation_type Quat; ///< Rotation quaternion of this coordinate system, expressed in this coordinates (local).

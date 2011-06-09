@@ -69,8 +69,7 @@ void >::type kalman_predict(const LinearSystem& sys,
   sys.get_linear_blocks(A, B, C, D, t, x, u);
   
   b.set_mean_state( sys.get_next_state(x, u, t) );
-  const MatType& P = b.get_covariance().get_matrix(); 
-  b.set_covariance( CovType( ( A * P * transpose(A)) + Q.get_matrix() ) );
+  b.set_covariance( CovType( ( A * b.get_covariance().get_matrix() * transpose(A) ) + Q.get_matrix() ) );
 };
 
 
