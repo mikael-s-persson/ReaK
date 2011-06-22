@@ -104,8 +104,6 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
   Tcm_dot = Tcm = mat<double,mat_structure::rectangular>(m,n);
 
   unsigned int RowInd = 0;
-
-  
   
 /****************************************************************************************
  *                             Gen Coords 
@@ -114,16 +112,11 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
   
   for(unsigned int i=0; i<mCoords.size(); ++i) {
     RowInd = 0;
-
     for(unsigned int j=0; j<m3DInertias.size(); ++j) {
       if(m3DInertias[j]->mUpStreamJoints.find(mCoords[i]) != m3DInertias[j]->mUpStreamJoints.end()) {
 
         boost::shared_ptr< jacobian_gen_3D<double> > Jac = m3DInertias[j]->mUpStreamJoints[mCoords[i]];
         frame_3D<double> f2 = m3DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock());
-
-        //std::cout << "Joint " << i << " at angle " << mCoords[i]->q << " CM " << m3DInertias[j]->getName() << " gives:" << std::endl;
-        //std::cout << "\tPosition = " << f2.Position << "\tVelocity = " << f2.Velocity << "\tAccel. = " << f2.Acceleration << std::endl;
-        //std::cout << "\tOrientation = " << f2.Quat << "\tAngVelocity = " << f2.AngVelocity << "\tAngAccel. = " << f2.AngAcceleration << std::endl;
 
         rot_mat_3D<double> R(f2.Quat.getRotMat());
         vect<double,3> w_tmp = Jac->qd_avel * R;
@@ -135,9 +128,7 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
         Tcm(RowInd+3,i) = v_tmp[0];
         Tcm(RowInd+4,i) = v_tmp[1];
         Tcm(RowInd+5,i) = v_tmp[2];
-
-        //std::cout << "\tJac_omega = " << w_tmp << "\tJac_vel = " << v_tmp << std::endl;
-
+    
         w_tmp = Jac->qd_aacc * R
                - f2.AngVelocity % w_tmp;
         Tcm_dot(RowInd,i) = w_tmp[0];
@@ -149,11 +140,10 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
         Tcm_dot(RowInd+4,i) = v_tmp[1];
         Tcm_dot(RowInd+5,i) = v_tmp[2];
 
-        //std::cout << "\tJacDot_omega = " << w_tmp << "\tJacDot_vel = " << v_tmp << std::endl;
       };
       RowInd += 6;
     };
-
+    
     for(unsigned int j=0; j<m2DInertias.size(); ++j) {
       if(m2DInertias[j]->mUpStreamJoints.find(mCoords[i]) != m2DInertias[j]->mUpStreamJoints.end()) {
 
@@ -173,7 +163,7 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
       };
       RowInd += 3;
     };
-
+    
     for(unsigned int j=0; j<mGenInertias.size(); ++j) {
       if(mGenInertias[j]->mUpStreamJoints.find(mCoords[i]) != mGenInertias[j]->mUpStreamJoints.end()) {
         Tcm(RowInd,i) = mGenInertias[j]->mUpStreamJoints[mCoords[i]]->qd_qd;
@@ -332,63 +322,62 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
   
   base_i = mCoords.size() + 3*mFrames2D.size();
   for(unsigned int i=0; i<mFrames3D.size(); ++i) {
-    RowInd = 0;
+    RowInd = 0; 
 
     for(unsigned int j=0; j<m3DInertias.size(); ++j) {
       if(m3DInertias[j]->mUpStream3DJoints.find(mFrames3D[i]) != m3DInertias[j]->mUpStream3DJoints.end()) {
-
-        boost::shared_ptr< jacobian_3D_3D<double> > Jac = m3DInertias[j]->mUpStream3DJoints[mFrames3D[i]];
-        frame_3D<double> f2 = m3DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock());
-
+        boost::shared_ptr< jacobian_3D_3D<double> > Jac = m3DInertias[j]->mUpStream3DJoints[mFrames3D[i]]; 
+        frame_3D<double> f2 = m3DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock()); 
+        
         //std::cout << "Joint " << i << " at angle " << mCoords[i]->q << " CM " << m3DInertias[j]->getName() << " gives:" << std::endl;
         //std::cout << "\tPosition = " << f2.Position << "\tVelocity = " << f2.Velocity << "\tAccel. = " << f2.Acceleration << std::endl;
         //std::cout << "\tOrientation = " << f2.Quat << "\tAngVelocity = " << f2.AngVelocity << "\tAngAccel. = " << f2.AngAcceleration << std::endl;
 
-        rot_mat_3D<double> R(f2.Quat.getRotMat());
+        rot_mat_3D<double> R(f2.Quat.getRotMat()); 
         for(unsigned int k = 0; k < 3; ++k) {
 	  vect<double,3> w_tmp = Jac->vel_avel[k] * R;
           Tcm(RowInd,6*i+base_i+k) = w_tmp[0];
-          Tcm(RowInd+1,6*i+base_i+k) = w_tmp[1];
+          Tcm(RowInd+1,6*i+base_i+k) = w_tmp[1]; 
           Tcm(RowInd+2,6*i+base_i+k) = w_tmp[2];
           w_tmp = Jac->vel_aacc[k] * R
                  - f2.AngVelocity % w_tmp;
           Tcm_dot(RowInd,6*i+base_i+k) = w_tmp[0];
-          Tcm_dot(RowInd+1,6*i+base_i+k) = w_tmp[1];
+          Tcm_dot(RowInd+1,6*i+base_i+k) = w_tmp[1]; 
           Tcm_dot(RowInd+2,6*i+base_i+k) = w_tmp[2];
 	
 	  vect<double,3> v_tmp = (Jac->vel_avel[k] % f2.Position
                                     + Jac->vel_vel[k]) * R;
           Tcm(RowInd+3,6*i+base_i+k) = v_tmp[0];
-          Tcm(RowInd+4,6*i+base_i+k) = v_tmp[1];
+          Tcm(RowInd+4,6*i+base_i+k) = v_tmp[1]; 
           Tcm(RowInd+5,6*i+base_i+k) = v_tmp[2];
 
           v_tmp = (Jac->vel_avel[k] % f2.Velocity + Jac->vel_aacc[k] % f2.Position + Jac->vel_acc[k]) * R
                  - f2.AngVelocity % v_tmp;
           Tcm_dot(RowInd+3,6*i+base_i+k) = v_tmp[0];
-          Tcm_dot(RowInd+4,6*i+base_i+k) = v_tmp[1];
+          Tcm_dot(RowInd+4,6*i+base_i+k) = v_tmp[1]; 
           Tcm_dot(RowInd+5,6*i+base_i+k) = v_tmp[2];
 	};
         for(unsigned int k = 0; k < 3; ++k) {
 	  vect<double,3> w_tmp = Jac->avel_avel[k] * R;
           Tcm(RowInd,6*i+base_i+3+k) = w_tmp[0];
-          Tcm(RowInd+1,6*i+base_i+3+k) = w_tmp[1];
+          Tcm(RowInd+1,6*i+base_i+3+k) = w_tmp[1]; 
           Tcm(RowInd+2,6*i+base_i+3+k) = w_tmp[2];
           w_tmp = Jac->avel_aacc[k] * R
                  - f2.AngVelocity % w_tmp;
           Tcm_dot(RowInd,6*i+base_i+3+k) = w_tmp[0];
-          Tcm_dot(RowInd+1,6*i+base_i+3+k) = w_tmp[1];
+          Tcm_dot(RowInd+1,6*i+base_i+3+k) = w_tmp[1]; 
           Tcm_dot(RowInd+2,6*i+base_i+3+k) = w_tmp[2];
 	
 	  vect<double,3> v_tmp = (Jac->avel_avel[k] % f2.Position
                                     + Jac->avel_vel[k]) * R;
           Tcm(RowInd+3,6*i+base_i+3+k) = v_tmp[0];
-          Tcm(RowInd+4,6*i+base_i+3+k) = v_tmp[1];
+          Tcm(RowInd+4,6*i+base_i+3+k) = v_tmp[1]; 
           Tcm(RowInd+5,6*i+base_i+3+k) = v_tmp[2];
 
           v_tmp = (Jac->avel_avel[k] % f2.Velocity + Jac->avel_aacc[k] % f2.Position + Jac->avel_acc[k]) * R
                  - f2.AngVelocity % v_tmp;
           Tcm_dot(RowInd+3,6*i+base_i+3+k) = v_tmp[0];
-          Tcm_dot(RowInd+4,6*i+base_i+3+k) = v_tmp[1];
+          Tcm_dot(RowInd+4,6*i+base_i+3+k) = v_tmp[1]; 
           Tcm_dot(RowInd+5,6*i+base_i+3+k) = v_tmp[2];
 	};
         

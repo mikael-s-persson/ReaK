@@ -179,7 +179,7 @@ class frame_3D : public pose_3D<T> {
       if(!F)
 	return getGlobalFrame();
       if(this->Parent.expired()) { //If this is at the global node, F can meet this there.
-        boost::shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
+        boost::shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(F);
         if(p)
           return (~(p->getGlobalFrame())) * (*this);
         else
@@ -189,20 +189,20 @@ class frame_3D : public pose_3D<T> {
           return *this;
         else {
 	  boost::shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
-          if(p)
+	  if(p)
             return p->getFrameRelativeTo(F) * (*this);
           else
             return self(*(this->Parent.lock())).getFrameRelativeTo(F) * (*this);
         };
       } else if(F->isParentPose(boost::static_pointer_cast< base >(this->mThis))) { //If this is somewhere down F's chain.
         boost::shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(F);
-        if(p)
+	if(p)
           return ~(p->getFrameRelativeTo(boost::static_pointer_cast< base >(this->mThis)));
         else
           return ~(self(*F).getFrameRelativeTo(boost::static_pointer_cast< base >(this->mThis)));
       } else { //Else means F's chain meets "this"'s chain somewhere down, possibly all the way to the global node.
         boost::shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
-        if(p)
+	if(p)
           return p->getFrameRelativeTo(F) * (*this);
         else
           return self(*(this->Parent.lock())).getFrameRelativeTo(F) * (*this);

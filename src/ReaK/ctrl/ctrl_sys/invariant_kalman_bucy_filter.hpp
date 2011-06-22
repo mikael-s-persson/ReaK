@@ -57,6 +57,7 @@ namespace detail {
     typedef std::size_t size_type;
     typedef typename ss_system_traits<InvariantSystem>::point_type state_type;
     typedef typename ss_system_traits<InvariantSystem>::point_difference_type state_diff_type;
+    typedef typename ss_system_traits<InvariantSystem>::point_derivative_type state_deriv_type;
     typedef typename ss_system_traits<InvariantSystem>::input_type input_type;
     typedef typename ss_system_traits<InvariantSystem>::output_type output_type;
   
@@ -105,7 +106,7 @@ namespace detail {
       
       K = P * transpose(C) * R_inv;
       
-      x = sys.get_state_derivative(x, u, aTime) + sys.apply_correction(x, K * e, u, aTime);
+      state_deriv_type xd = sys.apply_correction(x, sys.get_state_derivative(x, u, aTime), K * e, u, aTime);
       P = (A  - K * C) * P + Q + P * transpose(A);
       
       for(size_type i = 0; i < x.size(); ++i) 

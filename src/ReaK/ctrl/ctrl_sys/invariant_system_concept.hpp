@@ -108,7 +108,7 @@ struct InvariantContinuousSystemConcept {
     
     e     = sys.get_invariant_error(p,u,y,t);
     c     = transpose(C) * e;
-    dp_dt = sys.apply_correction(p,c,u,t);
+    dp_dt = sys.apply_correction(p,dp_dt,c,u,t);
   };
   
 };

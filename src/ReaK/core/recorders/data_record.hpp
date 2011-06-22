@@ -35,6 +35,8 @@
 
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
 
+#define _GLIBCXX_USE_SCHED_YIELD 1
+#define _GLIBCXX_USE_NANOSLEEP 1
 #include <thread>
 
 #else

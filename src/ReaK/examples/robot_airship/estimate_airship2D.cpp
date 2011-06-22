@@ -134,7 +134,11 @@ int main(int argc, char** argv) {
   integ.setStepSize(0.0001 * time_step);
   std::cout << "Running Invariant Kalman-Bucy Filter..." << std::endl;
   {
-  ctrl::gaussian_belief_state< ctrl::covariance_matrix<double> > b = b_init;
+  
+  ctrl::gaussian_belief_state< ctrl::covariance_matrix<double> > 
+    b(b_init.get_mean_state(),
+      ctrl::covariance_matrix<double>(ctrl::covariance_matrix<double>::matrix_type(mat<double,mat_structure::diagonal>(6,10.0))));
+    
   ctrl::covariance_matrix<double> RcovInvar = ctrl::covariance_matrix<double>(ctrl::covariance_matrix<double>::matrix_type( mat_const_sub_sym_block< mat<double,mat_structure::diagonal> >(R,3,0) ));
   recorder::ssv_recorder results(result_filename + "_ikbf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;

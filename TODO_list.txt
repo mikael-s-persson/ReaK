@@ -67,17 +67,22 @@ Kalman filtering tests
       with input-disturbance   --------------------------------------------------X
   implement data extractor (inverse of data-recorders)   ------------------------X
   implement airship2D estimator systems   
-    implement airship2D linearized discrete-time model   
-    implement invariant airship2D discrete-time model   
+    implement airship2D linearized continuous-time model   ----------------------X
+    implement invariant airship2D continuous-time model   -----------------------X
+    implement airship2D linearized discrete-time model   ------------------------X
+    implement invariant airship2D discrete-time model   -------------------------X
   implement airship3D test models   
     implement airship3D model   
     implement airship3D simulator   
       with input disturbance   
   implement airship3D estimator systems   
-    implement airship3D linearized discrete-time model   
-    implement invariant airship3D discrete-time model   
+    implement airship3D linearized continuous-time model   ----------------------X
+    implement invariant airship3D continuous-time model   -----------------------X
+    implement airship3D linearized discrete-time model   ------------------------X
+    implement invariant airship3D discrete-time model   -------------------------X
   integrate airship models with Kalman filters   
-    test all Kalman filters   
+    test all Kalman filters on airship2D   --------------------------------------X
+    test all Kalman filters on airship3D   
 
 ///----------------CORE(2)----------------------
 
