@@ -129,9 +129,9 @@ int main() {
     R(1,1) = 0.01;
     R(2,2) = 0.01;
     R(3,3) = 0.01;
-    R(3,3) = 0.01;
-    R(3,3) = 0.01;
-    R(3,3) = 0.01;
+    R(4,4) = 0.01;
+    R(5,5) = 0.01;
+    R(6,6) = 0.01;
     serialization::xml_oarchive out("airship3D_R.xml");
     out & RK_SERIAL_SAVE_WITH_ALIAS("measurement_noise",R);
   };

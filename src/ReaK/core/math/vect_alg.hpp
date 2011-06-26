@@ -128,7 +128,7 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     explicit vect(const_reference Q1) {
-      BOOST_STATIC_ASSERT(Size == 1);
+      BOOST_STATIC_ASSERT(Size >= 1);
       q[0] = Q1;
       for(size_type i=1;i<Size;++i)
 	q[i] = value_type();
@@ -140,7 +140,7 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2) {
-      BOOST_STATIC_ASSERT(Size == 2);
+      BOOST_STATIC_ASSERT(Size >= 2);
       q[0] = Q1;
       q[1] = Q2;
       for(size_type i=2;i<Size;++i)
@@ -153,7 +153,7 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3) {
-      BOOST_STATIC_ASSERT(Size == 3);
+      BOOST_STATIC_ASSERT(Size >= 3);
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -167,7 +167,7 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4) {
-      BOOST_STATIC_ASSERT(Size == 4);
+      BOOST_STATIC_ASSERT(Size >= 4);
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -183,7 +183,7 @@ class vect : public serialization::serializable {
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,
 	 const_reference Q4,const_reference Q5) {
-      BOOST_STATIC_ASSERT(Size == 5);
+      BOOST_STATIC_ASSERT(Size >= 5);
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -200,7 +200,7 @@ class vect : public serialization::serializable {
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,
 	 const_reference Q4,const_reference Q5,const_reference Q6) {
-      BOOST_STATIC_ASSERT(Size == 6);
+      BOOST_STATIC_ASSERT(Size >= 6);
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -218,7 +218,7 @@ class vect : public serialization::serializable {
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,
 	 const_reference Q5,const_reference Q6,const_reference Q7) {
-      BOOST_STATIC_ASSERT(Size == 7);
+      BOOST_STATIC_ASSERT(Size >= 7);
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -237,7 +237,7 @@ class vect : public serialization::serializable {
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,
 	 const_reference Q5,const_reference Q6,const_reference Q7,const_reference Q8) {
-      BOOST_STATIC_ASSERT(Size == 8);
+      BOOST_STATIC_ASSERT(Size >= 8);
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -257,7 +257,7 @@ class vect : public serialization::serializable {
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
 	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9) {
-      BOOST_STATIC_ASSERT(Size == 9);
+      BOOST_STATIC_ASSERT(Size >= 9);
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -278,7 +278,7 @@ class vect : public serialization::serializable {
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
 	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10) {
-      BOOST_STATIC_ASSERT(Size == 10);
+      BOOST_STATIC_ASSERT(Size >= 10);
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -290,6 +290,296 @@ class vect : public serialization::serializable {
       q[8] = Q9;
       q[9] = Q10;
       for(size_type i=10;i<Size;++i)
+	q[i] = value_type();
+      return;
+    };
+
+    /**
+     * Constructor for 11 values.
+     * \test PASSED
+     */
+    vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	 const_reference Q11) {
+      BOOST_STATIC_ASSERT(Size >= 11);
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      for(size_type i=11;i<Size;++i)
+	q[i] = value_type();
+      return;
+    };
+
+    /**
+     * Constructor for 12 values.
+     * \test PASSED
+     */
+    vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	 const_reference Q11, const_reference Q12) {
+      BOOST_STATIC_ASSERT(Size >= 12);
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      for(size_type i=12;i<Size;++i)
+	q[i] = value_type();
+      return;
+    };
+
+    /**
+     * Constructor for 13 values.
+     * \test PASSED
+     */
+    vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	 const_reference Q11, const_reference Q12, const_reference Q13) {
+      BOOST_STATIC_ASSERT(Size >= 13);
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      for(size_type i=13;i<Size;++i)
+	q[i] = value_type();
+      return;
+    };
+
+    /**
+     * Constructor for 14 values.
+     * \test PASSED
+     */
+    vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14) {
+      BOOST_STATIC_ASSERT(Size >= 14);
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      for(size_type i=14;i<Size;++i)
+	q[i] = value_type();
+      return;
+    };
+
+    /**
+     * Constructor for 15 values.
+     * \test PASSED
+     */
+    vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15) {
+      BOOST_STATIC_ASSERT(Size >= 15);
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      q[14] = Q15;
+      for(size_type i=15;i<Size;++i)
+	q[i] = value_type();
+      return;
+    };
+
+    /**
+     * Constructor for 16 values.
+     * \test PASSED
+     */
+    vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
+	 const_reference Q16) {
+      BOOST_STATIC_ASSERT(Size >= 16);
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      q[14] = Q15;
+      q[15] = Q16;
+      for(size_type i=16;i<Size;++i)
+	q[i] = value_type();
+      return;
+    };
+
+    /**
+     * Constructor for 17 values.
+     * \test PASSED
+     */
+    vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
+	 const_reference Q16, const_reference Q17) {
+      BOOST_STATIC_ASSERT(Size >= 17);
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      q[14] = Q15;
+      q[15] = Q16;
+      q[16] = Q17;
+      for(size_type i=17;i<Size;++i)
+	q[i] = value_type();
+      return;
+    };
+
+    /**
+     * Constructor for 18 values.
+     * \test PASSED
+     */
+    vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
+	 const_reference Q16, const_reference Q17, const_reference Q18) {
+      BOOST_STATIC_ASSERT(Size >= 18);
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      q[14] = Q15;
+      q[15] = Q16;
+      q[16] = Q17;
+      q[17] = Q18;
+      for(size_type i=18;i<Size;++i)
+	q[i] = value_type();
+      return;
+    };
+
+    /**
+     * Constructor for 19 values.
+     * \test PASSED
+     */
+    vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
+	 const_reference Q16, const_reference Q17, const_reference Q18, const_reference Q19) {
+      BOOST_STATIC_ASSERT(Size >= 19);
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      q[14] = Q15;
+      q[15] = Q16;
+      q[16] = Q17;
+      q[17] = Q18;
+      q[18] = Q19;
+      for(size_type i=19;i<Size;++i)
+	q[i] = value_type();
+      return;
+    };
+
+    /**
+     * Constructor for 20 values.
+     * \test PASSED
+     */
+    vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
+	 const_reference Q16, const_reference Q17, const_reference Q18, const_reference Q19, const_reference Q20) {
+      BOOST_STATIC_ASSERT(Size >= 20);
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      q[14] = Q15;
+      q[15] = Q16;
+      q[16] = Q17;
+      q[17] = Q18;
+      q[18] = Q19;
+      q[19] = Q20;
+      for(size_type i=20;i<Size;++i)
 	q[i] = value_type();
       return;
     };
@@ -508,6 +798,56 @@ vect<T,9> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,
 template <typename T>
 vect<T,10> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10) {
   return vect<T,10>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10);
+};
+
+template <typename T>
+vect<T,11> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11) {
+  return vect<T,11>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11);
+};
+
+template <typename T>
+vect<T,12> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12) {
+  return vect<T,12>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12);
+};
+
+template <typename T>
+vect<T,13> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13) {
+  return vect<T,13>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13);
+};
+
+template <typename T>
+vect<T,14> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14) {
+  return vect<T,14>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14);
+};
+
+template <typename T>
+vect<T,15> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15) {
+  return vect<T,15>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15);
+};
+
+template <typename T>
+vect<T,16> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16) {
+  return vect<T,16>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16);
+};
+
+template <typename T>
+vect<T,17> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16,const T& Q17) {
+  return vect<T,17>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17);
+};
+
+template <typename T>
+vect<T,18> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16,const T& Q17,const T& Q18) {
+  return vect<T,18>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18);
+};
+
+template <typename T>
+vect<T,19> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16,const T& Q17,const T& Q18,const T& Q19) {
+  return vect<T,19>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19);
+};
+
+template <typename T>
+vect<T,20> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16,const T& Q17,const T& Q18,const T& Q19,const T& Q20) {
+  return vect<T,20>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19,Q20);
 };
 
 
@@ -1011,6 +1351,266 @@ class vect_n : public serialization::serializable {
       q[7] = Q8;
       q[8] = Q9;
       q[9] = Q10;
+      return;
+    };
+
+    /**
+     * Constructor for 11 values.
+     * \test PASSED
+     */
+    vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	   const_reference Q11) : q(11) {
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      return;
+    };
+
+    /**
+     * Constructor for 12 values.
+     * \test PASSED
+     */
+    vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	   const_reference Q11,const_reference Q12) : q(12) {
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      return;
+    };
+
+    /**
+     * Constructor for 13 values.
+     * \test PASSED
+     */
+    vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	   const_reference Q11,const_reference Q12,const_reference Q13) : q(13) {
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      return;
+    };
+
+    /**
+     * Constructor for 14 values.
+     * \test PASSED
+     */
+    vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14) : q(14) {
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      return;
+    };
+
+    /**
+     * Constructor for 15 values.
+     * \test PASSED
+     */
+    vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15) : q(15) {
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      q[14] = Q15;
+      return;
+    };
+
+    /**
+     * Constructor for 16 values.
+     * \test PASSED
+     */
+    vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
+	   const_reference Q16) : q(16) {
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      q[14] = Q15;
+      q[15] = Q16;
+      return;
+    };
+
+    /**
+     * Constructor for 17 values.
+     * \test PASSED
+     */
+    vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
+	   const_reference Q16,const_reference Q17) : q(17) {
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      q[14] = Q15;
+      q[15] = Q16;
+      q[16] = Q17;
+      return;
+    };
+
+    /**
+     * Constructor for 18 values.
+     * \test PASSED
+     */
+    vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
+	   const_reference Q16,const_reference Q17,const_reference Q18) : q(18) {
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      q[14] = Q15;
+      q[15] = Q16;
+      q[16] = Q17;
+      q[17] = Q18;
+      return;
+    };
+
+    /**
+     * Constructor for 19 values.
+     * \test PASSED
+     */
+    vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
+	   const_reference Q16,const_reference Q17,const_reference Q18,const_reference Q19) : q(19) {
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      q[14] = Q15;
+      q[15] = Q16;
+      q[16] = Q17;
+      q[17] = Q18;
+      q[18] = Q19;
+      return;
+    };
+
+    /**
+     * Constructor for 20 values.
+     * \test PASSED
+     */
+    vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
+	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
+	   const_reference Q16,const_reference Q17,const_reference Q18,const_reference Q19,const_reference Q20) : q(20) {
+      q[0] = Q1;
+      q[1] = Q2;
+      q[2] = Q3;
+      q[3] = Q4;
+      q[4] = Q5;
+      q[5] = Q6;
+      q[6] = Q7;
+      q[7] = Q8;
+      q[8] = Q9;
+      q[9] = Q10;
+      q[10] = Q11;
+      q[11] = Q12;
+      q[12] = Q13;
+      q[13] = Q14;
+      q[14] = Q15;
+      q[15] = Q16;
+      q[16] = Q17;
+      q[17] = Q18;
+      q[18] = Q19;
+      q[19] = Q20;
       return;
     };
 

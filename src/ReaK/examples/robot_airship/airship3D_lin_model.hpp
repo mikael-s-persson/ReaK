@@ -119,13 +119,13 @@ class airship3D_lin_system : public named_object {
       A(0,7) = 1.0;
       A(1,8) = 1.0;
       A(2,9) = 1.0;
-      set_block(A, mInertiaMomentInv * mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment,10,10);
-      w *= 0.5;
-      set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::column_major >(w),4,10);
-      w = -w;
-      set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w),3,11);
-      set_block(A, mat<double,mat_structure::skew_symmetric>(w),4,11);
-      
+
+      w[0] = -0.5 * x[4];
+      w[1] = -0.5 * x[5];
+      w[2] = -0.5 * x[6];
+      set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w),3,10);
+      set_block(A, (0.5 * x[3]) * mat<double,mat_structure::identity>(3) - mat<double,mat_structure::skew_symmetric>(w),4,10);
+
       B = mat<double,mat_structure::nil>(13,6);
       B(7,0) = 1.0 / mMass;
       B(8,1) = 1.0 / mMass;
@@ -235,15 +235,15 @@ class airship3D_inv_system : public airship3D_lin_system {
     };
     
     point_derivative_type apply_correction(const point_type& x, const point_derivative_type& xd, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
-      quaternion<double> q(vect<double,4>(x[3],x[4],x[5],x[6]);
-      vect<double,3> dq = q.getQuaternionDot(vect<double,3>(c[3],c[4],c[5]));
+      quaternion<double> q(vect<double,4>(x[3],x[4],x[5],x[6]));
+      vect<double,4> dq = q.getQuaternionDot(vect<double,3>(c[3],c[4],c[5]));
       return point_type(xd[0] + c[0],
 	                xd[1] + c[1],
 			xd[2] + c[2],
-			xd[3] + q[0],
-			xd[4] + q[1],
-			xd[5] + q[2],
-			xd[6] + q[3],
+			xd[3] + dq[0],
+			xd[4] + dq[1],
+			xd[5] + dq[2],
+			xd[6] + dq[3],
 			xd[7] + c[6],
 			xd[8] + c[7],
 			xd[9] + c[8],
@@ -363,22 +363,22 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       A(1,8) = mDt;  
       A(2,9) = mDt;
       set_block(A, mInertiaMomentInv * mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment,10,10);
-      w *= 0.5;
-      set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::column_major >(w),4,10);
-      w = -w;
-      set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w),3,11);
-      set_block(A, mat<double,mat_structure::skew_symmetric>(w),4,11);
+      
+      w[0] = -0.5 * mDt * x[4];
+      w[1] = -0.5 * mDt * x[5];
+      w[2] = -0.5 * mDt * x[6];
+      set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w),3,10);
+      set_block(A, (0.5 * mDt * x[3]) * mat<double,mat_structure::identity>(3) - mat<double,mat_structure::skew_symmetric>(w),4,10);
       
       B = mat<double,mat_structure::nil>(13,6);
       B(0,0) = 0.5 * mDt * mDt / mMass;
       B(1,1) = 0.5 * mDt * mDt / mMass;
       B(2,2) = 0.5 * mDt * mDt / mMass;
-      
-      w[0] = -0.5 * mDt * mDt * x[4];
-      w[1] = -0.5 * mDt * mDt * x[5];
-      w[2] = -0.5 * mDt * mDt * x[6];
-      set_block(B, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >( w * mInertiaMomentInv ), 3, 3);
-      set_block(B, (0.5 * mDt * mDt * x[3]) * mInertiaMomentInv - mat<double,mat_structure::skew_symmetric>(w) * mInertiaMomentInv, 4, 3);
+
+      w *= mDt * 0.5;
+      vect<double,3> w_Jinv = w * mInertiaMomentInv;
+      set_block(B, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >( w_Jinv ), 3, 3);
+      set_block(B, (0.25 * mDt * mDt * x[3]) * mInertiaMomentInv - mat<double,mat_structure::skew_symmetric>(w) * mInertiaMomentInv, 4, 3);
       
       B(7,0) = mDt / mMass;
       B(8,1) = mDt / mMass;

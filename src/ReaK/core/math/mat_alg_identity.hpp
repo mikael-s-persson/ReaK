@@ -208,6 +208,35 @@ typename boost::enable_if_c< is_readable_vector<Vector>::value,
     return V;
   };
 
+/**
+ * Column-vector multiplication, always results in a null vector.
+ * \param M some matrix.
+ * \param S some scalar.
+ * \return A null vector, by value.
+ * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
+ */
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+typename boost::enable_if_c< !is_readable_vector<T>::value &&
+                             !is_readable_matrix<T>::value, 
+ mat<T,mat_structure::diagonal,Alignment,Allocator> >::type
+  operator *(const mat<T,mat_structure::identity,Alignment,Allocator>& M, const T& S) {
+    return mat<T,mat_structure::diagonal,Alignment,Allocator>(M.get_row_count(),S);
+  };
+    
+/**
+ * Row-vector multiplication with null matrix, always results in a null vector.
+ * \param V some row-vector.
+ * \param M a null-matrix.
+ * \return A null vector, by value.
+ * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
+ */
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+typename boost::enable_if_c< !is_readable_vector<T>::value &&
+                             !is_readable_matrix<T>::value, 
+ mat<T,mat_structure::diagonal,Alignment,Allocator> >::type 
+  operator *(const T& S,const mat<T,mat_structure::identity,Alignment,Allocator>& M) {
+    return mat<T,mat_structure::diagonal,Alignment,Allocator>(M.get_row_count(),S);
+  };
 
 /**
  * Matrix multiplication with identity matrix.
