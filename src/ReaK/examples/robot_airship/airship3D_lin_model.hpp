@@ -28,11 +28,12 @@
 #include "base/named_object.hpp"
 
 #include "math/mat_alg.hpp"
-#include <ctrl_sys/sss_exceptions.hpp>
-#include <math/rotations_3D.hpp>
+#include "ctrl_sys/sss_exceptions.hpp"
 
 #include "math/mat_cholesky.hpp"
 
+#include "math/quat_alg.hpp"
+#include "math/rotations_3D.hpp"
 
 namespace ReaK {
 
@@ -317,13 +318,14 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       
       vect<double,3> half_dp(0.5 * mDt * u[3], 0.5 * mDt * u[4], 0.5 * mDt * u[5]);
       vect<double,3> w0(x[10],x[11],x[12]);
-      quaternion<double> half_w0_rot = quaternion<double>( exp( quat<double>( (0.5 * mDt) * w0) ) );
+      quaternion<double> half_w0_rot = quaternion<double>( exp( quat<double>( (0.25 * mDt) * w0) ) );
       vect<double,3> dp0 = invert(half_w0_rot) * (mInertiaMoment * w0 + half_dp);
       
-      vect<double,3> w1_prev = w0 + mDt * (mInertiaMomentInv * (w0 % (mInertiaMoment * w0) + 2.0 * half_dp));
+      vect<double,3> w1_prev = w0 + (mInertiaMomentInv * (2.0 * half_dp - mDt * w0 % (mInertiaMoment * w0)));
+      
       for(int i = 0; i < 20; ++i) {
 	vect<double,3> w1_next = mInertiaMomentInv * (half_dp 
-	                          + quaternion<double>( exp( quat<double>( (-0.5 * mDt) * w1_prev) ) ) * dp0);
+	                          + quaternion<double>( exp( quat<double>( (-0.25 * mDt) * w1_prev) ) ) * dp0);
 	if(norm(w1_next - w1_prev) < 1E-6 * norm(w1_next + w1_prev)) {
 	  w1_prev = w1_next;
 	  break;
@@ -333,12 +335,12 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       
       quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
                                  half_w0_rot * 
-                                 quaternion<double>( exp( quat<double>( (-0.5 * mDt) * w1_prev) ) );
+                                 quaternion<double>( exp( quat<double>( (0.25 * mDt) * w1_prev) ) );
 				 
       vect<double,3> dv(mDt * u[0] / mMass, mDt * u[1] / mMass, mDt * u[2] / mMass);
-      return point_type( x[0] + mDt * (x[4] + 0.5 * dv[0]),
-			 x[1] + mDt * (x[5] + 0.5 * dv[1]),
-			 x[2] + mDt * (x[6] + 0.5 * dv[2]),
+      return point_type( x[0] + mDt * (x[7] + 0.5 * dv[0]),
+			 x[1] + mDt * (x[8] + 0.5 * dv[1]),
+			 x[2] + mDt * (x[9] + 0.5 * dv[2]),
 			 q_new[0],
 			 q_new[1],
 			 q_new[2],
@@ -362,13 +364,16 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       A(0,7) = mDt;
       A(1,8) = mDt;  
       A(2,9) = mDt;
-      set_block(A, mInertiaMomentInv * mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment,10,10);
+      mat<double,mat_structure::square> JinvWJ(mInertiaMomentInv * mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment);
+      set_block(A, mat<double,mat_structure::identity>(3) + JinvWJ, 10, 10);
       
       w[0] = -0.5 * mDt * x[4];
       w[1] = -0.5 * mDt * x[5];
       w[2] = -0.5 * mDt * x[6];
-      set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w),3,10);
-      set_block(A, (0.5 * mDt * x[3]) * mat<double,mat_structure::identity>(3) - mat<double,mat_structure::skew_symmetric>(w),4,10);
+      JinvWJ = mat<double,mat_structure::identity>(3) + 0.5 * JinvWJ;
+      vect<double,3> w_JinvWJ = w * JinvWJ;
+      set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w_JinvWJ),3,10);
+      set_block(A, ((0.5 * mDt * x[3]) * mat<double,mat_structure::identity>(3) - mat<double,mat_structure::skew_symmetric>(w)) * JinvWJ,4,10);
       
       B = mat<double,mat_structure::nil>(13,6);
       B(0,0) = 0.5 * mDt * mDt / mMass;

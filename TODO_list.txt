@@ -72,9 +72,9 @@ Kalman filtering tests
     implement airship2D linearized discrete-time model   ------------------------X
     implement invariant airship2D discrete-time model   -------------------------X
   implement airship3D test models   
-    implement airship3D model   
-    implement airship3D simulator   
-      with input disturbance   
+    implement airship3D model   -------------------------------------------------X
+    implement airship3D simulator   ---------------------------------------------X
+      with input disturbance   --------------------------------------------------X
   implement airship3D estimator systems   
     implement airship3D linearized continuous-time model   ----------------------X
     implement invariant airship3D continuous-time model   -----------------------X

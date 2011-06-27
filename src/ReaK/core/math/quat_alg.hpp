@@ -32,31 +32,39 @@
 #ifndef QUAT_ALG_HPP
 #define QUAT_ALG_HPP
 
-#include <cmath>
-
-#include "serialization/archiver.hpp"
 #include "vect_alg.hpp"
-#include "complex_math.hpp"
+#include "serialization/archiver.hpp"
+
+#include <cmath>
 
 namespace ReaK {
 
 
 /**
- * This template class defines a complex-valued variable in cartesian native representation.
+ * This template class defines a quaternion-valued variable (not a unit-quaternion for representing rotations).
  */
 template <class T>
 class quat {
   public:
+    typedef quat<T> self;
+    
     typedef T value_type;
-    typedef std::size_t size_type;
     typedef T& reference;
     typedef const T& const_reference;
     typedef T* pointer;
     typedef const T* const_pointer;
-    typedef quat<T> self;
+    typedef void allocator_type;
+    
+    typedef pointer iterator;
+    typedef const_pointer const_iterator;
+    
+    typedef std::size_t size_type;
+    typedef std::ptrdiff_t difference_type;
     
     typedef T scalar_type;
     typedef vect<T,3> vector_type;
+          
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 4);
     
     
     value_type q[4]; ///< Holds the four values of the quaternion (q[0] is the real part).
@@ -104,6 +112,14 @@ class quat {
 	throw std::range_error("Quaternion index out of range.");
       return q[i];
     };
+    
+    size_type size() const { return 4; };
+    
+    iterator begin() { return q; };
+    const_iterator begin() const { return q; };
+    iterator end() { return q + 4; };
+    const_iterator end() const { return q + 4; };
+    
       
 /*******************************************************************************
                          Assignment Operators
@@ -188,6 +204,7 @@ class quat {
       q[3] *= R;
       return *this;
     };
+    
   
 /*******************************************************************************
                          Basic Operators
@@ -354,8 +371,8 @@ class quat {
     /** Inequality-comparison operator with a vector value. */
     friend bool operator !=(const vector_type& V, const self& C) {
       return ((C.q[0] != scalar_type()) || (C.q[1] != V[0]) || (C.q[2] != V[1]) || (C.q[3] != V[2]));
-    };
-  
+    };    
+    
   
     /** Quaternionic conjugate for a quaternion value. */
     friend self conj(const self& x) {
@@ -402,8 +419,6 @@ class quat {
     };
   
   
-  
-
 
     //Exponential and logarithmic functions:
 
@@ -513,12 +528,27 @@ class quat {
     /** Compute arc cosine (function), for a quaternion value.*/
     friend self acos(const self& x) {
       using std::sqrt;
+      using std::pow; using std::log;
+      using std::atan2; using std::cos; using std::sin;
       value_type ss_sht = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(ss_sht < std::numeric_limits<value_type>::epsilon())
 	return self(acos(x.q[0]));
-      complex<value_type> x_c = acos( complex<value_type>(x.q[0],ss_sht) );
-      value_type fact = x_c.Im / ss_sht;
-      return  self(x_c.Re, fact * x.q[1], fact * x.q[2], fact * x.q[3]);
+      
+      //complex acos...
+      value_type Re1 = x.q[0] * x.q[0] - ss_sht * ss_sht - 1.0; // x * x - 1.0
+      value_type Im1 = 2.0 * x.q[0] * ss_sht;                   // ...........
+      value_type angle = atan2(Im1,Re1);       //sqrt( x * x - 1.0 ) + x
+      Im1 = pow(Re1 * Re1 + Im1 * Im1, 0.25);  //.......................
+      Re1 = cos(0.5 * angle) * Im1 + x.q[0];   //.......................
+      Im1 = Im1 * sin(0.5 * angle) + ss_sht;   //.......................
+      
+      angle = atan2(Im1,Re1);                  //(-1.0i) * log()
+      Im1 = -log(sqrt(Re1 * Re1 + Im1 * Im1)); //...............
+      Re1 = angle;                             //...............
+      //end complex acos.
+      
+      value_type fact = Im1 / ss_sht;
+      return  self(Re1, fact * x.q[1], fact * x.q[2], fact * x.q[3]);
     };
 
     /** Compute arc sine (function), for a quaternion value.*/
@@ -527,20 +557,43 @@ class quat {
       value_type cs_sht = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(cs_sht < std::numeric_limits<value_type>::epsilon())
 	return self(asin(x.q[0]));
-      complex<value_type> x_c = asin( complex<value_type>(x.q[0],cs_sht) );
-      value_type fact = x_c.Im / cs_sht;
-      return  self(x_c.Re, fact * x.q[1], fact * x.q[2], fact * x.q[3]);
+      
+      //complex asin...
+      value_type Re1 = 1.0 - x.q[0] * x.q[0] + cs_sht * cs_sht; // 1.0 - x * x
+      value_type Im1 = -2.0 * x.q[0] * cs_sht;                   // ...........
+      value_type angle = atan2(Im1,Re1);       //sqrt( 1.0 - x * x ) + x.Re i - x.Im
+      Im1 = pow(Re1 * Re1 + Im1 * Im1, 0.25);  //.......................
+      Re1 = cos(0.5 * angle) * Im1 - cs_sht;   //.......................
+      Im1 = Im1 * sin(0.5 * angle) + x.q[0];   //.......................
+      
+      angle = atan2(Im1,Re1);                  //(-1.0i) * log()
+      Im1 = -log(sqrt(Re1 * Re1 + Im1 * Im1)); //...............
+      Re1 = angle;                             //...............
+      //end complex asin.
+      
+      value_type fact = Im1 / cs_sht;
+      return  self(Re1, fact * x.q[1], fact * x.q[2], fact * x.q[3]);
     };  
 
     /** Compute arc tangent (function), for a quaternion value.*/
     friend self atan(const self& x) {
       using std::sqrt;
+      using std::atan;
       value_type tmp = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(tmp < std::numeric_limits<value_type>::epsilon())
 	return self(atan(x.q[0]));
-      complex<value_type> x_c = atan( complex<value_type>(x.q[0],tmp) );
-      value_type fact = x_c.Im / tmp;
-      return  self(x_c.Re, fact * x.q[1], fact * x.q[2], fact * x.q[3]);
+            
+      //complex atan...
+      value_type sqr_mag_inv = 1.0 / ((1.0 - tmp) * (1.0 - tmp) + x.q[0] * x.q[0]); //complex division
+      value_type Re1 = sqr_mag_inv * (1.0 - tmp * tmp - x.q[0] * x.q[0]);           //................
+      value_type Im1 = -2.0 * sqr_mag_inv * x.q[0];                                 //................
+      value_type angle = atan2(Im1,Re1);                  //(0.5i) * log()
+      Im1 = 0.5 * log(sqrt(Re1 * Re1 + Im1 * Im1));       //..............
+      Re1 = -0.5 * angle;                                 //..............
+      //end complex atan.
+      
+      value_type fact = Im1 / tmp;
+      return  self(Re1, fact * x.q[1], fact * x.q[2], fact * x.q[3]);
     };  
 
     /** Compute arc tangent with two parameters (function), for a quaternion value.*/
@@ -586,38 +639,45 @@ class quat {
       value_type fact = sin(2.0*theta) * tmp / theta;
       return self(sinh(2.0*x.q[0]) * tmp, fact * x.q[1], fact * x.q[2], fact * x.q[3]); 
     };  
-
   
-  
-    /// Loading a quaternion value.
-    friend serialization::iarchive& RK_CALL operator >>(serialization::iarchive& in, self& C) {
-      return in >> C.q[0] >> C.q[1] >> C.q[2] >> C.q[3];
-    };
-
-    /// Loading a quaternion value with a name.
-    friend serialization::iarchive& RK_CALL operator &(serialization::iarchive& in, const std::pair<std::string, self& >& f) {
-      return in & std::pair<std::string, T& >(f.first + "_q0",f.second.q[0])
-                & std::pair<std::string, T& >(f.first + "_q1",f.second.q[1])
-                & std::pair<std::string, T& >(f.first + "_q2",f.second.q[2])
-                & std::pair<std::string, T& >(f.first + "_q3",f.second.q[3]);
-    };
-  
-    /// Saving a quaternion value.
-    friend serialization::oarchive& RK_CALL operator <<(serialization::oarchive& out, const self& C) {
-      return out << C.q[0] << C.q[1] << C.q[2] << C.q[3];
-    };
-  
-    /// Saving a quaternion value with a name.
-    friend serialization::oarchive& RK_CALL operator &(serialization::oarchive& out, const std::pair<std::string, const self& >& C) {
-      return out & std::pair<std::string, T >(C.first + "_q0",C.second.q[0])
-                 & std::pair<std::string, T >(C.first + "_q1",C.second.q[1])
-                 & std::pair<std::string, T >(C.first + "_q2",C.second.q[2])
-                 & std::pair<std::string, T >(C.first + "_q3",C.second.q[3]);
-    };
-  
+    
 };
 
 
+namespace serialization {
+  
+  /// Loading a quaternion value.
+  template <typename T>
+  iarchive& RK_CALL operator >>(iarchive& in, quat<T>& C) {
+    return in >> C.q[0] >> C.q[1] >> C.q[2] >> C.q[3];
+  };
+
+  /// Loading a quaternion value with a name.
+  template <typename T>
+  iarchive& RK_CALL operator &(iarchive& in, const std::pair<std::string, quat<T>& >& f) {
+    return in & std::pair<std::string, T& >(f.first + "_q0",f.second.q[0])
+              & std::pair<std::string, T& >(f.first + "_q1",f.second.q[1])
+              & std::pair<std::string, T& >(f.first + "_q2",f.second.q[2])
+              & std::pair<std::string, T& >(f.first + "_q3",f.second.q[3]);
+  };
+  
+  /// Saving a quaternion value.
+  template <typename T>
+  oarchive& RK_CALL operator <<(oarchive& out, const quat<T>& C) {
+    return out << C.q[0] << C.q[1] << C.q[2] << C.q[3];
+  };
+  
+  /// Saving a quaternion value with a name.
+  template <typename T>
+  oarchive& RK_CALL operator &(oarchive& out, const std::pair<std::string, const quat<T>& >& C) {
+    return out & std::pair<std::string, T >(C.first + "_q0",C.second.q[0])
+               & std::pair<std::string, T >(C.first + "_q1",C.second.q[1])
+               & std::pair<std::string, T >(C.first + "_q2",C.second.q[2])
+               & std::pair<std::string, T >(C.first + "_q3",C.second.q[3]);
+  };
+    
+};
+    
 namespace rtti {
 
 template <typename T>
@@ -630,6 +690,33 @@ struct get_type_id< quat<T> > {
   typedef quat<T>& load_type;
 };
 
+};
+
+
+
+template <typename T>
+struct is_readable_vector< quat<T> > {
+  BOOST_STATIC_CONSTANT( bool, value = true );
+  typedef is_readable_vector< quat<T> > type;
+};
+
+template <typename T>
+struct is_writable_vector< quat<T> > {
+  BOOST_STATIC_CONSTANT( bool, value = true );
+  typedef is_writable_vector< quat<T> > type;
+};
+
+template <typename T>
+struct is_resizable_vector< quat<T> > {
+  BOOST_STATIC_CONSTANT( bool, value = false );
+  typedef is_resizable_vector< quat<T> > type;
+};
+
+
+template <typename T>
+struct has_allocator_vector< quat<T> > {
+  BOOST_STATIC_CONSTANT( bool, value = false );
+  typedef has_allocator_vector< quat<T> > type;
 };
 
 

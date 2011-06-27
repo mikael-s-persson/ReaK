@@ -26,7 +26,7 @@
 
 #include "mat_alg.hpp"
 
-#include "quat_alg.hpp"
+#include "vect_concepts.hpp"
 
 
 namespace ReaK {
@@ -574,10 +574,12 @@ class quaternion : public serialization::serializable {
      */
     quaternion(const self& Q) { q[0] = Q.q[0]; q[1] = Q.q[1]; q[2] = Q.q[2]; q[3] = Q.q[3]; };
     
-    explicit quaternion(vect<value_type,4> v) { v = unit(v); q[0] = v[0]; q[1] = v[1]; q[2] = v[2]; q[3] = v[3]; };
+    template <typename Vector>
+    explicit quaternion(const Vector& aV, typename boost::enable_if_c< is_readable_vector<Vector>::value, void* >::type dummy = NULL) { RK_UNUSED(dummy); 
+      vect<value_type,4> v = unit(vect<value_type,4>(aV[0],aV[1],aV[2],aV[3])); 
+      q[0] = v[0]; q[1] = v[1]; q[2] = v[2]; q[3] = v[3]; 
+    };
     
-    explicit quaternion(quat<value_type> v) { v = unit(v); q[0] = v[0]; q[1] = v[1]; q[2] = v[2]; q[3] = v[3]; };
-
     /**
      * Constructor from a rotation matrix.
      * \test PASSED

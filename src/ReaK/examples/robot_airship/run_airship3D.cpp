@@ -41,6 +41,8 @@
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 
+#include "airship3D_lin_model.hpp"
+
 #include <iomanip>
 
 #include <ctime>
@@ -146,6 +148,12 @@ int main(int argc, char** argv) {
 							  1e-3),
 		      time_step,
 		      "airship3D_dt_sys");
+    
+  ctrl::airship3D_inv_dt_system mdl_inv_dt("airship3D_invariant_discrete",
+					   1.0,
+					   mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+					   time_step);
+  
   
   recorder::ssv_recorder results(results_filename);
   
@@ -154,6 +162,11 @@ int main(int argc, char** argv) {
 		    << "meas_x" << "meas_y" << "meas_y"
 		    << "meas_q0" << "meas_q1" << "meas_q2" << "meas_q3" << recorder::data_recorder::end_name_row;
   
+  recorder::ssv_recorder results_dt(results_filename + ".dt.ssv");
+  
+  results_dt << "time" << "pos_x" << "pos_y" << "pos_y"
+                       << "q0" << "q1" << "q2" << "q3" << recorder::data_recorder::end_name_row;  
+
   sys_type::point_type x(13);
   x[0] = airship3D_frame->Position[0];
   x[1] = airship3D_frame->Position[1];
@@ -168,6 +181,8 @@ int main(int argc, char** argv) {
   x[10] = airship3D_frame->AngVelocity[0];
   x[11] = airship3D_frame->AngVelocity[1];
   x[12] = airship3D_frame->AngVelocity[2];
+  
+  ctrl::airship3D_inv_dt_system::point_type x_dt = x;
   
   std::cout << "Starting simulation..." << std::endl;
   try {
@@ -184,6 +199,10 @@ int main(int argc, char** argv) {
     x = airship3D_dt_sys.get_next_state(x,u,t);
     sys_type::output_type y = airship3D_dt_sys.get_output(x,u,t);
     
+    x_dt = mdl_inv_dt.get_next_state(x_dt,u,t);
+    ctrl::airship3D_inv_dt_system::output_type y_dt = mdl_inv_dt.get_output(x_dt,u,t);
+    //std::cout << y_dt << std::endl;
+    
     std::cout << "\r" << std::setw(20) << t; std::cout.flush();
     
     results << t << y[0] << y[1] << y[2] 
@@ -196,6 +215,8 @@ int main(int argc, char** argv) {
 	    << (y[5] + var_rnd() * sqrt(R(5,5)))
 	    << (y[6] + var_rnd() * sqrt(R(6,6))) << recorder::data_recorder::end_value_row;
     
+    results_dt << t << y_dt[0] << y_dt[1] << y_dt[2]
+               << y_dt[3] << y_dt[4] << y_dt[5] << y_dt[6] << recorder::data_recorder::end_value_row;
   };
   
   } catch(impossible_integration& e) {
@@ -207,6 +228,7 @@ int main(int argc, char** argv) {
   };
   
   results << recorder::data_recorder::flush;
+  results_dt << recorder::data_recorder::flush;
   
   return 0;
 };

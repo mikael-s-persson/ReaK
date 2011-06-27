@@ -55,6 +55,11 @@ setup_headers("${MATH_HEADERS}" "${RKMATHDIR}")
 add_executable(test_math "${SRCROOT}${RKMATHDIR}/test.cpp")
 setup_custom_target(test_math "${SRCROOT}${RKMATHDIR}")
 
+add_executable(test_math_quat "${SRCROOT}${RKMATHDIR}/test_quat.cpp")
+setup_custom_target(test_math_quat "${SRCROOT}${RKMATHDIR}")
+target_link_libraries(test_math_quat reak_rtti)
+
+
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 

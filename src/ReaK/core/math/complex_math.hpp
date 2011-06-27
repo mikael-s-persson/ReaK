@@ -469,12 +469,6 @@ struct get_type_id< complex<T> > {
 };
 
 
-/** Instanciation of the complex<float> template class. */
-template class complex<float>;
-/** Instanciation of the complex<double> template class. */
-template class complex<double>;
-
-
 /** Complex conjugate for a real value. */
 inline float conj(float x) { return x; };
 /** Complex conjugate for a real value. */
