@@ -32,6 +32,8 @@ void vmc_revolute_joint_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame
   if((!mEnd) || (!mBase))
     return;
   
+  using std::fabs;
+  
   if(!mAngle) {
     mBase->Force += mEnd->Force;
     mBase->Torque += mEnd->Torque;
@@ -66,6 +68,8 @@ void vmc_revolute_joint_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame
 void vmc_revolute_joint_3D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
   if((!mEnd) || (!mBase))
     return;
+  
+  using std::fabs;
   
   if(!mAngle) {
     mBase->Force += mEnd->Force;

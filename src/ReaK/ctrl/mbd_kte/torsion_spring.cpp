@@ -50,6 +50,8 @@ void torsion_spring_2D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_st
 void torsion_spring_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mAnchor1) || (!mAnchor2))
     return;
+  
+  using std::fabs;
 
 
   double angle_diff = (invert(mAnchor1->Rotation) * mAnchor2->Rotation).getAngle() * mStiffness;
@@ -104,6 +106,8 @@ void torsion_spring_3D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_st
 void torsion_spring_3D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mAnchor1) || (!mAnchor2))
     return;
+  
+  using std::fabs;
 
 
   axis_angle<double> angle_diff(invert(mAnchor1->Quat) * mAnchor2->Quat);

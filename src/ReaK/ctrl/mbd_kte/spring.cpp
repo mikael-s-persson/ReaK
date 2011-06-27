@@ -50,7 +50,8 @@ void spring_gen::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> 
 void spring_gen::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mAnchor1) || (!mAnchor2))
     return;
-
+  using std::fabs;
+  
   if(mAnchor1->q > mAnchor2->q) {
     double force_mag = (mAnchor1->q - mAnchor2->q - mRestLength) * mStiffness; //Positive if tension, negative if compression.
     if((mSaturation > 0) && (fabs(force_mag) > mSaturation)) {
@@ -116,6 +117,7 @@ void spring_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aS
   if((!mAnchor1) || (!mAnchor2))
     return;
 
+  using std::fabs;
 
   vect<double,2> diff = mAnchor1->Position - mAnchor2->Position;
   double diff_mag = norm(diff);
@@ -176,6 +178,8 @@ void spring_3D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> a
 void spring_3D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mAnchor1) || (!mAnchor2))
     return;
+  
+  using std::fabs;
 
   vect<double,3> diff = mAnchor1->Position - mAnchor2->Position;
   double diff_mag = norm(diff);

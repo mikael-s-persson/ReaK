@@ -26,6 +26,8 @@
 
 #include "mat_alg.hpp"
 
+#include "quat_alg.hpp"
+
 
 namespace ReaK {
 
@@ -572,13 +574,16 @@ class quaternion : public serialization::serializable {
      */
     quaternion(const self& Q) { q[0] = Q.q[0]; q[1] = Q.q[1]; q[2] = Q.q[2]; q[3] = Q.q[3]; };
     
-    quaternion(vect<double,4> v) { v = unit(v); q[0] = v[0]; q[1] = v[1]; q[2] = v[2]; q[3] = v[3]; };
+    explicit quaternion(vect<value_type,4> v) { v = unit(v); q[0] = v[0]; q[1] = v[1]; q[2] = v[2]; q[3] = v[3]; };
+    
+    explicit quaternion(quat<value_type> v) { v = unit(v); q[0] = v[0]; q[1] = v[1]; q[2] = v[2]; q[3] = v[3]; };
 
     /**
      * Constructor from a rotation matrix.
      * \test PASSED
      */
     explicit quaternion(const rot_mat_3D<value_type>& R) {
+      using std::sqrt;
       value_type tra = R.q[0] + R.q[4] + R.q[8];
       if (tra > 0.01) {
         q[0] = 0.5*sqrt(1.0 + tra);

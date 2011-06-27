@@ -39,6 +39,7 @@ namespace detail {
 template <typename Matrix1, typename Matrix2>
 void decompose_Cholesky_impl(const Matrix1& A, Matrix2& L, typename mat_traits<Matrix1>::value_type NumTol) 
 {
+  using std::sqrt;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   SizeType N = A.get_row_count();
   for(SizeType i=0;i<N;++i) {

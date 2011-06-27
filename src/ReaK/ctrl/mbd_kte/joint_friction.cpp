@@ -44,6 +44,8 @@ void joint_dry_microslip_gen::doMotion(kte_pass_flag aFlag, boost::shared_ptr<fr
 void joint_dry_microslip_gen::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if(!mAnchor)
     return;
+  
+  using std::fabs;
 
   double tmp_speed = fabs(mAnchor->q_dot);
 

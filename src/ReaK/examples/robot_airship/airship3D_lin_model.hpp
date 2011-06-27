@@ -317,13 +317,13 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       
       vect<double,3> half_dp(0.5 * mDt * u[3], 0.5 * mDt * u[4], 0.5 * mDt * u[5]);
       vect<double,3> w0(x[10],x[11],x[12]);
-      quaternion<double> half_w0_rot = axis_angle<double>( 0.5 * mDt * norm(w0), unit(w0)).getQuaternion();
+      quaternion<double> half_w0_rot = quaternion<double>( exp( quat<double>( (0.5 * mDt) * w0) ) );
       vect<double,3> dp0 = invert(half_w0_rot) * (mInertiaMoment * w0 + half_dp);
       
       vect<double,3> w1_prev = w0 + mDt * (mInertiaMomentInv * (w0 % (mInertiaMoment * w0) + 2.0 * half_dp));
       for(int i = 0; i < 20; ++i) {
 	vect<double,3> w1_next = mInertiaMomentInv * (half_dp 
-	                          + axis_angle<double>( -0.5 * mDt * norm(w1_prev), unit(w1_prev)).getQuaternion() * dp0);
+	                          + quaternion<double>( exp( quat<double>( (-0.5 * mDt) * w1_prev) ) ) * dp0);
 	if(norm(w1_next - w1_prev) < 1E-6 * norm(w1_next + w1_prev)) {
 	  w1_prev = w1_next;
 	  break;
@@ -333,7 +333,7 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       
       quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
                                  half_w0_rot * 
-                                 axis_angle<double>( 0.5 * mDt * norm(w1_prev), unit(w1_prev)).getQuaternion();
+                                 quaternion<double>( exp( quat<double>( (-0.5 * mDt) * w1_prev) ) );
 				 
       vect<double,3> dv(mDt * u[0] / mMass, mDt * u[1] / mMass, mDt * u[2] / mMass);
       return point_type( x[0] + mDt * (x[4] + 0.5 * dv[0]),
