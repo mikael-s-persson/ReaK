@@ -453,14 +453,19 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
     virtual ~airship3D_inv_dt_system() { };
         
     void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const time_type& t, const point_type& x, const input_type& u) const {
+      vect<double,3> w(x[10],x[11],x[12]);
+      
       A = mat<double,mat_structure::identity>(12);
       A(0,6) = mDt;
       A(1,7) = mDt;  
       A(2,8) = mDt;
-      A(3,9) = mDt;
-      A(4,10) = mDt;
-      A(5,11) = mDt;
       
+      mat<double,mat_structure::square> T(mInertiaMomentInv * (mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment
+                                                            - mat<double,mat_structure::skew_symmetric>(mInertiaMoment * w)));
+      
+      set_block(A, mat<double,mat_structure::diagonal>(3,mDt) - (0.5 * mDt * mDt) * T, 3, 9);
+      set_block(A, mat<double,mat_structure::identity>(3) - mDt * T, 9, 9);
+            
       B = mat<double,mat_structure::nil>(12,6);
       B(0,0) = 0.5 * mDt * mDt / mMass;
       B(1,1) = 0.5 * mDt * mDt / mMass;
@@ -478,26 +483,20 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
     };
         
     invariant_error_type get_invariant_error(const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
-      quaternion<double> q_diff = quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6])) 
-                                * invert(quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])));
+      quaternion<double> q_diff = invert(quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6]))) 
+                                * quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6]));
+      quat<double> a = log(quat<double>(q_diff[0],q_diff[1],q_diff[2],q_diff[3]));
       return invariant_error_type(y[0] - x[0],
 			          y[1] - x[1],
 			          y[2] - x[2],
-	                          2.0 * q_diff[0] * q_diff[1],
-	                          2.0 * q_diff[0] * q_diff[2],
-	                          2.0 * q_diff[0] * q_diff[3]); 
+	                          2.0 * a[1],
+	                          2.0 * a[2],
+	                          2.0 * a[3]); 
     };
     
     point_type apply_correction(const point_type& x, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
-      using std::fabs;
-      using std::sqrt;
-      vect<double,3> v(c[3], c[4], c[5]);
-      double sc = norm(v);
-      if(fabs(sc) > 1) 
-	sc /= (fabs(sc) + std::numeric_limits< double >::epsilon());
-      double cc = sqrt(1.0 - sc * sc);
-      double q0 = sqrt((1.0 + cc) * 0.5);
-      quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * quaternion<double>(vect<double,4>(q0,v[0] * 0.5 / q0,v[1] * 0.5 / q0,v[2] * 0.5 / q0));
+      quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
+                                 quaternion<double>(exp(quat<double>(0.0, 0.5 * c[3], 0.5 * c[4], 0.5 * c[5])));
       return point_type(x[0] + c[0],
 	                x[1] + c[1],
 			x[2] + c[2],
