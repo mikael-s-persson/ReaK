@@ -607,7 +607,7 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
       quaternion<double> q_diff(exp(quat<double>(0.0, 0.5 * c[3], 0.5 * c[4], 0.5 * c[5])));
       quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
                                  q_diff;
-      vect<double,3> dw = invert(q_diff) * (mInertiaMoment * vect<double,3>(x[10],x[11],x[12]) + vect<double,3>(c[9],c[10],c[11]));
+      vect<double,3> w_new = mInertiaMomentInv * (invert(q_diff) * (mInertiaMoment * vect<double,3>(x[10],x[11],x[12]) + vect<double,3>(c[9],c[10],c[11])));
       return point_type(x[0] + c[0],
 	                x[1] + c[1],
 			x[2] + c[2],
@@ -618,9 +618,9 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
 			x[7] + c[6],
 			x[8] + c[7],
 			x[9] + c[8],
-			dw[0],
-			dw[1],
-			dw[2]);
+			w_new[0],
+			w_new[1],
+			w_new[2]);
     };
     
 /*******************************************************************************

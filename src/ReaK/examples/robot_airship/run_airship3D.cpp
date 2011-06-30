@@ -50,12 +50,14 @@
 int main(int argc, char** argv) {
   using namespace ReaK;
   
-  if(argc < 8) {
+  if(argc < 9) {
     std::cout << "Usage:\n"
-	      << "\t./run_airship3D [model_filename.xml] [init_conditions.xml] [result_filename.ssv] [time_step] [end_time] [Qu.xml] [R.xml]\n"
+	      << "\t./run_airship3D [model_filename.xml] [init_conditions.xml] [inertia_data.xml] [result_filename.ssv] [time_step] [end_time] [Qu.xml] [R.xml]\n"
 	      << "\t\t model_filename.xml:\t The filename for the airship model to use.\n"
 	      << "\t\t init_conditions.xml:\t The filename for the airship's initial conditions.\n"
-	      << "\t\t result_filename.xml:\t The filename where to record the results as a space-separated values file.\n"
+	      << "\t\t inertia_data.xml:\t The filename for the airship's inertial data.\n"
+	      << "\t\t result_filename.ssv:\t The filename where to record the results as a space-separated values file.\n"
+	      << "\t\t time_step:\t\t The time_step of the output points.\n"
 	      << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
 	      << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix." << std::endl;
     return 0;
@@ -63,23 +65,25 @@ int main(int argc, char** argv) {
   
   std::string model_filename(argv[1]);
   std::string init_filename(argv[2]);
-  std::string results_filename(argv[3]);
+  std::string inertia_filename(argv[3]);
+  std::string results_filename(argv[4]);
   
   double time_step = 0.001;
-  std::stringstream(argv[4]) >> time_step;
+  std::stringstream(argv[5]) >> time_step;
   double end_time = 30.0;
-  std::stringstream(argv[5]) >> end_time;
+  std::stringstream(argv[6]) >> end_time;
   
   boost::variate_generator< boost::minstd_rand, boost::normal_distribution<double> > var_rnd(boost::minstd_rand(static_cast<unsigned int>(time(NULL))), boost::normal_distribution<double>());
   
-  std::string Qu_filename(argv[6]);
-  std::string R_filename(argv[7]);
+  std::string Qu_filename(argv[7]);
+  std::string R_filename(argv[8]);
   
   boost::shared_ptr< frame_3D<double> > airship3D_frame;
   boost::shared_ptr< kte::position_measure_3D > airship3D_position;
   boost::shared_ptr< kte::rotation_measure_3D > airship3D_rotation;
   
   boost::shared_ptr< kte::driving_actuator_3D > airship3D_actuator;
+  boost::shared_ptr< kte::inertia_3D > airship3D_inertia;
   boost::shared_ptr< kte::kte_map_chain > airship3D_model;
   boost::shared_ptr< kte::mass_matrix_calc > airship3D_mass_calc;
   
@@ -90,6 +94,7 @@ int main(int argc, char** argv) {
        >> airship3D_position
        >> airship3D_rotation
        >> airship3D_actuator
+       >> airship3D_inertia
        >> airship3D_model
        >> airship3D_mass_calc;
   } catch(...) {
@@ -101,6 +106,16 @@ int main(int argc, char** argv) {
   try {
     serialization::xml_iarchive in(init_filename);
     in & RK_SERIAL_LOAD_WITH_ALIAS("initial_motion",(*airship3D_frame));
+  } catch(...) {
+    RK_ERROR("An exception occurred during the loading of the initial conditions!");
+    return 2;
+  };
+  
+  /* inertial data */
+  try {
+    serialization::xml_iarchive in(inertia_filename);
+    in & RK_SERIAL_LOAD_WITH_ALIAS("mass",airship3D_inertia->Mass())
+       & RK_SERIAL_LOAD_WITH_ALIAS("inertia_tensor",airship3D_inertia->InertiaTensor());
   } catch(...) {
     RK_ERROR("An exception occurred during the loading of the initial conditions!");
     return 2;

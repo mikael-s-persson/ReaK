@@ -102,6 +102,7 @@ int main() {
         << airship3D_position
         << airship3D_rotation
         << airship3D_actuator
+        << airship3D_inertia
         << airship3D_model
         << airship3D_mass_calc;
   };
@@ -109,6 +110,12 @@ int main() {
   {
     serialization::xml_oarchive out("airship3D_init.xml");
     out & RK_SERIAL_SAVE_WITH_ALIAS("initial_motion",*airship3D_frame);
+  };
+  
+  {
+    serialization::xml_oarchive out("airship3D_inertia.xml");
+    out & RK_SERIAL_SAVE_WITH_ALIAS("mass",airship3D_inertia->Mass())
+        & RK_SERIAL_SAVE_WITH_ALIAS("inertia_tensor",airship3D_inertia->InertiaTensor());
   };
   
   {

@@ -80,9 +80,10 @@ Kalman filtering tests
     implement invariant airship3D continuous-time model   -----------------------X
     implement airship3D linearized discrete-time model   ------------------------X
     implement invariant airship3D discrete-time model   -------------------------X
+    implement invariant momentum-conserving airship3D discrete-time model   -----X
   integrate airship models with Kalman filters   
     test all Kalman filters on airship2D   --------------------------------------X
-    test all Kalman filters on airship3D   
+    test all Kalman filters on airship3D   --------------------------------------X
 
 ///----------------CORE(2)----------------------
 

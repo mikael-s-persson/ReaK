@@ -44,24 +44,38 @@
 int main(int argc, char** argv) {
   using namespace ReaK;
   
-  if(argc < 6) {
+  if(argc < 7) {
     std::cout << "Usage:\n"
-	      << "\t./estimate_airship3D [meas_filename.ssv] [result_filename] [time_step] [Qu.xml] [R.xml]\n"
+	      << "\t./estimate_airship3D [inertial_data.xml] [meas_filename.ssv] [result_filename] [time_step] [Qu.xml] [R.xml]\n"
+	      << "\t\t inertial_data.xml:\t The filename of the inertial data of the airship3D.\n"
 	      << "\t\t meas_filename.ssv:\t The filename of a space-sep. values file with the recorded states and measurements.\n"
 	      << "\t\t result_filename:\t The filename prefix where to record the results as a space-separated values file.\n"
+	      << "\t\t time_step:\t\t The time-step of the data points in the measurement file.\n"
 	      << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
 	      << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix." << std::endl;
     return 0;
   };
   
-  std::string meas_filename(argv[1]);
-  std::string result_filename(argv[2]);
+  std::string inertia_filename(argv[1]);
+  std::string meas_filename(argv[2]);
+  std::string result_filename(argv[3]);
   
   double time_step = 0.001;
-  std::stringstream(argv[3]) >> time_step;
+  std::stringstream(argv[4]) >> time_step;
   
-  std::string Qu_filename(argv[4]);
-  std::string R_filename(argv[5]);
+  std::string Qu_filename(argv[5]);
+  std::string R_filename(argv[6]);
+  
+  double mass;
+  mat<double,mat_structure::symmetric> inertia_tensor;
+  try {
+    serialization::xml_iarchive in(inertia_filename);
+    in & RK_SERIAL_LOAD_WITH_ALIAS("mass",mass)
+       & RK_SERIAL_LOAD_WITH_ALIAS("inertia_tensor",inertia_tensor);
+  } catch(...) {
+    RK_ERROR("An exception occurred during the loading of the inertial data!");
+    return 6;
+  };
   
   /* input disturbance */
   mat<double,mat_structure::diagonal> Qu;
@@ -108,11 +122,11 @@ int main(int argc, char** argv) {
   };
   
   
-  ctrl::airship3D_lin_system mdl_lin("airship3D_linear",1.0,mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)));
-  ctrl::airship3D_inv_system mdl_inv("airship3D_invariant",1.0,mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)));
-  ctrl::airship3D_lin_dt_system mdl_lin_dt("airship3D_linear_discrete",1.0,mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),time_step);
-  ctrl::airship3D_inv_dt_system mdl_inv_dt("airship3D_invariant_discrete",1.0,mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),time_step);
-  ctrl::airship3D_inv_mom_dt_system mdl_inv_mom_dt("airship3D_invariant_momentum_discrete",1.0,mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),time_step);
+  ctrl::airship3D_lin_system mdl_lin("airship3D_linear",mass,inertia_tensor);
+  ctrl::airship3D_inv_system mdl_inv("airship3D_invariant",mass,inertia_tensor);
+  ctrl::airship3D_lin_dt_system mdl_lin_dt("airship3D_linear_discrete",mass,inertia_tensor,time_step);
+  ctrl::airship3D_inv_dt_system mdl_inv_dt("airship3D_invariant_discrete",mass,inertia_tensor,time_step);
+  ctrl::airship3D_inv_mom_dt_system mdl_inv_mom_dt("airship3D_invariant_momentum_discrete",mass,inertia_tensor,time_step);
   
   
   boost::posix_time::ptime t1;
@@ -232,7 +246,7 @@ int main(int argc, char** argv) {
   std::cout << "Done." << std::endl;
 #endif
   
-#if 1
+#if 0
   std::cout << "Running Unscented Kalman Filter..." << std::endl;
   {
   ctrl::gaussian_belief_state< ctrl::covariance_matrix<double> > b = b_init;
