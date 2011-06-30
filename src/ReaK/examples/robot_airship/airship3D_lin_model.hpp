@@ -531,6 +531,115 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
 
 
 
+class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
+  public:
+    
+    typedef vect_n<double> point_type;
+    typedef vect_n<double> point_difference_type;
+  
+    typedef double time_type;
+    typedef double time_difference_type;
+  
+    typedef vect_n<double> input_type;
+    typedef vect_n<double> output_type;
+  
+    typedef vect_n<double> invariant_error_type;
+    typedef vect_n<double> invariant_correction_type;
+  
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
+    BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
+    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 7);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 6);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 12);
+    
+    typedef mat<double,mat_structure::square> matrixA_type;
+    typedef mat<double,mat_structure::rectangular> matrixB_type;
+    typedef mat<double,mat_structure::rectangular> matrixC_type;
+    typedef mat<double,mat_structure::nil> matrixD_type;
+    
+    
+    airship3D_inv_mom_dt_system(const std::string& aName = "", 
+			        double aMass = 1.0, 
+			        const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			        double aDt = 0.001) :
+			        airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
+  
+    virtual ~airship3D_inv_mom_dt_system() { };
+        
+    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const time_type& t, const point_type& x, const input_type& u) const {
+      vect<double,3> w(x[10],x[11],x[12]);
+      
+      A = mat<double,mat_structure::identity>(12);
+      A(0,6) = mDt;
+      A(1,7) = mDt;  
+      A(2,8) = mDt;
+      set_block(A, mDt * mInertiaMomentInv, 3, 9);
+            
+      B = mat<double,mat_structure::nil>(12,6);
+      B(0,0) = 0.5 * mDt * mDt / mMass;
+      B(1,1) = 0.5 * mDt * mDt / mMass;
+      B(2,2) = 0.5 * mDt * mDt / mMass;
+      set_block(B, (0.5 * mDt * mDt) * mInertiaMomentInv, 3, 3);
+      B(6,0) = mDt / mMass;
+      B(7,1) = mDt / mMass;
+      B(8,2) = mDt / mMass;
+      set_block(B, mDt * mInertiaMomentInv, 9, 3);
+      
+      C = mat<double,mat_structure::nil>(6,12);
+      set_block(C,mat<double,mat_structure::identity>(6),0,0);
+      
+      D = mat<double,mat_structure::nil>(6,6);
+    };
+        
+    invariant_error_type get_invariant_error(const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
+      quaternion<double> q_diff = invert(quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6]))) 
+                                * quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6]));
+      quat<double> a = log(quat<double>(q_diff[0],q_diff[1],q_diff[2],q_diff[3]));
+      return invariant_error_type(y[0] - x[0],
+			          y[1] - x[1],
+			          y[2] - x[2],
+	                          2.0 * a[1],
+	                          2.0 * a[2],
+	                          2.0 * a[3]); 
+    };
+    
+    point_type apply_correction(const point_type& x, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
+      quaternion<double> q_diff(exp(quat<double>(0.0, 0.5 * c[3], 0.5 * c[4], 0.5 * c[5])));
+      quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
+                                 q_diff;
+      vect<double,3> dw = invert(q_diff) * (mInertiaMoment * vect<double,3>(x[10],x[11],x[12]) + vect<double,3>(c[9],c[10],c[11]));
+      return point_type(x[0] + c[0],
+	                x[1] + c[1],
+			x[2] + c[2],
+			q_new[0],
+			q_new[1],
+			q_new[2],
+			q_new[3],
+			x[7] + c[6],
+			x[8] + c[7],
+			x[9] + c[8],
+			dw[0],
+			dw[1],
+			dw[2]);
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      airship3D_lin_dt_system::save(A,airship3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      airship3D_lin_dt_system::load(A,airship3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(airship3D_inv_mom_dt_system,0xC2310009,1,"airship3D_inv_mom_dt_system",airship3D_lin_dt_system)
+    
+};
+
+
+
 
 
 

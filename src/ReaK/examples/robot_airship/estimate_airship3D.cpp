@@ -112,10 +112,11 @@ int main(int argc, char** argv) {
   ctrl::airship3D_inv_system mdl_inv("airship3D_invariant",1.0,mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)));
   ctrl::airship3D_lin_dt_system mdl_lin_dt("airship3D_linear_discrete",1.0,mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),time_step);
   ctrl::airship3D_inv_dt_system mdl_inv_dt("airship3D_invariant_discrete",1.0,mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),time_step);
+  ctrl::airship3D_inv_mom_dt_system mdl_inv_mom_dt("airship3D_invariant_momentum_discrete",1.0,mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),time_step);
   
   
   boost::posix_time::ptime t1;
-  boost::posix_time::time_duration dt[5];
+  boost::posix_time::time_duration dt[6];
   
   vect_n<double> x_init(13);
   x_init[0] = 0.0; x_init[1] = 0.0; x_init[2] = 0.0; 
@@ -314,14 +315,57 @@ int main(int argc, char** argv) {
   std::cout << "Done." << std::endl;
 #endif
   
+#if 1
+  std::cout << "Running Invariant-Momentum Kalman Filter..." << std::endl;
+  {
+    
+  ctrl::gaussian_belief_state< ctrl::covariance_matrix<double> > 
+    b(b_init.get_mean_state(),
+      ctrl::covariance_matrix<double>(ctrl::covariance_matrix<double>::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
+  
+  mat<double,mat_structure::diagonal> R_inv(6);
+  R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
+  R_inv(3,3) = R(4,4); R_inv(4,4) = R(5,5); R_inv(5,5) = R(6,6);
+  ctrl::covariance_matrix<double> Rcovinv = ctrl::covariance_matrix<double>(ctrl::covariance_matrix<double>::matrix_type(R_inv));
+    
+  recorder::ssv_recorder results(result_filename + "_imkf.ssv");
+  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" << recorder::data_recorder::end_name_row;
+  t1 = boost::posix_time::microsec_clock::local_time();
+  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
+    ctrl::airship3D_inv_dt_system::matrixA_type A;
+    ctrl::airship3D_inv_dt_system::matrixB_type B;
+    ctrl::airship3D_inv_dt_system::matrixC_type C;
+    ctrl::airship3D_inv_dt_system::matrixD_type D;
+    mdl_inv_mom_dt.get_linear_blocks(A,B,C,D,it->first,b.get_mean_state(),vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0));
+    ctrl::covariance_matrix<double> Qcov(ctrl::covariance_matrix<double>::matrix_type( B * Qu * transpose(B) ));
+    
+    ctrl::invariant_kalman_filter_step(mdl_inv_mom_dt,b,vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0),it->second,Qcov,Rcovinv,it->first);
+    
+    vect_n<double> b_mean = b.get_mean_state();
+    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
+    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
+    b.set_mean_state(b_mean);
+    
+    const vect_n<double>& x_mean = b.get_mean_state();
+    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
+                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6] << recorder::data_recorder::end_value_row;
+    
+  };
+  results << recorder::data_recorder::flush;
+  dt[5] = boost::posix_time::microsec_clock::local_time() - t1;
+  };
+  std::cout << "Done." << std::endl;
+#endif
+  
   {
   recorder::ssv_recorder results(result_filename + "_times.ssv");
-  results << "step_count" << "kbf(ms)" << "ikbf(ms)" << "ekf(ms)" << "ukf(ms)" << "iekf(ms)" << recorder::data_recorder::end_name_row;
+  results << "step_count" << "kbf(ms)" << "ikbf(ms)" << "ekf(ms)" << "ukf(ms)" << "iekf(ms)" << "imkf(ms)" << recorder::data_recorder::end_name_row;
   results << double(measurements.size()) << dt[0].total_milliseconds() 
                                          << dt[1].total_milliseconds() 
 					 << dt[2].total_milliseconds() 
 					 << dt[3].total_milliseconds() 
 					 << dt[4].total_milliseconds() 
+					 << dt[5].total_milliseconds() 
 					 << recorder::data_recorder::end_value_row << recorder::data_recorder::flush;
   };
   
