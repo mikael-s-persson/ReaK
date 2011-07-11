@@ -155,7 +155,17 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
     mat(const self& M) :
              q(M.q),
 	     rowCount(M.rowCount) { };
-
+	
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard Copy Constructor with standard semantics.
+     * \test PASSED
+     */
+    mat(self&& M) :
+             q(std::move(M.q)),
+	     rowCount(std::move(M.rowCount)) { };
+#endif
+	     
     /**
      * Explicit constructor from a any type of matrix.
      * \test PASSED
@@ -492,6 +502,14 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
       swap(result,M.q,M.rowCount);
       return result;
     };
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    friend mat<T,mat_structure::square,mat_alignment::row_major,Allocator> transpose(self&& M) {
+      using std::swap;
+      mat<T,mat_structure::square,mat_alignment::row_major,Allocator> result;
+      swap(result,M.q,M.rowCount);
+      return result;
+    };
+#endif
     
     friend value_type trace(const self& M) {
       value_type sum = value_type(0);
@@ -604,7 +622,16 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
     mat(const self& M) :
              q(M.q),
 	     rowCount(M.rowCount) { };
-
+	     
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard Copy Constructor with standard semantics.
+     * \test PASSED
+     */
+    mat(self&& M) :
+             q(std::move(M.q)),
+	     rowCount(std::move(M.rowCount)) { };
+#endif
 	     
     /**
      * Explicit constructor from a any type of matrix.
@@ -921,6 +948,14 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
       swap(result,M.q,M.rowCount);
       return result;
     };
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    friend mat<T,mat_structure::square,mat_alignment::column_major,Allocator> transpose(self&& M) {
+      using std::swap;
+      mat<T,mat_structure::square,mat_alignment::column_major,Allocator> result;
+      swap(result,M.q,M.rowCount);
+      return result;
+    };
+#endif
     
     friend value_type trace(const self& M) {
       value_type sum = value_type(0);

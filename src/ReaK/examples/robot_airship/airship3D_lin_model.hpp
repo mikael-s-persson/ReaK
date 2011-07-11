@@ -184,6 +184,7 @@ class airship3D_inv_system : public airship3D_lin_system {
     
     typedef vect_n<double> invariant_error_type;
     typedef vect_n<double> invariant_correction_type;
+    typedef mat<double,mat_structure::identity> invariant_frame_type;
   
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
@@ -431,6 +432,7 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
   
     typedef vect_n<double> invariant_error_type;
     typedef vect_n<double> invariant_correction_type;
+    typedef mat<double,mat_structure::identity> invariant_frame_type;
   
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
@@ -494,7 +496,7 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
 	                          2.0 * a[3]); 
     };
     
-    point_type apply_correction(const point_type& x, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
+    point_type apply_correction(const point_type& x, const invariant_correction_type& c, const input_type&, const time_type&) const {
       quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
                                  quaternion<double>(exp(quat<double>(0.0, 0.5 * c[3], 0.5 * c[4], 0.5 * c[5])));
       return point_type(x[0] + c[0],
@@ -510,6 +512,14 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
 			x[10] + c[9],
 			x[11] + c[10],
 			x[12] + c[11]);
+    };
+    
+    invariant_frame_type get_invariant_prior_frame(const point_type&, const point_type&, const input_type&, const time_type&) const {
+      return invariant_frame_type(invariant_correction_dimensions);
+    };
+    
+    invariant_frame_type get_invariant_posterior_frame(const point_type&, const point_type&, const input_type&, const time_type&) const {
+      return invariant_frame_type(invariant_correction_dimensions);
     };
     
 /*******************************************************************************
@@ -545,6 +555,7 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
   
     typedef vect_n<double> invariant_error_type;
     typedef vect_n<double> invariant_correction_type;
+    typedef mat<double,mat_structure::square> invariant_frame_type;
   
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
@@ -621,6 +632,19 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
 			w_new[0],
 			w_new[1],
 			w_new[2]);
+    };
+    
+    invariant_frame_type get_invariant_prior_frame(const point_type& x_prev, const point_type& x_prior, const input_type&, const time_type&) const {
+      invariant_frame_type result(mat<double,mat_structure::identity>(12));
+      mat<double,mat_structure::square> R_diff((invert(quaternion<double>(vect<double,4>(x_prior[3],x_prior[4],x_prior[5],x_prior[6])))
+                                                 * quaternion<double>(vect<double,4>(x_prev[3],x_prev[4],x_prev[5],x_prev[6]))).getMat());
+      set_block(result, R_diff, 3, 3);
+      set_block(result, R_diff, 9, 9);
+      return result;
+    };
+    
+    invariant_frame_type get_invariant_posterior_frame(const point_type& x_prior, const point_type& x_post, const input_type& u, const time_type& t) const {
+      return get_invariant_prior_frame(x_prior,x_post,u,t);
     };
     
 /*******************************************************************************

@@ -160,6 +160,17 @@ class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : 
              q(M.q),
 	     rowCount(M.rowCount),
 	     colCount(M.colCount) { };
+	     
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard Copy Constructor with standard semantics.
+     * \test PASSED
+     */
+    mat(self&& M) :
+             q(std::move(M.q)),
+	     rowCount(std::move(M.rowCount)),
+	     colCount(std::move(M.colCount)) { };
+#endif
 
     /**
      * Explicit constructor from a any type of matrix.
@@ -481,6 +492,15 @@ class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : 
       swap(result,M.q,M.colCount,M.rowCount);
       return result;
     };
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    friend mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> transpose(self&& M) {
+      mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> result;
+      using std::swap;
+      swap(result,M.q,M.colCount,M.rowCount);
+      return result;
+    };    
+#endif
     
     
 /*******************************************************************************
@@ -595,7 +615,17 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
              q(M.q),
 	     rowCount(M.rowCount),
 	     colCount(M.colCount) { };
-
+	     
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard Copy Constructor with standard semantics.
+     * \test PASSED
+     */
+    mat(self&& M) :
+             q(std::move(M.q)),
+	     rowCount(std::move(M.rowCount)),
+	     colCount(std::move(M.colCount)) { };
+#endif
 	     
     /**
      * Explicit constructor from a any type of matrix.
@@ -907,12 +937,22 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
     friend mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> transpose(const self& M) {
       return mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator>(M.q,M.colCount,M.rowCount);
     };
+    
     friend mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> transpose_move(self& M) {
       mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> result;
       using std::swap;
       swap(result,M.q,M.colCount,M.rowCount);
       return result;
     };
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    friend mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> transpose(self&& M) {
+      mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> result;
+      using std::swap;
+      swap(result,M.q,M.colCount,M.rowCount);
+      return result;
+    };
+#endif
     
     
 /*******************************************************************************
@@ -937,7 +977,7 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
   
 };
 
-
+/*
 //NOT USED. DEPRECATED (see friend functions)
 template <typename T, typename Allocator>
 mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> 
@@ -986,7 +1026,7 @@ mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator>
   swap(result.colCount, M.rowCount);
   return result;
 };
-
+*/
 
 
 

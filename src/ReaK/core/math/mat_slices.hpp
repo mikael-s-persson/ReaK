@@ -185,6 +185,35 @@ class mat_row_slice {
 
 
 
+
+template <typename Matrix>
+struct is_readable_vector< mat_row_slice<Matrix> > {
+  BOOST_STATIC_CONSTANT( bool, value = true );
+  typedef is_readable_vector< mat_row_slice<Matrix> > type;
+};
+
+template <typename Matrix>
+struct is_writable_vector< mat_row_slice<Matrix> > {
+  BOOST_STATIC_CONSTANT( bool, value = is_fully_writable_matrix<Matrix>::value );
+  typedef is_writable_vector< mat_row_slice<Matrix> > type;
+};
+
+template <typename Matrix>
+struct is_resizable_vector< mat_row_slice<Matrix> > {
+  BOOST_STATIC_CONSTANT( bool, value = false );
+  typedef is_resizable_vector< mat_row_slice<Matrix> > type;
+};
+
+
+template <typename Matrix>
+struct has_allocator_vector< mat_row_slice<Matrix> > {
+  BOOST_STATIC_CONSTANT( bool, value = has_allocator_matrix<Matrix>::value );
+  typedef has_allocator_vector< mat_row_slice<Matrix> > type;
+};
+
+
+
+
 template <typename Matrix>
 class mat_col_slice {
   public:
@@ -338,6 +367,35 @@ class mat_col_slice {
     };
   
 };
+
+
+
+
+template <typename Matrix>
+struct is_readable_vector< mat_col_slice<Matrix> > {
+  BOOST_STATIC_CONSTANT( bool, value = true );
+  typedef is_readable_vector< mat_col_slice<Matrix> > type;
+};
+
+template <typename Matrix>
+struct is_writable_vector< mat_col_slice<Matrix> > {
+  BOOST_STATIC_CONSTANT( bool, value = is_fully_writable_matrix<Matrix>::value );
+  typedef is_writable_vector< mat_col_slice<Matrix> > type;
+};
+
+template <typename Matrix>
+struct is_resizable_vector< mat_col_slice<Matrix> > {
+  BOOST_STATIC_CONSTANT( bool, value = false );
+  typedef is_resizable_vector< mat_col_slice<Matrix> > type;
+};
+
+
+template <typename Matrix>
+struct has_allocator_vector< mat_col_slice<Matrix> > {
+  BOOST_STATIC_CONSTANT( bool, value = has_allocator_matrix<Matrix>::value );
+  typedef has_allocator_vector< mat_col_slice<Matrix> > type;
+};
+
 
 
 

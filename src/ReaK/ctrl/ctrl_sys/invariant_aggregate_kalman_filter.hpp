@@ -64,7 +64,7 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
   boost::function_requires< DiscreteLinearSSSConcept< InvariantSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< InvariantSystemConcept<InvariantSystem> >();
+  boost::function_requires< InvariantDiscreteSystemConcept<InvariantSystem> >();
   boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
 
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
@@ -88,8 +88,8 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   typedef typename hamiltonian_mat< ValueType >::lower_left HamilMatLL;
   typedef typename hamiltonian_mat< ValueType >::lower_right HamilMatLR;
   
-  typename invariant_system_traits<InvariantSystem>::invariant_frame_type W;
-  typename invariant_system_traits<InvariantSystem>::output_error_type e;
+  typedef typename invariant_system_traits<InvariantSystem>::invariant_frame_type InvFrameType;
+  typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type InvErrorType;
   
   StateType x = b.get_mean_state();
   MatType P = b.get_covariance().get_matrix();
@@ -99,16 +99,20 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   x = sys.get_next_state(x,u,t);
   P = ( A * P * transpose(A)) + Q.get_matrix();
   
-  sys.get_output_error(e, t, x, u, z);
-  sys.get_invariant_frame(W, t, x);
+  InvErrorType e = sys.get_output_error(x, u, z, t + sys.get_time_step());
+  InvFrameType W = sys.get_invariant_prior_frame(b.get_mean_state(), x, u, t + sys.get_time_step());
   
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
   mat< ValueType, mat_structure::symmetric > S = CP * transpose(C) + R.get_matrix();
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
    
-  b.set_mean_state( x + W * K * e );
-  b.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
+  b.set_mean_state( sys.apply_correction(x, W * K * e, u, t + sys.get_time_step()) );
+  W = sys.get_invariant_posterior_frame(x_prior, b.get_mean_state(), u, t + sys.get_time_step()) * W;
+  InvFrameType Wt = transpose(W);
+  b.set_covariance( CovType( MatType( W * (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P * Wt ) ) );
+  
+  //TODO Apply the W transform somehow.
   
   HamilMat Sc_tmp(HamilMatUp(HamilMatUL(A),HamilMatUR(Q.get_matrix())),HamilMatLo(HamilMatLL(mat<ValueType,mat_structure::nil>(N)),HamilMatLR(transpose_move(A))));
   
@@ -142,7 +146,7 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
   boost::function_requires< DiscreteLinearSSSConcept< InvariantSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< InvariantSystemConcept<InvariantSystem> >();
+  boost::function_requires< InvariantDiscreteSystemConcept<InvariantSystem> >();
   boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
 
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;

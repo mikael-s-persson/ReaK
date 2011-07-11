@@ -68,6 +68,7 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
+  typedef typename invariant_system_traits<InvariantSystem>::invariant_frame_type InvarFrame;
   
   typename discrete_linear_sss_traits<InvariantSystem>::matrixA_type A;
   typename discrete_linear_sss_traits<InvariantSystem>::matrixB_type B;
@@ -80,18 +81,20 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   MatType P = b.get_covariance().get_matrix();
   sys.get_linear_blocks(A, B, C, D, t, x, u);
   
-  x = sys.get_next_state(x,u,t);
-  P = ( A * P * transpose(A)) + Q.get_matrix();
+  StateType x_prior = sys.get_next_state(x,u,t);
+  InvarFrame W = sys.get_invariant_prior_frame(x, x_prior, u, t + sys.get_time_step());
+  P = W * (( A * P * transpose(A)) + Q.get_matrix()) * transpose(W);
   
-  e = sys.get_invariant_error(x, u, z, t + sys.get_time_step());
+  e = sys.get_invariant_error(x_prior, u, z, t + sys.get_time_step());
   
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
   mat< ValueType, mat_structure::symmetric > S(CP * transpose(C) + R.get_matrix());
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
    
-  b.set_mean_state( sys.apply_correction(x, K * e, u, t + sys.get_time_step()) );
-  b.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
+  b.set_mean_state( sys.apply_correction(x_prior, K * e, u, t + sys.get_time_step()) );
+  W = sys.get_invariant_posterior_frame(x_prior, b.get_mean_state(), u, t + sys.get_time_step());
+  b.set_covariance( CovType( MatType( W * ((mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P) * transpose(W) ) ) );
 };
 
 

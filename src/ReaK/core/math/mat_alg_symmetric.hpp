@@ -147,6 +147,16 @@ class mat<T,mat_structure::symmetric,Alignment,Allocator> : public serialization
     mat(const self& M) :
              q(M.q),
 	     rowCount(M.rowCount) { };
+	     
+#ifdef RK_ENABLE_CXX0X_FEATURES     
+    /**
+     * Standard Copy Constructor with standard semantics.
+     * \test PASSED
+     */
+    mat(self&& M) :
+             q(std::move(M.q)),
+	     rowCount(std::move(M.rowCount)) { };
+#endif
 
     friend void swap(self& M1, self& M2) throw() {
       using std::swap;

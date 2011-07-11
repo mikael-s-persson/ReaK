@@ -105,7 +105,16 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
     mat(const self& M) :
              q(M.q),
 	     rowCount(M.rowCount) { };
-
+	     
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard Copy Constructor with standard semantics.
+     */
+    mat(self&& M) :
+             q(std::move(M.q)),
+	     rowCount(std::move(M.rowCount)) { };
+#endif
+	     
     /**
      * Constructor from a vector of size n.
      */
@@ -491,6 +500,11 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
       swap(result,M);
       return result;
     };
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    friend self transpose(self&& M) {
+      return self(std::move(M));
+    };
+#endif
     
     friend value_type trace(const self& M) {
       value_type sum = value_type(0);

@@ -114,6 +114,7 @@ class mat<T,mat_structure::identity, Alignment, Allocator> : public serializatio
     friend self transpose(self rhs) {
       return rhs;
     };
+    
     friend self transpose_move(self& rhs) {
       self result; 
       swap(result, rhs);

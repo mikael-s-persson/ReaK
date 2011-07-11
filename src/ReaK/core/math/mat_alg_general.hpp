@@ -34,6 +34,7 @@
 #ifndef MAT_ALG_GENERAL_HPP
 #define MAT_ALG_GENERAL_HPP
 
+#include "base/defs.hpp"
 #include "vect_alg.hpp"
 #include "vect_concepts.hpp"
 #include "mat_concepts.hpp"

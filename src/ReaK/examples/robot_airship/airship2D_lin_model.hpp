@@ -149,6 +149,7 @@ class airship2D_inv_system : public airship2D_lin_system {
   
     typedef vect_n<double> invariant_error_type;
     typedef vect_n<double> invariant_correction_type;
+    typedef mat<double,mat_structure::identity> invariant_frame_type;
   
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 7);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 3);
@@ -337,6 +338,7 @@ class airship2D_inv_dt_system : public airship2D_lin_dt_system {
   
     typedef vect_n<double> invariant_error_type;
     typedef vect_n<double> invariant_correction_type;
+    typedef mat<double,mat_structure::identity> invariant_frame_type;
   
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 7);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 3);
@@ -398,6 +400,14 @@ class airship2D_inv_dt_system : public airship2D_lin_dt_system {
 			x[4] + c[3],
 			x[5] + c[4],
 			x[6] + c[5]);
+    };
+    
+    invariant_frame_type get_invariant_prior_frame(const point_type&, const point_type&, const input_type&, const time_type&) const {
+      return invariant_frame_type(6);
+    };
+    
+    invariant_frame_type get_invariant_posterior_frame(const point_type&, const point_type&, const input_type&, const time_type&) const {
+      return invariant_frame_type(6);
     };
     
 /*******************************************************************************

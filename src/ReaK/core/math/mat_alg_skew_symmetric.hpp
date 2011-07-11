@@ -140,6 +140,14 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      * \test PASSED
      */
     mat(const self& M) : q(M.q), rowCount(M.rowCount) { };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard Copy Constructor with standard semantics.
+     * \test PASSED
+     */
+    mat(self&& M) : q(std::move(M.q)), rowCount(std::move(M.rowCount)) { };
+#endif
 
     /**
      * Explicit constructor from any type of matrix. The "(M - M.transpose) / 2" is applied to guarantee skew-symmetry.
@@ -682,6 +690,14 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
 	*it = -(*it);
       return result;
     };
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    friend self transpose(self&& M) {
+      self result(std::move(M));
+      for(typename container_type::iterator it = result.q.begin(); it != result.q.end(); ++it)
+	*it = -(*it);
+      return result;
+    };
+#endif
     
     friend value_type trace(const self& M) {
       return value_type(0);

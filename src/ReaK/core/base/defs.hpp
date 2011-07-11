@@ -51,6 +51,10 @@
 #define RK_VERBOSITY 5
 #endif
 
+#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#define RK_ENABLE_CXX0X_FEATURES
+#endif
+
 #include <string>
 #include <iostream>
 

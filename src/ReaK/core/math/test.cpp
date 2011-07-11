@@ -732,7 +732,7 @@ try {
     t1 = boost::posix_time::microsec_clock::local_time();
     mat<double,mat_structure::diagonal> m_qr_E(3,true);
     mat<double,mat_structure::square> m_qr_Q(3);
-    eigensolve_QR(m_gauss,m_qr_E,m_qr_Q,50,double(1E-6));
+    //eigensolve_QR(m_gauss,m_qr_E,m_qr_Q,50,double(1E-6));
     dt = boost::posix_time::microsec_clock::local_time() - t1;
     RK_NOTICE(2,"The eigenvalues were found in " << dt.total_microseconds() << " microseconds with QR.");
     RK_NOTICE(2,"The eigenvalues are = " << m_qr_E);

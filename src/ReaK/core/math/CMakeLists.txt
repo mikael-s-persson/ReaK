@@ -34,6 +34,10 @@ set(MATH_HEADERS "${RKMATHDIR}/vect_alg.hpp"
                  "${RKMATHDIR}/mat_norms.hpp"
                  "${RKMATHDIR}/mat_exp_methods.hpp"
                  "${RKMATHDIR}/mat_star_product.hpp"
+                 "${RKMATHDIR}/mat_hess_decomp.hpp"
+                 "${RKMATHDIR}/mat_givens_rot.hpp"
+                 "${RKMATHDIR}/mat_householder.hpp"
+                 "${RKMATHDIR}/mat_schur_decomp.hpp"
                  "${RKMATHDIR}/complex_math.hpp"
                  "${RKMATHDIR}/rotations.hpp"
                  "${RKMATHDIR}/rotations_2D.hpp"
@@ -54,16 +58,20 @@ setup_headers("${MATH_HEADERS}" "${RKMATHDIR}")
 
 add_executable(test_math "${SRCROOT}${RKMATHDIR}/test.cpp")
 setup_custom_target(test_math "${SRCROOT}${RKMATHDIR}")
+target_link_libraries(test_math reak_rtti)
 
 add_executable(test_math_quat "${SRCROOT}${RKMATHDIR}/test_quat.cpp")
 setup_custom_target(test_math_quat "${SRCROOT}${RKMATHDIR}")
 target_link_libraries(test_math_quat reak_rtti)
 
+add_executable(test_math_views "${SRCROOT}${RKMATHDIR}/test_views.cpp")
+setup_custom_target(test_math_views "${SRCROOT}${RKMATHDIR}")
+target_link_libraries(test_math_views reak_rtti)
+
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 
-target_link_libraries(test_math reak_rtti)
 
 
 

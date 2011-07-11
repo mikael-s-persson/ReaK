@@ -46,6 +46,7 @@ struct invariant_system_traits {
   
   typedef typename InvariantSystem::invariant_error_type invariant_error_type;
   typedef typename InvariantSystem::invariant_correction_type invariant_correction_type;
+  typedef typename InvariantSystem::invariant_frame_type invariant_frame_type;
   
   BOOST_STATIC_CONSTANT(std::size_t, dimensions = InvariantSystem::dimensions);
   BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = InvariantSystem::input_dimensions);
@@ -60,12 +61,14 @@ template <typename InvariantDiscreteSystem>
 struct InvariantDiscreteSystemConcept {
   InvariantDiscreteSystem sys;
   typename invariant_system_traits<InvariantDiscreteSystem>::point_type p;
+  typename invariant_system_traits<InvariantDiscreteSystem>::point_type prev_p;
   typename invariant_system_traits<InvariantDiscreteSystem>::time_type t;
   typename invariant_system_traits<InvariantDiscreteSystem>::input_type u;
   typename invariant_system_traits<InvariantDiscreteSystem>::output_type y;
   typename invariant_system_traits<InvariantDiscreteSystem>::invariant_error_type e;
   typename invariant_system_traits<InvariantDiscreteSystem>::invariant_correction_type c;
-    
+  typename invariant_system_traits<InvariantDiscreteSystem>::invariant_frame_type W;
+  
   typename discrete_linear_sss_traits<InvariantDiscreteSystem>::matrixA_type A;
   typename discrete_linear_sss_traits<InvariantDiscreteSystem>::matrixB_type B;
   typename discrete_linear_sss_traits<InvariantDiscreteSystem>::matrixC_type C;
@@ -79,6 +82,8 @@ struct InvariantDiscreteSystemConcept {
     e = sys.get_invariant_error(p,u,y,t);
     c = transpose(C) * e;
     p = sys.apply_correction(p,c,u,t);
+    W = sys.get_invariant_prior_frame(prev_p,p,u,t);
+    W = sys.get_invariant_posterior_frame(prev_p,p,u,t);
   };
   
 };

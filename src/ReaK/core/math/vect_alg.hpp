@@ -633,6 +633,21 @@ class vect : public serialization::serializable {
 	q[i] = V[i];
       return *this;
     };
+    
+    /**
+     * Standard assignment operator.
+     * \test PASSED
+     */
+    template <typename Vector>
+    typename boost::enable_if_c< is_readable_vector<Vector>::value &&
+                                 !boost::is_same<Vector,self>::value,
+    self& >::type operator =(const Vector& V) {
+      if(Size != V.size())
+        throw std::range_error("Vector size mismatch.");
+      for(size_type i=0; i < Size; ++i)
+	q[i] = V[i];
+      return *this;
+    };
 
     /**
      * Standard add-and-store operator.
@@ -1662,6 +1677,20 @@ class vect_n : public serialization::serializable {
      */
     self& operator =(const self& V) {
       q.assign(V.q.begin(),V.q.end());
+      return *this;
+    };
+    
+    /**
+     * Standard assignment operator.
+     * \test PASSED
+     */
+    template <typename Vector>
+    typename boost::enable_if_c< is_readable_vector<Vector>::value &&
+                                 !boost::is_same<Vector,self>::value,
+    self& >::type operator =(const Vector& V) {
+      q.resize(V.size());
+      for(size_type i=0; i < q.size(); ++i)
+	q[i] = V[i];
       return *this;
     };
 

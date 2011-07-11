@@ -63,6 +63,8 @@ class mat_horiz_cat {
     LeftMatrix ml;
     RightMatrix mr;
   public:
+    mat_horiz_cat() : ml(), mr() { };
+    
     mat_horiz_cat(const LeftMatrix& aML, const RightMatrix& aMR) : ml(aML), mr(aMR) { 
       if(ml.get_row_count() != mr.get_row_count())
 	throw std::range_error("Matrix dimensions mismatch.");
@@ -70,13 +72,22 @@ class mat_horiz_cat {
     
     mat_horiz_cat(const self& aObj) : ml(aObj.ml), mr(aObj.mr) { };
     
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    mat_horiz_cat(LeftMatrix&& aML, RightMatrix&& aMR) : ml(std::move(aML)), mr(std::move(aMR)) { 
+      if(ml.get_row_count() != mr.get_row_count())
+	throw std::range_error("Matrix dimensions mismatch.");
+    };
+    
+    mat_horiz_cat(self&& aObj) : ml(std::move(aObj.ml)), mr(std::move(aObj.mr)) { };
+#endif
+    
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.ml,rhs.ml);
       swap(lhs.mr,rhs.mr);
     };
     
-    self& operator=(const self rhs) {
+    self& operator=(self rhs) {
       swap(*this,rhs);
       return *this;
     };
@@ -87,8 +98,8 @@ class mat_horiz_cat {
     self& >::type operator=(const Matrix& rhs) {
       if((rhs.get_row_count() != ml.get_row_count()) || (rhs.get_col_count() != ml.get_col_count() + mr.get_col_count()))
 	throw std::range_error("Matrix dimensions mismatch.");
-      ml = mat_const_sub_block< Matrix >(rhs,ml.get_row_count(),ml.get_col_count(),0,0);
-      mr = mat_const_sub_block< Matrix >(rhs,mr.get_row_count(),mr.get_col_count(),0,ml.get_col_count());
+      ml = sub(rhs)(range(0,ml.get_row_count()-1),range(0,ml.get_col_count()-1));
+      mr = sub(rhs)(range(0,mr.get_row_count()-1),range(ml.get_col_count(),ml.get_col_count() + mr.get_col_count()-1));
       return *this;
     };
     
@@ -126,8 +137,8 @@ class mat_horiz_cat {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_row_count() != ml.get_row_count()) || (M.get_col_count() != ml.get_col_count() + mr.get_col_count()))
 	throw std::range_error("Matrix dimension mismatch.");
-      ml += mat_const_sub_block< Matrix >(M,ml.get_row_count(),ml.get_col_count(),0,0);
-      mr += mat_const_sub_block< Matrix >(M,mr.get_row_count(),mr.get_col_count(),0,ml.get_col_count());
+      ml += sub(M)(range(0,ml.get_row_count()-1),range(0,ml.get_col_count()-1));
+      mr += sub(M)(range(0,mr.get_row_count()-1),range(ml.get_col_count(),ml.get_col_count() + mr.get_col_count()-1));
       return *this;
     };
 
@@ -140,8 +151,8 @@ class mat_horiz_cat {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_row_count() != ml.get_row_count()) || (M.get_col_count() != ml.get_col_count() + mr.get_col_count()))
 	throw std::range_error("Matrix dimension mismatch.");
-      ml -= mat_const_sub_block< Matrix >(M,ml.get_row_count(),ml.get_col_count(),0,0);
-      mr -= mat_const_sub_block< Matrix >(M,mr.get_row_count(),mr.get_col_count(),0,ml.get_col_count());
+      ml -= sub(M)(range(0,ml.get_row_count()-1),range(0,ml.get_col_count()-1));
+      mr -= sub(M)(range(0,mr.get_row_count()-1),range(ml.get_col_count(),ml.get_col_count() + mr.get_col_count()-1));
       return *this;
     };
 
@@ -262,23 +273,36 @@ class mat_ref_horiz_cat {
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::rectangular);
     
   private:
-    LeftMatrix& ml;
-    RightMatrix& mr;
+    LeftMatrix* ml;
+    RightMatrix* mr;
   public:
-    mat_ref_horiz_cat(LeftMatrix& aML, RightMatrix& aMR) : ml(aML), mr(aMR) { 
-      if(ml.get_row_count() != mr.get_row_count())
+    mat_ref_horiz_cat() : ml(NULL), mr(NULL) { };
+    
+    mat_ref_horiz_cat(LeftMatrix& aML, RightMatrix& aMR) : ml(&aML), mr(&aMR) { 
+      if(ml->get_row_count() != mr->get_row_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
     mat_ref_horiz_cat(const self& aObj) : ml(aObj.ml), mr(aObj.mr) { };
     
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    mat_ref_horiz_cat(self&& aObj) : ml(aObj.ml), mr(aObj.mr) { };
+#endif
+    
+    friend void swap(self& lhs,self& rhs) {
+      using std::swap;
+      swap(lhs.ml,rhs.ml);
+      swap(lhs.mr,rhs.mr);
+      return;
+    };
+    
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
     self& >::type operator=(const Matrix& rhs) {
-      if((rhs.get_row_count() != ml.get_row_count()) || (rhs.get_col_count() != ml.get_col_count() + mr.get_col_count()))
+      if((rhs.get_row_count() != ml->get_row_count()) || (rhs.get_col_count() != ml->get_col_count() + mr->get_col_count()))
 	throw std::range_error("Matrix dimensions mismatch.");
-      ml = mat_const_sub_block< Matrix >(rhs,ml.get_row_count(),ml.get_col_count(),0,0);
-      mr = mat_const_sub_block< Matrix >(rhs,mr.get_row_count(),mr.get_col_count(),0,ml.get_col_count());
+      (*ml) = sub(rhs)(range(0,ml->get_row_count()-1),range(0,ml->get_col_count()-1));
+      (*mr) = sub(rhs)(range(0,mr->get_row_count()-1),range(ml->get_col_count(),ml->get_col_count() + mr->get_col_count()-1));
       return *this;
     };
     
@@ -287,24 +311,24 @@ class mat_ref_horiz_cat {
 *******************************************************************************/
 
     reference operator()(size_type i,size_type j) { 
-      if(j < ml.get_col_count())
-	return ml(i,j);
+      if(j < ml->get_col_count())
+	return (*ml)(i,j);
       else
-	return mr(i,j - ml.get_col_count());
+	return (*mr)(i,j - ml->get_col_count());
     };
     value_type operator()(size_type i,size_type j) const { 
-      if(j < ml.get_col_count())
-	return ml(i,j);
+      if(j < ml->get_col_count())
+	return (*ml)(i,j);
       else
-	return mr(i,j - ml.get_col_count());
+	return (*mr)(i,j - ml->get_col_count());
     };
 
-    size_type get_row_count() const throw() { return ml.get_row_count(); };
-    size_type get_col_count() const throw() { return ml.get_col_count() + mr.get_col_count(); };
+    size_type get_row_count() const throw() { return ml->get_row_count(); };
+    size_type get_col_count() const throw() { return ml->get_col_count() + mr->get_col_count(); };
     
-    std::pair<size_type,size_type> size() const throw() { return std::make_pair(ml.get_row_count(),ml.get_col_count() + mr.get_col_count()); };
+    std::pair<size_type,size_type> size() const throw() { return std::make_pair(ml->get_row_count(),ml->get_col_count() + mr->get_col_count()); };
 
-    allocator_type get_allocator() const { return ml.get_allocator(); };
+    allocator_type get_allocator() const { return ml->get_allocator(); };
     
     
     /** COL-MAJOR ONLY
@@ -314,10 +338,10 @@ class mat_ref_horiz_cat {
     template <typename Matrix>
     self& operator +=(const Matrix& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
-      if((M.get_row_count() != ml.get_row_count()) || (M.get_col_count() != ml.get_col_count() + mr.get_col_count()))
+      if((M.get_row_count() != ml->get_row_count()) || (M.get_col_count() != ml->get_col_count() + mr->get_col_count()))
 	throw std::range_error("Matrix dimension mismatch.");
-      ml += mat_const_sub_block< Matrix >(M,ml.get_row_count(),ml.get_col_count(),0,0);
-      mr += mat_const_sub_block< Matrix >(M,mr.get_row_count(),mr.get_col_count(),0,ml.get_col_count());
+      (*ml) += sub(M)(range(0,ml->get_row_count()-1),range(0,ml->get_col_count()-1));
+      (*mr) += sub(M)(range(0,mr->get_row_count()-1),range(ml->get_col_count(),ml->get_col_count() + mr->get_col_count()-1));
       return *this;
     };
 
@@ -328,10 +352,10 @@ class mat_ref_horiz_cat {
     template <typename Matrix>
     self& operator -=(const Matrix& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
-      if((M.get_row_count() != ml.get_row_count()) || (M.get_col_count() != ml.get_col_count() + mr.get_col_count()))
+      if((M.get_row_count() != ml->get_row_count()) || (M.get_col_count() != ml->get_col_count() + mr->get_col_count()))
 	throw std::range_error("Matrix dimension mismatch.");
-      ml -= mat_const_sub_block< Matrix >(M,ml.get_row_count(),ml.get_col_count(),0,0);
-      mr -= mat_const_sub_block< Matrix >(M,mr.get_row_count(),mr.get_col_count(),0,ml.get_col_count());
+      (*ml) -= sub(M)(range(0,ml->get_row_count()-1),range(0,ml->get_col_count()-1));
+      (*mr) -= sub(M)(range(0,mr->get_row_count()-1),range(ml->get_col_count(),ml->get_col_count() + mr->get_col_count()-1));
       return *this;
     };
 
@@ -340,8 +364,8 @@ class mat_ref_horiz_cat {
      * \test PASSED
      */
     self& operator *=(const value_type& S) {
-      ml *= S;
-      mr *= S;
+      (*ml) *= S;
+      (*mr) *= S;
       return *this;
     };
 
@@ -455,35 +479,42 @@ class mat_const_ref_horiz_cat {
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::rectangular);
     
   private:
-    const LeftMatrix& ml;
-    const RightMatrix& mr;
+    const LeftMatrix* ml;
+    const RightMatrix* mr;
     
     self& operator=(const self&);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    mat_const_ref_horiz_cat(LeftMatrix&&, RightMatrix&&);
+#endif
   public:
-    mat_const_ref_horiz_cat(const LeftMatrix& aML, const RightMatrix& aMR) : ml(aML), mr(aMR) { 
-      if(ml.get_row_count() != mr.get_row_count())
+    mat_const_ref_horiz_cat(const LeftMatrix& aML, const RightMatrix& aMR) : ml(&aML), mr(&aMR) { 
+      if(ml->get_row_count() != mr->get_row_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
     mat_const_ref_horiz_cat(const self& aObj) : ml(aObj.ml), mr(aObj.mr) { };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES    
+    mat_const_ref_horiz_cat(self&& aObj) : ml(aObj.ml), mr(aObj.mr) { };
+#endif
     
 /*******************************************************************************
                          Accessors and Methods
 *******************************************************************************/
 
     value_type operator()(size_type i,size_type j) const { 
-      if(j < ml.get_col_count())
-	return ml(i,j);
+      if(j < ml->get_col_count())
+	return (*ml)(i,j);
       else
-	return mr(i,j - ml.get_col_count());
+	return (*mr)(i,j - ml->get_col_count());
     };
 
-    size_type get_row_count() const throw() { return ml.get_row_count(); };
-    size_type get_col_count() const throw() { return ml.get_col_count() + mr.get_col_count(); };
+    size_type get_row_count() const throw() { return ml->get_row_count(); };
+    size_type get_col_count() const throw() { return ml->get_col_count() + mr->get_col_count(); };
     
-    std::pair<size_type,size_type> size() const throw() { return std::make_pair(ml.get_row_count(),ml.get_col_count() + mr.get_col_count()); };
+    std::pair<size_type,size_type> size() const throw() { return std::make_pair(ml->get_row_count(),ml->get_col_count() + mr->get_col_count()); };
 
-    allocator_type get_allocator() const { return ml.get_allocator(); };
+    allocator_type get_allocator() const { return ml->get_allocator(); };
     
     
     /** WORKS FOR ALL
@@ -551,6 +582,77 @@ struct has_allocator_matrix< mat_const_ref_horiz_cat<LeftMatrix,RightMatrix> > {
 
 
 
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_horiz_cat<LeftMatrix,RightMatrix> >::type hcat_copy(const LeftMatrix& ML,const RightMatrix& MR) {
+  return mat_horiz_cat<LeftMatrix,RightMatrix>(ML,MR);
+};
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_ref_horiz_cat<LeftMatrix,RightMatrix> >::type hcat(LeftMatrix& ML,RightMatrix& MR) {
+  return mat_ref_horiz_cat<LeftMatrix,RightMatrix>(ML,MR);
+};
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_const_ref_horiz_cat<LeftMatrix,RightMatrix> >::type hcat(const LeftMatrix& ML,const RightMatrix& MR) {
+  return mat_const_ref_horiz_cat<LeftMatrix,RightMatrix>(ML,MR);
+};
+
+#ifndef RK_ENABLE_CXX0X_FEATURES
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_horiz_cat<LeftMatrix,RightMatrix> >::type operator&(const LeftMatrix& ML,const RightMatrix& MR) {
+  return mat_horiz_cat<LeftMatrix,RightMatrix>(ML,MR);
+};
+
+#else
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_horiz_cat<LeftMatrix,RightMatrix> >::type hcat(LeftMatrix&& ML,RightMatrix&& MR) {
+  return mat_horiz_cat<LeftMatrix,RightMatrix>(std::move(ML),std::move(MR));
+};
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_horiz_cat<LeftMatrix,RightMatrix> >::type operator&(LeftMatrix&& ML,RightMatrix&& MR) {
+  return mat_horiz_cat<LeftMatrix,RightMatrix>(std::move(ML),std::move(MR));
+};
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_ref_horiz_cat<LeftMatrix,RightMatrix> >::type operator&(LeftMatrix& ML,RightMatrix& MR) {
+  return mat_ref_horiz_cat<LeftMatrix,RightMatrix>(ML,MR);
+};
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_const_ref_horiz_cat<LeftMatrix,RightMatrix> >::type operator&(const LeftMatrix& ML,const RightMatrix& MR) {
+  return mat_const_ref_horiz_cat<LeftMatrix,RightMatrix>(ML,MR);
+};
+
+#endif
+
+
+
+
+
+
+
+
+
+
 
 
 template <typename UpperMatrix, typename LowerMatrix>
@@ -583,12 +685,23 @@ class mat_vert_cat {
     UpperMatrix mu;
     LowerMatrix ml;
   public:
+    mat_vert_cat() : mu(), ml() { };
+    
     mat_vert_cat(const UpperMatrix& aMU, const LowerMatrix& aML) : mu(aMU), ml(aML) { 
       if(ml.get_col_count() != mu.get_col_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
     mat_vert_cat(const self& aObj) : mu(aObj.mu), ml(aObj.ml) { };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    mat_vert_cat(UpperMatrix&& aMU, LowerMatrix&& aML) : mu(std::move(aMU)), ml(std::move(aML)) { 
+      if(ml.get_col_count() != mu.get_col_count())
+	throw std::range_error("Matrix dimensions mismatch.");
+    };
+    
+    mat_vert_cat(self&& aObj) : mu(std::move(aObj.mu)), ml(std::move(aObj.ml)) { };
+#endif
     
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
@@ -607,8 +720,8 @@ class mat_vert_cat {
     self& >::type operator=(const Matrix& rhs) {
       if((rhs.get_row_count() != mu.get_row_count() + ml.get_row_count()) || (rhs.get_col_count() != mu.get_col_count()))
 	throw std::range_error("Matrix dimensions mismatch.");
-      mu = mat_const_sub_block< Matrix >(rhs,mu.get_row_count(),mu.get_col_count(),0,0);
-      ml = mat_const_sub_block< Matrix >(rhs,ml.get_row_count(),ml.get_col_count(),mu.get_row_count(),0);
+      mu = sub(rhs)(range(0,mu.get_row_count()-1),range(0,mu.get_col_count()-1));
+      ml = sub(rhs)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()-1),range(0,ml.get_col_count()-1));
       return *this;
     };
     
@@ -646,8 +759,8 @@ class mat_vert_cat {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_row_count() != mu.get_row_count() + ml.get_row_count()) || (M.get_col_count() != mu.get_col_count()))
 	throw std::range_error("Matrix dimensions mismatch.");
-      mu += mat_const_sub_block< Matrix >(M,mu.get_row_count(),mu.get_col_count(),0,0);
-      ml += mat_const_sub_block< Matrix >(M,ml.get_row_count(),ml.get_col_count(),mu.get_row_count(),0);
+      mu += sub(M)(range(0,mu.get_row_count()-1),range(0,mu.get_col_count()-1));
+      ml += sub(M)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()-1),range(0,ml.get_col_count()-1));
       return *this;
     };
 
@@ -660,8 +773,8 @@ class mat_vert_cat {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_row_count() != mu.get_row_count() + ml.get_row_count()) || (M.get_col_count() != mu.get_col_count()))
 	throw std::range_error("Matrix dimensions mismatch.");
-      mu -= mat_const_sub_block< Matrix >(M,mu.get_row_count(),mu.get_col_count(),0,0);
-      ml -= mat_const_sub_block< Matrix >(M,ml.get_row_count(),ml.get_col_count(),mu.get_row_count(),0);
+      mu -= sub(M)(range(0,mu.get_row_count()-1),range(0,mu.get_col_count()-1));
+      ml -= sub(M)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()-1),range(0,ml.get_col_count()-1));
       return *this;
     };
 
@@ -782,23 +895,27 @@ class mat_ref_vert_cat {
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::rectangular);
     
   private:
-    UpperMatrix& mu;
-    LowerMatrix& ml;
+    UpperMatrix* mu;
+    LowerMatrix* ml;
   public:
-    mat_ref_vert_cat(UpperMatrix& aMU, LowerMatrix& aML) : mu(aMU), ml(aML) { 
-      if(ml.get_col_count() != mu.get_col_count())
+    mat_ref_vert_cat(UpperMatrix& aMU, LowerMatrix& aML) : mu(&aMU), ml(&aML) { 
+      if(ml->get_col_count() != mu->get_col_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
     mat_ref_vert_cat(const self& aObj) : mu(aObj.mu), ml(aObj.ml) { };
     
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    mat_ref_vert_cat(self&& aObj) : mu(aObj.mu), ml(aObj.ml) { };
+#endif
+    
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
     self& >::type operator=(const Matrix& rhs) {
-      if((rhs.get_row_count() != mu.get_row_count() + ml.get_row_count()) || (rhs.get_col_count() != mu.get_col_count()))
+      if((rhs.get_row_count() != mu->get_row_count() + ml->get_row_count()) || (rhs.get_col_count() != mu->get_col_count()))
 	throw std::range_error("Matrix dimensions mismatch.");
-      mu = mat_const_sub_block< Matrix >(rhs,mu.get_row_count(),mu.get_col_count(),0,0);
-      ml = mat_const_sub_block< Matrix >(rhs,ml.get_row_count(),ml.get_col_count(),mu.get_row_count(),0);
+      *mu = sub(rhs)(range(0,mu->get_row_count()-1),range(0,mu->get_col_count()-1));
+      *ml = sub(rhs)(range(mu->get_row_count(),mu->get_row_count() + ml->get_row_count()-1),range(0,ml->get_col_count()-1));
       return *this;
     };
     
@@ -807,24 +924,24 @@ class mat_ref_vert_cat {
 *******************************************************************************/
 
     reference operator()(size_type i,size_type j) { 
-      if(i < mu.get_row_count())
-	return mu(i,j);
+      if(i < mu->get_row_count())
+	return (*mu)(i,j);
       else
-	return ml(i - mu.get_row_count(),j);
+	return (*ml)(i - mu->get_row_count(),j);
     };
     value_type operator()(size_type i,size_type j) const {  
-      if(i < mu.get_row_count())
-	return mu(i,j);
+      if(i < mu->get_row_count())
+	return (*mu)(i,j);
       else
-	return ml(i - mu.get_row_count(),j);
+	return (*ml)(i - mu->get_row_count(),j);
     };
 
-    size_type get_row_count() const throw() { return mu.get_row_count() + ml.get_row_count(); };
-    size_type get_col_count() const throw() { return mu.get_col_count(); };
+    size_type get_row_count() const throw() { return mu->get_row_count() + ml->get_row_count(); };
+    size_type get_col_count() const throw() { return mu->get_col_count(); };
     
-    std::pair<size_type,size_type> size() const throw() { return std::make_pair(mu.get_row_count() + ml.get_row_count(),mu.get_col_count()); };
+    std::pair<size_type,size_type> size() const throw() { return std::make_pair(mu->get_row_count() + ml->get_row_count(),mu->get_col_count()); };
 
-    allocator_type get_allocator() const { return mu.get_allocator(); };
+    allocator_type get_allocator() const { return mu->get_allocator(); };
     
     
     /** COL-MAJOR ONLY
@@ -834,10 +951,10 @@ class mat_ref_vert_cat {
     template <typename Matrix>
     self& operator +=(const Matrix& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
-      if((M.get_row_count() != mu.get_row_count() + ml.get_row_count()) || (M.get_col_count() != mu.get_col_count()))
+      if((M.get_row_count() != mu->get_row_count() + ml->get_row_count()) || (M.get_col_count() != mu->get_col_count()))
 	throw std::range_error("Matrix dimensions mismatch.");
-      mu += mat_const_sub_block< Matrix >(M,mu.get_row_count(),mu.get_col_count(),0,0);
-      ml += mat_const_sub_block< Matrix >(M,ml.get_row_count(),ml.get_col_count(),mu.get_row_count(),0);
+      *mu += sub(M)(range(0,mu.get_row_count()-1),range(0,mu.get_col_count()-1));
+      *ml += sub(M)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()-1),range(0,ml.get_col_count()-1));
       return *this;
     };
 
@@ -848,10 +965,10 @@ class mat_ref_vert_cat {
     template <typename Matrix>
     self& operator -=(const Matrix& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
-      if((M.get_row_count() != mu.get_row_count() + ml.get_row_count()) || (M.get_col_count() != mu.get_col_count()))
+      if((M.get_row_count() != mu->get_row_count() + ml->get_row_count()) || (M.get_col_count() != mu->get_col_count()))
 	throw std::range_error("Matrix dimensions mismatch.");
-      mu -= mat_const_sub_block< Matrix >(M,mu.get_row_count(),mu.get_col_count(),0,0);
-      ml -= mat_const_sub_block< Matrix >(M,ml.get_row_count(),ml.get_col_count(),mu.get_row_count(),0);
+      *mu -= sub(M)(range(0,mu.get_row_count()-1),range(0,mu.get_col_count()-1));
+      *ml -= sub(M)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()-1),range(0,ml.get_col_count()-1));
       return *this;
     };
 
@@ -972,36 +1089,42 @@ class mat_const_ref_vert_cat {
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::rectangular);
     
   private:
-    const UpperMatrix& mu;
-    const LowerMatrix& ml;
+    const UpperMatrix* mu;
+    const LowerMatrix* ml;
     
     self& operator=(const self&);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    mat_const_ref_vert_cat(UpperMatrix&&, LowerMatrix&&);
+#endif
   public:
-    mat_const_ref_vert_cat(const UpperMatrix& aMU, const LowerMatrix& aML) : mu(aMU), ml(aML) { 
-      if(ml.get_col_count() != mu.get_col_count())
+    mat_const_ref_vert_cat(const UpperMatrix& aMU, const LowerMatrix& aML) : mu(&aMU), ml(&aML) { 
+      if(ml->get_col_count() != mu->get_col_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
     mat_const_ref_vert_cat(const self& aObj) : mu(aObj.mu), ml(aObj.ml) { };
     
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    mat_const_ref_vert_cat(self&& aObj) : mu(aObj.mu), ml(aObj.ml) { };
+#endif
     
 /*******************************************************************************
                          Accessors and Methods
 *******************************************************************************/
 
     value_type operator()(size_type i,size_type j) const {  
-      if(i < mu.get_row_count())
-	return mu(i,j);
+      if(i < mu->get_row_count())
+	return (*mu)(i,j);
       else
-	return ml(i - mu.get_row_count(),j);
+	return (*ml)(i - mu->get_row_count(),j);
     };
 
-    size_type get_row_count() const throw() { return mu.get_row_count() + ml.get_row_count(); };
-    size_type get_col_count() const throw() { return mu.get_col_count(); };
+    size_type get_row_count() const throw() { return mu->get_row_count() + ml->get_row_count(); };
+    size_type get_col_count() const throw() { return mu->get_col_count(); };
     
-    std::pair<size_type,size_type> size() const throw() { return std::make_pair(mu.get_row_count() + ml.get_row_count(),mu.get_col_count()); };
+    std::pair<size_type,size_type> size() const throw() { return std::make_pair(mu->get_row_count() + ml->get_row_count(),mu->get_col_count()); };
 
-    allocator_type get_allocator() const { return mu.get_allocator(); };
+    allocator_type get_allocator() const { return mu->get_allocator(); };
     
     /** WORKS FOR ALL
      * General negation operator for any type of matrices. This is a default operator
@@ -1065,6 +1188,75 @@ struct has_allocator_matrix< mat_const_ref_vert_cat<UpperMatrix,LowerMatrix> > {
   BOOST_STATIC_CONSTANT( bool, value = has_allocator_matrix<UpperMatrix>::value );
   typedef has_allocator_matrix<UpperMatrix> type;
 };
+
+
+
+
+
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_vert_cat<UpperMatrix,LowerMatrix> >::type vcat_copy(const UpperMatrix& MU,const LowerMatrix& ML) {
+  return mat_vert_cat<UpperMatrix,LowerMatrix>(MU,ML);
+};
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_ref_vert_cat<UpperMatrix,LowerMatrix> >::type vcat(UpperMatrix& MU,LowerMatrix& ML) {
+  return mat_ref_vert_cat<UpperMatrix,LowerMatrix>(MU,ML);
+};
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_const_ref_vert_cat<UpperMatrix,LowerMatrix> >::type vcat(const UpperMatrix& MU,const LowerMatrix& ML) {
+  return mat_const_ref_vert_cat<UpperMatrix,LowerMatrix>(MU,ML);
+};
+
+#ifndef RK_ENABLE_CXX0X_FEATURES
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_vert_cat<UpperMatrix,LowerMatrix> >::type operator|(const UpperMatrix& MU,const LowerMatrix& ML) {
+  return mat_vert_cat<UpperMatrix,LowerMatrix>(MU,ML);
+};
+
+#else
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_vert_cat<UpperMatrix,LowerMatrix> >::type vcat(UpperMatrix&& MU,LowerMatrix&& ML) {
+  return mat_vert_cat<UpperMatrix,LowerMatrix>(std::move(MU),std::move(ML));
+};
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_vert_cat<UpperMatrix,LowerMatrix> >::type operator|(UpperMatrix&& MU,LowerMatrix&& ML) {
+  return mat_vert_cat<UpperMatrix,LowerMatrix>(std::move(MU),std::move(ML));
+};
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_ref_vert_cat<UpperMatrix,LowerMatrix> >::type operator|(UpperMatrix& MU,LowerMatrix& ML) {
+  return mat_ref_vert_cat<UpperMatrix,LowerMatrix>(MU,ML);
+};
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_const_ref_vert_cat<UpperMatrix,LowerMatrix> >::type operator|(const UpperMatrix& MU,const LowerMatrix& ML) {
+  return mat_const_ref_vert_cat<UpperMatrix,LowerMatrix>(MU,ML);
+};
+
+#endif
+
+
 
 
 
