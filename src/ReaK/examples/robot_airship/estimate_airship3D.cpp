@@ -115,11 +115,17 @@ int main(int argc, char** argv) {
   mat<double,mat_structure::diagonal> R_added(7,0.0);
   try {
     if(argc >= 9) {
-      serialization::xml_iarchive in(argv[8]);
+      std::cout << "address 1" << std::endl;
+      std::string R_added_filename(argv[8]);
+      std::cout << "address 2" << std::endl;
+      serialization::xml_iarchive in(R_added_filename);
+      std::cout << "address 3" << std::endl;
       in & RK_SERIAL_LOAD_WITH_ALIAS("artificial_noise",R_added);
+      std::cout << "address 4" << std::endl;
     };
   } catch(...) {
     RK_ERROR("An exception occurred during the loading of the artificial measurement noise covariance matrix!");
+    return 3;
   };
   
   
@@ -340,7 +346,7 @@ int main(int argc, char** argv) {
   
   mat<double,mat_structure::diagonal> R_inv(6);
   R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
-  R_inv(3,3) = R(4,4); R_inv(4,4) = R(5,5); R_inv(5,5) = R(6,6);
+  R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
   ctrl::covariance_matrix<double> Rcovinv = ctrl::covariance_matrix<double>(ctrl::covariance_matrix<double>::matrix_type(R_inv));
     
   recorder::ssv_recorder results(result_filename + "_iekf.ssv");
@@ -382,7 +388,7 @@ int main(int argc, char** argv) {
   
   mat<double,mat_structure::diagonal> R_inv(6);
   R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
-  R_inv(3,3) = R(4,4); R_inv(4,4) = R(5,5); R_inv(5,5) = R(6,6);
+  R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
   ctrl::covariance_matrix<double> Rcovinv = ctrl::covariance_matrix<double>(ctrl::covariance_matrix<double>::matrix_type(R_inv));
     
   recorder::ssv_recorder results(result_filename + "_imkf.ssv");
