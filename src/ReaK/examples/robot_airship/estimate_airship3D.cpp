@@ -41,20 +41,29 @@
 
 #include "boost/date_time/posix_time/posix_time.hpp"
 
+#include <boost/random/linear_congruential.hpp>
+#include <boost/random.hpp>
+#include <boost/random/normal_distribution.hpp>
+
 int main(int argc, char** argv) {
   using namespace ReaK;
   
   if(argc < 7) {
     std::cout << "Usage:\n"
-	      << "\t./estimate_airship3D [inertial_data.xml] [meas_filename.ssv] [result_filename] [time_step] [Qu.xml] [R.xml]\n"
+	      << "\t./estimate_airship3D [inertial_data.xml] [meas_filename.ssv] [result_filename] [time_step] [Qu.xml] [R.xml] [skips] [added_R.xml]\n"
 	      << "\t\t inertial_data.xml:\t The filename of the inertial data of the airship3D.\n"
 	      << "\t\t meas_filename.ssv:\t The filename of a space-sep. values file with the recorded states and measurements.\n"
 	      << "\t\t result_filename:\t The filename prefix where to record the results as a space-separated values file.\n"
 	      << "\t\t time_step:\t\t The time-step of the data points in the measurement file.\n"
 	      << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
-	      << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix." << std::endl;
+	      << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix."
+	      << "\tOptional:"
+	      << "\t\t skips:\t\t Number of data rows to skip from meas_filename.ssv."
+	      << "\t\t added_R.xml:\t\t Measurement noise covariance matrix to be artificially added to the data points." << std::endl;
     return 0;
   };
+  
+  boost::variate_generator< boost::minstd_rand, boost::normal_distribution<double> > var_rnd(boost::minstd_rand(static_cast<unsigned int>(time(NULL))), boost::normal_distribution<double>());
   
   std::string inertia_filename(argv[1]);
   std::string meas_filename(argv[2]);
@@ -97,23 +106,56 @@ int main(int argc, char** argv) {
     return 3;
   };
   
+  unsigned int skips = 0;
+  if(argc >= 8) {
+    std::stringstream(argv[7]) >> skips;
+  };
+  ++skips;
+  
+  mat<double,mat_structure::diagonal> R_added(7,0.0);
+  try {
+    if(argc >= 9) {
+      serialization::xml_iarchive in(argv[8]);
+      in & RK_SERIAL_LOAD_WITH_ALIAS("artificial_noise",R_added);
+    };
+  } catch(...) {
+    RK_ERROR("An exception occurred during the loading of the artificial measurement noise covariance matrix!");
+  };
+  
   
   std::list< std::pair< double, vect_n<double> > > measurements;
   {
     recorder::ssv_extractor meas_file(meas_filename);
     try {
+      unsigned int j = 0;
       while(true) {
 	double t;
 	meas_file >> t;
-	for(unsigned int i = 0; i < 7; ++i) {
-	  double dummy;
-	  meas_file >> dummy;
-	};
-	vect_n<double> meas(7);
-	for(unsigned int i = 0; i < 7; ++i)
-	  meas_file >> meas[i];
+	std::vector<double> meas;
+	try {
+	  while(true) {
+	    double dummy;
+	    meas_file >> dummy;
+	    meas.push_back(dummy);
+	  };
+	} catch(recorder::out_of_bounds&) { };
+	if(meas.size() < 7) {
+	  RK_ERROR("The measurement file does not appear to have the required number of columns!");
+          return 4;
+        };
 	meas_file >> recorder::data_extractor::end_value_row;
-	measurements.push_back(std::make_pair(t,meas));
+	if(j == 0) {
+	  vect_n<double> meas_v(meas.end() - 7,meas.end());
+	  meas_v[0] += var_rnd() * sqrt(R_added(0,0));
+	  meas_v[1] += var_rnd() * sqrt(R_added(1,1));
+	  meas_v[2] += var_rnd() * sqrt(R_added(2,2));
+	  meas_v[3] += var_rnd() * sqrt(R_added(3,3));
+	  meas_v[4] += var_rnd() * sqrt(R_added(4,4));
+	  meas_v[5] += var_rnd() * sqrt(R_added(5,5));
+	  meas_v[6] += var_rnd() * sqrt(R_added(6,6));
+	  measurements.push_back(std::make_pair(t,meas_v));
+	};
+	j = (j+1) % skips;
       };
     } catch(recorder::out_of_bounds& e) {
       RK_ERROR("The measurement file does not appear to have the required number of columns!");
@@ -121,6 +163,7 @@ int main(int argc, char** argv) {
     } catch(recorder::end_of_record&) { }
   };
   
+  R += R_added;
   
   ctrl::airship3D_lin_system mdl_lin("airship3D_linear",mass,inertia_tensor);
   ctrl::airship3D_inv_system mdl_inv("airship3D_invariant",mass,inertia_tensor);
