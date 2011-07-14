@@ -154,6 +154,13 @@ struct mat_null {
 };
 
 
+template <typename T>
+mat<T,mat_structure::nil> mat_nil(typename mat<T,mat_structure::nil>::size_type aRowCount,
+				  typename mat<T,mat_structure::nil>::size_type aColCount) {
+  return mat<T,mat_structure::nil>(aRowCount,aColCount);
+};
+
+
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 struct is_readable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > {
   BOOST_STATIC_CONSTANT( bool, value = true );

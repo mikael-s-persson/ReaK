@@ -150,6 +150,11 @@ struct mat_identity {
   typedef mat<T,mat_structure::identity> type;
 };
 
+template <typename T>
+mat<T,mat_structure::identity> mat_ident(typename mat<T,mat_structure::identity>::size_type aRowCount) {
+  return mat<T,mat_structure::identity>(aRowCount);
+};
+
 
 
 template <typename T, mat_alignment::tag Alignment, typename Allocator>

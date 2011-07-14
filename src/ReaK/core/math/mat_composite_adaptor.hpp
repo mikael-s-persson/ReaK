@@ -624,9 +624,68 @@ mat_horiz_cat<LeftMatrix,RightMatrix> >::type hcat(LeftMatrix&& ML,RightMatrix&&
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
+mat_horiz_cat<mat_sub_block<LeftMatrix>,RightMatrix> >::type hcat(LeftMatrix& ML,RightMatrix&& MR) {
+  return mat_horiz_cat<mat_sub_block<LeftMatrix>,RightMatrix>(mat_sub_block<LeftMatrix>(ML),std::move(MR));
+};
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix> > >::type hcat(LeftMatrix&& ML,RightMatrix& MR) {
+  return mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix> >(std::move(ML),mat_sub_block<RightMatrix>(MR));
+};
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_horiz_cat<mat_const_sub_block<LeftMatrix>,RightMatrix> >::type hcat(const LeftMatrix& ML,RightMatrix&& MR) {
+  return mat_horiz_cat<mat_const_sub_block<LeftMatrix>,RightMatrix>(mat_const_sub_block<LeftMatrix>(ML),std::move(MR));
+};
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_horiz_cat<LeftMatrix, mat_const_sub_block<RightMatrix> > >::type hcat(LeftMatrix&& ML,const RightMatrix& MR) {
+  return mat_horiz_cat<LeftMatrix, mat_const_sub_block<RightMatrix> >(std::move(ML),mat_const_sub_block<RightMatrix>(MR));
+};
+
+
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
 mat_horiz_cat<LeftMatrix,RightMatrix> >::type operator&(LeftMatrix&& ML,RightMatrix&& MR) {
   return mat_horiz_cat<LeftMatrix,RightMatrix>(std::move(ML),std::move(MR));
 };
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_horiz_cat<mat_sub_block<LeftMatrix>,RightMatrix> >::type operator&(LeftMatrix& ML,RightMatrix&& MR) {
+  return mat_horiz_cat<mat_sub_block<LeftMatrix>,RightMatrix>(mat_sub_block<LeftMatrix>(ML),std::move(MR));
+};
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix> > >::type operator&(LeftMatrix&& ML,RightMatrix& MR) {
+  return mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix> >(std::move(ML),mat_sub_block<RightMatrix>(MR));
+};
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_horiz_cat<mat_const_sub_block<LeftMatrix>,RightMatrix> >::type operator&(const LeftMatrix& ML,RightMatrix&& MR) {
+  return mat_horiz_cat<mat_const_sub_block<LeftMatrix>,RightMatrix>(mat_const_sub_block<LeftMatrix>(ML),std::move(MR));
+};
+
+template <typename LeftMatrix, typename RightMatrix>
+typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
+                             is_readable_matrix<RightMatrix>::value,
+mat_horiz_cat<LeftMatrix, mat_const_sub_block<RightMatrix> > >::type operator&(LeftMatrix&& ML,const RightMatrix& MR) {
+  return mat_horiz_cat<LeftMatrix, mat_const_sub_block<RightMatrix> >(std::move(ML),mat_const_sub_block<RightMatrix>(MR));
+};
+
 
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
@@ -1236,9 +1295,72 @@ mat_vert_cat<UpperMatrix,LowerMatrix> >::type vcat(UpperMatrix&& MU,LowerMatrix&
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
+mat_vert_cat< mat_sub_block<UpperMatrix> ,LowerMatrix> >::type vcat(UpperMatrix& MU,LowerMatrix&& ML) {
+  return mat_vert_cat<mat_sub_block<UpperMatrix>,LowerMatrix>(mat_sub_block<UpperMatrix>(MU),std::move(ML));
+};
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix> > >::type vcat(UpperMatrix&& MU,LowerMatrix& ML) {
+  return mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix> >(std::move(MU),mat_sub_block<LowerMatrix>(ML));
+};
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_vert_cat< mat_const_sub_block<UpperMatrix> ,LowerMatrix> >::type vcat(const UpperMatrix& MU,LowerMatrix&& ML) {
+  return mat_vert_cat<mat_const_sub_block<UpperMatrix>,LowerMatrix>(mat_const_sub_block<UpperMatrix>(MU),std::move(ML));
+};
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_vert_cat<UpperMatrix, mat_const_sub_block<LowerMatrix> > >::type vcat(UpperMatrix&& MU,const LowerMatrix& ML) {
+  return mat_vert_cat<UpperMatrix, mat_const_sub_block<LowerMatrix> >(std::move(MU),mat_const_sub_block<LowerMatrix>(ML));
+};
+
+
+
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
 mat_vert_cat<UpperMatrix,LowerMatrix> >::type operator|(UpperMatrix&& MU,LowerMatrix&& ML) {
   return mat_vert_cat<UpperMatrix,LowerMatrix>(std::move(MU),std::move(ML));
 };
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_vert_cat<mat_sub_block<UpperMatrix>,LowerMatrix> >::type operator|(UpperMatrix& MU,LowerMatrix&& ML) {
+  return mat_vert_cat<mat_sub_block<UpperMatrix>,LowerMatrix>(mat_sub_block<UpperMatrix>(MU),std::move(ML));
+};
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix> > >::type operator|(UpperMatrix&& MU,LowerMatrix& ML) {
+  return mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix> >(std::move(MU),mat_sub_block<LowerMatrix>(ML));
+};
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_vert_cat<mat_const_sub_block<UpperMatrix>,LowerMatrix> >::type operator|(const UpperMatrix& MU,LowerMatrix&& ML) {
+  return mat_vert_cat<mat_const_sub_block<UpperMatrix>,LowerMatrix>(mat_const_sub_block<UpperMatrix>(MU),std::move(ML));
+};
+
+template <typename UpperMatrix, typename LowerMatrix>
+typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
+                             is_readable_matrix<LowerMatrix>::value,
+mat_vert_cat<UpperMatrix, mat_const_sub_block<LowerMatrix> > >::type operator|(UpperMatrix&& MU,const LowerMatrix& ML) {
+  return mat_vert_cat<UpperMatrix, mat_const_sub_block<LowerMatrix> >(std::move(MU),mat_const_sub_block<LowerMatrix>(ML));
+};
+
+
+
+
 
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&

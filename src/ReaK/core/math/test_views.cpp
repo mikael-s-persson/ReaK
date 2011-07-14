@@ -8,6 +8,8 @@
 using namespace ReaK;
 
 int main() {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  
   mat<double,mat_structure::rectangular> M1(4,4);
   
   M1(0,0) =  1; M1(0,1) =  2; M1(0,2) =  3; M1(0,3) =  4;
@@ -22,6 +24,18 @@ int main() {
   
   std::cout << "M2 = " << M2 << std::endl << std::endl;
   
+  std::cout << "M2 0; 0 1; = " << ( ( M2 & mat_nil<double>(4,2) ) |
+                                    ( mat_nil<double>(2,4) & mat_ident<double>(2) ) ) << std::endl;
+				    
+  vect_n<double> V1(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0);
+  
+  std::cout << "V1 = " << V1 << std::endl;
+  
+  std::cout << "V1 as 4x3 col-major = " << make_mat(V1)(range(0,3),3) << std::endl;
+  std::cout << "V1 as 4x3 row-major = " << make_mat(V1)(4,range(0,2)) << std::endl;
+  
+  
+#endif
   return 0;
 };
 
