@@ -62,7 +62,7 @@ namespace serialization {
 
 namespace rtti {
   
-typedef boost::shared_ptr<shared_object> RK_CALL (*construct_ptr)();
+typedef boost::shared_ptr<shared_object> (RK_CALL *construct_ptr)();
 
 //this is really the only thing that the class needs to define
 template <typename T>
@@ -115,7 +115,7 @@ namespace detail {
   template <typename T, typename Tail = null_type_id>
   struct type_id {
     typedef Tail tail;
-    BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
+    BOOST_STATIC_CONSTANT(unsigned int, ID = ::ReaK::rtti::get_type_id<T>::ID);
   };
   
 //   template <typename T>

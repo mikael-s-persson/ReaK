@@ -138,6 +138,7 @@ class rot_mat_2D : public serialization::serializable {
      * \test PASSED
      */
     value_type getAngle() const {
+      using std::atan2;
       return atan2(q[1],q[0]);
     };
 
@@ -146,6 +147,8 @@ class rot_mat_2D : public serialization::serializable {
      * \test PASSED
      */
     void setAngle(const_reference Angle) {
+      using std::sin;
+      using std::cos;
       q[0] = cos(Angle);
       q[1] = sin(Angle);
     };
@@ -347,7 +350,7 @@ class rot_mat_2D : public serialization::serializable {
      */
     friend
     value_type trace(const self& R) {
-      return 2.0*R.q[0];
+      return value_type(2.0)*R.q[0];
     };
 
     /**
@@ -373,7 +376,7 @@ class rot_mat_2D : public serialization::serializable {
      * \test PASSED
      */
     mat<value_type,mat_structure::symmetric> getSymPart() const {
-      return mat<value_type,mat_structure::symmetric>(q[0],0.0,q[0]);
+      return mat<value_type,mat_structure::symmetric>(q[0],value_type(0.0),q[0]);
     };
 
     /**
@@ -813,7 +816,7 @@ class trans_mat_2D : public serialization::serializable {
      */
     friend
     value_type trace(const self& M) {
-      return M.q[0] + M.q[4] + 1.0;
+      return M.q[0] + M.q[4] + value_type(1.0);
     };
 
     /**
@@ -839,7 +842,7 @@ class trans_mat_2D : public serialization::serializable {
      * \test PASSED
      */
     mat<value_type,mat_structure::symmetric> getSymPart() const {
-      return mat<value_type,mat_structure::symmetric>(q[0],0.0,0.5*q[6],q[0],0.5*q[7],1.0);
+      return mat<value_type,mat_structure::symmetric>(q[0],value_type(0.0),value_type(0.5)*q[6],q[0],value_type(0.5)*q[7],value_type(1.0));
     };
 
     /**
@@ -847,7 +850,7 @@ class trans_mat_2D : public serialization::serializable {
      * \test PASSED
      */
     mat<value_type,mat_structure::skew_symmetric> getSkewSymPart() const {
-      return mat<value_type,mat_structure::skew_symmetric>(-q[1],0.5*q[6],0.5*q[7]);
+      return mat<value_type,mat_structure::skew_symmetric>(-q[1],value_type(0.5)*q[6],value_type(0.5)*q[7]);
     };
 
 

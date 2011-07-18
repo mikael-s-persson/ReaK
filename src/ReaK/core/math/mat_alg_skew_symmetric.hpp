@@ -107,7 +107,7 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
     
   private:
     std::vector<T,Allocator> q; ///< Holds the array of scalar entries.
-    unsigned int rowCount; ///< Holds the dimension, both row and column count are equal to size.
+    size_type rowCount; ///< Holds the dimension, both row and column count are equal to size.
     
     static size_type mat_triangular_size(size_type Size) {
       return (Size * (Size - 1)) / 2 + Size;
@@ -164,18 +164,18 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       size_type min_size = (M.get_row_count() > M.get_col_count() ? M.get_col_count() : M.get_row_count());
       for(;i<min_size;k += i++) {
 	for(size_type j=0;j<i;++j) {
-	  q[k+j] = 0.5 * (M(j,i) - M(i,j));
+	  q[k+j] = value_type(0.5) * (M(j,i) - M(i,j));
 	};
       };
       if(M.get_row_count() > M.get_col_count()) {
         for(;i<rowCount;k += i++) {
    	  for(size_type j=0;j<min_size;++j)
-	    q[k+j] = -0.5 * M(i,j);
+	    q[k+j] = value_type(-0.5) * M(i,j);
         };
       } else {
 	for(;i<rowCount;k += i++) {
    	  for(size_type j=0;j<min_size;++j)
-	    q[k+j] = 0.5 * M(j,i);
+	    q[k+j] = value_type(0.5) * M(j,i);
         };
       };
     };

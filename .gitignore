@@ -1,7 +1,10 @@
 libreak*
 *.o
 bin/*
+bin_msvc/*
+lib_msvc/*
 build
+buildVS
 .kdev4
 include/*
 *~

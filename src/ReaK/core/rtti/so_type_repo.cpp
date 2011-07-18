@@ -42,7 +42,7 @@ so_type_repo& getRKSharedObjTypeRepo() {
   return so_type_repo::getInstance();
 };
 
-so_type_repo::so_type_repo(so_type* aTypeMap) : shared_object_base(), mTypeMap(aTypeMap), next(this), prev(this) { };
+so_type_repo::so_type_repo(so_type* aTypeMap) : shared_object_base(), mTypeMap(aTypeMap) { next = this; prev = this; };
 
 so_type_repo::~so_type_repo() {
   if(next != this) {

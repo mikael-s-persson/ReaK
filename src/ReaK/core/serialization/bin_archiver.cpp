@@ -285,7 +285,8 @@ oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const boost::shared_ptr<se
     bin_oarchive::save_unsigned_int(hdr.size);
     bin_oarchive::save_string(FileName);
     std::streampos end_pos = file_stream.tellp();
-    hdr.size = end_pos - size_pos - sizeof(unsigned int);
+    typedef unsigned int tmp_uint;
+    hdr.size = tmp_uint(end_pos - size_pos - sizeof(tmp_uint));
     file_stream.seekp(size_pos);
     bin_oarchive::save_unsigned_int(hdr.size);
     file_stream.seekp(end_pos);
@@ -351,7 +352,8 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const boost::shared_ptr<se
     Item->save(*this,hdr.type_version);
 
     std::streampos end_pos = file_stream.tellp();
-    hdr.size = end_pos - size_pos - sizeof(unsigned int);
+    typedef unsigned int tmp_uint;
+    hdr.size = tmp_uint(end_pos - size_pos - sizeof(tmp_uint));
     file_stream.seekp(size_pos);
     bin_oarchive::save_unsigned_int(hdr.size);
     file_stream.seekp(end_pos);
@@ -388,7 +390,8 @@ oarchive& RK_CALL bin_oarchive::save_serializable(const serializable& Item) {
   Item.save(*this,hdr.type_version);
 
   std::streampos end_pos = file_stream.tellp();
-  hdr.size = end_pos - size_pos - sizeof(unsigned int);
+  typedef unsigned int tmp_uint;
+  hdr.size = tmp_uint(end_pos - size_pos - sizeof(tmp_uint));
   file_stream.seekp(size_pos);
   bin_oarchive::save_unsigned_int(hdr.size);
   file_stream.seekp(end_pos);

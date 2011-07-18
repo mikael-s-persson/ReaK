@@ -290,7 +290,7 @@ iarchive& RK_CALL xml_iarchive::load_int(const std::pair<std::string, int& >& i)
     if(value_str.empty())
       i.second = 0;
     else
-      i.second = atoi(value_str.c_str());
+      std::stringstream(value_str) >> i.second;
   } else
     i.second = 0;
   return *this;
@@ -306,7 +306,7 @@ iarchive& RK_CALL xml_iarchive::load_unsigned_int(const std::pair<std::string, u
     if(value_str.empty())
       u.second = 0;
     else
-      u.second = atoi(value_str.c_str());
+      std::stringstream(value_str) >> u.second;
   } else
     u.second = 0;
   return *this;
@@ -322,7 +322,7 @@ iarchive& RK_CALL xml_iarchive::load_float(const std::pair<std::string, float& >
     if(value_str.empty())
       f.second = 0;
     else
-      f.second = atof(value_str.c_str());
+      std::stringstream(value_str) >> f.second;
   } else
     f.second = 0;
   return *this;
@@ -338,7 +338,7 @@ iarchive& RK_CALL xml_iarchive::load_double(const std::pair<std::string, double&
     if(value_str.empty())
       d.second = 0;
     else
-      d.second = atof(value_str.c_str());
+      std::stringstream(value_str) >> d.second;
   } else
     d.second = 0;
   return *this;

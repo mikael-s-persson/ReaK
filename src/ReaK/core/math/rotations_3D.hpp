@@ -588,25 +588,25 @@ class quaternion : public serialization::serializable {
       using std::sqrt;
       value_type tra = R.q[0] + R.q[4] + R.q[8];
       if (tra > 0.01) {
-        q[0] = 0.5*sqrt(1.0 + tra);
-        q[1] = 0.25*(R.q[5] - R.q[7])/q[0];
-        q[2] = 0.25*(R.q[6] - R.q[2])/q[0];
-        q[3] = 0.25*(R.q[1] - R.q[3])/q[0];
+        q[0] = value_type(0.5)*sqrt(value_type(1.0) + tra);
+        q[1] = value_type(0.25)*(R.q[5] - R.q[7])/q[0];
+        q[2] = value_type(0.25)*(R.q[6] - R.q[2])/q[0];
+        q[3] = value_type(0.25)*(R.q[1] - R.q[3])/q[0];
       } else if ((R.q[0] > R.q[4]) && (R.q[0] > R.q[8])) {
-        q[1] = 0.5*sqrt(1.0 + R.q[0] - R.q[4] - R.q[8]);
-        q[0] = 0.25*(R.q[7] - R.q[5])/q[1];
-        q[2] = 0.25*(R.q[3] + R.q[1])/q[1];
-        q[3] = 0.25*(R.q[6] + R.q[2])/q[1];
+        q[1] = value_type(0.5)*sqrt(value_type(1.0) + R.q[0] - R.q[4] - R.q[8]);
+        q[0] = value_type(0.25)*(R.q[7] - R.q[5])/q[1];
+        q[2] = value_type(0.25)*(R.q[3] + R.q[1])/q[1];
+        q[3] = value_type(0.25)*(R.q[6] + R.q[2])/q[1];
       } else if (R.q[4] > R.q[8]) {
-        q[2] = 0.5*sqrt(1.0 + R.q[4] - R.q[0] - R.q[8]);
-        q[0] = 0.25*(R.q[6] - R.q[2])/q[2];
-        q[1] = 0.25*(R.q[3] + R.q[1])/q[2];
-        q[3] = 0.25*(R.q[7] + R.q[5])/q[2];
+        q[2] = value_type(0.5)*sqrt(value_type(1.0) + R.q[4] - R.q[0] - R.q[8]);
+        q[0] = value_type(0.25)*(R.q[6] - R.q[2])/q[2];
+        q[1] = value_type(0.25)*(R.q[3] + R.q[1])/q[2];
+        q[3] = value_type(0.25)*(R.q[7] + R.q[5])/q[2];
       } else {
-        q[3] = 0.5*sqrt(1.0 + R.q[8] - R.q[0] - R.q[4]);
-        q[0] = 0.25*(R.q[3] - R.q[1])/q[3];
-        q[1] = 0.25*(R.q[6] + R.q[2])/q[3];
-        q[2] = 0.25*(R.q[7] + R.q[5])/q[3];
+        q[3] = value_type(0.5)*sqrt(value_type(1.0) + R.q[8] - R.q[0] - R.q[4]);
+        q[0] = value_type(0.25)*(R.q[3] - R.q[1])/q[3];
+        q[1] = value_type(0.25)*(R.q[6] + R.q[2])/q[3];
+        q[2] = value_type(0.25)*(R.q[7] + R.q[5])/q[3];
       };
       return;
     };
@@ -626,18 +626,18 @@ class quaternion : public serialization::serializable {
      * \test PASSED
      */
     mat<value_type, mat_structure::square> getMat() const {
-      value_type t01(2.0*q[0]*q[1]);
-      value_type t02(2.0*q[0]*q[2]);
-      value_type t03(2.0*q[0]*q[3]);
-      value_type t11(2.0*q[1]*q[1]);
-      value_type t12(2.0*q[1]*q[2]);
-      value_type t13(2.0*q[1]*q[3]);
-      value_type t22(2.0*q[2]*q[2]);
-      value_type t23(2.0*q[2]*q[3]);
-      value_type t33(2.0*q[3]*q[3]);
-      return mat<value_type, mat_structure::square>(1.0 - t22 - t33,       t12 - t03,       t02 + t13,
-						          t12 + t03, 1.0 - t11 - t33,       t23 - t01,
-						          t13 - t02,       t01 + t23, 1.0 - t11 - t22);
+      value_type t01(value_type(2.0)*q[0]*q[1]);
+      value_type t02(value_type(2.0)*q[0]*q[2]);
+      value_type t03(value_type(2.0)*q[0]*q[3]);
+      value_type t11(value_type(2.0)*q[1]*q[1]);
+      value_type t12(value_type(2.0)*q[1]*q[2]);
+      value_type t13(value_type(2.0)*q[1]*q[3]);
+      value_type t22(value_type(2.0)*q[2]*q[2]);
+      value_type t23(value_type(2.0)*q[2]*q[3]);
+      value_type t33(value_type(2.0)*q[3]*q[3]);
+      return mat<value_type, mat_structure::square>(value_type(1.0) - t22 - t33,       t12 - t03,       t02 + t13,
+						          t12 + t03, value_type(1.0) - t11 - t33,       t23 - t01,
+						          t13 - t02,       t01 + t23, value_type(1.0) - t11 - t22);
     };
 
     /**
@@ -645,18 +645,18 @@ class quaternion : public serialization::serializable {
      * \test PASSED
      */
     rot_mat_3D<value_type> getRotMat() const {
-      value_type t01(2.0*q[0]*q[1]);
-      value_type t02(2.0*q[0]*q[2]);
-      value_type t03(2.0*q[0]*q[3]);
-      value_type t11(2.0*q[1]*q[1]);
-      value_type t12(2.0*q[1]*q[2]);
-      value_type t13(2.0*q[1]*q[3]);
-      value_type t22(2.0*q[2]*q[2]);
-      value_type t23(2.0*q[2]*q[3]);
-      value_type t33(2.0*q[3]*q[3]);
-      return rot_mat_3D<value_type>(1.0 - t22 - t33,       t12 - t03,       t02 + t13,
-			                  t12 + t03, 1.0 - t11 - t33,       t23 - t01,
-			                  t13 - t02,       t01 + t23, 1.0 - t11 - t22);
+      value_type t01(value_type(2.0)*q[0]*q[1]);
+      value_type t02(value_type(2.0)*q[0]*q[2]);
+      value_type t03(value_type(2.0)*q[0]*q[3]);
+      value_type t11(value_type(2.0)*q[1]*q[1]);
+      value_type t12(value_type(2.0)*q[1]*q[2]);
+      value_type t13(value_type(2.0)*q[1]*q[3]);
+      value_type t22(value_type(2.0)*q[2]*q[2]);
+      value_type t23(value_type(2.0)*q[2]*q[3]);
+      value_type t33(value_type(2.0)*q[3]*q[3]);
+      return rot_mat_3D<value_type>(value_type(1.0) - t22 - t33,       t12 - t03,       t02 + t13,
+			                  t12 + t03, value_type(1.0) - t11 - t33,       t23 - t01,
+			                  t13 - t02,       t01 + t23, value_type(1.0) - t11 - t22);
     };
 
     /**
@@ -796,9 +796,9 @@ class quaternion : public serialization::serializable {
       t[6] =  -Q.q[2]*Q.q[2];
       t[7] =   Q.q[2]*Q.q[3];
       t[8] =  -Q.q[3]*Q.q[3];
-      return vect<T,3>( 2.0*( (t[6] + t[8])*V[0] + (t[4] - t[2])*V[1] + (t[1] + t[5])*V[2] ) + V[0],
-                        2.0*( (t[2] + t[4])*V[0] + (t[3] + t[8])*V[1] + (t[7] - t[0])*V[2] ) + V[1],
-                        2.0*( (t[5] - t[1])*V[0] + (t[0] + t[7])*V[1] + (t[3] + t[6])*V[2] ) + V[2]);
+      return vect<T,3>( value_type(2.0)*( (t[6] + t[8])*V[0] + (t[4] - t[2])*V[1] + (t[1] + t[5])*V[2] ) + V[0],
+                        value_type(2.0)*( (t[2] + t[4])*V[0] + (t[3] + t[8])*V[1] + (t[7] - t[0])*V[2] ) + V[1],
+                        value_type(2.0)*( (t[5] - t[1])*V[0] + (t[0] + t[7])*V[1] + (t[3] + t[6])*V[2] ) + V[2]);
     };
 
 /*******************************************************************************
@@ -917,7 +917,7 @@ class quaternion : public serialization::serializable {
      */
     friend
     value_type trace(const self& Q) {
-      return 4.0*Q.q[0]*Q.q[0] - 1.0;
+      return value_type(4.0)*Q.q[0]*Q.q[0] - value_type(1.0);
     };
 
     /**
@@ -934,15 +934,15 @@ class quaternion : public serialization::serializable {
      * \test PASSED
      */
     mat<value_type,mat_structure::symmetric> getSymPart() const {
-      value_type t11(2.0*q[1]*q[1]);
-      value_type t12(2.0*q[1]*q[2]);
-      value_type t13(2.0*q[1]*q[3]);
-      value_type t22(2.0*q[2]*q[2]);
-      value_type t23(2.0*q[2]*q[3]);
-      value_type t33(2.0*q[3]*q[3]);
-      return mat<value_type,mat_structure::symmetric>(1.0 - t22 - t33,             t12,             t13,
-			                                               1.0 - t11 - t33,             t23,
-			                                                                1.0 - t11 - t22);
+      value_type t11(value_type(2.0)*q[1]*q[1]);
+      value_type t12(value_type(2.0)*q[1]*q[2]);
+      value_type t13(value_type(2.0)*q[1]*q[3]);
+      value_type t22(value_type(2.0)*q[2]*q[2]);
+      value_type t23(value_type(2.0)*q[2]*q[3]);
+      value_type t33(value_type(2.0)*q[3]*q[3]);
+      return mat<value_type,mat_structure::symmetric>(value_type(1.0) - t22 - t33,             t12,             t13,
+			                                               value_type(1.0) - t11 - t33,             t23,
+			                                                                value_type(1.0) - t11 - t22);
     };
 
     /**
@@ -950,9 +950,9 @@ class quaternion : public serialization::serializable {
      * \test PASSED
      */
     mat<value_type,mat_structure::skew_symmetric> getSkewSymPart() const {
-      value_type t01(2.0*q[0]*q[1]);
-      value_type t02(2.0*q[0]*q[2]);
-      value_type t03(2.0*q[0]*q[3]);
+      value_type t01(value_type(2.0)*q[0]*q[1]);
+      value_type t02(value_type(2.0)*q[0]*q[2]);
+      value_type t03(value_type(2.0)*q[0]*q[3]);
       return mat<value_type,mat_structure::skew_symmetric>( -t03, t02, -t01);
     };
 
@@ -1069,9 +1069,9 @@ class euler_angles_TB : public serialization::serializable {
         q[2] = atan2(value_type(2.0)*cp*(Q.q[2]*Q.q[3] + Q.q[0]*Q.q[1]),cp*(value_type(1.0) - value_type(2.0)*(Q.q[1]*Q.q[1] + Q.q[2]*Q.q[2])));
         q[0] = atan2(value_type(2.0)*cp*(Q.q[1]*Q.q[2] + Q.q[0]*Q.q[3]),cp*(value_type(1.0) - value_type(2.0)*(Q.q[2]*Q.q[2] + Q.q[3]*Q.q[3])));
       } else {
-        q[0] = 0.0;
+        q[0] = value_type(0.0);
         q[2] = atan2(q[1]*value_type(2.0)*(Q.q[1]*Q.q[2] - Q.q[0]*Q.q[3]),q[1]*value_type(2.0)*(Q.q[1]*Q.q[3] + Q.q[0]*Q.q[2]));
-        q[1] *= M_PI_2;
+        q[1] *= value_type(1.57079632679489662);
       };
       return;
     };
@@ -1090,9 +1090,9 @@ class euler_angles_TB : public serialization::serializable {
         q[2] = atan2(cp*R.q[5],cp*R.q[8]);
         q[0] = atan2(cp*R.q[1],cp*R.q[0]);
       } else {
-        q[0] = 0.0;
+        q[0] = value_type(0.0);
         q[2] = atan2(-R.q[2]*R.q[3],-R.q[2]*R.q[6]);
-        q[1] = -R.q[2]*M_PI_2;
+        q[1] = -R.q[2]*value_type(1.57079632679489662);
       };
       return;
     };
@@ -1107,9 +1107,9 @@ class euler_angles_TB : public serialization::serializable {
         q[2] = atan2(cp*R.q[5],cp*R.q[8]);
         q[0] = atan2(cp*R.q[1],cp*R.q[0]);
       } else {
-        q[0] = 0.0;
+        q[0] = value_type(0.0);
         q[2] = atan2(-R.q[2]*R.q[3],-R.q[2]*R.q[6]);
-        q[1] = -R.q[2]*M_PI_2;
+        q[1] = -R.q[2]*value_type(1.57079632679489662);
       };
       return;
 
@@ -1212,13 +1212,13 @@ class euler_angles_TB : public serialization::serializable {
     quaternion<value_type> getQuaternion() const {
       using std::cos;
       using std::sin;
-      value_type cpsi = cos(0.5*q[0]);
-      value_type spsi = sin(0.5*q[0]);
-      value_type ctheta = cos(0.5*q[1]);
+      value_type cpsi = cos(value_type(0.5)*q[0]);
+      value_type spsi = sin(value_type(0.5)*q[0]);
+      value_type ctheta = cos(value_type(0.5)*q[1]);
 
-      value_type stheta = sin(0.5*q[1]);
-      value_type cphi = cos(0.5*q[2]);
-      value_type sphi = sin(0.5*q[2]);
+      value_type stheta = sin(value_type(0.5)*q[1]);
+      value_type cphi = cos(value_type(0.5)*q[2]);
+      value_type sphi = sin(value_type(0.5)*q[2]);
 
       return quaternion<value_type>(cphi*ctheta*cpsi + sphi*stheta*spsi,
 				    sphi*ctheta*cpsi - cphi*stheta*spsi,
@@ -1439,9 +1439,9 @@ class euler_angles_TB : public serialization::serializable {
         result.q[0] = atan2(cp*R1,cp*R0);
       } else {
 	value_type R3(s1 * c2);
-	result.q[0] = 0.0;
+	result.q[0] = value_type(0.0);
         result.q[2] = atan2(-R2*R3,R2*s2);
-        result.q[1] = -R2*M_PI_2;
+        result.q[1] = -R2*value_type(1.57079632679489662);
       };
       return result;
     };
@@ -1472,8 +1472,8 @@ class euler_angles_TB : public serialization::serializable {
     value_type trace(const self& E) {
       using std::sin;
       using std::cos;
-      value_type t = cos(0.5*E.q[2])*cos(0.5*E.q[1])*cos(0.5*E.q[0]) + sin(0.5*E.q[2])*sin(0.5*E.q[1])*sin(0.5*E.q[0]);
-      return 4.0*t*t - 1.0;
+      value_type t = cos(value_type(0.5)*E.q[2])*cos(value_type(0.5)*E.q[1])*cos(value_type(0.5)*E.q[0]) + sin(value_type(0.5)*E.q[2])*sin(value_type(0.5)*E.q[1])*sin(value_type(0.5)*E.q[0]);
+      return value_type(4.0)*t*t - value_type(1.0);
     };
 
     /**
@@ -1595,16 +1595,16 @@ class axis_angle : public serialization::serializable {
       using std::sqrt;
       using std::acos;
       value_type tmp(sqrt(Q.q[1]*Q.q[1] + Q.q[2]*Q.q[2] + Q.q[3]*Q.q[3]));
-      if(tmp > 0.0000001) {
+      if(tmp > value_type(0.0000001)) {
 	mAxis.q[0] = Q.q[1] / tmp;
 	mAxis.q[1] = Q.q[2] / tmp;
 	mAxis.q[2] = Q.q[3] / tmp;
-	mAngle = 2.0 * acos(Q.q[0]);
+	mAngle = value_type(2.0) * acos(Q.q[0]);
       } else {
-	mAxis.q[0] = 1.0;
-	mAxis.q[1] = 0.0;
-	mAxis.q[2] = 0.0;
-	mAngle = 0.0;
+	mAxis.q[0] = value_type(1.0);
+	mAxis.q[1] = value_type(0.0);
+	mAxis.q[2] = value_type(0.0);
+	mAngle = value_type(0.0);
       };
     };
 
@@ -1615,18 +1615,18 @@ class axis_angle : public serialization::serializable {
     explicit axis_angle(const rot_mat_3D<value_type>& R) {
       using std::sin;
       using std::acos;
-      value_type tmp(0.5*(trace(R) - 1.0));
-      if(tmp > 0.0000001) {
+      value_type tmp(value_type(0.5)*(trace(R) - value_type(1.0)));
+      if(tmp > value_type(0.0000001)) {
 	mAngle = acos(tmp);
 	value_type cosec_a = value_type(0.5) / sin(mAngle);
 	mAxis.q[0] = (R.q[5] - R.q[7]) * cosec_a;
 	mAxis.q[1] = (R.q[6] - R.q[2]) * cosec_a;
 	mAxis.q[2] = (R.q[1] - R.q[3]) * cosec_a;
       } else {
-	mAxis.q[0] = 1.0;
-	mAxis.q[1] = 0.0;
-	mAxis.q[2] = 0.0;
-	mAngle = 0.0;
+	mAxis.q[0] = value_type(1.0);
+	mAxis.q[1] = value_type(0.0);
+	mAxis.q[2] = value_type(0.0);
+	mAngle = value_type(0.0);
       };
     };
 
@@ -1639,12 +1639,12 @@ class axis_angle : public serialization::serializable {
       using std::cos;
       using std::sqrt;
       using std::acos;
-      value_type cpsi = cos(0.5*E.q[0]);
-      value_type spsi = sin(0.5*E.q[0]);
-      value_type ctheta = cos(0.5*E.q[1]);
-      value_type stheta = sin(0.5*E.q[1]);
-      value_type cphi = cos(0.5*E.q[2]);
-      value_type sphi = sin(0.5*E.q[2]);
+      value_type cpsi = cos(value_type(0.5)*E.q[0]);
+      value_type spsi = sin(value_type(0.5)*E.q[0]);
+      value_type ctheta = cos(value_type(0.5)*E.q[1]);
+      value_type stheta = sin(value_type(0.5)*E.q[1]);
+      value_type cphi = cos(value_type(0.5)*E.q[2]);
+      value_type sphi = sin(value_type(0.5)*E.q[2]);
 
       value_type q[4];
       q[0] = cphi*ctheta*cpsi + sphi*stheta*spsi;
@@ -1652,17 +1652,17 @@ class axis_angle : public serialization::serializable {
       q[2] = cphi*stheta*cpsi + sphi*ctheta*spsi;
       q[3] = cphi*ctheta*spsi - sphi*stheta*cpsi;
 
-      value_type tmp(sqrt(1-q[0]*q[0]));
-      if(tmp > 0.0000001) {
+      value_type tmp(sqrt(value_type(1.0)-q[0]*q[0]));
+      if(tmp > value_type(0.0000001)) {
 	mAxis.q[0] = q[1] / tmp;
 	mAxis.q[1] = q[2] / tmp;
 	mAxis.q[2] = q[3] / tmp;
-	mAngle = 2.0 * acos(q[0]);
+	mAngle = value_type(2.0) * acos(q[0]);
       } else {
-	mAxis.q[0] = 1.0;
-	mAxis.q[1] = 0.0;
-	mAxis.q[2] = 0.0;
-	mAngle = 0.0;
+	mAxis.q[0] = value_type(1.0);
+	mAxis.q[1] = value_type(0.0);
+	mAxis.q[2] = value_type(0.0);
+	mAngle = value_type(0.0);
       };
     };
 
@@ -1711,10 +1711,10 @@ class axis_angle : public serialization::serializable {
       using std::cos;
       using std::sin;
       value_type t = norm(mAxis);
-      if(t == 0.0)
-        return quaternion<value_type>(1.0,0.0,0.0,0.0);
-      t = sin(0.5*mAngle);
-      return quaternion<value_type>(cos(0.5*mAngle),mAxis.q[0] * t,mAxis.q[1] * t,mAxis.q[2] * t);
+      if(t == value_type(0.0))
+        return quaternion<value_type>(value_type(1.0),value_type(0.0),value_type(0.0),value_type(0.0));
+      t = sin(value_type(0.5)*mAngle);
+      return quaternion<value_type>(cos(value_type(0.5)*mAngle),mAxis.q[0] * t,mAxis.q[1] * t,mAxis.q[2] * t);
     };
 
     /**
@@ -1728,11 +1728,11 @@ class axis_angle : public serialization::serializable {
       using std::atan2;
       value_type quat[4];
       value_type t = norm(mAxis);
-      if(t == 0.0) {
-        quat[0] = 1.0;
-        quat[1] = 0.0;
-        quat[2] = 0.0;
-        quat[3] = 0.0;
+      if(t == value_type(0.0)) {
+        quat[0] = value_type(1.0);
+        quat[1] = value_type(0.0);
+        quat[2] = value_type(0.0);
+        quat[3] = value_type(0.0);
       } else {
         quat[0] = sin(mAngle / value_type(2.0));
         quat[1] = mAxis.q[0] * quat[0];
@@ -1748,9 +1748,9 @@ class axis_angle : public serialization::serializable {
         result.q[2] = atan2(value_type(2.0)*cp*(quat[2]*quat[3] + quat[0]*quat[1]),cp*(value_type(1.0) - value_type(2.0)*(quat[1]*quat[1] + quat[2]*quat[2])));
         result.q[0] = atan2(value_type(2.0)*cp*(quat[1]*quat[2] + quat[0]*quat[3]),cp*(value_type(1.0) - value_type(2.0)*(quat[2]*quat[2] + quat[3]*quat[3])));
       } else {
-        result.q[0] = 0.0;
+        result.q[0] = value_type(0.0);
         result.q[2] = atan2(result.q[1]*value_type(2.0)*(quat[1]*quat[2] - quat[0]*quat[3]),result.q[1]*value_type(2.0)*(quat[1]*quat[3] + quat[0]*quat[2]));
-        result.q[1] *= M_PI_2;
+        result.q[1] *= value_type(1.57079632679489662);
       };
       return result;
     };
@@ -1763,7 +1763,7 @@ class axis_angle : public serialization::serializable {
       using std::cos;
       using std::sin;
       value_type ca(cos(mAngle));
-      value_type one_minus_ca(1.0 - ca);
+      value_type one_minus_ca(value_type(1.0) - ca);
       value_type t11(ca + one_minus_ca*mAxis.q[0]*mAxis.q[0]);
       value_type t22(ca + one_minus_ca*mAxis.q[1]*mAxis.q[1]);
       value_type t33(ca + one_minus_ca*mAxis.q[2]*mAxis.q[2]);
@@ -1788,7 +1788,7 @@ class axis_angle : public serialization::serializable {
       using std::cos;
       using std::sin;
       value_type ca(cos(mAngle));
-      value_type one_minus_ca(1.0 - ca);
+      value_type one_minus_ca(value_type(1.0) - ca);
       value_type t11(ca + one_minus_ca*mAxis.q[0]*mAxis.q[0]);
       value_type t22(ca + one_minus_ca*mAxis.q[1]*mAxis.q[1]);
       value_type t33(ca + one_minus_ca*mAxis.q[2]*mAxis.q[2]);
@@ -1979,7 +1979,7 @@ class axis_angle : public serialization::serializable {
     friend
     value_type trace(const self& A) {
       using std::cos;
-      return 2.0*cos(A.mAngle) + 1.0;
+      return value_type(2.0)*cos(A.mAngle) + value_type(1.0);
     };
 
     /**
@@ -1998,7 +1998,7 @@ class axis_angle : public serialization::serializable {
     mat<value_type,mat_structure::symmetric> getSymPart() const {
       using std::cos;
       value_type ca(cos(mAngle));
-      value_type one_minus_ca(1.0 - ca);
+      value_type one_minus_ca(value_type(1.0) - ca);
       value_type t11(ca + one_minus_ca*mAxis.q[0]*mAxis.q[0]);
       value_type t22(ca + one_minus_ca*mAxis.q[1]*mAxis.q[1]);
       value_type t33(ca + one_minus_ca*mAxis.q[2]*mAxis.q[2]);
@@ -2095,10 +2095,10 @@ class trans_mat_3D : public serialization::serializable {
     trans_mat_3D(const_reference a11, const_reference a12, const_reference a13, const_reference a14, 
 		 const_reference a21, const_reference a22, const_reference a23, const_reference a24, 
 		 const_reference a31, const_reference a32, const_reference a33, const_reference a34) {
-      q[0] = a11; q[1] = a21; q[2] = a31; q[3] = 0.0;
-      q[4] = a12; q[5] = a22; q[6] = a32; q[7] = 0.0;
-      q[8] = a13; q[9] = a23; q[10] = a33; q[11] = 0.0;
-      q[12] = a14; q[13] = a24; q[14] = a34; q[15] = 1.0;
+      q[0] = a11; q[1] = a21; q[2] = a31; q[3] = value_type(0.0);
+      q[4] = a12; q[5] = a22; q[6] = a32; q[7] = value_type(0.0);
+      q[8] = a13; q[9] = a23; q[10] = a33; q[11] = value_type(0.0);
+      q[12] = a14; q[13] = a24; q[14] = a34; q[15] = value_type(1.0);
     };
 
 //     trans_mat_3D operator =(const mat<T>& M) {
@@ -2132,10 +2132,10 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     trans_mat_3D() {
-      q[0] = 1.0; q[1] = 0.0; q[2] = 0.0; q[3] = 0.0;
-      q[4] = 0.0; q[5] = 1.0; q[6] = 0.0; q[7] = 0.0;
-      q[8] = 0.0; q[9] = 0.0; q[10] = 1.0; q[11] = 0.0;
-      q[12] = 0.0; q[13] = 0.0; q[14] = 0.0; q[15] = 1.0;
+      q[0] = value_type(1.0); q[1] = value_type(0.0); q[2] = value_type(0.0); q[3] = value_type(0.0);
+      q[4] = value_type(0.0); q[5] = value_type(1.0); q[6] = value_type(0.0); q[7] = value_type(0.0);
+      q[8] = value_type(0.0); q[9] = value_type(0.0); q[10] = value_type(1.0); q[11] = value_type(0.0);
+      q[12] = value_type(0.0); q[13] = value_type(0.0); q[14] = value_type(0.0); q[15] = value_type(1.0);
     };
 
     /**
@@ -2147,21 +2147,21 @@ class trans_mat_3D : public serialization::serializable {
       q[0] = v1[0];
       q[1] = v1[1];
       q[2] = v1[2];
-      q[3] = 0.0;
+      q[3] = value_type(0.0);
       vect<value_type,3> v2 = unit(v2 - (v2 * v1) * v1);
       q[4] = v2[0];
       q[5] = v2[1];
       q[6] = v2[2];
-      q[7] = 0.0;
+      q[7] = value_type(0.0);
       v2 = v1 % v2;
       q[8] = v2[0];
       q[9] = v2[1];
       q[10] = v2[2];
-      q[11] = 0.0;
+      q[11] = value_type(0.0);
       q[12]= M[12];
       q[13]= M[13];
       q[14]= M[14];
-      q[15]= 1.0;
+      q[15]= value_type(1.0);
       return;
     };
 
@@ -2170,24 +2170,24 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const quaternion<value_type>& Q, 
-			  const vect<value_type,3>& V = vect<value_type,3>(0.0,0.0,0.0)) {
+			  const vect<value_type,3>& V = vect<value_type,3>(value_type(0.0),value_type(0.0),value_type(0.0))) {
       rot_mat_3D<value_type> R(Q.getRotMat());
       q[0] = R.q[0];
       q[1] = R.q[1];
       q[2] = R.q[2];
-      q[3] = 0.0;
+      q[3] = value_type(0.0);
       q[4] = R.q[3];
       q[5] = R.q[4];
       q[6] = R.q[5];
-      q[7] = 0.0;
+      q[7] = value_type(0.0);
       q[8] = R.q[6];
       q[9] = R.q[7];
       q[10] = R.q[8];
-      q[11] = 0.0;
+      q[11] = value_type(0.0);
       q[12] = V[0];
       q[13] = V[1];
       q[14] = V[2];
-      q[15] = 1.0;
+      q[15] = value_type(1.0);
     };
 
     /**
@@ -2195,24 +2195,24 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const euler_angles_TB<value_type>& E, 
-			  const vect<value_type,3>& V = vect<value_type,3>(0.0,0.0,0.0)) {
+			  const vect<value_type,3>& V = vect<value_type,3>(value_type(0.0),value_type(0.0),value_type(0.0))) {
       rot_mat_3D<value_type> R(E.getRotMat());
       q[0] = R.q[0];
       q[1] = R.q[1];
       q[2] = R.q[2];
-      q[3] = 0.0;
+      q[3] = value_type(0.0);
       q[4] = R.q[3];
       q[5] = R.q[4];
       q[6] = R.q[5];
-      q[7] = 0.0;
+      q[7] = value_type(0.0);
       q[8] = R.q[6];
       q[9] = R.q[7];
       q[10] = R.q[8];
-      q[11] = 0.0;
+      q[11] = value_type(0.0);
       q[12] = V[0];
       q[13] = V[1];
       q[14] = V[2];
-      q[15] = 1.0;
+      q[15] = value_type(1.0);
     };
 
     /**
@@ -2220,24 +2220,24 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const axis_angle<value_type>& A, 
-			  const vect<value_type,3>& V = vect<value_type,3>(0.0,0.0,0.0)) {
+			  const vect<value_type,3>& V = vect<value_type,3>(value_type(0.0),value_type(0.0),value_type(0.0))) {
       rot_mat_3D<value_type> R(A.getRotMat());
       q[0] = R.q[0];
       q[1] = R.q[1];
       q[2] = R.q[2];
-      q[3] = 0.0;
+      q[3] = value_type(0.0);
       q[4] = R.q[3];
       q[5] = R.q[4];
       q[6] = R.q[5];
-      q[7] = 0.0;
+      q[7] = value_type(0.0);
       q[8] = R.q[6];
       q[9] = R.q[7];
       q[10] = R.q[8];
-      q[11] = 0.0;
+      q[11] = value_type(0.0);
       q[12] = V[0];
       q[13] = V[1];
       q[14] = V[2];
-      q[15] = 1.0;
+      q[15] = value_type(1.0);
     };
 
     /**
@@ -2245,23 +2245,23 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const rot_mat_3D<value_type>& R, 
-			  const vect<value_type,3>& V = vect<value_type,3>(0.0,0.0,0.0)) {
+			  const vect<value_type,3>& V = vect<value_type,3>(value_type(0.0),value_type(0.0),value_type(0.0))) {
       q[0] = R.q[0];
       q[1] = R.q[1];
       q[2] = R.q[2];
-      q[3] = 0.0;
+      q[3] = value_type(0.0);
       q[4] = R.q[3];
       q[5] = R.q[4];
       q[6] = R.q[5];
-      q[7] = 0.0;
+      q[7] = value_type(0.0);
       q[8] = R.q[6];
       q[9] = R.q[7];
       q[10] = R.q[8];
-      q[11] = 0.0;
+      q[11] = value_type(0.0);
       q[12] = V[0];
       q[13] = V[1];
       q[14] = V[2];
-      q[15] = 1.0;
+      q[15] = value_type(1.0);
     };
 
     // Copy-constructor. Default is good. \test PASSED
@@ -2281,7 +2281,7 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     mat<value_type,mat_structure::square> getMat() const {
-      return mat<value_type,mat_structure::square>(q[0],q[4],q[8],q[12],q[1],q[5],q[9],q[13],q[2],q[6],q[10],q[14],0.0,0.0,0.0,1.0);
+      return mat<value_type,mat_structure::square>(q[0],q[4],q[8],q[12],q[1],q[5],q[9],q[13],q[2],q[6],q[10],q[14],value_type(0.0),value_type(0.0),value_type(0.0),value_type(1.0));
     };
 
     /**
@@ -2407,19 +2407,19 @@ class trans_mat_3D : public serialization::serializable {
       q[0] = M.q[0];
       q[1] = M.q[1];
       q[2] = M.q[2];
-      q[3] = 0.0;
+      q[3] = value_type(0.0);
       q[4] = M.q[4];
       q[5] = M.q[5];
       q[6] = M.q[6];
-      q[7] = 0.0;
+      q[7] = value_type(0.0);
       q[8] = M.q[8];
       q[9] = M.q[9];
       q[10]= M.q[10];
-      q[11]= 0.0;
+      q[11]= value_type(0.0);
       q[12]= M.q[12];
       q[13]= M.q[13];
       q[14]= M.q[14];
-      q[15]= 1.0;
+      q[15]= value_type(1.0);
       return *this;
     }; 
 
@@ -2431,19 +2431,19 @@ class trans_mat_3D : public serialization::serializable {
       q[0] = R.q[0];
       q[1] = R.q[1];
       q[2] = R.q[2];
-      q[3] = 0.0;
+      q[3] = value_type(0.0);
       q[4] = R.q[3];
       q[5] = R.q[4];
       q[6] = R.q[5];
-      q[7] = 0.0;
+      q[7] = value_type(0.0);
       q[8] = R.q[6];
       q[9] = R.q[7];
       q[10] = R.q[8];
-      q[11] = 0.0;
-      q[12] = 0.0;
-      q[13] = 0.0;
-      q[14] = 0.0;
-      q[15] = 1.0;
+      q[11] = value_type(0.0);
+      q[12] = value_type(0.0);
+      q[13] = value_type(0.0);
+      q[14] = value_type(0.0);
+      q[15] = value_type(1.0);
       return *this;
     };
 
@@ -2456,19 +2456,19 @@ class trans_mat_3D : public serialization::serializable {
       q[0] = R.q[0];
       q[1] = R.q[1];
       q[2] = R.q[2];
-      q[3] = 0.0;
+      q[3] = value_type(0.0);
       q[4] = R.q[3];
       q[5] = R.q[4];
       q[6] = R.q[5];
-      q[7] = 0.0;
+      q[7] = value_type(0.0);
       q[8] = R.q[6];
       q[9] = R.q[7];
       q[10] = R.q[8];
-      q[11] = 0.0;
-      q[12] = 0.0;
-      q[13] = 0.0;
-      q[14] = 0.0;
-      q[15] = 1.0;
+      q[11] = value_type(0.0);
+      q[12] = value_type(0.0);
+      q[13] = value_type(0.0);
+      q[14] = value_type(0.0);
+      q[15] = value_type(1.0);
       return *this;
     };
 
@@ -2481,19 +2481,19 @@ class trans_mat_3D : public serialization::serializable {
       q[0] = R.q[0];
       q[1] = R.q[1];
       q[2] = R.q[2];
-      q[3] = 0.0;
+      q[3] = value_type(0.0);
       q[4] = R.q[3];
       q[5] = R.q[4];
       q[6] = R.q[5];
-      q[7] = 0.0;
+      q[7] = value_type(0.0);
       q[8] = R.q[6];
       q[9] = R.q[7];
       q[10] = R.q[8];
-      q[11] = 0.0;
-      q[12] = 0.0;
-      q[13] = 0.0;
-      q[14] = 0.0;
-      q[15] = 1.0;
+      q[11] = value_type(0.0);
+      q[12] = value_type(0.0);
+      q[13] = value_type(0.0);
+      q[14] = value_type(0.0);
+      q[15] = value_type(1.0);
       return *this;
     };
 
@@ -2506,19 +2506,19 @@ class trans_mat_3D : public serialization::serializable {
       q[0] = R.q[0];
       q[1] = R.q[1];
       q[2] = R.q[2];
-      q[3] = 0.0;
+      q[3] = value_type(0.0);
       q[4] = R.q[3];
       q[5] = R.q[4];
       q[6] = R.q[5];
-      q[7] = 0.0;
+      q[7] = value_type(0.0);
       q[8] = R.q[6];
       q[9] = R.q[7];
       q[10] = R.q[8];
-      q[11] = 0.0;
-      q[12] = 0.0;
-      q[13] = 0.0;
-      q[14] = 0.0;
-      q[15] = 1.0;
+      q[11] = value_type(0.0);
+      q[12] = value_type(0.0);
+      q[13] = value_type(0.0);
+      q[14] = value_type(0.0);
+      q[15] = value_type(1.0);
       return *this;
     };
 
@@ -2713,7 +2713,7 @@ class trans_mat_3D : public serialization::serializable {
      */
     friend
     value_type trace(const self& M) {
-      return M.q[0] + M.q[5] + M.q[10] + 1.0;
+      return M.q[0] + M.q[5] + M.q[10] + value_type(1.0);
     };
 
     /**

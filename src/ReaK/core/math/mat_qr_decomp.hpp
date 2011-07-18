@@ -29,6 +29,8 @@
 
 #include "mat_householder.hpp"
 
+#include "mat_cholesky.hpp"
+
 namespace ReaK {
   
 
@@ -139,13 +141,35 @@ void decompose_QR_impl(Matrix1& A, Matrix2* Q, typename mat_traits<Matrix1>::val
   
 };
 
-  
+
+template <typename Matrix1, typename Matrix2>
+void backsub_R_impl(const Matrix1& R, Matrix2& b, typename mat_traits<Matrix1>::value_type NumTol)
+{
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  SizeType N = R.get_row_count();
+  SizeType M = R.get_col_count();
+  N = (N > M ? M : N);
+
+  //back-substitution
+  for(int i=N-1;i>=0;--i) {
+    for(SizeType j=0;j<b.get_col_count();++j) {
+      ValueType sum = b(i,j);
+      for(SizeType k=i+1;k<N;++k)
+        sum -= b(k,j) * R(i,k);
+      if(fabs(R(i,i)) < NumTol)
+        throw singularity_error("R");
+      b(i,j) = sum / R(i,i);
+    };
+  };
+};  
 
 
 
 template <typename Matrix1, typename Matrix2, typename Matrix3>
 void linlsq_QR_impl(const Matrix1& A, Matrix2& x,const Matrix3& b, typename mat_traits<Matrix1>::value_type NumTol)
 {
+  using std::fabs;
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   SizeType N = A.get_row_count();
@@ -177,6 +201,8 @@ void linlsq_QR_impl(const Matrix1& A, Matrix2& x,const Matrix3& b, typename mat_
       ValueType sum = b_store(i,j);
       for(SizeType k=i+1;k<M;++k)
         sum -= x(k,j) * R(i,k);
+      if(fabs(R(i,i)) < NumTol)
+        throw singularity_error("R");
       x(i,j) = sum / R(i,i);
     };
   };
@@ -320,7 +346,85 @@ struct QR_linlsqsolver {
 
 
 /**
- * Computes the pseudo-inverse of a matrix via Householder reflections.
+ * Performs back-substitution to solve R x = b, where R is an upper-triangular matrix.
+ *
+ * \param R is an upper-triangular matrix.
+ * \param x stores the solution matrix as output, with same dimension as b (zero-padding is assumed in the difference.
+ * \param b stores the RHS of the linear system of equation.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if b's row count does not match that of R or if x's row count does not match the
+ *                          column count of R.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
+                             is_fully_writable_matrix<Matrix2>::value &&
+                             is_readable_matrix<Matrix3>::value,
+void >::type backsub_R(const Matrix1& R, Matrix2& x, const Matrix3& b, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  if(R.get_row_count() > b.get_row_count())
+    throw std::range_error("Back-substitution is only possible if row count of b is equal to row count of R!");
+  
+  x = b;
+  detail::backsub_R_impl(R,x,NumTol);
+};
+
+
+/**
+ * Performs back-substitution to solve R x = b, where R is an upper-triangular matrix.
+ *
+ * \param R is an upper-triangular matrix.
+ * \param x stores the solution matrix as output, with same dimension as b (zero-padding is assumed in the difference), 
+            also stores b as input.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if b's row count does not match that of R or if x's row count does not match the
+ *                          column count of R.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
+                             is_fully_writable_matrix<Matrix2>::value,
+void >::type backsub_R(const Matrix1& R, Matrix2& x, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  if(R.get_row_count() > x.get_row_count())
+    throw std::range_error("Back-substitution is only possible if row count of b is equal to row count of R!");
+  
+  detail::backsub_R_impl(R,x,NumTol);
+};
+
+
+
+/**
+ * Computes the inverse of a matrix via Householder reflections.
+ *
+ * \param A real rectangular matrix with row-count >= column-count.
+ * \param A_pinv real rectangular matrix which is the pseudo-inverse of A.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix A does not have equal-or-more rows than columns.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
+                             is_fully_writable_matrix<Matrix2>::value, 
+void >::type invert_QR(const Matrix1& A, Matrix2& A_pinv, typename mat_traits<Matrix1>::value_type NumTol = 1E-8)  {
+  if(A.get_row_count() < A.get_col_count())
+    throw std::range_error("Pseudo-inverse with QR is only possible on a matrix with row-count >= column-count!");
+
+  detail::linlsq_QR_impl(A,A_pinv,mat<typename mat_traits<Matrix1>::value_type,mat_structure::identity>(A.get_row_count()),NumTol);
+};
+
+
+
+/**
+ * Computes the pseudo-inverse of a matrix via Householder reflections (left-Moore-Penrose Pseudo-Inverse).
+ * A_pinv = (A^T A)^-1 A^T
  *
  * \param A real rectangular matrix with row-count >= column-count.
  * \param A_pinv real rectangular matrix which is the pseudo-inverse of A.
@@ -338,11 +442,15 @@ void >::type pseudoinvert_QR(const Matrix1& A, Matrix2& A_pinv, typename mat_tra
   if(A.get_row_count() < A.get_col_count())
     throw std::range_error("Pseudo-inverse with QR is only possible on a matrix with row-count >= column-count!");
 
-  detail::linlsq_QR_impl(A,A_pinv,mat<typename mat_traits<Matrix1>::value_type,mat_structure::identity>(A.get_row_count()),NumTol);
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  
+  mat<ValueType,mat_structure::square> R(A);
+  detail::decompose_QR_impl(R,static_cast<mat<ValueType,mat_structure::square>*>(NULL),NumTol);
+
+  A_pinv = transpose(A);
+  detail::backsub_Cholesky_impl(transpose_move(R),A_pinv);
 };
-
-
-
 
 
 

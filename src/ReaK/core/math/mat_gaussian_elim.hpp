@@ -137,7 +137,7 @@ void >::type invert_gaussian(const Matrix1& A, Matrix2& A_inv, typename mat_trai
 namespace detail {
   
 template <typename Matrix1, typename Matrix2, typename IndexVector>
-void linsolve_PLU_impl(Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits<Matrix1>::value_type NumTol) throw(singularity_error) {
+void linsolve_PLU_impl(Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits<Matrix1>::value_type NumTol) {
   using std::swap;
   using std::fabs;
   typedef typename mat_traits<Matrix1>::value_type ValueType;

@@ -29,6 +29,7 @@
 
 #include "math/mat_cholesky.hpp"
 #include "math/mat_svd_method.hpp"
+#include "math/mat_qr_decomp.hpp"
 
 #include "base/named_object.hpp"
 
@@ -161,6 +162,72 @@ struct gaussian_pdf<Covariance, covariance_storage::information> {
   };
   
 };
+
+
+
+template <typename Covariance>
+struct gaussian_pdf<Covariance, covariance_storage::decomposed> {
+  typedef gaussian_pdf<Covariance, covariance_storage::decomposed> self;
+    
+  typedef typename covariance_mat_traits<Covariance>::value_type scalar_type;
+  typedef typename covariance_mat_traits<Covariance>::point_type state_type;
+  typedef typename covariance_mat_traits<Covariance>::size_type size_type;
+  typedef typename covariance_mat_traits<Covariance>::point_difference_type state_difference_type;
+    
+  typedef Covariance covariance_type;
+    
+  typedef typename covariance_mat_traits<Covariance>::matrix_type matrix_type;
+  
+  state_type mean_state;
+  mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> QX;
+  mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> RX;
+  mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> QY;
+  mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> RY;
+  scalar_type factor;
+  
+  gaussian_pdf(const state_type& aMeanState, const covariance_type& aCov) : mean_state(aMeanState),
+                                                                            factor(-1) {
+    decompose_QR(aCov.get_covarying_block(),QX,RX);
+    decompose_QR(aCov.get_informing_inv_block(),QY,RY);
+    
+    factor = scalar_type(1);
+    for(size_type i = 0; i < mean_state.size(); ++i)
+      factor *= scalar_type(6.28318530718) * RX(i,i) / RY(i,i);
+  };
+  
+  gaussian_pdf(const self& rhs) : mean_state(rhs.mean_state), QX(rhs.QX), RX(rhs.RX), QY(rhs.QY), RY(rhs.RY), factor(rhs.factor) { };
+  
+  friend void swap(self& lhs, self& rhs) { 
+    using std::swap;
+    swap(lhs.mean_state,rhs.mean_state);
+    swap(lhs.QX,rhs.QX);
+    swap(lhs.RX,rhs.RX);
+    swap(lhs.QY,rhs.QY);
+    swap(lhs.RY,rhs.RY);
+    swap(lhs.factor,rhs.factor);
+  };
+  
+  self& operator=(self rhs) {
+    swap(*this,rhs);
+    return *this;
+  };
+  
+  scalar_type operator()(const state_type& v) const {
+    using std::sqrt;
+    using std::exp;
+    
+    if(factor <= scalar_type(0))
+      return scalar_type(0);
+      
+    state_difference_type d = v - mean_state;
+    state_difference_type d_tmp = d * QX;  //QX^T d
+    mat_vect_adaptor<state_difference_type> d_m(d_tmp);
+    backsub_R(RX,d_m);
+    return exp( scalar_type(-0.5) * ( d * ( QY * (RY * d_tmp) ) ) ) / sqrt(factor);
+  };
+  
+};
+
 
 
 

@@ -676,7 +676,7 @@ class vect : public serialization::serializable {
     template <typename U>
     self& operator *=(const U& S) {
       for(size_type i=0;i<Size;++i)
-	q[i] *= S;
+	q[i] = value_type(q[i] * S);
       return *this;
     };
 
@@ -687,7 +687,7 @@ class vect : public serialization::serializable {
     template <typename U>
     self& operator /=(const U& S) {
       for(size_type i=0;i<Size;++i)
-	q[i] /= S;
+	q[i] = value_type(q[i] / S);
       return *this;
     };
 

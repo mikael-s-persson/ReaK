@@ -24,7 +24,7 @@
 #include "base/defs.hpp"
 #include <iostream>
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 
 #include "mat_alg.hpp"
 #include "vect_alg.hpp"
@@ -39,7 +39,10 @@
 
 #include "boost/date_time/posix_time/posix_time.hpp"
 
-
+#ifndef M_PI
+#define M_PI 3.14159265358979324
+#define M_PI_2 1.57079632679489662
+#endif
 
 int main() {
 
@@ -52,9 +55,9 @@ try {
   /*************************** Fixed-Length Vector Tests ****************************/
   if(true){
     vect<float,3> gravity_acc;                   ++passed;
-    gravity_acc[0] = 0.0;                        ++passed; //RK_NOTICE(2,"Passed: " << passed << " should have 2.");
-    gravity_acc[1] = -9.81;
-    gravity_acc[2] = 0.0;
+    gravity_acc[0] = 0.0f;                        ++passed; //RK_NOTICE(2,"Passed: " << passed << " should have 2.");
+    gravity_acc[1] = -9.81f;
+    gravity_acc[2] = 0.0f;
     if( 3 == gravity_acc.size() )                ++passed;
     if( 3 == gravity_acc.max_size() )            ++passed;
     if( 3 == gravity_acc.capacity() )            ++passed;
@@ -64,24 +67,24 @@ try {
     gravity_acc.reserve(5);
     if( 3 == gravity_acc.capacity() )            ++passed;
     vect<float,3>::iterator it = gravity_acc.begin();      //RK_NOTICE(2,"Passed: " << passed << " should have 8.");
-    if(*it == 0.0)                               ++passed;
+    if(*it == 0.0f)                               ++passed;
     if(gravity_acc.end() - it == 3)              ++passed;
     if(gravity_acc.end() - ++it == 2)            ++passed;
     const vect<float,3>& gravity_acc_ref = gravity_acc;    //RK_NOTICE(2,"Passed: " << passed << " should have 11.");
     vect<float,3>::const_iterator cit = gravity_acc_ref.begin();
-    if(*cit == 0.0)                              ++passed;
+    if(*cit == 0.0f)                              ++passed;
     if(gravity_acc_ref.end() - cit == 3)         ++passed;
     if(gravity_acc_ref.end() - ++cit == 2)       ++passed;
-    float ones[] = {1.0,1.0,1.0};                         // RK_NOTICE(2,"Passed: " << passed << " should have 14.");
+    float ones[] = {1.0f,1.0f,1.0f};                         // RK_NOTICE(2,"Passed: " << passed << " should have 14.");
     vect<float,3> ones_v(ones);                  ++passed;
     if(ones[1] == ones_v[1])                     ++passed;
-    float obj_mass(3.0);      
+    float obj_mass(3.0f);      
     vect<float,3> gravity_force;                           //RK_NOTICE(2,"Passed: " << passed << " should have 16.");
     gravity_force = (gravity_acc * obj_mass);    ++passed;
     if(gravity_force == obj_mass * gravity_acc)  ++passed;
-    if(std::fabs(norm_sqr(gravity_acc) - 9.81*9.81) < 100.0*std::numeric_limits<float>::epsilon())
+    if(std::fabs(norm_sqr(gravity_acc) - 9.81f*9.81f) < 100.0f*std::numeric_limits<float>::epsilon())
                                                  ++passed;
-    if(std::fabs(norm(gravity_acc) - 9.81) < 10.0*std::numeric_limits<float>::epsilon())
+    if(std::fabs(norm(gravity_acc) - 9.81f) < 10.0f*std::numeric_limits<float>::epsilon())
                                                  ++passed;
     vect<float,3> gravity_dir(unit(gravity_acc));++passed; //RK_NOTICE(2,"Passed: " << passed << " should have 21.");
     if(std::fabs(norm(gravity_dir) - 1.0) < std::numeric_limits<float>::epsilon())
@@ -146,9 +149,9 @@ try {
     RK_NOTICE(2,"/** PRIMITIVE VARIABLE-LENGTH VECTOR TESTS ***/");
     RK_NOTICE(2,"/*********************************************/");
     vect_n<float> gravity_acc(3);
-    gravity_acc[0] = 0.0;
-    gravity_acc[1] = -9.81;
-    gravity_acc[2] = 0.0;
+    gravity_acc[0] = 0.0f;
+    gravity_acc[1] = -9.81f;
+    gravity_acc[2] = 0.0f;
     float obj_mass(3.0);
     vect_n<float> gravity_force;
     gravity_force = (gravity_acc * obj_mass);
@@ -296,7 +299,7 @@ try {
     rot_mat_2D<float> r_ident;
     RK_NOTICE(2,"Rotation identity = " << r_ident);
     RK_NOTICE(2,"Rotation identity = (" << r_ident[0] << "; " << r_ident[2] << "); (" << r_ident[1] << "; " << r_ident[3] << ")");
-    rot_mat_2D<float> r_45deg(0.25 * M_PI);
+    rot_mat_2D<float> r_45deg(0.25f * float(M_PI));
     RK_NOTICE(2,"Rotation 45 degrees = " << r_45deg);
     RK_NOTICE(2,"Rotation 45 degrees = (" << r_45deg(0,0) << "; " << r_45deg(0,1) << "); (" << r_45deg(1,0) << "; " << r_45deg(1,1) << ")");
     rot_mat_2D<float> r_45deg_cpy(r_45deg);
@@ -344,7 +347,7 @@ try {
     trans_mat_2D<float> t_ident;
     RK_NOTICE(2,"Transformation identity = " << t_ident);
     RK_NOTICE(2,"Transformation identity = (" << t_ident[0] << "; " << t_ident[3] << "; " << t_ident[6] << "); (" << t_ident[1] << "; " << t_ident[4] << "; " << t_ident[7] << "); (" << t_ident[2] << "; " << t_ident[5] << "; " << t_ident[8] << ")");
-    trans_mat_2D<float> t_45deg_11(0.25 * M_PI,vect<float,2>(1.0,1.0));
+    trans_mat_2D<float> t_45deg_11(0.25f * float(M_PI),vect<float,2>(1.0f,1.0f));
     RK_NOTICE(2,"Rotation 45 degrees + (1,1) = " << t_45deg_11);
     RK_NOTICE(2,"Rotation 45 degrees + (1,1) = (" << t_45deg_11(0,0) << "; " << t_45deg_11(0,1) << "; " << t_45deg_11(0,2) << "); (" << t_45deg_11(1,0) << "; " << t_45deg_11(1,1) << "; " << t_45deg_11(1,2) << "); (" << t_45deg_11(2,0) << "; " << t_45deg_11(2,1) << "; " << t_45deg_11(2,2) << ")");
     trans_mat_2D<float> t_45deg_11_cpy(t_45deg_11);
@@ -352,13 +355,13 @@ try {
     RK_NOTICE(2,"Rotation 45 degrees + (1,1) copy = " << t_45deg_11_cpy.getMat());
     RK_NOTICE(2,"Rotation 45 degrees angle = " << t_45deg_11_cpy.getAngle());
     RK_NOTICE(2,"Rotation 45 degrees angle = " << t_45deg_11_cpy.getRotMat());
-    t_45deg_11_cpy.setAngle(0.0);
+    t_45deg_11_cpy.setAngle(0.0f);
     RK_NOTICE(2,"Rotation identity + (1,1) = " << t_45deg_11_cpy);
     t_45deg_11_cpy.setRotMat(r_45deg);
     RK_NOTICE(2,"Rotation 45 degrees + (1,1) copy = " << t_45deg_11_cpy);
-    t_45deg_11_cpy.setTranslation(vect<float,2>(-1.0,-1.0));
+    t_45deg_11_cpy.setTranslation(vect<float,2>(-1.0f,-1.0f));
     RK_NOTICE(2,"Rotation identity + (-1,-1) = " << t_45deg_11_cpy);
-    t_45deg_11_cpy.setTranslation(vect<float,2>(1.0,1.0));
+    t_45deg_11_cpy.setTranslation(vect<float,2>(1.0f,1.0f));
     RK_NOTICE(2,"Rotation 45 degrees + (1,1) copy = " << t_45deg_11_cpy);
     RK_NOTICE(2,"t_45deg_11_cpy trace = " << trace(t_45deg_11_cpy));
     RK_NOTICE(2,"t_45deg_11_cpy determinant = " << determinant(t_45deg_11_cpy));
@@ -468,9 +471,9 @@ try {
 
     RK_NOTICE(2,"q_45z * v(1,1,2) = " << (q_45z * v1));
 
-    euler_angles_TB<float> e_45z(0.25*M_PI,0.0,0.0);
+    euler_angles_TB<float> e_45z(0.25f*float(M_PI),0.0f,0.0f);
     RK_NOTICE(2,"q_45z * EA(Yaw = 45) = " << (q_45z * e_45z));
-    axis_angle<float> a_45z(0.25*M_PI,vect<float,3>(0.0,0.0,1.0));
+    axis_angle<float> a_45z(0.25f*float(M_PI),vect<float,3>(0.0f,0.0f,1.0f));
     RK_NOTICE(2,"q_45z * a_45z = " << (q_45z * a_45z));
 
     euler_angles_TB<float> e_ident;
@@ -609,7 +612,7 @@ try {
     RK_NOTICE(2,"t_45z_123 * v(1,1,2,2) = " << (t_45z_123 * v3));
 
 
-    axis_angle<float> a_weird(0.3241,vect<float,3>(0.5,0.5,sqrt(0.5)));
+    axis_angle<float> a_weird(0.3241f,vect<float,3>(0.5f,0.5f,sqrt(0.5f)));
     quaternion<float> q_weird;
     q_weird = a_weird;
     euler_angles_TB<float> e_weird;

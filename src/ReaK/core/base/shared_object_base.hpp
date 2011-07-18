@@ -87,7 +87,7 @@ class shared_object_base {
      */
     boost::weak_ptr<shared_object_base> RK_CALL getWeakPtr() const { return mThis; };
     
-    shared_object_base() : mThis(this,null_deleter()) {};
+    shared_object_base() { mThis = boost::shared_ptr<shared_object_base>(this,null_deleter()); };
 
     virtual ~shared_object_base() { RK_NOTICE(8,"Shared object base destructor reached!");};
 };

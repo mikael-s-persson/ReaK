@@ -46,6 +46,7 @@ namespace ReaK {
   
   
   
+  #if 0
 // NOT USED, DEPRECATED
 template <>
 struct mat_indexer<mat_structure::rectangular, mat_alignment::column_major> {
@@ -61,7 +62,7 @@ struct mat_indexer<mat_structure::rectangular, mat_alignment::row_major> {
   mat_indexer<mat_structure::rectangular, mat_alignment::row_major>(std::size_t aRowCount, std::size_t aColCount) : rowCount(aRowCount), colCount(aColCount) { };
   std::size_t operator()(std::size_t i, std::size_t j) const { return i * colCount + j; };
 };
-
+#endif
 
 
 template <typename T,
@@ -178,7 +179,7 @@ class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : 
      */
     template <typename Matrix>
     explicit mat(const Matrix&  M, typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
-                                                               !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) :
+                                                                boost::mpl::not_< boost::is_same<Matrix,self> >::value , void* >::type dummy = NULL) :
              q(M.get_row_count()*M.get_col_count(),T(0.0)),
 	     rowCount(M.get_row_count()),
 	     colCount(M.get_col_count()) {
@@ -633,7 +634,7 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
      */
     template <typename Matrix>
     explicit mat(const Matrix&  M, typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
-                                                               !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) :
+                                                                boost::mpl::not_< boost::is_same<Matrix,self> >::value , void* >::type dummy = NULL) :
              q(M.get_row_count()*M.get_col_count(),T(0.0)),
 	     rowCount(M.get_row_count()),
 	     colCount(M.get_col_count()) {
@@ -1065,9 +1066,13 @@ mat<T,mat_structure::rectangular,Alignment,Allocator>
  * \test PASSED
  */
 template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Matrix>
-typename boost::enable_if_c< (((Structure == mat_structure::rectangular) || 
-                               (Structure == mat_structure::square)) &&
-                               is_readable_matrix<Matrix>::value) >::type
+typename boost::enable_if_c< 
+  boost::mpl::and_< boost::mpl::or_< boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, Structure>,
+                                                           boost::mpl::integral_c< mat_structure::tag, mat_structure::rectangular> >,
+                                     boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, Structure>,
+                                                           boost::mpl::integral_c< mat_structure::tag, mat_structure::square> > >,
+                    is_readable_matrix<Matrix> >::value, 
+void >::type
   set_block(mat<T,Structure,Alignment,Allocator>& M,const Matrix& subM,unsigned int aRowOffset,unsigned int aColOffset) {
   if((aRowOffset + subM.get_row_count() > M.get_row_count()) || (aColOffset + subM.get_col_count() > M.get_col_count()))
     throw std::range_error("Matrix dimension mismatch.");

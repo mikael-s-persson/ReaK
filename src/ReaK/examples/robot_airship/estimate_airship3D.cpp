@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
 	};
 	j = (j+1) % skips;
       };
-    } catch(recorder::out_of_bounds& e) {
+    } catch(recorder::out_of_bounds&) {
       RK_ERROR("The measurement file does not appear to have the required number of columns!");
       return 4;
     } catch(recorder::end_of_record&) { }
@@ -423,12 +423,12 @@ int main(int argc, char** argv) {
   {
   recorder::ssv_recorder results(result_filename + "_times.ssv");
   results << "step_count" << "kbf(ms)" << "ikbf(ms)" << "ekf(ms)" << "ukf(ms)" << "iekf(ms)" << "imkf(ms)" << recorder::data_recorder::end_name_row;
-  results << double(measurements.size()) << dt[0].total_milliseconds() 
-                                         << dt[1].total_milliseconds() 
-					 << dt[2].total_milliseconds() 
-					 << dt[3].total_milliseconds() 
-					 << dt[4].total_milliseconds() 
-					 << dt[5].total_milliseconds() 
+  results << double(measurements.size()) << double(dt[0].total_milliseconds())
+                                         << double(dt[1].total_milliseconds())
+					 << double(dt[2].total_milliseconds())
+					 << double(dt[3].total_milliseconds())
+					 << double(dt[4].total_milliseconds())
+					 << double(dt[5].total_milliseconds()) 
 					 << recorder::data_recorder::end_value_row << recorder::data_recorder::flush;
   };
   

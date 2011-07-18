@@ -58,7 +58,7 @@ setup_headers("${MATH_HEADERS}" "${RKMATHDIR}")
 
 add_executable(test_math "${SRCROOT}${RKMATHDIR}/test.cpp")
 setup_custom_target(test_math "${SRCROOT}${RKMATHDIR}")
-target_link_libraries(test_math reak_rtti)
+target_link_libraries(test_math reak_rtti "${BOOST_DATE_TIME_LIB}")
 
 add_executable(test_math_quat "${SRCROOT}${RKMATHDIR}/test_quat.cpp")
 setup_custom_target(test_math_quat "${SRCROOT}${RKMATHDIR}")

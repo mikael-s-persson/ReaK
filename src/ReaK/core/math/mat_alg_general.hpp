@@ -53,6 +53,8 @@
 #include <boost/mpl/or.hpp>
 #include <boost/mpl/not.hpp>
 #include <boost/mpl/logical.hpp>
+#include <boost/mpl/less.hpp>
+#include <boost/mpl/comparison.hpp>
 
 
 namespace ReaK {
@@ -392,9 +394,11 @@ typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     typedef mat< T, mat_structure::rectangular, Alignment, Allocator > result_type;
     if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
       throw std::range_error("Matrix dimension mismatch.");
+    typedef typename mat_traits<result_type>::value_type ValueType;
+    typedef typename mat_traits<result_type>::size_type SizeType;
     result_type result(M1.get_row_count(),M1.get_col_count(),T(0),M1.get_allocator());
-    for(unsigned int j=0;j<M1.get_col_count();++j)
-      for(unsigned int i=0;i<M1.get_row_count();++i)
+    for(SizeType j=0;j<M1.get_col_count();++j)
+      for(SizeType i=0;i<M1.get_row_count();++i)
         result(i,j) = M1(i,j) - M2(i,j);
     return result;
   };
@@ -412,15 +416,17 @@ typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
  */
 template <typename Matrix1, typename Matrix2>
 typename boost::enable_if_c< is_readable_matrix<Matrix2>::value &&
-                             ((mat_product_priority< Matrix1 >::value < detail::product_priority<mat_structure::diagonal>::value) &&
-                              (mat_product_priority<Matrix2>::value < detail::product_priority<mat_structure::diagonal>::value)), 
+                             boost::mpl::less< boost::mpl::integral_c<std::size_t,mat_product_priority< Matrix1 >::value>,
+                                               boost::mpl::integral_c<std::size_t,detail::product_priority<mat_structure::diagonal>::value> >::value &&
+                             boost::mpl::less< boost::mpl::integral_c<std::size_t,mat_product_priority< Matrix2 >::value>,
+                                               boost::mpl::integral_c<std::size_t,detail::product_priority<mat_structure::diagonal>::value> >::value, 
  typename mat_product_result<Matrix1,Matrix2>::type >::type
   operator *(const Matrix1& M1,const Matrix2& M2) {
     typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
     if(M1.get_col_count() != M2.get_row_count())
       throw std::range_error("Matrix dimension mismatch.");
     typedef typename mat_traits<result_type>::value_type ValueType;
-    typedef typename mat_traits<result_type>::value_type SizeType;
+    typedef typename mat_traits<result_type>::size_type SizeType;
     result_type result(M1.get_row_count(),M2.get_col_count(),ValueType(0),M1.get_allocator());
     for(SizeType i=0;i<M1.get_row_count();++i) {
       for(SizeType jj=0;jj<M2.get_col_count();++jj) {
@@ -444,17 +450,21 @@ typename boost::enable_if_c< is_readable_matrix<Matrix2>::value &&
  */
 template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Matrix2>
 typename boost::enable_if_c< is_readable_matrix<Matrix2>::value &&
-                             ((mat_product_priority< mat<T,Structure,Alignment,Allocator> >::value < detail::product_priority<mat_structure::diagonal>::value) &&
-                              (mat_product_priority<Matrix2>::value < detail::product_priority<mat_structure::diagonal>::value)), 
+                             boost::mpl::less< boost::mpl::integral_c< std::size_t, mat_product_priority< mat<T,Structure,Alignment,Allocator> >::value>,
+                                               boost::mpl::integral_c< std::size_t, detail::product_priority<mat_structure::diagonal>::value> >::value &&
+                             boost::mpl::less< boost::mpl::integral_c< std::size_t, mat_product_priority<Matrix2>::value>,
+                                               boost::mpl::integral_c< std::size_t, detail::product_priority<mat_structure::diagonal>::value> >::value,
  mat< T, mat_structure::rectangular, Alignment, Allocator > >::type
   operator *(const Matrix2& M1, const mat<T,Structure,Alignment,Allocator>& M2) {
     typedef mat< T, mat_structure::rectangular, Alignment, Allocator > result_type;
     if(M1.get_col_count() != M2.get_row_count())
       throw std::range_error("Matrix dimension mismatch.");
+    typedef typename mat_traits<result_type>::value_type ValueType;
+    typedef typename mat_traits<result_type>::size_type SizeType;
     result_type result(M1.get_row_count(),M2.get_col_count(),T(0),M2.get_allocator());
-    for(unsigned int i=0;i<M1.get_row_count();++i) {
-      for(unsigned int jj=0;jj<M2.get_col_count();++jj) {
-        for(unsigned int j=0;j<M1.get_col_count();++j) {
+    for(SizeType i=0;i<M1.get_row_count();++i) {
+      for(SizeType jj=0;jj<M2.get_col_count();++jj) {
+        for(SizeType j=0;j<M1.get_col_count();++j) {
           result(i,jj) += M1(i,j) * M2(j,jj);
         };
       };
@@ -478,9 +488,11 @@ typename boost::enable_if_c< is_readable_vector<Vector>::value,
     typedef vect_n< T, Allocator > result_type;
     if(V.size() != M.get_col_count())
       throw std::range_error("Matrix dimension mismatch.");
+    typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::value_type ValueType;
+    typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::size_type SizeType;
     result_type result(M.get_row_count(),T(0),M.get_allocator());
-    for(unsigned int i=0;i<M.get_row_count();++i)
-      for(unsigned int j=0;j<M.get_col_count();++j)
+    for(SizeType i=0;i<M.get_row_count();++i)
+      for(SizeType j=0;j<M.get_col_count();++j)
         result[i] += M(i,j) * V[j];
     return result;
   };
@@ -501,10 +513,12 @@ typename boost::enable_if_c< is_readable_vector<Vector>::value,
     typedef vect_n< T, Allocator > result_type;
     if(V.size() != M.get_row_count())
       throw std::range_error("Matrix dimension mismatch.");
+    typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::value_type ValueType;
+    typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::size_type SizeType;
     result_type result(M.get_col_count(),T(0),V.get_allocator());
-    for(unsigned int j=0;j<M.get_col_count();++j) {
+    for(SizeType j=0;j<M.get_col_count();++j) {
       result[j] = 0;
-      for(unsigned int i=0;i<M.get_row_count();++i) {
+      for(SizeType i=0;i<M.get_row_count();++i) {
         result[j] += M(i,j) * V[i];
       };
     };
@@ -523,10 +537,12 @@ template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment
 vect<T,Size> operator *(const mat<T,Structure,Alignment,Allocator>& M,const vect<T,Size>& V) {
   if((Size != M.get_col_count()) || (Size != M.get_row_count()))
     throw std::range_error("Matrix dimension mismatch.");
+  typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::value_type ValueType;
+  typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::size_type SizeType;
   vect<T,Size> result;
-  for(std::size_t i=0;i<Size;++i) {
+  for(SizeType i=0;i<Size;++i) {
     result[i] = 0;
-    for(std::size_t j=0;j<Size;++j)
+    for(SizeType j=0;j<Size;++j)
       result[i] += M(i,j) * V[j];
   };
   return result;
@@ -544,10 +560,12 @@ template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment
 vect<T,Size> operator *(const vect<T,Size>& V,const mat<T,Structure,Alignment,Allocator>& M) {
   if((Size != M.get_col_count()) || (Size != M.get_row_count()))
     throw std::range_error("Matrix dimension mismatch.");
+  typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::value_type ValueType;
+  typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::size_type SizeType;
   vect<T,Size> result;
-  for(std::size_t j=0;j<Size;++j) {
+  for(SizeType j=0;j<Size;++j) {
     result[j] = 0;
-    for(std::size_t i=0;i<Size;++i)
+    for(SizeType i=0;i<Size;++i)
       result[j] += M(i,j) * V[i];
   };
   return result;
@@ -599,8 +617,10 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && is_readable_m
   operator ==(const Matrix1& M1,const Matrix2& M2) {
     if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
       return false;
-    for(unsigned int j=0;j<M1.get_col_count();++j)
-      for(unsigned int i=0;i<M1.get_row_count();++i)
+    typedef typename mat_traits< Matrix1 >::value_type ValueType;
+    typedef typename mat_traits< Matrix1 >::size_type SizeType;
+    for(SizeType j=0;j<M1.get_col_count();++j)
+      for(SizeType i=0;i<M1.get_row_count();++i)
         if(M1(i,j) != M2(i,j))
           return false;
     return true;
@@ -615,8 +635,10 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && is_readable_m
   operator !=(const Matrix1& M1,const Matrix2& M2) {
     if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
       return true;
-    for(unsigned int j=0;j<M1.get_col_count();++j)
-      for(unsigned int i=0;i<M1.get_row_count();++i)
+    typedef typename mat_traits< Matrix1 >::value_type ValueType;
+    typedef typename mat_traits< Matrix1 >::size_type SizeType;
+    for(SizeType j=0;j<M1.get_col_count();++j)
+      for(SizeType i=0;i<M1.get_row_count();++i)
         if(M1(i,j) != M2(i,j))
           return true;
     return false;
@@ -635,8 +657,10 @@ typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
   using std::fabs;
   if(A.get_row_count() != A.get_col_count())
     return false;
-  for(typename mat_traits<Matrix>::size_type i=0;i<A.get_row_count();i++)
-    for(typename mat_traits<Matrix>::size_type j=0;j<i;j++)
+  typedef typename mat_traits< Matrix >::value_type ValueType;
+  typedef typename mat_traits< Matrix >::size_type SizeType;
+  for(SizeType i=0;i<A.get_row_count();i++)
+    for(SizeType j=0;j<i;j++)
       if((fabs(A(j,i)) > NumTol) || (fabs(A(i,j)) > NumTol))
 	return false;
   return true;
@@ -651,8 +675,10 @@ bool >::type is_symmetric(const Matrix& A, typename mat_traits<Matrix>::value_ty
   using std::fabs;
   if(A.get_row_count() != A.get_col_count())
     return false;
-  for(typename mat_traits<Matrix>::size_type i=0;i<A.get_row_count();i++)
-    for(typename mat_traits<Matrix>::size_type j=0;j<i;j++)
+  typedef typename mat_traits< Matrix >::value_type ValueType;
+  typedef typename mat_traits< Matrix >::size_type SizeType;
+  for(SizeType i=0;i<A.get_row_count();i++)
+    for(SizeType j=0;j<i;j++)
       if(fabs(A(j,i) - A(i,j)) > NumTol)
 	return false;
   return true;
@@ -664,11 +690,14 @@ bool >::type is_symmetric(const Matrix& A, typename mat_traits<Matrix>::value_ty
 
 
 template <typename Matrix1, typename Matrix2>
-typename boost::enable_if_c< is_fully_writable_matrix<Matrix1>::value &&
-                             is_resizable_matrix<Matrix1>::value &&
-                             is_readable_matrix<Matrix2>::value &&
-                             (((mat_traits<Matrix1>::structure == mat_structure::square) && (is_square_matrix<Matrix2>::value)) ||
-                             (mat_traits<Matrix1>::structure == mat_structure::rectangular)),
+typename boost::enable_if_c< 
+  is_fully_writable_matrix<Matrix1>::value &&
+  is_resizable_matrix<Matrix1>::value &&
+  is_readable_matrix<Matrix2>::value &&
+  boost::mpl::or_< boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, mat_traits<Matrix1>::structure>,
+                                         boost::mpl::integral_c< mat_structure::tag, mat_structure::square> >,
+                   boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, mat_traits<Matrix2>::structure>,
+                                         boost::mpl::integral_c< mat_structure::tag, mat_structure::rectangular> > >::value,
 void >::type append_block_diag(Matrix1& A, const Matrix2& B) {
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   SizeType oldRowCount = A.get_row_count();
