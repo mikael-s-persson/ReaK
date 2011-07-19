@@ -115,10 +115,10 @@ void reduce_HessTri_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix3* Z, typenam
       G = transpose(G);
     
       mat_sub_block<Matrix2> subB2(B,i+1,2,0,i-1);
-      givens_rot_prod(subB2,G); // G * B
+      givens_rot_prod(subB2,G); // B * G^T
     
       mat_sub_block<Matrix1> subA2(A,N,2,0,i-1);
-      givens_rot_prod(subA2,G); // G * A
+      givens_rot_prod(subA2,G); // A * G^T
     
       if(Z) {
         mat_sub_block<Matrix4> subZ(*Z,N,2,0,i-1);
