@@ -75,15 +75,12 @@ class givens_rot_matrix {
       };
     };
   public:
-    template <typename Vector2>
-    typename boost::enable_if_c< is_readable_vector<Vector2>::value, 
-    void >::type set(const value_type& aA, const value_type& aB, const value_type& NumTol = value_type(1E-8)) {
+    void set(const value_type& aA, const value_type& aB, const value_type& NumTol = value_type(1E-8)) {
       c = aA;
       s = aB;
       calculate_givens(NumTol);
     };
     
-    template <typename Vector2>
     explicit givens_rot_matrix(const value_type& aA, const value_type& aB, const value_type& NumTol = value_type(1E-8)) :
                                c(aA), s(aB) {
       calculate_givens(NumTol);

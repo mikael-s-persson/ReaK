@@ -175,14 +175,15 @@ void schur_decomp_impl(Matrix1& T, Matrix2* Q, typename mat_traits<Matrix1>::val
  */
 template <typename Matrix1, typename Matrix2, typename Matrix3>
 typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
-                             is_writable_matrix<Matrix2>::value &&
-                             is_writable_matrix<Matrix3>::value, 
+                             is_fully_writable_matrix<Matrix2>::value &&
+                             is_fully_writable_matrix<Matrix3>::value, 
 void >::type decompose_RealSchur(const Matrix1& A, Matrix2& Q, Matrix3& T, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  if(A.get_row_count() < A.get_col_count())
+  if(A.get_row_count() != A.get_col_count())
     throw std::range_error("Real Schur decomposition is only possible on a square matrix!");
 
   Q = mat< typename mat_traits<Matrix2>::value_type, mat_structure::identity>(A.get_row_count());
-  detail::decompose_Hess_impl(A,&Q,H,NumTol);
+  T = A;
+  detail::schur_decomp_impl(T,&Q,NumTol);
 };
 
 
@@ -191,7 +192,7 @@ void >::type decompose_RealSchur(const Matrix1& A, Matrix2& Q, Matrix3& T, typen
  * Performs the Real Schur decomposition on a matrix, using the Francis QR-step method.
  *
  * \param A square matrix with row-count == column-count.
- * \param H holds as output, the quasi-upper-triangular matrix R in A = Q H Q^T.
+ * \param T holds as output, the quasi-upper-triangular matrix R in A = Q H Q^T.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
  *
@@ -201,12 +202,13 @@ void >::type decompose_RealSchur(const Matrix1& A, Matrix2& Q, Matrix3& T, typen
  */
 template <typename Matrix1, typename Matrix2, typename Matrix3>
 typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
-                             is_writable_matrix<Matrix2>::value, 
-void >::type decompose_RealSchur(const Matrix1& A, Matrix2& H, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  if(A.get_row_count() < A.get_col_count())
+                             is_fully_writable_matrix<Matrix2>::value, 
+void >::type decompose_RealSchur(const Matrix1& A, Matrix2& T, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  if(A.get_row_count() != A.get_col_count())
     throw std::range_error("Real Schur decomposition is only possible on a square matrix!");
 
-  detail::decompose_Hess_impl(A,static_cast<Matrix2*>(NULL),H,NumTol);
+  T = A;
+  detail::schur_decomp_impl(T,static_cast<Matrix2*>(NULL),NumTol);
 };
 
 
