@@ -37,16 +37,16 @@ namespace pp {
 
 template <typename SpatialTrajectory>
 struct spatial_trajectory_traits {
-  typedef SpatialTrajectory::point_type point_type;
-  typedef SpatialTrajectory::point_difference_type point_difference_type;
+  typedef typename SpatialTrajectory::point_type point_type;
+  typedef typename SpatialTrajectory::point_difference_type point_difference_type;
   
-  typedef SpatialTrajectory::waypoint_descriptor waypoint_descriptor;
-  typedef SpatialTrajectory::const_waypoint_descriptor const_waypoint_descriptor;
+  typedef typename SpatialTrajectory::waypoint_descriptor waypoint_descriptor;
+  typedef typename SpatialTrajectory::const_waypoint_descriptor const_waypoint_descriptor;
   
-  typedef SpatialTrajectory::topology topology;
+  typedef typename SpatialTrajectory::topology topology;
   typedef typename temporal_topology_traits<topology>::time_topology time_topology;
   typedef typename temporal_topology_traits<topology>::space_topology space_topology;
-  typedef SpatialTrajectory::distance_metric distance_metric;
+  typedef typename SpatialTrajectory::distance_metric distance_metric;
   
   
 };
@@ -59,8 +59,8 @@ struct SpatialTrajectoryConcept {
   std::pair< typename spatial_path_traits<SpatialTrajectory>::const_waypoint_descriptor, 
              typename temporal_topology_traits<Topology>::point_type> w_p;
   typedef typename temporal_topology_traits<Topology>::time_topology time_topology;
-  time_topology::point_difference_type dt;
-  time_topology::point_type t;
+  typename time_topology::point_difference_type dt;
+  typename time_topology::point_type t;
   double d;
   void constraints() {
     boost::function_requires< TemporalSpaceConcept<Topology> >();

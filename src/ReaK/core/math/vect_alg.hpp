@@ -1010,6 +1010,25 @@ vect<T,Size> operator /(const vect<T,Size>& V, const U& S) {
   return vect<T,Size>(result);
 };
 
+/**
+ * Sub two vectors. For functional interfaces.
+ * \test PASSED
+ */
+template <typename T, unsigned int Size>
+vect<T,Size> diff(const vect<T,Size>& v1, const vect<T,Size>& v2) {
+  return v1 - v2;
+};
+
+/**
+ * Add two vectors. For functional interfaces.
+ * \test PASSED
+ */
+template <typename T, unsigned int Size>
+vect<T,Size> add(const vect<T,Size>& v1, const vect<T,Size>& v2) {
+  return v1 + v2;
+};
+
+
 /*******************************************************************************
                          Comparison Operators
 *******************************************************************************/
@@ -1994,6 +2013,24 @@ vect_n<T,Allocator> operator /(const vect_n<T,Allocator>& v, const T& S) {
   return vect_n<T,Allocator>(result);
 };
 
+
+/**
+ * Sub two vectors. For functional interfaces.
+ * \test PASSED
+ */
+template <typename T, typename Allocator>
+vect_n<T,Allocator> diff(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
+  return v1 - v2;
+};
+
+/**
+ * Add two vectors. For functional interfaces.
+ * \test PASSED
+ */
+template <typename T, typename Allocator>
+vect_n<T,Allocator> add(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
+  return v1 + v2;
+};
 
 /*******************************************************************************
                          Comparison Operators

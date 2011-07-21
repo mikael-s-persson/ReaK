@@ -68,7 +68,6 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
 
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
-  typedef typename discrete_sss_traits<InvariantSystem>::point_difference_type StateDiffType;
   typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
@@ -150,7 +149,6 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
 
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
-  typedef typename discrete_sss_traits<InvariantSystem>::point_difference_type StateDiffType;
   typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;

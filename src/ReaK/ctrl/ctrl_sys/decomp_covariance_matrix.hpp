@@ -38,21 +38,21 @@ namespace ctrl {
 
 
 
-template <typename T>
+template <typename StateType>
 class decomp_covariance_matrix : public named_object {
   public:
     typedef decomp_covariance_matrix<T> self;
     
-    typedef T value_type;
-    typedef std::size_t size_type;
+    typedef StateType point_type;
+    typedef typename state_vector_traits<StateType>::state_difference_type point_difference_type;
     
-    typedef vect_n<T> point_type;
-    typedef vect_n<T> point_difference_type;
+    typedef typename state_vector_traits<StateType>::value_type value_type;
+    typedef mat<value_type, mat_structure::symmetric> matrix_type;
+    typedef typename matrix_type::size_type size_type;
     
-    typedef mat<T, mat_structure::symmetric> matrix_type;
-    typedef mat<T, mat_structure::square> matrix_block_type;
+    typedef mat<value_type, mat_structure::square> matrix_block_type;
     
-    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 0);
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = vect_traits<point_difference_type>::dimensions);
     BOOST_STATIC_CONSTANT(covariance_storage::tag, storage = covariance_storage::other);
     
   private:

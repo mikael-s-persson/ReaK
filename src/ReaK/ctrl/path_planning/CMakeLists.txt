@@ -5,14 +5,17 @@ set(PATH_PLANNING_SOURCES
 set(PATH_PLANNING_HEADERS 
   "${RKPATHPLANNINGDIR}/line_topology.hpp"
   "${RKPATHPLANNINGDIR}/topological_search.hpp"
+  "${RKPATHPLANNINGDIR}/metric_space_concept.hpp"
   "${RKPATHPLANNINGDIR}/metric_space_search.hpp"
   "${RKPATHPLANNINGDIR}/temporal_space_concept.hpp"
   "${RKPATHPLANNINGDIR}/temporal_space.hpp"
   "${RKPATHPLANNINGDIR}/reachability_space_concept.hpp"
   "${RKPATHPLANNINGDIR}/reachability_space.hpp"
+  "${RKPATHPLANNINGDIR}/reachability_sort.hpp"
   "${RKPATHPLANNINGDIR}/spatial_path_concept.hpp"
   "${RKPATHPLANNINGDIR}/spatial_trajectory_concept.hpp"
   "${RKPATHPLANNINGDIR}/spatial_pt_to_pt.hpp"
+  "${RKPATHPLANNINGDIR}/predicted_trajectory_concept.hpp"
 )
 
 #add_library(reak_path_planning STATIC ${PATH_PLANNING_SOURCES})

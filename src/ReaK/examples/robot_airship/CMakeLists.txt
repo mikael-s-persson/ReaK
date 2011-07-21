@@ -5,6 +5,7 @@ set(ROBOTAIRSHIP_SOURCES
 
 set(ROBOTAIRSHIP_HEADERS 
   "${RKROBOTAIRSHIPDIR}/airship2D_lin_model.hpp"
+  "${RKROBOTAIRSHIPDIR}/airship3D_lin_model.hpp"
 )
 
 #add_library(reak_robot_airship STATIC ${ROBOTAIRSHIP_SOURCES})

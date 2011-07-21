@@ -52,7 +52,6 @@ namespace detail {
     typedef T value_type;
     typedef std::size_t size_type;
     typedef typename ss_system_traits<LinearSystem>::point_type state_type;
-    typedef typename ss_system_traits<LinearSystem>::point_difference_type state_diff_type;
     typedef typename ss_system_traits<LinearSystem>::input_type input_type;
     typedef typename ss_system_traits<LinearSystem>::output_type output_type;
     typedef typename continuous_belief_state_traits<BeliefState>::covariance_type cov_type;
@@ -135,7 +134,6 @@ void >::type hybrid_kalman_filter_step(const LinearSystem& sys,
   boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
   
   typedef typename ss_system_traits<LinearSystem>::point_type StateType;
-  typedef typename ss_system_traits<LinearSystem>::point_difference_type StateDiffType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits< MatType >::value_type ValueType;

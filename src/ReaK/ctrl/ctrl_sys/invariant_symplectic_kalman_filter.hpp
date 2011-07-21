@@ -73,7 +73,6 @@ void >::type invariant_symplectic_kf_step(const InvariantSystem& sys,
   boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
 
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
-  typedef typename discrete_sss_traits<InvariantSystem>::point_difference_type StateDiffType;
   typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type ErrorType;

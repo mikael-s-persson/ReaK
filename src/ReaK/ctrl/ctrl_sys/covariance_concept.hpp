@@ -25,6 +25,7 @@
 #define COVARIANCE_CONCEPT_HPP
 
 #include "math/mat_concepts.hpp"
+#include "state_vector_concept.hpp"
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
@@ -49,7 +50,6 @@ template <typename CovarianceMatrix>
 struct covariance_mat_traits {
   
   typedef typename CovarianceMatrix::point_type point_type;
-  typedef typename CovarianceMatrix::point_difference_type point_difference_type;
   
   typedef typename CovarianceMatrix::value_type value_type;
   typedef typename CovarianceMatrix::size_type size_type;
@@ -74,19 +74,17 @@ template <typename CovarianceMatrix>
 struct CovarianceMatrixConcept {
   CovarianceMatrix c;
   
-  typename covariance_mat_traits<CovarianceMatrix>::point_type p;
-  typename covariance_mat_traits<CovarianceMatrix>::point_difference_type dp;
-  typename covariance_mat_traits<CovarianceMatrix>::value_type s;
+  typedef typename covariance_mat_traits<CovarianceMatrix>::point_type state_type;
+  state_type p;
+  typename state_vector_traits<state_type>::state_difference_type dp;
+  typename state_vector_traits<state_type>::value_type s;
   typename covariance_mat_traits<CovarianceMatrix>::size_type sz;
   
   typename covariance_mat_traits<CovarianceMatrix>::matrix_type m;
   
   void constraints() {
     boost::function_requires< ReadableMatrixConcept< typename covariance_mat_traits<CovarianceMatrix>::matrix_type > >();
-
-    dp = p - p;
-    dp = -dp;
-    dp = unit(dp);
+    boost::function_requires< StateVectorConcept< state_type > >();
     
     m = c.get_matrix();
     m = c.get_inverse_matrix();

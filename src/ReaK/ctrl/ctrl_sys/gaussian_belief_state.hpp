@@ -53,7 +53,7 @@ struct gaussian_pdf {
   typedef typename covariance_mat_traits<Covariance>::value_type scalar_type;
   typedef typename covariance_mat_traits<Covariance>::point_type state_type;
   typedef typename covariance_mat_traits<Covariance>::size_type size_type;
-  typedef typename covariance_mat_traits<Covariance>::point_difference_type state_difference_type;
+  typedef typename state_vector_traits<state_type>::state_difference_type state_difference_type;
     
   typedef Covariance covariance_type;
     
@@ -63,13 +63,14 @@ struct gaussian_pdf {
   mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> L;
   scalar_type factor;
   
-  gaussian_pdf(const state_type& aMeanState, const covariance_type& aCov) : mean_state(aMeanState), L(aMeanState.size()), factor(-1) {
+  gaussian_pdf(const state_type& aMeanState, const covariance_type& aCov) : mean_state(aMeanState), L(aCov.size()), factor(-1) {
     const matrix_type& E = aCov.get_matrix();
     try {
       decompose_Cholesky(E,L);
     } catch(singularity_error&) { return; };
+    state_difference_type ds = diff(mean_state,mean_state);
     factor = scalar_type(1);
-    for(size_type i = 0; i < mean_state.size(); ++i)
+    for(size_type i = 0; i < ds.size(); ++i)
       factor *= scalar_type(6.28318530718) * L(i,i);
   };
   
@@ -94,7 +95,7 @@ struct gaussian_pdf {
     if(factor <= scalar_type(0))
       return scalar_type(0);
       
-    state_difference_type d = v - mean_state;
+    state_difference_type d = diff(v,mean_state);
     mat< typename mat_traits<matrix_type>::value_type, mat_structure::rectangular> b(d.size(),1);
     for(size_type i = 0; i < d.size(); ++i) b(i,0) = d[i];
     ::ReaK::detail::backsub_Cholesky_impl(L,b);
@@ -129,8 +130,9 @@ struct gaussian_pdf<Covariance, covariance_storage::information> {
     if(fabs(factor) < std::numeric_limits< scalar_type >::epsilon()) {
       factor = scalar_type(-1);
     } else {
+      state_difference_type ds = diff(mean_state,mean_state);
       factor = scalar_type(1) / factor;
-      for(size_type i = 0; i < mean_state.size(); ++i)
+      for(size_type i = 0; i < ds.size(); ++i)
         factor *= scalar_type(6.28318530718);
     };
   };
@@ -157,7 +159,7 @@ struct gaussian_pdf<Covariance, covariance_storage::information> {
     if(factor <= scalar_type(0)) 
       return scalar_type(0);
     
-    state_difference_type d = v - mean_state;
+    state_difference_type d = diff(v,mean_state);
     return exp(scalar_type(-0.5) * (d * (E_inv * d))) / sqrt(factor);
   };
   
@@ -190,8 +192,9 @@ struct gaussian_pdf<Covariance, covariance_storage::decomposed> {
     decompose_QR(aCov.get_covarying_block(),QX,RX);
     decompose_QR(aCov.get_informing_inv_block(),QY,RY);
     
+    state_difference_type ds = diff(mean_state,mean_state);
     factor = scalar_type(1);
-    for(size_type i = 0; i < mean_state.size(); ++i)
+    for(size_type i = 0; i < ds.size(); ++i)
       factor *= scalar_type(6.28318530718) * RX(i,i) / RY(i,i);
   };
   
@@ -219,7 +222,7 @@ struct gaussian_pdf<Covariance, covariance_storage::decomposed> {
     if(factor <= scalar_type(0))
       return scalar_type(0);
       
-    state_difference_type d = v - mean_state;
+    state_difference_type d = diff(v,mean_state);
     state_difference_type d_tmp = d * QX;  //QX^T d
     mat_vect_adaptor<state_difference_type> d_m(d_tmp);
     backsub_R(RX,d_m);
@@ -238,7 +241,7 @@ struct gaussian_sampler {
   typedef typename covariance_mat_traits<Covariance>::value_type scalar_type;
   typedef typename covariance_mat_traits<Covariance>::point_type state_type;
   typedef typename covariance_mat_traits<Covariance>::size_type size_type;
-  typedef typename covariance_mat_traits<Covariance>::point_difference_type state_difference_type;
+  typedef typename state_vector_traits<state_type>::state_difference_type state_difference_type;
     
   typedef Covariance covariance_type;
     
@@ -254,10 +257,10 @@ struct gaussian_sampler {
     try {
       decompose_Cholesky(C,L);
     } catch(singularity_error&) { 
-      mat< typename mat_traits<matrix_type>::value_type, mat_structure::diagonal> E(mean_state.size());
-      mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> U(mean_state.size()), V(mean_state.size());
+      mat< typename mat_traits<matrix_type>::value_type, mat_structure::diagonal> E(aCov.size());
+      mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> U(aCov.size()), V(aCov.size());
       decompose_SVD(C,U,E,V);
-      for(size_type i = 0; i < mean_state.size(); ++i)
+      for(size_type i = 0; i < aCov.size(); ++i)
 	E(i,i) = sqrt(E(i,i));
       L = U * E;
     };
@@ -279,11 +282,11 @@ struct gaussian_sampler {
   state_type operator()() const {
     boost::variate_generator< RNG&, boost::normal_distribution<scalar_type> > var_rnd(*rng, boost::normal_distribution<scalar_type>());
     
-    state_difference_type z(mean_state);
+    state_difference_type z = diff(mean_state,mean_state);
     for(size_type i = 0; i < z.size(); ++i)
       z[i] = var_rnd();
     
-    return mean_state + (L * z);
+    return add(mean_state,(L * z));
   };
   
 };
@@ -300,7 +303,7 @@ class gaussian_belief_state : public virtual shared_object {
     typedef typename covariance_mat_traits<Covariance>::value_type scalar_type;
     typedef StateType state_type;
     typedef typename covariance_mat_traits<Covariance>::size_type size_type;
-    typedef typename covariance_mat_traits<Covariance>::point_difference_type state_difference_type;
+    typedef typename state_vector_traits<state_type>::state_difference_type state_difference_type;
     
     typedef Covariance covariance_type;
     typedef gaussian_pdf<Covariance> pdf_type;

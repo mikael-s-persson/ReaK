@@ -24,6 +24,8 @@
 #ifndef BELIEF_STATE_CONCEPT_HPP
 #define BELIEF_STATE_CONCEPT_HPP
 #include <boost/concept_check.hpp>
+#include "state_vector_concept.hpp"
+#include "covariance_concept.hpp"
 
 namespace ReaK {
 
@@ -70,6 +72,8 @@ struct BeliefStateConcept {
   typename belief_state_traits<BeliefState>::random_sampler_type rs;
   
   void constraints() {
+    boost::function_requires< StateVectorConcept< typename belief_state_traits<BeliefState>::state_type > >();
+    
     p = b.get_pdf();
     s = p(v);
     v = b.get_most_likely_state();
@@ -110,8 +114,12 @@ struct ContinuousBeliefStateConcept {
   
   void constraints() {
     boost::function_requires< BeliefStateConcept<ContBeliefState> >();
+    boost::function_requires< CovarianceMatrixConcept< typename continuous_belief_state_traits<ContBeliefState>::covariance_type > >();
     v = b.get_mean_state();
     c = b.get_covariance();
+    
+    s = diff(v,v) * ( c.get_inverse_matrix() * diff(v,v) );
+    
     b.set_mean_state(v);
     b.set_covariance(c);
   };

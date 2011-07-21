@@ -65,7 +65,6 @@ void >::type symplectic_kalman_predict(const LinearSystem& sys,
   boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
   
   typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
-  typedef typename discrete_sss_traits<LinearSystem>::point_difference_type StateDiffType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   
   boost::function_requires< DecomposedCovarianceConcept<CovType> >();
@@ -123,7 +122,6 @@ void >::type symplectic_kalman_update(const LinearSystem& sys,
   boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
   
   typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
-  typedef typename discrete_sss_traits<LinearSystem>::point_difference_type StateDiffType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   
@@ -191,7 +189,6 @@ void >::type symplectic_kalman_filter_step(const LinearSystem& sys,
   boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
 
   typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
-  typedef typename discrete_sss_traits<LinearSystem>::point_difference_type StateDiffType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   

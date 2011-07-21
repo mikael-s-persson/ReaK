@@ -56,7 +56,6 @@ namespace detail {
     typedef T value_type;
     typedef std::size_t size_type;
     typedef typename ss_system_traits<InvariantSystem>::point_type state_type;
-    typedef typename ss_system_traits<InvariantSystem>::point_difference_type state_diff_type;
     typedef typename ss_system_traits<InvariantSystem>::point_derivative_type state_deriv_type;
     typedef typename ss_system_traits<InvariantSystem>::input_type input_type;
     typedef typename ss_system_traits<InvariantSystem>::output_type output_type;
@@ -149,7 +148,6 @@ void >::type invariant_kalman_bucy_filter_step(const InvariantSystem& sys,
   boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
   
   typedef typename ss_system_traits<InvariantSystem>::point_type StateType;
-  typedef typename ss_system_traits<InvariantSystem>::point_difference_type StateDiffType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits< MatType >::value_type ValueType;
