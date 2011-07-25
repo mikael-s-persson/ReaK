@@ -72,10 +72,10 @@ class temporal_space {
         return result;
       };
 
-      friend point_difference& operator+=(point_difference& a, const point_difference& b) {
-        a.time += b.time;
-	a.pt += b.pt;
-        return a;
+      point_difference& operator+=(const point_difference& b) {
+        time += b.time;
+	pt += b.pt;
+        return *this;
       };
 
       friend point_difference operator-(const point_difference& a) {
@@ -92,10 +92,10 @@ class temporal_space {
         return result;
       };
 
-      friend point_difference& operator-=(point_difference& a, const point_difference& b) {
-        a.time -= b.time;
-	a.pt -= b.pt;
-        return a;
+      point_difference& operator-=(const point_difference& b) {
+        time -= b.time;
+	pt -= b.pt;
+        return *this;
       };
 
       friend point_difference operator*(const point_difference& a, double b) {

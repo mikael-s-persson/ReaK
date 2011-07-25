@@ -105,6 +105,11 @@ struct gaussian_pdf {
     return exp(scalar_type(-0.5) * sum) / sqrt(factor);
   };
   
+  friend scalar_type entropy(const self& P) {
+    using std::log;
+    return scalar_type(0.5) * (log( factor ) + scalar_type(L.get_row_count()));
+  };
+  
 };
 
 
@@ -115,7 +120,7 @@ struct gaussian_pdf<Covariance, covariance_storage::information> {
   typedef typename covariance_mat_traits<Covariance>::value_type scalar_type;
   typedef typename covariance_mat_traits<Covariance>::point_type state_type;
   typedef typename covariance_mat_traits<Covariance>::size_type size_type;
-  typedef typename covariance_mat_traits<Covariance>::point_difference_type state_difference_type;
+  typedef typename state_vector_traits<state_type>::state_difference_type state_difference_type;
     
   typedef Covariance covariance_type;
     
@@ -163,6 +168,11 @@ struct gaussian_pdf<Covariance, covariance_storage::information> {
     return exp(scalar_type(-0.5) * (d * (E_inv * d))) / sqrt(factor);
   };
   
+  friend scalar_type entropy(const self& P) {
+    using std::log;
+    return scalar_type(0.5) * (log( factor ) + scalar_type(E_inv.get_row_count()));
+  };
+  
 };
 
 
@@ -174,7 +184,7 @@ struct gaussian_pdf<Covariance, covariance_storage::decomposed> {
   typedef typename covariance_mat_traits<Covariance>::value_type scalar_type;
   typedef typename covariance_mat_traits<Covariance>::point_type state_type;
   typedef typename covariance_mat_traits<Covariance>::size_type size_type;
-  typedef typename covariance_mat_traits<Covariance>::point_difference_type state_difference_type;
+  typedef typename state_vector_traits<state_type>::state_difference_type state_difference_type;
     
   typedef Covariance covariance_type;
     
@@ -229,7 +239,39 @@ struct gaussian_pdf<Covariance, covariance_storage::decomposed> {
     return exp( scalar_type(-0.5) * ( d * ( QY * (RY * d_tmp) ) ) ) / sqrt(factor);
   };
   
+  friend scalar_type entropy(const self& P) {
+    using std::log;
+    return scalar_type(0.5) * (log( factor ) + scalar_type(QX.get_row_count()));
+  };
+  
 };
+
+
+/*
+template <typename Covariance, covariance_storage::tag Storage>
+scalar_type KL_divergence(const gaussian_pdf<Covariance,Storage>& N0, 
+			  const gaussian_pdf<Covariance,Storage>& N1) {
+  using std::log;
+  typedef typename covariance_mat_traits<Covariance>::point_type StateType;
+  typedef typename state_vector_traits<StateType>::state_difference_type StateDiffType;
+  typedef typename covariance_mat_traits<Covariance>::matrix_type MatType;
+  StateDiffType d_mu = diff(N1.mean_state, N0.mean_state);
+  mat_vect_adaptor<state_difference_type> d_mu_mat(d_mu);
+  MatType S0(N0.covar.get_matrix());
+  MatType S1inv(N1.covar.get_inverse_matrix());
+  return scalar_type(0.5) * ( trace(S1inv * S0) - log(N1(N0.mean_state)) ) - entropy(N0);
+};*/
+    
+
+template <typename Covariance1, covariance_storage::tag Storage1,
+          typename Covariance2, covariance_storage::tag Storage2>
+typename gaussian_pdf<Covariance1,Storage1>::scalar_type symKL_divergence(const gaussian_pdf<Covariance1,Storage1>& N0, 
+			     const gaussian_pdf<Covariance2,Storage2>& N1) {
+  using std::log;
+  typedef typename gaussian_pdf<Covariance1,Storage1>::scalar_type ScalarType;
+  return ScalarType(-0.5) * log(N1(N0.mean_state) * N0(N1.mean_state)) - entropy(N0) - entropy(N1);
+};
+    
 
 
 
@@ -357,6 +399,7 @@ class gaussian_belief_state : public virtual shared_object {
       return *this;
     };
     
+    
     virtual void RK_CALL save(ReaK::serialization::oarchive& aA, unsigned int) const {
       ReaK::shared_object::save(aA,ReaK::shared_object::getStaticObjectType()->TypeVersion());
       aA & RK_SERIAL_SAVE_WITH_NAME(mean_state)
@@ -369,6 +412,7 @@ class gaussian_belief_state : public virtual shared_object {
     };
     
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2300010,1,"gaussian_belief_state",shared_object)
+    
     
 };
 
@@ -383,6 +427,27 @@ struct is_continuous_belief_state< gaussian_belief_state<Covariance,StateType> >
   BOOST_STATIC_CONSTANT(bool, value = true);
   typedef is_continuous_belief_state< gaussian_belief_state<Covariance,StateType> > type;
 };
+
+
+template <typename Covariance1, typename StateType1,
+          typename Covariance2, typename StateType2>
+typename gaussian_belief_state<Covariance1,StateType1>::scalar_type 
+ symKL_divergence(const gaussian_belief_state<Covariance1,StateType1>& P, 
+		  const gaussian_belief_state<Covariance2,StateType2>& Q) {
+  return symKL_divergence(P.get_pdf(),Q.get_pdf());
+};
+
+template <typename Covariance, typename StateType>
+typename gaussian_belief_state<Covariance,StateType>::scalar_type 
+ entropy(const gaussian_belief_state<Covariance,StateType>& P) {
+  return symKL_divergence(P.get_pdf());
+};
+
+
+
+
+
+
 
 
 };
