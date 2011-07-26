@@ -594,7 +594,9 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
       B(6,0) = mDt / mMass;
       B(7,1) = mDt / mMass;
       B(8,2) = mDt / mMass;
-      set_block(B, mDt * mInertiaMomentInv, 9, 3);
+      B(9,3) = mDt;
+      B(10,4) = mDt;
+      B(11,5) = mDt;
       
       C = mat<double,mat_structure::nil>(6,12);
       set_block(C,mat<double,mat_structure::identity>(6),0,0);

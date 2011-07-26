@@ -202,11 +202,18 @@ gaussian_belief_state<Cov>  0xC2300010   bin: 1100 0010 0011 0000 0000 0000 0001
 airship2D_lin_system        0xC2310001   bin: 1100 0010 0011 0001 0000 0000 0000 0001  D-R
 airship2D_inv_system        0xC2310002   bin: 1100 0010 0011 0001 0000 0000 0000 0010  D-R
 airship2D_lin_dt_system     0xC2310003   bin: 1100 0010 0011 0001 0000 0000 0000 0011  D-R
-airship2D_inv_dt_system     0xC2310004   bin: 1100 0010 0011 0001 0000 0000 0000 0100  
-airship3D_lin_system        0xC2310005   bin: 1100 0010 0011 0001 0000 0000 0000 0101  
-airship3D_inv_system        0xC2310006   bin: 1100 0010 0011 0001 0000 0000 0000 0110  
-airship3D_lin_dt_system     0xC2310007   bin: 1100 0010 0011 0001 0000 0000 0000 0111  
-airship3D_inv_dt_system     0xC2310008   bin: 1100 0010 0011 0001 0000 0000 0000 1000  
+airship2D_inv_dt_system     0xC2310004   bin: 1100 0010 0011 0001 0000 0000 0000 0100  D-R
+airship3D_lin_system        0xC2310005   bin: 1100 0010 0011 0001 0000 0000 0000 0101  D-R
+airship3D_inv_system        0xC2310006   bin: 1100 0010 0011 0001 0000 0000 0000 0110  D-R
+airship3D_lin_dt_system     0xC2310007   bin: 1100 0010 0011 0001 0000 0000 0000 0111  D-R
+airship3D_inv_dt_system     0xC2310008   bin: 1100 0010 0011 0001 0000 0000 0000 1000  D-R
+airship3D_inv_mom_dt_system 0xC2310009   bin: 1100 0010 0011 0001 0000 0000 0000 1001  D-R
+satellite2D_imdt_sys        0xC231000A   bin: 1100 0010 0011 0001 0000 0000 0000 1010  D-R
+satellite3D_imdt_sys        0xC231000B   bin: 1100 0010 0011 0001 0000 0000 0000 1011  D-R
+
+rigid_body2D_state          0xC2310010   bin: 1100 0010 0011 0001 0000 0000 0001 0000  D-R
+rigid_body3D_state          0xC2310011   bin: 1100 0010 0011 0001 0000 0000 0001 0001  D-R
+
 
 
 
