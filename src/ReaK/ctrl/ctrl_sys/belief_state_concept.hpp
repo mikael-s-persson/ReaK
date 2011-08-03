@@ -23,6 +23,7 @@
 
 #ifndef BELIEF_STATE_CONCEPT_HPP
 #define BELIEF_STATE_CONCEPT_HPP
+
 #include <boost/concept_check.hpp>
 #include "state_vector_concept.hpp"
 #include "covariance_concept.hpp"
@@ -131,6 +132,86 @@ template <typename BeliefState>
 struct is_continuous_belief_state {
   BOOST_STATIC_CONSTANT(bool, value = false);
   typedef is_continuous_belief_state<BeliefState> type;
+};
+
+
+
+
+
+template <typename BeliefTransfer>
+struct belief_transfer_traits {
+  typedef typename BeliefTransfer::belief_state belief_state;
+  typedef typename BeliefTransfer::state_space_system state_space_system;
+  typedef typename BeliefTransfer::time_type time_type;
+  typedef typename BeliefTransfer::time_difference_type time_difference_type;
+};
+
+
+template <typename BeliefTransfer>
+struct BeliefTransferConcept {
+  BeliefTransfer f;
+  typedef typename belief_transfer_traits< BeliefTransfer >::belief_state BeliefState;
+  typedef typename belief_transfer_traits< BeliefTransfer >::state_space_system StateSpaceSystem;
+  typedef typename belief_transfer_traits< BeliefTransfer >::time_type TimeType;
+  typedef typename belief_transfer_traits< BeliefTransfer >::time_difference_type TimeDiffType;
+  typename ss_system_traits<SSSystem>::input_type u;
+  typename ss_system_traits<SSSystem>::output_type y;
+  BeliefState b;
+  StateSpaceSystem sys;
+  TimeType t;
+  TimeDiffType dt;
+
+  void constraints() {
+    boost::function_requires< BeliefStateConcept< BeliefState > >();
+    boost::function_requires< SSSystemConcept< StateSpaceSystem > >();
+
+    dt = f.get_time_step();
+    sys = f.get_ss_system();
+    b = f.get_next_belief(b, t, u, y);
+  };
+};
+
+template <typename BeliefTransfer>
+struct is_belief_transfer {
+  BOOST_STATIC_CONSTANT(bool, value = false);
+  typedef is_belief_transfer<BeliefTransfer> type;
+};
+
+
+
+
+
+
+
+template <typename BeliefPredictor>
+struct BeliefPredictorConcept {
+  BeliefPredictor f;
+  typedef typename belief_transfer_traits< BeliefPredictor >::belief_state BeliefState;
+  typedef typename belief_transfer_traits< BeliefPredictor >::state_space_system StateSpaceSystem;
+  typedef typename belief_transfer_traits< BeliefPredictor >::time_type TimeType;
+  typedef typename belief_transfer_traits< BeliefPredictor >::time_difference_type TimeDiffType;
+  typename ss_system_traits<StateSpaceSystem>::input_type u;
+  typename ss_system_traits<StateSpaceSystem>::output_type y;
+  BeliefState b;
+  StateSpaceSystem sys;
+  TimeType t;
+  TimeDiffType dt;
+
+  void constraints() {
+    boost::function_requires< BeliefStateConcept< BeliefState > >();
+    boost::function_requires< SSSystemConcept< StateSpaceSystem > >();
+    boost::function_requires< BeliefTransferConcept< BeliefPredictor > >();
+
+    b = f.predict_belief(b, t, u);
+    b = f.prediction_to_ML_belief(b, t, u);
+    b = f.predict_ML_belief(b, t, u);
+  };
+};
+
+template <typename BeliefPredictor>
+struct is_belief_predictor {
+  BOOST_STATIC_CONSTANT(bool, value = false);
+  typedef is_belief_predictor<BeliefPredictor> type;
 };
 
 

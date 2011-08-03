@@ -34,6 +34,9 @@
 #include <boost/static_assert.hpp>
 #include "covariance_concept.hpp"
 
+#include "gaussian_belief_state.hpp"
+#include "covariance_matrix.hpp"
+
 namespace ReaK {
 
 namespace ctrl {
@@ -68,7 +71,7 @@ void >::type kalman_predict(const LinearSystem& sys,
   sys.get_linear_blocks(A, B, C, D, t, x, u);
   
   b.set_mean_state( sys.get_next_state(x, u, t) );
-  b.set_covariance( CovType( ( A * b.get_covariance().get_matrix() * transpose(A) ) + Q.get_matrix() ) );
+  b.set_covariance( CovType( ( A * b.get_covariance().get_matrix() * transpose(A) ) + B * Q.get_matrix() * transpose(B) ) );
 };
 
 
@@ -151,7 +154,7 @@ void >::type kalman_filter_step(const LinearSystem& sys,
   sys.get_linear_blocks(A, B, C, D, t, x, u);
 
   x = sys.get_next_state(x, u, t);
-  P = ( A * P * transpose(A)) + Q.get_matrix();
+  P = ( A * P * transpose(A)) + B * Q.get_matrix() * transpose(B);
   
   OutputType y = z - C * x - D * u;
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
@@ -162,6 +165,65 @@ void >::type kalman_filter_step(const LinearSystem& sys,
   b.set_mean_state( x + K * y );
   b.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
 };
+
+
+
+
+
+template <typename LinearSystem,
+          typename BeliefState = gaussian_belief_state< covariance_matrix< typename discrete_sss_traits<LinearSystem>::point_type > >,
+          typename SystemNoiseCovar = covariance_matrix< typename discrete_sss_traits< LinearSystem >::input_type >,
+          typename MeasurementCovar = covariance_matrix< typename discrete_sss_traits< LinearSystem >::output_type > >
+struct KF_belief_transfer {
+  typedef KF_belief_transfer<LinearSystem, BeliefState> self;
+  typedef BeliefState belief_state;
+  typedef LinearSystem state_space_system;
+  typedef typename discrete_sss_traits< state_space_system >::time_type time_type;
+  typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
+
+  typedef typename belief_state_traits< belief_state >::state_type state_type;
+  typedef typename continuous_belief_state_traits<BeliefState>::covariance_type covariance_type;
+  typedef typename covariance_mat_traits< covariance_type >::matrix_type matrix_type;
+
+  typedef typename discrete_sss_traits< state_space_system >::input_type input_type;
+  typedef typename discrete_sss_traits< state_space_system >::output_type output_type;
+
+  const LinearSystem* sys;
+  SystemNoiseCovar Q;
+  MeasurementCovar R;
+
+  KF_belief_transfer(const LinearSystem& aSys, 
+                     const SystemNoiseCovar& aQ,
+                     const MeasurementCovar& aR) : sys(aSys), Q(aQ), R(aR) { };
+  
+  time_difference_type get_time_step() const { return sys->get_time_step(); };
+
+  const state_space_system& get_ss_system() const { return *sys; };
+
+  belief_state get_next_belief(belief_state b, const time_type& t, const input_type& u, const input_type& y) const {
+    kalman_filter_step(*sys,b,u,y,Q,R,t);
+    return b;
+  };
+  
+  belief_state predict_belief(belief_state b, const time_type& t, const input_type& u) const {
+    kalman_predict(*sys,b,u,Q,t);
+    return b;
+  };
+  
+  belief_state prediction_to_ML_belief(belief_state b, const time_type& t, const input_type& u) const {
+    kalman_update(*sys,b,u,sys->get_output(b.get_mean_state(),u,t),R,t);
+    return b;
+  };
+  
+  belief_state predict_ML_belief(belief_state b, const time_type& t, const input_type& u) const {
+    kalman_predict(*sys,b,u,Q,t);
+    kalman_update(*sys,b,u,sys->get_output(b.get_mean_state(),u,t),R,t + sys->get_time_step());
+    return b;
+  };
+  
+};
+
+
 
 
 

@@ -41,7 +41,7 @@ namespace ReaK {
 namespace ctrl {
 
 
-
+/** UKF is not usable or even working at all! And does not consider Q as input-noise. */
 template <typename System, 
           typename BeliefState, 
 	  typename SystemNoiseCovariance>
@@ -65,7 +65,6 @@ void >::type unscented_kalman_predict(const System& sys,
   using std::sqrt;
   
   typedef typename discrete_sss_traits<System>::point_type StateType;
-  typedef typename discrete_sss_traits<System>::point_difference_type StateDiffType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
@@ -137,6 +136,7 @@ void >::type unscented_kalman_predict(const System& sys,
 };
 
 
+/** UKF is not usable or even working at all! And does not consider Q as input-noise. */
 template <typename System, 
           typename BeliefState, 
 	  typename MeasurementNoiseCovariance>
@@ -161,7 +161,6 @@ void >::type unscented_kalman_update(const System& sys,
   using std::sqrt;
   
   typedef typename discrete_sss_traits<System>::point_type StateType;
-  typedef typename discrete_sss_traits<System>::point_difference_type StateDiffType;
   typedef typename discrete_sss_traits<System>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
@@ -266,6 +265,7 @@ void >::type unscented_kalman_update(const System& sys,
 
 
 
+/** UKF is not usable or even working at all! And does not consider Q as input-noise. */
 template <typename System, 
           typename BeliefState, 
 	  typename SystemNoiseCovariance,

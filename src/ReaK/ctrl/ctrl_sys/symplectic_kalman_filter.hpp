@@ -81,7 +81,6 @@ void >::type symplectic_kalman_predict(const LinearSystem& sys,
   sys.get_linear_blocks(A, B, C, D, t, x, u);
   SizeType N = A.get_col_count();
   
-  b.set_mean_state(A * x + B * u);
   const MatType& X = b.get_covariance().get_covarying_block();
   const MatType& Y = b.get_covariance().get_informing_inv_block(); 
   
@@ -92,9 +91,10 @@ void >::type symplectic_kalman_predict(const LinearSystem& sys,
   typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A_inv; 
   pseudoinvert_QR(A,A_inv);
   set_block(Tc, transpose_move(A_inv), N, N);
-  set_block(Tc, Q.get_matrix() * mat_const_sub_block< PredictionCovTransMatrix >(Tc, N, N, N, N), 0, N);
+  set_block(Tc, (B * Q.get_matrix() * transpose(B)) * mat_const_sub_block< PredictionCovTransMatrix >(Tc, N, N, N, N), 0, N);
   set_block(Tc, A, 0, 0);
   
+  b.set_mean_state( sys.get_next_state(x,u,t) );
   b.set_covariance( CovType( MatType( mat_const_sub_block< PredictionCovTransMatrix >(Tc, N, 2*N, 0, 0) * mat_const_ref_vert_cat< MatType, MatType >(X,Y) ),
                              MatType( mat_const_sub_block< PredictionCovTransMatrix >(Tc, N, N, N, N) * Y ) ) );
 };
@@ -141,7 +141,7 @@ void >::type symplectic_kalman_update(const LinearSystem& sys,
   const MatType& Y = b.get_covariance().get_informing_inv_block(); 
   sys.get_linear_blocks(A, B, C, D, t, x, u);
   
-  OutputType y = z - C * x - D * u;
+  OutputType y = z - sys.get_output(x,u,t);
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > YC = transpose(C);
   mat< ValueType, mat_structure::symmetric > M = YC * R.get_inverse_matrix() * C;
   linsolve_QR(Y,YC);
@@ -208,7 +208,7 @@ void >::type symplectic_kalman_filter_step(const LinearSystem& sys,
   const MatType& Y = b.get_covariance().get_informing_inv_block(); 
   sys.get_linear_blocks(A, B, C, D, t, x, u);
   
-  x = A * x + B * u;
+  x = sys.get_next_state(x,u,t);
   
   SizeType N = A.get_col_count();
   T.set_row_count(2 * N);
@@ -220,13 +220,13 @@ void >::type symplectic_kalman_filter_step(const LinearSystem& sys,
   mat_sub_block< CovTransMatrix > T_lr(T,N,N,N,N);
   T_lr = transpose_move(A_inv);
   mat_sub_block< CovTransMatrix > T_ur(T,N,N,0,N);
-  T_ur = Q.get_matrix() * T_lr;
+  T_ur = (B * Q.get_matrix() * transpose(B)) * T_lr;
   set_block(T, mat<ValueType,mat_structure::nil>(N), N, 0);
   
   X = A * X + T_ur * Y;
   Y = T_lr * Y;
   
-  OutputType y = z - C * x - D * u;
+  OutputType y = z - sys.get_output(x,u,t);
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > YC = transpose(C);
   mat< ValueType, mat_structure::symmetric > M = YC * R.get_inverse_matrix() * C;
   linsolve_QR(Y,YC);
@@ -242,6 +242,120 @@ void >::type symplectic_kalman_filter_step(const LinearSystem& sys,
   
   b.set_covariance( CovType( X, MatType( Y + M * X ) ) );
 };
+
+
+
+
+
+
+
+template <typename LinearSystem,
+          typename BeliefState = gaussian_belief_state< decomp_covariance_matrix< typename discrete_sss_traits<LinearSystem>::point_type > >,
+          typename SystemNoiseCovar = covariance_matrix< typename discrete_sss_traits< LinearSystem >::input_type >,
+          typename MeasurementCovar = covariance_matrix< typename discrete_sss_traits< LinearSystem >::output_type > >
+struct SKF_belief_transfer {
+  typedef SKF_belief_transfer<LinearSystem, BeliefState> self;
+  typedef BeliefState belief_state;
+  typedef LinearSystem state_space_system;
+  typedef typename discrete_sss_traits< state_space_system >::time_type time_type;
+  typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
+
+  typedef typename belief_state_traits< belief_state >::state_type state_type;
+  typedef typename state_vector_traits< state_type >::value_type value_type;
+  typedef typename continuous_belief_state_traits<BeliefState>::covariance_type covariance_type;
+  typedef typename decomp_covariance_mat_traits< covariance_type >::matrix_block_type matrix_type;
+  typedef typename mat_traits< matrix_type >::value_type mat_value_type;
+  typedef typename mat_traits< matrix_type >::size_type mat_size_type;
+
+  typedef typename discrete_sss_traits< state_space_system >::input_type input_type;
+  typedef typename discrete_sss_traits< state_space_system >::output_type output_type;
+
+  const LinearSystem* sys;
+  SystemNoiseCovar Q;
+  MeasurementCovar R;
+  value_type reupdate_threshold;
+  state_type initial_state;
+  state_type predicted_state;
+  mat< mat_value_type, mat_structure::square > Tc;
+  mat< mat_value_type, mat_structure::square > Tm;
+
+  SKF_belief_transfer(const LinearSystem& aSys, 
+                      const SystemNoiseCovar& aQ,
+                      const MeasurementCovar& aR,
+                      const value_type& aReupdateThreshold,
+                      const state_type& aInitialState,
+                      const input_type& aInitialInput,
+                      const time_type& aInitialTime) : 
+                      sys(&aSys), Q(aQ), R(aR),
+                      reupdate_threshold(aReupdateThreshold),
+                      initial_state(aInitialState) {
+    symplectic_kalman_predict(*sys,
+                              b,
+                              aInitialInput,
+                              Q,
+                              Tc,
+                              aInitialTime);
+    predicted_state = b.get_mean_state();
+    symplectic_kalman_update(*sys,
+                             b,
+                             aInitialInput,
+                             sys->get_output(predicted_state,
+                                             aInitialInput,
+                                             aInitialTime),
+                             R,
+                             Tm,
+                             aInitialTime);
+  };
+  
+  time_difference_type get_time_step() const { return sys->get_time_step(); };
+
+  const state_space_system& get_ss_system() const { return *sys; };
+
+  belief_state get_next_belief(belief_state b, const time_type& t, const input_type& u, const input_type& y) {
+    initial_state = b.get_mean_state();
+    symplectic_kalman_predict(*sys,b,u,Q,Tc,t);
+    predicted_state = b.get_mean_state();
+    symplectic_kalman_update(*sys,b,u,y,R,Tm,t);
+    return b;
+  };
+  
+  belief_state predict_belief(belief_state b, const time_type& t, const input_type& u) {
+    if( norm( diff(b.get_mean_state(), initial_state) ) > reupdate_threshold ) {
+      initial_state = b.get_mean_state();
+      symplectic_kalman_predict(*sys,b,u,Q,Tc,t);
+    } else {
+      b.set_mean_state( sys->get_next_state(b.get_mean_state(), u, t) );
+      mat_size_type N = Tc.get_row_count() / 2;
+      mat< mat_value_type, mat_structure::rectangular > P_tmp = 
+        Tc * ( b.get_covariance().get_covarying_block() |
+               b.get_covariance().get_informing_inv_block() );
+      b.set_covariance( covariance_type( matrix_type( sub(P_tmp)(range(0,N-1),range(0,N-1)) ), 
+                                         matrix_type( sub(P_tmp)(range(N,2*N-1),range(0,N-1)) ) ) ); 
+    };
+    return b;
+  };
+  
+  belief_state prediction_to_ML_belief(belief_state b, const time_type& t, const input_type& u) {
+    if( norm( diff(b.get_mean_state(), predicted_state) ) > reupdate_threshold ) {
+      predicted_state = b.get_mean_state();
+      symplectic_kalman_update(*sys,b,u,sys->get_output(predicted_state,u,t + sys->get_time_step()),R,Tm,t);
+    } else {
+      mat_size_type N = Tm.get_row_count() / 2;
+      mat< mat_value_type, mat_structure::rectangular > P_tmp = 
+        Tm * ( b.get_covariance().get_covarying_block() |
+               b.get_covariance().get_informing_inv_block() );
+      b.set_covariance( covariance_type( matrix_type( sub(P_tmp)(range(0,N-1),range(0,N-1)) ), 
+                                         matrix_type( sub(P_tmp)(range(N,2*N-1),range(0,N-1)) ) ) ); 
+    };
+    return b;
+  };
+  
+  belief_state predict_ML_belief(belief_state b, const time_type& t, const input_type& u) {
+    return prediction_to_ML_belief(predict_belief(b, t, u),t,u);
+  };
+  
+};
+
 
 
 
