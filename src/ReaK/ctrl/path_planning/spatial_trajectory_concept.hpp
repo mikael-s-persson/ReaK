@@ -70,7 +70,7 @@ struct SpatialTrajectoryConcept {
     pt = p.get_point(t);
     w_p = p.move_away_from(w_p, dt);
     d = p.travel_distance(w_p, w_p);
-    w_p = p.get_point(t);
+    w_p = p.get_waypoint(t);
   };
   
 };

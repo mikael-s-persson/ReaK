@@ -51,9 +51,14 @@ class temporal_space {
     
       BOOST_STATIC_CONSTANT(std::size_t, dimensions = space_topology::point_type::dimensions);
       point() { };
-      point(const time_topology::point_type& aTime, const space_topology::point_type& aPt) : time(aTime), pt(aPt) { };
+      point(const time_topology::point_type& aTime, 
+	    const space_topology::point_type& aPt) : 
+	    time(aTime), pt(aPt) { };
+     
+      /* This should not be there, because of the principle of minimum requirements.
       double& operator[](std::size_t i) { return pt[i]; };
       const double& operator[](std::size_t i) const { return pt[i]; };
+      */
     };
   
     struct point_difference {
@@ -61,10 +66,27 @@ class temporal_space {
       space_topology::point_difference_type pt;
       
       BOOST_STATIC_CONSTANT(std::size_t, dimensions = space_topology::point_difference_type::dimensions);
-      point_difference() : time(0.0) { };
+      point_difference() : time(), pt() { };
+      point_difference(const time_topology::point_difference_type& aTime,
+	               const space_topology::point_difference_type& aPt) : 
+	               time(aTime), pt(aPt) { };
+
+      point_difference operator-() const {
+        return point_difference(-time,-pt);
+      };
+
+      friend point_difference operator*(const point_difference& a, double b) {
+        return point_difference(a.time * b, a.pt * b);
+      };
+
+      friend point_difference operator*(double a, const point_difference& b) {
+        return point_difference(a * b.time, a * b.pt);
+      };
+      
+      /* This should not be there, because of the principle of minimum requirements.
       double& operator[](std::size_t i) { return pt[i]; };
       const double& operator[](std::size_t i) const { return pt[i]; };
-
+      
       friend point_difference operator+(const point_difference& a, const point_difference& b) {
         point_difference result;
 	result.time = a.time + b.time;
@@ -76,13 +98,6 @@ class temporal_space {
         time += b.time;
 	pt += b.pt;
         return *this;
-      };
-
-      friend point_difference operator-(const point_difference& a) {
-        point_difference result;
-        result.time = -a.time;
-	result.pt = -a.pt;
-        return result;
       };
 
       friend point_difference operator-(const point_difference& a, const point_difference& b) {
@@ -98,23 +113,9 @@ class temporal_space {
         return *this;
       };
 
-      friend point_difference operator*(const point_difference& a, double b) {
-        point_difference result;
-	result.time = a.time * b;
-	result.pt = a.pt * b;
-        return result;
-      };
-
-      friend point_difference operator*(double a, const point_difference& b) {
-        point_difference result;
-	result.time = a * b.time;
-	result.pt = a * b.pt;
-        return result;
-      };
-
       friend double dot(const point_difference& a, const point_difference& b) {
         return dot(a.pt, b.pt);
-      };
+      };*/
 
     };
   protected:
@@ -137,10 +138,7 @@ class temporal_space {
 
     point random_point() const 
     {
-      point p;
-      p.time = time.random_point();
-      p.pt = space.random_point();
-      return p;
+      return point(time.random_point(), space.random_point());
     }
     
     double distance(const point& a, const point& b) const {
@@ -148,24 +146,16 @@ class temporal_space {
     };
 
     point move_position_toward(const point& a, double fraction, const point& b) const {
-      point result;
-      result.time = time.move_position_toward(a.time, fraction, b.time);
-      result.pt = space.move_position_toward(a.pt, fraction, b.pt);
-      return result;
+      return point(time.move_position_toward(a.time, fraction, b.time),
+	           space.move_position_toward(a.pt, fraction, b.pt));
     };
 
     point_difference difference(const point& a, const point& b) const {
-      point_difference result;
-      result.time = time.difference(a.time, b.time);
-      result.pt = space.difference(a.pt, b.pt);
-      return result;
+      return point_difference(time.difference(a.time, b.time), space.difference(a.pt, b.pt));
     };
 
     point adjust(const point& a, const point_difference& delta) const {
-      point result;
-      result.time = time.adjust(a.time, delta.time);
-      result.pt = space.adjust(a.pt, delta.pt);
-      return result;
+      return point(time.adjust(a.time, delta.time), space.adjust(a.pt, delta.pt));
     };
   
     point origin() const {
@@ -173,7 +163,7 @@ class temporal_space {
     };
 
     double norm(const point_difference& a) const {
-      return d(a, time, space);
+      return dist(a, time, space);
     };
     
 };
