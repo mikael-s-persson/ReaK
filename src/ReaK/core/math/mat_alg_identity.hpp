@@ -1,3 +1,15 @@
+/**
+ * \file mat_alg_identity.hpp
+ * 
+ * This library declares matrix specializations for representing and manipulating identity matrices.
+ * This library implements many overloaded operators that turn out to be more efficiently implemented 
+ * if specialized for the identity matrix case. All those overloads are automatically selected through
+ * Sfinae switches, and the identity matrix class is simply a partial specialization of the "ReaK::mat" 
+ * class template, so, the burden on the user is minimal.
+ * 
+ * \author Mikael Persson <mikael.s.persson@gmail.com>
+ * \date april 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -38,8 +50,8 @@ namespace ReaK {
   
 /**
  * This class implements a place-holder or interface-implementation to represent
- * a identity matrix (all entries zero except diagonal). This is useful to build for example a
- * block-matrix with some identity-matrix blocks.
+ * a identity matrix (all entries zero except diagonal is all unity). This is useful to build for example a
+ * block-matrix with some identity-matrix blocks, and, of course, requires minimal storage space.
  */
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 class mat<T,mat_structure::identity, Alignment, Allocator> : public serialization::serializable {
@@ -77,7 +89,7 @@ class mat<T,mat_structure::identity, Alignment, Allocator> : public serializatio
      */
     mat() : rowCount(0) { };
     /**
-     * Constructs a null matrix to the given dimensions.
+     * Constructs an identity matrix to the given dimensions.
      */
     mat(size_type aRowCount) : rowCount(aRowCount) { };
     
@@ -87,6 +99,9 @@ class mat<T,mat_structure::identity, Alignment, Allocator> : public serializatio
      */
     ~mat() { };
     
+    /**
+     * Standard swap function (works with ADL).
+     */
     friend void swap(self& lhs,self& rhs) throw() {
       using std::swap;
       swap(lhs.rowCount,rhs.rowCount);
@@ -96,10 +111,49 @@ class mat<T,mat_structure::identity, Alignment, Allocator> : public serializatio
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     const_reference operator()(size_type i,size_type j) const { if(i == j) return value_type(1); else return value_type(0); };
-
+    
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const { return rowCount; };
+    
+    /**
+     * Sets the row-count (number of rows) of the matrix.
+     * \param aRowCount new number of rows for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
+    void set_row_count(size_type aRowCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
+      rowCount = aRowCount;
+    };
+    
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const { return rowCount; };
+    
+    /**
+     * Sets the column-count (number of columns) of the matrix.
+     * \param aColCount new number of columns for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
+    void set_col_count(size_type aColCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
+      rowCount = aColCount;
+    };
+    
     
     /**
      * Negate the matrix.
@@ -110,21 +164,44 @@ class mat<T,mat_structure::identity, Alignment, Allocator> : public serializatio
       return mat<value_type,mat_structure::diagonal>(rowCount,value_type(-1));
     };
     
-    
-    friend self transpose(self rhs) {
+    /**
+     * Transpose the matrix.
+     * \param rhs the matrix to be transposed.
+     * \return The rhs matrix, by value.
+     * \test PASSED
+     */
+    friend self transpose(const self& rhs) {
       return rhs;
     };
     
+    /**
+     * Transpose and move the matrix.
+     * \param rhs the matrix to be transposed and moved (emptied).
+     * \return The rhs matrix, by value.
+     * \test PASSED
+     */
     friend self transpose_move(self& rhs) {
       self result; 
       swap(result, rhs);
       return result;
     };
     
+    /**
+     * Returns the trace of a matrix.
+     * \param M A matrix.
+     * \return the trace of matrix M.
+     * \test PASSED
+     */
     friend value_type trace(const self& M) {
       return M.rowCount;
     };
     
+    /**
+     * Appends a matrix to another.
+     * \param lhs the matrix to which 'rhs' will be appended to.
+     * \param rhs the matrix to append to 'lhs'.
+     * \test PASSED
+     */
     friend void append_block_diag(self& lhs, const self& rhs) {
       lhs.rowCount += rhs.rowCount;
     };

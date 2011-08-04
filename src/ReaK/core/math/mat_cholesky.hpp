@@ -1,3 +1,19 @@
+/**
+ * \file mat_cholesky.hpp
+ * 
+ * This library provides the Cholesky decomposition function template which can be used 
+ * to find the Cholesky factors of a symmetric matrix. The Cholesky decomposition will take 
+ * a symmetric, positive-definite matrix and find a lower-triangular matrix such that the 
+ * product of this factor and its transpose produce the original matrix. This method is 
+ * especially useful in contexts where well-conditioned positive-definite matrix are involved.
+ * Following the decomposition, the obtained lower-triangular matrix factor can be used to 
+ * efficiently compute the inverse of the matrix or solve linear systems of equations represented
+ * by the matrix and some right-hand-side. This library provides all those methods, overloaded 
+ * according to the types of matrices given to it (to do in-place algorithms when possible).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date June 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -85,17 +101,17 @@ void backsub_Cholesky_impl(const Matrix1& L, Matrix2& B) {
 
 /**
  * Performs the Cholesky decomposition of A (positive-definite symmetric matrix) (Cholesky-Crout Algorithm).
- * returns a Lower-triangular matrix such that A = L * L.transpose().
+ * returns a Lower-triangular matrix such that A = L * transpose(L).
  *
  * \param A real, positive-definite, symmetric, square, full-rank matrix to be decomposed.
+ * \param L stores, as output, the lower-triangular matrix in A = L * transpose(L).
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
- * \return lower-triangular matrix L such that L * L.transpose() = A.
  *
- * \throws singularity_error if the matrix A is singular (or rank-deficient).
+ * \throws singularity_error if the matrix A is singular (or rank-deficient) or not positive-definite.
  *
  * \note the symmetry or positive-definitiveness of the matrix A is not checked and thus it is
- *       the caller's responsibility.
+ *       the caller's responsibility to ensure it's correct.
  * 
  * \author Mikael Persson
  */
@@ -116,16 +132,14 @@ void >::type decompose_Cholesky(const Matrix1& A, Matrix2& L, typename mat_trait
  * returns a Lower-triangular matrix such that A = L * L.transpose().
  *
  * \param A real, positive-definite, symmetric, square, full-rank matrix to be decomposed.
+ * \param L stores, as output, the lower-triangular matrix in A = L * transpose(L).
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
- * \return lower-triangular matrix L such that L * L.transpose() = A.
  *
- * \throws singularity_error if the matrix A is singular (or rank-deficient).
+ * \throws singularity_error if the matrix A is singular (or rank-deficient) or not positive-definite.
  *
  * \note the positive-definitiveness of the matrix A is not checked and thus it is
- *       the caller's responsibility.
- * 
- * \todo Use lo-triangular matrix for this implementation.
+ *       the caller's responsibility to ensure it's correct.
  * 
  * \author Mikael Persson
  */
@@ -147,14 +161,14 @@ void >::type decompose_Cholesky(const Matrix1& A, Matrix2& L, typename mat_trait
  * returns a Lower-triangular matrix such that A = L * L.transpose().
  *
  * \param A real, positive-definite, symmetric, square, full-rank matrix to be decomposed.
+ * \param L stores, as output, the lower-triangular matrix in A = L * transpose(L).
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
- * \param L lower-triangular matrix L such that L * transpose(L) = A.
  *
- * \throws singularity_error if the matrix A is singular (or rank-deficient).
+ * \throws singularity_error if the matrix A is singular (or rank-deficient) or not positive-definite.
  *
  * \note the positive-definitiveness of the matrix A is not checked and thus it is
- *       the caller's responsibility.
+ *       the caller's responsibility to ensure it's correct.
  * 
  * \author Mikael Persson
  */
@@ -172,7 +186,20 @@ void >::type decompose_Cholesky(const Matrix1& A, Matrix2& L, typename mat_trait
 };
 
 
-
+/**
+ * Performs the Cholesky decomposition of A (positive-definite symmetric matrix) (Cholesky-Crout Algorithm),
+ * and uses the result to compute the determinant of A.
+ *
+ * \param A real, positive-definite, symmetric, square, full-rank matrix to be decomposed.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ * \return the determinant of A, or 0 if it was judged to be singular or not positive-definite.
+ *
+ * \note the symmetry of the matrix A is not checked and thus it is
+ *       the caller's responsibility to ensure it's correct.
+ * 
+ * \author Mikael Persson
+ */
 template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
 typename mat_traits<Matrix>::value_type >::type determinant_Cholesky(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = 1E-8) {
@@ -197,8 +224,8 @@ typename mat_traits<Matrix>::value_type >::type determinant_Cholesky(const Matri
  * Solves the linear problem AX = B using Cholesky decomposition.
  *
  * \param A real, positive-definite, symmetric, square, full-rank matrix to be decomposed.
- * \param b stores, as input, the RHS of the linear system of equation and stores, as output,
- *          the solution matrix x (Size x B_ColCount).
+ * \param b stores, as input, the RHS of the linear system of equations and stores, as output,
+ *          the solution matrix X (Size x B_ColCount).
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
  *
@@ -207,8 +234,7 @@ typename mat_traits<Matrix>::value_type >::type determinant_Cholesky(const Matri
  *
  * \note the symmetry or positive-definitiveness of the matrix A is not checked and thus it is
  *       the caller's responsibility.
- *
- * \todo Use lo-triangular matrix for this implementation.
+ * \note if you wish to apply this method with a vector on the RHS, then use ReaK::mat_vect_adaptor (and related classes).
  * 
  * \author Mikael Persson
  */
@@ -241,8 +267,7 @@ void >::type linsolve_Cholesky(const Matrix1& A, Matrix2& b, typename mat_traits
  *
  * \note the symmetry or positive-definitiveness of the matrix A is not checked and thus it is
  *       the caller's responsibility.
- *
- * \todo Use lo-triangular matrix for this implementation.
+ * \note if you wish to apply this method with a vector on the RHS, then use ReaK::mat_vect_adaptor (and related classes).
  * 
  * \author Mikael Persson
  */
@@ -278,8 +303,7 @@ void >::type linsolve_Cholesky(const Matrix1& A, Matrix2& b, typename mat_traits
  *
  * \note the symmetry or positive-definitiveness of the matrix A is not checked and thus it is
  *       the caller's responsibility.
- *
- * \todo Use lo-triangular matrix for this implementation.
+ * \note if you wish to apply this method with a vector on the RHS, then use ReaK::mat_vect_adaptor (and related classes).
  * 
  * \author Mikael Persson
  */
@@ -316,8 +340,7 @@ void >::type linsolve_Cholesky(const Matrix1& A, Matrix2& b, typename mat_traits
  *
  * \note the symmetry or positive-definitiveness of the matrix A is not checked and thus it is
  *       the caller's responsibility.
- *
- * \todo Use lo-triangular matrix for this implementation.
+ * \note if you wish to apply this method with a vector on the RHS, then use ReaK::mat_vect_adaptor (and related classes).
  * 
  * \author Mikael Persson
  */
@@ -358,8 +381,7 @@ void >::type linsolve_Cholesky(const Matrix1& A, Matrix2& b, typename mat_traits
  *
  * \note the symmetry or positive-definitiveness of the matrix A is not checked and thus it is
  *       the caller's responsibility.
- *
- * \todo Use lo-triangular matrix for this implementation.
+ * \note if you wish to apply this method with a vector on the RHS, then use ReaK::mat_vect_adaptor (and related classes).
  * 
  * \author Mikael Persson
  */
@@ -395,6 +417,7 @@ void >::type linsolve_Cholesky(const Matrix1& A, Matrix2& b, typename mat_traits
  *
  * \note the symmetry or positive-definitiveness of the matrix A is not checked and thus it is
  *       the caller's responsibility.
+ * \note if you wish to apply this method with a vector on the RHS, then use ReaK::mat_vect_adaptor (and related classes).
  *
  * \author Mikael Persson
  */
@@ -428,9 +451,9 @@ struct Cholesky_linsolver {
  * Inverts a matrix using Cholesky decomposition.
  *
  * \param A real, positive-definite, symmetric, square, full-rank matrix to be inverted.
+ * \param A_inv stores, as output, the inverse of matrix A.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
- * \return the inverse of matrix A.
  *
  * \throws singularity_error if the matrix A is singular (or rank-deficient).
  * \throws std::range_error if the matrix A is not square.
@@ -438,8 +461,6 @@ struct Cholesky_linsolver {
  * \note the symmetry or positive-definitiveness of the matrix A is not checked and thus it is
  *       the caller's responsibility.
  *
- * \todo Use lo-triangular matrix for this implementation.
- * 
  * \author Mikael Persson
  */
 template <typename Matrix1, typename Matrix2>

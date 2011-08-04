@@ -3,12 +3,7 @@
  * 
  * This library implements the specialization of the mat<> template for a 
  * skew-symmetric matrix (dynamic dimension). This matrix type fulfills the matrix 
- * concepts of Readable, Writable, Resizable and DynAlloc.
- * 
- * This library also implements transposition of matrices via alignment 
- * switching (switching from column-major to row-major, or vice versa). This 
- * is very efficient and can even avoid copies completely (via transpose_move()) on an
- * optimizing compiler.
+ * concepts of Readable, Writable, Resizable and DynAlloc, but not FullyWritable.
  * 
  * \author Mikael Persson <mikael.s.persson@gmail.com>
  * \date april 2011 (originally february 2010)
@@ -256,6 +251,9 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       q[2] = -V[0];
     };
     
+    /**
+     * The standard swap function (works with ADL).
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.q,rhs.q);
@@ -267,6 +265,15 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
                          Accessors and Methods
 *******************************************************************************/
 
+    
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \throw std::range_error if the element accessed cannot be written to (diagonal elements).
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) {
       if(i > j)
 	return q[mat_triangular_size(i-1) + j];
@@ -276,6 +283,13 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
         throw std::range_error("Cannot set the elements of the diagonal of a skew-symmetric matrix!");
     };
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const {
       if(i > j)
 	return -q[mat_triangular_size(i-1) + j];
@@ -285,24 +299,66 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
 	return value_type(0.0);
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const {
       return rowCount;
     };
 
-    void setRowCount(size_type aRowCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
+    /**
+     * Sets the row-count (number of rows) of the matrix.
+     * \param aRowCount new number of rows for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
+    void set_row_count(size_type aRowCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
       q.resize(mat_triangular_size(aRowCount-1),value_type(0));
       rowCount = aRowCount;
     };
 
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const {
       return rowCount;
     };
 
+    /**
+     * Sets the column-count (number of columns) of the matrix.
+     * \param aColCount new number of columns for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
     void set_col_count(unsigned int aColCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
       q.resize(mat_triangular_size(aColCount-1),value_type(0));
       rowCount = aColCount;
     };
+
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
+    std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,rowCount); };
     
+    /**
+     * Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
+     * \param sz new dimensions for the matrix.
+     * \test PASSED
+     */
+    void resize(const std::pair<size_type,size_type>& sz) {
+      set_row_count(sz.first,true);
+    };
+
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return q.get_allocator(); };
 
 /*******************************************************************************
@@ -672,6 +728,11 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
     };
     
     
+    /**
+     * Appends the matrix 'rhs' to the end of the matrix 'lhs'.
+     * \param lhs The matrix to which to append the other.
+     * \param rhs The matrix to be appended to 'lhs'.
+     */
     friend void append_block_diag(self& lhs, const self& rhs) {
       size_type oldCount = lhs.get_col_count();
       lhs.set_col_count(oldCount + rhs.get_col_count(),true);
@@ -679,10 +740,20 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
     };
     
         
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend self transpose(const self& M) {
       return -M;
     };
     
+    /**
+     * Transposes and moves the matrix M.
+     * \param M The matrix to be transposed and moved.
+     * \return The transpose of M.
+     */
     friend self transpose_move(self& M) {
       self result;
       swap(result,M);
@@ -691,6 +762,11 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       return result;
     };
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Transposes and moves the matrix M.
+     * \param M The matrix to be transposed and moved.
+     * \return The transpose of M.
+     */
     friend self transpose(self&& M) {
       self result(std::move(M));
       for(typename container_type::iterator it = result.q.begin(); it != result.q.end(); ++it)
@@ -699,6 +775,11 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
     };
 #endif
     
+    /**
+     * Returns the trace of matrix M.
+     * \param M A diagonal matrix.
+     * \return the trace of matrix M.
+     */
     friend value_type trace(const self& M) {
       return value_type(0);
     };

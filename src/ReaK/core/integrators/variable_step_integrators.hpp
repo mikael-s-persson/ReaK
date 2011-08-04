@@ -53,7 +53,15 @@
 
 namespace ReaK {
 
-
+  
+/**
+ * This class template implements at Runge-Kutta-Fehlberg integrator of order 4-5. This is a variable-step, 
+ * explicit integrator of order 4 (with order 5 error estimation). Each integration step entails six evaluations 
+ * of the state derivative. Error control is performed and can throw the ReaK::untolerable_integration exception 
+ * if the integrator cannot acheive the required tolerance without lowering the time-step below the acceptable minimum.
+ * Also basic verification of the integration parameters is done and might throw the ReaK::impossible_integration 
+ * exception.
+ */
 template <class T>
 class fehlberg45_integrator : public variable_step_integrator<T> {
   protected:
@@ -62,7 +70,22 @@ class fehlberg45_integrator : public variable_step_integrator<T> {
 
     virtual void RK_CALL integrate(double aEndTime);
 
+    /**
+     * Default constructor.
+     */
     fehlberg45_integrator(const std::string& aName = "") : variable_step_integrator<T>(aName) { };
+    
+    /**
+     * Parametrized constructor.
+     * \param aName The name of this integrator object.
+     * \param aState The initial state vector that the integrator will work with.
+     * \param aStartTime The initial time to which the integrator is set.
+     * \param aInitialStepSize The time-step used in the integration to start with (will be variable according to error control).
+     * \param aGetStateRate A weak pointer to the object that will compute the state derivatives (see ReaK::state_rate_function).
+     * \param aMaxStepSize The maximum time-step to be used during the integration, if error control allows it.
+     * \param aMinStepSize The minimum time-step to be reached before declaring the integration untolerable due to error control.
+     * \param aTolerance The desired relative error of the integrated state values.
+     */
     fehlberg45_integrator(const std::string& aName,
                           const ReaK::vect_n<T>& aState,
                           double aStartTime,
@@ -72,6 +95,9 @@ class fehlberg45_integrator : public variable_step_integrator<T> {
                           double aMinStepSize,
                           double aTolerance) :
                           variable_step_integrator<T>(aName,aState,aStartTime,aInitialStepSize,aGetStateRate,aMaxStepSize,aMinStepSize,aTolerance) { };
+    /**
+     * Default destructor.
+     */
     virtual ~fehlberg45_integrator() { };
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
@@ -212,7 +238,15 @@ void RK_CALL fehlberg45_integrator<T>::integrate(double aEndTime) {
 
 
 
-
+/**
+ * This class template implements at Dormand-Prince integrator of order 4-5. This is a variable-step, 
+ * explicit integrator of order 4 (with order 5 error estimation). This integrator is very similar to the 
+ * Runge-Kutta-Fehlberg integrator, but has a different set of intermediate points, with, in theory, better
+ * numerical stability. Each integration step entails seven evaluations of the state derivative. Error control 
+ * is performed and can throw the ReaK::untolerable_integration exception if the integrator cannot acheive the 
+ * required tolerance without lowering the time-step below the acceptable minimum. Also basic verification of 
+ * the integration parameters is done and might throw the ReaK::impossible_integration exception.
+ */
 template <class T>
 class dormand_prince45_integrator : public variable_step_integrator<T> {
   protected:
@@ -221,7 +255,22 @@ class dormand_prince45_integrator : public variable_step_integrator<T> {
 
     virtual void RK_CALL integrate(double aEndTime);
 
+    /**
+     * Default constructor.
+     */
     dormand_prince45_integrator(const std::string& aName = "") : variable_step_integrator<T>(aName) { };
+    
+    /**
+     * Parametrized constructor.
+     * \param aName The name of this integrator object.
+     * \param aState The initial state vector that the integrator will work with.
+     * \param aStartTime The initial time to which the integrator is set.
+     * \param aInitialStepSize The time-step used in the integration to start with (will be variable according to error control).
+     * \param aGetStateRate A weak pointer to the object that will compute the state derivatives (see ReaK::state_rate_function).
+     * \param aMaxStepSize The maximum time-step to be used during the integration, if error control allows it.
+     * \param aMinStepSize The minimum time-step to be reached before declaring the integration untolerable due to error control.
+     * \param aTolerance The desired relative error of the integrated state values.
+     */
     dormand_prince45_integrator(const std::string& aName,
                                 const ReaK::vect_n<T>& aState,
                                 double aStartTime,
@@ -231,6 +280,9 @@ class dormand_prince45_integrator : public variable_step_integrator<T> {
                                 double aMinStepSize,
                                 double aTolerance) :
                                 variable_step_integrator<T>(aName,aState,aStartTime,aInitialStepSize,aGetStateRate,aMaxStepSize,aMinStepSize,aTolerance) { };
+    /**
+     * Default destructor.
+     */
     virtual ~dormand_prince45_integrator() { };
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {

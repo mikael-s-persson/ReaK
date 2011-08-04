@@ -1,3 +1,14 @@
+/**
+ * \file mat_balance.hpp
+ * 
+ * This library provides the matrix balancing function template which can be used 
+ * to scale a square matrix such that its rows and columns all have a comparable 
+ * order of magnitude. Applying this method before some matrix decomposition algorithms
+ * increases the numerical stability and convergence rates (for iterative methods).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date June 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -36,8 +47,6 @@ namespace ReaK {
  *
  * \param A square matrix with row-count == column-count, and stores, as output, the balanced matrix.
  * \param D holds as output, the diagonal matrix D which balances A.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
  *
  * \throws std::range_error if the matrix A does not have equal row and column counts.
  *
@@ -51,7 +60,7 @@ typename boost::enable_if_c< is_fully_writable_matrix<Matrix1>::value &&
 void >::type balance(Matrix1& A, Matrix2& D)
 {  
   if(A.get_row_count() < A.get_col_count())
-    throw std::range_error("Upper-Hessenberg decomposition is only possible on a square matrix!");
+    throw std::range_error("Matrix balancing is only possible on a square matrix!");
 
   using std::fabs;
   typedef typename mat_traits<Matrix1>::value_type ValueType;

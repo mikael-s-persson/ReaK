@@ -204,7 +204,11 @@ struct has_allocator_matrix {
 
 
 
-
+/**
+ * This meta-function evaluates whether a Matrix class is a square matrix. The implementer of 
+ * a matrix class is required to provide a specialization
+ * if he wants this meta-function to evaluate to true for that new matrix class.
+ */
 template <typename Matrix>
 struct is_square_matrix {
   BOOST_STATIC_CONSTANT( bool, value = false );
@@ -212,6 +216,11 @@ struct is_square_matrix {
 };
 
 
+/**
+ * This meta-function evaluates whether a Matrix class is a symmetric matrix. The implementer of 
+ * a matrix class is required to provide a specialization
+ * if he wants this meta-function to evaluate to true for that new matrix class.
+ */
 template <typename Matrix>
 struct is_symmetric_matrix {
   BOOST_STATIC_CONSTANT( bool, value = false );
@@ -219,6 +228,11 @@ struct is_symmetric_matrix {
 };
 
 
+/**
+ * This meta-function evaluates whether a Matrix class is a diagonal matrix. The implementer of 
+ * a matrix class is required to provide a specialization
+ * if he wants this meta-function to evaluate to true for that new matrix class.
+ */
 template <typename Matrix>
 struct is_diagonal_matrix {
   BOOST_STATIC_CONSTANT( bool, value = false );

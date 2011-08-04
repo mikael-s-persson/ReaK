@@ -60,13 +60,17 @@
 namespace ReaK {
 
 
-  
+/**
+ * This class is the general class template for all matrix classes in the ReaK linear algebra
+ * libraries. The general template itself should never be used and will cause a compilation 
+ * error if it is, all useful matrix class templates are, in fact, partial specializations of
+ * this general class template.
+ */  
 template <typename T, 
           mat_structure::tag Structure = mat_structure::rectangular,
 	  mat_alignment::tag Alignment = mat_alignment::column_major,
 	  typename Allocator = std::allocator<T> >
 class mat { char this_specialization_is_not_available_or_possible[0]; };
-
 
 template <typename T, 
           mat_structure::tag Structure,

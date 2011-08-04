@@ -51,7 +51,13 @@
 namespace ReaK {
 
 
-template <class T>
+/**
+ * This class template implements at Backward-Euler integrator. This is a fixed-step, explicit integrator
+ * of order 1. Each integration step entails a single evaluation of the state derivative. No error control
+ * or divergence tests are performed, only basic verification of the integration parameters is done and might
+ * throw the ReaK::impossible_integration exception.
+ */
+template <typename T>
 class euler_integrator : public integrator<T> {
   public:
 
@@ -78,13 +84,28 @@ class euler_integrator : public integrator<T> {
       };
     };
 
+    /**
+     * Default constructor.
+     */
     euler_integrator(const std::string& aName = "") : integrator<T>(aName) { };
+    
+    /**
+     * Parametrized constructor.
+     * \param aName The name of this integrator object.
+     * \param aState The initial state vector that the integrator will work with.
+     * \param aStartTime The initial time to which the integrator is set.
+     * \param aStepSize The time-step used in the integration.
+     * \param aGetStateRate A weak pointer to the object that will compute the state derivatives (see ReaK::state_rate_function).
+     */
     euler_integrator(const std::string& aName,
                      const ReaK::vect_n<T>& aState,
                      double aStartTime,
                      double aStepSize,
                      boost::weak_ptr< state_rate_function<T> > aGetStateRate) :
                      integrator<T>(aName, aState, aStartTime, aStepSize, aGetStateRate) { };
+    /**
+     * Default destructor.
+     */
     virtual ~euler_integrator() { };
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
@@ -102,19 +123,40 @@ class euler_integrator : public integrator<T> {
 
 
 
+/**
+ * This class template implements a Midpoint integrator. This is a fixed-step, explicit integrator
+ * of order 2. Each integration step entails two evaluations of the state derivatives. No error control
+ * or divergence tests are performed, only basic verification of the integration parameters is done and might
+ * throw the ReaK::impossible_integration exception.
+ */
 template <class T>
 class midpoint_integrator : public integrator<T> {
   public:
 
     virtual void RK_CALL integrate(double aEndTime);
 
+    /**
+     * Default constructor.
+     */
     midpoint_integrator(const std::string& aName = "") : integrator<T>(aName) { };
+   
+    /**
+     * Parametrized constructor.
+     * \param aName The name of this integrator object.
+     * \param aState The initial state vector that the integrator will work with.
+     * \param aStartTime The initial time to which the integrator is set.
+     * \param aStepSize The time-step used in the integration.
+     * \param aGetStateRate A weak pointer to the object that will compute the state derivatives (see ReaK::state_rate_function).
+     */
     midpoint_integrator(const std::string& aName,
                         const ReaK::vect_n<T>& aState,
                         double aStartTime,
                         double aStepSize,
                         boost::weak_ptr< state_rate_function<T> > aGetStateRate) :
                         integrator<T>(aName, aState, aStartTime, aStepSize, aGetStateRate) { };
+    /**
+     * Default destructor.
+     */
     virtual ~midpoint_integrator() { };
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
@@ -161,20 +203,40 @@ void RK_CALL midpoint_integrator<T>::integrate(double aEndTime) {
 
 
 
-
+/**
+ * This class template implements a Runge-Kutta integrator of order 4. This is a fixed-step, explicit integrator
+ * of order 4. Each integration step entails four evaluations of the state derivatives. No error control
+ * or divergence tests are performed, only basic verification of the integration parameters is done and might
+ * throw the ReaK::impossible_integration exception.
+ */
 template <class T>
 class runge_kutta4_integrator : public integrator<T> {
   public:
 
     virtual void RK_CALL integrate(double aEndTime);
-
+    
+    /**
+     * Default constructor.
+     */
     runge_kutta4_integrator(const std::string& aName = "") : integrator<T>(aName) { };
+    
+    /**
+     * Parametrized constructor.
+     * \param aName The name of this integrator object.
+     * \param aState The initial state vector that the integrator will work with.
+     * \param aStartTime The initial time to which the integrator is set.
+     * \param aStepSize The time-step used in the integration.
+     * \param aGetStateRate A weak pointer to the object that will compute the state derivatives (see ReaK::state_rate_function).
+     */
     runge_kutta4_integrator(const std::string& aName,
                             const ReaK::vect_n<T>& aState,
                             double aStartTime,
                             double aStepSize,
                             boost::weak_ptr< state_rate_function<T> > aGetStateRate) :
                             integrator<T>(aName, aState, aStartTime, aStepSize, aGetStateRate) { };
+    /**
+     * Default destructor.
+     */
     virtual ~runge_kutta4_integrator() { };
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
@@ -235,20 +297,40 @@ void RK_CALL runge_kutta4_integrator<T>::integrate(double aEndTime) {
 
 
 
-
+/**
+ * This class template implements a Runge-Kutta integrator of order 5. This is a fixed-step, explicit integrator
+ * of order 5. Each integration step entails six evaluations of the state derivatives. No error control
+ * or divergence tests are performed, only basic verification of the integration parameters is done and might
+ * throw the ReaK::impossible_integration exception.
+ */
 template <class T>
 class runge_kutta5_integrator : public integrator<T> {
   public:
 
     virtual void RK_CALL integrate(double aEndTime);
-
+    
+    /**
+     * Default constructor.
+     */
     runge_kutta5_integrator(const std::string& aName = "") : integrator<T>(aName) { };
+    
+    /**
+     * Parametrized constructor.
+     * \param aName The name of this integrator object.
+     * \param aState The initial state vector that the integrator will work with.
+     * \param aStartTime The initial time to which the integrator is set.
+     * \param aStepSize The time-step used in the integration.
+     * \param aGetStateRate A weak pointer to the object that will compute the state derivatives (see ReaK::state_rate_function).
+     */
     runge_kutta5_integrator(const std::string& aName,
                             const ReaK::vect_n<T>& aState,
                             double aStartTime,
                             double aStepSize,
                             boost::weak_ptr< state_rate_function<T> > aGetStateRate) :
                             integrator<T>(aName, aState, aStartTime, aStepSize, aGetStateRate) { };
+    /**
+     * Default destructor.
+     */
     virtual ~runge_kutta5_integrator() { };
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {

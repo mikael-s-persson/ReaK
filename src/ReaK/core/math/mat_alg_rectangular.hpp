@@ -259,6 +259,9 @@ class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : 
       q[15] = a44;
     };
 
+    /**
+     * The standard swap function (works with ADL).
+     */
     friend void swap(self& m1, self& m2) throw() {
       using std::swap;
       swap(m1.q,m2.q);
@@ -266,6 +269,13 @@ class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : 
       swap(m1.colCount,m2.colCount);
     };
     
+    /**
+     * A swap function to swap the matrix with a container of values to fill the matrix.
+     * \param m1 The matrix to swap with the container.
+     * \param q2 The container that will be swapped with m1's internal container.
+     * \param rowCount2 The row-count corresponding to q2's data.
+     * \param colCount2 The column-count corresponding to q2's data.
+     */
     friend void swap(self& m1, container_type& q2, size_type& rowCount2, size_type& colCount2) throw() {
       using std::swap;
       swap(m1.q,q2);
@@ -273,7 +283,10 @@ class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : 
       swap(m1.colCount,colCount2);
     };
     
-    
+    /**
+     * Standard copy-assignment operator (and move-assignment operator, for C++0x). Uses the copy-and-swap (and
+     * move-and-swap) idiom.
+     */
     self& operator=(self rhs) {
       swap(*this, rhs);
       return *this;
@@ -283,18 +296,58 @@ class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : 
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { return q[j*rowCount + i]; };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     const_reference operator()(size_type i,size_type j) const { return q[j*rowCount + i]; };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return colCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,colCount); };
+    /**
+     * Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
+     * \param sz new dimensions for the matrix.
+     * \test PASSED
+     */
     void resize(const std::pair<size_type,size_type>& sz) {
       set_row_count(sz.first,true);
       set_col_count(sz.second,true);
     };
 
+    /**
+     * Sets the row-count (number of rows) of the matrix.
+     * \param aRowCount new number of rows for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
     void set_row_count(size_type aRowCount,bool aPreserveData = false) {
       if(aPreserveData) {
 	if(aRowCount > rowCount)
@@ -309,6 +362,12 @@ class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : 
       rowCount = aRowCount;
     };
 
+    /**
+     * Sets the column-count (number of columns) of the matrix.
+     * \param aColCount new number of columns for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
     void set_col_count(size_type aColCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
       q.resize(aColCount * rowCount,value_type(0.0));
       colCount = aColCount;
@@ -392,7 +451,10 @@ class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : 
       return std::make_pair(first_col(rit),last_col(rit));
     };
     
-
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return q.get_allocator(); };
     
     
@@ -483,10 +545,20 @@ class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : 
     
     
     
+    /**
+     * Transposes the matrix M by a simple copy with a change of alignment.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> transpose(const self& M) {
       return mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator>(M.q,M.colCount,M.rowCount);
     };
     
+    /**
+     * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> transpose_move(self& M) {
       mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> result;
       using std::swap;
@@ -495,6 +567,11 @@ class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : 
     };
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> transpose(self&& M) {
       mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> result;
       using std::swap;
@@ -713,7 +790,11 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
       q[14] = a43;
       q[15] = a44;
     };
-
+    
+    
+    /**
+     * The standard swap function (works with ADL).
+     */
     friend void swap(self& m1, self& m2) throw() {
       using std::swap;
       swap(m1.q,m2.q);
@@ -721,6 +802,13 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
       swap(m1.colCount,m2.colCount);
     };
     
+    /**
+     * A swap function to swap the matrix with a container of values to fill the matrix.
+     * \param m1 The matrix to swap with the container.
+     * \param q2 The container that will be swapped with m1's internal container.
+     * \param rowCount2 The row-count corresponding to q2's data.
+     * \param colCount2 The column-count corresponding to q2's data.
+     */
     friend void swap(self& m1, container_type& q2, size_type& rowCount2, size_type& colCount2) throw() {
       using std::swap;
       swap(m1.q,q2);
@@ -728,6 +816,10 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
       swap(m1.colCount,colCount2);
     };
     
+    /**
+     * Standard copy-assignment operator (and move-assignment operator, for C++0x). Uses the copy-and-swap (and
+     * move-and-swap) idiom.
+     */
     self& operator=(self rhs) {
       swap(*this, rhs);
       return *this;
@@ -737,18 +829,60 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
                          Accessors and Methods
 *******************************************************************************/
 
+
+
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { return q[i*colCount + j]; };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     const_reference operator()(size_type i,size_type j) const { return q[i*colCount + j]; };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return colCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,colCount); };
+    /**
+     * Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
+     * \param sz new dimensions for the matrix.
+     * \test PASSED
+     */
     void resize(const std::pair<size_type,size_type>& sz) {
       set_col_count(sz.second,true);
       set_row_count(sz.first,true);
     };
 
+    /**
+     * Sets the column-count (number of columns) of the matrix.
+     * \param aColCount new number of columns for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
     void set_col_count(size_type aColCount,bool aPreserveData = false) {
       if(aPreserveData) {
 	if(aColCount > colCount)
@@ -762,6 +896,12 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
       colCount = aColCount;
     };
 
+    /**
+     * Sets the row-count (number of rows) of the matrix.
+     * \param aRowCount new number of rows for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
     void set_row_count(size_type aRowCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
       q.resize(aRowCount * colCount,value_type(0.0));
       rowCount = aRowCount;
@@ -846,6 +986,10 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
     };
     
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return q.get_allocator(); };
 
     
@@ -935,10 +1079,20 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
     
     
     
+    /**
+     * Transposes the matrix M by a simple copy with a change of alignment.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> transpose(const self& M) {
       return mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator>(M.q,M.colCount,M.rowCount);
     };
     
+    /**
+     * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> transpose_move(self& M) {
       mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> result;
       using std::swap;
@@ -947,6 +1101,11 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
     };
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> transpose(self&& M) {
       mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> result;
       using std::swap;

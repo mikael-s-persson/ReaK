@@ -1,3 +1,32 @@
+/**
+ * \file mat_composite_adaptor.hpp
+ * 
+ * This library provides a number of adaptor classes that can be used to concatenate matrices together.
+ * It is sometimes desirable to concatenate matrices, for various reasons. You might have a few matrices
+ * stored separately but that actually are parts of an imaginary block-structured super-matrix, if most 
+ * of the time these matrices are manipulated separately but once in a while an operation on the super-matrix
+ * is required, than the classes included in this file can come in handy. Another use is to be able to make 
+ * a block-structured matrix where different blocks are better represented (or stored) by different types 
+ * of matrices (e.g. some symmetric blocks, some nil-blocks, or some identity blocks, etc.). The matrix 
+ * composition classes provided by this library allow you to have heterogeneous block-structured matrices in
+ * addition to allowing you to obtain const and non-const views over a collection of matrices as a super-matrix.
+ * 
+ * Additionally, this library is best used with C++0x compatibility because it can use overloading based
+ * on rvalue-references which will increase the ease of use. Also, this library provides operator overloads 
+ * to allow for the concatenation of the matrices to have a very neat syntax (and these operators operate 
+ * better under C++0x support for rvalue-references), as so:
+ *  A = ( A_11 & A_12 |
+ *        A_21 & A_22 );
+ * 
+ * Also note that all concatenations are based on concatenating two matrices horizontally or vertically. So,
+ * for the concatenation of several matrices, you have to use several nested concatenations (or recursive). 
+ * Fortunately, factory function templates and operator overloads hide all that nasty syntax away. Moreover,
+ * C++0x's feature of type inference (like 'auto' keyword and decltype()) also greatly simplify the syntax
+ * on the caller's side.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date June 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -32,7 +61,11 @@
 
 namespace ReaK {
 
-
+/**
+ * This class template forms the horizontal concatenation of two matrices, which it stores by value.
+ * This class makes the concatenation of the two matrices look as if it was just one matrix (and so,
+ * this class is an adaptor).
+ */
 template <typename LeftMatrix, typename RightMatrix>
 class mat_horiz_cat {
   public:

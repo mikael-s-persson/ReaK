@@ -66,6 +66,12 @@ class satellite2D_imdt_sys : public named_object {
     typedef mat<double,mat_structure::rectangular> matrixC_type;
     typedef mat<double,mat_structure::nil> matrixD_type;
     
+    struct zero_input_trajectory {
+      vect_n<double> get_point(time_type) const {
+	return vect_n<double>(3,0.0);
+      };
+    };
+    
   protected:
     double mMass;
     double mInertiaMoment;
@@ -201,6 +207,12 @@ class satellite3D_imdt_sys : public named_object {
     typedef mat<double,mat_structure::rectangular> matrixB_type;
     typedef mat<double,mat_structure::rectangular> matrixC_type;
     typedef mat<double,mat_structure::nil> matrixD_type;
+    
+    struct zero_input_trajectory {
+      vect_n<double> get_point(time_type) const {
+	return vect_n<double>(6,0.0);
+      };
+    };
     
   private:
     double mMass;

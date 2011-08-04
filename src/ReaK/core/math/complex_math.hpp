@@ -1,7 +1,8 @@
 /**
  * \file complex_math.hpp
  *
- * This library implements complex-valued mathematics.
+ * This library implements complex-valued mathematics. Not the most useful thing since C++ standard libraries 
+ * already include a complex type.
  *
  * \author Mikael Persson (mikael.s.persson@gmail.com)
  * \date january 2010

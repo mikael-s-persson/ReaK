@@ -1,3 +1,15 @@
+/**
+ * \file mat_alg_identity.hpp
+ * 
+ * This library declares matrix specializations for representing and manipulating nil matrices.
+ * This library implements many overloaded operators that turn out to be more efficiently implemented 
+ * if specialized for the nil matrix case. All those overloads are automatically selected through
+ * Sfinae switches, and the nil matrix class is simply a partial specialization of the "ReaK::mat" 
+ * class template, so, the burden on the user is minimal.
+ * 
+ * \author Mikael Persson <mikael.s.persson@gmail.com>
+ * \date april 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -36,8 +48,8 @@ namespace ReaK {
 
 /**
  * This class implements a place-holder or interface-implementation to represent
- * a null matrix (all entries zero). This is useful to build for example a
- * block-matrix with some zero-matrix blocks.
+ * a nil matrix (all entries zero). This is useful to build for example a
+ * block-matrix with some zero-matrix blocks, and, of course, the storage is minimal.
  */
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 class mat<T,mat_structure::nil,Alignment,Allocator> : public serialization::serializable {
@@ -96,10 +108,49 @@ class mat<T,mat_structure::nil,Alignment,Allocator> : public serialization::seri
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     const_reference operator()(size_type i,size_type j) const { return T(0.0); };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const { return rowCount; };
+
+    /**
+     * Sets the row-count (number of rows) of the matrix.
+     * \param aRowCount new number of rows for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
+    void set_row_count(size_type aRowCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
+      rowCount = aRowCount;
+    };
+
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const { return colCount; };
+
+    /**
+     * Sets the column-count (number of columns) of the matrix.
+     * \param aColCount new number of columns for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
+    void set_col_count(size_type aColCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
+      colCount = aColCount;
+    };
+    
     
     /**
      * Negate the matrix, has no effect of course.
@@ -110,21 +161,40 @@ class mat<T,mat_structure::nil,Alignment,Allocator> : public serialization::seri
       return *this;
     };
     
-    
+    /**
+     * Transposes the matrix M.
+     * \param rhs The nil matrix to be transposed.
+     * \return The transpose of rhs.
+     */
     friend self transpose(self rhs) {
       using std::swap;
       swap(rhs.colCount,rhs.rowCount);
       return rhs;
     };
+    
+    /**
+     * Transposes the matrix M.
+     * \param rhs The nil matrix to be transposed.
+     * \return The transpose of rhs.
+     */
     friend self transpose_move(self& rhs) {
       self result(rhs.colCount,rhs.rowCount);
       return result;
     };
     
+    /**
+     * Returns the trace of the matrix.
+     * \return the trace of the matrix.
+     */
     friend value_type trace(const self&) {
       return value_type(0);
     };
     
+    /**
+     * Appends the matrix 'rhs' to the end of the matrix 'lhs', which are both nil matrices.
+     * \param lhs The nil matrix to which to append the other.
+     * \param rhs The nil matrix to be appended to 'lhs'.
+     */
     friend void append_block_diag(self& lhs, const self& rhs) {
       lhs.colCount += rhs.colCount;
       lhs.rowCount += rhs.rowCount;

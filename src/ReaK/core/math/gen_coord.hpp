@@ -1,3 +1,12 @@
+/**
+ * \file gen_coord.hpp
+ * 
+ * This library implements the gen_coord class template which can be used to represent a 1D kinetostatic
+ * frame of reference, i.e., a generalized coordinate.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011 (last revision)
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson

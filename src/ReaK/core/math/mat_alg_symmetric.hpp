@@ -3,12 +3,7 @@
  * 
  * This library implements the specialization of the mat<> template for a 
  * general symmetric matrix (dynamic dimension). This matrix type fulfills the matrix 
- * concepts of Readable, Writable, Resizable and DynAlloc.
- * 
- * This library also implements transposition of matrices via alignment 
- * switching (switching from column-major to row-major, or vice versa). This 
- * is very efficient and can even avoid copies completely (via transpose_move()) on an
- * optimizing compiler.
+ * concepts of Readable, Writable, Resizable and DynAlloc, but not FullyWritable.
  * 
  * \author Mikael Persson <mikael.s.persson@gmail.com>
  * \date april 2011 (originally february 2010)
@@ -158,6 +153,9 @@ class mat<T,mat_structure::symmetric,Alignment,Allocator> : public serialization
 	     rowCount(std::move(M.rowCount)) { };
 #endif
 
+    /**
+     * The standard swap function (works with ADL).
+     */
     friend void swap(self& M1, self& M2) throw() {
       using std::swap;
       swap(M1.q,M2.q);
@@ -252,6 +250,14 @@ class mat<T,mat_structure::symmetric,Alignment,Allocator> : public serialization
                          Accessors and Methods
 *******************************************************************************/
 
+
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) {
       if(i > j)
 	return q[mat_triangular_size(i) + j];
@@ -259,6 +265,13 @@ class mat<T,mat_structure::symmetric,Alignment,Allocator> : public serialization
 	return q[mat_triangular_size(j) + i];
     };
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     const_reference operator()(size_type i,size_type j) const {
       if(i > j)
 	return q[mat_triangular_size(i) + j];
@@ -266,20 +279,61 @@ class mat<T,mat_structure::symmetric,Alignment,Allocator> : public serialization
         return q[mat_triangular_size(j) + i];
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const { return rowCount; };
 
+    /**
+     * Sets the row-count (number of rows) of the matrix.
+     * \param aRowCount new number of rows for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
     void set_row_count(size_type aRowCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
       q.resize(mat_triangular_size(aRowCount),T(0.0));
       rowCount = aRowCount;
     };
 
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const { return rowCount; };
 
+    /**
+     * Sets the column-count (number of columns) of the matrix.
+     * \param aColCount new number of columns for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
     void set_col_count(size_type aColCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
       q.resize(mat_triangular_size(aColCount),T(0.0));
       rowCount = aColCount;
     };
+
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
+    std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,rowCount); };
+    /**
+     * Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
+     * \param sz new dimensions for the matrix.
+     * \test PASSED
+     */
+    void resize(const std::pair<size_type,size_type>& sz) {
+      set_row_count(sz.first,true);
+    };
     
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return q.get_allocator(); };
 
 /*******************************************************************************
@@ -702,23 +756,43 @@ class mat<T,mat_structure::symmetric,Alignment,Allocator> : public serialization
           M.q[k+j+aDiagOffset] = subM.q[k_in+j];
       return M;
     };
-
+    
+    /**
+     * Appends the matrix 'rhs' to the end of the matrix 'lhs', which are both symmetric matrices.
+     * \param lhs The symmetric matrix to which to append the other.
+     * \param rhs The symmetric matrix to be appended to 'lhs'.
+     */
     friend void append_block_diag(self& lhs, const self& rhs) {
       size_type oldCount = lhs.get_col_count();
       lhs.set_col_count(oldCount + rhs.get_col_count(),true);
       set_block(lhs,rhs,oldCount);
     };
     
+    /**
+     * Transposes the matrix M (which has no effect since M is symmetric, simply copies it).
+     * \param M The symmetric matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend self transpose(const self& M) {
       return M;
     };
     
+    /**
+     * Transposes the matrix M in a potentially destructive way (move-semantics, pre-C++0x).
+     * \param M The symmetric matrix to be transposed and moved.
+     * \return The transpose of M.
+     */
     friend self transpose_move(self& M) {
       self result;
       swap(result,M);
       return result;
     };
     
+    /**
+     * Returns the trace of matrix M.
+     * \param M A symmetric matrix.
+     * \return the trace of matrix M.
+     */
     friend value_type trace(const self& M) {
       value_type sum = value_type(0);
       size_type k = 0;

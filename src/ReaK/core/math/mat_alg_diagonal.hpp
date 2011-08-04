@@ -1,3 +1,15 @@
+/**
+ * \file mat_alg_diagonal.hpp
+ * 
+ * This library declares matrix specializations for representing and manipulating diagonal matrices.
+ * This library implements many overloaded operators that turn out to be more efficiently implemented 
+ * if specialized for the diagonal matrix case. All those overloads are automatically selected through
+ * Sfinae switches, and the diagonal matrix class is simply a partial specialization of the "ReaK::mat" 
+ * class template, so, the burden on the user is minimal.
+ * 
+ * \author Mikael Persson <mikael.s.persson@gmail.com>
+ * \date april 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -108,7 +120,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
 	     
 #ifdef RK_ENABLE_CXX0X_FEATURES
     /**
-     * Standard Copy Constructor with standard semantics.
+     * Standard Move Constructor with standard semantics.
      */
     mat(self&& M) :
              q(std::move(M.q)),
@@ -144,6 +156,9 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      */
     ~mat() { };
     
+    /**
+     * Swap friend-function that allows ADL and efficient swapping of two matrices.
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.q,rhs.q);
@@ -154,6 +169,14 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \throw std::range_error if the row and column index are not the same (cannot write off-diagonal terms).
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) {
       if(i == j)
 	return q[i];
@@ -161,6 +184,13 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
 	throw std::range_error("Cannot write to the off-diagonal terms of a diagonal matrix!");
     };
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const {
       if(i == j)
 	return q[i];
@@ -168,20 +198,46 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
         return T(0.0);
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const { return rowCount; };
 
+    /**
+     * Sets the row-count (number of rows) of the matrix.
+     * \param aRowCount new number of rows for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
     void set_row_count(size_type aRowCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
       q.resize(aRowCount,value_type(0.0));
       rowCount = aRowCount;
     };
 
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const { return rowCount; };
 
+    /**
+     * Sets the column-count (number of columns) of the matrix.
+     * \param aColCount new number of columns for the matrix.
+     * \param aPreserveData If true, the resizing will preserve all the data it can.
+     * \test PASSED
+     */
     void set_col_count(size_type aColCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
       q.resize(aColCount,value_type(0.0));
       rowCount = aColCount;
     };
     
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return q.get_allocator(); };
 
 /*******************************************************************************
@@ -484,28 +540,52 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
       return M;
     };
     
-    
+    /**
+     * Appends the matrix 'rhs' to the end of the matrix 'lhs', which are both diagonal matrices.
+     * \param lhs The diagonal matrix to which to append the other.
+     * \param rhs The diagonal matrix to be appended to 'lhs'.
+     */
     friend void append_block_diag(self& lhs, const self& rhs) {
       size_type oldCount = lhs.get_col_count();
       lhs.set_col_count(oldCount + rhs.get_col_count(),true);
       set_block(lhs,rhs,oldCount);
     };
     
+    /**
+     * Transposes the matrix M (which has no effect since M is diagonal, simply copies it).
+     * \param M The diagonal matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend self transpose(const self& M) {
       return M;
     };
     
+    /**
+     * Transposes the matrix M in a potentially destructive way (move-semantics, pre-C++0x).
+     * \param M The diagonal matrix to be transposed and moved.
+     * \return The transpose of M.
+     */
     friend self transpose_move(self& M) {
       self result;
       swap(result,M);
       return result;
     };
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Transposes the matrix M in a potentially destructive way (move-semantics, C++0x).
+     * \param M The diagonal matrix to be transposed and moved.
+     * \return The transpose of M.
+     */
     friend self transpose(self&& M) {
       return self(std::move(M));
     };
 #endif
     
+    /**
+     * Returns the trace of matrix M.
+     * \param M A diagonal matrix.
+     * \return the trace of matrix M.
+     */
     friend value_type trace(const self& M) {
       value_type sum = value_type(0);
       for(size_type i = 0; i < M.q.rowCount; ++i)

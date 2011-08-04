@@ -53,6 +53,13 @@
 namespace ReaK {
 
 
+/**
+ * This class template implements at Adams-Bashford-Moulton integrator of order 3. This is a fixed-step, multi-step, 
+ * predictor-corrector integrator of order 3. Each integration step entails (1 + CorrectionCount) evaluations 
+ * of the state derivative. Neither error control nor divergence detection is performed.
+ * Only basic verification of the integration parameters is done and might throw the ReaK::impossible_integration 
+ * exception. The multiple steps are initialized using a Runge-Kutta method of the same order.
+ */
 template <class T>
 class adamsBM3_integrator : public integrator<T> {
   protected:
@@ -91,11 +98,26 @@ class adamsBM3_integrator : public integrator<T> {
       this->initializePrevVectors();
     };
 
+    /**
+     * This function allows you to set the number of corrections to perform (in the predictor-corrector scheme).
+     * \param aCorrectionCount The new correction count to use.
+     */
     void setCorrectionCount(unsigned int aCorrectionCount) { mCorrectionCount = aCorrectionCount; };
 
     virtual void RK_CALL integrate(double aEndTime);
 
+    /**
+     * Default constructor.
+     */
     adamsBM3_integrator(const std::string& aName = "") : integrator<T>(aName), mCorrectionCount(3), prevY(), prevF1(), prevF2(), prevF3() { };
+    /**
+     * Parametrized constructor.
+     * \param aName The name of this integrator object.
+     * \param aState The initial state vector that the integrator will work with.
+     * \param aStartTime The initial time to which the integrator is set.
+     * \param aStepSize The time-step used in the integration.
+     * \param aCorrectionCount The number of corrections to perform.
+     */
     adamsBM3_integrator(const std::string& aName,
                        const ReaK::vect_n<T>& aState,
                        double aStartTime,
@@ -105,6 +127,9 @@ class adamsBM3_integrator : public integrator<T> {
                                                             mCorrectionCount(aCorrectionCount) {
       this->initializePrevVectors();
     };
+    /**
+     * Default destructor.
+     */
     virtual ~adamsBM3_integrator() { };
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
@@ -265,6 +290,13 @@ void RK_CALL adamsBM3_integrator<T>::integrate(double aEndTime) {
 
 
 
+/**
+ * This class template implements at Adams-Bashford-Moulton integrator of order 5. This is a fixed-step, multi-step, 
+ * predictor-corrector integrator of order 5. Each integration step entails (1 + CorrectionCount) evaluations 
+ * of the state derivative. Neither error control nor divergence detection is performed.
+ * Only basic verification of the integration parameters is done and might throw the ReaK::impossible_integration 
+ * exception. The multiple steps are initialized using a Runge-Kutta method of the same order.
+ */
 template <class T>
 class adamsBM5_integrator : public integrator<T> {
   protected:
@@ -305,10 +337,17 @@ class adamsBM5_integrator : public integrator<T> {
       this->initializePrevVectors();
     };
 
+    /**
+     * This function allows you to set the number of corrections to perform (in the predictor-corrector scheme).
+     * \param aCorrectionCount The new correction count to use.
+     */
     void setCorrectionCount(unsigned int aCorrectionCount) { mCorrectionCount = aCorrectionCount; };
 
     virtual void RK_CALL integrate(double aEndTime);
 
+    /**
+     * Default constructor.
+     */
     adamsBM5_integrator(const std::string& aName = "") : integrator<T>(aName),
                                                          mCorrectionCount(3),
                                                          prevY(),
@@ -317,6 +356,14 @@ class adamsBM5_integrator : public integrator<T> {
                                                          prevF3(),
                                                          prevF4(),
                                                          prevF5() { };
+    /**
+     * Parametrized constructor.
+     * \param aName The name of this integrator object.
+     * \param aState The initial state vector that the integrator will work with.
+     * \param aStartTime The initial time to which the integrator is set.
+     * \param aStepSize The time-step used in the integration.
+     * \param aCorrectionCount The number of corrections to perform.
+     */
     adamsBM5_integrator(const std::string& aName,
                        const ReaK::vect_n<T>& aState,
                        double aStartTime,
@@ -326,6 +373,9 @@ class adamsBM5_integrator : public integrator<T> {
                                                             mCorrectionCount(aCorrectionCount) {
       this->initializePrevVectors();
     };
+    /**
+     * Default destructor.
+     */
     virtual ~adamsBM5_integrator() { };
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
@@ -481,6 +531,13 @@ void RK_CALL adamsBM5_integrator<T>::integrate(double aEndTime) {
 
 
 
+/**
+ * This class template implements at Modified Hamming integrator (order 3). This is a fixed-step, multi-step, 
+ * predictor-corrector integrator of order 3. Each integration step entails two evaluations 
+ * of the state derivative. Neither error control nor divergence detection is performed.
+ * Only basic verification of the integration parameters is done and might throw the ReaK::impossible_integration 
+ * exception.
+ */
 template <class T>
 class hamming_mod_integrator : public integrator<T> {
   protected:
@@ -526,6 +583,9 @@ class hamming_mod_integrator : public integrator<T> {
 
     virtual void RK_CALL integrate(double aEndTime);
 
+    /**
+     * Default constructor.
+     */
     hamming_mod_integrator(const std::string& aName = "") : integrator<T>(aName),
                                                             mY_n_3(),
                                                             mY_n_2(),
@@ -537,6 +597,14 @@ class hamming_mod_integrator : public integrator<T> {
                                                             mC(),
                                                             mM(),
                                                             mMp() { };
+    /**
+     * Parametrized constructor.
+     * \param aName The name of this integrator object.
+     * \param aState The initial state vector that the integrator will work with.
+     * \param aStartTime The initial time to which the integrator is set.
+     * \param aStepSize The time-step used in the integration.
+     * \param aGetStateRate A weak pointer to the object that will compute the state derivatives (see ReaK::state_rate_function).
+     */
     hamming_mod_integrator(const std::string& aName,
                        const ReaK::vect_n<T>& aState,
                        double aStartTime,
@@ -544,6 +612,9 @@ class hamming_mod_integrator : public integrator<T> {
                        boost::weak_ptr< state_rate_function<T> > aGetStateRate) : integrator<T>(aName,aState,aStartTime,aStepSize,aGetStateRate) {
       this->initializePrevVectors();
     };
+    /**
+     * Default destructor.
+     */
     virtual ~hamming_mod_integrator() { };
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
@@ -738,6 +809,14 @@ void RK_CALL hamming_mod_integrator<T>::integrate(double aEndTime) {
 
 
 
+/**
+ * This class template implements at Modified Hamming integrator (order 3). This is a fixed-step, multi-step, 
+ * implicit integrator of order 3. Each integration step entails at most (1 + MaxIterations) evaluations 
+ * of the state derivative. Neither error control nor divergence detection is performed.
+ * Only basic verification of the integration parameters is done and might throw the ReaK::impossible_integration 
+ * exception.
+ * \todo Add the divergence detection.
+ */
 template <class T>
 class hamming_iter_mod_integrator : public hamming_mod_integrator<T> {
   protected:
@@ -748,8 +827,21 @@ class hamming_iter_mod_integrator : public hamming_mod_integrator<T> {
 
     virtual void RK_CALL integrate(double aEndTime);
 
+    /**
+     * Default constructor.
+     */
     hamming_iter_mod_integrator(const std::string& aName = "") : hamming_mod_integrator<T>(aName),
                                                                  mTolerance(1E-3), mMaxIter(10) { };
+    /**
+     * Parametrized constructor.
+     * \param aName The name of this integrator object.
+     * \param aState The initial state vector that the integrator will work with.
+     * \param aStartTime The initial time to which the integrator is set.
+     * \param aStepSize The time-step used in the integration.
+     * \param aGetStateRate A weak pointer to the object that will compute the state derivatives (see ReaK::state_rate_function).
+     * \param aTolerance The relative tolerance at which the iterations (within one integration step) is declared as converged.
+     * \param aMaxIter The maximum number of iterations to be performed if the iterations cannot converge.
+     */
     hamming_iter_mod_integrator(const std::string& aName,
                                 const ReaK::vect_n<T>& aState,
                                 double aStartTime,
@@ -759,6 +851,9 @@ class hamming_iter_mod_integrator : public hamming_mod_integrator<T> {
                                 unsigned int aMaxIter = 10) : hamming_mod_integrator<T>(aName,aState,aStartTime,aStepSize,aGetStateRate),
                                                               mTolerance(aTolerance),
                                                               mMaxIter(aMaxIter) { };
+    /**
+     * Default destructor.
+     */
     virtual ~hamming_iter_mod_integrator() { };
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {

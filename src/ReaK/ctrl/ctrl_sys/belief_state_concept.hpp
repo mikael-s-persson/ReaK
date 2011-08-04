@@ -27,6 +27,7 @@
 #include <boost/concept_check.hpp>
 #include "state_vector_concept.hpp"
 #include "covariance_concept.hpp"
+#include "state_space_sys_concept.hpp"
 
 namespace ReaK {
 

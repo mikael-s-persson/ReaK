@@ -6,6 +6,9 @@
  * such as nil or identity, or matrix adaptors, views, compositions and slices.
  * 
  * \todo Implement a suite of statically-sized matrix classes.
+ * \todo Implement a scalar matrix specialization.
+ * \todo Port the code related to the upper-triangular and lower-triangular matrices.
+ * \todo Implement expression templates to optimize compound matrix expressions.
  * 
  * \author Mikael Persson <mikael.s.persson@gmail.com>
  * \date april 2011

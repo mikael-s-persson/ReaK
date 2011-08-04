@@ -1,3 +1,12 @@
+/**
+ * \file frame_2D.hpp
+ * 
+ * This library implements the frame_2D class template which can be used to represent a 2D kinetostatic
+ * frame of reference (for kinematics transformations mainly).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011 (last revision)
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
