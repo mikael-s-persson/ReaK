@@ -71,6 +71,12 @@ struct mat_indexer<mat_structure::skew_symmetric,Alignment> {
 /**
  * This class holds a skew-symmetric matrix. This class will hold only the strict upper-triangular part
  * since the lower part is assumed to be equal to the negative of the upper one.
+ * 
+ * Models: ReadableMatrixConcept, WritableMatrixConcept, ResizableMatrixConcept, and DynAllocMatrixConcept.
+ * 
+ * \tparam T Arithmetic type of the elements of the matrix.
+ * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or mat_alignment::column_major (default).
+ * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serialization::serializable {

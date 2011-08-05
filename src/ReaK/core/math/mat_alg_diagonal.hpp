@@ -54,6 +54,12 @@ struct mat_indexer<mat_structure::diagonal, Alignment> {
 
 /**
  * This class holds a diagonal matrix. This class will hold only the diagonal.
+ * 
+ * Models: ReadableMatrixConcept, WritableMatrixConcept, ResizableMatrixConcept, and DynAllocMatrixConcept.
+ * 
+ * \tparam T Arithmetic type of the elements of the matrix.
+ * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or mat_alignment::column_major (default).
+ * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <class T, mat_alignment::tag Alignment, typename Allocator>
 class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization::serializable {
@@ -232,6 +238,21 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
     void set_col_count(size_type aColCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
       q.resize(aColCount,value_type(0.0));
       rowCount = aColCount;
+    };
+    
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
+    std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,rowCount); };
+    /**
+     * Sets the row-count and column-count of the matrix, via a std::pair of dimension values.
+     * \param sz new dimensions for the matrix.
+     * \test PASSED
+     */
+    void resize(const std::pair<size_type,size_type>& sz) {
+      set_row_count(sz.first,true);
     };
     
     /**

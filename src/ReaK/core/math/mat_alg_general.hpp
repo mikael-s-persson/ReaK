@@ -65,6 +65,13 @@ namespace ReaK {
  * libraries. The general template itself should never be used and will cause a compilation 
  * error if it is, all useful matrix class templates are, in fact, partial specializations of
  * this general class template.
+ * 
+ * Models: ReadableMatrixConcept.
+ * 
+ * \tparam T Arithmetic type of the elements of the matrix.
+ * \tparam Structure Enum which defines the structure of the matrix, see mat_structure::tag.
+ * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or mat_alignment::column_major (default).
+ * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */  
 template <typename T, 
           mat_structure::tag Structure = mat_structure::rectangular,

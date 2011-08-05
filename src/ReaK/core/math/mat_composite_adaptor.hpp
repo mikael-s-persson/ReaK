@@ -65,6 +65,12 @@ namespace ReaK {
  * This class template forms the horizontal concatenation of two matrices, which it stores by value.
  * This class makes the concatenation of the two matrices look as if it was just one matrix (and so,
  * this class is an adaptor).
+ * 
+ * Models: ReadableMatrixConcept and all matrix concepts modeled by both LeftMatrix and RightMatrix, 
+ * except for ResizableMatrixConcept.
+ * 
+ * \tparam LeftMatrix Matrix type for the left matrix.
+ * \tparam RightMatrix Matrix type for the right matrix.
  */
 template <typename LeftMatrix, typename RightMatrix>
 class mat_horiz_cat {
@@ -93,38 +99,71 @@ class mat_horiz_cat {
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::rectangular);
     
   private:
-    LeftMatrix ml;
-    RightMatrix mr;
+    LeftMatrix ml; ///< Holds the left part of the matrix.
+    RightMatrix mr; ///< Holds the right part of the matrix.
   public:
+    /**
+     * Default constructor.
+     */
     mat_horiz_cat() : ml(), mr() { };
     
+    /**
+     * Parametrized constructor.
+     * \param aML Matrix to fill the left part of the matrix.
+     * \param aMR Matrix to fill the right part of the matrix.
+     */
     mat_horiz_cat(const LeftMatrix& aML, const RightMatrix& aMR) : ml(aML), mr(aMR) { 
       if(ml.get_row_count() != mr.get_row_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
+    /**
+     * Standard copy-constructor.
+     * \param aObj Right-hand-side of the copy.
+     */
     mat_horiz_cat(const self& aObj) : ml(aObj.ml), mr(aObj.mr) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Parametrized move-constructor.
+     * \param aML Matrix to fill and be moved into the left part of the matrix.
+     * \param aMR Matrix to fill and be moved into the right part of the matrix.
+     */
     mat_horiz_cat(LeftMatrix&& aML, RightMatrix&& aMR) : ml(std::move(aML)), mr(std::move(aMR)) { 
       if(ml.get_row_count() != mr.get_row_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
+    /**
+     * Standard move-constructor.
+     * \param aObj Right-hand-side of the move.
+     */
     mat_horiz_cat(self&& aObj) : ml(std::move(aObj.ml)), mr(std::move(aObj.mr)) { };
 #endif
     
+    /**
+     * Standard swap function.
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.ml,rhs.ml);
       swap(lhs.mr,rhs.mr);
     };
     
+    /**
+     * Standard assignment operator, implemented by copy-and-swap (and move-and-swap).
+     */
     self& operator=(self rhs) {
       swap(*this,rhs);
       return *this;
     };
     
+    /**
+     * Templated assignment operator to assign the content of the matrix with the content 
+     * of a matrix of another type (Matrix)
+     * \tparam Matrix A readable matrix (models ReadableMatrixConcept)
+     * \param rhs Right-hand-side of the assignment.
+     */
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
                                  !boost::is_same<Matrix,self>::value,
@@ -140,12 +179,26 @@ class mat_horiz_cat {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       if(j < ml.get_col_count())
 	return ml(i,j);
       else
 	return mr(i,j - ml.get_col_count());
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       if(j < ml.get_col_count())
 	return ml(i,j);
@@ -153,11 +206,30 @@ class mat_horiz_cat {
 	return mr(i,j - ml.get_col_count());
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return ml.get_row_count(); };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return ml.get_col_count() + mr.get_col_count(); };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(ml.get_row_count(),ml.get_col_count() + mr.get_col_count()); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return ml.get_allocator(); };
     
     
@@ -226,6 +298,11 @@ class mat_horiz_cat {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -234,6 +311,11 @@ class mat_horiz_cat {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -278,7 +360,17 @@ struct has_allocator_matrix< mat_horiz_cat<LeftMatrix,RightMatrix> > {
 
 
 
-
+/**
+ * This class template forms the horizontal concatenation of two matrices, which it takes by reference 
+ * (and stores by pointer, to be copyable). This class makes the concatenation of the two matrices 
+ * look as if it was just one matrix (and so, this class is an adaptor).
+ * 
+ * Models: ReadableMatrixConcept and all matrix concepts modeled by both LeftMatrix and RightMatrix, 
+ * except for ResizableMatrixConcept.
+ * 
+ * \tparam LeftMatrix Matrix type for the left matrix.
+ * \tparam RightMatrix Matrix type for the right matrix.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 class mat_ref_horiz_cat {
   public:
@@ -306,22 +398,39 @@ class mat_ref_horiz_cat {
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::rectangular);
     
   private:
-    LeftMatrix* ml;
-    RightMatrix* mr;
+    LeftMatrix* ml; ///< Holds the reference to the left part of the matrix.
+    RightMatrix* mr; ///< Holds the reference to the right part of the matrix.
   public:
+    /**
+     * Default constructor.
+     */
     mat_ref_horiz_cat() : ml(NULL), mr(NULL) { };
     
+    /**
+     * Parametrized constructor.
+     * \param aML Matrix to become the left part of the matrix.
+     * \param aMR Matrix to become the right part of the matrix.
+     */
     mat_ref_horiz_cat(LeftMatrix& aML, RightMatrix& aMR) : ml(&aML), mr(&aMR) { 
       if(ml->get_row_count() != mr->get_row_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
+    /**
+     * Copy-constructor (shallow-copy).
+     */
     mat_ref_horiz_cat(const self& aObj) : ml(aObj.ml), mr(aObj.mr) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Move-constructor (shallow-move).
+     */
     mat_ref_horiz_cat(self&& aObj) : ml(aObj.ml), mr(aObj.mr) { };
 #endif
     
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs,self& rhs) {
       using std::swap;
       swap(lhs.ml,rhs.ml);
@@ -329,6 +438,12 @@ class mat_ref_horiz_cat {
       return;
     };
     
+    /**
+     * Templated assignment operator to assign the content of the matrix with the content 
+     * of a matrix of another type (Matrix)
+     * \tparam Matrix A readable matrix (models ReadableMatrixConcept)
+     * \param rhs Right-hand-side of the assignment.
+     */
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
     self& >::type operator=(const Matrix& rhs) {
@@ -343,12 +458,26 @@ class mat_ref_horiz_cat {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       if(j < ml->get_col_count())
 	return (*ml)(i,j);
       else
 	return (*mr)(i,j - ml->get_col_count());
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       if(j < ml->get_col_count())
 	return (*ml)(i,j);
@@ -356,11 +485,30 @@ class mat_ref_horiz_cat {
 	return (*mr)(i,j - ml->get_col_count());
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return ml->get_row_count(); };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return ml->get_col_count() + mr->get_col_count(); };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(ml->get_row_count(),ml->get_col_count() + mr->get_col_count()); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return ml->get_allocator(); };
     
     
@@ -429,6 +577,11 @@ class mat_ref_horiz_cat {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -437,6 +590,11 @@ class mat_ref_horiz_cat {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -520,14 +678,27 @@ class mat_const_ref_horiz_cat {
     mat_const_ref_horiz_cat(LeftMatrix&&, RightMatrix&&);
 #endif
   public:
+    /**
+     * Parametrized constructor.
+     * \param aML Matrix to fill the left part of the matrix.
+     * \param aMR Matrix to fill the right part of the matrix.
+     */
     mat_const_ref_horiz_cat(const LeftMatrix& aML, const RightMatrix& aMR) : ml(&aML), mr(&aMR) { 
       if(ml->get_row_count() != mr->get_row_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
+    /**
+     * Standard copy-constructor (shallow).
+     * \param aObj Right-hand-side of the copy.
+     */
     mat_const_ref_horiz_cat(const self& aObj) : ml(aObj.ml), mr(aObj.mr) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES    
+    /**
+     * Standard move-constructor.
+     * \param aObj Right-hand-side of the move.
+     */
     mat_const_ref_horiz_cat(self&& aObj) : ml(aObj.ml), mr(aObj.mr) { };
 #endif
     
@@ -535,6 +706,13 @@ class mat_const_ref_horiz_cat {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       if(j < ml->get_col_count())
 	return (*ml)(i,j);
@@ -542,11 +720,30 @@ class mat_const_ref_horiz_cat {
 	return (*mr)(i,j - ml->get_col_count());
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return ml->get_row_count(); };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return ml->get_col_count() + mr->get_col_count(); };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(ml->get_row_count(),ml->get_col_count() + mr->get_col_count()); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return ml->get_allocator(); };
     
     
@@ -564,6 +761,11 @@ class mat_const_ref_horiz_cat {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -572,6 +774,11 @@ class mat_const_ref_horiz_cat {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -746,7 +953,17 @@ mat_const_ref_horiz_cat<LeftMatrix,RightMatrix> >::type operator&(const LeftMatr
 
 
 
-
+/**
+ * This class template forms the vertical concatenation of two matrices, which it stores by value.
+ * This class makes the concatenation of the two matrices look as if it was just one matrix (and so,
+ * this class is an adaptor).
+ * 
+ * Models: ReadableMatrixConcept and all matrix concepts modeled by both LeftMatrix and RightMatrix, 
+ * except for ResizableMatrixConcept.
+ * 
+ * \tparam UpperMatrix Matrix type for the upper matrix.
+ * \tparam LowerMatrix Matrix type for the lower matrix.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 class mat_vert_cat {
   public:
@@ -821,12 +1038,26 @@ class mat_vert_cat {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       if(i < mu.get_row_count())
 	return mu(i,j);
       else
 	return ml(i - mu.get_row_count(),j);
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const {  
       if(i < mu.get_row_count())
 	return mu(i,j);
@@ -834,11 +1065,30 @@ class mat_vert_cat {
 	return ml(i - mu.get_row_count(),j);
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return mu.get_row_count() + ml.get_row_count(); };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return mu.get_col_count(); };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(mu.get_row_count() + ml.get_row_count(),mu.get_col_count()); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return mu.get_allocator(); };
     
     
@@ -907,6 +1157,11 @@ class mat_vert_cat {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -915,6 +1170,11 @@ class mat_vert_cat {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -959,7 +1219,18 @@ struct has_allocator_matrix< mat_vert_cat<UpperMatrix,LowerMatrix> > {
 
 
 
-
+/**
+ * This class template forms the vertical concatenation of two matrices, which it stores by reference 
+ * (internally by pointer).
+ * This class makes the concatenation of the two matrices look as if it was just one matrix (and so,
+ * this class is an adaptor).
+ * 
+ * Models: ReadableMatrixConcept and all matrix concepts modeled by both LeftMatrix and RightMatrix, 
+ * except for ResizableMatrixConcept.
+ * 
+ * \tparam UpperMatrix Matrix type for the upper matrix.
+ * \tparam LowerMatrix Matrix type for the lower matrix.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 class mat_ref_vert_cat {
   public:
@@ -1015,12 +1286,26 @@ class mat_ref_vert_cat {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       if(i < mu->get_row_count())
 	return (*mu)(i,j);
       else
 	return (*ml)(i - mu->get_row_count(),j);
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const {  
       if(i < mu->get_row_count())
 	return (*mu)(i,j);
@@ -1028,11 +1313,30 @@ class mat_ref_vert_cat {
 	return (*ml)(i - mu->get_row_count(),j);
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return mu->get_row_count() + ml->get_row_count(); };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return mu->get_col_count(); };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(mu->get_row_count() + ml->get_row_count(),mu->get_col_count()); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return mu->get_allocator(); };
     
     
@@ -1101,6 +1405,11 @@ class mat_ref_vert_cat {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -1109,6 +1418,11 @@ class mat_ref_vert_cat {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -1204,6 +1518,13 @@ class mat_const_ref_vert_cat {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const {  
       if(i < mu->get_row_count())
 	return (*mu)(i,j);
@@ -1211,11 +1532,30 @@ class mat_const_ref_vert_cat {
 	return (*ml)(i - mu->get_row_count(),j);
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return mu->get_row_count() + ml->get_row_count(); };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return mu->get_col_count(); };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(mu->get_row_count() + ml->get_row_count(),mu->get_col_count()); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return mu->get_allocator(); };
     
     /** WORKS FOR ALL
@@ -1232,6 +1572,11 @@ class mat_const_ref_vert_cat {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -1240,6 +1585,11 @@ class mat_const_ref_vert_cat {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
       for(size_type j = 0; j < result.get_col_count(); ++j)

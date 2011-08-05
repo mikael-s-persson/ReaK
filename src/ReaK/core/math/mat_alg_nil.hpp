@@ -50,6 +50,12 @@ namespace ReaK {
  * This class implements a place-holder or interface-implementation to represent
  * a nil matrix (all entries zero). This is useful to build for example a
  * block-matrix with some zero-matrix blocks, and, of course, the storage is minimal.
+ * 
+ * Models: ReadableMatrixConcept and ResizableMatrixConcept.
+ * 
+ * \tparam T Arithmetic type of the elements of the matrix.
+ * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or mat_alignment::column_major (default).
+ * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 class mat<T,mat_structure::nil,Alignment,Allocator> : public serialization::serializable {

@@ -78,6 +78,12 @@ struct is_fully_writable_matrix< mat<T,mat_structure::square,Alignment,Allocator
  * This class template specialization implements a matrix with square structure
  * and column-major alignment. This class is serializable and registered to the ReaK::rtti
  * system. This matrix type is dynamically resizable.
+ * 
+ * Models: ReadableMatrixConcept, WritableMatrixConcept, FullyWritableMatrixConcept,
+ * ResizableMatrixConcept, and DynAllocMatrixConcept.
+ * 
+ * \tparam T Arithmetic type of the elements of the matrix.
+ * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T,
 	  typename Allocator>
@@ -628,6 +634,12 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
  * This class template specialization implements a matrix with square structure
  * and row-major alignment. This class is serializable and registered to the ReaK::rtti
  * system. This matrix type is dynamically resizable.
+ * 
+ * Models: ReadableMatrixConcept, WritableMatrixConcept, FullyWritableMatrixConcept,
+ * ResizableMatrixConcept, and DynAllocMatrixConcept.
+ * 
+ * \tparam T Arithmetic type of the elements of the matrix.
+ * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T,
 	  typename Allocator>
