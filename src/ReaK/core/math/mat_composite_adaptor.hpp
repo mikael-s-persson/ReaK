@@ -642,7 +642,17 @@ struct has_allocator_matrix< mat_ref_horiz_cat<LeftMatrix,RightMatrix> > {
 
 
 
-
+/**
+ * This class template forms the horizontal concatenation of two matrices, which it takes by const-reference 
+ * (and stores by const-pointer, to be copyable). This class makes the concatenation of the two matrices 
+ * look as if it was just one matrix (and so, this class is an adaptor).
+ * 
+ * Models: ReadableMatrixConcept and all matrix concepts modeled by both LeftMatrix and RightMatrix, 
+ * except for ResizableMatrixConcept.
+ * 
+ * \tparam LeftMatrix Matrix type for the left matrix.
+ * \tparam RightMatrix Matrix type for the right matrix.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 class mat_const_ref_horiz_cat {
   public:
@@ -822,6 +832,16 @@ struct has_allocator_matrix< mat_const_ref_horiz_cat<LeftMatrix,RightMatrix> > {
 
 
 
+
+/**
+ * This function template will horizontally concatenate two matrices, by copying them into a 
+ * composite matrix.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The value of the left part of the composite matrix.
+ * \param ML The value of the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices, by copy.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -829,6 +849,15 @@ mat_horiz_cat<LeftMatrix,RightMatrix> >::type hcat_copy(const LeftMatrix& ML,con
   return mat_horiz_cat<LeftMatrix,RightMatrix>(ML,MR);
 };
 
+/**
+ * This function template will horizontally concatenate two non-const matrices, by reference to them in a 
+ * composite matrix.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The matrix storing the left part of the composite matrix.
+ * \param ML The matrix storing the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices, by reference.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -836,6 +865,15 @@ mat_ref_horiz_cat<LeftMatrix,RightMatrix> >::type hcat(LeftMatrix& ML,RightMatri
   return mat_ref_horiz_cat<LeftMatrix,RightMatrix>(ML,MR);
 };
 
+/**
+ * This function template will horizontally concatenate two const matrices, by reference to them in a 
+ * composite matrix.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The matrix storing the left part of the composite matrix.
+ * \param ML The matrix storing the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices, by const-reference.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -845,6 +883,17 @@ mat_const_ref_horiz_cat<LeftMatrix,RightMatrix> >::type hcat(const LeftMatrix& M
 
 #ifndef RK_ENABLE_CXX0X_FEATURES
 
+/**
+ * This operator template will horizontally concatenate two non-const matrices, by copying them into a 
+ * composite matrix. Making a copy is the only safe option in C++03 because it is not safe to assume
+ * that a const-reference is anything but an rvalue (unless explicitly implied by the use of the named
+ * function templates (vcat)).
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The value of the left part of the composite matrix.
+ * \param ML The value of the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices, by copy.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -854,6 +903,16 @@ mat_horiz_cat<LeftMatrix,RightMatrix> >::type operator&(const LeftMatrix& ML,con
 
 #else
 
+/**
+ * This function template will horizontally concatenate two rvalue matrices, by moving them into a 
+ * composite matrix. This is an overload that will be selected when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The value of the left part of the composite matrix.
+ * \param ML The value of the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices, by copy.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -861,6 +920,17 @@ mat_horiz_cat<LeftMatrix,RightMatrix> >::type hcat(LeftMatrix&& ML,RightMatrix&&
   return mat_horiz_cat<LeftMatrix,RightMatrix>(std::move(ML),std::move(MR));
 };
 
+/**
+ * This function template will horizontally concatenate one lvalue matrix and one rvalue matrix, by referring 
+ * to the former and moving the latter into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The matrix storing the left part of the composite matrix.
+ * \param ML The value of the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -868,6 +938,17 @@ mat_horiz_cat<mat_sub_block<LeftMatrix>,RightMatrix> >::type hcat(LeftMatrix& ML
   return mat_horiz_cat<mat_sub_block<LeftMatrix>,RightMatrix>(mat_sub_block<LeftMatrix>(ML),std::move(MR));
 };
 
+/**
+ * This function template will horizontally concatenate one rvalue matrix and one lvalue matrix, by referring 
+ * to the latter and moving the former into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The value of the left part of the composite matrix.
+ * \param ML The matrix storing the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -875,6 +956,17 @@ mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix> > >::type hcat(LeftMatrix&&
   return mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix> >(std::move(ML),mat_sub_block<RightMatrix>(MR));
 };
 
+/**
+ * This function template will horizontally concatenate one rvalue matrix and one lvalue matrix, by referring 
+ * to the latter and moving the former into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The matrix storing the left part of the composite matrix.
+ * \param ML The value of the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -882,6 +974,17 @@ mat_horiz_cat<mat_const_sub_block<LeftMatrix>,RightMatrix> >::type hcat(const Le
   return mat_horiz_cat<mat_const_sub_block<LeftMatrix>,RightMatrix>(mat_const_sub_block<LeftMatrix>(ML),std::move(MR));
 };
 
+/**
+ * This function template will horizontally concatenate one rvalue matrix and one lvalue matrix, by referring 
+ * to the latter and moving the former into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The value of the left part of the composite matrix.
+ * \param ML The matrix storing the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -891,6 +994,16 @@ mat_horiz_cat<LeftMatrix, mat_const_sub_block<RightMatrix> > >::type hcat(LeftMa
 
 
 
+/**
+ * This operator overload template will horizontally concatenate two rvalue matrices, by moving them into a 
+ * composite matrix. This is an overload that will be selected when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The value of the left part of the composite matrix.
+ * \param ML The value of the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices, by copy.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -898,6 +1011,17 @@ mat_horiz_cat<LeftMatrix,RightMatrix> >::type operator&(LeftMatrix&& ML,RightMat
   return mat_horiz_cat<LeftMatrix,RightMatrix>(std::move(ML),std::move(MR));
 };
 
+/**
+ * This operator overload template will horizontally concatenate one lvalue matrix and one rvalue matrix, by referring 
+ * to the former and moving the latter into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The matrix storing the left part of the composite matrix.
+ * \param ML The value of the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -905,6 +1029,17 @@ mat_horiz_cat<mat_sub_block<LeftMatrix>,RightMatrix> >::type operator&(LeftMatri
   return mat_horiz_cat<mat_sub_block<LeftMatrix>,RightMatrix>(mat_sub_block<LeftMatrix>(ML),std::move(MR));
 };
 
+/**
+ * This operator overload template will horizontally concatenate one rvalue matrix and one lvalue matrix, by referring 
+ * to the latter and moving the former into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The value of the left part of the composite matrix.
+ * \param ML The matrix storing the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -912,6 +1047,17 @@ mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix> > >::type operator&(LeftMat
   return mat_horiz_cat<LeftMatrix, mat_sub_block<RightMatrix> >(std::move(ML),mat_sub_block<RightMatrix>(MR));
 };
 
+/**
+ * This operator overload template will horizontally concatenate one rvalue matrix and one lvalue matrix, by referring 
+ * to the latter and moving the former into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The matrix storing the left part of the composite matrix.
+ * \param ML The value of the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -919,6 +1065,17 @@ mat_horiz_cat<mat_const_sub_block<LeftMatrix>,RightMatrix> >::type operator&(con
   return mat_horiz_cat<mat_const_sub_block<LeftMatrix>,RightMatrix>(mat_const_sub_block<LeftMatrix>(ML),std::move(MR));
 };
 
+/**
+ * This operator overload template will horizontally concatenate one rvalue matrix and one lvalue matrix, by referring 
+ * to the latter and moving the former into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The value of the left part of the composite matrix.
+ * \param ML The matrix storing the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -927,6 +1084,17 @@ mat_horiz_cat<LeftMatrix, mat_const_sub_block<RightMatrix> > >::type operator&(L
 };
 
 
+/**
+ * This operator overload template will horizontally concatenate two lvalue matrices, by referring 
+ * to them in a composite matrix. This is an overload that will be selected 
+ * when given non-const lvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The matrix storing the left part of the composite matrix.
+ * \param ML The matrix storing the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -934,6 +1102,17 @@ mat_ref_horiz_cat<LeftMatrix,RightMatrix> >::type operator&(LeftMatrix& ML,Right
   return mat_ref_horiz_cat<LeftMatrix,RightMatrix>(ML,MR);
 };
 
+/**
+ * This operator overload template will horizontally concatenate two lvalue const matrices, by referring 
+ * to them in a composite matrix. This is an overload that will be selected 
+ * when given const lvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
+ * \tparam RightMatrix Matrix type for the right part of the composite matrix.
+ * \param MU The matrix storing the left part of the composite matrix.
+ * \param ML The matrix storing the right part of the composite matrix.
+ * \return The composite matrix that horizontally concatenates the two given matrices.
+ */
 template <typename LeftMatrix, typename RightMatrix>
 typename boost::enable_if_c< is_readable_matrix<LeftMatrix>::value &&
                              is_readable_matrix<RightMatrix>::value,
@@ -991,38 +1170,69 @@ class mat_vert_cat {
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::rectangular);
     
   private:
-    UpperMatrix mu;
-    LowerMatrix ml;
+    UpperMatrix mu; ///< Holds the upper part of the matrix.
+    LowerMatrix ml; ///< Holds the lower part of the matrix.
   public:
+    /**
+     * Default constructor.
+     */
     mat_vert_cat() : mu(), ml() { };
     
+    /**
+     * Parametrized constructor.
+     * \param aMU Matrix to fill the upper part of the matrix.
+     * \param aML Matrix to fill the lower part of the matrix.
+     */
     mat_vert_cat(const UpperMatrix& aMU, const LowerMatrix& aML) : mu(aMU), ml(aML) { 
       if(ml.get_col_count() != mu.get_col_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
+    /**
+     * Copy-constructor.
+     */
     mat_vert_cat(const self& aObj) : mu(aObj.mu), ml(aObj.ml) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Parametrized Move-constructor.
+     * \param aMU Matrix to fill the upper part of the matrix.
+     * \param aML Matrix to fill the lower part of the matrix.
+     */
     mat_vert_cat(UpperMatrix&& aMU, LowerMatrix&& aML) : mu(std::move(aMU)), ml(std::move(aML)) { 
       if(ml.get_col_count() != mu.get_col_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
+    /**
+     * Move-constructor.
+     */
     mat_vert_cat(self&& aObj) : mu(std::move(aObj.mu)), ml(std::move(aObj.ml)) { };
 #endif
     
+    /**
+     * Standard swap function.
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.mu,rhs.mu);
       swap(lhs.ml,rhs.ml);
     };
     
-    self& operator=(const self rhs) {
+    /**
+     * Standard assignment operator (copy-and-swap and move-and-swap).
+     */
+    self& operator=(self rhs) {
       swap(*this,rhs);
       return *this;
     };
     
+    /**
+     * Templated assignment operator to assign the content of the matrix with the content 
+     * of a matrix of another type (Matrix)
+     * \tparam Matrix A readable matrix (models ReadableMatrixConcept)
+     * \param rhs Right-hand-side of the assignment.
+     */
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
                                  !boost::is_same<Matrix,self>::value,
@@ -1220,16 +1430,15 @@ struct has_allocator_matrix< mat_vert_cat<UpperMatrix,LowerMatrix> > {
 
 
 /**
- * This class template forms the vertical concatenation of two matrices, which it stores by reference 
- * (internally by pointer).
- * This class makes the concatenation of the two matrices look as if it was just one matrix (and so,
- * this class is an adaptor).
+ * This class template forms the vertical concatenation of two matrices, which it takes by reference 
+ * (and stores by pointer, to be copyable). This class makes the concatenation of the two matrices 
+ * look as if it was just one matrix (and so, this class is an adaptor).
  * 
- * Models: ReadableMatrixConcept and all matrix concepts modeled by both LeftMatrix and RightMatrix, 
+ * Models: ReadableMatrixConcept and all matrix concepts modeled by both UpperMatrix and LowerMatrix, 
  * except for ResizableMatrixConcept.
  * 
- * \tparam UpperMatrix Matrix type for the upper matrix.
- * \tparam LowerMatrix Matrix type for the lower matrix.
+ * \tparam UpperMatrix Matrix type for the left matrix.
+ * \tparam LowerMatrix Matrix type for the right matrix.
  */
 template <typename UpperMatrix, typename LowerMatrix>
 class mat_ref_vert_cat {
@@ -1258,20 +1467,37 @@ class mat_ref_vert_cat {
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::rectangular);
     
   private:
-    UpperMatrix* mu;
-    LowerMatrix* ml;
+    UpperMatrix* mu; ///< Refers to the upper part of the matrix.
+    LowerMatrix* ml; ///< Refers to the lower part of the matrix.
   public:
+    /**
+     * Parametrized constructor.
+     * \param aMU Matrix to become the upper part of the matrix.
+     * \param aML Matrix to become the lower part of the matrix.
+     */
     mat_ref_vert_cat(UpperMatrix& aMU, LowerMatrix& aML) : mu(&aMU), ml(&aML) { 
       if(ml->get_col_count() != mu->get_col_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
+    /**
+     * Standard copy-constructor (shallow-copy).
+     */
     mat_ref_vert_cat(const self& aObj) : mu(aObj.mu), ml(aObj.ml) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard move-constructor (shallow-move).
+     */
     mat_ref_vert_cat(self&& aObj) : mu(aObj.mu), ml(aObj.ml) { };
 #endif
     
+    /**
+     * Templated assignment operator to assign the content of the matrix with the content 
+     * of a matrix of another type (Matrix)
+     * \tparam Matrix A readable matrix (models ReadableMatrixConcept)
+     * \param rhs Right-hand-side of the assignment.
+     */
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
     self& >::type operator=(const Matrix& rhs) {
@@ -1467,7 +1693,17 @@ struct has_allocator_matrix< mat_ref_vert_cat<UpperMatrix,LowerMatrix> > {
 
 
 
-
+/**
+ * This class template forms the vertical concatenation of two matrices, which it takes by const-reference 
+ * (and stores by const-pointer, to be copyable). This class makes the concatenation of the two matrices 
+ * look as if it was just one matrix (and so, this class is an adaptor).
+ * 
+ * Models: ReadableMatrixConcept and all matrix concepts modeled by both UpperMatrix and LowerMatrix, 
+ * except for ResizableMatrixConcept, WritableMatrixConcept, and FullyWritableMatrixConcept.
+ * 
+ * \tparam UpperMatrix Matrix type for the left matrix.
+ * \tparam LowerMatrix Matrix type for the right matrix.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 class mat_const_ref_vert_cat {
   public:
@@ -1503,14 +1739,25 @@ class mat_const_ref_vert_cat {
     mat_const_ref_vert_cat(UpperMatrix&&, LowerMatrix&&);
 #endif
   public:
+    /**
+     * Parametrized constructor.
+     * \param aMU The matrix which will become the upper part of this matrix.
+     * \param aML The matrix which will become the lower part of this matrix.
+     */
     mat_const_ref_vert_cat(const UpperMatrix& aMU, const LowerMatrix& aML) : mu(&aMU), ml(&aML) { 
       if(ml->get_col_count() != mu->get_col_count())
 	throw std::range_error("Matrix dimensions mismatch.");
     };
     
+    /**
+     * Standard copy-constructor (shallow-copy).
+     */
     mat_const_ref_vert_cat(const self& aObj) : mu(aObj.mu), ml(aObj.ml) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard move-constructor (shallow-move).
+     */
     mat_const_ref_vert_cat(self&& aObj) : mu(aObj.mu), ml(aObj.ml) { };
 #endif
     
@@ -1635,7 +1882,15 @@ struct has_allocator_matrix< mat_const_ref_vert_cat<UpperMatrix,LowerMatrix> > {
 
 
 
-
+/**
+ * This function template will vertically concatenate two matrices, by copying them into a 
+ * composite matrix.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The value of the upper part of the composite matrix.
+ * \param ML The value of the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices, by copy.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1643,6 +1898,15 @@ mat_vert_cat<UpperMatrix,LowerMatrix> >::type vcat_copy(const UpperMatrix& MU,co
   return mat_vert_cat<UpperMatrix,LowerMatrix>(MU,ML);
 };
 
+/**
+ * This function template will vertically concatenate two non-const matrices, by reference to them in a 
+ * composite matrix.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The matrix storing the upper part of the composite matrix.
+ * \param ML The matrix storing the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices, by reference.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1650,6 +1914,15 @@ mat_ref_vert_cat<UpperMatrix,LowerMatrix> >::type vcat(UpperMatrix& MU,LowerMatr
   return mat_ref_vert_cat<UpperMatrix,LowerMatrix>(MU,ML);
 };
 
+/**
+ * This function template will vertically concatenate two const matrices, by reference to them in a 
+ * composite matrix.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The matrix storing the upper part of the composite matrix.
+ * \param ML The matrix storing the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices, by const-reference.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1659,6 +1932,17 @@ mat_const_ref_vert_cat<UpperMatrix,LowerMatrix> >::type vcat(const UpperMatrix& 
 
 #ifndef RK_ENABLE_CXX0X_FEATURES
 
+/**
+ * This operator template will vertically concatenate two non-const matrices, by copying them into a 
+ * composite matrix. Making a copy is the only safe option in C++03 because it is not safe to assume
+ * that a const-reference is anything but an rvalue (unless explicitly implied by the use of the named
+ * function templates (vcat)).
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The value of the upper part of the composite matrix.
+ * \param ML The value of the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices, by copy.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1668,6 +1952,16 @@ mat_vert_cat<UpperMatrix,LowerMatrix> >::type operator|(const UpperMatrix& MU,co
 
 #else
 
+/**
+ * This function template will vertically concatenate two rvalue matrices, by moving them into a 
+ * composite matrix. This is an overload that will be selected when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The value of the upper part of the composite matrix.
+ * \param ML The value of the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices, by copy.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1675,6 +1969,17 @@ mat_vert_cat<UpperMatrix,LowerMatrix> >::type vcat(UpperMatrix&& MU,LowerMatrix&
   return mat_vert_cat<UpperMatrix,LowerMatrix>(std::move(MU),std::move(ML));
 };
 
+/**
+ * This function template will vertically concatenate one lvalue matrix and one rvalue matrix, by referring 
+ * to the former and moving the latter into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The matrix storing the upper part of the composite matrix.
+ * \param ML The value of the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1682,6 +1987,17 @@ mat_vert_cat< mat_sub_block<UpperMatrix> ,LowerMatrix> >::type vcat(UpperMatrix&
   return mat_vert_cat<mat_sub_block<UpperMatrix>,LowerMatrix>(mat_sub_block<UpperMatrix>(MU),std::move(ML));
 };
 
+/**
+ * This function template will vertically concatenate one rvalue matrix and one lvalue matrix, by referring 
+ * to the latter and moving the former into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The value of the upper part of the composite matrix.
+ * \param ML The matrix storing the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1689,6 +2005,17 @@ mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix> > >::type vcat(UpperMatrix&
   return mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix> >(std::move(MU),mat_sub_block<LowerMatrix>(ML));
 };
 
+/**
+ * This function template will vertically concatenate one rvalue matrix and one lvalue matrix, by referring 
+ * to the latter and moving the former into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The matrix storing the upper part of the composite matrix.
+ * \param ML The value of the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1696,6 +2023,17 @@ mat_vert_cat< mat_const_sub_block<UpperMatrix> ,LowerMatrix> >::type vcat(const 
   return mat_vert_cat<mat_const_sub_block<UpperMatrix>,LowerMatrix>(mat_const_sub_block<UpperMatrix>(MU),std::move(ML));
 };
 
+/**
+ * This function template will vertically concatenate one rvalue matrix and one lvalue matrix, by referring 
+ * to the latter and moving the former into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The value of the upper part of the composite matrix.
+ * \param ML The matrix storing the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1706,6 +2044,16 @@ mat_vert_cat<UpperMatrix, mat_const_sub_block<LowerMatrix> > >::type vcat(UpperM
 
 
 
+/**
+ * This operator overload template will vertically concatenate two rvalue matrices, by moving them into a 
+ * composite matrix. This is an overload that will be selected when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The value of the upper part of the composite matrix.
+ * \param ML The value of the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices, by copy.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1713,6 +2061,17 @@ mat_vert_cat<UpperMatrix,LowerMatrix> >::type operator|(UpperMatrix&& MU,LowerMa
   return mat_vert_cat<UpperMatrix,LowerMatrix>(std::move(MU),std::move(ML));
 };
 
+/**
+ * This operator overload template will vertically concatenate one lvalue matrix and one rvalue matrix, by referring 
+ * to the former and moving the latter into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The matrix storing the upper part of the composite matrix.
+ * \param ML The value of the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1720,6 +2079,17 @@ mat_vert_cat<mat_sub_block<UpperMatrix>,LowerMatrix> >::type operator|(UpperMatr
   return mat_vert_cat<mat_sub_block<UpperMatrix>,LowerMatrix>(mat_sub_block<UpperMatrix>(MU),std::move(ML));
 };
 
+/**
+ * This operator overload template will vertically concatenate one rvalue matrix and one lvalue matrix, by referring 
+ * to the latter and moving the former into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The value of the upper part of the composite matrix.
+ * \param ML The matrix storing the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1727,6 +2097,17 @@ mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix> > >::type operator|(UpperMa
   return mat_vert_cat<UpperMatrix, mat_sub_block<LowerMatrix> >(std::move(MU),mat_sub_block<LowerMatrix>(ML));
 };
 
+/**
+ * This operator overload template will vertically concatenate one rvalue matrix and one lvalue matrix, by referring 
+ * to the latter and moving the former into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The matrix storing the upper part of the composite matrix.
+ * \param ML The value of the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1734,6 +2115,17 @@ mat_vert_cat<mat_const_sub_block<UpperMatrix>,LowerMatrix> >::type operator|(con
   return mat_vert_cat<mat_const_sub_block<UpperMatrix>,LowerMatrix>(mat_const_sub_block<UpperMatrix>(MU),std::move(ML));
 };
 
+/**
+ * This operator overload template will vertically concatenate one rvalue matrix and one lvalue matrix, by referring 
+ * to the latter and moving the former into a composite matrix. This is an overload that will be selected 
+ * when given rvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The value of the upper part of the composite matrix.
+ * \param ML The matrix storing the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1745,6 +2137,17 @@ mat_vert_cat<UpperMatrix, mat_const_sub_block<LowerMatrix> > >::type operator|(U
 
 
 
+/**
+ * This operator overload template will vertically concatenate two lvalue matrices, by referring 
+ * to them in a composite matrix. This is an overload that will be selected 
+ * when given non-const lvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The matrix storing the upper part of the composite matrix.
+ * \param ML The matrix storing the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,
@@ -1752,6 +2155,17 @@ mat_ref_vert_cat<UpperMatrix,LowerMatrix> >::type operator|(UpperMatrix& MU,Lowe
   return mat_ref_vert_cat<UpperMatrix,LowerMatrix>(MU,ML);
 };
 
+/**
+ * This operator overload template will vertically concatenate two lvalue const matrices, by referring 
+ * to them in a composite matrix. This is an overload that will be selected 
+ * when given const lvalues.
+ * \note Requires C++0x support for rvalue-references and move-semantics.
+ * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
+ * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
+ * \param MU The matrix storing the upper part of the composite matrix.
+ * \param ML The matrix storing the lower part of the composite matrix.
+ * \return The composite matrix that vertically concatenates the two given matrices.
+ */
 template <typename UpperMatrix, typename LowerMatrix>
 typename boost::enable_if_c< is_readable_matrix<UpperMatrix>::value &&
                              is_readable_matrix<LowerMatrix>::value,

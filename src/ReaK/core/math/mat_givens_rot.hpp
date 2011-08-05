@@ -1,3 +1,16 @@
+/**
+ * \file mat_givens_rot.hpp
+ * 
+ * This library provides the means to perform Givens rotations on matrices, efficiently. 
+ * This library provides a class template that can be constructed from the relevant elements 
+ * to be rotated by the Givens rotation, and it creates a representation of a Givens rotation 
+ * that can then be used to multiply a matrix (or sub-matrix) efficiently (with minimal calculations).
+ * 
+ * Givens rotations are useful in a number of matrix numerical methods. It is a fundamental construct.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date July 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -29,7 +42,24 @@
 
 namespace ReaK {
 
-
+/**
+ * This class represents a Givens rotation as a 2x2 rotation matrix. It can be constructed 
+ * by providing the two components of a column-vector (a,b) such that the resulting Givens 
+ * rotation G has the effect of zero-ing the second element: G * (a, b) = (r, 0) 
+ * (where (x,y) are a column-vectors). To apply a Givens rotation efficiently, it is preferred 
+ * to use the givens_rot_prod function templates, although this Givens rotation matrix models 
+ * a readable matrix concept and can thus be involved in other matrix arithmetic (although rarely 
+ * useful). In order to apply the Givens rotation to a matrix with larger dimensions, which is most 
+ * often the case, one can use the classes provided in mat_views.hpp and mat_composite_adaptor.hpp to 
+ * create such sub-matrices and composites of them to extract only the couple of rows or columns affected
+ * by the rotation (the resulting sub-matrix (or matrix-view) should have the appropriate dimensions, either
+ * row-count of 2 or column-count of 2, depending on the order of rotation). This class also provides
+ * friend functions to perform the transposition of the Givens rotation (and effectively, its inverse).
+ * 
+ * Models: ReadableMatrixConcept.
+ * 
+ * \tparam T The value-type of the elements of the matrix.
+ */
 template <typename T>
 class givens_rot_matrix {
   public:
@@ -51,8 +81,8 @@ class givens_rot_matrix {
     BOOST_STATIC_CONSTANT(mat_alignment::tag, alignment = mat_alignment::column_major);
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::orthogonal);
     
-    value_type c;
-    value_type s;
+    value_type c; ///< Holds the cosine of the angle of rotation.
+    value_type s; ///< Holds the sine of the angle of rotation.
     
   private:
     void calculate_givens(const value_type& NumTol) {      
@@ -75,50 +105,98 @@ class givens_rot_matrix {
       };
     };
   public:
+    /**
+     * Set the Givens rotation by providing the two components of a column-vector (aA,aB) such that the 
+     * resulting Givens rotation G has the effect of zero-ing the second element: G * (a, b) = (r, 0) 
+     * (where (x,y) are a column-vectors).
+     * \param aA The first component of the vector.
+     * \param aB The second component of the vector.
+     * \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
+     */
     void set(const value_type& aA, const value_type& aB, const value_type& NumTol = value_type(1E-8)) {
       c = aA;
       s = aB;
       calculate_givens(NumTol);
     };
     
+    /**
+     * Default constructor.
+     */
+    givens_rot_matrix() : c(1.0), s(0.0) { };
+    
+    /**
+     * Constructs the Givens rotation by providing the two components of a column-vector (aA,aB) such that the 
+     * resulting Givens rotation G has the effect of zero-ing the second element: G * (a, b) = (r, 0) 
+     * (where (x,y) are a column-vectors).
+     * \param aA The first component of the vector.
+     * \param aB The second component of the vector.
+     * \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
+     */
     explicit givens_rot_matrix(const value_type& aA, const value_type& aB, const value_type& NumTol = value_type(1E-8)) :
                                c(aA), s(aB) {
       calculate_givens(NumTol);
     };
     
-    givens_rot_matrix(const self& rhs) : c(rhs.c), s(rhs.s) { };
+    //Default copy-constructor and assignment operators are correct.
     
-    friend void swap(self& lhs, self& rhs) throw() {
-      using std::swap;
-      swap(lhs.c,rhs.c);
-      swap(lhs.s,rhs.s);
-    };
-    
-    self& operator=(self rhs) {
-      swap(*this,rhs);
-      return *this;
-    };
-    
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const { return 2; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const { return 2; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(2,2); };
     
+    /**
+     * Returns the allocator object of the underlying container, which is none at all in this case.
+     * \return the allocator object of the underlying container, which is none at all in this case.
+     */
     allocator_type get_allocator() const { return; };
     
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) { return (i == j ? c : (i - j) * s); };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend self transpose(self M) {
       M.s = -M.s;
       return M;
     };
-    friend self transpose_move(self& M) {
-      self result;
-      swap(M,result);
-      result.s = - result.s;
-      return result;
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
+    friend self transpose_move(self M) {
+      M.s = -M.s;
+      return M;
     };
-    
+    /**
+     * Returns the trace of the matrix M.
+     * \param M The matrix.
+     * \return The trace of M.
+     */
     friend value_type trace(const self& M) {
       return M.c + M.c;
     };
@@ -182,7 +260,17 @@ struct is_diagonal_matrix< givens_rot_matrix<T> > {
 
 
 
-
+/**
+ * This function template allows for efficient post-multiplication of a matrix with a 
+ * Givens rotation matrix. This is generally more efficient then to perform a generic
+ * matrix multiplication (and it is done in-place).
+ * \tparam Matrix A fully-writable matrix type.
+ * \tparam T A value-type which is compatible with the value-type of the Matrix type (for arithmetic).
+ * \param A The matrix to be multiplied by the Givens rotation, stores, as output, the resulting matrix.
+ * \param G The Givens rotation which will post-multiply A.
+ * \param j The first column of A affected by the rotation (default 0).
+ * \param k The second column of A affector by the rotation (default 1).
+ */
 template <typename Matrix, typename T>
 typename boost::enable_if_c< is_fully_writable_matrix<Matrix>::value,
 void >::type givens_rot_prod(Matrix& A, const givens_rot_matrix<T>& G,
@@ -203,6 +291,17 @@ void >::type givens_rot_prod(Matrix& A, const givens_rot_matrix<T>& G,
   return;
 };
 
+/**
+ * This function template allows for efficient pre-multiplication of a matrix with a 
+ * Givens rotation matrix. This is generally more efficient then to perform a generic
+ * matrix multiplication (and it is done in-place).
+ * \tparam Matrix A fully-writable matrix type.
+ * \tparam T A value-type which is compatible with the value-type of the Matrix type (for arithmetic).
+ * \param G The Givens rotation which will pre-multiply A.
+ * \param A The matrix to be multiplied by the Givens rotation, stores, as output, the resulting matrix.
+ * \param j The first row of A affected by the rotation (default 0).
+ * \param k The second row of A affector by the rotation (default 1).
+ */
 template <typename Matrix, typename T>
 typename boost::enable_if_c< is_fully_writable_matrix<Matrix>::value,
 void >::type givens_rot_prod(const givens_rot_matrix<T>& G, Matrix& A,

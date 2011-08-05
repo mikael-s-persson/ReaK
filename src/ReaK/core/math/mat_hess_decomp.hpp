@@ -1,3 +1,19 @@
+/**
+ * \file mat_hess_decomp.hpp
+ * 
+ * This library provides methods to perform the Upper-Hessenberg decomposition of a matrix as 
+ * well as the Hessenberg-Triangular reduction of two matrices. These algorithms form the first 
+ * step in many algorithms such as the QR algorithm, the QZ algorithm, the Real-Schur decomposition, 
+ * etc. These algorithms were implemented as described in Golub and van Loan's classic book.
+ * 
+ * This library simply provides various versions of the same algorithm (same underlying implementation,
+ * with different interfaces). Versions differ based mostly on the type of matrices fed to the function 
+ * overloads and whether the orthogonal matrices that achieve the decompositions are required or not 
+ * (since explicitly forming those matrices can be expensive and should be avoided if it's not needed).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date July 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -141,6 +157,9 @@ void reduce_HessTri_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix3* Z, typenam
 /**
  * Performs the Upper-Hessenberg decomposition on a matrix, using the Householder method.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \tparam Matrix3 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param Q holds as output, the unitary square matrix Q.
  * \param H holds as output, the upper-hessenberg matrix R in A = Q H Q^T.
@@ -168,6 +187,9 @@ void >::type decompose_Hess(const Matrix1& A, Matrix2& Q, Matrix3& H, typename m
 /**
  * Performs the Upper-Hessenberg decomposition on a matrix, using the Householder method.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A writable matrix type.
+ * \tparam Matrix3 A writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param Q holds as output, the unitary square matrix Q.
  * \param H holds as output, the upper-hessenberg matrix R in A = Q H Q^T.
@@ -201,6 +223,8 @@ void >::type decompose_Hess(const Matrix1& A, Matrix2& Q, Matrix3& H, typename m
 /**
  * Performs the Upper-Hessenberg decomposition on a matrix, using the Householder method.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param H holds as output, the upper-hessenberg matrix R in A = Q H Q^T.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
@@ -225,6 +249,8 @@ void >::type decompose_Hess(const Matrix1& A, Matrix2& H, typename mat_traits<Ma
 /**
  * Performs the Upper-Hessenberg decomposition on a matrix, using the Householder method.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param H holds as output, the upper-hessenberg matrix R in A = Q H Q^T.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
@@ -257,6 +283,12 @@ void >::type decompose_Hess(const Matrix1& A, Matrix2& H, typename mat_traits<Ma
  * upper-Hessenberg and R is upper-triangular, and are "similar" to matrices A and B through 
  * the transformation H = Q^T * A * Z and R = Q^T * B * Z, where both Q and Z are orthogonal.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A fully-writable matrix type.
+ * \tparam Matrix4 A fully-writable matrix type.
+ * \tparam Matrix5 A fully-writable matrix type.
+ * \tparam Matrix6 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param B square matrix with row-count == column-count.
  * \param H holds as output, the upper-hessenberg matrix H in H = Q^T A Z.
@@ -298,6 +330,12 @@ void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B,
  * upper-Hessenberg and R is upper-triangular, and are "similar" to matrices A and B through 
  * the transformation H = Q^T * A * Z and R = Q^T * B * Z, where both Q and Z are orthogonal.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A writable matrix type.
+ * \tparam Matrix4 A writable matrix type.
+ * \tparam Matrix5 A writable matrix type.
+ * \tparam Matrix6 A writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param B square matrix with row-count == column-count.
  * \param H holds as output, the upper-hessenberg matrix H in H = Q^T A Z.
@@ -348,6 +386,10 @@ void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B,
  * upper-Hessenberg and R is upper-triangular, and are "similar" to matrices A and B through 
  * the transformation H = Q^T * A * Z and R = Q^T * B * Z, where both Q and Z are orthogonal.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A fully-writable matrix type.
+ * \tparam Matrix4 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param B square matrix with row-count == column-count.
  * \param H holds as output, the upper-hessenberg matrix H in H = Q^T A Z.
@@ -381,6 +423,10 @@ void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B,
  * upper-Hessenberg and R is upper-triangular, and are "similar" to matrices A and B through 
  * the transformation H = Q^T * A * Z and R = Q^T * B * Z, where both Q and Z are orthogonal.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A writable matrix type.
+ * \tparam Matrix4 A writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param B square matrix with row-count == column-count.
  * \param H holds as output, the upper-hessenberg matrix H in H = Q^T A Z.

@@ -11,6 +11,14 @@
  * by the matrix and some right-hand-side. This library provides all those methods, overloaded 
  * according to the types of matrices given to it (to do in-place algorithms when possible).
  * 
+ * According to performance tests, PLU methods are as good as Cholesky methods in terms of speed.
+ * And they are both the best for well-conditioned matrices. For ill-conditioned matrices, QR-decomposition
+ * methods are only a little slower then PLU/Cholesky (about 20% slower, same time-complexity) but provide better
+ * numerical stability. The Jacobi methods are significantly slower, but this implementation is in need 
+ * of a revision for performance enhancement. And, of course, SVD is also very slow (slightly faster than 
+ * Jacobi) but it is based on a LAPACK implementation that is very poorly written, and it has not been 
+ * updated since.
+ * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date June 2011
  */

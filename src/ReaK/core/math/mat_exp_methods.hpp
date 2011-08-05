@@ -1,3 +1,17 @@
+/**
+ * \file mat_exp_methods.hpp
+ * 
+ * This library provides a function to approximate a matrix exponential using Pade approximant (classic Pade 
+ * Square-and-Sum method). This function uses the help of a linear equation solver, which is a functor that 
+ * wraps any method to solve a linear system of equations involving square matrices (this is a customization 
+ * point for the user, where any of the many linear equation solvers can be used, whichever is deemed 
+ * appropriate).
+ * 
+ * 
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date June 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -33,7 +47,24 @@
 
 namespace ReaK {
 
-
+/**
+ * This function approximates a matrix exponential using Pade approximant (classic Pade 
+ * Square-and-Sum method). This function uses the help of a linear equation solver, which is a functor that 
+ * wraps any method to solve a linear system of equations involving square matrices (this is a customization 
+ * point for the user, where any of the many linear equation solvers can be used, whichever is deemed 
+ * appropriate).
+ * \tparam Matrix1 Should be a square, readable matrix type.
+ * \tparam Matrix2 Should be a fully-writable matrix type (which can be square).
+ * \tparam LinearEqSolver Should be a functor that can be called to solve a linear system of equation (see examples linked to existing linear equation solvers).
+ * \param A The matrix that is the operand to the exponential.
+ * \param X The matrix that will store, as output, the result.
+ * \param linsolve The functor that can solve a linear system of equations.
+ * \param NumTol The tolerance at which a value is considered zero, used for singularity detection.
+ * 
+ * \throw singularity_error if any of the linear systems involved in the computation turns out to involve a singular matrix, 
+ *                          meaning that the problem is ill-conditioned.
+ * 
+ */
 template <typename Matrix1, typename Matrix2, typename LinearEqSolver>
 typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_square_matrix<Matrix1>::value &&

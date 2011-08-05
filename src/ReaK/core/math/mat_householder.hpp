@@ -1,3 +1,16 @@
+/**
+ * \file mat_householder.hpp
+ * 
+ * This library provides the means to perform Householder reflections on matrices, efficiently. 
+ * This library provides a class template that can be constructed from the relevant elements 
+ * to be reflected by the Householder reflection, and it creates a representation of a Householder reflection 
+ * that can then be used to multiply a matrix (or sub-matrix) efficiently (with minimal calculations).
+ * 
+ * Householder reflection are useful in a number of matrix numerical methods. It is a fundamental construct.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date July 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson

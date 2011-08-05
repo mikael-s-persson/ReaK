@@ -1,3 +1,22 @@
+/**
+ * \file mat_gaussian_elim.hpp
+ * 
+ * This library provides a number of functions related to performing a Gaussian elimination on a 
+ * matrix, e.g., to invert a matrix and to solve a linear system. Most implementations provided 
+ * are based on the PLU decomposition (Crout's method). PLU decomposition is pretty efficient and 
+ * is generally preferred if there is good reasons to believe that the matrix involved will always
+ * be well-conditioned. If a matrix cannot be guaranteed to be well-conditioned, algorithms such as 
+ * QR-decomposition or methods specific to symmetric matrices are preferred (Cholesky), or even SVD.
+ * 
+ * According to performance tests, PLU methods are as good as Cholesky methods in terms of speed.
+ * And they are both the best for well-conditioned matrices. For ill-conditioned matrices, QR-decomposition
+ * methods are only a little slower then PLU (about 20% slower, same time-complexity) but provide better
+ * numerical stability. The Jacobi methods are significantly slower, but this implementation is in need 
+ * of a revision for performance enhancement. And, of course, SVD is also very slow (slightly faster than 
+ * Jacobi) but it is based on a LAPACK implementation that is very poorly written, and it has not been 
+ * updated since.
+ * 
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -37,12 +56,14 @@ namespace ReaK {
 
 /**
  * Inverts a matrix using the Gauss-Jordan elimination on the identity matrix.
- * \note that PLU decomposition or any other method is faster, much faster (20 times faster or more).
+ * \note that PLU decomposition or any other method is faster for matrix sizes of more than 20x20.
  *
- * \param A well-conditioned, square (Size x Size), real, full-rank matrix to be inverted.
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \param A A well-conditioned, square (Size x Size), real, full-rank matrix to be inverted.
+ * \param A_inv The matrix which stores, as output, the inverse of A.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero.
- * \return the inverse of A.
  *
  * \throws singularity_error if the matrix A is numerically singular (or rank-deficient).
  * \throws std::range_error if the matrix A is not a square matrix.
@@ -104,12 +125,14 @@ void >::type invert_gaussian(const Matrix1& A, Matrix2& A_inv, typename mat_trai
 
 /**
  * Inverts a matrix using the Gauss-Jordan elimination on the identity matrix.
- * \note that PLU decomposition or any other method is faster, much faster (20 times faster or more).
- *
+ * \note that PLU decomposition or any other method is faster for matrix sizes of more than 20x20.
+ * 
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 Any writable matrix type.
  * \param A well-conditioned, square (Size x Size), real, full-rank matrix to be inverted.
+ * \param A_inv The matrix which stores, as output, the inverse of A.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero.
- * \return the inverse of A.
  *
  * \throws singularity_error if the matrix A is numerically singular (or rank-deficient).
  * \throws std::range_error if the matrix A is not a square matrix.
@@ -253,7 +276,11 @@ void >::type linsolve_PLU_dispatch(Matrix1& A, Matrix2& b, IndexVector& P, typen
 
 /**
  * Solves the linear problem AX = B using PLU decomposition as defined by Crout`s method.
+ * \note To solve a linear system involving vectors for X and B, use the Matrix-Vector Adaptors (mat_vector_adaptor.hpp).
  *
+ * \tparam Matrix1 A writable matrix type.
+ * \tparam Matrix2 A writable matrix type.
+ * \tparam IndexVector A writable vector type.
  * \param A well-conditioned, square (Size x Size), real, full-rank matrix which multiplies x.
  *          As output, A stores the LU decomposition, permutated by P.
  * \param b stores, as input, the RHS of the linear system of equation and stores, as output,
@@ -285,7 +312,10 @@ void >::type linsolve_PLU(Matrix1& A, Matrix2& b, IndexVector& P, typename mat_t
 
 /**
  * Solves the linear problem AX = B using PLU decomposition as defined by Crout`s method.
- *
+ * \note To solve a linear system involving vectors for X and B, use the Matrix-Vector Adaptors (mat_vector_adaptor.hpp).
+ * 
+ * \tparam Matrix1 A writable matrix type.
+ * \tparam Matrix2 A writable matrix type.
  * \param A well-conditioned, square (Size x Size), real, full-rank matrix which multiplies x.
  *          As output, A stores the LU decomposition, permutated by P.
  * \param b stores, as input, the RHS of the linear system of equation and stores, as output,
@@ -309,6 +339,9 @@ void >::type linsolve_PLU(Matrix1& A, Matrix2& b, typename mat_traits<Matrix1>::
 /**
  * Solves the linear problem AX = B using PLU decomposition as defined by Crout`s method.
  *
+ * \tparam Matrix A writable matrix type.
+ * \tparam Vector A writable vector type.
+ * \tparam IndexVector A writable vector type.
  * \param A well-conditioned, square (Size x Size), real, full-rank matrix which multiplies x.
  *          As output, A stores the LU decomposition, permutated by P.
  * \param b stores, as input, the RHS of the linear system of equation and stores, as output,
@@ -340,12 +373,12 @@ void >::type linsolve_PLU(Matrix& A, Vector& b, IndexVector& P, typename mat_tra
 /**
  * Solves the linear problem AX = B using PLU decomposition as defined by Crout`s method.
  *
+ * \tparam Matrix A writable matrix type.
+ * \tparam Vector A writable vector type.
  * \param A well-conditioned, square (Size x Size), real, full-rank matrix which multiplies x.
  *          As output, A stores the LU decomposition, permutated by P.
  * \param b stores, as input, the RHS of the linear system of equation and stores, as output,
  *          the solution vector X.
- * \param P vector of Size unsigned integer elements holding, as output, the permutations done
- *          the rows of matrix A during the decomposition to LU.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero.
  *
@@ -380,10 +413,12 @@ struct PLU_linsolver {
 /**
  * Inverts a matrix using PLU decomposition as defined by Crout`s method.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A writable matrix type.
  * \param A well-conditioned, square (Size x Size), real, full-rank matrix to be inverted.
+ * \param A_inv The matrix which stores, as output, the inverse of A.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero.
- * \return the inverse of A.
  *
  * \throws singularity_error if the matrix A is numerically singular (or rank-deficient).
  * \throws std::range_error if the matrix A is not a square matrix.
