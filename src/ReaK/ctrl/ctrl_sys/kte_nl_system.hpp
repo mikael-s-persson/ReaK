@@ -1,3 +1,15 @@
+/**
+ * \file kte_nl_system.hpp
+ * 
+ * This library provides a class which models a continuous-time state-space system as used in the 
+ * ReaK::ctrl libraries (see SSSystemConcept) while modeling a multibody dynamics system using the 
+ * ReaK::kte libraries. This class thus allows the user to enjoy the facilities of ReaK::kte to 
+ * model a wide array of multi-body dynamics systems while being able to use control and estimation 
+ * code provided by ReaK::ctrl.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date June 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -44,19 +56,30 @@ namespace ReaK {
 
 namespace ctrl {
 
-
+/**
+ * This class models a continuous-time state-space system as used in the 
+ * ReaK::ctrl libraries (see SSSystemConcept) while modeling a multibody dynamics system using the 
+ * ReaK::kte libraries. This class thus allows the user to enjoy the facilities of ReaK::kte to 
+ * model a wide array of multi-body dynamics systems while being able to use control and estimation 
+ * code provided by ReaK::ctrl.
+ * 
+ * Models: SSSystemConcept.
+ * 
+ * \note This class can also serve as an example of how to use KTE model (refer to the pendulum example in the test functions of the KTE code for more complete code).
+ * \note This class has a number of public data members which are the interface of this class.
+ */
 class kte_nl_system : public named_object {
   public:
     
-    std::vector< boost::shared_ptr< gen_coord<double> > > dofs_gen;
-    std::vector< boost::shared_ptr< frame_2D<double> > >  dofs_2D;
-    std::vector< boost::shared_ptr< frame_3D<double> > >  dofs_3D;
+    std::vector< boost::shared_ptr< gen_coord<double> > > dofs_gen; ///< Holds the list of generalized coordinates which are part of the state variables.
+    std::vector< boost::shared_ptr< frame_2D<double> > >  dofs_2D; ///< Holds the list of 2D coordinate frames which are part of the state variables.
+    std::vector< boost::shared_ptr< frame_3D<double> > >  dofs_3D; ///< Holds the list of 3D coordinate frames which are part of the state variables.
     
-    std::vector< boost::shared_ptr< kte::system_input > > inputs;
-    std::vector< boost::shared_ptr< kte::system_output > > outputs;
+    std::vector< boost::shared_ptr< kte::system_input > > inputs; ///< Holds the list of system input objects that are part of the KTE model.
+    std::vector< boost::shared_ptr< kte::system_output > > outputs; ///< Holds the list of system output objects that are part of the KTE model.
     
-    boost::shared_ptr< kte::kte_map_chain > chain;
-    boost::shared_ptr< kte::mass_matrix_calc > mass_calc;
+    boost::shared_ptr< kte::kte_map_chain > chain; ///< Holds the KTE model used.
+    boost::shared_ptr< kte::mass_matrix_calc > mass_calc; ///< Holds the KTE mass-matrix calculator used.
     
     typedef kte_nl_system self;
     typedef double value_type;
@@ -77,10 +100,16 @@ class kte_nl_system : public named_object {
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 0);
     BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 0);
         
+    /**
+     * Default constructor.
+     */
     kte_nl_system(const std::string& aName = "") {
       setName(aName);
     };
 
+    /**
+     * Standard copy-constructor.
+     */
     kte_nl_system(const self& rhs) : named_object(), 
                                      dofs_gen(rhs.dofs_gen), 
                                      dofs_2D(rhs.dofs_2D), 
@@ -92,6 +121,9 @@ class kte_nl_system : public named_object {
       setName(rhs.getName());
     };
       
+    /**
+     * Standard swap function.
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.dofs_gen,rhs.dofs_gen);
@@ -102,20 +134,35 @@ class kte_nl_system : public named_object {
       swap(lhs.mass_calc, rhs.mass_calc);
     };
 
+    /**
+     * Standard assignment operator.
+     */
     self& operator =(self rhs) {
       swap(*this,rhs);
       return *this;
     };
     
+    /**
+     * Returns the number of states in the state-vector.
+     * \return The number of states in the state-vector.
+     */
     size_type get_state_count() const { 
       return 2 * dofs_gen.size() + 7 * dofs_2D.size() + 13 * dofs_3D.size(); 
     };
+    /**
+     * Returns the number of inputs to the KTE model.
+     * \return The number of inputs to the KTE model.
+     */
     size_type get_input_count() const { 
       size_type sum = 0;
       for(unsigned int i = 0; i < inputs.size(); ++i)
 	sum += inputs[i]->getInputCount();
       return sum; 
     };
+    /**
+     * Returns the number of outputs from the KTE model.
+     * \return The number of outputs from the KTE model.
+     */
     size_type get_output_count() const {
       size_type sum = 0;
       for(unsigned int i = 0; i < outputs.size(); ++i)
@@ -123,6 +170,15 @@ class kte_nl_system : public named_object {
       return sum;
     };
 
+    /**
+     * This function is a helper function which applies a given state-vector and 
+     * input-vector to the KTE model, i.e., sets all the KTE frames and inputs to 
+     * the individual components of the state-vector and input-vector.
+     * \param p The state-vector to be applied.
+     * \param u The input-vector to be applied.
+     * \post The KTE model will have all its state variables and inputs set to the given values.
+     * \throw std::range_error If the state-vector or input-vector does not have the required dimension.
+     */
     void apply_states_and_inputs(const point_type& p, const input_type& u) const {
       if(p.size() != get_state_count()) {
 	std::cout << "Size of obtained state vector is: " << p.size() << std::endl;
@@ -170,6 +226,16 @@ class kte_nl_system : public named_object {
 	  inputs[j]->getInput(k) = u[i++];
     };
     
+    /**
+     * This function computes the time-derivative of the state-vector for the current state-vector and 
+     * input-vector (time is not meaningful, all KTE models are automatic).
+     * \param p The current state-vector.
+     * \param u The current input-vector.
+     * \param t The current time (ignored).
+     * \return The time-derivative of the state-vector.
+     * \throw std::range_error If the state-vector or input-vector does not have the required dimension.
+     * \throw singularity_error If the obtained mass-matrix is singular (thrown from a Cholesky method).
+     */
     point_derivative_type get_state_derivative(const point_type& p, const input_type& u, const time_type& t = 0) const {
       apply_states_and_inputs(p,u);
       
@@ -279,6 +345,13 @@ class kte_nl_system : public named_object {
       return pd;
     };
     
+    /**
+     * Computes the output of the system at the given state and input.
+     * \param p The current state-vector.
+     * \param u The current input-vector.
+     * \param t The current time (ignored).
+     * \return The current output of the system when the given states and inputs are applied.
+     */
     output_type get_output(const point_type& p, const input_type& u, const time_type& t = 0) const {
       apply_states_and_inputs(p,u);
       
@@ -296,6 +369,12 @@ class kte_nl_system : public named_object {
       return y;
     };
     
+    /**
+     * Adds a difference in state to a state-vector.
+     * \param p A state-vector.
+     * \param dp A state-difference vector.
+     * \return p + dp.
+     */
     point_type adjust(const point_type& p, const point_difference_type& dp) const {
       return p + dp;
     };

@@ -1,3 +1,16 @@
+/**
+ * \file linear_ss_system_concept.hpp
+ * 
+ * This library defines a number of traits and concept classes related to the definition 
+ * of a continuous-time linear state-space system, with different system types such as a 
+ * linear-time-invariant (LTI), linear-time-varying (LTV), and linearized. The main 
+ * characteristic of such systems is that they can provide system matrices (A,B,C,D), 
+ * whether they are independent of state and time (LTI), independent of state (LTV), 
+ * or a linear approximation based on the state and time (Linearized).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -35,6 +48,12 @@ namespace ReaK {
 namespace ctrl {
 
 
+/**
+ * This traits class defines the traits of a continuous-time linear state-space system.
+ * This traits class only includes the traits that are not already included in the 
+ * ss_system_traits class.
+ * \tparam SSSystem The continuous-time state-space system whose traits are sought.
+ */
 template <typename SSSystem>
 struct linear_ss_system_traits {
   typedef typename SSSystem::matrixA_type matrixA_type;
@@ -44,7 +63,15 @@ struct linear_ss_system_traits {
   
 };
   
-
+/**
+ * This concept class defines the requirement for a system to be able to provide 
+ * linear system matrices for an LTI system, that is, the matrices are independent 
+ * of time or state or input.
+ * 
+ * Valid expression:
+ * 
+ * sys.get_linear_blocks(A,B,C,D);  The system matrices can be obtained without providing a time or state.
+ */
 struct LTISystemType {
   template <typename System, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
@@ -54,6 +81,16 @@ struct LTISystemType {
   };
 };
 
+/**
+ * This concept class defines the requirement for a system to be able to provide 
+ * linear system matrices for an LTV system, that is, the matrices are independent 
+ * of state or input, but dependent on time. Note that an LTI system is a subset of 
+ * an LTV system.
+ * 
+ * Valid expression:
+ * 
+ * sys.get_linear_blocks(A,B,C,D,t);  The system matrices can be obtained without providing a state.
+ */
 struct LTVSystemType {
   template <typename System, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
@@ -63,6 +100,16 @@ struct LTVSystemType {
   };
 };
 
+/**
+ * This concept class defines the requirement for a system to be able to provide 
+ * linear system matrices for a linearized system, that is, the matrices are dependent 
+ * on time, state and-or input, but dependent on time. Note that an LTI system and LTV 
+ * system are subsets of a linearized system.
+ * 
+ * Valid expression:
+ * 
+ * sys.get_linear_blocks(A,B,C,D,t,p,u);  The system matrices can be obtained by providing a time, state and input.
+ */
 struct LinearizedSystemType {
   template <typename System, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
@@ -72,7 +119,27 @@ struct LinearizedSystemType {
   };
 };
 
-  
+/**
+ * This concept class defines the requirements for a continuous-time state-space system to be 
+ * considered a linear system, as used in ReaK::ctrl. This concept class depends on a helping
+ * concept class which is given as SystemType which defines what kind of linear system it is 
+ * (LTISystemType, LTVSystemType or LinearizedSystemType).
+ * 
+ * Required concepts:
+ * 
+ * The state-space system should model SSSystemConcept.
+ * 
+ * Valid expressions:
+ * 
+ * sys_type.constraints(sys, p, u, t, A, B, C, D);  The system should comply to the constraints of the SystemType concept class.
+ * 
+ * dp_dt = A * p + B * u;  The state-derivative can be obtained by linear transformation of the state and input using the system matrices.
+ * 
+ * y = C * p + D * u;  The output can be obtained by linear transformation of the state and input using the system matrices.
+ * 
+ * \tparam LinearSSSystem The continuous-time state-space system to be tested for linearity.
+ * \tparam SystemType The concept class that tests the system-type, can be either LTISystemType, LTVSystemType or LinearizedSystemType.
+ */
 template <typename LinearSSSystem, typename SystemType = LTISystemType >
 struct LinearSSSystemConcept {
   LinearSSSystem sys;

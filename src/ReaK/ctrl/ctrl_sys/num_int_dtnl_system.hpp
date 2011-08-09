@@ -1,3 +1,12 @@
+/**
+ * \file num_int_dtnl_system.hpp
+ * 
+ * This library defines a class template which can be used to integrate, numerically, a continuous-time
+ * state-space system (SSSystemConcept) to produce a discrete-time state-space system (DiscreteSSSConcept).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date June 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -35,7 +44,12 @@ namespace ReaK {
 
 namespace ctrl { 
 
-
+/**
+ * This class template can be used to integrate, numerically, a continuous-time
+ * state-space system (SSSystemConcept) to produce a discrete-time state-space system (DiscreteSSSConcept).
+ * \tparam CTSystem The continuous-time state-space system type, should model SSSystemConcept.
+ * \tparam NumIntegrator The numerical integrator type to be used.
+ */
 template <typename CTSystem, typename NumIntegrator = euler_integrator<typename CTSystem::value_type> >
 class num_int_dtnl_sys : public named_object, public state_rate_function<typename CTSystem::value_type> {
   public:
@@ -67,10 +81,19 @@ class num_int_dtnl_sys : public named_object, public state_rate_function<typenam
         
   public:
     
+    /**
+     * Default constructor.
+     */
     num_int_dtnl_sys(const std::string& aName = "") : sys(), integ(), dt(), current_u() { 
       setName(aName);
     };
     
+    /**
+     * Parametrized constructor.
+     * \param aSys The continuous-time state-space system to integrate.
+     * \param aInteg The numerical integrator to use to compute the state transitions.
+     * \param aDt The time-step of this discrete-time system (not the integration time-step).
+     */
     num_int_dtnl_sys(const CTSystem& aSys, 
 		     const NumIntegrator& aInteg, 
 		     const time_difference_type& aDt, 
@@ -84,9 +107,19 @@ class num_int_dtnl_sys : public named_object, public state_rate_function<typenam
       aStateRate = sys.get_state_derivative(p,current_u,aTime);
     };
     
-    
+    /**
+     * Returns the time-step of this discrete-time system.
+     * \return The time-step of this discrete-time system.
+     */
     time_difference_type get_time_step() const { return dt; };
     
+    /**
+     * Returns next state of the system given the current state, input and time.
+     * \param p The current state.
+     * \param u The current input.
+     * \param t The current time.
+     * \return The next state, at t + get_time_step().
+     */
     point_type get_next_state(const point_type& p, const input_type& u, const time_type& t = 0) { RK_UNUSED(t);
       integ.setTime(t);
       integ.clearStateVector();
@@ -101,10 +134,20 @@ class num_int_dtnl_sys : public named_object, public state_rate_function<typenam
       return result;
     };
     
+    /**
+     * Returns output of the system given the current state, input and time.
+     * \param p The current state.
+     * \param u The current input.
+     * \param t The current time.
+     * \return The current output.
+     */
     output_type get_output(const point_type& p, const input_type& u, const time_type& t = 0) { RK_UNUSED(t);
       return sys.get_output(p,u,t);
     };
     
+    /**
+     * Adjusts the state by adding a state difference to it.
+     */
     point_type adjust(const point_type& p, const point_difference_type& dp) {
       return sys.adjust(p,dp);
     };

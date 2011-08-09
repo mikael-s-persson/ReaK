@@ -1,7 +1,7 @@
 Have a non-directory at the top, so creating directory top_dir
-Adding /media/S_M_P_2/ReaK_github/src/ReaK//CMakeLists.txt to top_dir
-Adding /media/S_M_P_2/ReaK_github/src/ReaK//README to top_dir
-Adding /media/S_M_P_2/ReaK_github/src/ReaK//TypeIDList.txt to top_dir
+Adding /media/S_M_P_0/ReaK_github/src/ReaK//CMakeLists.txt to top_dir
+Adding /media/S_M_P_0/ReaK_github/src/ReaK//README to top_dir
+Adding /media/S_M_P_0/ReaK_github/src/ReaK//TypeIDList.txt to top_dir
 Creating filelist for core
 Creating filelist for ctrl
 Creating filelist for examples
@@ -12,25 +12,25 @@ Computing results.
 
 
 SLOC	Directory	SLOC-by-Language (Sorted)
-25552   core            cpp=25552
-15205   ctrl            cpp=15205
-2522    examples        cpp=2522
+25565   core            cpp=25565
+15315   ctrl            cpp=15315
+2532    examples        cpp=2532
 0       top_dir         (none)
 
 
 Totals grouped by language (dominant language first):
-cpp:          43279 (100.00%)
+cpp:          43412 (100.00%)
 
 
 
 
-Total Physical Source Lines of Code (SLOC)                = 43,279
-Development Effort Estimate, Person-Years (Person-Months) = 10.45 (125.40)
+Total Physical Source Lines of Code (SLOC)                = 43,412
+Development Effort Estimate, Person-Years (Person-Months) = 10.48 (125.81)
  (Basic COCOMO model, Person-Months = 2.4 * (KSLOC**1.05))
-Schedule Estimate, Years (Months)                         = 1.31 (15.68)
+Schedule Estimate, Years (Months)                         = 1.31 (15.70)
  (Basic COCOMO model, Months = 2.5 * (person-months**0.38))
-Estimated Average Number of Developers (Effort/Schedule)  = 8.00
-Total Estimated Cost to Develop                           = $ 1,411,668
+Estimated Average Number of Developers (Effort/Schedule)  = 8.01
+Total Estimated Cost to Develop                           = $ 1,416,224
  (average salary = $56,286/year, overhead = 2.40).
 SLOCCount, Copyright (C) 2001-2004 David A. Wheeler
 SLOCCount is Open Source Software/Free Software, licensed under the GNU GPL.

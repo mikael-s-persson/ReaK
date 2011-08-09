@@ -1,3 +1,15 @@
+/**
+ * \file unscented_kalman_filter.hpp
+ * 
+ * This library contains an attempt at implementing the unscented Kalman Filter (UKF), however
+ * tests have shown problems with the implementation and since it is not useful for anything 
+ * right now, it has been left in this malfunctioning state.
+ * 
+ * \todo Revise and fix this implementation.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson

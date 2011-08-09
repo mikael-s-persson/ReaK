@@ -1,3 +1,11 @@
+/**
+ * \file sss_exceptions.hpp
+ * 
+ * This library defines a number of exceptions related to the definition of state-space systems.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date June 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -31,7 +39,11 @@ namespace ReaK {
 
 namespace ctrl { 
 
-
+/**
+ * This exception is thrown whenever there is an incoherency in the definition of a 
+ * state-space system, such as mismatching dimensions of system matrices or singular
+ * matrix definitions (singular mass-matrix for example).
+ */
 class system_incoherency : public std::exception {
   public:
     std::string message; ///< Message string that identifies the singular matrix.
