@@ -1,3 +1,14 @@
+/**
+ * \file mat_star_product.hpp
+ * 
+ * This library provides a function to compute the Redeffer Star-product and the 
+ * definition of the hamiltonian matrix type alias. The Redeffer star product can 
+ * be applied to aggregate hamiltonian matrices together. This is used in hamiltonian
+ * maps (i.e. diffusion operators).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date June 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -31,7 +42,13 @@
 
 namespace ReaK {
 
-
+/**
+ * This class template is a type alias for what can represent a hamiltonian matrix (not strictly enforced).
+ * 
+ * Models: ReadableMatrixConcept and WritableMatrixConcept.
+ * 
+ * \tparam ValueType The value-type of the underlying matrices.
+ */
 template <typename ValueType>
 struct hamiltonian_mat {
   typedef mat<ValueType, mat_structure::square> upper_left;
@@ -46,6 +63,14 @@ struct hamiltonian_mat {
 };
 
 
+/**
+ * This function template computes the Redeffer star-product of two matrices.
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \param M1 A square, hamiltonian matrix.
+ * \param M2 A square, hamiltonian matrix.
+ * \return A hamiltonian matrix which is the star product of M1 and M2.
+ */
 template <typename Matrix1, typename Matrix2>
 typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_readable_matrix<Matrix2>::value,

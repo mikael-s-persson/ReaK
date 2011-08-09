@@ -1,3 +1,11 @@
+/**
+ * \file mat_norms.hpp
+ * 
+ * This library provides several functions to compute the various matrix norms.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -30,7 +38,12 @@
 namespace ReaK {
 
 
-
+/**
+ * This function template computes the 1-norm of a matrix.
+ * \tparam Matrix A readable matrix type.
+ * \param M A matrix for which the 1-norm is sought.
+ * \return the 1-norm of matrix M.
+ */
 template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
 typename Matrix::value_type >::type norm_1(const Matrix& M) {
@@ -50,6 +63,12 @@ typename Matrix::value_type >::type norm_1(const Matrix& M) {
 };
 
 
+/**
+ * This function template computes the infinity-norm of a matrix.
+ * \tparam Matrix A readable matrix type.
+ * \param M A matrix for which the infinity-norm is sought.
+ * \return the infinity-norm of matrix M.
+ */
 template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
 typename Matrix::value_type >::type norm_inf(const Matrix& M) {
@@ -69,6 +88,12 @@ typename Matrix::value_type >::type norm_inf(const Matrix& M) {
 };
 
 
+/**
+ * This function template computes the element-wise 2-norm of a matrix.
+ * \tparam Matrix A readable matrix type.
+ * \param M A matrix for which the element-wise 2-norm is sought.
+ * \return the element-wise 2-norm of matrix M.
+ */
 template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
 typename Matrix::value_type >::type elem_norm_2(const Matrix& M) {
@@ -84,12 +109,24 @@ typename Matrix::value_type >::type elem_norm_2(const Matrix& M) {
 };
 
 
+/**
+ * This function template computes the Frobenius-norm of a matrix.
+ * \tparam Matrix A readable matrix type.
+ * \param M A matrix for which the Frobenius-norm is sought.
+ * \return the Frobenius-norm of matrix M.
+ */
 template <typename Matrix>
 typename Matrix::value_type frobenius_norm(const Matrix& M) {
   return elem_norm_2(M);
 };
 
 
+/**
+ * This function template computes the element-wise infinity-norm of a matrix.
+ * \tparam Matrix A readable matrix type.
+ * \param M A matrix for which the element-wise infinity-norm is sought.
+ * \return the element-wise infinity-norm of matrix M.
+ */
 template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
 typename Matrix::value_type >::type elem_norm_max(const Matrix& M) {

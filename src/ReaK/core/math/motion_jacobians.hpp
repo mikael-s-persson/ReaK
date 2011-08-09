@@ -1,3 +1,16 @@
+/**
+ * \file motion_jacobians.hpp
+ * 
+ * This library provides a number of classes to represent motion jacobians. 
+ * These classes use the kinetostatic classes and map the required quantities
+ * to describe the motion jacobians between frames (and generalized coordinates).
+ * These classes are mostly POD types which hold the motion jacobians.
+ * Motion jacobians hold the quantities that can map the velocities and accelerations of 
+ * one frame to the velocities and accelerations of another.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date June 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -29,15 +42,22 @@
 namespace ReaK {
   
 
+/**
+ * This class template represents the jacobians between two generalized coordinates.
+ * \tparam T The value-type.
+ */
 template <typename T> 
 class jacobian_gen_gen : public shared_object {
 public: 
   typedef T value_type;
   typedef jacobian_gen_gen<T> self;
   
-  value_type qd_qd;
-  value_type qd_qdd;
+  value_type qd_qd; ///< Holds how much velocity is generated at output from the input velocity.
+  value_type qd_qdd; ///< Holds how much acceleration is generated at output from the input velocity.
   
+  /**
+   * Parametrized constructor.
+   */
   jacobian_gen_gen(const value_type& aQdQd = value_type(), 
 		   const value_type& aQdQdd = value_type()) : qd_qd(aQdQd), qd_qdd(aQdQdd) { };
   
@@ -57,18 +77,25 @@ public:
   RK_RTTI_MAKE_CONCRETE_1BASE(self,0x00000022,1,"jacobian_gen_gen",shared_object)
 };
 
+/**
+ * This class template represents the jacobians between generalized coordinate and a 2D frame.
+ * \tparam T The value-type.
+ */
 template <typename T> 
 class jacobian_gen_2D : public shared_object {
 public: 
   typedef T value_type;
   typedef jacobian_gen_2D<T> self;
   
-  boost::weak_ptr< frame_2D<value_type> > Parent;
-  vect<value_type,2> qd_vel;
-  value_type qd_avel;
-  vect<value_type,2> qd_acc;
-  value_type qd_aacc;
+  boost::weak_ptr< frame_2D<value_type> > Parent; ///< Holds the frame to which the jacobians are relative to.
+  vect<value_type,2> qd_vel; ///< Holds how much velocity is generated at output from the input velocity.
+  value_type qd_avel;  ///< Holds how much angular velocity is generated at output from the input velocity.
+  vect<value_type,2> qd_acc; ///< Holds how much acceleration is generated at output from the input velocity.
+  value_type qd_aacc; ///< Holds how much angular acceleration is generated at output from the input velocity.
   
+  /**
+   * Parametrized constructor.
+   */
   jacobian_gen_2D(boost::weak_ptr< frame_2D<value_type> > aParent = boost::weak_ptr< frame_2D<value_type> >(),
                   const vect<value_type,2>& aQdVel = vect<value_type,2>(),
 		  const value_type& aQdAVel = value_type(), 
@@ -108,18 +135,25 @@ public:
   RK_RTTI_MAKE_CONCRETE_1BASE(self,0x00000023,1,"jacobian_gen_2D",shared_object)
 };
 
+/**
+ * This class template represents the jacobians between generalized coordinate and a 3D frame.
+ * \tparam T The value-type.
+ */
 template <typename T> 
 class jacobian_gen_3D : public shared_object {
 public: 
   typedef T value_type;
   typedef jacobian_gen_3D<T> self;
   
-  boost::weak_ptr< frame_3D<value_type> > Parent;
-  vect<value_type,3> qd_vel;
-  vect<value_type,3> qd_avel;
-  vect<value_type,3> qd_acc;
-  vect<value_type,3> qd_aacc;
+  boost::weak_ptr< frame_3D<value_type> > Parent; ///< Holds the frame to which the jacobians are relative to.
+  vect<value_type,3> qd_vel; ///< Holds how much velocity is generated at output from the input velocity.
+  vect<value_type,3> qd_avel; ///< Holds how much angular velocity is generated at output from the input velocity.
+  vect<value_type,3> qd_acc; ///< Holds how much acceleration is generated at output from the input velocity.
+  vect<value_type,3> qd_aacc; ///< Holds how much angular acceleration is generated at output from the input velocity.
   
+  /**
+   * Parametrized constructor.
+   */
   jacobian_gen_3D(boost::weak_ptr< frame_3D<value_type> > aParent = boost::weak_ptr< frame_3D<value_type> >(),
                   const vect<value_type,3>& aQdVel = vect<value_type,3>(),
 		  const vect<value_type,3>& aQdAVel = vect<value_type,3>(), 
@@ -162,17 +196,24 @@ public:
 
 
 
+/**
+ * This class template represents the jacobians between a 2D frame and a generalized coordinate.
+ * \tparam T The value-type.
+ */
 template <typename T> 
 class jacobian_2D_gen : public shared_object {
 public: 
   typedef T value_type;
   typedef jacobian_2D_gen<T> self;
   
-  vect<value_type,2> vel_qd;
-  value_type avel_qd;
-  vect<value_type,2> vel_qdd;
-  value_type avel_qdd;
+  vect<value_type,2> vel_qd; ///< Holds how much velocity is generated at output from the input velocity.
+  value_type avel_qd; ///< Holds how much velocity is generated at output from the input angular velocity.
+  vect<value_type,2> vel_qdd; ///< Holds how much acceleration is generated at output from the input velocity.
+  value_type avel_qdd; ///< Holds how much acceleration is generated at output from the input angular velocity.
   
+  /**
+   * Parametrized constructor.
+   */
   jacobian_2D_gen(const vect<value_type,2>& aVelQd = vect<value_type,2>(),
 		  const value_type& aAVelQd = value_type(), 
 		  const vect<value_type,2>& aVelQdd = vect<value_type,2>(),
@@ -202,22 +243,29 @@ public:
   RK_RTTI_MAKE_CONCRETE_1BASE(self,0x00000025,1,"jacobian_2D_gen",shared_object)
 };
 
+/**
+ * This class template represents the jacobians between a 2D frame and a 2D frame.
+ * \tparam T The value-type.
+ */
 template <typename T> 
 class jacobian_2D_2D : public shared_object {
 public: 
   typedef T value_type;
   typedef jacobian_2D_2D<T> self;
   
-  boost::weak_ptr< frame_2D<value_type> > Parent;
-  vect<vect<value_type,2>,2> vel_vel;
-  vect<value_type,2> vel_avel;
-  vect<value_type,2> avel_vel;
-  value_type avel_avel;
-  vect<vect<value_type,2>,2> vel_acc;
-  vect<value_type,2> vel_aacc;
-  vect<value_type,2> avel_acc;
-  value_type avel_aacc;
+  boost::weak_ptr< frame_2D<value_type> > Parent; ///< Holds the frame to which the jacobians are relative to.
+  vect<vect<value_type,2>,2> vel_vel; ///< Holds how much velocity is generated at output from the input velocity.
+  vect<value_type,2> vel_avel; ///< Holds how much angular velocity is generated at output from the input velocity.
+  vect<value_type,2> avel_vel; ///< Holds how much velocity is generated at output from the input angular velocity.
+  value_type avel_avel; ///< Holds how much angular velocity is generated at output from the input angular velocity.
+  vect<vect<value_type,2>,2> vel_acc; ///< Holds how much acceleration is generated at output from the input velocity.
+  vect<value_type,2> vel_aacc; ///< Holds how much angular acceleration is generated at output from the input velocity.
+  vect<value_type,2> avel_acc; ///< Holds how much acceleration is generated at output from the input angular velocity.
+  value_type avel_aacc; ///< Holds how much angular acceleration is generated at output from the input angular velocity.
   
+  /**
+   * Parametrized constructor.
+   */
   jacobian_2D_2D(boost::weak_ptr< frame_2D<value_type> > aParent = boost::weak_ptr< frame_2D<value_type> >(),
                  const vect<vect<value_type,2>,2>& aVelVel = vect<vect<value_type,2>,2>(),
 		 const vect<value_type,2>& aVelAVel = vect<value_type,2>(),
@@ -272,22 +320,29 @@ public:
   RK_RTTI_MAKE_CONCRETE_1BASE(self,0x00000026,1,"jacobian_2D_2D",shared_object)
 };
 
+/**
+ * This class template represents the jacobians between a 2D frame and a 3D frame.
+ * \tparam T The value-type.
+ */
 template <typename T> 
 class jacobian_2D_3D : public shared_object {
 public: 
   typedef T value_type;
   typedef jacobian_2D_3D<T> self;
   
-  boost::weak_ptr< frame_3D<value_type> > Parent;
-  vect<vect<value_type,3>,2> vel_vel;
-  vect<vect<value_type,3>,2> vel_avel;
-  vect<value_type,3> avel_vel;
-  vect<value_type,3> avel_avel;
-  vect<vect<value_type,3>,2> vel_acc;
-  vect<vect<value_type,3>,2> vel_aacc;
-  vect<value_type,3> avel_acc;
-  vect<value_type,3> avel_aacc;
+  boost::weak_ptr< frame_3D<value_type> > Parent; ///< Holds the frame to which the jacobians are relative to.
+  vect<vect<value_type,3>,2> vel_vel; ///< Holds how much velocity is generated at output from the input velocity.
+  vect<vect<value_type,3>,2> vel_avel; ///< Holds how much angular velocity is generated at output from the input velocity.
+  vect<value_type,3> avel_vel; ///< Holds how much velocity is generated at output from the input angular velocity.
+  vect<value_type,3> avel_avel; ///< Holds how much angular velocity is generated at output from the input angular velocity.
+  vect<vect<value_type,3>,2> vel_acc; ///< Holds how much acceleration is generated at output from the input velocity.
+  vect<vect<value_type,3>,2> vel_aacc; ///< Holds how much angular acceleration is generated at output from the input velocity.
+  vect<value_type,3> avel_acc; ///< Holds how much acceleration is generated at output from the input angular velocity.
+  vect<value_type,3> avel_aacc; ///< Holds how much angular acceleration is generated at output from the input angular velocity.
   
+  /**
+   * Parametrized constructor.
+   */
   jacobian_2D_3D(boost::weak_ptr< frame_3D<value_type> > aParent = boost::weak_ptr< frame_3D<value_type> >(),
                  const vect<vect<value_type,3>,2>& aVelVel = vect<vect<value_type,3>,2>(),
 		 const vect<vect<value_type,3>,2>& aVelAVel = vect<vect<value_type,3>,2>(),
@@ -346,17 +401,24 @@ public:
 
 
 
+/**
+ * This class template represents the jacobians between a 3D frame and a generalized coordinate.
+ * \tparam T The value-type.
+ */
 template <typename T> 
 class jacobian_3D_gen : public shared_object {
 public: 
   typedef T value_type;
   typedef jacobian_3D_gen<T> self;
   
-  vect<value_type,3> vel_qd;
-  vect<value_type,3> avel_qd;
-  vect<value_type,3> vel_qdd;
-  vect<value_type,3> avel_qdd;
+  vect<value_type,3> vel_qd; ///< Holds how much velocity is generated at output from the input velocity.
+  vect<value_type,3> avel_qd; ///< Holds how much velocity is generated at output from the input angular velocity.
+  vect<value_type,3> vel_qdd; ///< Holds how much acceleration is generated at output from the input velocity.
+  vect<value_type,3> avel_qdd; ///< Holds how much acceleration is generated at output from the input angular velocity.
   
+  /**
+   * Parametrized constructor.
+   */
   jacobian_3D_gen(const vect<value_type,3>& aVelQd = vect<value_type,3>(),
 		  const vect<value_type,3>& aAVelQd = vect<value_type,3>(), 
 		  const vect<value_type,3>& aVelQdd = vect<value_type,3>(),
@@ -386,22 +448,29 @@ public:
   RK_RTTI_MAKE_CONCRETE_1BASE(self,0x00000028,1,"jacobian_3D_gen",shared_object)
 };
 
+/**
+ * This class template represents the jacobians between a 3D frame and a 2D frame.
+ * \tparam T The value-type.
+ */
 template <typename T> 
 class jacobian_3D_2D : public shared_object {
 public: 
   typedef T value_type;
   typedef jacobian_3D_2D<T> self;
   
-  boost::weak_ptr< frame_2D<value_type> > Parent;
-  vect<vect<value_type,2>,3> vel_vel;
-  vect<value_type,3> vel_avel;
-  vect<vect<value_type,2>,3> avel_vel;
-  vect<value_type,3> avel_avel;
-  vect<vect<value_type,2>,3> vel_acc;
-  vect<value_type,3> vel_aacc;
-  vect<vect<value_type,2>,3> avel_acc;
-  vect<value_type,3> avel_aacc;
+  boost::weak_ptr< frame_2D<value_type> > Parent; ///< Holds the frame to which the jacobians are relative to.
+  vect<vect<value_type,2>,3> vel_vel; ///< Holds how much velocity is generated at output from the input velocity.
+  vect<value_type,3> vel_avel; ///< Holds how much angular velocity is generated at output from the input velocity.
+  vect<vect<value_type,2>,3> avel_vel; ///< Holds how much velocity is generated at output from the input angular velocity.
+  vect<value_type,3> avel_avel; ///< Holds how much angular velocity is generated at output from the input angular velocity.
+  vect<vect<value_type,2>,3> vel_acc; ///< Holds how much acceleration is generated at output from the input velocity.
+  vect<value_type,3> vel_aacc; ///< Holds how much angular acceleration is generated at output from the input velocity.
+  vect<vect<value_type,2>,3> avel_acc; ///< Holds how much acceleration is generated at output from the input angular velocity.
+  vect<value_type,3> avel_aacc; ///< Holds how much angular acceleration is generated at output from the input angular velocity.
   
+  /**
+   * Parametrized constructor.
+   */
   jacobian_3D_2D(boost::weak_ptr< frame_2D<value_type> > aParent = boost::weak_ptr< frame_2D<value_type> >(),
                  const vect<vect<value_type,2>,3>& aVelVel = vect<vect<value_type,2>,3>(),
 		 const vect<value_type,3>& aVelAVel = vect<value_type,3>(),
@@ -456,22 +525,29 @@ public:
   RK_RTTI_MAKE_CONCRETE_1BASE(self,0x00000029,1,"jacobian_3D_2D",shared_object)
 };
 
+/**
+ * This class template represents the jacobians between a 3D frame and a 3D frame.
+ * \tparam T The value-type.
+ */
 template <typename T> 
 class jacobian_3D_3D : public shared_object {
 public: 
   typedef T value_type;
   typedef jacobian_3D_3D<T> self;
   
-  boost::weak_ptr< frame_3D<value_type> > Parent;
-  vect<vect<value_type,3>,3> vel_vel;
-  vect<vect<value_type,3>,3> vel_avel;
-  vect<vect<value_type,3>,3> avel_vel;
-  vect<vect<value_type,3>,3> avel_avel;
-  vect<vect<value_type,3>,3> vel_acc;
-  vect<vect<value_type,3>,3> vel_aacc;
-  vect<vect<value_type,3>,3> avel_acc;
-  vect<vect<value_type,3>,3> avel_aacc;
+  boost::weak_ptr< frame_3D<value_type> > Parent; ///< Holds the frame to which the jacobians are relative to.
+  vect<vect<value_type,3>,3> vel_vel; ///< Holds how much velocity is generated at output from the input velocity.
+  vect<vect<value_type,3>,3> vel_avel; ///< Holds how much angular velocity is generated at output from the input velocity.
+  vect<vect<value_type,3>,3> avel_vel; ///< Holds how much velocity is generated at output from the input angular velocity.
+  vect<vect<value_type,3>,3> avel_avel; ///< Holds how much angular velocity is generated at output from the input angular velocity.
+  vect<vect<value_type,3>,3> vel_acc; ///< Holds how much acceleration is generated at output from the input velocity.
+  vect<vect<value_type,3>,3> vel_aacc; ///< Holds how much angular acceleration is generated at output from the input velocity.
+  vect<vect<value_type,3>,3> avel_acc; ///< Holds how much acceleration is generated at output from the input angular velocity.
+  vect<vect<value_type,3>,3> avel_aacc; ///< Holds how much angular acceleration is generated at output from the input angular velocity.
   
+  /**
+   * Parametrized constructor.
+   */
   jacobian_3D_3D(boost::weak_ptr< frame_3D<value_type> > aParent = boost::weak_ptr< frame_3D<value_type> >(),
                  const vect<vect<value_type,3>,3>& aVelVel = vect<vect<value_type,3>,3>(),
 		 const vect<vect<value_type,3>,3>& aVelAVel = vect<vect<value_type,3>,3>(),

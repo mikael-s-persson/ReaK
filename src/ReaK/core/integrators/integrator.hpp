@@ -39,6 +39,7 @@
 
 #include "integration_exceptions.hpp"
 
+/** Main namespace for ReaK */
 namespace ReaK {
 
 

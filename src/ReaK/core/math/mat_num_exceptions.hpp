@@ -1,3 +1,12 @@
+/**
+ * \file mat_num_exceptions.hpp
+ * 
+ * This library defines a number of exception classes to represent the typical 
+ * exceptions that could be thrown during matrix numerical methods.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson

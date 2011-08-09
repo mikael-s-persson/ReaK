@@ -1,3 +1,15 @@
+/**
+ * \file state_measures.hpp
+ * 
+ * This library provides a number of classes which can be used as KTE models which 
+ * measures the motion-state variables (position, velocity, etc.) directly. Note that 
+ * these classes don't implement measurement systems, simply direct measure. If a measurement 
+ * system is required, one can make a KTE for that and insert it between
+ * a frame that is measured via the classes provided here and the output of the measurement.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -33,13 +45,25 @@ namespace ReaK {
 namespace kte {
 
 
+/**
+ * This class can be used as a system output to get the value of the position of a 
+ * generalized coordinate.
+ */
 class position_measure_gen : public kte_map, public system_output {
   private:
     boost::shared_ptr< gen_coord<double> > mAnchor; 
     double mPosMeasure;
     
   public:
+    /**
+     * Returns the measured position, for read-write access.
+     * \return the measured position for read-write access.
+     */
     double& getPosMeasure() { return mPosMeasure; };
+    /**
+     * Returns the measured position, for read-only access.
+     * \return the measured position for read-only access.
+     */
     double getPosMeasure() const { return mPosMeasure; };
     
     virtual unsigned int getOutputCount() const { return 1; };
@@ -99,13 +123,25 @@ class position_measure_gen : public kte_map, public system_output {
 
 
 
+/**
+ * This class can be used as a system output to get the value of the position of a 
+ * 2D coordinate frame.
+ */
 class position_measure_2D : public kte_map, public system_output {
   private:
     boost::shared_ptr< frame_2D<double> > mAnchor; 
     vect<double,2> mPosMeasure;
     
   public:
+    /**
+     * Returns the measured position, for read-write access.
+     * \return the measured position for read-write access.
+     */
     vect<double,2>& getPosMeasure() { return mPosMeasure; };
+    /**
+     * Returns the measured position, for read-only access.
+     * \return the measured position for read-only access.
+     */
     const vect<double,2>& getPosMeasure() const { return mPosMeasure; };
     
     virtual unsigned int getOutputCount() const { return 2; };
@@ -170,13 +206,25 @@ class position_measure_2D : public kte_map, public system_output {
 
 
 
+/**
+ * This class can be used as a system output to get the value of the position of a 
+ * 3D coordinate frame.
+ */
 class position_measure_3D : public kte_map, public system_output {
   private:
     boost::shared_ptr< frame_3D<double> > mAnchor; 
     vect<double,3> mPosMeasure;
     
   public:
+    /**
+     * Returns the measured position, for read-write access.
+     * \return the measured position for read-write access.
+     */
     vect<double,3>& getPosMeasure() { return mPosMeasure; };
+    /**
+     * Returns the measured position, for read-only access.
+     * \return the measured position for read-only access.
+     */
     const vect<double,3>& getPosMeasure() const { return mPosMeasure; };
     
     virtual unsigned int getOutputCount() const { return 3; };
@@ -241,13 +289,25 @@ class position_measure_3D : public kte_map, public system_output {
 
 
 
+/**
+ * This class can be used as a system output to get the value of the rotation of a 
+ * 2D coordinate frame.
+ */
 class rotation_measure_2D : public kte_map, public system_output {
   private:
     boost::shared_ptr< frame_2D<double> > mAnchor; 
     double mAngleMeasure;
     
   public:
+    /**
+     * Returns the measured rotation, for read-write access.
+     * \return the measured rotation for read-write access.
+     */
     double& getAngleMeasure() { return mAngleMeasure; };
+    /**
+     * Returns the measured rotation, for read-only access.
+     * \return the measured rotation for read-only access.
+     */
     double getAngleMeasure() const { return mAngleMeasure; };
     
     virtual unsigned int getOutputCount() const { return 1; };
@@ -308,13 +368,25 @@ class rotation_measure_2D : public kte_map, public system_output {
 
 
 
+/**
+ * This class can be used as a system output to get the value of the rotation of a 
+ * 3D coordinate frame.
+ */
 class rotation_measure_3D : public kte_map, public system_output {
   private:
     boost::shared_ptr< frame_3D<double> > mAnchor; 
     quaternion<double> mQuatMeasure;
     
   public:
+    /**
+     * Returns the measured rotation, for read-write access.
+     * \return the measured rotation for read-write access.
+     */
     quaternion<double>& getQuatMeasure() { return mQuatMeasure; };
+    /**
+     * Returns the measured rotation, for read-only access.
+     * \return the measured rotation for read-only access.
+     */
     const quaternion<double>& getQuatMeasure() const { return mQuatMeasure; };
     
     virtual unsigned int getOutputCount() const { return 4; };
@@ -379,13 +451,25 @@ class rotation_measure_3D : public kte_map, public system_output {
 
 
 
+/**
+ * This class can be used as a system output to get the value of the velocity of a 
+ * generalized coordinate.
+ */
 class velocity_measure_gen : public kte_map, public system_output {
   private:
     boost::shared_ptr< gen_coord<double> > mAnchor; 
     double mVelMeasure;
     
   public:
+    /**
+     * Returns the measured velocity, for read-write access.
+     * \return the measured velocity for read-write access.
+     */
     double& getVelMeasure() { return mVelMeasure; };
+    /**
+     * Returns the measured velocity, for read-only access.
+     * \return the measured velocity for read-only access.
+     */
     double getVelMeasure() const { return mVelMeasure; };
     
     virtual unsigned int getOutputCount() const { return 1; };
@@ -445,13 +529,25 @@ class velocity_measure_gen : public kte_map, public system_output {
 
 
 
+/**
+ * This class can be used as a system output to get the value of the velocity of a 
+ * 2D coordinate frame.
+ */
 class velocity_measure_2D : public kte_map, public system_output {
   private:
     boost::shared_ptr< frame_2D<double> > mAnchor; 
     vect<double,2> mVelMeasure;
     
   public:
+    /**
+     * Returns the measured velocity, for read-write access.
+     * \return the measured velocity for read-write access.
+     */
     vect<double,2>& getVelMeasure() { return mVelMeasure; };
+    /**
+     * Returns the measured velocity, for read-only access.
+     * \return the measured velocity for read-only access.
+     */
     const vect<double,2>& getVelMeasure() const { return mVelMeasure; };
     
     virtual unsigned int getOutputCount() const { return 2; };
@@ -516,13 +612,25 @@ class velocity_measure_2D : public kte_map, public system_output {
 
 
 
+/**
+ * This class can be used as a system output to get the value of the velocity of a 
+ * 3D coordinate frame.
+ */
 class velocity_measure_3D : public kte_map, public system_output {
   private:
     boost::shared_ptr< frame_3D<double> > mAnchor; 
     vect<double,3> mVelMeasure;
     
   public:
+    /**
+     * Returns the measured velocity, for read-write access.
+     * \return the measured velocity for read-write access.
+     */
     vect<double,3>& getVelMeasure() { return mVelMeasure; };
+    /**
+     * Returns the measured velocity, for read-only access.
+     * \return the measured velocity for read-only access.
+     */
     const vect<double,3>& getVelMeasure() const { return mVelMeasure; };
     
     virtual unsigned int getOutputCount() const { return 3; };
@@ -587,13 +695,25 @@ class velocity_measure_3D : public kte_map, public system_output {
 
 
 
+/**
+ * This class can be used as a system output to get the value of the angular velocity of a 
+ * 3D coordinate frame.
+ */
 class ang_velocity_measure_2D : public kte_map, public system_output {
   private:
     boost::shared_ptr< frame_2D<double> > mAnchor; 
     double mAngVelMeasure;
     
   public:
+    /**
+     * Returns the measured angular velocity, for read-write access.
+     * \return the measured angular velocity for read-write access.
+     */
     double& getAngVelMeasure() { return mAngVelMeasure; };
+    /**
+     * Returns the measured angular velocity, for read-only access.
+     * \return the measured angular velocity for read-only access.
+     */
     double getAngVelMeasure() const { return mAngVelMeasure; };
     
     virtual unsigned int getOutputCount() const { return 1; };
@@ -655,13 +775,25 @@ class ang_velocity_measure_2D : public kte_map, public system_output {
 
 
 
+/**
+ * This class can be used as a system output to get the value of the angular velocity of a 
+ * 3D coordinate frame.
+ */
 class ang_velocity_measure_3D : public kte_map, public system_output {
   private:
     boost::shared_ptr< frame_3D<double> > mAnchor; 
     vect<double,3> mAngVelMeasure;
     
   public:
+    /**
+     * Returns the measured angular velocity, for read-write access.
+     * \return the measured angular velocity for read-write access.
+     */
     vect<double,3>& getAngVelMeasure() { return mAngVelMeasure; };
+    /**
+     * Returns the measured angular velocity, for read-only access.
+     * \return the measured angular velocity for read-only access.
+     */
     const vect<double,3>& getAngVelMeasure() const { return mAngVelMeasure; };
     
     virtual unsigned int getOutputCount() const { return 3; };

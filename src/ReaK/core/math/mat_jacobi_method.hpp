@@ -1,3 +1,26 @@
+/**
+ * \file mat_jacobi_method.hpp
+ * 
+ * This library provides a number of functions related to performing the Jacobi method on a 
+ * matrix, e.g., to pseudo-invert a matrix, to solve a linear system with least-square error,
+ * to find the eigenvalues/vectors and to get the determinant. The Jacobi method can only be 
+ * applied to real symmetric matrices. It must be noted that the performance of this method
+ * as implemented in this library is not very good (comparable to SVD).
+ * 
+ * According to performance tests, PLU methods are as good as Cholesky methods in terms of speed.
+ * And they are both the best for well-conditioned matrices. For ill-conditioned matrices, QR-decomposition
+ * methods are only a little slower then PLU (about 20% slower, same time-complexity) but provide better
+ * numerical stability. The Jacobi methods are significantly slower, but this implementation is in need 
+ * of a revision for performance enhancement. And, of course, SVD is also very slow (slightly faster than 
+ * Jacobi) but it is based on a LAPACK implementation that is very poorly written, and it has not been 
+ * updated since.
+ * 
+ * \todo revise the implementation to make it more efficient
+ * \todo implement jacobi rotations in a way that is similar to givens_rot_matrix and householder_matrix.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson

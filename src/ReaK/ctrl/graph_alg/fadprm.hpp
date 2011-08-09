@@ -30,8 +30,10 @@
 #include "adstar_search.hpp"
 #include "probabilistic_roadmap.hpp"
 
+/** Main namespace for ReaK */
 namespace ReaK {
 
+/** Main namespace for ReaK.Graph */
 namespace graph {
 
 

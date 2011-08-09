@@ -597,7 +597,7 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
     
     /**
      * Returns the trace of matrix M.
-     * \param M A diagonal matrix.
+     * \param M A matrix.
      * \return the trace of matrix M.
      */
     friend value_type trace(const self& M) {

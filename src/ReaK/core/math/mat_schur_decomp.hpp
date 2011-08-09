@@ -1,3 +1,15 @@
+/**
+ * \file mat_schur_decomp.hpp
+ * 
+ * This library provides function templates to compute the Real-Schur Decomposition 
+ * and the Generalized Real-Schur Decomposition (or QZ decomposition). These algorithms
+ * can be used as the main step of several algorithms including the QR algorithm and 
+ * generalized eigen-problems. Schur decompositions are also useful for several other 
+ * advanced matrix numerical methods (some which are planned for the future in this library).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date July 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -21,8 +33,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MAT_QR_DECOMP_HPP
-#define MAT_QR_DECOMP_HPP
+#ifndef MAT_SCHUR_DECOMP_HPP
+#define MAT_SCHUR_DECOMP_HPP
 
 #include "mat_alg.hpp"
 #include "mat_num_exceptions.hpp"
@@ -355,6 +367,9 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typen
 /**
  * Performs the Real Schur decomposition on a matrix, using the Francis QR-step method.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \tparam Matrix3 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param Q holds as output, the unitary square matrix Q.
  * \param T holds as output, the quasi-upper-triangular matrix T in A = Q T Q^T.
@@ -383,6 +398,8 @@ void >::type decompose_RealSchur(const Matrix1& A, Matrix2& Q, Matrix3& T, typen
 /**
  * Performs the Real Schur decomposition on a matrix, using the Francis QR-step method.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param T holds as output, the quasi-upper-triangular matrix T in A = Q T Q^T.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
@@ -409,6 +426,12 @@ void >::type decompose_RealSchur(const Matrix1& A, Matrix2& T, typename mat_trai
 /**
  * Performs the Generalized Real Schur decomposition on a matrix, using the QZ-step method.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A fully-writable matrix type.
+ * \tparam Matrix4 A fully-writable matrix type.
+ * \tparam Matrix5 A fully-writable matrix type.
+ * \tparam Matrix6 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param B square matrix with row-count == column-count.
  * \param Q holds as output, the unitary square matrix Q.
@@ -445,6 +468,10 @@ void >::type decompose_GenRealSchur(const Matrix1& A, const Matrix2& B, Matrix3&
 /**
  * Performs the Generalized Real Schur decomposition on a matrix, using the QZ-step method.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A fully-writable matrix type.
+ * \tparam Matrix4 A fully-writable matrix type.
  * \param A square matrix with row-count == column-count.
  * \param B square matrix with row-count == column-count.
  * \param T holds as output, the quasi-upper-triangular matrix T in A = Q T Z^T.

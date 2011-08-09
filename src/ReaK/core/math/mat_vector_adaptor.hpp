@@ -1,3 +1,13 @@
+/**
+ * \file mat_vector_adaptor.hpp
+ * 
+ * This library provides a number of classes which can be used to make a vector appear
+ * as a matrix, with different alignments. These adaptors are useful when one has a vector
+ * but wants to use a matrix method (i.e. solving a linear system of equations).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date June 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -28,10 +38,18 @@
 
 namespace ReaK {
 
-
+/**
+ * This class template is the general template for a matrix-vector adaptor.
+ * \tparam Vector A vector type (at least a readable vector type).
+ * \tparam Alignment An enum describing the alignment of the matrix.
+ */
 template <typename Vector, mat_alignment::tag Alignment = mat_alignment::column_major>
 class mat_vect_adaptor { };
 
+/**
+ * This class template is a template for a matrix-vector adaptor with column-major alignment.
+ * \tparam Vector A vector type (at least a readable vector type).
+ */
 template <typename Vector>
 class mat_vect_adaptor<Vector,mat_alignment::column_major> {
   public:    
@@ -60,19 +78,36 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::rectangular);
     
   private:
-    Vector* v;
-    size_type offset;
-    size_type rowCount;
-    size_type colCount;
+    Vector* v; ///< Holds the reference to the vector.
+    size_type offset; ///< Holds the offset to start from in the vector.
+    size_type rowCount; ///< Holds the number of rows in the matrix.
+    size_type colCount; ///< Holds the number of columns in the matrix.
   public:
+    /**
+     * Constructs the adaptor with a given vector, taking the entire vector as the unique 
+     * column of a matrix.
+     */
     mat_vect_adaptor(Vector& aV) : v(&aV), offset(0), rowCount(aV.size()), colCount(1) { };
     
+    /**
+     * Constructs the adaptor with a given vector and parameters.
+     * \param aV The vector to adapt to a matrix.
+     * \param aRowCount The row-count of the resulting matrix.
+     * \param aColCount The column-count of the resulting matrix.
+     * \param aOffset The index into the vector from which to start the matrix elements.
+     */
     mat_vect_adaptor(Vector& aV, 
 		     size_type aRowCount, 
 		     size_type aColCount,
 		     size_type aOffset = 0) : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) { };
+    /**
+     * Standard copy-constructor (shallow).
+     */
     mat_vect_adaptor(const self& aObj) : v(aObj.v), offset(aObj.offset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
     
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs, self& rhs) {
       using std::swap;
       swap(lhs.v,rhs.v);
@@ -82,6 +117,9 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
       return;
     };
     
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
     self& >::type operator=(const Matrix& rhs) {
@@ -98,18 +136,51 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       return (*v)[offset + j*rowCount + i]; 
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     const_reference operator()(size_type i,size_type j) const { 
       return (*v)[offset + j*rowCount + i]; 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return colCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,colCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return v->get_allocator(); };
     
     
@@ -182,10 +253,20 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat_vect_adaptor<Vector,mat_alignment::row_major> transpose(const self& M) {
       return mat_vect_adaptor<Vector,mat_alignment::row_major>(*M.v,M.offset,M.colCount,M.rowCount);
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat_vect_adaptor<Vector,mat_alignment::row_major> transpose_move(self& M) {
       return mat_vect_adaptor<Vector,mat_alignment::row_major>(*M.v,M.offset,M.colCount,M.rowCount);
     };
@@ -223,19 +304,36 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::rectangular);
     
   private:
-    Vector* v;
-    size_type offset;
-    size_type rowCount;
-    size_type colCount;
+    Vector* v; ///< Holds the reference to the vector.
+    size_type offset; ///< Holds the offset to start from in the vector.
+    size_type rowCount; ///< Holds the number of rows in the matrix.
+    size_type colCount; ///< Holds the number of columns in the matrix.
   public:
+    /**
+     * Constructs the adaptor with a given vector, taking the entire vector as the unique 
+     * column of a matrix.
+     */
     mat_vect_adaptor(Vector& aV) : v(&aV), offset(0), rowCount(1), colCount(aV.size()) { };
     
+    /**
+     * Constructs the adaptor with a given vector and parameters.
+     * \param aV The vector to adapt to a matrix.
+     * \param aRowCount The row-count of the resulting matrix.
+     * \param aColCount The column-count of the resulting matrix.
+     * \param aOffset The index into the vector from which to start the matrix elements.
+     */
     mat_vect_adaptor(Vector& aV, 
 		     size_type aRowCount, 
 		     size_type aColCount,
 		     size_type aOffset = 0) : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) { };
+    /**
+     * Standard copy-constructor (shallow).
+     */
     mat_vect_adaptor(const self& aObj) : v(aObj.v), offset(aObj.offset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
     
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs, self& rhs) {
       using std::swap;
       swap(lhs.v,rhs.v);
@@ -245,6 +343,9 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
       return;
     };
     
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
     self& >::type operator=(const Matrix& rhs) {
@@ -261,22 +362,55 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       return (*v)[offset + i*colCount + j]; 
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     const_reference operator()(size_type i,size_type j) const { 
       return (*v)[offset + i*colCount + j]; 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return colCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,colCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return v->get_allocator(); };
     
     
-        /** COL-MAJOR ONLY
+    /** COL-MAJOR ONLY
      * Add-and-store operator with standard semantics.
      * \test PASSED
      */
@@ -345,10 +479,20 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat_vect_adaptor<Vector,mat_alignment::column_major> transpose(const self& M) {
       return mat_vect_adaptor<Vector,mat_alignment::column_major>(*M.v,M.offset,M.colCount,M.rowCount);
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat_vect_adaptor<Vector,mat_alignment::column_major> transpose_move(self& M) {
       return mat_vect_adaptor<Vector,mat_alignment::column_major>(*M.v,M.offset,M.colCount,M.rowCount);
     };
@@ -427,10 +571,10 @@ class mat_const_vect_adaptor<Vector,mat_alignment::column_major> {
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::rectangular);
     
   private:
-    const Vector* v;
-    size_type offset;
-    size_type rowCount;
-    size_type colCount;
+    const Vector* v; ///< Holds the reference to the vector.
+    size_type offset; ///< Holds the offset to start from in the vector.
+    size_type rowCount; ///< Holds the number of rows in the matrix.
+    size_type colCount; ///< Holds the number of columns in the matrix.
     
     self& operator=(const self&); //non-assignable.
     
@@ -439,14 +583,31 @@ class mat_const_vect_adaptor<Vector,mat_alignment::column_major> {
     mat_const_vect_adaptor(Vector&&, size_type, size_type, size_type aOffset = 0);
 #endif
   public:
+    /**
+     * Constructs the adaptor with a given vector, taking the entire vector as the unique 
+     * column of a matrix.
+     */
     mat_const_vect_adaptor(const Vector& aV) : v(&aV), offset(0), rowCount(aV.size()), colCount(1) { };
     
+    /**
+     * Constructs the adaptor with a given vector and parameters.
+     * \param aV The vector to adapt to a matrix.
+     * \param aRowCount The row-count of the resulting matrix.
+     * \param aColCount The column-count of the resulting matrix.
+     * \param aOffset The index into the vector from which to start the matrix elements.
+     */
     mat_const_vect_adaptor(const Vector& aV, 
 		     size_type aRowCount, 
 		     size_type aColCount,
 		     size_type aOffset = 0) : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) { };
+    /**
+     * Standard copy-constructor (shallow).
+     */
     mat_const_vect_adaptor(const self& aObj) : v(aObj.v), offset(aObj.offset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
     
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs, self& rhs) {
       using std::swap;
       swap(lhs.v,rhs.v);
@@ -460,15 +621,41 @@ class mat_const_vect_adaptor<Vector,mat_alignment::column_major> {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     const_reference operator()(size_type i,size_type j) const { 
       return (*v)[offset + j*rowCount + i]; 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return colCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,colCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return v->get_allocator(); };
     
     /** WORKS FOR ALL
@@ -485,10 +672,20 @@ class mat_const_vect_adaptor<Vector,mat_alignment::column_major> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat_const_vect_adaptor<Vector,mat_alignment::row_major> transpose(const self& M) {
       return mat_const_vect_adaptor<Vector,mat_alignment::row_major>(*M.v,M.offset,M.colCount,M.rowCount);
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat_const_vect_adaptor<Vector,mat_alignment::row_major> transpose_move(self& M) {
       return mat_const_vect_adaptor<Vector,mat_alignment::row_major>(*M.v,M.offset,M.colCount,M.rowCount);
     };
@@ -539,14 +736,31 @@ class mat_const_vect_adaptor<Vector,mat_alignment::row_major> {
     mat_const_vect_adaptor(Vector&&, size_type, size_type, size_type aOffset = 0);
 #endif
   public:
+    /**
+     * Constructs the adaptor with a given vector, taking the entire vector as the unique 
+     * column of a matrix.
+     */
     mat_const_vect_adaptor(const Vector& aV) : v(&aV), offset(0), rowCount(1), colCount(aV.size()) { };
     
+    /**
+     * Constructs the adaptor with a given vector and parameters.
+     * \param aV The vector to adapt to a matrix.
+     * \param aRowCount The row-count of the resulting matrix.
+     * \param aColCount The column-count of the resulting matrix.
+     * \param aOffset The index into the vector from which to start the matrix elements.
+     */
     mat_const_vect_adaptor(const Vector& aV, 
 			   size_type aRowCount, 
 			   size_type aColCount,
 			   size_type aOffset = 0) : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) { };
+    /**
+     * Standard copy-constructor (shallow).
+     */
     mat_const_vect_adaptor(const self& aObj) : v(aObj.v), offset(aObj.offset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
     
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs, self& rhs) {
       using std::swap;
       swap(lhs.v,rhs.v);
@@ -560,15 +774,41 @@ class mat_const_vect_adaptor<Vector,mat_alignment::row_major> {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     const_reference operator()(size_type i,size_type j) const { 
       return (*v)[offset + i*colCount + j]; 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return colCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,colCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return v->get_allocator(); };
     
     /** WORKS FOR ALL
@@ -585,10 +825,20 @@ class mat_const_vect_adaptor<Vector,mat_alignment::row_major> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat_const_vect_adaptor<Vector,mat_alignment::column_major> transpose(const self& M) {
       return mat_const_vect_adaptor<Vector,mat_alignment::column_major>(*M.v,M.offset,M.colCount,M.rowCount);
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat_const_vect_adaptor<Vector,mat_alignment::column_major> transpose_move(self& M) {
       return mat_const_vect_adaptor<Vector,mat_alignment::column_major>(*M.v,M.offset,M.colCount,M.rowCount);
     };
@@ -689,11 +939,32 @@ struct mat_const_vect_adaptor_factory {
   };
 };
 
-
+/**
+ * This function template can be used to generate a matrix-vector adaptor. It constructs 
+ * an object of a factory functor which can generate either a column-major or row-major matrix
+ * depending on the call syntax. The matrix is constructed via a range function as so:
+ * 
+ *  make_mat(V)(range(3,6),2)  generates a column-major matrix starting from index 3, with 4 rows (index 3 to 6) and 2 columns.
+ * 
+ *  make_mat(V)(2,range(3,6))  generates a row-major matrix starting from index 3, with 4 columns (index 3 to 6) and 2 rows.
+ * 
+ * \tparam Vector A readable vector type.
+ */
 template <typename Vector>
 typename boost::enable_if_c< is_readable_vector<Vector>::value,
 mat_vect_adaptor_factory<Vector> >::type make_mat(Vector& V) { return mat_vect_adaptor_factory<Vector>(V); };
 
+/**
+ * This function template can be used to generate a matrix-vector adaptor. It constructs 
+ * an object of a factory functor which can generate either a column-major or row-major matrix
+ * depending on the call syntax. The matrix is constructed via a range function as so:
+ * 
+ *  make_mat(V)(range(3,6),2)  generates a column-major matrix starting from index 3, with 4 rows (index 3 to 6) and 2 columns.
+ * 
+ *  make_mat(V)(2,range(3,6))  generates a row-major matrix starting from index 3, with 4 columns (index 3 to 6) and 2 rows.
+ * 
+ * \tparam Vector A readable vector type.
+ */
 template <typename Vector>
 typename boost::enable_if_c< is_readable_vector<Vector>::value,
 mat_const_vect_adaptor_factory<Vector> >::type make_mat(const Vector& V) { return mat_const_vect_adaptor_factory<Vector>(V); };

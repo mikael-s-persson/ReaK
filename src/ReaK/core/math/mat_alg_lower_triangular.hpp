@@ -1,3 +1,13 @@
+/**
+ * \file mat_alg_lower_triangular.hpp
+ * 
+ * This library contains old code which is specific to handing, storing and operating 
+ * with lower-triangular matrices. It stores only the lower-triangular part and operate
+ * more efficiently than if it was a dense matrix.
+ * 
+ * \todo Port all this code to the newer framework for matrices.
+ * 
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson

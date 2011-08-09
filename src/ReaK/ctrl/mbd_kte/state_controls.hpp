@@ -1,3 +1,16 @@
+/**
+ * \file state_controls.hpp
+ * 
+ * This library provides a number of classes which can be used as KTE models which 
+ * control the motion-state variables (position, velocity, etc.) directly. Note that 
+ * these classes don't implement control systems, simply direct control. If a control 
+ * system is required, one can make a KTE for that controller and insert it between
+ * a frame that is controlled via the classes provided here and the input frame of a 
+ * joint.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -32,14 +45,25 @@ namespace ReaK {
 
 namespace kte {
 
-
+/**
+ * This class can be used as a system input to set the value of the position of a 
+ * generalized coordinate.
+ */
 class position_control_gen : public kte_map, public system_input {
   private:
     boost::shared_ptr< gen_coord<double> > mAnchor; 
     double mPosDesired;
     
   public:
+    /**
+     * Returns the desired position, for read-write access.
+     * \return the desired position for read-write access.
+     */
     double& getPosDesired() { return mPosDesired; };
+    /**
+     * Returns the desired position, for read-only access.
+     * \return the desired position for read-only access.
+     */
     double getPosDesired() const { return mPosDesired; };
     
     virtual unsigned int getInputCount() const { return 1; };
@@ -96,13 +120,25 @@ class position_control_gen : public kte_map, public system_input {
 
 
 
+/**
+ * This class can be used as a system input to set the value of the position of a 
+ * 2D coordinate frame.
+ */
 class position_control_2D : public kte_map, public system_input {
   private:
     boost::shared_ptr< frame_2D<double> > mAnchor; 
     vect<double,2> mPosDesired;
     
   public:
+    /**
+     * Returns the desired position, for read-write access.
+     * \return the desired position for read-write access.
+     */
     vect<double,2>& getPosDesired() { return mPosDesired; };
+    /**
+     * Returns the desired position, for read-only access.
+     * \return the desired position for read-only access.
+     */
     const vect<double,2>& getPosDesired() const { return mPosDesired; };
     
     virtual unsigned int getInputCount() const { return 2; };
@@ -169,13 +205,25 @@ class position_control_2D : public kte_map, public system_input {
 
 
 
+/**
+ * This class can be used as a system input to set the value of the position of a 
+ * 3D coordinate frame.
+ */
 class position_control_3D : public kte_map, public system_input {
   private:
     boost::shared_ptr< frame_3D<double> > mAnchor; 
     vect<double,3> mPosDesired;
     
   public:
+    /**
+     * Returns the desired position, for read-write access.
+     * \return the desired position for read-write access.
+     */
     vect<double,3>& getPosDesired() { return mPosDesired; };
+    /**
+     * Returns the desired position, for read-only access.
+     * \return the desired position for read-only access.
+     */
     const vect<double,3>& getPosMeasure() const { return mPosDesired; };
     
     virtual unsigned int getInputCount() const { return 3; };
@@ -242,13 +290,25 @@ class position_control_3D : public kte_map, public system_input {
 
 
 
+/**
+ * This class can be used as a system input to set the value of the rotation of a 
+ * 2D coordinate frame.
+ */
 class rotation_control_2D : public kte_map, public system_input {
   private:
     boost::shared_ptr< frame_2D<double> > mAnchor; 
     double mAngleDesired;
     
   public:
+    /**
+     * Returns the desired rotation, for read-write access.
+     * \return the desired rotation for read-write access.
+     */
     double& getAngleDesired() { return mAngleDesired; };
+    /**
+     * Returns the desired rotation, for read-write access.
+     * \return the desired rotation for read-write access.
+     */
     double getAngleDesired() const { return mAngleDesired; };
     
     virtual unsigned int getInputCount() const { return 1; };
@@ -306,13 +366,25 @@ class rotation_control_2D : public kte_map, public system_input {
 
 
 
+/**
+ * This class can be used as a system input to set the value of the rotation of a 
+ * 3D coordinate frame.
+ */
 class rotation_control_3D : public kte_map, public system_input {
   private:
     boost::shared_ptr< frame_3D<double> > mAnchor; 
     quaternion<double> mQuatDesired;
     
   public:
+    /**
+     * Returns the desired rotation, for read-write access.
+     * \return the desired rotation for read-write access.
+     */
     quaternion<double>& getQuatDesired() { return mQuatDesired; };
+    /**
+     * Returns the desired rotation, for read-only access.
+     * \return the desired rotation for read-only access.
+     */
     const quaternion<double>& getQuatDesired() const { return mQuatDesired; };
     
     virtual unsigned int getInputCount() const { return 4; };
@@ -379,13 +451,25 @@ class rotation_control_3D : public kte_map, public system_input {
 
 
 
+/**
+ * This class can be used as a system input to set the value of the velocity of a 
+ * generalized coordinate.
+ */
 class velocity_control_gen : public kte_map, public system_input {
   private:
     boost::shared_ptr< gen_coord<double> > mAnchor; 
     double mVelDesired;
     
   public:
+    /**
+     * Returns the desired velocity, for read-write access.
+     * \return the desired velocity for read-write access.
+     */
     double& getVelDesired() { return mVelDesired; };
+    /**
+     * Returns the desired velocity, for read-only access.
+     * \return the desired velocity for read-only access.
+     */
     double getVelDesired() const { return mVelDesired; };
     
     virtual unsigned int getInputCount() const { return 1; };
@@ -442,13 +526,25 @@ class velocity_control_gen : public kte_map, public system_input {
 
 
 
+/**
+ * This class can be used as a system input to set the value of the velocity of a 
+ * 2D coordinate frame.
+ */
 class velocity_control_2D : public kte_map, public system_input {
   private:
     boost::shared_ptr< frame_2D<double> > mAnchor; 
     vect<double,2> mVelDesired;
     
   public:
+    /**
+     * Returns the desired velocity, for read-write access.
+     * \return the desired velocity for read-write access.
+     */
     vect<double,2>& getVelDesired() { return mVelDesired; };
+    /**
+     * Returns the desired velocity, for read-only access.
+     * \return the desired velocity for read-only access.
+     */
     const vect<double,2>& getVelDesired() const { return mVelDesired; };
     
     virtual unsigned int getInputCount() const { return 2; };
@@ -515,13 +611,25 @@ class velocity_control_2D : public kte_map, public system_input {
 
 
 
+/**
+ * This class can be used as a system input to set the value of the velocity of a 
+ * 3D coordinate frame.
+ */
 class velocity_control_3D : public kte_map, public system_input {
   private:
     boost::shared_ptr< frame_3D<double> > mAnchor; 
     vect<double,3> mVelDesired;
     
   public:
+    /**
+     * Returns the desired velocity, for read-write access.
+     * \return the desired velocity for read-write access.
+     */
     vect<double,3>& getVelDesired() { return mVelDesired; };
+    /**
+     * Returns the desired velocity, for read-only access.
+     * \return the desired velocity for read-only access.
+     */
     const vect<double,3>& getVelDesired() const { return mVelDesired; };
     
     virtual unsigned int getInputCount() const { return 3; };
@@ -588,13 +696,25 @@ class velocity_control_3D : public kte_map, public system_input {
 
 
 
+/**
+ * This class can be used as a system input to set the value of the angular velocity of a 
+ * 2D coordinate frame.
+ */
 class ang_velocity_control_2D : public kte_map, public system_input {
   private:
     boost::shared_ptr< frame_2D<double> > mAnchor; 
     vect<double,2> mAngVelDesired;
     
   public:
+    /**
+     * Returns the desired angular velocity, for read-write access.
+     * \return the desired angular velocity for read-write access.
+     */
     vect<double,2>& getAngVelDesired() { return mAngVelDesired; };
+    /**
+     * Returns the desired angular velocity, for read-only access.
+     * \return the desired angular velocity for read-only access.
+     */
     const vect<double,2>& getAngVelDesired() const { return mAngVelDesired; };
     
     virtual unsigned int getInputCount() const { return 2; };
@@ -661,13 +781,25 @@ class ang_velocity_control_2D : public kte_map, public system_input {
 
 
 
+/**
+ * This class can be used as a system input to set the value of the angular velocity of a 
+ * 3D coordinate frame.
+ */
 class ang_velocity_control_3D : public kte_map, public system_input {
   private:
     boost::shared_ptr< frame_3D<double> > mAnchor; 
     vect<double,3> mAngVelDesired;
     
   public:
+    /**
+     * Returns the desired angular velocity, for read-write access.
+     * \return the desired angular velocity for read-write access.
+     */
     vect<double,3>& getAngVelDesired() { return mAngVelDesired; };
+    /**
+     * Returns the desired angular velocity, for read-only access.
+     * \return the desired angular velocity for read-only access.
+     */
     const vect<double,3>& getAngVelDesired() const { return mAngVelDesired; };
     
     virtual unsigned int getInputCount() const { return 3; };

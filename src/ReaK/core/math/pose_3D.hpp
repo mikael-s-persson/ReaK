@@ -1,3 +1,11 @@
+/**
+ * \file pose_3D.hpp
+ * 
+ * This library provides the class template which can represent a static 3D pose (position and rotation).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson

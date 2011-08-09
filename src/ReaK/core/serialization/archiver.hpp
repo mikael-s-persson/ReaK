@@ -51,9 +51,10 @@
 #include <list>
 #include <iterator>
 
+/** Main namespace for ReaK */
 namespace ReaK {
 
-  
+/** Main namespace for ReaK's Serialization */
 namespace serialization {
 
 class serializable;

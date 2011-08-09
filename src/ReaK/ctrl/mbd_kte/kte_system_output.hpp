@@ -1,3 +1,13 @@
+/**
+ * \file kte_system_output.hpp
+ * 
+ * This library defines the base class for system outputs to a KTE model. A system output 
+ * is simply a vector of values which serve as an output to a KTE model. This model is useful
+ * when using a KTE model into a state-space system definition.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -34,17 +44,37 @@ namespace ReaK {
 namespace kte {
 
 
+/**
+ * This class is a base class for system outputs of a KTE model. A system output 
+ * is simply a vector of values which serve as an output to a KTE model. This model is useful
+ * when using a KTE model into a state-space system definition.
+ */
 class system_output : public virtual named_object {
   public:
     
+    /**
+     * Constructs a system input class with the given name.
+     */
     system_output(const std::string& aName = "") {
       this->setName(aName);
     };
     
+    /**
+     * Destructor.
+     */
     virtual ~system_output() { };
     
+    /**
+     * Returns the number of output variables provided by this system output.
+     * \return the number of output variables provided by this system output.
+     */
     virtual unsigned int getOutputCount() const = 0;
     
+    /**
+     * Returns the output variable at index i, with read-only access.
+     * \param i The index of the output variable.
+     * \return The variable at index i.
+     */
     virtual double getOutput(unsigned int i) const = 0;
     
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {

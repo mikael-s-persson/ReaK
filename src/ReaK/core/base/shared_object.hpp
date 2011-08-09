@@ -47,6 +47,7 @@
 #include "serializable.hpp"
 #include "shared_object_base.hpp"
 
+/** Main namespace for ReaK */
 namespace ReaK {
 
 /**

@@ -1,3 +1,15 @@
+/**
+ * \file gaussian_belief_state.hpp
+ * 
+ * This library provides a number of class templates that can be used to represent and 
+ * use a Gaussian belief-state (i.e. a mean-state and a covariance matrix). Those class
+ * templates include the belief-state itself, of course, a sampler to generate random
+ * states from the belief-state's probability distribution, and a PDF (probability 
+ * distribution function) to compute the probability of a given state vector.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date June 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -46,6 +58,9 @@ namespace ReaK {
 namespace ctrl {
   
   
+/**
+ * This class template is a functor that can compute the probability 
+ */
 template <typename Covariance, covariance_storage::tag Storage = covariance_mat_traits<Covariance>::storage>
 struct gaussian_pdf {
   typedef gaussian_pdf<Covariance, Storage> self;

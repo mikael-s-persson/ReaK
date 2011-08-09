@@ -1,3 +1,15 @@
+/**
+ * \file mat_views.hpp
+ * 
+ * This library provides a number of class templates to create matrix views. A matrix
+ * view simply means that a sub-block of a matrix is used as if it was a matrix in its
+ * own right. This can be very useful to set sub-blocks to other values or to use a 
+ * sub-block in a matrix expression (e.g. applying the operation on the entire matrix 
+ * is not practical or efficient).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date June 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -29,7 +41,11 @@
 
 namespace ReaK {
 
-
+/**
+ * This function template can be used to generate a range of indices for the matrices.
+ * A range is simple a pair of first and last indices (notice that the last index is 
+ * included in the range).
+ */
 template <typename T>
 std::pair<T,T> range(T aFirst,T aLast) {
   return std::pair<T,T>(aFirst,aLast);
@@ -38,7 +54,11 @@ std::pair<T,T> range(T aFirst,T aLast) {
   
   
   
-
+/**
+ * This class template 
+ * 
+ * 
+ */
 template <typename Matrix>
 class mat_copy_sub_block {
   public:    
@@ -73,10 +93,24 @@ class mat_copy_sub_block {
     size_type rowCount;
     size_type colCount;
   public:
+    /**
+     * Default constructor.
+     */
     mat_copy_sub_block() : m(), rowOffset(0), colOffset(0), rowCount(0), colCount(0) { };
     
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     explicit mat_copy_sub_block(const Matrix& aM) : m(aM), rowOffset(0), colOffset(0), rowCount(aM.get_row_count()), colCount(aM.get_col_count()) { };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aRowCount The number of rows for the sub-block.
+     * \param aColCount The number of columns for the sub-block.
+     * \param aRowOffset The row-offset from the start of the matrix.
+     * \param aColOffset The column-offset from the start of the matrix.
+     */
     mat_copy_sub_block(const Matrix& aM, 
 		       size_type aRowCount, 
 		       size_type aColCount,
@@ -84,8 +118,19 @@ class mat_copy_sub_block {
                        size_type aColOffset = 0) : m(aM), rowOffset(aRowOffset), colOffset(aColOffset), rowCount(aRowCount), colCount(aColCount) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     explicit mat_copy_sub_block(Matrix&& aM) : m(std::move(aM)), rowOffset(0), colOffset(0), rowCount(0), colCount(0) { rowCount = m.get_row_count(); colCount = m.get_col_count(); };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aRowCount The number of rows for the sub-block.
+     * \param aColCount The number of columns for the sub-block.
+     * \param aRowOffset The row-offset from the start of the matrix.
+     * \param aColOffset The column-offset from the start of the matrix.
+     */
     mat_copy_sub_block(Matrix&& aM, 
 		       size_type aRowCount, 
 		       size_type aColCount,
@@ -93,12 +138,21 @@ class mat_copy_sub_block {
                        size_type aColOffset = 0) : m(std::move(aM)), rowOffset(aRowOffset), colOffset(aColOffset), rowCount(aRowCount), colCount(aColCount) { };
 #endif
 
+    /**
+     * Standard copy-constructor.
+     */
     mat_copy_sub_block(const self& aObj) : m(aObj.m), rowOffset(aObj.rowOffset), colOffset(aObj.colOffset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard move-constructor.
+     */
     mat_copy_sub_block(self&& aObj) : m(std::move(aObj.m)), rowOffset(aObj.rowOffset), colOffset(aObj.colOffset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
 #endif
     
+    /**
+     * Standard swap function.
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.m,rhs.m);
@@ -109,11 +163,17 @@ class mat_copy_sub_block {
       return;
     };
     
+    /**
+     * Standard assignment operator.
+     */
     self& operator=(self rhs) {
       swap(*this,rhs);
       return *this;
     };
     
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix2>
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value &&
                                  !boost::is_same<Matrix2,self>::value ,
@@ -130,18 +190,51 @@ class mat_copy_sub_block {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       return m(rowOffset + i, colOffset + j);
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       return m(rowOffset + i, colOffset + j); 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return colCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,colCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return m.get_allocator(); };
     
     
@@ -213,6 +306,11 @@ class mat_copy_sub_block {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -221,6 +319,11 @@ class mat_copy_sub_block {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -301,22 +404,42 @@ class mat_sub_block {
     size_type rowCount;
     size_type colCount;
   public:
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     explicit mat_sub_block(Matrix& aM) : m(&aM), rowOffset(0), colOffset(0), rowCount(aM.get_row_count()), colCount(aM.get_col_count()) { };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aRowCount The number of rows for the sub-block.
+     * \param aColCount The number of columns for the sub-block.
+     * \param aRowOffset The row-offset from the start of the matrix.
+     * \param aColOffset The column-offset from the start of the matrix.
+     */
     mat_sub_block(Matrix& aM, 
 		  size_type aRowCount, 
 		  size_type aColCount,
 		  size_type aRowOffset = 0,
                   size_type aColOffset = 0) : m(&aM), rowOffset(aRowOffset), colOffset(aColOffset), rowCount(aRowCount), colCount(aColCount) { };
    
+    /**
+     * Standard copy-constructor.
+     */
     mat_sub_block(const self& aObj) : m(aObj.m), rowOffset(aObj.rowOffset), colOffset(aObj.colOffset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
    
+    /**
+     * Standard move-constructor.
+     */
     mat_sub_block(self&& aObj) : m(aObj.m), rowOffset(aObj.rowOffset), colOffset(aObj.colOffset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
     
 #endif
     
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.m,rhs.m);
@@ -327,6 +450,9 @@ class mat_sub_block {
       return;
     };
         
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix2>
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value ,
     self& >::type operator=(const Matrix2& rhs) {
@@ -342,18 +468,51 @@ class mat_sub_block {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       return (*m)(rowOffset + i, colOffset + j);
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       return (*m)(rowOffset + i, colOffset + j); 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return colCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,colCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return m->get_allocator(); };
     
     
@@ -425,6 +584,11 @@ class mat_sub_block {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -433,6 +597,11 @@ class mat_sub_block {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -520,20 +689,40 @@ class mat_const_sub_block {
 #endif
     
   public:
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     explicit mat_const_sub_block(const Matrix& aM) : m(&aM), rowOffset(0), colOffset(0), rowCount(aM.get_row_count()), colCount(aM.get_col_count()) { };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aRowCount The number of rows for the sub-block.
+     * \param aColCount The number of columns for the sub-block.
+     * \param aRowOffset The row-offset from the start of the matrix.
+     * \param aColOffset The column-offset from the start of the matrix.
+     */
     mat_const_sub_block(const Matrix& aM, 
 			size_type aRowCount, 
 			size_type aColCount,
 			size_type aRowOffset = 0,
 			size_type aColOffset = 0) : m(&aM), rowOffset(aRowOffset), colOffset(aColOffset), rowCount(aRowCount), colCount(aColCount) { };
     
+    /**
+     * Standard copy-constructor.
+     */
     mat_const_sub_block(const self& aObj) : m(aObj.m), rowOffset(aObj.rowOffset), colOffset(aObj.colOffset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard move-constructor.
+     */
     mat_const_sub_block(self&& aObj) : m(aObj.m), rowOffset(aObj.rowOffset), colOffset(aObj.colOffset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
 #endif
     
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.m,rhs.m);
@@ -548,15 +737,41 @@ class mat_const_sub_block {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       return (*m)(rowOffset + i, colOffset + j); 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return colCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,colCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return (*m).get_allocator(); };
     
     /** WORKS FOR ALL
@@ -573,6 +788,11 @@ class mat_const_sub_block {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -581,6 +801,11 @@ class mat_const_sub_block {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
       for(size_type j = 0; j < result.get_col_count(); ++j)
@@ -750,27 +975,58 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
     size_type offset;
     size_type rowCount;
   public:
+    
+    /**
+     * Default constructor.
+     */
     mat_copy_sub_sym_block() : m(), offset(0), rowCount(0) { };
     
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     explicit mat_copy_sub_sym_block(const Matrix& aM) : m(aM), offset(0), rowCount(aM.get_row_count()) { };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aSize The number of rows for the sub-block.
+     * \param aOffset The row-offset from the start of the matrix.
+     */
     mat_copy_sub_sym_block(const Matrix& aM, 
 		      size_type aSize,
 		      size_type aOffset = 0) : m(aM), offset(aOffset), rowCount(aSize) { };
 		      
+    /**
+     * Standard copy-constructor.
+     */
     mat_copy_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     explicit mat_copy_sub_sym_block(Matrix&& aM) : m(std::move(aM)), offset(0), rowCount(0) { rowCount = m.get_row_count(); };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aSize The number of rows for the sub-block.
+     * \param aOffset The row-offset from the start of the matrix.
+     */
     mat_copy_sub_sym_block(Matrix&& aM, 
 		           size_type aSize,
 		           size_type aOffset = 0) : m(std::move(aM)), offset(aOffset), rowCount(aSize) { };
 		      
+    /**
+     * Standard move-constructor.
+     */
     mat_copy_sub_sym_block(self&& aObj) : m(std::move(aObj.m)), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
 #endif
     
+    /**
+     * Standard swap function.
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.m,rhs.m);
@@ -779,12 +1035,18 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
       return;
     };
     
+    /**
+     * Standard assignment operator.
+     */
     self& operator=(self rhs) {
       swap(*this,rhs);
       return *this;
     };
     
        
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix2>
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
@@ -800,18 +1062,51 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       return m(offset + i, offset + j);
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       return m(offset + i, offset + j); 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return rowCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,rowCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return m.get_allocator(); };
     
     
@@ -883,20 +1178,40 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend const self& transpose(const self& M) {
       return M;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend const self& transpose_move(const self& M) {
       return M;
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend self&& transpose(self&& M) {
       return std::move(M);
     };
 #endif
     
+    /**
+     * Returns the trace of matrix M.
+     * \param M A matrix.
+     * \return the trace of matrix M.
+     */
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
@@ -938,19 +1253,37 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
     size_type offset;
     size_type rowCount;
   public:
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     explicit mat_sub_sym_block(Matrix& aM) : m(&aM), offset(0), rowCount(aM.get_row_count()) { };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aSize The number of rows for the sub-block.
+     * \param aOffset The row-offset from the start of the matrix.
+     */
     mat_sub_sym_block(Matrix& aM, 
 		      size_type aSize,
 		      size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
+    /**
+     * Standard copy-constructor.
+     */
     mat_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
    
+    /**
+     * Standard move-constructor.
+     */
     mat_sub_sym_block(self&& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
 #endif
     
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.m,rhs.m);
@@ -959,6 +1292,9 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
       return;
     };
     
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix2>
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
@@ -973,19 +1309,52 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
 /*******************************************************************************
                          Accessors and Methods
 *******************************************************************************/
-
+    
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       return (*m)(offset + i, offset + j);
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       return (*m)(offset + i, offset + j); 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return rowCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,rowCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return m->get_allocator(); };
     
     
@@ -1057,14 +1426,29 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend const self& transpose(const self& M) {
       return M;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend const self& transpose_move(const self& M) {
       return M;
     };
     
+    /**
+     * Returns the trace of matrix M.
+     * \param M A matrix.
+     * \return the trace of matrix M.
+     */
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
@@ -1116,19 +1500,37 @@ class mat_const_sub_sym_block<Matrix,mat_structure::symmetric> {
 #endif
   public:
     
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     mat_const_sub_sym_block(const Matrix& aM) : m(&aM), offset(0), rowCount(aM.get_row_count()) { };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aSize The number of rows for the sub-block.
+     * \param aOffset The row-offset from the start of the matrix.
+     */
     mat_const_sub_sym_block(const Matrix& aM, 
 			    size_type aSize,
 			    size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
 			    
+    /**
+     * Standard copy-constructor.
+     */
     mat_const_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard move-constructor.
+     */
     mat_const_sub_sym_block(self&& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
 #endif
     
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.m,rhs.m);
@@ -1141,15 +1543,41 @@ class mat_const_sub_sym_block<Matrix,mat_structure::symmetric> {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       return (*m)(offset + i, offset + j); 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return rowCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,rowCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return m->get_allocator(); };
     
     /** WORKS FOR ALL
@@ -1166,20 +1594,40 @@ class mat_const_sub_sym_block<Matrix,mat_structure::symmetric> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend const self& transpose(const self& M) {
       return M;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend const self& transpose_move(const self& M) {
       return M;
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend self&& transpose(self&& M) {
       return std::move(M);
     };
 #endif
     
+    /**
+     * Returns the trace of matrix M.
+     * \param M A matrix.
+     * \return the trace of matrix M.
+     */
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
@@ -1227,27 +1675,57 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     size_type offset;
     size_type rowCount;
   public:
+    /**
+     * Default constructor.
+     */
     mat_copy_sub_sym_block() : m(), offset(0), rowCount(0) { };
     
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     explicit mat_copy_sub_sym_block(const Matrix& aM) : m(aM), offset(0), rowCount(aM.get_row_count()) { };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aSize The number of rows for the sub-block.
+     * \param aOffset The row-offset from the start of the matrix.
+     */
     mat_copy_sub_sym_block(const Matrix& aM, 
 		      size_type aSize,
 		      size_type aOffset = 0) : m(aM), offset(aOffset), rowCount(aSize) { };
 		      
+    /**
+     * Standard copy-constructor.
+     */
     mat_copy_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     explicit mat_copy_sub_sym_block(Matrix&& aM) : m(std::move(aM)), offset(0), rowCount(0) { rowCount = m.get_row_count(); };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aSize The number of rows for the sub-block.
+     * \param aOffset The row-offset from the start of the matrix.
+     */
     mat_copy_sub_sym_block(Matrix&& aM, 
 		           size_type aSize,
 		           size_type aOffset = 0) : m(std::move(aM)), offset(aOffset), rowCount(aSize) { };
 		      
+    /**
+     * Standard move-constructor.
+     */
     mat_copy_sub_sym_block(self&& aObj) : m(std::move(aObj.m)), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
 #endif
     
+    /**
+     * Standard swap function.
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.m,rhs.m);
@@ -1256,12 +1734,18 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
       return;
     };
     
+    /**
+     * Standard assignment operator.
+     */
     self& operator=(self rhs) {
       swap(*this,rhs);
       return *this;
     };
     
        
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix2>
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
@@ -1277,18 +1761,51 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       return m(offset + i, offset + j);
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       return m(offset + i, offset + j); 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return rowCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,rowCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return m.get_allocator(); };
     
     
@@ -1360,14 +1877,29 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::skew_symmetric> transpose(const self& M) {
       return -M;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::skew_symmetric> transpose_move(const self& M) {
       return -M;
     };
     
+    /**
+     * Returns the trace of matrix M.
+     * \param M A matrix.
+     * \return the trace of matrix M.
+     */
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
@@ -1410,18 +1942,36 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     size_type rowCount;
   public:
     
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     mat_sub_sym_block(Matrix& aM) : m(&aM), offset(0), rowCount(aM.get_row_count()) { };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aSize The number of rows for the sub-block.
+     * \param aOffset The row-offset from the start of the matrix.
+     */
     mat_sub_sym_block(Matrix& aM, 
 		      size_type aSize,
 		      size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
 		      
+    /**
+     * Standard copy-constructor.
+     */
     mat_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard move-constructor.
+     */
     mat_sub_sym_block(self&& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
 #endif
     
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.m,rhs.m);
@@ -1430,6 +1980,9 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
       return;
     };
     
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix2>
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
@@ -1445,18 +1998,51 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       return (*m)(offset + i, offset + j);
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       return (*m)(offset + i, offset + j); 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return rowCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,rowCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return m->get_allocator(); };
     
     
@@ -1528,14 +2114,29 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::skew_symmetric> transpose(const self& M) {
       return -M;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::skew_symmetric> transpose_move(const self& M) {
       return -M;
     };
     
+    /**
+     * Returns the trace of matrix M.
+     * \param M A matrix.
+     * \return the trace of matrix M.
+     */
     friend value_type trace(const self& M) {
       return value_type(0.0);
     };
@@ -1585,18 +2186,36 @@ class mat_const_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
 #endif
   public:
     
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     mat_const_sub_sym_block(const Matrix& aM) : m(&aM), offset(0), rowCount(aM.get_row_count()) { };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aSize The number of rows for the sub-block.
+     * \param aOffset The row-offset from the start of the matrix.
+     */
     mat_const_sub_sym_block(const Matrix& aM, 
 			    size_type aSize,
 			    size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
     
+    /**
+     * Standard copy-constructor.
+     */
     mat_const_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard move-constructor.
+     */
     mat_const_sub_sym_block(self&& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
 #endif
     
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.m,rhs.m);
@@ -1609,15 +2228,41 @@ class mat_const_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       return (*m)(offset + i, offset + j); 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return rowCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,rowCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return m->get_allocator(); };
     
     /** WORKS FOR ALL
@@ -1634,14 +2279,29 @@ class mat_const_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::skew_symmetric> transpose(const self& M) {
       return -M;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend mat<value_type,mat_structure::skew_symmetric> transpose_move(const self& M) {
       return -M;
     };
     
+    /**
+     * Returns the trace of matrix M.
+     * \param M A matrix.
+     * \return the trace of matrix M.
+     */
     friend value_type trace(const self& M) {
       return value_type(0.0);
     };
@@ -1686,26 +2346,56 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
     size_type offset;
     size_type rowCount;
   public:
+    /**
+     * Default constructor.
+     */
     mat_copy_sub_sym_block() : m(), offset(0), rowCount(0) { rowCount = m.get_row_count(); };
     
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     mat_copy_sub_sym_block(const Matrix& aM) : m(aM), offset(0), rowCount(aM.get_row_count()) { };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aSize The number of rows for the sub-block.
+     * \param aOffset The row-offset from the start of the matrix.
+     */
     mat_copy_sub_sym_block(const Matrix& aM, 
 		           size_type aSize,
 		           size_type aOffset = 0) : m(aM), offset(aOffset), rowCount(aSize) { };
 			   
+    /**
+     * Standard copy-constructor.
+     */
     mat_copy_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     mat_copy_sub_sym_block(Matrix&& aM) : m(std::move(aM)), offset(0), rowCount(0) { rowCount = m.get_row_count(); };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aSize The number of rows for the sub-block.
+     * \param aOffset The row-offset from the start of the matrix.
+     */
     mat_copy_sub_sym_block(Matrix&& aM, 
 		           size_type aSize,
 		           size_type aOffset = 0) : m(std::move(aM)), offset(aOffset), rowCount(aSize) { };
 			   
+    /**
+     * Standard move-constructor.
+     */
     mat_copy_sub_sym_block(self&& aObj) : m(std::move(aObj.m)), offset(aObj.offset), rowCount(aObj.rowCount) { };
 #endif
        
+    /**
+     * Standard swap function.
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.m,rhs.m);
@@ -1714,11 +2404,17 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
       return;
     };
     
+    /**
+     * Standard assignment operator.
+     */
     self& operator=(self rhs) {
       swap(*this,rhs);
       return *this;
     };
     
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix2>
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
@@ -1732,19 +2428,52 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
 /*******************************************************************************
                          Accessors and Methods
 *******************************************************************************/
-
+    
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       return m(offset + i, offset + j);
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       return m(offset + i, offset + j); 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return rowCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,rowCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return m.get_allocator(); };
     
     
@@ -1812,10 +2541,20 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend const self& transpose(const self& M) {
       return M;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend const self& transpose_move(const self& M) {
       return M;
     };
@@ -1826,6 +2565,11 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
     };
 #endif
     
+    /**
+     * Returns the trace of matrix M.
+     * \param M A matrix.
+     * \return the trace of matrix M.
+     */
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
@@ -1869,17 +2613,35 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
     size_type offset;
     size_type rowCount;
   public:
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     mat_sub_sym_block(Matrix& aM) : m(&aM), offset(0), rowCount(aM.get_row_count()) { };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aSize The number of rows for the sub-block.
+     * \param aOffset The row-offset from the start of the matrix.
+     */
     mat_sub_sym_block(Matrix& aM, 
 		      size_type aSize,
 		      size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
+    /**
+     * Standard copy-constructor.
+     */
     mat_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard move-constructor.
+     */
     mat_sub_sym_block(self&& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
 #endif
        
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.m,rhs.m);
@@ -1888,6 +2650,9 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
       return;
     };
     
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix2>
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
@@ -1902,18 +2667,51 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-write access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     reference operator()(size_type i,size_type j) { 
       return (*m)(offset + i, offset + j);
     };
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       return (*m)(offset + i, offset + j); 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return rowCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,rowCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return m->get_allocator(); };
     
     
@@ -1981,20 +2779,40 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend const self& transpose(const self& M) {
       return M;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend const self& transpose_move(const self& M) {
       return M;
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend self&& transpose(self&& M) {
       return std::move(M);
     };
 #endif
     
+    /**
+     * Returns the trace of matrix M.
+     * \param M A matrix.
+     * \return the trace of matrix M.
+     */
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
@@ -2045,19 +2863,37 @@ class mat_const_sub_sym_block<Matrix,mat_structure::diagonal> {
     mat_const_sub_sym_block(Matrix&&, size_type, size_type aOffset = 0);
 #endif
   public:
+    /**
+     * Constructs the sub-matrix which represents the entire matrix.
+     */
     mat_const_sub_sym_block(const Matrix& aM) : m(&aM), offset(0), rowCount(aM.get_row_count()) { };
     
+    /**
+     * Constructs the sub-matrix which represents part of the matrix.
+     * \param aM The matrix from which the sub-block is taken.
+     * \param aSize The number of rows for the sub-block.
+     * \param aOffset The row-offset from the start of the matrix.
+     */
     mat_const_sub_sym_block(const Matrix& aM, 
 			    size_type aSize,
 			    size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
     
+    /**
+     * Standard copy-constructor.
+     */
     mat_const_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Standard move-constructor.
+     */
     mat_const_sub_sym_block(self&& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
 #endif
     
+    /**
+     * Standard swap function (shallow).
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.m,rhs.m);
@@ -2070,15 +2906,41 @@ class mat_const_sub_sym_block<Matrix,mat_structure::diagonal> {
                          Accessors and Methods
 *******************************************************************************/
 
+    /**
+     * Matrix indexing accessor for read-only access.
+     * \param i Row index.
+     * \param j Column index.
+     * \return the element at the given position.
+     * \test PASSED
+     */
     value_type operator()(size_type i,size_type j) const { 
       return (*m)(offset + i, offset + j); 
     };
 
+    /**
+     * Gets the row-count (number of rows) of the matrix.
+     * \return number of rows of the matrix.
+     * \test PASSED
+     */
     size_type get_row_count() const throw() { return rowCount; };
+    /**
+     * Gets the column-count (number of columns) of the matrix.
+     * \return number of columns of the matrix.
+     * \test PASSED
+     */
     size_type get_col_count() const throw() { return rowCount; };
     
+    /**
+     * Gets the row-count and column-count of the matrix, as a std::pair of values.
+     * \return the row-count and column-count of the matrix, as a std::pair of values.
+     * \test PASSED
+     */
     std::pair<size_type,size_type> size() const throw() { return std::make_pair(rowCount,rowCount); };
 
+    /**
+     * Returns the allocator object of the underlying container.
+     * \return the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return m->get_allocator(); };
     
     
@@ -2095,20 +2957,40 @@ class mat_const_sub_sym_block<Matrix,mat_structure::diagonal> {
       return result;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend const self& transpose(const self& M) {
       return M;
     };
     
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend const self& transpose_move(const self& M) {
       return M;
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Transposes the matrix M.
+     * \param M The matrix to be transposed.
+     * \return The transpose of M.
+     */
     friend self&& transpose(self&& M) {
       return std::move(M);
     };
 #endif
     
+    /**
+     * Returns the trace of matrix M.
+     * \param M A matrix.
+     * \return the trace of matrix M.
+     */
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)

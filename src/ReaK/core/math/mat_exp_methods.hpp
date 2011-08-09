@@ -10,7 +10,7 @@
  * 
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
- * \date June 2011
+ * \date May 2011
  */
 
 /*

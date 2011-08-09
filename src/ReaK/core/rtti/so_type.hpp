@@ -48,18 +48,20 @@
 #include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/bool.hpp>
 
+/** Main namespace for ReaK */
 namespace ReaK {
 
 
 class shared_object; //forward-declaration.
 
+/** Main namespace for ReaK's Serialization */
 namespace serialization {
 
   class serializable; //forward-declaration
   
 };
 
-
+/** Main namespace for ReaK's Run-time Type Identification (RTTI) */
 namespace rtti {
   
 typedef boost::shared_ptr<shared_object> (RK_CALL *construct_ptr)();

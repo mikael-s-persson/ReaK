@@ -1,3 +1,14 @@
+/**
+ * \file vect_concepts.hpp
+ * 
+ * This library defines the concepts related to generic vector types used in the ReaK library.
+ * These concepts are based on the principle of minimum requirement, they were designed to 
+ * require only the minimum set of valid expressions that will be used by the algorithms
+ * that pertain to generic vector types.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -32,6 +43,24 @@
 
 namespace ReaK {
 
+/**
+ * This concept class defines what makes a vector a readable vector, that is, 
+ * a vector whose elements can be read.
+ * 
+ * Valid Expressions:
+ * 
+ * e = v[i];   can be indexed to be read.
+ * 
+ * s = v.size();   the size of the vector can be obtained.
+ * 
+ * cit = v.begin();   a const-iterator to the first vector element can be obtained.
+ * 
+ * ++cit;   the const-iterator can be incremented.
+ * 
+ * cit = v.end();   a const-iterator to the one-past-last vector element can be obtained.
+ * 
+ * \tparam Vector The vector type.
+ */
 template <typename Vector>
 struct ReadableVectorConcept {
   Vector v;
@@ -51,6 +80,13 @@ struct ReadableVectorConcept {
   
 };
 
+/**
+ * This meta-function evaluates whether a Vector class fulfills the ReadableVectorConcept, 
+ * however, it does not attempt to instantiate the Concept template (because no technique can
+ * be used to catch the failed instantiation properly), instead, the default version results 
+ * in a false value, and the implementer of a vector class is required to provide a specialization
+ * if he wants this meta-function to evaluate to true for that new vector class.
+ */
 template <typename Vector>
 struct is_readable_vector {
   BOOST_STATIC_CONSTANT( bool, value = false );
@@ -65,6 +101,16 @@ struct is_readable_vector< std::vector<T> > {
 
 
 
+/**
+ * This concept class defines what makes a vector a writable vector, that is, 
+ * a vector whose elements can be written.
+ * 
+ * Valid Expressions (in addition to those of ReadableVectorConcept):
+ * 
+ * v[i] = e;   can be indexed to be written.
+ * 
+ * \tparam Vector The vector type.
+ */
 template <typename Vector>
 struct WritableVectorConcept 
   : ReadableVectorConcept<Vector> { //must also be readable.
@@ -78,6 +124,13 @@ struct WritableVectorConcept
 };
 
 
+/**
+ * This meta-function evaluates whether a Vector class fulfills the WritableVectorConcept, 
+ * however, it does not attempt to instantiate the Concept template (because no technique can
+ * be used to catch the failed instantiation properly), instead, the default version results 
+ * in a false value, and the implementer of a vector class is required to provide a specialization
+ * if he wants this meta-function to evaluate to true for that new vector class.
+ */
 template <typename Vector>
 struct is_writable_vector {
   BOOST_STATIC_CONSTANT( bool, value = false );
@@ -92,6 +145,16 @@ struct is_writable_vector< std::vector<T> > {
 
 
 
+/**
+ * This concept class defines what makes a vector a resizable vector, that is, 
+ * a vector whose size can be changed at run-time.
+ * 
+ * Valid Expressions:
+ * 
+ * v.resize(s);   can be resized.
+ * 
+ * \tparam Vector The vector type.
+ */
 template <typename Vector>
 struct ResizableVectorConcept { 
   Vector v;
@@ -105,6 +168,13 @@ struct ResizableVectorConcept {
 };
 
 
+/**
+ * This meta-function evaluates whether a Vector class fulfills the ResizableVectorConcept, 
+ * however, it does not attempt to instantiate the Concept template (because no technique can
+ * be used to catch the failed instantiation properly), instead, the default version results 
+ * in a false value, and the implementer of a vector class is required to provide a specialization
+ * if he wants this meta-function to evaluate to true for that new vector class.
+ */
 template <typename Vector>
 struct is_resizable_vector {
   BOOST_STATIC_CONSTANT( bool, value = false );
@@ -120,6 +190,16 @@ struct is_resizable_vector< std::vector<T> > {
 
 
 
+/**
+ * This concept class defines what makes a vector a resizable vector, that is, 
+ * a vector whose size can be changed at run-time.
+ * 
+ * Valid Expressions (in addition to those of ResizableVectorConcept):
+ * 
+ * al = v.get_allocator();   the allocator object can be obtained.
+ * 
+ * \tparam Vector The vector type.
+ */
 template <typename Vector>
 struct DynAllocVectorConcept : ResizableVectorConcept<Vector> { 
   Vector v;
@@ -132,12 +212,19 @@ struct DynAllocVectorConcept : ResizableVectorConcept<Vector> {
   
 };
 
-
+/**
+ * This meta-function evaluates whether a Vector class fulfills the DynAllocVectorConcept, 
+ * however, it does not attempt to instantiate the Concept template (because no technique can
+ * be used to catch the failed instantiation properly), instead, the default version results 
+ * in a false value, and the implementer of a vector class is required to provide a specialization
+ * if he wants this meta-function to evaluate to true for that new vector class.
+ */
 template <typename Vector>
 struct has_allocator_vector {
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef has_allocator_vector<Vector> type;
 };
+
 
 template <typename T>
 struct has_allocator_vector< std::vector<T> > {

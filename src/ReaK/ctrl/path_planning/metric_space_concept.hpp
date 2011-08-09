@@ -29,8 +29,10 @@
 #include <cmath>
 #include <boost/concept_check.hpp>
 
+/** Main namespace for ReaK */
 namespace ReaK {
 
+/** Main namespace for ReaK.Path-Planning */
 namespace pp {
   
   

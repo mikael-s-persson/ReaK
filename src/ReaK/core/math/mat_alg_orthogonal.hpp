@@ -1,3 +1,9 @@
+/**
+ * \file mat_alg_orthogonal.hpp
+ * 
+ * This library is not done yet. Not sure if there is any point in making it.
+ * 
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson

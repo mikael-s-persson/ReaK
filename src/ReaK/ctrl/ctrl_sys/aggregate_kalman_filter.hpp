@@ -1,3 +1,22 @@
+/**
+ * \file aggregate_kalman_filter.hpp
+ * 
+ * This library provides a number of functions and classes to do state estimation 
+ * using the Aggregate Kalman Filter. This Kalman filtering technique applies to a 
+ * gaussian belief state where the covariance is decomposed into a covarying matrix
+ * and an informing matrix (i.e. P = X * invert(Y)). The transition between covariances
+ * is achieved using the aggregation of hamiltonian matrices (akin to scattering matrices)
+ * via the Redeffer Star-product. This aggregation of matrices extends beyond a single 
+ * estimation step and can be aggregated over several steps. If the system is non-linear,
+ * then it would need the recomputation of those hamiltonian matrices for the individual
+ * steps if the mean-states change too much. The estimation functions will output the 
+ * hamiltonian matrices, allowing the caller to aggregate them if needed. If the aggregation
+ * is not necessary, then there is no need to use this filter technique as it differs in 
+ * no way from the regular Kalman filter (see kalman_filter.hpp).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -43,7 +62,26 @@ namespace ctrl {
 
 
 
-
+/**
+ * This function template performs one prediction step using the Aggregate Kalman Filter method.
+ * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept 
+ *         at least as a DiscreteLinearizedSystemType.
+ * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
+ * \tparam SystemNoiseCovariance A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \param sys The discrete state-space system used in the state estimation.
+ * \param b As input, it stores the belief-state before the prediction step. As output, it stores
+ *        the belief-state after the prediction step.
+ * \param u The input vector to apply to the state-space system to make the transition of the 
+ *        mean-state, i.e., the current input vector.
+ * \param Q The input noise covariance matrix. This is the level of uncertainty on the input 
+ *        vector components (not the noise on the state transition). This was chosen as the most
+ *        common way application (usually system disturbance comes on the input, not on the state).
+ * \param Sc Stores, as output, the scattering matrix (a hamiltonian matrix) which can scatter the 
+ *        covarying and informing components of the covariance matrix of the belief-state.
+ * \param t The current time (before the prediction).
+ * 
+ */
 template <typename LinearSystem, 
           typename BeliefState, 
 	  typename SystemNoiseCovariance>
@@ -100,7 +138,26 @@ void >::type aggregate_kalman_predict(const LinearSystem& sys,
 
 
 
-
+/**
+ * This function template performs one measurement update step using the Aggregate Kalman Filter method.
+ * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept 
+ *         at least as a DiscreteLinearizedSystemType.
+ * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
+ * \tparam MeasurementNoiseCovariance A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \param sys The discrete state-space system used in the state estimation.
+ * \param b As input, it stores the belief-state before the update step. As output, it stores
+ *        the belief-state after the update step.
+ * \param u The input vector to apply to the state-space system to make the transition of the 
+ *        mean-state, i.e., the current input vector.
+ * \param z The output vector to that was measured.
+ * \param R The output noise covariance matrix. This is the level of uncertainty on the output 
+ *        vector components coming from the measurements.
+ * \param Sm Stores, as output, the scattering matrix (a hamiltonian matrix) which can scatter the 
+ *        covarying and informing components of the covariance matrix of the belief-state.
+ * \param t The current time.
+ * 
+ */
 template <typename LinearSystem, 
           typename BeliefState, 
 	  typename MeasurementNoiseCovariance>
@@ -161,6 +218,36 @@ void >::type aggregate_kalman_update(const LinearSystem& sys,
 
 
 
+/**
+ * This function template performs one complete estimation step using the Aggregate Kalman 
+ * Filter method, which includes a prediction and measurement update step. This function is, 
+ * in general, more efficient than applying the prediction and update separately.
+ * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept 
+ *         at least as a DiscreteLinearizedSystemType.
+ * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
+ * \tparam SystemNoiseCovariance A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \tparam MeasurementNoiseCovariance A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \param sys The discrete state-space system used in the state estimation.
+ * \param b As input, it stores the belief-state before the estimation step. As output, it stores
+ *        the belief-state after the estimation step.
+ * \param u The input vector to apply to the state-space system to make the transition of the 
+ *        mean-state, i.e., the current input vector.
+ * \param z The output vector to that was measured.
+ * \param Q The input noise covariance matrix. This is the level of uncertainty on the input 
+ *        vector components (not the noise on the state transition). This was chosen as the most
+ *        common way application (usually system disturbance comes on the input, not on the state).
+ * \param R The output noise covariance matrix. This is the level of uncertainty on the output 
+ *        vector components coming from the measurements.
+ * \param Sc Stores, as output, the scattering matrix (a hamiltonian matrix) which can scatter the 
+ *        covarying and informing components of the covariance matrix of the belief-state. This 
+ *        scattering matrix is associated to the prediction step.
+ * \param Sm Stores, as output, the scattering matrix (a hamiltonian matrix) which can scatter the 
+ *        covarying and informing components of the covariance matrix of the belief-state. This 
+ *        scattering matrix is associated to the measurement update step.
+ * \param t The current time (before the prediction).
+ * 
+ */
 template <typename LinearSystem, 
           typename BeliefState, 
 	  typename SystemNoiseCovariance,
@@ -232,7 +319,17 @@ void >::type aggregate_kalman_filter_step(const LinearSystem& sys,
 
 
 
-
+/**
+ * This class template can be used as a belief-state predictor (and transfer) that uses the 
+ * Aggregate Kalman Filter method. This class template models the BeliefTransferConcept and 
+ * the BeliefPredictorConcept.
+ * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept 
+ *         at least as a DiscreteLinearizedSystemType.
+ * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
+ * \tparam SystemNoiseCovar A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \tparam MeasurementCovar A covariance matrix type modeling the CovarianceMatrixConcept.
+ */
 template <typename LinearSystem,
           typename BeliefState = gaussian_belief_state< decomp_covariance_matrix< typename discrete_sss_traits<LinearSystem>::point_type > >,
           typename SystemNoiseCovar = covariance_matrix< typename discrete_sss_traits< LinearSystem >::input_type >,
@@ -254,15 +351,25 @@ struct AKF_belief_transfer {
   typedef typename discrete_sss_traits< state_space_system >::input_type input_type;
   typedef typename discrete_sss_traits< state_space_system >::output_type output_type;
 
-  const LinearSystem* sys;
-  SystemNoiseCovar Q;
-  MeasurementCovar R;
-  value_type reupdate_threshold;
-  state_type initial_state;
-  state_type predicted_state;
-  typename hamiltonian_mat< mat_value_type >::type Sc;
-  typename hamiltonian_mat< mat_value_type >::type Sm;
+  const LinearSystem* sys; ///< Holds the reference to the system used for the filter.
+  SystemNoiseCovar Q; ///< Holds the system's input noise covariance matrix.
+  MeasurementCovar R; ///< Holds the system's output measurement's covariance matrix.
+  value_type reupdate_threshold; ///< The threshold at which the state change is considered too high and the state transition matrices are recomputed.
+  state_type initial_state; ///< The initial mean-state at which the predictor is linearized (if non-linear).
+  state_type predicted_state; ///< The predicted mean-state at which the updator is linearized (if non-linear). 
+  typename hamiltonian_mat< mat_value_type >::type Sc; ///< Holds the prediction scattering matrix.
+  typename hamiltonian_mat< mat_value_type >::type Sm; ///< Holds the updating scattering matrix.
 
+  /**
+   * Parametrized constructor.
+   * \param aSys The reference to the system used for the filter.
+   * \param aQ The system's input noise covariance matrix.
+   * \param aR The system's output measurement's covariance matrix.
+   * \param aReupdateThreshold The threshold at which the state change is considered too high and the state transition matrices are recomputed.
+   * \param aInitialState The initial mean-state at which the predictor is linearized (if non-linear).
+   * \param aInitialInput The input at the time of the initial state.
+   * \param aInitialTime The time of the initial state.
+   */
   AKF_belief_transfer(const LinearSystem& aSys, 
                       const SystemNoiseCovar& aQ,
                       const MeasurementCovar& aR,
@@ -291,10 +398,26 @@ struct AKF_belief_transfer {
                             aInitialTime);
   };
   
+  /**
+   * Returns the time-step of the predictor.
+   * \return The time-step of the predictor.
+   */
   time_difference_type get_time_step() const { return sys->get_time_step(); };
 
+  /**
+   * Returns a reference to the underlying state-space system.
+   * \return A reference to the underlying state-space system.
+   */
   const state_space_system& get_ss_system() const { return *sys; };
 
+  /**
+   * Returns the belief-state at the next time instant.
+   * \param b The current belief-state.
+   * \param t The current time.
+   * \param u The current input given to the system.
+   * \param y The output that was measured at the next time instant.
+   * \return the belief-state at the next time instant.
+   */
   belief_state get_next_belief(belief_state b, const time_type& t, const input_type& u, const input_type& y) {
     initial_state = b.get_mean_state();
     aggregate_kalman_predict(*sys,b,u,Q,Sc,t);
@@ -303,6 +426,13 @@ struct AKF_belief_transfer {
     return b;
   };
   
+  /**
+   * Returns the prediction belief-state at the next time instant.
+   * \param b The current belief-state.
+   * \param t The current time.
+   * \param u The current input given to the system.
+   * \return the belief-state at the next time instant, predicted by the filter.
+   */
   belief_state predict_belief(belief_state b, const time_type& t, const input_type& u) {
     if( norm( diff(b.get_mean_state(), initial_state) ) > reupdate_threshold ) {
       initial_state = b.get_mean_state();
@@ -319,6 +449,13 @@ struct AKF_belief_transfer {
     return b;
   };
   
+  /**
+   * Converts a prediction belief-state into an updated belief-state which assumes the most likely measurement.
+   * \param b The current prediction's belief-state.
+   * \param t The current time.
+   * \param u The current input given to the system.
+   * \return the updated belief-state when assuming the most likely measurement.
+   */
   belief_state prediction_to_ML_belief(belief_state b, const time_type& t, const input_type& u) {
     if( norm( diff(b.get_mean_state(), predicted_state) ) > reupdate_threshold ) {
       predicted_state = b.get_mean_state();
@@ -334,6 +471,13 @@ struct AKF_belief_transfer {
     return b;
   };
   
+  /**
+   * Returns the prediction belief-state at the next time instant, assuming the upcoming measurement to be the most likely one.
+   * \param b The current belief-state.
+   * \param t The current time.
+   * \param u The current input given to the system.
+   * \return the belief-state at the next time instant, predicted by the filter.
+   */
   belief_state predict_ML_belief(belief_state b, const time_type& t, const input_type& u) {
     return prediction_to_ML_belief(predict_belief(b, t, u),t,u);
   };

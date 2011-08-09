@@ -1,3 +1,15 @@
+/**
+ * \file covar_topology.hpp
+ * 
+ * This library provides a class template which creates a topology for a covariance 
+ * matrix type. Many algorithms in ReaK::ctrl and ReaK::pp require topologies to 
+ * represent the space in which a point-type can exist, this library simply implements
+ * a topology for a covariance matrix which can be used in a Gaussian belief-state 
+ * topology (see gaussian_belief_space).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date July 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -40,6 +52,18 @@ namespace ReaK {
 namespace ctrl {
 
 
+/**
+ * This class template creates a topology for a covariance 
+ * matrix type. Many algorithms in ReaK::ctrl and ReaK::pp require topologies to 
+ * represent the space in which a point-type can exist, this class simply implements
+ * a topology for a covariance matrix which can be used in a Gaussian belief-state 
+ * topology (see gaussian_belief_space) or elsewhere.
+ * 
+ * Models: MetricSpaceConcept.
+ * 
+ * \tparam Covariance A covariance matrix type, modeling CovarianceMatrixConcept.
+ * \tparam RandomNumberGenerator A standard random number generator functor type (e.g. boost::minstd_rand).
+ */
 template <typename Covariance, typename RandomNumberGenerator = boost::minstd_rand>
 class covar_topology {
   typedef boost::uniform_01<RandomNumberGenerator, double> rand_t;
@@ -53,6 +77,12 @@ class covar_topology {
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = point_type::dimensions);
     
+    /**
+     * This nested class implements the point-difference type for the covariance topology.
+     * It implements a simple linear interpolation of the covariance matrices and uses 
+     * the Frobenius norm as a metric. It also implements all required arithmetic operators
+     * with standard semantics.
+     */
     struct point_difference_type {
       matrix_type M;
       
@@ -116,15 +146,28 @@ class covar_topology {
     
   public:
     
-    
+    /**
+     * Parametrized constructor with default random-number generator.
+     * \param aSize The size of the covariance matrix.
+     * \param aMaxEigenValue The maximum eigen-value of the random covariance matrices.
+     */
     explicit covar_topology(size_type aSize = 0, const value_type& aMaxEigenValue = value_type(1.0)) 
       : gen_ptr(new RandomNumberGenerator), rand(new rand_t(*gen_ptr)), 
-        max_eigenvalue(aMaxEigenValue) { };
+        max_eigenvalue(aMaxEigenValue), mat_size(aSize) { };
 
-    covar_topology(RandomNumberGenerator& aGen, size_type aSize = 0, const value_type& aMaxEigenValue = value_type(1.0)) 
-      : gen_ptr(), rand(new rand_t(aGen)), max_eigenvalue(aMaxEigenValue) { };
+    /**
+     * Parametrized constructor with default random-number generator.
+     * \param aGen The random-number generator used to generate random covariance matrices.
+     * \param aSize The size of the covariance matrix.
+     * \param aMaxEigenValue The maximum eigen-value of the random covariance matrices.
+     */
+    explicit covar_topology(RandomNumberGenerator& aGen, size_type aSize = 0, const value_type& aMaxEigenValue = value_type(1.0)) 
+      : gen_ptr(), rand(new rand_t(aGen)), max_eigenvalue(aMaxEigenValue), mat_size(aSize) { };
                      
-    
+    /**
+     * Generates a random covariance matrix.
+     * \return A random covariance matrix.
+     */
     point_type random_point() const 
     {
       mat<value_type,mat_structure::diagonal> D(mat_size);
@@ -141,26 +184,61 @@ class covar_topology {
       return point_type(matrix_type(transpose(Q) * (D * Q)));
     }
     
+    /**
+     * Computes the distance between to covariance matrices, implemented as the Forbenius norm of the 
+     * difference between the two matrices.
+     * \param a The first covariance matrix.
+     * \param b The second covariance matrix.
+     * \return The distance between the covariance matrices.
+     */
     double distance(const point_type& a, const point_type& b) const {
       return norm(point_difference_type(a,b));
     };
 
+    /**
+     * Computes the covariance matrix which is the linear interpolation between two matrices, by a fraction.
+     * \param a The first covariance matrix.
+     * \param fraction The scalar fraction at which the evaluate the linear interpolation.
+     * \param b The second covariance matrix.
+     * \return The interpolated covariance matrix.
+     */
     point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const {
       return point_type(matrix_type(value_type(1.0 - fraction) * a.get_matrix() + value_type(fraction) * b.get_matrix()));
     };
 
+    /**
+     * Computes the difference between two covariance matrices.
+     * \param a The first covariance matrix.
+     * \param b The second covariance matrix.
+     * \return The difference between two covariance matrices
+     */
     point_difference_type difference(const point_type& a, const point_type& b) const {
       return point_difference_type(a,b);
     };
 
+    /**
+     * Adds a given covariance matrix difference to a given covariance matrix.
+     * \param a A covariance matrix.
+     * \param delta A covariance matrix difference to add to a.
+     * \return The adjusted covariance matrix.
+     */
     point_type adjust(const point_type& a, const point_difference_type& delta) const {
       return point_type(matrix_type( a.get_matrix() + delta.M ));
     };
   
+    /**
+     * Returns the origin of the topology (a nil covariance matrix).
+     * \return The origin of the topology (a nil covariance matrix).
+     */
     point_type origin() const {
       return point_type(matrix_type( mat<value_type,mat_structure::nil>(mat_size) ));
     };
 
+    /**
+     * Returns the norm of a covariance matrix difference.
+     * \param a The covariance matrix difference.
+     * \return The norm of a covariance matrix difference (Frobenius norm).
+     */
     double norm(const point_difference_type& a) const {
       return ::ReaK::ctrl::norm(a);
     };

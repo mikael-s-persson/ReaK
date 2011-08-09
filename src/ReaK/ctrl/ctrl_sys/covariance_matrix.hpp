@@ -1,3 +1,12 @@
+/**
+ * \file covariance_matrix.hpp
+ * 
+ * This library provides a class template to represent a covariance matrix as a 
+ * covariance matrix.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -37,6 +46,16 @@ namespace ctrl {
 
 
 
+/**
+ * This class template can represent a covariance matrix (as of the CovarianceMatrixConcept) 
+ * by containing the covariance matrix. Outputing 
+ * the covariance matrix induces no computation while outputing the information matrix induces
+ * a matrix inversion.
+ * 
+ * Models: CovarianceMatrixConcept
+ * 
+ * \tparam StateType The state-vector type which the covariance matrix is the covariance of, should model StateVectorConcept.
+ */
 template <typename StateType>
 class covariance_matrix : public named_object {
   public:
@@ -59,8 +78,17 @@ class covariance_matrix : public named_object {
     
   public:
     
+    /**
+     * Parametrized constructor.
+     * \param aMat The covariance matrix to which to initialize this object.
+     */
     explicit covariance_matrix(const matrix_type& aMat = matrix_type(), const std::string& aName = "") : mat_cov(aMat) { setName(aName); };
     
+    /**
+     * Parametrized constructor.
+     * \param aSize The size of the covariance matrix.
+     * \param aLevel The information level to initialize this object with.
+     */
     explicit covariance_matrix(size_type aSize, 
 			       covariance_initial_level::tag aLevel = covariance_initial_level::full_info, 
 			       const std::string& aName = "") : 
@@ -68,24 +96,40 @@ class covariance_matrix : public named_object {
       setName(aName); 
     };
     
+    /**
+     * Returns the covariance matrix (as a matrix object).
+     * \return The covariance matrix (as a matrix object).
+     */
     const matrix_type& get_matrix() const { return mat_cov; };
+    /**
+     * Returns the inverse covariance matrix (information matrix) (as a matrix object).
+     * \return The inverse covariance matrix (information matrix) (as a matrix object).
+     */
     matrix_type get_inverse_matrix() const { 
       matrix_type m_inv; 
       invert_Cholesky(mat_cov, m_inv, std::numeric_limits< value_type >::epsilon()); 
       return m_inv;
     };
     
-    friend 
-    void swap(self& lhs, self& rhs) throw() {
+    /**
+     * Standard swap function.
+     */
+    friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.mat_cov,rhs.mat_cov);
     };
     
+    /**
+     * Standard assignment operator.
+     */
     self& operator =(self rhs) {
       swap(rhs,*this);
       return *this;
     };
     
+    /**
+     * Assignment to a readable matrix (covariance matrix).
+     */
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value, 
     self& >::type operator =(const Matrix& rhs) {
@@ -93,13 +137,22 @@ class covariance_matrix : public named_object {
       return *this;
     };
     
+    /**
+     * Implicit conversion to a covariance matrix type.
+     */
     operator const matrix_type&() const { return mat_cov; };
     
-    friend 
-    matrix_type invert(const self& aObj) {
+    /**
+     * Conversion to an information matrix type.
+     */
+    friend matrix_type invert(const self& aObj) {
       return aObj.get_inverse_matrix();
     };
     
+    /**
+     * Returns the size of the covariance matrix.
+     * \return The size of the covariance matrix.
+     */
     size_type size() const { return mat_cov.get_row_count(); };
     
     

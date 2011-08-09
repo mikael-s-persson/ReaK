@@ -1,3 +1,16 @@
+/**
+ * \file vect_alg.hpp
+ * 
+ * This library provides classes to represent fixed and variable sized vectors. These 
+ * vectors can be used in linear algebra expressions, with standard vector algebra semantics.
+ * Generally, vectors are considered to be column-vectors (but pre-multiplication to a matrix
+ * turns assumes them to a row-vector for the duration of the operation). The interface 
+ * of the vectors are also generally compatible with STL containers (and the underlying 
+ * container for the variable-size vector is a std::vector class template).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -72,16 +85,46 @@ class vect : public serialization::serializable {
 
     //typedef array_order<1> order;
     
+    /**
+     * Returns the size of the vector.
+     */
     size_type size() const { return Size; };
+    /**
+     * Returns the max-size of the vector.
+     */
     size_type max_size() const { return Size; };
+    /**
+     * Returns the capacity of the vector.
+     */
     size_type capacity() const { return Size; };
+    /**
+     * Resizes the vector.
+     */
     void resize(size_type sz, T c = T()) const { };
+    /**
+     * Checks if the vector is empty.
+     */
     bool empty() const { return false; };
+    /**
+     * Reserve a capacity for the vector.
+     */
     void reserve(size_type sz) const { };
     
+    /**
+     * Returns an iterator to the first element of the vector.
+     */
     iterator begin() { return q; };
+    /**
+     * Returns a const-iterator to the first element of the vector.
+     */
     const_iterator begin() const { return q; };
+    /**
+     * Returns an iterator to the one-past-last element of the vector.
+     */
     iterator end() { return q + Size; };
+    /**
+     * Returns a const-iterator to the one-past-last element of the vector.
+     */
     const_iterator end() const { return q + Size; };
 
 /*******************************************************************************
@@ -1200,16 +1243,46 @@ class vect_n : public serialization::serializable {
 
     std::vector<T,Allocator> q; /**< Components of the vector. */
     
+    /**
+     * Returns the size of the vector.
+     */
     size_type size() const { return q.size(); };
+    /**
+     * Returns the max-size of the vector.
+     */
     size_type max_size() const { return q.max_size(); };
+    /**
+     * Returns the capacity of the vector.
+     */
     size_type capacity() const { return q.capacity(); };
+    /**
+     * Resizes the vector.
+     */
     void resize(size_type sz, T c = T()) { q.resize(sz,c); };
+    /**
+     * Checks if the vector is empty.
+     */
     bool empty() const { return q.empty(); };
+    /**
+     * Reserve a capacity for the vector.
+     */
     void reserve(size_type sz) const { q.reserve(sz); };
     
+    /**
+     * Returns an iterator to the first element of the vector.
+     */
     iterator begin() { return q.begin(); };
+    /**
+     * Returns a const-iterator to the first element of the vector.
+     */
     const_iterator begin() const { return q.begin(); };
+    /**
+     * Returns an iterator to the one-past-last element of the vector.
+     */
     iterator end() { return q.end(); };
+    /**
+     * Returns a const-iterator to the one-past-last element of the vector.
+     */
     const_iterator end() const { return q.end(); };
 
 /*******************************************************************************
@@ -1684,6 +1757,9 @@ class vect_n : public serialization::serializable {
       return q[i];
     };
     
+    /**
+     * Returns the allocator object of the underlying container.
+     */
     allocator_type get_allocator() const { return q.get_allocator(); };
 
 /*******************************************************************************

@@ -1,15 +1,11 @@
 /**
  * \file rotations.hpp
  *
- * ReaK Rotation Library
- *
  * This library declares all geometric rotation classes for fixed (2,3) and variable dimensions.
  *
  * Note: All matrix memory is organized, by default, such that columns are concatenated. This
  *       was found to be a more efficient representation since columns often have
  *       more significances than rows (representing basis vectors for example).
- *
- * All unit TEST for this library have passed! -MP: 22/03/2010
  *
  * \author Mikael Persson, B.Eng.
  * \date march 2010

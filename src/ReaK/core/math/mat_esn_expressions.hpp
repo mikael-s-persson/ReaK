@@ -1,3 +1,9 @@
+/**
+ * \file mat_esn_expressions.hpp
+ * 
+ * This library is a work in progress. As of now, it does nothing useful. The idea of this 
+ * library is to use Einstein Summation Notation (ESN) to construct matrix expression templates.
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson

@@ -40,8 +40,10 @@
 
 #include "math/kinetostatics.hpp"
 
+/** Main namespace for ReaK */
 namespace ReaK {
 
+/** Main namespace for ReaK.KTE */
 namespace kte {
 
 

@@ -1,3 +1,13 @@
+/**
+ * \file free_joints.hpp
+ * 
+ * This library provides classes to handle free-joints. A free joint is simple a 
+ * frame transformation that is applied to an input frame to obtain the output 
+ * frame. This way, one can represent a general motion of a body.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -36,12 +46,12 @@ namespace kte {
 
 
 /**
- * This class implements a prismatic joint in 2D space. A generalized coordinate is used to represent the
- * joint's linear displacement between a base coordinate frame to an end coordinate frame.
+ * This class implements a free joint in 2D space. A 2D frame is used to represent the
+ * joint's motion between a base coordinate frame to an end coordinate frame.
  */
 class free_joint_2D : public reacting_kte_2D {
   protected:
-    boost::shared_ptr< frame_2D<double> > mCoord; ///< Coordinate representing the joint's displacement.
+    boost::shared_ptr< frame_2D<double> > mCoord; ///< The coordinate frame representing the joint's motion.
     boost::shared_ptr< frame_2D<double> > mBase; ///< The coordinate frame at the base of the joint.
     boost::shared_ptr< frame_2D<double> > mEnd; ///< The coordinate frame just after the joint transformations are applied.
 
@@ -57,7 +67,7 @@ class free_joint_2D : public reacting_kte_2D {
     /**
      * Parametrized constructor.
      * \param aName the name of this KTE model.
-     * \param aCoord the coordinate associated with the displacement of this joint.
+     * \param aCoord the coordinate frame associated with the displacement of this joint.
      * \param aBase the coordinate frame at the base of the joint.
      * \param aEnd the coordinate frame just after the joint transformations are applied.
      * \param aJacobian a pointer to contain the Jacobian frame produced by this joint, default value will disable the Jacobian frame's calculation.
@@ -107,12 +117,12 @@ class free_joint_2D : public reacting_kte_2D {
 };
 
 /**
- * This class implements a prismatic joint in 3D space. A generalized coordinate is used to represent the
- * joint's linear displacement between a base coordinate frame to an end coordinate frame.
+ * This class implements a free joint in 3D space. A 3D frame is used to represent the
+ * joint's motion between a base coordinate frame to an end coordinate frame.
  */
 class free_joint_3D : public reacting_kte_3D {
   protected:
-    boost::shared_ptr< frame_3D<double> > mCoord; ///< Generalized coordinate representing the joint's linear displacement.
+    boost::shared_ptr< frame_3D<double> > mCoord; ///< The coordinate frame representing the joint's motion.
     boost::shared_ptr< frame_3D<double> > mBase; ///< The coordinate frame at the base of the joint.
     boost::shared_ptr< frame_3D<double> > mEnd; ///< The coordinate frame just after the joint transformations are applied.
 
@@ -128,7 +138,7 @@ class free_joint_3D : public reacting_kte_3D {
     /**
      * Parametrized constructor.
      * \param aName the name of this KTE model.
-     * \param aCoord the coordinate associated with the displacement of this joint.
+     * \param aCoord the coordinate frame associated with the motion of this joint.
      * \param aBase the coordinate frame at the base of the joint.
      * \param aEnd the coordinate frame just after the joint transformations are applied.
      * \param aJacobian a pointer to contain the Jacobian frame produced by this joint, default value will disable the Jacobian frame's calculation.

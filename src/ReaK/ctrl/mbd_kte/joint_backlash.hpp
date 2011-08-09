@@ -1,3 +1,12 @@
+/**
+ * \file joint_backlash.hpp
+ * 
+ * This library does not contain any working class. An attempt was made at modeling joints
+ * with backlash, but this attempt failed.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2010
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson

@@ -1,3 +1,13 @@
+/**
+ * \file discrete_sss_concept.hpp
+ * 
+ * This library defines the traits class and concept that represent a discrete-time 
+ * state-space system. This type of systems is the bread-and-butter of state-estimation
+ * algorithms, because all useful estimators apply to discrete-time systems.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -32,25 +42,57 @@ namespace ReaK {
 namespace ctrl {
 
 
-
+/**
+ * This traits class defines the characteristics of a discrete-time state-space system.
+ * \tparam DiscreteSystem The discrete-time state-space system type for which the traits are sought.
+ */
 template <typename DiscreteSystem>
 struct discrete_sss_traits {
+  /** The type which describes the state of the system. */
   typedef typename DiscreteSystem::point_type point_type;
+  /** The type which describes the difference between two states of the system. */
   typedef typename DiscreteSystem::point_difference_type point_difference_type;
   
+  /** The type which describes the time. */
   typedef typename DiscreteSystem::time_type time_type;
+  /** The type which describes a time difference. */
   typedef typename DiscreteSystem::time_difference_type time_difference_type;
   
+  /** The type which describes the input vector to the system. */
   typedef typename DiscreteSystem::input_type input_type;
+  /** The type which describes the output of the system. */
   typedef typename DiscreteSystem::output_type output_type;
   
+  /** This constant describes the dimensions of the state vector (0 if not known at compile-time). */
   BOOST_STATIC_CONSTANT(std::size_t, dimensions = DiscreteSystem::dimensions);
+  /** This constant describes the dimensions of the input vector (0 if not known at compile-time). */
   BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = DiscreteSystem::input_dimensions);
+  /** This constant describes the dimensions of the output vector (0 if not known at compile-time). */
   BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = DiscreteSystem::output_dimensions);
   
 };
   
   
+/**
+ * This concept class template defines the requirements for a type to be a discrete-time
+ * state-space system, as used in ReaK::ctrl.
+ * 
+ * Valid expressions:
+ * 
+ * dp = -dp;  A state difference can be negated and assigned.
+ * 
+ * dp = p - p;  Two states can be subtracted to obtain a state difference vector.
+ * 
+ * p = p + dp;  A state difference can be added to a state to obtain another state.
+ * 
+ * dt = sys.get_time_step();  The time-step of the discrete-time system can be obtained.
+ * 
+ * p = sys.get_next_state(p,u,t);  The next state (p) can be obtained from the current state (p), current input (u) and current time (t).
+ * 
+ * y = sys.get_output(p,u,t);  The system's output (y) can be obtained from the state (p), input (u) and time (t).
+ * 
+ * \tparam DiscreteSystem The type to be tested for being a discrete-time state-space system.
+ */
 template <typename DiscreteSystem>
 struct DiscreteSSSConcept {
   DiscreteSystem sys;

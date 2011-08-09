@@ -101,7 +101,7 @@ inline std::string RK_RELATIVE_PATH(const std::string& S) {
  */
 #define RK_UNUSED(X) { (void)X; }
 
-
+/** Main namespace for ReaK */
 namespace ReaK {
 
 template<bool> struct CompileTimeChecker

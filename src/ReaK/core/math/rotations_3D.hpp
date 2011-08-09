@@ -1,3 +1,15 @@
+/**
+ * \file rotations_3D.hpp
+ *
+ * This library declares all geometric 3D rotation classes for fixed (2,3) and variable dimensions.
+ *
+ * Note: All matrix memory is organized, by default, such that columns are concatenated. This
+ *       was found to be a more efficient representation since columns often have
+ *       more significances than rows (representing basis vectors for example).
+ *
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson

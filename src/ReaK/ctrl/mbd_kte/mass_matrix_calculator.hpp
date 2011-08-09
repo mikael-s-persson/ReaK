@@ -46,9 +46,10 @@ namespace kte {
 
 
 /**
- * This class is a mass matrix calculator for a system of generalized coordinates. It holds lists of all
- * inertial elements (which contain up-stream joint Jacobians) as well as a list of generalized coordinates
- * which it uses to compute the mass matrix and its time-derivative using the twist-shaping matrix formulation.
+ * This class is a mass matrix calculator for a system. It holds lists of all
+ * inertial elements (which contain up-stream joint Jacobians) as well as a list of coordinates
+ * which it uses to compute the mass matrix and its time-derivative using the twist-shaping 
+ * matrix formulation.
  */
 class mass_matrix_calc : public named_object {
   private:
@@ -57,8 +58,8 @@ class mass_matrix_calc : public named_object {
     std::vector< boost::shared_ptr< inertia_3D > > m3DInertias; ///< Holds the list of 3D inertial elements.
 
     std::vector< boost::shared_ptr< gen_coord<double> > > mCoords; ///< Holds the list of generalized coordinates in the system.
-    std::vector< boost::shared_ptr< frame_2D<double> > > mFrames2D; ///< Holds the list of generalized coordinates in the system.
-    std::vector< boost::shared_ptr< frame_3D<double> > > mFrames3D; ///< Holds the list of generalized coordinates in the system.
+    std::vector< boost::shared_ptr< frame_2D<double> > > mFrames2D; ///< Holds the list of 2D coordinates frame in the system.
+    std::vector< boost::shared_ptr< frame_3D<double> > > mFrames3D; ///< Holds the list of 3D coordinates frame in the system.
 
   public:
 
@@ -120,10 +121,10 @@ class mass_matrix_calc : public named_object {
     /** Get read-only access to the list of generalized coordinates. */
     const std::vector< boost::shared_ptr< gen_coord<double> > >& Coords() const { return mCoords; };
 
-    /** Get read-only access to the list of generalized coordinates. */
+    /** Get read-only access to the list of 2D coordinate frames. */
     const std::vector< boost::shared_ptr< frame_2D<double> > >& Frames2D() const { return mFrames2D; };
 
-    /** Get read-only access to the list of generalized coordinates. */
+    /** Get read-only access to the list of 3D coordinate frames. */
     const std::vector< boost::shared_ptr< frame_3D<double> > >& Frames3D() const { return mFrames3D; };
 
     /**

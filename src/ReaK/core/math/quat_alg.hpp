@@ -83,10 +83,19 @@ class quat {
      */
     quat(const scalar_type& aRe, const vector_type& aIm) { q[0] = aRe; q[1] = aIm[0]; q[2] = aIm[1]; q[3] = aIm[2]; };
   
+    /**
+     * Converts a vector into a pure quaternion.
+     */
     explicit quat(const vector_type& aIm) { q[0] = scalar_type(); q[1] = aIm[0]; q[2] = aIm[1]; q[3] = aIm[2]; };
     
+    /**
+     * Converts a 4D vector into a quaternion.
+     */
     explicit quat(const vect<value_type,4>& V) { q[0] = V[0]; q[1] = V[1]; q[2] = V[2]; q[3] = V[3]; };
     
+    /**
+     * Convstructs a quaternion from 4 components.
+     */
     quat(const_reference q0, const_reference q1, const_reference q2, const_reference q3) { q[0] = q0; q[1] = q1; q[2] = q2; q[3] = q3; };
     
     //Copy-constructor is default.
@@ -113,11 +122,26 @@ class quat {
       return q[i];
     };
     
+    /**
+     * Returns the size of the quaternion (viewed as a 4D vector).
+     */
     size_type size() const { return 4; };
     
+    /**
+     * Returns an iterator to the first element of the quaternion (viewed as a 4D vector).
+     */
     iterator begin() { return q; };
+    /**
+     * Returns a const-iterator to the first element of the quaternion (viewed as a 4D vector).
+     */
     const_iterator begin() const { return q; };
+    /**
+     * Returns an iterator to the one-past-last element of the quaternion (viewed as a 4D vector).
+     */
     iterator end() { return q + 4; };
+    /**
+     * Returns a const-iterator to the one-past-last element of the quaternion (viewed as a 4D vector).
+     */
     const_iterator end() const { return q + 4; };
     
       
@@ -462,6 +486,9 @@ class quat {
       //return pow(x.Re * x.Re + x.Im * x.Im,0.25) * complex<T>(cos(0.5 * angle),sin(0.5 * angle));
     };  
     
+    /**
+     * Inverts the quaternion.
+     */
     friend self invert(const self& x) {
       value_type tmp = 1.0 / norm_sqr(x);
       return self(x.q[0] * tmp, -x.q[1] * tmp, -x.q[2] * tmp, -x.q[3] * tmp);

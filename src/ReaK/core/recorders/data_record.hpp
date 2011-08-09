@@ -57,9 +57,10 @@
 
 #include "rtti/typed_primitives.hpp"
 
-
+/** Main namespace for ReaK */
 namespace ReaK {
 
+/** Main namespace for ReaK's Data Recorders and Extractors */
 namespace recorder {
 
 /**

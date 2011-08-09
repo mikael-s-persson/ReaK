@@ -9,6 +9,7 @@
  * \todo Implement a scalar matrix specialization.
  * \todo Port the code related to the upper-triangular and lower-triangular matrices.
  * \todo Implement expression templates to optimize compound matrix expressions.
+ * \todo Implement additional matrix views, for example, transposed view.
  * 
  * \author Mikael Persson <mikael.s.persson@gmail.com>
  * \date april 2011
@@ -56,6 +57,7 @@
 #include "mat_slices.hpp"
 #include "mat_composite_adaptor.hpp"
 
+/** Main namespace for ReaK */
 namespace ReaK {
   
 

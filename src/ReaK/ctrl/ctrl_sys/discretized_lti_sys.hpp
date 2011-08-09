@@ -1,3 +1,15 @@
+/**
+ * \file discretized_lti_sys.hpp
+ * 
+ * This library provides a class template which can take a continuous-time linear time-invariant 
+ * state-space system and turn it into a discrete-time linear time-invariant state-space system.
+ * The class template uses a matrix exponential method to compute the system matrix of the 
+ * discrete-time system, and thus, the resulting system is exact, as far as the matrix exponential
+ * is correct (see mat_exp_methods.hpp).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -39,6 +51,15 @@ namespace ReaK {
 namespace ctrl {
 
 
+/**
+ * This class template can take a continuous-time linear time-invariant 
+ * state-space system and turn it into a discrete-time linear time-invariant state-space system.
+ * The class template uses a matrix exponential method to compute the system matrix of the 
+ * discrete-time system, and thus, the resulting system is exact, as far as the matrix exponential
+ * is correct (see mat_exp_methods.hpp).
+ *
+ * \tparam LTISystem The linear time-invariance, continuous-time state-space system type, should model LinearSSSystemConcept with LTISystemType.
+ */
 template <typename LTISystem>
 class discretized_lti_sys : public named_object {
   public:
@@ -75,6 +96,13 @@ class discretized_lti_sys : public named_object {
     
   public:
     
+    /**
+     * Parametrized and default constructor.
+     * \param aX_size The size of the state-vector.
+     * \param aU_size The size of the input-vector.
+     * \param aY_size The size of the output-vector.
+     * \param aDt The time-step of the discrete-time system.
+     */
     discretized_lti_sys(size_type aX_size = 0, size_type aU_size = 0, size_type aY_size = 0, const time_difference_type& aDt = 1, const std::string& aName = "") :
                         sys(aX_size,aU_size,aY_size,aName + "_continuous"), dt(aDt) {
       setName(aName);
@@ -84,10 +112,21 @@ class discretized_lti_sys : public named_object {
       Ad = mat<value_type, mat_structure::identity>(aX_size);
     };
 
+    /**
+     * Standard copy-constructor.
+     */
     discretized_lti_sys(const self& rhs) : sys(rhs.sys), dt(rhs.dt), Ad(rhs.Ad), Bd(rhs.Bd), Cd(rhs.Cd), Dd(rhs.Dd) {
       setName(rhs.getName());
     };
     
+    /**
+     * Parametrized constructor.
+     * \param aA The continuous-time system matrix A.
+     * \param aB The continuous-time system matrix B.
+     * \param aC The continuous-time system matrix C.
+     * \param aD The continuous-time system matrix D.
+     * \param aDt The time-step of the discrete-time system.
+     */
     template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
     discretized_lti_sys(const MatrixA& aA, const MatrixB& aB, const MatrixC& aC, const MatrixD& aD, const time_difference_type& aDt, const std::string& aName = "",
                         typename boost::enable_if_c< is_readable_matrix<MatrixA>::value &&
@@ -108,6 +147,9 @@ class discretized_lti_sys : public named_object {
       Bd = get_block(A_aug_exp, 0, Ad.get_col_count(), Bd.get_row_count(), Bd.get_col_count());
     };
   
+    /**
+     * Standard swap function.
+     */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.sys,rhs.sys);
@@ -117,14 +159,27 @@ class discretized_lti_sys : public named_object {
       swap(lhs.Cd,rhs.Cd);
       swap(lhs.Dd,rhs.Dd);
     };
-		  
+ 
+    /**
+     * Standard assignment operator.
+     */
     self& operator =(self rhs) {
       swap(*this,rhs);
       return *this;
     };
     
+    /**
+     * Returns the underlying continuous-time system.
+     */
     const LTISystem& getSys() const { return sys; };
 
+    /**
+     * Fills the given matrices with the discrete-time system matrices.
+     * \param aA Stores, as output, the system matrix A.
+     * \param aB Stores, as output, the system matrix B.
+     * \param aC Stores, as output, the system matrix C.
+     * \param aD Stores, as output, the system matrix D.
+     */
     template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
     typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
                                  is_writable_matrix<MatrixB>::value &&
@@ -137,6 +192,13 @@ class discretized_lti_sys : public named_object {
       aD = Dd;
     };
     
+    /**
+     * Fills the given matrices with the discrete-time system matrices.
+     * \param aA Stores, as output, the system matrix A.
+     * \param aB Stores, as output, the system matrix B.
+     * \param aC Stores, as output, the system matrix C.
+     * \param aD Stores, as output, the system matrix D.
+     */
     template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
     typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
                                  is_writable_matrix<MatrixB>::value &&
@@ -149,6 +211,13 @@ class discretized_lti_sys : public named_object {
       aD = Dd;
     };
     
+    /**
+     * Fills the given matrices with the discrete-time system matrices.
+     * \param aA Stores, as output, the system matrix A.
+     * \param aB Stores, as output, the system matrix B.
+     * \param aC Stores, as output, the system matrix C.
+     * \param aD Stores, as output, the system matrix D.
+     */
     template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
     typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
                                  is_writable_matrix<MatrixB>::value &&
@@ -161,16 +230,36 @@ class discretized_lti_sys : public named_object {
       aD = Dd;
     };
     
+    /**
+     * Returns the time-step of the discrete-time system.
+     */
     time_difference_type get_time_step() const { return dt; };
     
+    /**
+     * Returns next state of the system given the current state, input and time.
+     * \param p The current state.
+     * \param u The current input.
+     * \param t The current time.
+     * \return The next state, at t + get_time_step().
+     */
     point_type get_next_state(const point_type& p, const input_type& u, const time_type& t = 0) const { RK_UNUSED(t);
       return Ad * p + Bd * u;
     };
     
+    /**
+     * Returns output of the system given the current state, input and time.
+     * \param p The current state.
+     * \param u The current input.
+     * \param t The current time.
+     * \return The current output.
+     */
     output_type get_output(const point_type& p, const input_type& u, const time_type& t = 0) const { RK_UNUSED(t);
       return Cd * p + Dd * u;
     };
     
+    /**
+     * Adjusts the state by adding a state difference to it.
+     */
     point_type adjust(const point_type& p, const point_difference_type& dp) const {
       return sys.adjust(p,dp);
     };

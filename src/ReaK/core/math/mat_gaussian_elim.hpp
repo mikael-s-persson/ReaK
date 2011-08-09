@@ -16,6 +16,8 @@
  * Jacobi) but it is based on a LAPACK implementation that is very poorly written, and it has not been 
  * updated since.
  * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
  */
 
 /*

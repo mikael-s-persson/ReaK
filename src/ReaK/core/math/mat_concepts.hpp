@@ -55,6 +55,11 @@ namespace ReaK {
  * This concept will fail to be instantiated if the Matrix class does not model 
  * the readable matrix concept, meaning that its (i,j) operator can return a readable 
  * value, and that its row and column count can be obtained (by calling get_row_count() and get_col_count()).
+ * 
+ * Required expressions for Matrix m:
+ *  e = m(i,j)   read access to the elements of m by a row and column index.
+ *  s = m.get_col_count()  can obtain the number of columns of the matrix.
+ *  s = m.get_row_count()  can obtain the number of rows of the matrix.
  */
 template <typename Matrix>
 struct ReadableMatrixConcept {
@@ -90,6 +95,9 @@ struct is_readable_matrix {
  * This concept will fail to be instantiated if the Matrix class does not model 
  * the writable matrix concept, meaning that its (i,j) operator can return a writable
  * value, and that it fulfills the ReadableMatrixConcept.
+ * 
+ * Required expressions for Matrix m in addition to that of ReadableMatrixConcept:
+ *  m(i,j) = e;   write access to the elements of m by a row and column index.
  */
 template <typename Matrix>
 struct WritableMatrixConcept 
@@ -139,6 +147,10 @@ struct is_fully_writable_matrix {
  * the resizable matrix concept, meaning that its row and column counts can be 
  * set to some values which results in the matrix having at least that row or 
  * column count (the functions are set_row_count() and set_col_count()).
+ * 
+ * Required expressions for Matrix m:
+ *  m.set_col_count(s)  can set the number of columns of the matrix.
+ *  m.set_row_count(s)  can set the number of rows of the matrix. 
  */
 template <typename Matrix>
 struct ResizableMatrixConcept { 
@@ -173,6 +185,9 @@ struct is_resizable_matrix {
  * dynamically allocated memory. The only requirement to fulfill this concept is 
  * to be able to obtain the allocate object associated to a matrix (here "allocator" is
  * used with the exact same meaning as "STL allocators").
+ * 
+ * Required expressions for Matrix m:
+ *  al = m.get_allocator()  can obtain the allocator object of the matrix.
  */
 template <typename Matrix>
 struct DynAllocMatrixConcept : ResizableMatrixConcept<Matrix> { 

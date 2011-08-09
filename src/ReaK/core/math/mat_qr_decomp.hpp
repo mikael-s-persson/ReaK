@@ -1,3 +1,26 @@
+/**
+ * \file mat_qr_decomp.hpp
+ * 
+ * This library provides a number of functions related to performing a QR-decomposition on a 
+ * matrix, e.g., to invert a matrix, to pseudo-invert a matrix, to solve a linear system with 
+ * least-square error and to find the determinant. Most implementations provided 
+ * are based on the QR-decomposition (via Householder reflections). QR-decomposition is pretty efficient and 
+ * is generally preferred if there is reasons to believe that the matrix involved is not always
+ * well-conditioned. If a matrix cannot be guaranteed to be well-conditioned,
+ * QR-decomposition is preferred to Gaussian 
+ * elimination methods (exact methods, like PLU decomposition).
+ * 
+ * According to performance tests, PLU methods are as good as Cholesky methods in terms of speed.
+ * And they are both the best for well-conditioned matrices. For ill-conditioned matrices, QR-decomposition
+ * methods are only a little slower then PLU (about 20% slower, same time-complexity) but provide better
+ * numerical stability. The Jacobi methods are significantly slower, but this implementation is in need 
+ * of a revision for performance enhancement. And, of course, SVD is also very slow (slightly faster than 
+ * Jacobi) but it is based on a LAPACK implementation that is very poorly written, and it has not been 
+ * updated since.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -215,6 +238,9 @@ void linlsq_QR_impl(const Matrix1& A, Matrix2& x,const Matrix3& b, typename mat_
 /**
  * Performs the QR decomposition on a matrix, using Householder reflections approach.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \tparam Matrix3 A fully-writable matrix type.
  * \param A rectangular matrix with row-count >= column-count, a real full-rank matrix.
  * \param Q holds as output, the orthogonal rectangular matrix Q.
  * \param R holds as output, the upper-triangular or right-triangular matrix R in A = QR.
@@ -244,6 +270,9 @@ void >::type decompose_QR(const Matrix1& A, Matrix2& Q, Matrix3& R, typename mat
 /**
  * Performs the QR decomposition on a matrix, using Householder reflections approach.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \tparam Matrix3 A writable matrix type.
  * \param A rectangular matrix with row-count >= column-count, a real full-rank matrix.
  * \param Q holds as output, the orthogonal rectangular matrix Q.
  * \param R holds as output, the upper-triangular or right-triangular matrix R in A = QR.
@@ -278,6 +307,7 @@ void >::type decompose_QR(const Matrix1& A, Matrix2& Q, Matrix3& R, typename mat
 /**
  * Computes the determinant via QR decomposition of a matrix, using Householder reflections approach.
  *
+ * \tparam Matrix A readable matrix type.
  * \param A real square matrix.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
@@ -308,6 +338,9 @@ typename mat_traits<Matrix>::value_type >::type determinant_QR(const Matrix& A, 
 /**
  * Solves the linear least square problem (AX \approx B or X = min_X(||AX - B||)) via Householder reflections.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \tparam Matrix3 A readable matrix type.
  * \param A rectangular matrix with row-count >= column-count.
  * \param x stores the solution matrix as output (ColCount x ColCount2).
  * \param b stores the RHS of the linear system of equation (RowCount x ColCount2).
@@ -348,6 +381,9 @@ struct QR_linlsqsolver {
 /**
  * Performs back-substitution to solve R x = b, where R is an upper-triangular matrix.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \tparam Matrix3 A readable matrix type.
  * \param R is an upper-triangular matrix.
  * \param x stores the solution matrix as output, with same dimension as b (zero-padding is assumed in the difference.
  * \param b stores the RHS of the linear system of equation.
@@ -375,6 +411,8 @@ void >::type backsub_R(const Matrix1& R, Matrix2& x, const Matrix3& b, typename 
 /**
  * Performs back-substitution to solve R x = b, where R is an upper-triangular matrix.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
  * \param R is an upper-triangular matrix.
  * \param x stores the solution matrix as output, with same dimension as b (zero-padding is assumed in the difference), 
             also stores b as input.
@@ -401,6 +439,8 @@ void >::type backsub_R(const Matrix1& R, Matrix2& x, typename mat_traits<Matrix1
 /**
  * Computes the inverse of a matrix via Householder reflections.
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
  * \param A real rectangular matrix with row-count >= column-count.
  * \param A_pinv real rectangular matrix which is the pseudo-inverse of A.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
@@ -426,6 +466,8 @@ void >::type invert_QR(const Matrix1& A, Matrix2& A_pinv, typename mat_traits<Ma
  * Computes the pseudo-inverse of a matrix via Householder reflections (left-Moore-Penrose Pseudo-Inverse).
  * A_pinv = (A^T A)^-1 A^T
  *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
  * \param A real rectangular matrix with row-count >= column-count.
  * \param A_pinv real rectangular matrix which is the pseudo-inverse of A.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions

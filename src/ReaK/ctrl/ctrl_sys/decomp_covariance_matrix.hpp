@@ -1,3 +1,12 @@
+/**
+ * \file decomp_covariance_matrix.hpp
+ * 
+ * This library provides a class template to represent a covariance matrix as a 
+ * decomposition of the covariance matrix.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -37,7 +46,18 @@ namespace ReaK {
 namespace ctrl {
 
 
-
+/**
+ * This class template represents a covariance matrix type by holding
+ * a decomposition of the covariance matrix. A common approach in estimation
+ * is to decompose the covariance matrix P into a covarying block X and a informing-inverse 
+ * block Y, such that the following relation applies: P = X * invert(Y). This is used, for 
+ * example, to implement filters in header-file symplectic_kalman_filter.hpp 
+ * or header-file aggregate_kalman_filter.hpp .
+ * 
+ * Models: CovarianceMatrixConcept and DecomposedCovarianceConcept.
+ * 
+ * \tparam StateType The state-vector type which the covariance matrix is the covariance of, should model StateVectorConcept.
+ */
 template <typename StateType>
 class decomp_covariance_matrix : public named_object {
   public:
@@ -61,6 +81,11 @@ class decomp_covariance_matrix : public named_object {
     
   public:
     
+    /**
+     * Parametrized constructor.
+     * \param aMatX The covarying matrix block.
+     * \param aMatY The informing-inverse matrix block.
+     */
     explicit decomp_covariance_matrix(const matrix_block_type& aMatX = matrix_block_type(), 
 				      const matrix_block_type& aMatY = matrix_block_type(), 
 				      const std::string& aName = "") : 
@@ -69,6 +94,11 @@ class decomp_covariance_matrix : public named_object {
       setName(aName); 
     };
     
+    /**
+     * Parametrized constructor.
+     * \param aSize The size of the covariance matrix.
+     * \param aLevel The information level to initialize this object with.
+     */
     explicit decomp_covariance_matrix(size_type aSize, 
 				      covariance_initial_level aLevel = covariance_initial_level::full_info, 
 				      const std::string& aName = "") : 
@@ -82,6 +112,10 @@ class decomp_covariance_matrix : public named_object {
       };
     };
     
+    /**
+     * Returns the covariance matrix (as a matrix object).
+     * \return The covariance matrix (as a matrix object).
+     */
     matrix_type get_matrix() const { 
       try {
 	mat<value_type, mat_structure::square> mY_inv;
@@ -93,6 +127,10 @@ class decomp_covariance_matrix : public named_object {
 	return matrix_type(mat_X * mY_inv);
       }; 
     };
+    /**
+     * Returns the inverse covariance matrix (information matrix) (as a matrix object).
+     * \return The inverse covariance matrix (information matrix) (as a matrix object).
+     */
     matrix_type get_inverse_matrix() const { 
       try {
 	mat<value_type, mat_structure::square> mX_inv;
@@ -105,27 +143,51 @@ class decomp_covariance_matrix : public named_object {
       }; 
     };
     
+    /**
+     * Returns the covarying matrix block.
+     * \return The covarying matrix block.
+     */
     const matrix_block_type& get_covarying_block() const { return mat_X; };
+    /**
+     * Returns the informing-inverse matrix block.
+     * \return The informing-inverse matrix block.
+     */
     const matrix_block_type& get_informing_inv_block() const { return mat_Y; };
     
-    friend 
-    void swap(self& lhs, self& rhs) throw() {
+    /**
+     * Standard swap function.
+     */
+    friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(lhs.mat_X,rhs.mat_X);
       swap(lhs.mat_Y,rhs.mat_Y);
     };
     
+    /**
+     * Standard assignment operator.
+     */
     self& operator =(self rhs) {
       swap(rhs,*this);
       return *this;
     };
         
+    /**
+     * Implicit conversion to a covariance matrix type.
+     */
     operator matrix_type() const { return get_matrix(); };
     
-    friend 
-    matrix_type invert(const self& aObj) {
+    /**
+     * Conversion to an information matrix type.
+     */
+    friend matrix_type invert(const self& aObj) {
       return aObj.get_inverse_matrix();
     };
+    
+    /**
+     * Returns the size of the covariance matrix.
+     * \return The size of the covariance matrix.
+     */
+    size_type size() const { return mat_X.get_row_count(); };
     
     
     

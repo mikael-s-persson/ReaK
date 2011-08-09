@@ -1,3 +1,13 @@
+/**
+ * \file joint_friction.hpp
+ * 
+ * This library does not contain any working class. An attempt was made at modeling joints
+ * with friction, but this attempt failed. However, dry_revolute_joint.hpp contains a working 
+ * version for a revolute joint.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2010
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson

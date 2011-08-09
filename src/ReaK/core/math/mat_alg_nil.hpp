@@ -1,5 +1,5 @@
 /**
- * \file mat_alg_identity.hpp
+ * \file mat_alg_nil.hpp
  * 
  * This library declares matrix specializations for representing and manipulating nil matrices.
  * This library implements many overloaded operators that turn out to be more efficiently implemented 

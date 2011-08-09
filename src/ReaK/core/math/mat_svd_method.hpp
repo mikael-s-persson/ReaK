@@ -1,3 +1,23 @@
+/**
+ * \file mat_svd_method.hpp
+ * 
+ * This library provides a number of functions related to performing a Singular Value Decomposition (SVD)
+ * on a matrix, e.g., to invert a matrix, to pseudo-invert a matrix, to solve a linear system with 
+ * least-square error and to find the eigen-values of a symmetric matrix. SVD is not very efficient but 
+ * very powerful. The SVD implementation used here is based on the implementation from CLARAty, 
+ * developed by the Jet Propulsion Laboratory.
+ * 
+ * According to performance tests, PLU methods are as good as Cholesky methods in terms of speed.
+ * And they are both the best for well-conditioned matrices. For ill-conditioned matrices, QR-decomposition
+ * methods are only a little slower then PLU (about 20% slower, same time-complexity) but provide better
+ * numerical stability. The Jacobi methods are significantly slower, but this implementation is in need 
+ * of a revision for performance enhancement. And, of course, SVD is also very slow (slightly faster than 
+ * Jacobi) but it is based on a LAPACK implementation that is very poorly written, and it has not been 
+ * updated since.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
