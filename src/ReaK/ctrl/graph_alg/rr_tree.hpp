@@ -1,7 +1,5 @@
 /**
  * \file rr_tree.hpp
- * \author S. Mikael Persson <mikael.s.persson@gmail.com>
- * \date February, 2011
  * 
  * This library contains the Rapidly-Exploring Random Tree generation algorithm.
  * This is a method to create a random tree that will span over a non-convex space
@@ -27,7 +25,11 @@
  * to one tree causes the other to attempt to expand towards a random point. This version of the 
  * algorithm will also notify the user (via a visitor's callback) whenever one tree was successfully
  * expanded towards the other tree to the point that they meet at two vertices (one on each graph).
+ * The user can thus record successful connections as paths and decide whether it's worth continuing 
+ * with the generation the Bi-RRT in the hopes of finding a better path with richer trees.
  * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date February 2011
  */
 
 /*
@@ -70,13 +72,27 @@ namespace ReaK {
 namespace graph {
 
   /**
-   * The RRTVisitorConcept is used to customize the behaviour of the RRT algorithm by 
-   * implementing a set of required callback functions:
-   *  vertex_added(Vertex, Graph&): Is called whenever a new vertex has been added to the graph, but not yet connected.
-   *  edge_added(Edge, Graph&): Is called whenever a new edge has been created between the last created vertex and its nearest neighbor in the graph.
-   *  is_position_free(const PositionValue&): Is called to query whether a particular configuration (position) is free.
-   *  joining_vertex_found(Vertex, Graph&): Is called by the bidirectional RRT algorithm when a vertex is found that can reach the other graph (not the one passed as 2nd parameter).
-   *  keep_going(): Is called at each attempt to expand the graph to verify that the user still wants more vertices to be generated in the tree. 
+   * This concept class defines what is required of a class to serve as a visitor to the RRT algorithm.
+   * 
+   * Required concepts:
+   * 
+   * the visitor should model the boost::CopyConstructibleConcept.
+   * 
+   * Valid expressions:
+   * 
+   * vis.vertex_added(u, g);  This function is called whenever a new vertex (u) has been added to the graph (g), but not yet connected.
+   * 
+   * vis.edge_added(e, g);  This function is called whenever a new edge (e) has been created between the last created vertex and its nearest neighbor in the graph (g).
+   * 
+   * bool b = vis.is_position_free(p);  This function is called to query whether a particular configuration (position, p) is free.
+   * 
+   * vis.joining_vertex_found(u, g);  This function is called by the bidirectional RRT algorithm when a vertex (u) of graph (g) is found that can reach the other graph (not the one passed as 2nd parameter).
+   * 
+   * bool b = vis.keep_going();  This function is called at each attempt to expand the graph to verify that the user still wants more vertices to be generated in the tree. 
+   *
+   * \tparam Visitor The visitor class to be checked for modeling this concept.
+   * \tparam Graph The graph on which the visitor class is required to work with.
+   * \tparam PositionMap The position property-map that provides the position descriptors with which the visitor class is required to work.
    */
   template <typename Visitor, typename Graph, typename PositionMap>
   struct RRTVisitorConcept {
@@ -85,13 +101,14 @@ namespace graph {
     typename boost::graph_traits<Graph>::vertex_descriptor u;
     typename boost::graph_traits<Graph>::edge_descriptor e;
     typename boost::property_traits<PositionMap>::value_type p;
+    bool b;
     void constraints() {
       boost::function_requires< boost::CopyConstructibleConcept<Visitor> >();
       vis.vertex_added(u, g); 
       vis.edge_added(e, g); 
-      vis.is_position_free(p);
+      b = vis.is_position_free(p);
       vis.joining_vertex_found(u, g); 
-      vis.keep_going(); 
+      b = vis.keep_going(); 
     };
   };
 
@@ -112,7 +129,7 @@ namespace graph {
   };
 
   /**
-   * This class is a composite visitor class template. It can be used to glue together a function pointer 
+   * This class is a composite visitor class template. It can be used to glue together a function pointer (or functor)
    * for each of the functions of the RRTVisitorConcept so that it can be used as a light-weight,
    * copyable visitor object for the RRT algorithm (it is especially recommend to use the 
    * make_composite_rrt_visitor function template).
@@ -220,30 +237,33 @@ namespace detail {
 
 
   /**
-   * This function is the unidirectional version of the RRT algorithm.
+   * This function template is the unidirectional version of the RRT algorithm (refer to rr_tree.hpp dox).
+   * \tparam Graph A mutable graph type that will represent the generated tree, should model boost::VertexListGraphConcept and boost::MutableGraphConcept
+   * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist, should model BGL's Topology concept
+   * \tparam RRTVisitor An RRT visitor type that implements the customizations to this RRT algorithm, should model the RRTVisitorConcept.
+   * \tparam PositionMap A property-map type that can store the configurations (or positions) of the vertices.
+   * \tparam NNFinder A functor type which can perform a nearest-neighbor search of a point to a graph in the topology (see topological_search.hpp).
    * \param g A mutable graph that should initially store the starting 
-   *          vertex (if not it will be randomly generated) and will store 
-   *          the generated tree once the algorithm has finished.
+   *        vertex (if not it will be randomly generated) and will store 
+   *        the generated tree once the algorithm has finished.
    * \param space A topology (as defined by the Boost Graph Library). Note 
-   *              that it is not required to generate only random points in 
-   *              the free-space.
+   *        that it is not required to generate only random points in 
+   *        the free-space.
    * \param vis A RRT visitor implementing the RRTVisitorConcept. This is the 
-   *            main point of customization and recording of results that the 
-   *            user can implement.
+   *        main point of customization and recording of results that the 
+   *        user can implement.
    * \param position A mapping that implements the MutablePropertyMap Concept. Also,
-   *                 the value_type of this map should be the same type as the topology's 
-   *                 value_type.
+   *        the value_type of this map should be the same type as the topology's 
+   *        value_type.
    * \param find_nearest_neighbor A callable object (functor) which can perform a 
-   *                              nearest neighbor search of a point to a graph in the 
-   *                              topology. (see topological_search.hpp)
+   *        nearest neighbor search of a point to a graph in the topology. (see topological_search.hpp)
    * \param max_vertex_count The maximum number of vertices beyond which the algorithm 
-   *                         should stop regardless of whether the resulting tree is satisfactory
-   *                         or not.
+   *        should stop regardless of whether the resulting tree is satisfactory or not.
    * \param max_edge_distance The maximum length (w.r.t. the topology) of an edge.
    * \param min_edge_distance The minimum length (w.r.t. the topology) of an edge. If a free-space 
-   *                          edge cannot be made longer than this number, it will not be added. This 
-   *                          parameter also serves as the minimum resolution of the free-query (i.e. 
-   *                          the collision detection).
+   *        edge cannot be made longer than this number, it will not be added. This 
+   *        parameter also serves as the minimum resolution of the free-query (i.e. 
+   *        the collision detection).
    * 
    */
   template <typename Graph,
@@ -283,36 +303,40 @@ namespace detail {
 
 
   /**
-   * This function is the bidirectional version of the RRT algorithm.
+   * This function is the bidirectional version of the RRT algorithm (refer to rr_tree.hpp dox).
+   * \tparam Graph A mutable graph type that will represent the generated tree, should model boost::VertexListGraphConcept and boost::MutableGraphConcept
+   * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist, should model BGL's Topology concept
+   * \tparam RRTVisitor An RRT visitor type that implements the customizations to this RRT algorithm, should model the RRTVisitorConcept.
+   * \tparam PositionMap A property-map type that can store the configurations (or positions) of the vertices.
+   * \tparam NNFinder A functor type which can perform a nearest-neighbor search of a point to a graph in the topology (see topological_search.hpp).
    * \param g1 A mutable graph that should initially store the starting 
-   *           vertex (if not it will be randomly generated) and will store 
-   *           the generated tree once the algorithm has finished.
+   *        vertex (if not it will be randomly generated) and will store 
+   *        the generated tree once the algorithm has finished.
    * \param g2 A mutable graph that should initially store the goal 
-   *           vertex (if not it will be randomly generated) and will store 
-   *           the generated tree once the algorithm has finished.
+   *        vertex (if not it will be randomly generated) and will store 
+   *        the generated tree once the algorithm has finished.
    * \param space A topology (as defined by the Boost Graph Library). Note 
-   *              that it is not required to generate only random points in 
-   *              the free-space.
+   *        that it is not required to generate only random points in 
+   *        the free-space.
    * \param vis A RRT visitor implementing the RRTVisitorConcept. This is the 
-   *            main point of customization and recording of results that the 
-   *            user can implement.
+   *        main point of customization and recording of results that the 
+   *        user can implement.
    * \param position1 A mapping for the first graph that implements the MutablePropertyMap Concept. 
-   *                  Also, the value_type of this map should be the same type as the topology's 
-   *                  value_type.
+   *        Also, the value_type of this map should be the same type as the topology's 
+   *        value_type.
    * \param position2 A mapping for the second graph that implements the MutablePropertyMap Concept. 
-   *                  Also, the value_type of this map should be the same type as the topology's 
-   *                  value_type.
+   *        Also, the value_type of this map should be the same type as the topology's 
+   *        value_type.
    * \param find_nearest_neighbor A callable object (functor) which can perform a 
-   *                              nearest neighbor search of a point to a graph in the 
-   *                              topology. (see topological_search.hpp)
+   *        nearest neighbor search of a point to a graph in the 
+   *        topology. (see topological_search.hpp)
    * \param max_vertex_count The maximum number of vertices beyond which the algorithm 
-   *                         should stop regardless of whether the resulting tree is satisfactory
-   *                         or not.
+   *        should stop regardless of whether the resulting tree is satisfactory or not.
    * \param max_edge_distance The maximum length (w.r.t. the topology) of an edge.
    * \param min_edge_distance The minimum length (w.r.t. the topology) of an edge. If a free-space 
-   *                          edge cannot be made longer than this number, it will not be added. This 
-   *                          parameter also serves as the minimum resolution of the free-query (i.e. 
-   *                          the collision detection).
+   *        edge cannot be made longer than this number, it will not be added. This 
+   *        parameter also serves as the minimum resolution of the free-query (i.e. 
+   *        the collision detection).
    * 
    */
   template <typename Graph,

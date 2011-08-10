@@ -1,10 +1,25 @@
 /**
  * \file probabilistic_roadmap.hpp
- * \author S. Mikael Persson <mikael.s.persson@gmail.com>
  *
-  * This library
+ * This library provides function templates and concepts that implement the probabilistic roadmap (PRM) 
+ * algorithm (as of "Geraerts and Overmars, 2002"). A PRM is generated in two phases. First, a number of 
+ * vertices are generated at random from the free-space (configuration-space which is not occupied by 
+ * obstacles) and bi-directional (or undirected) connections between those vertices are established, as
+ * much as possible (if they can be directly connected through free-space). Second, difficult areas 
+ * of the roadmap are determined using some density function (heuristic) and a priority-queue of vertices
+ * with high density (whatever that means for the heuristic chosen). Then, high-density vertices are 
+ * selected for expansion, in which case a number of neighboring vertices are generated coming out of 
+ * the selected vertex into free-space. The first phase is called the construction phase, and the 
+ * second is called the expansion phase. This algorithm has many customization points because there 
+ * are many choices to be made in the method, such as how to find nearest neighbors for attempting to 
+ * connect them through free-space, how to expand vertices, how to measure density, how to compare 
+ * densities, when to stop the algorithm, what proportion of constructed vs. expanded vertices should 
+ * be generated, etc. All these customization points are left to the user to implement, some are 
+ * defined by the PRMVisitorConcept (expand-vertex and compute-density) while others are provided 
+ * as functors to the function template that generates the PRM (generate_prm).
  *
- *
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date March 2011
  */
 
 /*
@@ -47,13 +62,24 @@ namespace ReaK {
 namespace graph {
 
   /**
-   * The PRMVisitorConcept is used to customize the behaviour of the PRM algorithm by 
-   * implementing a set of required callback functions:
-   *  vertex_added(Vertex, Graph&): Is called whenever a new vertex has been added to the graph, but not yet connected.
-   *  edge_added(Edge, Graph&): Is called whenever a new edge has been created between the last created vertex and its nearest neighbor in the graph.
-   *  is_position_free(const PositionValue&): Is called to query whether a particular configuration (position) is free.
-   *  joining_vertex_found(Vertex, Graph&): Is called by the bidirectional RRT algorithm when a vertex is found that can reach the other graph (not the one passed as 2nd parameter).
-   *  keep_going(): Is called at each attempt to expand the graph to verify that the user still wants more vertices to be generated in the tree. 
+   * This concept class defines what is required of a class to serve as a visitor to the PRM algorithm.
+   * 
+   * Required concepts:
+   * 
+   * the visitor should model the boost::CopyConstructibleConcept.
+   * 
+   * Valid expressions:
+   * 
+   * vis.vertex_added(u, g);  This function is called whenever a new vertex (u) has been added to the graph (g), but not yet connected.
+   * 
+   * vis.edge_added(e, g);  This function is called whenever a new edge (e) has been created between the last created vertex and its neighbor in the graph (g).
+   *
+   * vis.expand_vertex(u, g, v);  This function is called to perform the expansion of the roadmap from a given vertex (u) in the graph (g). This function takes, as 3rd argument, a std::vector of vertext descriptors, as non-const reference, and populates it with newly generated vertices that are candidates to be connected to the graph.
+   * 
+   * vis.update_density(u, g);  This function is called to evaluate the density-measure of the graph (g) around the given vertex (u). This value is used to prioritize the generation of new vertices.
+   * 
+   * \tparam Visitor The visitor class to be checked for modeling this concept.
+   * \tparam Graph The graph on which the visitor class is required to work with.
    */
   template <typename Visitor, typename Graph>
   struct PRMVisitorConcept {
@@ -73,7 +99,7 @@ namespace graph {
 
   /**
    * This class is simply a "null" visitor for the PRM algorithm. It is null in the sense that it
-   * will do nothing (except return true on the is_position_free(p) and keep_going() callbacks).
+   * will do nothing on all accounts.
    */
   template <typename Topology, typename PositionMap>
   struct default_prm_visitor {
@@ -95,9 +121,9 @@ namespace graph {
   
   
   /**
-   * This class is a composite visitor class template. It can be used to glue together a function pointer 
+   * This class is a composite visitor class template. It can be used to glue together a function pointer (or functor) 
    * for each of the functions of the PRMVisitorConcept so that it can be used as a light-weight,
-   * copyable visitor object for the PRM algorithm (it is especially recommend to use the 
+   * copyable visitor object for the PRM algorithm (it is especially recommended to use the 
    * make_composite_prm_visitor function template).
    */
   template <typename VertexAddedCallback,
@@ -231,25 +257,44 @@ namespace graph {
    * all the design decisions (how to generate vertices, how to select the neighborhood, how to 
    * check the collision) have been externalized via the provided free_space topology, visitor 
    * object, and neighborhood selection functor.
-   * \param g A mutable graph that should initially store the starting 
-   *          vertex (if not it will be randomly generated) and will store 
-   *          the generated graph once the algorithm has finished.
-   * \param free_space A topology (as defined by the Boost Graph Library). Note 
-   *                   that it is required to generate only random points in 
-   *                   the free-space and to only allow interpolation within the free-space.
-   * \param vis A PRM visitor implementing the PRMVisitorConcept. This is the 
-   *            main point of customization and recording of results that the 
-   *            user can implement.
-   * \param position A mapping that implements the MutablePropertyMap Concept. Also,
-   *                 the value_type of this map should be the same type as the topology's 
-   *                 value_type.
-   * \param select_neighborhood A callable object (functor) that can select a list of 
-   *                            vertices of the graph that ought to be connected to a new 
-   *                            vertex. The list should be sorted in order of increasing "distance".
-   * \param max_vertex_count The maximum number of vertices beyond which the algorithm 
-   *                         should stop regardless of whether the resulting graph is satisfactory
-   *                         or not.
    * 
+   * \tparam Graph A mutable graph type that can store the roadmap, should model boost::MutableGraphConcept 
+   *         and boost::VertexListGraphConcept (either bidirectional or undirected graph, the algorithm 
+   *         will deal with either cases as appropriate).
+   * \tparam Topology A topology type on which the vertex positions lie.
+   * \tparam PRMVisitor A PRM visitor type, should model the PRMVisitorConcept.
+   * \tparam PositionMap A property-map type that can store the position of each vertex. 
+   * \tparam DensityMap A property-map type that can store the density-measures for each vertex.
+   * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
+   *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors). 
+   *         See classes in the topological_search.hpp header-file.
+   * \tparam RunningPredicate A functor type that can return a bool value (and takes no parameters).
+   * \tparam CompareFunction A functor type that can be used to compare density values (strict weak-ordering).
+   * \param g A mutable graph that should initially store the starting 
+   *        vertex (if not it will be randomly generated) and will store 
+   *        the generated graph once the algorithm has finished.
+   * \param free_space A topology (as defined by the Boost Graph Library). Note 
+   *        that it is required to generate only random points in 
+   *        the free-space and to only allow interpolation within the free-space.
+   * \param vis A PRM visitor implementing the PRMVisitorConcept. This is the 
+   *        main point of customization and recording of results that the 
+   *        user can implement.
+   * \param position A mapping that implements the MutablePropertyMap Concept. Also,
+   *        the value_type of this map should be the same type as the topology's 
+   *        value_type.
+   * \param density A property-map that provides the density values assiciated to each vertex.
+   * \param select_neighborhood A callable object (functor) that can select a list of 
+   *        vertices of the graph that ought to be connected to a new 
+   *        vertex. The list should be sorted in order of increasing "distance".
+   * \param max_vertex_count The maximum number of vertices beyond which the algorithm 
+   *        should stop regardless of whether the resulting graph is satisfactory or not.
+   * \param num_constructed_vertices The number of vertices to generate in the PRM construction
+   *        phase (i.e. vertices are randomly generated all over the free-space).
+   * \param num_expanded_vertices The number of vertices to generate in the PRM expansion phase 
+   *        where the priority-queue (sorted by density and compare) is used to select vertices for 
+   *        expansion (the expansion is done with vis.expand_vertex(u,g,v), see PRMVisitorConcept).
+   * \param compare A functor used to compare density values (strict weak-ordering) in the priority-queue 
+   *        for expansion of the vertices.
    */
   template <typename Graph,
 	    typename Topology,

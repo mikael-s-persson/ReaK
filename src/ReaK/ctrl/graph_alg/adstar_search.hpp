@@ -1,9 +1,6 @@
 /**
  * \file adstar_search.hpp
  *
- * \author S. Mikael Persson <mikael.s.persson@gmail.com>
- * \date February 9th, 2011
- *
  * This library implements the Anytime Dynamic A* (AD*) algorithm according to the algorithmic description given
  * in the original article:
  *
@@ -22,6 +19,8 @@
  * change. For all other aspects related to observing the changes in the graph during the graph search, the A* visitor
  * concept is used, as documented in the Boost.Graph library's homepage.
  *
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date February 2011
  */
 
 /*
@@ -75,6 +74,41 @@ namespace ReaK {
   
 namespace graph {
 
+  /**
+   * This concept class defines the valid expressions required of a class to be used as a visitor 
+   * class for the AD* algorithm. A visitor class is essentially a class that regroups a number of 
+   * callback functions that can be used to inject customization into the AD* algorithm (see fadprm.hpp for 
+   * example). In other words, the visitor pattern in generic programming is an implementation of IoC 
+   * (Inversion of Control), since the AD* algorithm is in control of execution, but custom behavior can
+   * be injected in several places, even blocking the algorithm if needed.
+   * 
+   * Required concepts:
+   * 
+   * The visitor class should model the boost::CopyConstructibleConcept.
+   * 
+   * Valid expressions:
+   * 
+   * vis.initialize_vertex(u,g);  A function that gets called whenever a vertex (u) is first initialized before the search.
+   * 
+   * vis.finish_vertex(u,g);  A function that gets called whenever a vertex (u) is put into the CLOSED set (after being explored by the current search pass).
+   * 
+   * vis.recycle_vertex(u,g);  A function that gets called whenever a vertex (u) is taken out of the CLOSED set to be recycled in the search.
+   * 
+   * vis.discover_vertex(u,g);  A function that gets called whenever a vertex (u) is added to the OPEN set (or updated in the OPEN set).
+   * 
+   * vis.examine_vertex(u,g);  A function that gets called whenever a vertex (u) is taken out of the OPEN set to be examined, this is called before it gets expanded.
+   * 
+   * vis.examine_edge(e,g);  A function that gets called whenever an edge (e) is being looked at, as it comes out of the vertex that is currently being examined in the search.
+   * 
+   * vis.edge_relaxed(e,g);  A function that gets called whenever an edge (e) has been newly declared as a better alternative than the current surrounding edges (i.e. the edge is added to the optimal path).
+   * 
+   * vis.forget_vertex(u,g);  A function that gets called whenever a vertex (u) is deemed uninteresting for the search and is taken out of the OPEN set and not examined.
+   * 
+   * vis.inconsistent_vertex(u,g);  A function that gets called whenever a CLOSEd vertex becomes inconsistent (added to the INCONS set) due to changes in the environment or sub-optimal search.
+   * 
+   * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
+   * \tparam Graph The graph type on which the visitor should be able to act.
+   */
   template <typename Visitor, typename Graph>
   struct ADStarVisitorConcept {
     void constraints()
@@ -96,6 +130,11 @@ namespace graph {
     typename boost::graph_traits<Graph>::edge_descriptor e;
   };
 
+  /**
+   * This class is the default implementation of an AD* visitor (see ADStarVisitorConcept). 
+   * Basically, this implementation models the concept required by AD*, but does nothing at all 
+   * (all functions are empty).
+   */
   class default_adstar_visitor {
     public:
       default_adstar_visitor() {}
@@ -123,16 +162,37 @@ namespace graph {
 
 
 
-
+  /**
+   * This class template is used by the AD* algorithm to constitute the key-values which 
+   * drive the ordering in the priority-queue that the AD* algorithm uses to choose the next 
+   * vertex to examine. This class simply implements the key-value described in the original
+   * paper on AD* (ICAPS 2005).
+   * \tparam DistanceValueType The scalar type that describes the distance values.
+   * \tparam CompareFunction The strict weak-ordering function that can sort the distance values.
+   * \tparam EqualCompareFunction The equal-comparison function that can compare two distance values to be equal.
+   */
   template <typename DistanceValueType,
             typename CompareFunction = std::less<DistanceValueType>,
 	    typename EqualCompareFunction = std::equal_to<DistanceValueType> >
   struct adstar_key_value {
+    /**
+     * Default constructor.
+     */
     adstar_key_value() : m_k1(0), m_k2(0), m_compare(), m_equal() { };
+    /**
+     * Parametrized constructor.
+     * \param k1 The first value of the key-value.
+     * \param k2 The second value of the key-value.
+     * \param compare The functor of type CompareFunction.
+     * \param equalCompare The functor of type EqualCompareFunction.
+     */
     adstar_key_value(DistanceValueType k1, DistanceValueType k2,
                      CompareFunction compare, EqualCompareFunction equalCompare) :
                      m_k1(k1), m_k2(k2), m_compare(compare), m_equal(equalCompare) { };
 
+    /**
+     * The less-than operator for strict weak-ordering.
+     */
     bool operator <(const adstar_key_value<DistanceValueType,CompareFunction,EqualCompareFunction>& aKey) const {
       return m_compare(m_k1, aKey.m_k1) || (m_equal(m_k1, aKey.m_k1) && m_compare(m_k2, aKey.m_k2));
     };
@@ -142,8 +202,13 @@ namespace graph {
     EqualCompareFunction m_equal;
   };
 
+  /**
+   * This traits class defines that traits that an AD* key-value should have.
+   * \tparam ADStarKeyType The key-value type of which the traits are sought.
+   */
   template <typename ADStarKeyType>
   struct adstar_key_traits {
+    /** The type of comparison to use for strict weak-ordering of the key-values. */
     typedef std::less< ADStarKeyType > compare_type;
   };
 
@@ -459,25 +524,98 @@ namespace graph {
 
 
 
-  template <typename VertexListGraph, //this is the actual graph, should comply to BidirectionalGraphConcept.
-            typename AStarHeuristicMap, //this the map of heuristic function value for each vertex.
-            typename ADStarVisitor, //this is a visitor class that can perform special operations at event points.
-	    typename PredecessorMap, //this is the map that stores the preceeding edge for each vertex.
-            typename DistanceMap, //this is the map of distance values associated with each vertex.
+  /**
+   * This function template performs an AD* search over a graph, without initialization. The AD* search 
+   * uses a sequence of sub-optimal A* searches of increasing level of optimality (i.e. it performs sloppy
+   * or relaxed A* searches which yields results quicker by searching a subset of the graph only, and then 
+   * it tightens the sloppiness of the search, improving on the results of previous searches). Then, it 
+   * uses callback functions to allow the user to check for changes in the environment, triggering an update
+   * of the affected edges and vertices, and also, possibly relaxing the A* search if changes are too significant.
+   * \tparam VertexListGraph The type of the graph on which the search is performed, should model the BGL's BidirectionalGraphConcept.
+   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values for each vertex in the graph.
+   * \tparam ADStarVisitor The type of the AD* visitor to be used, should model the ADStarVisitorConcept.
+   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting vertex together with its optimal predecessor.
+   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex to the goal.
+   * \tparam RHSMap This property-map type is used to store the inconsistent estimated distance of each vertex to the goal (internal use to AD*).
+   * \tparam KeyMap This property-map type is used to store the AD* key-values associated to each vertex.
+   * \tparam WeightMap This property-map type is used to store the weights of the edges of the graph (cost of travel along an edge).
+   * \tparam ColorMap This property-map type is used to store the color-value of the vertices, colors are used to mark vertices by their status in the AD* algorithm (white = not visited, gray = discovered (in OPEN), black = finished (in CLOSED), green = recycled (not CLOSED, not OPEN), red = inconsistent (in INCONS)).
+   * \tparam AdjustFunction This functor type represents the callback function that will adjust the epsilon value (sloppyness of the A* search).
+   * \tparam RunningPredicate This function type represents the callback function that will evaluate if it is still worth continuing the AD* search passes.
+   * \tparam GetStartNodeFunction This function type represents the callback function that will give the starting point for the search (usually the goal vertex).
+   * \tparam ChangeEventFunction This function type represents the callback that can wait for a change in edge weights, and provide the list of changed edges.
+   * \tparam PublishPathFunction This function type represents the callback that is called when a path has been obtained (so that it can be buffered and executed).
+   * \tparam ScalarType The type of the scalar value epsilon (amplification factor, controls the anytime nature of this algorithm).
+   * \tparam CompareFunction A binary comparison functor type that returns true if the first operand is strictly better (less-than) than the second operand.
+   * \tparam EqualCompareFunction A binary comparison functor type that returns true if both operands are equal to each other.
+   * \tparam CombineFunction A binary combination functor type that returns the sum of its operands, semantically-speaking.
+   * \tparam ComposeFunction A binary composition functor type that amplifies a heuristic distance metric by a scalar value (i.e. epsilon x h(u) ).
+   * 
+   * \param g The graph on which to apply the AD* algorithm.
+   * \param hval The property-map of A* heuristic function values for each vertex.
+   * \param vis The AD* visitor object, should model ADStarVisitorConcept.
+   * \param predecessor The property-map which will store the resulting path by connecting 
+   *        vertices together with their optimal predecessor (follow in reverse to discover the 
+   *        complete path).
+   * \param distance The property-map which stores the estimated distance of each vertex to the goal.
+   * \param rhs The property-map which stores the inconsistent estimated distance of each vertex to the 
+   *        goal (for internal use).
+   * \param key The property-map which stores the AD* key-values associated to each vertex.
+   * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
+   *        along the edge).
+   * \param color The property-map which stores the color-value of the vertices, colors are used to mark
+   *        vertices by their status in the AD* algorithm (white = not visited, gray = discovered (in OPEN), 
+   *        black = finished (in CLOSED), green = recycled (not CLOSED, not OPEN), red = inconsistent (in INCONS)).
+   * \param adj_epsilon The callback functor that will adjust the epsilon value (sloppyness of the sub-optimal
+   *        A* search) depending (usually) on the level of change in the weights that was recorded after a callback
+   *        using the edge_change functor. Used as: epsilon = adj_epsilon(epsilon, max_w_change); (takes the current 
+   *        epsilon value and the maximum recorder weight change, and outputs the new epsilon value).
+   * \param keep_going The callback functor that will tell whether the AD* search should keep on going (running 
+   *        predicate). Should be callable with no parameter and output a bool value (true to keep going, false
+   *        to stop).
+   * \param get_start The functor that is called to obtain the starting point for the AD* search (usually the 
+   *        goal vertex). Should be callable with no parameter and output a vertex-descriptor of the graph (i.e. 
+   *        a vertex of the graph g).
+   * \param edge_change The callback functor that is called to make a check whether the weights of the graph
+   *        have changed do to a dynamic environment. Used as: max_w_change = edge_change(affected_edges); 
+   *        (takes an STL container (std::vector) of affected edges and populates it all the edges that 
+   *        should be updated because their weight has changed, also returns the maximum weight change 
+   *        measured (or any other measure of how bad the change in the environment is, this value will 
+   *        be forwarded unchanged to the adj_epsilon functor)). The container of affected edges is subject 
+   *        to change, so it is recommended to define this functor with a templated call-operator that 
+   *        can take a generic type of STL container, by non-const reference.
+   * \param publish_path The callback functor that is called when the AD* search has ended, and presumably,
+   *        found a path. Used as: publish_path(); (takes no parameters, returns nothing). The path is retrieved
+   *        by walking the predecessors of the vertices (using the given predecessor property-map).
+   * \param epsilon The initial epsilon value that relaxes the A* search to give the AD* its anytime 
+   *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
+   * \param inf The quantity that represents infinity (either a very large value or the infinity value for 
+   *        the underlying value-type).
+   * \param zero The quantity that represents zero with the given value-type.
+   * \param compare A binary comparison functor that returns true if the first operand is strictly better (less-than) than the second operand.
+   * \param equal_compare A binary comparison functor that returns true if both operands are equal to each other.
+   * \param combine A binary combination functor that returns the sum of its operands, semantically-speaking.
+   * \param compose A binary composition functor that amplifies a heuristic distance metric by a scalar value (i.e. epsilon x h(u) ).
+   */
+  template <typename VertexListGraph,
+            typename AStarHeuristicMap,
+            typename ADStarVisitor,
+	    typename PredecessorMap,
+            typename DistanceMap,
 	    typename RHSMap,
-	    typename KeyMap, //this is the map of key values associated to each vertex.
-            typename WeightMap, //this is the map of edge weight (or cost) associated to each edge of the graph.
-	    typename ColorMap, //this is a color map for each vertex, i.e. white=not visited, gray=discovered, black=expanded.
-	    typename AdjustFunction, //this is the function object type that adjusts scalar implification factor epsilon for the current max change in edge weight.
-	    typename RunningPredicate, //this is a function object type that immediately returns true if the algorithm should keep going.
-	    typename GetStartNodeFunction, //this is a function object type that returns the current start node of the graph (to start the bfs).
-	    typename ChangeEventFunction, //this is a function object type that can wait for a change in edge weights, and provide the list of changed edges.
-	    typename PublishPathFunction, //this is a function object type that is called when a path has been obtained (so that it can be buffered and executed).
-	    typename ScalarType/* = typename property_traits<DistanceMap>::value_type*/, //the type of the scalar value epsilon (amplification factor, controls the anytime nature of this algorithm).
-            typename CompareFunction /*= std::less<typename property_traits<DistanceMap>::value_type>*/, //a binary comparison function object that returns true if the first operand is strictly better (less-than) than the second operand.
-	    typename EqualCompareFunction /*= std::equal_to<typename property_traits<DistanceMap>::value_type >*/, //a binary comparison function object that returns true if both operands are equal to each other.
-            typename CombineFunction /*= std::plus<typename property_traits<DistanceMap>::value_type>*/, //a binary combination function object that returns the sum of its operands (sum in the broad sense).
-	    typename ComposeFunction /*= std::multiplies<typename property_traits<DistanceMap>::value_type>*/ > //a binary composition function object that amplifies a heuristic distance metric by a scalar value (i.e. epsilon x h(u) ).
+	    typename KeyMap,
+            typename WeightMap,
+	    typename ColorMap,
+	    typename AdjustFunction,
+	    typename RunningPredicate,
+	    typename GetStartNodeFunction, 
+	    typename ChangeEventFunction,
+	    typename PublishPathFunction,
+	    typename ScalarType, 
+            typename CompareFunction, 
+	    typename EqualCompareFunction,
+            typename CombineFunction,
+	    typename ComposeFunction>
   inline void
   adstar_search_no_init
     (VertexListGraph &g,
@@ -530,26 +668,99 @@ namespace graph {
   };
 
 
-  // Non-named parameter interface
-  template <typename VertexListGraph, //this is the actual graph, should comply to BidirectionalGraphConcept.
-            typename AStarHeuristicMap, //this the map of heuristic function value for each vertex.
-            typename ADStarVisitor, //this is a visitor class that can perform special operations at event points.
-	    typename PredecessorMap, //this is the map that stores the preceeding edge for each vertex.
-            typename DistanceMap, //this is the map of distance values associated with each vertex.
+
+  /**
+   * This function template performs an AD* search over a graph. The AD* search 
+   * uses a sequence of sub-optimal A* searches of increasing level of optimality (i.e. it performs sloppy
+   * or relaxed A* searches which yields results quicker by searching a subset of the graph only, and then 
+   * it tightens the sloppiness of the search, improving on the results of previous searches). Then, it 
+   * uses callback functions to allow the user to check for changes in the environment, triggering an update
+   * of the affected edges and vertices, and also, possibly relaxing the A* search if changes are too significant.
+   * \tparam VertexListGraph The type of the graph on which the search is performed, should model the BGL's BidirectionalGraphConcept.
+   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values for each vertex in the graph.
+   * \tparam ADStarVisitor The type of the AD* visitor to be used, should model the ADStarVisitorConcept.
+   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting vertex together with its optimal predecessor.
+   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex to the goal.
+   * \tparam RHSMap This property-map type is used to store the inconsistent estimated distance of each vertex to the goal (internal use to AD*).
+   * \tparam KeyMap This property-map type is used to store the AD* key-values associated to each vertex.
+   * \tparam WeightMap This property-map type is used to store the weights of the edges of the graph (cost of travel along an edge).
+   * \tparam ColorMap This property-map type is used to store the color-value of the vertices, colors are used to mark vertices by their status in the AD* algorithm (white = not visited, gray = discovered (in OPEN), black = finished (in CLOSED), green = recycled (not CLOSED, not OPEN), red = inconsistent (in INCONS)).
+   * \tparam AdjustFunction This functor type represents the callback function that will adjust the epsilon value (sloppyness of the A* search).
+   * \tparam RunningPredicate This function type represents the callback function that will evaluate if it is still worth continuing the AD* search passes.
+   * \tparam GetStartNodeFunction This function type represents the callback function that will give the starting point for the search (usually the goal vertex).
+   * \tparam ChangeEventFunction This function type represents the callback that can wait for a change in edge weights, and provide the list of changed edges.
+   * \tparam PublishPathFunction This function type represents the callback that is called when a path has been obtained (so that it can be buffered and executed).
+   * \tparam ScalarType The type of the scalar value epsilon (amplification factor, controls the anytime nature of this algorithm).
+   * \tparam CompareFunction A binary comparison functor type that returns true if the first operand is strictly better (less-than) than the second operand.
+   * \tparam EqualCompareFunction A binary comparison functor type that returns true if both operands are equal to each other.
+   * \tparam CombineFunction A binary combination functor type that returns the sum of its operands, semantically-speaking.
+   * \tparam ComposeFunction A binary composition functor type that amplifies a heuristic distance metric by a scalar value (i.e. epsilon x h(u) ).
+   * 
+   * \param g The graph on which to apply the AD* algorithm.
+   * \param hval The property-map of A* heuristic function values for each vertex.
+   * \param vis The AD* visitor object, should model ADStarVisitorConcept.
+   * \param predecessor The property-map which will store the resulting path by connecting 
+   *        vertices together with their optimal predecessor (follow in reverse to discover the 
+   *        complete path).
+   * \param distance The property-map which stores the estimated distance of each vertex to the goal.
+   * \param rhs The property-map which stores the inconsistent estimated distance of each vertex to the 
+   *        goal (for internal use).
+   * \param key The property-map which stores the AD* key-values associated to each vertex.
+   * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
+   *        along the edge).
+   * \param color The property-map which stores the color-value of the vertices, colors are used to mark
+   *        vertices by their status in the AD* algorithm (white = not visited, gray = discovered (in OPEN), 
+   *        black = finished (in CLOSED), green = recycled (not CLOSED, not OPEN), red = inconsistent (in INCONS)).
+   * \param adj_epsilon The callback functor that will adjust the epsilon value (sloppyness of the sub-optimal
+   *        A* search) depending (usually) on the level of change in the weights that was recorded after a callback
+   *        using the edge_change functor. Used as: epsilon = adj_epsilon(epsilon, max_w_change); (takes the current 
+   *        epsilon value and the maximum recorder weight change, and outputs the new epsilon value).
+   * \param keep_going The callback functor that will tell whether the AD* search should keep on going (running 
+   *        predicate). Should be callable with no parameter and output a bool value (true to keep going, false
+   *        to stop).
+   * \param get_start The functor that is called to obtain the starting point for the AD* search (usually the 
+   *        goal vertex). Should be callable with no parameter and output a vertex-descriptor of the graph (i.e. 
+   *        a vertex of the graph g).
+   * \param edge_change The callback functor that is called to make a check whether the weights of the graph
+   *        have changed do to a dynamic environment. Used as: max_w_change = edge_change(affected_edges); 
+   *        (takes an STL container (std::vector) of affected edges and populates it all the edges that 
+   *        should be updated because their weight has changed, also returns the maximum weight change 
+   *        measured (or any other measure of how bad the change in the environment is, this value will 
+   *        be forwarded unchanged to the adj_epsilon functor)). The container of affected edges is subject 
+   *        to change, so it is recommended to define this functor with a templated call-operator that 
+   *        can take a generic type of STL container, by non-const reference.
+   * \param publish_path The callback functor that is called when the AD* search has ended, and presumably,
+   *        found a path. Used as: publish_path(); (takes no parameters, returns nothing). The path is retrieved
+   *        by walking the predecessors of the vertices (using the given predecessor property-map).
+   * \param epsilon The initial epsilon value that relaxes the A* search to give the AD* its anytime 
+   *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
+   * \param inf The quantity that represents infinity (either a very large value or the infinity value for 
+   *        the underlying value-type).
+   * \param zero The quantity that represents zero with the given value-type.
+   * \param compare A binary comparison functor that returns true if the first operand is strictly better (less-than) than the second operand.
+   * \param equal_compare A binary comparison functor that returns true if both operands are equal to each other.
+   * \param combine A binary combination functor that returns the sum of its operands, semantically-speaking.
+   * \param compose A binary composition functor that amplifies a heuristic distance metric by a scalar value (i.e. epsilon x h(u) ).
+   */
+  template <typename VertexListGraph,
+            typename AStarHeuristicMap,
+            typename ADStarVisitor,
+	    typename PredecessorMap,
+            typename DistanceMap,
 	    typename RHSMap,
-	    typename KeyMap, //this is the map of key values associated to each vertex.
-            typename WeightMap, //this is the map of edge weight (or cost) associated to each edge of the graph.
-	    typename ColorMap, //this is a color map for each vertex, i.e. white=not visited, gray=discovered, black=expanded.
-	    typename AdjustFunction, //this is the function object type that adjusts scalar implification factor epsilon for the current max change in edge weight.
-	    typename RunningPredicate, //this is a function object type that immediately returns true if the algorithm should keep going.
-	    typename GetStartNodeFunction, //this is a function object type that returns the current start node of the graph (to start the bfs).
-	    typename ChangeEventFunction, //this is a function object type that can wait for a change in edge weights, and provide the list of changed edges.
-	    typename PublishPathFunction, //this is a function object type that is called when a path has been obtained (so that it can be buffered and executed).
-	    typename ScalarType/* = typename property_traits<DistanceMap>::value_type*/, //the type of the scalar value epsilon (amplification factor, controls the anytime nature of this algorithm).
-            typename CompareFunction /*= std::less<typename property_traits<DistanceMap>::value_type>*/, //a binary comparison function object that returns true if the first operand is strictly better (less-than) than the second operand.
-	    typename EqualCompareFunction /*= std::equal_to<typename property_traits<DistanceMap>::value_type >*/, //a binary comparison function object that returns true if both operands are equal to each other.
-            typename CombineFunction /*= std::plus<typename property_traits<DistanceMap>::value_type>*/, //a binary combination function object that returns the sum of its operands (sum in the broad sense).
-	    typename ComposeFunction /*= std::multiplies<typename property_traits<DistanceMap>::value_type>*/ > //a binary composition function object that amplifies a heuristic distance metric by a scalar value (i.e. epsilon x h(u) ).
+	    typename KeyMap,
+            typename WeightMap,
+	    typename ColorMap,
+	    typename AdjustFunction,
+	    typename RunningPredicate, 
+	    typename GetStartNodeFunction, 
+	    typename ChangeEventFunction, 
+	    typename PublishPathFunction, 
+	    typename ScalarType, 
+            typename CompareFunction, 
+	    typename EqualCompareFunction,
+            typename CombineFunction,
+	    typename ComposeFunction>
   inline void
   adstar_search
     (VertexListGraph &g,
