@@ -1,3 +1,20 @@
+/**
+ * \file invariant_kalman_filter.hpp
+ * 
+ * This library provides a number of functions and classes to do state estimation 
+ * using the Invariant Kalman Filter. This filtering technique applies to a 
+ * gaussian belief state and an invariant state-space system. The Kalman filter is 
+ * an optimal filter for a linear 
+ * state-space system where all sources of noise or disturbances are Gaussian 
+ * (normally distributed). This Kalman filter implementation requires
+ * that the system be a linearized system which has an invariant frame which 
+ * can map the state-space into a frame in which the non-linearities have less or 
+ * no effect on the covariance transitions during the prediction and measurement 
+ * update.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date May 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -42,7 +59,24 @@ namespace ctrl {
 
 
 
-
+/**
+ * This function template performs one prediction step using the Invariant Kalman Filter method.
+ * \tparam InvariantSystem An invariant discrete-time state-space system modeling the 
+ *         InvariantDiscreteSystemConcept.
+ * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
+ * \tparam SystemNoiseCovariance A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \param sys The invariant discrete-time state-space system used in the state estimation.
+ * \param b As input, it stores the belief-state before the prediction step. As output, it stores
+ *        the belief-state after the prediction step.
+ * \param u The input vector to apply to the state-space system to make the transition of the 
+ *        mean-state, i.e., the current input vector.
+ * \param Q The input noise covariance matrix. This is the level of uncertainty on the input 
+ *        vector components (not the noise on the state transition). This was chosen as the most
+ *        common way application (usually system disturbance comes on the input, not on the state).
+ * \param t The current time (before the prediction).
+ * 
+ */
 template <typename InvariantSystem, 
           typename BeliefState, 
 	  typename SystemNoiseCovariance>
@@ -90,6 +124,24 @@ void >::type invariant_kalman_predict(const InvariantSystem& sys,
 
 
 
+/**
+ * This function template performs one measurement update step using the Invariant Kalman Filter method.
+ * \tparam InvariantSystem An invariant discrete-time state-space system modeling the 
+ *         InvariantDiscreteSystemConcept.
+ * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
+ * \tparam MeasurementNoiseCovariance A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \param sys The invariant discrete-time state-space system used in the state estimation.
+ * \param b As input, it stores the belief-state before the update step. As output, it stores
+ *        the belief-state after the update step.
+ * \param u The input vector to apply to the state-space system to make the transition of the 
+ *        mean-state, i.e., the current input vector.
+ * \param z The output vector to that was measured.
+ * \param R The output noise covariance matrix. This is the level of uncertainty on the output 
+ *        vector components coming from the measurements.
+ * \param t The current time.
+ * 
+ */
 template <typename InvariantSystem, 
           typename BeliefState, 
 	  typename MeasurementNoiseCovariance>
@@ -141,6 +193,30 @@ void >::type invariant_kalman_update(const InvariantSystem& sys,
 
 
 
+/**
+ * This function template performs one complete estimation step using the (Extended) Kalman 
+ * Filter method, which includes a prediction and measurement update step. This function is, 
+ * in general, more efficient than applying the prediction and update separately.
+ * \tparam InvariantSystem An invariant discrete-time state-space system modeling the 
+ *         InvariantDiscreteSystemConcept.
+ * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
+ * \tparam SystemNoiseCovariance A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \tparam MeasurementNoiseCovariance A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \param sys The invariant discrete-time state-space system used in the state estimation.
+ * \param b As input, it stores the belief-state before the estimation step. As output, it stores
+ *        the belief-state after the estimation step.
+ * \param u The input vector to apply to the state-space system to make the transition of the 
+ *        mean-state, i.e., the current input vector.
+ * \param z The output vector to that was measured.
+ * \param Q The input noise covariance matrix. This is the level of uncertainty on the input 
+ *        vector components (not the noise on the state transition). This was chosen as the most
+ *        common way application (usually system disturbance comes on the input, not on the state).
+ * \param R The output noise covariance matrix. This is the level of uncertainty on the output 
+ *        vector components coming from the measurements.
+ * \param t The current time (before the prediction).
+ * 
+ */
 template <typename InvariantSystem, 
           typename BeliefState, 
 	  typename SystemNoiseCovariance,
@@ -200,14 +276,25 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
 
 
 
-template <typename LinearSystem,
+/**
+ * This class template can be used as a belief-state predictor (and transfer) that uses the 
+ * Invariant Kalman Filter method. This class template models the BeliefTransferConcept and 
+ * the BeliefPredictorConcept.
+ * \tparam InvariantSystem An invariant discrete-time state-space system modeling the 
+ *         InvariantDiscreteSystemConcept.
+ * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
+ * \tparam SystemNoiseCovar A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \tparam MeasurementCovar A covariance matrix type modeling the CovarianceMatrixConcept.
+ */
+template <typename InvariantSystem,
           typename BeliefState = gaussian_belief_state< decomp_covariance_matrix< typename discrete_sss_traits<LinearSystem>::point_type > >,
-          typename SystemNoiseCovar = covariance_matrix< typename discrete_sss_traits< LinearSystem >::input_type >,
-          typename MeasurementCovar = covariance_matrix< typename discrete_sss_traits< LinearSystem >::output_type > >
+          typename SystemNoiseCovar = covariance_matrix< typename discrete_sss_traits< InvariantSystem >::input_type >,
+          typename MeasurementCovar = covariance_matrix< typename discrete_sss_traits< InvariantSystem >::output_type > >
 struct IKF_belief_transfer {
-  typedef IKF_belief_transfer<LinearSystem, BeliefState> self;
+  typedef IKF_belief_transfer<InvariantSystem, BeliefState> self;
   typedef BeliefState belief_state;
-  typedef LinearSystem state_space_system;
+  typedef InvariantSystem state_space_system;
   typedef typename discrete_sss_traits< state_space_system >::time_type time_type;
   typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
 
@@ -218,33 +305,76 @@ struct IKF_belief_transfer {
   typedef typename discrete_sss_traits< state_space_system >::input_type input_type;
   typedef typename discrete_sss_traits< state_space_system >::output_type output_type;
 
-  const LinearSystem* sys;
-  SystemNoiseCovar Q;
-  MeasurementCovar R;
+  const InvariantSystem* sys; ///< Holds the reference to the system used for the filter.
+  SystemNoiseCovar Q; ///< Holds the system's input noise covariance matrix.
+  MeasurementCovar R; ///< Holds the system's output measurement's covariance matrix.
 
-  IKF_belief_transfer(const LinearSystem& aSys, 
+  /**
+   * Parametrized constructor.
+   * \param aSys The reference to the system used for the filter.
+   * \param aQ The system's input noise covariance matrix.
+   * \param aR The system's output measurement's covariance matrix.
+   */
+  IKF_belief_transfer(const InvariantSystem& aSys, 
                        const SystemNoiseCovar& aQ,
                        const MeasurementCovar& aR) : sys(&aSys), Q(aQ), R(aR) { };
   
+  /**
+   * Returns the time-step of the predictor.
+   * \return The time-step of the predictor.
+   */
   time_difference_type get_time_step() const { return sys->get_time_step(); };
 
+  /**
+   * Returns a reference to the underlying state-space system.
+   * \return A reference to the underlying state-space system.
+   */
   const state_space_system& get_ss_system() const { return *sys; };
 
+  /**
+   * Returns the belief-state at the next time instant.
+   * \param b The current belief-state.
+   * \param t The current time.
+   * \param u The current input given to the system.
+   * \param y The output that was measured at the next time instant.
+   * \return the belief-state at the next time instant.
+   */
   belief_state get_next_belief(belief_state b, const time_type& t, const input_type& u, const input_type& y) const {
     invariant_kalman_filter_step(*sys,b,u,y,Q,R,t);
     return b;
   };
   
+  /**
+   * Returns the prediction belief-state at the next time instant.
+   * \param b The current belief-state.
+   * \param t The current time.
+   * \param u The current input given to the system.
+   * \return the belief-state at the next time instant, predicted by the filter.
+   */
   belief_state predict_belief(belief_state b, const time_type& t, const input_type& u) const {
     invariant_kalman_predict(*sys,b,u,Q,t);
     return b;
   };
   
+  /**
+   * Converts a prediction belief-state into an updated belief-state which assumes the most likely measurement.
+   * \param b The current prediction's belief-state.
+   * \param t The current time.
+   * \param u The current input given to the system.
+   * \return the updated belief-state when assuming the most likely measurement.
+   */
   belief_state prediction_to_ML_belief(belief_state b, const time_type& t, const input_type& u) const {
     invariant_kalman_update(*sys,b,u,sys->get_output(b.get_mean_state(),u,t),R,t);
     return b;
   };
   
+  /**
+   * Returns the prediction belief-state at the next time instant, assuming the upcoming measurement to be the most likely one.
+   * \param b The current belief-state.
+   * \param t The current time.
+   * \param u The current input given to the system.
+   * \return the belief-state at the next time instant, predicted by the filter.
+   */
   belief_state predict_ML_belief(belief_state b, const time_type& t, const input_type& u) const {
     invariant_kalman_predict(*sys,b,u,Q,t);
     invariant_kalman_update(*sys,b,u,sys->get_output(b.get_mean_state(),u,t),R,t + sys->get_time_step());
