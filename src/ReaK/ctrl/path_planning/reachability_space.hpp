@@ -1,3 +1,13 @@
+/**
+ * \file reachability_space.hpp
+ * 
+ * This library defines a number of classes to realize a reachability space (see ReachabilitySpaceConcept)
+ * from a spatial topology with a temporal distance metric (that is, a norm or distance metric which 
+ * represents the minimum travel time between two points).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -34,12 +44,37 @@ namespace ReaK {
 
 namespace pp {
 
-
+/**
+ * This functor class implements a backward reachable norm for a given point-difference in 
+ * a temporal-space.
+ */
 struct backward_reachable_norm {
+  /**
+   * Computes the backward reachable norm for a given point-difference in a temporal-space.
+   * \tparam PointDiff The point-difference type from the temporal-space.
+   * \tparam TimeTopology The time-topology type.
+   * \tparam SpaceTopology The space-topology type, should model MetricSpaceConcept.
+   * \param a The point-difference lying on the temporal-space.
+   * \param t The time-topology of the temporal-space.
+   * \param s The space-topology of the temporal-space.
+   * \return The backward reachable norm for the given point-difference.
+   */
   template <typename PointDiff, typename TimeTopology, typename SpaceTopology>
   double operator()(const PointDiff& a, const TimeTopology& t, const SpaceTopology& s) const {
     return a.time - s.norm(a.pt);
   };
+  /**
+   * Computes the backward reachable norm for a given point-difference in a temporal-space.
+   * \tparam TimeDiff The time-difference type from the temporal-space.
+   * \tparam SpaceDiff The space-difference type from the temporal-space.
+   * \tparam TimeTopology The time-topology type.
+   * \tparam SpaceTopology The space-topology type, should model MetricSpaceConcept.
+   * \param dt The time-difference.
+   * \param dp The space-difference.
+   * \param t The time-topology of the temporal-space.
+   * \param s The space-topology of the temporal-space.
+   * \return The backward reachable norm for the given point-difference.
+   */
   template <typename TimeDiff, typename SpaceDiff, typename TimeTopology, typename SpaceTopology>
   double operator()(const TimeDiff& dt, const SpaceDiff& dp, const TimeTopology& t, const SpaceTopology& s) const {
     return dt - s.norm(dp);
@@ -47,11 +82,37 @@ struct backward_reachable_norm {
 };
 
 
+/**
+ * This functor class implements a forward reachable norm for a given point-difference in 
+ * a temporal-space.
+ */
 struct forward_reachable_norm {
+  /**
+   * Computes the forward reachable norm for a given point-difference in a temporal-space.
+   * \tparam PointDiff The point-difference type from the temporal-space.
+   * \tparam TimeTopology The time-topology type.
+   * \tparam SpaceTopology The space-topology type, should model MetricSpaceConcept.
+   * \param a The point-difference lying on the temporal-space.
+   * \param t The time-topology of the temporal-space.
+   * \param s The space-topology of the temporal-space.
+   * \return The forward reachable norm for the given point-difference.
+   */
   template <typename PointDiff, typename TimeTopology, typename SpaceTopology>
   double operator()(const PointDiff& a, const TimeTopology& t, const SpaceTopology& s) const {
     return a.time + s.norm(a.pt);
   };
+  /**
+   * Computes the forward reachable norm for a given point-difference in a temporal-space.
+   * \tparam TimeDiff The time-difference type from the temporal-space.
+   * \tparam SpaceDiff The space-difference type from the temporal-space.
+   * \tparam TimeTopology The time-topology type.
+   * \tparam SpaceTopology The space-topology type, should model MetricSpaceConcept.
+   * \param dt The time-difference.
+   * \param dp The space-difference.
+   * \param t The time-topology of the temporal-space.
+   * \param s The space-topology of the temporal-space.
+   * \return The forward reachable norm for the given point-difference.
+   */
   template <typename TimeDiff, typename SpaceDiff, typename TimeTopology, typename SpaceTopology>
   double operator()(const TimeDiff& dt, const SpaceDiff& dp, const TimeTopology& t, const SpaceTopology& s) const {
     return dt + s.norm(dp);
@@ -59,10 +120,24 @@ struct forward_reachable_norm {
 };
 
 
-
+/**
+ * This functor class models the TemporalDistMetricConcept via the reachability norms on a temporal
+ * space. This gives a metric that satisfies the triangular inequality.
+ */
 struct reachable_distance {
   forward_reachable_norm  forward;
   backward_reachable_norm backward;
+  /**
+   * Computes the reachability distance between two points of a temporal space.
+   * \tparam Point The point type of the temporal space.
+   * \tparam TimeTopology The time-topology type of the temporal space.
+   * \tparam SpaceTopology The space-topology type of the temporal space.
+   * \param a The first point.
+   * \param b The second point.
+   * \param t The time-topology.
+   * \param s The space-topology.
+   * \return The reachability distance between the two points of the temporal space (t,s).
+   */
   template <typename Point, typename TimeTopology, typename SpaceTopology>
   double operator()(const Point& a, const Point& b, const TimeTopology& t, const SpaceTopology& s) const {
     TimeTopology::point_difference_type time_diff = t.difference(b.time, a.time);
@@ -73,6 +148,16 @@ struct reachable_distance {
       return forward(-time_diff, -point_diff, t, s);
     return std::numeric_limits<double>::infinity();
   };
+  /**
+   * Computes the reachability distance of a point-difference in a temporal space.
+   * \tparam PointDiff The point-difference type of the temporal space.
+   * \tparam TimeTopology The time-topology type of the temporal space.
+   * \tparam SpaceTopology The space-topology type of the temporal space.
+   * \param a The point-difference.
+   * \param t The time-topology.
+   * \param s The space-topology.
+   * \return The reachability distance of the point-difference in the temporal space (t,s).
+   */
   template <typename PointDiff, typename TimeTopology, typename SpaceTopology>
   double operator()(const PointDiff& a, const TimeTopology& t, const SpaceTopology& s) const {
     if(backward(a, t, s) >= 0)
@@ -84,7 +169,14 @@ struct reachable_distance {
 };
 
 
-
+/**
+ * This class realizes a reachability space (see ReachabilitySpaceConcept)
+ * from a spatial topology with a temporal distance metric (that is, a norm or distance metric which 
+ * represents the minimum travel time between two points). This class extends a temporal_space with
+ * the additional functions required to model the ReachabilitySpaceConcept.
+ * \tparam Topology A spatial topology whose distance metric represents the minimum travel time between two points, should model the MetricSpaceConcept.
+ * \tparam RandomNumberGenerator The random number generator functor type that can introduce the randomness needed for generating samples of the space.
+ */
 template <typename Topology, typename RandomNumberGenerator = boost::minstd_rand>
 class reachability_space : public temporal_space<Topology, reachable_distance, RandomNumberGenerator> {
   public:
@@ -96,19 +188,38 @@ class reachability_space : public temporal_space<Topology, reachable_distance, R
     typedef temporal_space_type::point_type point_type;
     typedef temporal_space_type::point_difference_type point_difference_type;
     
-    
+    /**
+     * Returns the forward reach of a given point in the temporal-space.
+     * \param p The point for which the forward-reach is requested.
+     * \return The forward reach of p.
+     */
     double forward_reach(const point_type& p) const {
       return forward_reachable_norm()(this->difference(p, this->origin()), this->time, this->space);
     };
     
+    /**
+     * Returns the backward reach of a given point in the temporal-space.
+     * \param p The point for which the backward-reach is requested.
+     * \return The backward reach of p.
+     */
     double backward_reach(const point_type& p) const {
       return backward_reachable_norm()(this->difference(p, this->origin()), this->time, this->space);
     };
     
+    /**
+     * Returns the forward reachable norm of a given point-difference in the temporal-space.
+     * \param p The point-difference for which the forward reachable norm is requested.
+     * \return The forward reachable norm of p.
+     */
     double forward_norm(const point_difference_type& p) const {
       return forward_reachable_norm()(p, this->time, this->space);
     };
     
+    /**
+     * Returns the backward reachable norm of a given point-difference in the temporal-space.
+     * \param p The point-difference for which the backward reachable norm is requested.
+     * \return The backward reachable norm of p.
+     */
     double backward_norm(const point_difference_type& p) const {
       return backward_reachable_norm()(p, this->time, this->space);
     };

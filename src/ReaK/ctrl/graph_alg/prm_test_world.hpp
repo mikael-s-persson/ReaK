@@ -1,3 +1,18 @@
+/**
+ * \file prm_test_world.hpp
+ * 
+ * This library defines an example class that uses the PRM algorithm on a world map. This class 
+ * basically just wraps the algorithms found in "probabilistic_roadmap.hpp" for a simple 2D path-planning problem.
+ * It takes a world map (as an OpenCV image) where any non-white gray-scaled pixel 
+ * is considered occupied (not C-free). It parses the image for a blue pixel and a green 
+ * pixel which each represent the start and goal positions. Alternatively, the start 
+ * and goal position can be set via set_start_pos and set_goal_pos functions. The class 
+ * also allows for many parameters and callbacks, see the constructor's documentation for details.
+ * See the test_prm.cpp file for a program that uses this class.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date March 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -394,6 +409,8 @@ class prm_test_world {
      * \param aPathFoundCallback A callable object which is used to report that a solution which was better than any pervious solution was just found.
      * \param aUnidirectional A flag to signal whether the unidirectional (true) or bidirectional (false, default) version of the RRT generation algorithm should be used.
      * \param aNNSearchDivider The vertex number divider for the nearest-neighor search (see best_only_neighbor_search), a value of 0 will signify that the linear_neighbor_search shall be used instead of the approximate best_only_neighbor_search algorithm.
+     * \param aNumNeighbors The number of neighboring vertices around a vertex to select for attempting connections.
+     * \param aMaxNeighborRadius The maximum radius around a vertex in which to consider connections to existing vertices.
      */
     prm_test_world(const cv::Mat& aWorldMapImage, double aMaxEdgeLength, 
 		   double aRobotRadius, unsigned int aMaxVertexCount,  

@@ -1,3 +1,13 @@
+/**
+ * \file line_topology.hpp
+ * 
+ * This library provides classes that define a line-topology. A line-topology is 
+ * a simple metric-space where the points are real values (doubles) along a 1D 
+ * space (line-segment).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date March 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -36,6 +46,13 @@ namespace ReaK {
 
 namespace pp {
 
+/**
+ * This class implements an infinite line topology. Since the space is 
+ * infinite, there is no way to generate random points from it, and thus, 
+ * this class does not model the topology concepts, but defines a number 
+ * of functions useful to a derived class that can provide the full 
+ * model of a topology.
+ */
 class line_topology 
 {
   public:
@@ -44,44 +61,73 @@ class line_topology
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 1);
     
+    /**
+     * Returns the distance between two points.
+     */
     double distance(const point_type& a, const point_type& b) const 
     {
       return std::fabs(b - a);
     }
 
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
     point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
     {
       return a + (b - a) * fraction;
     }
 
+    /**
+     * Returns the difference between two points (a - b).
+     */
     point_difference_type difference(const point_type& a, const point_type& b) const {
       return a - b;
     }
 
+    /**
+     * Returns the addition of a point-difference to a point.
+     */
     point_type adjust(const point_type& a, const point_difference_type& delta) const {
       return a + delta;
     }
 
+    /**
+     * Returns the norm of the difference between two points.
+     */
     point_type pointwise_min(const point_type& a, const point_type& b) const {
       BOOST_USING_STD_MIN();
       return min BOOST_PREVENT_MACRO_SUBSTITUTION (a, b);
     }
 
+    /**
+     * Returns the norm of the difference between two points.
+     */
     point_type pointwise_max(const point_type& a, const point_type& b) const {
       BOOST_USING_STD_MAX();
       return max BOOST_PREVENT_MACRO_SUBSTITUTION (a, b);
     }
 
+    /**
+     * Returns the norm of the difference between two points.
+     */
     double norm(const point_difference_type& delta) const {
       return std::fabs(delta);
     }
 
+    /**
+     * Returns the volume of the difference between two points.
+     */
     double volume(const point_difference_type& delta) const {
-      return delta;
+      return std::fabs(delta);
     }
 
 };
 
+/**
+ * This class implements a line-segment topology. The space extends from the origin up to some 
+ * maximum value.
+ * \tparam RandomNumberGenerator A random number generator functor type.
+ */
 template<typename RandomNumberGenerator = boost::minstd_rand>
 class line_segment_topology : public line_topology
 {
@@ -93,17 +139,29 @@ class line_segment_topology : public line_topology
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = line_topology::dimensions);
 
+    /**
+     * 
+     */
     explicit line_segment_topology(double aScaling = 1.0, double aOrigin = 0.0) 
       : gen_ptr(new RandomNumberGenerator), rand(new rand_t(*gen_ptr)), 
         scaling(scaling), origin(aOrigin) { };
 
-    line_segment_topology(RandomNumberGenerator& aGen, double aScaling = 1.0, double aOrigin = 0.0) 
+    /**
+     * 
+     */
+    explicit line_segment_topology(RandomNumberGenerator& aGen, double aScaling = 1.0, double aOrigin = 0.0) 
       : gen_ptr(), rand(new rand_t(aGen)), scaling(aScaling), origin(aOrigin) { };
-                     
+       
+    /**
+     * Generates a random point in the space, uniformly distributed.
+     */
     point_type random_point() const {
       return (*rand)() * scaling + origin;
     };
 
+    /**
+     * Takes a point and clips it to within this line-segment space.
+     */
     point_type bound(point_type a) const {
       if(scaling > 0.0) {
         if(a > origin + scaling)
@@ -122,6 +180,9 @@ class line_segment_topology : public line_topology
       };
     };
 
+    /**
+     * Returns the distance to the boundary of the space.
+     */
     double distance_from_boundary(point_type a) const {
       double dist = std::fabs(scaling - a + origin);
       if(std::fabs(a - origin) < dist)
@@ -130,19 +191,28 @@ class line_segment_topology : public line_topology
         return dist;
     };
 
+    /**
+     * Returns the center of the space.
+     */
     point_type center() const {
       return origin + scaling * 0.5;
     };
 
+    /**
+     * Returns the origin of the space (the lower-limit).
+     */
     point_type origin() const {
       return origin;
     };
 
+    /**
+     * Returns the extent of the space (the upper-limit).
+     */
     point_difference_type extent() const {
       return origin + scaling;
     };
 
-   private:
+  private:
     boost::shared_ptr<RandomNumberGenerator> gen_ptr;
     boost::shared_ptr<rand_t> rand;
     point_difference_type scaling;

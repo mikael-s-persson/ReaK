@@ -44,11 +44,11 @@ implement sequential EKF on target trajectory
         Invariant Extended Kalman Filter   --------------------------------------X
         Unscented Kalman Filter   -----------------------------------------------X
         Aggregate Kalman Filter   -----------------------------------------------X
-        Invariant Aggregate Kalman Filter   -------------------------------------X
+        Invariant Aggregate Kalman Filter   -------------------------------------O
         Symplectic Kalman Filter   ----------------------------------------------X
         Invariant Symplectic Kalman Filter   ------------------------------------X
       implement belief-state overloads of transitioner templates
-  implement belief-state point-to-point (reachable) trajectories
+  implement belief-state point-to-point (reachable) trajectories   --------------X
 
 implement Elastic Roadmap
   define transition function concept

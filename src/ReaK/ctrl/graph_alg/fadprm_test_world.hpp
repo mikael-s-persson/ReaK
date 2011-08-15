@@ -1,3 +1,19 @@
+/**
+ * \file fadprm_test_world.hpp
+ * 
+ * This library defines an example class that uses the FADPRM algorithm on a world map. This class 
+ * basically just wraps the algorithms found in "fadprm.hpp" for a simple 2D path-planning problem.
+ * It takes a world map (as an OpenCV image) where any non-white gray-scaled pixel 
+ * is considered occupied (not C-free), and where the gray-value determines the time at which 
+ * the obstacle is discovered. It parses the image for a blue pixel and a green 
+ * pixel which each represent the start and goal positions. Alternatively, the start 
+ * and goal position can be set via set_start_pos and set_goal_pos functions. The class 
+ * also allows for many parameters and callbacks, see the constructor's documentation for details.
+ * See the test_fadprm.cpp file for a program that uses this class.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date March 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -56,7 +72,21 @@ BOOST_INSTALL_PROPERTY(vertex,density);
 namespace ReaK {
 
 namespace graph {
-
+  
+/**
+ * This class uses the FADPRM algorithm on a world map. This class 
+ * basically just wraps the algorithms found in "fadprm.hpp" for a simple 2D path-planning problem.
+ * It takes a world map (as an OpenCV image) where any non-white gray-scaled pixel 
+ * is considered occupied (not C-free), and where the gray-value determines the time at which 
+ * the obstacle is discovered. It parses the image for a blue pixel and a green 
+ * pixel which each represent the start and goal positions. Alternatively, the start 
+ * and goal position can be set via set_start_pos and set_goal_pos functions. The class 
+ * also allows for many parameters and callbacks, see the constructor's documentation for details.
+ * See the test_fadprm.cpp file for a program that uses this class.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date March 2011
+ */
 class fadprm_test_world {
   public:
     

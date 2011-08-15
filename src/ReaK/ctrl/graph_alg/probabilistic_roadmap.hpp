@@ -100,6 +100,8 @@ namespace graph {
   /**
    * This class is simply a "null" visitor for the PRM algorithm. It is null in the sense that it
    * will do nothing on all accounts.
+   * \tparam Topology The topology type that represents the free-space.
+   * \tparam PositionMap The property-map type which can store the position associated to each vertex.
    */
   template <typename Topology, typename PositionMap>
   struct default_prm_visitor {

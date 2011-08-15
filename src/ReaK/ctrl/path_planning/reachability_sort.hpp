@@ -1,3 +1,12 @@
+/**
+ * \file reachability_sort.hpp
+ * 
+ * This library implements a set of vertices whose position lies on a reachability-space
+ * and sorts them according to the reachability metrics.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -44,7 +53,16 @@ namespace ReaK {
 
 namespace pp {
 
-
+/**
+ * This class implements a set of vertices whose position lies on a reachability-space
+ * and sorts them according to the reachability metrics. This class allows for very 
+ * efficient queries of nearest-reachable-neighbors, much more efficient than 
+ * space partitioning methods (DVP-tree or Kd-tree for example). This class also 
+ * implements the same interface as the STL set class.
+ * \tparam Graph The graph on which the vertices are taken from.
+ * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the iterators) to a point (position).
+ * \tparam ReachabilityTopology The topology type on which the points can reside, should model the ReachabilitySpaceConcept.
+ */
 template <typename Graph, typename PositionMap, typename ReachabilityTopology>
 class reachability_sorted_set {
   public:
@@ -52,10 +70,19 @@ class reachability_sorted_set {
     typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
     typedef typename reachability_topology_traits<ReachabilityTopology>::point_type Point;
     
+    /**
+     * This simple POD type stores a vertex descriptor and its backward and forward reach.
+     */
     struct vertex_tuple {
-      Vertex u;
-      double backward_reach;
-      double forward_reach;
+      Vertex u; ///< Holds the vertex descriptor.
+      double backward_reach; ///< Holds the backward reach of the vertex.
+      double forward_reach; ///< Holds the forward reach of the vertex.
+      /**
+       * Parametrized constructor.
+       * \param aU The vertex descriptor.
+       * \param aBackwardReach The backward reach of the vertex.
+       * \param aForwardReach The forward reach of the vertex.
+       */
       vertex_tuple(Vertex aU, double aBackwardReach, double aForwardReach) : 
                    u(aU), backward_reach(aBackwardReach), forward_reach(aForwardReach) { };
     };
@@ -89,21 +116,34 @@ class reachability_sorted_set {
     
   public:
         
+    /** The iterator type to iterate based on the backward reach ordering. */
     typedef BackwardReachIndex::iterator back_iterator;
+    /** The const-iterator type to iterate based on the backward reach ordering. */
     typedef BackwardReachIndex::const_iterator const_back_iterator;
+    /** The reverse-iterator type to iterate based on the backward reach ordering. */
     typedef BackwardReachIndex::reverse_iterator reverse_back_iterator;
+    /** The const-reverse-iterator type to iterate based on the backward reach ordering. */
     typedef BackwardReachIndex::const_reverse_iterator const_reverse_back_iterator;
         
+    /** The iterator type to iterate based on the forward reach ordering. */
     typedef ForwardReachIndex::iterator forth_iterator;
+    /** The const-iterator type to iterate based on the forward reach ordering. */
     typedef ForwardReachIndex::const_iterator const_forth_iterator;
+    /** The reverse-iterator type to iterate based on the forward reach ordering. */
     typedef ForwardReachIndex::reverse_iterator reverse_forth_iterator;
+    /** The const-reverse-iterator type to iterate based on the forward reach ordering. */
     typedef ForwardReachIndex::const_reverse_iterator const_reverse_forth_iterator;
 
     typedef std::pair<const_reverse_back_iterator, const_reverse_back_iterator> backward_range;
     typedef std::pair<const_forth_iterator, const_forth_iterator> forward_range;
     
     
-    
+    /**
+     * Parametrized constructor.
+     * \param g The graph from which to take the vertices.
+     * \param position The property-map that associates position values to each vertex of the graph.
+     * \param space The topology on which the position values reside.
+     */
     reachability_sorted_set(Graph& g, PositionMap position, const ReachabilityTopology& space) :
                             m_g(g), m_position(position), m_space(space) { 
       boost::function_requires< ReachabilitySpaceConcept<ReachabilityTopology> >();
@@ -115,19 +155,37 @@ class reachability_sorted_set {
       
     };
     
-    void swap(reachability_sorted_set<Graph,PositionMap,ReachabilityTopology>& rhs) throw() {
+    /**
+     * Standard swap function. Swaps only the sorted set, not the graph, position-map or topology.
+     */
+    friend void swap(reachability_sorted_set<Graph,PositionMap,ReachabilityTopology>& rhs) throw() {
+      using std::swap;
       std::swap(m_map,rhs.m_map); //swap only the map since the other members should be the same.
     };
     
+    /**
+     * Standard copy-constructor.
+     */
     reachability_sorted_set(const reachability_sorted_set<Graph,PositionMap,ReachabilityTopology>& rhs) :
                             m_g(rhs.m_g), m_position(rhs.m_position), m_space(rhs.m_space), m_map(rhs.m_map) { };
     
-    reachability_sorted_set<Graph,PositionMap,ReachabilityTopology>& operator=(const reachability_sorted_set<Graph,PositionMap,ReachabilityTopology>& rhs) {
-      reachability_sorted_set<Graph,PositionMap,ReachabilityTopology> tmp(rhs);
-      swap(tmp);
+    /**
+     * Standard assignment operator.
+     */
+    reachability_sorted_set<Graph,PositionMap,ReachabilityTopology>& operator=(reachability_sorted_set<Graph,PositionMap,ReachabilityTopology> rhs) {
+      swap(*this,rhs);
       return *this;
     };
     
+    /**
+     * Obtains the list of all the vertices that can reach the given point (all potential 
+     * predecessors). Essentially, this function performs a nearest-neighbor queries for 
+     * all the points that can reach the given point.
+     * \param p The point that should be reachable from the predecessors.
+     * \param pred_list Stores, as output, the list of predecessors that are the nearest-neighbors (sorted by increasing distance).
+     * \param max_number The maximum number of predecessors to find.
+     * \param max_radius The maximum reachability radius for the predecessors.
+     */
     void can_reach(const Point& p, std::vector< std::pair<double,Vertex> >& pred_list, 
 		   std::size_t max_number = std::numeric_limits<std::size_t>::max(), 
 		   double max_radius = std::numeric_limits<double>::infinity()) const {
@@ -158,6 +216,15 @@ class reachability_sorted_set {
       
     };
     
+    /**
+     * Obtains the list of all the vertices that can be reached from the given point (all potential 
+     * successors). Essentially, this function performs a nearest-neighbor queries for 
+     * all the points that can be reached from the given point.
+     * \param p The point that should be able to reach the successors.
+     * \param succ_list Stores, as output, the list of successors that are the nearest-neighbors (sorted by increasing distance).
+     * \param max_number The maximum number of successors to find.
+     * \param max_radius The maximum reachability radius for the successors.
+     */
     void reachable_from(const Point& p, std::vector< std::pair<double,Vertex> >& succ_list, 
 		        std::size_t max_number = std::numeric_limits<std::size_t>::max(), 
 		        double max_radius = std::numeric_limits<double>::infinity()) const {
@@ -188,6 +255,17 @@ class reachability_sorted_set {
       
     };
     
+    /**
+     * Obtains the list of all the vertices that can reach the given point (all potential predecessors) and
+     * be reached from the given point (all potential successors). Essentially, this function performs 
+     * nearest-neighbor queries in both directions (combines the work of both functions reachable_from 
+     * and can_reach). 
+     * \param p The point in question.
+     * \param pred_list Stores, as output, the list of predecessors that are the nearest-neighbors (sorted by increasing distance).
+     * \param succ_list Stores, as output, the list of successors that are the nearest-neighbors (sorted by increasing distance).
+     * \param max_number The maximum number of successors/predecessors to find.
+     * \param max_radius The maximum reachability radius for the successors/predecessors.
+     */
     void reachable(const Point& p, std::vector< std::pair<double,Vertex> >& pred_list, 
 		                   std::vector< std::pair<double,Vertex> >& succ_list, 
 				   std::size_t max_number = std::numeric_limits<std::size_t>::max(), 
@@ -256,13 +334,21 @@ class reachability_sorted_set {
     
     /*********************************** STL SET-like interface *************************************/
     
+    /** The key-type for the set elements. */
     typedef Vertex key_type;
+    /** The value-type for the set elements. */
     typedef Vertex value_type;
+    /** The reference-type for the set elements. */
     typedef Vertex& reference;
+    /** The const-reference-type for the set elements. */
     typedef const Vertex& const_reference;
+    /** The size-type for the set. */
     typedef std::size_t size_type;
+    /** The difference-type for the set. */
     typedef std::ptrdiff_t difference_type;
+    /** The pointer-type for the set elements. */
     typedef Vertex* pointer;
+    /** The const-pointer-type for the set elements. */
     typedef const Vertex* const_pointer;
     
     struct key_compare {
@@ -275,45 +361,105 @@ class reachability_sorted_set {
 	return (m_space->backward_reach(p_u) < m_space->backward_reach(p_v));
       };
     };
+    /** The comparison functor for the set elements. */
     typedef key_compare value_compare;
     
+    /** The iterator for the set elements. */
     typedef boost::transform_iterator<vertex_access, BackwardReachIndex::iterator> iterator;
+    /** The const-iterator for the set elements. */
     typedef boost::transform_iterator<vertex_access, BackwardReachIndex::const_iterator> const_iterator;
+    /** The reverse-iterator for the set elements. */
     typedef boost::transform_iterator<vertex_access, BackwardReachIndex::reverse_iterator> reverse_iterator;
+    /** The const-reverse-iterator for the set elements. */
     typedef boost::transform_iterator<vertex_access, BackwardReachIndex::const_reverse_iterator> const_reverse_iterator;
 
-    
+    /**
+     * Returns the iterator at the begining of the set.
+     */
     iterator begin() { return iterator(m_map.begin(),vertex_access()); };
+    /**
+     * Returns the const-iterator at the begining of the set.
+     */
     const_iterator begin() const { return const_iterator(m_map.begin(),vertex_access()); };
     
+    /**
+     * Returns the iterator at the one-past-last element of the set.
+     */
     iterator end() { return iterator(m_map.end(),vertex_access()); };
+    /**
+     * Returns the const-iterator at the one-past-last element of the set.
+     */
     const_iterator end() const { return const_iterator(m_map.end(),vertex_access()); };
     
+    /**
+     * Returns the reverse-iterator at the begining of the set (actually the end).
+     */
     reverse_iterator rbegin() { return reverse_iterator(m_map.rbegin(),vertex_access()); };
+    /**
+     * Returns the const-reverse-iterator at the begining of the set (actually the end).
+     */
     const_reverse_iterator rbegin() const { return const_reverse_iterator(m_map.rbegin(),vertex_access()); };
     
+    /**
+     * Returns the reverse-iterator at the one-past-last element of the set (actually the begin).
+     */
     reverse_iterator rend() { return reverse_iterator(m_map.rend(),vertex_access()); };
+    /**
+     * Returns the const-reverse-iterator at the one-past-last element of the set (actually the begin).
+     */
     const_reverse_iterator rend() const { return const_reverse_iterator(m_map.rend(),vertex_access()); };
     
+    /**
+     * Checks if the set is empty.
+     * \return True if the set is empty.
+     */
     bool empty() const { return m_map.empty(); };
+    /**
+     * Returns the size of the set.
+     */
     std::size_t size() const { return m_map.size(); };
+    /**
+     * Returns the max-size of the set.
+     */
     std::size_t max_size() const { return m_map.max_size(); };
     
+    /**
+     * Inserts a value into the set.
+     * \param u The value to be added to the set.
+     * \return A pair that contains the iterator to the added value and a bool telling whether the insertion was successful.
+     */
     std::pair<iterator,bool> insert(Vertex u) {
       Point p = boost::get(m_position,u);
       m_map.insert(vertex_tuple(u, m_space.backward_reach(p), m_space.forward_reach(p)));
     };
     
+    /**
+     * Inserts a value into the set at the given position.
+     * \param pos The position in the set where to add the value.
+     * \param u The value to be added to the set.
+     * \return The iterator to the added value.
+     */
     iterator insert(iterator pos, Vertex u) {
       Point p = boost::get(m_position,u);
       return iterator(m_map.insert(pos.base(), vertex_tuple(u, m_space.backward_reach(p), m_space.forward_reach(p))),vertex_access());
     };
     
+    /**
+     * Inserts a value into the set at the given position.
+     * \param pos The position in the set where to add the value.
+     * \param u The value to be added to the set.
+     * \return The iterator to the added value.
+     */
     iterator insert(const_iterator pos, Vertex u) {
       Point p = boost::get(m_position,u);
       return iterator(m_map.insert(pos.base(), vertex_tuple(u, m_space.backward_reach(p), m_space.forward_reach(p))),vertex_access());
     };
     
+    /**
+     * Inserts a range of values into the set.
+     * \param first The first element to add to the set.
+     * \param last The one-past-last element to add to the set.
+     */
     template <typename ForwardIter>
     void insert(ForwardIter first, ForwardIter last) {
       for(;first != last; ++first) {
@@ -322,14 +468,27 @@ class reachability_sorted_set {
       };
     };
 
+    /**
+     * Removes a value at a given position from the set.
+     * \param pos The position of the element to be removed.
+     */
     void erase(iterator pos) {
       m_map.erase(pos.base());
     };
     
+    /**
+     * Removes a value at a given position from the set.
+     * \param pos The position of the element to be removed.
+     */
     void erase(const_iterator pos) {
       m_map.erase(pos.base());
     };
     
+    /**
+     * Removes a value from the set.
+     * \param u The element to be removed.
+     * \return The number of elements removed from the set.
+     */
     std::size_t erase(Vertex u) {
       Point p = boost::get(m_position, u);
       BackwardReachIndex::iterator it = m_map.lower_bound(m_space.backward_reach(p));
@@ -341,16 +500,49 @@ class reachability_sorted_set {
       return result;
     };
     
+    /**
+     * Removes a range of values from the set.
+     * \tparam ForwardIter A forward-iterator type to access the range of values to remove.
+     * \param first The first element to remove to the set.
+     * \param last The one-past-last element to remove to the set.
+     */
     template <typename ForwardIter>
     void erase(ForwardIter first, ForwardIter last) {
       for(;first != last;++first) erase(*first);
     };
     
+    /**
+     * Clears the set.
+     */
     void clear() { m_map.clear(); };
     
+    /**
+     * Returns the key-comparison functor.
+     */
     key_compare key_comp() const { return key_compare(m_position,&m_space); };
+    /**
+     * Returns the value-comparison functor.
+     */
     value_compare value_comp() const { return key_compare(m_position,&m_space); };
     
+    /**
+     * Finds a given value in the set.
+     * \param u The value to be found in the set.
+     * \return The iterator to the given value in the set.
+     */
+    iterator find(Vertex u) {
+      Point p = boost::get(m_position, u);
+      BackwardReachIndex::iterator it = m_map.lower_bound(m_space.backward_reach(p));
+      if((it != m_map.end()) && (it->u == u))
+	return iterator(it,vertex_access());
+      return iterator(m_map.end(), vertex_access());
+    };
+    
+    /**
+     * Finds a given value in the set.
+     * \param u The value to be found in the set.
+     * \return The iterator to the given value in the set.
+     */
     const_iterator find(Vertex u) const {
       Point p = boost::get(m_position, u);
       BackwardReachIndex::const_iterator it = m_map.lower_bound(m_space.backward_reach(p));
@@ -359,6 +551,11 @@ class reachability_sorted_set {
       return const_iterator(m_map.end(), vertex_access());
     };
     
+    /**
+     * Count the number of occurrences of a given value in the set.
+     * \param u The value to be found in the set.
+     * \return The number of occurrences of the given value in the set.
+     */
     std::size_t count(Vertex u) const {
       Point p = boost::get(m_position, u);
       BackwardReachIndex::const_iterator it = m_map.lower_bound(m_space.backward_reach(p));
@@ -369,16 +566,31 @@ class reachability_sorted_set {
       return result;
     };
     
+    /**
+     * Finds the first occurrence of a value in the set.
+     * \param u The value to be found in the set.
+     * \return The iterator to the first occurrence of a value in the set.
+     */
     const_iterator lower_bound ( Vertex u ) const {
       Point p = boost::get(m_position, u);
       return const_iterator(m_map.lower_bound(m_space.backward_reach(p)),vertex_access());
     };
     
+    /**
+     * Finds the one-past-last occurrence of a value in the set.
+     * \param u The value to be found in the set.
+     * \return The iterator to the one-past-last occurrence of a value in the set.
+     */
     const_iterator upper_bound ( Vertex u ) const {
       Point p = boost::get(m_position, u);
       return const_iterator(m_map.upper_bound(m_space.backward_reach(p)),vertex_access());
     };
     
+    /**
+     * Finds the range of (first,one-past-last) occurrence of a value in the set
+     * \param u The value to be found in the set.
+     * \return The range to the (first,one-past-last) occurrence of a value in the set.
+     */
     std::pair<const_iterator,const_iterator> equal_range(Vertex u) const {
       Point p = boost::get(m_position, u);
       BackwardReachIndex::const_iterator it = m_map.lower_bound(m_space.backward_reach(p));

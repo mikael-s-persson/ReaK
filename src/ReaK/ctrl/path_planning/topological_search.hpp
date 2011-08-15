@@ -1,7 +1,5 @@
 /**
  * \file topological_search.hpp
- * \author S. Mikael Persson <mikael.s.persson@gmail.com>
- * \date February, 2011
  * 
  * This library contains two simple nearest-neighbor search algorithms implemented 
  * as functor templates. This library contains, in fact, three algorithms. 
@@ -22,6 +20,8 @@
  * to find the nearest-neighbor, but can significantly cut down on query time if finding the 
  * nearest neighbor is not a strict requirement in the algorithm.
  * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date February 2011
  */
 
 /*
@@ -72,6 +72,10 @@ namespace pp {
    * the element in the range [first,last) which has the "smallest" distance (of course, both the 
    * distance metric and comparison can be overriden to perform something other than the canonical
    * Euclidean distance and less-than comparison, which would yield the element with minimum distance).
+   * \tparam DistanceValue The value-type for the distance measures.
+   * \tparam ForwardIterator The forward-iterator type.
+   * \tparam GetDistanceFunction The functor type to compute the distance measure.
+   * \tparam CompareFunction The functor type that can compare two distance measures (strict weak-ordering).
    * \param first Start of the range in which to search.
    * \param last One element past the last element in the range in which to search.
    * \param distance A callable object that returns a DistanceValue for a given element from the ForwardIterator dereferencing.
@@ -105,6 +109,9 @@ namespace pp {
   /**
    * This function template is a specialization of min_dist_linear_search for the default comparison 
    * function which is the less-than operator.
+   * \tparam DistanceValue The value-type for the distance measures.
+   * \tparam ForwardIterator The forward-iterator type.
+   * \tparam GetDistanceFunction The functor type to compute the distance measure.
    * \param first Start of the range in which to search.
    * \param last One element past the last element in the range in which to search.
    * \param distance A callable object that returns a DistanceValue for a given element from the ForwardIterator dereferencing.
@@ -123,9 +130,15 @@ namespace pp {
   /**
    * This function template is similar to std::min_element but can be used when the comparison 
    * involves computing a derived quantity (a.k.a. distance). This algorithm will search for the 
-   * the element in the range [first,last) which has the "smallest" distance (of course, both the 
+   * the elements in the range [first,last) with the "smallest" distances (of course, both the 
    * distance metric and comparison can be overriden to perform something other than the canonical
    * Euclidean distance and less-than comparison, which would yield the element with minimum distance).
+   * This function will fill the output container with a number of nearest-neighbors.
+   * \tparam DistanceValue The value-type for the distance measures.
+   * \tparam ForwardIterator The forward-iterator type.
+   * \tparam OutputContainer The container type which can contain the list of nearest-neighbors (STL like container, with iterators, insert, size, and pop_back).
+   * \tparam GetDistanceFunction The functor type to compute the distance measure.
+   * \tparam CompareFunction The functor type that can compare two distance measures (strict weak-ordering).
    * \param first Start of the range in which to search.
    * \param last One element past the last element in the range in which to search.
    * \param output The container that will have the sorted list of elements with the smallest distance.
@@ -167,12 +180,16 @@ namespace pp {
     };
   };
   
-/**
+  /**
    * This function template is similar to std::min_element but can be used when the comparison 
    * involves computing a derived quantity (a.k.a. distance). This algorithm will search for the 
    * the element in the range [first,last) which has the "smallest" distance (of course, both the 
    * distance metric and comparison can be overriden to perform something other than the canonical
    * Euclidean distance and less-than comparison, which would yield the element with minimum distance).
+   * \tparam DistanceValue The value-type for the distance measures.
+   * \tparam ForwardIterator The forward-iterator type.
+   * \tparam OutputContainer The container type which can contain the list of nearest-neighbors (STL like container, with iterators, insert, size, and pop_back).
+   * \tparam GetDistanceFunction The functor type to compute the distance measure.
    * \param first Start of the range in which to search.
    * \param last One element past the last element in the range in which to search.
    * \param output The container that will have the sorted list of elements with the smallest distance.
@@ -198,36 +215,83 @@ namespace pp {
    * This functor template performs a linear nearest-neighbor search through a graph by invoquing 
    * the distance function of an underlying topology. The call operator will return the vertex
    * of the graph whose position value is closest to a given position value.
-   * \param p The position value for which the nearest neighbor is sought.
-   * \param g The graph that ought to be traversed to find the nearest neighboring vertex.
-   * \param space The underlying topology (topology as of the Boost Graph Library, although only the distance function is required by this algorithm).
-   * \param position A vertex position map implementing the PropertyMapConcept (BGL) and whose value_type is the same as the position type of the topology.
-   * \return The nearest vertex in the graph.
+   * \tparam CompareFunction The functor type that can compare two distance measures (strict weak-ordering).
    */
   template <typename CompareFunction = std::less<double> >
   struct linear_neighbor_search {
 
     CompareFunction m_compare;
+    /**
+     * Default constructor.
+     * \param compare The comparison functor for ordering the distances (strict weak ordering).
+     */
     linear_neighbor_search(CompareFunction compare = CompareFunction()) : m_compare(compare) { };
 
+    /**
+     * This function template computes the topological distance between a position and the position of a
+     * vertex of a graph. This function is used as a helper to the call-operator overloads.
+     * \tparam Vertex The vertex descriptor type.
+     * \tparam Topology The topology type which contains the positions.
+     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
+     * \param p A position in the space.
+     * \param u A vertex which has a position associated to it, via the position property-map.
+     * \param space The topology objects which define the space in which the positions reside.
+     * \param position The property-map which can retrieve the position associated to each vertex.
+     */
     template <typename Vertex, typename Topology, typename PositionMap>
     double distance(const typename boost::property_traits<PositionMap>::value_type& p,
                     Vertex u, const Topology& space, PositionMap position) const {
       return space.distance(p, get(position, u));
     };
 
+    /**
+     * This call-operator finds the nearest vertex of a graph, to a given position.
+     * \tparam Graph The graph type which can contain the vertices, should model boost::VertexListGraphConcept.
+     * \tparam Topology The topology type which contains the positions.
+     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
+     * \param p A position in the space, to which the nearest-neighbor is sought.
+     * \param g A graph containing the vertices from which to find the nearest-neighbor.
+     * \param space The topology objects which define the space in which the positions reside.
+     * \param position The property-map which can retrieve the position associated to each vertex.
+     */
     template <typename Graph, typename Topology, typename PositionMap>
     typename boost::graph_traits<Graph>::vertex_descriptor operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
-								      Graph& g, const Topology& space, PositionMap position) {
+								      Graph& g, 
+								      const Topology& space, 
+								      PositionMap position) {
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
       VertexIter ui,ui_end; tie(ui,ui_end) = boost::vertices(g);
       return *(min_dist_linear_search(ui,ui_end,boost::bind(&linear_neighbor_search::distance<Vertex,Topology,PositionMap>,this,p,_1,space,position),m_compare,std::numeric_limits<double>::infinity()));
     };
     
+    /**
+     * This call-operator finds the nearest vertices of a graph, to a given position.
+     * \tparam Graph The graph type which can contain the vertices, should 
+     *         model boost::VertexListGraphConcept.
+     * \tparam Topology The topology type which contains the positions.
+     * \tparam PositionMap The property-map type which can store the position associated 
+     *         with each vertex.
+     * \tparam OutputContainer The container type which can contain the list of 
+     *         nearest-neighbors (STL like container, with iterators, insert, size, and pop_back).
+     * \param p A position in the space, to which the nearest-neighbors are sought.
+     * \param output The container for the list of nearest-neighbors, the output of this 
+     *        function, and will be sorted from the nearest neighbor in increasing order.
+     * \param g A graph containing the vertices from which to find the nearest-neighbors.
+     * \param space The topology objects which define the space in which the positions reside.
+     * \param position The property-map which can retrieve the position associated to each vertex.
+     * \param max_neighbors The maximum number of neighbors to have in the list.
+     * \param radius The minimum distance around the position that a vertex should be in to be 
+     *        considered a neighbor.
+     */
     template <typename Graph, typename Topology, typename PositionMap, typename OutputContainer>
-    void operator()(const typename boost::property_traits<PositionMap>::value_type& p, OutputContainer& output, 
-								      Graph& g, const Topology& space, PositionMap position, unsigned int max_neighbors = 1, double radius = std::numeric_limits<double>::infinity()) {
+    void operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
+		    OutputContainer& output, 
+                    Graph& g, 
+		    const Topology& space, 
+		    PositionMap position, 
+		    unsigned int max_neighbors = 1, 
+		    double radius = std::numeric_limits<double>::infinity()) {
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
       VertexIter ui,ui_end; tie(ui,ui_end) = boost::vertices(g);
@@ -242,20 +306,35 @@ namespace pp {
    * of the graph whose position value is likely to be closest to a given position value. This 
    * algorithm is approximate. It will select a M vertices from the graph from which it starts 
    * a best-only search, where M is obtained as M = number_of_vertices / m_vertex_num_divider.
-   * \param p The position value for which the nearest neighbor is sought.
-   * \param g The graph that ought to be traversed to find the nearest neighboring vertex.
-   * \param space The underlying topology (topology as of the Boost Graph Library, although only the distance function is required by this algorithm).
-   * \param position A vertex position map implementing the PropertyMapConcept (BGL) and whose value_type is the same as the position type of the topology.
-   * \return The nearest vertex in the graph.
+   * \tparam CompareFunction The functor type that can compare two distance measures (strict weak-ordering).
    */
   template <typename CompareFunction = std::less<double> >
   struct best_only_neighbor_search {
 
     unsigned int m_vertex_num_divider;
     CompareFunction m_compare;
-    best_only_neighbor_search(unsigned int aVertexNumDivider = 10, CompareFunction compare = CompareFunction()) : 
+    /**
+     * Default constructor.
+     * \param aVertexNumDivider The division factor (should be greater than 1) which determines the 
+     *        fraction of the total number of vertices that is used to stem the best-only searches. 
+     *        Typical values are between 4 and 10.
+     * \param compare The comparison functor for ordering the distances (strict weak ordering).
+     */
+    best_only_neighbor_search(unsigned int aVertexNumDivider = 10, 
+			      CompareFunction compare = CompareFunction()) : 
                               m_vertex_num_divider(aVertexNumDivider), m_compare(compare) { };
 
+    /**
+     * This function template computes the topological distance between a position and the position of a
+     * vertex of a graph. This function is used as a helper to the call-operator overloads.
+     * \tparam Vertex The vertex descriptor type.
+     * \tparam Topology The topology type which contains the positions.
+     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
+     * \param p A position in the space.
+     * \param u A vertex which has a position associated to it, via the position property-map.
+     * \param space The topology objects which define the space in which the positions reside.
+     * \param position The property-map which can retrieve the position associated to each vertex.
+     */
     template <typename Vertex, typename Topology, typename PositionMap>
     double distance(const typename boost::property_traits<PositionMap>::value_type& p,
                     Vertex u, const Topology& space, PositionMap position) const {
@@ -285,6 +364,18 @@ namespace pp {
       return;
     };
     
+    /**
+     * This call-operator finds the nearest vertex of a graph, to a given position.
+     * \tparam Graph The graph type which can contain the vertices, should 
+     *         model boost::VertexListGraphConcept and boost::IncidenceGraphConcept.
+     * \tparam Topology The topology type which contains the positions.
+     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
+     * \param p A position in the space, to which the nearest-neighbor is sought.
+     * \param g A graph containing the vertices from which to find the nearest-neighbor, 
+     *        should be tree-structured.
+     * \param space The topology objects which define the space in which the positions reside.
+     * \param position The property-map which can retrieve the position associated to each vertex.
+     */
     template <typename Graph, typename Topology, typename PositionMap>
     typename boost::graph_traits<Graph>::vertex_descriptor operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
 								      Graph& g, const Topology& space, PositionMap position) {
@@ -331,7 +422,27 @@ namespace pp {
 	  search(p,v,output,output_dist,d_v,g,space,position,max_neighbors,radius);
       };
     };
-
+    
+    /**
+     * This call-operator finds the nearest vertices of a graph, to a given position.
+     * \tparam Graph The graph type which can contain the vertices, should 
+     *         model boost::VertexListGraphConcept and boost::IncidenceGraphConcept.
+     * \tparam Topology The topology type which contains the positions.
+     * \tparam PositionMap The property-map type which can store the position associated 
+     *         with each vertex.
+     * \tparam OutputContainer The container type which can contain the list of 
+     *         nearest-neighbors (STL like container, with iterators, insert, size, and pop_back).
+     * \param p A position in the space, to which the nearest-neighbors are sought.
+     * \param output The container for the list of nearest-neighbors, the output of this 
+     *        function, and will be sorted from the nearest neighbor in increasing order.
+     * \param g A graph containing the vertices from which to find the nearest-neighbors, 
+     *        should be tree-structured.
+     * \param space The topology objects which define the space in which the positions reside.
+     * \param position The property-map which can retrieve the position associated to each vertex.
+     * \param max_neighbors The maximum number of neighbors to have in the list.
+     * \param radius The minimum distance around the position that a vertex should be in to be 
+     *        considered a neighbor.
+     */
     template <typename Graph, typename Topology, typename PositionMap, typename OutputContainer>
     void operator()(const typename boost::property_traits<PositionMap>::value_type& p, OutputContainer& output, 
 		    Graph& g, const Topology& space, PositionMap position, unsigned int max_neighbors = 1, double radius = std::numeric_limits<double>::infinity()) {

@@ -1,3 +1,14 @@
+/**
+ * \file metric_space_search.hpp
+ * 
+ * This library provides a class that implements a Dynamic Vantage-Point Tree (DVP-Tree) that
+ * allows for O(logN) time nearest-neighbor queries in a metric-space. A DVP-tree is essentially
+ * a generalization of a search tree which only requires the space to have a metric which 
+ * respects the triangular inequality. 
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date April 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -48,6 +59,14 @@ namespace ReaK {
 
 namespace pp {
 
+/**
+ * This class template is a callable class that can be used to choose the best 
+ * vantage-point to use out of a set of points. In theory, the best vantage-point 
+ * is the one which deviates the most from the other points in the set, however, 
+ * this functor will approximately select that point by searching for it only 
+ * in a random subset of the given range of points.
+ * \tparam RandomNumberGenerator The random number generator type to be use to obtain the randomness needed in the search.
+ */
 template <typename RandomNumberGenerator = boost::minstd_rand>
 class random_best_vp_chooser {
   private:
@@ -55,9 +74,29 @@ class random_best_vp_chooser {
     RandomNumberGenerator m_rand;
   public:
   
+    /**
+     * Default construction.
+     * \param aDivider The divider of the set (determines the fraction of the points to search), default is 10.
+     */
     random_best_vp_chooser(unsigned int aDivider = 10) : m_divider(aDivider), m_rand(std::time(0)) { };
+    /**
+     * Parametrized construction.
+     * \param aRand The random number generator to use.
+     * \param aDivider The divider of the set (determines the fraction of the points to search), default is 10.
+     */
     random_best_vp_chooser(const RandomNumberGenerator& aRand, unsigned int aDivider = 10) : m_divider(aDivider), m_rand(aRand) { };
   
+    /**
+     * This call-operator will choose a vantage-point from within the given range.
+     * \tparam RandomAccessIter A random-access iterator type that can describe the point-range.
+     * \tparam Topology The topology type on which the points can reside, should model the MetricSpaceConcept.
+     * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the iterators) to a point (position).
+     * \param aBegin The start of the range of vertices.
+     * \param aEnd The end of the range of vertices (one element past the end).
+     * \param aSpace The topology on which the points reside.
+     * \param aPosition The property-map used to obtain the positions from the vertices.
+     * \return A random-access iterator to the chosen vantage-point.
+     */
     template <typename RandomAccessIter, typename Topology, typename PositionMap>
     RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, const Topology& aSpace, PositionMap aPosition) {
       typedef typename Topology::point_type Point;
@@ -87,6 +126,17 @@ class random_best_vp_chooser {
 };
 
 
+/**
+ * This class implements a Dynamic Vantage-Point Tree (DVP-Tree) that
+ * allows for O(logN) time nearest-neighbor queries in a metric-space. A DVP-tree is essentially
+ * a generalization of a search tree which only requires the space to have a metric which 
+ * respects the triangular inequality. 
+ * \tparam Key The key type for the tree, essentially the key value is the vertex descriptor type.
+ * \tparam Topology The topology type on which the points can reside, should model the MetricSpaceConcept.
+ * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the iterators) to a point (position).
+ * \tparam Arity The arity of the tree, e.g., 2 means a binary-tree.
+ * \tparam VPChooser The functor type to use to choose the vantage-point out of a set of vertices.
+ */
 template <typename Key,
           typename Topology,
           typename PositionMap,
@@ -337,6 +387,14 @@ class dvp_tree
     
   public:
     
+    /**
+     * Construct the DVP-tree from a graph, topology and property-map.
+     * \tparam Graph The graph type on which the vertices are taken from, should model the boost::VertexListGraphConcept.
+     * \param g The graph from which to take the vertices.
+     * \param aSpace The topology on which the positions of the vertices reside.
+     * \param aPosition The property-map that can be used to obtain the positions of the vertices.
+     * \param aVPChooser The vantage-point chooser functor (policy class).
+     */
     template <typename Graph>
     dvp_tree(const Graph& g, 
 	     const Topology& aSpace, 
@@ -357,6 +415,15 @@ class dvp_tree
       construct_node(m_root, v.begin(), v.end(), dist_map);
     };
     
+    /**
+     * Construct the DVP-tree from a range, topology and property-map.
+     * \tparam ForwardIterator The forward-iterator type from which the vertices can be obtained.
+     * \param aBegin The start of the range from which to take the vertices.
+     * \param aEnd The end of the range from which to take the vertices (one-past-last).
+     * \param aSpace The topology on which the positions of the vertices reside.
+     * \param aPosition The property-map that can be used to obtain the positions of the vertices.
+     * \param aVPChooser The vantage-point chooser functor (policy class).
+     */
     template <typename ForwardIterator>
     dvp_tree(ForwardIterator aBegin,
 	     ForwardIterator aEnd,
@@ -376,10 +443,21 @@ class dvp_tree
       construct_node(m_root, v.begin(), v.end(), dist_map);
     };
     
-    
+    /**
+     * Checks if the DVP-tree is empty.
+     * \return True if the DVP-tree is empty.
+     */
     bool empty() const { return (boost::num_vertices(m_tree) == 0); };
+    /**
+     * Returns the size of the DVP-tree (the number of vertices it contains.
+     * \return The size of the DVP-tree (the number of vertices it contains.
+     */
     std::size_t size() const { return boost::num_vertices(m_tree); };
     
+    /**
+     * Inserts a key-value (vertex).
+     * \param u The vertex to be added to the DVP-tree.
+     */
     void insert(Key u) { 
       using namespace boost;
       if(num_vertices(m_tree) == 0) {
@@ -444,7 +522,13 @@ class dvp_tree
 	  update_mu_upwards(u_pt,u_realleaf);
 	};
       };
-    }; 
+    };
+    /**
+     * Inserts a range of key-values (vertices).
+     * \tparam ForwardIterator A forward-iterator type that can be used to obtain the vertices.
+     * \param aBegin The start of the range from which to take the vertices.
+     * \param aEnd The end of the range from which to take the vertices (one-past-last).
+     */
     template <typename ForwardIterator>
     void insert(ForwardIterator aBegin, ForwardIterator aEnd) { 
       if(boost::num_vertices(m_tree) == 0) return;
@@ -452,6 +536,10 @@ class dvp_tree
       //TODO: There's got to be a better way to insert many elements (most likely a similar strategy to the erase multiple function).
     };
     
+    /**
+     * Erases the given vertex from the DVP-tree.
+     * \param u The vertex to be removed from the DVP-tree.
+     */
     void erase(Key u) { 
       using namespace boost;
       if(num_vertices(m_tree) == 0) return;
@@ -467,6 +555,12 @@ class dvp_tree
       construct_node(u_node, key_list.begin(), key_list.end(), dist_map);
     };
     
+    /**
+     * Erases the given vertex-range from the DVP-tree.
+     * \tparam ForwardIterator A forward-iterator type that can be used to obtain the vertices.
+     * \param aBegin The start of the range from which to take the vertices to be erased.
+     * \param aEnd The end of the range from which to take the vertices to be erased (one-past-last).
+     */
     template <typename ForwardIterator>
     void erase(ForwardIterator aBegin, ForwardIterator aEnd) { 
       using namespace boost;
@@ -500,12 +594,19 @@ class dvp_tree
       };
     };
     
+    /**
+     * Clears the DVP-tree. 
+     */
     void clear() {
       m_tree.clear();
       m_root = vertex_type();
     }; 
     
-    
+    /**
+     * Finds the nearest neighbor to a given position.
+     * \param aPoint The position from which to find the nearest-neighbor of.
+     * \return The vertex in the DVP-tree that is closest to the given point.
+     */
     Key find_nearest(const point_type& aPoint) const {
       using namespace boost;
       if(num_vertices(m_tree) == 0) return Key();
@@ -515,6 +616,12 @@ class dvp_tree
       return m.begin()->second;
     };
     
+    /**
+     * Finds the K nearest-neighbors to a given position.
+     * \param aPoint The position from which to find the nearest-neighbors.
+     * \param aList Stores, as output, a map of all the K nearest-neighbors to aPoint, the map gives the distance and vertex pairs.
+     * \param K The number of nearest-neighbors.
+     */
     void find_nearest(const point_type& aPoint, std::multimap<distance_type, Key>& aList, std::size_t K) const {
       using namespace boost;
       if(num_vertices(m_tree) == 0) return;
@@ -523,22 +630,45 @@ class dvp_tree
       find_nearest_impl(aPoint,sig,m_root,aList,K);
     };
     
+    /**
+     * Finds the nearest-neighbors to a given position within a given range (radius).
+     * \param aPoint The position from which to find the nearest-neighbors.
+     * \param aList Stores, as output, a map of all the nearest-neighbors to aPoint, the map gives the distance and vertex pairs.
+     * \param R The maximum distance value for the nearest-neighbors.
+     */
     void find_in_range(const point_type& aPoint, std::multimap<distance_type, Key>& aList, distance_type R) const {
       using namespace boost;
       if(num_vertices(m_tree) == 0) return;
       find_nearest_impl(aPoint,R,m_root,aList,num_vertices(m_tree));
     };
     
+    /**
+     * Takes a vertex, finds its nearest-neighbor and then it adds it to the DVP-tree.
+     * \param aVertex The vertex to be added to the DVP-tree.
+     * \return The nearest-neighbor of the given vertex.
+     */
     Key insert_and_find_nearest(Key aVertex) {
       Key result = find_nearest(get(m_position,aVertex));
       insert(aVertex);
     };
     
+    /**
+     * Takes a vertex, finds its K nearest-neighbors and then it adds it to the DVP-tree.
+     * \param aVertex The vertex to be added to the DVP-tree.
+     * \param aList Stores, as output, a map of all the K nearest-neighbors to aVertex, the map gives the distance and vertex pairs.
+     * \param K The number of nearest-neighbors.
+     */
     void insert_and_find_nearest(Key aVertex, std::list<Key>& aList, std::size_t K) { 
       find_nearest(get(m_position,aVertex),aList,K);
       insert(aVertex);
     };
     
+    /**
+     * Takes a vertex, finds its nearest-neighbors within a range and then it adds it to the DVP-tree.
+     * \param aVertex The vertex to be added to the DVP-tree.
+     * \param aList Stores, as output, a map of all the nearest-neighbors to aVertex, the map gives the distance and vertex pairs.
+     * \param R The maximum distance value for the nearest-neighbors.
+     */
     void insert_and_find_in_range(Key aVertex, std::list<Key>& aList, distance_type R) {
       find_in_range(get(m_position,aVertex),aList,R);
       insert(aVertex);

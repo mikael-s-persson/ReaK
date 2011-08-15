@@ -1,4 +1,14 @@
-﻿
+﻿/**
+ * \file predicted_trajectory_concept.hpp
+ * 
+ * This library defines the concept that represents a predicted trajectory. This concept 
+ * supplements the SpatialTrajectoryConcept with a few additional requirements which 
+ * characterize a predicted trajectory (see PredictedTrajectoryConcept).
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date July 2011
+ */
+
 /*
  *    Copyright 2011 Sven Mikael Persson
  *
@@ -36,6 +46,28 @@ namespace ReaK {
 namespace pp {
 
 
+/**
+ * This concept represents a predicted trajectory, as used in ReaK::pp. This concept 
+ * supplements the SpatialTrajectoryConcept with a few additional requirements which 
+ * characterize a predicted trajectory (see PredictedTrajectoryConcept).
+ * 
+ * Required concepts:
+ * 
+ * The topology should model the TemporalSpaceConcept.
+ * 
+ * The trajectory should model the SpatialTrajectoryConcept on the given topology.
+ * 
+ * Valid expressions:
+ * 
+ * std::pair< const_waypoint_descriptor, point_type> w_p;  A waypoint is a pair of a const-waypoint descriptor and a point on the topology.
+ * 
+ * p.set_initial_point(pt, t);  The initial point (pt) at time (t) can be set to seed the predicted trajectory (p).
+ * 
+ * p.set_initial_point(w_p, t);  The initial waypoint (w_p) at time (t) can be set to seed the predicted trajectory (p).
+ * 
+ * \tparam PredictedTrajectory The trajectory type to be checked for compliance to this concept.
+ * \tparam Topology The temporal-topology type that can contain the trajectory.
+ */
 template <typename PredictedTrajectory, typename Topology>
 struct PredictedTrajectoryConcept {
   PredictedTrajectory p;

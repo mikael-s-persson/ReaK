@@ -531,25 +531,44 @@ namespace graph {
    * it tightens the sloppiness of the search, improving on the results of previous searches). Then, it 
    * uses callback functions to allow the user to check for changes in the environment, triggering an update
    * of the affected edges and vertices, and also, possibly relaxing the A* search if changes are too significant.
-   * \tparam VertexListGraph The type of the graph on which the search is performed, should model the BGL's BidirectionalGraphConcept.
-   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values for each vertex in the graph.
+   * \tparam VertexListGraph The type of the graph on which the search is performed, should model 
+   *         the BGL's BidirectionalGraphConcept.
+   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
+   *         for each vertex in the graph.
    * \tparam ADStarVisitor The type of the AD* visitor to be used, should model the ADStarVisitorConcept.
-   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting vertex together with its optimal predecessor.
-   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex to the goal.
-   * \tparam RHSMap This property-map type is used to store the inconsistent estimated distance of each vertex to the goal (internal use to AD*).
+   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
+   *         vertex together with its optimal predecessor.
+   * \tparam DistanceMap This property-map type is used to store the estimated distance of each 
+   *         vertex to the goal.
+   * \tparam RHSMap This property-map type is used to store the inconsistent estimated distance of 
+   *         each vertex to the goal (internal use to AD*).
    * \tparam KeyMap This property-map type is used to store the AD* key-values associated to each vertex.
-   * \tparam WeightMap This property-map type is used to store the weights of the edges of the graph (cost of travel along an edge).
-   * \tparam ColorMap This property-map type is used to store the color-value of the vertices, colors are used to mark vertices by their status in the AD* algorithm (white = not visited, gray = discovered (in OPEN), black = finished (in CLOSED), green = recycled (not CLOSED, not OPEN), red = inconsistent (in INCONS)).
-   * \tparam AdjustFunction This functor type represents the callback function that will adjust the epsilon value (sloppyness of the A* search).
-   * \tparam RunningPredicate This function type represents the callback function that will evaluate if it is still worth continuing the AD* search passes.
-   * \tparam GetStartNodeFunction This function type represents the callback function that will give the starting point for the search (usually the goal vertex).
-   * \tparam ChangeEventFunction This function type represents the callback that can wait for a change in edge weights, and provide the list of changed edges.
-   * \tparam PublishPathFunction This function type represents the callback that is called when a path has been obtained (so that it can be buffered and executed).
-   * \tparam ScalarType The type of the scalar value epsilon (amplification factor, controls the anytime nature of this algorithm).
-   * \tparam CompareFunction A binary comparison functor type that returns true if the first operand is strictly better (less-than) than the second operand.
-   * \tparam EqualCompareFunction A binary comparison functor type that returns true if both operands are equal to each other.
-   * \tparam CombineFunction A binary combination functor type that returns the sum of its operands, semantically-speaking.
-   * \tparam ComposeFunction A binary composition functor type that amplifies a heuristic distance metric by a scalar value (i.e. epsilon x h(u) ).
+   * \tparam WeightMap This property-map type is used to store the weights of the edges of the 
+   *         graph (cost of travel along an edge).
+   * \tparam ColorMap This property-map type is used to store the color-value of the vertices, colors 
+   *         are used to mark vertices by their status in the AD* algorithm (white = not visited, 
+   *         gray = discovered (in OPEN), black = finished (in CLOSED), green = recycled (not CLOSED, 
+   *         not OPEN), red = inconsistent (in INCONS)).
+   * \tparam AdjustFunction This functor type represents the callback function that will adjust the 
+   *         epsilon value (sloppyness of the A* search).
+   * \tparam RunningPredicate This function type represents the callback function that will evaluate 
+   *         if it is still worth continuing the AD* search passes.
+   * \tparam GetStartNodeFunction This function type represents the callback function that will give 
+   *         the starting point for the search (usually the goal vertex).
+   * \tparam ChangeEventFunction This function type represents the callback that can wait for a change 
+   *         in edge weights, and provide the list of changed edges.
+   * \tparam PublishPathFunction This function type represents the callback that is called when a 
+   *         path has been obtained (so that it can be buffered and executed).
+   * \tparam ScalarType The type of the scalar value epsilon (amplification factor, controls the 
+   *         anytime nature of this algorithm).
+   * \tparam CompareFunction A binary comparison functor type that returns true if the first operand 
+   *         is strictly better (less-than) than the second operand.
+   * \tparam EqualCompareFunction A binary comparison functor type that returns true if both operands 
+   *         are equal to each other.
+   * \tparam CombineFunction A binary combination functor type that returns the sum of its operands, 
+   *         semantically-speaking.
+   * \tparam ComposeFunction A binary composition functor type that amplifies a heuristic distance 
+   *         metric by a scalar value (i.e. epsilon x h(u) ).
    * 
    * \param g The graph on which to apply the AD* algorithm.
    * \param hval The property-map of A* heuristic function values for each vertex.
@@ -592,10 +611,14 @@ namespace graph {
    * \param inf The quantity that represents infinity (either a very large value or the infinity value for 
    *        the underlying value-type).
    * \param zero The quantity that represents zero with the given value-type.
-   * \param compare A binary comparison functor that returns true if the first operand is strictly better (less-than) than the second operand.
-   * \param equal_compare A binary comparison functor that returns true if both operands are equal to each other.
-   * \param combine A binary combination functor that returns the sum of its operands, semantically-speaking.
-   * \param compose A binary composition functor that amplifies a heuristic distance metric by a scalar value (i.e. epsilon x h(u) ).
+   * \param compare A binary comparison functor that returns true if the first operand is strictly 
+   *        better (less-than) than the second operand.
+   * \param equal_compare A binary comparison functor that returns true if both operands are equal 
+   *        to each other.
+   * \param combine A binary combination functor that returns the sum of its operands, 
+   *        semantically-speaking.
+   * \param compose A binary composition functor that amplifies a heuristic distance metric by a 
+   *        scalar value (i.e. epsilon x h(u) ).
    */
   template <typename VertexListGraph,
             typename AStarHeuristicMap,

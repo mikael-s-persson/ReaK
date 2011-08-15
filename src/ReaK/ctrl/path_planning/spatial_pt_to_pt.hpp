@@ -1,3 +1,13 @@
+/**
+ * \file spatial_pt_to_pt.hpp
+ * 
+ * This library provides an implementation of a simple path within a topology.
+ * The path is represented by a set of waypoints and all intermediate points 
+ * are computed with a linear interpolation.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date March 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -39,10 +49,17 @@ namespace ReaK {
 namespace pp {
 
   
-  
+/**
+ * This class implementats a simple path within a topology.
+ * The path is represented by a set of waypoints and all intermediate points 
+ * are computed with a linear interpolation.
+ * \tparam Topology The topology type on which the points and the path can reside, should model the MetricSpaceConcept.
+ * \tparam DistanceMetric The distance metric type used over the topology, should model the DistanceMetricConcept.
+ */
 template <typename Topology, typename DistanceMetric = default_distance_metric>
 struct point_to_point_path {
   public:
+    typedef point_to_point_path<Topology,DistanceMetric> self;
     typedef Topology topology;
     typedef Topology::point_type point_type;
     typedef Topology::point_difference_type point_difference_type;
@@ -114,7 +131,11 @@ struct point_to_point_path {
     };
     
   public:
-    
+    /**
+     * Constructs the path from a space, assumes the start and end are at the origin 
+     * of the space.
+     * \param aSpace The space on which the path is.
+     */
     explicit point_to_point_path(const topology& aSpace) : 
                                  space(aSpace), 
                                  start_point(aSpace.origin()), 
@@ -124,12 +145,25 @@ struct point_to_point_path {
       waypoints.push_back(end_point);
     };
     
+    /**
+     * Constructs the path from a space, the start and end points.
+     * \param aSpace The space on which the path is.
+     * \param aStart The start point of the path.
+     * \param aEnd The end-point of the path.
+     */
     point_to_point_path(const topology& aSpace, const point_type& aStart, const point_type& aEnd) :
                         space(aSpace), start_point(aEnd), end_point(aEnd), waypoints() {
       waypoints.push_back(start_point);
       waypoints.push_back(end_point);
     };
 			
+    /**
+     * Constructs the path from a range of points and their space.
+     * \tparam ForwardIter A forward-iterator type for getting points to initialize the path with.
+     * \param aBegin An iterator to the first point of the path.
+     * \param aEnd An iterator to the second point of the path.
+     * \param aSpace The space on which the path is.
+     */
     template <typename ForwardIter>
     point_to_point_path(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace) : 
                         space(aSpace), waypoints(aBegin, aEnd) {
@@ -140,20 +174,39 @@ struct point_to_point_path {
 	throw invalid_path("Point-to-point path (empty list of waypoints)");
     };
     
+    /**
+     * Returns the space on which the path resides.
+     * \return The space on which the path resides.
+     */
     const topology& getSpace() const throw() { return space; };
     
-    void swap(point_to_point_path<Topology,DistanceMetric>& rhs) throw() {
-      std::swap(start_point, rhs.start_point);
-      std::swap(end_point, rhs.end_point);
-      waypoints.swap(rhs.waypoints);
+    /**
+     * Standard swap function.
+     */
+    friend void swap(self& lhs, self& rhs) throw() {
+      std::swap(lhs.start_point, rhs.start_point);
+      std::swap(lhs.end_point, rhs.end_point);
+      lhs.waypoints.swap(rhs.waypoints);
     };
     
+    /**
+     * Computes the travel distance between two points, if traveling along the path.
+     * \param a The first point.
+     * \param b The second point.
+     * \return The travel distance between two points if traveling along the path.
+     */
     double travel_distance(const point_type& a, const point_type& b) const {
       std::pair<const_waypoint_descriptor, const_waypoint_descriptor> wpb_a = get_waypoint_bounds(a, waypoints.begin());
       std::pair<const_waypoint_descriptor, const_waypoint_descriptor> wpb_b = get_waypoint_bounds(b, wpb_a.first);
       return travel_distance_impl(a, wpb_a, b, wpb_b);
     };
     
+    /**
+     * Computes the travel distance between two waypoint-point-pairs, if traveling along the path.
+     * \param a The first waypoint-point-pair.
+     * \param b The second waypoint-point-pair.
+     * \return The travel distance between two points if traveling along the path.
+     */
     double travel_distance(waypoint_pair& a, waypoint_pair& b) const {
       std::pair<const_waypoint_descriptor, const_waypoint_descriptor> wpb_a = get_waypoint_bounds(a.second, a.first);
       std::pair<const_waypoint_descriptor, const_waypoint_descriptor> wpb_b = get_waypoint_bounds(b.second, b.first);
@@ -161,6 +214,12 @@ struct point_to_point_path {
       return travel_distance_impl(a.second, wpb_a, b.second, wpb_b);
     };
     
+    /**
+     * Computes the point that is a distance away from a point on the path.
+     * \param a The point on the path.
+     * \param d The distance to move away from the point.
+     * \return The point that is a distance away from the given point.
+     */
     point_type move_away_from(const point_type& a, double d) const {
       std::pair<const_waypoint_descriptor, const_waypoint_descriptor> wpb_a = get_waypoint_bounds(a, waypoints.begin());
       point_type prev = a;
@@ -174,6 +233,12 @@ struct point_to_point_path {
       return prev;
     };
     
+    /**
+     * Computes the waypoint-point-pair that is a distance away from a waypoint-point-pair on the path.
+     * \param a The waypoint-point-pair on the path.
+     * \param d The distance to move away from the waypoint-point-pair.
+     * \return The waypoint-point-pair that is a distance away from the given waypoint-point-pair.
+     */
     waypoint_pair move_away_from(const waypoint_pair& a, double d) const {
       std::pair<const_waypoint_descriptor, const_waypoint_descriptor> wpb_a = get_waypoint_bounds(a.second, a.first);
       const_waypoint_descriptor it_prev = wpb_a.first;

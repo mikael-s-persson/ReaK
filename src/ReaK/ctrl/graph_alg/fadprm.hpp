@@ -1,3 +1,24 @@
+/**
+ * \file fadprm.hpp
+ *
+ * This library provides function templates and concepts that implement the flexible anytime dynamic 
+ * probabilistic roadmap (FADPRM) algorithm (as of "Belghith et al., 2006"). A FADPRM is uses the  
+ * AD* search algorithm to drive the expansion of a probabilistic roadmap into the free-space 
+ * in order to connect a start and goal location. This algorithm has many customization points because there 
+ * are many choices to be made in the method, such as how to find nearest neighbors for attempting to 
+ * connect them through free-space, how to expand vertices, how to measure density, how to compare 
+ * densities, when to stop the algorithm, etc. All these customization points are left to the user 
+ * to implement, some are defined by the FADPRMVisitorConcept (expand-vertex and compute-density) 
+ * while others are provided as functors to the function template that generates the FADPRM (generate_fadprm).
+ *
+ * The FADPRM algorithm is so closely related to the AD* algorithm that it is actually implemented 
+ * using the AD* loop (a function in the detail namespace of the AD* functions) and a customized 
+ * AD* BFS visitor that wraps the FADPRM customizations along with the FADPRM visitor for the 
+ * user's customizations.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date March 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -36,7 +57,25 @@ namespace ReaK {
 /** Main namespace for ReaK.Graph */
 namespace graph {
 
-
+  /**
+   * This concept class defines the valid expressions required of a class to be used as a visitor 
+   * class for the FADPRM algorithm. A visitor class is essentially a class that regroups a number of 
+   * callback functions that can be used to inject customization into the FADPRM algorithm. In other 
+   * words, the visitor pattern in generic programming is an implementation of IoC 
+   * (Inversion of Control), since the FADPRM algorithm is in control of execution, but custom behavior can
+   * be injected in several places, even blocking the algorithm if needed.
+   * 
+   * Required concepts:
+   * 
+   * The visitor class should model the boost::CopyConstructibleConcept.
+   * 
+   * The visitor class should model the PRMVisitorConcept.
+   * 
+   * The visitor class should model the ADStarVisitorConcept.
+   * 
+   * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
+   * \tparam Graph The graph type on which the visitor should be able to act.
+   */
   template <typename Visitor, typename Graph>
   struct FADPRMVisitorConcept {
     void constraints()
@@ -46,7 +85,13 @@ namespace graph {
       boost::function_requires< ADStarVisitorConcept<Visitor,Graph> >();
     }
   };
-
+  
+  /**
+   * This class is simply a "null" visitor for the FADPRM algorithm. It is null in the sense that it
+   * will do nothing on all accounts.
+   * \tparam Topology The topology type that represents the free-space.
+   * \tparam PositionMap The property-map type which can store the position associated to each vertex.
+   */
   template <typename Topology, typename PositionMap>
   class default_fadprm_visitor {
     public:
@@ -84,7 +129,14 @@ namespace graph {
       PositionMap m_position;
   };
 
-  
+  /**
+   * This class is a composite visitor class template. It can be used to glue together two classes
+   * which model the ADStarVisitorConcept and PRMVisitorConcept, respectively. Note that it 
+   * is preferred to use the make_composite_fadprm_visitor function template to let the 
+   * compiler deduce the type instead of providing the template arguments manually.
+   * \tparam ADStarVisitor The visitor type which models the ADStarVisitorConcept.
+   * \tparam PRMVisitor The visitor type which models the PRMVisitorConcept.
+   */
   template <typename ADStarVisitor, typename PRMVisitor>
   struct composite_fadprm_visitor : public ADStarVisitor, public PRMVisitor {
     composite_fadprm_visitor(ADStarVisitor aVis_adstar, PRMVisitor aVis_prm) : ADStarVisitor(aVis_adstar), PRMVisitor(aVis_prm) { };
@@ -92,6 +144,14 @@ namespace graph {
   };
   
   
+  /**
+   * This function template creates a composite visitor class. It can be used to glue together two classes
+   * which model the ADStarVisitorConcept and PRMVisitorConcept, respectively.
+   * \tparam ADStarVisitor The visitor type which models the ADStarVisitorConcept.
+   * \tparam PRMVisitor The visitor type which models the PRMVisitorConcept.
+   * \param aVis_adstar The visitor object for the AD* functions.
+   * \param aVis_prm The visitor object for the PRM functions.
+   */
   template <typename ADStarVisitor, typename PRMVisitor>
   inline composite_fadprm_visitor<ADStarVisitor,PRMVisitor> make_composite_fadprm_visitor(ADStarVisitor aVis_adstar, PRMVisitor aVis_prm) {
     return composite_fadprm_visitor<ADStarVisitor,PRMVisitor>(aVis_adstar,aVis_prm);
@@ -378,30 +438,143 @@ namespace graph {
   
   
   
-  
-  template <typename Graph, //this is the actual graph, should comply to BidirectionalGraphConcept.
+  /**
+   * This function template generates a roadmap to connect a goal location to a start location
+   * using the FADPRM algorithm (as of Belghith et al., 2006), without initialization of the 
+   * existing graph.
+   * \tparam Graph The graph type that can store the generated roadmap, should model 
+   *         BidirectionalGraphConcept and MutableGraphConcept.
+   * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
+   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
+   *         for each vertex in the graph.
+   * \tparam FADPRMVisitor The type of the FADPRM visitor to be used, should model the FADPRMVisitorConcept.
+   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
+   *         vertex together with its optimal predecessor.
+   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex 
+   *         to the goal.
+   * \tparam RHSMap This property-map type is used to store the inconsistent estimated distance of 
+   *         each vertex to the goal (internal use to AD*).
+   * \tparam KeyMap This property-map type is used to store the weights of the edges of the 
+   *         graph (cost of travel along an edge).
+   * \tparam WeightMap This property-map type is used to store the weights of the edges of the 
+   *         graph (cost of travel along an edge).
+   * \tparam PositionMap A property-map type that can store the position of each vertex. 
+   * \tparam DensityMap A property-map type that can store the density-measures for each vertex.
+   * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
+   *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors). 
+   *         See classes in the topological_search.hpp header-file.
+   * \tparam ColorMap This property-map type is used to store the color-value of the vertices, colors 
+   *         are used to mark vertices by their status in the AD* algorithm (white = not visited, 
+   *         gray = discovered (in OPEN), black = finished (in CLOSED), green = recycled (not CLOSED, 
+   *         not OPEN), red = inconsistent (in INCONS)).
+   * \tparam AdjustFunction This functor type represents the callback function that will adjust the 
+   *         epsilon value (sloppyness of the A* search).
+   * \tparam RunningPredicate This function type represents the callback function that will evaluate 
+   *         if it is still worth continuing the AD* search passes.
+   * \tparam GetStartNodeFunction This function type represents the callback function that will give 
+   *         the starting point for the search (usually the goal vertex).
+   * \tparam ChangeEventFunction This function type represents the callback that can wait for a change 
+   *         in edge weights, and provide the list of changed edges.
+   * \tparam PublishPathFunction This function type represents the callback that is called when a 
+   *         path has been obtained (so that it can be buffered and executed).
+   * \tparam ScalarType The type of the scalar value epsilon (amplification factor, controls the 
+   *         anytime nature of this algorithm).
+   * \tparam CompareFunction A binary comparison functor type that returns true if the first operand 
+   *         is strictly better (less-than) than the second operand.
+   * \tparam EqualCompareFunction A binary comparison functor type that returns true if both operands 
+   *         are equal to each other.
+   * \tparam CombineFunction A binary combination functor type that returns the sum of its operands, 
+   *         semantically-speaking.
+   * \tparam ComposeFunction A binary composition functor type that amplifies a heuristic distance 
+   *         metric by a scalar value (i.e. epsilon x h(u) ).
+   * 
+   * \param g A mutable graph that should initially store the starting 
+   *        vertex (if not it will be randomly generated) and will store 
+   *        the generated graph once the algorithm has finished.
+   * \param free_space A topology (as defined by the Boost Graph Library). Note 
+   *        that it is required to generate only random points in 
+   *        the free-space and to only allow interpolation within the free-space.
+   * \param hval The property-map of A* heuristic function values for each vertex.
+   * \param vis A FADPRM visitor implementing the FADPRMVisitorConcept. This is the 
+   *        main point of customization and recording of results that the 
+   *        user can implement.
+   * \param predecessor The property-map which will store the resulting path by connecting 
+   *        vertices together with their optimal predecessor (follow in reverse to discover the 
+   *        complete path).
+   * \param distance The property-map which stores the estimated distance of each vertex to the goal.
+   * \param rhs The property-map which stores the inconsistent estimated distance of each vertex to the 
+   *        goal (for internal use).
+   * \param key The property-map which stores the AD* key-values associated to each vertex.
+   * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
+   *        along the edge).
+   * \param density A property-map that provides the density values assiciated to each vertex.
+   * \param position A mapping that implements the MutablePropertyMap Concept. Also,
+   *        the value_type of this map should be the same type as the topology's 
+   *        value_type.
+   * \param select_neighborhood A callable object (functor) that can select a list of 
+   *        vertices of the graph that ought to be connected to a new 
+   *        vertex. The list should be sorted in order of increasing "distance".
+   * \param color The property-map which stores the color-value of the vertices, colors are used to mark
+   *        vertices by their status in the AD* algorithm (white = not visited, gray = discovered (in OPEN), 
+   *        black = finished (in CLOSED), green = recycled (not CLOSED, not OPEN), red = inconsistent (in INCONS)).
+   * \param adj_epsilon The callback functor that will adjust the epsilon value (sloppyness of the sub-optimal
+   *        A* search) depending (usually) on the level of change in the weights that was recorded after a callback
+   *        using the edge_change functor. Used as: epsilon = adj_epsilon(epsilon, max_w_change); (takes the current 
+   *        epsilon value and the maximum recorder weight change, and outputs the new epsilon value).
+   * \param keep_going The callback functor that will tell whether the AD* search should keep on going (running 
+   *        predicate). Should be callable with no parameter and output a bool value (true to keep going, false
+   *        to stop).
+   * \param get_start The functor that is called to obtain the starting point for the AD* search (usually the 
+   *        goal vertex). Should be callable with no parameter and output a vertex-descriptor of the graph (i.e. 
+   *        a vertex of the graph g).
+   * \param edge_change The callback functor that is called to make a check whether the weights of the graph
+   *        have changed do to a dynamic environment. Used as: max_w_change = edge_change(affected_edges); 
+   *        (takes an STL container (std::vector) of affected edges and populates it all the edges that 
+   *        should be updated because their weight has changed, also returns the maximum weight change 
+   *        measured (or any other measure of how bad the change in the environment is, this value will 
+   *        be forwarded unchanged to the adj_epsilon functor)). The container of affected edges is subject 
+   *        to change, so it is recommended to define this functor with a templated call-operator that 
+   *        can take a generic type of STL container, by non-const reference.
+   * \param publish_path The callback functor that is called when the AD* search has ended, and presumably,
+   *        found a path. Used as: publish_path(); (takes no parameters, returns nothing). The path is retrieved
+   *        by walking the predecessors of the vertices (using the given predecessor property-map).
+   * \param epsilon The initial epsilon value that relaxes the A* search to give the AD* its anytime 
+   *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
+   * \param inf The quantity that represents infinity (either a very large value or the infinity value for 
+   *        the underlying value-type).
+   * \param zero The quantity that represents zero with the given value-type.
+   * \param compare A binary comparison functor that returns true if the first operand is strictly 
+   *        better (less-than) than the second operand.
+   * \param equal_compare A binary comparison functor that returns true if both operands are equal 
+   *        to each other.
+   * \param combine A binary combination functor that returns the sum of its operands, 
+   *        semantically-speaking.
+   * \param compose A binary composition functor that amplifies a heuristic distance metric by a 
+   *        scalar value (i.e. epsilon x h(u) ).
+   */
+  template <typename Graph,
 	    typename Topology,
-            typename AStarHeuristicMap, //this the map of heuristic function value for each vertex.
-            typename FADPRMVisitor, //this is a visitor class that can perform special operations at event points.
-	    typename PredecessorMap, //this is the map that stores the preceeding edge for each vertex.
-            typename DistanceMap, //this is the map of distance values associated with each vertex.
+            typename AStarHeuristicMap,
+            typename FADPRMVisitor,
+	    typename PredecessorMap,
+            typename DistanceMap,
 	    typename RHSMap,
-	    typename KeyMap, //this is the map of key values associated to each vertex.
-            typename WeightMap, //this is the map of edge weight (or cost) associated to each edge of the graph.
+	    typename KeyMap,
+            typename WeightMap,
             typename PositionMap,
             typename DensityMap,
 	    typename NcSelector,
-	    typename ColorMap, //this is a color map for each vertex, i.e. white=not visited, gray=discovered, black=expanded.
-	    typename AdjustFunction, //this is the function object type that adjusts scalar implification factor epsilon for the current max change in edge weight.
-	    typename RunningPredicate, //this is a function object type that immediately returns true if the algorithm should keep going.
-	    typename GetStartNodeFunction, //this is a function object type that returns the current start node of the graph (to start the bfs).
-	    typename ChangeEventFunction, //this is a function object type that can wait for a change in edge weights, and provide the list of changed edges.
-	    typename PublishPathFunction, //this is a function object type that is called when a path has been obtained (so that it can be buffered and executed).
-	    typename ScalarType/* = typename property_traits<DistanceMap>::value_type*/, //the type of the scalar value epsilon (amplification factor, controls the anytime nature of this algorithm).
-            typename CompareFunction /*= std::less<typename property_traits<DistanceMap>::value_type>*/, //a binary comparison function object that returns true if the first operand is strictly better (less-than) than the second operand.
-	    typename EqualCompareFunction /*= std::equal_to<typename property_traits<DistanceMap>::value_type >*/, //a binary comparison function object that returns true if both operands are equal to each other.
-            typename CombineFunction /*= std::plus<typename property_traits<DistanceMap>::value_type>*/, //a binary combination function object that returns the sum of its operands (sum in the broad sense).
-	    typename ComposeFunction /*= std::multiplies<typename property_traits<DistanceMap>::value_type>*/ > //a binary composition function object that amplifies a heuristic distance metric by a scalar value (i.e. epsilon x h(u) ).
+	    typename ColorMap,
+	    typename AdjustFunction,
+	    typename RunningPredicate,
+	    typename GetStartNodeFunction,
+	    typename ChangeEventFunction,
+	    typename PublishPathFunction,
+	    typename ScalarType,
+            typename CompareFunction,
+	    typename EqualCompareFunction,
+            typename CombineFunction,
+	    typename ComposeFunction>
   inline void
   generate_fadprm_no_init
     (Graph &g, const Topology& free_space,
@@ -455,7 +628,120 @@ namespace graph {
   };
 
 
-  // Non-named parameter interface
+   /**
+   * This function template generates a roadmap to connect a goal location to a start location
+   * using the FADPRM algorithm (as of Belghith et al., 2006), with initialization of the 
+   * existing graph to (re)start the search.
+   * \tparam Graph The graph type that can store the generated roadmap, should model 
+   *         BidirectionalGraphConcept and MutableGraphConcept.
+   * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
+   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
+   *         for each vertex in the graph.
+   * \tparam FADPRMVisitor The type of the FADPRM visitor to be used, should model the FADPRMVisitorConcept.
+   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
+   *         vertex together with its optimal predecessor.
+   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex 
+   *         to the goal.
+   * \tparam RHSMap This property-map type is used to store the inconsistent estimated distance of 
+   *         each vertex to the goal (internal use to AD*).
+   * \tparam KeyMap This property-map type is used to store the weights of the edges of the 
+   *         graph (cost of travel along an edge).
+   * \tparam WeightMap This property-map type is used to store the weights of the edges of the 
+   *         graph (cost of travel along an edge).
+   * \tparam PositionMap A property-map type that can store the position of each vertex. 
+   * \tparam DensityMap A property-map type that can store the density-measures for each vertex.
+   * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
+   *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors). 
+   *         See classes in the topological_search.hpp header-file.
+   * \tparam ColorMap This property-map type is used to store the color-value of the vertices, colors 
+   *         are used to mark vertices by their status in the AD* algorithm (white = not visited, 
+   *         gray = discovered (in OPEN), black = finished (in CLOSED), green = recycled (not CLOSED, 
+   *         not OPEN), red = inconsistent (in INCONS)).
+   * \tparam AdjustFunction This functor type represents the callback function that will adjust the 
+   *         epsilon value (sloppyness of the A* search).
+   * \tparam RunningPredicate This function type represents the callback function that will evaluate 
+   *         if it is still worth continuing the AD* search passes.
+   * \tparam GetStartNodeFunction This function type represents the callback function that will give 
+   *         the starting point for the search (usually the goal vertex).
+   * \tparam ChangeEventFunction This function type represents the callback that can wait for a change 
+   *         in edge weights, and provide the list of changed edges.
+   * \tparam PublishPathFunction This function type represents the callback that is called when a 
+   *         path has been obtained (so that it can be buffered and executed).
+   * \tparam ScalarType The type of the scalar value epsilon (amplification factor, controls the 
+   *         anytime nature of this algorithm).
+   * \tparam CompareFunction A binary comparison functor type that returns true if the first operand 
+   *         is strictly better (less-than) than the second operand.
+   * \tparam EqualCompareFunction A binary comparison functor type that returns true if both operands 
+   *         are equal to each other.
+   * \tparam CombineFunction A binary combination functor type that returns the sum of its operands, 
+   *         semantically-speaking.
+   * \tparam ComposeFunction A binary composition functor type that amplifies a heuristic distance 
+   *         metric by a scalar value (i.e. epsilon x h(u) ).
+   * 
+   * \param g A mutable graph that should initially store the starting 
+   *        vertex (if not it will be randomly generated) and will store 
+   *        the generated graph once the algorithm has finished.
+   * \param free_space A topology (as defined by the Boost Graph Library). Note 
+   *        that it is required to generate only random points in 
+   *        the free-space and to only allow interpolation within the free-space.
+   * \param hval The property-map of A* heuristic function values for each vertex.
+   * \param vis A FADPRM visitor implementing the FADPRMVisitorConcept. This is the 
+   *        main point of customization and recording of results that the 
+   *        user can implement.
+   * \param predecessor The property-map which will store the resulting path by connecting 
+   *        vertices together with their optimal predecessor (follow in reverse to discover the 
+   *        complete path).
+   * \param distance The property-map which stores the estimated distance of each vertex to the goal.
+   * \param rhs The property-map which stores the inconsistent estimated distance of each vertex to the 
+   *        goal (for internal use).
+   * \param key The property-map which stores the AD* key-values associated to each vertex.
+   * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
+   *        along the edge).
+   * \param density A property-map that provides the density values assiciated to each vertex.
+   * \param position A mapping that implements the MutablePropertyMap Concept. Also,
+   *        the value_type of this map should be the same type as the topology's 
+   *        value_type.
+   * \param select_neighborhood A callable object (functor) that can select a list of 
+   *        vertices of the graph that ought to be connected to a new 
+   *        vertex. The list should be sorted in order of increasing "distance".
+   * \param color The property-map which stores the color-value of the vertices, colors are used to mark
+   *        vertices by their status in the AD* algorithm (white = not visited, gray = discovered (in OPEN), 
+   *        black = finished (in CLOSED), green = recycled (not CLOSED, not OPEN), red = inconsistent (in INCONS)).
+   * \param adj_epsilon The callback functor that will adjust the epsilon value (sloppyness of the sub-optimal
+   *        A* search) depending (usually) on the level of change in the weights that was recorded after a callback
+   *        using the edge_change functor. Used as: epsilon = adj_epsilon(epsilon, max_w_change); (takes the current 
+   *        epsilon value and the maximum recorder weight change, and outputs the new epsilon value).
+   * \param keep_going The callback functor that will tell whether the AD* search should keep on going (running 
+   *        predicate). Should be callable with no parameter and output a bool value (true to keep going, false
+   *        to stop).
+   * \param get_start The functor that is called to obtain the starting point for the AD* search (usually the 
+   *        goal vertex). Should be callable with no parameter and output a vertex-descriptor of the graph (i.e. 
+   *        a vertex of the graph g).
+   * \param edge_change The callback functor that is called to make a check whether the weights of the graph
+   *        have changed do to a dynamic environment. Used as: max_w_change = edge_change(affected_edges); 
+   *        (takes an STL container (std::vector) of affected edges and populates it all the edges that 
+   *        should be updated because their weight has changed, also returns the maximum weight change 
+   *        measured (or any other measure of how bad the change in the environment is, this value will 
+   *        be forwarded unchanged to the adj_epsilon functor)). The container of affected edges is subject 
+   *        to change, so it is recommended to define this functor with a templated call-operator that 
+   *        can take a generic type of STL container, by non-const reference.
+   * \param publish_path The callback functor that is called when the AD* search has ended, and presumably,
+   *        found a path. Used as: publish_path(); (takes no parameters, returns nothing). The path is retrieved
+   *        by walking the predecessors of the vertices (using the given predecessor property-map).
+   * \param epsilon The initial epsilon value that relaxes the A* search to give the AD* its anytime 
+   *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
+   * \param inf The quantity that represents infinity (either a very large value or the infinity value for 
+   *        the underlying value-type).
+   * \param zero The quantity that represents zero with the given value-type.
+   * \param compare A binary comparison functor that returns true if the first operand is strictly 
+   *        better (less-than) than the second operand.
+   * \param equal_compare A binary comparison functor that returns true if both operands are equal 
+   *        to each other.
+   * \param combine A binary combination functor that returns the sum of its operands, 
+   *        semantically-speaking.
+   * \param compose A binary composition functor that amplifies a heuristic distance metric by a 
+   *        scalar value (i.e. epsilon x h(u) ).
+   */
   template <typename Graph, //this is the actual graph, should comply to BidirectionalMutableGraphConcept.
 	    typename Topology,
             typename AStarHeuristicMap, //this the map of heuristic function value for each vertex.

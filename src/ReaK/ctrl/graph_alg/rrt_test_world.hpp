@@ -1,3 +1,18 @@
+/**
+ * \file rrt_test_world.hpp
+ * 
+ * This library defines an example class that uses the RRT algorithm on a world map. This class 
+ * basically just wraps the algorithms found in "rr_tree.hpp" for a simple 2D path-planning problem.
+ * It takes a world map (as an OpenCV image) where any non-white gray-scaled pixel 
+ * is considered occupied (not C-free). It parses the image for a blue pixel and a green 
+ * pixel which each represent the start and goal positions. Alternatively, the start 
+ * and goal position can be set via set_start_pos and set_goal_pos functions. The class 
+ * also allows for many parameters and callbacks, see the constructor's documentation for details.
+ * See the test_rrt.cpp file for a program that uses this class.
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date February 2011
+ */
 
 /*
  *    Copyright 2011 Sven Mikael Persson
@@ -62,6 +77,7 @@ namespace boost {
  * pixel which each represent the start and goal positions. Alternatively, the start 
  * and goal position can be set via set_start_pos and set_goal_pos functions. The class 
  * also allows for many parameters and callbacks, see the constructor's documentation for details.
+ * See the test_rrt.cpp file for a program that uses this class.
  */
 class rrt_test_world {
   public:
