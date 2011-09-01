@@ -1,0 +1,598 @@
+% Define global document class.
+\documentclass[10pt]{article}
+
+% Include required packages
+\usepackage{graphicx}
+\usepackage{color}			% Enables the use of colors in the text
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{ulem}
+\usepackage{morefloats}		% Number of allowed floats is increased from 18 to 36
+\usepackage{float}
+	\restylefloat{figure}		% Creates [H] as placement indication: HERE and only HERE!
+
+% Hyperref settings
+\hypersetup{
+    pdftitle =
+        ReaK N Commandments,
+    colorlinks = true,
+    linkcolor = black,
+    anchorcolor = red,
+    citecolor = blue,
+    filecolor = red,
+    pagecolor = red,
+    urlcolor = blue
+}
+
+ % Set up review environments as colors for each reviewer.
+\newenvironment{Mikael}{\color[rgb]{0.7,0.2,0.2}$\diamond$ Mikael: }{\color[rgb]{0,0,0}}
+\newcommand{\MP}[1]{\begin{Mikael}#1\end{Mikael}}
+
+% user-defined commands for ease of use
+\providecommand\eg{\textit{e.g., }}
+\providecommand\ie{\textit{i.e., }}
+
+% Code layout
+\newcommand{\code}[1]{\color[rgb]{0.2,0.8,0.2}\texttt{#1}\color[rgb]{0,0,0} }
+
+% Renew commands that pertain to float (figures, tables, etc.) placement
+\renewcommand{\textfraction}{0.01}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.9}
+\setcounter{topnumber}{5}
+\setcounter{bottomnumber}{5}
+\setcounter{totalnumber}{10}
+
+\newcounter {iCommandment}
+\setcounter {iCommandment} {1}
+
+\newcounter {iGuideline}
+\setcounter {iGuideline} {1}
+
+
+\newcommand{\CorG}[5]
+{
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{| p{12cm} |}
+\hline
+#1. #2 \\
+\hline
+\vspace{-0.1cm}
+\parbox{12cm}{\code{#3}} \\
+\vspace{-0.2cm}
+%\hline
+#4 \\
+%\hline
+#5 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+}
+
+\newcommand{\Commandment}[4]
+{
+\CorG{\textbf{\arabic{iCommandment}}\addtocounter{iCommandment}{1}}
+{\textbf{#1}}{#2}{#3}{#4}
+}
+
+%\newcommand{\Guideline}[4]
+%{
+%\CorG{\textit{\arabic{iGuideline}}\addtocounter{iGuideline}{1}}
+%{\textit{#1}}{#2}{#3}{#4}
+%}
+
+% Title
+\title{The N Commandments}
+\author{Sven Mikael Persson, ReaK library}
+
+\begin{document}
+\maketitle
+
+In this document ReaK's N Commandments are presented.
+
+The layout of the Commandments tables is as follows: 
+
+\CorG
+{n}
+{\textbf{Short description.}}
+{Code example}
+{Motivation, background and additional information.}
+{Reference}
+
+\section{Commandments}
+
+\subsection{Robustness}
+
+This section is on requirements that directly affect the robustness of the ReaK library and are thus 
+the requirements with the highest level of importance. Not obeying them is a serious offense (figuratively).
+There are very good justifications behind each of these rules, so breaking those rules for reasons of personal 
+preferrence or sloppiness is not acceptable, but they can be broken if strong justification can be provided in 
+a particular case.
+
+\Commandment
+{Provide unit tests with your code.}
+{\ }
+{Any new code in ReaK has to be tested and validated with a unit-test program.
+In concrete terms, it means that every new chunk of code (one or more source files)
+which defines new classes or functions has to be tested within a program that 
+remains essentially quiet (no output) as long as all the results are correct and 
+returns a value of 0 if all successful, non-zero otherwise. In order to best 
+guarantee that all functions and classes are not forgotten, when creating a new 
+function, mark the doxygen comment with a \code{test}\ doxygen keyword, and replace
+it with \code{TEST PASSED}\ when the unit-test has been created and run successfully.}
+{\ }
+
+\Commandment
+{Header files must contain an include guard.}
+{\#ifndef HEADER\_NAME\_HPP \\ \#define HEADER\_NAME\_HPP \\ \#endif // HEADER\_NAME\_HPP }
+{This construction is to avoid compilation errors about the C/C++ One-Definition-Rule (ODR). 
+If the name of the header file is fairly common, pre-pend \code{REAK\_}\ to the header-guard's name.}
+{\ }
+
+\Commandment
+{Keep the \code{\#include}\ statements in the header files to a bare minimum.}
+{\ }
+{Only \#include, in a header file, the bare minimum number of header-files that you need in order to 
+complete the declarations of the classes or functions in it, nothing more. Then, \#include, in the source files, 
+the other headers that you need to complete the definitions of the classes and functions. Forward-declarations 
+can also be used if it is enough to complete the declarations in a header-file, but it is not required to make 
+this additional effort to minimize header-file dependencies. The main motivation for this guideline is to minimize 
+the dependency between header-files, which reduces compilation time, maintenance cost, and also promotes software 
+design that also has fewer interdependencies.}
+{\ }
+
+\Commandment
+{Do not rely on second-hand inclusions.}
+{\ }
+{This is not to contradict the previous commandment. Including a bare minimum of headers in a header file 
+does not imply that you should rely on second-hand inclusions, that is, include one header and expect that 
+that header also includes another one that you need. It is tempting to do so because it seems reasonable, 
+but you should not. Include all the headers you need to complete your declarations (no more, no less) and 
+don't rely on the assumption that some of the headers included certainly include this other header that you 
+need. In other words, your header files should be self-sufficient (not making assumption about what is in
+other header files). One exception to this rule is, of course, the case where the particular header included 
+is meant to include a few other headers (i.e. it is specified that it does so).}
+{\ }
+
+\Commandment
+{Compile with highest warning levels and treat them as errors.}
+{GCC: -Wall -Woverloaded-virtual -Wold-style-cast -Wnon-virtual-dtor\\ MSVC: /W3}
+{By default, the ReaK library build is setup to compile with the highest possible warning level on 
+whatever compiler is used. If you see warnings originating from ReaK library code, treat them as 
+errors. If it is in your code, fix them. If not, report them. Most warning messages are there for a 
+good reason, and they often hide a coding mistake, typo, or design flaw, in any case, they should be 
+address with the same rigor as compilation errors.}
+{\ }
+
+\Commandment
+{Using-statements are prohibited at global or namespace scope.}
+{\sout{using namespace std;}\\ \sout{using std::vector;} }
+{This prevents name collisions from occurring. It is very important not to pollute the ReaK namespace 
+or any of its sub-namespaces or the global scope by importing symboles for an alien namespace with a 
+using-statement. The only place where using-statements are acceptable is in a function scope, that is, 
+within the function body, because the names imported will be limited to the function scope. Nonetheless,
+even in a function body, it is mandatory to only use statements of the form \code{using std::vector;}\ and 
+not a using-namespace-statement.}
+{\ }
+
+\Commandment
+{Do not include C heritage libraries in a header-file.}
+{\#include <cmath>}
+{C++ has included, as part of its standard libraries, the C standard libraries (with a pre-pended ``c'' and 
+no ``.h''). Although the C++ standard requires that all the functions in the C++ version of those 
+C libraries be within the ``std'' namespace, it doesn't mean that the functions only appear in the ``std''
+namespace, most implementations also provides the functions in the global namespace. Thus, to avoid 
+namespace pollution, it is highly recommended to avoid including these headers in a header-file, limit 
+their use to the source files (cpp files).}
+{\ }
+
+\Commandment
+{Do not define your own general mathematical and physical constants locally.}
+{\sout{pi = 3.1415} }
+{Mathematical or physical constants should be regrouped into header-files with sensible 
+names and groupings, and which contain essentially nothing but those constants (or only a few 
+highly related functions (e.g. a degree-to-radian conversions in the same header as the definition
+of ``pi''). NOTE: Mathematical constants, such as \code{M\_PI}\ and \code{M\_E}, that are sometimes 
+included in some versions of the cmath library, are not standard C/C++ constants and should not be used.}
+{\ }
+
+% \Commandment
+% {Do not use global variables.}
+% {\ }
+% {A global variable can be get or set by any part of the program, and any rules regarding its use can be easily broken or forgotten.}
+% {\href{http://c2.com/cgi/wiki?GlobalVariablesAreBad}{Alternatives to global variables}}
+% \MP
+% {
+% You should emphasize this rule more. It is very important, mostly because solutions that can work 
+% without needing global variables are much better.
+% }
+
+
+% \Commandment
+% {Avoid functions with many arguments.}
+% {\ }
+% {Make the required variables known to a function by using set-functions in the same class and/or 
+% by passing (an) object(s) to these functions that contain all required variables. Functions with 
+% long lists of arguments are difficult to read, often indicate poor design, and are difficult 
+% to use and maintain.}
+% {\href{http://www.codingstandard.com}{High-Integrity C++ Coding Standard Manual}, p.27 }
+% \MP
+% {
+% You had commented this one out. This is a hard issue. There is a saying that says ``if your function 
+% has 10 parameters, you probably forgot half of them''. The saying means that basically 
+% anything (numerical value, or other) that affect a particular algorithm should be a parameter to 
+% your function, i.e., don't put ``magic numbers'' inside the algorithms, because you or someone 
+% else might want to be able to change them for some special application. But, of course, the guideline 
+% above is correct in the sense that a function with too many parameters is difficult to deal with,
+% both for the user and the maintainer. But if a method is algorithmic in nature, it really should 
+% be a function. Personally, I recommend to implement the algorithm as a function, even if it has 
+% a large amount of parameters (e.g. I have some functions in my library with more than 25 parameters), 
+% and then, you can provide interfaces to that function which are either in the form of defaulting most 
+% parameters, or using Boost.Parameter library, or 
+% using the Named-Parameter idiom. Pick your choice. But wrapping the function call in a class which 
+% temporarily holds the parameters that are set by set-functions is not a nice option, not nice at all,
+% and I'm not talking ``nice'' as in not ``clever'' or ``elegant'', I just mean dangerous, especially if 
+% inexperienced programmers are involved.
+% }
+
+\Commandment
+{Uninitialized variables or data members are not allowed to exist.}
+{\sout{double temp;}, double temp = 0.0; }
+{A variable or data member that was not given an initial value is, at best, useless, at worse, a horrible 
+bug. All local variables should be initialized upon creation, and thus, they should be created where they are 
+first needed (if that is not possible, initialize it to a harmless value (often zero) at the point of creation).
+All data members which are POD-types or do not have a default constructor should appear either in the initialization 
+list of the constructor of the class or in its body (but the initialization list is preferred and often mandatory).}
+{\ }
+
+\Commandment
+{All C-style or plain C++ casts are essentially forbidden.}
+{\sout{(T)a}, \sout{reinterpret\_cast<T>(a)}, \sout{const\_cast<T>(a)}, \sout{static\_cast<T>(a)}, \sout{dynamic\_cast<T>(a)}}
+{
+Both the C-style cast and the \code{reinterpret\_cast}\ have undefined behavior and are thus 
+forbidden. The \code{const\_cast}\ operator can always be avoided, use the \code{mutable}\ qualifier on 
+an exceptional data member that needs to change even within a const member function of a class.
+The \code{static\_cast}\ operator is almost always avoidable by design, but it can be used to avoid 
+warning messages like ``comparing signed and unsigned type''. For conversions, use the explicit conversion
+operator, i.e. \code{T(a)}, instead of a static cast. For doing static casting of pointers, use the Boost 
+casting operator for the smart-pointers, that is, \code{boost::static\_pointer\_cast}. 
+The \code{dynamic\_cast}\ operator must not be used in ReaK. First, dynamic casting is usually a sign
+of bad design and is most often avoidable by design. If not avoidable and since ReaK should use smart-pointers
+almost exclusively (especially for polymorphic classes, for which a dynamic cast could be required), a plain
+C++ dynamic cast is not appropriate. Finally, ReaK uses its own RTTI system (Run-time Type Identification) 
+and not that of C++, and thus, the \code{boost::static\_pointer\_cast}\ operator is not appropriate either because it 
+uses the C++ RTTI. So, for dynamic casting in ReaK, use the \code{ReaK::rtti::rk\_dynamic\_ptr\_cast}\ operator, 
+which has the exact same effect as the Boost or plain C++ versions, but using ReaK's RTTI and smart-pointers.}
+{\ }
+
+\Commandment
+{Use \code{const}\ pro-actively.}
+{|\ class foo\_bar \{\\
+|\ \ \ public:\\
+|\ \ \ \ \ bool compare\_to(const foo\_bar\& rhs) const;\\
+|\ \}
+}
+{The \code{const}\ qualifier is an integral part of the interfaces of functions and variable types. ReaK promotes 
+a proactive use of this qualifier and since it has a infectious quality (thanks to the nice and strict type rules in C++), 
+if you want to program in the ReaK library (or any other decent library), learn to program with const-correctness in mind.}
+{\ }
+
+
+\subsection{Portability}
+
+This section is on portability issues. These are rules and guidelines to make sure that ReaK can stay portable 
+and clean. To maximize the ease of use of ReaK and its applicability, it is very much desired that it has very 
+few, if any, external dependencies (and only portable dependencies), and that it obeys the C++ standard strictly.
+
+\Commandment
+{Specify include directories of files from the second-level sub-directories.}
+{\sout{\#include <defs.hpp>}, \#include <base/defs.hpp> }
+{The ReaK library has a top-level source directory named ``ReaK'' and then second-level sub-directories 
+like ``core'', ``ctrl'' and ``examples''. The intended inclusion path (added to the build system) are those 
+second-level sub-directories, and thus, all header files that are included from a source or header file and 
+that are not in the same folder as that source or header file should include the relative path from the 
+relevant second-level sub-directory, e.g. the defs.hpp header file is in the ``ReaK/core/base'' folder and 
+should thus be included as ``base/defs.hpp''.}
+{\ }
+
+\Commandment
+{Know the standard C++ libraries and use them.}
+{\ }
+{The C++ standard libraries are your best bet to find useful generic constructs to implement code, know them well
+and prefer using them over any kind of hand-rolled code of your own.}
+{\ }
+
+\Commandment
+{Restrict external dependencies to well-known and portable libraries.}
+{\ }
+{The ReaK library has, currently, a single external dependency, that is, the Boost libraries which are very well-known,
+respected, actively maintained and portable to any platform. This is the ideal case for an external dependency used in
+ReaK. There are very few libraries that have such qualities, and this is why few external dependencies are expected in 
+the future of ReaK. Any potential inclusion of an external library should be discussed extensively.}
+{\ }
+
+\Commandment
+{Isolate any external dependencies that are not portable or well-maintained.}
+{\ }
+{The ReaK library has, currently, and has had in the past some external dependencies that are less reputable but offer 
+interesting features and avoid having to re-invent the wheel (e.g. a GUI tool or image processing library or HAL). Such external
+dependencies must be isolated from the rest of the library. In most cases, these external dependencies can be needed to 
+implement examples and applications of the library, in which case, it is easy to restrict the use of that external library
+to the application-specific code and programs, this way, the core library and its functionalities are not dependent on that 
+external library. If an external library is used to implement a functionality of 
+or an extension to the ReaK library, then isolate the code that uses the external library via a compilation firewall, that 
+is, restrict its use to source files and do not include the external headers in their header files (a useful idiom to 
+achieve this is called the ``PImpl'' idiom or ``Cheshire Cat'' idiom).}
+{\ }
+
+\Commandment
+{Use cmake as a build system and nothing else.}
+{\ }
+{The ReaK library uses cmake as a build system. This build system is very flexible and powerful as well as supported on
+many if not all IDE or editors out there. It is also entirely cross-platform and cross-compiler. Do not try to make your 
+own build configuration with some other system or any clever scripts to generate one. If you find that cmake is missing
+a feature you really would like to have, then contact the cmake developers and see with them what can be done. It is 
+important that all developers of a library use the same build system, to make sure that what builds correctly for one, 
+builds correctly for another (and that there is no discrepancies in the build configurations).}
+{\ }
+
+\Commandment
+{Watch out for compiler extensions.}
+{\sout{uint a;}, \sout{M\_PI} }
+{There are many things that can easily look like standard functions, constants or types but in reality are extensions
+provided by specific compilers. Most compilers do not strictly obey the C++ ISO standard and often provide a number of ``extensions''
+which are often in the form of additional built-in types (like \code{uint}), additional functions, additional STL 
+containers (like \code{hash\_map}), additional constants (like \code{M\_PI}), or successful compilation of things that 
+technically are either unspecified by the standard or not permitted by it (so-called permissive extensions). However, most 
+modern compilers (2008 and newer) are able to pretty much guarantee (a few bugs aside) that any strictly standard C++98 or 
+C++03 code will compile successfully (putting linking issues aside). The only reliable document of reference to know if 
+something is standard or not, is the C++ ISO standard document itself. But, to know with pretty high confidence if something 
+is standard or not, simply compile with GCC giving it the command-line options \code{-std=c++98 -pedantic-errors}.}
+{\ }
+
+
+\subsection{Programming rules}
+
+This section is on programming rules. Most of these rules must be obeyed very strictly as well. They are 
+mostly a collection of ReaK-specific decisions (and restrictions made) and general good programming guidelines 
+to be observed when programming in ReaK. Additionally, one could pretty much say that rules 32 to 63 in the 
+C++ Coding Standards book (Sutter \& Alexandrescu, 2004) are all to be obeyed as well.
+
+\Commandment
+{Use ReaK's preferred channels for debug prints.}
+{\sout{std::cout << ``the code reached this point successfully'' << std::endl;},
+ RK\_NOTICE(5,``the code reached this point successfully'');}
+{In order to make sure the debugging outputs are controlled to output only during the debugging or are 
+outputted differently for a release build, the ReaK library has a number of preferred channels for outputting
+debugging messages to the terminal. The ``base/defs.hpp'' header includes a few MACROs to accomplish this. First,
+for printing information that is relevant to debugging (like printing out values of variables or simply marking 
+that a particular point in the execution is reached), ReaK has the MACRO \code{RK\_NOTICE(X,Y)}\ which first takes an 
+integer value describing the verbosity level of the debug print, where 0 means it will always print, 1-5 means it 
+will print at the default verbosity level (\code{-DRK\_VERBOSITY=5}), and 6 or more is not printed at the default level but may be activated 
+by increasing the verbosity. The second argument is exactly of the same format as if it was between a \code{std::cout <<}\ and a
+\code{<< std::endl}\ (note that a semi-colon should appear after the MACRO call). Then, ReaK has the MACROs 
+\code{RK\_ERROR}\ and \code{RK\_WARNING}\ that take a single argument (with same spec as the second argument 
+of \code{RK\_NOTICE(X,Y)}), and these MACROs can be used to report errors or warnings that are relevant to a debugger.
+All those MACROs will also print the source file-name and line-number from which the print originates.}
+{\ }
+
+\Commandment
+{Throw exceptions, don't return error-codes.}
+{\sout{return SOME\_ERROR\_CODE}, throw some\_exception; }
+{The ReaK library uses the exception mechanisms provided by C++. Do not generate error-code mechanism when 
+coding in the ReaK library, always prefer exceptions. However, do not specify exceptions for functions, that is,
+\code{void some\_function() \sout{throw(std::bad\_alloc, some\_exception)}}. Nevertheless, if a function can be 
+guaranteed not to throw, then provide the no-throw specification (with \code{throw()}\ or \code{noexcept}).}
+{\ }
+
+\Commandment
+{Provide an output operator \code{<<}\ for std::ostream for value-classes.}
+{\ }
+{This overloaded operator is helpful when testing and debugging code.}
+{\ }
+
+
+\subsubsection{Object-Oriented Programming rules}
+
+\Commandment
+{All classes should be RAII classes.}
+{\ }
+{The \textit{Resource Acquisition Is Initialization} (RAII) idiom is a fundmental building block for robust 
+C++ coding and management of resources. All classes in ReaK should obey this idiom, period. Follow the link 
+below for a tutorial on the creation of a RAII class in modern C++.}
+{\href{http://www.daniweb.com/software-development/cpp/tutorials/373787}{Beginning C++0x: Making a RAII Class}}
+
+\Commandment
+{Protect class invariants with encapsulation.}
+{\ }
+{Class invariants are the relationships that should always be held between the 
+variables it holds and the constraints on these variables (like ranges of values).
+The class invariants should be hold from the construction (by any constructor) to 
+the destruction of an object of that class. It is not acceptable to allow an undefined 
+or uninitialized state for an object, but a ``zombie-state'' can be used if the object 
+is required to exist in an invalid state (a ``zombie-state'' means that one or more data 
+members have some specific value (like NULL) to indicate that the state is invalid).
+If data members could be bound by some relationship or constraint, they should not 
+be public, i.e., they should be either private or protected depending on the case. 
+If data members are not bound to any invariants and will never be for sure, then 
+they can be made public (no need to make them private and then provide trivial set-get
+functions in the public interface, but that can still be done, it makes no real difference).
+}
+{\ }
+
+\Commandment
+{Design the ownership relationships between objects.}
+{\ }
+{Ownership design is another fundmental building block for robust 
+C++ coding and management of resources and memory. Follow the link below for a tutorial on the design of 
+ownership relations in modern C++, using smart-pointers.}
+{\href{http://www.daniweb.com/software-development/cpp/tutorials/378692}{Beginning C++0x: Design of Ownership}}
+
+\subsubsection{Generic Programming rules}
+
+\Commandment
+{Preserve the original semantics of operators when overloading.}
+{\ }
+{Generic programming often involves overloading operators (to be polymorphic with built-in types). However, 
+this feature should not be abused, always make sure that the operator overloads have the same semantics as the 
+built-in operators (with the exception of the \code{<<}\ and \code{>>}\ operators and a few others that have conventional semantics 
+that are different from built-in semantics).}
+{\ }
+
+\Commandment
+{Overload function templates, don't specialize them.}
+{\ }
+{Generic programming often involves function templates and very often you want to create special versions 
+of these functions for some specific types. In these cases, use normal function overloading rules of C++ to 
+provide these special implementations, do not make template-specializations of those function templates. This is
+mainly because the rules that apply in this case are cumbersome and it becomes hard to predict which version 
+will be called. If the overloaded versions of the function templates are ambiguous (they can often be when they 
+have the equal number of non-templated parameters), then use ``Sfinae-switches'' to disable the inappropriate 
+overloads (Sfinae: ``Substitution Failure Is Not An Error'').}
+{\ }
+
+\Commandment
+{Provide concept-check and traits class templates.}
+{\ }
+{\ }
+{\ }
+
+\Commandment
+{Obey the principle of minimum requirement.}
+{\ }
+{\ }
+{\ }
+
+\subsection{Coding style}
+
+This section is about coding style. For experienced programmers, these are mere recommendations that probably 
+won't be a surprise, and the requirement to follow them is more in the order of obeying the principles of them 
+and respecting the uniformity of the style in the ReaK library. For beginners, these are guidelines to help you and 
+that you should respect pretty strictly.
+
+\Commandment
+{All C++ header files should be have the extension .hpp and all C++ source files should be have the extension .cpp.}
+{\sout{vect\_alg.c}, \sout{vect\_alg.h}, vect\_alg.cpp, vect\_alg.hpp }
+{This is to create consistency in the file naming.}
+{\ }
+
+\Commandment
+{Use the ReaK naming standard.}
+{frame\_2D<double> anchor\_point; \\ class kte\_map \\ void setTimeStep(double aTime) or void set\_time\_step(double aTime) \\ namespace rtti \\ revolute\_joint.cpp \\ template <typename ForwardIterator> \\ class StateVectorConcept}
+{
+Basically, lower-case underscore-separated names are the convention for just about everything in non-templated code, and 
+CamelCase is the convention for template arguments and concept-check class templates. This is in harmony
+with the C++ STL and Boost libraries. ReaK was developed over many years and conventions have evolved so don't be 
+surprised to see some other conventions for some classes. One such example is the name for the functions, in ReaK, 
+both the camelCase (with leading lower-case) and the lower-case underscore-separated names are common and accepted.
+To avoid conflicts between data members and parameter values, the convention is to use a leading-lower case camelCase for 
+parameter names, with the addition of an ``a'' at the front. File names also follow the underscore-separation and lower-case,
+the names of the files do not have to be exactly the name of the class declared in that file, but it is preferred to do so 
+if the file in question does only contain that one class. Finally, as usual, names with all upper-case letters are 
+reserved for MACROs and \#defines, nothing else, and should at least be pre-pended with \code{RK\_}\ to avoid name-clashes.
+}
+{\ }
+
+\Commandment
+{Everything has to be written in (Canadian) English.}
+{\ }
+{In an international environment English is the preferred language, Canadian English (which allows for both 
+the British and American spelling).}
+{\ }
+
+\Commandment
+{Provide clear and complete doxygen comments on interfaces.}
+{/** this is a ``long'' doxygen comment */,  /// this is a short doxygen comment, 
+ ///< this is a short doxygen comment for a preceeding element (variables only).}
+{The code has to be perfectly understandable for an outside developer. Practically this means full 
+Doxygen documentation of the header file (with tags: ``file'', ``author'', ``date'', and possibly others 
+like ``todo'' and ``test''), of the function declarations (with tags: ``param'', ``return'' and ``tparam''; and, 
+if applicable: ``test'', ``pre'', ``post'', ``throw'', and ``note''; the ``brief'' tag is desired but optional), 
+and class declarations (with tags: ``author'', ``tparam'', ``test'' and ``todo'', whenever applicable).}
+{\ }
+
+\Commandment
+{Provide reasonable comments in the source code.}
+{// Some comment. }
+{ Again, the code, including the source code, should be understandable to a programmer unfamiliar with the 
+implementation. So, provide a reasonable amount of comments within the code, e.g., a good guideline is 
+to comment each block (like if, for, while, etc.) with a brief and clear description of what that block does. }
+{\ }
+
+\Commandment
+{``Inline'' short definitions and but not long ones, keep interfaces readable.}
+{\ }
+{The header files should declare an interface that is readable and understandable, as well as 
+not pessimizing (opposing of optimizing). Short functions with less than a 5 lines or so can be defined inline
+with the declaration (e.g. within a class declaration or in a header-file with the \code{inline}\ keyword). This 
+promotes an understandable interface because a glimpse at a trivial function definition is more quickly understandable 
+than any kind of documentation. This also allows for function inlining (formally speaking) which is an important 
+optimization in C++. However, do not define the functions ``inline'' (i.e. put them in a source file (.cpp) instead)
+in the following cases: if it breaks readability of the 
+interface (due to function definitions being too long); if it requires including additional header files in the 
+header file in question; or is a virtual member function (which should not be allowed to be inlined in ReaK).}
+{\ }
+
+\Commandment
+{Prefer long meaningful names to accronyms or abreviations or meaningless names.}
+{angularVelocity, \sout{omega} }
+{This applies mostly to names that affect the interface of a class or library, i.e. parameter names, 
+data members, global constants, function names, class names, etc. Most programmers in this world use 
+code completion tools and large screens, so, the prehistoric age of very short and cryptic names for 
+variables and types is revolute. The code should read like prose, names should be as complete and meaningful 
+as possible, within reason. Very well known accronyms or symbols are acceptable. Very local variables, like 
+local to a small block of code (like temporary variables in a function), can have meaningless names like ``t'' 
+or ``i'', but it is highly recommended that their scope be very limited and that they be declared as close as 
+possible to their first point of use. Finally, for naming functions, use action verbs, like \code{setTimeStep}\ 
+or \code{execute}\ or the like.}
+{\ }
+
+\Commandment
+{Keep the code well spaced out.}
+{if( fabs( u - v ) < std::numeric\_limits< double >::epsilon() )}
+{Code needs to be easy to read, it doesn't have to occupy the minimum number of lines or jam as much 
+instructions in the least amount of space. Try to leave an empty space between operators and operands, 
+between parentheses and their content, between parameters, and so on. Also, in the view that code should 
+be readable like prose, well, prose is usually separated into paragraphs, it's the same thing in 
+programming, i.e., leave empty lines to logically separate groups of instructions (and ideally add a comment 
+at the start of each such group of instructions).}
+{\ }
+
+\Commandment
+{File content must be kept within 100 columns.}
+{\ }
+{It improves readability when you do not have to scroll sideways.}
+{}
+
+\Commandment
+{For code indentation, use 2 hard spaces. }
+{|\ class foo\_bar \{\\
+|\ \ \ public:\\
+|\ \ \ \ \ void some\_function();\\
+|\ \}
+}
+{Tabs should not be used, as they can give different behavior in different editors. Most editors can be set 
+such that each tab is replaced by 4 or 8 spaces. Everything in ReaK should be indented properly, with 2 spaces for 
+each level of indentation, except for namespace scopes that don't require indentation.}
+{\ }
+
+\Commandment
+{Use angle brackets (\code{$<$}\ and \code{$>$}) for external and standard library headers. Use 
+quotes (\code{"}) for all ReaK headers.}
+{\#include <iostream> \\ \#include "kte\_map.hpp"}
+{It is important to distinguish the two forms of \code{\#include}\ directive not only for documentation 
+purposes but also for portability. The quote-version tells the compilers to first look in the ReaK library's 
+folders for the given header file, while the bracket-version tells the compiler not to look in the ReaK library's 
+folders but only in the external include paths and the system include directories (with standard and system libraries).}
+{\ }
+
+\Commandment
+{Put the notation for pointer (\code{*}) and reference (\code{\&}) right after the type. }
+{\sout{double* pointerToVariable}, double\& variable }
+{In this way, it is more clear which type it points/references to. This is a pretty basic guideline but it is included 
+here because it is a good habit to have.}
+{\ }
+
+\end{document}
