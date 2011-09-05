@@ -30,8 +30,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KTE_MAP_HPP
-#define KTE_MAP_HPP
+#ifndef REAK_KTE_MAP_HPP
+#define REAK_KTE_MAP_HPP
 
 
 #include <boost/noncopyable.hpp>
@@ -40,7 +40,7 @@
 
 #include "kte_ext_mappings.hpp"
 
-#include "math/kinetostatics.hpp"
+#include "kinetostatics/kinetostatics.hpp"
 
 namespace ReaK {
 
@@ -84,7 +84,7 @@ class kte_map : public virtual named_object , public boost::noncopyable {
      * \param aStorage a map of kinetostatic frame storage for stored kinematics and dynamics.
      * \note adaptivity is not yet supported.
      */
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>()) = 0;
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) = 0;
 
     /**
      * This method performs a force calculation pass (i.e. computes the dynamics).
@@ -94,7 +94,7 @@ class kte_map : public virtual named_object , public boost::noncopyable {
      * \param aStorage a map of kinetostatic frame storage for stored kinematics and dynamics.
      * \note adaptivity is not yet supported.
      */
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>()) = 0;
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) = 0;
 
     /**
      * This method performs a force clearance pass (i.e. resets all force values to zero).

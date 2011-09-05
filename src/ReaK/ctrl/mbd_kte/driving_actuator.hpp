@@ -32,8 +32,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DRIVING_ACTUATOR_HPP
-#define DRIVING_ACTUATOR_HPP
+#ifndef REAK_DRIVING_ACTUATOR_HPP
+#define REAK_DRIVING_ACTUATOR_HPP
 
 #include "force_actuator.hpp"
 #include "kte_system_input.hpp"
@@ -74,8 +74,8 @@ class driving_actuator_gen : public force_actuator_gen, public system_input {
      * \param aJoint the joint which will react to the actuator's force.
      */
     driving_actuator_gen(const std::string& aName,
-                         const boost::shared_ptr< gen_coord<double> >& aFrame,
-                         const boost::shared_ptr< reacting_kte_gen >& aJoint) :
+                         const shared_pointer< gen_coord<double> >::type& aFrame,
+                         const shared_pointer< reacting_kte_gen >::type& aJoint) :
                          force_actuator_gen(aName,aFrame,aJoint),
 			 system_input(aName),
                          mDriveForce(0.0) { };
@@ -85,7 +85,7 @@ class driving_actuator_gen : public force_actuator_gen, public system_input {
      */
     virtual ~driving_actuator_gen() { };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       force_actuator_gen::save(A,force_actuator_gen::getStaticObjectType()->TypeVersion());
@@ -148,8 +148,8 @@ class driving_actuator_2D : public force_actuator_2D, public system_input {
      * \param aJoint the joint which will react to the actuator's force and torque.
      */
     driving_actuator_2D(const std::string& aName,
-                         const boost::shared_ptr< frame_2D<double> >& aFrame,
-                         const boost::shared_ptr< reacting_kte_2D >& aJoint) :
+                         const shared_pointer< frame_2D<double> >::type& aFrame,
+                         const shared_pointer< reacting_kte_2D >::type& aJoint) :
                          force_actuator_2D(aName,aFrame,aJoint),
                          mDriveForce(0.0,0.0), mDriveTorque(0.0) { };
 
@@ -158,7 +158,7 @@ class driving_actuator_2D : public force_actuator_2D, public system_input {
      */
     virtual ~driving_actuator_2D() { };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       force_actuator_2D::save(A,force_actuator_2D::getStaticObjectType()->TypeVersion());
@@ -229,8 +229,8 @@ class driving_actuator_3D : public force_actuator_3D, public system_input {
      * \param aJoint the joint which will react to the actuator's force and torque.
      */
     driving_actuator_3D(const std::string& aName,
-                         const boost::shared_ptr< frame_3D<double> >& aFrame,
-                         const boost::shared_ptr< reacting_kte_3D >& aJoint) :
+                         const shared_pointer< frame_3D<double> >::type& aFrame,
+                         const shared_pointer< reacting_kte_3D >::type& aJoint) :
                          force_actuator_3D(aName,aFrame,aJoint),
                          mDriveForce(0.0,0.0,0.0),
                          mDriveTorque(0.0,0.0,0.0) { };
@@ -240,7 +240,7 @@ class driving_actuator_3D : public force_actuator_3D, public system_input {
      */
     virtual ~driving_actuator_3D() { };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       force_actuator_3D::save(A,force_actuator_3D::getStaticObjectType()->TypeVersion());

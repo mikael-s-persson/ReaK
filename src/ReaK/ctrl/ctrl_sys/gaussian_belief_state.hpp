@@ -33,15 +33,15 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GAUSSIAN_BELIEF_STATE_HPP
-#define GAUSSIAN_BELIEF_STATE_HPP
+#ifndef REAK_GAUSSIAN_BELIEF_STATE_HPP
+#define REAK_GAUSSIAN_BELIEF_STATE_HPP
 
 #include "covariance_concept.hpp"
 #include "belief_state_concept.hpp"
 
-#include "math/mat_cholesky.hpp"
-#include "math/mat_svd_method.hpp"
-#include "math/mat_qr_decomp.hpp"
+#include "lin_alg/mat_cholesky.hpp"
+#include "lin_alg/mat_svd_method.hpp"
+#include "lin_alg/mat_qr_decomp.hpp"
 
 #include "base/named_object.hpp"
 
@@ -149,7 +149,7 @@ struct gaussian_pdf {
    */
   friend scalar_type entropy(const self& P) {
     using std::log;
-    return scalar_type(0.5) * (log( factor ) + scalar_type(L.get_row_count()));
+    return scalar_type(0.5) * (log( P.factor ) + scalar_type(P.L.get_row_count()));
   };
   
 };
@@ -243,7 +243,7 @@ struct gaussian_pdf<Covariance, covariance_storage::information> {
    */
   friend scalar_type entropy(const self& P) {
     using std::log;
-    return scalar_type(0.5) * (log( factor ) + scalar_type(E_inv.get_row_count()));
+    return scalar_type(0.5) * (log( P.factor ) + scalar_type(P.E_inv.get_row_count()));
   };
   
 };
@@ -345,7 +345,7 @@ struct gaussian_pdf<Covariance, covariance_storage::decomposed> {
    */
   friend scalar_type entropy(const self& P) {
     using std::log;
-    return scalar_type(0.5) * (log( factor ) + scalar_type(QX.get_row_count()));
+    return scalar_type(0.5) * (log( P.factor ) + scalar_type(P.QX.get_row_count()));
   };
   
 };
@@ -410,7 +410,7 @@ struct gaussian_sampler {
   
   state_type mean_state;
   mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> L;
-  mutable boost::shared_ptr<RNG> rng;
+  mutable typename shared_pointer<RNG>::type rng;
   
   /**
    * Parametrized constructor.
@@ -418,7 +418,7 @@ struct gaussian_sampler {
    * \param aCov The covariance matrix of the gaussian probability distribution.
    * \param aRng The random-number generator (functor) to use to obtain randomness.
    */
-  gaussian_sampler(const state_type& aMeanState, const covariance_type& aCov, boost::shared_ptr<RNG> aRng) : mean_state(aMeanState), L(aMeanState.size()), rng(aRng) {
+  gaussian_sampler(const state_type& aMeanState, const covariance_type& aCov, const typename shared_pointer<RNG>::type& aRng) : mean_state(aMeanState), L(aMeanState.size()), rng(aRng) {
     using std::sqrt;
     const matrix_type& C = aCov.get_matrix();
     try {
@@ -505,7 +505,7 @@ class gaussian_belief_state : public virtual shared_object {
   private:
     state_type mean_state;
     covariance_type covar;
-    mutable boost::shared_ptr<boost::minstd_rand> rng;
+    mutable shared_pointer<boost::minstd_rand>::type rng;
     
   public:
     

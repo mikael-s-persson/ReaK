@@ -26,11 +26,11 @@
 
 #include "base/named_object.hpp"
 
-#include "math/mat_alg.hpp"
+#include "lin_alg/mat_alg.hpp"
 #include "ctrl_sys/sss_exceptions.hpp"
 #include "rigid_body_states.hpp"
 
-#include "math/mat_cholesky.hpp"
+#include "lin_alg/mat_cholesky.hpp"
 
 namespace ReaK {
 

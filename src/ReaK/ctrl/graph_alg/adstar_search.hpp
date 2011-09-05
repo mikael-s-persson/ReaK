@@ -46,8 +46,8 @@
  */
 
 
-#ifndef ADSTAR_SEARCH_HPP
-#define ADSTAR_SEARCH_HPP
+#ifndef REAK_ADSTAR_SEARCH_HPP
+#define REAK_ADSTAR_SEARCH_HPP
 
 #include <functional>
 #include <vector>

@@ -31,8 +31,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SPATIAL_PATH_HPP
-#define SPATIAL_PATH_HPP
+#ifndef REAK_SPATIAL_PT_TO_PT_HPP
+#define REAK_SPATIAL_PT_TO_PT_HPP
 
 #include "spatial_path_concept.hpp"
 

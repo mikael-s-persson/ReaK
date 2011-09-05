@@ -31,8 +31,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LINE_TOPOLOGY_HPP
-#define LINE_TOPOLOGY_HPP
+#ifndef REAK_LINE_TOPOLOGY_HPP
+#define REAK_LINE_TOPOLOGY_HPP
 
 
 #include <boost/random/uniform_01.hpp>

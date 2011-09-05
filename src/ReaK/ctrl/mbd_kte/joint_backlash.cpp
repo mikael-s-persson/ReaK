@@ -29,7 +29,7 @@ namespace kte {
 
 
     
-void joint_backlash_gen::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void joint_backlash_gen::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mBase) || (!mEnd))
     return;
   
@@ -53,17 +53,17 @@ void joint_backlash_gen::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_s
   
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->gen_coord_mapping[mBase]))
-      aStorage->gen_coord_mapping[mBase] = boost::shared_ptr< gen_coord<double> >(new gen_coord<double>((*mBase)),scoped_deleter());
+      aStorage->gen_coord_mapping[mBase] = shared_pointer< gen_coord<double> >::type(new gen_coord<double>((*mBase)),scoped_deleter());
     else
       (*(aStorage->gen_coord_mapping[mBase])) = (*mBase);
     if(!(aStorage->gen_coord_mapping[mEnd]))
-      aStorage->gen_coord_mapping[mEnd] = boost::shared_ptr< gen_coord<double> >(new gen_coord<double>((*mEnd)),scoped_deleter());
+      aStorage->gen_coord_mapping[mEnd] = shared_pointer< gen_coord<double> >::type(new gen_coord<double>((*mEnd)),scoped_deleter());
     else
       (*(aStorage->gen_coord_mapping[mEnd])) = (*mEnd);
   };
 };
     
-void joint_backlash_gen::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void joint_backlash_gen::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mBase) || (!mEnd))
     return;
   

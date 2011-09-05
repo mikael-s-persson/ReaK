@@ -32,8 +32,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef METRIC_SPACE_SEARCH_HPP
-#define METRIC_SPACE_SEARCH_HPP
+#ifndef REAK_METRIC_SPACE_SEARCH_HPP
+#define REAK_METRIC_SPACE_SEARCH_HPP
 
 #include <boost/bind.hpp>
 #include <boost/lambda/lambda.hpp>

@@ -21,15 +21,15 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PPTESTER_PLANNER_HPP
-#define PPTESTER_PLANNER_HPP
+#ifndef REAK_PPTESTER_PLANNER_HPP
+#define REAK_PPTESTER_PLANNER_HPP
 
 //This header has to be the first included because it will not work otherwise (really bad programming!!!)
 #include <libplayerc++/playerc++.h>
 
-#include "math/rk_vect_alg.hpp"
+#include "lin_alg/vect_alg.hpp"
 
-#include "serialization/rk_archive.hpp"
+#include "serialization/archiver.hpp"
 
 #include <string>
 

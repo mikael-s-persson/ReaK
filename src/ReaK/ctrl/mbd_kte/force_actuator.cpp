@@ -28,19 +28,19 @@ namespace ReaK {
 namespace kte {
 
 
-void force_actuator_gen::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void force_actuator_gen::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mFrame) || (!mJoint))
     return;
 
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->gen_coord_mapping[mFrame]))
-      aStorage->gen_coord_mapping[mFrame] = boost::shared_ptr< gen_coord<double> >(new gen_coord<double>((*mFrame)),scoped_deleter());
+      aStorage->gen_coord_mapping[mFrame] = shared_pointer< gen_coord<double> >::type(new gen_coord<double>((*mFrame)),scoped_deleter());
     else
       (*(aStorage->gen_coord_mapping[mFrame])) = (*mFrame);
   };
 };
 
-void force_actuator_gen::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void force_actuator_gen::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mFrame) || (!mJoint))
     return;
 
@@ -63,19 +63,19 @@ void force_actuator_gen::clearForce() {
 
 
 
-void force_actuator_2D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void force_actuator_2D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mFrame) || (!mJoint))
     return;
 
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_2D_mapping[mFrame]))
-      aStorage->frame_2D_mapping[mFrame] = boost::shared_ptr< frame_2D<double> >(new frame_2D<double>((*mFrame)),scoped_deleter());
+      aStorage->frame_2D_mapping[mFrame] = shared_pointer< frame_2D<double> >::type(new frame_2D<double>((*mFrame)),scoped_deleter());
     else
       (*(aStorage->frame_2D_mapping[mFrame])) = (*mFrame);
   };
 };
 
-void force_actuator_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void force_actuator_2D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mFrame) || (!mJoint))
     return;
 
@@ -100,19 +100,19 @@ void force_actuator_2D::clearForce() {
 
 
 
-void force_actuator_3D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void force_actuator_3D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mFrame) || (!mJoint))
     return;
 
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_3D_mapping[mFrame]))
-      aStorage->frame_3D_mapping[mFrame] = boost::shared_ptr< frame_3D<double> >(new frame_3D<double>((*mFrame)),scoped_deleter());
+      aStorage->frame_3D_mapping[mFrame] = shared_pointer< frame_3D<double> >::type(new frame_3D<double>((*mFrame)),scoped_deleter());
     else
       (*(aStorage->frame_3D_mapping[mFrame])) = (*mFrame);
   };
 };
 
-void force_actuator_3D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void force_actuator_3D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mFrame) || (!mJoint))
     return;
 

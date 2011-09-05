@@ -40,20 +40,20 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SYMPLECTIC_KALMAN_FILTER_HPP
-#define SYMPLECTIC_KALMAN_FILTER_HPP
+#ifndef REAK_SYMPLECTIC_KALMAN_FILTER_HPP
+#define REAK_SYMPLECTIC_KALMAN_FILTER_HPP
 
 #include "belief_state_concept.hpp"
 #include "discrete_linear_sss_concept.hpp"
 #include <boost/utility/enable_if.hpp>
-#include "math/vect_concepts.hpp"
-#include "math/mat_alg.hpp"
+#include "lin_alg/vect_concepts.hpp"
+#include "lin_alg/mat_alg.hpp"
 
 #include <boost/static_assert.hpp>
 #include "covariance_concept.hpp"
-#include "math/mat_cholesky.hpp"
-#include "math/mat_qr_decomp.hpp"
-#include "math/mat_views.hpp"
+#include "lin_alg/mat_cholesky.hpp"
+#include "lin_alg/mat_qr_decomp.hpp"
+#include "lin_alg/mat_views.hpp"
 
 namespace ReaK {
 

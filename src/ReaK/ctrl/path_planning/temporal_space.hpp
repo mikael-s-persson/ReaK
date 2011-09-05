@@ -30,8 +30,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TEMPORAL_SPACE_HPP
-#define TEMPORAL_SPACE_HPP
+#ifndef REAK_TEMPORAL_SPACE_HPP
+#define REAK_TEMPORAL_SPACE_HPP
 
 #include <boost/config.hpp>
 #include <cmath>

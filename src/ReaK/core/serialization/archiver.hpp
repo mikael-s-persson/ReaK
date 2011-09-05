@@ -32,16 +32,15 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ARCHIVER_HPP
-#define ARCHIVER_HPP
+#ifndef REAK_ARCHIVER_HPP
+#define REAK_ARCHIVER_HPP
 
-
+#include "base/defs.hpp"
 
 #include "base/shared_object_base.hpp"
 
 #include "rtti/typed_object.hpp"
 
-#include <boost/shared_ptr.hpp>
 #include <boost/preprocessor/stringize.hpp>
 
 #include <string>
@@ -58,6 +57,8 @@ namespace ReaK {
 namespace serialization {
 
 class serializable;
+
+typedef ReaK::shared_pointer< serializable >::type serializable_shared_pointer;
 
 
 /// This function constructs a name-value-pair for saving purposes.
@@ -109,11 +110,11 @@ class archive : public shared_object_base {
     archive(const archive&);
     archive& operator=(const archive&);
   protected:
-    std::vector< boost::shared_ptr<serializable> >& mObjRegistry; ///< Holds the registry of objects already loaded.
+    std::vector< serializable_shared_pointer >& mObjRegistry; ///< Holds the registry of objects already loaded.
   public:
     virtual void RK_CALL destroy() { delete this; };
 
-    archive() : shared_object_base(), mObjRegistry(*(new std::vector< boost::shared_ptr<serializable> >())) { };
+    archive() : shared_object_base(), mObjRegistry(*(new std::vector< serializable_shared_pointer >())) { };
     
     virtual ~archive() { delete &mObjRegistry; };
 };
@@ -126,10 +127,10 @@ class archive : public shared_object_base {
 class iarchive : public archive {
   protected:
     /// Loading a serializable object.
-    virtual iarchive& RK_CALL load_serializable_ptr(boost::shared_ptr<serializable>& Item) = 0;
+    virtual iarchive& RK_CALL load_serializable_ptr(serializable_shared_pointer& Item) = 0;
 
     /// Loading a serializable object with a name.
-    virtual iarchive& RK_CALL load_serializable_ptr(const std::pair<std::string, boost::shared_ptr<serializable>& >& Item) = 0;
+    virtual iarchive& RK_CALL load_serializable_ptr(const std::pair<std::string, serializable_shared_pointer& >& Item) = 0;
 
     /// Loading a serializable object by reference.
     virtual iarchive& RK_CALL load_serializable(serializable& Item) = 0;
@@ -178,12 +179,12 @@ class iarchive : public archive {
     iarchive() : archive() { };
 
     /// Loading a serializable object.
-    friend iarchive& RK_CALL operator >>(iarchive& in, boost::shared_ptr<serializable>& Item) {
+    friend iarchive& RK_CALL operator >>(iarchive& in, serializable_shared_pointer& Item) {
       return in.load_serializable_ptr(Item);
     };
 
     /// Loading a serializable object with a name.
-    friend iarchive& RK_CALL operator &(iarchive& in, const std::pair<std::string, boost::shared_ptr<serializable>& >& Item) {
+    friend iarchive& RK_CALL operator &(iarchive& in, const std::pair<std::string, serializable_shared_pointer& >& Item) {
       return in.load_serializable_ptr(Item);
     };
 
@@ -274,10 +275,11 @@ class iarchive : public archive {
       return in.load_string(s);
     };
 
+#ifndef RK_ENABLE_CXX0X_FEATURES
     /// Loading a serializable object as a templated pointer.
     template <typename T>
     friend iarchive& operator >>(iarchive& in, boost::shared_ptr<T>& Item) {
-      boost::shared_ptr<serializable> tmp;
+      serializable_shared_pointer tmp;
       in >> tmp;
       if(tmp)
         Item = rtti::rk_dynamic_ptr_cast<T>(tmp);
@@ -289,8 +291,8 @@ class iarchive : public archive {
     /// Loading a serializable object as a templated pointer with a name.
     template <typename T>
     friend iarchive& operator &(iarchive& in, const std::pair<std::string, boost::shared_ptr<T>& >& Item) {
-      boost::shared_ptr<serializable> tmp;
-      in & std::pair<std::string, boost::shared_ptr<serializable>& >(Item.first, tmp);
+      serializable_shared_pointer tmp;
+      in & std::pair<std::string, serializable_shared_pointer& >(Item.first, tmp);
       if(tmp)
         Item.second = rtti::rk_dynamic_ptr_cast<T>(tmp);
       else
@@ -301,7 +303,7 @@ class iarchive : public archive {
     /// Loading a serializable object as a templated weak pointer.
     template <typename T>
     friend iarchive& operator >>(iarchive& in, boost::weak_ptr<T>& Item) {
-      boost::shared_ptr<serializable> tmp;
+      serializable_shared_pointer tmp;
       in >> tmp;
       if(tmp)
         Item = rtti::rk_dynamic_ptr_cast<T>(tmp);
@@ -313,14 +315,63 @@ class iarchive : public archive {
     /// Loading a serializable object as a templated weak pointer with a name.
     template <typename T>
     friend iarchive& operator &(iarchive& in, const std::pair<std::string, boost::weak_ptr<T>& >& Item) {
-      boost::shared_ptr<serializable> tmp;
-      in & std::pair<std::string, boost::shared_ptr<serializable>& >(Item.first, tmp);
+      serializable_shared_pointer tmp;
+      in & std::pair<std::string, serializable_shared_pointer& >(Item.first, tmp);
       if(tmp)
         Item.second = rtti::rk_dynamic_ptr_cast<T>(tmp);
       else
 	Item.second = boost::weak_ptr<T>();
       return in;
     };
+#else
+    /// Loading a serializable object as a templated pointer.
+    template <typename T>
+    friend iarchive& operator >>(iarchive& in, std::shared_ptr<T>& Item) {
+      serializable_shared_pointer tmp;
+      in >> tmp;
+      if(tmp)
+        Item = rtti::rk_dynamic_ptr_cast<T>(tmp);
+      else
+	Item = std::shared_ptr<T>();
+      return in;
+    };
+
+    /// Loading a serializable object as a templated pointer with a name.
+    template <typename T>
+    friend iarchive& operator &(iarchive& in, const std::pair<std::string, std::shared_ptr<T>& >& Item) {
+      serializable_shared_pointer tmp;
+      in & std::pair<std::string, serializable_shared_pointer& >(Item.first, tmp);
+      if(tmp)
+        Item.second = rtti::rk_dynamic_ptr_cast<T>(tmp);
+      else
+	Item.second = std::shared_ptr<T>();
+      return in;
+    };
+
+    /// Loading a serializable object as a templated weak pointer.
+    template <typename T>
+    friend iarchive& operator >>(iarchive& in, std::weak_ptr<T>& Item) {
+      serializable_shared_pointer tmp;
+      in >> tmp;
+      if(tmp)
+        Item = rtti::rk_dynamic_ptr_cast<T>(tmp);
+      else
+	Item = std::weak_ptr<T>();
+      return in;
+    };
+
+    /// Loading a serializable object as a templated weak pointer with a name.
+    template <typename T>
+    friend iarchive& operator &(iarchive& in, const std::pair<std::string, std::weak_ptr<T>& >& Item) {
+      serializable_shared_pointer tmp;
+      in & std::pair<std::string, serializable_shared_pointer& >(Item.first, tmp);
+      if(tmp)
+        Item.second = rtti::rk_dynamic_ptr_cast<T>(tmp);
+      else
+	Item.second = std::weak_ptr<T>();
+      return in;
+    };
+#endif
     
     template <typename T>
     friend iarchive& operator >>(iarchive& in, T& Item) {
@@ -453,19 +504,19 @@ class iarchive : public archive {
  */
 class oarchive : public archive {
   protected:
-    std::map< boost::shared_ptr<serializable>, unsigned int >& mObjRegMap;
+    std::map< serializable_shared_pointer, unsigned int >& mObjRegMap;
 
     /// Saving a serializable object to an external archive.
-    virtual oarchive& RK_CALL saveToNewArchive_impl(const boost::shared_ptr<serializable>& Item, const std::string& FileName) = 0;
+    virtual oarchive& RK_CALL saveToNewArchive_impl(const serializable_shared_pointer& Item, const std::string& FileName) = 0;
 
     /// Saving a serializable object with a name to an external archive.
-    virtual oarchive& RK_CALL saveToNewArchiveNamed_impl(const std::pair<std::string, const boost::shared_ptr<serializable>& >& Item, const std::string& FileName) = 0;
+    virtual oarchive& RK_CALL saveToNewArchiveNamed_impl(const std::pair<std::string, const serializable_shared_pointer& >& Item, const std::string& FileName) = 0;
 
     /// Saving a serializable object.
-    virtual oarchive& RK_CALL save_serializable_ptr(const boost::shared_ptr<serializable>& Item) = 0;
+    virtual oarchive& RK_CALL save_serializable_ptr(const serializable_shared_pointer& Item) = 0;
 
     /// Saving a serializable object with a name.
-    virtual oarchive& RK_CALL save_serializable_ptr(const std::pair<std::string, const boost::shared_ptr<serializable>& >& Item) = 0;
+    virtual oarchive& RK_CALL save_serializable_ptr(const std::pair<std::string, const serializable_shared_pointer& >& Item) = 0;
 
     /// Saving a serializable object by reference.
     virtual oarchive& RK_CALL save_serializable(const serializable& Item) = 0;
@@ -511,27 +562,27 @@ class oarchive : public archive {
     
   public:
     /// Default constructor.
-    oarchive() : archive(), mObjRegMap(*(new std::map< boost::shared_ptr<serializable>, unsigned int >())) { };
+    oarchive() : archive(), mObjRegMap(*(new std::map< serializable_shared_pointer, unsigned int >())) { };
     
     virtual ~oarchive() { delete &mObjRegMap; };
 
     /// Saving a serializable object to an external archive.
-    oarchive& RK_CALL saveToNewArchive(boost::shared_ptr<serializable> Item, const std::string& FileName) {
+    oarchive& RK_CALL saveToNewArchive(serializable_shared_pointer Item, const std::string& FileName) {
       return saveToNewArchive_impl(Item,FileName);
     };
 
     /// Saving a serializable object with a name to an external archive.
-    oarchive& RK_CALL saveToNewArchiveNamed(const std::pair<std::string, const boost::shared_ptr<serializable>& >& Item, const std::string& FileName) {
+    oarchive& RK_CALL saveToNewArchiveNamed(const std::pair<std::string, const serializable_shared_pointer& >& Item, const std::string& FileName) {
       return saveToNewArchiveNamed_impl(Item,FileName);
     };
 
     /// Saving a serializable object.
-    friend oarchive& RK_CALL operator <<(oarchive& out, boost::shared_ptr<serializable> Item) {
+    friend oarchive& RK_CALL operator <<(oarchive& out, serializable_shared_pointer Item) {
       return out.save_serializable_ptr(Item);
     };
 
     /// Saving a serializable object with a name.
-    friend oarchive& RK_CALL operator &(oarchive& out, const std::pair<std::string, const boost::shared_ptr<serializable>& >& Item) {
+    friend oarchive& RK_CALL operator &(oarchive& out, const std::pair<std::string, const serializable_shared_pointer& >& Item) {
       return out.save_serializable_ptr(Item);
     };
 
@@ -616,10 +667,11 @@ class oarchive : public archive {
       return out.save_string(s);
     };
 
+#ifndef RK_ENABLE_CXX0X_FEATURES
     /// Saving a serializable object as a templated pointer.
     template <typename T>
     friend oarchive& operator <<(oarchive& out, const boost::shared_ptr<T>& Item) {
-      boost::shared_ptr<serializable> tmp;
+      serializable_shared_pointer tmp;
       if(Item)
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item);
       return out << tmp;
@@ -628,16 +680,16 @@ class oarchive : public archive {
     /// Saving a serializable object as a templated pointer with a name.
     template <typename T>
     friend oarchive& operator &(oarchive& out, const std::pair<std::string, const boost::shared_ptr<T>& >& Item) {
-      boost::shared_ptr<serializable> tmp;
+      serializable_shared_pointer tmp;
       if(Item.second)
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.second);
-      return out & std::pair<std::string, const boost::shared_ptr<serializable>& >(Item.first, tmp);
+      return out & std::pair<std::string, const serializable_shared_pointer& >(Item.first, tmp);
     };
 
     /// Saving a serializable object as a templated weak pointer.
     template <typename T>
     friend oarchive& operator <<(oarchive& out, const boost::weak_ptr<T>& Item) {
-      boost::shared_ptr<serializable> tmp;
+      serializable_shared_pointer tmp;
       if(!Item.expired())
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.lock());
       return out << tmp;
@@ -646,11 +698,48 @@ class oarchive : public archive {
     /// Saving a serializable object as a templated weak pointer with a name.
     template <typename T>
     friend oarchive& operator &(oarchive& out, const std::pair<std::string, const boost::weak_ptr<T>& >& Item) {
-      boost::shared_ptr<serializable> tmp;
+      serializable_shared_pointer tmp;
       if(!Item.second.expired())
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.second.lock());
-      return out & std::pair<std::string, const boost::shared_ptr<serializable>& >(Item.first, tmp);
+      return out & std::pair<std::string, const serializable_shared_pointer& >(Item.first, tmp);
     };
+#else
+    /// Saving a serializable object as a templated pointer.
+    template <typename T>
+    friend oarchive& operator <<(oarchive& out, const std::shared_ptr<T>& Item) {
+      serializable_shared_pointer tmp;
+      if(Item)
+        tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item);
+      return out << tmp;
+    };
+
+    /// Saving a serializable object as a templated pointer with a name.
+    template <typename T>
+    friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::shared_ptr<T>& >& Item) {
+      serializable_shared_pointer tmp;
+      if(Item.second)
+        tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.second);
+      return out & std::pair<std::string, const serializable_shared_pointer& >(Item.first, tmp);
+    };
+
+    /// Saving a serializable object as a templated weak pointer.
+    template <typename T>
+    friend oarchive& operator <<(oarchive& out, const std::weak_ptr<T>& Item) {
+      serializable_shared_pointer tmp;
+      if(!Item.expired())
+        tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.lock());
+      return out << tmp;
+    };
+
+    /// Saving a serializable object as a templated weak pointer with a name.
+    template <typename T>
+    friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::weak_ptr<T>& >& Item) {
+      serializable_shared_pointer tmp;
+      if(!Item.second.expired())
+        tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.second.lock());
+      return out & std::pair<std::string, const serializable_shared_pointer& >(Item.first, tmp);
+    };
+#endif
     
     /// Saving any object for which there are no other matching overloads (assumed to be a serializable object).
     template <typename T>

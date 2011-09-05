@@ -40,8 +40,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DRY_REVOLUTE_JOINT_HPP
-#define DRY_REVOLUTE_JOINT_HPP
+#ifndef REAK_DRY_REVOLUTE_JOINT_HPP
+#define REAK_DRY_REVOLUTE_JOINT_HPP
+
+#include "base/defs.hpp"
 
 #include "revolute_joint.hpp"
 
@@ -94,24 +96,24 @@ class dry_revolute_joint_2D : public revolute_joint_2D {
      * \param aSlipVelocity the micro-slip tolerance in joint speed.
      */
     dry_revolute_joint_2D(const std::string& aName,
-                      boost::shared_ptr< gen_coord<double> > aAngle,
-                      boost::shared_ptr< frame_2D<double> > aBase,
-                      boost::shared_ptr< frame_2D<double> > aEnd,
-                      boost::shared_ptr< jacobian_gen_2D<double> > aJacobian = boost::shared_ptr< jacobian_gen_2D<double> >(),
-                      double aStictionCoef = 0.5,
-                      double aSlipCoef = 0.3,
-                      double aSlipVelocity = 1E-5) :
-                      revolute_joint_2D(aName,aAngle,aBase,aEnd,aJacobian),
-                      mStictionCoef(aStictionCoef),
-                      mSlipCoef(aSlipCoef),
-                      mSlipVelocity(aSlipVelocity) { };
+			  const shared_pointer< gen_coord<double> >::type& aAngle,
+			  const shared_pointer< frame_2D<double> >::type& aBase,
+			  const shared_pointer< frame_2D<double> >::type& aEnd,
+			  const shared_pointer< jacobian_gen_2D<double> >::type& aJacobian = shared_pointer< jacobian_gen_2D<double> >::type(),
+			  double aStictionCoef = 0.5,
+			  double aSlipCoef = 0.3,
+			  double aSlipVelocity = 1E-5) :
+			  revolute_joint_2D(aName,aAngle,aBase,aEnd,aJacobian),
+			  mStictionCoef(aStictionCoef),
+			  mSlipCoef(aSlipCoef),
+			  mSlipVelocity(aSlipVelocity) { };
 
     /**
      * Default destructor.
      */
     virtual ~dry_revolute_joint_2D() { };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       revolute_joint_2D::save(A,revolute_joint_2D::getStaticObjectType()->TypeVersion());
@@ -175,25 +177,25 @@ class dry_revolute_joint_3D : public revolute_joint_3D {
      * \param aSlipVelocity the micro-slip tolerance in joint speed.
      */
     dry_revolute_joint_3D(const std::string& aName,
-                      boost::shared_ptr< gen_coord<double> > aAngle,
-                      const vect<double,3>& aAxis,
-                      boost::shared_ptr< frame_3D<double> > aBase,
-                      boost::shared_ptr< frame_3D<double> > aEnd,
-                      boost::shared_ptr< jacobian_gen_3D<double> > aJacobian = boost::shared_ptr< jacobian_gen_3D<double> >(),
-                      double aStictionCoef = 0.5,
-                      double aSlipCoef = 0.3,
-                      double aSlipVelocity = 1E-5) :
-                      revolute_joint_3D(aName,aAngle,aAxis,aBase,aEnd,aJacobian),
-                      mStictionCoef(aStictionCoef),
-                      mSlipCoef(aSlipCoef),
-                      mSlipVelocity(aSlipVelocity) { };
+			  const shared_pointer< gen_coord<double> >::type& aAngle,
+			  const vect<double,3>& aAxis,
+			  const shared_pointer< frame_3D<double> >::type& aBase,
+			  const shared_pointer< frame_3D<double> >::type& aEnd,
+			  const shared_pointer< jacobian_gen_3D<double> >::type& aJacobian = shared_pointer< jacobian_gen_3D<double> >::type(),
+			  double aStictionCoef = 0.5,
+			  double aSlipCoef = 0.3,
+			  double aSlipVelocity = 1E-5) :
+			  revolute_joint_3D(aName,aAngle,aAxis,aBase,aEnd,aJacobian),
+			  mStictionCoef(aStictionCoef),
+			  mSlipCoef(aSlipCoef),
+			  mSlipVelocity(aSlipVelocity) { };
 
     /**
      * Default destructor.
      */
     virtual ~dry_revolute_joint_3D() { };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       revolute_joint_3D::save(A,revolute_joint_3D::getStaticObjectType()->TypeVersion());

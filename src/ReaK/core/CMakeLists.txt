@@ -1,5 +1,6 @@
 # These are the main sub-directories
-set(RKMATHDIR "${RKCOREDIR}/math")
+set(RKLINALGDIR "${RKCOREDIR}/lin_alg")
+set(RKKINETOSTATICSDIR "${RKCOREDIR}/kinetostatics")
 set(RKBASEDIR "${RKCOREDIR}/base")
 set(RKOPTIMDIR "${RKCOREDIR}/optimization")
 set(RKRTTIDIR "${RKCOREDIR}/rtti")
@@ -9,7 +10,8 @@ set(RKINTEGRATORSDIR "${RKCOREDIR}/integrators")
 
 set(RKCORESUBDIRS 
   ${RKBASEDIR} 
-  ${RKMATHDIR} 
+  ${RKLINALGDIR} 
+  ${RKKINETOSTATICSDIR} 
   ${RKRTTIDIR} 
   ${RKSERIALIZATIONDIR} 
   ${RKRECORDERSDIR} 
@@ -17,6 +19,9 @@ set(RKCORESUBDIRS
   ${RKINTEGRATORSDIR} 
   ${RKOPTIMDIR}
 )
+
+include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
+include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 
 # Add the sub-directories to cmake process.
 foreach(CURRENT_RKCORESUBDIR ${RKCORESUBDIRS})
@@ -30,6 +35,3 @@ add_library(reak_core STATIC ${RKRTTISOURCES} ${RKRECORDERSSOURCES} ${RKSERIALIZ
 #target_link_libraries(reak_core reak_rtti reak_serialization reak_recorders)
 setup_custom_target(reak_core "${SRCROOT}${RKCOREDIR}")
 
-include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
-
-include_directories(AFTER "${SRCROOT}${RKCOREDIR}")

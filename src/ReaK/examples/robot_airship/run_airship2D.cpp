@@ -73,13 +73,13 @@ int main(int argc, char** argv) {
   std::string Qu_filename(argv[6]);
   std::string R_filename(argv[7]);
   
-  boost::shared_ptr< frame_2D<double> > airship2D_frame;
-  boost::shared_ptr< kte::position_measure_2D > airship2D_position;
-  boost::shared_ptr< kte::rotation_measure_2D > airship2D_rotation;
+  shared_pointer< frame_2D<double> >::type airship2D_frame;
+  shared_pointer< kte::position_measure_2D >::type airship2D_position;
+  shared_pointer< kte::rotation_measure_2D >::type airship2D_rotation;
   
-  boost::shared_ptr< kte::driving_actuator_2D > airship2D_actuator;
-  boost::shared_ptr< kte::kte_map_chain > airship2D_model;
-  boost::shared_ptr< kte::mass_matrix_calc > airship2D_mass_calc;
+  shared_pointer< kte::driving_actuator_2D >::type airship2D_actuator;
+  shared_pointer< kte::kte_map_chain >::type airship2D_model;
+  shared_pointer< kte::mass_matrix_calc >::type airship2D_mass_calc;
   
   
   try {
@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
 							  ReaK::vect_n<double>(),
 							  0.0,
 							  1e-4,
-							  boost::weak_ptr< state_rate_function<double> >(),
+							  weak_pointer< state_rate_function<double> >::type(),
 							  time_step,
 							  time_step * 0.000001,
 							  1e-3),

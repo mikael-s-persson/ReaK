@@ -32,19 +32,19 @@ namespace kte {
 
 
 
-void inertia_gen::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void inertia_gen::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if(!mCenterOfMass)
     return;
 
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->gen_coord_mapping[mCenterOfMass]))
-      aStorage->gen_coord_mapping[mCenterOfMass] = boost::shared_ptr< ReaK::gen_coord<double> >(new ReaK::gen_coord<double>((*mCenterOfMass)),ReaK::scoped_deleter());
+      aStorage->gen_coord_mapping[mCenterOfMass] = shared_pointer< ReaK::gen_coord<double> >::type(new ReaK::gen_coord<double>((*mCenterOfMass)),ReaK::scoped_deleter());
     else
       (*(aStorage->gen_coord_mapping[mCenterOfMass])) = (*mCenterOfMass);
   };
 };
 
-void inertia_gen::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void inertia_gen::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if(!mCenterOfMass)
     return;
 
@@ -62,19 +62,19 @@ void inertia_gen::clearForce() {
 
 
 
-void inertia_2D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void inertia_2D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if(!mCenterOfMass)
     return;
 
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_2D_mapping[mCenterOfMass]))
-      aStorage->frame_2D_mapping[mCenterOfMass] = boost::shared_ptr< frame_2D<double> >(new frame_2D<double>((*mCenterOfMass)),scoped_deleter());
+      aStorage->frame_2D_mapping[mCenterOfMass] = shared_pointer< frame_2D<double> >::type(new frame_2D<double>((*mCenterOfMass)),scoped_deleter());
     else
       (*(aStorage->frame_2D_mapping[mCenterOfMass])) = (*mCenterOfMass);
   };
 };
 
-void inertia_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void inertia_2D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if(!mCenterOfMass)
     return;
 
@@ -96,19 +96,19 @@ void inertia_2D::clearForce() {
 
 
 
-void inertia_3D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void inertia_3D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if(!mCenterOfMass)
     return;
 
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_3D_mapping[mCenterOfMass]))
-      aStorage->frame_3D_mapping[mCenterOfMass] = boost::shared_ptr< frame_3D<double> >(new frame_3D<double>((*mCenterOfMass)),scoped_deleter());
+      aStorage->frame_3D_mapping[mCenterOfMass] = shared_pointer< frame_3D<double> >::type(new frame_3D<double>((*mCenterOfMass)),scoped_deleter());
     else
       (*(aStorage->frame_3D_mapping[mCenterOfMass])) = (*mCenterOfMass);
   };
 };
 
-void inertia_3D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void inertia_3D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if(!mCenterOfMass)
     return;
 

@@ -31,8 +31,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DISCRETE_SSS_CONCEPT_HPP
-#define DISCRETE_SSS_CONCEPT_HPP
+#ifndef REAK_DISCRETE_SSS_CONCEPT_HPP
+#define REAK_DISCRETE_SSS_CONCEPT_HPP
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>

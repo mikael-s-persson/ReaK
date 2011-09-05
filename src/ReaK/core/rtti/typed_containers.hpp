@@ -30,8 +30,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TYPED_CONTAINERS_HPP
-#define TYPED_CONTAINERS_HPP
+#ifndef REAK_TYPED_CONTAINERS_HPP
+#define REAK_TYPED_CONTAINERS_HPP
 
 #include "so_type.hpp"
 

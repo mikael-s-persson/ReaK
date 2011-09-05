@@ -44,8 +44,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PROBABILISTIC_ROADMAP_HPP
-#define PROBABILISTIC_ROADMAP_HPP
+#ifndef REAK_PROBABILISTIC_ROADMAP_HPP
+#define REAK_PROBABILISTIC_ROADMAP_HPP
 
 #include <functional>
 #include <vector>

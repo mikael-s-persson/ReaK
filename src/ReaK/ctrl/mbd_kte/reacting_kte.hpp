@@ -31,11 +31,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REACTING_KTE_HPP
-#define REACTING_KTE_HPP
+#ifndef REAK_REACTING_KTE_HPP
+#define REAK_REACTING_KTE_HPP
 
 #include "kte_map.hpp"
-#include "math/kinetostatics.hpp"
+#include "kinetostatics/kinetostatics.hpp"
 
 namespace ReaK {
 

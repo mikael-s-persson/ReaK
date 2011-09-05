@@ -59,7 +59,7 @@ bin_iarchive::~bin_iarchive() {
   file_stream.close();
 };
 
-iarchive& RK_CALL bin_iarchive::load_serializable_ptr(boost::shared_ptr<serializable>& Item) {
+iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointer& Item) {
   archive_object_header hdr;
 
   std::vector<unsigned int> typeIDvect;
@@ -94,17 +94,17 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(boost::shared_ptr<serializ
   hdr.type_ID = new unsigned int[typeIDvect.size()];
   std::copy(typeIDvect.begin(),typeIDvect.end(),hdr.type_ID);
   //Find the class in question in the repository.
-  boost::weak_ptr<rtti::so_type> p( rtti::so_type_repo::getInstance().findType(hdr.type_ID) );
+  rtti::so_type::weak_pointer p( rtti::so_type_repo::getInstance().findType(hdr.type_ID) );
   delete[] hdr.type_ID;
   if((p.expired()) || (p.lock()->TypeVersion() < hdr.type_version)) {
     file_stream.ignore(hdr.size);
-    Item = boost::shared_ptr<serializable>();
+    Item = serializable_shared_pointer();
     return *this;
   };
-  boost::shared_ptr<shared_object> po(p.lock()->CreateObject());
+  ReaK::shared_pointer<shared_object>::type po(p.lock()->CreateObject());
   if(!po) {
     file_stream.ignore(hdr.size);
-    Item = boost::shared_ptr<serializable>();
+    Item = serializable_shared_pointer();
     return *this;
   };
 
@@ -128,7 +128,7 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(boost::shared_ptr<serializ
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_serializable_ptr(const std::pair<std::string, boost::shared_ptr<serializable>& >& Item) {
+iarchive& RK_CALL bin_iarchive::load_serializable_ptr(const std::pair<std::string, serializable_shared_pointer& >& Item) {
   return bin_iarchive::load_serializable_ptr(Item.second);
 };
 
@@ -238,13 +238,13 @@ bin_oarchive::~bin_oarchive() {
   file_stream.close();
 };
 
-oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const boost::shared_ptr<serializable>& Item, const std::string& FileName) {
+oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const serializable_shared_pointer& Item, const std::string& FileName) {
   archive_object_header hdr;
   bool already_saved(false);
   const unsigned int* type_ID = NULL;
 
   if(Item) {
-    std::map< boost::shared_ptr<serializable>, unsigned int>::const_iterator it = mObjRegMap.find(Item);
+    std::map< serializable_shared_pointer, unsigned int>::const_iterator it = mObjRegMap.find(Item);
 
     if(it != mObjRegMap.end()) {
       hdr.object_ID = it->second;
@@ -255,7 +255,7 @@ oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const boost::shared_ptr<se
       mObjRegMap[Item] = hdr.object_ID;
     };
 
-    boost::shared_ptr<rtti::so_type> obj_type = Item->getObjectType();
+    rtti::so_type::shared_pointer obj_type = Item->getObjectType();
     type_ID = obj_type->TypeID_begin();
     hdr.type_version = obj_type->TypeVersion();
     hdr.is_external = true;
@@ -298,18 +298,18 @@ oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const boost::shared_ptr<se
   return *this;
 };
 
-oarchive& RK_CALL bin_oarchive::saveToNewArchiveNamed_impl(const std::pair<std::string, const boost::shared_ptr<serializable>& >& Item, const std::string& FileName) {
+oarchive& RK_CALL bin_oarchive::saveToNewArchiveNamed_impl(const std::pair<std::string, const serializable_shared_pointer& >& Item, const std::string& FileName) {
   return bin_oarchive::saveToNewArchive_impl(Item.second,FileName);
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const boost::shared_ptr<serializable>& Item) {
+oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const serializable_shared_pointer& Item) {
   archive_object_header hdr;
   bool already_saved(false);
   const unsigned int* type_ID = NULL;
 
   if(Item) {
-    std::map< boost::shared_ptr<serializable>, unsigned int>::const_iterator it = mObjRegMap.find(Item);
+    std::map< serializable_shared_pointer, unsigned int>::const_iterator it = mObjRegMap.find(Item);
 
     if(it != mObjRegMap.end()) {
       hdr.object_ID = it->second;
@@ -320,7 +320,7 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const boost::shared_ptr<se
       mObjRegMap[Item] = hdr.object_ID;
     };
 
-    boost::shared_ptr<rtti::so_type> obj_type = Item->getObjectType();
+    rtti::so_type::shared_pointer obj_type = Item->getObjectType();
     type_ID = obj_type->TypeID_begin();
     hdr.type_version = obj_type->TypeVersion();
     hdr.is_external = false;
@@ -363,7 +363,7 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const boost::shared_ptr<se
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const std::pair<std::string, const boost::shared_ptr<serializable>& >& Item) {
+oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const std::pair<std::string, const serializable_shared_pointer& >& Item) {
   return bin_oarchive::save_serializable_ptr(Item.second);
 };
 

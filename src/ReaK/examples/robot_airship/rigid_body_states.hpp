@@ -27,10 +27,10 @@
 #include "base/shared_object.hpp"
 #include "ctrl_sys/state_vector_concept.hpp"
 
-#include "math/vect_alg.hpp"
-#include "math/rotations.hpp"
-#include "math/quat_alg.hpp"
-#include "math/vect_index_iterator.hpp"
+#include "lin_alg/vect_alg.hpp"
+#include "kinetostatics/rotations.hpp"
+#include "kinetostatics/quat_alg.hpp"
+#include "lin_alg/vect_index_iterator.hpp"
 
 namespace ReaK {
 

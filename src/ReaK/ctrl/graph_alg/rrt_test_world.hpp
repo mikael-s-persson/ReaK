@@ -36,8 +36,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RRT_TEST_WORLD_HPP
-#define RRT_TEST_WORLD_HPP
+#ifndef REAK_RRT_TEST_WORLD_HPP
+#define REAK_RRT_TEST_WORLD_HPP
 
 #include <iostream>
 #include <iomanip>

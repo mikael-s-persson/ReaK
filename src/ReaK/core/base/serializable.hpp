@@ -29,8 +29,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SERIALIZABLE_HPP
-#define SERIALIZABLE_HPP
+#ifndef REAK_SERIALIZABLE_HPP
+#define REAK_SERIALIZABLE_HPP
 
 #include "defs.hpp"
 

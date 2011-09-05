@@ -33,12 +33,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DAMPER_HPP
-#define DAMPER_HPP
+#ifndef REAK_DAMPER_HPP
+#define REAK_DAMPER_HPP
 
 #include "kte_map.hpp"
 
-#include "math/kinetostatics.hpp"
+#include "kinetostatics/kinetostatics.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -50,8 +50,8 @@ namespace kte {
 /** This class defines a damper acting between two generalized coordinates. */
 class damper_gen : public kte_map {
   private:
-    boost::shared_ptr< gen_coord<double> > mAnchor1; ///< Holds the first generalized coordinate.
-    boost::shared_ptr< gen_coord<double> > mAnchor2; ///< Holds the second generalized coordinate.
+    shared_pointer< gen_coord<double> >::type mAnchor1; ///< Holds the first generalized coordinate.
+    shared_pointer< gen_coord<double> >::type mAnchor2; ///< Holds the second generalized coordinate.
     double mDamping; ///< The damping coefficient (in Ns/m or Nms/rad).
 
   public:
@@ -74,8 +74,8 @@ class damper_gen : public kte_map {
      * \param aDamping damping coefficient (in Ns/m for a linear generalized coord. or Nms/rad for an angular generalized coord.).
      */
     damper_gen(const std::string& aName,
-	       boost::shared_ptr< gen_coord<double> > aAnchor1,
-	       boost::shared_ptr< gen_coord<double> > aAnchor2,
+	       const shared_pointer< gen_coord<double> >::type& aAnchor1,
+	       const shared_pointer< gen_coord<double> >::type& aAnchor2,
 	       double aDamping) :
 	       kte_map(aName),
 	       mAnchor1(aAnchor1),
@@ -87,9 +87,9 @@ class damper_gen : public kte_map {
      */
     virtual ~damper_gen() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 
@@ -115,8 +115,8 @@ class damper_gen : public kte_map {
 /** This class defines a damper acting between two 2D frames. */
 class damper_2D : public kte_map {
   private:
-    boost::shared_ptr< frame_2D<double> > mAnchor1; ///< Holds the first 2D frame.
-    boost::shared_ptr< frame_2D<double> > mAnchor2; ///< Holds the second 2D frame.
+    shared_pointer< frame_2D<double> >::type mAnchor1; ///< Holds the first 2D frame.
+    shared_pointer< frame_2D<double> >::type mAnchor2; ///< Holds the second 2D frame.
     double mDamping; ///< The damping coefficient (in Ns/m).
 
   public:
@@ -139,8 +139,8 @@ class damper_2D : public kte_map {
      * \param aDamping damping coefficient (in Ns/m).
      */
     damper_2D(const std::string& aName,
-	      boost::shared_ptr< frame_2D<double> > aAnchor1,
-	      boost::shared_ptr< frame_2D<double> > aAnchor2,
+	      const shared_pointer< frame_2D<double> >::type& aAnchor1,
+	      const shared_pointer< frame_2D<double> >::type& aAnchor2,
 	      double aDamping) :
 	      kte_map(aName),
 	      mAnchor1(aAnchor1),
@@ -152,9 +152,9 @@ class damper_2D : public kte_map {
      */
     virtual ~damper_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 
@@ -180,8 +180,8 @@ class damper_2D : public kte_map {
 /** This class defines a damper acting between two 3D frames. */
 class damper_3D : public kte_map {
   private:
-    boost::shared_ptr< frame_3D<double> > mAnchor1; ///< Holds the first 3D frame.
-    boost::shared_ptr< frame_3D<double> > mAnchor2; ///< Holds the second 3D frame.
+    shared_pointer< frame_3D<double> >::type mAnchor1; ///< Holds the first 3D frame.
+    shared_pointer< frame_3D<double> >::type mAnchor2; ///< Holds the second 3D frame.
     double mDamping; ///< The damping coefficient (in Ns/m).
 
   public:
@@ -204,8 +204,8 @@ class damper_3D : public kte_map {
      * \param aDamping damping coefficient (in Ns/m).
      */
     damper_3D(const std::string& aName,
-	      boost::shared_ptr< frame_3D<double> > aAnchor1,
-	      boost::shared_ptr< frame_3D<double> > aAnchor2,
+	      const shared_pointer< frame_3D<double> >::type& aAnchor1,
+	      const shared_pointer< frame_3D<double> >::type& aAnchor2,
 	      double aDamping) :
 	      kte_map(aName),
 	      mAnchor1(aAnchor1),
@@ -217,9 +217,9 @@ class damper_3D : public kte_map {
      */
     virtual ~damper_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 

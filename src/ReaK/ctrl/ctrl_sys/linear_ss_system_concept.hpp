@@ -34,8 +34,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LINEAR_SS_SYSTEM_CONCEPT_HPP
-#define LINEAR_SS_SYSTEM_CONCEPT_HPP
+#ifndef REAK_LINEAR_SS_SYSTEM_CONCEPT_HPP
+#define REAK_LINEAR_SS_SYSTEM_CONCEPT_HPP
 
 
 #include <boost/config.hpp>

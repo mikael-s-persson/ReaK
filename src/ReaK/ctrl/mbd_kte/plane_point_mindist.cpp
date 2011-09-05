@@ -33,7 +33,7 @@ namespace kte {
 
 
 
-void plane_point_mindist_3D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void plane_point_mindist_3D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mBase) || (!mEnd))
     return;
   
@@ -47,17 +47,17 @@ void plane_point_mindist_3D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<fra
   
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_3D_mapping[mBase]))
-      aStorage->frame_3D_mapping[mBase] = boost::shared_ptr< frame_3D<double> >(new frame_3D<double>((*mBase)),scoped_deleter());
+      aStorage->frame_3D_mapping[mBase] = shared_pointer< frame_3D<double> >::type(new frame_3D<double>((*mBase)),scoped_deleter());
     else
       (*(aStorage->frame_3D_mapping[mBase])) = (*mBase);
     if(!(aStorage->frame_3D_mapping[mEnd]))
-      aStorage->frame_3D_mapping[mEnd] = boost::shared_ptr< frame_3D<double> >(new frame_3D<double>((*mEnd)),scoped_deleter());
+      aStorage->frame_3D_mapping[mEnd] = shared_pointer< frame_3D<double> >::type(new frame_3D<double>((*mEnd)),scoped_deleter());
     else
       (*(aStorage->frame_3D_mapping[mEnd])) = (*mEnd);
   };
 };
     
-void plane_point_mindist_3D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void plane_point_mindist_3D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mBase) || (!mEnd))
     return;
   

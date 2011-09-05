@@ -37,8 +37,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FADPRM_TEST_WORLD_HPP
-#define FADPRM_TEST_WORLD_HPP
+#ifndef REAK_FADPRM_TEST_WORLD_HPP
+#define REAK_FADPRM_TEST_WORLD_HPP
 
 
 #include <boost/graph/adjacency_list.hpp>

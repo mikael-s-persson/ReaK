@@ -31,12 +31,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RIGID_LINK_HPP
-#define RIGID_LINK_HPP
+#ifndef REAK_RIGID_LINK_HPP
+#define REAK_RIGID_LINK_HPP
 
 #include "kte_map.hpp"
 
-#include "math/kinetostatics.hpp"
+#include "kinetostatics/kinetostatics.hpp"
 
 namespace ReaK {
 
@@ -49,8 +49,8 @@ namespace kte {
  */
 class rigid_link_gen : public kte_map {
   private:
-    boost::shared_ptr< gen_coord<double> > mBase; ///< Holds the base frame of the rigid-link.
-    boost::shared_ptr< gen_coord<double> > mEnd; ///< Holds the end frame of the rigid-link.
+    shared_pointer< gen_coord<double> >::type mBase; ///< Holds the base frame of the rigid-link.
+    shared_pointer< gen_coord<double> >::type mEnd; ///< Holds the end frame of the rigid-link.
     double mOffset; ///< Holds the offset of the rigid-link (or length of the link).
 
   public:
@@ -73,8 +73,8 @@ class rigid_link_gen : public kte_map {
      * \param aOffset the offset of the rigid-link (or length of the link).
      */
     rigid_link_gen(const std::string& aName,
-		   boost::shared_ptr< gen_coord<double> > aBase,
-		   boost::shared_ptr< gen_coord<double> > aEnd,
+		   const shared_pointer< gen_coord<double> >::type& aBase,
+		   const shared_pointer< gen_coord<double> >::type& aEnd,
 		   double aOffset) :
 		   kte_map(aName),
 		   mBase(aBase),
@@ -86,9 +86,9 @@ class rigid_link_gen : public kte_map {
      */
     virtual ~rigid_link_gen() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 
@@ -118,8 +118,8 @@ class rigid_link_gen : public kte_map {
  */
 class rigid_link_2D : public kte_map {
   private:
-    boost::shared_ptr< frame_2D<double> > mBase; ///< Holds the base frame of the rigid-link.
-    boost::shared_ptr< frame_2D<double> > mEnd; ///< Holds the end frame of the rigid-link.
+    shared_pointer< frame_2D<double> >::type mBase; ///< Holds the base frame of the rigid-link.
+    shared_pointer< frame_2D<double> >::type mEnd; ///< Holds the end frame of the rigid-link.
     pose_2D<double> mPoseOffset; ///< Holds the pose offset of the rigid-link (length and twist of the link).
 
   public:
@@ -142,8 +142,8 @@ class rigid_link_2D : public kte_map {
      * \param aPoseOffset the pose offset of the rigid-link (length and twist of the link).
      */
     rigid_link_2D(const std::string& aName,
-		  boost::shared_ptr< frame_2D<double> > aBase,
-		  boost::shared_ptr< frame_2D<double> > aEnd,
+		  const shared_pointer< frame_2D<double> >::type& aBase,
+		  const shared_pointer< frame_2D<double> >::type& aEnd,
 		  const pose_2D<double>& aPoseOffset) :
 		  kte_map(aName),
 		  mBase(aBase),
@@ -155,9 +155,9 @@ class rigid_link_2D : public kte_map {
      */
     virtual ~rigid_link_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 
@@ -187,8 +187,8 @@ class rigid_link_2D : public kte_map {
  */
 class rigid_link_3D : public kte_map {
   private:
-    boost::shared_ptr< frame_3D<double> > mBase; ///< Holds the base frame of the rigid-link.
-    boost::shared_ptr< frame_3D<double> > mEnd; ///< Holds the end frame of the rigid-link.
+    shared_pointer< frame_3D<double> >::type mBase; ///< Holds the base frame of the rigid-link.
+    shared_pointer< frame_3D<double> >::type mEnd; ///< Holds the end frame of the rigid-link.
     pose_3D<double> mPoseOffset; ///< Holds the pose offset of the rigid-link (length and twist of the link).
 
   public:
@@ -211,8 +211,8 @@ class rigid_link_3D : public kte_map {
      * \param aPoseOffset the pose offset of the rigid-link (length and twist of the link).
      */
     rigid_link_3D(const std::string& aName,
-		  boost::shared_ptr< frame_3D<double> > aBase,
-		  boost::shared_ptr< frame_3D<double> > aEnd,
+		  const shared_pointer< frame_3D<double> >::type& aBase,
+		  const shared_pointer< frame_3D<double> >::type& aEnd,
 		  const pose_3D<double>& aPoseOffset) :
 		  kte_map(aName),
 		  mBase(aBase),
@@ -224,9 +224,9 @@ class rigid_link_3D : public kte_map {
      */
     virtual ~rigid_link_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 

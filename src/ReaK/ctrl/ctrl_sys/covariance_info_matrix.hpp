@@ -30,11 +30,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INFORMATION_MATRIX_HPP
-#define INFORMATION_MATRIX_HPP
+#ifndef REAK_INFORMATION_MATRIX_HPP
+#define REAK_INFORMATION_MATRIX_HPP
 
-#include "math/mat_alg.hpp"
-#include "math/mat_cholesky.hpp"
+#include "lin_alg/mat_alg.hpp"
+#include "lin_alg/mat_cholesky.hpp"
 #include "base/named_object.hpp"
 
 #include "covariance_concept.hpp"

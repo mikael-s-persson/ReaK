@@ -30,10 +30,21 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TYPED_PRIMITIVES_HPP
-#define TYPED_PRIMITIVES_HPP
+#ifndef REAK_TYPED_PRIMITIVES_HPP
+#define REAK_TYPED_PRIMITIVES_HPP
 
 #include "so_type.hpp"
+
+#ifndef RK_ENABLE_CXX0X_FEATURES
+
+#include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
+
+#else
+
+#include <memory>
+
+#endif
 
 namespace ReaK {
 
@@ -110,6 +121,7 @@ struct get_type_id<std::string> {
   typedef std::string& load_type;
 };
 
+#ifndef RK_ENABLE_CXX0X_FEATURES
 
 template <typename T>
 struct get_type_id< boost::shared_ptr<T> > {
@@ -131,23 +143,39 @@ struct get_type_id< boost::weak_ptr<T> > {
   typedef boost::weak_ptr<T>& load_type;
 };
 
+#else
 
-// //Pseudo-primitive
-// template <typename T>
-// class typed_primitive {
-//   public:
-//     static const unsigned int StaticTypeID;
-//     static const unsigned int StaticTypeVersion;
-// 
-//     typedef const ReaK::serialization::serializable& save_type;
-//     typedef ReaK::serialization::serializable& load_type;
-// };
-// 
-// //Pseudo-primitive
-// template <typename T>
-// const unsigned int typed_primitive<T>::StaticTypeID = T::StaticTypeID;
-// template <typename T>
-// const unsigned int typed_primitive<T>::StaticTypeVersion = T::StaticTypeVersion;
+template <typename T>
+struct get_type_id< std::shared_ptr<T> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
+  static std::string type_name() { return "std::shared_ptr"; };
+  static construct_ptr CreatePtr() { return NULL; };
+  
+  typedef const std::shared_ptr<T>& save_type;
+  typedef std::shared_ptr<T>& load_type;
+};
+
+template <typename T>
+struct get_type_id< std::weak_ptr<T> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
+  static std::string type_name() { return "std::weak_ptr"; };
+  static construct_ptr CreatePtr() { return NULL; };
+  
+  typedef const std::weak_ptr<T>& save_type;
+  typedef std::weak_ptr<T>& load_type;
+};
+
+template <typename T>
+struct get_type_id< std::unique_ptr<T> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
+  static std::string type_name() { return "std::unique_ptr"; };
+  static construct_ptr CreatePtr() { return NULL; };
+  
+  typedef const std::unique_ptr<T>& save_type;
+  typedef std::unique_ptr<T>& load_type;
+};
+
+#endif
 
 
 };

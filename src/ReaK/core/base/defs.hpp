@@ -29,8 +29,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef rk_defs_H
-#define rk_defs_H
+#ifndef REAK_DEFS_HPP
+#define REAK_DEFS_HPP
 
 #ifdef WIN32
 #if defined(_M_X64) || defined(__x86_64__)
@@ -53,6 +53,21 @@
 
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
 #define RK_ENABLE_CXX0X_FEATURES
+
+#include <memory>
+
+#else
+
+#include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
+
+#endif
+
+#ifdef _MSC_VER
+#if (_MSC_VER >= 1600)
+//Cannot do this for now because MSVC doesn't support C++0x threads (why not is a mistery).
+//#define RK_ENABLE_CXXOX_FEATURES 
+#endif
 #endif
 
 #include <string>
@@ -103,6 +118,32 @@ inline std::string RK_RELATIVE_PATH(const std::string& S) {
 
 /** Main namespace for ReaK */
 namespace ReaK {
+  
+/**
+ * This class template alias can be used to specify a shared-pointer type in a C++0x vs. Boost 
+ * agnostic way (i.e. under C++0x, type evaluates to std::shared_ptr, otherwise, it gives boost::shared_ptr).
+ */
+template <typename T>
+struct shared_pointer {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  typedef typename std::shared_ptr<T> type;
+#else
+  typedef typename boost::shared_ptr<T> type;
+#endif
+};
+
+/**
+ * This class template alias can be used to specify a weak-pointer type in a C++0x vs. Boost 
+ * agnostic way (i.e. under C++0x, type evaluates to std::weak_ptr, otherwise, it gives boost::weak_ptr).
+ */
+template <typename T>
+struct weak_pointer {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  typedef typename std::weak_ptr<T> type;
+#else
+  typedef typename boost::weak_ptr<T> type;
+#endif
+};
 
 template<bool> struct CompileTimeChecker
 {

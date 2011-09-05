@@ -36,8 +36,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PRM_TEST_WORLD_HPP
-#define PRM_TEST_WORLD_HPP
+#ifndef REAK_PRM_TEST_WORLD_HPP
+#define REAK_PRM_TEST_WORLD_HPP
 
 #include <iostream>
 #include <iomanip>

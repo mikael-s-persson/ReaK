@@ -21,8 +21,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STATE_ESTIMATOR_CONCEPT_HPP
-#define STATE_ESTIMATOR_CONCEPT_HPP
+#ifndef REAK_STATE_ESTIMATOR_CONCEPT_HPP
+#define REAK_STATE_ESTIMATOR_CONCEPT_HPP
 
 #include "belief_state_concept.hpp"
 #include "discrete_sss_concept.hpp"

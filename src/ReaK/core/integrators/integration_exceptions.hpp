@@ -21,8 +21,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INTEGRATION_EXCEPTIONS_HPP
-#define INTEGRATION_EXCEPTIONS_HPP
+#ifndef REAK_INTEGRATION_EXCEPTIONS_HPP
+#define REAK_INTEGRATION_EXCEPTIONS_HPP
 
 #include <sstream>
 #include <exception>

@@ -21,13 +21,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef AIRSHIP2D_LIN_MODEL_HPP
-#define AIRSHIP2D_LIN_MODEL_HPP
+#ifndef REAK_AIRSHIP2D_LIN_MODEL_HPP
+#define REAK_AIRSHIP2D_LIN_MODEL_HPP
 
-#include "math/vect_alg.hpp"
+#include "lin_alg/vect_alg.hpp"
 #include "base/named_object.hpp"
 
-#include "math/mat_alg.hpp"
+#include "lin_alg/mat_alg.hpp"
 #include <ctrl_sys/sss_exceptions.hpp>
 
 

@@ -35,10 +35,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COVARIANCE_CONCEPT_HPP
-#define COVARIANCE_CONCEPT_HPP
+#ifndef REAK_COVARIANCE_CONCEPT_HPP
+#define REAK_COVARIANCE_CONCEPT_HPP
 
-#include "math/mat_concepts.hpp"
+#include "lin_alg/mat_concepts.hpp"
 #include "state_vector_concept.hpp"
 
 #include <boost/config.hpp>

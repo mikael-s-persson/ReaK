@@ -47,8 +47,8 @@
  */
 
 
-#ifndef TOPOLOGICAL_SEARCH_HPP
-#define TOPOLOGICAL_SEARCH_HPP
+#ifndef REAK_TOPOLOGICAL_SEARCH_HPP
+#define REAK_TOPOLOGICAL_SEARCH_HPP
 
 #include <boost/bind.hpp>
 #include <boost/graph/graph_concepts.hpp>

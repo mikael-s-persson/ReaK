@@ -31,8 +31,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REACHABILITY_SPACE_HPP
-#define REACHABILITY_SPACE_HPP
+#ifndef REAK_REACHABILITY_SPACE_HPP
+#define REAK_REACHABILITY_SPACE_HPP
 
 #include "temporal_space.hpp"
 #include "reachability_space_concept.hpp"

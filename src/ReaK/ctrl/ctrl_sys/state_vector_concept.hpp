@@ -32,12 +32,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STATE_VECTOR_CONCEPT_HPP
-#define STATE_VECTOR_CONCEPT_HPP
+#ifndef REAK_STATE_VECTOR_CONCEPT_HPP
+#define REAK_STATE_VECTOR_CONCEPT_HPP
 
-#include "math/vect_concepts.hpp"
-#include "math/vect_alg.hpp"
-#include "math/mat_slices.hpp"
+#include "lin_alg/vect_concepts.hpp"
+#include "lin_alg/vect_alg.hpp"
+#include "lin_alg/mat_slices.hpp"
 
 #include <boost/concept_check.hpp>
 

@@ -30,15 +30,15 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LTI_DISCRETE_SYS_HPP
-#define LTI_DISCRETE_SYS_HPP
+#ifndef REAK_LTI_DISCRETE_SYS_HPP
+#define REAK_LTI_DISCRETE_SYS_HPP
 
 #include "discrete_linear_sss_concept.hpp"
 
 #include "base/named_object.hpp"
 
-#include "math/mat_alg.hpp"
-#include "math/vect_alg.hpp"
+#include "lin_alg/mat_alg.hpp"
+#include "lin_alg/vect_alg.hpp"
 
 namespace ReaK {
 

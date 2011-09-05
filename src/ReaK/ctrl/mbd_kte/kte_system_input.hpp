@@ -31,8 +31,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KTE_SYSTEM_INPUT_HPP
-#define KTE_SYSTEM_INPUT_HPP
+#ifndef REAK_KTE_SYSTEM_INPUT_HPP
+#define REAK_KTE_SYSTEM_INPUT_HPP
 
 #include "base/named_object.hpp"
 

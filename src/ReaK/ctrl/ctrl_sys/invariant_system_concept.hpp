@@ -35,8 +35,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INVARIANT_SYSTEM_CONCEPT_HPP
-#define INVARIANT_SYSTEM_CONCEPT_HPP
+#ifndef REAK_INVARIANT_SYSTEM_CONCEPT_HPP
+#define REAK_INVARIANT_SYSTEM_CONCEPT_HPP
 
 #include "discrete_linear_sss_concept.hpp"
 #include "linear_ss_system_concept.hpp"

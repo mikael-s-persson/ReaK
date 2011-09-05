@@ -28,7 +28,7 @@ namespace ReaK {
 namespace kte {
 
 
-mass_matrix_calc& mass_matrix_calc::operator <<(boost::shared_ptr< inertia_gen > aGenInertia) {
+mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< inertia_gen >::type& aGenInertia) {
 
   if(aGenInertia)
     mGenInertias.push_back(aGenInertia);
@@ -36,7 +36,7 @@ mass_matrix_calc& mass_matrix_calc::operator <<(boost::shared_ptr< inertia_gen >
   return *this;
 };
 
-mass_matrix_calc& mass_matrix_calc::operator <<(boost::shared_ptr< inertia_2D > a2DInertia) {
+mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< inertia_2D >::type& a2DInertia) {
 
   if(a2DInertia)
     m2DInertias.push_back(a2DInertia);
@@ -44,7 +44,7 @@ mass_matrix_calc& mass_matrix_calc::operator <<(boost::shared_ptr< inertia_2D > 
   return *this;
 };
 
-mass_matrix_calc& mass_matrix_calc::operator <<(boost::shared_ptr< inertia_3D > a3DInertia) {
+mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< inertia_3D >::type& a3DInertia) {
 
   if(a3DInertia)
     m3DInertias.push_back(a3DInertia);
@@ -52,7 +52,7 @@ mass_matrix_calc& mass_matrix_calc::operator <<(boost::shared_ptr< inertia_3D > 
   return *this;
 };
 
-mass_matrix_calc& mass_matrix_calc::operator <<(boost::shared_ptr< gen_coord<double> > aCoord) {
+mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< gen_coord<double> >::type& aCoord) {
 
   if(aCoord)
     mCoords.push_back(aCoord);
@@ -61,7 +61,7 @@ mass_matrix_calc& mass_matrix_calc::operator <<(boost::shared_ptr< gen_coord<dou
 };
 
 
-mass_matrix_calc& mass_matrix_calc::operator <<(boost::shared_ptr< frame_2D<double> > aFrame2D) {
+mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< frame_2D<double> >::type& aFrame2D) {
   
   if(aFrame2D)
     mFrames2D.push_back(aFrame2D);
@@ -69,7 +69,7 @@ mass_matrix_calc& mass_matrix_calc::operator <<(boost::shared_ptr< frame_2D<doub
   return *this;
 };
 
-mass_matrix_calc& mass_matrix_calc::operator <<(boost::shared_ptr< frame_3D<double> > aFrame3D) {
+mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< frame_3D<double> >::type& aFrame3D) {
 
   if(aFrame3D)
     mFrames3D.push_back(aFrame3D);
@@ -115,7 +115,7 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
     for(unsigned int j=0; j<m3DInertias.size(); ++j) {
       if(m3DInertias[j]->mUpStreamJoints.find(mCoords[i]) != m3DInertias[j]->mUpStreamJoints.end()) {
 
-        boost::shared_ptr< jacobian_gen_3D<double> > Jac = m3DInertias[j]->mUpStreamJoints[mCoords[i]];
+        shared_pointer< jacobian_gen_3D<double> >::type Jac = m3DInertias[j]->mUpStreamJoints[mCoords[i]];
         frame_3D<double> f2 = m3DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock());
 
         rot_mat_3D<double> R(f2.Quat.getRotMat());
@@ -147,7 +147,7 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
     for(unsigned int j=0; j<m2DInertias.size(); ++j) {
       if(m2DInertias[j]->mUpStreamJoints.find(mCoords[i]) != m2DInertias[j]->mUpStreamJoints.end()) {
 
-        boost::shared_ptr< jacobian_gen_2D<double> > Jac = m2DInertias[j]->mUpStreamJoints[mCoords[i]];
+        shared_pointer< jacobian_gen_2D<double> >::type Jac = m2DInertias[j]->mUpStreamJoints[mCoords[i]];
         frame_2D<double> f2 = m2DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock());
         Tcm(RowInd,i) = Jac->qd_avel;
 
@@ -185,7 +185,7 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
     for(unsigned int j=0; j<m3DInertias.size(); ++j) {
       if(m3DInertias[j]->mUpStream2DJoints.find(mFrames2D[i]) != m3DInertias[j]->mUpStream2DJoints.end()) {
 
-        boost::shared_ptr< jacobian_2D_3D<double> > Jac = m3DInertias[j]->mUpStream2DJoints[mFrames2D[i]];
+        shared_pointer< jacobian_2D_3D<double> >::type Jac = m3DInertias[j]->mUpStream2DJoints[mFrames2D[i]];
         frame_3D<double> f2 = m3DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock());
 
         //std::cout << "Joint " << i << " at angle " << mCoords[i]->q << " CM " << m3DInertias[j]->getName() << " gives:" << std::endl;
@@ -263,7 +263,7 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
     for(unsigned int j=0; j<m2DInertias.size(); ++j) {
       if(m2DInertias[j]->mUpStream2DJoints.find(mFrames2D[i]) != m2DInertias[j]->mUpStream2DJoints.end()) {
 
-        boost::shared_ptr< jacobian_2D_2D<double> > Jac = m2DInertias[j]->mUpStream2DJoints[mFrames2D[i]];
+        shared_pointer< jacobian_2D_2D<double> >::type Jac = m2DInertias[j]->mUpStream2DJoints[mFrames2D[i]];
         frame_2D<double> f2 = m2DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock());
         Tcm(RowInd,3*i+base_i) = Jac->vel_avel[0];
 	Tcm(RowInd,3*i+base_i+1) = Jac->vel_avel[1];
@@ -302,7 +302,7 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
 
     for(unsigned int j=0; j<mGenInertias.size(); ++j) {
       if(mGenInertias[j]->mUpStream2DJoints.find(mFrames2D[i]) != mGenInertias[j]->mUpStream2DJoints.end()) {
-        boost::shared_ptr< jacobian_2D_gen<double> > Jac = mGenInertias[j]->mUpStream2DJoints[mFrames2D[i]];
+        shared_pointer< jacobian_2D_gen<double> >::type Jac = mGenInertias[j]->mUpStream2DJoints[mFrames2D[i]];
 	Tcm(RowInd,3*i+base_i) = Jac->vel_qd[0];
         Tcm(RowInd,3*i+base_i+1) = Jac->vel_qd[1];
         Tcm(RowInd,3*i+base_i+2) = Jac->avel_qd;
@@ -326,7 +326,7 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
 
     for(unsigned int j=0; j<m3DInertias.size(); ++j) {
       if(m3DInertias[j]->mUpStream3DJoints.find(mFrames3D[i]) != m3DInertias[j]->mUpStream3DJoints.end()) {
-        boost::shared_ptr< jacobian_3D_3D<double> > Jac = m3DInertias[j]->mUpStream3DJoints[mFrames3D[i]]; 
+        shared_pointer< jacobian_3D_3D<double> >::type Jac = m3DInertias[j]->mUpStream3DJoints[mFrames3D[i]]; 
         frame_3D<double> f2 = m3DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock()); 
         
         //std::cout << "Joint " << i << " at angle " << mCoords[i]->q << " CM " << m3DInertias[j]->getName() << " gives:" << std::endl;
@@ -388,7 +388,7 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
     for(unsigned int j=0; j<m2DInertias.size(); ++j) {
       if(m2DInertias[j]->mUpStream3DJoints.find(mFrames3D[i]) != m2DInertias[j]->mUpStream3DJoints.end()) {
 
-        boost::shared_ptr< jacobian_3D_2D<double> > Jac = m2DInertias[j]->mUpStream3DJoints[mFrames3D[i]];
+        shared_pointer< jacobian_3D_2D<double> >::type Jac = m2DInertias[j]->mUpStream3DJoints[mFrames3D[i]];
         frame_2D<double> f2 = m2DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock());
        
 	for(unsigned int k=0; k < 3; ++k) {
@@ -422,7 +422,7 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
 
     for(unsigned int j=0; j<mGenInertias.size(); ++j) {
       if(mGenInertias[j]->mUpStreamJoints.find(mCoords[i]) != mGenInertias[j]->mUpStreamJoints.end()) {
-        boost::shared_ptr< jacobian_3D_gen<double> > Jac = mGenInertias[j]->mUpStream3DJoints[mFrames3D[i]];
+        shared_pointer< jacobian_3D_gen<double> >::type Jac = mGenInertias[j]->mUpStream3DJoints[mFrames3D[i]];
 	
 	for(unsigned int k=0; k < 3; ++k) {
 	  Tcm(RowInd,6*i+base_i+k) = Jac->vel_qd[k];

@@ -42,8 +42,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FADPRM_HPP
-#define FADPRM_HPP
+#ifndef REAK_FADPRM_HPP
+#define REAK_FADPRM_HPP
 
 #include <functional>
 #include <boost/utility/enable_if.hpp>

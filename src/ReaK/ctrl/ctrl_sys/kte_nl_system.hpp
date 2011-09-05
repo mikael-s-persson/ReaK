@@ -33,24 +33,24 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KTE_NL_SYSTEM_HPP
-#define KTE_NL_SYSTEM_HPP
+#ifndef REAK_KTE_NL_SYSTEM_HPP
+#define REAK_KTE_NL_SYSTEM_HPP
 
 
 
 #include "base/named_object.hpp"
 
-#include "math/mat_alg.hpp"
-#include "math/vect_alg.hpp"
+#include "lin_alg/mat_alg.hpp"
+#include "lin_alg/vect_alg.hpp"
 
-#include "math/kinetostatics.hpp"
+#include "kinetostatics/kinetostatics.hpp"
 
 #include "mbd_kte/kte_map_chain.hpp"
 #include "mbd_kte/kte_system_input.hpp"
 #include "mbd_kte/kte_system_output.hpp"
 #include "mbd_kte/mass_matrix_calculator.hpp"
 
-#include "math/mat_cholesky.hpp"
+#include "lin_alg/mat_cholesky.hpp"
 
 namespace ReaK {
 
@@ -71,15 +71,15 @@ namespace ctrl {
 class kte_nl_system : public named_object {
   public:
     
-    std::vector< boost::shared_ptr< gen_coord<double> > > dofs_gen; ///< Holds the list of generalized coordinates which are part of the state variables.
-    std::vector< boost::shared_ptr< frame_2D<double> > >  dofs_2D; ///< Holds the list of 2D coordinate frames which are part of the state variables.
-    std::vector< boost::shared_ptr< frame_3D<double> > >  dofs_3D; ///< Holds the list of 3D coordinate frames which are part of the state variables.
+    std::vector< shared_pointer< gen_coord<double> >::type > dofs_gen; ///< Holds the list of generalized coordinates which are part of the state variables.
+    std::vector< shared_pointer< frame_2D<double> >::type >  dofs_2D; ///< Holds the list of 2D coordinate frames which are part of the state variables.
+    std::vector< shared_pointer< frame_3D<double> >::type >  dofs_3D; ///< Holds the list of 3D coordinate frames which are part of the state variables.
     
-    std::vector< boost::shared_ptr< kte::system_input > > inputs; ///< Holds the list of system input objects that are part of the KTE model.
-    std::vector< boost::shared_ptr< kte::system_output > > outputs; ///< Holds the list of system output objects that are part of the KTE model.
+    std::vector< shared_pointer< kte::system_input >::type > inputs; ///< Holds the list of system input objects that are part of the KTE model.
+    std::vector< shared_pointer< kte::system_output >::type > outputs; ///< Holds the list of system output objects that are part of the KTE model.
     
-    boost::shared_ptr< kte::kte_map_chain > chain; ///< Holds the KTE model used.
-    boost::shared_ptr< kte::mass_matrix_calc > mass_calc; ///< Holds the KTE mass-matrix calculator used.
+    shared_pointer< kte::kte_map_chain >::type chain; ///< Holds the KTE model used.
+    shared_pointer< kte::mass_matrix_calc >::type mass_calc; ///< Holds the KTE mass-matrix calculator used.
     
     typedef kte_nl_system self;
     typedef double value_type;

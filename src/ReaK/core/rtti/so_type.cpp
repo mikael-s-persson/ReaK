@@ -24,6 +24,7 @@
 #include "so_type.hpp"
 
 #include <iostream>
+#include "typed_object.hpp"
 
 
 namespace ReaK {
@@ -31,7 +32,7 @@ namespace ReaK {
 namespace rtti {
 
 
-bool so_type_impl::compare_shared(const boost::shared_ptr< so_type >& t1, const boost::shared_ptr< so_type >& t2) {
+bool so_type_impl::compare_shared(const so_type::shared_pointer& t1, const so_type::shared_pointer& t2) {
   if(t1) {
     if(t2) {
       const unsigned int* pid1 = t1->TypeID_begin();
@@ -53,7 +54,7 @@ bool so_type_impl::compare_shared(const boost::shared_ptr< so_type >& t1, const 
     return true;
 };
   
-bool so_type_impl::compare_weak(const boost::weak_ptr< so_type >& t1, const boost::weak_ptr< so_type >& t2) {
+bool so_type_impl::compare_weak(const so_type::weak_pointer& t1, const so_type::weak_pointer& t2) {
   return compare_shared(t1.lock(),t2.lock());
 };
 
@@ -74,8 +75,8 @@ so_type_impl::so_type_impl() : so_type(),
                                mAncestors(&compare_weak) { };
   
 
-boost::shared_ptr<so_type> RK_CALL so_type_impl::addDescendant(const boost::shared_ptr<so_type>& aObj ) {
-  std::set< boost::shared_ptr<so_type>, so_type_impl::compare_shared_t>::iterator it = mDescendants.lower_bound(aObj);
+so_type::shared_pointer RK_CALL so_type_impl::addDescendant(const so_type::shared_pointer& aObj ) {
+  std::set< so_type::shared_pointer, so_type_impl::compare_shared_t>::iterator it = mDescendants.lower_bound(aObj);
   if((it != mDescendants.end()) && 
      (compare_equal((*it)->TypeID_begin(),aObj->TypeID_begin()))) {
     if((*it)->TypeVersion() < aObj->TypeVersion()) {
@@ -88,10 +89,10 @@ boost::shared_ptr<so_type> RK_CALL so_type_impl::addDescendant(const boost::shar
   return aObj;
 };
 
-boost::weak_ptr<so_type> RK_CALL so_type_impl::addAncestor(boost::shared_ptr<so_type>& aThis, const boost::weak_ptr<so_type>& aObj) {
-  boost::shared_ptr<so_type> p = aObj.lock();
+so_type::weak_pointer RK_CALL so_type_impl::addAncestor(so_type::shared_pointer& aThis, const so_type::weak_pointer& aObj) {
+  so_type::shared_pointer p = aObj.lock();
   if(p) {
-    std::set< boost::weak_ptr<so_type>, so_type_impl::compare_weak_t>::iterator it = mAncestors.lower_bound(aObj);
+    std::set< so_type::weak_pointer, so_type_impl::compare_weak_t>::iterator it = mAncestors.lower_bound(aObj);
     if((it != mAncestors.end()) &&
        ((*it).lock()) &&
        (compare_equal((*it).lock()->TypeID_begin(),p->TypeID_begin()))) {
@@ -109,59 +110,59 @@ boost::weak_ptr<so_type> RK_CALL so_type_impl::addAncestor(boost::shared_ptr<so_
 
   
 ///This function finds a TypeID in the descendants (recusively) of this.
-boost::weak_ptr<so_type> RK_CALL so_type_impl::findDescendant_impl(const unsigned int* aTypeID ) const {
-  if( compare_equal(aTypeID, this->TypeID_begin()) ) 
-    return boost::static_pointer_cast<so_type>(mThis);
+so_type::weak_pointer RK_CALL so_type_impl::findDescendant_impl(const unsigned int* aTypeID ) const {
+  if( compare_equal(aTypeID, this->TypeID_begin()) )
+    return so_type::weak_pointer(rk_static_ptr_cast<so_type>(mThis));
   
   if(mDescendants.empty())
-    return boost::weak_ptr<so_type>();
+    return so_type::weak_pointer();
   
   detail::dummy_so_type d(aTypeID);
-  std::set< boost::shared_ptr<so_type>, so_type_impl::compare_shared_t>::const_iterator it = mDescendants.lower_bound(boost::shared_ptr<so_type>(&d,null_deleter()));
+  std::set< so_type::shared_pointer, so_type_impl::compare_shared_t>::const_iterator it = mDescendants.lower_bound(so_type::shared_pointer(&d,null_deleter()));
   
   if((it != mDescendants.end()) && (compare_equal((*it)->TypeID_begin(),aTypeID))) 
     return *it;
   
   for(it = mDescendants.begin(); it != mDescendants.end(); ++it) {
-    boost::weak_ptr<so_type> p = (*it)->findDescendant(aTypeID);
+    so_type::weak_pointer p = (*it)->findDescendant(aTypeID);
     if(p.lock())
       return p;
   };
   
-  return boost::weak_ptr<so_type>();
+  return so_type::weak_pointer();
 };
 
 ///This function checks if a typeID is parent to this.
-boost::weak_ptr<so_type> RK_CALL so_type_impl::findAncestor_impl(const unsigned int* aTypeID ) const {
+so_type::weak_pointer RK_CALL so_type_impl::findAncestor_impl(const unsigned int* aTypeID ) const {
   if( compare_equal(aTypeID, this->TypeID_begin()) ) 
-    return boost::static_pointer_cast<so_type>(mThis);
-  
+    return rk_static_ptr_cast<so_type>(mThis);
+    
   if(mAncestors.empty())
-    return boost::weak_ptr<so_type>();
+    return so_type::weak_pointer();
   
   detail::dummy_so_type d(aTypeID);
-  std::set< boost::weak_ptr<so_type>, so_type_impl::compare_weak_t>::const_iterator it = mAncestors.lower_bound(boost::shared_ptr<so_type>(&d,null_deleter()));
+  std::set< so_type::weak_pointer, so_type_impl::compare_weak_t>::const_iterator it = mAncestors.lower_bound(so_type::shared_pointer(&d,null_deleter()));
   
   if((it != mAncestors.end()) && (it->lock()) && (compare_equal(it->lock()->TypeID_begin(),aTypeID))) 
     return *it;
   
   for(it = mAncestors.begin(); it != mAncestors.end(); ++it) {
     if(it->lock()) {
-      boost::weak_ptr<so_type> p = it->lock()->findAncestor(aTypeID);
+      so_type::weak_pointer p = it->lock()->findAncestor(aTypeID);
       if(p.lock())
 	return p;
     };
   };
   
-  return boost::weak_ptr<so_type>();
+  return so_type::weak_pointer();
 };
   
 ///This function inserts this into a global repo.
-void RK_CALL so_type_impl::insertToRepo(const boost::shared_ptr<so_type>& aThis,boost::shared_ptr<so_type>& aRepo) {
+void RK_CALL so_type_impl::insertToRepo(const so_type::shared_pointer& aThis,so_type::shared_pointer& aRepo) {
   //Update all ancestors if there are any.
-  std::set<boost::weak_ptr<so_type>, so_type_impl::compare_weak_t >::iterator it = mAncestors.begin();
+  std::set<so_type::weak_pointer, so_type_impl::compare_weak_t >::iterator it = mAncestors.begin();
   for(;it != mAncestors.end();) {
-    boost::shared_ptr<so_type> p( aRepo->findDescendant(it->lock()) );
+    so_type::shared_pointer p( aRepo->findDescendant(it->lock()) );
     if(p) {
       mAncestors.erase(it++);
       mAncestors.insert(p);
@@ -179,7 +180,7 @@ void RK_CALL so_type_impl::insertToRepo(const boost::shared_ptr<so_type>& aThis,
     aRepo->addDescendant(aThis);
 
   //insert all the descendants.
-  std::set<boost::shared_ptr<so_type>, so_type_impl::compare_shared_t >::iterator itd = mDescendants.begin();
+  std::set<so_type::shared_pointer, so_type_impl::compare_shared_t >::iterator itd = mDescendants.begin();
   for(;itd != mDescendants.end(); ++itd) {
     if(*itd)
       (*itd)->insertToRepo(*itd,aRepo);

@@ -30,13 +30,15 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INERTIA_HPP
-#define INERTIA_HPP
+#ifndef REAK_INERTIA_HPP
+#define REAK_INERTIA_HPP
+
+#include "base/defs.hpp"
 
 #include "kte_map.hpp"
 
-#include "math/kinetostatics.hpp"
-#include "math/mat_alg.hpp"
+#include "kinetostatics/kinetostatics.hpp"
+#include "lin_alg/mat_alg.hpp"
 
 #include "jacobian_joint_map.hpp"
 
@@ -50,7 +52,7 @@ namespace kte {
  */
 class inertia_gen : public kte_map {
   private:
-    boost::shared_ptr< gen_coord<double> > mCenterOfMass; ///< Holds the center-of-mass generalized coordinate for the inertial element.
+    shared_pointer< gen_coord<double> >::type mCenterOfMass; ///< Holds the center-of-mass generalized coordinate for the inertial element.
     double mMass; ///< Holds the mass of the inertial element (in kg or kgm2).
 
     jacobian_joint_map_gen mUpStreamJoints; ///< Holds the jacobian mappings of up-stream joints.
@@ -81,7 +83,7 @@ class inertia_gen : public kte_map {
      * \param aUpStream3DJoints the jacobian mappings of up-stream joints.
      */
     inertia_gen(const std::string& aName,
-		boost::shared_ptr< ReaK::gen_coord<double> > aCenterOfMass,
+		const shared_pointer< ReaK::gen_coord<double> >::type& aCenterOfMass,
 		double aMass,
                 const jacobian_joint_map_gen& aUpStreamJoints = jacobian_joint_map_gen(),
                 const jacobian_joint2D_map_gen& aUpStream2DJoints = jacobian_joint2D_map_gen(),
@@ -98,9 +100,9 @@ class inertia_gen : public kte_map {
      */
     virtual ~inertia_gen() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 
@@ -132,7 +134,7 @@ class inertia_gen : public kte_map {
  */
 class inertia_2D : public kte_map {
   private:
-    boost::shared_ptr< frame_2D<double> > mCenterOfMass; ///< Holds the center-of-mass 2D frame for the inertial element.
+    shared_pointer< frame_2D<double> >::type mCenterOfMass; ///< Holds the center-of-mass 2D frame for the inertial element.
     double mMass; ///< Holds the mass of the inertial element (in kg).
     double mMomentOfInertia; ///< Holds the moment of inertia of the inertial element (in kgm2).
 
@@ -170,7 +172,7 @@ class inertia_2D : public kte_map {
      * \param aUpStream3DJoints the jacobian mappings of up-stream joints.
      */
     inertia_2D(const std::string& aName,
-	       boost::shared_ptr< frame_2D<double> > aCenterOfMass,
+	       const shared_pointer< frame_2D<double> >::type& aCenterOfMass,
 	       double aMass,
 	       double aMomentOfInertia,
                const jacobian_joint_map_2D& aUpStreamJoints = jacobian_joint_map_2D(),
@@ -189,9 +191,9 @@ class inertia_2D : public kte_map {
      */
     virtual ~inertia_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 
@@ -225,7 +227,7 @@ class inertia_2D : public kte_map {
  */
 class inertia_3D : public kte_map {
   private:
-    boost::shared_ptr< frame_3D<double> > mCenterOfMass; ///< Holds the center-of-mass 3D frame for the inertial element.
+    shared_pointer< frame_3D<double> >::type mCenterOfMass; ///< Holds the center-of-mass 3D frame for the inertial element.
     double mMass; ///< Holds the mass of the inertial element (in kg).
     mat<double,mat_structure::symmetric> mInertiaTensor; ///< Holds the inertia tensor of the inertial element (in kgm2).
 
@@ -261,7 +263,7 @@ class inertia_3D : public kte_map {
      * \param aUpStreamJoints the jacobian mappings of up-stream joints.
      */
     inertia_3D(const std::string& aName,
-	       boost::shared_ptr< frame_3D<double> > aCenterOfMass,
+	       const shared_pointer< frame_3D<double> >::type& aCenterOfMass,
 	       double aMass,
 	       const mat<double,mat_structure::symmetric>& aInertiaTensor,
                const jacobian_joint_map_3D& aUpStreamJoints = jacobian_joint_map_3D(),
@@ -280,9 +282,9 @@ class inertia_3D : public kte_map {
      */
     virtual ~inertia_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 

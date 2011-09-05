@@ -30,8 +30,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BELIEF_STATE_PREDICTOR_HPP
-#define BELIEF_STATE_PREDICTOR_HPP
+#ifndef REAK_BELIEF_STATE_PREDICTOR_HPP
+#define REAK_BELIEF_STATE_PREDICTOR_HPP
 
 #include "belief_state_concept.hpp"
 #include "state_vector_concept.hpp"

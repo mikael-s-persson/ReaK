@@ -31,13 +31,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REVOLUTE_JOINT_HPP
-#define REVOLUTE_JOINT_HPP
+#ifndef REAK_REVOLUTE_JOINT_HPP
+#define REAK_REVOLUTE_JOINT_HPP
+
+#include "base/defs.hpp"
 
 #include "reacting_kte.hpp"
-#include "math/motion_jacobians.hpp"
-
-#include <boost/shared_ptr.hpp>
+#include "kinetostatics/motion_jacobians.hpp"
 
 namespace ReaK {
 
@@ -50,11 +50,11 @@ namespace kte {
  */
 class revolute_joint_2D : public reacting_kte_gen {
   protected:
-    boost::shared_ptr< gen_coord<double> > mAngle; ///< Generalized coordinate representing the joint's angular displacement.
-    boost::shared_ptr< frame_2D<double> > mBase; ///< The coordinate frame at the base of the joint.
-    boost::shared_ptr< frame_2D<double> > mEnd; ///< The coordinate frame just after the joint transformations are applied.
+    shared_pointer< gen_coord<double> >::type mAngle; ///< Generalized coordinate representing the joint's angular displacement.
+    shared_pointer< frame_2D<double> >::type mBase; ///< The coordinate frame at the base of the joint.
+    shared_pointer< frame_2D<double> >::type mEnd; ///< The coordinate frame just after the joint transformations are applied.
 
-    boost::shared_ptr< jacobian_gen_2D<double> > mJacobian; ///< The Jacobian frame produced by this joint.
+    shared_pointer< jacobian_gen_2D<double> >::type mJacobian; ///< The Jacobian frame produced by this joint.
 
   public:
 
@@ -72,10 +72,10 @@ class revolute_joint_2D : public reacting_kte_gen {
      * \param aJacobian a pointer to contain the Jacobian frame produced by this joint, default value will disable the Jacobian frame's calculation.
      */
     revolute_joint_2D(const std::string& aName,
-		      boost::shared_ptr< gen_coord<double> > aAngle,
-		      boost::shared_ptr< frame_2D<double> > aBase,
-		      boost::shared_ptr< frame_2D<double> > aEnd,
-                      boost::shared_ptr< jacobian_gen_2D<double> > aJacobian = boost::shared_ptr< jacobian_gen_2D<double> >()) :
+		      const shared_pointer< gen_coord<double> >::type& aAngle,
+		      const shared_pointer< frame_2D<double> >::type& aBase,
+		      const shared_pointer< frame_2D<double> >::type& aEnd,
+                      const shared_pointer< jacobian_gen_2D<double> >::type& aJacobian = shared_pointer< jacobian_gen_2D<double> >::type()) :
 		      reacting_kte_gen(aName),
 		      mAngle(aAngle),
 		      mBase(aBase),
@@ -87,9 +87,9 @@ class revolute_joint_2D : public reacting_kte_gen {
      */
     virtual ~revolute_joint_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 
@@ -122,12 +122,12 @@ class revolute_joint_2D : public reacting_kte_gen {
  */
 class revolute_joint_3D : public reacting_kte_gen {
   protected:
-    boost::shared_ptr< gen_coord<double> > mAngle; ///< Generalized coordinate representing the joint's angular displacement.
+    shared_pointer< gen_coord<double> >::type mAngle; ///< Generalized coordinate representing the joint's angular displacement.
     vect<double,3> mAxis; ///< Joint axis, as a fixed vector, in the coordinate system of the base frame.
-    boost::shared_ptr< frame_3D<double> > mBase; ///< The coordinate frame at the base of the joint.
-    boost::shared_ptr< frame_3D<double> > mEnd; ///< The coordinate frame just after the joint transformations are applied.
+    shared_pointer< frame_3D<double> >::type mBase; ///< The coordinate frame at the base of the joint.
+    shared_pointer< frame_3D<double> >::type mEnd; ///< The coordinate frame just after the joint transformations are applied.
 
-    boost::shared_ptr< jacobian_gen_3D<double> > mJacobian; ///< The Jacobian frame produced by this joint.
+    shared_pointer< jacobian_gen_3D<double> >::type mJacobian; ///< The Jacobian frame produced by this joint.
 
   public:
 
@@ -149,11 +149,11 @@ class revolute_joint_3D : public reacting_kte_gen {
      * \param aJacobian a pointer to contain the Jacobian frame produced by this joint, default value will disable the Jacobian frame's calculation.
      */
     revolute_joint_3D(const std::string& aName,
-		      boost::shared_ptr< gen_coord<double> > aAngle,
+		      const shared_pointer< gen_coord<double> >::type& aAngle,
 		      const vect<double,3>& aAxis,
-		      boost::shared_ptr< frame_3D<double> > aBase,
-		      boost::shared_ptr< frame_3D<double> > aEnd,
-                      boost::shared_ptr< jacobian_gen_3D<double> > aJacobian = boost::shared_ptr< jacobian_gen_3D<double> >()) :
+		      const shared_pointer< frame_3D<double> >::type& aBase,
+		      const shared_pointer< frame_3D<double> >::type& aEnd,
+                      const shared_pointer< jacobian_gen_3D<double> >::type& aJacobian = shared_pointer< jacobian_gen_3D<double> >::type()) :
 		      reacting_kte_gen(aName),
 		      mAngle(aAngle),
 		      mAxis(aAxis),
@@ -166,9 +166,9 @@ class revolute_joint_3D : public reacting_kte_gen {
      */
     virtual ~revolute_joint_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 

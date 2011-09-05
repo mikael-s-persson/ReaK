@@ -1,5 +1,5 @@
 /**
- * \file rk_so_type_repo.hpp
+ * \file so_type_repo.hpp
  *
  * This library implements a mergable cross-module singleton that acts as the repository for
  * all registered shared-object type identifiers. This is the core of the RTTI system.
@@ -30,16 +30,16 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SO_TYPE_REPO_HPP
-#define SO_TYPE_REPO_HPP
+#ifndef REAK_SO_TYPE_REPO_HPP
+#define REAK_SO_TYPE_REPO_HPP
 
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
+
+#include "base/defs.hpp"
+
 #include <map>
 #include <vector>
 #include <string>
 
-#include "base/defs.hpp"
 #include "so_type.hpp"
 
 namespace ReaK {
@@ -75,13 +75,13 @@ public:
   virtual void RK_CALL merge( so_type_repo* aRepo );
 
   ///This function finds a TypeID in the descendants (recusively) of this.
-  virtual boost::weak_ptr<so_type> RK_CALL findType (const unsigned int* aTypeID ) const;
+  virtual so_type::weak_pointer RK_CALL findType (const unsigned int* aTypeID ) const;
   
   ///This function finds a TypeID in the descendants (recusively) of this.
-  virtual boost::weak_ptr<so_type> RK_CALL findType (const boost::shared_ptr<so_type>& aTypeID ) const;
+  virtual so_type::weak_pointer RK_CALL findType (const so_type::shared_pointer& aTypeID ) const;
 
   ///This function adds a type to the repo.
-  virtual boost::weak_ptr<so_type> addType(const boost::shared_ptr<so_type>& aTypeID);
+  virtual so_type::weak_pointer addType(const so_type::shared_pointer& aTypeID);
 
   static so_type_repo& getInstance();
 };

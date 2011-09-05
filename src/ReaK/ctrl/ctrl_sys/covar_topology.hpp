@@ -33,19 +33,19 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COVAR_TOPOLOGY_HPP
-#define COVAR_TOPOLOGY_HPP
+#ifndef REAK_COVAR_TOPOLOGY_HPP
+#define REAK_COVAR_TOPOLOGY_HPP
 
 #include "covariance_concept.hpp"
-#include "math/mat_norms.hpp"
+#include "lin_alg/mat_norms.hpp"
 
 #include <boost/random/uniform_01.hpp>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 #include <boost/shared_ptr.hpp>
 
-#include "math/mat_qr_decomp.hpp"
-#include "math/mat_exp_methods.hpp"
+#include "lin_alg/mat_qr_decomp.hpp"
+#include "lin_alg/mat_exp_methods.hpp"
 
 namespace ReaK {
 

@@ -30,7 +30,7 @@
 #include <boost/bind.hpp>
 
 #include "adstar_search.hpp"
-#include "math/vect_alg.hpp"
+#include "lin_alg/vect_alg.hpp"
 
 #include <boost/graph/astar_search.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>

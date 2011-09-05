@@ -38,17 +38,17 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INVARIANT_KALMAN_FILTER_HPP
-#define INVARIANT_KALMAN_FILTER_HPP
+#ifndef REAK_INVARIANT_KALMAN_FILTER_HPP
+#define REAK_INVARIANT_KALMAN_FILTER_HPP
 
 #include "belief_state_concept.hpp"
 #include "discrete_linear_sss_concept.hpp"
 #include "invariant_system_concept.hpp"
 
 #include <boost/utility/enable_if.hpp>
-#include <math/vect_concepts.hpp>
-#include <math/mat_alg.hpp>
-#include <math/mat_cholesky.hpp>
+#include <lin_alg/vect_concepts.hpp>
+#include <lin_alg/mat_alg.hpp>
+#include <lin_alg/mat_cholesky.hpp>
 
 #include <boost/static_assert.hpp>
 #include "covariance_concept.hpp"
@@ -186,7 +186,7 @@ void >::type invariant_kalman_update(const InvariantSystem& sys,
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
    
   b.set_mean_state( sys.apply_correction(x, K * e, u, t + sys.get_time_step()) );
-  W = sys.get_invariant_posterior_frame(x, b.get_mean_state(), u, t + sys.get_time_step());
+  InvarFrame W = sys.get_invariant_posterior_frame(x, b.get_mean_state(), u, t + sys.get_time_step());
   b.set_covariance( CovType( MatType( W * ((mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P) * transpose(W) ) ) );
 };
 
@@ -288,7 +288,7 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
  * \tparam MeasurementCovar A covariance matrix type modeling the CovarianceMatrixConcept.
  */
 template <typename InvariantSystem,
-          typename BeliefState = gaussian_belief_state< decomp_covariance_matrix< typename discrete_sss_traits<LinearSystem>::point_type > >,
+          typename BeliefState = gaussian_belief_state< decomp_covariance_mat_traits< typename discrete_sss_traits<InvariantSystem>::point_type > >,
           typename SystemNoiseCovar = covariance_matrix< typename discrete_sss_traits< InvariantSystem >::input_type >,
           typename MeasurementCovar = covariance_matrix< typename discrete_sss_traits< InvariantSystem >::output_type > >
 struct IKF_belief_transfer {

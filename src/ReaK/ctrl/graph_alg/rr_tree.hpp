@@ -54,8 +54,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RR_TREE_HPP
-#define RR_TREE_HPP
+#ifndef REAK_RR_TREE_HPP
+#define REAK_RR_TREE_HPP
 
 #include <functional>
 #include <vector>

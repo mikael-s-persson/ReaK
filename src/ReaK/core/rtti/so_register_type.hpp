@@ -29,8 +29,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SO_REGISTER_TYPE_HPP
-#define SO_REGISTER_TYPE_HPP
+#ifndef REAK_SO_REGISTER_TYPE_HPP
+#define REAK_SO_REGISTER_TYPE_HPP
+
+#include "base/defs.hpp"
 
 #include "so_type.hpp"
 #include "so_type_repo.hpp"
@@ -66,7 +68,7 @@ namespace detail {
   
   template <typename T>
   struct add_base_type {
-    static void to(boost::shared_ptr<so_type>& aObj) {
+    static void to(so_type::shared_pointer& aObj) {
       aObj->addAncestor(aObj,T::type::getStaticObjectType());
       add_base_type<typename T::tail>::to(aObj);
     };
@@ -74,7 +76,7 @@ namespace detail {
   
   template <>
   struct add_base_type<null_base_type> {
-    static void to(boost::shared_ptr<so_type>&) { };
+    static void to(so_type::shared_pointer&) { };
   };
   
 };
@@ -84,7 +86,7 @@ struct register_type {
 public:
   
   struct register_type_impl {
-    boost::shared_ptr<so_type> ptr;
+    so_type::shared_pointer ptr;
     register_type_impl() : ptr(new so_type_descriptor<T,Version>(),scoped_deleter()) {
       detail::add_base_type<BaseList>::to(ptr);
       so_type_repo::getInstance().addType(ptr);

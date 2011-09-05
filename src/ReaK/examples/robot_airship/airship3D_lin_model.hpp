@@ -24,16 +24,16 @@
 #ifndef AIRSHIP3D_LIN_MODEL_HPP
 #define AIRSHIP3D_LIN_MODEL_HPP
 
-#include "math/vect_alg.hpp"
+#include "lin_alg/vect_alg.hpp"
 #include "base/named_object.hpp"
 
-#include "math/mat_alg.hpp"
+#include "lin_alg/mat_alg.hpp"
 #include "ctrl_sys/sss_exceptions.hpp"
 
-#include "math/mat_cholesky.hpp"
+#include "lin_alg/mat_cholesky.hpp"
 
-#include "math/quat_alg.hpp"
-#include "math/rotations_3D.hpp"
+#include "kinetostatics/quat_alg.hpp"
+#include "kinetostatics/rotations_3D.hpp"
 
 namespace ReaK {
 

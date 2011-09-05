@@ -29,19 +29,19 @@ namespace kte {
 
 
 
-void joint_dry_microslip_gen::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void joint_dry_microslip_gen::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if(!mAnchor)
     return;
 
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->gen_coord_mapping[mAnchor]))
-      aStorage->gen_coord_mapping[mAnchor] = boost::shared_ptr< gen_coord<double> >(new gen_coord<double>((*mAnchor)),scoped_deleter());
+      aStorage->gen_coord_mapping[mAnchor] = shared_pointer< gen_coord<double> >::type(new gen_coord<double>((*mAnchor)),scoped_deleter());
     else
       (*(aStorage->gen_coord_mapping[mAnchor])) = (*mAnchor);
   };
 };
 
-void joint_dry_microslip_gen::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void joint_dry_microslip_gen::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if(!mAnchor)
     return;
   
@@ -70,19 +70,19 @@ void joint_dry_microslip_gen::clearForce() {
 
 
 
-void joint_viscosity_gen::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void joint_viscosity_gen::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if(!mAnchor)
     return;
 
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->gen_coord_mapping[mAnchor]))
-      aStorage->gen_coord_mapping[mAnchor] = boost::shared_ptr< gen_coord<double> >(new gen_coord<double>((*mAnchor)),scoped_deleter());
+      aStorage->gen_coord_mapping[mAnchor] = shared_pointer< gen_coord<double> >::type(new gen_coord<double>((*mAnchor)),scoped_deleter());
     else
       (*(aStorage->gen_coord_mapping[mAnchor])) = (*mAnchor);
   };
 };
 
-void joint_viscosity_gen::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void joint_viscosity_gen::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if(!mAnchor)
     return;
 

@@ -32,11 +32,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INERTIAL_BEAM_HPP
-#define INERTIAL_BEAM_HPP
+#ifndef REAK_INERTIAL_BEAM_HPP
+#define REAK_INERTIAL_BEAM_HPP
 
 #include "kte_map.hpp"
-#include "math/kinetostatics.hpp"
+#include "kinetostatics/kinetostatics.hpp"
 
 namespace ReaK {
 
@@ -49,8 +49,8 @@ namespace kte {
  */
 class inertial_beam_2D : public kte_map {
   private:
-    boost::shared_ptr< frame_2D<double> > mAnchor1; ///< Holds the first end of the beam.
-    boost::shared_ptr< frame_2D<double> > mAnchor2; ///< Holds the second end of the beam.
+    shared_pointer< frame_2D<double> >::type mAnchor1; ///< Holds the first end of the beam.
+    shared_pointer< frame_2D<double> >::type mAnchor2; ///< Holds the second end of the beam.
     double mMass; ///< Holds the total mass of the beam, half of which is lumped at each end.
 
   public:
@@ -76,22 +76,22 @@ class inertial_beam_2D : public kte_map {
      * \param aMass the total mass of the beam, half of which is lumped at each end.
      */
     inertial_beam_2D(const std::string& aName,
-              boost::shared_ptr< frame_2D<double> > aAnchor1,
-              boost::shared_ptr< frame_2D<double> > aAnchor2,
-              double aMass) :
-              kte_map(aName),
-              mAnchor1(aAnchor1),
-              mAnchor2(aAnchor2),
-              mMass(aMass) { };
+		     const shared_pointer< frame_2D<double> >::type& aAnchor1,
+		     const shared_pointer< frame_2D<double> >::type& aAnchor2,
+		     double aMass) :
+		     kte_map(aName),
+		     mAnchor1(aAnchor1),
+		     mAnchor2(aAnchor2),
+		     mMass(aMass) { };
 
     /**
      * Default destructor.
      */
     virtual ~inertial_beam_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 
@@ -120,8 +120,8 @@ class inertial_beam_2D : public kte_map {
  */
 class inertial_beam_3D : public kte_map {
   private:
-    boost::shared_ptr< frame_3D<double> > mAnchor1; ///< Holds the first end of the beam.
-    boost::shared_ptr< frame_3D<double> > mAnchor2; ///< Holds the second end of the beam.
+    shared_pointer< frame_3D<double> >::type mAnchor1; ///< Holds the first end of the beam.
+    shared_pointer< frame_3D<double> >::type mAnchor2; ///< Holds the second end of the beam.
     double mMass; ///< Holds the total mass of the beam, half of which is lumped at each end.
 
   public:
@@ -147,22 +147,22 @@ class inertial_beam_3D : public kte_map {
      * \param aMass the total mass of the beam, half of which is lumped at each end.
      */
     inertial_beam_3D(const std::string& aName,
-              boost::shared_ptr< frame_3D<double> > aAnchor1,
-              boost::shared_ptr< frame_3D<double> > aAnchor2,
-              double aMass) :
-              kte_map(aName),
-              mAnchor1(aAnchor1),
-              mAnchor2(aAnchor2),
-              mMass(aMass) { };
+		     const shared_pointer< frame_3D<double> >::type& aAnchor1,
+		     const shared_pointer< frame_3D<double> >::type& aAnchor2,
+		     double aMass) :
+		     kte_map(aName),
+		     mAnchor1(aAnchor1),
+		     mAnchor2(aAnchor2),
+		     mMass(aMass) { };
 
     /**
      * Default destructor.
      */
     virtual ~inertial_beam_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 

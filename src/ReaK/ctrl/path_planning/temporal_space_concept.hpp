@@ -31,8 +31,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TEMPORAL_SPACES_HPP
-#define TEMPORAL_SPACES_HPP
+#ifndef REAK_TEMPORAL_SPACE_CONCEPT_HPP
+#define REAK_TEMPORAL_SPACE_CONCEPT_HPP
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>

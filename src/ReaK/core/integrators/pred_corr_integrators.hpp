@@ -43,8 +43,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PRED_CORR_INTEGRATORS_HPP
-#define PRED_CORR_INTEGRATORS_HPP
+#ifndef REAK_PRED_CORR_INTEGRATORS_HPP
+#define REAK_PRED_CORR_INTEGRATORS_HPP
 
 #include "integrator.hpp"
 
@@ -93,7 +93,7 @@ class adamsBM3_integrator : public integrator<T> {
       this->initializePrevVectors();
     };
 
-    virtual void RK_CALL setStateRateFunc(boost::weak_ptr< state_rate_function<T> > aGetStateRate) {
+    virtual void RK_CALL setStateRateFunc(const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate) {
       integrator<T>::setStateRateFunc(aGetStateRate);
       this->initializePrevVectors();
     };
@@ -122,7 +122,7 @@ class adamsBM3_integrator : public integrator<T> {
                        const ReaK::vect_n<T>& aState,
                        double aStartTime,
                        double aStepSize,
-                       boost::weak_ptr< state_rate_function<T> > aGetStateRate,
+                       const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate,
                        unsigned int aCorrectionCount = 3) : integrator<T>(aName,aState,aStartTime,aStepSize,aGetStateRate),
                                                             mCorrectionCount(aCorrectionCount) {
       this->initializePrevVectors();
@@ -198,7 +198,7 @@ void adamsBM3_integrator<T>::initializePrevVectors() {
   this->prevF2.q.resize(integrator<T>::mState.q.size());
   this->prevF3.q.resize(integrator<T>::mState.q.size());
 
-  boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+  typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
   if(!func_ptr) return;
 
   double back_time = integrator<T>::mTime;
@@ -251,7 +251,7 @@ void RK_CALL adamsBM3_integrator<T>::integrate(double aEndTime) {
       ((integrator<T>::mStepSize < 0.0) && (integrator<T>::mTime < aEndTime)))
     throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
-  boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+  typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
   if (!func_ptr) throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
   if (this->mCorrectionCount == 0) this->mCorrectionCount = 1;
@@ -332,7 +332,7 @@ class adamsBM5_integrator : public integrator<T> {
       this->initializePrevVectors();
     };
 
-    virtual void RK_CALL setStateRateFunc(boost::weak_ptr< state_rate_function<T> > aGetStateRate) {
+    virtual void RK_CALL setStateRateFunc(const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate) {
       integrator<T>::setStateRateFunc(aGetStateRate);
       this->initializePrevVectors();
     };
@@ -368,7 +368,7 @@ class adamsBM5_integrator : public integrator<T> {
                        const ReaK::vect_n<T>& aState,
                        double aStartTime,
                        double aStepSize,
-                       boost::weak_ptr< state_rate_function<T> > aGetStateRate,
+                       const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate,
                        unsigned int aCorrectionCount = 3) : integrator<T>(aName,aState,aStartTime,aStepSize,aGetStateRate),
                                                             mCorrectionCount(aCorrectionCount) {
       this->initializePrevVectors();
@@ -417,7 +417,7 @@ void adamsBM5_integrator<T>::initializePrevVectors() {
   this->prevF4.q.resize(integrator<T>::mState.q.size());
   this->prevF5.q.resize(integrator<T>::mState.q.size());
 
-  boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+  typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
   if(!func_ptr) return;
 
   double back_time = integrator<T>::mTime;
@@ -496,7 +496,7 @@ void RK_CALL adamsBM5_integrator<T>::integrate(double aEndTime) {
       ((integrator<T>::mStepSize < 0.0) && (integrator<T>::mTime < aEndTime)))
     throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
-  boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+  typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
   if (!func_ptr) throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
   if (this->mCorrectionCount == 0) this->mCorrectionCount = 1;
@@ -576,7 +576,7 @@ class hamming_mod_integrator : public integrator<T> {
       this->initializePrevVectors();
     };
 
-    virtual void RK_CALL setStateRateFunc(boost::weak_ptr< state_rate_function<T> > aGetStateRate) {
+    virtual void RK_CALL setStateRateFunc(const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate) {
       integrator<T>::setStateRateFunc(aGetStateRate);
       this->initializePrevVectors();
     };
@@ -609,7 +609,7 @@ class hamming_mod_integrator : public integrator<T> {
                        const ReaK::vect_n<T>& aState,
                        double aStartTime,
                        double aStepSize,
-                       boost::weak_ptr< state_rate_function<T> > aGetStateRate) : integrator<T>(aName,aState,aStartTime,aStepSize,aGetStateRate) {
+                       const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate) : integrator<T>(aName,aState,aStartTime,aStepSize,aGetStateRate) {
       this->initializePrevVectors();
     };
     /**
@@ -665,7 +665,7 @@ void hamming_mod_integrator<T>::initializePrevVectors() {
   this->mP_n.q.resize(integrator<T>::mState.q.size());
   this->mP.q.resize(integrator<T>::mState.q.size());
 
-  boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+  typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
   if(!func_ptr) return;
 
   double back_time = integrator<T>::mTime;
@@ -770,7 +770,7 @@ void RK_CALL hamming_mod_integrator<T>::integrate(double aEndTime) {
       ((integrator<T>::mStepSize < 0.0) && (integrator<T>::mTime < aEndTime)))
     throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
-  boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+  typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
   if (!func_ptr) throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
 
@@ -846,7 +846,7 @@ class hamming_iter_mod_integrator : public hamming_mod_integrator<T> {
                                 const ReaK::vect_n<T>& aState,
                                 double aStartTime,
                                 double aStepSize,
-                                boost::weak_ptr< state_rate_function<T> > aGetStateRate,
+                                const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate,
                                 double aTolerance = 1E-3,
                                 unsigned int aMaxIter = 10) : hamming_mod_integrator<T>(aName,aState,aStartTime,aStepSize,aGetStateRate),
                                                               mTolerance(aTolerance),
@@ -885,7 +885,7 @@ void RK_CALL hamming_iter_mod_integrator<T>::integrate(double aEndTime) {
       ((integrator<T>::mStepSize < 0.0) && (integrator<T>::mTime < aEndTime)))
     throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
-  boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+  typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
   if (!func_ptr) throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
   ReaK::vect_n<T> prevM(integrator<T>::mState.q.size());

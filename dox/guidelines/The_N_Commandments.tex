@@ -256,13 +256,13 @@ forbidden. The \code{const\_cast}\ operator can always be avoided, use the \code
 an exceptional data member that needs to change even within a const member function of a class.
 The \code{static\_cast}\ operator is almost always avoidable by design, but it can be used to avoid 
 warning messages like ``comparing signed and unsigned type''. For conversions, use the explicit conversion
-operator, i.e. \code{T(a)}, instead of a static cast. For doing static casting of pointers, use the Boost 
-casting operator for the smart-pointers, that is, \code{boost::static\_pointer\_cast}. 
+operator, i.e. \code{T(a)}, instead of a static cast. For doing static casting of pointers, use the ReaK 
+casting operator for the smart-pointers, that is, \code{ReaK::rtti::rk\_static\_ptr\_cast}. 
 The \code{dynamic\_cast}\ operator must not be used in ReaK. First, dynamic casting is usually a sign
 of bad design and is most often avoidable by design. If not avoidable and since ReaK should use smart-pointers
 almost exclusively (especially for polymorphic classes, for which a dynamic cast could be required), a plain
 C++ dynamic cast is not appropriate. Finally, ReaK uses its own RTTI system (Run-time Type Identification) 
-and not that of C++, and thus, the \code{boost::static\_pointer\_cast}\ operator is not appropriate either because it 
+and not that of C++, and thus, the \code{boost::dynamic\_pointer\_cast}\ operator is not appropriate either because it 
 uses the C++ RTTI. So, for dynamic casting in ReaK, use the \code{ReaK::rtti::rk\_dynamic\_ptr\_cast}\ operator, 
 which has the exact same effect as the Boost or plain C++ versions, but using ReaK's RTTI and smart-pointers.}
 {\ }
@@ -362,8 +362,8 @@ C++ Coding Standards book (Sutter \& Alexandrescu, 2004) are all to be obeyed as
 
 \Commandment
 {Use ReaK's preferred channels for debug prints.}
-{\sout{std::cout << ``the code reached this point successfully'' << std::endl;},
- RK\_NOTICE(5,``the code reached this point successfully'');}
+{\sout{std::cout << ``the code reached this point'' << std::endl;}\\
+ RK\_NOTICE(5,``the code reached this point'');}
 {In order to make sure the debugging outputs are controlled to output only during the debugging or are 
 outputted differently for a release build, the ReaK library has a number of preferred channels for outputting
 debugging messages to the terminal. The ``base/defs.hpp'' header includes a few MACROs to accomplish this. First,
@@ -384,7 +384,9 @@ All those MACROs will also print the source file-name and line-number from which
 {The ReaK library uses the exception mechanisms provided by C++. Do not generate error-code mechanism when 
 coding in the ReaK library, always prefer exceptions. However, do not specify exceptions for functions, that is,
 \code{void some\_function() \sout{throw(std::bad\_alloc, some\_exception)}}. Nevertheless, if a function can be 
-guaranteed not to throw, then provide the no-throw specification (with \code{throw()}\ or \code{noexcept}).}
+guaranteed not to throw, then provide the no-throw specification (with \code{throw()}\ or \code{noexcept}).
+Needless to say, derive any new exception class from the \code{std::exception}\ class, implement no-throw 
+functions in it, and throw by value and catch by reference, as usual.}
 {\ }
 
 \Commandment
@@ -454,13 +456,13 @@ overloads (Sfinae: ``Substitution Failure Is Not An Error'').}
 {\ }
 
 \Commandment
-{Provide concept-check and traits class templates.}
+{Provide concept-check, traits and meta-function class templates.}
 {\ }
 {\ }
 {\ }
 
 \Commandment
-{Obey the principle of minimum requirement.}
+{Obey the \textit{Principle of Minimum Requirement}.}
 {\ }
 {\ }
 {\ }

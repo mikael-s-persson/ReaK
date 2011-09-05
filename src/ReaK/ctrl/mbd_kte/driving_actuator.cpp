@@ -28,7 +28,7 @@ namespace ReaK {
 namespace kte {
 
 
-void driving_actuator_gen::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void driving_actuator_gen::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mFrame) || (!mJoint))
     return;
 
@@ -40,7 +40,7 @@ void driving_actuator_gen::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_
 
 
 
-void driving_actuator_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void driving_actuator_2D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mFrame) || (!mJoint))
     return;
 
@@ -52,7 +52,7 @@ void driving_actuator_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_s
 
 
 
-void driving_actuator_3D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void driving_actuator_3D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mFrame) || (!mJoint))
     return;
 

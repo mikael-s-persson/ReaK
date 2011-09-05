@@ -31,8 +31,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SPATIAL_TRAJECTORY_CONCEPT_HPP
-#define SPATIAL_TRAJECTORY_CONCEPT_HPP
+#ifndef REAK_SPATIAL_TRAJECTORY_CONCEPT_HPP
+#define REAK_SPATIAL_TRAJECTORY_CONCEPT_HPP
 
 #include "spatial_path_concept.hpp"
 #include "temporal_space.hpp"

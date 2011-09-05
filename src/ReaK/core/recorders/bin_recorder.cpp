@@ -50,7 +50,7 @@ void bin_recorder::setFileName(const std::string& aFileName) {
   if(colCount != 0) {
     *this << close;
 
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef RK_ENABLE_CXX0X_FEATURES
     std::unique_lock< std::mutex > lock_here(access_mutex);
 #else
     boost::unique_lock< boost::mutex > lock_here(access_mutex);
@@ -64,7 +64,7 @@ void bin_recorder::setFileName(const std::string& aFileName) {
       writeNames();
     };
   } else {
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef RK_ENABLE_CXX0X_FEATURES
     std::unique_lock< std::mutex > lock_here(access_mutex);
 #else
     boost::unique_lock< boost::mutex > lock_here(access_mutex);
@@ -109,7 +109,7 @@ bool bin_extractor::loadFile(const std::string& aFileName) {
   if(colCount != 0) {
     *this >> close;
 
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef RK_ENABLE_CXX0X_FEATURES
     std::unique_lock< std::mutex > lock_here(access_mutex);
 #else
     boost::unique_lock< boost::mutex > lock_here(access_mutex);
@@ -119,7 +119,7 @@ bool bin_extractor::loadFile(const std::string& aFileName) {
     input_file.open(aFileName.c_str(),std::ios_base::in | std::ios_base::binary);
     fileName = aFileName;
   } else {
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef RK_ENABLE_CXX0X_FEATURES
     std::unique_lock< std::mutex > lock_here(access_mutex);
 #else
     boost::unique_lock< boost::mutex > lock_here(access_mutex);

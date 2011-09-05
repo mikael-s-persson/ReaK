@@ -21,8 +21,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PPTESTER_IMPL_H
-#define PPTESTER_IMPL_H
+#ifndef REAK_PPTESTER_IMPL_H
+#define REAK_PPTESTER_IMPL_H
 
 #include "ui_pptester.h"
 #include "ui_ppresultview.h"

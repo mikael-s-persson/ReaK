@@ -31,23 +31,23 @@ namespace kte {
 
 
 
-void spring_gen::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void spring_gen::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mAnchor1) || (!mAnchor2))
     return;
 
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->gen_coord_mapping[mAnchor1]))
-      aStorage->gen_coord_mapping[mAnchor1] = boost::shared_ptr< ReaK::gen_coord<double> >(new ReaK::gen_coord<double>((*mAnchor1)),ReaK::scoped_deleter());
+      aStorage->gen_coord_mapping[mAnchor1] = shared_pointer< ReaK::gen_coord<double> >::type(new ReaK::gen_coord<double>((*mAnchor1)),ReaK::scoped_deleter());
     else
       (*(aStorage->gen_coord_mapping[mAnchor1])) = (*mAnchor1);
     if(!(aStorage->gen_coord_mapping[mAnchor2]))
-      aStorage->gen_coord_mapping[mAnchor2] = boost::shared_ptr< ReaK::gen_coord<double> >(new ReaK::gen_coord<double>((*mAnchor2)),ReaK::scoped_deleter());
+      aStorage->gen_coord_mapping[mAnchor2] = shared_pointer< ReaK::gen_coord<double> >::type(new ReaK::gen_coord<double>((*mAnchor2)),ReaK::scoped_deleter());
     else
       (*(aStorage->gen_coord_mapping[mAnchor2])) = (*mAnchor2);
   };
 };
 
-void spring_gen::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void spring_gen::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mAnchor1) || (!mAnchor2))
     return;
   using std::fabs;
@@ -97,23 +97,23 @@ void spring_gen::clearForce() {
 
 
 
-void spring_2D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void spring_2D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mAnchor1) || (!mAnchor2))
     return;
 
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_2D_mapping[mAnchor1]))
-      aStorage->frame_2D_mapping[mAnchor1] = boost::shared_ptr< frame_2D<double> >(new frame_2D<double>((*mAnchor1)),scoped_deleter());
+      aStorage->frame_2D_mapping[mAnchor1] = shared_pointer< frame_2D<double> >::type(new frame_2D<double>((*mAnchor1)),scoped_deleter());
     else
       (*(aStorage->frame_2D_mapping[mAnchor1])) = (*mAnchor1);
     if(!(aStorage->frame_2D_mapping[mAnchor2]))
-      aStorage->frame_2D_mapping[mAnchor2] = boost::shared_ptr< frame_2D<double> >(new frame_2D<double>((*mAnchor2)),scoped_deleter());
+      aStorage->frame_2D_mapping[mAnchor2] = shared_pointer< frame_2D<double> >::type(new frame_2D<double>((*mAnchor2)),scoped_deleter());
     else
       (*(aStorage->frame_2D_mapping[mAnchor2])) = (*mAnchor2);
   };
 };
 
-void spring_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void spring_2D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mAnchor1) || (!mAnchor2))
     return;
 
@@ -159,23 +159,23 @@ void spring_2D::clearForce() {
 
 
 
-void spring_3D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void spring_3D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mAnchor1) || (!mAnchor2))
     return;
 
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_3D_mapping[mAnchor1]))
-      aStorage->frame_3D_mapping[mAnchor1] = boost::shared_ptr< ReaK::frame_3D<double> >(new frame_3D<double>((*mAnchor1)),scoped_deleter());
+      aStorage->frame_3D_mapping[mAnchor1] = shared_pointer< ReaK::frame_3D<double> >::type(new frame_3D<double>((*mAnchor1)),scoped_deleter());
     else
       (*(aStorage->frame_3D_mapping[mAnchor1])) = (*mAnchor1);
     if(!(aStorage->frame_3D_mapping[mAnchor2]))
-      aStorage->frame_3D_mapping[mAnchor2] = boost::shared_ptr< ReaK::frame_3D<double> >(new frame_3D<double>((*mAnchor2)),scoped_deleter());
+      aStorage->frame_3D_mapping[mAnchor2] = shared_pointer< ReaK::frame_3D<double> >::type(new frame_3D<double>((*mAnchor2)),scoped_deleter());
     else
       (*(aStorage->frame_3D_mapping[mAnchor2])) = (*mAnchor2);
   };
 };
 
-void spring_3D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
+void spring_3D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) { RK_UNUSED(aFlag); RK_UNUSED(aStorage);
   if((!mAnchor1) || (!mAnchor2))
     return;
   

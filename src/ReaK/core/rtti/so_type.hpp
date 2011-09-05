@@ -30,8 +30,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SO_TYPE_HPP
-#define SO_TYPE_HPP
+#ifndef REAK_SO_TYPE_HPP
+#define REAK_SO_TYPE_HPP
 
 #include "base/defs.hpp"
 #include "base/shared_object_base.hpp"
@@ -47,6 +47,7 @@
 
 #include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/bool.hpp>
+
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -64,7 +65,9 @@ namespace serialization {
 /** Main namespace for ReaK's Run-time Type Identification (RTTI) */
 namespace rtti {
   
-typedef boost::shared_ptr<shared_object> (RK_CALL *construct_ptr)();
+typedef ReaK::shared_pointer<shared_object>::type shared_object_shared_pointer;
+
+typedef shared_object_shared_pointer (RK_CALL *construct_ptr)();
 
 //this is really the only thing that the class needs to define
 template <typename T>
@@ -577,15 +580,18 @@ class so_type : public shared_object_base {
 private:
   so_type(const so_type&);
   so_type& operator =(const so_type&);
+public:
+  typedef ReaK::weak_pointer<so_type>::type weak_pointer;
+  typedef ReaK::shared_pointer<so_type>::type shared_pointer;
 protected:
   
   so_type() : shared_object_base() { };
 
   ///This function finds a TypeID in the descendants (recusively) of this.
-  virtual boost::weak_ptr<so_type> RK_CALL findDescendant_impl(const unsigned int* aTypeID ) const = 0;
+  virtual weak_pointer RK_CALL findDescendant_impl(const unsigned int* aTypeID ) const = 0;
 
   ///This function checks if a typeID is parent to this.
-  virtual boost::weak_ptr<so_type> RK_CALL findAncestor_impl(const unsigned int* aTypeID ) const = 0;
+  virtual weak_pointer RK_CALL findAncestor_impl(const unsigned int* aTypeID ) const = 0;
   
   static bool compare_equal(const unsigned int* pid1, const unsigned int* pid2) {
     while((*pid1) && (*pid2)) {
@@ -605,32 +611,32 @@ public:
   virtual ~so_type() { };
 
   ///This function adds a Descendant of this.
-  virtual boost::shared_ptr<so_type> RK_CALL addDescendant(const boost::shared_ptr<so_type>& aObj ) = 0;
+  virtual shared_pointer RK_CALL addDescendant(const shared_pointer& aObj ) = 0;
   
-  virtual boost::weak_ptr<so_type> RK_CALL addAncestor(boost::shared_ptr<so_type>& aThis, const boost::weak_ptr<so_type>& aObj) = 0;
+  virtual weak_pointer RK_CALL addAncestor(shared_pointer& aThis, const weak_pointer& aObj) = 0;
     
   ///This function finds a TypeID in the descendants (recusively) of this.
-  boost::weak_ptr<so_type> RK_CALL findDescendant(const unsigned int* aTypeID ) const {
+  weak_pointer RK_CALL findDescendant(const unsigned int* aTypeID ) const {
     return this->findDescendant_impl(aTypeID);
   };
 
   ///This function checks if a typeID is parent to this.
-  boost::weak_ptr<so_type> RK_CALL findAncestor(const unsigned int* aTypeID ) const {
+  weak_pointer RK_CALL findAncestor(const unsigned int* aTypeID ) const {
     return this->findAncestor_impl(aTypeID);
   };
   
   ///This function finds a TypeID in the descendants (recusively) of this.
-  boost::weak_ptr<so_type> RK_CALL findDescendant(const boost::shared_ptr<so_type>& aTypeID ) const {
+  weak_pointer RK_CALL findDescendant(const shared_pointer& aTypeID ) const {
     return this->findDescendant_impl(aTypeID->TypeID_begin());
   };
 
   ///This function checks if a typeID is parent to this.
-  boost::weak_ptr<so_type> RK_CALL findAncestor(boost::shared_ptr<so_type>& aThis, const boost::shared_ptr<so_type>& aTypeID ) const {
+  weak_pointer RK_CALL findAncestor(shared_pointer& aThis, const shared_pointer& aTypeID ) const {
     return this->findAncestor_impl(aTypeID->TypeID_begin());
   };
 
   ///This function inserts this into a global repo.
-  virtual void RK_CALL insertToRepo(const boost::shared_ptr<so_type>& aThis,boost::shared_ptr<so_type>& aRepo) = 0;
+  virtual void RK_CALL insertToRepo(const shared_pointer& aThis, shared_pointer& aRepo) = 0;
 
   virtual const unsigned int* RK_CALL TypeID_begin() const = 0;
   
@@ -638,7 +644,7 @@ public:
 
   virtual const std::string& RK_CALL TypeName() const = 0;
 
-  virtual boost::shared_ptr<shared_object> RK_CALL CreateObject() const = 0;
+  virtual shared_object_shared_pointer RK_CALL CreateObject() const = 0;
   
   friend bool operator ==(const so_type& t1, const so_type& t2) {
     return compare_equal(t1.TypeID_begin(),t2.TypeID_begin());
@@ -653,32 +659,32 @@ public:
 
 class so_type_impl : public so_type {
 protected:
-  static bool compare_shared(const boost::shared_ptr< so_type >& t1, const boost::shared_ptr< so_type >& t2);
-  static bool compare_weak(const boost::weak_ptr< so_type >& t1, const boost::weak_ptr< so_type >& t2);
+  static bool compare_shared(const shared_pointer& t1, const shared_pointer& t2);
+  static bool compare_weak(const weak_pointer& t1, const weak_pointer& t2);
   
-  typedef bool (*compare_shared_t)(const boost::shared_ptr< so_type >&,const boost::shared_ptr< so_type >&);
-  typedef bool (*compare_weak_t)(const boost::weak_ptr< so_type >&,const boost::weak_ptr< so_type >&);
+  typedef bool (*compare_shared_t)(const shared_pointer&,const shared_pointer&);
+  typedef bool (*compare_weak_t)(const weak_pointer&,const weak_pointer&);
   
-  std::set< boost::shared_ptr< so_type >, compare_shared_t > mDescendants;
-  std::set< boost::weak_ptr< so_type >, compare_weak_t > mAncestors;
+  std::set< shared_pointer, compare_shared_t > mDescendants;
+  std::set< weak_pointer, compare_weak_t > mAncestors;
   
   so_type_impl();
   
   ///This function finds a TypeID in the descendants (recusively) of this.
-  virtual boost::weak_ptr<so_type> RK_CALL findDescendant_impl(const unsigned int* aTypeID ) const;
+  virtual weak_pointer RK_CALL findDescendant_impl(const unsigned int* aTypeID ) const;
 
   ///This function checks if a typeID is parent to this.
-  virtual boost::weak_ptr<so_type> RK_CALL findAncestor_impl(const unsigned int* aTypeID ) const;
+  virtual weak_pointer RK_CALL findAncestor_impl(const unsigned int* aTypeID ) const;
   
 public:
   
   ///This function adds a Descendant of this.
-  virtual boost::shared_ptr<so_type> RK_CALL addDescendant(const boost::shared_ptr<so_type>& aObj);
+  virtual shared_pointer RK_CALL addDescendant(const shared_pointer& aObj);
 
-  virtual boost::weak_ptr<so_type> RK_CALL addAncestor(boost::shared_ptr<so_type>& aThis, const boost::weak_ptr<so_type>& aObj);
+  virtual weak_pointer RK_CALL addAncestor(shared_pointer& aThis, const weak_pointer& aObj);
     
   ///This function inserts this into a global repo.
-  virtual void RK_CALL insertToRepo(const boost::shared_ptr<so_type>& aThis,boost::shared_ptr<so_type>& aRepo);
+  virtual void RK_CALL insertToRepo(const shared_pointer& aThis, shared_pointer& aRepo);
 
 };
 
@@ -691,7 +697,6 @@ private:
   unsigned int mTypeID[mTypeIDLength];
   std::string mTypeName;
   construct_ptr mConstruct;
-
 public:
   so_type_descriptor() : so_type_impl() {
     for(unsigned int i = 0; i < mTypeIDLength; ++i) {
@@ -711,15 +716,15 @@ public:
 
   virtual const std::string& RK_CALL TypeName() const { return mTypeName; };
 
-  virtual boost::shared_ptr<shared_object> RK_CALL CreateObject() const {
+  virtual shared_object_shared_pointer RK_CALL CreateObject() const {
     if(mConstruct)
       return mConstruct();
     else
-      return boost::shared_ptr<shared_object>();
+      return shared_object_shared_pointer();
   };
 
-  static boost::shared_ptr<so_type> Create(boost::function< boost::shared_ptr<shared_object>() > aConstruct) {
-    return boost::shared_ptr<so_type>(new so_type_descriptor<T,Version>(aConstruct),scoped_deleter());
+  static shared_pointer Create(boost::function< shared_object_shared_pointer() > aConstruct) {
+    return shared_pointer(new so_type_descriptor<T,Version>(aConstruct),scoped_deleter());
   };
   
 };
@@ -752,8 +757,8 @@ namespace detail {
     };
     virtual unsigned int RK_CALL TypeVersion() const { return 0; };
     virtual const std::string& RK_CALL TypeName() const { return mTypeName; };
-    virtual boost::shared_ptr<shared_object> RK_CALL CreateObject() const {
-      return boost::shared_ptr<shared_object>();
+    virtual shared_object_shared_pointer RK_CALL CreateObject() const {
+      return shared_object_shared_pointer();
     };
     
   };

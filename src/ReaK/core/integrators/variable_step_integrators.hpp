@@ -43,8 +43,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef VARIABLE_STEP_INTEGRATORS_HPP
-#define VARIABLE_STEP_INTEGRATORS_HPP
+#ifndef REAK_VARIABLE_STEP_INTEGRATORS_HPP
+#define REAK_VARIABLE_STEP_INTEGRATORS_HPP
 
 
 #include "integrator.hpp"
@@ -90,7 +90,7 @@ class fehlberg45_integrator : public variable_step_integrator<T> {
                           const ReaK::vect_n<T>& aState,
                           double aStartTime,
                           double aInitialStepSize,
-                          boost::weak_ptr< state_rate_function<T> > aGetStateRate,
+                          const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate,
                           double aMaxStepSize,
                           double aMinStepSize,
                           double aTolerance) :
@@ -143,7 +143,7 @@ void RK_CALL fehlberg45_integrator<T>::integrate(double aEndTime) {
       (variable_step_integrator<T>::mMinStepSize > variable_step_integrator<T>::mMaxStepSize))
     throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
-  boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+  typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
   if (!func_ptr) throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
   vect_n<T> prevY(integrator<T>::mState.q.size());
@@ -275,7 +275,7 @@ class dormand_prince45_integrator : public variable_step_integrator<T> {
                                 const ReaK::vect_n<T>& aState,
                                 double aStartTime,
                                 double aInitialStepSize,
-                                boost::weak_ptr< state_rate_function<T> > aGetStateRate,
+                                const typename weak_pointer< state_rate_function<T> >::type aGetStateRate,
                                 double aMaxStepSize,
                                 double aMinStepSize,
                                 double aTolerance) :
@@ -329,7 +329,7 @@ void RK_CALL dormand_prince45_integrator<T>::integrate(double aEndTime) {
       (variable_step_integrator<T>::mMinStepSize > variable_step_integrator<T>::mMaxStepSize))
     throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
-  boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+  typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
   if (!func_ptr) throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
   vect_n<T> prevY(integrator<T>::mState.q.size());
   vect_n<T> k1(integrator<T>::mState.q.size());

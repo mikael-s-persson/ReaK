@@ -30,8 +30,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REACHABILITY_SORT_HPP
-#define REACHABILITY_SORT_HPP
+#ifndef REAK_REACHABILITY_SORT_HPP
+#define REAK_REACHABILITY_SORT_HPP
 
 #include "reachability_space_concept.hpp"
 

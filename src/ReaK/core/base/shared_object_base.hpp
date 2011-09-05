@@ -34,12 +34,21 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SHARED_OBJECT_BASE_HPP
-#define SHARED_OBJECT_BASE_HPP
+#ifndef REAK_SHARED_OBJECT_BASE_HPP
+#define REAK_SHARED_OBJECT_BASE_HPP
+
+#include "defs.hpp"
+
+#ifndef RK_ENABLE_CXX0X_FEATURES
 
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
-#include "defs.hpp"
+
+#else
+
+#include <memory>
+
+#endif
 
 
 namespace ReaK {
@@ -68,8 +77,15 @@ struct null_deleter
  */
 class shared_object_base {
   protected:
-    boost::shared_ptr<shared_object_base> mThis;
-  
+#ifndef RK_ENABLE_CXX0X_FEATURES
+    typedef boost::shared_ptr<shared_object_base> shared_this_pointer;
+    typedef boost::weak_ptr<shared_object_base> weak_this_pointer;
+#else
+    typedef std::shared_ptr<shared_object_base> shared_this_pointer;
+    typedef std::weak_ptr<shared_object_base> weak_this_pointer;
+#endif
+    shared_this_pointer mThis;
+    
   public:
     virtual void RK_CALL destroy() = 0;
     
@@ -85,9 +101,9 @@ class shared_object_base {
      *         not get deleted in the meantime. A real shared ownership can only be obtained from the 
      *         actual owner of this object.
      */
-    boost::weak_ptr<shared_object_base> RK_CALL getWeakPtr() const { return mThis; };
+    weak_this_pointer RK_CALL getWeakPtr() const { return mThis; };
     
-    shared_object_base() { mThis = boost::shared_ptr<shared_object_base>(this,null_deleter()); };
+    shared_object_base() { mThis = shared_this_pointer(this,null_deleter()); };
 
     virtual ~shared_object_base() { RK_NOTICE(8,"Shared object base destructor reached!");};
 };

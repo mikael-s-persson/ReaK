@@ -29,7 +29,7 @@ namespace kte {
 
 
     
-void dry_revolute_joint_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void dry_revolute_joint_2D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mEnd) || (!mBase))
     return;
   
@@ -60,7 +60,7 @@ void dry_revolute_joint_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame
 
 
     
-void dry_revolute_joint_3D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void dry_revolute_joint_3D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mEnd) || (!mBase))
     return;
   

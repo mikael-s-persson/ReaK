@@ -31,12 +31,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FREE_JOINTS_HPP
-#define FREE_JOINTS_HPP
+#ifndef REAK_FREE_JOINTS_HPP
+#define REAK_FREE_JOINTS_HPP
 
 
 #include "reacting_kte.hpp"
-#include "math/motion_jacobians.hpp"
+#include "kinetostatics/motion_jacobians.hpp"
 
 #include <boost/shared_ptr.hpp>
 
@@ -51,11 +51,11 @@ namespace kte {
  */
 class free_joint_2D : public reacting_kte_2D {
   protected:
-    boost::shared_ptr< frame_2D<double> > mCoord; ///< The coordinate frame representing the joint's motion.
-    boost::shared_ptr< frame_2D<double> > mBase; ///< The coordinate frame at the base of the joint.
-    boost::shared_ptr< frame_2D<double> > mEnd; ///< The coordinate frame just after the joint transformations are applied.
+    shared_pointer< frame_2D<double> >::type mCoord; ///< The coordinate frame representing the joint's motion.
+    shared_pointer< frame_2D<double> >::type mBase; ///< The coordinate frame at the base of the joint.
+    shared_pointer< frame_2D<double> >::type mEnd; ///< The coordinate frame just after the joint transformations are applied.
 
-    boost::shared_ptr< jacobian_2D_2D<double> > mJacobian; ///< The Jacobian frame produced by this joint.
+    shared_pointer< jacobian_2D_2D<double> >::type mJacobian; ///< The Jacobian frame produced by this joint.
 
   public:
 
@@ -73,24 +73,24 @@ class free_joint_2D : public reacting_kte_2D {
      * \param aJacobian a pointer to contain the Jacobian frame produced by this joint, default value will disable the Jacobian frame's calculation.
      */
     free_joint_2D(const std::string& aName,
-		       boost::shared_ptr< frame_2D<double> > aCoord,
-		       boost::shared_ptr< frame_2D<double> > aBase,
-		       boost::shared_ptr< frame_2D<double> > aEnd,
-                       boost::shared_ptr< jacobian_2D_2D<double> > aJacobian = boost::shared_ptr< jacobian_2D_2D<double> >()) :
-		       reacting_kte_2D(aName),
-		       mCoord(aCoord),
-		       mBase(aBase),
-		       mEnd(aEnd),
-                       mJacobian(aJacobian) { };
+		  const shared_pointer< frame_2D<double> >::type& aCoord,
+		  const shared_pointer< frame_2D<double> >::type& aBase,
+		  const shared_pointer< frame_2D<double> >::type& aEnd,
+                  const shared_pointer< jacobian_2D_2D<double> >::type& aJacobian = shared_pointer< jacobian_2D_2D<double> >::type()) :
+		  reacting_kte_2D(aName),
+		  mCoord(aCoord),
+		  mBase(aBase),
+		  mEnd(aEnd),
+                  mJacobian(aJacobian) { };
 
     /**
      * Default destructor.
      */
     virtual ~free_joint_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 
@@ -122,11 +122,11 @@ class free_joint_2D : public reacting_kte_2D {
  */
 class free_joint_3D : public reacting_kte_3D {
   protected:
-    boost::shared_ptr< frame_3D<double> > mCoord; ///< The coordinate frame representing the joint's motion.
-    boost::shared_ptr< frame_3D<double> > mBase; ///< The coordinate frame at the base of the joint.
-    boost::shared_ptr< frame_3D<double> > mEnd; ///< The coordinate frame just after the joint transformations are applied.
+    shared_pointer< frame_3D<double> >::type mCoord; ///< The coordinate frame representing the joint's motion.
+    shared_pointer< frame_3D<double> >::type mBase; ///< The coordinate frame at the base of the joint.
+    shared_pointer< frame_3D<double> >::type mEnd; ///< The coordinate frame just after the joint transformations are applied.
 
-    boost::shared_ptr< jacobian_3D_3D<double> > mJacobian; ///< The Jacobian frame produced by this joint.
+    shared_pointer< jacobian_3D_3D<double> >::type mJacobian; ///< The Jacobian frame produced by this joint.
 
   public:
 
@@ -144,10 +144,10 @@ class free_joint_3D : public reacting_kte_3D {
      * \param aJacobian a pointer to contain the Jacobian frame produced by this joint, default value will disable the Jacobian frame's calculation.
      */
     free_joint_3D(const std::string& aName,
-		  boost::shared_ptr< frame_3D<double> > aCoord,
-		  boost::shared_ptr< frame_3D<double> > aBase,
-		  boost::shared_ptr< frame_3D<double> > aEnd,
-                  boost::shared_ptr< jacobian_3D_3D<double> > aJacobian = boost::shared_ptr< jacobian_3D_3D<double> >()) :
+		  const shared_pointer< frame_3D<double> >::type& aCoord,
+		  const shared_pointer< frame_3D<double> >::type& aBase,
+		  const shared_pointer< frame_3D<double> >::type& aEnd,
+                  const shared_pointer< jacobian_3D_3D<double> >::type& aJacobian = shared_pointer< jacobian_3D_3D<double> >::type()) :
 		  reacting_kte_3D(aName),
 		  mCoord(aCoord),
 		  mBase(aBase),
@@ -159,9 +159,9 @@ class free_joint_3D : public reacting_kte_3D {
      */
     virtual ~free_joint_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 

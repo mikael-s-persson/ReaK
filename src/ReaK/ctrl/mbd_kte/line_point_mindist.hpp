@@ -30,12 +30,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LINE_POINT_MINDIST_HPP
-#define LINE_POINT_MINDIST_HPP
+#ifndef REAK_LINE_POINT_MINDIST_HPP
+#define REAK_LINE_POINT_MINDIST_HPP
 
 #include "kte_map.hpp"
 
-#include "math/kinetostatics.hpp"
+#include "kinetostatics/kinetostatics.hpp"
 
 namespace ReaK {
 
@@ -50,8 +50,8 @@ namespace kte {
  */
 class line_point_mindist_2D : public kte_map {
   private:
-    boost::shared_ptr< frame_2D<double> > mBase; ///< Holds the base-frame, or kinematic input, or free-point.
-    boost::shared_ptr< frame_2D<double> > mEnd; ///< Holds the end-frame, or kinematic output, or min-dist point to base-frame, on the line.
+    shared_pointer< frame_2D<double> >::type mBase; ///< Holds the base-frame, or kinematic input, or free-point.
+    shared_pointer< frame_2D<double> >::type mEnd; ///< Holds the end-frame, or kinematic output, or min-dist point to base-frame, on the line.
     vect<double,2> mTangent; ///< Holds the tangent vector of the (fixed) line in global coordinates.
     vect<double,2> mOriginMinDist; ///< Holds the minimum-distance vector from origin to the line, in global coordinates.
 
@@ -81,8 +81,8 @@ class line_point_mindist_2D : public kte_map {
      * \param aOriginMinDist the minimum-distance vector from origin to the line, in global coordinates.
      */
     line_point_mindist_2D(const std::string& aName,
-                          boost::shared_ptr< frame_2D<double> > aBase,
-                          boost::shared_ptr< frame_2D<double> > aEnd,
+                          const shared_pointer< frame_2D<double> >::type& aBase,
+                          const shared_pointer< frame_2D<double> >::type& aEnd,
                           const vect<double,2>& aTangent,
                           const vect<double,2>& aOriginMinDist) :
                           kte_map(aName),
@@ -96,9 +96,9 @@ class line_point_mindist_2D : public kte_map {
      */
     virtual ~line_point_mindist_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 
@@ -129,8 +129,8 @@ class line_point_mindist_2D : public kte_map {
  */
 class line_point_mindist_3D : public kte_map {
   private:
-    boost::shared_ptr< frame_3D<double> > mBase; ///< Holds the base-frame, or kinematic input, or free-point.
-    boost::shared_ptr< frame_3D<double> > mEnd; ///< Holds the end-frame, or kinematic output, or min-dist point to base-frame, on the line.
+    shared_pointer< frame_3D<double> >::type mBase; ///< Holds the base-frame, or kinematic input, or free-point.
+    shared_pointer< frame_3D<double> >::type mEnd; ///< Holds the end-frame, or kinematic output, or min-dist point to base-frame, on the line.
     vect<double,3> mTangent; ///< Holds the tangent vector of the (fixed) line in global coordinates.
     vect<double,3> mOriginMinDist; ///< Holds the minimum-distance vector from origin to the line, in global coordinates.
 
@@ -160,8 +160,8 @@ class line_point_mindist_3D : public kte_map {
      * \param aOriginMinDist the minimum-distance vector from origin to the line, in global coordinates.
      */
     line_point_mindist_3D(const std::string& aName,
-                          boost::shared_ptr< frame_3D<double> > aBase,
-                          boost::shared_ptr< frame_3D<double> > aEnd,
+                          const shared_pointer< frame_3D<double> >::type& aBase,
+                          const shared_pointer< frame_3D<double> >::type& aEnd,
                           const vect<double,3>& aTangent,
                           const vect<double,3>& aOriginMinDist) :
                           kte_map(aName),
@@ -175,9 +175,9 @@ class line_point_mindist_3D : public kte_map {
      */
     virtual ~line_point_mindist_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 

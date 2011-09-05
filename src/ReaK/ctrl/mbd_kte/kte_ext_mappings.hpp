@@ -30,13 +30,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KTE_EXT_MAPPINGS_HPP
-#define KTE_EXT_MAPPINGS_HPP
+#ifndef REAK_KTE_EXT_MAPPINGS_HPP
+#define REAK_KTE_EXT_MAPPINGS_HPP
 
-#include <boost/shared_ptr.hpp>
-
-#include "math/vect_alg.hpp"
-#include "math/kinetostatics.hpp"
+#include "lin_alg/vect_alg.hpp"
+#include "kinetostatics/kinetostatics.hpp"
 
 #include <map>
 
@@ -111,11 +109,11 @@ typedef std::map< double*, force_coef_3D >         force_coef_map_3D;
 
 
 /** This typedef defines a map of generalized coordinate state storage associated to a generalized coordinate pointer in the KTE chain. */ 
-typedef std::map< boost::shared_ptr< gen_coord<double> >, boost::shared_ptr< gen_coord<double> > > gen_coord_map;
+typedef std::map< shared_pointer< gen_coord<double> >::type, shared_pointer< gen_coord<double> >::type > gen_coord_map;
 /** This typedef defines a map of frame 2D state storage associated to a frame 2D pointer in the KTE chain. */ 
-typedef std::map< boost::shared_ptr< frame_2D<double> >, boost::shared_ptr< frame_2D<double> > > frame_2D_map;
+typedef std::map< shared_pointer< frame_2D<double> >::type, shared_pointer< frame_2D<double> >::type > frame_2D_map;
 /** This typedef defines a map of frame 3D state storage associated to a frame 3D pointer in the KTE chain. */ 
-typedef std::map< boost::shared_ptr< frame_3D<double> >, boost::shared_ptr< frame_3D<double> > > frame_3D_map;
+typedef std::map< shared_pointer< frame_3D<double> >::type, shared_pointer< frame_3D<double> >::type > frame_3D_map;
 
 /**
  * This struct is used as a storage repository to take a "flash" of all kinematics and dynamics states 

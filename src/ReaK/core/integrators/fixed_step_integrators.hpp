@@ -43,8 +43,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FIXED_STEP_INTEGRATORS_HPP
-#define FIXED_STEP_INTEGRATORS_HPP
+#ifndef REAK_FIXED_STEP_INTEGRATORS_HPP
+#define REAK_FIXED_STEP_INTEGRATORS_HPP
 
 #include "integrator.hpp"
 
@@ -69,7 +69,7 @@ class euler_integrator : public integrator<T> {
           ((integrator<T>::mStepSize < 0.0) && (integrator<T>::mTime < aEndTime))) 
         throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
-      boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+      typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
       if (!func_ptr) throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
   
       func_ptr->computeStateRate(integrator<T>::mTime,integrator<T>::mState,integrator<T>::mStateRate);
@@ -101,7 +101,7 @@ class euler_integrator : public integrator<T> {
                      const ReaK::vect_n<T>& aState,
                      double aStartTime,
                      double aStepSize,
-                     boost::weak_ptr< state_rate_function<T> > aGetStateRate) :
+                     const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate) :
                      integrator<T>(aName, aState, aStartTime, aStepSize, aGetStateRate) { };
     /**
      * Default destructor.
@@ -152,7 +152,7 @@ class midpoint_integrator : public integrator<T> {
                         const ReaK::vect_n<T>& aState,
                         double aStartTime,
                         double aStepSize,
-                        boost::weak_ptr< state_rate_function<T> > aGetStateRate) :
+                        const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate) :
                         integrator<T>(aName, aState, aStartTime, aStepSize, aGetStateRate) { };
     /**
      * Default destructor.
@@ -182,7 +182,7 @@ void RK_CALL midpoint_integrator<T>::integrate(double aEndTime) {
       ((integrator<T>::mStepSize < 0.0) && (integrator<T>::mTime < aEndTime))) 
     throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
-  boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+  typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
   if (!func_ptr) throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
   
   vect_n<T> w(integrator<T>::mState.q.size());
@@ -232,7 +232,7 @@ class runge_kutta4_integrator : public integrator<T> {
                             const ReaK::vect_n<T>& aState,
                             double aStartTime,
                             double aStepSize,
-                            boost::weak_ptr< state_rate_function<T> > aGetStateRate) :
+                            const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate) :
                             integrator<T>(aName, aState, aStartTime, aStepSize, aGetStateRate) { };
     /**
      * Default destructor.
@@ -262,7 +262,7 @@ void RK_CALL runge_kutta4_integrator<T>::integrate(double aEndTime) {
       ((integrator<T>::mStepSize < 0.0) && (integrator<T>::mTime < aEndTime))) 
     throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
-  boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+  typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
   if (!func_ptr) throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
   
   vect_n<T> w(integrator<T>::mState.q.size());
@@ -326,7 +326,7 @@ class runge_kutta5_integrator : public integrator<T> {
                             const ReaK::vect_n<T>& aState,
                             double aStartTime,
                             double aStepSize,
-                            boost::weak_ptr< state_rate_function<T> > aGetStateRate) :
+                            const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate) :
                             integrator<T>(aName, aState, aStartTime, aStepSize, aGetStateRate) { };
     /**
      * Default destructor.
@@ -356,7 +356,7 @@ void RK_CALL runge_kutta5_integrator<T>::integrate(double aEndTime) {
       ((integrator<T>::mStepSize < 0.0) && (integrator<T>::mTime < aEndTime))) 
     throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
-  boost::shared_ptr< state_rate_function<T> > func_ptr = integrator<T>::mGetStateRate.lock();
+  typename shared_pointer< state_rate_function<T> >::type func_ptr = integrator<T>::mGetStateRate.lock();
   if (!func_ptr) throw impossible_integration(integrator<T>::mTime,aEndTime,integrator<T>::mStepSize);
 
   vect_n<T> w(integrator<T>::mState.q.size());

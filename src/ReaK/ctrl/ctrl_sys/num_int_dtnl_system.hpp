@@ -30,8 +30,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NUM_INT_DTNL_SYSTEM_HPP
-#define NUM_INT_DTNL_SYSTEM_HPP
+#ifndef REAK_NUM_INT_DTNL_SYSTEM_HPP
+#define REAK_NUM_INT_DTNL_SYSTEM_HPP
 
 #include "discrete_sss_concept.hpp"
 #include "state_space_sys_concept.hpp"
@@ -125,7 +125,7 @@ class num_int_dtnl_sys : public named_object, public state_rate_function<typenam
       integ.clearStateVector();
       integ.addStateElements(p);
       current_u = u;
-      boost::shared_ptr< state_rate_function<value_type> > aThis(this,null_deleter());
+      typename shared_pointer< state_rate_function<value_type> >::type aThis(this,null_deleter());
       integ.setStateRateFunc(aThis);
       integ.integrate(t + dt);
       point_type result(p); size_type i = 0;

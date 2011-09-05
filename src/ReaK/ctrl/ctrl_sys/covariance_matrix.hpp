@@ -30,11 +30,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COVARIANCE_MATRIX_HPP
-#define COVARIANCE_MATRIX_HPP
+#ifndef REAK_COVARIANCE_MATRIX_HPP
+#define REAK_COVARIANCE_MATRIX_HPP
 
-#include "math/mat_alg.hpp"
-#include "math/mat_cholesky.hpp"
+#include "lin_alg/mat_alg.hpp"
+#include "lin_alg/mat_cholesky.hpp"
 #include "base/named_object.hpp"
 
 #include "covariance_concept.hpp"

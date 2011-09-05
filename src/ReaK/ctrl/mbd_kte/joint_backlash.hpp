@@ -30,11 +30,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef JOINT_BACKLASH_HPP
-#define JOINT_BACKLASH_HPP
+#ifndef REAK_JOINT_BACKLASH_HPP
+#define REAK_JOINT_BACKLASH_HPP
 
 #include "kte_map.hpp"
-#include "math/kinetostatics.hpp"
+#include "kinetostatics/kinetostatics.hpp"
 
 namespace ReaK {
 
@@ -46,8 +46,8 @@ namespace kte {
  */
 class joint_backlash_gen : public kte_map {
   private:
-    boost::shared_ptr<gen_coord<double> > mBase;
-    boost::shared_ptr<gen_coord<double> > mEnd;
+    shared_pointer<gen_coord<double> >::type mBase;
+    shared_pointer<gen_coord<double> >::type mEnd;
     double mGapSize;
 
   public:
@@ -66,8 +66,8 @@ class joint_backlash_gen : public kte_map {
      * Parametrized constructor.
      */
     joint_backlash_gen(const std::string& aName,
-                       boost::shared_ptr< gen_coord<double> > aBase,
-                       boost::shared_ptr< gen_coord<double> > aEnd,
+                       const shared_pointer< gen_coord<double> >::type& aBase,
+                       const shared_pointer< gen_coord<double> >::type& aEnd,
                        double aGapSize) :
                        kte_map(aName),
                        mBase(aBase),
@@ -79,9 +79,9 @@ class joint_backlash_gen : public kte_map {
      */
     virtual ~joint_backlash_gen() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 

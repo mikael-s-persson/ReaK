@@ -31,11 +31,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef JACOBIAN_JOINT_MAP_HPP
-#define JACOBIAN_JOINT_MAP_HPP
+#ifndef REAK_JACOBIAN_JOINT_MAP_HPP
+#define REAK_JACOBIAN_JOINT_MAP_HPP
 
-#include "math/kinetostatics.hpp"
-#include "math/motion_jacobians.hpp"
+#include "kinetostatics/kinetostatics.hpp"
+#include "kinetostatics/motion_jacobians.hpp"
 #include <boost/shared_ptr.hpp>
 #include <map>
 
@@ -45,42 +45,42 @@ namespace kte {
 
 
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian generalized coordinate. */
-typedef std::map< boost::shared_ptr< gen_coord<double> >, 
-                  boost::shared_ptr< jacobian_gen_gen<double> > > jacobian_joint_map_gen;
+typedef std::map< shared_pointer< gen_coord<double> >::type, 
+                  shared_pointer< jacobian_gen_gen<double> >::type > jacobian_joint_map_gen;
 
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian 2D frame. */
-typedef std::map< boost::shared_ptr< gen_coord<double> >, 
-                  boost::shared_ptr< jacobian_gen_2D<double> > > jacobian_joint_map_2D;
+typedef std::map< shared_pointer< gen_coord<double> >::type, 
+                  shared_pointer< jacobian_gen_2D<double> >::type > jacobian_joint_map_2D;
 
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian 3D frame. */
-typedef std::map< boost::shared_ptr< gen_coord<double> >, 
-                  boost::shared_ptr< jacobian_gen_3D<double> > > jacobian_joint_map_3D;
+typedef std::map< shared_pointer< gen_coord<double> >::type, 
+                  shared_pointer< jacobian_gen_3D<double> >::type > jacobian_joint_map_3D;
 
 
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian generalized coordinate. */
-typedef std::map< boost::shared_ptr< frame_2D<double> >, 
-                  boost::shared_ptr< jacobian_2D_gen<double> > > jacobian_joint2D_map_gen;
+typedef std::map< shared_pointer< frame_2D<double> >::type, 
+                  shared_pointer< jacobian_2D_gen<double> >::type > jacobian_joint2D_map_gen;
 
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian 2D frame. */
-typedef std::map< boost::shared_ptr< frame_2D<double> >, 
-                  boost::shared_ptr< jacobian_2D_2D<double> > > jacobian_joint2D_map_2D;
+typedef std::map< shared_pointer< frame_2D<double> >::type, 
+                  shared_pointer< jacobian_2D_2D<double> >::type > jacobian_joint2D_map_2D;
 
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian 3D frame. */
-typedef std::map< boost::shared_ptr< frame_2D<double> >, 
-                  boost::shared_ptr< jacobian_2D_3D<double> > > jacobian_joint2D_map_3D;
+typedef std::map< shared_pointer< frame_2D<double> >::type, 
+                  shared_pointer< jacobian_2D_3D<double> >::type > jacobian_joint2D_map_3D;
 
 		  
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian generalized coordinate. */
-typedef std::map< boost::shared_ptr< frame_3D<double> >, 
-                  boost::shared_ptr< jacobian_3D_gen<double> > > jacobian_joint3D_map_gen;
+typedef std::map< shared_pointer< frame_3D<double> >::type, 
+                  shared_pointer< jacobian_3D_gen<double> >::type > jacobian_joint3D_map_gen;
 
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian 2D frame. */
-typedef std::map< boost::shared_ptr< frame_3D<double> >, 
-                  boost::shared_ptr< jacobian_3D_2D<double> > > jacobian_joint3D_map_2D;
+typedef std::map< shared_pointer< frame_3D<double> >::type, 
+                  shared_pointer< jacobian_3D_2D<double> >::type > jacobian_joint3D_map_2D;
 
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian 3D frame. */
-typedef std::map< boost::shared_ptr< frame_3D<double> >, 
-                  boost::shared_ptr< jacobian_3D_3D<double> > > jacobian_joint3D_map_3D;
+typedef std::map< shared_pointer< frame_3D<double> >::type, 
+                  shared_pointer< jacobian_3D_3D<double> >::type > jacobian_joint3D_map_3D;
 
 
 

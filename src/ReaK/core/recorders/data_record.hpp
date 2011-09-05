@@ -33,7 +33,9 @@
 #ifndef DATA_RECORD_HPP
 #define DATA_RECORD_HPP
 
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#include "base/defs.hpp"
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
 
 #define _GLIBCXX_USE_SCHED_YIELD 1
 #define _GLIBCXX_USE_NANOSLEEP 1
@@ -42,11 +44,9 @@
 #else
 
 #include <boost/thread/mutex.hpp>
-#include <boost/thread.hpp>
 
 #endif
 
-#include <boost/shared_ptr.hpp>
 
 #include <string>
 #include <exception>
@@ -127,15 +127,15 @@ class data_recorder : public shared_object {
     std::vector<std::string> names; ///< Holds the list of column names.
     std::queue<double> values_rm; ///< Holds the data buffer.
 
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef RK_ENABLE_CXX0X_FEATURES
 
     std::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
-    boost::shared_ptr<std::thread> writing_thread; ///< Holds the instance of the data writing thread.
+    ReaK::shared_pointer<std::thread>::type writing_thread; ///< Holds the instance of the data writing thread.
 
 #else
 
     boost::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
-    boost::shared_ptr<boost::thread> writing_thread; ///< Holds the instance of the data writing thread.
+    ReaK::shared_pointer<boost::thread>::type writing_thread; ///< Holds the instance of the data writing thread.
 
 #endif
 
@@ -217,7 +217,7 @@ class data_recorder : public shared_object {
 	& RK_SERIAL_SAVE_WITH_NAME(names);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef RK_ENABLE_CXX0X_FEATURES
       std::unique_lock< std::mutex > lock_here(access_mutex);
 #else
       boost::unique_lock< boost::mutex > lock_here(access_mutex);
@@ -240,10 +240,10 @@ class data_recorder : public shared_object {
       values_rm = std::queue<double>();
       lock_here.unlock();
       setFileName(fileName);
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
-      writing_thread = boost::shared_ptr<std::thread>(new std::thread(record_process(*this)));
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      writing_thread = ReaK::shared_pointer<std::thread>::type(new std::thread(record_process(*this)));
 #else
-      writing_thread = boost::shared_ptr<boost::thread>(new boost::thread(record_process(*this)));
+      writing_thread = ReaK::shared_pointer<boost::thread>::type(new boost::thread(record_process(*this)));
 #endif
     };
 
@@ -268,12 +268,12 @@ class data_extractor : public shared_object {
     std::vector<std::string> names; ///< Holds the list of column names.
     std::queue<double> values_rm; ///< Holds the data buffer.
 
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef RK_ENABLE_CXX0X_FEATURES
     std::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
-    boost::shared_ptr< std::thread > reading_thread; ///< Holds the instance of the data writing thread.
+    ReaK::shared_pointer<std::thread>::type reading_thread; ///< Holds the instance of the data writing thread.
 #else
     boost::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
-    boost::shared_ptr<boost::thread> reading_thread; ///< Holds the instance of the data writing thread.
+    ReaK::shared_pointer<boost::thread>::type reading_thread; ///< Holds the instance of the data writing thread.
 #endif
 
     /**
@@ -357,7 +357,7 @@ class data_extractor : public shared_object {
 	& RK_SERIAL_SAVE_WITH_NAME(names);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
+#ifdef RK_ENABLE_CXX0X_FEATURES
       std::unique_lock< std::mutex > lock_here(access_mutex);
 #else
       boost::unique_lock< boost::mutex > lock_here(access_mutex);
@@ -381,10 +381,10 @@ class data_extractor : public shared_object {
       lock_here.unlock();
       setFileName(fileName);
       
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
-      reading_thread = boost::shared_ptr< std::thread >( new std::thread(extract_process(*this)));
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      reading_thread = ReaK::shared_pointer<std::thread>::type( new std::thread(extract_process(*this)));
 #else
-      reading_thread = boost::shared_ptr<boost::thread>(new boost::thread(extract_process(*this)));
+      reading_thread = ReaK::shared_pointer<boost::thread>::type(new boost::thread(extract_process(*this)));
 #endif
     };
 

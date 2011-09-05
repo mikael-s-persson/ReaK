@@ -29,8 +29,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SSS_EXCEPTIONS_HPP
-#define SSS_EXCEPTIONS_HPP
+#ifndef REAK_SSS_EXCEPTIONS_HPP
+#define REAK_SSS_EXCEPTIONS_HPP
 
 #include <exception>
 #include <string>

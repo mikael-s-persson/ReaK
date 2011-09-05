@@ -34,8 +34,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BELIEF_STATE_CONCEPT_HPP
-#define BELIEF_STATE_CONCEPT_HPP
+#ifndef REAK_BELIEF_STATE_CONCEPT_HPP
+#define REAK_BELIEF_STATE_CONCEPT_HPP
 
 #include <boost/concept_check.hpp>
 #include "state_vector_concept.hpp"
@@ -283,8 +283,8 @@ struct BeliefTransferConcept {
   typedef typename belief_transfer_traits< BeliefTransfer >::state_space_system StateSpaceSystem;
   typedef typename belief_transfer_traits< BeliefTransfer >::time_type TimeType;
   typedef typename belief_transfer_traits< BeliefTransfer >::time_difference_type TimeDiffType;
-  typename ss_system_traits<SSSystem>::input_type u;
-  typename ss_system_traits<SSSystem>::output_type y;
+  typename ss_system_traits<StateSpaceSystem>::input_type u;
+  typename ss_system_traits<StateSpaceSystem>::output_type y;
   BeliefState b;
   StateSpaceSystem sys;
   TimeType t;

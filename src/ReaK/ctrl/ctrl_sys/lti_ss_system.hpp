@@ -30,15 +30,15 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LTI_SS_SYSTEM_HPP
-#define LTI_SS_SYSTEM_HPP
+#ifndef REAK_LTI_SS_SYSTEM_HPP
+#define REAK_LTI_SS_SYSTEM_HPP
 
 #include "linear_ss_system_concept.hpp"
 
 #include "base/named_object.hpp"
 
-#include "math/mat_alg.hpp"
-#include "math/vect_alg.hpp"
+#include "lin_alg/mat_alg.hpp"
+#include "lin_alg/vect_alg.hpp"
 
 namespace ReaK {
 

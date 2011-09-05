@@ -36,15 +36,15 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KALMAN_FILTER_HPP
-#define KALMAN_FILTER_HPP
+#ifndef REAK_KALMAN_FILTER_HPP
+#define REAK_KALMAN_FILTER_HPP
 
 #include "belief_state_concept.hpp"
 #include "discrete_linear_sss_concept.hpp"
 #include <boost/utility/enable_if.hpp>
-#include <math/vect_concepts.hpp>
-#include <math/mat_alg.hpp>
-#include <math/mat_cholesky.hpp>
+#include <lin_alg/vect_concepts.hpp>
+#include <lin_alg/mat_alg.hpp>
+#include <lin_alg/mat_cholesky.hpp>
 
 #include <boost/static_assert.hpp>
 #include "covariance_concept.hpp"

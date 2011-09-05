@@ -30,15 +30,15 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DECOMP_COVARIANCE_MATRIX_HPP
-#define DECOMP_COVARIANCE_MATRIX_HPP
+#ifndef REAK_DECOMP_COVARIANCE_MATRIX_HPP
+#define REAK_DECOMP_COVARIANCE_MATRIX_HPP
 
-#include "math/mat_alg.hpp"
+#include "lin_alg/mat_alg.hpp"
 #include "base/named_object.hpp"
 
 #include "covariance_concept.hpp"
-#include "math/mat_gaussian_elim.hpp"
-#include "math/mat_qr_decomp.hpp"
+#include "lin_alg/mat_gaussian_elim.hpp"
+#include "lin_alg/mat_qr_decomp.hpp"
 
 
 namespace ReaK {

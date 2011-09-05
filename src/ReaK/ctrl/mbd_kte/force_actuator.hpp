@@ -33,12 +33,14 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FORCE_ACTUATOR_HPP
-#define FORCE_ACTUATOR_HPP
+#ifndef REAK_FORCE_ACTUATOR_HPP
+#define REAK_FORCE_ACTUATOR_HPP
+
+#include "base/defs.hpp"
+
+#include "kte_map.hpp"
 
 #include "reacting_kte.hpp"
-
-#include "boost/shared_ptr.hpp"
 
 namespace ReaK {
 
@@ -52,8 +54,8 @@ namespace kte {
  */
 class force_actuator_gen : public kte_map {
   protected:
-    boost::shared_ptr<gen_coord<double> > mFrame; ///< Holds the generalized coordinate on which the actuator acts.
-    boost::shared_ptr<reacting_kte_gen> mJoint; ///< Holds the joint which will react to the actuator's force.
+    shared_pointer<gen_coord<double> >::type mFrame; ///< Holds the generalized coordinate on which the actuator acts.
+    shared_pointer<reacting_kte_gen>::type mJoint; ///< Holds the joint which will react to the actuator's force.
 
   public:
 
@@ -69,8 +71,8 @@ class force_actuator_gen : public kte_map {
      * \param aJoint the joint which will react to the actuator's force.
      */
     force_actuator_gen(const std::string& aName,
-                       const boost::shared_ptr< gen_coord<double> >& aFrame,
-                       const boost::shared_ptr< reacting_kte_gen >& aJoint) :
+                       const shared_pointer< gen_coord<double> >::type& aFrame,
+                       const shared_pointer< reacting_kte_gen >::type& aJoint) :
                        kte_map(aName),
                        mFrame(aFrame),
                        mJoint(aJoint) { };
@@ -80,9 +82,9 @@ class force_actuator_gen : public kte_map {
      */
     virtual ~force_actuator_gen() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 
@@ -112,8 +114,8 @@ class force_actuator_gen : public kte_map {
  */
 class force_actuator_2D : public kte_map {
   protected:
-    boost::shared_ptr<frame_2D<double> > mFrame; ///< Holds the 2D frame on which the actuator acts.
-    boost::shared_ptr<reacting_kte_2D> mJoint; ///< Holds the joint which will react to the actuator's force and torque.
+    shared_pointer<frame_2D<double> >::type mFrame; ///< Holds the 2D frame on which the actuator acts.
+    shared_pointer<reacting_kte_2D>::type mJoint; ///< Holds the joint which will react to the actuator's force and torque.
 
   public:
 
@@ -129,8 +131,8 @@ class force_actuator_2D : public kte_map {
      * \param aJoint the joint which will react to the actuator's force and torque.
      */
     force_actuator_2D(const std::string& aName,
-                       const boost::shared_ptr< frame_2D<double> >& aFrame,
-                       const boost::shared_ptr< reacting_kte_2D >& aJoint) :
+                       const shared_pointer< frame_2D<double> >::type& aFrame,
+                       const shared_pointer< reacting_kte_2D >::type& aJoint) :
                        kte_map(aName),
                        mFrame(aFrame),
                        mJoint(aJoint) { };
@@ -140,9 +142,9 @@ class force_actuator_2D : public kte_map {
      */
     virtual ~force_actuator_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 
@@ -171,8 +173,8 @@ class force_actuator_2D : public kte_map {
  */
 class force_actuator_3D : public kte_map {
   protected:
-    boost::shared_ptr<frame_3D<double> > mFrame; ///< Holds the 3D frame on which the actuator acts.
-    boost::shared_ptr<reacting_kte_3D> mJoint; ///< Holds the joint which will react to the actuator's force and torque.
+    shared_pointer<frame_3D<double> >::type mFrame; ///< Holds the 3D frame on which the actuator acts.
+    shared_pointer<reacting_kte_3D>::type mJoint; ///< Holds the joint which will react to the actuator's force and torque.
 
   public:
 
@@ -188,8 +190,8 @@ class force_actuator_3D : public kte_map {
      * \param aJoint the joint which will react to the actuator's force and torque.
      */
     force_actuator_3D(const std::string& aName,
-                       const boost::shared_ptr< frame_3D<double> >& aFrame,
-                       const boost::shared_ptr< reacting_kte_3D >& aJoint) :
+                       const shared_pointer< frame_3D<double> >::type& aFrame,
+                       const shared_pointer< reacting_kte_3D >::type& aJoint) :
                        kte_map(aName),
                        mFrame(aFrame),
                        mJoint(aJoint) { };
@@ -199,9 +201,9 @@ class force_actuator_3D : public kte_map {
      */
     virtual ~force_actuator_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, boost::shared_ptr<frame_storage> aStorage = boost::shared_ptr<frame_storage>());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
 
     virtual void clearForce();
 

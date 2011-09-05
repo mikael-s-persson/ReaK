@@ -50,15 +50,23 @@ int main() {
   
   std::cout << RK_HERE << " reached!" << std::endl;
   {
+#ifndef RK_ENABLE_CXX0X_FEATURES
   boost::shared_ptr<serializable> output_rec;
-    
+#else
+  std::shared_ptr<serializable> output_rec;
+#endif
+  
   {
   std::cout << RK_HERE << " reached!" << std::endl;
   xml_iarchive input_arc("ssv_rec_archive.xml");
   std::cout << RK_HERE << " reached!" << std::endl;
   input_arc >> output_rec;
   };
+#ifndef RK_ENABLE_CXX0X_FEATURES
   boost::shared_ptr<ssv_recorder> output_rec_ssv = rtti::rk_dynamic_ptr_cast<ssv_recorder>(output_rec);
+#else
+  std::shared_ptr<ssv_recorder> output_rec_ssv = rtti::rk_dynamic_ptr_cast<ssv_recorder>(output_rec);
+#endif
   
   std::cout << RK_HERE << " reached!" << std::endl;
   for(double x=10;x < 20; x += 0.5) {

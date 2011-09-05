@@ -30,8 +30,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XML_ARCHIVER_HPP
-#define XML_ARCHIVER_HPP
+#ifndef REAK_XML_ARCHIVER_HPP
+#define REAK_XML_ARCHIVER_HPP
 
 #include "archiver.hpp"
 
@@ -60,9 +60,9 @@ class xml_iarchive : public iarchive {
 
   protected:
 
-    virtual iarchive& RK_CALL load_serializable_ptr(boost::shared_ptr<serializable>& Item);
+    virtual iarchive& RK_CALL load_serializable_ptr(serializable_shared_pointer& Item);
 
-    virtual iarchive& RK_CALL load_serializable_ptr(const std::pair<std::string, boost::shared_ptr<serializable>& >& Item);
+    virtual iarchive& RK_CALL load_serializable_ptr(const std::pair<std::string, serializable_shared_pointer& >& Item);
 
     virtual iarchive& RK_CALL load_serializable(serializable& Item);
 
@@ -112,13 +112,13 @@ class xml_oarchive : public oarchive {
       
   protected:
 
-    virtual oarchive& RK_CALL saveToNewArchive_impl(const boost::shared_ptr<serializable>& Item, const std::string& FileName);
+    virtual oarchive& RK_CALL saveToNewArchive_impl(const serializable_shared_pointer& Item, const std::string& FileName);
 
-    virtual oarchive& RK_CALL saveToNewArchiveNamed_impl(const std::pair<std::string, const boost::shared_ptr<serializable>& >& Item, const std::string& FileName);
+    virtual oarchive& RK_CALL saveToNewArchiveNamed_impl(const std::pair<std::string, const serializable_shared_pointer& >& Item, const std::string& FileName);
 
-    virtual oarchive& RK_CALL save_serializable_ptr(const boost::shared_ptr<serializable>& Item);
+    virtual oarchive& RK_CALL save_serializable_ptr(const serializable_shared_pointer& Item);
 
-    virtual oarchive& RK_CALL save_serializable_ptr(const std::pair<std::string, const boost::shared_ptr<serializable>& >& Item);
+    virtual oarchive& RK_CALL save_serializable_ptr(const std::pair<std::string, const serializable_shared_pointer& >& Item);
 
     virtual oarchive& RK_CALL save_serializable(const serializable& Item);
 

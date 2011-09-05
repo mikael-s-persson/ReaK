@@ -32,8 +32,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GAUSSIAN_BELIEF_SPACE_HPP
-#define GAUSSIAN_BELIEF_SPACE_HPP
+#ifndef REAK_GAUSSIAN_BELIEF_SPACE_HPP
+#define REAK_GAUSSIAN_BELIEF_SPACE_HPP
 
 #include "gaussian_belief_state.hpp"
 #include "path_planning/metric_space_concept.hpp"

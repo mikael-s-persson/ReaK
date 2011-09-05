@@ -29,7 +29,7 @@ namespace kte {
 
   
 
-void virtual_kte_interface_gen::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void virtual_kte_interface_gen::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mEnd) || (!mBase))
     return;
   
@@ -37,17 +37,17 @@ void virtual_kte_interface_gen::doMotion(kte_pass_flag aFlag, boost::shared_ptr<
   
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->gen_coord_mapping[mBase]))
-      aStorage->gen_coord_mapping[mBase] = boost::shared_ptr< gen_coord<double> >(new gen_coord<double>((*mBase)),scoped_deleter());
+      aStorage->gen_coord_mapping[mBase] = shared_pointer< gen_coord<double> >::type(new gen_coord<double>((*mBase)),scoped_deleter());
     else
       (*(aStorage->gen_coord_mapping[mBase])) = (*mBase);
     if(!(aStorage->gen_coord_mapping[mEnd]))
-      aStorage->gen_coord_mapping[mEnd] = boost::shared_ptr< gen_coord<double> >(new gen_coord<double>((*mEnd)),scoped_deleter());
+      aStorage->gen_coord_mapping[mEnd] = shared_pointer< gen_coord<double> >::type(new gen_coord<double>((*mEnd)),scoped_deleter());
     else
       (*(aStorage->gen_coord_mapping[mEnd])) = (*mEnd);
   };
 };
     
-void virtual_kte_interface_gen::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void virtual_kte_interface_gen::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mEnd) || (!mBase))
     return;
   
@@ -74,7 +74,7 @@ void virtual_kte_interface_gen::clearForce() {
 
 
 
-void virtual_kte_interface_2D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void virtual_kte_interface_2D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mEnd) || (!mBase))
     return;
   
@@ -82,17 +82,17 @@ void virtual_kte_interface_2D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<f
   
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_2D_mapping[mBase]))
-      aStorage->frame_2D_mapping[mBase] = boost::shared_ptr< frame_2D<double> >(new frame_2D<double>((*mBase)),scoped_deleter());
+      aStorage->frame_2D_mapping[mBase] = shared_pointer< frame_2D<double> >::type(new frame_2D<double>((*mBase)),scoped_deleter());
     else
       (*(aStorage->frame_2D_mapping[mBase])) = (*mBase);
     if(!(aStorage->frame_2D_mapping[mEnd]))
-      aStorage->frame_2D_mapping[mEnd] = boost::shared_ptr< frame_2D<double> >(new frame_2D<double>((*mEnd)),scoped_deleter());
+      aStorage->frame_2D_mapping[mEnd] = shared_pointer< frame_2D<double> >::type(new frame_2D<double>((*mEnd)),scoped_deleter());
     else
       (*(aStorage->frame_2D_mapping[mEnd])) = (*mEnd);
   };
 };
     
-void virtual_kte_interface_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void virtual_kte_interface_2D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mEnd) || (!mBase))
     return;
   
@@ -124,7 +124,7 @@ void virtual_kte_interface_2D::clearForce() {
 
 
 
-void virtual_kte_interface_3D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void virtual_kte_interface_3D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mEnd) || (!mBase))
     return;
   
@@ -134,17 +134,17 @@ void virtual_kte_interface_3D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<f
   
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_3D_mapping[mBase]))
-      aStorage->frame_3D_mapping[mBase] = boost::shared_ptr< frame_3D<double> >(new frame_3D<double>((*mBase)),scoped_deleter());
+      aStorage->frame_3D_mapping[mBase] = shared_pointer< frame_3D<double> >::type(new frame_3D<double>((*mBase)),scoped_deleter());
     else
       (*(aStorage->frame_3D_mapping[mBase])) = (*mBase);
     if(!(aStorage->frame_3D_mapping[mEnd]))
-      aStorage->frame_3D_mapping[mEnd] = boost::shared_ptr< frame_3D<double> >(new frame_3D<double>((*mEnd)),scoped_deleter());
+      aStorage->frame_3D_mapping[mEnd] = shared_pointer< frame_3D<double> >::type(new frame_3D<double>((*mEnd)),scoped_deleter());
     else
       (*(aStorage->frame_3D_mapping[mEnd])) = (*mEnd);
   };
 };
     
-void virtual_kte_interface_3D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void virtual_kte_interface_3D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mEnd) || (!mBase))
     return;
   

@@ -34,8 +34,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef METRIC_SPACE_CONCEPT_HPP
-#define METRIC_SPACE_CONCEPT_HPP
+#ifndef REAK_METRIC_SPACE_CONCEPT_HPP
+#define REAK_METRIC_SPACE_CONCEPT_HPP
 
 
 #include <boost/config.hpp>

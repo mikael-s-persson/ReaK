@@ -31,11 +31,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef INTEGRATOR_HPP
-#define INTEGRATOR_HPP
+#ifndef REAK_INTEGRATOR_HPP
+#define REAK_INTEGRATOR_HPP
 
 #include "base/named_object.hpp"
-#include "math/vect_alg.hpp"
+#include "lin_alg/vect_alg.hpp"
 
 #include "integration_exceptions.hpp"
 
@@ -80,7 +80,7 @@ class integrator : public named_object {
     double mTime; ///< Current integration time.
     double mStepSize; ///< Current integration time step.
 
-    boost::weak_ptr< state_rate_function<T> > mGetStateRate; ///< Pointer to a function-object that computes the time-derivative of the state vector.
+    typename weak_pointer< state_rate_function<T> >::type mGetStateRate; ///< Pointer to a function-object that computes the time-derivative of the state vector.
 
   public:
 
@@ -113,7 +113,7 @@ class integrator : public named_object {
     };
 
     /// Set the function-object pointer to aGetStateRate.
-    virtual void RK_CALL setStateRateFunc(boost::weak_ptr< state_rate_function<T> > aGetStateRate) { mGetStateRate = aGetStateRate; };
+    virtual void RK_CALL setStateRateFunc(const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate) { mGetStateRate = aGetStateRate; };
 
     /**
      * Performs the integration.
@@ -135,16 +135,16 @@ class integrator : public named_object {
     };
     /// Parametrized constructor, see data members for meaning of parameters.
     integrator(const std::string& aName,
-                  const ReaK::vect_n<T>& aState,
-                  double aStartTime,
-                  double aStepSize,
-                  boost::weak_ptr< state_rate_function<T> > aGetStateRate) :
-                  named_object(),
-                  mState(aState),
-                  mStateRate(aState.q.size()),
-                  mTime(aStartTime),
-                  mStepSize(aStepSize),
-                  mGetStateRate(aGetStateRate) {
+               const ReaK::vect_n<T>& aState,
+               double aStartTime,
+               double aStepSize,
+               const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate) :
+               named_object(),
+               mState(aState),
+               mStateRate(aState.q.size()),
+               mTime(aStartTime),
+               mStepSize(aStepSize),
+               mGetStateRate(aGetStateRate) {
       setName(aName);
     };
     /// Default virtual destructor.
@@ -201,16 +201,16 @@ class variable_step_integrator : public integrator<T> {
     };
     /// Parametrized constructor, see data members for meaning of parameters.
     variable_step_integrator(const std::string& aName,
-                                const ReaK::vect_n<T>& aState,
-                                double aStartTime,
-                                double aInitialStepSize,
-                                boost::weak_ptr< state_rate_function<T> > aGetStateRate,
-                                double aMaxStepSize,
-                                double aMinStepSize,
-                                double aTolerance) : integrator<T>(aName,aState,aStartTime,aInitialStepSize,aGetStateRate),
-                                                     mMaxStepSize(aMaxStepSize),
-                                                     mMinStepSize(aMinStepSize),
-                                                     mTolerance(aTolerance) {
+                             const ReaK::vect_n<T>& aState,
+                             double aStartTime,
+                             double aInitialStepSize,
+                             const typename weak_pointer< state_rate_function<T> >::type& aGetStateRate,
+                             double aMaxStepSize,
+                             double aMinStepSize,
+                             double aTolerance) : integrator<T>(aName,aState,aStartTime,aInitialStepSize,aGetStateRate),
+                                                  mMaxStepSize(aMaxStepSize),
+                                                  mMinStepSize(aMinStepSize),
+                                                  mTolerance(aTolerance) {
 
     };
     /// Default virtual destructor.

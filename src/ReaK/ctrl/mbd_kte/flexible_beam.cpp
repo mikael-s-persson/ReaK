@@ -30,7 +30,7 @@ namespace kte {
 
 
     
-void flexible_beam_2D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void flexible_beam_2D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mAnchor1) || (!mAnchor2))
     return;
   
@@ -46,23 +46,23 @@ void flexible_beam_2D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_sto
   
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_2D_mapping[mAnchor1]))
-      aStorage->frame_2D_mapping[mAnchor1] = boost::shared_ptr< frame_2D<double> >(new frame_2D<double>((*mAnchor1)),scoped_deleter());
+      aStorage->frame_2D_mapping[mAnchor1] = shared_pointer< frame_2D<double> >::type(new frame_2D<double>((*mAnchor1)),scoped_deleter());
     else
       (*(aStorage->frame_2D_mapping[mAnchor1])) = (*mAnchor1);
     if(!(aStorage->frame_2D_mapping[mAnchor2]))
-      aStorage->frame_2D_mapping[mAnchor2] = boost::shared_ptr< frame_2D<double> >(new frame_2D<double>((*mAnchor2)),scoped_deleter());
+      aStorage->frame_2D_mapping[mAnchor2] = shared_pointer< frame_2D<double> >::type(new frame_2D<double>((*mAnchor2)),scoped_deleter());
     else
       (*(aStorage->frame_2D_mapping[mAnchor2])) = (*mAnchor2);
     if(mObjectFrame) {
       if(!(aStorage->frame_2D_mapping[mObjectFrame]))
-        aStorage->frame_2D_mapping[mObjectFrame] = boost::shared_ptr< frame_2D<double> >(new frame_2D<double>((*mObjectFrame)),scoped_deleter());
+        aStorage->frame_2D_mapping[mObjectFrame] = shared_pointer< frame_2D<double> >::type(new frame_2D<double>((*mObjectFrame)),scoped_deleter());
       else
         (*(aStorage->frame_2D_mapping[mObjectFrame])) = (*mObjectFrame);
     };
   };
 };
     
-void flexible_beam_2D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void flexible_beam_2D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mAnchor1) || (!mAnchor2))
     return;
   
@@ -115,7 +115,7 @@ void flexible_beam_2D::clearForce() {
     
    
 
-void flexible_beam_3D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void flexible_beam_3D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mAnchor1) || (!mAnchor2))
     return;
   
@@ -137,23 +137,23 @@ void flexible_beam_3D::doMotion(kte_pass_flag aFlag, boost::shared_ptr<frame_sto
   
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_3D_mapping[mAnchor1]))
-      aStorage->frame_3D_mapping[mAnchor1] = boost::shared_ptr< frame_3D<double> >(new frame_3D<double>((*mAnchor1)),scoped_deleter());
+      aStorage->frame_3D_mapping[mAnchor1] = shared_pointer< frame_3D<double> >::type(new frame_3D<double>((*mAnchor1)),scoped_deleter());
     else
       (*(aStorage->frame_3D_mapping[mAnchor1])) = (*mAnchor1);
     if(!(aStorage->frame_3D_mapping[mAnchor2]))
-      aStorage->frame_3D_mapping[mAnchor2] = boost::shared_ptr< frame_3D<double> >(new frame_3D<double>((*mAnchor2)),scoped_deleter());
+      aStorage->frame_3D_mapping[mAnchor2] = shared_pointer< frame_3D<double> >::type(new frame_3D<double>((*mAnchor2)),scoped_deleter());
     else
       (*(aStorage->frame_3D_mapping[mAnchor2])) = (*mAnchor2);
     if(mObjectFrame) {
       if(!(aStorage->frame_3D_mapping[mObjectFrame]))
-        aStorage->frame_3D_mapping[mObjectFrame] = boost::shared_ptr< frame_3D<double> >(new frame_3D<double>((*mObjectFrame)),scoped_deleter());
+        aStorage->frame_3D_mapping[mObjectFrame] = shared_pointer< frame_3D<double> >::type(new frame_3D<double>((*mObjectFrame)),scoped_deleter());
       else
         (*(aStorage->frame_3D_mapping[mObjectFrame])) = (*mObjectFrame);
     };
   };
 };
     
-void flexible_beam_3D::doForce(kte_pass_flag aFlag, boost::shared_ptr<frame_storage> aStorage) {
+void flexible_beam_3D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
   if((!mAnchor1) || (!mAnchor2))
     return;
   

@@ -31,8 +31,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NAMED_OBJECT_HPP
-#define NAMED_OBJECT_HPP
+#ifndef REAK_NAMED_OBJECT_HPP
+#define REAK_NAMED_OBJECT_HPP
 
 #include <string.h>
 #include "shared_object.hpp"

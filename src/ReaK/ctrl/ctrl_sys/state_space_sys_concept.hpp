@@ -33,8 +33,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STATE_SPACE_SYS_CONCEPT_HPP
-#define STATE_SPACE_SYS_CONCEPT_HPP
+#ifndef REAK_STATE_SPACE_SYS_CONCEPT_HPP
+#define REAK_STATE_SPACE_SYS_CONCEPT_HPP
 
 
 #include <boost/config.hpp>

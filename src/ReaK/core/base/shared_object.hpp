@@ -34,12 +34,17 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SHARED_OBJECT_HPP
-#define SHARED_OBJECT_HPP
+#ifndef REAK_SHARED_OBJECT_HPP
+#define REAK_SHARED_OBJECT_HPP
 
 
+#ifndef RK_ENABLE_CXX0X_FEATURES
 #include <boost/shared_ptr.hpp>
 #include <boost/weak_ptr.hpp>
+#else
+#include <memory>
+#endif
+
 #include <vector>
 
 #include "defs.hpp"
@@ -72,6 +77,13 @@ class empty_base_object { };
 
 namespace rtti {
 
+#ifndef RK_ENABLE_CXX0X_FEATURES
+
+template <typename Y>
+boost::shared_ptr<Y> rk_static_ptr_cast(const boost::shared_ptr<ReaK::shared_object_base>& p) {
+  return boost::static_pointer_cast<Y>(p);
+};
+  
 /**
  * This function replaces the standard C++ dynamic cast (i.e. dynamic_cast<>()) and furthermore, also
  * replaces the boost::shared_ptr dynamic cast (i.e. boost::dynamic_pointer_cast<>()). This new function
@@ -82,14 +94,49 @@ namespace rtti {
  *       found in the "typed_object.hpp" library, as part of the ReaK::rtti system.
  */
 template <typename Y>
-boost::shared_ptr<Y> rk_dynamic_ptr_cast(boost::shared_ptr<ReaK::shared_object_base>& p) {
+boost::shared_ptr<Y> rk_dynamic_ptr_cast(const boost::shared_ptr<ReaK::shared_object_base>& p) {
   return boost::shared_ptr<Y>(p,reinterpret_cast<Y*>(boost::static_pointer_cast<ReaK::rtti::typed_object>(p)->castTo(Y::getStaticObjectType())));
 };
 
+//template <typename Y>
+//boost::shared_ptr<const Y> rk_dynamic_ptr_cast(const boost::shared_ptr<ReaK::shared_object_base>& p) {
+//  return boost::shared_ptr<const Y>(p,reinterpret_cast<const Y*>(static_cast<ReaK::shared_object*>( const_cast<ReaK::shared_object_base*>(p.get()))->castTo(Y::getStaticObjectType())));
+//};
+
+#else 
+
+/**
+ * This function replaces the standard C++ dynamic cast (i.e. dynamic_cast<>()) and furthermore, also
+ * replaces the boost::shared_ptr dynamic cast (i.e. boost::dynamic_pointer_cast<>()). This new function
+ * for dynamic casting is required in order for ReaK::rtti system to take precedence over the C++ RTTI
+ * because, unlike the C++ standard version of RTTI, this implementation will work across executable modules,
+ * and thus, allow objects to be shared between modules with full dynamic up- and down- casting capabilities.
+ * \note this function is a special overload for the shared_object_base class pointers, the general version is
+ *       found in the "typed_object.hpp" library, as part of the ReaK::rtti system.
+ */
 template <typename Y>
-boost::shared_ptr<const Y> rk_dynamic_ptr_cast(const boost::shared_ptr<ReaK::shared_object_base>& p) {
-  return boost::shared_ptr<const Y>(p,reinterpret_cast<const Y*>(static_cast<ReaK::shared_object*>( const_cast<ReaK::shared_object_base*>(p.get()))->castTo(Y::getStaticObjectType())));
+std::shared_ptr<Y> rk_dynamic_ptr_cast(const std::shared_ptr<ReaK::shared_object_base>& p) {
+  return std::shared_ptr<Y>(p,reinterpret_cast<Y*>(std::static_pointer_cast<ReaK::rtti::typed_object>(p)->castTo(Y::getStaticObjectType())));
 };
+
+//template <typename Y>
+//std::shared_ptr<const Y> rk_dynamic_ptr_cast(const std::shared_ptr<ReaK::shared_object_base>& p) {
+//  return std::shared_ptr<const Y>(p,reinterpret_cast<const Y*>(static_cast<ReaK::shared_object*>( const_cast<ReaK::shared_object_base*>(p.get()))->castTo(Y::getStaticObjectType())));
+//};
+
+template <typename Y, typename Deleter>
+std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<ReaK::shared_object_base,Deleter>&& p) {
+  void* tmp = static_cast<ReaK::rtti::typed_object*>(p.get())->castTo(Y::getStaticObjectType());
+  if(tmp) {
+    std::unique_ptr<Y,Deleter> r(tmp, p.get_deleter());
+    p.release();
+    return std::move(r);
+  } else
+    return std::unique_ptr<Y,Deleter>();
+};
+
+
+#endif
 
 };
 

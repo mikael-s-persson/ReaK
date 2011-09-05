@@ -100,8 +100,8 @@ void RK_CALL so_type_repo::merge( so_type_repo* aRepo ) {
 
 ///This function finds a TypeID in the descendants (recusively) of this.
 
-boost::weak_ptr<so_type> RK_CALL so_type_repo::findType(const unsigned int* aTypeID ) const {
-  boost::weak_ptr<so_type> result = mTypeMap->findDescendant(aTypeID);
+so_type::weak_pointer RK_CALL so_type_repo::findType(const unsigned int* aTypeID ) const {
+  so_type::weak_pointer result = mTypeMap->findDescendant(aTypeID);
   const so_type_repo* p = this;
   while((p->next != this) && (!result.lock())) {
     p = p->next;
@@ -110,13 +110,13 @@ boost::weak_ptr<so_type> RK_CALL so_type_repo::findType(const unsigned int* aTyp
   return result;
 };
 
-boost::weak_ptr<so_type> RK_CALL so_type_repo::findType(const boost::shared_ptr<so_type>& aTypeID ) const {
+so_type::weak_pointer RK_CALL so_type_repo::findType(const so_type::shared_pointer& aTypeID ) const {
   return findType(aTypeID->TypeID_begin());
 };
 
 ///This function adds a type to the repo.
-boost::weak_ptr<so_type> so_type_repo::addType(const boost::shared_ptr<so_type>& aTypeID) {
-  boost::weak_ptr<so_type> r = findType(aTypeID);
+so_type::weak_pointer so_type_repo::addType(const so_type::shared_pointer& aTypeID) {
+  so_type::weak_pointer r = findType(aTypeID);
   if((r.lock()) && (r.lock()->TypeVersion() > aTypeID->TypeVersion()))
     return r;
 

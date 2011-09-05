@@ -30,8 +30,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SPATIAL_PATH_CONCEPT_HPP
-#define SPATIAL_PATH_CONCEPT_HPP
+#ifndef REAK_SPATIAL_PATH_CONCEPT_HPP
+#define REAK_SPATIAL_PATH_CONCEPT_HPP
 
 
 #include <boost/config.hpp>
