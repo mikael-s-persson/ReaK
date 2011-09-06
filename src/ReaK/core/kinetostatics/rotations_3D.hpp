@@ -2162,7 +2162,8 @@ class trans_mat_3D : public serialization::serializable {
       q[1] = v1[1];
       q[2] = v1[2];
       q[3] = value_type(0.0);
-      vect<value_type,3> v2 = unit(v2 - (v2 * v1) * v1);
+      vect<value_type,3> v2(M[4],M[5],M[6]);
+      v2 = unit(v2 - (v2 * v1) * v1);
       q[4] = v2[0];
       q[5] = v2[1];
       q[6] = v2[2];
@@ -2175,6 +2176,39 @@ class trans_mat_3D : public serialization::serializable {
       q[12]= M[12];
       q[13]= M[13];
       q[14]= M[14];
+      q[15]= value_type(1.0);
+      return;
+    };
+    
+    /**
+     * Constructor from a regular matrix.
+     * \test PASSED
+     */
+    template <typename Matrix>
+    explicit trans_mat_3D(const Matrix& M, typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
+                                                                        !boost::is_same<Matrix,self>::value &&
+                                                                        !boost::is_same<Matrix,rot_mat_3D<value_type> >::value, void* >::type dummy = NULL) {
+      if((M.get_row_count() != 4) || (M.get_col_count() != 4)) 
+	throw std::range_error("Matrix for creating the 3D transformation matrix is not of correct dimensions!");
+      vect<value_type,3> v1 = unit(vect<value_type,3>(M(0,0),M(1,0),M(2,0)));
+      q[0] = v1[0];
+      q[1] = v1[1];
+      q[2] = v1[2];
+      q[3] = value_type(0.0);
+      vect<value_type,3> v2(M(0,1),M(1,1),M(2,1));
+      v2 = unit(v2 - (v2 * v1) * v1);
+      q[4] = v2[0];
+      q[5] = v2[1];
+      q[6] = v2[2];
+      q[7] = value_type(0.0);
+      v2 = v1 % v2;
+      q[8] = v2[0];
+      q[9] = v2[1];
+      q[10] = v2[2];
+      q[11] = value_type(0.0);
+      q[12]= M(0,3);
+      q[13]= M(1,3);
+      q[14]= M(2,3);
       q[15]= value_type(1.0);
       return;
     };
@@ -2416,7 +2450,10 @@ class trans_mat_3D : public serialization::serializable {
 /*******************************************************************************
                          Assignment Operators
 *******************************************************************************/
-
+    /**
+     * Assignment operator with transformation matrix.
+     * \test PASSED
+     */
     self& operator =(const self& M) {
       q[0] = M.q[0];
       q[1] = M.q[1];
@@ -2436,6 +2473,40 @@ class trans_mat_3D : public serialization::serializable {
       q[15]= value_type(1.0);
       return *this;
     }; 
+    
+    /**
+     * Assignment operator with regular matrix.
+     * \test PASSED
+     */
+    template <typename Matrix>
+    typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
+                                 !boost::is_same<Matrix,self>::value &&
+                                 !boost::is_same<Matrix,rot_mat_3D<value_type> >::value, 
+    self& >::type operator =(const Matrix& M) {
+      if((M.get_row_count() != 4) || (M.get_col_count() != 4)) 
+	throw std::range_error("Matrix for creating the 3D transformation matrix is not of correct dimensions!");
+      vect<value_type,3> v1 = unit(vect<value_type,3>(M(0,0),M(1,0),M(2,0)));
+      q[0] = v1[0];
+      q[1] = v1[1];
+      q[2] = v1[2];
+      q[3] = value_type(0.0);
+      vect<value_type,3> v2(M(0,1),M(1,1),M(2,1));
+      v2 = unit(v2 - (v2 * v1) * v1);
+      q[4] = v2[0];
+      q[5] = v2[1];
+      q[6] = v2[2];
+      q[7] = value_type(0.0);
+      v2 = v1 % v2;
+      q[8] = v2[0];
+      q[9] = v2[1];
+      q[10] = v2[2];
+      q[11] = value_type(0.0);
+      q[12]= M(0,3);
+      q[13]= M(1,3);
+      q[14]= M(2,3);
+      q[15]= value_type(1.0);
+      return *this;
+    };
 
     /**
      * Assignment operator with rotation matrix.
@@ -2708,7 +2779,7 @@ class trans_mat_3D : public serialization::serializable {
      */
     friend
     mat<value_type,mat_structure::square> transpose(const self& M) {
-      return mat<value_type,mat_structure::square>(M.q[0],M.q[1],M.q[2],0.0,M.q[4],M.q[5],M.q[6],0.0,M.q[8],M.q[9],M.q[10],0.0,M.q[11],M.q[12],M.q[13],1.0);
+      return mat<value_type,mat_structure::square>(M.q[0],M.q[1],M.q[2],0.0,M.q[4],M.q[5],M.q[6],0.0,M.q[8],M.q[9],M.q[10],0.0,M.q[12],M.q[13],M.q[14],1.0);
     };
     
     /**
@@ -2718,7 +2789,7 @@ class trans_mat_3D : public serialization::serializable {
      */
     friend
     mat<value_type,mat_structure::square> transpose_move(const self& M) {
-      return mat<value_type,mat_structure::square>(M.q[0],M.q[1],M.q[2],0.0,M.q[4],M.q[5],M.q[6],0.0,M.q[8],M.q[9],M.q[10],0.0,M.q[11],M.q[12],M.q[13],1.0);
+      return mat<value_type,mat_structure::square>(M.q[0],M.q[1],M.q[2],0.0,M.q[4],M.q[5],M.q[6],0.0,M.q[8],M.q[9],M.q[10],0.0,M.q[12],M.q[13],M.q[14],1.0);
     };
 
     /**

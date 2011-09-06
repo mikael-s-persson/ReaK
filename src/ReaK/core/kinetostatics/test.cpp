@@ -40,9 +40,7 @@
 int main() {
   using std::fabs;
   using namespace ReaK;
-
-  unsigned int passed = 0;
-
+  
   try {
 
     if(true){
@@ -602,7 +600,7 @@ int main() {
         RK_ERROR("q_ident is equal to q_45z!");
         return 1;
       };
-      if( norm( (q_45z * v1) - vect<double,3>(0.0,std::sqrt(2.0),2.0) ) > 1.15 * std::numeric_limits<double>::epsilon() ) {
+      if( norm( (q_45z * v1) - vect<double,3>(0.0,std::sqrt(2.0),2.0) ) > 1.5 * std::numeric_limits<double>::epsilon() ) {
 	RK_ERROR("q_45z * v(1,1,2) is not correct!");
 	return 1;
       };
@@ -823,92 +821,359 @@ int main() {
 
 
       trans_mat_3D<double> t_ident;
-      RK_NOTICE(2,"t_ident = " << t_ident);
-      double t_45z_array[] = {double(std::cos(0.25*M_PI)),double(std::sin(0.25*M_PI)),0.0,0.0,double(-std::sin(0.25*M_PI)),double(std::cos(0.25*M_PI)),0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0};
+      if( ( !is_diagonal(t_ident, std::numeric_limits<double>::epsilon()) ) ||
+	  ( fabs( elem_norm_2(t_ident) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ) {
+	RK_ERROR("Null-transformation3D is not the identity matrix!");
+        return 1;
+      };
+      double t_45z_array[] = {std::cos(0.25*M_PI),std::sin(0.25*M_PI),0.0,0.0,-std::sin(0.25*M_PI),std::cos(0.25*M_PI),0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0};
       trans_mat_3D<double> t_45z(t_45z_array);
-      RK_NOTICE(2,"Rotation 45 deg about z = " << t_45z);
+      if( ( fabs( elem_norm_2(t_45z) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from array is not correct!");
+        return 1;
+      };
       trans_mat_3D<double> t_45z_cpy(t_45z);
-      RK_NOTICE(2,"t_45z_cpy = " << t_45z_cpy);
+      if( ( fabs( elem_norm_2(t_45z_cpy) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_cpy(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_cpy(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from copy is not correct!");
+        return 1;
+      };
       trans_mat_3D<double> t_45z_r(r_45z);
-      RK_NOTICE(2,"t_45z_r = " << t_45z_r);
+      if( ( fabs( elem_norm_2(t_45z_r) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_r(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_r(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_r(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_r(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from rotation3D is not correct!");
+        return 1;
+      };
       trans_mat_3D<double> t_45z_q(q_45z);
-      RK_NOTICE(2,"t_45z_q = " << t_45z_q);
+      if( ( fabs( elem_norm_2(t_45z_q) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_q(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_q(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_q(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_q(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from quaternion is not correct!");
+        return 1;
+      };
       trans_mat_3D<double> t_45z_e(e_45z);
-      RK_NOTICE(2,"t_45z_e = " << t_45z_e);
+      if( ( fabs( elem_norm_2(t_45z_e) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_e(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_e(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_e(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_e(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from Euler-angles is not correct!");
+        return 1;
+      };
       trans_mat_3D<double> t_45z_a(a_45z);
-      RK_NOTICE(2,"t_45z_a = " << t_45z_a);
-      RK_NOTICE(2,"t_45z_q rot mat = " << t_45z_q.getRotMat());
-      RK_NOTICE(2,"t_45z_q mat = " << t_45z_q.getMat());
+      if( ( fabs( elem_norm_2(t_45z_a) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_a(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_a(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_a(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_a(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from axis-angle is not correct!");
+        return 1;
+      };
+      rot_mat_3D<double> t_45z_q_rot = t_45z_q.getRotMat();
+      if( ( fabs( elem_norm_2(t_45z_q_rot) - std::sqrt(3.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_q_rot(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_q_rot(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_q_rot(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("Rotation matrix from 45degz-transformation3D is not correct!");
+        return 1;
+      };
+      mat<double,mat_structure::square> t_45z_q_mat = t_45z_q.getMat();
+      if( ( fabs( elem_norm_2(t_45z_q_mat) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_q_mat(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_q_mat(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_q_mat(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_q_mat(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("Regular matrix from 45degz-transformation3D is not correct!");
+        return 1;
+      };
+      
       t_45z_cpy = t_45z;
-      RK_NOTICE(2,"t_45z_cpy = " << t_45z_cpy);
+      if( ( fabs( elem_norm_2(t_45z_cpy) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_cpy(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_cpy(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from assignment is not correct!");
+        return 1;
+      };
       t_45z_cpy = r_45z;
-      RK_NOTICE(2,"t_45z_cpy = " << t_45z_cpy);
+      if( ( fabs( elem_norm_2(t_45z_cpy) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_cpy(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_cpy(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from assignment to rotation3D is not correct!");
+        return 1;
+      };
       t_45z_cpy = q_45z;
-      RK_NOTICE(2,"t_45z_cpy = " << t_45z_cpy);
+      if( ( fabs( elem_norm_2(t_45z_cpy) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_cpy(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_cpy(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from assignment to quaternion is not correct!");
+        return 1;
+      };
       t_45z_cpy = e_45z;
-      RK_NOTICE(2,"t_45z_cpy = " << t_45z_cpy);
+      if( ( fabs( elem_norm_2(t_45z_cpy) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_cpy(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_cpy(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from assignment to Euler-angles is not correct!");
+        return 1;
+      };
       t_45z_cpy = a_45z;
-      RK_NOTICE(2,"t_45z_cpy = " << t_45z_cpy);
+      if( ( fabs( elem_norm_2(t_45z_cpy) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_cpy(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_cpy(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from assignment to axis-angle is not correct!");
+        return 1;
+      };
+      
       t_45z_cpy = t_ident;
       t_45z_cpy *= t_45z;
-      RK_NOTICE(2,"t_45z_cpy = " << t_45z_cpy);
+      if( ( fabs( elem_norm_2(t_45z_cpy) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_cpy(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_cpy(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from identity times 45degz-transformation3D is not correct!");
+        return 1;
+      };
       t_45z_cpy = t_ident;
       t_45z_cpy *= r_45z;
-      RK_NOTICE(2,"t_45z_cpy = " << t_45z_cpy);
+      if( ( fabs( elem_norm_2(t_45z_cpy) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_cpy(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_cpy(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from identity times 45degz-rotation3D is not correct!");
+        return 1;
+      };
       t_45z_cpy = t_ident;
       t_45z_cpy *= q_45z;
-      RK_NOTICE(2,"t_45z_cpy = " << t_45z_cpy);
+      if( ( fabs( elem_norm_2(t_45z_cpy) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_cpy(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_cpy(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from identity times 45degz-quaternion is not correct!");
+        return 1;
+      };
       t_45z_cpy = t_ident;
       t_45z_cpy *= e_45z;
-      RK_NOTICE(2,"t_45z_cpy = " << t_45z_cpy);
+      if( ( fabs( elem_norm_2(t_45z_cpy) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_cpy(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_cpy(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from identity times 45degz-euler-angles is not correct!");
+        return 1;
+      };
       t_45z_cpy = t_ident;
       t_45z_cpy *= a_45z;
-      RK_NOTICE(2,"t_45z_cpy = " << t_45z_cpy);
-
-      if(t_ident == t_ident)
-        RK_NOTICE(2,"t_ident is equal to itself!");
-      if(t_ident != t_45z)
-        RK_NOTICE(2,"t_ident is not equal to t_45z!");
+      if( ( fabs( elem_norm_2(t_45z_cpy) - std::sqrt(4.0) ) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_cpy(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_cpy(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_cpy(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-transformation3D from identity times 45degz-axis-angle is not correct!");
+        return 1;
+      };
+      
+      
+      if(!(t_ident == t_ident)) {
+        RK_ERROR("t_ident is not equal to itself!");
+	return 1;
+      };
+      if(!(t_ident != t_45z)) {
+        RK_ERROR("t_ident is equal to t_45z!");
+	return 1;
+      };
 
       trans_mat_3D<double> t_45z_123(r_45z,vect<double,3>(1.0,2.0,3.0));
-      RK_NOTICE(2,"t_45z_123 = " << t_45z_123);
+      if( ( fabs( elem_norm_2(t_45z_123) - std::sqrt(18.0) ) > 1.8*std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_123(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_123(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_123(0,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_123(1,3) - 2.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_123(2,3) - 3.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_123(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("45degz-(1,2,3)t-transformation3D is not correct!");
+        return 1;
+      };
 
-      RK_NOTICE(2,"t_45z_123 trace = " << trace(t_45z_123));
-      RK_NOTICE(2,"t_45z_123 determinant = " << determinant(t_45z_123));
-      RK_NOTICE(2,"t_45z_123 sym part = " << t_45z_123.getSymPart());
-      RK_NOTICE(2,"t_45z_123 skew part = " << t_45z_123.getSkewSymPart());
-      RK_NOTICE(2,"t_45z_123 invert = " << invert(t_45z_123));
-      RK_NOTICE(2,"t_45z_123 transpose = " << transpose(t_45z_123));
-      RK_NOTICE(2,"t_45z_123 invert * t_45z_123 = " << (invert(t_45z_123) * t_45z_123));
-      RK_NOTICE(2,"t_45z_123 invert mat * t_45z_123 = " << (invert(t_45z_123).getMat() * t_45z_123));
-      RK_NOTICE(2,"t_45z_123 invert * t_45z_123 mat = " << (invert(t_45z_123) * t_45z_123.getMat()));
-      RK_NOTICE(2,"t_45z_123 invert * r_45z = " << (invert(t_45z_123) * r_45z));
+      if( fabs( trace(t_45z_123) - 2.0 - std::sqrt(2.0) ) > std::numeric_limits<double>::epsilon() ) {
+	RK_ERROR("The trace of the 45degz-(1,2,3)t-transformation3D is not correct!");
+        return 1;
+      };
+      if( fabs( determinant(t_45z_123) - 1.0 ) > std::numeric_limits<double>::epsilon() ) {
+	RK_ERROR("The determinant of the 45degz-(1,2,3)t-transformation3D is not correct!");
+        return 1;
+      };
+      mat<double, mat_structure::square> t_45z_mat_sym_skw(t_45z_123.getSymPart() + t_45z_123.getSkewSymPart());
+      if( ( fabs( elem_norm_2(t_45z_mat_sym_skw) - std::sqrt(18.0) ) > 1.8*std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_mat_sym_skw(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_mat_sym_skw(0,1) + std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_mat_sym_skw(0,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_mat_sym_skw(1,3) - 2.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_mat_sym_skw(2,3) - 3.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_mat_sym_skw(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("The skew-symmetric and symmetric parts of 45degz-(1,2,3)t-transformation3D don't add up to the correct matrix!");
+        return 1;
+      };
+      t_ident = t_45z_123 * invert(t_45z_123);
+      if( ( fabs( elem_norm_2(t_ident) - std::sqrt(4.0) ) > 1.8*std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_ident(0,0) - 1.0 ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_ident(0,1) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(1,1) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(0,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(1,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(2,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("The compositionof 45degz-(1,2,3)t-transformation3D with its inverse doesn't give the identity matrix!");
+        return 1;
+      };
+      t_ident = (invert(t_45z_123).getMat() * t_45z_123);
+      if( ( fabs( elem_norm_2(t_ident) - std::sqrt(4.0) ) > 1.8*std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_ident(0,0) - 1.0 ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_ident(0,1) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(1,1) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(0,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(1,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(2,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("The composition of 45degz-(1,2,3)t-transformation3D with its inverse as a regular matrix doesn't give the identity matrix!");
+        return 1;
+      };
+      t_ident = (invert(t_45z_123) * t_45z_123.getMat());
+      if( ( fabs( elem_norm_2(t_ident) - std::sqrt(4.0) ) > 1.8*std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_ident(0,0) - 1.0 ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_ident(0,1) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(1,1) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(0,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(1,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(2,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("The composition of 45degz-(1,2,3)t-transformation3D as a regular matrix with its inverse doesn't give the identity matrix!");
+        return 1;
+      };
+      
+      mat<double, mat_structure::square> t_45z_123_t = transpose(t_45z_123);
+      if( ( fabs( elem_norm_2(t_45z_123_t) - std::sqrt(18.0) ) > 1.8*std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_45z_123_t(0,0) - std::cos(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_45z_123_t(0,1) - std::sin(0.25*M_PI) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_123_t(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_123_t(0,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_123_t(3,1) - 2.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_123_t(3,2) - 3.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_45z_123_t(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("The transpose of 45degz-(1,2,3)t-transformation3D doesn't give the correct matrix!");
+        return 1;
+      };
+      
+      t_ident = (invert(t_45z_123) * r_45z) * trans_mat_3D<double>(r_ident,-invert(t_45z_123).getTranslation());
+      if( ( fabs( elem_norm_2(t_ident) - std::sqrt(4.0) ) > 1.8*std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs( t_ident(0,0) - 1.0 ) > std::numeric_limits< double >::epsilon() )  ||
+	  ( fabs( t_ident(0,1) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(1,1) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(2,2) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(0,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(1,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(2,3) ) > std::numeric_limits< double >::epsilon() ) ||
+	  ( fabs( t_ident(3,3) - 1.0 ) > std::numeric_limits< double >::epsilon() ) ) {
+	RK_ERROR("The composition of inverse 45degz-(1,2,3)t-transformation3D with a 45degz-rotation3D and the inverse translation doesn't give the identity matrix!");
+        return 1;
+      };
+      
+      vect<double,3> v1_trans(t_45z_123 * v1);
+      if( ( fabs(v1_trans[0] - 1.0) > std::numeric_limits<double>::epsilon() ) || 
+	  ( fabs(v1_trans[1] - 2.0 - std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs(v1_trans[2] - 5.0) > std::numeric_limits<double>::epsilon() ) ) {
+	RK_ERROR("t_45z_123 * v(1,1,2) is not correct!");
+        return 1;
+      };
+      v1_trans = t_45z_123.rotate(v1);
+      if( ( fabs(v1_trans[0]) > std::numeric_limits<double>::epsilon() ) || 
+	  ( fabs(v1_trans[1] - std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs(v1_trans[2] - 2.0) > std::numeric_limits<double>::epsilon() ) ) {
+	RK_ERROR("t_45z_123.rotate( v(1,1,2) ) is not correct!");
+        return 1;
+      };
+      vect<double,4> v3 =  t_45z_123 * vect<double,4>(1,1,2,2);
+      
+      if( ( fabs(v3[0] - 2.0) > std::numeric_limits<double>::epsilon() ) || 
+	  ( fabs(v3[1] - 4.0 - std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs(v3[2] - 8.0) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs(v3[3] - 2.0) > std::numeric_limits<double>::epsilon() ) ) {
+	RK_ERROR("t_45z_123 * v(1,1,2,2) is not correct!");
+        return 1;
+      };
+      
 
-      RK_NOTICE(2,"t_45z_123 * v(1,1,2) = " << (t_45z_123 * v1));
-      RK_NOTICE(2,"t_45z_123.rotate(v(1,1,2)) = " << t_45z_123.rotate(v1));
-      vect<double,4> v3(1,1,2,2);
-      RK_NOTICE(2,"t_45z_123 * v(1,1,2,2) = " << (t_45z_123 * v3));
-
-
-      axis_angle<double> a_weird(0.3241f,vect<double,3>(0.5f,0.5f,sqrt(0.5f)));
+      axis_angle<double> a_weird(0.3241,vect<double,3>(0.5,0.5,sqrt(0.5)));
       quaternion<double> q_weird;
       q_weird = a_weird;
       euler_angles_TB<double> e_weird;
       e_weird = q_weird;
       rot_mat_3D<double> r_weird;
       r_weird = q_weird;
-      RK_NOTICE(2,"a_weird as A/A = " << a_weird);
-      RK_NOTICE(2,"q_weird as A/A = " << axis_angle<double>(q_weird));
-      RK_NOTICE(2,"e_weird as A/A = " << axis_angle<double>(e_weird));
-      RK_NOTICE(2,"r_weird as A/A = " << axis_angle<double>(r_weird));
+      axis_angle<double> a_weird_q(q_weird);
+      axis_angle<double> a_weird_e(e_weird);
+      axis_angle<double> a_weird_r(r_weird);
+      if( ( fabs(a_weird_q.angle() - a_weird.angle()) > std::numeric_limits<double>::epsilon() ) ||
+	  ( norm(a_weird_q.axis() - a_weird.axis()) > std::numeric_limits<double>::epsilon() ) ) {
+	RK_ERROR("Weird rotation does not translate correctly from axis-angle to quaternion and back!");
+        return 1;
+      };
+      if( ( fabs(a_weird_e.angle() - a_weird.angle()) > 20.0*std::numeric_limits<double>::epsilon() ) ||
+	  ( norm(a_weird_e.axis() - a_weird.axis()) > 20.0*std::numeric_limits<double>::epsilon() ) ) {
+	RK_ERROR("Weird rotation does not translate correctly from axis-angle to Euler-angles and back!");
+        return 1;
+      };
+      if( ( fabs(a_weird_r.angle() - a_weird.angle()) > 20.0*std::numeric_limits<double>::epsilon() ) ||
+	  ( norm(a_weird_r.axis() - a_weird.axis()) > 20.0*std::numeric_limits<double>::epsilon() ) ) {
+	RK_ERROR("Weird rotation does not translate correctly from axis-angle to rotation3D and back!");
+        return 1;
+      };
+      
+      quaternion<double> q_res(q_45z * quaternion<double>(a_weird * a_45z));
+      vect<double,4> v_a(q_res[0],q_res[1],q_res[2],q_res[3]);
+      q_res = q_45z * (q_weird * q_45z);
+      vect<double,4> v_q(q_res[0],q_res[1],q_res[2],q_res[3]);
+      q_res = quaternion<double>(q_45z * e_weird * r_45z);
+      vect<double,4> v_e(q_res[0],q_res[1],q_res[2],q_res[3]);
+      q_res = quaternion<double>(a_45z * r_weird * e_45z);
+      vect<double,4> v_r(q_res[0],q_res[1],q_res[2],q_res[3]);
+      if( ( norm( v_a - v_q ) > std::numeric_limits<double>::epsilon() ) ||
+          ( norm( v_a - v_e ) > 1.25 * std::numeric_limits<double>::epsilon() ) ||
+          ( norm( v_a - v_r ) > std::numeric_limits<double>::epsilon() ) ||
+          ( norm( v_q - v_e ) > std::numeric_limits<double>::epsilon() ) ||
+          ( norm( v_q - v_r ) > std::numeric_limits<double>::epsilon() ) ||
+          ( norm( v_e - v_r ) > 1.25 * std::numeric_limits<double>::epsilon() ) ) {
+	RK_ERROR("Inter-operability tests between axis-angle, euler-angles, quaternions and rotation3D have failed!");
+        return 1;
+      };
 
-      RK_NOTICE(2,"result a as Q = " << q_45z * quaternion<double>(a_weird * a_45z));
-      RK_NOTICE(2,"result q as Q = " << q_45z * (q_weird * q_45z));
-      RK_NOTICE(2,"result e as Q = " << quaternion<double>(q_45z * e_weird * r_45z));
-      RK_NOTICE(2,"result r as Q = " << quaternion<double>(a_45z * r_weird * e_45z));
-
-
-      RK_NOTICE(2,"/!!!!!! CONGRATULATIONS! SECTION PASSED !!!!!!/");
+      RK_NOTICE(2,"/!!!!!! TESTS OF ROTATION 3D PASSED !!!!!!/");
     };
   
   } catch(std::exception& e) {
@@ -916,8 +1181,6 @@ int main() {
   } catch(...) {
     RK_ERROR("An unexpected and unidentified exception has occurred during the math_gen test.");
   };
-  
-  RK_NOTICE(2,"There were " << passed << " successful tests passed on the math_gen library, out of 45 possible successes.");
   
   return 0;
 };
