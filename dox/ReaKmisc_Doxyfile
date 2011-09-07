@@ -690,7 +690,8 @@ RECURSIVE              = YES
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
 EXCLUDE                = ../../src/ReaK/core/unused_code \
-                         ../../src/ReaK/core/math \
+                         ../../src/ReaK/core/lin_alg \
+                         ../../src/ReaK/core/kinetostatics \
                          ../../src/ReaK/core/base \
                          ../../src/ReaK/core/recorders \
                          ../../src/ReaK/core/rtti \

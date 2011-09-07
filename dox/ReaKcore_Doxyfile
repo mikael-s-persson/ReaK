@@ -691,7 +691,8 @@ RECURSIVE              = YES
 
 EXCLUDE                = ../../src/ReaK/core/unused_code \
                          ../../src/ReaK/core/integrators \
-                         ../../src/ReaK/core/math \
+                         ../../src/ReaK/core/lin_alg \
+                         ../../src/ReaK/core/kinetostatics \
                          ../../src/ReaK/core/optimization
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or 
