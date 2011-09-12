@@ -82,6 +82,9 @@ kte_map                     0xC2100001   bin: 1100 0010 0001 0000 0000 0000 0000
 kte_map_chain               0xC2100002   bin: 1100 0010 0001 0000 0000 0000 0000 0010  D-R
 
 mass_matrix_calc            0xC2000001   bin: 1100 0010 0000 0000 0000 0000 0000 0001  D-R
+joint_dependent_gen_coord   0xC2000002   bin: 1100 0010 0000 0000 0000 0000 0000 0010  D-R
+joint_dependent_frame_2D    0xC2000003   bin: 1100 0010 0000 0000 0000 0000 0000 0011  D-R
+joint_dependent_frame_3D    0xC2000004   bin: 1100 0010 0000 0000 0000 0000 0000 0100  D-R
 
 revolute_joint_2D           0xC2100003   bin: 1100 0010 0001 0000 0000 0000 0000 0011  D-R
 revolute_joint_3D           0xC2100004   bin: 1100 0010 0001 0000 0000 0000 0000 0100  D-R

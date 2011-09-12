@@ -170,7 +170,6 @@ class rigid_link_2D : public kte_map {
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
-      boost::shared_ptr<serialization::serializable> tmp;
       A & RK_SERIAL_LOAD_WITH_NAME(mBase)
         & RK_SERIAL_LOAD_WITH_NAME(mEnd)
 	& RK_SERIAL_LOAD_WITH_NAME(mPoseOffset);
@@ -239,7 +238,6 @@ class rigid_link_3D : public kte_map {
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
-      boost::shared_ptr<serialization::serializable> tmp;
       A & RK_SERIAL_LOAD_WITH_NAME(mBase)
         & RK_SERIAL_LOAD_WITH_NAME(mEnd)
         & RK_SERIAL_LOAD_WITH_NAME(mPoseOffset);

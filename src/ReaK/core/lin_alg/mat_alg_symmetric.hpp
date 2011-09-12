@@ -173,8 +173,12 @@ class mat<T,mat_structure::symmetric,Alignment,Allocator> : public serialization
      * \test PASSED
      */    
     template <typename Matrix>
-    explicit mat(const Matrix&  M, typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
-                                                               !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) :
+    explicit mat(const Matrix&  M, typename boost::enable_if< 
+                                              boost::mpl::and_<
+                                                is_readable_matrix<Matrix>,
+		                                boost::mpl::not_< is_symmetric_matrix<Matrix> >,
+		                                boost::mpl::not_< boost::is_same<Matrix,self> >
+		                              >, void* >::type dummy = NULL) :
              q(mat_triangular_size((M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count())),T(0.0)),
 	     rowCount((M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count())) {
       size_type k=0;
@@ -196,6 +200,28 @@ class mat<T,mat_structure::symmetric,Alignment,Allocator> : public serialization
    	  for(size_type j=0;j<min_size;++j)
 	    q[k+j] = value_type(0.5) * M(j,i);
         };
+      };
+    };
+    
+    /**
+     * Explicit constructor from any type of matrix. The "(M + M.transpose) / 2" is applied to guarantee symmetry.
+     * \test PASSED
+     */    
+    template <typename Matrix>
+    explicit mat(const Matrix&  M, typename boost::enable_if< 
+                                              boost::mpl::and_<
+                                                is_readable_matrix<Matrix>,
+		                                is_symmetric_matrix<Matrix>,
+		                                boost::mpl::not_< boost::is_same<Matrix,self> >
+		                              >, void* >::type dummy = NULL) :
+             q(mat_triangular_size(M.get_row_count()),T(0.0)),
+	     rowCount(M.get_row_count()) {
+      size_type k=0;
+      size_type i=0;
+      for(;i<rowCount;k += ++i) {
+	for(size_type j=0;j<i;++j)
+	  q[k+j] = M(i,j);
+	q[k+i] = M(i,i);
       };
     };
 

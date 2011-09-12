@@ -60,6 +60,35 @@ public:
    */
   jacobian_gen_gen(const value_type& aQdQd = value_type(), 
 		   const value_type& aQdQdd = value_type()) : qd_qd(aQdQd), qd_qdd(aQdQdd) { };
+		   
+  self get_jac_relative_to(const typename shared_pointer< gen_coord<value_type> >::type& ) const {
+    return *this;
+  };
+  
+  template <typename Matrix1, typename Matrix2>
+  typename boost::enable_if< 
+             boost::mpl::and_<
+               is_fully_writable_matrix<Matrix1>,
+	       is_fully_writable_matrix<Matrix2>
+	     >,
+  void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    if((Jac.get_row_count() != 1) || (Jac.get_col_count() != 1) || 
+       (JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 1))
+      throw std::range_error("Jacobian and JacobianDot matrices have the wrong size!");
+    
+    Jac(0,0) = qd_qd;
+    JacDot(0,0) = qd_qdd;
+  };
+  
+  template <typename Matrix1>
+  typename boost::enable_if< 
+             is_fully_writable_matrix<Matrix1>,
+  void >::type write_to_matrices(Matrix1& Jac) const {
+    if((Jac.get_row_count() != 1) || (Jac.get_col_count() != 1))
+      throw std::range_error("Jacobian matrix has the wrong size!");
+    
+    Jac(0,0) = qd_qd;
+  };
   
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -106,6 +135,47 @@ public:
 		  qd_avel(aQdAVel),
 		  qd_acc(aQdAcc),
 		  qd_aacc(aQdAAcc) { };
+  
+  self get_jac_relative_to(const typename shared_pointer< frame_2D<value_type> >::type& aFrame) const {
+    frame_2D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
+    vect<value_type,2> v_tmp = (qd_avel % f2.Position + qd_vel) * f2.Rotation;
+    return self( aFrame,
+                 v_tmp,
+		 qd_avel,
+		 (qd_avel % f2.Velocity + qd_aacc % f2.Position + qd_acc) * f2.Rotation - f2.AngVelocity % v_tmp,
+		 qd_aacc );
+  };
+  
+  template <typename Matrix1, typename Matrix2>
+  typename boost::enable_if< 
+             boost::mpl::and_<
+               is_fully_writable_matrix<Matrix1>,
+	       is_fully_writable_matrix<Matrix2>
+	     >,
+  void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    if((Jac.get_row_count() != 3) || (Jac.get_col_count() != 1) || 
+       (JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 1))
+      throw std::range_error("Jacobian and JacobianDot matrices have the wrong size!");
+    
+    Jac(0,0) = qd_vel[0];
+    Jac(1,0) = qd_vel[1];
+    Jac(2,0) = qd_avel;
+    JacDot(0,0) = qd_acc[0];
+    JacDot(1,0) = qd_acc[1];
+    JacDot(2,0) = qd_aacc;
+  };
+  
+  template <typename Matrix1>
+  typename boost::enable_if< 
+             is_fully_writable_matrix<Matrix1>,
+  void >::type write_to_matrices(Matrix1& Jac) const {
+    if((Jac.get_row_count() != 3) || (Jac.get_col_count() != 1))
+      throw std::range_error("Jacobian matrix has the wrong size!");
+    
+    Jac(0,0) = qd_vel[0];
+    Jac(1,0) = qd_vel[1];
+    Jac(2,0) = qd_avel;
+  };
   
   
 /*******************************************************************************
@@ -165,6 +235,61 @@ public:
 		  qd_acc(aQdAcc),
 		  qd_aacc(aQdAAcc) { };
   
+  self get_jac_relative_to(const typename shared_pointer< frame_3D<value_type> >::type& aFrame) const {
+    
+    
+    frame_3D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
+    rot_mat_3D<value_type> R(f2.Quat.getRotMat());
+
+    vect<value_type,3> w_tmp = qd_avel * R;
+    vect<value_type,3> v_tmp = (qd_avel % f2.Position + qd_vel) * R;
+    return self( aFrame, 
+		 v_tmp, 
+		 w_tmp, 
+		 (qd_avel % f2.Velocity + qd_aacc % f2.Position + qd_acc) * R - f2.AngVelocity % v_tmp, 
+		 qd_aacc * R - f2.AngVelocity % w_tmp );
+  };
+  
+  template <typename Matrix1, typename Matrix2>
+  typename boost::enable_if< 
+             boost::mpl::and_<
+               is_fully_writable_matrix<Matrix1>,
+	       is_fully_writable_matrix<Matrix2>
+	     >,
+  void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    if((Jac.get_row_count() != 6) || (Jac.get_col_count() != 1) || 
+       (JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 1))
+      throw std::range_error("Jacobian and JacobianDot matrices have the wrong size!");
+    
+    Jac(0,0) = qd_vel[0];
+    Jac(1,0) = qd_vel[1];
+    Jac(2,0) = qd_vel[2];
+    Jac(3,0) = qd_avel[0];
+    Jac(4,0) = qd_avel[1];
+    Jac(5,0) = qd_avel[2];
+    JacDot(0,0) = qd_acc[0];
+    JacDot(1,0) = qd_acc[1];
+    JacDot(2,0) = qd_acc[2];
+    JacDot(3,0) = qd_aacc[0];
+    JacDot(4,0) = qd_aacc[1];
+    JacDot(5,0) = qd_aacc[2];
+  };
+  
+  template <typename Matrix1>
+  typename boost::enable_if< 
+             is_fully_writable_matrix<Matrix1>,
+  void >::type write_to_matrices(Matrix1& Jac) const {
+    if((Jac.get_row_count() != 6) || (Jac.get_col_count() != 1)) 
+      throw std::range_error("Jacobian matrix has the wrong size!");
+    
+    Jac(0,0) = qd_vel[0];
+    Jac(1,0) = qd_vel[1];
+    Jac(2,0) = qd_vel[2];
+    Jac(3,0) = qd_avel[0];
+    Jac(4,0) = qd_avel[1];
+    Jac(5,0) = qd_avel[2];
+  };
+  
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
@@ -222,6 +347,41 @@ public:
 		  avel_qd(aAVelQd),
 		  vel_qdd(aVelQdd),
 		  avel_qdd(aAVelQdd) { };
+		   
+  self get_jac_relative_to(const typename shared_pointer< gen_coord<value_type> >::type& ) const {
+    return *this;
+  };
+  
+  template <typename Matrix1, typename Matrix2>
+  typename boost::enable_if< 
+             boost::mpl::and_<
+               is_fully_writable_matrix<Matrix1>,
+	       is_fully_writable_matrix<Matrix2>
+	     >,
+  void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    if((Jac.get_row_count() != 1) || (Jac.get_col_count() != 3) || 
+       (JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 3))
+      throw std::range_error("Jacobian and JacobianDot matrices have the wrong size!");
+    
+    Jac(0,0) = vel_qd[0];
+    Jac(0,1) = vel_qd[1];
+    Jac(0,2) = avel_qd;
+    JacDot(0,0) = vel_qdd[0];
+    JacDot(0,1) = vel_qdd[1];
+    JacDot(0,2) = avel_qdd;
+  };
+  
+  template <typename Matrix1>
+  typename boost::enable_if< 
+             is_fully_writable_matrix<Matrix1>,
+  void >::type write_to_matrices(Matrix1& Jac) const {
+    if((Jac.get_row_count() != 1) || (Jac.get_col_count() != 3)) 
+      throw std::range_error("Jacobian matrix has the wrong size!");
+    
+    Jac(0,0) = vel_qd[0];
+    Jac(0,1) = vel_qd[1];
+    Jac(0,2) = avel_qd;
+  };
   
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -284,6 +444,80 @@ public:
 		 vel_aacc(aVelAAcc),
 		 avel_acc(aAVelAcc),
 		 avel_aacc(aAVelAAcc) { };
+  
+  self get_jac_relative_to(const typename shared_pointer< frame_2D<value_type> >::type& aFrame) const {
+    
+    frame_2D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
+
+    vect< vect<value_type,2>, 2> new_vel_vel((vel_avel[0] % f2.Position + vel_vel[0]) * f2.Rotation,
+			                 (vel_avel[1] % f2.Position + vel_vel[1]) * f2.Rotation);
+
+    vect<value_type,2> new_avel_vel = (avel_avel % f2.Position + avel_vel) * f2.Rotation;
+
+    return self( aFrame, 
+                 new_vel_vel,  //VelVel
+		 vel_avel,  //VelAVel
+		 new_avel_vel,  //AVelVel
+		 avel_avel,  //AVelAVel
+		 vect< vect<value_type,2>, 2>((vel_avel[0] % f2.Velocity + vel_aacc[0] % f2.Position + vel_acc[0]) * f2.Rotation
+                                               - f2.AngVelocity % new_vel_vel[0],
+			                      (vel_avel[1] % f2.Velocity + vel_aacc[1] % f2.Position + vel_acc[1]) * f2.Rotation
+                                               - f2.AngVelocity % new_vel_vel[1]),  //VelAcc
+		 vel_aacc,  //VelAAcc
+		 (avel_avel % f2.Velocity + avel_aacc % f2.Position + avel_acc) * f2.Rotation
+                  - f2.AngVelocity % new_avel_vel,  //AVelAcc
+		 avel_aacc  //AVelAAcc
+               );
+  };
+  
+  template <typename Matrix1, typename Matrix2>
+  typename boost::enable_if< 
+             boost::mpl::and_<
+               is_fully_writable_matrix<Matrix1>,
+	       is_fully_writable_matrix<Matrix2>
+	     >,
+  void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    if((Jac.get_row_count() != 3) || (Jac.get_col_count() != 3) || 
+       (JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 3))
+      throw std::range_error("Jacobian and JacobianDot matrices have the wrong size!");
+    
+    Jac(0,0) = vel_vel[0][0];
+    Jac(1,0) = vel_vel[0][1];
+    Jac(2,0) = vel_avel[0];
+    Jac(0,1) = vel_vel[1][0];
+    Jac(1,1) = vel_vel[1][1];
+    Jac(2,1) = vel_avel[1];
+    Jac(0,2) = avel_vel[0];
+    Jac(1,2) = avel_vel[1];
+    Jac(2,2) = avel_avel;
+    JacDot(0,0) = vel_acc[0][0];
+    JacDot(1,0) = vel_acc[0][1];
+    JacDot(2,0) = vel_aacc[0];
+    JacDot(0,1) = vel_acc[1][0];
+    JacDot(1,1) = vel_acc[1][1];
+    JacDot(2,1) = vel_aacc[1];
+    JacDot(0,2) = avel_acc[0];
+    JacDot(1,2) = avel_acc[1];
+    JacDot(2,2) = avel_aacc;
+  };
+  
+  template <typename Matrix1>
+  typename boost::enable_if< 
+             is_fully_writable_matrix<Matrix1>,
+  void >::type write_to_matrices(Matrix1& Jac) const {
+    if((Jac.get_row_count() != 3) || (Jac.get_col_count() != 3)) 
+      throw std::range_error("Jacobian matrix has the wrong size!");
+    
+    Jac(0,0) = vel_vel[0][0];
+    Jac(1,0) = vel_vel[0][1];
+    Jac(2,0) = vel_avel[0];
+    Jac(0,1) = vel_vel[1][0];
+    Jac(1,1) = vel_vel[1][1];
+    Jac(2,1) = vel_avel[1];
+    Jac(0,2) = avel_vel[0];
+    Jac(1,2) = avel_vel[1];
+    Jac(2,2) = avel_avel;
+  };
   
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -362,6 +596,117 @@ public:
 		 avel_acc(aAVelAcc),
 		 avel_aacc(aAVelAAcc) { };
   
+  self get_jac_relative_to(const typename shared_pointer< frame_3D<value_type> >::type& aFrame) const {
+    
+    
+    frame_3D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
+    rot_mat_3D<value_type> R(f2.Quat.getRotMat());
+
+    vect< vect< value_type, 3>, 2> new_vel_avel(vel_avel[0] * R,
+						vel_avel[1] * R);
+    vect< vect< value_type, 3>, 2> new_vel_aacc(vel_aacc[0] * R - f2.AngVelocity % new_vel_avel[0],
+						vel_aacc[1] * R - f2.AngVelocity % new_vel_avel[1]);
+    
+    vect< value_type, 3> new_avel_avel(avel_avel * R);
+    vect< value_type, 3> new_avel_aacc(avel_aacc * R - f2.AngVelocity % new_avel_avel);
+	
+    vect< vect< value_type, 3>, 2> new_vel_vel((vel_avel[0] % f2.Position + vel_vel[0]) * R,
+					       (vel_avel[1] % f2.Position + vel_vel[1]) * R);
+    vect< vect< value_type, 3>, 2> new_vel_acc((vel_avel[0] % f2.Velocity + vel_aacc[0] % f2.Position + vel_acc[0]) * R - f2.AngVelocity % new_vel_vel[0],
+					       (vel_avel[1] % f2.Velocity + vel_aacc[1] % f2.Position + vel_acc[1]) * R - f2.AngVelocity % new_vel_vel[1]);
+	
+    vect< value_type, 3> new_avel_vel((avel_avel % f2.Position + avel_vel) * R);
+    vect< value_type, 3> new_avel_acc((avel_avel % f2.Velocity + avel_aacc % f2.Position + avel_acc) * R - f2.AngVelocity % new_avel_vel);
+    
+    return self( aFrame, 
+                 new_vel_vel,  
+		 new_vel_avel, 
+		 new_avel_vel,  
+		 new_avel_avel,  
+		 new_vel_acc,  
+		 new_vel_aacc,  
+		 new_avel_acc,  
+		 new_avel_aacc  
+               );
+  };
+  
+  template <typename Matrix1, typename Matrix2>
+  typename boost::enable_if< 
+             boost::mpl::and_<
+               is_fully_writable_matrix<Matrix1>,
+	       is_fully_writable_matrix<Matrix2>
+	     >,
+  void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    if((Jac.get_row_count() != 6) || (Jac.get_col_count() != 3) || 
+       (JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 3))
+      throw std::range_error("Jacobian and JacobianDot matrices have the wrong size!");
+    
+    Jac(0,0) = vel_vel[0][0];
+    Jac(1,0) = vel_vel[0][1];
+    Jac(2,0) = vel_vel[0][2];
+    Jac(3,0) = vel_avel[0][0];
+    Jac(4,0) = vel_avel[0][1];
+    Jac(5,0) = vel_avel[0][2];
+    Jac(0,1) = vel_vel[1][0];
+    Jac(1,1) = vel_vel[1][1];
+    Jac(2,1) = vel_vel[1][2];
+    Jac(3,1) = vel_avel[1][0];
+    Jac(4,1) = vel_avel[1][1];
+    Jac(5,1) = vel_avel[1][2];
+    Jac(0,2) = avel_vel[0];
+    Jac(1,2) = avel_vel[1];
+    Jac(2,2) = avel_vel[2];
+    Jac(3,2) = avel_avel[0];
+    Jac(4,2) = avel_avel[1];
+    Jac(5,2) = avel_avel[2];
+    
+    JacDot(0,0) = vel_acc[0][0];
+    JacDot(1,0) = vel_acc[0][1];
+    JacDot(2,0) = vel_acc[0][2];
+    JacDot(3,0) = vel_aacc[0][0];
+    JacDot(4,0) = vel_aacc[0][1];
+    JacDot(5,0) = vel_aacc[0][2];
+    JacDot(0,1) = vel_acc[1][0];
+    JacDot(1,1) = vel_acc[1][1];
+    JacDot(2,1) = vel_acc[1][2];
+    JacDot(3,1) = vel_aacc[1][0];
+    JacDot(4,1) = vel_aacc[1][1];
+    JacDot(5,1) = vel_aacc[1][2];
+    JacDot(0,2) = avel_acc[0];
+    JacDot(1,2) = avel_acc[1];
+    JacDot(2,2) = avel_acc[2];
+    JacDot(3,2) = avel_aacc[0];
+    JacDot(4,2) = avel_aacc[1];
+    JacDot(5,2) = avel_aacc[2];
+  };
+  
+  template <typename Matrix1>
+  typename boost::enable_if< 
+             is_fully_writable_matrix<Matrix1>,
+  void >::type write_to_matrices(Matrix1& Jac) const {
+    if((Jac.get_row_count() != 6) || (Jac.get_col_count() != 3)) 
+      throw std::range_error("Jacobian matrix has the wrong size!");
+    
+    Jac(0,0) = vel_vel[0][0];
+    Jac(1,0) = vel_vel[0][1];
+    Jac(2,0) = vel_vel[0][2];
+    Jac(3,0) = vel_avel[0][0];
+    Jac(4,0) = vel_avel[0][1];
+    Jac(5,0) = vel_avel[0][2];
+    Jac(0,1) = vel_vel[1][0];
+    Jac(1,1) = vel_vel[1][1];
+    Jac(2,1) = vel_vel[1][2];
+    Jac(3,1) = vel_avel[1][0];
+    Jac(4,1) = vel_avel[1][1];
+    Jac(5,1) = vel_avel[1][2];
+    Jac(0,2) = avel_vel[0];
+    Jac(1,2) = avel_vel[1];
+    Jac(2,2) = avel_vel[2];
+    Jac(3,2) = avel_avel[0];
+    Jac(4,2) = avel_avel[1];
+    Jac(5,2) = avel_avel[2];
+  };
+  
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
@@ -427,6 +772,51 @@ public:
 		  avel_qd(aAVelQd),
 		  vel_qdd(aVelQdd),
 		  avel_qdd(aAVelQdd) { };
+		   
+  self get_jac_relative_to(const typename shared_pointer< gen_coord<value_type> >::type& ) const {
+    return *this;
+  };
+  
+  template <typename Matrix1, typename Matrix2>
+  typename boost::enable_if< 
+             boost::mpl::and_<
+               is_fully_writable_matrix<Matrix1>,
+	       is_fully_writable_matrix<Matrix2>
+	     >,
+  void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    if((Jac.get_row_count() != 1) || (Jac.get_col_count() != 6) || 
+       (JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 6))
+      throw std::range_error("Jacobian and JacobianDot matrices have the wrong size!");
+    
+    Jac(0,0) = vel_qd[0];
+    Jac(0,1) = vel_qd[1];
+    Jac(0,2) = vel_qd[2];
+    Jac(0,3) = avel_qd[0];
+    Jac(0,4) = avel_qd[1];
+    Jac(0,5) = avel_qd[2];
+    
+    JacDot(0,0) = vel_qdd[0];
+    JacDot(0,1) = vel_qdd[1];
+    JacDot(0,2) = vel_qdd[2];
+    JacDot(0,3) = avel_qdd[0];
+    JacDot(0,4) = avel_qdd[1];
+    JacDot(0,5) = avel_qdd[2];
+  };
+  
+  template <typename Matrix1>
+  typename boost::enable_if< 
+             is_fully_writable_matrix<Matrix1>,
+  void >::type write_to_matrices(Matrix1& Jac) const {
+    if((Jac.get_row_count() != 1) || (Jac.get_col_count() != 6)) 
+      throw std::range_error("Jacobian matrix has the wrong size!");
+    
+    Jac(0,0) = vel_qd[0];
+    Jac(0,1) = vel_qd[1];
+    Jac(0,2) = vel_qd[2];
+    Jac(0,3) = avel_qd[0];
+    Jac(0,4) = avel_qd[1];
+    Jac(0,5) = avel_qd[2];
+  };
   
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -489,6 +879,123 @@ public:
 		 vel_aacc(aVelAAcc),
 		 avel_acc(aAVelAcc),
 		 avel_aacc(aAVelAAcc) { };
+  
+  self get_jac_relative_to(const typename shared_pointer< frame_2D<value_type> >::type& aFrame) const {
+    
+    
+    frame_2D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
+    
+    vect<vect<value_type,2>,3> new_vel_vel((vel_avel[0] % f2.Position + vel_vel[0]) * f2.Rotation,
+					   (vel_avel[1] % f2.Position + vel_vel[1]) * f2.Rotation,
+					   (vel_avel[2] % f2.Position + vel_vel[2]) * f2.Rotation
+					  );
+    vect<vect<value_type,2>,3> new_vel_acc((vel_avel[0] % f2.Velocity + vel_aacc[0] % f2.Position + vel_acc[0]) * f2.Rotation
+                                            - f2.AngVelocity % new_vel_vel[0],
+					   (vel_avel[1] % f2.Velocity + vel_aacc[1] % f2.Position + vel_acc[1]) * f2.Rotation
+                                            - f2.AngVelocity % new_vel_vel[1],
+					   (vel_avel[2] % f2.Velocity + vel_aacc[2] % f2.Position + vel_acc[2]) * f2.Rotation
+                                            - f2.AngVelocity % new_vel_vel[2]
+					  );  
+    vect<vect<value_type,2>,3> new_avel_vel((avel_avel[0] % f2.Position + avel_vel[0]) * f2.Rotation,
+					    (avel_avel[1] % f2.Position + avel_vel[1]) * f2.Rotation,
+					    (avel_avel[2] % f2.Position + avel_vel[2]) * f2.Rotation
+ 					   ); 
+    vect<vect<value_type,2>,3> new_avel_acc((avel_avel[0] % f2.Velocity + avel_aacc[0] % f2.Position + avel_acc[0]) * f2.Rotation
+                                             - f2.AngVelocity % new_avel_vel[0],
+					    (avel_avel[1] % f2.Velocity + avel_aacc[1] % f2.Position + avel_acc[1]) * f2.Rotation
+                                             - f2.AngVelocity % new_avel_vel[1],
+					    (avel_avel[2] % f2.Velocity + avel_aacc[2] % f2.Position + avel_acc[2]) * f2.Rotation
+                                             - f2.AngVelocity % new_avel_vel[2]
+ 					   ); 
+
+    return self( aFrame, 
+                 new_vel_vel,  //VelVel
+		 vel_avel,  //VelAVel
+		 new_avel_vel,  //AVelVel
+		 avel_avel,  //AVelAVel
+		 new_vel_acc,  //VelAcc
+		 vel_aacc,  //VelAAcc
+		 new_avel_acc,  //AVelAcc
+		 avel_aacc  //AVelAAcc
+               );
+  };
+  
+  template <typename Matrix1, typename Matrix2>
+  typename boost::enable_if< 
+             boost::mpl::and_<
+               is_fully_writable_matrix<Matrix1>,
+	       is_fully_writable_matrix<Matrix2>
+	     >,
+  void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    if((Jac.get_row_count() != 3) || (Jac.get_col_count() != 6) || 
+       (JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 6))
+      throw std::range_error("Jacobian and JacobianDot matrices have the wrong size!");
+    
+    Jac(0,0) = vel_vel[0][0];
+    Jac(1,0) = vel_vel[0][1];
+    Jac(2,0) = vel_avel[0];
+    Jac(0,1) = vel_vel[1][0];
+    Jac(1,1) = vel_vel[1][1];
+    Jac(2,1) = vel_avel[1];
+    Jac(0,2) = vel_vel[2][0];
+    Jac(1,2) = vel_vel[2][1];
+    Jac(2,2) = vel_avel[2];
+    Jac(0,3) = avel_vel[0][0];
+    Jac(1,3) = avel_vel[0][1];
+    Jac(2,3) = avel_avel[0];
+    Jac(0,4) = avel_vel[1][0];
+    Jac(1,4) = avel_vel[1][1];
+    Jac(2,4) = avel_avel[1];
+    Jac(0,5) = avel_vel[2][0];
+    Jac(1,5) = avel_vel[2][1];
+    Jac(2,5) = avel_avel[2];
+    
+    JacDot(0,0) = vel_acc[0][0];
+    JacDot(1,0) = vel_acc[0][1];
+    JacDot(2,0) = vel_aacc[0];
+    JacDot(0,1) = vel_acc[1][0];
+    JacDot(1,1) = vel_acc[1][1];
+    JacDot(2,1) = vel_aacc[1];
+    JacDot(0,2) = vel_acc[2][0];
+    JacDot(1,2) = vel_acc[2][1];
+    JacDot(2,2) = vel_aacc[2];
+    JacDot(0,3) = avel_acc[0][0];
+    JacDot(1,3) = avel_acc[0][1];
+    JacDot(2,3) = avel_aacc[0];
+    JacDot(0,4) = avel_acc[1][0];
+    JacDot(1,4) = avel_acc[1][1];
+    JacDot(2,4) = avel_aacc[1];
+    JacDot(0,5) = avel_acc[2][0];
+    JacDot(1,5) = avel_acc[2][1];
+    JacDot(2,5) = avel_aacc[2];
+  };
+  
+  template <typename Matrix1>
+  typename boost::enable_if< 
+             is_fully_writable_matrix<Matrix1>,
+  void >::type write_to_matrices(Matrix1& Jac) const {
+    if((Jac.get_row_count() != 3) || (Jac.get_col_count() != 6)) 
+      throw std::range_error("Jacobian matrix has the wrong size!");
+    
+    Jac(0,0) = vel_vel[0][0];
+    Jac(1,0) = vel_vel[0][1];
+    Jac(2,0) = vel_avel[0];
+    Jac(0,1) = vel_vel[1][0];
+    Jac(1,1) = vel_vel[1][1];
+    Jac(2,1) = vel_avel[1];
+    Jac(0,2) = vel_vel[2][0];
+    Jac(1,2) = vel_vel[2][1];
+    Jac(2,2) = vel_avel[2];
+    Jac(0,3) = avel_vel[0][0];
+    Jac(1,3) = avel_vel[0][1];
+    Jac(2,3) = avel_avel[0];
+    Jac(0,4) = avel_vel[1][0];
+    Jac(1,4) = avel_vel[1][1];
+    Jac(2,4) = avel_avel[1];
+    Jac(0,5) = avel_vel[2][0];
+    Jac(1,5) = avel_vel[2][1];
+    Jac(2,5) = avel_avel[2];
+  };
   
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -566,6 +1073,198 @@ public:
 		 vel_aacc(aVelAAcc),
 		 avel_acc(aAVelAcc),
 		 avel_aacc(aAVelAAcc) { };
+  
+  self get_jac_relative_to(const typename shared_pointer< frame_3D<value_type> >::type& aFrame) const {
+    
+    
+    
+    frame_3D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock()); 
+    rot_mat_3D<value_type> R(f2.Quat.getRotMat()); 
+    
+    vect<vect<value_type,3>,3> new_vel_avel(vel_avel[0] * R,
+					    vel_avel[1] * R,
+					    vel_avel[2] * R
+ 					   );
+    vect<vect<value_type,3>,3> new_vel_aacc(vel_aacc[0] * R - f2.AngVelocity % new_vel_avel[0],
+					    vel_aacc[1] * R - f2.AngVelocity % new_vel_avel[1],
+					    vel_aacc[2] * R - f2.AngVelocity % new_vel_avel[2]
+ 					   );
+    
+    vect<vect<value_type,3>,3> new_avel_avel(avel_avel[0] * R,
+					     avel_avel[1] * R,
+					     avel_avel[2] * R
+					    );
+    vect<vect<value_type,3>,3> new_avel_aacc(avel_aacc[0] * R - f2.AngVelocity % new_avel_avel[0],
+					     avel_aacc[1] * R - f2.AngVelocity % new_avel_avel[1],
+					     avel_aacc[2] * R - f2.AngVelocity % new_avel_avel[2]
+					    );
+    
+    vect<vect<value_type,3>,3> new_vel_vel((vel_avel[0] % f2.Position + vel_vel[0]) * R,
+					   (vel_avel[1] % f2.Position + vel_vel[1]) * R,
+					   (vel_avel[2] % f2.Position + vel_vel[2]) * R
+					  ); 
+    vect<vect<value_type,3>,3> new_vel_acc((vel_avel[0] % f2.Velocity + vel_aacc[0] % f2.Position + vel_acc[0]) * R
+                                            - f2.AngVelocity % new_vel_vel[0],
+					   (vel_avel[1] % f2.Velocity + vel_aacc[1] % f2.Position + vel_acc[1]) * R
+                                            - f2.AngVelocity % new_vel_vel[1],
+					   (vel_avel[2] % f2.Velocity + vel_aacc[2] % f2.Position + vel_acc[2]) * R
+                                            - f2.AngVelocity % new_vel_vel[2]
+					  );
+    
+    vect<vect<value_type,3>,3> new_avel_vel((avel_avel[0] % f2.Position + avel_vel[0]) * R,
+					    (avel_avel[1] % f2.Position + avel_vel[1]) * R,
+					    (avel_avel[2] % f2.Position + avel_vel[2]) * R
+ 					   );
+    vect<vect<value_type,3>,3> new_avel_acc((avel_avel[0] % f2.Velocity + avel_aacc[0] % f2.Position + avel_acc[0]) * R
+                                             - f2.AngVelocity % new_avel_vel[0],
+					    (avel_avel[1] % f2.Velocity + avel_aacc[1] % f2.Position + avel_acc[1]) * R
+                                             - f2.AngVelocity % new_avel_vel[1],
+					    (avel_avel[2] % f2.Velocity + avel_aacc[2] % f2.Position + avel_acc[2]) * R
+                                             - f2.AngVelocity % new_avel_vel[2]
+ 					   );
+    
+    return self( aFrame, 
+                 new_vel_vel,  
+		 new_vel_avel, 
+		 new_avel_vel,  
+		 new_avel_avel,  
+		 new_vel_acc,  
+		 new_vel_aacc,  
+		 new_avel_acc,  
+		 new_avel_aacc  
+               );
+  };
+  
+  template <typename Matrix1, typename Matrix2>
+  typename boost::enable_if< 
+             boost::mpl::and_<
+               is_fully_writable_matrix<Matrix1>,
+	       is_fully_writable_matrix<Matrix2>
+	     >,
+  void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
+    if((Jac.get_row_count() != 6) || (Jac.get_col_count() != 6) || 
+       (JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 6))
+      throw std::range_error("Jacobian and JacobianDot matrices have the wrong size!");
+    
+    Jac(0,0) = vel_vel[0][0];
+    Jac(1,0) = vel_vel[0][1];
+    Jac(2,0) = vel_vel[0][2];
+    Jac(3,0) = vel_avel[0][0];
+    Jac(4,0) = vel_avel[0][1];
+    Jac(5,0) = vel_avel[0][2];
+    Jac(0,1) = vel_vel[1][0];
+    Jac(1,1) = vel_vel[1][1];
+    Jac(2,1) = vel_vel[1][2];
+    Jac(3,1) = vel_avel[1][0];
+    Jac(4,1) = vel_avel[1][1];
+    Jac(5,1) = vel_avel[1][2];
+    Jac(0,2) = vel_vel[2][0];
+    Jac(1,2) = vel_vel[2][1];
+    Jac(2,2) = vel_vel[2][2];
+    Jac(3,2) = vel_avel[2][0];
+    Jac(4,2) = vel_avel[2][1];
+    Jac(5,2) = vel_avel[2][2];
+    Jac(0,3) = avel_vel[0][0];
+    Jac(1,3) = avel_vel[0][1];
+    Jac(2,3) = avel_vel[0][2];
+    Jac(3,3) = avel_avel[0][0];
+    Jac(4,3) = avel_avel[0][1];
+    Jac(5,3) = avel_avel[0][2];
+    Jac(0,4) = avel_vel[1][0];
+    Jac(1,4) = avel_vel[1][1];
+    Jac(2,4) = avel_vel[1][2];
+    Jac(3,4) = avel_avel[1][0];
+    Jac(4,4) = avel_avel[1][1];
+    Jac(5,4) = avel_avel[1][2];
+    Jac(0,5) = avel_vel[2][0];
+    Jac(1,5) = avel_vel[2][1];
+    Jac(2,5) = avel_vel[2][2];
+    Jac(3,5) = avel_avel[2][0];
+    Jac(4,5) = avel_avel[2][1];
+    Jac(5,5) = avel_avel[2][2];
+    
+    JacDot(0,0) = vel_acc[0][0];
+    JacDot(1,0) = vel_acc[0][1];
+    JacDot(2,0) = vel_acc[0][2];
+    JacDot(3,0) = vel_aacc[0][0];
+    JacDot(4,0) = vel_aacc[0][1];
+    JacDot(5,0) = vel_aacc[0][2];
+    JacDot(0,1) = vel_acc[1][0];
+    JacDot(1,1) = vel_acc[1][1];
+    JacDot(2,1) = vel_acc[1][2];
+    JacDot(3,1) = vel_aacc[1][0];
+    JacDot(4,1) = vel_aacc[1][1];
+    JacDot(5,1) = vel_aacc[1][2];
+    JacDot(0,2) = vel_acc[2][0];
+    JacDot(1,2) = vel_acc[2][1];
+    JacDot(2,2) = vel_acc[2][2];
+    JacDot(3,2) = vel_aacc[2][0];
+    JacDot(4,2) = vel_aacc[2][1];
+    JacDot(5,2) = vel_aacc[2][2];
+    JacDot(0,3) = avel_acc[0][0];
+    JacDot(1,3) = avel_acc[0][1];
+    JacDot(2,3) = avel_acc[0][2];
+    JacDot(3,3) = avel_aacc[0][0];
+    JacDot(4,3) = avel_aacc[0][1];
+    JacDot(5,3) = avel_aacc[0][2];
+    JacDot(0,4) = avel_acc[1][0];
+    JacDot(1,4) = avel_acc[1][1];
+    JacDot(2,4) = avel_acc[1][2];
+    JacDot(3,4) = avel_aacc[1][0];
+    JacDot(4,4) = avel_aacc[1][1];
+    JacDot(5,4) = avel_aacc[1][2];
+    JacDot(0,5) = avel_acc[2][0];
+    JacDot(1,5) = avel_acc[2][1];
+    JacDot(2,5) = avel_acc[2][2];
+    JacDot(3,5) = avel_aacc[2][0];
+    JacDot(4,5) = avel_aacc[2][1];
+    JacDot(5,5) = avel_aacc[2][2];
+  };
+  
+  template <typename Matrix1>
+  typename boost::enable_if< 
+             is_fully_writable_matrix<Matrix1>,
+  void >::type write_to_matrices(Matrix1& Jac) const {
+    if((Jac.get_row_count() != 6) || (Jac.get_col_count() != 6)) 
+      throw std::range_error("Jacobian matrix has the wrong size!");
+    
+    Jac(0,0) = vel_vel[0][0];
+    Jac(1,0) = vel_vel[0][1];
+    Jac(2,0) = vel_vel[0][2];
+    Jac(3,0) = vel_avel[0][0];
+    Jac(4,0) = vel_avel[0][1];
+    Jac(5,0) = vel_avel[0][2];
+    Jac(0,1) = vel_vel[1][0];
+    Jac(1,1) = vel_vel[1][1];
+    Jac(2,1) = vel_vel[1][2];
+    Jac(3,1) = vel_avel[1][0];
+    Jac(4,1) = vel_avel[1][1];
+    Jac(5,1) = vel_avel[1][2];
+    Jac(0,2) = vel_vel[2][0];
+    Jac(1,2) = vel_vel[2][1];
+    Jac(2,2) = vel_vel[2][2];
+    Jac(3,2) = vel_avel[2][0];
+    Jac(4,2) = vel_avel[2][1];
+    Jac(5,2) = vel_avel[2][2];
+    Jac(0,3) = avel_vel[0][0];
+    Jac(1,3) = avel_vel[0][1];
+    Jac(2,3) = avel_vel[0][2];
+    Jac(3,3) = avel_avel[0][0];
+    Jac(4,3) = avel_avel[0][1];
+    Jac(5,3) = avel_avel[0][2];
+    Jac(0,4) = avel_vel[1][0];
+    Jac(1,4) = avel_vel[1][1];
+    Jac(2,4) = avel_vel[1][2];
+    Jac(3,4) = avel_avel[1][0];
+    Jac(4,4) = avel_avel[1][1];
+    Jac(5,4) = avel_avel[1][2];
+    Jac(0,5) = avel_vel[2][0];
+    Jac(1,5) = avel_vel[2][1];
+    Jac(2,5) = avel_vel[2][2];
+    Jac(3,5) = avel_avel[2][0];
+    Jac(4,5) = avel_avel[2][1];
+    Jac(5,5) = avel_avel[2][2];
+  };
   
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces

@@ -243,7 +243,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
 
 
     /**
-     * Standard Assignment operator with a diagonal matrix.
+     * Standard Assignment operator with a scalar matrix.
      */
     self& operator =(self M) {
       swap(*this,M);
@@ -251,7 +251,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
     };
 
     /**
-     * Standard Assignment operator with a general matrix. Copying only the diagonal part of M.
+     * Standard Assignment operator with a general matrix. Copying only the scalar part of M.
      */
     template <typename Matrix>
     self& operator =(const Matrix& M) {
@@ -297,7 +297,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
     };
 
     /**
-     * Matrix-multiply-and-store operator with a diagonal matrix.
+     * Matrix-multiply-and-store operator with a scalar matrix.
      * \param M the other matrix to be multiplied with this.
      * \return this matrix by reference.
      * \throw std::range_error if the matrix dimensions don't match.
@@ -347,7 +347,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
 
     /**
      * Matrix multiplication operator with a column vector.
-     * \param M a diagonal matrix.
+     * \param M a scalar matrix.
      * \param V the vector to be multiplied with this.
      * \return the matrix-vector product of this and V.
      * \throw std::range_error if the matrix-vector dimensions don't match.
@@ -363,7 +363,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
     
     /**
      * Matrix multiplication operator with a row vector.
-     * \param M a diagonal matrix.
+     * \param M a scalar matrix.
      * \param V the vector to be multiplied with M.
      * \return the matrix-vector product of this and V.
      * \throw std::range_error if the matrix-vector dimensions don't match.
@@ -396,8 +396,8 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
     };
     
     /**
-     * Transposes the matrix M (which has no effect since M is diagonal, simply copies it).
-     * \param M The diagonal matrix to be transposed.
+     * Transposes the matrix M (which has no effect since M is scalar, simply copies it).
+     * \param M The scalar matrix to be transposed.
      * \return The transpose of M.
      */
     friend self transpose(const self& M) {
@@ -406,7 +406,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
     
     /**
      * Transposes the matrix M in a potentially destructive way (move-semantics, pre-C++0x).
-     * \param M The diagonal matrix to be transposed and moved.
+     * \param M The scalar matrix to be transposed and moved.
      * \return The transpose of M.
      */
     friend self transpose_move(self& M) {
@@ -417,7 +417,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
 #ifdef RK_ENABLE_CXX0X_FEATURES
     /**
      * Transposes the matrix M in a potentially destructive way (move-semantics, C++0x).
-     * \param M The diagonal matrix to be transposed and moved.
+     * \param M The scalar matrix to be transposed and moved.
      * \return The transpose of M.
      */
     friend self transpose(self&& M) {
@@ -427,7 +427,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
     
     /**
      * Returns the trace of matrix M.
-     * \param M A diagonal matrix.
+     * \param M A scalar matrix.
      * \return the trace of matrix M.
      */
     friend value_type trace(const self& M) {
