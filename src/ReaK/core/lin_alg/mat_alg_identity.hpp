@@ -166,8 +166,8 @@ class mat<T,mat_structure::identity, Alignment, Allocator> : public serializatio
      * \return This matrix, by constant reference.
      * \test PASSED
      */
-    mat<value_type,mat_structure::diagonal> operator -() const {
-      return mat<value_type,mat_structure::diagonal>(rowCount,value_type(-1));
+    mat<value_type,mat_structure::scalar> operator -() const {
+      return mat<value_type,mat_structure::scalar>(rowCount,value_type(-1));
     };
     
     /**
@@ -242,24 +242,32 @@ mat<T,mat_structure::identity> mat_ident(typename mat<T,mat_structure::identity>
 
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 struct is_readable_matrix< mat<T,mat_structure::identity,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = true );
   typedef is_readable_matrix< mat<T,mat_structure::identity,Alignment,Allocator> > type;
 };
 
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 struct is_writable_matrix< mat<T,mat_structure::identity,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef is_writable_matrix< mat<T,mat_structure::identity,Alignment,Allocator> > type;
 };
 
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 struct is_resizable_matrix< mat<T,mat_structure::identity,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = true );
   typedef is_resizable_matrix< mat<T,mat_structure::identity,Alignment,Allocator> > type;
 };
 
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 struct has_allocator_matrix< mat<T,mat_structure::identity,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef has_allocator_matrix< mat<T,mat_structure::identity,Alignment,Allocator> > type;
 };
@@ -307,9 +315,9 @@ typename boost::enable_if_c< is_readable_vector<Vector>::value,
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 typename boost::enable_if_c< !is_readable_vector<T>::value &&
                              !is_readable_matrix<T>::value, 
- mat<T,mat_structure::diagonal,Alignment,Allocator> >::type
+ mat<T,mat_structure::scalar,Alignment,Allocator> >::type
   operator *(const mat<T,mat_structure::identity,Alignment,Allocator>& M, const T& S) {
-    return mat<T,mat_structure::diagonal,Alignment,Allocator>(M.get_row_count(),S);
+    return mat<T,mat_structure::scalar,Alignment,Allocator>(M.get_row_count(),S);
   };
     
 /**
@@ -322,10 +330,12 @@ typename boost::enable_if_c< !is_readable_vector<T>::value &&
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 typename boost::enable_if_c< !is_readable_vector<T>::value &&
                              !is_readable_matrix<T>::value, 
- mat<T,mat_structure::diagonal,Alignment,Allocator> >::type 
+ mat<T,mat_structure::scalar,Alignment,Allocator> >::type 
   operator *(const T& S,const mat<T,mat_structure::identity,Alignment,Allocator>& M) {
-    return mat<T,mat_structure::diagonal,Alignment,Allocator>(M.get_row_count(),S);
+    return mat<T,mat_structure::scalar,Alignment,Allocator>(M.get_row_count(),S);
   };
+
+#if 0
 
 /**
  * Matrix multiplication with identity matrix.
@@ -474,7 +484,7 @@ template <typename T, mat_alignment::tag Alignment, typename Allocator, mat_alig
   return mat<T,mat_structure::nil,Alignment,Allocator>(M1.get_row_count(),M1.get_row_count());
 };
   
-  
+#endif
   
 
 

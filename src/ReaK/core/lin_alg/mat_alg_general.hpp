@@ -41,8 +41,6 @@
 #include "mat_traits.hpp"
 #include "stride_iterator.hpp"
 
-#include <boost/concept_check.hpp>
-
 #include "base/serializable.hpp"
 #include "rtti/so_register_type.hpp"
 
@@ -84,6 +82,8 @@ template <typename T,
 	  mat_alignment::tag Alignment,
 	  typename Allocator>
 struct is_readable_matrix< mat<T,Structure,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = true );
   typedef is_readable_matrix< mat<T,Structure,Alignment,Allocator> > type;
 };
@@ -93,6 +93,8 @@ template <typename T,
 	  mat_alignment::tag Alignment,
 	  typename Allocator>
 struct is_writable_matrix< mat<T,Structure,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = true );
   typedef is_writable_matrix< mat<T,Structure,Alignment,Allocator> > type;
 };
@@ -102,6 +104,8 @@ template <typename T,
 	  mat_alignment::tag Alignment,
 	  typename Allocator>
 struct is_resizable_matrix< mat<T,Structure,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = true );
   typedef is_resizable_matrix< mat<T,Structure,Alignment,Allocator> > type;
 };
@@ -111,6 +115,8 @@ template <typename T,
 	  mat_alignment::tag Alignment,
 	  typename Allocator>
 struct has_allocator_matrix< mat<T,Structure,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = true );
   typedef has_allocator_matrix< mat<T,Structure,Alignment,Allocator> > type;
 };
@@ -120,7 +126,10 @@ template <typename T,
 	  mat_alignment::tag Alignment,
 	  typename Allocator>
 struct mat_product_priority< mat<T,Structure,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
   BOOST_STATIC_CONSTANT(std::size_t, value = detail::product_priority<Structure>::value);
+  typedef detail::product_priority<Structure> type;
 };
 
 template <typename T, 
@@ -128,7 +137,10 @@ template <typename T,
 	  mat_alignment::tag Alignment,
 	  typename Allocator>
 struct mat_addition_priority< mat<T,Structure,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
   BOOST_STATIC_CONSTANT(std::size_t, value = detail::addition_priority<Structure>::value);
+  typedef detail::addition_priority<Structure> type;
 };
 
 template <typename T, 
@@ -136,6 +148,8 @@ template <typename T,
 	  mat_alignment::tag Alignment,
 	  typename Allocator>
 struct is_square_matrix< mat<T,Structure,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = ((Structure != mat_structure::rectangular) && (Structure != mat_structure::nil)));
   typedef is_square_matrix< mat<T,Structure,Alignment,Allocator> > type;
 };
@@ -145,6 +159,8 @@ template <typename T,
 	  mat_alignment::tag Alignment,
 	  typename Allocator>
 struct is_symmetric_matrix< mat<T,Structure,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = ((Structure == mat_structure::symmetric) || (Structure == mat_structure::diagonal) || (Structure == mat_structure::tridiagonal) || (Structure == mat_structure::identity)));
   typedef is_symmetric_matrix< mat<T,Structure,Alignment,Allocator> > type;
 };
@@ -154,6 +170,8 @@ template <typename T,
 	  mat_alignment::tag Alignment,
 	  typename Allocator>
 struct is_diagonal_matrix< mat<T,Structure,Alignment,Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = ((Structure == mat_structure::diagonal) || (Structure == mat_structure::identity)));
   typedef is_diagonal_matrix< mat<T,Structure,Alignment,Allocator> > type;
 };
@@ -175,6 +193,8 @@ template <typename T,
 	  unsigned int RowCount, unsigned int ColCount,
 	  mat_alignment::tag Alignment>
 struct is_readable_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = true );
   typedef is_readable_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > type;
 };
@@ -184,6 +204,8 @@ template <typename T,
 	  unsigned int RowCount, unsigned int ColCount,
 	  mat_alignment::tag Alignment>
 struct is_writable_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = true );
   typedef is_writable_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > type;
 };
@@ -193,6 +215,8 @@ template <typename T,
 	  unsigned int RowCount, unsigned int ColCount,
 	  mat_alignment::tag Alignment>
 struct is_resizable_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef is_resizable_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > type;
 };
@@ -202,6 +226,8 @@ template <typename T,
 	  unsigned int RowCount, unsigned int ColCount,
 	  mat_alignment::tag Alignment>
 struct has_allocator_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef has_allocator_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > type;
 };
@@ -211,7 +237,10 @@ template <typename T,
 	  unsigned int RowCount, unsigned int ColCount,
 	  mat_alignment::tag Alignment>
 struct mat_product_priority< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
   BOOST_STATIC_CONSTANT(std::size_t, value = detail::product_priority<Structure>::value);
+  typedef detail::product_priority<Structure> type;
 };
 
 template <typename T, 
@@ -219,7 +248,10 @@ template <typename T,
 	  unsigned int RowCount, unsigned int ColCount,
 	  mat_alignment::tag Alignment>
 struct mat_addition_priority< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
   BOOST_STATIC_CONSTANT(std::size_t, value = detail::addition_priority<Structure>::value);
+  typedef detail::addition_priority<Structure> type;
 };
 
 template <typename T, 
@@ -227,6 +259,8 @@ template <typename T,
 	  unsigned int RowCount, unsigned int ColCount,
 	  mat_alignment::tag Alignment>
 struct is_square_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = (RowCount == ColCount));
   typedef is_square_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > type;
 };
@@ -236,6 +270,8 @@ template <typename T,
 	  unsigned int RowCount, unsigned int ColCount,
 	  mat_alignment::tag Alignment>
 struct is_symmetric_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = ((Structure == mat_structure::symmetric) || (Structure == mat_structure::diagonal) || (Structure == mat_structure::tridiagonal) || (Structure == mat_structure::identity)));
   typedef is_symmetric_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > type;
 };
@@ -245,56 +281,12 @@ template <typename T,
 	  unsigned int RowCount, unsigned int ColCount,
 	  mat_alignment::tag Alignment>
 struct is_diagonal_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = ((Structure == mat_structure::diagonal) || (Structure == mat_structure::identity)));
   typedef is_diagonal_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > type;
 };
 
-
-
-
-
-
-
-template <typename Matrix1, typename Matrix2>
-struct mat_product_result {
-  typedef Matrix1 type;
-};
-
-template <typename Matrix1, typename Matrix2>
-struct mat_addition_result {
-  typedef Matrix1 type;
-};
-
-
-
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Matrix2>
-struct mat_product_result< mat<T,Structure,Alignment,Allocator>, Matrix2> {
-  typedef mat<T,mat_structure::rectangular,Alignment,Allocator> type;
-};
-
-
-
-
-/**
- * Prints a matrix to a standard output stream (<<) as "((a11; a12); (a21; a22))". \test PASSED
- */
-template <typename Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value, std::ostream& >::type
-  operator <<(std::ostream& out_stream,const Matrix& M) {
-  out_stream << "(";
-  if((M.get_row_count() != 0) && (M.get_col_count() != 0)) {
-    for(unsigned int i=0;i<M.get_row_count();++i) {
-      out_stream << "(" << M(i,0);
-      for(unsigned int j=1;j<M.get_col_count();++j) {
-        out_stream << "; " << M(i,j);
-      };
-      out_stream << ")";
-      if(i != M.get_row_count()-1)
-        out_stream << "; ";
-    };
-  };
-  return (out_stream << ")");
-};
 
 
 
@@ -357,349 +349,7 @@ struct get_type_info< mat_fix<T,Structure,RowCount,ColCount,Alignment>, Tail > {
 
 
 
-
-
-
-/*******************************************************************************
-                         Basic Operators
-*******************************************************************************/
-
-/**
- * General (least-specialized) addition operator for any type of matrices. This is a default operator
- * that will be called if no better special-purpose overload exists.
- * \param M1 first matrix (first operand).
- * \param M2 second matrix (second operand).
- * \return General column-major matrix.
- * \throw std::range_error if the two matrix dimensions do not fit together.
- * \test PASSED
- */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Matrix2>
-typename boost::enable_if_c< is_readable_matrix<Matrix2>::value, 
- mat< T, mat_structure::rectangular, Alignment, Allocator > >::type
-  operator +(const mat<T,Structure,Alignment,Allocator>& M1,const Matrix2& M2) {
-    typedef mat< T, mat_structure::rectangular, Alignment, Allocator > result_type; 
-    if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
-      throw std::range_error("Matrix dimension mismatch.");
-    result_type result(M1.get_row_count(),M1.get_col_count(),T(0),M1.get_allocator());
-    for(unsigned int j=0;j<M1.get_col_count();++j)
-      for(unsigned int i=0;i<M1.get_row_count();++i)
-        result(i,j) = M1(i,j) + M2(i,j);
-    return result;
-  };
-
-
-
-/**
- * General substraction operator for any type of matrices. This is a default operator
- * that will be called if no better special-purpose overload exists.
- * \param M1 first matrix (first operand).
- * \param M2 second matrix (second operand).
- * \return General column-major matrix.
- * \throw std::range_error if the two matrix dimensions do not fit together.
- * \test PASSED
- */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Matrix2>
-typename boost::enable_if_c< is_readable_matrix<Matrix2>::value, 
- mat< T, mat_structure::rectangular, Alignment, Allocator > >::type
-  operator -(const mat<T,Structure,Alignment,Allocator>& M1,const Matrix2& M2) {
-    typedef mat< T, mat_structure::rectangular, Alignment, Allocator > result_type;
-    if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
-      throw std::range_error("Matrix dimension mismatch.");
-    typedef typename mat_traits<result_type>::value_type ValueType;
-    typedef typename mat_traits<result_type>::size_type SizeType;
-    result_type result(M1.get_row_count(),M1.get_col_count(),T(0),M1.get_allocator());
-    for(SizeType j=0;j<M1.get_col_count();++j)
-      for(SizeType i=0;i<M1.get_row_count();++i)
-        result(i,j) = M1(i,j) - M2(i,j);
-    return result;
-  };
-  
-
-
-/**
- * General multiplication operator for any type of matrices. This is a default operator
- * that will be called if no better special-purpose overload exists.
- * \param M1 first matrix (first operand).
- * \param M2 second matrix (second operand).
- * \return General column-major matrix.
- * \throw std::range_error if the two matrix dimensions do not fit together.
- * \test PASSED
- */
-template <typename Matrix1, typename Matrix2>
-typename boost::enable_if_c< is_readable_matrix<Matrix2>::value &&
-                             boost::mpl::less< boost::mpl::integral_c<std::size_t,mat_product_priority< Matrix1 >::value>,
-                                               boost::mpl::integral_c<std::size_t,detail::product_priority<mat_structure::diagonal>::value> >::value &&
-                             boost::mpl::less< boost::mpl::integral_c<std::size_t,mat_product_priority< Matrix2 >::value>,
-                                               boost::mpl::integral_c<std::size_t,detail::product_priority<mat_structure::diagonal>::value> >::value, 
- typename mat_product_result<Matrix1,Matrix2>::type >::type
-  operator *(const Matrix1& M1,const Matrix2& M2) {
-    typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
-    if(M1.get_col_count() != M2.get_row_count())
-      throw std::range_error("Matrix dimension mismatch.");
-    typedef typename mat_traits<result_type>::value_type ValueType;
-    typedef typename mat_traits<result_type>::size_type SizeType;
-    result_type result(M1.get_row_count(),M2.get_col_count(),ValueType(0),M1.get_allocator());
-    for(SizeType i=0;i<M1.get_row_count();++i) {
-      for(SizeType jj=0;jj<M2.get_col_count();++jj) {
-        for(SizeType j=0;j<M1.get_col_count();++j) {
-          result(i,jj) += M1(i,j) * M2(j,jj);
-        };
-      };
-    };
-    return result;
-  };
-
-#if 0
-/**
- * General multiplication operator for any type of matrices. This is a default operator
- * that will be called if no better special-purpose overload exists.
- * \param M1 first matrix (first operand).
- * \param M2 second matrix (second operand).
- * \return General column-major matrix.
- * \throw std::range_error if the two matrix dimensions do not fit together.
- * \test PASSED
- */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Matrix2>
-typename boost::enable_if_c< is_readable_matrix<Matrix2>::value &&
-                             boost::mpl::less< boost::mpl::integral_c< std::size_t, mat_product_priority< mat<T,Structure,Alignment,Allocator> >::value>,
-                                               boost::mpl::integral_c< std::size_t, detail::product_priority<mat_structure::diagonal>::value> >::value &&
-                             boost::mpl::less< boost::mpl::integral_c< std::size_t, mat_product_priority<Matrix2>::value>,
-                                               boost::mpl::integral_c< std::size_t, detail::product_priority<mat_structure::diagonal>::value> >::value,
- mat< T, mat_structure::rectangular, Alignment, Allocator > >::type
-  operator *(const Matrix2& M1, const mat<T,Structure,Alignment,Allocator>& M2) {
-    typedef mat< T, mat_structure::rectangular, Alignment, Allocator > result_type;
-    if(M1.get_col_count() != M2.get_row_count())
-      throw std::range_error("Matrix dimension mismatch.");
-    typedef typename mat_traits<result_type>::value_type ValueType;
-    typedef typename mat_traits<result_type>::size_type SizeType;
-    result_type result(M1.get_row_count(),M2.get_col_count(),T(0),M2.get_allocator());
-    for(SizeType i=0;i<M1.get_row_count();++i) {
-      for(SizeType jj=0;jj<M2.get_col_count();++jj) {
-        for(SizeType j=0;j<M1.get_col_count();++j) {
-          result(i,jj) += M1(i,j) * M2(j,jj);
-        };
-      };
-    };
-    return result;
-  };
-#endif
-/**
- * Matrix multiplication operator with a column vector. This is a default operator
- * that will be called if no better special-purpose overload exists.
- * \param M The matrix (first operand).
- * \param V The column vector (second operand).
- * \return Column vector equal to M * V.
- * \throw std::range_error if the matrix column count does not correspond to the vector dimension.
- * \test PASSED
- */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Vector>
-typename boost::enable_if_c< is_readable_vector<Vector>::value, 
- vect_n< T, Allocator > >::type
-  operator *(const mat<T,Structure,Alignment,Allocator>& M, const Vector& V) {
-    typedef vect_n< T, Allocator > result_type;
-    if(V.size() != M.get_col_count())
-      throw std::range_error("Matrix dimension mismatch.");
-    typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::value_type ValueType;
-    typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::size_type SizeType;
-    result_type result(M.get_row_count(),T(0),M.get_allocator());
-    for(SizeType i=0;i<M.get_row_count();++i)
-      for(SizeType j=0;j<M.get_col_count();++j)
-        result[i] += M(i,j) * V[j];
-    return result;
-  };
-  
-/**
- * Matrix multiplication operator with a row vector. This is a default operator
- * that will be called if no better special-purpose overload exists.
- * \param V The row vector (first operand).
- * \param M The matrix (second operand).
- * \return Row vector equal to V * M.
- * \throw std::range_error if the matrix row count does not correspond to the vector dimension.
- * \test PASSED
- */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Vector>
-typename boost::enable_if_c< is_readable_vector<Vector>::value, 
- vect_n< T, Allocator > >::type
-  operator *(const Vector& V,const mat<T,Structure,Alignment,Allocator>& M) {
-    typedef vect_n< T, Allocator > result_type;
-    if(V.size() != M.get_row_count())
-      throw std::range_error("Matrix dimension mismatch.");
-    typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::value_type ValueType;
-    typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::size_type SizeType;
-    result_type result(M.get_col_count(),T(0),V.get_allocator());
-    for(SizeType j=0;j<M.get_col_count();++j) {
-      result[j] = 0;
-      for(SizeType i=0;i<M.get_row_count();++i) {
-        result[j] += M(i,j) * V[i];
-      };
-    };
-    return result;
-  };
-
-  
-/**
- * Multiplication by a column-vector (fixed-size).
- * \param M the matrix (square)
- * \param V the column vector.
- * \return column-vector equal to M * V.
- * \throw std::range_error if this matrix and the vector dimensions don't match.
- */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, unsigned int Size>
-vect<T,Size> operator *(const mat<T,Structure,Alignment,Allocator>& M,const vect<T,Size>& V) {
-  if((Size != M.get_col_count()) || (Size != M.get_row_count()))
-    throw std::range_error("Matrix dimension mismatch.");
-  typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::value_type ValueType;
-  typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::size_type SizeType;
-  vect<T,Size> result;
-  for(SizeType i=0;i<Size;++i) {
-    result[i] = 0;
-    for(SizeType j=0;j<Size;++j)
-      result[i] += M(i,j) * V[j];
-  };
-  return result;
-};
-
-
-/**
- * Multiplication by a row-vector (fixed-size).
- * \param M the matrix (square)
- * \param V the column vector.
- * \return row-vector equal to V * M.
- * \throw std::range_error if this matrix and the vector dimensions don't match.
- */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, unsigned int Size>
-vect<T,Size> operator *(const vect<T,Size>& V,const mat<T,Structure,Alignment,Allocator>& M) {
-  if((Size != M.get_col_count()) || (Size != M.get_row_count()))
-    throw std::range_error("Matrix dimension mismatch.");
-  typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::value_type ValueType;
-  typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::size_type SizeType;
-  vect<T,Size> result;
-  for(SizeType j=0;j<Size;++j) {
-    result[j] = 0;
-    for(SizeType i=0;i<Size;++i)
-      result[j] += M(i,j) * V[i];
-  };
-  return result;
-};
-  
-
-/**
- * Matrix multiplication operator with a scalar. This is a default operator
- * that will be called if no better special-purpose overload exists.
- * \param M The matrix (first operand).
- * \param S The scalar (second operand).
- * \return Column-major matrix equal to M * S.
- * \test PASSED
- */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator>
-mat<T,Structure,Alignment,Allocator> operator *(mat<T,Structure,Alignment,Allocator> M, const T& S) {
-  M *= S;
-  return M;
-};
-
-/**
- * Matrix multiplication operator with a scalar. This is a default operator
- * that will be called if no better special-purpose overload exists.
- * \param S The scalar (first operand).
- * \param M The matrix (second operand).
- * \return Column-major matrix equal to S * M.
- * \test PASSED
- */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator>
-mat<T,Structure,Alignment,Allocator> operator *(const T& S, mat<T,Structure,Alignment,Allocator> M) {
-  M *= S;
-  return M;
-};
-
-
-
-
-
-/*******************************************************************************
-                         Comparison Operators
-*******************************************************************************/
-
-/**
- * Equality Comparison operator for general matrices, component-wise.
- * \test PASSED
- */
-template <typename Matrix1, typename Matrix2>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && is_readable_matrix<Matrix2>::value, bool >::type
-  operator ==(const Matrix1& M1,const Matrix2& M2) {
-    if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
-      return false;
-    typedef typename mat_traits< Matrix1 >::value_type ValueType;
-    typedef typename mat_traits< Matrix1 >::size_type SizeType;
-    for(SizeType j=0;j<M1.get_col_count();++j)
-      for(SizeType i=0;i<M1.get_row_count();++i)
-        if(M1(i,j) != M2(i,j))
-          return false;
-    return true;
-  };
-
-/**
- * Inequality Comparison operator for general matrices, component-wise.
- * \test PASSED
- */
-template <typename Matrix1, typename Matrix2>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && is_readable_matrix<Matrix2>::value, bool >::type
-  operator !=(const Matrix1& M1,const Matrix2& M2) {
-    if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
-      return true;
-    typedef typename mat_traits< Matrix1 >::value_type ValueType;
-    typedef typename mat_traits< Matrix1 >::size_type SizeType;
-    for(SizeType j=0;j<M1.get_col_count();++j)
-      for(SizeType i=0;i<M1.get_row_count();++i)
-        if(M1(i,j) != M2(i,j))
-          return true;
-    return false;
-  };  
-
-
-
-
-
-/**
- * Verifies that the matrix A is diagonal up to a tolerance.
- */
-template <class Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value, 
- bool >::type is_diagonal(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = 1E-8) {
-  using std::fabs;
-  if(A.get_row_count() != A.get_col_count())
-    return false;
-  typedef typename mat_traits< Matrix >::value_type ValueType;
-  typedef typename mat_traits< Matrix >::size_type SizeType;
-  for(SizeType i=0;i<A.get_row_count();i++)
-    for(SizeType j=0;j<i;j++)
-      if((fabs(A(j,i)) > NumTol) || (fabs(A(i,j)) > NumTol))
-	return false;
-  return true;
-};
-
-/**
- * Verifies that the matrix A is symmetric up to a tolerance.
- */
-template <class Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
-bool >::type is_symmetric(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = 1E-8) {
-  using std::fabs;
-  if(A.get_row_count() != A.get_col_count())
-    return false;
-  typedef typename mat_traits< Matrix >::value_type ValueType;
-  typedef typename mat_traits< Matrix >::size_type SizeType;
-  for(SizeType i=0;i<A.get_row_count();i++)
-    for(SizeType j=0;j<i;j++)
-      if(fabs(A(j,i) - A(i,j)) > NumTol)
-	return false;
-  return true;
-};
-
-
-
-
-
-
+/*
 template <typename Matrix1, typename Matrix2>
 typename boost::enable_if_c< 
   is_fully_writable_matrix<Matrix1>::value &&
@@ -719,7 +369,7 @@ void >::type append_block_diag(Matrix1& A, const Matrix2& B) {
     for(SizeType j = 0; j < B.get_col_count(); ++j)
       A(i + oldRowCount,j + oldColCount) = B(i,j);
 };
-
+*/
 
 
 

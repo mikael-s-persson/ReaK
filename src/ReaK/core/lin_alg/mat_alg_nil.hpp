@@ -239,24 +239,40 @@ mat<T,mat_structure::nil> mat_nil(typename mat<T,mat_structure::nil>::size_type 
 
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 struct is_readable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = true );
   typedef is_readable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > type;
 };
 
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 struct is_writable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
+  BOOST_STATIC_CONSTANT( bool, value = false );
+  typedef is_writable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > type;
+};
+
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+struct is_fully_writable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef is_writable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > type;
 };
 
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 struct is_resizable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = true );
   typedef is_resizable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > type;
 };
 
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
 struct has_allocator_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef has_allocator_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > type;
 };
@@ -323,7 +339,7 @@ vect<T,Size> operator *(const vect<T,Size>& V,const mat<T,mat_structure::nil,Ali
   return vect<T,Size>();
 };
 
-
+#if 0
 /**
  * Matrix multiplication with null matrix, always results in a null matrix.
  * \param M1 some matrix.
@@ -354,9 +370,9 @@ typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
       throw std::range_error("Matrix dimension mismatch.");
     return mat<T,mat_structure::nil,Alignment,Allocator>(M1.get_row_count(),M2.get_col_count());
   };
+#endif
 
-
-
+#if 0
   
 /**
  * Add two matrices, just returns the parameter.
@@ -424,7 +440,7 @@ typename boost::enable_if_c< is_readable_matrix<Matrix>::value, const Matrix& >:
   };
   
 
-
+#endif
 
 
 

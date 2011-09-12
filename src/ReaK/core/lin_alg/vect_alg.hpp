@@ -1987,7 +1987,7 @@ bool colinear(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
   T tmp_mag2 = norm(v2);
   T tmp_mag1 = norm(v1);
   T tmp_comb = norm(v1 + v2);
-  return (((tmp_mag1 + tmp_mag2) * (T(1.0) - std::numeric_limits<T>::epsilon()) < tmp_comb) || 
+  return (((tmp_mag1 + tmp_mag2) * (T(1.0) - 10.0*std::numeric_limits<T>::epsilon()) < tmp_comb) || 
           (std::fabs(tmp_mag1 - tmp_mag2) * (T(1.0) + std::numeric_limits<T>::epsilon()) > tmp_comb));
 };
 

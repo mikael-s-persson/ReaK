@@ -52,74 +52,140 @@ try {
 
   /*************************** Fixed-Length Vector Tests ****************************/
   if(true){
-    vect<float,3> gravity_acc;                   ++passed;
-    gravity_acc[0] = 0.0f;                        ++passed; //RK_NOTICE(2,"Passed: " << passed << " should have 2.");
-    gravity_acc[1] = -9.81f;
-    gravity_acc[2] = 0.0f;
-    if( 3 == gravity_acc.size() )                ++passed;
-    if( 3 == gravity_acc.max_size() )            ++passed;
-    if( 3 == gravity_acc.capacity() )            ++passed;
-    gravity_acc.resize(5);                                 //RK_NOTICE(2,"Passed: " << passed << " should have 5.");
-    if( 3 == gravity_acc.size() )                ++passed;
-    if( !gravity_acc.empty() )                   ++passed;
-    gravity_acc.reserve(5);
-    if( 3 == gravity_acc.capacity() )            ++passed;
-    vect<float,3>::iterator it = gravity_acc.begin();      //RK_NOTICE(2,"Passed: " << passed << " should have 8.");
-    if(*it == 0.0f)                               ++passed;
-    if(gravity_acc.end() - it == 3)              ++passed;
-    if(gravity_acc.end() - ++it == 2)            ++passed;
-    const vect<float,3>& gravity_acc_ref = gravity_acc;    //RK_NOTICE(2,"Passed: " << passed << " should have 11.");
-    vect<float,3>::const_iterator cit = gravity_acc_ref.begin();
-    if(*cit == 0.0f)                              ++passed;
-    if(gravity_acc_ref.end() - cit == 3)         ++passed;
-    if(gravity_acc_ref.end() - ++cit == 2)       ++passed;
-    float ones[] = {1.0f,1.0f,1.0f};                         // RK_NOTICE(2,"Passed: " << passed << " should have 14.");
-    vect<float,3> ones_v(ones);                  ++passed;
-    if(ones[1] == ones_v[1])                     ++passed;
-    float obj_mass(3.0f);      
-    vect<float,3> gravity_force;                           //RK_NOTICE(2,"Passed: " << passed << " should have 16.");
-    gravity_force = (gravity_acc * obj_mass);    ++passed;
-    if(gravity_force == obj_mass * gravity_acc)  ++passed;
-    if(std::fabs(norm_sqr(gravity_acc) - 9.81f*9.81f) < 100.0f*std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    if(std::fabs(norm(gravity_acc) - 9.81f) < 10.0f*std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    vect<float,3> gravity_dir(unit(gravity_acc));++passed; //RK_NOTICE(2,"Passed: " << passed << " should have 21.");
-    if(std::fabs(norm(gravity_dir) - 1.0) < std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    if(std::fabs(norm(vect<float,1>(1.0)) - 1.0) < std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    if(std::fabs(norm(vect<float,2>(0.0,1.0)) - 1.0) < std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    if(std::fabs(norm(vect<float,3>(0.0,0.0,1.0)) - 1.0) < std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    if(std::fabs(norm(vect<float,4>(0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    if(std::fabs(norm(vect<float,5>(0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    if(std::fabs(norm(vect<float,6>(0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    if(std::fabs(norm(vect<float,7>(0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    if(std::fabs(norm(vect<float,8>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    if(std::fabs(norm(vect<float,9>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    if(std::fabs(norm(vect<float,10>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    vect<float,3> displacement(1.0, 2.0, 3.0);             //RK_NOTICE(2,"Passed: " << passed << " should have 32.");
-    float gravity_potential = gravity_force * displacement;
-    if(std::fabs(gravity_potential + 2.0 * 9.81 * 3.0) < 60.0*std::numeric_limits<float>::epsilon())
-                                                 ++passed;
-    vect<float,3> gravity_moment = displacement % gravity_force;
-    if(std::fabs(gravity_moment[0] - 3.0*9.81*3.0) + std::fabs(gravity_moment[2] + 3.0*9.81) < 100.0*std::numeric_limits<float>::epsilon())
-                                                 ++passed;
+    vect<double,3> gravity_acc;
+    gravity_acc[0] = 0.0;
+    gravity_acc[1] = -9.81;
+    gravity_acc[2] = 0.0;
+    if( 3 == gravity_acc.size() )
+      ++passed;
+    else
+      RK_ERROR("vect<double,3>::size() test did not pass!");
+    if( 3 == gravity_acc.max_size() )
+      ++passed;
+    else
+      RK_ERROR("vect<double,3>::max_size() test did not pass!");
+    if( 3 == gravity_acc.capacity() )
+      ++passed;
+    else
+      RK_ERROR("vect<double,3>::capacity() test did not pass!");
+    if( !gravity_acc.empty() )
+      ++passed;
+    else
+      RK_ERROR("vect<double,3>::empty() test did not pass!");
+    vect<double,3>::iterator it = gravity_acc.begin();      //RK_NOTICE(2,"Passed: " << passed << " should have 8.");
+    if(std::fabs(*it) < std::numeric_limits< double >::epsilon())
+      ++passed;
+    else
+      RK_ERROR("vect<double,3>::begin() test did not pass!");
+    if(gravity_acc.end() - it == 3)
+      ++passed;
+    else
+      RK_ERROR("vect<double,3>::end() test did not pass!");
+    if(gravity_acc.end() - ++it == 2)
+      ++passed;
+    else
+      RK_ERROR("vect<double,3>::iterator::operator++ test did not pass!");
+    const vect<double,3>& gravity_acc_ref = gravity_acc;
+    vect<double,3>::const_iterator cit = gravity_acc_ref.begin();
+    if(std::fabs(*cit) < std::numeric_limits< double >::epsilon()) 
+      ++passed;
+    else
+      RK_ERROR("vect<double,3>::cbegin() test did not pass!");
+    if(gravity_acc_ref.end() - cit == 3) 
+      ++passed;
+    else
+      RK_ERROR("vect<double,3>::cend() test did not pass!");
+    if(gravity_acc_ref.end() - ++cit == 2) 
+      ++passed;
+    else
+      RK_ERROR("vect<double,3>::const_iterator::operator++ test did not pass!");
+    double ones[] = {1.0,1.0,1.0};
+    vect<double,3> ones_v(ones);
+    if(ones[1] == ones_v[1]) 
+      ++passed;
+    else
+      RK_ERROR("vect<double,3>::vect(double*) test did not pass!");
+    double obj_mass(3.0);
+    vect<double,3> gravity_force; 
+    gravity_force = (gravity_acc * obj_mass);
+    if(std::fabs(gravity_force[1] + 3.0*9.81) < std::numeric_limits<double>::epsilon()) 
+      ++passed;
+    else
+      RK_ERROR("operator*(vect<double,3>,double) test did not pass!");
+    if(gravity_force == obj_mass * gravity_acc) 
+      ++passed;
+    else
+      RK_ERROR("operator*(double,vect<double,3>) test did not pass!");
+    if(std::fabs(norm_sqr(gravity_acc) - 9.81*9.81) < 100.0*std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("norm_sqr(vect<double,3>) test did not pass!");
+    if(std::fabs(norm(gravity_acc) - 9.81) < 10.0*std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("norm(vect<double,3>) test did not pass!");
+    vect<double,3> gravity_dir(unit(gravity_acc));
+    if(std::fabs(norm(gravity_dir) - 1.0) < std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("unit(vect<double,3>) test did not pass!");
+    if(std::fabs(norm(vect<double,1>(1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("vect<double,1>(d) test did not pass!");
+    if(std::fabs(norm(vect<double,2>(0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("vect<double,2>(d,d) test did not pass!");
+    if(std::fabs(norm(vect<double,3>(0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("vect<double,3>(d,d,d) test did not pass!");
+    if(std::fabs(norm(vect<double,4>(0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("vect<double,4>(d,d,d,d) test did not pass!");
+    if(std::fabs(norm(vect<double,5>(0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("vect<double,5>(d,d,d,d,d) test did not pass!");
+    if(std::fabs(norm(vect<double,6>(0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("vect<double,6>(d,d,d,d,d,d) test did not pass!");
+    if(std::fabs(norm(vect<double,7>(0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("vect<double,7>(d,d,d,d,d,d,d) test did not pass!");
+    if(std::fabs(norm(vect<double,8>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("vect<double,8>(d,d,d,d,d,d,d,d) test did not pass!");
+    if(std::fabs(norm(vect<double,9>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("vect<double,9>(d,d,d,d,d,d,d,d,d) test did not pass!");
+    if(std::fabs(norm(vect<double,10>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("vect<double,10>(d,d,d,d,d,d,d,d,d,d) test did not pass!");
+    vect<double,3> displacement(1.0, 2.0, 3.0);             //RK_NOTICE(2,"Passed: " << passed << " should have 32.");
+    double gravity_potential = gravity_force * displacement;
+    if(std::fabs(gravity_potential + 2.0 * 9.81 * 3.0) < 60.0*std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("operator*(vect<double,3>,vect<double,3>) test did not pass!");
+    vect<double,3> gravity_moment = displacement % gravity_force;
+    if(std::fabs(gravity_moment[0] - 3.0*9.81*3.0) + std::fabs(gravity_moment[2] + 3.0*9.81) < 100.0*std::numeric_limits<double>::epsilon())
+      ++passed;
+    else
+      RK_ERROR("operator%(double,vect<double,3>) test did not pass!");
     
-    float dist_sqr = norm_sqr(displacement);               //RK_NOTICE(2,"Passed: " << passed << " should have 34.");
-    vect<float,3> displacement_inv(-displacement); 
-    if(std::fabs(displacement_inv * displacement + dist_sqr) < std::numeric_limits<float>::epsilon())
+    double dist_sqr = norm_sqr(displacement);               //RK_NOTICE(2,"Passed: " << passed << " should have 34.");
+    vect<double,3> displacement_inv(-displacement); 
+    if(std::fabs(displacement_inv * displacement + dist_sqr) < std::numeric_limits<double>::epsilon())
                                                  ++passed;
-    vect<float,3> long_displacement(10.0, 20.0, 30.0); ++passed;
+    vect<double,3> long_displacement(10.0, 20.0, 30.0); ++passed;
     if(colinear(displacement,long_displacement)) ++passed;
     if(long_displacement > displacement)         ++passed;
     if(displacement < long_displacement)         ++passed;
@@ -127,16 +193,16 @@ try {
     if(displacement == displacement)             ++passed;
 
     long_displacement += displacement;                     //RK_NOTICE(2,"Passed: " << passed << " should have 41.");
-    if(std::fabs(norm(long_displacement) - 11.0*norm(displacement)) < 200.0*std::numeric_limits<float>::epsilon())
+    if(std::fabs(norm(long_displacement) - 11.0*norm(displacement)) < 200.0*std::numeric_limits<double>::epsilon())
                                                  ++passed;
     long_displacement *= 2.0;
-    if(std::fabs(norm(long_displacement) - 22.0*norm(displacement)) < 400.0*std::numeric_limits<float>::epsilon())
+    if(std::fabs(norm(long_displacement) - 22.0*norm(displacement)) < 400.0*std::numeric_limits<double>::epsilon())
                                                  ++passed;
     long_displacement /= 2.0;
-    if(std::fabs(norm(long_displacement) - 11.0*norm(displacement)) < 200.0*std::numeric_limits<float>::epsilon())
+    if(std::fabs(norm(long_displacement) - 11.0*norm(displacement)) < 200.0*std::numeric_limits<double>::epsilon())
                                                  ++passed;
     long_displacement -= displacement;
-    if(std::fabs(norm(long_displacement) - 10.0*norm(displacement)) < 200.0*std::numeric_limits<float>::epsilon())
+    if(std::fabs(norm(long_displacement) - 10.0*norm(displacement)) < 200.0*std::numeric_limits<double>::epsilon())
                                                  ++passed;
                                                            //RK_NOTICE(2,"Passed: " << passed << " should have 45.");
   };
@@ -146,24 +212,24 @@ try {
     RK_NOTICE(2,"/*********************************************/");
     RK_NOTICE(2,"/** PRIMITIVE VARIABLE-LENGTH VECTOR TESTS ***/");
     RK_NOTICE(2,"/*********************************************/");
-    vect_n<float> gravity_acc(3);
+    vect_n<double> gravity_acc(3);
     gravity_acc[0] = 0.0f;
     gravity_acc[1] = -9.81f;
     gravity_acc[2] = 0.0f;
-    float obj_mass(3.0);
-    vect_n<float> gravity_force;
+    double obj_mass(3.0);
+    vect_n<double> gravity_force;
     gravity_force = (gravity_acc * obj_mass);
-    vect_n<float> gravity_dir(unit(gravity_acc));
+    vect_n<double> gravity_dir(unit(gravity_acc));
     RK_NOTICE(2,"Gravity vector is: " << gravity_force[0] << ";" << gravity_force[1] << ";" << gravity_force[2]);
     RK_NOTICE(2,"Gravity direction is: " << gravity_dir[0] << ";" << gravity_dir[1] << ";" << gravity_dir[2]);
-    vect_n<float> displacement(1.0, 2.0, 3.0);
-    float gravity_potential = gravity_force * displacement;
+    vect_n<double> displacement(1.0, 2.0, 3.0);
+    double gravity_potential = gravity_force * displacement;
     RK_NOTICE(2,"Gravity Potential is: " << gravity_potential);
 
-    float dist_sqr = norm_sqr(displacement);
-    float distance = norm(displacement);
-    vect_n<float> displacement_inv(-displacement);
-    vect_n<float> long_displacement(10.0, 20.0, 30.0);
+    double dist_sqr = norm_sqr(displacement);
+    double distance = norm(displacement);
+    vect_n<double> displacement_inv(-displacement);
+    vect_n<double> long_displacement(10.0, 20.0, 30.0);
     bool is_colinear = colinear(displacement,long_displacement);
     bool is_greater = (displacement > long_displacement);
     bool is_smaller = (displacement < long_displacement);
@@ -196,76 +262,76 @@ try {
     RK_NOTICE(2,"/**** PRIMITVE VARIABLE-SIZE MATRIX TESTS ****/");
     RK_NOTICE(2,"/*********************************************/");
 
-    mat<float> m1234(1.0,2.0,3.0,4.0);
+    mat<double> m1234(1.0,2.0,3.0,4.0);
     RK_NOTICE(2,"m1234 = " << m1234);
     RK_NOTICE(2,"m1234 = " << m1234(0,0) << " " << m1234(1,0) << " " << m1234(0,1) << " " << m1234(1,1));
     RK_NOTICE(2,"m1324 = " << (m1234 = transpose(m1234)));
     RK_NOTICE(2,"m1324 = " << (m1234 = transpose_move(m1234)));
 
-    mat<float> m_ident(3,3,true);
+    mat<double> m_ident(3,3,true);
     RK_NOTICE(2,"identity 3x3 = " << m_ident);
-    mat_identity<float>::type m_ident2(3);
+    mat_identity<double>::type m_ident2(3);
     RK_NOTICE(2,"identity 3x3 = " << m_ident2);
-    mat<float> m_ones(3,3,float(1.0));
+    mat<double> m_ones(3,3,double(1.0));
     RK_NOTICE(2,"ones 3x3 = " << m_ones);
-    mat_null<float>::type m_zeroes(3,3);
+    mat_null<double>::type m_zeroes(3,3);
     RK_NOTICE(2,"zeroes 3x3 = " << m_zeroes);
 
-    float f4321[] = {4.0,3.0,2.0,1.0};
-    std::vector<float> v4321(f4321,f4321 + 4);
-    mat<float> m4321(v4321,2,2);
+    double f4321[] = {4.0,3.0,2.0,1.0};
+    std::vector<double> v4321(f4321,f4321 + 4);
+    mat<double> m4321(v4321,2,2);
     RK_NOTICE(2,"m4321 = " << m4321);
 
-    mat<float> m4321_cpy(m4321);
+    mat<double> m4321_cpy(m4321);
     RK_NOTICE(2,"m4321 copy = " << m4321_cpy);
 
     m4321_cpy = m4321;
     RK_NOTICE(2,"m4321 copy = " << m4321_cpy);
 
-    m4321_cpy += mat<float>(2,2,true);
+    m4321_cpy += mat<double>(2,2,true);
     RK_NOTICE(2,"m4321 copy + identity = " << m4321_cpy);
 
-    m4321_cpy += mat_identity<float>::type(2);
+    m4321_cpy += mat_identity<double>::type(2);
     RK_NOTICE(2,"m4321 copy + identity = " << m4321_cpy);
 
-    m4321_cpy -= mat<float>(2,2,true);
+    m4321_cpy -= mat<double>(2,2,true);
     RK_NOTICE(2,"m4321 copy = " << m4321_cpy);
 
-    m4321_cpy -= mat_identity<float>::type(2);
+    m4321_cpy -= mat_identity<double>::type(2);
     RK_NOTICE(2,"m4321 copy = " << m4321_cpy);
 
     m4321_cpy *= 2.0;
     RK_NOTICE(2,"m4321 copy twice = " << m4321_cpy);
 
-    m4321_cpy = m4321_cpy * float(0.5);
+    m4321_cpy = m4321_cpy * double(0.5);
     RK_NOTICE(2,"m4321 copy = " << m4321_cpy);
 
-    m4321_cpy = m4321_cpy + mat<float>(2,2,true);
+    m4321_cpy = m4321_cpy + mat<double>(2,2,true);
     RK_NOTICE(2,"m4321 copy + identity = " << m4321_cpy);
 
-    m4321_cpy = m4321_cpy + mat_identity<float>::type(2);
+    m4321_cpy = m4321_cpy + mat_identity<double>::type(2);
     RK_NOTICE(2,"m4321 copy + identity = " << m4321_cpy);
 
-    m4321_cpy = m4321_cpy - mat<float>(2,2,true);
+    m4321_cpy = m4321_cpy - mat<double>(2,2,true);
     RK_NOTICE(2,"m4321 copy = " << m4321_cpy);
-    m4321_cpy = m4321_cpy - mat_identity<float>::type(2);
+    m4321_cpy = m4321_cpy - mat_identity<double>::type(2);
     RK_NOTICE(2,"m4321 copy = " << m4321_cpy);
     RK_NOTICE(2,"m4321 copy negated = " << -m4321_cpy);
 
-    m4321_cpy = m4321_cpy * mat_identity<float>::type(2);
+    m4321_cpy = m4321_cpy * mat_identity<double>::type(2);
     RK_NOTICE(2,"m4321 copy * identity = " << m4321_cpy);
 
     if(m4321_cpy == m4321)
       RK_NOTICE(2,"m4321 copy is equal to m4321");
-    if(m4321_cpy != mat<float>(2,2,true))
+    if(m4321_cpy != mat<double>(2,2,true))
       RK_NOTICE(2,"m4321 copy is not equal to identity");
-    if(m4321_cpy != mat_identity<float>::type(2))
+    if(m4321_cpy != mat_identity<double>::type(2))
       RK_NOTICE(2,"m4321 copy is not equal to identity");
 
     RK_NOTICE(2,"m4321 copy = " << m4321_cpy);
-    vect_n<float> v85 = m4321_cpy * vect_n<float>(2,1.0);
+    vect_n<double> v85 = m4321_cpy * vect_n<double>(2,1.0);
     RK_NOTICE(2,"m4321 copy * vect(1.0,1.0) = " << v85);
-    vect_n<float> v104 =  vect_n<float>(2,1.0) * m4321_cpy;
+    vect_n<double> v104 =  vect_n<double>(2,1.0) * m4321_cpy;
     RK_NOTICE(2,"vect(1.0,1.0) * m4321 copy = " << v104);
 
     set_block(m_ident,m4321_cpy,1,1);
@@ -274,17 +340,17 @@ try {
     m4321_cpy = get_block(m_ident,1,1,2,2);
     RK_NOTICE(2,"m4321 copy = " << m4321_cpy);
     RK_NOTICE(2,"m4321 copy transpose = " << transpose(m4321_cpy));
-    RK_NOTICE(2,"m4321 copy sym part = " << (mat<float,mat_structure::symmetric>(m4321_cpy)));
-    RK_NOTICE(2,"m4321 copy skew part = " << (mat<float,mat_structure::skew_symmetric>(m4321_cpy)));
-    RK_NOTICE(2,"m4321 copy twice = " << float(2.0) * m4321_cpy);
+    RK_NOTICE(2,"m4321 copy sym part = " << (mat<double,mat_structure::symmetric>(m4321_cpy)));
+    RK_NOTICE(2,"m4321 copy skew part = " << (mat<double,mat_structure::skew_symmetric>(m4321_cpy)));
+    RK_NOTICE(2,"m4321 copy twice = " << double(2.0) * m4321_cpy);
 
-    mat<float,mat_structure::diagonal> m123(vect_n<float>(1.0,2.0,3.0));
+    mat<double,mat_structure::diagonal> m123(vect_n<double>(1.0,2.0,3.0));
     RK_NOTICE(2,"m123 diagonal = " << m123);
-    //mat_cm<float> m_blk_diag(block_diag_mat(mat_cm<float>(1.0,2.0,3.0,4.0),mat_cm<float>(1,1,true)));
+    //mat_cm<double> m_blk_diag(block_diag_mat(mat_cm<double>(1.0,2.0,3.0,4.0),mat_cm<double>(1,1,true)));
     //RK_NOTICE(2,"m_blk_diag block diagonal = " << m_blk_diag);
-    //mat_cm<float> m_blk(block_mat(mat_cm<float>(1.0,2.0,3.0,4.0),m4321.getSubMat(0,0,2,1),m4321.getSubMat(1,0,1,2),mat_cm<float>(1,1,true)));
+    //mat_cm<double> m_blk(block_mat(mat_cm<double>(1.0,2.0,3.0,4.0),m4321.getSubMat(0,0,2,1),m4321.getSubMat(1,0,1,2),mat_cm<double>(1,1,true)));
     //RK_NOTICE(2,"m_blk block matrix = " << m_blk);
-    RK_NOTICE(2,"vect(1,2,3) skew matrix = " << (mat<float,mat_structure::skew_symmetric>(vect_n<float>(1.0,2.0,3.0))));
+    RK_NOTICE(2,"vect(1,2,3) skew matrix = " << (mat<double,mat_structure::skew_symmetric>(vect_n<double>(1.0,2.0,3.0))));
 
     RK_NOTICE(2,"/!!!!!! CONGRATULATIONS! SECTION PASSED !!!!!!/");
   };

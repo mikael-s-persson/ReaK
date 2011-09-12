@@ -43,6 +43,7 @@
 #include <boost/type_traits.hpp>
 
 #include "rtti/so_type.hpp"
+#include "vect_alg.hpp"
 
 namespace ReaK {
   
@@ -81,7 +82,8 @@ namespace mat_structure {
     orthogonal = 8,
     tridiagonal = 9,
     nil = 10,
-    identity = 11
+    identity = 11,
+    scalar = 12
   };
 };
   
@@ -191,6 +193,13 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::id
   static construct_ptr CreatePtr() { return NULL; };
 };
 
+template <>
+struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::scalar > > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 12);
+  static std::string type_name() { return "scalar"; };
+  static construct_ptr CreatePtr() { return NULL; };
+};
+
 
 template <mat_structure::tag U, typename Tail>
 struct get_type_info< boost::mpl::integral_c<mat_structure::tag, U >, Tail > {
@@ -272,62 +281,106 @@ namespace detail {
   
   template <mat_structure::tag Structure>
   struct product_priority {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 0);
+    typedef product_priority<Structure> type;
   };
   
   template <>
   struct product_priority<mat_structure::rectangular> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 1);
+    typedef product_priority<mat_structure::rectangular> type;
   };
   
   template <>
   struct product_priority<mat_structure::square> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 2);
+    typedef product_priority<mat_structure::square> type;
   };
   
   template <>
   struct product_priority<mat_structure::symmetric> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 10);
+    typedef product_priority<mat_structure::symmetric> type;
   };
   
   template <>
   struct product_priority<mat_structure::skew_symmetric> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 11);
+    typedef product_priority<mat_structure::skew_symmetric> type;
   };
   
   template <>
   struct product_priority<mat_structure::diagonal> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 40);
+    typedef product_priority<mat_structure::diagonal> type;
+  };
+  
+  template <>
+  struct product_priority<mat_structure::scalar> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
+    BOOST_STATIC_CONSTANT(std::size_t, value = 41);
+    typedef product_priority<mat_structure::scalar> type;
   };
   
   template <>
   struct product_priority<mat_structure::upper_triangular> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 20);
+    typedef product_priority<mat_structure::upper_triangular> type;
   };
   
   template <>
   struct product_priority<mat_structure::lower_triangular> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 21);
+    typedef product_priority<mat_structure::lower_triangular> type;
   };
   
   template <>
   struct product_priority<mat_structure::orthogonal> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 3);
+    typedef product_priority<mat_structure::orthogonal> type;
   };
   
   template <>
   struct product_priority<mat_structure::tridiagonal> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 30);
+    typedef product_priority<mat_structure::tridiagonal> type;
   };
   
   template <>
   struct product_priority<mat_structure::nil> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 50);
+    typedef product_priority<mat_structure::nil> type;
   };
   
   template <>
   struct product_priority<mat_structure::identity> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 49);
+    typedef product_priority<mat_structure::identity> type;
   };
   
   
@@ -335,62 +388,106 @@ namespace detail {
   
   template <mat_structure::tag Structure>
   struct addition_priority {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 0);
+    typedef addition_priority<Structure> type;
   };
   
   template <>
   struct addition_priority<mat_structure::rectangular> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 1);
+    typedef addition_priority<mat_structure::rectangular> type;
   };
   
   template <>
   struct addition_priority<mat_structure::square> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 2);
+    typedef addition_priority<mat_structure::square> type;
   };
   
   template <>
   struct addition_priority<mat_structure::symmetric> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 10);
+    typedef addition_priority<mat_structure::symmetric> type;
   };
   
   template <>
   struct addition_priority<mat_structure::skew_symmetric> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 11);
+    typedef addition_priority<mat_structure::skew_symmetric> type;
   };
   
   template <>
   struct addition_priority<mat_structure::diagonal> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 40);
+    typedef addition_priority<mat_structure::diagonal> type;
+  };
+  
+  template <>
+  struct addition_priority<mat_structure::scalar> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
+    BOOST_STATIC_CONSTANT(std::size_t, value = 40);
+    typedef addition_priority<mat_structure::scalar> type;
   };
   
   template <>
   struct addition_priority<mat_structure::identity> {
-    BOOST_STATIC_CONSTANT(std::size_t, value = 41);
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
+    BOOST_STATIC_CONSTANT(std::size_t, value = 40);
+    typedef addition_priority<mat_structure::identity> type;
   };
   
   template <>
   struct addition_priority<mat_structure::upper_triangular> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 20);
+    typedef addition_priority<mat_structure::upper_triangular> type;
   };
   
   template <>
   struct addition_priority<mat_structure::lower_triangular> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 21);
+    typedef addition_priority<mat_structure::lower_triangular> type;
   };
   
   template <>
   struct addition_priority<mat_structure::orthogonal> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 3);
+    typedef addition_priority<mat_structure::orthogonal> type;
   };
   
   template <>
   struct addition_priority<mat_structure::tridiagonal> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 30);
+    typedef addition_priority<mat_structure::tridiagonal> type;
   };
   
   template <>
   struct addition_priority<mat_structure::nil> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 50);
+    typedef addition_priority<mat_structure::nil> type;
   };
   
 };
@@ -398,12 +495,18 @@ namespace detail {
 
 template <typename Matrix>
 struct mat_product_priority {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
   BOOST_STATIC_CONSTANT(std::size_t, value = 0);
+  typedef mat_product_priority<Matrix> type;
 };
 
 template <typename Matrix>
 struct mat_addition_priority {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
   BOOST_STATIC_CONSTANT(std::size_t, value = 0);
+  typedef mat_addition_priority<Matrix> type;
 };
 
 

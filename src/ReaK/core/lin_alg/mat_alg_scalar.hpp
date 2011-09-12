@@ -1,10 +1,10 @@
 /**
- * \file mat_alg_diagonal.hpp
+ * \file mat_alg_scalar.hpp
  * 
- * This library declares matrix specializations for representing and manipulating diagonal matrices.
+ * This library declares matrix specializations for representing and manipulating scalar matrices.
  * This library implements many overloaded operators that turn out to be more efficiently implemented 
- * if specialized for the diagonal matrix case. All those overloads are automatically selected through
- * Sfinae switches, and the diagonal matrix class is simply a partial specialization of the "ReaK::mat" 
+ * if specialized for the scalar matrix case. All those overloads are automatically selected through
+ * Sfinae switches, and the scalar matrix class is simply a partial specialization of the "ReaK::mat" 
  * class template, so, the burden on the user is minimal.
  * 
  * \author Mikael Persson <mikael.s.persson@gmail.com>
@@ -33,64 +33,53 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_MAT_ALG_DIAGONAL_HPP
-#define REAK_MAT_ALG_DIAGONAL_HPP
+#ifndef REAK_MAT_ALG_SCALAR_HPP
+#define REAK_MAT_ALG_SCALAR_HPP
 
 #include "mat_alg_general.hpp"
 
 namespace ReaK {
 
-template <mat_alignment::tag Alignment>
-struct mat_indexer<mat_structure::diagonal, Alignment> {
-  std::size_t rowCount;
-  mat_indexer<mat_structure::diagonal, Alignment>(std::size_t aRowCount) : rowCount(aRowCount) { };
-  std::size_t operator()(std::size_t i, std::size_t j) const { return i; };
-};
-
-
-
-
 
 
 /**
- * This class holds a diagonal matrix. This class will hold only the diagonal.
+ * This class holds a scalar matrix. This class will hold only the scalar value and the dimension.
  * 
- * Models: ReadableMatrixConcept, WritableMatrixConcept, ResizableMatrixConcept, and DynAllocMatrixConcept.
+ * Models: ReadableMatrixConcept, WritableMatrixConcept, and ResizableMatrixConcept.
  * 
  * \tparam T Arithmetic type of the elements of the matrix.
  * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or mat_alignment::column_major (default).
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <class T, mat_alignment::tag Alignment, typename Allocator>
-class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization::serializable {
+class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::serializable {
   public:    
     
-    typedef mat<T,mat_structure::diagonal,Alignment,Allocator> self;
-    typedef Allocator allocator_type;
+    typedef mat<T,mat_structure::scalar,Alignment,Allocator> self;
+    typedef void allocator_type;
     
     typedef T value_type;
-    typedef std::vector<value_type,allocator_type> container_type;
     
-    typedef typename container_type::reference reference;
-    typedef typename container_type::const_reference const_reference;
-    typedef typename container_type::pointer pointer;
-    typedef typename container_type::const_pointer const_pointer;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
   
     typedef void col_iterator;
     typedef void const_col_iterator;
     typedef void row_iterator;
     typedef void const_row_iterator;
   
-    typedef unsigned int size_type;
-    typedef typename container_type::difference_type difference_type;
+    typedef std::size_t size_type;
+    typedef std::ptrdiff_t difference_type;
   
     BOOST_STATIC_CONSTANT(std::size_t, static_row_count = 0);
     BOOST_STATIC_CONSTANT(std::size_t, static_col_count = 0);
     BOOST_STATIC_CONSTANT(mat_alignment::tag, alignment = Alignment);
-    BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::diagonal);
+    BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::scalar);
     
   private:
-    container_type q; ///< Holds the array of scalar entries.
+    value_type q; ///< Holds the scalar entry.
     size_type rowCount; ///< Holds the dimension, both row and column count are equal to size.
 
   public:
@@ -101,20 +90,20 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
     /**
      * Default constructor: sets all to zero.
      */
-    mat(const allocator_type& aAlloc = allocator_type()) : q(0,value_type(0),aAlloc), rowCount(0) { };
+    mat(const Allocator& aAlloc = Allocator()) : q(0), rowCount(0) { };
 
     /**
      * Constructor for a sized matrix.
      */
-    mat(size_type aRowCount, value_type aFill = value_type(0),const allocator_type& aAlloc = allocator_type()) :
-             q(aRowCount,aFill,aAlloc),
+    mat(size_type aRowCount, value_type aFill = value_type(0),const Allocator& aAlloc = Allocator()) :
+             q(aFill),
 	     rowCount(aRowCount) { };
 
     /**
      * Constructor for an identity matrix.
      */
-    mat(size_type aRowCount, bool aIdentity, const allocator_type& aAlloc = allocator_type()) :
-             q(aRowCount,(aIdentity ? value_type(1) : value_type(0)),aAlloc),
+    mat(size_type aRowCount, bool aIdentity, const Allocator& aAlloc = Allocator()) :
+             q((aIdentity ? value_type(1) : value_type(0))),
 	     rowCount(aRowCount) { };
 
     /**
@@ -134,26 +123,15 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
 #endif
 	     
     /**
-     * Constructor from a vector of size n.
-     */
-    template <typename Vector>
-    explicit mat(const Vector& V, const allocator_type& aAlloc = allocator_type(),
-                      typename boost::enable_if_c< is_readable_vector<Vector>::value && 
-                                                  !(boost::is_same<Vector,self>::value) , void* >::type dummy = NULL) :
-             q(V.begin(),V.end(),aAlloc),
-	     rowCount(V.size()) { };
-
-    /**
-     * Constructor from a general matrix, copying only the diagonal part.
+     * Constructor from a general matrix, conserving only the trace value.
      */
     template <typename Matrix>
-    explicit mat(const Matrix& M, const allocator_type& aAlloc = allocator_type(),
+    explicit mat(const Matrix& M, const Allocator& aAlloc = Allocator(),
 		      typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
                                                   !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) :
-             q((M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count()),T(0.0),aAlloc),
+             q(0.0),
 	     rowCount((M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count())) {
-      for(size_type i=0;i<rowCount;++i)
-	q[i] = M(i,i);
+      q = trace(M) / value_type(rowCount);
     };
 
     /**
@@ -185,7 +163,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      */
     reference operator()(size_type i,size_type j) {
       if(i == j)
-	return q[i];
+	return q;
       else
 	throw std::range_error("Cannot write to the off-diagonal terms of a diagonal matrix!");
     };
@@ -199,9 +177,9 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      */
     value_type operator()(size_type i,size_type j) const {
       if(i == j)
-	return q[i];
+	return q;
       else
-        return T(0.0);
+        return value_type(0.0);
     };
 
     /**
@@ -218,7 +196,6 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      * \test PASSED
      */
     void set_row_count(size_type aRowCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
-      q.resize(aRowCount,value_type(0.0));
       rowCount = aRowCount;
     };
 
@@ -236,7 +213,6 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      * \test PASSED
      */
     void set_col_count(size_type aColCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
-      q.resize(aColCount,value_type(0.0));
       rowCount = aColCount;
     };
     
@@ -259,7 +235,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      * Returns the allocator object of the underlying container.
      * \return the allocator object of the underlying container.
      */
-    allocator_type get_allocator() const { return q.get_allocator(); };
+    allocator_type get_allocator() const { };
 
 /*******************************************************************************
                          Assignment Operators
@@ -293,8 +269,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
     self& operator +=(const self& M) {
       if(M.rowCount != rowCount)
 	throw std::range_error("Matrix dimension mismatch.");
-      for(size_type i=0;i<rowCount;++i)
-        q[i] += M.q[i];
+      q += M.q;
       return *this;
     };
 
@@ -307,8 +282,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
     self& operator -=(const self& M) {
       if(M.rowCount != rowCount)
 	throw std::range_error("Matrix dimension mismatch.");
-      for(size_type i=0;i<rowCount;++i)
-        q[i] -= M.q[i];
+      q -= M.q;
       return *this;
     };
 
@@ -318,8 +292,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      * \return this matrix by reference.
      */
     self& operator *=(const T& S) {
-      for(unsigned int i=0;i<rowCount;++i)
-        q[i] *= S;
+      q *= S;
       return *this;
     };
 
@@ -332,8 +305,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
     self& operator *=(const self& M) {
       if(rowCount != M.rowCount)
         throw std::range_error("Matrix dimension mismatch.");
-      for(size_type i=0;i<rowCount;++i)
-	q[i] *= M.q[i];
+      q *= M.q;
       return *this;
     };
 
@@ -350,10 +322,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
     friend self operator +(const self& M1,const self& M2) {
       if(M1.rowCount != M2.rowCount)
 	throw std::range_error("Matrix dimension mismatch.");
-      self result(M1.rowCount);
-      for(size_type i=0;i<M1.rowCount;++i)
-        result.q[i] = M1.q[i] + M2.q[i];
-      return result;
+      return self(M1.rowCount,M1.q + M2.q);
     };
 
     /**
@@ -361,10 +330,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      * \return the negative of this matrix sum.
      */
     self operator -() const {
-      self result(rowCount);
-      for(size_type i=0;i<rowCount;++i)
-	result.q[i] = -q[i];
-      return result;
+      return self(rowCount,-q);
     };
 
     /**
@@ -376,71 +342,8 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
     friend self operator -(const self& M1, const self& M2) {
       if(M1.rowCount != M2.rowCount)
 	throw std::range_error("Matrix dimension mismatch.");
-      self result(M1.rowCount);
-      for(size_type i=0;i<M1.rowCount;++i)
-        result.q[i] = M1.q[i] - M2.q[i];
-      return result;
+      return self(M1.rowCount,M1.q - M2.q);
     };
-
-#if 0
-    /**
-     * Matrix multiplication operator with a diagonal.
-     * \param M the other matrix to be multiplied with this.
-     * \return the matrix product of this and M.
-     * \throw std::range_error if the matrix dimensions don't match.
-     */
-    friend self operator *(const self& M1,const self& M2) {
-      if(M1.rowCount != M2.rowCount)
-        throw std::range_error("Matrix dimension mismatch.");
-      self result(M1.rowCount);
-      for(size_type i=0;i<M1.rowCount;++i)
-	result.q[i] = M1.q[i] * M2.q[i];
-      return result;
-    };
-    
-    /**
-     * Matrix multiplication operator with standard semantics.
-     * \param M1 the first matrix (the diagonal one).
-     * \param M2 the other matrix.
-     * \return the matrix product of M1 and M2.
-     * \throw std::range_error if the matrix dimensions don't match.
-     */
-    template <typename Matrix>
-    friend 
-    typename boost::enable_if_c< is_writable_matrix<Matrix>::value && 
-                                 !(boost::is_same<Matrix,self>::value) &&
-                                 (mat_product_priority<Matrix>::value < mat_product_priority<self>::value), 
-     Matrix >::type operator *(const self& M1, Matrix M2) {
-      if(M1.rowCount != M2.get_row_count())
-        throw std::range_error("Matrix dimension mismatch.");
-      for(size_type l=0;l<M2.get_col_count();++l)
-        for(size_type i=0;i<M1.rowCount;++i)
-	  M2(i,l) *= M1.q[i];
-      return M2;
-    };
-    
-    /**
-     * Matrix multiplication operator with standard semantics.
-     * \param M1 the first matrix.
-     * \param M2 the other matrix (the diagonal one).
-     * \return the matrix product of M1 and M2.
-     * \throw std::range_error if the matrix dimensions don't match.
-     */
-    template <typename Matrix>
-    friend 
-    typename boost::enable_if_c< is_writable_matrix<Matrix>::value && 
-                                !(boost::is_same<Matrix,self>::value) &&
-                                 (mat_product_priority<Matrix>::value < mat_product_priority<self>::value), 
-     Matrix >::type operator *(Matrix M1, const self& M2) {
-      if(M2.rowCount != M1.get_col_count())
-        throw std::range_error("Matrix dimension mismatch.");
-      for(size_type l=0;l<M1.get_row_count();++l)
-        for(size_type i=0;i<M2.rowCount;++i)
-	  M1(l,i) *= M2.q[i];
-      return M1;
-    };
-#endif
-
 
     /**
      * Matrix multiplication operator with a column vector.
@@ -451,13 +354,11 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      */
     template <typename Vector>
     friend 
-    typename boost::enable_if_c< is_writable_vector<Vector>::value, 
-     Vector >::type operator *(const self& M, Vector V) {
+    typename boost::enable_if< is_readable_vector<Vector>, 
+    Vector >::type operator *(const self& M, const Vector& V) {
       if(V.size() != M.rowCount)
         throw std::range_error("Matrix dimension mismatch.");
-      for(size_type i=0;i<M.rowCount;++i)
-        V[i] *= M.q[i];
-      return V;
+      return V * M.q;
     };
     
     /**
@@ -469,111 +370,29 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      */
     template <typename Vector>
     friend 
-    typename boost::enable_if_c< is_writable_vector<Vector>::value, 
-     Vector >::type operator *(Vector V, const self& M) {
+    typename boost::enable_if< is_readable_vector<Vector>, 
+    Vector >::type operator *(const Vector& V, const self& M) {
       if(V.size() != M.rowCount)
         throw std::range_error("Matrix dimension mismatch.");
-      for(size_type i=0;i<M.rowCount;++i)
-        V[i] *= M.q[i];
-      return V;
+      return V * M.q;
     };
-
-#if 0
-    /**
-     * Scalar multiplication operator.
-     * \param M a diagonal matrix.
-     * \param S the scalar to be multiplied with this.
-     * \return the matrix product of this and S.
-     */
-    friend self operator *(self M, const value_type& S) {
-      for(size_type i=0;i<M.rowCount;++i)
-        M.q[i] *= S;
-      return M;
-    };
-    
-    /**
-     * Scalar multiplication operator.
-     * \param M a diagonal matrix.
-     * \param S the scalar to be multiplied with this.
-     * \return the matrix product of this and S.
-     */
-    friend self operator *(const value_type& S,self M) {
-      for(size_type i=0;i<M.rowCount;++i)
-        M.q[i] *= S;
-      return M;
-    };
-#endif
 
 /*******************************************************************************
                          Special Methods
 *******************************************************************************/
 
     /**
-     * Extracts a sub-matrix from this matrix.
-     * \param aRowOffset Number of rows before the start of the sub-matrix rows.
-     * \param aColOffset Number of columns before the start of the sub-matrix columns.
-     * \param aRowCountOut Number of rows of the sub-matrix.
-     * \param aColCountOut Number of columns of the sub-matrix.
-     * \return The sub-matrix contained in this matrix.
-     * \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
-     *//* This should do fine with the generic version.
-    mat_cm<T> getSubMat(unsigned int aRowOffset,unsigned int aColOffset,unsigned int aRowCountOut,unsigned int aColCountOut) const throw(std::range_error) {
-      if((aRowOffset + aRowCountOut > size) || (aColOffset + aColCountOut > size))
-        throw std::range_error("Matrix dimension mismatch.");
-      mat_cm<T> result(aRowCountOut,aColCountOut);
-      for(unsigned int j=0;j<aColCountOut;++j) {
-        unsigned int i=0;
-	for(;((i<aRowCountOut) && (i+aRowOffset < j+aColOffset));++i)
-	  result.q[j*aRowCountOut+i] = 0.0;
-	result.q[j*aRowCountOut+i] = q[i+aRowOffset]; ++i;
-	for(;i<aRowCountOut;++i)
-          result.q[j*aRowCountOut+i] = 0.0;
-      };
-      return result;
-    };*/
-
-    /**
-     * Extracts a diagonal sub-matrix from this matrix.
+     * Extracts a scalar sub-matrix from this matrix.
      * \param aDiagOffset Number of rows/columns before the start of the sub-matrix rows/columns.
      * \param aSizeOut Number of rows/columns of the sub-matrix.
-     * \return The diagonal sub-matrix contained in this matrix.
+     * \return The scalar sub-matrix contained in this matrix.
      * \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
      */
     friend
     self get_block(const self& M,size_type aDiagOffset,size_type aSizeOut) {
       if(aDiagOffset + aSizeOut > M.rowCount)
         throw std::range_error("Matrix dimension mismatch.");
-      self result(aSizeOut,value_type(0),M.get_allocator());
-      for(size_type i=0;i<aSizeOut;++i)
-        result.q[i] = M.q[i+aDiagOffset];
-      return result;
-    };
-
-    /** Sets the sub-block of a matrix to a diagnoal sub-matrix M.
-     * \param M A diagonal matrix to which the sub-block will be set.
-     * \param subM A diagonal sub-matrix that will be written in the sub-part of this matrix.
-     * \param aDiagOffset Number of rows/columns before the start of the sub-matrix rows/columns.
-     * \return This matrix, by reference.
-     * \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
-     */
-    friend
-    self& set_block(self& M,const self& subM,size_type aDiagOffset) {
-      if(aDiagOffset + subM.rowCount > M.rowCount)
-        throw std::range_error("Matrix dimension mismatch.");
-      for(size_type i=0;i<subM.rowCount;++i)
-        M.q[i+aDiagOffset] = subM.q[i];
-      return M;
-    };
-    
-    /**
-     * Appends the matrix 'rhs' to the end of the matrix 'lhs', which are both diagonal matrices.
-     * \param lhs The diagonal matrix to which to append the other.
-     * \param rhs The diagonal matrix to be appended to 'lhs'.
-     */
-    friend void append_block_diag(self& lhs, const self& rhs) {
-      size_type oldCount = lhs.get_col_count();
-      lhs.set_col_count(oldCount + rhs.get_col_count(),true);
-      set_block(lhs,rhs,oldCount);
+      return self(aSizeOut,value_type(M.q));
     };
     
     /**
@@ -612,10 +431,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      * \return the trace of matrix M.
      */
     friend value_type trace(const self& M) {
-      value_type sum = value_type(0);
-      for(size_type i = 0; i < M.q.rowCount; ++i)
-	sum += M.q[i];
-      return sum;
+      return M.rowCount * M.q;
     };
     
     
@@ -624,12 +440,12 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
 *******************************************************************************/
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      A & std::pair<std::string, const std::vector<T>&>("q",q)
-        & std::pair<std::string, unsigned int>("rowCount",rowCount);
+      A & RK_SERIAL_SAVE_WITH_NAME(q)
+        & RK_SERIAL_SAVE_WITH_NAME(rowCount);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      A & std::pair<std::string, std::vector<T>&>("q",q)
-        & std::pair<std::string, unsigned int&>("rowCount",rowCount);
+      A & RK_SERIAL_LOAD_WITH_NAME(q)
+        & RK_SERIAL_LOAD_WITH_NAME(rowCount);
     };
     
     RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
@@ -639,6 +455,45 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
 
 
 
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+struct is_readable_matrix< mat<T,mat_structure::scalar, Alignment, Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
+  BOOST_STATIC_CONSTANT( bool, value = true );
+  typedef is_readable_matrix< mat<T,mat_structure::scalar, Alignment, Allocator> > type;
+};
+
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+struct is_writable_matrix< mat<T,mat_structure::scalar, Alignment, Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
+  BOOST_STATIC_CONSTANT( bool, value = true );
+  typedef is_writable_matrix< mat<T,mat_structure::scalar, Alignment, Allocator> > type;
+};
+
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+struct is_fully_writable_matrix< mat<T,mat_structure::scalar, Alignment, Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
+  BOOST_STATIC_CONSTANT( bool, value = false );
+  typedef is_writable_matrix< mat<T,mat_structure::scalar, Alignment, Allocator> > type;
+};
+
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+struct is_resizable_matrix< mat<T,mat_structure::scalar, Alignment, Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
+  BOOST_STATIC_CONSTANT( bool, value = true );
+  typedef is_resizable_matrix< mat<T,mat_structure::scalar, Alignment, Allocator> > type;
+};
+
+template <typename T, mat_alignment::tag Alignment, typename Allocator>
+struct has_allocator_matrix< mat<T,mat_structure::scalar, Alignment, Allocator> > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
+  BOOST_STATIC_CONSTANT( bool, value = false );
+  typedef has_allocator_matrix< mat<T,mat_structure::scalar, Alignment, Allocator> > type;
+};
 
 
 
@@ -648,17 +503,6 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -49,9 +49,21 @@ set(LINALG_HEADERS
 
 setup_headers("${LINALG_HEADERS}" "${RKLINALGDIR}")
 
-add_executable(test_lin_alg "${SRCROOT}${RKLINALGDIR}/test.cpp")
-setup_custom_target(test_lin_alg "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(test_lin_alg reak_rtti "${BOOST_DATE_TIME_LIB}")
+add_executable(test_vect_alg "${SRCROOT}${RKLINALGDIR}/test_vect_alg.cpp")
+setup_custom_target(test_vect_alg "${SRCROOT}${RKLINALGDIR}")
+target_link_libraries(test_vect_alg reak_rtti)
+
+add_executable(test_mat_alg "${SRCROOT}${RKLINALGDIR}/test_mat_alg.cpp")
+setup_custom_target(test_mat_alg "${SRCROOT}${RKLINALGDIR}")
+target_link_libraries(test_mat_alg reak_rtti)
+
+add_executable(test_mat_num "${SRCROOT}${RKLINALGDIR}/test_mat_num.cpp")
+setup_custom_target(test_mat_num "${SRCROOT}${RKLINALGDIR}")
+target_link_libraries(test_mat_num reak_rtti)
+
+add_executable(test_mat_num_perf "${SRCROOT}${RKLINALGDIR}/test_mat_num_perf.cpp")
+setup_custom_target(test_mat_num_perf "${SRCROOT}${RKLINALGDIR}")
+target_link_libraries(test_mat_num_perf reak_rtti)
 
 add_executable(test_mat_views "${SRCROOT}${RKLINALGDIR}/test_views.cpp")
 setup_custom_target(test_mat_views "${SRCROOT}${RKLINALGDIR}")

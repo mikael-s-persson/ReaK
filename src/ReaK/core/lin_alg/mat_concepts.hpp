@@ -87,6 +87,8 @@ struct ReadableMatrixConcept {
  */
 template <typename Matrix>
 struct is_readable_matrix {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef is_readable_matrix<Matrix> type;
 };
@@ -122,6 +124,8 @@ struct WritableMatrixConcept
  */
 template <typename Matrix>
 struct is_writable_matrix {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef is_writable_matrix<Matrix> type;
 };
@@ -137,6 +141,8 @@ struct is_writable_matrix {
  */
 template <typename Matrix>
 struct is_fully_writable_matrix {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef is_fully_writable_matrix<Matrix> type;
 };
@@ -175,6 +181,8 @@ struct ResizableMatrixConcept {
  */
 template <typename Matrix>
 struct is_resizable_matrix {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef is_resizable_matrix<Matrix> type;
 };
@@ -211,6 +219,8 @@ struct DynAllocMatrixConcept : ResizableMatrixConcept<Matrix> {
  */
 template <typename Matrix>
 struct has_allocator_matrix {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef has_allocator_matrix<Matrix> type;
 };
@@ -226,6 +236,8 @@ struct has_allocator_matrix {
  */
 template <typename Matrix>
 struct is_square_matrix {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef is_square_matrix<Matrix> type;
 };
@@ -238,6 +250,8 @@ struct is_square_matrix {
  */
 template <typename Matrix>
 struct is_symmetric_matrix {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef is_symmetric_matrix<Matrix> type;
 };
@@ -250,6 +264,8 @@ struct is_symmetric_matrix {
  */
 template <typename Matrix>
 struct is_diagonal_matrix {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef is_diagonal_matrix<Matrix> type;
 };

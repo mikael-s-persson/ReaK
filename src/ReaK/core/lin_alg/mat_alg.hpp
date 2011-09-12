@@ -41,10 +41,13 @@
 #define REAK_MAT_ALG_HPP
 
 #include "mat_alg_general.hpp"
+#include "mat_operators.hpp"
+#include "mat_comparisons.hpp"
 #include "mat_alg_rectangular.hpp"
 #include "mat_alg_square.hpp"
 #include "mat_alg_nil.hpp"
 #include "mat_alg_identity.hpp"
+#include "mat_alg_scalar.hpp"
 #include "mat_alg_symmetric.hpp"
 #include "mat_alg_skew_symmetric.hpp"
 #include "mat_alg_diagonal.hpp"
