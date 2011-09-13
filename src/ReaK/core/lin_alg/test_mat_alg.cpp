@@ -207,21 +207,6 @@ using namespace ReaK;
       else
 	RK_ERROR("operator-+(mat<T,square>,mat<T,symmetric>) test did not pass!");
       
-      //****************  Rectangular vs. Scalar  **************************
-      mat<double,mat_structure::scalar> m_ident_scalar(2,1.0);
-      if( ( is_identity_mat(m1234_inv * (m_ident_scalar * m1234),std::numeric_limits<double>::epsilon()) ) &&
-	  ( is_identity_mat(m1234_inv * (m1234 * m_ident_scalar),std::numeric_limits<double>::epsilon()) ) )
-	++passed;
-      else
-	RK_ERROR("operator*(mat<T,scalar>,mat<T,rect>) test did not pass!");
-      if( ( is_identity_mat(0.5 * (m1234 * m1234_inv + m_ident_scalar),std::numeric_limits<double>::epsilon()) ) &&
-	  ( is_identity_mat(0.5 * (m_ident_scalar + m1234 * m1234_inv),std::numeric_limits<double>::epsilon()) ) &&
-	  ( is_identity_mat(m_ident_scalar + (m1234 * m1234_inv - m_ident_scalar),std::numeric_limits<double>::epsilon()) ) &&
-	  ( is_identity_mat(m_ident_scalar + (m_ident_scalar - m1234 * m1234_inv),std::numeric_limits<double>::epsilon()) ) )
-	++passed;
-      else
-	RK_ERROR("operator-+(mat<T,rect>,mat<T,scalar>) test did not pass!");
-      
       //****************  Rectangular vs. Diagonal  **************************
       mat<double,mat_structure::diagonal> m_ident_diag(2,1.0);
       if( ( is_identity_mat(m1234_inv * (m_ident_diag * m1234),std::numeric_limits<double>::epsilon()) ) &&
@@ -236,6 +221,21 @@ using namespace ReaK;
 	++passed;
       else
 	RK_ERROR("operator-+(mat<T,rect>,mat<T,diagonal>) test did not pass!");
+      
+      //****************  Rectangular vs. Scalar  **************************
+      mat<double,mat_structure::scalar> m_ident_scalar(2,1.0);
+      if( ( is_identity_mat(m1234_inv * (m_ident_scalar * m1234),std::numeric_limits<double>::epsilon()) ) &&
+	  ( is_identity_mat(m1234_inv * (m1234 * m_ident_scalar),std::numeric_limits<double>::epsilon()) ) )
+	++passed;
+      else
+	RK_ERROR("operator*(mat<T,scalar>,mat<T,rect>) test did not pass!");
+      if( ( is_identity_mat(0.5 * (m1234 * m1234_inv + m_ident_scalar),std::numeric_limits<double>::epsilon()) ) &&
+	  ( is_identity_mat(0.5 * (m_ident_scalar + m1234 * m1234_inv),std::numeric_limits<double>::epsilon()) ) &&
+	  ( is_identity_mat(m_ident_scalar + (m1234 * m1234_inv - m_ident_scalar),std::numeric_limits<double>::epsilon()) ) &&
+	  ( is_identity_mat(m_ident_scalar + (m_ident_scalar - m1234 * m1234_inv),std::numeric_limits<double>::epsilon()) ) )
+	++passed;
+      else
+	RK_ERROR("operator-+(mat<T,rect>,mat<T,scalar>) test did not pass!");
       
       //****************  Rectangular vs. Identity  **************************
       if( ( is_identity_mat(m1234_inv * (m_ident2 * m1234),std::numeric_limits<double>::epsilon()) ) &&

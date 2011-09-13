@@ -42,10 +42,10 @@ using namespace serialization;
 
 int main() {
   
-#if 0
+#if 1
   shared_pointer<frame_2D<double> >::type base_frame = rtti::rk_dynamic_ptr_cast< frame_2D<double> >(frame_2D<double>::Create());
   shared_pointer<frame_2D<double> >::type joint_frame = rtti::rk_dynamic_ptr_cast< frame_2D<double> >(frame_2D<double>::Create());
-  shared_pointer<frame_2D<double> >::type joint_jacobian = rtti::rk_dynamic_ptr_cast< frame_2D<double> >(frame_2D<double>::Create());
+  shared_pointer<jacobian_gen_2D<double> >::type joint_jacobian = rtti::rk_dynamic_ptr_cast< jacobian_gen_2D<double> >(jacobian_gen_2D<double>::Create());
   shared_pointer<frame_2D<double> >::type end_frame = rtti::rk_dynamic_ptr_cast< frame_2D<double> >(frame_2D<double>::Create());
   shared_pointer<gen_coord<double> >::type joint_coord = rtti::rk_dynamic_ptr_cast< gen_coord<double> >(gen_coord<double>::Create());
 
@@ -54,12 +54,14 @@ int main() {
   //create revolute joint
   shared_pointer<revolute_joint_2D>::type rev_joint(new revolute_joint_2D("joint1",joint_coord,base_frame,joint_frame,joint_jacobian),scoped_deleter());
   //create link of lenght 0.5 meters
-  shared_pointer<rigid_link_2D>::type link1(new rigid_link_2D("link1",joint_frame,end_frame,pose_2D<double>(weak_ptr<pose_2D<double> >(),vect<double,2>(0.5,0.0),rot_mat_2D<double>(0.0))),scoped_deleter());
+  shared_pointer<rigid_link_2D>::type link1(new rigid_link_2D("link1",joint_frame,end_frame,pose_2D<double>(weak_pointer<pose_2D<double> >::type(),vect<double,2>(0.5,0.0),rot_mat_2D<double>(0.0))),scoped_deleter());
 
   jacobian_joint_map_2D joint_map1;
   joint_map1[joint_coord] = joint_jacobian;
   //create end mass of 1.0 kg (point mass only)
-  shared_pointer<inertia_2D>::type mass1(new inertia_2D("mass1",end_frame,1.0,0.0,joint_map1),scoped_deleter());
+  shared_pointer<inertia_2D>::type mass1(new inertia_2D("mass1",
+                                                        shared_pointer<joint_dependent_frame_2D>::type(new joint_dependent_frame_2D(end_frame,joint_map1),scoped_deleter()),
+                                                        1.0,0.0),scoped_deleter());
 
   shared_pointer<mass_matrix_calc>::type mass_mat1(new mass_matrix_calc("mass_mat1"),scoped_deleter());
   

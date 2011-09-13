@@ -55,7 +55,8 @@ int main() {
   base_frame->Acceleration = vect<double,2>(0,9.81); //add gravity
 
   //create motor inertia
-  shared_pointer<inertia_gen>::type motor_inertia(new inertia_gen("motor_inertia",joint_coord,5),scoped_deleter());
+  shared_pointer<inertia_gen>::type motor_inertia(new inertia_gen("motor_inertia",
+								  shared_pointer< joint_dependent_gen_coord >::type(new joint_dependent_gen_coord(joint_coord)),5),scoped_deleter());
   //create friction
   shared_pointer<joint_dry_microslip_gen>::type friction(new joint_dry_microslip_gen("friction",joint_coord,1E-6,2E-6,1,0.9),scoped_deleter());
   //create revolute joint
@@ -65,7 +66,9 @@ int main() {
   //create link of lenght 0.5 meters
   shared_pointer<rigid_link_2D>::type link1(new rigid_link_2D("link1",joint_frame,end_frame,pose_2D<double>(weak_pointer<pose_2D<double> >::type(),vect<double,2>(0.5,0.0),rot_mat_2D<double>(0.0))),scoped_deleter());
   //create end mass of 1.0 kg (point mass only)
-  shared_pointer<inertia_2D>::type mass1(new inertia_2D("mass1",end_frame,1.0,0.0),scoped_deleter());
+  shared_pointer<inertia_2D>::type mass1(new inertia_2D("mass1",
+							shared_pointer< joint_dependent_frame_2D >::type(new joint_dependent_frame_2D(end_frame)),
+							1.0,0.0),scoped_deleter());
 
   kte_map_chain adv_pendulum("adv_pendulum");
 
