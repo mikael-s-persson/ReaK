@@ -160,6 +160,9 @@ velocity_control_2D         0xC2100049   bin: 1100 0010 0001 0000 0000 0000 0100
 velocity_control_3D         0xC210004A   bin: 1100 0010 0001 0000 0000 0000 0100 1010  D-R
 ang_velocity_control_2D     0xC210004B   bin: 1100 0010 0001 0000 0000 0000 0100 1011  D-R
 ang_velocity_control_3D     0xC210004C   bin: 1100 0010 0001 0000 0000 0000 0100 1100  D-R
+manipulator_kinematics_model 0xC210004D  bin: 1100 0010 0001 0000 0000 0000 0100 1101  D-R
+manipulator_dynamics_model  0xC210004E   bin: 1100 0010 0001 0000 0000 0000 0100 1110  D-R
+
 
 
 

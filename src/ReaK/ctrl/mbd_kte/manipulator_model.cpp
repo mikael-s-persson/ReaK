@@ -21,87 +21,67 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mass_matrix_calculator.hpp"
+#include "manipulator_model.hpp"
 
 namespace ReaK {
 
 namespace kte {
 
 
-mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< inertia_gen >::type& aGenInertia) {
-
-  if(aGenInertia)
-    mGenInertias.push_back(aGenInertia);
-
-  return *this;
-};
-
-mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< inertia_2D >::type& a2DInertia) {
-
-  if(a2DInertia)
-    m2DInertias.push_back(a2DInertia);
-
-  return *this;
-};
-
-mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< inertia_3D >::type& a3DInertia) {
-
-  if(a3DInertia)
-    m3DInertias.push_back(a3DInertia);
-
-  return *this;
-};
-
-mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< gen_coord<double> >::type& aCoord) {
-
+  
+manipulator_kinematics_model& manipulator_kinematics_model::operator <<(const shared_pointer< gen_coord<double> >::type& aCoord) {
   if(aCoord)
     mCoords.push_back(aCoord);
-
   return *this;
 };
 
-
-mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< frame_2D<double> >::type& aFrame2D) {
-  
+manipulator_kinematics_model& manipulator_kinematics_model::operator <<(const shared_pointer< frame_2D<double> >::type& aFrame2D) {
   if(aFrame2D)
     mFrames2D.push_back(aFrame2D);
-
   return *this;
 };
 
-mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< frame_3D<double> >::type& aFrame3D) {
-
+manipulator_kinematics_model& manipulator_kinematics_model::operator <<(const shared_pointer< frame_3D<double> >::type& aFrame3D) {
   if(aFrame3D)
     mFrames3D.push_back(aFrame3D);
-  
   return *this;
 };
 
-void mass_matrix_calc::getMassMatrix(mat<double,mat_structure::symmetric>& M) {
-  mat<double,mat_structure::symmetric> Mcm(0);
-  mat<double,mat_structure::rectangular> Tcm(0,0);
-  mat<double,mat_structure::rectangular> Tcm_dot(0,0);
-  get_TMT_TdMT(Tcm,Mcm,Tcm_dot);
-
-  M = transpose(Tcm) * (Mcm * Tcm);
+manipulator_kinematics_model& manipulator_kinematics_model::operator <<(const shared_pointer< joint_dependent_gen_coord >::type& aDependentGenCoord) {
+  if(aDependentGenCoord)
+    mDependentGenCoords.push_back(aDependentGenCoord);
+  return *this;
 };
 
-void mass_matrix_calc::getMassMatrixAndDerivative(mat<double,mat_structure::symmetric>& M, mat<double,mat_structure::square>& M_dot) {
-  mat<double,mat_structure::symmetric> Mcm(0);
-  mat<double,mat_structure::rectangular> Tcm(0,0);
-  mat<double,mat_structure::rectangular> Tcm_dot(0,0);
-  get_TMT_TdMT(Tcm,Mcm,Tcm_dot);
-
-  M = transpose(Tcm) * (Mcm * Tcm);
-  M_dot = transpose(Tcm_dot) * (Mcm * Tcm);
-  M_dot += transpose(M_dot);
+manipulator_kinematics_model& manipulator_kinematics_model::operator <<(const shared_pointer< joint_dependent_frame_2D >::type& aDependent2DFrame) {
+  if(aDependent2DFrame)
+    mDependent2DFrames.push_back(aDependent2DFrame);
+  return *this;
 };
 
-void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm, mat<double,mat_structure::symmetric>& Mcm, mat<double,mat_structure::rectangular>& Tcm_dot) {
-  unsigned int m = 6*m3DInertias.size() + 3*m2DInertias.size() + mGenInertias.size();
+manipulator_kinematics_model& manipulator_kinematics_model::operator <<(const shared_pointer< joint_dependent_frame_3D >::type& aDependent3DFrame) {
+  if(aDependent3DFrame)
+    mDependent3DFrames.push_back(aDependent3DFrame);
+  return *this;
+};
+
+
+void manipulator_kinematics_model::getJacobianMatrix(mat<double,mat_structure::rectangular>& Jac) {
+  getJacobianMatrixAndDerivativeImpl(&Jac,NULL);
+};
+
+void manipulator_kinematics_model::getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, 
+								  mat<double,mat_structure::rectangular>& JacDot) {
+  getJacobianMatrixAndDerivativeImpl(&Jac,&JacDot);
+};
+  
+void manipulator_kinematics_model::getJacobianMatrixAndDerivativeImpl(mat<double,mat_structure::rectangular>* Jac, 
+								      mat<double,mat_structure::rectangular>* JacDot) {
+  unsigned int m = mDependentGenCoords.size() + 3*mDependent2DFrames.size() + 6*mDependent3DFrames.size();
   unsigned int n = mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
-  Mcm = mat<double,mat_structure::symmetric>(m,0.0);
-  Tcm_dot = Tcm = mat<double,mat_structure::nil>(m,n);
+  *Jac    = mat<double,mat_structure::nil>(m,n);
+  if(JacDot)
+    *JacDot = mat<double,mat_structure::nil>(m,n);
 
   unsigned int RowInd = 0;
   
@@ -112,85 +92,63 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
   
   for(unsigned int i=0; i<mCoords.size(); ++i) {
     RowInd = 0;
-    for(unsigned int j=0; j<m3DInertias.size(); ++j) {
-      if(m3DInertias[j]->mUpStreamJoints.find(mCoords[i]) != m3DInertias[j]->mUpStreamJoints.end()) {
+    
+    for(unsigned int j=0; j<mDependentGenCoords.size(); ++j) {
+      if(mDependentGenCoords[j]->mUpStreamJoints.find(mCoords[i]) != mDependentGenCoords[j]->mUpStreamJoints.end()) {
 	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,6,1,RowInd,i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,6,1,RowInd,i);
-	m3DInertias[j]
-	  ->mUpStreamJoints[mCoords[i]]
-	    ->get_jac_relative_to(m3DInertias[j]->mCenterOfMass)
-	      .write_to_matrices(subTcm,subTcm_dot);
-
-//         shared_pointer< jacobian_gen_3D<double> >::type Jac = m3DInertias[j]->mUpStreamJoints[mCoords[i]];
-//         frame_3D<double> f2 = m3DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock());
-// 
-//         rot_mat_3D<double> R(f2.Quat.getRotMat());
-//         vect<double,3> w_tmp = Jac->qd_avel * R;
-//         Tcm(RowInd,i) = w_tmp[0];
-//         Tcm(RowInd+1,i) = w_tmp[1];
-//         Tcm(RowInd+2,i) = w_tmp[2];
-//         vect<double,3> v_tmp = (Jac->qd_avel % f2.Position
-//                                     + Jac->qd_vel) * R;
-//         Tcm(RowInd+3,i) = v_tmp[0];
-//         Tcm(RowInd+4,i) = v_tmp[1];
-//         Tcm(RowInd+5,i) = v_tmp[2];
-//     
-//         w_tmp = Jac->qd_aacc * R
-//                - f2.AngVelocity % w_tmp;
-//         Tcm_dot(RowInd,i) = w_tmp[0];
-//         Tcm_dot(RowInd+1,i) = w_tmp[1];
-//         Tcm_dot(RowInd+2,i) = w_tmp[2];
-//         v_tmp = (Jac->qd_avel % f2.Velocity + Jac->qd_aacc % f2.Position + Jac->qd_acc) * R
-//                - f2.AngVelocity % v_tmp;
-//         Tcm_dot(RowInd+3,i) = v_tmp[0];
-//         Tcm_dot(RowInd+4,i) = v_tmp[1];
-//         Tcm_dot(RowInd+5,i) = v_tmp[2];
-
+	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,1,1,RowInd,i);
+	if(JacDot) {
+	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,1,1,RowInd,i);
+	  mDependentGenCoords[j]
+	    ->mUpStreamJoints[mCoords[i]]
+	      ->write_to_matrices(subJac,subJacDot);
+	} else {
+	  mDependentGenCoords[j]
+	    ->mUpStreamJoints[mCoords[i]]
+	      ->write_to_matrices(subJac);
+	};
       };
-      RowInd += 6;
+      RowInd++;
     };
     
-    for(unsigned int j=0; j<m2DInertias.size(); ++j) {
-      if(m2DInertias[j]->mUpStreamJoints.find(mCoords[i]) != m2DInertias[j]->mUpStreamJoints.end()) {
+    for(unsigned int j=0; j<mDependent2DFrames.size(); ++j) {
+      if(mDependent2DFrames[j]->mUpStreamJoints.find(mCoords[i]) != mDependent2DFrames[j]->mUpStreamJoints.end()) {
 
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,3,1,RowInd,i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,3,1,RowInd,i);
-	m2DInertias[j]
-	  ->mUpStreamJoints[mCoords[i]]
-	    ->get_jac_relative_to(m2DInertias[j]->mCenterOfMass)
-	      .write_to_matrices(subTcm,subTcm_dot);
-	
-//         shared_pointer< jacobian_gen_2D<double> >::type Jac = m2DInertias[j]->mUpStreamJoints[mCoords[i]];
-//         frame_2D<double> f2 = m2DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock());
-//         Tcm(RowInd,i) = Jac->qd_avel;
-// 
-//         vect<double,2> v_tmp = (Jac->qd_avel % f2.Position + Jac->qd_vel) * f2.Rotation;
-//         Tcm(RowInd+1,i) = v_tmp[0];
-//         Tcm(RowInd+2,i) = v_tmp[1];
-//         Tcm_dot(RowInd, i) = Jac->qd_aacc;
-//         v_tmp = (Jac->qd_avel % f2.Velocity + Jac->qd_aacc % f2.Position + Jac->qd_acc) * f2.Rotation
-//                - f2.AngVelocity % v_tmp;
-//         Tcm_dot(RowInd+1,i) = v_tmp[0];
-//         Tcm_dot(RowInd+2,i) = v_tmp[1];
-
+	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,3,1,RowInd,i);
+	if(JacDot) {
+	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,3,1,RowInd,i);
+	  mDependent2DFrames[j]
+	    ->mUpStreamJoints[mCoords[i]]
+	      ->get_jac_relative_to(mDependent2DFrames[j]->mFrame)
+	        .write_to_matrices(subJac,subJacDot);
+	} else {
+	  mDependent2DFrames[j]
+	    ->mUpStreamJoints[mCoords[i]]
+	      ->get_jac_relative_to(mDependent2DFrames[j]->mFrame)
+	        .write_to_matrices(subJac);
+	};
       };
       RowInd += 3;
     };
     
-    for(unsigned int j=0; j<mGenInertias.size(); ++j) {
-      if(mGenInertias[j]->mUpStreamJoints.find(mCoords[i]) != mGenInertias[j]->mUpStreamJoints.end()) {
+    for(unsigned int j=0; j<mDependent3DFrames.size(); ++j) {
+      if(mDependent3DFrames[j]->mUpStreamJoints.find(mCoords[i]) != mDependent3DFrames[j]->mUpStreamJoints.end()) {
 	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,1,1,RowInd,i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,1,1,RowInd,i);
-	mGenInertias[j]
-	  ->mUpStreamJoints[mCoords[i]]
-	    ->write_to_matrices(subTcm,subTcm_dot);
-	
-//         Tcm(RowInd,i) = mGenInertias[j]->mUpStreamJoints[mCoords[i]]->qd_qd;
-//         Tcm_dot(RowInd,i) = mGenInertias[j]->mUpStreamJoints[mCoords[i]]->qd_qdd;
+	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,6,1,RowInd,i);
+	if(JacDot) {
+  	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,6,1,RowInd,i);
+	  mDependent3DFrames[j]
+	    ->mUpStreamJoints[mCoords[i]]
+	      ->get_jac_relative_to(mDependent3DFrames[j]->mFrame)
+	        .write_to_matrices(subJac,subJacDot);
+	} else {
+	  mDependent3DFrames[j]
+	    ->mUpStreamJoints[mCoords[i]]
+	      ->get_jac_relative_to(mDependent3DFrames[j]->mFrame)
+	        .write_to_matrices(subJac);
+	};
       };
-      RowInd++;
+      RowInd += 6;
     };
   };
 
@@ -203,152 +161,62 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
   for(unsigned int i=0; i<mFrames2D.size(); ++i) {
     RowInd = 0;
 
-    for(unsigned int j=0; j<m3DInertias.size(); ++j) {
-      if(m3DInertias[j]->mUpStream2DJoints.find(mFrames2D[i]) != m3DInertias[j]->mUpStream2DJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,6,3,RowInd,3*i+base_i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,6,3,RowInd,3*i+base_i);
-	m3DInertias[j]
-	  ->mUpStream2DJoints[mFrames2D[i]]
-	    ->get_jac_relative_to(m3DInertias[j]->mCenterOfMass)
-	      .write_to_matrices(subTcm,subTcm_dot);
-
-//         shared_pointer< jacobian_2D_3D<double> >::type Jac = m3DInertias[j]->mUpStream2DJoints[mFrames2D[i]];
-//         frame_3D<double> f2 = m3DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock());
-// 
-//         rot_mat_3D<double> R(f2.Quat.getRotMat());
-//         vect<double,3> w_tmp = Jac->vel_avel[0] * R;
-//         Tcm(RowInd,  3*i+base_i) = w_tmp[0];
-//         Tcm(RowInd+1,3*i+base_i) = w_tmp[1];
-//         Tcm(RowInd+2,3*i+base_i) = w_tmp[2];
-//         w_tmp = Jac->vel_aacc[0] * R
-//                - f2.AngVelocity % w_tmp;
-//         Tcm_dot(RowInd,  3*i+base_i) = w_tmp[0];
-//         Tcm_dot(RowInd+1,3*i+base_i) = w_tmp[1];
-//         Tcm_dot(RowInd+2,3*i+base_i) = w_tmp[2];
-// 	
-//         w_tmp = Jac->vel_avel[1] * R;
-//         Tcm(RowInd,  3*i+base_i+1) = w_tmp[0];
-//         Tcm(RowInd+1,3*i+base_i+1) = w_tmp[1];
-//         Tcm(RowInd+2,3*i+base_i+1) = w_tmp[2];
-//         w_tmp = Jac->vel_aacc[1] * R
-//                - f2.AngVelocity % w_tmp;
-//         Tcm_dot(RowInd,  3*i+base_i+1) = w_tmp[0];
-//         Tcm_dot(RowInd+1,3*i+base_i+1) = w_tmp[1];
-//         Tcm_dot(RowInd+2,3*i+base_i+1) = w_tmp[2];
-// 	
-// 	w_tmp = Jac->avel_avel * R;
-//         Tcm(RowInd,  3*i+base_i+2) = w_tmp[0];
-//         Tcm(RowInd+1,3*i+base_i+2) = w_tmp[1];
-//         Tcm(RowInd+2,3*i+base_i+2) = w_tmp[2];
-//         w_tmp = Jac->avel_aacc * R
-//                - f2.AngVelocity % w_tmp;
-//         Tcm_dot(RowInd,  3*i+base_i+2) = w_tmp[0];
-//         Tcm_dot(RowInd+1,3*i+base_i+2) = w_tmp[1];
-//         Tcm_dot(RowInd+2,3*i+base_i+2) = w_tmp[2];
-// 	
-//         vect<double,3> v_tmp = (Jac->vel_avel[0] % f2.Position
-//                                     + Jac->vel_vel[0]) * R;
-//         Tcm(RowInd+3,3*i+base_i) = v_tmp[0];
-//         Tcm(RowInd+4,3*i+base_i) = v_tmp[1];
-//         Tcm(RowInd+5,3*i+base_i) = v_tmp[2];
-//         v_tmp = (Jac->vel_avel[0] % f2.Velocity + Jac->vel_aacc[0] % f2.Position + Jac->vel_acc[0]) * R
-//                - f2.AngVelocity % v_tmp;
-//         Tcm_dot(RowInd+3,3*i+base_i) = v_tmp[0];
-//         Tcm_dot(RowInd+4,3*i+base_i) = v_tmp[1];
-//         Tcm_dot(RowInd+5,3*i+base_i) = v_tmp[2];
-// 
-//         v_tmp = (Jac->vel_avel[1] % f2.Position
-//                                     + Jac->vel_vel[1]) * R;
-//         Tcm(RowInd+3,3*i+base_i+1) = v_tmp[0];
-//         Tcm(RowInd+4,3*i+base_i+1) = v_tmp[1];
-//         Tcm(RowInd+5,3*i+base_i+1) = v_tmp[2];
-//         v_tmp = (Jac->vel_avel[1] % f2.Velocity + Jac->vel_aacc[1] % f2.Position + Jac->vel_acc[1]) * R
-//                - f2.AngVelocity % v_tmp;
-//         Tcm_dot(RowInd+3,3*i+base_i+1) = v_tmp[0];
-//         Tcm_dot(RowInd+4,3*i+base_i+1) = v_tmp[1];
-//         Tcm_dot(RowInd+5,3*i+base_i+1) = v_tmp[2];
-// 	
-//         v_tmp = (Jac->avel_avel % f2.Position
-//                                     + Jac->avel_vel) * R;
-//         Tcm(RowInd+3,3*i+base_i+2) = v_tmp[0];
-//         Tcm(RowInd+4,3*i+base_i+2) = v_tmp[1];
-//         Tcm(RowInd+5,3*i+base_i+2) = v_tmp[2];	
-//         v_tmp = (Jac->avel_avel % f2.Velocity + Jac->avel_aacc % f2.Position + Jac->avel_acc) * R
-//                - f2.AngVelocity % v_tmp;
-//         Tcm_dot(RowInd+3,3*i+base_i+2) = v_tmp[0];
-//         Tcm_dot(RowInd+4,3*i+base_i+2) = v_tmp[1];
-//         Tcm_dot(RowInd+5,3*i+base_i+2) = v_tmp[2];
-
+    for(unsigned int j=0; j<mDependentGenCoords.size(); ++j) {
+      if(mDependentGenCoords[j]->mUpStream2DJoints.find(mFrames2D[i]) != mDependentGenCoords[j]->mUpStream2DJoints.end()) {
+		
+	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,1,3,RowInd,3*i+base_i);
+	if(JacDot) {
+	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,1,3,RowInd,3*i+base_i);
+	  mDependentGenCoords[j]
+	    ->mUpStream2DJoints[mFrames2D[i]]
+	      ->write_to_matrices(subJac,subJacDot);
+	} else {
+	  mDependentGenCoords[j]
+	    ->mUpStream2DJoints[mFrames2D[i]]
+	      ->write_to_matrices(subJac);
+	};
       };
-      RowInd += 6;
+      RowInd++;
     };
 
-    for(unsigned int j=0; j<m2DInertias.size(); ++j) {
-      if(m2DInertias[j]->mUpStream2DJoints.find(mFrames2D[i]) != m2DInertias[j]->mUpStream2DJoints.end()) {
+    for(unsigned int j=0; j<mDependent2DFrames.size(); ++j) {
+      if(mDependent2DFrames[j]->mUpStream2DJoints.find(mFrames2D[i]) != mDependent2DFrames[j]->mUpStream2DJoints.end()) {
 	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,3,3,RowInd,3*i+base_i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,3,3,RowInd,3*i+base_i);
-	m2DInertias[j]
-	  ->mUpStream2DJoints[mFrames2D[i]]
-	    ->get_jac_relative_to(m2DInertias[j]->mCenterOfMass)
-	      .write_to_matrices(subTcm,subTcm_dot);
-	      
-//         shared_pointer< jacobian_2D_2D<double> >::type Jac = m2DInertias[j]->mUpStream2DJoints[mFrames2D[i]];
-//         frame_2D<double> f2 = m2DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock());
-//         Tcm(RowInd,3*i+base_i) = Jac->vel_avel[0];
-// 	Tcm(RowInd,3*i+base_i+1) = Jac->vel_avel[1];
-// 	Tcm(RowInd,3*i+base_i+2) = Jac->avel_avel;
-//         Tcm_dot(RowInd, 3*i+base_i) = Jac->vel_aacc[0];
-//         Tcm_dot(RowInd, 3*i+base_i+1) = Jac->vel_aacc[1];
-//         Tcm_dot(RowInd, 3*i+base_i+2) = Jac->avel_aacc;
-// 
-//         vect<double,2> v_tmp = (Jac->vel_avel[0] % f2.Position + Jac->vel_vel[0]) * f2.Rotation;
-//         Tcm(RowInd+1,3*i+base_i) = v_tmp[0];
-//         Tcm(RowInd+2,3*i+base_i) = v_tmp[1];
-//         v_tmp = (Jac->vel_avel[0] % f2.Velocity + Jac->vel_aacc[0] % f2.Position + Jac->vel_acc[0]) * f2.Rotation
-//                - f2.AngVelocity % v_tmp;
-//         Tcm_dot(RowInd+1,3*i+base_i) = v_tmp[0];
-//         Tcm_dot(RowInd+2,3*i+base_i) = v_tmp[1];
-// 	
-// 	v_tmp = (Jac->vel_avel[1] % f2.Position + Jac->vel_vel[1]) * f2.Rotation;
-//         Tcm(RowInd+1,3*i+base_i+1) = v_tmp[0];
-//         Tcm(RowInd+2,3*i+base_i+1) = v_tmp[1];
-//         v_tmp = (Jac->vel_avel[1] % f2.Velocity + Jac->vel_aacc[1] % f2.Position + Jac->vel_acc[1]) * f2.Rotation
-//                - f2.AngVelocity % v_tmp;
-//         Tcm_dot(RowInd+1,3*i+base_i+1) = v_tmp[0];
-//         Tcm_dot(RowInd+2,3*i+base_i+1) = v_tmp[1];
-// 
-// 	v_tmp = (Jac->avel_avel % f2.Position + Jac->avel_vel) * f2.Rotation;
-//         Tcm(RowInd+1,3*i+base_i+2) = v_tmp[0];
-//         Tcm(RowInd+2,3*i+base_i+2) = v_tmp[1];
-//         v_tmp = (Jac->avel_avel % f2.Velocity + Jac->avel_aacc % f2.Position + Jac->avel_acc) * f2.Rotation
-//                - f2.AngVelocity % v_tmp;
-//         Tcm_dot(RowInd+1,3*i+base_i+2) = v_tmp[0];
-//         Tcm_dot(RowInd+2,3*i+base_i+2) = v_tmp[1];
-	
+	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,3,3,RowInd,3*i+base_i);
+	if(JacDot) {
+  	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,3,3,RowInd,3*i+base_i);
+	  mDependent2DFrames[j]
+	    ->mUpStream2DJoints[mFrames2D[i]]
+	      ->get_jac_relative_to(mDependent2DFrames[j]->mFrame)
+	        .write_to_matrices(subJac,subJacDot);
+	} else {
+	  mDependent2DFrames[j]
+	    ->mUpStream2DJoints[mFrames2D[i]]
+	      ->get_jac_relative_to(mDependent2DFrames[j]->mFrame)
+	        .write_to_matrices(subJac);
+	};
       };
       RowInd += 3;
     };
 
-    for(unsigned int j=0; j<mGenInertias.size(); ++j) {
-      if(mGenInertias[j]->mUpStream2DJoints.find(mFrames2D[i]) != mGenInertias[j]->mUpStream2DJoints.end()) {
-		
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,1,3,RowInd,3*i+base_i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,1,3,RowInd,3*i+base_i);
-	mGenInertias[j]
-	  ->mUpStream2DJoints[mFrames2D[i]]
-	    ->write_to_matrices(subTcm,subTcm_dot);
+    for(unsigned int j=0; j<mDependent3DFrames.size(); ++j) {
+      if(mDependent3DFrames[j]->mUpStream2DJoints.find(mFrames2D[i]) != mDependent3DFrames[j]->mUpStream2DJoints.end()) {
 	
-//         shared_pointer< jacobian_2D_gen<double> >::type Jac = mGenInertias[j]->mUpStream2DJoints[mFrames2D[i]];
-// 	Tcm(RowInd,3*i+base_i) = Jac->vel_qd[0];
-//         Tcm(RowInd,3*i+base_i+1) = Jac->vel_qd[1];
-//         Tcm(RowInd,3*i+base_i+2) = Jac->avel_qd;
-//         Tcm_dot(RowInd,3*i+base_i) = Jac->vel_qdd[0];
-//         Tcm_dot(RowInd,3*i+base_i+1) = Jac->vel_qdd[1];
-//         Tcm_dot(RowInd,3*i+base_i+2) = Jac->avel_qdd;
+	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,6,3,RowInd,3*i+base_i);
+	if(JacDot) {
+	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,6,3,RowInd,3*i+base_i);
+	  mDependent3DFrames[j]
+	    ->mUpStream2DJoints[mFrames2D[i]]
+	      ->get_jac_relative_to(mDependent3DFrames[j]->mFrame)
+	        .write_to_matrices(subJac,subJacDot);
+	} else {
+	  mDependent3DFrames[j]
+	    ->mUpStream2DJoints[mFrames2D[i]]
+	      ->get_jac_relative_to(mDependent3DFrames[j]->mFrame)
+	        .write_to_matrices(subJac);
+	};
       };
-      RowInd++;
+      RowInd += 6;
     };
   };
 
@@ -362,155 +230,417 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
   for(unsigned int i=0; i<mFrames3D.size(); ++i) {
     RowInd = 0; 
 
-    for(unsigned int j=0; j<m3DInertias.size(); ++j) {
-      if(m3DInertias[j]->mUpStream3DJoints.find(mFrames3D[i]) != m3DInertias[j]->mUpStream3DJoints.end()) {
-		
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,6,6,RowInd,6*i+base_i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,6,6,RowInd,6*i+base_i);
-	m3DInertias[j]
-	  ->mUpStream3DJoints[mFrames3D[i]]
-	    ->get_jac_relative_to(m3DInertias[j]->mCenterOfMass)
-	      .write_to_matrices(subTcm,subTcm_dot);
+    for(unsigned int j=0; j<mDependentGenCoords.size(); ++j) {
+      if(mDependentGenCoords[j]->mUpStreamJoints.find(mCoords[i]) != mDependentGenCoords[j]->mUpStreamJoints.end()) {
 	
-//         shared_pointer< jacobian_3D_3D<double> >::type Jac = m3DInertias[j]->mUpStream3DJoints[mFrames3D[i]]; 
-//         frame_3D<double> f2 = m3DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock()); 
-//         
-//         rot_mat_3D<double> R(f2.Quat.getRotMat()); 
-//         for(unsigned int k = 0; k < 3; ++k) {
-// 	  vect<double,3> w_tmp = Jac->vel_avel[k] * R;
-//           Tcm(RowInd,6*i+base_i+k) = w_tmp[0];
-//           Tcm(RowInd+1,6*i+base_i+k) = w_tmp[1]; 
-//           Tcm(RowInd+2,6*i+base_i+k) = w_tmp[2];
-//           w_tmp = Jac->vel_aacc[k] * R
-//                  - f2.AngVelocity % w_tmp;
-//           Tcm_dot(RowInd,6*i+base_i+k) = w_tmp[0];
-//           Tcm_dot(RowInd+1,6*i+base_i+k) = w_tmp[1]; 
-//           Tcm_dot(RowInd+2,6*i+base_i+k) = w_tmp[2];
-// 	
-// 	  vect<double,3> v_tmp = (Jac->vel_avel[k] % f2.Position
-//                                     + Jac->vel_vel[k]) * R;
-//           Tcm(RowInd+3,6*i+base_i+k) = v_tmp[0];
-//           Tcm(RowInd+4,6*i+base_i+k) = v_tmp[1]; 
-//           Tcm(RowInd+5,6*i+base_i+k) = v_tmp[2];
-// 
-//           v_tmp = (Jac->vel_avel[k] % f2.Velocity + Jac->vel_aacc[k] % f2.Position + Jac->vel_acc[k]) * R
-//                  - f2.AngVelocity % v_tmp;
-//           Tcm_dot(RowInd+3,6*i+base_i+k) = v_tmp[0];
-//           Tcm_dot(RowInd+4,6*i+base_i+k) = v_tmp[1]; 
-//           Tcm_dot(RowInd+5,6*i+base_i+k) = v_tmp[2];
-// 	};
-//         for(unsigned int k = 0; k < 3; ++k) {
-// 	  vect<double,3> w_tmp = Jac->avel_avel[k] * R;
-//           Tcm(RowInd,6*i+base_i+3+k) = w_tmp[0];
-//           Tcm(RowInd+1,6*i+base_i+3+k) = w_tmp[1]; 
-//           Tcm(RowInd+2,6*i+base_i+3+k) = w_tmp[2];
-//           w_tmp = Jac->avel_aacc[k] * R
-//                  - f2.AngVelocity % w_tmp;
-//           Tcm_dot(RowInd,6*i+base_i+3+k) = w_tmp[0];
-//           Tcm_dot(RowInd+1,6*i+base_i+3+k) = w_tmp[1]; 
-//           Tcm_dot(RowInd+2,6*i+base_i+3+k) = w_tmp[2];
-// 	
-// 	  vect<double,3> v_tmp = (Jac->avel_avel[k] % f2.Position
-//                                     + Jac->avel_vel[k]) * R;
-//           Tcm(RowInd+3,6*i+base_i+3+k) = v_tmp[0];
-//           Tcm(RowInd+4,6*i+base_i+3+k) = v_tmp[1]; 
-//           Tcm(RowInd+5,6*i+base_i+3+k) = v_tmp[2];
-// 
-//           v_tmp = (Jac->avel_avel[k] % f2.Velocity + Jac->avel_aacc[k] % f2.Position + Jac->avel_acc[k]) * R
-//                  - f2.AngVelocity % v_tmp;
-//           Tcm_dot(RowInd+3,6*i+base_i+3+k) = v_tmp[0];
-//           Tcm_dot(RowInd+4,6*i+base_i+3+k) = v_tmp[1]; 
-//           Tcm_dot(RowInd+5,6*i+base_i+3+k) = v_tmp[2];
-// 	};
-        
+	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,1,6,RowInd,6*i+base_i);
+	if(JacDot) {
+	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,1,6,RowInd,6*i+base_i);
+	  mDependentGenCoords[j]
+	    ->mUpStream3DJoints[mFrames3D[i]]
+	      ->write_to_matrices(subJac,subJacDot);
+	} else {
+	  mDependentGenCoords[j]
+	    ->mUpStream3DJoints[mFrames3D[i]]
+	      ->write_to_matrices(subJac);
+	};
       };
-      RowInd += 6;
+      RowInd++;
     };
 
-    for(unsigned int j=0; j<m2DInertias.size(); ++j) {
-      if(m2DInertias[j]->mUpStream3DJoints.find(mFrames3D[i]) != m2DInertias[j]->mUpStream3DJoints.end()) {
+    for(unsigned int j=0; j<mDependent2DFrames.size(); ++j) {
+      if(mDependent2DFrames[j]->mUpStream3DJoints.find(mFrames3D[i]) != mDependent2DFrames[j]->mUpStream3DJoints.end()) {
 	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,3,6,RowInd,6*i+base_i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,3,6,RowInd,6*i+base_i);
-	m2DInertias[j]
-	  ->mUpStream3DJoints[mFrames3D[i]]
-	    ->get_jac_relative_to(m2DInertias[j]->mCenterOfMass)
-	      .write_to_matrices(subTcm,subTcm_dot);
-
-//         shared_pointer< jacobian_3D_2D<double> >::type Jac = m2DInertias[j]->mUpStream3DJoints[mFrames3D[i]];
-//         frame_2D<double> f2 = m2DInertias[j]->mCenterOfMass->getFrameRelativeTo(Jac->Parent.lock());
-//        
-// 	for(unsigned int k=0; k < 3; ++k) {
-// 	  Tcm(RowInd,6*i+base_i+k) = Jac->vel_avel[k];
-//           Tcm_dot(RowInd, 6*i+base_i+k) = Jac->vel_aacc[k];
-//         
-//           vect<double,2> v_tmp = (Jac->vel_avel[k] % f2.Position + Jac->vel_vel[k]) * f2.Rotation;
-//           Tcm(RowInd+1,6*i+base_i+k) = v_tmp[0];
-//           Tcm(RowInd+2,6*i+base_i+k) = v_tmp[1];
-//           v_tmp = (Jac->vel_avel[k] % f2.Velocity + Jac->vel_aacc[k] % f2.Position + Jac->vel_acc[k]) * f2.Rotation
-//                  - f2.AngVelocity % v_tmp;
-//           Tcm_dot(RowInd+1,6*i+base_i+k) = v_tmp[0];
-//           Tcm_dot(RowInd+2,6*i+base_i+k) = v_tmp[1];
-// 	};
-// 	for(unsigned int k=0; k < 3; ++k) {
-// 	  Tcm(RowInd,6*i+base_i+3+k) = Jac->avel_avel[k];
-//           Tcm_dot(RowInd, 6*i+base_i+3+k) = Jac->avel_aacc[k];
-//         
-//           vect<double,2> v_tmp = (Jac->avel_avel[k] % f2.Position + Jac->avel_vel[k]) * f2.Rotation;
-//           Tcm(RowInd+1,6*i+base_i+3+k) = v_tmp[0];
-//           Tcm(RowInd+2,6*i+base_i+3+k) = v_tmp[1];
-//           v_tmp = (Jac->avel_avel[k] % f2.Velocity + Jac->avel_aacc[k] % f2.Position + Jac->avel_acc[k]) * f2.Rotation
-//                  - f2.AngVelocity % v_tmp;
-//           Tcm_dot(RowInd+1,6*i+base_i+3+k) = v_tmp[0];
-//           Tcm_dot(RowInd+2,6*i+base_i+3+k) = v_tmp[1];
-// 	};
-	
+	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,3,6,RowInd,6*i+base_i);
+	if(JacDot) {
+	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,3,6,RowInd,6*i+base_i);
+	  mDependent2DFrames[j]
+	    ->mUpStream3DJoints[mFrames3D[i]]
+	      ->get_jac_relative_to(mDependent2DFrames[j]->mFrame)
+	        .write_to_matrices(subJac,subJacDot);
+	} else {
+	  mDependent2DFrames[j]
+	    ->mUpStream3DJoints[mFrames3D[i]]
+	      ->get_jac_relative_to(mDependent2DFrames[j]->mFrame)
+	        .write_to_matrices(subJac);
+	};
       };
       RowInd += 3;
     };
 
-    for(unsigned int j=0; j<mGenInertias.size(); ++j) {
-      if(mGenInertias[j]->mUpStreamJoints.find(mCoords[i]) != mGenInertias[j]->mUpStreamJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,1,6,RowInd,6*i+base_i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,1,6,RowInd,6*i+base_i);
-	mGenInertias[j]
-	  ->mUpStream3DJoints[mFrames3D[i]]
-	    ->write_to_matrices(subTcm,subTcm_dot);
-	
-//         shared_pointer< jacobian_3D_gen<double> >::type Jac = mGenInertias[j]->mUpStream3DJoints[mFrames3D[i]];
-// 	
-// 	for(unsigned int k=0; k < 3; ++k) {
-// 	  Tcm(RowInd,6*i+base_i+k) = Jac->vel_qd[k];
-//           Tcm_dot(RowInd,6*i+base_i+k) = Jac->vel_qdd[k];
-// 	};
-// 	for(unsigned int k=0; k < 3; ++k) {
-// 	  Tcm(RowInd,6*i+base_i+3+k) = Jac->avel_qd[k];
-//           Tcm_dot(RowInd,6*i+base_i+3+k) = Jac->avel_qdd[k];
-// 	};
-	
+    for(unsigned int j=0; j<mDependent3DFrames.size(); ++j) {
+      if(mDependent3DFrames[j]->mUpStream3DJoints.find(mFrames3D[i]) != mDependent3DFrames[j]->mUpStream3DJoints.end()) {
+		
+	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,6,6,RowInd,6*i+base_i);
+	if(JacDot) {
+	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,6,6,RowInd,6*i+base_i);
+	  mDependent3DFrames[j]
+	    ->mUpStream3DJoints[mFrames3D[i]]
+	      ->get_jac_relative_to(mDependent3DFrames[j]->mFrame)
+	        .write_to_matrices(subJac,subJacDot);
+	} else {
+	  mDependent3DFrames[j]
+	    ->mUpStream3DJoints[mFrames3D[i]]
+	      ->get_jac_relative_to(mDependent3DFrames[j]->mFrame)
+	        .write_to_matrices(subJac);
+	};
       };
-      RowInd++;
+      RowInd += 6;
     };
   };
 
+};
+
+
+
+
+
+
+
+
+vect_n<double> manipulator_kinematics_model::getJointPositions() const {
+  unsigned int n = mCoords.size() + 4 * mFrames2D.size() + 7 * mFrames3D.size();
+  vect_n<double> result(n);
   
-  RowInd = 0;
-  for(unsigned int j=0; j<m3DInertias.size();++j) {
-    Mcm(RowInd,RowInd) = m3DInertias[j]->mMass; RowInd++;
-    Mcm(RowInd,RowInd) = m3DInertias[j]->mMass; RowInd++;
-    Mcm(RowInd,RowInd) = m3DInertias[j]->mMass; RowInd++;
-    set_block(Mcm,m3DInertias[j]->mInertiaTensor,RowInd); RowInd += 3;
-  };
-  for(unsigned int j=0; j<m2DInertias.size(); ++j) {
-    Mcm(RowInd,RowInd) = m2DInertias[j]->mMass; RowInd++;
-    Mcm(RowInd,RowInd) = m2DInertias[j]->mMass; RowInd++;
-    Mcm(RowInd,RowInd) = m2DInertias[j]->mMomentOfInertia; RowInd++;
-  };
-  for(unsigned int j=0; j<mGenInertias.size(); ++j) {
-    Mcm(RowInd,RowInd) = mGenInertias[j]->mMass; RowInd++;
+  unsigned int j = 0;
+  
+  for(std::vector< shared_pointer< gen_coord<double> >::type >::const_iterator it = mCoords.begin(); 
+      it < mCoords.end(); ++it, ++j)
+    result[j] = (*it)->q;
+
+  for(std::vector< shared_pointer< frame_2D<double> >::type >::const_iterator it = mFrames2D.begin(); 
+      it < mFrames2D.end(); ++it) {
+    result[j] = (*it)->Position[0]; ++j;
+    result[j] = (*it)->Position[1]; ++j;
+    result[j] = (*it)->Rotation[0]; ++j;
+    result[j] = (*it)->Rotation[1]; ++j;
   };
 
+  for(std::vector< shared_pointer< frame_3D<double> >::type >::const_iterator it = mFrames3D.begin(); 
+      it < mFrames3D.end(); ++it) {
+    result[j] = (*it)->Position[0]; ++j;
+    result[j] = (*it)->Position[1]; ++j;
+    result[j] = (*it)->Position[2]; ++j;
+    result[j] = (*it)->Quat[0]; ++j;
+    result[j] = (*it)->Quat[1]; ++j;
+    result[j] = (*it)->Quat[2]; ++j;
+    result[j] = (*it)->Quat[3]; ++j;
+  };
+  
+  return result;
+};
+    
+void manipulator_kinematics_model::setJointPositions(const vect_n<double>& aJointPositions) {
+  unsigned int n = mCoords.size() + 4 * mFrames2D.size() + 7 * mFrames3D.size();
+  if(aJointPositions.size() != n)
+    throw std::range_error("Joint-position vector has incorrect dimensions!");
+  
+  unsigned int j = 0;
+  
+  for(std::vector< shared_pointer< gen_coord<double> >::type >::const_iterator it = mCoords.begin(); 
+      it < mCoords.end(); ++it, ++j)
+    (*it)->q = aJointPositions[j];
+
+  for(std::vector< shared_pointer< frame_2D<double> >::type >::const_iterator it = mFrames2D.begin(); 
+      it < mFrames2D.end(); ++it) {
+    (*it)->Position[0] = aJointPositions[j]; ++j;
+    (*it)->Position[1] = aJointPositions[j]; ++j;
+    (*it)->Rotation = rot_mat_2D<double>(vect<double,2>(aJointPositions[j],aJointPositions[j+1])); j += 2;
+  };
+
+  for(std::vector< shared_pointer< frame_3D<double> >::type >::const_iterator it = mFrames3D.begin(); 
+      it < mFrames3D.end(); ++it) {
+    (*it)->Position[0] = aJointPositions[j]; ++j;
+    (*it)->Position[1] = aJointPositions[j]; ++j;
+    (*it)->Position[2] = aJointPositions[j]; ++j;
+    (*it)->Quat = quaternion<double>(vect<double,4>(aJointPositions[j],
+                                                    aJointPositions[j+1],
+						    aJointPositions[j+2],
+						    aJointPositions[j+3])); j += 4;
+  };
+};
+    
+vect_n<double> manipulator_kinematics_model::getJointVelocities() const {
+  unsigned int n = mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
+  vect_n<double> result(n);
+  
+  unsigned int j = 0;
+  
+  for(std::vector< shared_pointer< gen_coord<double> >::type >::const_iterator it = mCoords.begin(); 
+      it < mCoords.end(); ++it, ++j)
+    result[j] = (*it)->q_dot;
+
+  for(std::vector< shared_pointer< frame_2D<double> >::type >::const_iterator it = mFrames2D.begin(); 
+      it < mFrames2D.end(); ++it) {
+    result[j] = (*it)->Velocity[0]; ++j;
+    result[j] = (*it)->Velocity[1]; ++j;
+    result[j] = (*it)->AngVelocity; ++j;
+  };
+
+  for(std::vector< shared_pointer< frame_3D<double> >::type >::const_iterator it = mFrames3D.begin(); 
+      it < mFrames3D.end(); ++it) {
+    result[j] = (*it)->Velocity[0]; ++j;
+    result[j] = (*it)->Velocity[1]; ++j;
+    result[j] = (*it)->Velocity[2]; ++j;
+    result[j] = (*it)->AngVelocity[0]; ++j;
+    result[j] = (*it)->AngVelocity[1]; ++j;
+    result[j] = (*it)->AngVelocity[2]; ++j;
+  };
+  
+  return result;  
+};
+    
+void manipulator_kinematics_model::setJointVelocities(const vect_n<double>& aJointVelocities) {
+  unsigned int n = mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
+  if(aJointVelocities.size() != n)
+    throw std::range_error("Joint-velocity vector has incorrect dimensions!");
+  
+  unsigned int j = 0;
+  
+  for(std::vector< shared_pointer< gen_coord<double> >::type >::const_iterator it = mCoords.begin(); 
+      it < mCoords.end(); ++it, ++j)
+    (*it)->q_dot = aJointVelocities[j];
+
+  for(std::vector< shared_pointer< frame_2D<double> >::type >::const_iterator it = mFrames2D.begin(); 
+      it < mFrames2D.end(); ++it) {
+    (*it)->Velocity[0] = aJointVelocities[j]; ++j;
+    (*it)->Velocity[1] = aJointVelocities[j]; ++j;
+    (*it)->AngVelocity = aJointVelocities[j]; ++j;
+  };
+
+  for(std::vector< shared_pointer< frame_3D<double> >::type >::const_iterator it = mFrames3D.begin(); 
+      it < mFrames3D.end(); ++it) {
+    (*it)->Velocity[0] = aJointVelocities[j]; ++j;
+    (*it)->Velocity[1] = aJointVelocities[j]; ++j;
+    (*it)->Velocity[2] = aJointVelocities[j]; ++j;
+    (*it)->AngVelocity[0] = aJointVelocities[j]; ++j;
+    (*it)->AngVelocity[1] = aJointVelocities[j]; ++j;
+    (*it)->AngVelocity[2] = aJointVelocities[j]; ++j;
+  };
+};
+    
+vect_n<double> manipulator_kinematics_model::getJointAccelerations() const {
+  unsigned int n = mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
+  vect_n<double> result(n);
+  
+  unsigned int j = 0;
+  
+  for(std::vector< shared_pointer< gen_coord<double> >::type >::const_iterator it = mCoords.begin(); 
+      it < mCoords.end(); ++it, ++j)
+    result[j] = (*it)->q_ddot;
+
+  for(std::vector< shared_pointer< frame_2D<double> >::type >::const_iterator it = mFrames2D.begin(); 
+      it < mFrames2D.end(); ++it) {
+    result[j] = (*it)->Acceleration[0]; ++j;
+    result[j] = (*it)->Acceleration[1]; ++j;
+    result[j] = (*it)->AngAcceleration; ++j;
+  };
+
+  for(std::vector< shared_pointer< frame_3D<double> >::type >::const_iterator it = mFrames3D.begin(); 
+      it < mFrames3D.end(); ++it) {
+    result[j] = (*it)->Acceleration[0]; ++j;
+    result[j] = (*it)->Acceleration[1]; ++j;
+    result[j] = (*it)->Acceleration[2]; ++j;
+    result[j] = (*it)->AngAcceleration[0]; ++j;
+    result[j] = (*it)->AngAcceleration[1]; ++j;
+    result[j] = (*it)->AngAcceleration[2]; ++j;
+  };
+  
+  return result;  
+};
+    
+void manipulator_kinematics_model::setJointAccelerations(const vect_n<double>& aJointAccelerations) {
+  unsigned int n = mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
+  if(aJointAccelerations.size() != n)
+    throw std::range_error("Joint-acceleration vector has incorrect dimensions!");
+  
+  unsigned int j = 0;
+  
+  for(std::vector< shared_pointer< gen_coord<double> >::type >::const_iterator it = mCoords.begin(); 
+      it < mCoords.end(); ++it, ++j)
+    (*it)->q_ddot = aJointAccelerations[j];
+
+  for(std::vector< shared_pointer< frame_2D<double> >::type >::const_iterator it = mFrames2D.begin(); 
+      it < mFrames2D.end(); ++it) {
+    (*it)->Acceleration[0] = aJointAccelerations[j]; ++j;
+    (*it)->Acceleration[1] = aJointAccelerations[j]; ++j;
+    (*it)->AngAcceleration = aJointAccelerations[j]; ++j;
+  };
+
+  for(std::vector< shared_pointer< frame_3D<double> >::type >::const_iterator it = mFrames3D.begin(); 
+      it < mFrames3D.end(); ++it) {
+    (*it)->Acceleration[0] = aJointAccelerations[j]; ++j;
+    (*it)->Acceleration[1] = aJointAccelerations[j]; ++j;
+    (*it)->Acceleration[2] = aJointAccelerations[j]; ++j;
+    (*it)->AngAcceleration[0] = aJointAccelerations[j]; ++j;
+    (*it)->AngAcceleration[1] = aJointAccelerations[j]; ++j;
+    (*it)->AngAcceleration[2] = aJointAccelerations[j]; ++j;
+  };
+  
+};
+    
+vect_n<double> manipulator_kinematics_model::getDependentPositions() const {
+  unsigned int m = mDependentGenCoords.size() + 4*mDependent2DFrames.size() + 7*mDependent3DFrames.size();
+  vect_n<double> result(m);
+  
+  unsigned int j = 0;
+  
+  for(std::vector< shared_pointer< joint_dependent_gen_coord >::type >::const_iterator it = mDependentGenCoords.begin(); 
+      it < mDependentGenCoords.end(); ++it, ++j)
+    result[j] = (*it)->mFrame->q;
+
+  for(std::vector< shared_pointer< joint_dependent_frame_2D >::type >::const_iterator it = mDependent2DFrames.begin(); 
+      it < mDependent2DFrames.end(); ++it) {
+    result[j] = (*it)->mFrame->Position[0]; ++j;
+    result[j] = (*it)->mFrame->Position[1]; ++j;
+    result[j] = (*it)->mFrame->Rotation[0]; ++j;
+    result[j] = (*it)->mFrame->Rotation[1]; ++j;
+  };
+
+  for(std::vector< shared_pointer< joint_dependent_frame_3D >::type >::const_iterator it = mDependent3DFrames.begin(); 
+      it < mDependent3DFrames.end(); ++it) {
+    result[j] = (*it)->mFrame->Position[0]; ++j;
+    result[j] = (*it)->mFrame->Position[1]; ++j;
+    result[j] = (*it)->mFrame->Position[2]; ++j;
+    result[j] = (*it)->mFrame->Quat[0]; ++j;
+    result[j] = (*it)->mFrame->Quat[1]; ++j;
+    result[j] = (*it)->mFrame->Quat[2]; ++j;
+    result[j] = (*it)->mFrame->Quat[3]; ++j;
+  };
+  
+  return result;
+};
+    
+vect_n<double> manipulator_kinematics_model::getDependentVelocities() const {
+  unsigned int m = mDependentGenCoords.size() + 3*mDependent2DFrames.size() + 6*mDependent3DFrames.size();
+  vect_n<double> result(m);
+  
+  unsigned int j = 0;
+  
+  for(std::vector< shared_pointer< joint_dependent_gen_coord >::type >::const_iterator it = mDependentGenCoords.begin(); 
+      it < mDependentGenCoords.end(); ++it, ++j)
+    result[j] = (*it)->mFrame->q_dot;
+
+  for(std::vector< shared_pointer< joint_dependent_frame_2D >::type >::const_iterator it = mDependent2DFrames.begin(); 
+      it < mDependent2DFrames.end(); ++it) {
+    result[j] = (*it)->mFrame->Velocity[0]; ++j;
+    result[j] = (*it)->mFrame->Velocity[1]; ++j;
+    result[j] = (*it)->mFrame->AngVelocity; ++j;
+  };
+
+  for(std::vector< shared_pointer< joint_dependent_frame_3D >::type >::const_iterator it = mDependent3DFrames.begin(); 
+      it < mDependent3DFrames.end(); ++it) {
+    result[j] = (*it)->mFrame->Velocity[0]; ++j;
+    result[j] = (*it)->mFrame->Velocity[1]; ++j;
+    result[j] = (*it)->mFrame->Velocity[2]; ++j;
+    result[j] = (*it)->mFrame->AngVelocity[0]; ++j;
+    result[j] = (*it)->mFrame->AngVelocity[1]; ++j;
+    result[j] = (*it)->mFrame->AngVelocity[2]; ++j;
+  };
+  
+  return result;  
+};
+    
+vect_n<double> manipulator_kinematics_model::getDependentAccelerations() const {
+  unsigned int m = mDependentGenCoords.size() + 3*mDependent2DFrames.size() + 6*mDependent3DFrames.size();
+  vect_n<double> result(m);
+  
+  unsigned int j = 0;
+  
+  for(std::vector< shared_pointer< joint_dependent_gen_coord >::type >::const_iterator it = mDependentGenCoords.begin(); 
+      it < mDependentGenCoords.end(); ++it, ++j)
+    result[j] = (*it)->mFrame->q_ddot;
+
+  for(std::vector< shared_pointer< joint_dependent_frame_2D >::type >::const_iterator it = mDependent2DFrames.begin(); 
+      it < mDependent2DFrames.end(); ++it) {
+    result[j] = (*it)->mFrame->Acceleration[0]; ++j;
+    result[j] = (*it)->mFrame->Acceleration[1]; ++j;
+    result[j] = (*it)->mFrame->AngAcceleration; ++j;
+  };
+
+  for(std::vector< shared_pointer< joint_dependent_frame_3D >::type >::const_iterator it = mDependent3DFrames.begin(); 
+      it < mDependent3DFrames.end(); ++it) {
+    result[j] = (*it)->mFrame->Acceleration[0]; ++j;
+    result[j] = (*it)->mFrame->Acceleration[1]; ++j;
+    result[j] = (*it)->mFrame->Acceleration[2]; ++j;
+    result[j] = (*it)->mFrame->AngAcceleration[0]; ++j;
+    result[j] = (*it)->mFrame->AngAcceleration[1]; ++j;
+    result[j] = (*it)->mFrame->AngAcceleration[2]; ++j;
+  };
+  
+  return result;  
+};
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+manipulator_kinematics_model& manipulator_dynamics_model::operator <<(const shared_pointer< gen_coord<double> >::type& aCoord) {
+  if(aCoord) {
+    mMassCalc << aCoord;
+    manipulator_kinematics_model::operator<<(aCoord);
+  };
+  return *this;
+};
+
+manipulator_kinematics_model& manipulator_dynamics_model::operator <<(const shared_pointer< frame_2D<double> >::type& aFrame2D) {
+  if(aFrame2D) {
+    mMassCalc << aFrame2D;
+    manipulator_kinematics_model::operator<<(aFrame2D);
+  };
+  return *this;
+};
+
+manipulator_kinematics_model& manipulator_dynamics_model::operator <<(const shared_pointer< frame_3D<double> >::type& aFrame3D) {
+  if(aFrame3D) {
+    mMassCalc << aFrame3D;
+    manipulator_kinematics_model::operator<<(aFrame3D);
+  };
+  return *this;
+};
+
+manipulator_dynamics_model& manipulator_dynamics_model::operator <<(const shared_pointer< inertia_gen >::type& aInertiaGen) {
+  if(aInertiaGen) {
+    mMassCalc << aInertiaGen;
+    *this << aInertiaGen->CenterOfMass();
+  };
+  return *this;
+};
+
+manipulator_dynamics_model& manipulator_dynamics_model::operator <<(const shared_pointer< inertia_2D >::type& aInertia2D) {
+  if(aInertia2D) {
+    mMassCalc << aInertia2D;
+    *this << aInertia2D->CenterOfMass();
+  };
+  return *this;
+};
+
+manipulator_dynamics_model& manipulator_dynamics_model::operator <<(const shared_pointer< inertia_3D >::type& aInertia3D) {
+  if(aInertia3D) {
+    mMassCalc << aInertia3D;
+    *this << aInertia3D->CenterOfMass();
+  };
+  return *this;
+};
+
+void manipulator_dynamics_model::getMassMatrix(mat<double,mat_structure::symmetric>& M) {
+  mMassCalc.getMassMatrix(M);
+};
+
+void manipulator_dynamics_model::getMassMatrixAndDerivative(mat<double,mat_structure::symmetric>& M, mat<double,mat_structure::square>& M_dot) {
+  mMassCalc.getMassMatrixAndDerivative(M,M_dot);
+};
+
+void manipulator_dynamics_model::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm, mat<double,mat_structure::symmetric>& Mcm, mat<double,mat_structure::rectangular>& Tcm_dot) {
+  mMassCalc.get_TMT_TdMT(Tcm,Mcm,Tcm_dot);
 };
 
 

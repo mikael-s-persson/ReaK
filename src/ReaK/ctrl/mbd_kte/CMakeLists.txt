@@ -21,7 +21,7 @@ set(MBDKTE_SOURCES
   "${SRCROOT}${RKMBDKTEDIR}/virtual_kte_interface.cpp"
   "${SRCROOT}${RKMBDKTEDIR}/vmc_revolute_joint.cpp"
   "${SRCROOT}${RKMBDKTEDIR}/free_joints.cpp"
-#  "${SRCROOT}${RKMBDKTEDIR}/manipulator_model.cpp"
+  "${SRCROOT}${RKMBDKTEDIR}/manipulator_model.cpp"
 )
 
 
@@ -56,7 +56,7 @@ set(MBDKTE_HEADERS
   "${RKMBDKTEDIR}/state_measure.hpp"
   "${RKMBDKTEDIR}/state_controls.hpp"
   "${RKMBDKTEDIR}/free_joints.hpp"
-#  "${RKMBDKTEDIR}/manipulator_model.hpp"
+  "${RKMBDKTEDIR}/manipulator_model.hpp"
 )
 
 add_library(reak_mbd_kte STATIC ${MBDKTE_SOURCES})
