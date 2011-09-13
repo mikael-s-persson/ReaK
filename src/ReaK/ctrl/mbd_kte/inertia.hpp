@@ -52,14 +52,8 @@ namespace kte {
  */
 class inertia_gen : public kte_map {
   private:
-    shared_pointer< gen_coord<double> >::type mCenterOfMass; ///< Holds the center-of-mass generalized coordinate for the inertial element.
+    shared_pointer< joint_dependent_gen_coord >::type mCenterOfMass; ///< Holds the center-of-mass generalized coordinate for the inertial element.
     double mMass; ///< Holds the mass of the inertial element (in kg or kgm2).
-
-    jacobian_joint_map_gen mUpStreamJoints; ///< Holds the jacobian mappings of up-stream joints.
-    jacobian_joint2D_map_gen mUpStream2DJoints; ///< Holds the jacobian mappings of up-stream joints.
-    jacobian_joint3D_map_gen mUpStream3DJoints; ///< Holds the jacobian mappings of up-stream joints.
-
-    friend class mass_matrix_calc;
 
   public:
 
@@ -67,6 +61,11 @@ class inertia_gen : public kte_map {
     double& Mass() { return mMass; };
     /** Get read-only access to mMass. */
     double Mass() const { return mMass; };
+    
+    /** Get read-write access to mCenterOfMass. */
+    shared_pointer< joint_dependent_gen_coord >::type& CenterOfMass() { return mCenterOfMass; };
+    /** Get read-only access to mCenterOfMass. */
+    shared_pointer< joint_dependent_gen_coord >::type CenterOfMass() const { return mCenterOfMass; };
 
     /**
      * Default constructor.
@@ -83,17 +82,11 @@ class inertia_gen : public kte_map {
      * \param aUpStream3DJoints the jacobian mappings of up-stream joints.
      */
     inertia_gen(const std::string& aName,
-		const shared_pointer< ReaK::gen_coord<double> >::type& aCenterOfMass,
-		double aMass,
-                const jacobian_joint_map_gen& aUpStreamJoints = jacobian_joint_map_gen(),
-                const jacobian_joint2D_map_gen& aUpStream2DJoints = jacobian_joint2D_map_gen(),
-                const jacobian_joint3D_map_gen& aUpStream3DJoints = jacobian_joint3D_map_gen()) :
+		const shared_pointer< joint_dependent_gen_coord >::type& aCenterOfMass,
+		double aMass) :
 		kte_map(aName),
 		mCenterOfMass(aCenterOfMass),
-		mMass(aMass),
-		mUpStreamJoints(aUpStreamJoints),
-		mUpStream2DJoints(aUpStream2DJoints),
-		mUpStream3DJoints(aUpStream3DJoints) { };
+		mMass(aMass) { };
 
     /**
      * Default destructor.
@@ -109,19 +102,13 @@ class inertia_gen : public kte_map {
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mCenterOfMass)
-	& RK_SERIAL_SAVE_WITH_NAME(mMass)
-        & RK_SERIAL_SAVE_WITH_NAME(mUpStreamJoints)
-        & RK_SERIAL_SAVE_WITH_NAME(mUpStream2DJoints)
-        & RK_SERIAL_SAVE_WITH_NAME(mUpStream3DJoints);
+	& RK_SERIAL_SAVE_WITH_NAME(mMass);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mCenterOfMass)
-	& RK_SERIAL_LOAD_WITH_NAME(mMass)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStreamJoints)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStream2DJoints)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStream3DJoints);
+	& RK_SERIAL_LOAD_WITH_NAME(mMass);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(inertia_gen,0xC210000A,1,"inertia_gen",kte_map)
@@ -134,15 +121,9 @@ class inertia_gen : public kte_map {
  */
 class inertia_2D : public kte_map {
   private:
-    shared_pointer< frame_2D<double> >::type mCenterOfMass; ///< Holds the center-of-mass 2D frame for the inertial element.
+    shared_pointer< joint_dependent_frame_2D >::type mCenterOfMass; ///< Holds the center-of-mass 2D frame for the inertial element.
     double mMass; ///< Holds the mass of the inertial element (in kg).
     double mMomentOfInertia; ///< Holds the moment of inertia of the inertial element (in kgm2).
-
-    jacobian_joint_map_2D mUpStreamJoints; ///< Holds the jacobian mappings of up-stream joints.
-    jacobian_joint2D_map_2D mUpStream2DJoints; ///< Holds the jacobian mappings of up-stream joints.
-    jacobian_joint3D_map_2D mUpStream3DJoints; ///< Holds the jacobian mappings of up-stream joints.
-
-    friend class mass_matrix_calc;
 
   public:
 
@@ -155,6 +136,11 @@ class inertia_2D : public kte_map {
     double& MomentOfInertia() { return mMomentOfInertia; };
     /** Get read-only access to mMomentOfInertia. */
     double MomentOfInertia() const { return mMomentOfInertia; };
+    
+    /** Get read-write access to mCenterOfMass. */
+    shared_pointer< joint_dependent_frame_2D >::type& CenterOfMass() { return mCenterOfMass; };
+    /** Get read-only access to mCenterOfMass. */
+    shared_pointer< joint_dependent_frame_2D >::type CenterOfMass() const { return mCenterOfMass; };
 
     /**
      * Default constructor.
@@ -172,19 +158,13 @@ class inertia_2D : public kte_map {
      * \param aUpStream3DJoints the jacobian mappings of up-stream joints.
      */
     inertia_2D(const std::string& aName,
-	       const shared_pointer< frame_2D<double> >::type& aCenterOfMass,
+	       const shared_pointer< joint_dependent_frame_2D >::type& aCenterOfMass,
 	       double aMass,
-	       double aMomentOfInertia,
-               const jacobian_joint_map_2D& aUpStreamJoints = jacobian_joint_map_2D(),
-               const jacobian_joint2D_map_2D& aUpStream2DJoints = jacobian_joint2D_map_2D(),
-               const jacobian_joint3D_map_2D& aUpStream3DJoints = jacobian_joint3D_map_2D()) :
+	       double aMomentOfInertia) :
 	       kte_map(aName),
 	       mCenterOfMass(aCenterOfMass),
 	       mMass(aMass),
-	       mMomentOfInertia(aMomentOfInertia),
-	       mUpStreamJoints(aUpStreamJoints),
-	       mUpStream2DJoints(aUpStream2DJoints),
-	       mUpStream3DJoints(aUpStream3DJoints) { };
+	       mMomentOfInertia(aMomentOfInertia) { };
 
     /**
      * Default destructor.
@@ -201,20 +181,14 @@ class inertia_2D : public kte_map {
       kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mCenterOfMass)
         & RK_SERIAL_SAVE_WITH_NAME(mMass)
-	& RK_SERIAL_SAVE_WITH_NAME(mMomentOfInertia)
-	& RK_SERIAL_SAVE_WITH_NAME(mUpStreamJoints)
-        & RK_SERIAL_SAVE_WITH_NAME(mUpStream2DJoints)
-        & RK_SERIAL_SAVE_WITH_NAME(mUpStream3DJoints);
+	& RK_SERIAL_SAVE_WITH_NAME(mMomentOfInertia);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mCenterOfMass)
         & RK_SERIAL_LOAD_WITH_NAME(mMass)
-	& RK_SERIAL_LOAD_WITH_NAME(mMomentOfInertia)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStreamJoints)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStream2DJoints)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStream3DJoints);
+	& RK_SERIAL_LOAD_WITH_NAME(mMomentOfInertia);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(inertia_2D,0xC210000B,1,"inertia_2D",kte_map)
@@ -227,15 +201,9 @@ class inertia_2D : public kte_map {
  */
 class inertia_3D : public kte_map {
   private:
-    shared_pointer< frame_3D<double> >::type mCenterOfMass; ///< Holds the center-of-mass 3D frame for the inertial element.
+    shared_pointer< joint_dependent_frame_3D >::type mCenterOfMass; ///< Holds the center-of-mass 3D frame for the inertial element.
     double mMass; ///< Holds the mass of the inertial element (in kg).
     mat<double,mat_structure::symmetric> mInertiaTensor; ///< Holds the inertia tensor of the inertial element (in kgm2).
-
-    jacobian_joint_map_3D mUpStreamJoints; ///< Holds the jacobian mappings of up-stream joints.
-    jacobian_joint2D_map_3D mUpStream2DJoints; ///< Holds the jacobian mappings of up-stream joints.
-    jacobian_joint3D_map_3D mUpStream3DJoints; ///< Holds the jacobian mappings of up-stream joints.
-
-    friend class mass_matrix_calc;
 
   public:
 
@@ -248,6 +216,11 @@ class inertia_3D : public kte_map {
     mat<double,mat_structure::symmetric>& InertiaTensor() { return mInertiaTensor; };
     /** Get read-only access to mInertiaTensor. */
     const mat<double,mat_structure::symmetric>& InertiaTensor() const { return mInertiaTensor; };
+    
+    /** Get read-write access to mCenterOfMass. */
+    shared_pointer< joint_dependent_frame_3D >::type& CenterOfMass() { return mCenterOfMass; };
+    /** Get read-only access to mCenterOfMass. */
+    shared_pointer< joint_dependent_frame_3D >::type CenterOfMass() const { return mCenterOfMass; };
 
     /**
      * Default constructor.
@@ -263,19 +236,13 @@ class inertia_3D : public kte_map {
      * \param aUpStreamJoints the jacobian mappings of up-stream joints.
      */
     inertia_3D(const std::string& aName,
-	       const shared_pointer< frame_3D<double> >::type& aCenterOfMass,
+	       const shared_pointer< joint_dependent_frame_3D >::type& aCenterOfMass,
 	       double aMass,
-	       const mat<double,mat_structure::symmetric>& aInertiaTensor,
-               const jacobian_joint_map_3D& aUpStreamJoints = jacobian_joint_map_3D(),
-               const jacobian_joint2D_map_3D& aUpStream2DJoints = jacobian_joint2D_map_3D(),
-               const jacobian_joint3D_map_3D& aUpStream3DJoints = jacobian_joint3D_map_3D()) :
+	       const mat<double,mat_structure::symmetric>& aInertiaTensor) :
                kte_map(aName),
 	       mCenterOfMass(aCenterOfMass),
 	       mMass(aMass),
-	       mInertiaTensor(aInertiaTensor),
-	       mUpStreamJoints(aUpStreamJoints),
-	       mUpStream2DJoints(aUpStream2DJoints),
-	       mUpStream3DJoints(aUpStream3DJoints) { };
+	       mInertiaTensor(aInertiaTensor) { };
 
     /**
      * Default destructor.
@@ -292,20 +259,14 @@ class inertia_3D : public kte_map {
       kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mCenterOfMass)
         & RK_SERIAL_SAVE_WITH_NAME(mMass)
-        & RK_SERIAL_SAVE_WITH_NAME(mInertiaTensor)
-        & RK_SERIAL_SAVE_WITH_NAME(mUpStreamJoints)
-        & RK_SERIAL_SAVE_WITH_NAME(mUpStream2DJoints)
-        & RK_SERIAL_SAVE_WITH_NAME(mUpStream3DJoints);
+        & RK_SERIAL_SAVE_WITH_NAME(mInertiaTensor);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mCenterOfMass)
         & RK_SERIAL_LOAD_WITH_NAME(mMass)
-        & RK_SERIAL_LOAD_WITH_NAME(mInertiaTensor)
-        & RK_SERIAL_LOAD_WITH_NAME(mUpStreamJoints)
-        & RK_SERIAL_LOAD_WITH_NAME(mUpStream2DJoints)
-        & RK_SERIAL_LOAD_WITH_NAME(mUpStream3DJoints);
+        & RK_SERIAL_LOAD_WITH_NAME(mInertiaTensor);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(inertia_3D,0xC210000C,1,"inertia_3D",kte_map)

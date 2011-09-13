@@ -56,17 +56,17 @@ int main() {
 					    airship3D_output_frame,
 					    airship3D_joint_jac), scoped_deleter());
     
-  kte::jacobian_joint3D_map_3D airship3D_jacmap;
-  airship3D_jacmap[airship3D_frame] = airship3D_joint_jac;
+  shared_pointer< kte::joint_dependent_frame_3D >::type
+    airship3D_dep_frame( new kte::joint_dependent_frame_3D(airship3D_output_frame),
+                         scoped_deleter());
+  airship3D_dep_frame->add_joint(airship3D_frame,airship3D_joint_jac);
   
   shared_pointer< kte::inertia_3D >::type
     airship3D_inertia( new kte::inertia_3D("airship3D_inertia",
-                                           airship3D_output_frame,
+                                           airship3D_dep_frame,
 					   1.0,
-					   mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
-					   kte::jacobian_joint_map_3D(),
-					   kte::jacobian_joint2D_map_3D(),
-					   airship3D_jacmap), scoped_deleter());
+					   mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
+		       scoped_deleter());
   
   shared_pointer< kte::mass_matrix_calc >::type
     airship3D_mass_calc( new kte::mass_matrix_calc("airship3D_mass_calc"), scoped_deleter());

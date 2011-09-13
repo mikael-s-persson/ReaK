@@ -91,12 +91,14 @@ int main() {
                                                        scoped_deleter());
                                               
   //create motor inertia
-  jacobian_joint_map_gen track_joint_inertia_jacmap;
-  track_joint_inertia_jacmap[track_joint_coord] = shared_pointer< jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), scoped_deleter());
+  shared_pointer< joint_dependent_gen_coord >::type track_joint_dep_coord(new joint_dependent_gen_coord(track_joint_coord), 
+									  scoped_deleter() );
+  track_joint_dep_coord->add_joint(track_joint_coord, 
+				   shared_pointer< jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+										    scoped_deleter()));
   shared_pointer<inertia_gen>::type track_joint_inertia(new inertia_gen("track_joint_inertia",
-                                                                        track_joint_coord,
-                                                                        1.0,
-                                                                        track_joint_inertia_jacmap), 
+                                                                        track_joint_dep_coord,
+                                                                        1.0), 
                                                         scoped_deleter());
   
   //create force actuator
@@ -115,13 +117,13 @@ int main() {
                                              scoped_deleter());
   
   //create arm-base inertia of 
-  jacobian_joint_map_3D link_0_inertia_jacmap;
-  link_0_inertia_jacmap[track_joint_coord] = track_joint_jacobian;
+  shared_pointer< joint_dependent_frame_3D >::type link_0_dep_frame(new joint_dependent_frame_3D(arm_joint_1_base),
+								    scoped_deleter());
+  link_0_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
   shared_pointer<inertia_3D>::type link_0_inertia(new inertia_3D("link_0_inertia",
-                                                                 arm_joint_1_base,
+                                                                 link_0_dep_frame,
                                                                  1.0,
-                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0),
-                                                                 link_0_inertia_jacmap),
+                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                  scoped_deleter());
   
   //create revolute joint
@@ -134,12 +136,14 @@ int main() {
                                                       scoped_deleter());
                                               
   //create motor inertia
-  jacobian_joint_map_gen arm_joint_1_inertia_jacmap;
-  arm_joint_1_inertia_jacmap[arm_joint_1_coord] = shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), scoped_deleter());
+  shared_pointer< joint_dependent_gen_coord >::type arm_joint_1_dep_coord(new joint_dependent_gen_coord(arm_joint_1_coord),
+									  scoped_deleter());
+  arm_joint_1_dep_coord->add_joint(arm_joint_1_coord,
+                                   shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+										   scoped_deleter()));
   shared_pointer<inertia_gen>::type arm_joint_1_inertia(new inertia_gen("arm_joint_1_inertia",
-                                                                        arm_joint_1_coord,
-                                                                        1.0,
-                                                                        arm_joint_1_inertia_jacmap), //~71 kg m^2
+                                                                        arm_joint_1_dep_coord,
+                                                                        1.0), //~71 kg m^2
                                                         scoped_deleter());
   
   //create force actuator
@@ -158,14 +162,14 @@ int main() {
                                              scoped_deleter());
   
   //create link1 inertia 
-  jacobian_joint_map_3D link_1_inertia_jacmap;
-  link_1_inertia_jacmap[track_joint_coord] = track_joint_jacobian;
-  link_1_inertia_jacmap[arm_joint_1_coord] = arm_joint_1_jacobian;
+  shared_pointer< joint_dependent_frame_3D >::type link_1_dep_frame(new joint_dependent_frame_3D(arm_joint_2_base),
+								    scoped_deleter());
+  link_1_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
+  link_1_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
   shared_pointer<inertia_3D>::type link_1_inertia(new inertia_3D("link_1_inertia",
-                                                                 arm_joint_2_base,
+                                                                 link_1_dep_frame,
                                                                  1.0,
-                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0),
-                                                                 link_1_inertia_jacmap),
+                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
 
   //create revolute joint
@@ -178,12 +182,14 @@ int main() {
                                                       scoped_deleter());
     
   //create motor inertia
-  jacobian_joint_map_gen arm_joint_2_inertia_jacmap;
-  arm_joint_2_inertia_jacmap[arm_joint_2_coord] = shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), scoped_deleter());
+  shared_pointer< joint_dependent_gen_coord >::type arm_joint_2_dep_coord(new joint_dependent_gen_coord(arm_joint_2_coord),
+									  scoped_deleter());
+  arm_joint_2_dep_coord->add_joint(arm_joint_2_coord,
+                                   shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+										   scoped_deleter()));
   shared_pointer<inertia_gen>::type arm_joint_2_inertia(new inertia_gen("arm_joint_2_inertia",
-                                                                        arm_joint_2_coord,
-                                                                        1.0,
-                                                                        arm_joint_2_inertia_jacmap),
+                                                                        arm_joint_2_dep_coord,
+                                                                        1.0),
                                                         scoped_deleter());
   
   //create force actuator
@@ -202,15 +208,15 @@ int main() {
                                               scoped_deleter());
   
   //create inertia
-  jacobian_joint_map_3D link_2_inertia_jacmap;
-  link_2_inertia_jacmap[track_joint_coord] = track_joint_jacobian;
-  link_2_inertia_jacmap[arm_joint_1_coord] = arm_joint_1_jacobian;
-  link_2_inertia_jacmap[arm_joint_2_coord] = arm_joint_2_jacobian;
+  shared_pointer< joint_dependent_frame_3D >::type link_2_dep_frame(new joint_dependent_frame_3D(arm_joint_3_base),
+								    scoped_deleter());
+  link_2_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
+  link_2_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
+  link_2_dep_frame->add_joint(arm_joint_2_coord,arm_joint_2_jacobian);
   shared_pointer<inertia_3D>::type link_2_inertia(new inertia_3D("link_2_inertia",
-                                                                 arm_joint_3_base,
+                                                                 link_2_dep_frame,
                                                                  1.0,
-                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0),
-                                                                 link_2_inertia_jacmap),
+                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
 
   //create revolute joint
@@ -223,12 +229,14 @@ int main() {
                                                       scoped_deleter());
   
   //create motor inertia
-  jacobian_joint_map_gen arm_joint_3_inertia_jacmap;
-  arm_joint_3_inertia_jacmap[arm_joint_3_coord] = shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), scoped_deleter());
+  shared_pointer< joint_dependent_gen_coord >::type arm_joint_3_dep_coord(new joint_dependent_gen_coord(arm_joint_3_coord),
+									  scoped_deleter());
+  arm_joint_3_dep_coord->add_joint(arm_joint_3_coord,
+                                   shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+										   scoped_deleter()));
   shared_pointer<inertia_gen>::type arm_joint_3_inertia(new inertia_gen("arm_joint_3_inertia",
-                                                                         arm_joint_3_coord,
-                                                                         1.0,
-                                                                         arm_joint_3_inertia_jacmap), 
+                                                                         arm_joint_3_dep_coord,
+                                                                         1.0), 
                                                         scoped_deleter());
   
   //create force actuator
@@ -247,16 +255,16 @@ int main() {
                                               scoped_deleter());
   
   //create inertia
-  jacobian_joint_map_3D link_3_inertia_jacmap;
-  link_3_inertia_jacmap[track_joint_coord] = track_joint_jacobian;
-  link_3_inertia_jacmap[arm_joint_1_coord] = arm_joint_1_jacobian;
-  link_3_inertia_jacmap[arm_joint_2_coord] = arm_joint_2_jacobian;
-  link_3_inertia_jacmap[arm_joint_3_coord] = arm_joint_3_jacobian;
+  shared_pointer< joint_dependent_frame_3D >::type link_3_dep_frame(new joint_dependent_frame_3D(arm_joint_4_base),
+								    scoped_deleter());
+  link_3_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
+  link_3_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
+  link_3_dep_frame->add_joint(arm_joint_2_coord,arm_joint_2_jacobian);
+  link_3_dep_frame->add_joint(arm_joint_3_coord,arm_joint_3_jacobian);
   shared_pointer<inertia_3D>::type link_3_inertia(new inertia_3D("link_3_inertia",
-                                                                 arm_joint_4_base,
+                                                                 link_3_dep_frame,
                                                                  1.0,
-                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0),
-                                                                 link_3_inertia_jacmap),
+                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
 
   //create revolute joint
@@ -269,12 +277,14 @@ int main() {
                                                       scoped_deleter());
   
   //create motor inertia
-  jacobian_joint_map_gen arm_joint_4_inertia_jacmap;
-  arm_joint_4_inertia_jacmap[arm_joint_4_coord] = shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), scoped_deleter());
+  shared_pointer< joint_dependent_gen_coord >::type arm_joint_4_dep_coord(new joint_dependent_gen_coord(arm_joint_4_coord),
+									  scoped_deleter());
+  arm_joint_4_dep_coord->add_joint(arm_joint_4_coord,
+                                   shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+										   scoped_deleter()));
   shared_pointer<inertia_gen>::type arm_joint_4_inertia(new inertia_gen("arm_joint_4_inertia",
-                                                                        arm_joint_4_coord,
-                                                                        1.0,
-                                                                        arm_joint_4_inertia_jacmap), 
+                                                                        arm_joint_4_dep_coord,
+                                                                        1.0), 
                                                         scoped_deleter());
   
   //create force actuator
@@ -293,17 +303,17 @@ int main() {
                                              scoped_deleter());
   
   //create inertia
-  jacobian_joint_map_3D link_4_inertia_jacmap;
-  link_4_inertia_jacmap[track_joint_coord] = track_joint_jacobian;
-  link_4_inertia_jacmap[arm_joint_1_coord] = arm_joint_1_jacobian;
-  link_4_inertia_jacmap[arm_joint_2_coord] = arm_joint_2_jacobian;
-  link_4_inertia_jacmap[arm_joint_3_coord] = arm_joint_3_jacobian;
-  link_4_inertia_jacmap[arm_joint_4_coord] = arm_joint_4_jacobian;
+  shared_pointer< joint_dependent_frame_3D >::type link_4_dep_frame(new joint_dependent_frame_3D(arm_joint_5_base),
+								    scoped_deleter());
+  link_4_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
+  link_4_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
+  link_4_dep_frame->add_joint(arm_joint_2_coord,arm_joint_2_jacobian);
+  link_4_dep_frame->add_joint(arm_joint_3_coord,arm_joint_3_jacobian);
+  link_4_dep_frame->add_joint(arm_joint_4_coord,arm_joint_4_jacobian);
   shared_pointer<inertia_3D>::type link_4_inertia(new inertia_3D("link_4_inertia",
-                                                                 arm_joint_5_base,
+                                                                 link_4_dep_frame,
                                                                  1.0,
-                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0),
-                                                                 link_4_inertia_jacmap),
+                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
 
   //create revolute joint
@@ -316,12 +326,14 @@ int main() {
                                                       scoped_deleter());
   
   //create motor inertia
-  jacobian_joint_map_gen arm_joint_5_inertia_jacmap;
-  arm_joint_5_inertia_jacmap[arm_joint_5_coord] = shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), scoped_deleter());
+  shared_pointer< joint_dependent_gen_coord >::type arm_joint_5_dep_coord(new joint_dependent_gen_coord(arm_joint_5_coord),
+									  scoped_deleter());
+  arm_joint_5_dep_coord->add_joint(arm_joint_5_coord,
+                                   shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+										   scoped_deleter()));
   shared_pointer<inertia_gen>::type arm_joint_5_inertia(new inertia_gen("arm_joint_5_inertia",
-									arm_joint_5_coord,
-									1.0,
-									arm_joint_5_inertia_jacmap),
+									arm_joint_5_dep_coord,
+									1.0),
                                                         scoped_deleter());
   
   //create force actuator
@@ -340,18 +352,18 @@ int main() {
                                              scoped_deleter());
   
   //create inertia
-  jacobian_joint_map_3D link_5_inertia_jacmap;
-  link_5_inertia_jacmap[track_joint_coord] = track_joint_jacobian;
-  link_5_inertia_jacmap[arm_joint_1_coord] = arm_joint_1_jacobian;
-  link_5_inertia_jacmap[arm_joint_2_coord] = arm_joint_2_jacobian;
-  link_5_inertia_jacmap[arm_joint_3_coord] = arm_joint_3_jacobian;
-  link_5_inertia_jacmap[arm_joint_4_coord] = arm_joint_4_jacobian;
-  link_5_inertia_jacmap[arm_joint_5_coord] = arm_joint_5_jacobian;
+  shared_pointer< joint_dependent_frame_3D >::type link_5_dep_frame(new joint_dependent_frame_3D(arm_joint_6_base),
+								    scoped_deleter());
+  link_5_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
+  link_5_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
+  link_5_dep_frame->add_joint(arm_joint_2_coord,arm_joint_2_jacobian);
+  link_5_dep_frame->add_joint(arm_joint_3_coord,arm_joint_3_jacobian);
+  link_5_dep_frame->add_joint(arm_joint_4_coord,arm_joint_4_jacobian);
+  link_5_dep_frame->add_joint(arm_joint_5_coord,arm_joint_5_jacobian);
   shared_pointer<inertia_3D>::type link_5_inertia(new inertia_3D("link_5_inertia",
-                                                                 arm_joint_6_base,
+                                                                 link_5_dep_frame,
                                                                  1.0,
-                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0),
-                                                                 link_5_inertia_jacmap),
+                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
   
   //create revolute joint
@@ -364,12 +376,14 @@ int main() {
                                                       scoped_deleter());
   
   //create motor inertia
-  jacobian_joint_map_gen arm_joint_6_inertia_jacmap;
-  arm_joint_6_inertia_jacmap[arm_joint_6_coord] = shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), scoped_deleter());
+  shared_pointer< joint_dependent_gen_coord >::type arm_joint_6_dep_coord(new joint_dependent_gen_coord(arm_joint_6_coord),
+									  scoped_deleter());
+  arm_joint_6_dep_coord->add_joint(arm_joint_6_coord,
+                                   shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+										   scoped_deleter()));
   shared_pointer<inertia_gen>::type arm_joint_6_inertia(new inertia_gen("arm_joint_6_inertia",
-									arm_joint_6_coord,
-                                                                        1.0,
-                                                                        arm_joint_6_inertia_jacmap),
+									arm_joint_6_dep_coord,
+                                                                        1.0),
                                                         scoped_deleter());
   
   //create force actuator
@@ -388,19 +402,19 @@ int main() {
                                              scoped_deleter());
   
   //create inertia
-  jacobian_joint_map_3D link_6_inertia_jacmap;
-  link_6_inertia_jacmap[track_joint_coord] = track_joint_jacobian;
-  link_6_inertia_jacmap[arm_joint_1_coord] = arm_joint_1_jacobian;
-  link_6_inertia_jacmap[arm_joint_2_coord] = arm_joint_2_jacobian;
-  link_6_inertia_jacmap[arm_joint_3_coord] = arm_joint_3_jacobian;
-  link_6_inertia_jacmap[arm_joint_4_coord] = arm_joint_4_jacobian;
-  link_6_inertia_jacmap[arm_joint_5_coord] = arm_joint_5_jacobian;
-  link_6_inertia_jacmap[arm_joint_6_coord] = arm_joint_6_jacobian;
+  shared_pointer< joint_dependent_frame_3D >::type link_6_dep_frame(new joint_dependent_frame_3D(arm_EE),
+								    scoped_deleter());
+  link_6_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
+  link_6_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
+  link_6_dep_frame->add_joint(arm_joint_2_coord,arm_joint_2_jacobian);
+  link_6_dep_frame->add_joint(arm_joint_3_coord,arm_joint_3_jacobian);
+  link_6_dep_frame->add_joint(arm_joint_4_coord,arm_joint_4_jacobian);
+  link_6_dep_frame->add_joint(arm_joint_5_coord,arm_joint_5_jacobian);
+  link_6_dep_frame->add_joint(arm_joint_6_coord,arm_joint_6_jacobian);
   shared_pointer<inertia_3D>::type link_6_inertia(new inertia_3D("link_6_inertia",
-                                                                 arm_EE,
+                                                                 link_6_dep_frame,
                                                                  1.0,
-                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0),
-                                                                 link_6_inertia_jacmap),
+                                                                 mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
   
   kte_map_chain CRS_A465_dyn_model("CRS_A465_dyn_model");
@@ -533,8 +547,14 @@ int main() {
                & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_coord)
                & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_coord)
                & RK_SERIAL_SAVE_WITH_NAME(arm_EE)
-               & RK_SERIAL_SAVE_WITH_NAME(CRS_A465_kin_model)
-               & RK_SERIAL_SAVE_WITH_NAME(CRS_A465_Mlink_calc);
+               & RK_SERIAL_SAVE_WITH_NAME(link_0_dep_frame)
+               & RK_SERIAL_SAVE_WITH_NAME(link_1_dep_frame)
+               & RK_SERIAL_SAVE_WITH_NAME(link_2_dep_frame)
+               & RK_SERIAL_SAVE_WITH_NAME(link_3_dep_frame)
+               & RK_SERIAL_SAVE_WITH_NAME(link_4_dep_frame)
+               & RK_SERIAL_SAVE_WITH_NAME(link_5_dep_frame)
+               & RK_SERIAL_SAVE_WITH_NAME(link_6_dep_frame)
+               & RK_SERIAL_SAVE_WITH_NAME(CRS_A465_kin_model);
   };
   
   

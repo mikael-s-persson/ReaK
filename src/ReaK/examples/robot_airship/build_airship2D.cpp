@@ -55,16 +55,16 @@ int main() {
 					  airship2D_output_frame,
 					  airship2D_joint_jac), scoped_deleter());
     
-  kte::jacobian_joint2D_map_2D airship2D_jacmap;
-  airship2D_jacmap[airship2D_frame] = airship2D_joint_jac;
+  shared_pointer< kte::joint_dependent_frame_2D >::type
+    airship2D_dep_frame( new kte::joint_dependent_frame_2D(airship2D_output_frame),
+                         scoped_deleter());
+  airship2D_dep_frame->add_joint(airship2D_frame,airship2D_joint_jac);
   
   shared_pointer< kte::inertia_2D >::type
     airship2D_inertia( new kte::inertia_2D("airship2D_inertia",
-                                         airship2D_output_frame,
-					 1.0,
-					 1.0,
-					 kte::jacobian_joint_map_2D(),
-					 airship2D_jacmap), scoped_deleter());
+                                           airship2D_dep_frame,
+					   1.0,
+					   1.0), scoped_deleter());
   
   shared_pointer< kte::mass_matrix_calc >::type
     airship2D_mass_calc( new kte::mass_matrix_calc("airship2D_mass_calc"), scoped_deleter());
