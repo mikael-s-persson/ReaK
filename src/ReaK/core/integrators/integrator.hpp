@@ -66,6 +66,36 @@ class state_rate_function : public virtual shared_object {
 };
 
 /**
+ * This class is the function-object interface for a state equation (or state time-derivative computation).
+ */
+template <class T>
+class state_rate_function_with_io : public state_rate_function<T> {
+  public:
+    /**
+     * This function computes the output-vector corresponding to a state vector.
+     * 
+     * \pre The state and time given should match the last state that was given to the "computeStateRate" function.
+     *
+     * \param aTime current integration time
+     * \param aState current state vector
+     * \param aOutput holds, as output, the output-vector
+     */
+    virtual void RK_CALL computeOutput(double aTime,const ReaK::vect_n<T>& aState, ReaK::vect_n<T>& aOutput) = 0;
+    
+    /**
+     * This function sets the input-vector.
+     *
+     * \param aInput current input-vector
+     */
+    virtual void RK_CALL setInput(const ReaK::vect_n<T>& aInput) = 0;
+
+    virtual ~state_rate_function_with_io() { };
+
+    typedef state_rate_function_with_io<T> self;
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2200002,1,"state_rate_function_with_io",state_rate_function<T>)
+};
+
+/**
  * This class is the basis for all fixed time step integrators. It features a
  * state vector with a rate of change vector (specified by vectors of pointers
  * to the variables), and the time span (StartTime, EndTime, and StepSize).

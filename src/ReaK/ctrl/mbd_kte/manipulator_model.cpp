@@ -23,6 +23,9 @@
 
 #include "manipulator_model.hpp"
 
+#include "lin_alg/mat_num_exceptions.hpp"
+#include "lin_alg/mat_cholesky.hpp"
+
 namespace ReaK {
 
 namespace kte {
@@ -77,8 +80,8 @@ void manipulator_kinematics_model::getJacobianMatrixAndDerivative(mat<double,mat
   
 void manipulator_kinematics_model::getJacobianMatrixAndDerivativeImpl(mat<double,mat_structure::rectangular>* Jac, 
 								      mat<double,mat_structure::rectangular>* JacDot) {
-  unsigned int m = mDependentGenCoords.size() + 3*mDependent2DFrames.size() + 6*mDependent3DFrames.size();
-  unsigned int n = mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
+  unsigned int m = getDependentVelocitiesCount();
+  unsigned int n = getJointVelocitiesCount();
   *Jac    = mat<double,mat_structure::nil>(m,n);
   if(JacDot)
     *JacDot = mat<double,mat_structure::nil>(m,n);
@@ -299,8 +302,7 @@ void manipulator_kinematics_model::getJacobianMatrixAndDerivativeImpl(mat<double
 
 
 vect_n<double> manipulator_kinematics_model::getJointPositions() const {
-  unsigned int n = mCoords.size() + 4 * mFrames2D.size() + 7 * mFrames3D.size();
-  vect_n<double> result(n);
+  vect_n<double> result(getJointPositionsCount());
   
   unsigned int j = 0;
   
@@ -331,8 +333,7 @@ vect_n<double> manipulator_kinematics_model::getJointPositions() const {
 };
     
 void manipulator_kinematics_model::setJointPositions(const vect_n<double>& aJointPositions) {
-  unsigned int n = mCoords.size() + 4 * mFrames2D.size() + 7 * mFrames3D.size();
-  if(aJointPositions.size() != n)
+  if(aJointPositions.size() != getJointPositionsCount())
     throw std::range_error("Joint-position vector has incorrect dimensions!");
   
   unsigned int j = 0;
@@ -361,8 +362,7 @@ void manipulator_kinematics_model::setJointPositions(const vect_n<double>& aJoin
 };
     
 vect_n<double> manipulator_kinematics_model::getJointVelocities() const {
-  unsigned int n = mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
-  vect_n<double> result(n);
+  vect_n<double> result(getJointVelocitiesCount());
   
   unsigned int j = 0;
   
@@ -391,8 +391,7 @@ vect_n<double> manipulator_kinematics_model::getJointVelocities() const {
 };
     
 void manipulator_kinematics_model::setJointVelocities(const vect_n<double>& aJointVelocities) {
-  unsigned int n = mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
-  if(aJointVelocities.size() != n)
+  if(aJointVelocities.size() != getJointVelocitiesCount())
     throw std::range_error("Joint-velocity vector has incorrect dimensions!");
   
   unsigned int j = 0;
@@ -420,8 +419,7 @@ void manipulator_kinematics_model::setJointVelocities(const vect_n<double>& aJoi
 };
     
 vect_n<double> manipulator_kinematics_model::getJointAccelerations() const {
-  unsigned int n = mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
-  vect_n<double> result(n);
+  vect_n<double> result(getJointAccelerationsCount());
   
   unsigned int j = 0;
   
@@ -450,8 +448,7 @@ vect_n<double> manipulator_kinematics_model::getJointAccelerations() const {
 };
     
 void manipulator_kinematics_model::setJointAccelerations(const vect_n<double>& aJointAccelerations) {
-  unsigned int n = mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
-  if(aJointAccelerations.size() != n)
+  if(aJointAccelerations.size() != getJointAccelerationsCount())
     throw std::range_error("Joint-acceleration vector has incorrect dimensions!");
   
   unsigned int j = 0;
@@ -480,8 +477,7 @@ void manipulator_kinematics_model::setJointAccelerations(const vect_n<double>& a
 };
     
 vect_n<double> manipulator_kinematics_model::getDependentPositions() const {
-  unsigned int m = mDependentGenCoords.size() + 4*mDependent2DFrames.size() + 7*mDependent3DFrames.size();
-  vect_n<double> result(m);
+  vect_n<double> result(getDependentPositionsCount());
   
   unsigned int j = 0;
   
@@ -512,8 +508,7 @@ vect_n<double> manipulator_kinematics_model::getDependentPositions() const {
 };
     
 vect_n<double> manipulator_kinematics_model::getDependentVelocities() const {
-  unsigned int m = mDependentGenCoords.size() + 3*mDependent2DFrames.size() + 6*mDependent3DFrames.size();
-  vect_n<double> result(m);
+  vect_n<double> result(getDependentVelocitiesCount());
   
   unsigned int j = 0;
   
@@ -542,8 +537,7 @@ vect_n<double> manipulator_kinematics_model::getDependentVelocities() const {
 };
     
 vect_n<double> manipulator_kinematics_model::getDependentAccelerations() const {
-  unsigned int m = mDependentGenCoords.size() + 3*mDependent2DFrames.size() + 6*mDependent3DFrames.size();
-  vect_n<double> result(m);
+  vect_n<double> result(getDependentAccelerationsCount());
   
   unsigned int j = 0;
   
@@ -630,6 +624,262 @@ manipulator_dynamics_model& manipulator_dynamics_model::operator <<(const shared
   };
   return *this;
 };
+
+manipulator_dynamics_model& manipulator_dynamics_model::operator <<(const shared_pointer< system_input >::type& aInput) {
+  mInputs.push_back(aInput);
+};
+
+manipulator_dynamics_model& manipulator_dynamics_model::operator <<(const shared_pointer< system_output >::type& aOutput) {
+  mOutputs.push_back(aOutput);
+};
+    
+
+
+
+
+vect_n<double> manipulator_dynamics_model::getJointStates() const {
+  vect_n<double> result(getJointStatesCount());
+  
+  unsigned int j = 0;
+  
+  for(std::vector< shared_pointer< gen_coord<double> >::type >::const_iterator it = mCoords.begin(); 
+      it < mCoords.end(); ++it, ++j)
+    result[j] = (*it)->q;
+
+  for(std::vector< shared_pointer< frame_2D<double> >::type >::const_iterator it = mFrames2D.begin(); 
+      it < mFrames2D.end(); ++it) {
+    result[j] = (*it)->Position[0]; ++j;
+    result[j] = (*it)->Position[1]; ++j;
+    result[j] = (*it)->Rotation[0]; ++j;
+    result[j] = (*it)->Rotation[1]; ++j;
+  };
+
+  for(std::vector< shared_pointer< frame_3D<double> >::type >::const_iterator it = mFrames3D.begin(); 
+      it < mFrames3D.end(); ++it) {
+    result[j] = (*it)->Position[0]; ++j;
+    result[j] = (*it)->Position[1]; ++j;
+    result[j] = (*it)->Position[2]; ++j;
+    result[j] = (*it)->Quat[0]; ++j;
+    result[j] = (*it)->Quat[1]; ++j;
+    result[j] = (*it)->Quat[2]; ++j;
+    result[j] = (*it)->Quat[3]; ++j;
+  };
+  
+  for(std::vector< shared_pointer< gen_coord<double> >::type >::const_iterator it = mCoords.begin(); 
+      it < mCoords.end(); ++it, ++j)
+    result[j] = (*it)->q_dot;
+
+  for(std::vector< shared_pointer< frame_2D<double> >::type >::const_iterator it = mFrames2D.begin(); 
+      it < mFrames2D.end(); ++it) {
+    result[j] = (*it)->Velocity[0]; ++j;
+    result[j] = (*it)->Velocity[1]; ++j;
+    result[j] = (*it)->AngVelocity; ++j;
+  };
+
+  for(std::vector< shared_pointer< frame_3D<double> >::type >::const_iterator it = mFrames3D.begin(); 
+      it < mFrames3D.end(); ++it) {
+    result[j] = (*it)->Velocity[0]; ++j;
+    result[j] = (*it)->Velocity[1]; ++j;
+    result[j] = (*it)->Velocity[2]; ++j;
+    result[j] = (*it)->AngVelocity[0]; ++j;
+    result[j] = (*it)->AngVelocity[1]; ++j;
+    result[j] = (*it)->AngVelocity[2]; ++j;
+  };
+  
+  return result;
+};
+    
+void manipulator_dynamics_model::setJointStates(const vect_n<double>& aJointStates) {
+  if(aJointStates.size() != getJointStatesCount())
+    throw std::range_error("Joint-state vector has incorrect dimensions!");
+  
+  unsigned int j = 0;
+  
+  for(std::vector< shared_pointer< gen_coord<double> >::type >::const_iterator it = mCoords.begin(); 
+      it < mCoords.end(); ++it, ++j)
+    (*it)->q = aJointStates[j];
+
+  for(std::vector< shared_pointer< frame_2D<double> >::type >::const_iterator it = mFrames2D.begin(); 
+      it < mFrames2D.end(); ++it) {
+    (*it)->Position[0] = aJointStates[j]; ++j;
+    (*it)->Position[1] = aJointStates[j]; ++j;
+    (*it)->Rotation = rot_mat_2D<double>(vect<double,2>(aJointStates[j],aJointStates[j+1])); j += 2;
+  };
+
+  for(std::vector< shared_pointer< frame_3D<double> >::type >::const_iterator it = mFrames3D.begin(); 
+      it < mFrames3D.end(); ++it) {
+    (*it)->Position[0] = aJointStates[j]; ++j;
+    (*it)->Position[1] = aJointStates[j]; ++j;
+    (*it)->Position[2] = aJointStates[j]; ++j;
+    (*it)->Quat = quaternion<double>(vect<double,4>(aJointStates[j],
+                                                    aJointStates[j+1],
+						    aJointStates[j+2],
+						    aJointStates[j+3])); j += 4;
+  };
+  
+  for(std::vector< shared_pointer< gen_coord<double> >::type >::const_iterator it = mCoords.begin(); 
+      it < mCoords.end(); ++it, ++j)
+    (*it)->q_dot = aJointStates[j];
+
+  for(std::vector< shared_pointer< frame_2D<double> >::type >::const_iterator it = mFrames2D.begin(); 
+      it < mFrames2D.end(); ++it) {
+    (*it)->Velocity[0] = aJointStates[j]; ++j;
+    (*it)->Velocity[1] = aJointStates[j]; ++j;
+    (*it)->AngVelocity = aJointStates[j]; ++j;
+  };
+
+  for(std::vector< shared_pointer< frame_3D<double> >::type >::const_iterator it = mFrames3D.begin(); 
+      it < mFrames3D.end(); ++it) {
+    (*it)->Velocity[0] = aJointStates[j]; ++j;
+    (*it)->Velocity[1] = aJointStates[j]; ++j;
+    (*it)->Velocity[2] = aJointStates[j]; ++j;
+    (*it)->AngVelocity[0] = aJointStates[j]; ++j;
+    (*it)->AngVelocity[1] = aJointStates[j]; ++j;
+    (*it)->AngVelocity[2] = aJointStates[j]; ++j;
+  };
+};
+
+
+void RK_CALL manipulator_dynamics_model::computeOutput(double aTime,const ReaK::vect_n<double>& aState, ReaK::vect_n<double>& aOutput) {
+  aOutput.resize(getOutputsCount());
+  
+  unsigned int i = 0;
+  for(std::vector< shared_pointer<system_output>::type >::iterator it = mOutputs.begin(); it != mOutputs.end(); ++it)
+    for(unsigned int k = 0; k < (*it)->getOutputCount(); ++k)
+      aOutput[i++] = (*it)->getOutput(k);
+};
+    
+void RK_CALL manipulator_dynamics_model::setInput(const ReaK::vect_n<double>& aInput) {
+  if(aInput.size() != getInputsCount())
+    throw std::range_error("The size of the input-vector to the manipulator model is not correct!");
+  
+  unsigned int i = 0;
+  for(std::vector< shared_pointer<system_input>::type >::iterator it = mInputs.begin(); it != mInputs.end(); ++it)
+    for(unsigned int k = 0; k < (*it)->getInputCount(); ++k)
+      (*it)->getInput(k) = aInput[i++];
+};
+    
+void RK_CALL manipulator_dynamics_model::computeStateRate(double aTime,const vect_n<double>& aState, vect_n<double>& aStateRate) {
+  setJointStates(aState);
+  
+  doMotion();
+  clearForce();
+  doForce();
+  
+  aStateRate.resize(getJointStatesCount());
+  
+  unsigned int j = 0;
+  for(std::vector< shared_pointer< gen_coord<double> >::type >::const_iterator it = mCoords.begin(); 
+      it < mCoords.end(); ++it, ++j)
+    aStateRate[j] = (*it)->q_dot;
+
+  for(std::vector< shared_pointer< frame_2D<double> >::type >::const_iterator it = mFrames2D.begin(); 
+      it < mFrames2D.end(); ++it) {
+    aStateRate[j] = (*it)->Velocity[0]; ++j;
+    aStateRate[j] = (*it)->Velocity[1]; ++j;
+    aStateRate[j] = -(*it)->Rotation[1] * (*it)->AngVelocity; ++j;
+    aStateRate[j] =  (*it)->Rotation[0] * (*it)->AngVelocity; ++j;
+  };
+
+  for(std::vector< shared_pointer< frame_3D<double> >::type >::const_iterator it = mFrames3D.begin(); 
+      it < mFrames3D.end(); ++it) {
+    aStateRate[j] = (*it)->Velocity[0]; ++j;
+    aStateRate[j] = (*it)->Velocity[1]; ++j;
+    aStateRate[j] = (*it)->Velocity[2]; ++j;
+    aStateRate[j] = (*it)->QuatDot[0]; ++j;
+    aStateRate[j] = (*it)->QuatDot[1]; ++j; 
+    aStateRate[j] = (*it)->QuatDot[2]; ++j; 
+    aStateRate[j] = (*it)->QuatDot[3]; ++j; 
+  };
+  
+  for(std::vector< shared_pointer< gen_coord<double> >::type >::const_iterator it = mCoords.begin(); 
+      it < mCoords.end(); ++it, ++j)
+    aStateRate[j] = (*it)->f;
+
+  for(std::vector< shared_pointer< frame_2D<double> >::type >::const_iterator it = mFrames2D.begin(); 
+      it < mFrames2D.end(); ++it) {
+    aStateRate[j] = (*it)->Force[0]; ++j;
+    aStateRate[j] = (*it)->Force[1]; ++j;
+    aStateRate[j] = (*it)->Torque; ++j;
+  };
+
+  for(std::vector< shared_pointer< frame_3D<double> >::type >::const_iterator it = mFrames3D.begin(); 
+      it < mFrames3D.end(); ++it) {
+    aStateRate[j] = (*it)->Force[0]; ++j;
+    aStateRate[j] = (*it)->Force[1]; ++j;
+    aStateRate[j] = (*it)->Force[2]; ++j;
+    aStateRate[j] = (*it)->Torque[0]; ++j;
+    aStateRate[j] = (*it)->Torque[1]; ++j; 
+    aStateRate[j] = (*it)->Torque[2]; ++j; 
+  };
+  
+  mat<double,mat_structure::symmetric> Msys(getJointAccelerationsCount());
+  getMassMatrix(Msys);
+  try {
+    mat_vect_adaptor< vect_n<double> > acc_as_mat(aStateRate, getJointAccelerationsCount(), 1, getJointPositionsCount());
+    linsolve_Cholesky(Msys,acc_as_mat);
+  } catch(singularity_error& e) {
+    std::stringstream ss; ss << "Mass matrix is singular in the manipulator model '" << getName() << "' at time " << aTime << " seconds.";
+    throw singularity_error(ss.str());
+  };
+};
+    
+vect_n<double> manipulator_dynamics_model::getDependentStates() const {
+  vect_n<double> result(getDependentStatesCount());
+  
+  unsigned int j = 0;
+  
+  for(std::vector< shared_pointer< joint_dependent_gen_coord >::type >::const_iterator it = mDependentGenCoords.begin(); 
+      it < mDependentGenCoords.end(); ++it, ++j)
+    result[j] = (*it)->mFrame->q;
+
+  for(std::vector< shared_pointer< joint_dependent_frame_2D >::type >::const_iterator it = mDependent2DFrames.begin(); 
+      it < mDependent2DFrames.end(); ++it) {
+    result[j] = (*it)->mFrame->Position[0]; ++j;
+    result[j] = (*it)->mFrame->Position[1]; ++j;
+    result[j] = (*it)->mFrame->Rotation[0]; ++j;
+    result[j] = (*it)->mFrame->Rotation[1]; ++j;
+  };
+
+  for(std::vector< shared_pointer< joint_dependent_frame_3D >::type >::const_iterator it = mDependent3DFrames.begin(); 
+      it < mDependent3DFrames.end(); ++it) {
+    result[j] = (*it)->mFrame->Position[0]; ++j;
+    result[j] = (*it)->mFrame->Position[1]; ++j;
+    result[j] = (*it)->mFrame->Position[2]; ++j;
+    result[j] = (*it)->mFrame->Quat[0]; ++j;
+    result[j] = (*it)->mFrame->Quat[1]; ++j;
+    result[j] = (*it)->mFrame->Quat[2]; ++j;
+    result[j] = (*it)->mFrame->Quat[3]; ++j;
+  };
+  
+  for(std::vector< shared_pointer< joint_dependent_gen_coord >::type >::const_iterator it = mDependentGenCoords.begin(); 
+      it < mDependentGenCoords.end(); ++it, ++j)
+    result[j] = (*it)->mFrame->q_dot;
+
+  for(std::vector< shared_pointer< joint_dependent_frame_2D >::type >::const_iterator it = mDependent2DFrames.begin(); 
+      it < mDependent2DFrames.end(); ++it) {
+    result[j] = (*it)->mFrame->Velocity[0]; ++j;
+    result[j] = (*it)->mFrame->Velocity[1]; ++j;
+    result[j] = (*it)->mFrame->AngVelocity; ++j;
+  };
+
+  for(std::vector< shared_pointer< joint_dependent_frame_3D >::type >::const_iterator it = mDependent3DFrames.begin(); 
+      it < mDependent3DFrames.end(); ++it) {
+    result[j] = (*it)->mFrame->Velocity[0]; ++j;
+    result[j] = (*it)->mFrame->Velocity[1]; ++j;
+    result[j] = (*it)->mFrame->Velocity[2]; ++j;
+    result[j] = (*it)->mFrame->AngVelocity[0]; ++j;
+    result[j] = (*it)->mFrame->AngVelocity[1]; ++j;
+    result[j] = (*it)->mFrame->AngVelocity[2]; ++j;
+  };
+  
+  return result;
+};
+
+
+
+
+
 
 void manipulator_dynamics_model::getMassMatrix(mat<double,mat_structure::symmetric>& M) {
   mMassCalc.getMassMatrix(M);

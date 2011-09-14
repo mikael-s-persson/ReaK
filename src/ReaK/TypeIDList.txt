@@ -168,6 +168,7 @@ manipulator_dynamics_model  0xC210004E   bin: 1100 0010 0001 0000 0000 0000 0100
 
 //Numerical Integrators     0xC22*****
 state_rate_function<T>      0xC2200001   bin: 1100 0010 0010 0000 0000 0000 0000 0001  D-R
+state_rate_function_with_io<T> 0xC2200002 bin:1100 0010 0010 0000 0000 0000 0000 0010  D-R
 integrator<T>               0xC2210000   bin: 1100 0010 0010 0001 0000 0000 0000 0000  D-R
 variable_step_integrator<T> 0xC2220000   bin: 1100 0010 0010 0010 0000 0000 0000 0000  D-R
 euler_integrator<T>         0xC2210001   bin: 1100 0010 0010 0001 0000 0000 0000 0001  D-R

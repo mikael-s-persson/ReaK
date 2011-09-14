@@ -53,7 +53,7 @@ namespace ctrl {
 template <typename CTSystem, typename NumIntegrator = euler_integrator<typename CTSystem::value_type> >
 class num_int_dtnl_sys : public named_object, public state_rate_function<typename CTSystem::value_type> {
   public:
-    typedef num_int_dtnl_sys<CTSystem> self;
+    typedef num_int_dtnl_sys<CTSystem,NumIntegrator> self;
     typedef typename CTSystem::value_type value_type;
     typedef typename CTSystem::size_type size_type;
     
@@ -167,6 +167,136 @@ class num_int_dtnl_sys : public named_object, public state_rate_function<typenam
     };
     
     RK_RTTI_MAKE_CONCRETE_2BASE(self,0xC2300006,1,"num_int_dtnl_sys",named_object,state_rate_function<value_type>)
+    
+    
+};
+
+
+
+
+/**
+ * This class template specialization can be used to integrate, numerically, a continuous-time
+ * system represented as a ReaK::state_rate_function OOP interface to produce a 
+ * discrete-time state-space system (DiscreteSSSConcept).
+ * 
+ * \todo Find a way to pass the input vector to the state_rate_function class.
+ * \todo Find a way to obtain an output vector from the state_rate_function class.
+ * 
+ * \tparam T The value-type of the state_rate_function class template.
+ * \tparam NumIntegrator The numerical integrator type to be used.
+ */
+template <typename T, template<typename> class NumIntegrator>
+class num_int_dtnl_sys< state_rate_function_with_io<T>, NumIntegrator<T> > : public named_object {
+  public:
+    typedef num_int_dtnl_sys< state_rate_function_with_io<T>, NumIntegrator<T> > self;
+    typedef T value_type;
+    typedef typename vect_traits< vect_n<value_type> >::size_type size_type;
+    
+    typedef vect_n<value_type> point_type;
+    typedef vect_n<value_type> point_difference_type;
+    typedef vect_n<value_type> point_derivative_type;
+  
+    typedef double time_type;
+    typedef double time_difference_type;
+  
+    typedef vect_n<value_type> input_type;
+    typedef vect_n<value_type> output_type;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 0);
+    BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 0);
+    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 0);
+  
+  private:
+    
+    typename shared_pointer< state_rate_function_with_io<value_type> >::type sys;
+    NumIntegrator<value_type> integ;
+    time_difference_type dt;
+    
+    input_type current_u;
+    
+  public:
+    
+    /**
+     * Default constructor.
+     */
+    num_int_dtnl_sys(const std::string& aName = "") : sys(), integ(), dt(), current_u() { 
+      setName(aName);
+    };
+    
+    /**
+     * Parametrized constructor.
+     * \param aSys The continuous-time state-space system to integrate.
+     * \param aInteg The numerical integrator to use to compute the state transitions.
+     * \param aDt The time-step of this discrete-time system (not the integration time-step).
+     */
+    num_int_dtnl_sys(const typename shared_pointer< state_rate_function_with_io<value_type> >::type& aSys, 
+		     const NumIntegrator<value_type>& aInteg, 
+		     const time_difference_type& aDt, 
+		     const std::string& aName = "") : sys(aSys), integ(aInteg), dt(aDt), current_u() { 
+      setName(aName);
+    };
+    
+    /**
+     * Returns the time-step of this discrete-time system.
+     * \return The time-step of this discrete-time system.
+     */
+    time_difference_type get_time_step() const { return dt; };
+    
+    /**
+     * Returns next state of the system given the current state, input and time.
+     * \param p The current state.
+     * \param u The current input.
+     * \param t The current time.
+     * \return The next state, at t + get_time_step().
+     */
+    point_type get_next_state(const point_type& p, const input_type& u, const time_type& t = 0) { 
+      integ.setTime(t);
+      integ.clearStateVector();
+      integ.addStateElements(p);
+      //TODO ---------
+      RK_UNUSED(u);
+      //current_u = u;
+      //--------------
+      integ.setStateRateFunc(sys);
+      integ.integrate(t + dt);
+      return point_type(integ.getStateBegin(),integ.getStateEnd());
+    };
+    
+    /**
+     * Returns output of the system given the current state, input and time.
+     * \param p The current state.
+     * \param u The current input.
+     * \param t The current time.
+     * \return The current output.
+     */
+    output_type get_output(const point_type& p, const input_type& u, const time_type& t = 0) { RK_UNUSED(t);
+      //TODO ---------------
+      return output_type();
+      //--------------------
+    };
+    
+    /**
+     * Adjusts the state by adding a state difference to it.
+     */
+    point_type adjust(const point_type& p, const point_difference_type& dp) {
+      return p + dp;
+    };
+        
+    
+    virtual void RK_CALL save(ReaK::serialization::oarchive& aA, unsigned int) const {
+      ReaK::named_object::save(aA,ReaK::named_object::getStaticObjectType()->TypeVersion());
+      aA & RK_SERIAL_SAVE_WITH_NAME(sys)
+         & RK_SERIAL_SAVE_WITH_NAME(integ)
+         & RK_SERIAL_SAVE_WITH_NAME(dt);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& aA, unsigned int) {
+      ReaK::named_object::load(aA,ReaK::named_object::getStaticObjectType()->TypeVersion());
+      aA & RK_SERIAL_LOAD_WITH_NAME(sys)
+         & RK_SERIAL_LOAD_WITH_NAME(integ)
+         & RK_SERIAL_LOAD_WITH_NAME(dt);
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2300006,1,"num_int_dtnl_sys",named_object)
     
     
 };

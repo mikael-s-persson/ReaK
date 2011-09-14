@@ -41,6 +41,10 @@
 #include "kinetostatics/kinetostatics.hpp"
 #include "kte_map_chain.hpp"
 #include "mass_matrix_calculator.hpp"
+#include "kte_system_input.hpp"
+#include "kte_system_output.hpp"
+
+#include "integrators/integrator.hpp"
 
 #include <vector>
 
@@ -400,9 +404,13 @@ class manipulator_kinematics_model : public kte_map {
  * regroup all that information and provides a certain number of functions related to the 
  * use of a manipulator model (like computing mass-matrix).
  */
-class manipulator_dynamics_model : public manipulator_kinematics_model {
+class manipulator_dynamics_model : public manipulator_kinematics_model, public state_rate_function_with_io<double> {
   protected:
     mass_matrix_calc mMassCalc; ///< Holds the model's mass-matrix calculator.
+    
+    std::vector< shared_pointer< kte::system_input >::type > mInputs; ///< Holds the list of system input objects that are part of the KTE model.
+    std::vector< shared_pointer< kte::system_output >::type > mOutputs; ///< Holds the list of system output objects that are part of the KTE model.
+    
     
   public:
     
@@ -468,6 +476,20 @@ class manipulator_dynamics_model : public manipulator_kinematics_model {
     virtual manipulator_dynamics_model& operator <<(const shared_pointer< inertia_3D >::type& aInertia3D);
     
     /**
+     * Add a system input.
+     * \param aInput A KTE system input to add.
+     * \return reference to this.
+     */
+    virtual manipulator_dynamics_model& operator <<(const shared_pointer< system_input >::type& aInput);
+
+    /**
+     * Add a system output.
+     * \param aOutput A KTE system output to add.
+     * \return reference to this.
+     */
+    virtual manipulator_dynamics_model& operator <<(const shared_pointer< system_output >::type& aOutput);
+    
+    /**
      * Get the total number of state values for all the joint frames concatenated.
      * \return The total number of state values for all the joint frames concatenated.
      */
@@ -482,6 +504,93 @@ class manipulator_dynamics_model : public manipulator_kinematics_model {
     unsigned int getDependentStatesCount() const {
       return getDependentPositionsCount() + getDependentVelocitiesCount();
     };
+    
+    /**
+     * Get the total number of KTE system inputs, if all concatenated in one vector.
+     * \return The total number of KTE system inputs, if all concatenated in one vector.
+     */
+    unsigned int getInputsCount() const {
+      unsigned int result = 0;
+      for(std::vector< shared_pointer< system_input >::type >::const_iterator it = mInputs.begin(); it != mInputs.end(); ++it)
+	result += (*it)->getInputCount();
+      return result;
+    };
+    
+    /**
+     * Get the total number of KTE system outputs, if all concatenated in one vector.
+     * \return The total number of KTE system outputs, if all concatenated in one vector.
+     */
+    unsigned int getOutputsCount() const {
+      unsigned int result = 0;
+      for(std::vector< shared_pointer< system_output >::type >::const_iterator it = mOutputs.begin(); it != mOutputs.end(); ++it)
+	result += (*it)->getOutputCount();
+      return result;
+    };
+    
+    
+    /**
+     * Obtain a vector that contains all the joint states concatenated into one vector.
+     * The ordering in the vector is as follows: ( Generalized States, 2D States, 3D States ), 
+     * where the joints are sorted in the same order as in the container returned by Coords(), 
+     * Frames2D() and Frames3D(), respectively. In other words, the first 2 * Coords().size() elements
+     * are the joint states of generalized coordinate joints, the next 7 * Frames2D().size() 
+     * elements are the states (and angular states) of the 2D frame joints, and the final 13 * Frames3D().size()
+     * are the states (and angular states) of the 3D frame joints.
+     * \return All the joint states concatenated into one vector.
+     */
+    vect_n<double> getJointStates() const;
+    
+    /**
+     * Set all the joint states of the manipulator to a vector of concatenated joint-states.
+     * The ordering in the vector is as follows: ( Generalized States, 2D States, 3D States ), 
+     * where the joints are sorted in the same order as in the container returned by Coords(), 
+     * Frames2D() and Frames3D(), respectively. In other words, the first 2 * Coords().size() elements
+     * are the joint states of generalized coordinate joints, the next 7 * Frames2D().size() 
+     * elements are the states (and angular states) of the 2D frame joints, and the final 13 * Frames3D().size()
+     * are the states (and angular states) of the 3D frame joints.
+     * \param aJointAccelerations All the joint states concatenated into one vector.
+     */
+    void setJointStates(const vect_n<double>& aJointStates);
+    
+    /**
+     * This function computes the output-vector corresponding to a state vector.
+     *
+     * \pre The state and time given should match the last state that was given to the "computeStateRate" function.
+     * 
+     * \param aTime current integration time
+     * \param aState current state vector
+     * \param aOutput holds, as output, the output-vector
+     */
+    virtual void RK_CALL computeOutput(double aTime,const ReaK::vect_n<double>& aState, ReaK::vect_n<double>& aOutput);
+    
+    /**
+     * This function sets the input-vector.
+     *
+     * \param aInput current input-vector
+     */
+    virtual void RK_CALL setInput(const ReaK::vect_n<double>& aInput);
+    
+    /**
+     * Computes the time-derivative of the state-vector of all the joints concatenated into one vector.
+     * The vector of state-derivatives corresponds to the vector obtained from getJointStates().
+     * \param aTime current integration time
+     * \param aState current state vector
+     * \param aStateRate holds, as output, the time-derivative of the state vector
+     */
+    virtual void RK_CALL computeStateRate(double aTime,const ReaK::vect_n<double>& aState, ReaK::vect_n<double>& aStateRate);
+    
+    /**
+     * Obtain a vector that contains all the dependent states concatenated into one vector.
+     * The ordering in the vector is as follows: ( Generalized Coordinates, 2D Poses, 3D Poses ), 
+     * where the dependent frames are sorted in the same order as in the container returned by DependentCoords(), 
+     * DependentFrames2D() and DependentFrames3D(), respectively. In other words, the first 2 * DependentCoords().size() elements
+     * are the states of dependent generalized coordinates, the next 7 * DependentFrames2D().size() 
+     * elements are the states of the 2D dependent frames, and the final 13 * DependentFrames3D().size()
+     * are the states of the 3D dependent frames.
+     * \return All the dependent states concatenated into one vector.
+     */
+    vect_n<double> getDependentStates() const;
+    
     
     /**
      * Get the mass matrix for the system.
@@ -507,15 +616,17 @@ class manipulator_dynamics_model : public manipulator_kinematics_model {
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       manipulator_kinematics_model::save(A,manipulator_kinematics_model::getStaticObjectType()->TypeVersion());
+      state_rate_function<double>::save(A,state_rate_function<double>::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mMassCalc);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       manipulator_kinematics_model::load(A,manipulator_kinematics_model::getStaticObjectType()->TypeVersion());
+      state_rate_function<double>::load(A,state_rate_function<double>::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mMassCalc);
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(manipulator_dynamics_model,0xC210004E,1,"manipulator_dynamics_model",manipulator_kinematics_model)
+    RK_RTTI_MAKE_CONCRETE_2BASE(manipulator_dynamics_model,0xC210004E,1,"manipulator_dynamics_model",manipulator_kinematics_model,state_rate_function<double>)
 
 };
 
