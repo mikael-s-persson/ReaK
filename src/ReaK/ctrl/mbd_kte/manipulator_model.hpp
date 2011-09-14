@@ -37,6 +37,7 @@
 #ifndef REAK_MANIPULATOR_MODEL_HPP
 #define REAK_MANIPULATOR_MODEL_HPP
 
+#include "base/defs.hpp"
 #include "kinetostatics/kinetostatics.hpp"
 #include "kte_map_chain.hpp"
 #include "mass_matrix_calculator.hpp"
@@ -144,6 +145,54 @@ class manipulator_kinematics_model : public kte_map {
      */
     virtual manipulator_kinematics_model& operator <<(const shared_pointer< frame_3D<double> >::type& aFrame3D);
 
+    /**
+     * Get the total number of position values for all the joint frames concatenated.
+     * \return The total number of position values for all the joint frames concatenated.
+     */
+    unsigned int getJointPositionsCount() const {
+      return mCoords.size() + 4 * mFrames2D.size() + 7 * mFrames3D.size();
+    };
+    
+    /**
+     * Get the total number of velocity values for all the joint frames concatenated.
+     * \return The total number of velocity values for all the joint frames concatenated.
+     */
+    unsigned int getJointVelocitiesCount() const {
+      return mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
+    };
+    
+    /**
+     * Get the total number of acceleration values for all the joint frames concatenated.
+     * \return The total number of acceleration values for all the joint frames concatenated.
+     */
+    unsigned int getJointAccelerationsCount() const {
+      return mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
+    };
+    
+    /**
+     * Get the total number of position values for all the dependent frames concatenated.
+     * \return The total number of position values for all the dependent frames concatenated.
+     */
+    unsigned int getDependentPositionsCount() const {
+      return mDependentGenCoords.size() + 4 * mDependent2DFrames.size() + 7 * mDependent3DFrames.size();
+    };
+    
+    /**
+     * Get the total number of velocity values for all the dependent frames concatenated.
+     * \return The total number of velocity values for all the dependent frames concatenated.
+     */
+    unsigned int getDependentVelocitiesCount() const {
+      return mDependentGenCoords.size() + 3 * mDependent2DFrames.size() + 6 * mDependent3DFrames.size();
+    };
+    
+    /**
+     * Get the total number of acceleration values for all the dependent frames concatenated.
+     * \return The total number of acceleration values for all the dependent frames concatenated.
+     */
+    unsigned int getDependentAccelerationsCount() const {
+      return mDependentGenCoords.size() + 3 * mDependent2DFrames.size() + 6 * mDependent3DFrames.size();
+    };
+    
     /** Get read-only access to the list of generalized coordinates. */
     const std::vector< shared_pointer< gen_coord<double> >::type >& Coords() const { return mCoords; };
 
@@ -417,6 +466,22 @@ class manipulator_dynamics_model : public manipulator_kinematics_model {
      * \return reference to this.
      */
     virtual manipulator_dynamics_model& operator <<(const shared_pointer< inertia_3D >::type& aInertia3D);
+    
+    /**
+     * Get the total number of state values for all the joint frames concatenated.
+     * \return The total number of state values for all the joint frames concatenated.
+     */
+    unsigned int getJointStatesCount() const {
+      return getJointPositionsCount() + getJointVelocitiesCount();
+    };
+    
+    /**
+     * Get the total number of state values for all the dependent frames concatenated.
+     * \return The total number of state values for all the dependent frames concatenated.
+     */
+    unsigned int getDependentStatesCount() const {
+      return getDependentPositionsCount() + getDependentVelocitiesCount();
+    };
     
     /**
      * Get the mass matrix for the system.
