@@ -627,10 +627,12 @@ manipulator_dynamics_model& manipulator_dynamics_model::operator <<(const shared
 
 manipulator_dynamics_model& manipulator_dynamics_model::operator <<(const shared_pointer< system_input >::type& aInput) {
   mInputs.push_back(aInput);
+  return *this;
 };
 
 manipulator_dynamics_model& manipulator_dynamics_model::operator <<(const shared_pointer< system_output >::type& aOutput) {
   mOutputs.push_back(aOutput);
+  return *this;
 };
     
 
@@ -741,6 +743,12 @@ void manipulator_dynamics_model::setJointStates(const vect_n<double>& aJointStat
 
 
 void RK_CALL manipulator_dynamics_model::computeOutput(double aTime,const ReaK::vect_n<double>& aState, ReaK::vect_n<double>& aOutput) {
+  setJointStates(aState);
+  
+  doMotion();
+  clearForce();
+  doForce();
+  
   aOutput.resize(getOutputsCount());
   
   unsigned int i = 0;
@@ -757,6 +765,16 @@ void RK_CALL manipulator_dynamics_model::setInput(const ReaK::vect_n<double>& aI
   for(std::vector< shared_pointer<system_input>::type >::iterator it = mInputs.begin(); it != mInputs.end(); ++it)
     for(unsigned int k = 0; k < (*it)->getInputCount(); ++k)
       (*it)->getInput(k) = aInput[i++];
+};
+
+vect_n<double> manipulator_dynamics_model::getInput() const {
+  vect_n<double> result(getInputsCount());
+  
+  unsigned int i = 0;
+  for(std::vector< shared_pointer<system_input>::type >::const_iterator it = mInputs.begin(); it != mInputs.end(); ++it)
+    for(unsigned int k = 0; k < (*it)->getInputCount(); ++k)
+      result[i++] = (*it)->getInput(k);
+  return result;
 };
     
 void RK_CALL manipulator_dynamics_model::computeStateRate(double aTime,const vect_n<double>& aState, vect_n<double>& aStateRate) {

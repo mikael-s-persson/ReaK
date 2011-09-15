@@ -397,19 +397,20 @@ class manipulator_kinematics_model : public kte_map {
 
 /**
  * This class stores the required information to represent the dynamics model of a manipulator.
- * Here, a manipulator is defined as a kinematic chain with "input" coordinates (or frames) and 
- * "output" coordinates (or frames). For example, a typical serial manipulator 
+ * Here, a manipulator is defined as a kinematic chain with "joint" coordinates (or frames) and 
+ * "dependent" coordinates (or frames). For example, a typical serial manipulator 
  * could have a set of generalized coordinates (joint coordinates) as well as one or more frames 
  * for the end-effector(s) (or additional link motions). This class is basically used to 
  * regroup all that information and provides a certain number of functions related to the 
- * use of a manipulator model (like computing mass-matrix).
+ * use of a manipulator model (like computing mass-matrix). Additionally, system inputs and outputs
+ * can also be registered (such as joint driver inputs, or state-measurement outputs).
  */
 class manipulator_dynamics_model : public manipulator_kinematics_model, public state_rate_function_with_io<double> {
   protected:
     mass_matrix_calc mMassCalc; ///< Holds the model's mass-matrix calculator.
     
-    std::vector< shared_pointer< kte::system_input >::type > mInputs; ///< Holds the list of system input objects that are part of the KTE model.
-    std::vector< shared_pointer< kte::system_output >::type > mOutputs; ///< Holds the list of system output objects that are part of the KTE model.
+    std::vector< shared_pointer< system_input >::type > mInputs; ///< Holds the list of system input objects that are part of the KTE model.
+    std::vector< shared_pointer< system_output >::type > mOutputs; ///< Holds the list of system output objects that are part of the KTE model.
     
     
   public:
@@ -428,8 +429,8 @@ class manipulator_dynamics_model : public manipulator_kinematics_model, public s
     virtual ~manipulator_dynamics_model() { };
     
     /**
-     * Gets the manipulator KTE model used by this object.
-     * \return The manipulator KTE model used by this object.
+     * Gets the manipulator KTE mass-matrix calculator used by this object.
+     * \return The manipulator KTE mass-matrix calculator used by this object.
      */
     const mass_matrix_calc& getMassCalc() const { return mMassCalc; };
 
@@ -554,8 +555,6 @@ class manipulator_dynamics_model : public manipulator_kinematics_model, public s
     
     /**
      * This function computes the output-vector corresponding to a state vector.
-     *
-     * \pre The state and time given should match the last state that was given to the "computeStateRate" function.
      * 
      * \param aTime current integration time
      * \param aState current state vector
@@ -569,6 +568,13 @@ class manipulator_dynamics_model : public manipulator_kinematics_model, public s
      * \param aInput current input-vector
      */
     virtual void RK_CALL setInput(const ReaK::vect_n<double>& aInput);
+    
+    /**
+     * This function gets the currently set input-vector for the system.
+     * 
+     * \return The currently set input-vector for the system.
+     */
+    vect_n<double> getInput() const;
     
     /**
      * Computes the time-derivative of the state-vector of all the joints concatenated into one vector.

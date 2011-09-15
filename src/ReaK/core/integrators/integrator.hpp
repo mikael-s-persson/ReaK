@@ -73,8 +73,6 @@ class state_rate_function_with_io : public state_rate_function<T> {
   public:
     /**
      * This function computes the output-vector corresponding to a state vector.
-     * 
-     * \pre The state and time given should match the last state that was given to the "computeStateRate" function.
      *
      * \param aTime current integration time
      * \param aState current state vector

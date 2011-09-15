@@ -24,6 +24,8 @@
 #include "kinetostatics/motion_jacobians.hpp"
 #include "mbd_kte/jacobian_joint_map.hpp"
 
+#include "mbd_kte/manipulator_model.hpp"
+
 
 #include "serialization/xml_archiver.hpp"
 
@@ -37,39 +39,39 @@ using namespace rtti;
 int main() {
   
   //declare all the intermediate frames.
-  shared_pointer< frame_3D<double> >::type robot_base = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type track_joint_end = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_joint_1_base = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_joint_1_end = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_joint_2_base = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_joint_2_end = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_joint_3_base = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_joint_3_end = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_joint_4_base = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_joint_4_end = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_joint_5_base = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_joint_5_end = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_joint_6_base = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_joint_6_end = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
-  shared_pointer< frame_3D<double> >::type arm_EE = rk_dynamic_ptr_cast< frame_3D<double> >(frame_3D<double>::Create());
+  shared_pointer< frame_3D<double> >::type robot_base(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type track_joint_end(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_joint_1_base(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_joint_1_end(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_joint_2_base(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_joint_2_end(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_joint_3_base(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_joint_3_end(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_joint_4_base(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_joint_4_end(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_joint_5_base(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_joint_5_end(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_joint_6_base(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_joint_6_end(new frame_3D<double>(), scoped_deleter());
+  shared_pointer< frame_3D<double> >::type arm_EE(new frame_3D<double>(), scoped_deleter());
 
   //declare all the joint coordinates.
-  shared_pointer<gen_coord<double> >::type track_joint_coord = rk_dynamic_ptr_cast< gen_coord<double> >(gen_coord<double>::Create());
-  shared_pointer<gen_coord<double> >::type arm_joint_1_coord = rk_dynamic_ptr_cast< gen_coord<double> >(gen_coord<double>::Create());
-  shared_pointer<gen_coord<double> >::type arm_joint_2_coord = rk_dynamic_ptr_cast< gen_coord<double> >(gen_coord<double>::Create());
-  shared_pointer<gen_coord<double> >::type arm_joint_3_coord = rk_dynamic_ptr_cast< gen_coord<double> >(gen_coord<double>::Create());
-  shared_pointer<gen_coord<double> >::type arm_joint_4_coord = rk_dynamic_ptr_cast< gen_coord<double> >(gen_coord<double>::Create());
-  shared_pointer<gen_coord<double> >::type arm_joint_5_coord = rk_dynamic_ptr_cast< gen_coord<double> >(gen_coord<double>::Create());
-  shared_pointer<gen_coord<double> >::type arm_joint_6_coord = rk_dynamic_ptr_cast< gen_coord<double> >(gen_coord<double>::Create());
+  shared_pointer<gen_coord<double> >::type track_joint_coord(new gen_coord<double>(), scoped_deleter());
+  shared_pointer<gen_coord<double> >::type arm_joint_1_coord(new gen_coord<double>(), scoped_deleter());
+  shared_pointer<gen_coord<double> >::type arm_joint_2_coord(new gen_coord<double>(), scoped_deleter());
+  shared_pointer<gen_coord<double> >::type arm_joint_3_coord(new gen_coord<double>(), scoped_deleter());
+  shared_pointer<gen_coord<double> >::type arm_joint_4_coord(new gen_coord<double>(), scoped_deleter()); 
+  shared_pointer<gen_coord<double> >::type arm_joint_5_coord(new gen_coord<double>(), scoped_deleter()); 
+  shared_pointer<gen_coord<double> >::type arm_joint_6_coord(new gen_coord<double>(), scoped_deleter()); 
   
   //declare all the joint jacobians.
-  shared_pointer<jacobian_gen_3D<double> >::type track_joint_jacobian = rk_dynamic_ptr_cast< jacobian_gen_3D<double> >(jacobian_gen_3D<double>::Create());
-  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_1_jacobian = rk_dynamic_ptr_cast< jacobian_gen_3D<double> >(jacobian_gen_3D<double>::Create());
-  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_2_jacobian = rk_dynamic_ptr_cast< jacobian_gen_3D<double> >(jacobian_gen_3D<double>::Create());
-  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_3_jacobian = rk_dynamic_ptr_cast< jacobian_gen_3D<double> >(jacobian_gen_3D<double>::Create());
-  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_4_jacobian = rk_dynamic_ptr_cast< jacobian_gen_3D<double> >(jacobian_gen_3D<double>::Create());
-  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_5_jacobian = rk_dynamic_ptr_cast< jacobian_gen_3D<double> >(jacobian_gen_3D<double>::Create());
-  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_6_jacobian = rk_dynamic_ptr_cast< jacobian_gen_3D<double> >(jacobian_gen_3D<double>::Create());
+  shared_pointer<jacobian_gen_3D<double> >::type track_joint_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_1_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_2_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_3_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_4_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_5_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_6_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
   
   //set the absolute position of the torso base and add gravity (z-axis pointing up!) (x-axis pointing forward).
   //normally this frame is set via the feedback from the leg / lower-body motion control of wopa
@@ -417,95 +419,162 @@ int main() {
                                                                  mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
   
-  kte_map_chain CRS_A465_dyn_model("CRS_A465_dyn_model");
-  
-  CRS_A465_dyn_model << track_actuator
-                     << track_joint_inertia
-                     << track_joint
-                     << link_0
-                     << link_0_inertia
-                     << arm_joint_1_actuator
-                     << arm_joint_1_inertia 
-                     << arm_joint_1
-                     << link_1
-                     << link_1_inertia
-                     << arm_joint_2_actuator
-                     << arm_joint_2_inertia
-                     << arm_joint_2
-                     << link_2
-                     << link_2_inertia
-                     << arm_joint_3_actuator
-                     << arm_joint_3_inertia
-                     << arm_joint_3
-                     << link_3
-                     << link_3_inertia
-                     << arm_joint_4_actuator
-                     << arm_joint_4_inertia
-                     << arm_joint_4
-                     << link_4
-                     << link_4_inertia
-                     << arm_joint_5_actuator
-                     << arm_joint_5_inertia
-                     << arm_joint_5
-                     << link_5
-                     << link_5_inertia
-                     << arm_joint_6_actuator
-                     << arm_joint_6_inertia
-                     << arm_joint_6
-                     << link_6
-                     << link_6_inertia;
+  shared_pointer<kte_map_chain>::type CRS_A465_dyn_model(new kte_map_chain("CRS_A465_dyn_model"),
+							 scoped_deleter());
   
   
-  kte_map_chain CRS_A465_kin_model("CRS_A465_kin_model");
-  
-  CRS_A465_kin_model << track_joint
-                     << link_0
-                     << arm_joint_1
-                     << link_1
-                     << arm_joint_2
-                     << link_2
-                     << arm_joint_3
-                     << link_3
-                     << arm_joint_4
-                     << link_4
-                     << arm_joint_5
-                     << link_5
-                     << arm_joint_6
-                     << link_6;
-  
-  mass_matrix_calc CRS_A465_Mlink_calc("CRS_A465_Mlink_calc");
-  
-  CRS_A465_Mlink_calc << link_0_inertia
+  *CRS_A465_dyn_model << track_actuator
+                      << track_joint_inertia
+                      << track_joint
+                      << link_0
+                      << link_0_inertia
+                      << arm_joint_1_actuator
+                      << arm_joint_1_inertia 
+                      << arm_joint_1
+                      << link_1
                       << link_1_inertia
+                      << arm_joint_2_actuator
+                      << arm_joint_2_inertia
+                      << arm_joint_2
+                      << link_2
                       << link_2_inertia
+                      << arm_joint_3_actuator
+                      << arm_joint_3_inertia
+                      << arm_joint_3
+                      << link_3
                       << link_3_inertia
+                      << arm_joint_4_actuator
+                      << arm_joint_4_inertia
+                      << arm_joint_4
+                      << link_4
                       << link_4_inertia
+                      << arm_joint_5_actuator
+                      << arm_joint_5_inertia
+                      << arm_joint_5
+                      << link_5
                       << link_5_inertia
+                      << arm_joint_6_actuator
+                      << arm_joint_6_inertia
+                      << arm_joint_6
+                      << link_6
                       << link_6_inertia;
-  CRS_A465_Mlink_calc << track_joint_coord
+  
+  shared_pointer< manipulator_dynamics_model >::type CRS_A465_dyn_manip(new manipulator_dynamics_model("CRS_A465_dyn_manip"),
+									scoped_deleter());
+  
+  CRS_A465_dyn_manip->setModel(CRS_A465_dyn_model);
+  
+   
+//Register joint coordinates:
+  *CRS_A465_dyn_manip << track_joint_coord
                       << arm_joint_1_coord
                       << arm_joint_2_coord
                       << arm_joint_3_coord
                       << arm_joint_4_coord
                       << arm_joint_5_coord
                       << arm_joint_6_coord;
-		      
-  mass_matrix_calc CRS_A465_Mjoint_calc("CRS_A465_Mjoint_calc");
+//Register joint inertias:
+  *CRS_A465_dyn_manip << track_joint_inertia  
+                      << arm_joint_1_inertia
+                      << arm_joint_2_inertia
+                      << arm_joint_3_inertia
+                      << arm_joint_4_inertia
+                      << arm_joint_5_inertia
+                      << arm_joint_6_inertia;
+//Register link inertias (and dependent frames):
+  *CRS_A465_dyn_manip << link_0_inertia       
+                      << link_1_inertia
+                      << link_2_inertia
+                      << link_3_inertia
+                      << link_4_inertia
+                      << link_5_inertia
+                      << link_6_inertia;
+//Register joint actuators:
+  *CRS_A465_dyn_manip << track_actuator        
+                      << arm_joint_1_actuator
+                      << arm_joint_2_actuator
+                      << arm_joint_3_actuator
+                      << arm_joint_4_actuator
+                      << arm_joint_5_actuator
+                      << arm_joint_6_actuator;
+                      
   
-  CRS_A465_Mjoint_calc << track_joint_inertia
-                       << arm_joint_1_inertia
-                       << arm_joint_2_inertia
-                       << arm_joint_3_inertia
-                       << arm_joint_4_inertia
-                       << arm_joint_5_inertia
-                       << arm_joint_6_inertia;
-  CRS_A465_Mjoint_calc << track_joint_coord
+  shared_pointer< kte_map_chain >::type CRS_A465_kin_model(new kte_map_chain("CRS_A465_kin_model"),
+                                                           scoped_deleter());
+  
+  *CRS_A465_kin_model << track_joint
+                      << link_0
+                      << arm_joint_1
+                      << link_1
+                      << arm_joint_2
+                      << link_2
+                      << arm_joint_3
+                      << link_3
+                      << arm_joint_4
+                      << link_4
+                      << arm_joint_5
+                      << link_5
+                      << arm_joint_6
+                      << link_6;
+		      
+  shared_pointer< manipulator_kinematics_model >::type CRS_A465_kin_manip(new manipulator_kinematics_model("CRS_A465_kin_manip"),
+									  scoped_deleter());
+  
+  CRS_A465_kin_manip->setModel(CRS_A465_kin_model);
+  
+  *CRS_A465_kin_manip 
+//Register joint coordinates:
+                      << track_joint_coord
+                      << arm_joint_1_coord
+                      << arm_joint_2_coord
+                      << arm_joint_3_coord
+                      << arm_joint_4_coord
+                      << arm_joint_5_coord
+                      << arm_joint_6_coord
+//Register joint-dependent link-frames:
+                      << link_0_dep_frame  
+                      << link_1_dep_frame
+                      << link_2_dep_frame
+                      << link_3_dep_frame
+                      << link_4_dep_frame
+                      << link_5_dep_frame
+                      << link_6_dep_frame;
+  
+  shared_pointer< mass_matrix_calc >::type CRS_A465_Mlink_calc(new mass_matrix_calc("CRS_A465_Mlink_calc"),
+                                                               scoped_deleter());
+  
+  *CRS_A465_Mlink_calc << link_0_inertia
+                       << link_1_inertia
+                       << link_2_inertia
+                       << link_3_inertia
+                       << link_4_inertia
+                       << link_5_inertia
+                       << link_6_inertia;
+  *CRS_A465_Mlink_calc << track_joint_coord
                        << arm_joint_1_coord
                        << arm_joint_2_coord
                        << arm_joint_3_coord
                        << arm_joint_4_coord
                        << arm_joint_5_coord
                        << arm_joint_6_coord;
+		      
+  shared_pointer< mass_matrix_calc >::type CRS_A465_Mjoint_calc(new mass_matrix_calc("CRS_A465_Mjoint_calc"),
+                                                                scoped_deleter());
+  
+  *CRS_A465_Mjoint_calc << track_joint_inertia
+                        << arm_joint_1_inertia
+                        << arm_joint_2_inertia
+                        << arm_joint_3_inertia
+                        << arm_joint_4_inertia
+                        << arm_joint_5_inertia
+                        << arm_joint_6_inertia;
+  *CRS_A465_Mjoint_calc << track_joint_coord
+                        << arm_joint_1_coord
+                        << arm_joint_2_coord
+                        << arm_joint_3_coord
+                        << arm_joint_4_coord
+                        << arm_joint_5_coord
+                        << arm_joint_6_coord;
                     
   //Now save all to various files.
   
@@ -555,6 +624,22 @@ int main() {
                & RK_SERIAL_SAVE_WITH_NAME(link_5_dep_frame)
                & RK_SERIAL_SAVE_WITH_NAME(link_6_dep_frame)
                & RK_SERIAL_SAVE_WITH_NAME(CRS_A465_kin_model);
+  };
+  
+  { //save the complete dynamic model.
+    xml_oarchive complete_model_output("models/CRS_A465_dyn_manipulator.xml");
+    oarchive& output_ref = complete_model_output;
+    
+    output_ref & RK_SERIAL_SAVE_WITH_NAME(robot_base)
+               & RK_SERIAL_SAVE_WITH_ALIAS("manipulator_model",CRS_A465_dyn_manip);
+  };
+  
+  { //save the complete kinematic model.
+    xml_oarchive complete_model_output("models/CRS_A465_kin_manipulator.xml");
+    oarchive& output_ref = complete_model_output;
+    
+    output_ref & RK_SERIAL_SAVE_WITH_NAME(robot_base)
+               & RK_SERIAL_SAVE_WITH_ALIAS("manipulator_model",CRS_A465_kin_manip);
   };
   
   

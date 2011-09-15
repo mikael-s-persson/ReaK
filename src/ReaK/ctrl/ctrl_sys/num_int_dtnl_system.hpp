@@ -179,9 +179,6 @@ class num_int_dtnl_sys : public named_object, public state_rate_function<typenam
  * system represented as a ReaK::state_rate_function OOP interface to produce a 
  * discrete-time state-space system (DiscreteSSSConcept).
  * 
- * \todo Find a way to pass the input vector to the state_rate_function class.
- * \todo Find a way to obtain an output vector from the state_rate_function class.
- * 
  * \tparam T The value-type of the state_rate_function class template.
  * \tparam NumIntegrator The numerical integrator type to be used.
  */
@@ -250,13 +247,12 @@ class num_int_dtnl_sys< state_rate_function_with_io<T>, NumIntegrator<T> > : pub
      * \return The next state, at t + get_time_step().
      */
     point_type get_next_state(const point_type& p, const input_type& u, const time_type& t = 0) { 
+      if(!sys)
+	return p;
       integ.setTime(t);
       integ.clearStateVector();
       integ.addStateElements(p);
-      //TODO ---------
-      RK_UNUSED(u);
-      //current_u = u;
-      //--------------
+      sys->setInput(u);
       integ.setStateRateFunc(sys);
       integ.integrate(t + dt);
       return point_type(integ.getStateBegin(),integ.getStateEnd());
@@ -270,9 +266,13 @@ class num_int_dtnl_sys< state_rate_function_with_io<T>, NumIntegrator<T> > : pub
      * \return The current output.
      */
     output_type get_output(const point_type& p, const input_type& u, const time_type& t = 0) { RK_UNUSED(t);
-      //TODO ---------------
-      return output_type();
-      //--------------------
+      output_type y;
+      
+      if(sys) {
+	sys->setInput(u);
+	sys->computeOutput(t,p,y);
+      };
+      return y;
     };
     
     /**
