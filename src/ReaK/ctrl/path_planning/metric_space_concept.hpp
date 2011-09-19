@@ -117,7 +117,7 @@ struct DistanceMetricConcept {
  * 
  * p1 = space.origin();  The origin of the space can be obtained.
  * 
- * p1 = space.adjust(p1,d * pd);  A point-difference can be scaled (d * pd) and added to a point (p1) to obtain an adjusted point.
+ * p1 = space.adjust(p1,d * pd + pd);  A point-difference can be scaled (d * pd), added to another point-difference and added to a point (p1) to obtain an adjusted point.
  * 
  * pd = -pd;  A point-difference can be negated (reversed).
  * 
@@ -136,7 +136,7 @@ struct MetricSpaceConcept {
     pd = space.difference(p1,p2);
     p1 = space.move_position_toward(p1,d,p2);
     p1 = space.origin();
-    p1 = space.adjust(p1,d * pd);
+    p1 = space.adjust(p1,d * pd + pd);
     pd = -pd;
   };
   
