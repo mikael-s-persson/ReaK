@@ -38,9 +38,9 @@
 #include <boost/random/uniform_01.hpp>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
-#include <boost/shared_ptr.hpp>
 
 #include <cmath>
+#include "base/defs.hpp"
 
 namespace ReaK {
 
@@ -52,12 +52,14 @@ namespace pp {
  * this class does not model the topology concepts, but defines a number 
  * of functions useful to a derived class that can provide the full 
  * model of a topology.
+ * \tparam T The value-type for the topology (should be an arithmetic type that is implicitly convertable to double).
  */
+template <typename T = double>
 class line_topology 
 {
   public:
-    typedef double point_type;
-    typedef double point_difference_type;
+    typedef T point_type;
+    typedef T point_difference_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 1);
     
@@ -66,7 +68,8 @@ class line_topology
      */
     double distance(const point_type& a, const point_type& b) const 
     {
-      return std::fabs(b - a);
+      using std::fabs;
+      return fabs(b - a);
     }
 
     /**
@@ -111,14 +114,16 @@ class line_topology
      * Returns the norm of the difference between two points.
      */
     double norm(const point_difference_type& delta) const {
-      return std::fabs(delta);
+      using std::fabs;
+      return fabs(delta);
     }
 
     /**
      * Returns the volume of the difference between two points.
      */
     double volume(const point_difference_type& delta) const {
-      return std::fabs(delta);
+      using std::fabs;
+      return fabs(delta);
     }
 
 };
@@ -128,10 +133,10 @@ class line_topology
  * maximum value.
  * \tparam RandomNumberGenerator A random number generator functor type.
  */
-template<typename RandomNumberGenerator = boost::minstd_rand>
-class line_segment_topology : public line_topology
+template<typename T = double, typename RandomNumberGenerator = boost::minstd_rand>
+class line_segment_topology : public line_topology<T>
 {
-  typedef boost::uniform_01<RandomNumberGenerator, double> rand_t;
+  typedef boost::uniform_01<RandomNumberGenerator, T> rand_t;
 
   public:
     typedef line_topology::point_type point_type;
@@ -140,16 +145,21 @@ class line_segment_topology : public line_topology
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = line_topology::dimensions);
 
     /**
-     * 
+     * Default constructor.
+     * \param aScaling The overall span of the line-segment.
+     * \param aOrigin The minimum bound of the line-segment.
      */
-    explicit line_segment_topology(double aScaling = 1.0, double aOrigin = 0.0) 
+    explicit line_segment_topology(point_type aScaling = point_type(1.0), point_type aOrigin = point_type(0.0)) 
       : gen_ptr(new RandomNumberGenerator), rand(new rand_t(*gen_ptr)), 
         scaling(scaling), origin(aOrigin) { };
 
     /**
-     * 
+     * Parametrized constructor.
+     * \param aGen A random-number generator to use.
+     * \param aScaling The overall span of the line-segment.
+     * \param aOrigin The minimum bound of the line-segment.
      */
-    explicit line_segment_topology(RandomNumberGenerator& aGen, double aScaling = 1.0, double aOrigin = 0.0) 
+    explicit line_segment_topology(RandomNumberGenerator& aGen, point_type aScaling = point_type(1.0), point_type aOrigin = point_type(0.0)) 
       : gen_ptr(), rand(new rand_t(aGen)), scaling(aScaling), origin(aOrigin) { };
        
     /**
@@ -184,9 +194,10 @@ class line_segment_topology : public line_topology
      * Returns the distance to the boundary of the space.
      */
     double distance_from_boundary(point_type a) const {
-      double dist = std::fabs(scaling - a + origin);
-      if(std::fabs(a - origin) < dist)
-        return std::fabs(a - origin);
+      using std::fabs;
+      double dist = fabs(scaling - a + origin);
+      if(fabs(a - origin) < dist)
+        return fabs(a - origin);
       else
         return dist;
     };
@@ -213,8 +224,8 @@ class line_segment_topology : public line_topology
     };
 
   private:
-    boost::shared_ptr<RandomNumberGenerator> gen_ptr;
-    boost::shared_ptr<rand_t> rand;
+    typename shared_pointer<RandomNumberGenerator>::type gen_ptr;
+    typename shared_pointer<rand_t>::type rand;
     point_difference_type scaling;
     point_type origin;
 };

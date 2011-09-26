@@ -77,30 +77,31 @@ struct integral_space {
 
 
 /**
- * This concept defines the requirements to fulfill in order to model a differentiable-space 
- * as used in ReaK::pp. A differentiable space is constituted of a spatial metric-space 
- * with a mapping to a derivative metric-space with respect to a given space.
+ * This concept defines the requirements to fulfill in order to model a differential relation 
+ * as used in ReaK::pp. A differentiable relation serves to map a spatial metric-space 
+ * its derivative metric-space with respect to a given independent space (e.g. time). The mapping 
+ * also serves to map elements between to two spaces.
  * 
  * Required concepts:
  * 
- * The topology should model the MetricSpaceConcept.
- * 
- * The independent topology should model the MetricSpaceConcept.
- * 
- * The derivative space should model the MetricSpaceConcept.
+ * All topologies involved should model the MetricSpaceConcept.
  * 
  * Valid expressions:
  * 
- * v_space = space.get_derivative_space(t_space);  The derivative space (v_space) can be obtained given an independent space (e.g. time topology, t_space).
+ * v_space = diff_relation.get_derivative_space(space, t_space);  The derivative space (v_space) of the metric space (space) can be obtained given an independent space (e.g. time topology, t_space).
  * 
- * v = space.lift_to_derivative(dp,dt);  A derivative-point (v) can be obtained from lifting a point-difference (dp) from the space via a difference-point on the independent space (dt). This expression is analogous to v = dp / dt.
+ * space = diff_relation.get_integral_space(v_space, t_space);  The metric space (space) that is an integral of the derivative space (v_space) can be obtained given an independent space (e.g. time topology, t_space).
  * 
- * dp = space.descend_from_derivative(v,dt);  A point-difference (dp) can be obtained from descending a derivative-point (v) to the space via a difference-point on the independent space (dt). This expression is analogous to dp = v * dt.
+ * v = diff_relation.lift_to_derivative(dp,dt);  A derivative-point (v) can be obtained from lifting a point-difference (dp) from the space via a difference-point on the independent space (dt). This expression is analogous to v = dp / dt.
+ * 
+ * dp = diff_relation.descend_from_derivative(v,dt);  A point-difference (dp) can be obtained from descending a derivative-point (v) to the space via a difference-point on the independent space (dt). This expression is analogous to dp = v * dt.
  * 
  * \tparam Topology The topology type to be checked for this concept.
  */
-template <typename DependentTopology, typename IndependentTopology>
-struct DifferentiableSpaceConcept {
+template <typename DifferentialRelation, typename DependentTopology, typename IndependentTopology>
+struct DifferentialRelationConcept {
+  DifferentialRelation diff_relation;
+  
   DependentTopology space;
   typename metric_topology_traits<DependentTopology>::point_difference_type dp;
   
@@ -115,9 +116,10 @@ struct DifferentiableSpaceConcept {
     boost::function_requires< MetricSpaceConcept< DependentTopology > >();
     boost::function_requires< MetricSpaceConcept< IndependentTopology > >();
     boost::function_requires< MetricSpaceConcept< DerivativeSpace > >();
-    const DerivativeSpace& v_space = space.get_derivative_space(t_space);
-    v = space.lift_to_derivative(dp,dt);
-    dp = space.descend_from_derivative(v,dt);
+    const DerivativeSpace& v_space = diff_relation.get_derivative_space(space,t_space);
+    const DependentTopology& space = diff_relation.get_derivative_space(v_space,t_space);
+    v = diff_relation.lift_to_derivative(dp,dt);
+    dp = diff_relation.descend_from_derivative(v,dt);
   };
   
 };
