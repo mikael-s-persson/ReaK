@@ -36,7 +36,9 @@
 #include "belief_state_concept.hpp"
 #include "state_vector_concept.hpp"
 #include "path_planning/predicted_trajectory_concept.hpp"
-#include "path_planning/temporal_space.hpp"
+#include "path_planning/temporal_space_concept.hpp"
+
+#include "topologies/temporal_space.hpp"
 
 #include <deque>
 #include <iterator>
@@ -56,7 +58,7 @@ namespace ctrl {
  * 
  * Models: SpatialTrajectoryConcept, PredictedTrajectoryConcept, and provides an interface similar to STL containers (a sort-of hybrid of std::map and std::list).
  * 
- * \tparam BeliefTopology The topology of the belief-space, should model the TemporalSpaceConcept.
+ * \tparam BeliefTopology The topology of the belief-space, should model the BeliefSpaceConcept.
  * \tparam BeliefPredictor The belief-state predictor function type, should model BeliefPredictorConcept.
  * \tparam InputTrajectory The input vector trajectory to provide input vectors at any given time, should model the SpatialTrajectoryConcept.
  */
@@ -65,22 +67,27 @@ template <typename BeliefTopology,
 	  typename InputTrajectory>
 class belief_predicted_trajectory {
   public:
+    
     typedef belief_predicted_trajectory<BeliefTopology,BeliefPredictor> self;
     typedef BeliefPredictor predictor_type;
     
     typedef pp::temporal_space< BeliefTopology > topology;
     typedef typename pp::temporal_topology_traits<topology>::time_topology time_topology;
     typedef typename pp::temporal_topology_traits<topology>::space_topology space_topology;
-    typedef typename topology::distance_metric;
     
     typedef typename pp::temporal_topology_traits< topology >::point_type point_type;
     typedef typename pp::temporal_topology_traits< topology >::point_difference_type point_difference_type;
     
-    typedef typename time_topology::point_type time_type;
-    typedef typename time_topology::point_difference_type time_difference_type;
+    typedef typename pp::metric_topology_traits<time_topology>::point_type time_type;
+    typedef typename pp::metric_topology_traits<time_topology>::point_difference_type time_difference_type;
     
     typedef typename pp::metric_topology_traits<space_topology>::point_type belief_state;
     typedef typename pp::metric_topology_traits<space_topology>::point_difference_type belief_state_diff;
+    
+    BOOST_CONCEPT_ASSERT((pp::TemporalSpaceConcept<topology>));
+    BOOST_CONCEPT_ASSERT((BeliefStateConcept<belief_state>));
+    BOOST_CONCEPT_ASSERT((BeliefPredictorConcept<BeliefPredictor>));
+    BOOST_CONCEPT_ASSERT((SpatialTrajectoryConcept<InputTrajectory>));
    
     /**
      * This nested class defines a waypoint in a predicted belief trajectory. A waypoint 

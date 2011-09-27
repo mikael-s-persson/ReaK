@@ -70,6 +70,8 @@ class covariance_info_matrix : public named_object {
     typedef mat<value_type, mat_structure::symmetric> matrix_type;
     typedef typename matrix_type::size_type size_type;
     
+    BOOST_CONCEPT_ASSERT((StateVectorConcept<StateType>));
+    
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = vect_traits<point_difference_type>::dimensions);
     BOOST_STATIC_CONSTANT(covariance_storage::tag, storage = covariance_storage::information);
     

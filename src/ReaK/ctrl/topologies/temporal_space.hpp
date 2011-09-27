@@ -37,10 +37,9 @@
 #include <cmath>
 #include <boost/random/uniform_01.hpp>
 #include <boost/random/linear_congruential.hpp>
-#include <boost/shared_ptr.hpp>
 
-#include "line_topology.hpp"
-#include "temporal_space_concept.hpp"
+#include "time_topology.hpp"
+#include "path_planning/temporal_space_concept.hpp"
 
 namespace ReaK {
 
@@ -59,7 +58,7 @@ namespace pp {
 template <typename Topology, typename DistanceMetric = spatial_distance_only, typename RandomNumberGenerator = boost::minstd_rand>
 class temporal_space {
   public:
-    typedef line_segment_topology<RandomNumberGenerator> time_topology;
+    typedef time_topology time_topology;
     typedef Topology space_topology;
     typedef DistanceMetric distance_metric;
     
@@ -124,21 +123,23 @@ class temporal_space {
         return point_difference(a * b.time, a * b.pt);
       };
       
-      /* This should not be there, because of the principle of minimum requirements.
-      double& operator[](std::size_t i) { return pt[i]; };
-      const double& operator[](std::size_t i) const { return pt[i]; };
+      point_difference& operator+=(const point_difference& b) {
+        time += b.time;
+	pt += b.pt;
+        return *this;
+      };
+
+      point_difference& operator-=(const point_difference& b) {
+        time -= b.time;
+	pt -= b.pt;
+        return *this;
+      };
       
       friend point_difference operator+(const point_difference& a, const point_difference& b) {
         point_difference result;
 	result.time = a.time + b.time;
 	result.pt = a.pt + b.pt;
         return result;
-      };
-
-      point_difference& operator+=(const point_difference& b) {
-        time += b.time;
-	pt += b.pt;
-        return *this;
       };
 
       friend point_difference operator-(const point_difference& a, const point_difference& b) {
@@ -148,12 +149,10 @@ class temporal_space {
         return result;
       };
 
-      point_difference& operator-=(const point_difference& b) {
-        time -= b.time;
-	pt -= b.pt;
-        return *this;
-      };
-
+      /* This should not be there, because of the principle of minimum requirements.
+      double& operator[](std::size_t i) { return pt[i]; };
+      const double& operator[](std::size_t i) const { return pt[i]; };
+      
       friend double dot(const point_difference& a, const point_difference& b) {
         return dot(a.pt, b.pt);
       };*/

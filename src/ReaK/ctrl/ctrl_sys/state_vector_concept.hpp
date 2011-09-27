@@ -75,9 +75,7 @@ struct state_vector_traits {
  * 
  * Required concepts: 
  * 
- * the state-vector's state_type should model ReadableVectorConcept
- * 
- * the state-vector's state_difference_type should model WritableVectorConcept.
+ * the state-vector's state_difference_type should model ReadableVectorConcept.
  * 
  * Valid expressions (state_type s, state_difference_type ds, value_type v, size_type sz):
  * 
@@ -112,10 +110,10 @@ struct StateVectorConcept {
   typename state_vector_traits<StateVector>::value_type v;
   typename state_vector_traits<StateVector>::size_type sz;
   
-  void constraints() {
-    boost::function_requires< ReadableVectorConcept< typename state_vector_traits<StateVector>::state_type > >();
-    boost::function_requires< WritableVectorConcept< typename state_vector_traits<StateVector>::state_difference_type > >();
-
+  BOOST_CONCEPT_ASSERT((ReadableVectorConcept< typename state_vector_traits<StateVector>::state_difference_type >));
+  
+  BOOST_CONCEPT_USAGE(StateVectorConcept)
+  {
     ds = diff(s,s);
     s = add(s,ds);
     ds = v * ds;

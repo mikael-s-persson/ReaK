@@ -52,8 +52,8 @@ namespace ctrl {
  * 
  * Models: ReaK::pp::MetricSpaceConcept.
  * 
- * \tparam StateTopology The topology to which the state-vector belongs, should model a TopologyConcept as defined by the Boost.Graph library.
- * \tparam CovarianceTopology The topology to which the covariance matrix belongs, should model a TopologyConcept as defined by the Boost.Graph library.
+ * \tparam StateTopology The topology to which the state-vector belongs, should model the ReaK::pp::MetricSpaceConcept.
+ * \tparam CovarianceTopology The topology to which the covariance matrix belongs, should model the ReaK::pp::MetricSpaceConcept.
  */
 template <typename StateTopology, typename CovarianceTopology>
 class gaussian_belief_space {
@@ -71,6 +71,9 @@ class gaussian_belief_space {
     typedef typename pp::metric_topology_traits<StateTopology>::point_difference_type mean_state_diff_type;
     
     typedef typename gaussian_belief_state< covariance_type, mean_state_type > point_type;
+    
+    BOOST_CONCEPT_ASSERT((pp::MetricSpaceConcept<StateTopology>));
+    BOOST_CONCEPT_ASSERT((pp::MetricSpaceConcept<CovarianceTopology>));
 
     /**
      * This nested class represents the difference between two belief-states (with some fraction).

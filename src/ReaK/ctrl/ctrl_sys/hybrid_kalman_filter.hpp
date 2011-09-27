@@ -49,6 +49,9 @@ namespace detail {
             typename SystemNoiseCovariance>
   struct kalman_bucy_predictor : public state_rate_function< T > {
     
+    BOOST_CONCEPT_ASSERT((LinearSSSystemConcept< LinearSystem, LinearizedSystemType >));
+    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+  
     typedef T value_type;
     typedef std::size_t size_type;
     typedef typename ss_system_traits<LinearSystem>::point_type state_type;
@@ -130,8 +133,11 @@ void >::type hybrid_kalman_filter_step(const LinearSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
-  boost::function_requires< LinearSSSystemConcept< LinearSystem, LinearizedSystemType > >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
+  BOOST_CONCEPT_ASSERT((LinearSSSystemConcept< LinearSystem, LinearizedSystemType >));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
+  
   
   typedef typename ss_system_traits<LinearSystem>::point_type StateType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;

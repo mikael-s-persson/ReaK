@@ -6,6 +6,8 @@ set(TOPOLOGIES_HEADERS
   "${RKTOPOLOGIESDIR}/line_topology.hpp"
   "${RKTOPOLOGIESDIR}/time_topology.hpp"
   "${RKTOPOLOGIESDIR}/reachability_space.hpp"
+  "${RKTOPOLOGIESDIR}/temporal_space.hpp"
+  "${RKTOPOLOGIESDIR}/differentiable_space.hpp"
 )
 
 #add_library(reak_topologies STATIC ${TOPOLOGIES_SOURCES})

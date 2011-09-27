@@ -51,14 +51,14 @@ namespace pp {
 template <typename TemporalTopology>
 struct temporal_topology_traits {
   /** The type that describes a point in the space. */
-  typedef TemporalTopology::point_type point_type;
+  typedef typename TemporalTopology::point_type point_type;
   /** The type that describes a difference between points in the space. */
-  typedef TemporalTopology::point_difference_type point_difference_type;
+  typedef typename TemporalTopology::point_difference_type point_difference_type;
   
   /** The topology type which describes the space in which the time values reside. */
-  typedef TemporalTopology::time_topology time_topology;
+  typedef typename TemporalTopology::time_topology time_topology;
   /** The topology type which describes the space in which the spatial points reside. */
-  typedef TemporalTopology::space_topology space_topology;
+  typedef typename TemporalTopology::space_topology space_topology;
   
 };
   
@@ -90,7 +90,8 @@ struct TemporalDistMetricConcept {
   typename temporal_topology_traits<TemporalTopology>::point_type p1, p2;
   typename temporal_topology_traits<TemporalTopology>::point_difference_type pd;
   double dist;
-  void constraints() {
+  BOOST_CONCEPT_USAGE(TemporalDistMetricConcept)
+  {
     dist = d(p1, p2, t, s);
     dist = d(pd, t, s);
   };
@@ -108,43 +109,21 @@ struct TemporalDistMetricConcept {
  * 
  * The time-topology should model the MetricSpaceConcept.
  * 
+ * The temporal-topology should model the MetricSpaceConcept.
+ * 
  * Valid expressions:
  * 
- * d  = space.distance(p1, p2);  The distance between two points (p1,p2) can be obtained as a double (d).
- * 
- * d  = space.norm(pd);  The norm of the difference (pd) between two points can be obtained as a double (d).
- * 
- * p1 = space.random_point();  A random-point in the metric-space can be obtained.
- * 
- * pd = space.difference(p1,p2);  The difference (pd) between two points (p1,p2) can be obtained.
- * 
- * p1 = space.move_position_toward(p1,d,p2);  A point can be obtained by moving a fraction (d) away from one point (p1) to another (p2).
- * 
- * p1 = space.origin();  The origin of the space can be obtained.
- * 
- * p1 = space.adjust(p1,d * pd);  A point-difference can be scaled (d * pd) and added to a point (p1) to obtain an adjusted point.
- * 
- * pd = -pd;  A point-difference can be negated (reversed).
+ * See MetricSpaceConcept.
  * 
  * \tparam Topology The topology type to be checked for this concept.
  */
 template <typename Topology>
-struct TemporalSpaceConcept {
-  typename temporal_topology_traits<Topology>::point_type p1, p2;
-  typename temporal_topology_traits<Topology>::point_difference_type pd;
-  Topology spacetime;
-  double d;
-  void constraints() {
-    boost::function_requires< MetricSpaceConcept< typename temporal_topology_traits<Topology>::space_topology > >();
-    boost::function_requires< MetricSpaceConcept< typename temporal_topology_traits<Topology>::time_topology > >();
-    d  = spacetime.distance(p1, p2);
-    d  = spacetime.norm(pd);
-    p1 = spacetime.random_point();
-    pd = spacetime.difference(p1,p2);
-    p1 = spacetime.move_position_toward(p1,d,p2);
-    p1 = spacetime.origin();
-    p1 = spacetime.adjust(p1,d * pd);
-    pd = -pd;
+struct TemporalSpaceConcept : public MetricSpaceConcept< Topology > {
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept< typename temporal_topology_traits<Topology>::space_topology >));
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept< typename temporal_topology_traits<Topology>::time_topology >));
+  
+  BOOST_CONCEPT_USAGE(TemporalSpaceConcept)
+  {
   };
   
 };

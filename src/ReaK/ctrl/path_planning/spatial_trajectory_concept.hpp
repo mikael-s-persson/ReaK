@@ -35,7 +35,7 @@
 #define REAK_SPATIAL_TRAJECTORY_CONCEPT_HPP
 
 #include "spatial_path_concept.hpp"
-#include "temporal_space.hpp"
+#include "temporal_space_concept.hpp"
 
 #include <boost/config.hpp>
 #include <cmath>
@@ -109,6 +109,9 @@ struct spatial_trajectory_traits {
  */
 template <typename SpatialTrajectory, typename Topology>
 struct SpatialTrajectoryConcept {
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((TemporalDistMetricConcept< typename spatial_trajectory_traits<SpatialTrajectory>::distance_metric, Topology >));
+  
   SpatialTrajectory p;
   typename temporal_topology_traits<Topology>::point_type pt;
   std::pair< typename spatial_path_traits<SpatialTrajectory>::const_waypoint_descriptor, 
@@ -117,9 +120,9 @@ struct SpatialTrajectoryConcept {
   typename time_topology::point_difference_type dt;
   typename time_topology::point_type t;
   double d;
-  void constraints() {
-    boost::function_requires< TemporalSpaceConcept<Topology> >();
-    boost::function_requires< TemporalDistMetricConcept< typename spatial_trajectory_traits<SpatialTrajectory>::distance_metric, Topology > >();
+  
+  BOOST_CONCEPT_USAGE(SpatialTrajectoryConcept)
+  {
     pt = p.move_away_from(pt, dt);
     d = p.travel_distance(pt, pt);
     pt = p.get_point(t);

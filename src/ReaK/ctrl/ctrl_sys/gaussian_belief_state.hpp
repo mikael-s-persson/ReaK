@@ -77,6 +77,8 @@ struct gaussian_pdf {
     
   typedef typename covariance_mat_traits<Covariance>::matrix_type matrix_type;
   
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<Covariance>));
+  
   state_type mean_state;
   mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> L; 
   scalar_type factor;
@@ -175,6 +177,8 @@ struct gaussian_pdf<Covariance, covariance_storage::information> {
     
   typedef typename covariance_mat_traits<Covariance>::matrix_type matrix_type;
   
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<Covariance>));
+  
   state_type mean_state;
   matrix_type E_inv;
   scalar_type factor;
@@ -255,7 +259,7 @@ struct gaussian_pdf<Covariance, covariance_storage::information> {
  * a gaussian belief-state. In other words, this is a probability distribution functor (PDF).
  * This class template specialization uses the fact that the covariance is represented as a decomposition of
  * the covariance matrix in order to have a more efficient implementation.
- * \tparam Covariance The covariance matrix type to represent the covariance of the state vector, should model the CovarianceMatrixConcept.
+ * \tparam Covariance The covariance matrix type to represent the covariance of the state vector, should model the DecomposedCovarianceConcept.
  */
 template <typename Covariance>
 struct gaussian_pdf<Covariance, covariance_storage::decomposed> {
@@ -269,6 +273,8 @@ struct gaussian_pdf<Covariance, covariance_storage::decomposed> {
   typedef Covariance covariance_type;
     
   typedef typename covariance_mat_traits<Covariance>::matrix_type matrix_type;
+  
+  BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<Covariance>));
   
   state_type mean_state;
   mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> QX;
@@ -380,7 +386,7 @@ scalar_type KL_divergence(const gaussian_pdf<Covariance,Storage>& N0,
 template <typename Covariance1, covariance_storage::tag Storage1,
           typename Covariance2, covariance_storage::tag Storage2>
 typename gaussian_pdf<Covariance1,Storage1>::scalar_type symKL_divergence(const gaussian_pdf<Covariance1,Storage1>& N0, 
-			     const gaussian_pdf<Covariance2,Storage2>& N1) {
+									  const gaussian_pdf<Covariance2,Storage2>& N1) {
   using std::log;
   typedef typename gaussian_pdf<Covariance1,Storage1>::scalar_type ScalarType;
   return ScalarType(-0.5) * log(N1(N0.mean_state) * N0(N1.mean_state)) - entropy(N0) - entropy(N1);
@@ -407,6 +413,8 @@ struct gaussian_sampler {
   typedef Covariance covariance_type;
     
   typedef typename covariance_mat_traits<Covariance>::matrix_type matrix_type;
+  
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<Covariance>));
   
   state_type mean_state;
   mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> L;
@@ -498,6 +506,9 @@ class gaussian_belief_state : public virtual shared_object {
     typedef gaussian_sampler<Covariance,boost::minstd_rand> random_sampler_type;
     
     typedef typename covariance_mat_traits<Covariance>::matrix_type matrix_type;
+    
+    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<Covariance>));
+    BOOST_CONCEPT_ASSERT((StateVectorConcept<StateType>));
     
     BOOST_STATIC_CONSTANT(belief_distribution::tag, distribution = belief_distribution::unimodal);
     BOOST_STATIC_CONSTANT(belief_representation::tag, representation = belief_representation::gaussian);

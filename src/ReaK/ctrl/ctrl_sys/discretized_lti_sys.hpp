@@ -84,6 +84,8 @@ class discretized_lti_sys : public named_object {
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = ss_system_traits<LTISystem>::dimensions);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = ss_system_traits<LTISystem>::input_dimensions);
     BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = ss_system_traits<LTISystem>::output_dimensions);
+    
+    BOOST_CONCEPT_ASSERT((LinearSSSystemConcept<LTISystem,LTISystemType>));
         
   private:
     LTISystem sys;

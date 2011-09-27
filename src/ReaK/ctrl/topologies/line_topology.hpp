@@ -35,12 +35,13 @@
 #define REAK_LINE_TOPOLOGY_HPP
 
 
+#include "base/defs.hpp"
+
 #include <boost/random/uniform_01.hpp>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
 #include <cmath>
-#include "base/defs.hpp"
 
 namespace ReaK {
 

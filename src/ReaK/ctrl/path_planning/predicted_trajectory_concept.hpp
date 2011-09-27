@@ -35,7 +35,7 @@
 #define REAK_PREDICTED_TRAJECTORY_CONCEPT_HPP
 
 #include "spatial_path_concept.hpp"
-#include "temporal_space.hpp"
+#include "temporal_space_concept.hpp"
 #include "spatial_trajectory_concept.hpp"
 
 #include <boost/config.hpp>
@@ -69,17 +69,12 @@ namespace pp {
  * \tparam Topology The temporal-topology type that can contain the trajectory.
  */
 template <typename PredictedTrajectory, typename Topology>
-struct PredictedTrajectoryConcept {
-  PredictedTrajectory p;
-  typename temporal_topology_traits<Topology>::point_type pt;
-  std::pair< typename spatial_path_traits<PredictedTrajectory>::const_waypoint_descriptor, 
-             typename temporal_topology_traits<Topology>::point_type> w_p;
-  typedef typename temporal_topology_traits<Topology>::time_topology time_topology;
-  time_topology::point_type t;
-  void constraints() {
-    boost::function_requires< SpatialTrajectoryConcept<PredictedTrajectory,Topology> >();
-    p.set_initial_point(pt, t);
-    p.set_initial_point(w_p, t);
+struct PredictedTrajectoryConcept : public SpatialTrajectoryConcept<PredictedTrajectory,Topology> {
+  
+  BOOST_CONCEPT_USAGE(PredictedTrajectoryConcept)
+  {
+    this->p.set_initial_point(this->pt, this->t);
+    this->p.set_initial_point(this->w_p, this->t);
   };
   
 };

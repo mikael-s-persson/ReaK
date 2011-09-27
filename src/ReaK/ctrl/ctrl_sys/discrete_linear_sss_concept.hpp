@@ -142,25 +142,19 @@ struct DiscreteLinearizedSystemType {
  * \tparam SystemType The concept class that tests the system-type, can be either DiscreteLTISystemType, DiscreteLTVSystemType or DiscreteLinearizedSystemType.
  */
 template <typename DiscreteSystem, typename SystemType = DiscreteLTISystemType >
-struct DiscreteLinearSSSConcept {
-  DiscreteSystem sys;
+struct DiscreteLinearSSSConcept : DiscreteSSSConcept<DiscreteSystem> {
   SystemType sys_type;
-  typename discrete_sss_traits<DiscreteSystem>::point_type p;
-  typename discrete_sss_traits<DiscreteSystem>::time_type t;
-  typename discrete_sss_traits<DiscreteSystem>::input_type u;
-  typename discrete_sss_traits<DiscreteSystem>::output_type y;
   
   typename discrete_linear_sss_traits<DiscreteSystem>::matrixA_type A;
   typename discrete_linear_sss_traits<DiscreteSystem>::matrixB_type B;
   typename discrete_linear_sss_traits<DiscreteSystem>::matrixC_type C;
   typename discrete_linear_sss_traits<DiscreteSystem>::matrixD_type D;
   
-  void constraints() {
-    boost::function_requires< DiscreteSSSConcept<DiscreteSystem> >();
-    
-    sys_type.constraints(sys, p, u, t, A, B, C, D);
-    p = A * p + B * u;
-    y = C * p + D * u;
+  BOOST_CONCEPT_USAGE(DiscreteLinearSSSConcept)
+  {
+    sys_type.constraints(this->sys, this->p, this->u, this->t, A, B, C, D);
+    this->p = A * this->p + B * this->u;
+    this->y = C * this->p + D * this->u;
   };
   
 };

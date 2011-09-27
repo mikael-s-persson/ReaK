@@ -141,28 +141,19 @@ struct LinearizedSystemType {
  * \tparam SystemType The concept class that tests the system-type, can be either LTISystemType, LTVSystemType or LinearizedSystemType.
  */
 template <typename LinearSSSystem, typename SystemType = LTISystemType >
-struct LinearSSSystemConcept {
-  LinearSSSystem sys;
+struct LinearSSSystemConcept : SSSystemConcept<LinearSSSystem> {
   SystemType sys_type;
-  typename ss_system_traits<LinearSSSystem>::point_type p;
-  typename ss_system_traits<LinearSSSystem>::point_difference_type dp; 
-  typename ss_system_traits<LinearSSSystem>::point_derivative_type dp_dt;
-  typename ss_system_traits<LinearSSSystem>::time_type t;
-  typename ss_system_traits<LinearSSSystem>::time_difference_type dt;
-  typename ss_system_traits<LinearSSSystem>::input_type u;
-  typename ss_system_traits<LinearSSSystem>::output_type y;
   
   typename linear_ss_system_traits<LinearSSSystem>::matrixA_type A;
   typename linear_ss_system_traits<LinearSSSystem>::matrixB_type B;
   typename linear_ss_system_traits<LinearSSSystem>::matrixC_type C;
   typename linear_ss_system_traits<LinearSSSystem>::matrixD_type D;
   
-  void constraints() {
-    boost::function_requires< SSSystemConcept<LinearSSSystem> >();
-    
-    sys_type.constraints(sys,p,u,t, A, B, C, D);
-    dp_dt = A * p + B * u;
-    y     = C * p + D * u;
+  BOOST_CONCEPT_USAGE(LinearSSSystemConcept)
+  {
+    sys_type.constraints(this->sys,this->p,this->u,this->t, A, B, C, D);
+    this->dp_dt = A * this->p + B * this->u;
+    this->y     = C * this->p + D * this->u;
   };
   
 };

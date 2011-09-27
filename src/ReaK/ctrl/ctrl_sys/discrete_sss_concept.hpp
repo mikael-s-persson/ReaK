@@ -102,7 +102,9 @@ struct DiscreteSSSConcept {
   typename discrete_sss_traits<DiscreteSystem>::time_difference_type dt;
   typename discrete_sss_traits<DiscreteSystem>::input_type u;
   typename discrete_sss_traits<DiscreteSystem>::output_type y;
-  void constraints() {
+  
+  BOOST_CONCEPT_USAGE(DiscreteSSSConcept)
+  {
     dp = -dp;
     dp = p - p;
     p = p + dp;

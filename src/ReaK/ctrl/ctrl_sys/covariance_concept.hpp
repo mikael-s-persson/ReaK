@@ -126,9 +126,13 @@ namespace covariance_initial_level {
  */
 template <typename CovarianceMatrix>
 struct CovarianceMatrixConcept {
-  CovarianceMatrix c;
   
   typedef typename covariance_mat_traits<CovarianceMatrix>::point_type state_type;
+  
+  BOOST_CONCEPT_ASSERT((StateVectorConcept<state_type>));
+  BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<typename covariance_mat_traits<CovarianceMatrix>::matrix_type>));
+  
+  CovarianceMatrix c;
   state_type p;
   typename state_vector_traits<state_type>::state_difference_type dp;
   typename state_vector_traits<state_type>::value_type s;
@@ -136,10 +140,8 @@ struct CovarianceMatrixConcept {
   
   typename covariance_mat_traits<CovarianceMatrix>::matrix_type m;
   
-  void constraints() {
-    boost::function_requires< ReadableMatrixConcept< typename covariance_mat_traits<CovarianceMatrix>::matrix_type > >();
-    boost::function_requires< StateVectorConcept< state_type > >();
-    
+  BOOST_CONCEPT_USAGE(CovarianceMatrixConcept)
+  {
     m = c.get_matrix();
     m = c.get_inverse_matrix();
     
@@ -173,7 +175,9 @@ struct decomp_covariance_mat_traits {
  * example, to implement filters in header-file symplectic_kalman_filter.hpp 
  * or header-file aggregate_kalman_filter.hpp .
  * 
- * Required concepts: CovarianceMatrix should model the CovarianceMatrixConcept.
+ * Required concepts: 
+ * 
+ * CovarianceMatrix should model the CovarianceMatrixConcept.
  * 
  * Valid expressions:
  * 
@@ -186,16 +190,15 @@ struct decomp_covariance_mat_traits {
  * \tparam CovarianceMatrix The covariance matrix type for which the traits are sought.
  */
 template <typename CovarianceMatrix>
-struct DecomposedCovarianceConcept {
-  CovarianceMatrix c;
+struct DecomposedCovarianceConcept : CovarianceMatrixConcept<CovarianceMatrix> {
   
-  typename decomp_covariance_mat_traits<CovarianceMatrix>::matrix_block_type m;
+  typename decomp_covariance_mat_traits<CovarianceMatrix>::matrix_block_type mb;
   
-  void constraints() {
-    boost::function_requires< CovarianceMatrixConcept<CovarianceMatrix> >();
-    c = CovarianceMatrix(m,m);
-    m = c.get_covarying_block();
-    m = c.get_informing_inv_block();
+  BOOST_CONCEPT_USAGE(DecomposedCovarianceConcept)
+  {
+    this->c = CovarianceMatrix(mb,mb);
+    mb = this->c.get_covarying_block();
+    mb = this->c.get_informing_inv_block();
   };
 };
 

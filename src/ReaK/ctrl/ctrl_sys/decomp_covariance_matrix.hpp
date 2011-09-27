@@ -71,6 +71,8 @@ class decomp_covariance_matrix : public named_object {
     typedef typename matrix_type::size_type size_type;
     
     typedef mat<value_type, mat_structure::square> matrix_block_type;
+        
+    BOOST_CONCEPT_ASSERT((StateVectorConcept<StateType>));
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = vect_traits<point_difference_type>::dimensions);
     BOOST_STATIC_CONSTANT(covariance_storage::tag, storage = covariance_storage::other);

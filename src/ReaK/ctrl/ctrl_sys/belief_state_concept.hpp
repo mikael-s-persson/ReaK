@@ -112,15 +112,16 @@ struct belief_state_traits {
  */
 template <typename BeliefState>
 struct BeliefStateConcept {
+  BOOST_CONCEPT_ASSERT((StateVectorConcept<typename belief_state_traits<BeliefState>::state_type>));
+  
   BeliefState b;
   typename belief_state_traits<BeliefState>::state_type v;
   typename belief_state_traits<BeliefState>::scalar_type s;
   typename belief_state_traits<BeliefState>::pdf_type p;
   typename belief_state_traits<BeliefState>::random_sampler_type rs;
   
-  void constraints() {
-    boost::function_requires< StateVectorConcept< typename belief_state_traits<BeliefState>::state_type > >();
-    
+  BOOST_CONCEPT_USAGE(BeliefStateConcept)
+  {
     p = b.get_pdf();
     s = p(v);
     v = b.get_most_likely_state();
@@ -199,22 +200,20 @@ struct continuous_belief_state_traits {
  * \tparam ContBeliefState The continuous belief-state type to be tested against the continuous belief-state concept.
  */
 template <typename ContBeliefState>
-struct ContinuousBeliefStateConcept {
-  ContBeliefState b;
-  typename continuous_belief_state_traits<ContBeliefState>::state_type v;
-  typename continuous_belief_state_traits<ContBeliefState>::scalar_type s;
+struct ContinuousBeliefStateConcept : BeliefStateConcept<ContBeliefState> {
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept< typename continuous_belief_state_traits<ContBeliefState>::covariance_type >));
+  
   typename continuous_belief_state_traits<ContBeliefState>::covariance_type c;
   
-  void constraints() {
-    boost::function_requires< BeliefStateConcept<ContBeliefState> >();
-    boost::function_requires< CovarianceMatrixConcept< typename continuous_belief_state_traits<ContBeliefState>::covariance_type > >();
-    v = b.get_mean_state();
-    c = b.get_covariance();
+  BOOST_CONCEPT_USAGE(ContinuousBeliefStateConcept)
+  {
+    this->v = this->b.get_mean_state();
+    this->c = this->b.get_covariance();
     
-    s = diff(v,v) * ( c.get_inverse_matrix() * diff(v,v) );
+    this->s = diff(this->v,this->v) * ( this->c.get_inverse_matrix() * diff(this->v,this->v) );
     
-    b.set_mean_state(v);
-    b.set_covariance(c);
+    this->b.set_mean_state(this->v);
+    this->b.set_covariance(this->c);
   };
   
 };
@@ -278,11 +277,15 @@ struct belief_transfer_traits {
  */
 template <typename BeliefTransfer>
 struct BeliefTransferConcept {
-  BeliefTransfer f;
   typedef typename belief_transfer_traits< BeliefTransfer >::belief_state BeliefState;
   typedef typename belief_transfer_traits< BeliefTransfer >::state_space_system StateSpaceSystem;
   typedef typename belief_transfer_traits< BeliefTransfer >::time_type TimeType;
   typedef typename belief_transfer_traits< BeliefTransfer >::time_difference_type TimeDiffType;
+  
+  BOOST_CONCEPT_ASSERT((BeliefStateConcept< BeliefState >));
+  BOOST_CONCEPT_ASSERT((SSSystemConcept< StateSpaceSystem >));
+  
+  BeliefTransfer f;
   typename ss_system_traits<StateSpaceSystem>::input_type u;
   typename ss_system_traits<StateSpaceSystem>::output_type y;
   BeliefState b;
@@ -290,10 +293,8 @@ struct BeliefTransferConcept {
   TimeType t;
   TimeDiffType dt;
 
-  void constraints() {
-    boost::function_requires< BeliefStateConcept< BeliefState > >();
-    boost::function_requires< SSSystemConcept< StateSpaceSystem > >();
-
+  BOOST_CONCEPT_USAGE(BeliefTransferConcept)
+  {
     dt = f.get_time_step();
     sys = f.get_ss_system();
     b = f.get_next_belief(b, t, u, y);
@@ -343,27 +344,13 @@ struct is_belief_transfer {
  * \tparam BeliefPredictor The belief predictor function type to be checked.
  */
 template <typename BeliefPredictor>
-struct BeliefPredictorConcept {
-  BeliefPredictor f;
-  typedef typename belief_transfer_traits< BeliefPredictor >::belief_state BeliefState;
-  typedef typename belief_transfer_traits< BeliefPredictor >::state_space_system StateSpaceSystem;
-  typedef typename belief_transfer_traits< BeliefPredictor >::time_type TimeType;
-  typedef typename belief_transfer_traits< BeliefPredictor >::time_difference_type TimeDiffType;
-  typename ss_system_traits<StateSpaceSystem>::input_type u;
-  typename ss_system_traits<StateSpaceSystem>::output_type y;
-  BeliefState b;
-  StateSpaceSystem sys;
-  TimeType t;
-  TimeDiffType dt;
-
-  void constraints() {
-    boost::function_requires< BeliefStateConcept< BeliefState > >();
-    boost::function_requires< SSSystemConcept< StateSpaceSystem > >();
-    boost::function_requires< BeliefTransferConcept< BeliefPredictor > >();
-
-    b = f.predict_belief(b, t, u);
-    b = f.prediction_to_ML_belief(b, t, u);
-    b = f.predict_ML_belief(b, t, u);
+struct BeliefPredictorConcept : BeliefTransferConcept<BeliefPredictor> {
+  
+  BOOST_CONCEPT_USAGE(BeliefPredictorConcept)
+  {
+    this->b = this->f.predict_belief(this->b, this->t, this->u);
+    this->b = this->f.prediction_to_ML_belief(this->b, this->t, this->u);
+    this->b = this->f.predict_ML_belief(this->b, this->t, this->u);
   };
 };
 

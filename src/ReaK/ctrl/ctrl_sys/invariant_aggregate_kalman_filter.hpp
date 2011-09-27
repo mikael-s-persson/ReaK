@@ -63,9 +63,10 @@ void >::type invariant_aggregate_kf_step(const InvariantSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  boost::function_requires< DiscreteLinearSSSConcept< InvariantSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< InvariantDiscreteSystemConcept<InvariantSystem> >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
+  BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
 
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
   typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;

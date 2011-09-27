@@ -103,13 +103,16 @@ struct spatial_path_traits {
  */
 template <typename SpatialPath, typename Topology>
 struct SpatialPathConcept {
+  
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((DistanceMetricConcept< typename spatial_path_traits<SpatialPath>::distance_metric, Topology >));
+  
   SpatialPath p;
   Topology::point_type pt;
   std::pair< typename spatial_path_traits<SpatialPath>::const_waypoint_descriptor, Topology::point_type> w_p;
   double d;
-  void constraints() {
-    boost::function_requires< MetricSpaceConcept<Topology> >();
-    boost::function_requires< DistanceMetricConcept< typename spatial_path_traits<SpatialPath>::distance_metric, Topology > >();
+  BOOST_CONCEPT_USAGE(SpatialPathConcept)
+  {
     pt  = p.move_away_from(pt, d);
     d   = p.travel_distance(pt, pt);
     w_p = p.move_away_from(w_p, d);

@@ -113,32 +113,18 @@ struct invariant_system_traits {
  * \tparam InvariantDiscreteSystem The state-space system to be checked for compliance to this concept.
  */
 template <typename InvariantDiscreteSystem>
-struct InvariantDiscreteSystemConcept {
-  InvariantDiscreteSystem sys;
-  typename invariant_system_traits<InvariantDiscreteSystem>::point_type p;
-  typename invariant_system_traits<InvariantDiscreteSystem>::point_type prev_p;
-  typename invariant_system_traits<InvariantDiscreteSystem>::time_type t;
-  typename invariant_system_traits<InvariantDiscreteSystem>::input_type u;
-  typename invariant_system_traits<InvariantDiscreteSystem>::output_type y;
+struct InvariantDiscreteSystemConcept : DiscreteLinearSSSConcept<InvariantDiscreteSystem,DiscreteLinearizedSystemType> {
   typename invariant_system_traits<InvariantDiscreteSystem>::invariant_error_type e;
   typename invariant_system_traits<InvariantDiscreteSystem>::invariant_correction_type c;
   typename invariant_system_traits<InvariantDiscreteSystem>::invariant_frame_type W;
   
-  typename discrete_linear_sss_traits<InvariantDiscreteSystem>::matrixA_type A;
-  typename discrete_linear_sss_traits<InvariantDiscreteSystem>::matrixB_type B;
-  typename discrete_linear_sss_traits<InvariantDiscreteSystem>::matrixC_type C;
-  typename discrete_linear_sss_traits<InvariantDiscreteSystem>::matrixD_type D;
-  
-  void constraints() {
-    boost::function_requires< DiscreteSSSConcept<InvariantDiscreteSystem> >();
-    
-    DiscreteLinearizedSystemType().constraints(sys, p, u, t, A, B, C, D);
-    
-    e = sys.get_invariant_error(p,u,y,t);
-    c = transpose(C) * e;
-    p = sys.apply_correction(p,c,u,t);
-    W = sys.get_invariant_prior_frame(prev_p,p,u,t);
-    W = sys.get_invariant_posterior_frame(prev_p,p,u,t);
+  BOOST_CONCEPT_USAGE(InvariantDiscreteSystemConcept)
+  {
+    this->e = this->sys.get_invariant_error(this->p,this->u,this->y,this->t);
+    this->c = transpose(this->C) * this->e;
+    this->p = this->sys.apply_correction(this->p,this->c,this->u,this->t);
+    this->W = this->sys.get_invariant_prior_frame(this->p,this->p,this->u,this->t);
+    this->W = this->sys.get_invariant_posterior_frame(this->p,this->p,this->u,this->t);
   };
   
 };
@@ -165,29 +151,15 @@ struct InvariantDiscreteSystemConcept {
  * \tparam InvariantContinuousSystem The state-space system to be checked for compliance to this concept.
  */
 template <typename InvariantContinuousSystem>
-struct InvariantContinuousSystemConcept {
-  InvariantContinuousSystem sys;
-  typename invariant_system_traits<InvariantContinuousSystem>::point_type p;
-  typename ss_system_traits<InvariantContinuousSystem>::point_derivative_type dp_dt;
-  typename invariant_system_traits<InvariantContinuousSystem>::time_type t;
-  typename invariant_system_traits<InvariantContinuousSystem>::input_type u;
-  typename invariant_system_traits<InvariantContinuousSystem>::output_type y;
+struct InvariantContinuousSystemConcept : LinearSSSystemConcept<InvariantContinuousSystem,LinearizedSystemType> {
   typename invariant_system_traits<InvariantContinuousSystem>::invariant_error_type e;
   typename invariant_system_traits<InvariantContinuousSystem>::invariant_correction_type c;
-    
-  typename linear_ss_system_traits<InvariantContinuousSystem>::matrixA_type A;
-  typename linear_ss_system_traits<InvariantContinuousSystem>::matrixB_type B;
-  typename linear_ss_system_traits<InvariantContinuousSystem>::matrixC_type C;
-  typename linear_ss_system_traits<InvariantContinuousSystem>::matrixD_type D;
   
-  void constraints() {
-    boost::function_requires< SSSystemConcept<InvariantContinuousSystem> >();
-    
-    LinearizedSystemType().constraints(sys, p, u, t, A, B, C, D);
-    
-    e     = sys.get_invariant_error(p,u,y,t);
-    c     = transpose(C) * e;
-    dp_dt = sys.apply_correction(p,dp_dt,c,u,t);
+  BOOST_CONCEPT_USAGE(InvariantContinuousSystemConcept)
+  {
+    this->e     = this->sys.get_invariant_error(this->p,this->u,this->y,this->t);
+    this->c     = transpose(this->C) * this->e;
+    this->dp_dt = this->sys.apply_correction(this->p,this->dp_dt,this->c,this->u,this->t);
   };
   
 };

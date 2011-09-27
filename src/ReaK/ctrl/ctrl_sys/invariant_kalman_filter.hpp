@@ -91,10 +91,10 @@ void >::type invariant_kalman_predict(const InvariantSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  boost::function_requires< DiscreteLinearSSSConcept< InvariantSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< InvariantDiscreteSystemConcept<InvariantSystem> >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
-
+  BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+  
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
   typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
@@ -157,9 +157,9 @@ void >::type invariant_kalman_update(const InvariantSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  boost::function_requires< DiscreteLinearSSSConcept< InvariantSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< InvariantDiscreteSystemConcept<InvariantSystem> >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
+  BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
 
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
   typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
@@ -234,9 +234,10 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  boost::function_requires< DiscreteLinearSSSConcept< InvariantSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< InvariantDiscreteSystemConcept<InvariantSystem> >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
+  BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
 
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
   typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
@@ -303,7 +304,12 @@ struct IKF_belief_transfer {
   typedef typename covariance_mat_traits< covariance_type >::matrix_type matrix_type;
 
   typedef typename discrete_sss_traits< state_space_system >::input_type input_type;
-  typedef typename discrete_sss_traits< state_space_system >::output_type output_type;
+  typedef typename discrete_sss_traits< state_space_system >::output_type output_type; 
+  
+  BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovar>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementCovar>));
 
   const InvariantSystem* sys; ///< Holds the reference to the system used for the filter.
   SystemNoiseCovar Q; ///< Holds the system's input noise covariance matrix.

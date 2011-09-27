@@ -97,9 +97,10 @@ void >::type aggregate_kalman_predict(const LinearSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  boost::function_requires< DiscreteLinearSSSConcept< LinearSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
-
+  BOOST_CONCEPT_ASSERT((DiscreteLinearSSSConcept< LinearSystem, DiscreteLinearizedSystemType >));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+  
   typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
@@ -174,8 +175,9 @@ void >::type aggregate_kalman_update(const LinearSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  boost::function_requires< DiscreteLinearSSSConcept< LinearSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
+  BOOST_CONCEPT_ASSERT((DiscreteLinearSSSConcept< LinearSystem, DiscreteLinearizedSystemType >));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
 
   typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
@@ -267,9 +269,11 @@ void >::type aggregate_kalman_filter_step(const LinearSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  boost::function_requires< DiscreteLinearSSSConcept< LinearSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
-
+  BOOST_CONCEPT_ASSERT((DiscreteLinearSSSConcept< LinearSystem, DiscreteLinearizedSystemType >));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
+  
   typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
@@ -335,6 +339,12 @@ template <typename LinearSystem,
           typename SystemNoiseCovar = covariance_matrix< typename discrete_sss_traits< LinearSystem >::input_type >,
           typename MeasurementCovar = covariance_matrix< typename discrete_sss_traits< LinearSystem >::output_type > >
 struct AKF_belief_transfer {
+  
+  BOOST_CONCEPT_ASSERT((DiscreteLinearSSSConcept< LinearSystem, DiscreteLinearizedSystemType >));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovar>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementCovar>));
+  
   typedef AKF_belief_transfer<LinearSystem, BeliefState> self;
   typedef BeliefState belief_state;
   typedef LinearSystem state_space_system;

@@ -59,10 +59,13 @@ namespace pp {
 template <typename Topology, typename DistanceMetric = default_distance_metric>
 struct point_to_point_path {
   public:
+    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric>));
+    
     typedef point_to_point_path<Topology,DistanceMetric> self;
     typedef Topology topology;
-    typedef Topology::point_type point_type;
-    typedef Topology::point_difference_type point_difference_type;
+    typedef typename metric_topology_traits<Topology>::point_type point_type;
+    typedef typename metric_topology_traits<Topology>::point_difference_type point_difference_type;
     
     typedef typename std::list<point_type>::iterator waypoint_descriptor;
     typedef typename std::list<point_type>::const_iterator const_waypoint_descriptor;
@@ -83,10 +86,6 @@ struct point_to_point_path {
     
     point_to_point_path(const point_to_point_path<Topology,DistanceMetric>&); //non-copyable.
     point_to_point_path<Topology,DistanceMetric>& operator=(const point_to_point_path<Topology,DistanceMetric>&);
-    
-    void constraints() {
-      boost::function_requires< SpatialPathConcept<point_to_point_path<Topology,DistanceMetric>, Topology> >();
-    };
     
     const_waypoint_bounds get_waypoint_bounds(const point_type& p, const_waypoint_descriptor start) const {
       const_waypoint_descriptor it_end = waypoints.end();
@@ -184,8 +183,9 @@ struct point_to_point_path {
      * Standard swap function.
      */
     friend void swap(self& lhs, self& rhs) throw() {
-      std::swap(lhs.start_point, rhs.start_point);
-      std::swap(lhs.end_point, rhs.end_point);
+      using std::swap;
+      swap(lhs.start_point, rhs.start_point);
+      swap(lhs.end_point, rhs.end_point);
       lhs.waypoints.swap(rhs.waypoints);
     };
     

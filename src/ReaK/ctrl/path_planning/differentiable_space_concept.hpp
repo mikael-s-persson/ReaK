@@ -108,11 +108,13 @@ struct DifferentiableSpaceConcept : DifferentiableSpaceConcept<DifferentiableSpa
 
 template <typename DifferentiableSpace, typename IndependentTopology>
 struct DifferentiableSpaceConcept<DifferentiableSpace, 0, IndependentTopology> {
-  DifferentiableSpace diff_space;
+  
   typedef typename derived_N_order_space<DifferentiableSpace,0>::type base_space_type;
+  
   BOOST_CONCEPT_ASSERT((MetricSpaceConcept< base_space_type >));
   BOOST_CONCEPT_ASSERT((MetricSpaceConcept< IndependentTopology >));
   
+  DifferentiableSpace diff_space;
   IndependentTopology t_space;
   
   BOOST_CONCEPT_USAGE(DifferentiableSpaceConcept) 

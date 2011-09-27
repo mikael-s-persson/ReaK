@@ -36,13 +36,14 @@
 #ifndef REAK_COVAR_TOPOLOGY_HPP
 #define REAK_COVAR_TOPOLOGY_HPP
 
+#include "base/defs.hpp"
+
 #include "covariance_concept.hpp"
 #include "lin_alg/mat_norms.hpp"
 
 #include <boost/random/uniform_01.hpp>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
-#include <boost/shared_ptr.hpp>
 
 #include "lin_alg/mat_qr_decomp.hpp"
 #include "lin_alg/mat_exp_methods.hpp"
@@ -76,6 +77,8 @@ class covar_topology {
     typedef typename covariance_mat_traits<Covariance>::value_type value_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = point_type::dimensions);
+    
+    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<Covariance>));
     
     /**
      * This nested class implements the point-difference type for the covariance topology.
@@ -139,8 +142,8 @@ class covar_topology {
     
     
   private:
-    boost::shared_ptr<RandomNumberGenerator> gen_ptr;
-    boost::shared_ptr<rand_t> rand;
+    typename shared_pointer<RandomNumberGenerator>::type gen_ptr;
+    typename shared_pointer<rand_t>::type rand;
     value_type max_eigenvalue;
     size_type mat_size;
     

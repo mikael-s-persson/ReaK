@@ -112,16 +112,18 @@ void >::type invariant_symplectic_kf_predict(const InvariantSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  boost::function_requires< DiscreteLinearSSSConcept< InvariantSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< InvariantDiscreteSystemConcept<InvariantSystem> >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
-
+  
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
   typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type ErrorType;
   
-  boost::function_requires< DecomposedCovarianceConcept<CovType> >();
+  BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<InvCovTransMatrix>));
+  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<InvFrameMatrix>));
+  BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<CovType>));
   
   typedef typename decomp_covariance_mat_traits< CovType >::matrix_block_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
@@ -210,16 +212,18 @@ void >::type invariant_symplectic_kf_update(const InvariantSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  boost::function_requires< DiscreteLinearSSSConcept< InvariantSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< InvariantDiscreteSystemConcept<InvariantSystem> >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
-
+  
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
   typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type ErrorType;
   
-  boost::function_requires< DecomposedCovarianceConcept<CovType> >();
+  BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
+  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<InvCovTransMatrix>));
+  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<InvFrameMatrix>));
+  BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<CovType>));
   
   typedef typename decomp_covariance_mat_traits< CovType >::matrix_block_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
@@ -319,16 +323,19 @@ void >::type invariant_symplectic_kf_step(const InvariantSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  boost::function_requires< DiscreteLinearSSSConcept< InvariantSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< InvariantDiscreteSystemConcept<InvariantSystem> >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
-
+  
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
   typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type ErrorType;
   
-  boost::function_requires< DecomposedCovarianceConcept<CovType> >();
+  BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
+  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<InvCovTransMatrix>));
+  BOOST_CONCEPT_ASSERT((WritableMatrixConcept<InvFrameMatrix>));
+  BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<CovType>));
   
   typedef typename decomp_covariance_mat_traits< CovType >::matrix_block_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
@@ -411,6 +418,12 @@ struct ISKF_belief_transfer {
 
   typedef typename discrete_sss_traits< state_space_system >::input_type input_type;
   typedef typename discrete_sss_traits< state_space_system >::output_type output_type;
+  
+  BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovar>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementCovar>));
+  BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<covariance_type>));
 
   
   const LinearSystem* sys;

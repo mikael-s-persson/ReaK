@@ -115,12 +115,15 @@ struct reachability_topology_traits {
  */
 template <typename ReachabilityTopology>
 struct ReachabilitySpaceConcept {
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept< typename reachability_topology_traits<ReachabilityTopology>::temporal_space_type >));
+  
   typename reachability_topology_traits<ReachabilityTopology>::point_type p1;
   typename reachability_topology_traits<ReachabilityTopology>::point_difference_type pd;
   ReachabilityTopology reachable_space;
   double d;
-  void constraints() {
-    boost::function_requires< TemporalSpaceConcept< typename reachability_topology_traits<ReachabilityTopology>::temporal_space_type > >();
+  
+  BOOST_CONCEPT_USAGE(ReachabilitySpaceConcept)
+  {
     d = reachable_space.forward_reach(p1);
     d = reachable_space.backward_reach(p1);
     d = reachable_space.forward_norm(pd);

@@ -54,10 +54,10 @@ struct StateEstimatorConcept {
   typename discrete_sss_traits<system_type>::output_type y;
   typename discrete_sss_traits<system_type>::time_type t;
   
+  BOOST_CONCEPT_ASSERT((BeliefStateConcept< typename state_estimator_traits<StateEstimator>::belief_type >));
+  BOOST_CONCEPT_ASSERT((DiscreteSSSConcept< typename state_estimator_traits<StateEstimator>::system_type >));
+  
   void constraints() {
-    boost::function_requires< BeliefStateConcept< typename state_estimator_traits<StateEstimator>::belief_type > >();
-    boost::function_requires< DiscreteSSSConcept< typename state_estimator_traits<StateEstimator>::system_type > >();
-    
     b = e.predict_next_belief(b,u,t);
     b = e.update_belief(b,u,y,t);
   };

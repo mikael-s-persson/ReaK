@@ -67,6 +67,10 @@ namespace detail {
     
     typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type invariant_error_type;
     
+    BOOST_CONCEPT_ASSERT((InvariantContinuousSystemConcept< InvariantSystem >));
+    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
+    
     const InvariantSystem& sys;
     const input_type& u;
     const output_type& z;
@@ -143,9 +147,10 @@ void >::type invariant_kalman_bucy_filter_step(const InvariantSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
-  boost::function_requires< LinearSSSystemConcept< InvariantSystem, LinearizedSystemType > >();
-  boost::function_requires< InvariantContinuousSystemConcept<InvariantSystem> >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
+  BOOST_CONCEPT_ASSERT((InvariantContinuousSystemConcept<InvariantSystem>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
   
   typedef typename ss_system_traits<InvariantSystem>::point_type StateType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;

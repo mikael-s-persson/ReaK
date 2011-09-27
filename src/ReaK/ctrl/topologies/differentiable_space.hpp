@@ -59,18 +59,11 @@ struct default_differentiation_rule {
 
 
 template <typename FirstOrderSpace, typename SecondOrderSpace, typename IndependentSpace = time_topology, typename DifferentiationRule = default_differentiation_rule>
-class differentiable_space : public FirstOrderSpace {
+class differentiable_space {
   public:
-    typedef differentiable_space<FirstOrderSpace,SecondOrderSpace,IndependentSpace> self;
-    typedef SecondOrderSpace derivative_space;
-    typedef DifferentiationRule diff_rule;
-    
-    typedef typename metric_topology_traits<derivative_space>::point_type point_derivative_type;
     
     
     
-  protected:
-    derivative_space tangent_space;
 };
 
 

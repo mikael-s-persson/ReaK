@@ -111,7 +111,9 @@ struct SSSystemConcept {
   typename ss_system_traits<SSSystem>::time_difference_type dt;
   typename ss_system_traits<SSSystem>::input_type u;
   typename ss_system_traits<SSSystem>::output_type y;
-  void constraints() {
+  
+  BOOST_CONCEPT_USAGE(SSSystemConcept)
+  {
     dp = -dp;
     p = p + dp;
     t = t + dt;

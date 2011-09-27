@@ -45,6 +45,7 @@
 
 #include <map>
 #include <vector>
+#include "metric_space_concept.hpp"
 
 namespace boost {
 
@@ -99,7 +100,8 @@ class random_best_vp_chooser {
      */
     template <typename RandomAccessIter, typename Topology, typename PositionMap>
     RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, const Topology& aSpace, PositionMap aPosition) {
-      typedef typename Topology::point_type Point;
+      BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+      typedef typename metric_topology_traits<Topology>::point_type Point;
       RandomAccessIter best_pt = aEnd;
       double best_dev = -1;
       for(unsigned int i=0; i < (aEnd - aBegin) / m_divider + 1;++i) {
@@ -145,8 +147,10 @@ template <typename Key,
 class dvp_tree
 {
   public:
-    typedef typename Topology::point_type point_type;
-    typedef typename Topology::point_difference_type point_difference_type;
+    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+    
+    typedef typename metric_topology_traits<Topology>::point_type point_type;
+    typedef typename metric_topology_traits<Topology>::point_difference_type point_difference_type;
     typedef double distance_type;
     
   private:

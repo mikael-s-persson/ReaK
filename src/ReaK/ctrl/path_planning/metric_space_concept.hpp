@@ -88,10 +88,12 @@ template <typename DistanceMetric, typename Topology>
 struct DistanceMetricConcept {
   DistanceMetric d;
   Topology s;
-  Topology::point_type p1, p2;
-  Topology::point_difference_type pd;
+  typename metric_topology_traits<Topology>::point_type p1, p2;
+  typename metric_topology_traits<Topology>::point_difference_type pd;
   double dist;
-  void constraints() {
+  
+  BOOST_CONCEPT_USAGE(DistanceMetricConcept) 
+  {
     dist = d(p1, p2, s);
     dist = d(pd, s);
   };
@@ -117,9 +119,13 @@ struct DistanceMetricConcept {
  * 
  * p1 = space.origin();  The origin of the space can be obtained.
  * 
- * p1 = space.adjust(p1,d * pd + pd);  A point-difference can be scaled (d * pd), added to another point-difference and added to a point (p1) to obtain an adjusted point.
+ * p1 = space.adjust(p1,d * pd + pd - pd);  A point-difference can be scaled (d * pd), added / subtracted to another point-difference and added to a point (p1) to obtain an adjusted point.
  * 
- * pd = -pd;  A point-difference can be negated (reversed).
+ * pd = -pd;  A point-difference can be negated (reversed) and is assignable.
+ *
+ * pd -= pd;  A point-difference can be subtracted-and-assigned.
+ *
+ * pd += pd;  A point-difference can be added-and-assigned.
  * 
  * \tparam Topology The topology type to be checked for this concept.
  */
@@ -129,15 +135,19 @@ struct MetricSpaceConcept {
   typename metric_topology_traits<Topology>::point_difference_type pd;
   Topology space;
   double d;
-  void constraints() {
+  
+  BOOST_CONCEPT_USAGE(MetricSpaceConcept) 
+  {
     d  = space.distance(p1, p2);
     d  = space.norm(pd);
     p1 = space.random_point();
     pd = space.difference(p1,p2);
     p1 = space.move_position_toward(p1,d,p2);
     p1 = space.origin();
-    p1 = space.adjust(p1,d * pd + pd);
+    p1 = space.adjust(p1,d * pd + pd - pd);
     pd = -pd;
+    pd -= pd;
+    pd += pd;
   };
   
 };

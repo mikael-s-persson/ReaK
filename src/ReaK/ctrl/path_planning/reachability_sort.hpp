@@ -66,6 +66,8 @@ namespace pp {
 template <typename Graph, typename PositionMap, typename ReachabilityTopology>
 class reachability_sorted_set {
   public:
+    BOOST_CONCEPT_ASSERT((ReachabilitySpaceConcept<ReachabilityTopology>));
+    
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
     typedef typename reachability_topology_traits<ReachabilityTopology>::point_type Point;
@@ -146,7 +148,6 @@ class reachability_sorted_set {
      */
     reachability_sorted_set(Graph& g, PositionMap position, const ReachabilityTopology& space) :
                             m_g(g), m_position(position), m_space(space) { 
-      boost::function_requires< ReachabilitySpaceConcept<ReachabilityTopology> >();
       VertexIter ui, ui_end;
       for(boost::tie(ui, ui_end) = boost::vertices(m_g); ui != ui_end; ++ui) {
 	Point p = boost::get(m_position,*ui);
