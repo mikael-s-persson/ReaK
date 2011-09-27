@@ -47,33 +47,18 @@ namespace ReaK {
 namespace pp {
 
 
-/**
- * This meta-function computes the metric-space type of the derivative of a metric-space 
- * with respect to another space.
- * \tparam DependentSpace The space type for which the derivative space type is sought.
- * \tparam IndependentSpace The space type against which the derivative is taken.
- */
-template <typename DependentSpace, typename IndependentSpace>
-struct derivative_space {
-  /** The type that describes the derivative space of the DependentSpace against the IndependentSpace. */
-  typedef void type;
-  /** The bool-type that tells if this derivative space is available. */
-  typedef boost::mpl::false_ is_available;
-};
+
+template <typename DifferentiableSpace>
+struct differentiable_space_traits {
   
-/**
- * This meta-function computes the metric-space type of the integral of a metric-space 
- * with respect to another space.
- * \tparam DependentSpace The space type for which the integral space type is sought.
- * \tparam IndependentSpace The space type against which the integral is taken.
- */
-template <typename DependentSpace, typename IndependentSpace>
-struct integral_space {
-  /** The type that describes the integral space of the DependentSpace against the IndependentSpace. */
-  typedef void type;
-  /** The bool-type that tells if this integral space is available. */
-  typedef boost::mpl::false_ is_available;
+  BOOST_STATIC_CONSTANT(unsigned int, order = 0);
 };
+
+template <typename DifferentiableSpace, unsigned int Order>
+struct derived_N_order_space {
+  typedef typename DifferentiableSpace::template space<Order>::type type;
+};
+
 
 
 /**
@@ -88,42 +73,53 @@ struct integral_space {
  * 
  * Valid expressions:
  * 
- * v_space = diff_relation.get_derivative_space(space, t_space);  The derivative space (v_space) of the metric space (space) can be obtained given an independent space (e.g. time topology, t_space).
+ * space = diff_space.get_space<0..N>();  The metric space (space) corresponding to the 0 to Nth order derivative space can be obtained given an independent space (e.g. time topology, t_space).
  * 
- * space = diff_relation.get_integral_space(v_space, t_space);  The metric space (space) that is an integral of the derivative space (v_space) can be obtained given an independent space (e.g. time topology, t_space).
+ * v = diff_space.lift_to_space<1..N>(dp,dt);  A derivative-point (v) can be obtained from lifting a point-difference (dp) from the space via a difference-point on the independent space (dt). This expression is analogous to v = dp / dt.
  * 
- * v = diff_relation.lift_to_derivative(dp,dt);  A derivative-point (v) can be obtained from lifting a point-difference (dp) from the space via a difference-point on the independent space (dt). This expression is analogous to v = dp / dt.
- * 
- * dp = diff_relation.descend_from_derivative(v,dt);  A point-difference (dp) can be obtained from descending a derivative-point (v) to the space via a difference-point on the independent space (dt). This expression is analogous to dp = v * dt.
+ * dp = diff_space.descend_to_space<0..N-1>(v,dt);  A point-difference (dp) can be obtained from descending a derivative-point (v) to the space via a difference-point on the independent space (dt). This expression is analogous to dp = v * dt.
  * 
  * \tparam Topology The topology type to be checked for this concept.
  */
-template <typename DifferentialRelation, typename DependentTopology, typename IndependentTopology>
-struct DifferentialRelationConcept {
-  DifferentialRelation diff_relation;
+template <typename DifferentiableSpace, unsigned int Order, typename IndependentTopology>
+struct DifferentiableSpaceConcept : DifferentiableSpaceConcept<DifferentiableSpace, Order-1, IndependentTopology> {
   
-  DependentTopology space;
-  typename metric_topology_traits<DependentTopology>::point_difference_type dp;
+  BOOST_STATIC_ASSERT(differentiable_space_traits<DifferentiableSpace>::order >= Order);
   
-  typedef typename derivative_space<DependentTopology,IndependentTopology>::type DerivativeSpace;
-  DerivativeSpace v_space;
-  typename metric_topology_traits<DerivativeSpace>::point_type v;
+  typedef typename derived_N_order_space<DifferentiableSpace,Order-1>::type base_space_type;
+  typedef typename derived_N_order_space<DifferentiableSpace,Order>::type derived_space_type;
   
-  IndependentTopology t_space;
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept< derived_space_type >));
+  
+  typename metric_topology_traits<base_space_type>::point_difference_type dp;
+  
+  typename metric_topology_traits<derived_space_type>::point_type v;
+  
   typename metric_topology_traits<IndependentTopology>::point_difference_type dt;
   
-  void constraints() {
-    boost::function_requires< MetricSpaceConcept< DependentTopology > >();
-    boost::function_requires< MetricSpaceConcept< IndependentTopology > >();
-    boost::function_requires< MetricSpaceConcept< DerivativeSpace > >();
-    const DerivativeSpace& v_space = diff_relation.get_derivative_space(space,t_space);
-    const DependentTopology& space = diff_relation.get_derivative_space(v_space,t_space);
-    v = diff_relation.lift_to_derivative(dp,dt);
-    dp = diff_relation.descend_from_derivative(v,dt);
+  BOOST_CONCEPT_USAGE(DifferentiableSpaceConcept) 
+  {
+    const derived_space_type& space = this->diff_space.get_space<Order>(this->t_space);
+    v = this->diff_space.lift_to_space<Order>(dp,dt);
+    dp = this->diff_space.descend_to_space<Order-1>(v,dt);
   };
   
 };
 
+template <typename DifferentiableSpace, typename IndependentTopology>
+struct DifferentiableSpaceConcept<DifferentiableSpace, 0, IndependentTopology> {
+  DifferentiableSpace diff_space;
+  typedef typename derived_N_order_space<DifferentiableSpace,0>::type base_space_type;
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept< base_space_type >));
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept< IndependentTopology >));
+  
+  IndependentTopology t_space;
+  
+  BOOST_CONCEPT_USAGE(DifferentiableSpaceConcept) 
+  { 
+    const base_space_type& space = this->diff_space.get_space<0>(this->t_space);
+  };
+};
 
 
 };
