@@ -40,6 +40,12 @@
 #include "time_topology.hpp"
 #include "path_planning/metric_space_concept.hpp"
 
+#ifdef RK_ENABLE_CXX0X_FEATURES
+#include <tuple>
+#else
+#include <boost/tuple/tuple.hpp>
+#endif
+
 namespace ReaK {
 
 namespace pp {
@@ -54,6 +60,325 @@ struct default_differentiation_rule {
   static void descend(T& dp, const U& v, const V& dt) const {
     dp = v * dt;
   };
+};
+
+
+namespace detail {
+  
+  
+  template <typename SpaceTuple>
+  struct differentiable_point_tuple { 
+    BOOST_STATIC_ASSERT(false);
+  };
+  
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  template <typename... Spaces>
+  struct differentiable_point_tuple< std::tuple<Spaces...> > {
+    typedef std::tuple< typename metric_topology_traits<Spaces>::point_type... > type;
+  };
+  
+#else
+  template <typename T1>
+  struct differentiable_point_tuple< boost::tuples::tuple<T1> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_type > type;
+  };
+  
+  template <typename T1, typename T2>
+  struct differentiable_point_tuple< boost::tuples::tuple<T1,T2> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_type,
+                                  typename metric_topology_traits<T2>::point_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3>
+  struct differentiable_point_tuple< boost::tuples::tuple<T1,T2,T3> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_type,
+                                  typename metric_topology_traits<T2>::point_type,
+                                  typename metric_topology_traits<T3>::point_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4>
+  struct differentiable_point_tuple< boost::tuples::tuple<T1,T2,T3,T4> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_type,
+                                  typename metric_topology_traits<T2>::point_type,
+                                  typename metric_topology_traits<T3>::point_type,
+                                  typename metric_topology_traits<T4>::point_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4, typename T5>
+  struct differentiable_point_tuple< boost::tuples::tuple<T1,T2,T3,T4,T5> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_type,
+                                  typename metric_topology_traits<T2>::point_type,
+                                  typename metric_topology_traits<T3>::point_type,
+                                  typename metric_topology_traits<T4>::point_type,
+                                  typename metric_topology_traits<T5>::point_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6>
+  struct differentiable_point_tuple< boost::tuples::tuple<T1,T2,T3,T4,T5,T6> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_type,
+                                  typename metric_topology_traits<T2>::point_type,
+                                  typename metric_topology_traits<T3>::point_type,
+                                  typename metric_topology_traits<T4>::point_type,
+                                  typename metric_topology_traits<T5>::point_type,
+                                  typename metric_topology_traits<T6>::point_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6, typename T7>
+  struct differentiable_point_tuple< boost::tuples::tuple<T1,T2,T3,T4,T5,T6,T7> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_type,
+                                  typename metric_topology_traits<T2>::point_type,
+                                  typename metric_topology_traits<T3>::point_type,
+                                  typename metric_topology_traits<T4>::point_type,
+                                  typename metric_topology_traits<T5>::point_type,
+                                  typename metric_topology_traits<T6>::point_type,
+                                  typename metric_topology_traits<T7>::point_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6, typename T7, typename T8>
+  struct differentiable_point_tuple< boost::tuples::tuple<T1,T2,T3,T4,T5,T6,T7,T8> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_type,
+                                  typename metric_topology_traits<T2>::point_type,
+                                  typename metric_topology_traits<T3>::point_type,
+                                  typename metric_topology_traits<T4>::point_type,
+                                  typename metric_topology_traits<T5>::point_type,
+                                  typename metric_topology_traits<T6>::point_type,
+                                  typename metric_topology_traits<T7>::point_type,
+                                  typename metric_topology_traits<T8>::point_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6, typename T7, typename T8, typename T9>
+  struct differentiable_point_tuple< boost::tuples::tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_type,
+                                  typename metric_topology_traits<T2>::point_type,
+                                  typename metric_topology_traits<T3>::point_type,
+                                  typename metric_topology_traits<T4>::point_type,
+                                  typename metric_topology_traits<T5>::point_type,
+                                  typename metric_topology_traits<T6>::point_type,
+                                  typename metric_topology_traits<T7>::point_type,
+                                  typename metric_topology_traits<T8>::point_type,
+                                  typename metric_topology_traits<T9>::point_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6, typename T7, typename T8, typename T9, typename T10>
+  struct differentiable_point_tuple< boost::tuples::tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_type,
+                                  typename metric_topology_traits<T2>::point_type,
+                                  typename metric_topology_traits<T3>::point_type,
+                                  typename metric_topology_traits<T4>::point_type,
+                                  typename metric_topology_traits<T5>::point_type,
+                                  typename metric_topology_traits<T6>::point_type,
+                                  typename metric_topology_traits<T7>::point_type,
+                                  typename metric_topology_traits<T8>::point_type,
+                                  typename metric_topology_traits<T9>::point_type,
+                                  typename metric_topology_traits<T10>::point_type > type;
+  };
+#endif
+
+  
+  
+  template <typename SpaceTuple>
+  struct differentiable_point_difference_tuple { 
+    BOOST_STATIC_ASSERT(false);
+  };
+  
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  template <typename... Spaces>
+  struct differentiable_point_difference_tuple< std::tuple<Spaces...> > {
+    typedef std::tuple< typename metric_topology_traits<Spaces>::point_difference_type... > type;
+  };
+  
+#else
+  template <typename T1>
+  struct differentiable_point_difference_tuple< boost::tuples::tuple<T1> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_difference_type > type;
+  };
+  
+  template <typename T1, typename T2>
+  struct differentiable_point_difference_tuple< boost::tuples::tuple<T1,T2> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_difference_type,
+                                  typename metric_topology_traits<T2>::point_difference_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3>
+  struct differentiable_point_difference_tuple< boost::tuples::tuple<T1,T2,T3> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_type,
+                                  typename metric_topology_traits<T2>::point_type,
+                                  typename metric_topology_traits<T3>::point_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4>
+  struct differentiable_point_difference_tuple< boost::tuples::tuple<T1,T2,T3,T4> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_difference_type,
+                                  typename metric_topology_traits<T2>::point_difference_type,
+                                  typename metric_topology_traits<T3>::point_difference_type,
+                                  typename metric_topology_traits<T4>::point_difference_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4, typename T5>
+  struct differentiable_point_difference_tuple< boost::tuples::tuple<T1,T2,T3,T4,T5> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_difference_type,
+                                  typename metric_topology_traits<T2>::point_difference_type,
+                                  typename metric_topology_traits<T3>::point_difference_type,
+                                  typename metric_topology_traits<T4>::point_difference_type,
+                                  typename metric_topology_traits<T5>::point_difference_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6>
+  struct differentiable_point_difference_tuple< boost::tuples::tuple<T1,T2,T3,T4,T5,T6> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_difference_type,
+                                  typename metric_topology_traits<T2>::point_difference_type,
+                                  typename metric_topology_traits<T3>::point_difference_type,
+                                  typename metric_topology_traits<T4>::point_difference_type,
+                                  typename metric_topology_traits<T5>::point_difference_type,
+                                  typename metric_topology_traits<T6>::point_difference_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6, typename T7>
+  struct differentiable_point_difference_tuple< boost::tuples::tuple<T1,T2,T3,T4,T5,T6,T7> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_difference_type,
+                                  typename metric_topology_traits<T2>::point_difference_type,
+                                  typename metric_topology_traits<T3>::point_difference_type,
+                                  typename metric_topology_traits<T4>::point_difference_type,
+                                  typename metric_topology_traits<T5>::point_difference_type,
+                                  typename metric_topology_traits<T6>::point_difference_type,
+                                  typename metric_topology_traits<T7>::point_difference_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6, typename T7, typename T8>
+  struct differentiable_point_difference_tuple< boost::tuples::tuple<T1,T2,T3,T4,T5,T6,T7,T8> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_difference_type,
+                                  typename metric_topology_traits<T2>::point_difference_type,
+                                  typename metric_topology_traits<T3>::point_difference_type,
+                                  typename metric_topology_traits<T4>::point_difference_type,
+                                  typename metric_topology_traits<T5>::point_difference_type,
+                                  typename metric_topology_traits<T6>::point_difference_type,
+                                  typename metric_topology_traits<T7>::point_difference_type,
+                                  typename metric_topology_traits<T8>::point_difference_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6, typename T7, typename T8, typename T9>
+  struct differentiable_point_difference_tuple< boost::tuples::tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_difference_type,
+                                  typename metric_topology_traits<T2>::point_difference_type,
+                                  typename metric_topology_traits<T3>::point_difference_type,
+                                  typename metric_topology_traits<T4>::point_difference_type,
+                                  typename metric_topology_traits<T5>::point_difference_type,
+                                  typename metric_topology_traits<T6>::point_difference_type,
+                                  typename metric_topology_traits<T7>::point_difference_type,
+                                  typename metric_topology_traits<T8>::point_difference_type,
+                                  typename metric_topology_traits<T9>::point_difference_type > type;
+  };
+  
+  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6, typename T7, typename T8, typename T9, typename T10>
+  struct differentiable_point_difference_tuple< boost::tuples::tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > { 
+    typedef boost::tuples::tuple< typename metric_topology_traits<T1>::point_difference_type,
+                                  typename metric_topology_traits<T2>::point_difference_type,
+                                  typename metric_topology_traits<T3>::point_difference_type,
+                                  typename metric_topology_traits<T4>::point_difference_type,
+                                  typename metric_topology_traits<T5>::point_difference_type,
+                                  typename metric_topology_traits<T6>::point_difference_type,
+                                  typename metric_topology_traits<T7>::point_difference_type,
+                                  typename metric_topology_traits<T8>::point_difference_type,
+                                  typename metric_topology_traits<T9>::point_difference_type,
+                                  typename metric_topology_traits<T10>::point_difference_type > type;
+  };
+#endif
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  
+  template <typename IndependentSpace, typename SpaceTuple, typename DiffRuleTuple>
+  class differentiable_space_impl {
+    public:
+      template <unsigned int Idx>
+      struct space {
+        typedef typename std::tuple_element<Idx, SpaceTuple>::type type;
+      };
+      
+      BOOST_STATIC_CONSTANT(unsigned int, differential_order = std::tuple_size<SpaceTuple>::value);
+      
+      class point_type {
+        public:
+	  typedef typename differentiable_point_tuple< SpaceTuple >::type value_type;
+        private:
+	  value_type value;
+        public:
+	  point_type(const value_type& aValue) : value(aValue) { };
+	  template <typename... Args>
+	  point_type(Args&&... args) : value(value_type(std::forward<Args>(args)...)) { };
+      };
+      
+      class point_difference_type {
+        public:
+          typedef typename differentiable_point_difference_tuple< SpaceTuple >::type value_type;
+        private:
+	  value_type value;
+        public:
+	  point_difference_type(const value_type& aValue) : value(aValue) { };
+	  template <typename... Args>
+	  point_difference_type(Args&&... args) : value(value_type(std::forward<Args>(args)...)) { };
+	  
+	  
+      };
+      
+  };
+  
+  
+#else
+  
+  template <typename IndependentSpace, typename SpaceTuple, typename DiffRuleTuple>
+  class differentiable_space_impl {
+    public:
+      template <unsigned int Idx>
+      struct space {
+        typedef typename boost::tuples::element<Idx, SpaceTuple>::type type;
+      };
+      
+      BOOST_STATIC_CONSTANT(unsigned int, differential_order = boost::tuples::length<SpaceTuple>::value);
+      
+      
+      
+  };
+  
+  
+  
+#endif
+  
+  
+  template <typename IndependentSpace, typename SpaceTuple, typename DiffRuleTuple>
+  class differentiable_space_impl {
+    public:
+      template <unsigned int Idx>
+      struct space {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+        typedef typename std::tuple_element<Idx, SpaceTuple>::type type;
+#else
+        typedef typename boost::tuples::element<Idx, SpaceTuple>::type type;
+#endif
+      };
+      
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      BOOST_STATIC_CONSTANT(unsigned int, differential_order = std::tuple_size<SpaceTuple>::value);
+#else
+      BOOST_STATIC_CONSTANT(unsigned int, differential_order = boost::tuples::length<SpaceTuple>::value);
+#endif
+      
+      
+      
+  };
+  
+  
+  
+  
 };
 
 

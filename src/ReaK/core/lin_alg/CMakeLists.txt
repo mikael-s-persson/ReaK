@@ -2,6 +2,7 @@
 #set(LINALG_SOURCES "${SRCROOT}${RKLINALGDIR}/gen_mat_num.cpp")
 
 set(LINALG_HEADERS 
+                 "${RKLINALGDIR}/arithmetic_tuple.hpp"
                  "${RKLINALGDIR}/complex_math.hpp"
                  "${RKLINALGDIR}/mat_alg.hpp"
                  "${RKLINALGDIR}/mat_alg_diagonal.hpp"
