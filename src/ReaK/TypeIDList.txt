@@ -64,6 +64,8 @@ jacobian_3D_gen<T>          0x00000028   bin: 0000 0000 0000 0000 0000 0000 0010
 jacobian_3D_2D<T>           0x00000029   bin: 0000 0000 0000 0000 0000 0000 0010 1001  D
 jacobian_3D_3D<T>           0x0000002A   bin: 0000 0000 0000 0000 0000 0000 0010 1010  D
 quat<T>                     0x0000002B   bin: 0000 0000 0000 0000 0000 0000 0010 1011  D
+arithmetic_tuple<T...>      0x0000002C   bin: 0000 0000 0000 0000 0000 0000 0010 1100  
+
 
 //Subsumption architecture  0xC14*****
 node                        0xC1400001   bin: 1100 0001 0100[0000 0000 0000 0000 0001] D-R
@@ -220,6 +222,17 @@ satellite3D_imdt_sys        0xC231000B   bin: 1100 0010 0011 0001 0000 0000 0000
 
 rigid_body2D_state          0xC2310010   bin: 1100 0010 0011 0001 0000 0000 0001 0000  D-R
 rigid_body3D_state          0xC2310011   bin: 1100 0010 0011 0001 0000 0000 0001 0001  D-R
+
+
+
+
+//Path-Planning, Graph Methods, Topologies, and Interpolants  0xC24*****
+line_topology<T>            0xC2400001   bin: 1100 0010 0100 0000 0000 0000 0000 0001  
+time_topology               0xC2400002   bin: 1100 0010 0100 0000 0000 0000 0000 0010  
+differentiable_space<I,X,D> 0xC2400003   bin: 1100 0010 0100 0000 0000 0000 0000 0011  
+temporal_space<X>           0xC2400004   bin: 1100 0010 0100 0000 0000 0000 0000 0100  
+reachability_space<X>       0xC2400005   bin: 1100 0010 0100 0000 0000 0000 0000 0101  
+
 
 
 

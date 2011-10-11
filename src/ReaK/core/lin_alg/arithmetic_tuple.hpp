@@ -81,6 +81,11 @@ namespace detail {
     >,
   void >::type tuple_addassign_impl( Tuple& lhs, const Tuple& rhs) {
     tuple_addassign_impl< boost::mpl::prior<Idx>,Tuple >(lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(lhs) += get<boost::mpl::prior<Idx>::type::value>(rhs);
   };
   
@@ -102,6 +107,11 @@ namespace detail {
     >,
   void >::type tuple_subassign_impl( Tuple& lhs, const Tuple& rhs) {
     tuple_subassign_impl< boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(lhs) -= get<boost::mpl::prior<Idx>::type::value>(rhs);
   };
   
@@ -123,6 +133,11 @@ namespace detail {
     >,
   void >::type tuple_mulassign_impl( Tuple& lhs, const Tuple& rhs) {
     tuple_mulassign_impl<boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(lhs) *= get<boost::mpl::prior<Idx>::type::value>(rhs);
   };
   
@@ -144,6 +159,11 @@ namespace detail {
     >,
   void >::type tuple_divassign_impl( Tuple& lhs, const Tuple& rhs) {
     tuple_divassign_impl<boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(lhs) /= get<boost::mpl::prior<Idx>::type::value>(rhs);
   };
   
@@ -165,6 +185,11 @@ namespace detail {
     >,
   void >::type tuple_smulassign_impl( Tuple& lhs, const Scalar& rhs) {
     tuple_smulassign_impl<boost::mpl::prior<Idx>,Tuple,Scalar>(lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(lhs) *= rhs;
   };
   
@@ -186,6 +211,11 @@ namespace detail {
     >,
   void >::type tuple_sdivassign_impl( Tuple& lhs, const Scalar& rhs) {
     tuple_sdivassign_impl<boost::mpl::prior<Idx>,Tuple,Scalar>(lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(lhs) /= rhs;
   };
   
@@ -209,6 +239,11 @@ namespace detail {
     >,
   void >::type tuple_add_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) {
     tuple_add_impl<boost::mpl::prior<Idx>,Tuple>(result,lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) + get<boost::mpl::prior<Idx>::type::value>(rhs);
   };
   
@@ -230,6 +265,11 @@ namespace detail {
     >,
   void >::type tuple_sub_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) {
     tuple_sub_impl<boost::mpl::prior<Idx>,Tuple>(result,lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) - get<boost::mpl::prior<Idx>::type::value>(rhs);
   };
   
@@ -251,6 +291,11 @@ namespace detail {
     >,
   void >::type tuple_neg_impl( Tuple& result, const Tuple& lhs) {
     tuple_neg_impl<boost::mpl::prior<Idx>,Tuple>(result,lhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(result) = -get<boost::mpl::prior<Idx>::type::value>(lhs);
   };
   
@@ -272,6 +317,11 @@ namespace detail {
     >,
   void >::type tuple_mul_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) {
     tuple_mul_impl<boost::mpl::prior<Idx>,Tuple>(result,lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) * get<boost::mpl::prior<Idx>::type::value>(rhs);
   };
   
@@ -293,6 +343,11 @@ namespace detail {
     >,
   void >::type tuple_div_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) {
     tuple_div_impl<boost::mpl::prior<Idx>,Tuple>(result,lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) / get<boost::mpl::prior<Idx>::type::value>(rhs);
   };
   
@@ -314,6 +369,11 @@ namespace detail {
     >,
   void >::type tuple_muls_impl( Tuple& result, const Tuple& lhs, const Scalar& rhs) {
     tuple_muls_impl<boost::mpl::prior<Idx>,Tuple,Scalar>(result,lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) * rhs;
   };
   
@@ -335,6 +395,11 @@ namespace detail {
     >,
   void >::type tuple_smul_impl( Tuple& result, const Scalar& lhs, const Tuple& rhs) {
     tuple_smul_impl<boost::mpl::prior<Idx>,Tuple,Scalar>(result,lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(result) = lhs * get<boost::mpl::prior<Idx>::type::value>(rhs);
   };
   
@@ -356,6 +421,11 @@ namespace detail {
     >,
   void >::type tuple_divs_impl( Tuple& result, const Tuple& lhs, const Scalar& rhs) {
     tuple_divs_impl<boost::mpl::prior<Idx>,Tuple,Scalar>(result,lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
     get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) / rhs;
   };
   
@@ -400,7 +470,23 @@ class arithmetic_tuple : public std::tuple< T... > {
   private:
     typedef std::tuple< T... > arithmetic_tuple_base_class;
   public:
+    
+#if 1
+    constexpr arithmetic_tuple() : arithmetic_tuple_base_class() { };
+    
+    explicit arithmetic_tuple(const T&... t) : arithmetic_tuple_base_class(t...) { };
+    
+    template <typename... U>
+    explicit arithmetic_tuple(U&&... u) noexcept : arithmetic_tuple_base_class(std::forward<U>(u)...) { };
+    
+    arithmetic_tuple(const arithmetic_tuple< T... >&) = default;
+    arithmetic_tuple(arithmetic_tuple< T... >&&) = default;
+    
+    //TODO: missing other standard-specified constructors (with other tuple types, and std::pair).
+    
+#else
     using arithmetic_tuple_base_class::arithmetic_tuple_base_class;
+#endif
 };
 
 /* Specialization, see general template docs. */
@@ -962,51 +1048,90 @@ namespace std {
   
 /* Specialization, see general template docs. */
   template <typename... T>
-  class tuple_size< ReaK::arithmetic_tuple_impl<T...> > : 
+  class tuple_size< ReaK::arithmetic_tuple<T...> > : 
     public integral_constant< size_t, sizeof... (T) > { };
     
 /* Specialization, see general template docs. */
   template <typename... T>
-  class tuple_size< const ReaK::arithmetic_tuple_impl<T...> > : 
+  class tuple_size< const ReaK::arithmetic_tuple<T...> > : 
     public integral_constant< size_t, sizeof... (T) > { };
     
 /* Specialization, see general template docs. */
   template <typename... T>
-  class tuple_size< volatile ReaK::arithmetic_tuple_impl<T...> > : 
+  class tuple_size< volatile ReaK::arithmetic_tuple<T...> > : 
     public integral_constant< size_t, sizeof... (T) > { };
     
 /* Specialization, see general template docs. */
   template <typename... T>
-  class tuple_size< const volatile ReaK::arithmetic_tuple_impl<T...> > : 
+  class tuple_size< const volatile ReaK::arithmetic_tuple<T...> > : 
     public integral_constant< size_t, sizeof... (T) > { };
   
   
 /* Specialization, see general template docs. */
   template <int Idx, typename... T>
-  class tuple_element< Idx, ReaK::arithmetic_tuple_impl<T...> > {
+  class tuple_element< Idx, ReaK::arithmetic_tuple<T...> > {
     public:
-      typedef typename tuple_element< Idx, tuple<T...> >::type type;
+      typedef typename tuple_element< Idx, typename ReaK::arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename... T>
-  class tuple_element< Idx, const ReaK::arithmetic_tuple_impl<T...> > {
+  class tuple_element< Idx, const ReaK::arithmetic_tuple<T...> > {
     public:
-      typedef typename tuple_element< Idx, const tuple<T...> >::type type;
+      typedef typename tuple_element< Idx, const typename ReaK::arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename... T>
-  class tuple_element< Idx, volatile ReaK::arithmetic_tuple_impl<T...> > {
+  class tuple_element< Idx, volatile ReaK::arithmetic_tuple<T...> > {
     public:
-      typedef typename tuple_element< Idx, volatile tuple<T...> >::type type;
+      typedef typename tuple_element< Idx, volatile typename ReaK::arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename... T>
-  class tuple_element< Idx, const volatile ReaK::arithmetic_tuple_impl<T...> > {
+  class tuple_element< Idx, const volatile ReaK::arithmetic_tuple<T...> > {
     public:
-      typedef typename tuple_element< Idx, const volatile tuple<T...> >::type type;
+      typedef typename tuple_element< Idx, const volatile typename ReaK::arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
+  };
+  
+};
+
+
+namespace ReaK {
+  
+  template <int Idx, typename Tuple>
+  class arithmetic_tuple_element {
+    public:
+      typedef typename std::tuple_element< Idx, Tuple >::type type;
+  };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename... T>
+  class arithmetic_tuple_element< Idx, arithmetic_tuple<T...> > {
+    public:
+      typedef typename std::tuple_element< Idx, typename arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
+  };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename... T>
+  class arithmetic_tuple_element< Idx, const arithmetic_tuple<T...> > {
+    public:
+      typedef typename std::tuple_element< Idx, const typename arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
+  };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename... T>
+  class arithmetic_tuple_element< Idx, volatile arithmetic_tuple<T...> > {
+    public:
+      typedef typename std::tuple_element< Idx, volatile typename arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
+  };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename... T>
+  class arithmetic_tuple_element< Idx, const volatile arithmetic_tuple<T...> > {
+    public:
+      typedef typename std::tuple_element< Idx, const volatile typename arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
   };
   
 };
@@ -1074,6 +1199,48 @@ namespace tuples {
   };
   
 };
+  
+};
+
+namespace ReaK {
+  
+  template <int Idx, typename Tuple>
+  class arithmetic_tuple_element {
+    public:
+      typedef typename boost::tuples::element< Idx, Tuple >::type type;
+  };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6, typename T7, typename T8, typename T9, typename T10>
+  class arithmetic_tuple_element< Idx, arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > {
+    public:
+      typedef typename boost::tuples::element< Idx, typename arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::arithmetic_tuple_base_class >::type type;
+  };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6, typename T7, typename T8, typename T9, typename T10>
+  class arithmetic_tuple_element< Idx, const arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > {
+    public:
+      typedef typename boost::tuples::element< Idx, const typename arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::arithmetic_tuple_base_class >::type type;
+  };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6, typename T7, typename T8, typename T9, typename T10>
+  class arithmetic_tuple_element< Idx, volatile arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > {
+    public:
+      typedef typename boost::tuples::element< Idx, volatile typename arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::arithmetic_tuple_base_class >::type type;
+  };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename T1, typename T2, typename T3, typename T4, typename T5, 
+            typename T6, typename T7, typename T8, typename T9, typename T10>
+  class arithmetic_tuple_element< Idx, const volatile arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > {
+    public:
+      typedef typename boost::tuples::element< Idx, const volatile typename arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::arithmetic_tuple_base_class >::type type;
+  };
   
 };
   

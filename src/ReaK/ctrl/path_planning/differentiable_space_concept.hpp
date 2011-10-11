@@ -51,7 +51,7 @@ namespace pp {
 template <typename DifferentiableSpace>
 struct differentiable_space_traits {
   
-  BOOST_STATIC_CONSTANT(unsigned int, order = 0);
+  BOOST_STATIC_CONSTANT(std::size_t, order = DifferentiableSpace::differential_order);
 };
 
 template <typename DifferentiableSpace, unsigned int Order>

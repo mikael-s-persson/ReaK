@@ -106,6 +106,9 @@ implement the virtual functions as protected member functions,   ---------------
   PImpl the archiver   ----------------------------------------------------------X
   make operators friends (no virtual overloads)   -------------------------------X
 
+provide a non-intrusive means to make types serializable (by value-ref)
+  (mainly to avoid instantiation of save/load functions in a class template)
+
 implement protobuf-based archiver
 
 implement RPC-based archiver (both XML-RPC and Protobuf-RPC)
