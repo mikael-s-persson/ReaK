@@ -52,6 +52,10 @@
 #include <boost/mpl/equal_to.hpp>
 #include <boost/mpl/prior.hpp>
 
+#include "serialization/archiver.hpp"
+#include "rtti/so_register_type.hpp"
+#include "rtti/typed_primitives.hpp"
+
 namespace ReaK {
 
   
@@ -429,6 +433,117 @@ namespace detail {
     get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) / rhs;
   };
   
+  
+  
+  
+  template <typename Idx, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_save_impl( serialization::oarchive& lhs, const Tuple& rhs) { };
+
+  template <typename Idx, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::greater< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_save_impl( serialization::oarchive& lhs, const Tuple& rhs) {
+    tuple_save_impl<boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    lhs << get<boost::mpl::prior<Idx>::type::value>(rhs);
+  };
+  
+  template <typename Idx, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_save_nvp_impl( serialization::oarchive& lhs, const std::pair< std::string, const Tuple& >& rhs) { };
+
+  template <typename Idx, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::greater< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_save_nvp_impl( serialization::oarchive& lhs, const std::pair< std::string, const Tuple& >& rhs) {
+    tuple_save_nvp_impl<boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    std::stringstream ss(rhs.first); ss << "_q" << boost::mpl::prior<Idx>::type::value;
+    lhs & serialization::make_save_nvp(ss.str(),get<boost::mpl::prior<Idx>::type::value>(rhs.second));
+  };
+  
+  
+  
+  
+  template <typename Idx, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_load_impl( serialization::iarchive& lhs, Tuple& rhs) { };
+
+  template <typename Idx, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::greater< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_load_impl( serialization::iarchive& lhs, Tuple& rhs) {
+    tuple_load_impl<boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    lhs >> get<boost::mpl::prior<Idx>::type::value>(rhs);
+  };
+  
+  template <typename Idx, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_load_nvp_impl( serialization::iarchive& lhs, const std::pair< std::string, Tuple& >& rhs) { };
+
+  template <typename Idx, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::greater< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_load_nvp_impl( serialization::iarchive& lhs, const std::pair< std::string, Tuple& >& rhs) {
+    tuple_load_nvp_impl<boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    std::stringstream ss(rhs.first); ss << "_q" << boost::mpl::prior<Idx>::type::value;
+    lhs & serialization::make_load_nvp(ss.str(),get<boost::mpl::prior<Idx>::type::value>(rhs.second));
+  };
   
   
 /*****************************************************************************************
@@ -1034,6 +1149,125 @@ Tuple& >::type operator /=(Tuple& lhs, const Scalar& rhs) {
   detail::tuple_sdivassign_impl<arithmetic_tuple_size<Tuple>,Tuple,Scalar>(lhs, rhs);
   return lhs;
 };
+
+
+namespace serialization {
+
+
+/**
+ * This function template is an overload of the unnamed archive-output operator for arithmetic-tuples. 
+ * This function performs the unnamed archive-output of each element of the tuple, will only compile if 
+ * all elements of the tuple support the unnamed archive-output operator.
+ * \param out The output archive.
+ * \param rhs The arithmetic-tuple object to output on the archive.
+ * \return The output archive.
+ * \tparam Tuple An arithmetic-tuple type (see is_arithmetic_tuple).
+ */  
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+oarchive& >::type operator <<(oarchive& out, const Tuple& rhs) {
+  detail::tuple_save_impl<arithmetic_tuple_size<Tuple>, Tuple>(out,rhs);
+  return out;
+};
+
+/**
+ * This function template is an overload of the named archive-output operator for arithmetic-tuples. 
+ * This function performs the named archive-output of each element of the tuple, will only compile if 
+ * all elements of the tuple support the named archive-output operator.
+ * \param out The output archive.
+ * \param rhs The arithmetic-tuple object to output on the archive.
+ * \return The output archive.
+ * \tparam Tuple An arithmetic-tuple type (see is_arithmetic_tuple).
+ */  
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const Tuple& >& rhs) {
+  detail::tuple_save_nvp_impl<arithmetic_tuple_size<Tuple>, Tuple>(out,rhs);
+  return out;
+};
+
+/**
+ * This function template is an overload of the unnamed archive-input operator for arithmetic-tuples. 
+ * This function performs the unnamed archive-input of each element of the tuple, will only compile if 
+ * all elements of the tuple support the unnamed archive-input operator.
+ * \param in The input archive.
+ * \param rhs The arithmetic-tuple object to input from the archive.
+ * \return The input archive.
+ * \tparam Tuple An arithmetic-tuple type (see is_arithmetic_tuple).
+ */  
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+iarchive& >::type operator >>(iarchive& in, Tuple& rhs) {
+  detail::tuple_load_impl<arithmetic_tuple_size<Tuple>, Tuple>(in,rhs);
+  return in;
+};
+
+/**
+ * This function template is an overload of the named archive-input operator for arithmetic-tuples. 
+ * This function performs the named archive-input of each element of the tuple, will only compile if 
+ * all elements of the tuple support the named archive-input operator.
+ * \param in The input archive.
+ * \param rhs The arithmetic-tuple object to input from the archive.
+ * \return The input archive.
+ * \tparam Tuple An arithmetic-tuple type (see is_arithmetic_tuple).
+ */  
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+iarchive& >::type operator &(iarchive& in, const std::pair<std::string, Tuple& >& rhs) {
+  detail::tuple_load_nvp_impl<arithmetic_tuple_size<Tuple>, Tuple>(in,rhs);
+  return in;
+};
+
+
+};
+
+
+
+namespace rtti {
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  
+template <typename... T>
+struct get_type_id< arithmetic_tuple< T... > > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000002C);
+  static std::string type_name() { return "arithmetic_tuple"; };
+  static construct_ptr CreatePtr() { return NULL; };
+  
+  typedef const arithmetic_tuple< T... >& save_type;
+  typedef arithmetic_tuple< T... >& load_type;
+};
+
+template <typename Tail, typename... T>
+struct get_type_info< arithmetic_tuple< T... >, Tail > {
+  typedef detail::type_id< arithmetic_tuple< T... > , typename get_type_info_seq< T... >::template with_tail<Tail>::type > type;
+  static std::string type_name() { return get_type_id< arithmetic_tuple< T... > >::type_name() + "<" + get_type_info_seq< T... >::type_name() + ">" + "," + Tail::type_name(); };
+};
+
+#else
+
+template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+          typename T6, typename T7, typename T8, typename T9, typename T10>
+struct get_type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000002C);
+  static std::string type_name() { return "arithmetic_tuple"; };
+  static construct_ptr CreatePtr() { return NULL; };
+  
+  typedef const arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >& save_type;
+  typedef arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >& load_type;
+};
+
+template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+          typename T6, typename T7, typename T8, typename T9, typename T10, 
+	  typename Tail>
+struct get_type_info< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >, Tail > {
+  typedef detail::type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > , typename get_type_info_seq< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >::template with_tail<Tail>::type > type;
+  static std::string type_name() { return get_type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > >::type_name() + "<" + get_type_info_seq< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >::type_name() + ">" + "," + Tail::type_name(); };
+};
+
+#endif
+
+};
+
 
 
 };

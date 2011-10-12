@@ -98,6 +98,11 @@ endif()
 #endif()
 
 
+include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
+include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
+include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")
+
+
 # Add the sub-directories to cmake process.
 foreach(CURRENT_RKSUBDIR ${RKSUBDIRS})
 add_subdirectory("${SRCROOT}${CURRENT_RKSUBDIR}")

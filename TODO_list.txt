@@ -34,7 +34,7 @@ implement sequential EKF on target trajectory
     define belief-state concept   -----------------------------------------------X
       implement Gaussian belief-state   -----------------------------------------X
       implement point-based belief-state   
-    implement transitioner templates (free functions)
+    implement transitioner templates (free functions)   -------------------------X
       implement Bayes updates on gaussian belief states   -----------------------X
         Kalman Filter   ---------------------------------------------------------X
         Extended Kalman Filter   ------------------------------------------------X
@@ -47,7 +47,7 @@ implement sequential EKF on target trajectory
         Invariant Aggregate Kalman Filter   -------------------------------------O
         Symplectic Kalman Filter   ----------------------------------------------X
         Invariant Symplectic Kalman Filter   ------------------------------------X
-      implement belief-state overloads of transitioner templates
+      implement belief-state overloads of transitioner templates   --------------O
   implement belief-state point-to-point (reachable) trajectories   --------------X
 
 implement Elastic Roadmap
@@ -56,6 +56,9 @@ implement Elastic Roadmap
     add "pushing" a vertex
   implement vertex motion control loop
   test it on AD*-like world (2D-particle robot with growing obstables)
+
+
+
 
 
 ///----------------TEST SCENARIOS------------
@@ -106,8 +109,8 @@ implement the virtual functions as protected member functions,   ---------------
   PImpl the archiver   ----------------------------------------------------------X
   make operators friends (no virtual overloads)   -------------------------------X
 
-provide a non-intrusive means to make types serializable (by value-ref)
-  (mainly to avoid instantiation of save/load functions in a class template)
+provide a non-intrusive means to make types serializable (by value-ref)   -------X (sfinae to the rescue, again!)
+  (mainly to avoid instantiation of save/load functions in a class template)   --X (sfinae to the rescue, again!)
 
 implement protobuf-based archiver
 

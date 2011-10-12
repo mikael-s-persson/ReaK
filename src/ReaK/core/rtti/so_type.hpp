@@ -161,6 +161,206 @@ struct null_type_info {
   static std::string type_name() { return std::string(); };
 };
 
+
+
+template <typename T1, typename T2 = void, typename T3 = void, typename T4 = void, typename T5 = void, 
+          typename T6 = void, typename T7 = void, typename T8 = void, typename T9 = void, typename T10 = void>
+struct get_type_info_seq {
+  template <typename Tail = null_type_info>
+  struct with_tail {
+    typedef detail::type_id< T1, 
+            detail::type_id< T2, 
+            detail::type_id< T3, 
+            detail::type_id< T4, 
+            detail::type_id< T5, 
+            detail::type_id< T6, 
+            detail::type_id< T7, 
+            detail::type_id< T8, 
+            detail::type_id< T9, 
+            detail::type_id< T10, typename Tail::type > > > > > > > > > > type;
+  };
+  
+  static std::string type_name() { return get_type_id<T1>::type_name() + ","
+                                        + get_type_id<T2>::type_name() + ","
+                                        + get_type_id<T3>::type_name() + ","
+                                        + get_type_id<T4>::type_name() + ","
+                                        + get_type_id<T5>::type_name() + ","
+                                        + get_type_id<T6>::type_name() + ","
+                                        + get_type_id<T7>::type_name() + ","
+                                        + get_type_id<T8>::type_name() + ","
+                                        + get_type_id<T9>::type_name() + ","
+                                        + get_type_id<T10>::type_name(); };
+};
+
+template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+          typename T6, typename T7, typename T8, typename T9>
+struct get_type_info_seq<T1,T2,T3,T4,T5,T6,T7,T8,T9,void> {
+  template <typename Tail = null_type_info>
+  struct with_tail {
+    typedef detail::type_id< T1, 
+            detail::type_id< T2, 
+            detail::type_id< T3, 
+            detail::type_id< T4, 
+            detail::type_id< T5, 
+            detail::type_id< T6, 
+            detail::type_id< T7, 
+            detail::type_id< T8, 
+            detail::type_id< T9, typename Tail::type > > > > > > > > > type;
+  };
+      
+  static std::string type_name() { return get_type_id<T1>::type_name() + ","
+                                        + get_type_id<T2>::type_name() + ","
+                                        + get_type_id<T3>::type_name() + ","
+                                        + get_type_id<T4>::type_name() + ","
+                                        + get_type_id<T5>::type_name() + ","
+                                        + get_type_id<T6>::type_name() + ","
+                                        + get_type_id<T7>::type_name() + ","
+                                        + get_type_id<T8>::type_name() + ","
+                                        + get_type_id<T9>::type_name(); };
+};
+
+template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+          typename T6, typename T7, typename T8>
+struct get_type_info_seq<T1,T2,T3,T4,T5,T6,T7,T8,void,void> {
+  template <typename Tail = null_type_info>
+  struct with_tail {
+    typedef detail::type_id< T1, 
+            detail::type_id< T2, 
+            detail::type_id< T3, 
+            detail::type_id< T4, 
+            detail::type_id< T5, 
+            detail::type_id< T6, 
+            detail::type_id< T7, 
+            detail::type_id< T8, typename Tail::type > > > > > > > > type;
+  };
+  
+  static std::string type_name() { return get_type_id<T1>::type_name() + ","
+                                        + get_type_id<T2>::type_name() + ","
+                                        + get_type_id<T3>::type_name() + ","
+                                        + get_type_id<T4>::type_name() + ","
+                                        + get_type_id<T5>::type_name() + ","
+                                        + get_type_id<T6>::type_name() + ","
+                                        + get_type_id<T7>::type_name() + ","
+                                        + get_type_id<T8>::type_name(); };
+};
+
+template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+          typename T6, typename T7>
+struct get_type_info_seq<T1,T2,T3,T4,T5,T6,T7,void,void,void> {
+  template <typename Tail = null_type_info>
+  struct with_tail {
+    typedef detail::type_id< T1, 
+            detail::type_id< T2, 
+            detail::type_id< T3, 
+            detail::type_id< T4, 
+            detail::type_id< T5, 
+            detail::type_id< T6, 
+            detail::type_id< T7, typename Tail::type > > > > > > > type;
+  };
+  
+  static std::string type_name() { return get_type_id<T1>::type_name() + ","
+                                        + get_type_id<T2>::type_name() + ","
+                                        + get_type_id<T3>::type_name() + ","
+                                        + get_type_id<T4>::type_name() + ","
+                                        + get_type_id<T5>::type_name() + ","
+                                        + get_type_id<T6>::type_name() + ","
+                                        + get_type_id<T7>::type_name(); };
+};
+
+template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+          typename T6>
+struct get_type_info_seq<T1,T2,T3,T4,T5,T6,void,void,void,void> {
+  template <typename Tail = null_type_info>
+  struct with_tail {
+    typedef detail::type_id< T1, 
+            detail::type_id< T2, 
+            detail::type_id< T3, 
+            detail::type_id< T4, 
+            detail::type_id< T5, 
+            detail::type_id< T6, typename Tail::type > > > > > > type;
+  };
+  
+  static std::string type_name() { return get_type_id<T1>::type_name() + ","
+                                        + get_type_id<T2>::type_name() + ","
+                                        + get_type_id<T3>::type_name() + ","
+                                        + get_type_id<T4>::type_name() + ","
+                                        + get_type_id<T5>::type_name() + ","
+                                        + get_type_id<T6>::type_name(); };
+};
+
+template <typename T1, typename T2, typename T3, typename T4, typename T5>
+struct get_type_info_seq<T1,T2,T3,T4,T5,void,void,void,void,void> {
+  template <typename Tail = null_type_info>
+  struct with_tail {
+    typedef detail::type_id< T1, 
+            detail::type_id< T2, 
+            detail::type_id< T3, 
+            detail::type_id< T4, 
+            detail::type_id< T5, typename Tail::type > > > > > type;
+  };
+  
+  static std::string type_name() { return get_type_id<T1>::type_name() + ","
+                                        + get_type_id<T2>::type_name() + ","
+                                        + get_type_id<T3>::type_name() + ","
+                                        + get_type_id<T4>::type_name() + ","
+                                        + get_type_id<T5>::type_name(); };
+};
+
+template <typename T1, typename T2, typename T3, typename T4>
+struct get_type_info_seq<T1,T2,T3,T4,void,void,void,void,void,void> {
+  template <typename Tail = null_type_info>
+  struct with_tail {
+    typedef detail::type_id< T1, 
+            detail::type_id< T2, 
+            detail::type_id< T3, 
+            detail::type_id< T4, typename Tail::type > > > > type;
+  };
+  
+  static std::string type_name() { return get_type_id<T1>::type_name() + ","
+                                        + get_type_id<T2>::type_name() + ","
+                                        + get_type_id<T3>::type_name() + ","
+                                        + get_type_id<T4>::type_name(); };
+};
+
+template <typename T1, typename T2, typename T3>
+struct get_type_info_seq<T1,T2,T3,void,void,void,void,void,void,void> {
+  template <typename Tail = null_type_info>
+  struct with_tail {
+    typedef detail::type_id< T1, 
+            detail::type_id< T2, 
+            detail::type_id< T3, typename Tail::type > > > type;
+  };
+  
+  static std::string type_name() { return get_type_id<T1>::type_name() + ","
+                                        + get_type_id<T2>::type_name() + ","
+                                        + get_type_id<T3>::type_name(); };
+};
+
+template <typename T1, typename T2>
+struct get_type_info_seq<T1,T2,void,void,void,void,void,void,void,void> {
+  template <typename Tail = null_type_info>
+  struct with_tail {
+    typedef detail::type_id< T1, 
+            detail::type_id< T2, typename Tail::type > > type;
+  };
+  
+  static std::string type_name() { return get_type_id<T1>::type_name() + ","
+                                        + get_type_id<T2>::type_name(); };
+};
+
+template <typename T1>
+struct get_type_info_seq<T1,void,void,void,void,void,void,void,void,void> {
+  template <typename Tail = null_type_info>
+  struct with_tail {
+    typedef detail::type_id< T1, typename Tail::type > type;
+  };
+  
+  static std::string type_name() { return get_type_id<T1>::type_name(); };
+};
+
+
+
+
 template <typename T, typename Tail = null_type_info>
 struct get_type_info {
   typedef detail::type_id<T, typename Tail::type> type;

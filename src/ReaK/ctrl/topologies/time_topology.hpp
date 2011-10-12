@@ -41,6 +41,8 @@
 
 #include <cmath>
 
+#include "base/named_object.hpp"
+
 namespace ReaK {
 
 namespace pp {
@@ -51,13 +53,17 @@ namespace pp {
  * this class does not strictly model the topology concepts, but defines all 
  * the functions required to provide the full model of a MetricSpaceConcept.
  */
-class time_topology 
+class time_topology : public named_object
 {
   public:
     typedef double point_type;
     typedef double point_difference_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 1);
+    
+    time_topology(const std::string& aName = "time_topology") : named_object() {
+      setName(aName);
+    };
     
     /**
      * Returns the distance between two points.
@@ -133,6 +139,21 @@ class time_topology
     point_type origin() const {
       return 0.0;
     };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(time_topology,0xC2400002,1,"time_topology",named_object)
 
 };
 

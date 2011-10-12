@@ -50,6 +50,12 @@
 #include <list>
 #include <iterator>
 
+#ifdef RK_ENABLE_CXX0X_FEATURES
+#include <type_traits>
+#else
+#include <boost/type_traits.hpp>
+#endif
+
 /** Main namespace for ReaK */
 namespace ReaK {
 
@@ -278,7 +284,10 @@ class iarchive : public archive {
 #ifndef RK_ENABLE_CXX0X_FEATURES
     /// Loading a serializable object as a templated pointer.
     template <typename T>
-    friend iarchive& operator >>(iarchive& in, boost::shared_ptr<T>& Item) {
+    friend 
+    typename boost::enable_if< 
+      boost::is_convertible< T* , serializable* >, 
+    iarchive& >::type operator >>(iarchive& in, boost::shared_ptr<T>& Item) {
       serializable_shared_pointer tmp;
       in >> tmp;
       if(tmp)
@@ -290,7 +299,10 @@ class iarchive : public archive {
 
     /// Loading a serializable object as a templated pointer with a name.
     template <typename T>
-    friend iarchive& operator &(iarchive& in, const std::pair<std::string, boost::shared_ptr<T>& >& Item) {
+    friend 
+    typename boost::enable_if< 
+      boost::is_convertible< T* , serializable* >, 
+    iarchive& >::type operator &(iarchive& in, const std::pair<std::string, boost::shared_ptr<T>& >& Item) {
       serializable_shared_pointer tmp;
       in & std::pair<std::string, serializable_shared_pointer& >(Item.first, tmp);
       if(tmp)
@@ -299,10 +311,35 @@ class iarchive : public archive {
 	Item.second = boost::shared_ptr<T>();
       return in;
     };
+    
+    /// Loading a non-serializable object as a templated pointer.
+    template <typename T>
+    friend 
+    typename boost::disable_if< 
+      boost::is_convertible< T* , serializable* >, 
+    iarchive& >::type operator >>(iarchive& in, boost::shared_ptr<T>& Item) {
+      Item = boost::shared_ptr<T>(new T());
+      in >> *Item;
+      return in;
+    };
+
+    /// Loading a serializable object as a templated pointer with a name.
+    template <typename T>
+    friend 
+    typename boost::disable_if< 
+      boost::is_convertible< T* , serializable* >, 
+    iarchive& >::type operator &(iarchive& in, const std::pair<std::string, boost::shared_ptr<T>& >& Item) {
+      Item.second = boost::shared_ptr<T>(new T());
+      in & std::pair<std::string, T& >(Item.first, *(Item.second));
+      return in;
+    };
 
     /// Loading a serializable object as a templated weak pointer.
     template <typename T>
-    friend iarchive& operator >>(iarchive& in, boost::weak_ptr<T>& Item) {
+    friend 
+    typename boost::enable_if< 
+      boost::is_convertible< T* , serializable* >, 
+    iarchive& >::type operator >>(iarchive& in, boost::weak_ptr<T>& Item) {
       serializable_shared_pointer tmp;
       in >> tmp;
       if(tmp)
@@ -314,7 +351,10 @@ class iarchive : public archive {
 
     /// Loading a serializable object as a templated weak pointer with a name.
     template <typename T>
-    friend iarchive& operator &(iarchive& in, const std::pair<std::string, boost::weak_ptr<T>& >& Item) {
+    friend 
+    typename boost::enable_if< 
+      boost::is_convertible< T* , serializable* >, 
+    iarchive& >::type operator &(iarchive& in, const std::pair<std::string, boost::weak_ptr<T>& >& Item) {
       serializable_shared_pointer tmp;
       in & std::pair<std::string, serializable_shared_pointer& >(Item.first, tmp);
       if(tmp)
@@ -326,7 +366,10 @@ class iarchive : public archive {
 #else
     /// Loading a serializable object as a templated pointer.
     template <typename T>
-    friend iarchive& operator >>(iarchive& in, std::shared_ptr<T>& Item) {
+    friend 
+    typename boost::enable_if< 
+      std::is_convertible< T* , serializable* >, 
+    iarchive& >::type operator >>(iarchive& in, std::shared_ptr<T>& Item) {
       serializable_shared_pointer tmp;
       in >> tmp;
       if(tmp)
@@ -338,7 +381,10 @@ class iarchive : public archive {
 
     /// Loading a serializable object as a templated pointer with a name.
     template <typename T>
-    friend iarchive& operator &(iarchive& in, const std::pair<std::string, std::shared_ptr<T>& >& Item) {
+    friend 
+    typename boost::enable_if< 
+      std::is_convertible< T* , serializable* >, 
+    iarchive& >::type operator &(iarchive& in, const std::pair<std::string, std::shared_ptr<T>& >& Item) {
       serializable_shared_pointer tmp;
       in & std::pair<std::string, serializable_shared_pointer& >(Item.first, tmp);
       if(tmp)
@@ -347,10 +393,35 @@ class iarchive : public archive {
 	Item.second = std::shared_ptr<T>();
       return in;
     };
+    
+    /// Loading a non-serializable object as a templated pointer.
+    template <typename T>
+    friend 
+    typename boost::disable_if< 
+      std::is_convertible< T* , serializable* >, 
+    iarchive& >::type operator >>(iarchive& in, std::shared_ptr<T>& Item) {
+      Item = std::shared_ptr<T>(new T());
+      in >> *Item;
+      return in;
+    };
+
+    /// Loading a serializable object as a templated pointer with a name.
+    template <typename T>
+    friend 
+    typename boost::disable_if< 
+      std::is_convertible< T* , serializable* >, 
+    iarchive& >::type operator &(iarchive& in, const std::pair<std::string, std::shared_ptr<T>& >& Item) {
+      Item.second = std::shared_ptr<T>(new T());
+      in & std::pair<std::string, T& >(Item.first, *(Item.second));
+      return in;
+    };
 
     /// Loading a serializable object as a templated weak pointer.
     template <typename T>
-    friend iarchive& operator >>(iarchive& in, std::weak_ptr<T>& Item) {
+    friend 
+    typename boost::enable_if< 
+      std::is_convertible< T* , serializable* >, 
+    iarchive& >::type operator >>(iarchive& in, std::weak_ptr<T>& Item) {
       serializable_shared_pointer tmp;
       in >> tmp;
       if(tmp)
@@ -362,7 +433,10 @@ class iarchive : public archive {
 
     /// Loading a serializable object as a templated weak pointer with a name.
     template <typename T>
-    friend iarchive& operator &(iarchive& in, const std::pair<std::string, std::weak_ptr<T>& >& Item) {
+    friend 
+    typename boost::enable_if< 
+      std::is_convertible< T* , serializable* >, 
+    iarchive& >::type operator &(iarchive& in, const std::pair<std::string, std::weak_ptr<T>& >& Item) {
       serializable_shared_pointer tmp;
       in & std::pair<std::string, serializable_shared_pointer& >(Item.first, tmp);
       if(tmp)
@@ -374,14 +448,28 @@ class iarchive : public archive {
 #endif
     
     template <typename T>
-    friend iarchive& operator >>(iarchive& in, T& Item) {
+    friend 
+    typename boost::enable_if< 
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      std::is_convertible< T& , serializable& >, 
+#else
+      boost::is_convertible< T& , serializable& >,
+#endif
+    iarchive& >::type operator >>(iarchive& in, T& Item) {
       serializable& tmp = Item;
       in >> tmp;
       return in;
     };
     
     template <typename T>
-    friend iarchive& operator &(iarchive& in, const std::pair< std::string, T& >& Item) {
+    friend 
+    typename boost::enable_if< 
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      std::is_convertible< T& , serializable& >, 
+#else
+      boost::is_convertible< T& , serializable& >,
+#endif
+    iarchive& >::type operator &(iarchive& in, const std::pair< std::string, T& >& Item) {
       in & std::pair<std::string, serializable&>(Item.first, Item.second);
       return in;
     };
@@ -670,7 +758,10 @@ class oarchive : public archive {
 #ifndef RK_ENABLE_CXX0X_FEATURES
     /// Saving a serializable object as a templated pointer.
     template <typename T>
-    friend oarchive& operator <<(oarchive& out, const boost::shared_ptr<T>& Item) {
+    friend 
+    typename boost::enable_if< 
+      boost::is_convertible< const T* , const serializable* >,
+    oarchive& >::type operator <<(oarchive& out, const boost::shared_ptr<T>& Item) {
       serializable_shared_pointer tmp;
       if(Item)
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item);
@@ -679,16 +770,44 @@ class oarchive : public archive {
 
     /// Saving a serializable object as a templated pointer with a name.
     template <typename T>
-    friend oarchive& operator &(oarchive& out, const std::pair<std::string, const boost::shared_ptr<T>& >& Item) {
+    friend 
+    typename boost::enable_if< 
+      boost::is_convertible< const T* , const serializable* >,
+    oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const boost::shared_ptr<T>& >& Item) {
       serializable_shared_pointer tmp;
       if(Item.second)
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.second);
       return out & std::pair<std::string, const serializable_shared_pointer& >(Item.first, tmp);
     };
+    
+    /// Saving a non-serializable object as a templated pointer.
+    template <typename T>
+    friend 
+    typename boost::disable_if< 
+      boost::is_convertible< const T* , const serializable* >,
+    oarchive& >::type operator <<(oarchive& out, const boost::shared_ptr<T>& Item) {
+      if(Item)
+        out << *Item;
+      return out;
+    };
+
+    /// Saving a non-serializable object as a templated pointer with a name.
+    template <typename T>
+    friend 
+    typename boost::disable_if< 
+      boost::is_convertible< const T* , const serializable* >,
+    oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const boost::shared_ptr<T>& >& Item) {
+      if(Item.second)
+        out & std::pair<std::string, const T& >(Item.first, *(Item.second));
+      return out;
+    };
 
     /// Saving a serializable object as a templated weak pointer.
     template <typename T>
-    friend oarchive& operator <<(oarchive& out, const boost::weak_ptr<T>& Item) {
+    friend 
+    typename boost::enable_if< 
+      boost::is_convertible< const T* , const serializable* >,
+    oarchive& >::type operator <<(oarchive& out, const boost::weak_ptr<T>& Item) {
       serializable_shared_pointer tmp;
       if(!Item.expired())
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.lock());
@@ -697,7 +816,10 @@ class oarchive : public archive {
 
     /// Saving a serializable object as a templated weak pointer with a name.
     template <typename T>
-    friend oarchive& operator &(oarchive& out, const std::pair<std::string, const boost::weak_ptr<T>& >& Item) {
+    friend 
+    typename boost::enable_if< 
+      boost::is_convertible< const T* , const serializable* >,
+    oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const boost::weak_ptr<T>& >& Item) {
       serializable_shared_pointer tmp;
       if(!Item.second.expired())
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.second.lock());
@@ -706,7 +828,10 @@ class oarchive : public archive {
 #else
     /// Saving a serializable object as a templated pointer.
     template <typename T>
-    friend oarchive& operator <<(oarchive& out, const std::shared_ptr<T>& Item) {
+    friend 
+    typename boost::enable_if< 
+      std::is_convertible< const T* , const serializable* >,
+    oarchive& >::type operator <<(oarchive& out, const std::shared_ptr<T>& Item) {
       serializable_shared_pointer tmp;
       if(Item)
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item);
@@ -715,16 +840,44 @@ class oarchive : public archive {
 
     /// Saving a serializable object as a templated pointer with a name.
     template <typename T>
-    friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::shared_ptr<T>& >& Item) {
+    friend 
+    typename boost::enable_if< 
+      std::is_convertible< const T* , const serializable* >,
+    oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const std::shared_ptr<T>& >& Item) {
       serializable_shared_pointer tmp;
       if(Item.second)
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.second);
       return out & std::pair<std::string, const serializable_shared_pointer& >(Item.first, tmp);
     };
+    
+    /// Saving a non-serializable object as a templated pointer.
+    template <typename T>
+    friend 
+    typename boost::disable_if< 
+      std::is_convertible< const T* , const serializable* >,
+    oarchive& >::type operator <<(oarchive& out, const std::shared_ptr<T>& Item) {
+      if(Item)
+        out << *Item;
+      return out;
+    };
+
+    /// Saving a non-serializable object as a templated pointer with a name.
+    template <typename T>
+    friend 
+    typename boost::disable_if< 
+      std::is_convertible< const T* , const serializable* >,
+    oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const std::shared_ptr<T>& >& Item) {
+      if(Item.second)
+        out & std::pair<std::string, const T& >(Item.first, *(Item.second));
+      return out;
+    };
 
     /// Saving a serializable object as a templated weak pointer.
     template <typename T>
-    friend oarchive& operator <<(oarchive& out, const std::weak_ptr<T>& Item) {
+    friend 
+    typename boost::enable_if< 
+      std::is_convertible< const T* , const serializable* >,
+    oarchive& >::type operator <<(oarchive& out, const std::weak_ptr<T>& Item) {
       serializable_shared_pointer tmp;
       if(!Item.expired())
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.lock());
@@ -733,7 +886,10 @@ class oarchive : public archive {
 
     /// Saving a serializable object as a templated weak pointer with a name.
     template <typename T>
-    friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::weak_ptr<T>& >& Item) {
+    friend 
+    typename boost::enable_if< 
+      std::is_convertible< const T* , const serializable* >,
+    oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const std::weak_ptr<T>& >& Item) {
       serializable_shared_pointer tmp;
       if(!Item.second.expired())
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.second.lock());
@@ -743,7 +899,14 @@ class oarchive : public archive {
     
     /// Saving any object for which there are no other matching overloads (assumed to be a serializable object).
     template <typename T>
-    friend oarchive& operator <<(oarchive& in, const T& Item) {
+    friend 
+    typename boost::enable_if< 
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      std::is_convertible< const T& , const serializable& >, 
+#else
+      boost::is_convertible< const T& , const serializable& >,
+#endif
+    oarchive& >::type operator <<(oarchive& in, const T& Item) {
       const serializable& tmp = Item;
       in << tmp;
       return in;
@@ -751,7 +914,14 @@ class oarchive : public archive {
     
     /// Saving any object with name for which there are no other matching overloads (assumed to be a serializable object).
     template <typename T>
-    friend oarchive& operator &(oarchive& in, const std::pair< std::string, const T& >& Item) {
+    friend 
+    typename boost::enable_if< 
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      std::is_convertible< const T& , const serializable& >, 
+#else
+      boost::is_convertible< const T& , const serializable& >,
+#endif
+    oarchive& >::type operator &(oarchive& in, const std::pair< std::string, const T& >& Item) {
       in & std::pair<std::string, const serializable&>(Item.first, Item.second);
       return in;
     };

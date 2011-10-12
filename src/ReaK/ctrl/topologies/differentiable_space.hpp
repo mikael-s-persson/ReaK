@@ -41,13 +41,18 @@
 #include "path_planning/metric_space_concept.hpp"
 
 #include "lin_alg/arithmetic_tuple.hpp"
-#include <core/lin_alg/arithmetic_tuple.hpp>
+#include "base/serializable.hpp"
+#include "rtti/so_register_type.hpp"
 
 namespace ReaK {
 
 namespace pp {
   
-
+/**
+ * This class defines the default differentiation rule to apply either to lift a 
+ * point-difference (e.g. finite-difference) to the tangent space, or to descend 
+ * a tangent vector to a point-difference.
+ */
 struct default_differentiation_rule {
   template <typename T, typename U, typename V>
   static void lift(T& v, const U& dp, const V& dt) const {
@@ -57,6 +62,107 @@ struct default_differentiation_rule {
   static void descend(T& dp, const U& v, const V& dt) const {
     dp = v * dt;
   };
+};
+
+
+template <std::size_t Order>
+struct default_differentiation_rule_tuple {
+  BOOST_STATIC_ASSERT(false);
+};
+
+template <>
+struct default_differentiation_rule_tuple<1> {
+  typedef arithmetic_tuple<default_differentiation_rule> type;
+};
+
+template <>
+struct default_differentiation_rule_tuple<2> {
+  typedef arithmetic_tuple<default_differentiation_rule,
+                           default_differentiation_rule> type;
+};
+
+template <>
+struct default_differentiation_rule_tuple<3> {
+  typedef arithmetic_tuple<default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule> type;
+};
+
+template <>
+struct default_differentiation_rule_tuple<4> {
+  typedef arithmetic_tuple<default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule> type;
+};
+
+template <>
+struct default_differentiation_rule_tuple<5> {
+  typedef arithmetic_tuple<default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule> type;
+};
+
+template <>
+struct default_differentiation_rule_tuple<6> {
+  typedef arithmetic_tuple<default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule> type;
+};
+
+template <>
+struct default_differentiation_rule_tuple<7> {
+  typedef arithmetic_tuple<default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule> type;
+};
+
+template <>
+struct default_differentiation_rule_tuple<8> {
+  typedef arithmetic_tuple<default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule> type;
+};
+
+template <>
+struct default_differentiation_rule_tuple<9> {
+  typedef arithmetic_tuple<default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule> type;
+};
+
+template <>
+struct default_differentiation_rule_tuple<10> {
+  typedef arithmetic_tuple<default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule,
+                           default_differentiation_rule> type;
 };
 
 
@@ -467,12 +573,14 @@ namespace detail {
 
 
   
-template <typename IndependentSpace, typename SpaceTuple, typename DiffRuleTuple>
-class differentiable_space {
+template <typename IndependentSpace, typename SpaceTuple, typename DiffRuleTuple = typename default_differentiation_rule_tuple<  >::type >
+class differentiable_space : public serialization::serializable {
   protected:
-    SpaceTuple m_space;
+    SpaceTuple m_spaces;
     
   public:
+    typedef differentiable_space< IndependentSpace, SpaceTuple, DiffRuleTuple > self;
+    
     template <int Idx>
     struct space {
       typedef typename arithmetic_tuple_element<Idx, SpaceTuple>::type type;
@@ -484,40 +592,40 @@ class differentiable_space {
     typedef typename differentiable_point_difference_tuple< SpaceTuple >::type point_difference_type;
       
     double distance(const point_type& p1, const point_type& p2) const {
-      return detail::differentiable_space_impl<differential_order, SpaceTuple>::distance(m_space, p1, p2);
+      return detail::differentiable_space_impl<differential_order, SpaceTuple>::distance(m_spaces, p1, p2);
     };
     
     double norm(const point_difference_type& dp) const {
-      return detail::differentiable_space_impl<differential_order, SpaceTuple>::norm(m_space, dp);
+      return detail::differentiable_space_impl<differential_order, SpaceTuple>::norm(m_spaces, dp);
     };
     
     point_type random_point() const {
       point_type result;
-      detail::differentiable_space_impl<differential_order, SpaceTuple>::random_point(m_space,result);
+      detail::differentiable_space_impl<differential_order, SpaceTuple>::random_point(m_spaces,result);
       return result;
     };
     
     point_difference_type difference(const point_type& p1, const point_type& p2) const {
       point_difference_type result;
-      detail::differentiable_space_impl<differential_order, SpaceTuple>::difference(m_space,result,p1,p2);
+      detail::differentiable_space_impl<differential_order, SpaceTuple>::difference(m_spaces,result,p1,p2);
       return result;
     };
     
     point_type move_position_toward(const point_type& p1, double d, const point_type& p2) const {
       point_type result;
-      detail::differentiable_space_impl<differential_order, SpaceTuple>::move_position_toward(m_space,result,p1,d,p2);
+      detail::differentiable_space_impl<differential_order, SpaceTuple>::move_position_toward(m_spaces,result,p1,d,p2);
       return result;
     };
     
     point_type origin() const {
       point_type result;
-      detail::differentiable_space_impl<differential_order, SpaceTuple>::origin(m_space,result);
+      detail::differentiable_space_impl<differential_order, SpaceTuple>::origin(m_spaces,result);
       return result;
     };
     
     point_type adjust(const point_type& p1, const point_difference_type& dp) const {
       point_type result;
-      detail::differentiable_space_impl<differential_order, SpaceTuple>::adjust(m_space,result,p1,dp);
+      detail::differentiable_space_impl<differential_order, SpaceTuple>::adjust(m_spaces,result,p1,dp);
       return result;
     };
       
@@ -529,7 +637,7 @@ class differentiable_space {
 #else
       using boost::tuples::get;
 #endif
-      return get<Idx>(m_space);
+      return get<Idx>(m_spaces);
     };
     
     template <int Idx>
@@ -550,10 +658,44 @@ class differentiable_space {
       return result;
     };
     
+
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      A & RK_SERIAL_SAVE_WITH_NAME(m_spaces);
+    };
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      A & RK_SERIAL_LOAD_WITH_NAME(m_spaces);
+    };
+    
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+
 };
 
 
+};
 
+
+namespace rtti {
+
+template <typename IndependentSpace, typename SpaceTuple, typename DiffRuleTuple>
+struct get_type_id< pp::differentiable_space<IndependentSpace,SpaceTuple,DiffRuleTuple> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0xC2400003);
+  static std::string type_name() { return "differentiable_space"; };
+  static construct_ptr CreatePtr() { return NULL; };
+  
+  typedef const serialization::serializable& save_type;
+  typedef serialization::serializable& load_type;
+};
+
+template <typename IndependentSpace, typename SpaceTuple, typename DiffRuleTuple, typename Tail>
+struct get_type_info< pp::differentiable_space<IndependentSpace,SpaceTuple,DiffRuleTuple>, Tail > {
+  typedef detail::type_id< pp::differentiable_space<IndependentSpace,SpaceTuple,DiffRuleTuple> , typename get_type_info< IndependentSpace, 
+                                                                                                 get_type_info< SpaceTuple, Tail> >::type> type;
+  static std::string type_name() { return get_type_id< pp::differentiable_space<IndependentSpace,SpaceTuple,DiffRuleTuple> >::type_name() + "<" + get_type_id<IndependentSpace>::type_name() + "," + get_type_id< SpaceTuple >::type_name() + ">" + "," + Tail::type_name(); };
+};
 
 };
 

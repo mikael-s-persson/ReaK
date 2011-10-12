@@ -42,6 +42,7 @@
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
 #include <cmath>
+#include "base/named_object.hpp"
 
 namespace ReaK {
 
@@ -56,13 +57,19 @@ namespace pp {
  * \tparam T The value-type for the topology (should be an arithmetic type that is implicitly convertable to double).
  */
 template <typename T = double>
-class line_topology 
+class line_topology : public named_object
 {
   public:
+    typedef line_topology<T> self;
+    
     typedef T point_type;
     typedef T point_difference_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 1);
+    
+    line_topology(const std::string& aName = "line_topology") : named_object() {
+      setName(aName);
+    };
     
     /**
      * Returns the distance between two points.
@@ -127,6 +134,21 @@ class line_topology
       return fabs(delta);
     }
 
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400001,1,"line_topology",named_object)
+    
 };
 
 /**
@@ -140,6 +162,8 @@ class line_segment_topology : public line_topology<T>
   typedef boost::uniform_01<RandomNumberGenerator, T> rand_t;
 
   public:
+    typedef line_segment_topology<T,RandomNumberGenerator> self;
+    
     typedef line_topology::point_type point_type;
     typedef line_topology::point_difference_type point_difference_type;
     
@@ -229,9 +253,34 @@ class line_segment_topology : public line_topology<T>
     typename shared_pointer<rand_t>::type rand;
     point_difference_type scaling;
     point_type origin;
+    
+  public:
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      line_topology<T>::save(A,line_topology<T>::getStaticObjectType()->TypeVersion());
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      line_topology<T>::load(A,line_topology<T>::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400006,1,"line_segment_topology",line_topology<T>)
 };
 
 
+};
+
+namespace rtti {
+
+template <typename T, typename RandomNumberGenerator, typename Tail>
+struct get_type_info< pp::line_segment_topology<T,RandomNumberGenerator>, Tail > {
+  typedef detail::type_id< pp::line_segment_topology<T,RandomNumberGenerator> , typename get_type_info< T, Tail>::type > type;
+  static std::string type_name() { return get_type_id< pp::line_segment_topology<T,RandomNumberGenerator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + "," + Tail::type_name(); };
+};
 
 };
 
