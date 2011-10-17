@@ -92,17 +92,17 @@ struct spatial_trajectory_traits {
  * 
  * std::pair< const_waypoint_descriptor, point_type > w_p;  A waypoint-point pair is used to associate a point and a waypoint.
  * 
- * pt = p.move_away_from(pt, dt);  A point along the trajectory (p), at a time-difference (dt) from a point (pt), can be obtained.
+ * pt = p.move_time_diff_from(pt, dt);  A point along the trajectory (p), at a time-difference (dt) from a point (pt), can be obtained.
  * 
  * d = p.travel_distance(pt,pt);  The travel distance (as of the distance-metric), along the trajectory (p), between two points (pt,pt), can be obtained.
  * 
- * pt = p.get_point(t);  The point, along the trajectory (p), at a given time (t) can be obtained.
+ * pt = p.get_point_at_time(t);  The point, along the trajectory (p), at a given time (t) can be obtained.
  * 
- * w_p = p.move_away_from(w_p, dt);  A waypoint along the trajectory (p), at a time-difference (dt) from a waypoint (w_p), can be obtained.
+ * w_p = p.move_time_diff_from(w_p, dt);  A waypoint along the trajectory (p), at a time-difference (dt) from a waypoint (w_p), can be obtained.
  * 
  * d = p.travel_distance(w_p,w_p);  The travel distance, along the trajectory (p), between two waypoints (w_p,w_p), can be obtained.
  * 
- * w_p = p.get_waypoint(t);  The waypoint, along the trajectory (p), at a given time (t) can be obtained.
+ * w_p = p.get_waypoint_at_time(t);  The waypoint, along the trajectory (p), at a given time (t) can be obtained.
  * 
  * \tparam SpatialTrajectory The trajectory type for which this concept is checked.
  * \tparam Topology The temporal-topology type on which the trajectory should be able to exist.
@@ -123,12 +123,12 @@ struct SpatialTrajectoryConcept {
   
   BOOST_CONCEPT_USAGE(SpatialTrajectoryConcept)
   {
-    pt = p.move_away_from(pt, dt);
+    pt = p.move_time_diff_from(pt, dt);
     d = p.travel_distance(pt, pt);
-    pt = p.get_point(t);
-    w_p = p.move_away_from(w_p, dt);
+    pt = p.get_point_at_time(t);
+    w_p = p.move_time_diff_from(w_p, dt);
     d = p.travel_distance(w_p, w_p);
-    w_p = p.get_waypoint(t);
+    w_p = p.get_waypoint_at_time(t);
   };
   
 };

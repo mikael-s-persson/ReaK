@@ -33,7 +33,7 @@
 #ifndef REAK_QUINTIC_HERMITE_INTERP_HPP
 #define REAK_QUINTIC_HERMITE_INTERP_HPP
 
-#include "spatial_path_concept.hpp"
+#include "path_planning/spatial_trajectory_concept.hpp"
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>

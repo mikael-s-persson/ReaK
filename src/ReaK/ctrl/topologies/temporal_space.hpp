@@ -177,6 +177,10 @@ class temporal_space {
     
     typedef point point_type;
     typedef point_difference point_difference_type;
+    
+    const space_topology& get_space_topology() const { return space; };
+    const time_topology& get_time_topology() const { return time; };
+    const distance_metric& get_distance_metric() const { return dist; };
 
     /**
      * Returns a random point within the temporal-space.

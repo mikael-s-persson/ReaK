@@ -124,15 +124,7 @@ class time_topology : public named_object
     double volume(const point_difference_type& delta) const {
       return std::fabs(delta);
     };
-    
-    /**
-     * Generates a random point in the space, uniformly distributed.
-     * \note This function actually returns the origin of the space.
-     */
-    point_type random_point() const {
-      return 0.0;
-    };
-    
+        
     /**
      * Returns the origin of the space.
      */
