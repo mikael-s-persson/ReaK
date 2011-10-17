@@ -46,11 +46,10 @@
 #include "base/named_object.hpp"
 
 #include <boost/noncopyable.hpp>
-#include <boost/random/linear_congruential.hpp>
-#include <boost/random.hpp>
-#include <boost/random/normal_distribution.hpp>
 
-#include <ctime>
+#include "path_planning/global_rng.hpp"
+
+#include <boost/random/normal_distribution.hpp>
 
 namespace ReaK {
 
@@ -418,7 +417,6 @@ struct gaussian_sampler {
   
   state_type mean_state;
   mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> L;
-  mutable typename shared_pointer<RNG>::type rng;
   
   /**
    * Parametrized constructor.
@@ -426,7 +424,7 @@ struct gaussian_sampler {
    * \param aCov The covariance matrix of the gaussian probability distribution.
    * \param aRng The random-number generator (functor) to use to obtain randomness.
    */
-  gaussian_sampler(const state_type& aMeanState, const covariance_type& aCov, const typename shared_pointer<RNG>::type& aRng) : mean_state(aMeanState), L(aMeanState.size()), rng(aRng) {
+  gaussian_sampler(const state_type& aMeanState, const covariance_type& aCov) : mean_state(aMeanState), L(aMeanState.size()) {
     using std::sqrt;
     const matrix_type& C = aCov.get_matrix();
     try {
@@ -468,7 +466,7 @@ struct gaussian_sampler {
    * \return A random state-sample from the gaussian probability distribution
    */
   state_type operator()() const {
-    boost::variate_generator< RNG&, boost::normal_distribution<scalar_type> > var_rnd(*rng, boost::normal_distribution<scalar_type>());
+    boost::variate_generator< pp::global_rng_type&, boost::normal_distribution<scalar_type> > var_rnd(*pp::get_global_rng(), boost::normal_distribution<scalar_type>());
     
     state_difference_type z = diff(mean_state,mean_state);
     for(size_type i = 0; i < z.size(); ++i)
@@ -516,7 +514,6 @@ class gaussian_belief_state : public virtual shared_object {
   private:
     state_type mean_state;
     covariance_type covar;
-    mutable shared_pointer<boost::minstd_rand>::type rng;
     
   public:
     
@@ -537,7 +534,7 @@ class gaussian_belief_state : public virtual shared_object {
      * \return The random sampler functor associated with this belief-state's probability distribution.
      */
     random_sampler_type get_random_sampler() const { 
-      return random_sampler_type(mean_state, covar, rng);
+      return random_sampler_type(mean_state, covar);
     };
     
     /**
@@ -575,13 +572,12 @@ class gaussian_belief_state : public virtual shared_object {
     gaussian_belief_state(const state_type& aMeanState = state_type(), 
 			  const covariance_type& aCov = covariance_type()) : 
 			  mean_state(aMeanState), 
-			  covar(aCov), 
-			  rng(new boost::minstd_rand(static_cast<unsigned int>(time(NULL)))) { };
+			  covar(aCov) { };
 
     /**
      * Standard copy-constructor.
      */
-    gaussian_belief_state(const self& rhs) : mean_state(rhs.mean_state), covar(rhs.covar), rng(rhs.rng) { };
+    gaussian_belief_state(const self& rhs) : mean_state(rhs.mean_state), covar(rhs.covar) { };
     
     /**
      * Standard swap function.
@@ -590,7 +586,6 @@ class gaussian_belief_state : public virtual shared_object {
       using std::swap;
       swap(lhs.mean_state,rhs.mean_state);
       swap(lhs.covar,rhs.covar);
-      swap(lhs.rng,rhs.rng);
     };
     
     /**

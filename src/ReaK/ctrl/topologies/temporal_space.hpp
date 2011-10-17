@@ -52,13 +52,13 @@ namespace pp {
  * topology (see line_segment_topology), while the spatial topology and distance-metric 
  * is provided by the user. Models the TemporalSpaceConcept.
  * \tparam Topology The topology type which represents the spatial dimensions, should model MetricSpaceConcept.
+ * \tparam TimeTopology The topology type which represents the time dimension, should model MetricSpaceConcept.
  * \tparam DistanceMetric The distance metric type for the temporal-space, should model the TemporalDistMetricConcept.
- * \tparam RandomNumberGenerator The random number generator functor type that can introduce the randomness needed for generating samples of the space.
  */
-template <typename Topology, typename DistanceMetric = spatial_distance_only, typename RandomNumberGenerator = boost::minstd_rand>
+template <typename Topology, typename TimeTopology, typename DistanceMetric = spatial_distance_only>
 class temporal_space {
   public:
-    typedef time_topology time_topology;
+    typedef TimeTopology time_topology;
     typedef Topology space_topology;
     typedef DistanceMetric distance_metric;
     
@@ -172,17 +172,8 @@ class temporal_space {
      * \param aSpace The space topology to be used.
      * \param aMaxTime The extent of the temporal values.
      */
-    explicit temporal_space(const space_topology& aSpace, double aMaxTime = 1.0) :
-                            space(aSpace), time(aMaxTime,0.0) { };
-   
-    /**
-     * Constructor from a space-topology, a random number generator and a maximum time value.
-     * \param aSpace The space topology to be used.
-     * \param aGen The random number generator to be used.
-     * \param aMaxTime The extent of the temporal values.
-     */
-    temporal_space(const space_topology& aSpace, RandomNumberGenerator& aGen, double aMaxTime = 1.0) :
-                   space(aSpace), time(aGen,aMaxTime,0.0) { };
+    explicit temporal_space(const space_topology& aSpace, const time_topology& aTime) :
+                            space(aSpace), time(aTime) { };
     
     typedef point point_type;
     typedef point_difference point_difference_type;

@@ -232,7 +232,12 @@ time_topology               0xC2400002   bin: 1100 0010 0100 0000 0000 0000 0000
 differentiable_space<I,X,D> 0xC2400003   bin: 1100 0010 0100 0000 0000 0000 0000 0011  D-R
 temporal_space<X>           0xC2400004   bin: 1100 0010 0100 0000 0000 0000 0000 0100  
 reachability_space<X>       0xC2400005   bin: 1100 0010 0100 0000 0000 0000 0000 0101  
-line_segment_topology<T>    0xC2400006   bin: 1100 0010 0100 0000 0000 0000 0000 0001  D-R
+line_segment_topology<T>    0xC2400006   bin: 1100 0010 0100 0000 0000 0000 0000 0110  D-R
+vector_topology<V>          0xC2400007   bin: 1100 0010 0100 0000 0000 0000 0000 0111  D-R
+hyperball_topology<V,M>     0xC2400008   bin: 1100 0010 0100 0000 0000 0000 0000 1000  D-R
+hyperbox_topology<V,M>      0xC2400009   bin: 1100 0010 0100 0000 0000 0000 0000 1001  D-R
+topology_tuple<T...>        0xC240000A   bin: 1100 0010 0100 0000 0000 0000 0000 1010  
+time_poisson_topology       0xC240000B   bin: 1100 0010 0100 0000 0000 0000 0000 1011  D-R
 
 
 

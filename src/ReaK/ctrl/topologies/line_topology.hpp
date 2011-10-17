@@ -38,8 +38,9 @@
 #include "base/defs.hpp"
 
 #include <boost/random/uniform_01.hpp>
-#include <boost/random/linear_congruential.hpp>
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
+
+#include "path_planning/global_rng.hpp"
 
 #include <cmath>
 #include "base/named_object.hpp"
@@ -152,14 +153,16 @@ class line_topology : public named_object
 };
 
 /**
- * This class implements a line-segment topology. The space extends from the origin up to some 
- * maximum value.
+ * This class implements a line-segment topology. The space extends from the minimum value up to some 
+ * maximum value. Models the MetricSpaceConcept, BoundedSpaceConcept, and SphereBoundedSpaceConcept.
+ * 
+ * \tparam T A value-type (scalar value).
  * \tparam RandomNumberGenerator A random number generator functor type.
  */
-template<typename T = double, typename RandomNumberGenerator = boost::minstd_rand>
+template<typename T = double>
 class line_segment_topology : public line_topology<T>
 {
-  typedef boost::uniform_01<RandomNumberGenerator, T> rand_t;
+  typedef boost::uniform_01<global_rng_type&, T> rand_t;
 
   public:
     typedef line_segment_topology<T,RandomNumberGenerator> self;
@@ -171,45 +174,35 @@ class line_segment_topology : public line_topology<T>
 
     /**
      * Default constructor.
-     * \param aScaling The overall span of the line-segment.
-     * \param aOrigin The minimum bound of the line-segment.
+     * \param aStart The minimum bound of the line-segment.
+     * \param aEnd The maximum bound of the line-segment.
      */
-    explicit line_segment_topology(point_type aScaling = point_type(1.0), point_type aOrigin = point_type(0.0)) 
-      : gen_ptr(new RandomNumberGenerator), rand(new rand_t(*gen_ptr)), 
-        scaling(scaling), origin(aOrigin) { };
-
-    /**
-     * Parametrized constructor.
-     * \param aGen A random-number generator to use.
-     * \param aScaling The overall span of the line-segment.
-     * \param aOrigin The minimum bound of the line-segment.
-     */
-    explicit line_segment_topology(RandomNumberGenerator& aGen, point_type aScaling = point_type(1.0), point_type aOrigin = point_type(0.0)) 
-      : gen_ptr(), rand(new rand_t(aGen)), scaling(aScaling), origin(aOrigin) { };
-       
+    explicit line_segment_topology(point_type aStart = point_type(0.0), point_type aEnd = point_type(1.0)) 
+      : start_pt(aStart), end_pt(aEnd) { };
+   
     /**
      * Generates a random point in the space, uniformly distributed.
      */
     point_type random_point() const {
-      return (*rand)() * scaling + origin;
+      return rand_t(get_global_rng())() * (end_pt - start_pt) + start_pt;
     };
 
     /**
      * Takes a point and clips it to within this line-segment space.
      */
     point_type bound(point_type a) const {
-      if(scaling > 0.0) {
-        if(a > origin + scaling)
-  	  return origin + scaling;
-        else if(a < origin) 
- 	  return origin;
+      if(end_pt > start_pt) {
+        if(a > end_pt)
+  	  return end_pt;
+        else if(a < start_pt) 
+ 	  return start_pt;
         else
 	  return a;
       } else {
-        if(a < origin + scaling)
-	  return origin + scaling;
-        else if(a > origin)
-	  return origin;
+        if(a < end_pt)
+	  return end_pt;
+        else if(a > start_pt)
+	  return start_pt;
         else
 	  return a;
       };
@@ -220,39 +213,43 @@ class line_segment_topology : public line_topology<T>
      */
     double distance_from_boundary(point_type a) const {
       using std::fabs;
-      double dist = fabs(scaling - a + origin);
-      if(fabs(a - origin) < dist)
-        return fabs(a - origin);
+      double dist = fabs(end_pt - a);
+      if(fabs(a - start_pt) < dist)
+        return fabs(a - start_pt);
       else
         return dist;
     };
-
+    
     /**
-     * Returns the center of the space.
+     * Returns the difference to the closest boundary.
      */
-    point_type center() const {
-      return origin + scaling * 0.5;
+    point_difference_type get_diff_to_boundary(point_type a) const {
+      using std::fabs;
+      double dist = fabs(end_pt - a);
+      if(fabs(a - start_pt) < dist)
+        return start_pt - a;
+      else
+        return end_pt - a;
     };
 
     /**
      * Returns the origin of the space (the lower-limit).
      */
     point_type origin() const {
-      return origin;
+      return (end_pt - start_pt) * 0.5 + start_pt;
     };
-
+    
     /**
-     * Returns the extent of the space (the upper-limit).
+     * Returns the radius of the space.
      */
-    point_difference_type extent() const {
-      return origin + scaling;
+    double get_radius() const {
+      using std::fabs;
+      return fabs(end_pt - start_pt) * 0.5;
     };
 
   private:
-    typename shared_pointer<RandomNumberGenerator>::type gen_ptr;
-    typename shared_pointer<rand_t>::type rand;
-    point_difference_type scaling;
-    point_type origin;
+    point_type start_pt;
+    point_type end_pt;
     
   public:
     
@@ -262,25 +259,19 @@ class line_segment_topology : public line_topology<T>
     
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       line_topology<T>::save(A,line_topology<T>::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(start_pt)
+        & RK_SERIAL_SAVE_WITH_NAME(end_pt);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       line_topology<T>::load(A,line_topology<T>::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(start_pt)
+        & RK_SERIAL_LOAD_WITH_NAME(end_pt);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400006,1,"line_segment_topology",line_topology<T>)
 };
 
-
-};
-
-namespace rtti {
-
-template <typename T, typename RandomNumberGenerator, typename Tail>
-struct get_type_info< pp::line_segment_topology<T,RandomNumberGenerator>, Tail > {
-  typedef detail::type_id< pp::line_segment_topology<T,RandomNumberGenerator> , typename get_type_info< T, Tail>::type > type;
-  static std::string type_name() { return get_type_id< pp::line_segment_topology<T,RandomNumberGenerator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + "," + Tail::type_name(); };
-};
 
 };
 
