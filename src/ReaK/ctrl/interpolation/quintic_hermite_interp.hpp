@@ -1,11 +1,12 @@
 /**
  * \file quintic_hermite_interp.hpp
  * 
- * This library provides an implementation of a trajectory within a topology
- * by using a quintic Hermite interpolation between two points.
+ * This library provides an implementation of a trajectory within a temporal and twice-differentiable topology.
+ * The trajectory is represented by a set of waypoints and all intermediate points 
+ * are computed with a quintic Hermite interpolation (quintic hermite spline, or qspline).
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
- * \date September 2011
+ * \date October 2011
  */
 
 /*
@@ -35,123 +36,308 @@
 
 #include "path_planning/spatial_trajectory_concept.hpp"
 
+#include "path_planning/differentiable_space_concept.hpp"
+
+#include "interpolated_trajectory.hpp"
+
+#include "lin_alg/arithmetic_tuple.hpp"
+
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
+#include <boost/mpl/less.hpp>
+#include <boost/mpl/greater.hpp>
+#include <boost/mpl/equal_to.hpp>
 #include <cmath>
 
 #include <list>
 #include <map>
 #include <limits>
+#include "lin_alg/mat_num_exceptions.hpp"
 
 namespace ReaK {
 
 namespace pp {
+  
+  
+namespace detail {
+  
+  
+  template <typename Idx, typename PointType, typename PointDiff2, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::less< 
+      Idx, 
+      boost::mpl::size_t<3> 
+    >,
+  void >::type quintic_hermite_interpolate_HOT_impl(PointType&, const PointDiff2&,
+						    const PointDiff2&, const PointDiff2&, 
+                                                    const DiffSpace&, const TimeSpace&,
+					            double, double) {
+    /* nothing to do, but this function overload should be available, i.e., it is a no-op. */
+  };
+  
+  template <typename Idx, typename PointType, typename PointDiff2, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<3> 
+    >,
+  void >::type quintic_hermite_interpolate_HOT_impl(PointType& result, const PointDiff2& da1a0,
+						    const PointDiff2& da_term1, const PointDiff2& da_term2, 
+                                                    const DiffSpace& space, const TimeSpace& t_space,
+					            double t_factor, double t_normal) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+        
+   // lift( 
+    get<3>(result) = space.lift_to_space<3>(
+   //   (5 - 30 t + 30 t^2) * ( diff( lift( 6 * diff( lift( diff( p1, p0 ) ), v0 ) ), a0 ) + diff( a1, lift( 6 * diff( v1, lift( diff( p1, p0 ) ) ) ) ) ) 
+      (5.0 - (30.0 - 30.0 * t_normal) * t_normal) * da_term1
+   //   + (3 - 6 t) * ( diff( lift( diff( v1, v0 ) ), a0 ) - diff( a1, lift( diff( v1, v0 ) ) ) ) + diff(a1, a0)
+      + (3.0 - 6.0 * t_normal) * da_term2 + da1a0, t_factor, t_space);
+
+  };
+  
+  
+  template <typename Idx, typename PointType, typename PointDiff2, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<4> 
+    >,
+  void >::type quintic_hermite_interpolate_HOT_impl(PointType& result, const PointDiff2& da1a0,
+						    const PointDiff2& da_term1, const PointDiff2& da_term2, 
+                                                    const DiffSpace& space, const TimeSpace& t_space,
+					            double t_factor, double t_normal) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    quintic_hermite_interpolate_HOT_impl< boost::mpl::size_t<3>, PointType, PointDiff2, DiffSpace, TimeSpace >(result,da1a0,da_term1,da_term2,space,t_space,t_factor,t_normal);
+      
+   // lift( diff(
+    get<4>(result) = space.lift_to_space<4>( space.get_space<3>(t_space).difference(
+   //   (-30 + 60 t) * (
+      space.lift_to_space<3>((60.0 * t_normal - 30.0) * da_term1, t_factor, t_space),
+   //   , 6 * (
+      space.lift_to_space<3>(6.0 * da_term2, t_factor, t_space)
+    ), t_factor, t_space);
+    
+  };
+  
+  
+  template <typename Idx, typename PointType, typename PointDiff2, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<5> 
+    >,
+  void >::type quintic_hermite_interpolate_HOT_impl(PointType& result, const PointDiff2& da1a0,
+						    const PointDiff2& da_term1, const PointDiff2& da_term2, 
+                                                    const DiffSpace& space, const TimeSpace& t_space,
+					            double t_factor, double t_normal) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    quintic_hermite_interpolate_HOT_impl< boost::mpl::size_t<4>, PointType, PointDiff2, DiffSpace, TimeSpace >(result,da1a0,da_term1,da_term2,space,t_space,t_factor,t_normal);
+    
+   // lift( diff(
+    get<5>(result) = space.lift_to_space<5>( space.get_space<4>(t_space).difference(
+   //   lift( 60 * diff(
+       space.lift_to_space<4>( 60.0 * space.get_space<3>(t_space).difference(   
+   //     lift( diff( lift( 6 * diff( lift( diff( p1, p0 ) ), v0 ) ), a0 )
+        space.lift_to_space<3>( da_term1, t_factor, t_space), 
+   //     , lift( diff( lift( 6 * diff( v1, lift( diff( p1, p0 ) ) ) ), a1 ) )
+        space.get_space<3>(t_space).origin() ), t_factor, t_space),
+   //   , origin<4>
+      space.get_space<4>(t_space).origin()
+    ), t_factor, t_space);
+    
+  };
+  
+  
+  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::less< 
+      Idx, 
+      boost::mpl::size_t<6> 
+    >,
+  void >::type quintic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
+                                                const DiffSpace& space, const TimeSpace& t_space,
+					        double t_factor, double t_normal) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    typedef typename derived_N_order_space<DiffSpace,0,TimeSpace>::type Space0;
+    typedef typename derived_N_order_space<DiffSpace,1,TimeSpace>::type Space1;
+    typedef typename derived_N_order_space<DiffSpace,2,TimeSpace>::type Space2;
+    
+    typedef typename metric_topology_traits<Space0>::point_type PointType0;
+    typedef typename metric_topology_traits<Space1>::point_type PointType1;
+    typedef typename metric_topology_traits<Space2>::point_type PointType2;
+    
+    typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
+    typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
+    typedef typename metric_topology_traits<Space2>::point_difference_type PointDiff2;
+    
+    PointDiff0 dp1p0 = space.get_space<0>(t_space).difference( get<0>(b), get<0>(a) );
+    PointDiff1 dv1v0 = space.get_space<1>(t_space).difference( get<1>(b), get<1>(a) );
+    PointType1 ldp1p0 = space.lift_to_space(dp1p0, t_factor, t_space);
+    PointDiff1 d_ldp1p0_v0 = space.get_space<1>(t_space).difference( ldp1p0, get<1>(a) );
+    PointDiff1 d_v1_ldp1p0 = space.get_space<1>(t_space).difference( get<1>(b), ldp1p0 );
+    PointDiff1 i_a0 = space.descend_to_space<1>(get<2>(a), t_factor, t_space);
+    PointDiff1 i_a1 = space.descend_to_space<1>(get<2>(b), t_factor, t_space);
+    
+    double t2 = t_normal * t_normal;
+    double t3 = t_normal * t2;
+    double t4 = t2 * t2;
+    double t5 = t4 * t_normal;
+   
+   // p0 +
+    get<0>(result) = space.get_space<0>(t_space).adjust(get<0>(a), 
+   //   (10 t^3 - 15 t^4 + 6 t^5) * (diff(p1,p0) - 0.5 (desc(v0) + desc(v1)) )
+      (10.0 * t3 - 15.0 * t4 + 6.0 * t5) * ( dp1p0 - 0.5 * ( space.descend_to_space<0>(get<1>(a),t_factor, t_space) 
+	                                                   + space.descend_to_space<0>(get<1>(b),t_factor, t_space) ) )
+   //   + t desc(v0 +
+      + t_normal * space.descend_to_space<0>( space.get_space<1>().adjust(get<1>(a),
+   //           (t^2 - 0.5 t^3) diff(v1,v0) + (0.5 t - 1.5 t^2 + 1.5 t^3 - 0.5 t^4) desc(a0) + (0.5 t^2 - t^3 + 0.5 t^4) desc(a1) )
+        (t2 - 0.5 * t3) * dv1v0 + (0.5 * (t_normal - 3.0 * t2 + 3.0 * t3 - t4)) * i_a0 + (0.5 * (t2 - 2.0 * t3 + t4)) * i_a1
+      ), t_factor, t_space));
+    
+   // v0 + 
+    get<1>(result) = space.get_space<1>(t_space).adjust(get<1>(a),
+   //   (15 t^2 - 30 t^3 + 15 t^4) * ( diff( lift( diff(p1,p0) ) , v0 ) - diff( v1, lift( diff(p1,p0) ) ) )
+      (15.0 * (t2 - 2.0 * t3 + t4)) * (d_ldp1p0_v0 - d_v1_ldp1p0)
+   //   (3 t^2 - 2 t^3) diff(v1,v0) + (t - 4.5 t^2 + 6 t^3 - 2.5 t^4) desc(a0) + (1.5 t^2 - 4 t^3 + 2.5 t^4) desc(a1)
+      + (3.0 * t2 - 2.0 * t3) * dv1v0 + (t_normal - 4.5 * t2 + 6.0 * t3 - 2.5 * t4) * i_a0 + (1.5 * t2 - 4.0 * t3 + 2.5 * t4) * i_a1 
+    );
+    
+    PointType2 l6d_ldp1p0_v0 = space.lift_to_space<2>( 6.0 * d_ldp1p0_v0, t_factor, t_space);
+    PointType2 l6d_v1_ldp1p0 = space.lift_to_space<2>( 6.0 * d_v1_ldp1p0, t_factor, t_space);
+    PointDiff2 d_l6d_ldp1p0_v0_a0 = space.get_space<2>(t_space).difference( l6d_ldp1p0_v0, get<2>(a) );
+    PointDiff2 d_a1_l6d_v1_ldp1p0 = space.get_space<2>(t_space).difference( get<2>(b), l6d_v1_ldp1p0 );
+    PointType2 ldv1v0 = space.lift_to_space<2>( dv1v0, t_factor, t_space);
+    PointDiff2 d_ldv1v0_a0 = space.get_space<2>(t_space).difference( ldv1v0, get<2>(a) );
+    PointDiff2 d_a1_ldv1v0 = space.get_space<2>(t_space).difference( get<2>(b), ldv1v0 );
+    PointDiff2 da1a0 = space.get_space<2>(t_space).difference( get<2>(b), get<2>(a) );
+    
+    PointDiff2 da_term1 = d_l6d_ldp1p0_v0_a0 + d_a1_l6d_v1_ldp1p0;
+    PointDiff2 da_term2 = d_ldv1v0_a0 - d_a1_ldv1v0;
+    
+   // a0 + 
+    get<2>(result) = space.get_space<2>(t_space).adjust( get<2>(a), 
+   //   (5 t - 15 t^2 + 10 t^3) * (diff( lift( 6 * diff( lift( diff( p1, p0 ) ), v0 ) ), a0 ) + diff( a1, lift( 6 * diff( v1, lift( diff( p1, p0 ) ) ) ) ) )
+      (5.0 * (t_normal - 3.0 * t2 + 2.0 * t3)) * da_term1
+   //   + (3 t - 3 t^2) * ( diff( lift( diff( v1, v0 ) ), a0 ) - diff( a1, lift( diff( v1, v0 ) ) ) ) + t diff(a1, a0)
+      + (3.0 * (t_normal - t2)) * da_term2 + t_normal * da1a0
+    );
+    
+    quintic_hermite_interpolate_HOT_impl< Idx, PointType, PointDiff2, DiffSpace, TimeSpace >(result,da1a0,da_term1,da_term2,space,t_space,t_factor,t_normal);
+    
+  };
+  
+  
+  
+  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::greater< 
+      Idx, 
+      boost::mpl::size_t<5> 
+    >,
+  void >::type quintic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
+                                                const DiffSpace& space, const TimeSpace& t_space,
+					        double t_factor, double t_normal) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    quintic_hermite_interpolate_impl< boost::mpl::prior<Idx>, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
+    
+    get< Idx::type::value >(result) = space.get_space< Idx::type::value >(t_space).origin();
+  };
+  
+};
+
+
+
+template <typename PointType, typename Topology>
+PointType quintic_hermite_interpolate(const PointType& a, const PointType& b, double t, const Topology& space) {
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<Topology>::space_topology, 2, typename temporal_topology_traits<Topology>::time_topology >));
+  double t_factor = b.time - a.time;
+  if(std::fabs(t_factor) < std::numeric_limits<double>::epsilon())
+    throw singularity_error("Normalizing factor in cubic Hermite spline is zero!");
+  double t_normal = (t - a.time) / (b.time - a.time);
+      
+  PointType result;
+  result.time = t;
+  detail::quintic_hermite_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< SpaceType >::order> >(result.pt, a.pt, b.pt, space.get_space_topology(), space.get_time_topology(), t_factor, t_normal);
+      
+  return result;      
+};
+
+
+struct quintic_hermite_interpolator {
+  template <typename PointType, typename Topology>
+  PointType operator()(const PointType& a, const PointType& b, double t, const Topology& space) const {
+    return quintic_hermite_interpolate(a,b,t,space);
+  };
+};
+
+
+
 
   
 /**
- * This class implements a quintic trajectory within a twice-differentiable topology.
- * The path is represented by a set of waypoints and all intermediate points 
- * are computed with a quintic Hermite interpolation.
- * \tparam Topology The twice-differentiable topology type on which the points and the trajectory can reside, should model the MetricSpaceConcept and the DifferentiableSpaceConcept.
- * \tparam DistanceMetric The distance metric type used over the topology, should model the DistanceMetricConcept.
+ * This class implements a trajectory in a temporal and once-differentiable topology.
+ * The trajectory is represented by a set of waypoints and all intermediate points 
+ * are computed with a linear interpolation. This class models the SpatialTrajectoryConcept.
+ * \tparam Topology The topology type on which the points and the path can reside, should model the TemporalSpaceConcept and the DifferentiableSpaceConcept (order 1 with space against time).
+ * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the DistanceMetricConcept.
  */
 template <typename Topology, typename DistanceMetric = default_distance_metric>
-struct quintic_hermite_interp {
+class quintic_hermite_interp : public interpolated_trajectory<Topology,quintic_hermite_interpolator,DistanceMetric> {
   public:
+    
+    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<Topology>::space_topology, 2, typename temporal_topology_traits<Topology>::time_topology >));
+    
     typedef quintic_hermite_interp<Topology,DistanceMetric> self;
-    typedef Topology topology;
-    typedef Topology::point_type point_type;
-    typedef Topology::point_difference_type point_difference_type;
-    
-    typedef typename std::list<point_type>::iterator waypoint_descriptor;
-    typedef typename std::list<point_type>::const_iterator const_waypoint_descriptor;
-    
-    typedef std::pair<const_waypoint_descriptor, point_type> waypoint_pair;
-    
-    typedef DistanceMetric distance_metric;
-    
-  private:
-    
-    const topology& space;
-    point_type start_point;
-    point_type end_point;
-    
-    std::list<point_type> waypoints;
-    
-    typedef std::pair<const_waypoint_descriptor, const_waypoint_descriptor> const_waypoint_bounds;
-    
-    point_to_point_path(const point_to_point_path<Topology,DistanceMetric>&); //non-copyable.
-    point_to_point_path<Topology,DistanceMetric>& operator=(const point_to_point_path<Topology,DistanceMetric>&);
-    
-    
-    const_waypoint_bounds get_waypoint_bounds(const point_type& p, const_waypoint_descriptor start) const {
-      const_waypoint_descriptor it_end = waypoints.end();
-      if(start == it_end)
-	throw invalid_path("Point-to-point path (exhausted waypoints during waypoint query)");
-      double d1 = space.distance(*start,p);
-      const_waypoint_descriptor it2 = start; ++it2;
-      if(it2 == it_end)
-	return std::make_pair(start,start);
-      double d2 = space.distance(*it2,p);
-      const_waypoint_descriptor it3 = it2; ++it3;
-      while(it3 != it_end) {
-	double d3 = space.distance(*it3,p);
-	if(d3 > d2) {
-	  if(d3 < d1) {
-	    start = it2;
-	    it2 = it3;
-	    break;
-	  } else
-	    break;
-	} else {
-	  start = it2; d1 = d2;
-	  it2 = it3; d2 = d3;
-	  ++it3;
-	};
-      };
-      return std::make_pair(start,it2);
-    };
-    
-    double travel_distance_impl(const point_type& a, const const_waypoint_bounds& wpb_a, 
-				const point_type& b, const const_waypoint_bounds& wpb_b) const {
-      if((wpb_a.first == wpb_a.second) || (wpb_a.first == wpb_b.first))
-	return space.distance(a,b); //this means that a is at the end of the path, thus, the "path" goes directly towards b.
-      double sum = space.distance(a, *(wpb_a.second));
-      const_waypoint_descriptor it = wpb_a.second;
-      while(it != wpb_b.first) {
-	const_waypoint_descriptor it_prev = it;
-	sum += space.distance(*it_prev, *(++it));
-      };
-      sum += space.distance(*(wpb_b.first), b);
-      return sum;
-    };
+    typedef interpolated_trajectory<Topology,quintic_hermite_interpolator,DistanceMetric> base_class_type;
     
   public:
     /**
      * Constructs the path from a space, assumes the start and end are at the origin 
      * of the space.
      * \param aSpace The space on which the path is.
+     * \param aDist The distance metric functor that the path should use.
      */
-    explicit point_to_point_path(const topology& aSpace) : 
-                                 space(aSpace), 
-                                 start_point(aSpace.origin()), 
-                                 end_point(aSpace.origin()),
-                                 waypoints() { 
-      waypoints.push_back(start_point);
-      waypoints.push_back(end_point);
-    };
+    explicit quintic_hermite_interp(const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
+                                    base_class_type(aSpace, aDist) { };
     
     /**
      * Constructs the path from a space, the start and end points.
      * \param aSpace The space on which the path is.
      * \param aStart The start point of the path.
      * \param aEnd The end-point of the path.
+     * \param aDist The distance metric functor that the path should use.
      */
-    point_to_point_path(const topology& aSpace, const point_type& aStart, const point_type& aEnd) :
-                        space(aSpace), start_point(aEnd), end_point(aEnd), waypoints() {
-      waypoints.push_back(start_point);
-      waypoints.push_back(end_point);
-    };
+    quintic_hermite_interp(const topology& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
+                           base_class_type(aSpace, aStart, aEnd, aDist) { };
 			
     /**
      * Constructs the path from a range of points and their space.
@@ -159,98 +345,13 @@ struct quintic_hermite_interp {
      * \param aBegin An iterator to the first point of the path.
      * \param aEnd An iterator to the second point of the path.
      * \param aSpace The space on which the path is.
+     * \param aDist The distance metric functor that the path should use.
      */
     template <typename ForwardIter>
-    point_to_point_path(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace) : 
-                        space(aSpace), waypoints(aBegin, aEnd) {
-      if(waypoints.size() > 0) {
-	start_point = waypoints.front();
-	end_point = waypoints.back();
-      } else 
-	throw invalid_path("Point-to-point path (empty list of waypoints)");
-    };
-    
-    /**
-     * Returns the space on which the path resides.
-     * \return The space on which the path resides.
-     */
-    const topology& getSpace() const throw() { return space; };
-    
-    /**
-     * Standard swap function.
-     */
-    friend void swap(self& lhs, self& rhs) throw() {
-      std::swap(lhs.start_point, rhs.start_point);
-      std::swap(lhs.end_point, rhs.end_point);
-      lhs.waypoints.swap(rhs.waypoints);
-    };
-    
-    /**
-     * Computes the travel distance between two points, if traveling along the path.
-     * \param a The first point.
-     * \param b The second point.
-     * \return The travel distance between two points if traveling along the path.
-     */
-    double travel_distance(const point_type& a, const point_type& b) const {
-      std::pair<const_waypoint_descriptor, const_waypoint_descriptor> wpb_a = get_waypoint_bounds(a, waypoints.begin());
-      std::pair<const_waypoint_descriptor, const_waypoint_descriptor> wpb_b = get_waypoint_bounds(b, wpb_a.first);
-      return travel_distance_impl(a, wpb_a, b, wpb_b);
-    };
-    
-    /**
-     * Computes the travel distance between two waypoint-point-pairs, if traveling along the path.
-     * \param a The first waypoint-point-pair.
-     * \param b The second waypoint-point-pair.
-     * \return The travel distance between two points if traveling along the path.
-     */
-    double travel_distance(waypoint_pair& a, waypoint_pair& b) const {
-      std::pair<const_waypoint_descriptor, const_waypoint_descriptor> wpb_a = get_waypoint_bounds(a.second, a.first);
-      std::pair<const_waypoint_descriptor, const_waypoint_descriptor> wpb_b = get_waypoint_bounds(b.second, b.first);
-      a.first = wpb_a.first; b.first = wpb_b.first;
-      return travel_distance_impl(a.second, wpb_a, b.second, wpb_b);
-    };
-    
-    /**
-     * Computes the point that is a distance away from a point on the path.
-     * \param a The point on the path.
-     * \param d The distance to move away from the point.
-     * \return The point that is a distance away from the given point.
-     */
-    point_type move_away_from(const point_type& a, double d) const {
-      std::pair<const_waypoint_descriptor, const_waypoint_descriptor> wpb_a = get_waypoint_bounds(a, waypoints.begin());
-      point_type prev = a;
-      const_waypoint_descriptor it = wpb_a.second;
-      while((it != waypoints.end()) && (d > std::numeric_limits<double>::epsilon())) {
-	double d1 = space.distance(prev, *it);
-	if(d1 > d)
-	  return space.move_position_toward(prev, d / d1, *(wpb_a.second));
-	d -= d1; prev = *it; ++it;
-      };
-      return prev;
-    };
-    
-    /**
-     * Computes the waypoint-point-pair that is a distance away from a waypoint-point-pair on the path.
-     * \param a The waypoint-point-pair on the path.
-     * \param d The distance to move away from the waypoint-point-pair.
-     * \return The waypoint-point-pair that is a distance away from the given waypoint-point-pair.
-     */
-    waypoint_pair move_away_from(const waypoint_pair& a, double d) const {
-      std::pair<const_waypoint_descriptor, const_waypoint_descriptor> wpb_a = get_waypoint_bounds(a.second, a.first);
-      const_waypoint_descriptor it_prev = wpb_a.first;
-      point_type prev = a.second;
-      const_waypoint_descriptor it = wpb_a.second;
-      while((it != waypoints.end()) && (d > std::numeric_limits<double>::epsilon())) {
-	double d1 = space.distance(prev, *it);
-	if(d1 > d)
-	  return std::make_pair(it_prev, space.move_position_toward(prev, d / d1, *(wpb_a.second)));
-	d -= d1; prev = *it; it_prev = it; ++it;
-      };
-      return std::make_pair(it_prev,prev);
-    };
+    quintic_hermite_interp(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
+                           base_class_type(aBegin, aEnd, aSpace, aDist) { };
     
 };
-
 
 
 
@@ -259,14 +360,6 @@ struct quintic_hermite_interp {
 };
 
 #endif
-
-
-
-
-
-
-
-
 
 
 

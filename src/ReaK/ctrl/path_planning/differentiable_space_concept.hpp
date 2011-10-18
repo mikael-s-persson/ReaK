@@ -54,9 +54,9 @@ struct differentiable_space_traits {
   BOOST_STATIC_CONSTANT(std::size_t, order = DifferentiableSpace::differential_order);
 };
 
-template <typename DifferentiableSpace, unsigned int Order>
+template <typename DifferentiableSpace, typename IndependentTopology, unsigned int Order>
 struct derived_N_order_space {
-  typedef typename DifferentiableSpace::template space<Order>::type type;
+  typedef typename DifferentiableSpace::template space<Order,IndependentTopology>::type type;
 };
 
 
@@ -73,11 +73,11 @@ struct derived_N_order_space {
  * 
  * Valid expressions:
  * 
- * space = diff_space.get_space<0..N>();  The metric space (space) corresponding to the 0 to Nth order derivative space can be obtained given an independent space (e.g. time topology, t_space).
+ * space = diff_space.get_space<0..N>(t_space);  The metric space (space) corresponding to the 0 to Nth order derivative space can be obtained given an independent space (e.g. time topology, t_space).
  * 
- * v = diff_space.lift_to_space<1..N>(dp,dt);  A derivative-point (v) can be obtained from lifting a point-difference (dp) from the space via a difference-point on the independent space (dt). This expression is analogous to v = dp / dt.
+ * v = diff_space.lift_to_space<1..N>(dp,dt,t_space);  A derivative-point (v) can be obtained from lifting a point-difference (dp) from the space via a difference-point on the independent space (dt). This expression is analogous to v = dp / dt.
  * 
- * dp = diff_space.descend_to_space<0..N-1>(v,dt);  A point-difference (dp) can be obtained from descending a derivative-point (v) to the space via a difference-point on the independent space (dt). This expression is analogous to dp = v * dt.
+ * dp = diff_space.descend_to_space<0..N-1>(v,dt,t_space);  A point-difference (dp) can be obtained from descending a derivative-point (v) to the space via a difference-point on the independent space (dt). This expression is analogous to dp = v * dt.
  * 
  * \tparam Topology The topology type to be checked for this concept.
  */
@@ -86,8 +86,8 @@ struct DifferentiableSpaceConcept : DifferentiableSpaceConcept<DifferentiableSpa
   
   BOOST_STATIC_ASSERT(differentiable_space_traits<DifferentiableSpace>::order >= Order);
   
-  typedef typename derived_N_order_space<DifferentiableSpace,Order-1>::type base_space_type;
-  typedef typename derived_N_order_space<DifferentiableSpace,Order>::type derived_space_type;
+  typedef typename derived_N_order_space<DifferentiableSpace,Order-1,IndependentTopology>::type base_space_type;
+  typedef typename derived_N_order_space<DifferentiableSpace,Order,IndependentTopology>::type derived_space_type;
   
   BOOST_CONCEPT_ASSERT((MetricSpaceConcept< derived_space_type >));
   
@@ -100,8 +100,8 @@ struct DifferentiableSpaceConcept : DifferentiableSpaceConcept<DifferentiableSpa
   BOOST_CONCEPT_USAGE(DifferentiableSpaceConcept) 
   {
     const derived_space_type& space = this->diff_space.get_space<Order>(this->t_space);
-    v = this->diff_space.lift_to_space<Order>(dp,dt);
-    dp = this->diff_space.descend_to_space<Order-1>(v,dt);
+    v = this->diff_space.lift_to_space<Order>(dp,dt,this->t_space);
+    dp = this->diff_space.descend_to_space<Order-1>(v,dt,this->t_space);
   };
   
 };

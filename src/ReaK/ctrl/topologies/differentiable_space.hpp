@@ -54,12 +54,12 @@ namespace pp {
  * a tangent vector to a point-difference.
  */
 struct default_differentiation_rule {
-  template <typename T, typename U, typename V>
-  static void lift(T& v, const U& dp, const V& dt) const {
+  template <typename T, typename U, typename V, typename TSpace>
+  static void lift(T& v, const U& dp, const V& dt, const TSpace&) const {
     v = dp / dt;
   };
-  template <typename T, typename U, typename V>
-  static void descend(T& dp, const U& v, const V& dt) const {
+  template <typename T, typename U, typename V, typename TSpace>
+  static void descend(T& dp, const U& v, const V& dt, const TSpace&) const {
     dp = v * dt;
   };
 };
@@ -581,7 +581,7 @@ class differentiable_space : public serialization::serializable {
   public:
     typedef differentiable_space< IndependentSpace, SpaceTuple, DiffRuleTuple > self;
     
-    template <int Idx>
+    template <int Idx, typename IndependentSpace2 = IndependentSpace>
     struct space {
       typedef typename arithmetic_tuple_element<Idx, SpaceTuple>::type type;
     };
@@ -643,18 +643,20 @@ class differentiable_space : public serialization::serializable {
     template <int Idx>
     typename arithmetic_tuple_element<Idx, point_type>::type 
       lift_to_space(const typename arithmetic_tuple_element<Idx-1, point_difference_type>::type& dp,
-		    const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt) {
+		    const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
+		    const IndependentSpace& t_space) {
       typename arithmetic_tuple_element<Idx, point_type>::type result;
-      arithmetic_tuple_element<Idx-1, DiffRuleTuple >::type::lift(result, dp, dt);
+      arithmetic_tuple_element<Idx-1, DiffRuleTuple >::type::lift(result, dp, dt, t_space);
       return result;
     };
     
     template <int Idx>
     typename arithmetic_tuple_element<Idx, point_difference_type>::type 
       descend_to_space(const typename arithmetic_tuple_element<Idx+1, point_type>::type& v,
-		       const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt) {
+		       const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
+		       const IndependentSpace& t_space) {
       typename arithmetic_tuple_element<Idx, point_difference_type>::type result;
-      arithmetic_tuple_element<Idx, DiffRuleTuple >::type::descend(result, v, dt);
+      arithmetic_tuple_element<Idx, DiffRuleTuple >::type::descend(result, v, dt, t_space);
       return result;
     };
     
