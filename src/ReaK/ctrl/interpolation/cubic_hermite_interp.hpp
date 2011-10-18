@@ -38,7 +38,7 @@
 
 #include "path_planning/differentiable_space_concept.hpp"
 
-#include "waypoint_container.hpp"
+#include "interpolated_trajectory.hpp"
 
 #include "lin_alg/arithmetic_tuple.hpp"
 
@@ -49,11 +49,149 @@
 #include <list>
 #include <map>
 #include <limits>
-#include <lin_alg/mat_num_exceptions.hpp>
+#include "lin_alg/mat_num_exceptions.hpp"
 
 namespace ReaK {
 
 namespace pp {
+  
+  
+namespace detail {
+  
+  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type cubic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
+                                              const DiffSpace& space, const TimeSpace& t_space,
+					      double t_factor, double t_normal) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    get<0>(result) = space.get_space<0>(t_space).adjust(get<0>(a), 
+      ((3.0 - 2.0 * t_normal) * t_normal * t_normal) * space.get_space<0>(t_space).difference(get<0>(b),get<0>(a))
+      + (t_normal * (1.0 - t_normal * (2.0 + t_normal))) * space.descend_to_space<0>(get<1>(a),t_factor)
+      + (t_normal * t_normal * (t_normal - 1.0)) * space.descend_to_space<0>(get<1>(b),t_factor) );
+  };
+  
+  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<1> 
+    >,
+  void >::type cubic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
+                                              const DiffSpace& space, const TimeSpace& t_space,
+				 	      double t_factor, double t_normal) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    cubic_hermite_interpolate_impl< boost::mpl::size_t<0>, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
+    
+    get<1>(result) = space.get_space<1>(t_space).adjust(get<1>(a),
+      ((1.0 - t_normal) * 6.0 * t_normal) * space.get_space<1>(t_space).difference( space.lift_to_space<1>(space.get_space<0>(t_space).difference(get<0>(b),get<0>(a)), t_factor), get<1>(a))
+      + (t_normal * (2.0 - 3.0 * t_normal)) * space.get_space<1>(t_space).difference(get<1>(b),get<1>(a)));
+  };
+  
+  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<2> 
+    >,
+  void >::type cubic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
+                                              const DiffSpace& space, const TimeSpace& t_space,
+					      double t_factor, double t_normal) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    cubic_hermite_interpolate_impl< boost::mpl::size_t<1>, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
+    
+    get<2>(result) = space.get_space<2>(t_space).adjust( space.lift_to_space<2>(space.get_space<1>(t_space).difference(get<1>(a),get<1>(b)), t_factor),
+      (6.0 - 12.0 * t_normal) * space.get_space<2>(t_space).difference( space.lift_to_space<2>( space.get_space<1>(t_space).difference( space.lift_to_space<1>(space.get_space<0>(t_space).difference(get<0>(b),get<0>(a)), t_factor), get<1>(a)), t_factor), space.lift_to_space<2>(0.5 * space.get_space<1>(t_space).difference(get<1>(a),get<1>(b)), t_factor)));
+  };
+  
+  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<3> 
+    >,
+  void >::type cubic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
+                                              const DiffSpace& space, const TimeSpace& t_space,
+					      double t_factor, double t_normal) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    cubic_hermite_interpolate_impl< boost::mpl::size_t<2>, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
+    
+    get<3>(result) = space.lift_to_space<3>(-12.0 * space.get_space<2>(t_space).difference( space.lift_to_space<2>( space.get_space<1>(t_space).difference( space.lift_to_space<1>(space.get_space<0>(t_space).difference(get<0>(b),get<0>(a)), t_factor), get<1>(a)), t_factor), space.lift_to_space<2>(0.5 * space.get_space<1>(t_space).difference(get<1>(a),get<1>(b)), t_factor)),t_factor);
+  };
+  
+  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::greater< 
+      Idx, 
+      boost::mpl::size_t<3> 
+    >,
+  void >::type cubic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
+                                              const DiffSpace& space, const TimeSpace& t_space,
+					      double t_factor, double t_normal) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    cubic_hermite_interpolate_impl< boost::mpl::prior<Idx>, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
+    
+    get< Idx::type::value >(result) = space.get_space< Idx::type::value >(t_space).origin();
+  };
+  
+};
+
+
+
+template <typename PointType, typename Topology>
+PointType cubic_hermite_interpolate(const PointType& a, const PointType& b, double t, const Topology& space) {
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<Topology>::space_topology, 1, typename temporal_topology_traits<Topology>::time_topology >));
+  double t_factor = b.time - a.time;
+  if(std::fabs(t_factor) < std::numeric_limits<double>::epsilon())
+    throw singularity_error("Normalizing factor in cubic Hermite spline is zero!");
+  double t_normal = (t - a.time) / (b.time - a.time);
+      
+  PointType result;
+  result.time = t;
+  detail::cubic_hermite_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< SpaceType >::order> >(result.pt, a.pt, b.pt, space.get_space_topology(), space.get_time_topology(), t_factor, t_normal);
+      
+  return result;      
+};
+
+
+struct cubic_hermite_interpolator {
+  template <typename PointType, typename Topology>
+  PointType operator()(const PointType& a, const PointType& b, double t, const Topology& space) const {
+    return cubic_hermite_interpolate(a,b,t,space);
+  };
+};
+
+
+
 
   
 /**
@@ -64,65 +202,14 @@ namespace pp {
  * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the DistanceMetricConcept.
  */
 template <typename Topology, typename DistanceMetric = default_distance_metric>
-class cubic_hermite_interp : public waypoint_container<Topology,DistanceMetric> {
+class cubic_hermite_interp : public interpolated_trajectory<Topology,cubic_hermite_interpolator,DistanceMetric> {
   public:
     
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<Topology>::space_topology, 1, typename temporal_topology_traits<Topology>::time_topology >));
     
     typedef cubic_hermite_interp<Topology,DistanceMetric> self;
-    typedef waypoint_container<Topology,DistanceMetric> base_class_type;
-    
-    typedef std::pair<const_waypoint_descriptor, point_type> waypoint_pair;
-    
-  private:
-    
-    cubic_hermite_interp(const cubic_hermite_interp<Topology,DistanceMetric>&); //non-copyable.
-    cubic_hermite_interp<Topology,DistanceMetric>& operator=(const cubic_hermite_interp<Topology,DistanceMetric>&);
-    
-    double travel_distance_impl(const point_type& a, const const_waypoint_bounds& wpb_a, 
-				const point_type& b, const const_waypoint_bounds& wpb_b) const {
-      if((wpb_a.first == wpb_a.second) || (wpb_a.first == wpb_b.first))
-	return dist(a,b,space); //this means that a is at the end of the path, thus, the "path" goes directly towards b.
-      double sum = dist(a, *(wpb_a.second), space);
-      const_waypoint_descriptor it = wpb_a.second;
-      while(it != wpb_b.first) {
-	const_waypoint_descriptor it_prev = it;
-	sum += dist(*it_prev, *(++it),space);
-      };
-      sum += dist(*(wpb_b.first), b, space);
-      return sum;
-    };
-    
-    point_type compute_interpolation_impl(const point_type& a, const point_type& b, double t) const {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::get;
-#endif
-      
-      double t_factor = b.time - a.time;
-      if(std::fabs(t_factor) < std::numeric_limits<double>::epsilon())
-	throw singularity_error("Normalizing factor in cubic Hermite spline is zero!");
-      double t_normal = (t - a.time) / (b.time - a.time);
-      
-      point_type result = this->space.move_position_toward(a,t_normal,b); //NOTE this is just to get other higher-order values linearly interpolated.
-      
-      typedef typename temporal_topology_traits<topology>::space_topology SpaceType;
-      const SpaceType& pt_space = this->space.get_space_topology(); 
-      const typename temporal_topology_traits<topology>::time_topology& t_space = this->space.get_time_topology(); 
-      get<0>(result.pt) = pt_space.get_space<0>(t_space).adjust(get<0>(a.pt), 
-        ((3.0 - 2.0 * t_normal) * t_normal * t_normal) * pt_space.get_space<0>(t_space).difference(get<0>(b.pt),get<0>(a.pt))
-        + (t_normal * (1.0 - t_normal * (2.0 + t_normal))) * pt_space.descend_to_space<0>(get<1>(a.pt),t_factor)
-        + (t_normal * t_normal * (t_normal - 1.0)) * pt_space.descend_to_space<0>(get<1>(b.pt),t_factor) );
-      
-      // TODO: This is a bit weird, I have to think about it some more.
-      get<1>(result.pt) = pt_space.get_space<1>(t_space).adjust(
-        pt_space.lift_to_space<1>(((6.0 * t_normal - 6.0) * t_normal) * pt_space.get_space<0>(t_space).difference(get<0>(b.pt),get<0>(a.pt)), t_factor),
-        (t_normal * (1.0 - t_normal * (2.0 + t_normal))) * pt_space.descend_to_space<0>(get<1>(a.pt),t_factor)
-        + (t_normal * t_normal * (t_normal - 1.0)) * pt_space.descend_to_space<0>(get<1>(b.pt),t_factor) );
-      
-    };
+    typedef interpolated_trajectory<Topology,cubic_hermite_interpolator,DistanceMetric> base_class_type;
     
   public:
     /**
@@ -155,114 +242,6 @@ class cubic_hermite_interp : public waypoint_container<Topology,DistanceMetric> 
     template <typename ForwardIter>
     cubic_hermite_interp(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
                          base_class_type(aBegin, aEnd, aSpace, aDist) { };
-    
-    /**
-     * Standard swap function.
-     */
-    friend void swap(self& lhs, self& rhs) throw() {
-      using std::swap;
-      swap(static_cast<base_class_type&>(lhs),static_cast<base_class_type&>(rhs));
-    };
-    
-    /**
-     * Computes the travel distance between two points, if traveling along the path.
-     * \param a The first point.
-     * \param b The second point.
-     * \return The travel distance between two points if traveling along the path.
-     */
-    double travel_distance(const point_type& a, const point_type& b) const {
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a, this->waypoints.begin());
-      const_waypoint_bounds wpb_b = this->get_waypoint_bounds(b, wpb_a.first);
-      return this->travel_distance_impl(a, wpb_a, b, wpb_b);
-    };
-    
-    /**
-     * Computes the travel distance between two waypoint-point-pairs, if traveling along the path.
-     * \param a The first waypoint-point-pair.
-     * \param b The second waypoint-point-pair.
-     * \return The travel distance between two points if traveling along the path.
-     */
-    double travel_distance(waypoint_pair& a, waypoint_pair& b) const {
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.second, a.first);
-      const_waypoint_bounds wpb_b = this->get_waypoint_bounds(b.second, b.first);
-      a.first = wpb_a.first; b.first = wpb_b.first;
-      return this->travel_distance_impl(a.second, wpb_a, b.second, wpb_b);
-    };
-    
-    
-    /**
-     * Computes the point that is a time-difference away from a point on the trajectory.
-     * \param a The point on the trajectory.
-     * \param dt The time to move away from the point.
-     * \return The point that is a time away from the given point.
-     */
-    point_type move_time_diff_from(const point_type& a, double dt) const {
-      BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a, this->waypoints.begin());
-      const point_type* prev = &a;
-      const_waypoint_descriptor it = wpb_a.second;
-      while((it != this->waypoints.end()) && (dt > std::numeric_limits<double>::epsilon())) {
-	double d1 = it->time - prev->time;
-	if(d1 > dt)
-	  return this->space.move_position_toward(*prev, dt / d1, *(wpb_a.second));
-	dt -= d1; prev = &(*it); ++it;
-      };
-      return *prev;
-    };
-    
-    /**
-     * Computes the waypoint-point-pair that is a time-difference away from a waypoint-point-pair on the trajectory.
-     * \param a The waypoint-point-pair on the trajectory.
-     * \param dt The time to move away from the waypoint-point-pair.
-     * \return The waypoint-point-pair that is a time away from the given waypoint-point-pair.
-     */
-    waypoint_pair move_time_diff_from(const waypoint_pair& a, double dt) const {
-      BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.second, a.first);
-      const_waypoint_descriptor it_prev = wpb_a.first;
-      const point_type* prev = &(a.second);
-      const_waypoint_descriptor it = wpb_a.second;
-      while((it != this->waypoints.end()) && (dt > std::numeric_limits<double>::epsilon())) {
-	double d1 = it->time - prev->time;
-	if(d1 > dt)
-	  return std::make_pair(it_prev, this->space.move_position_toward(*prev, dt / d1, *(wpb_a.second)));
-	d -= d1; prev = &(*it); it_prev = it; ++it;
-      };
-      return std::make_pair(it_prev,*prev);
-    };
-       
-    /**
-     * Computes the point that is on the trajectory at the given time.
-     * \param t The time at which the point is sought.
-     * \return The point that is on the trajectory at the given time.
-     */
-    point_type get_point_at_time(double t) const {
-      BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
-      const_waypoint_descriptor start = this->waypoints.begin();
-      point_type p = *start;
-      p.time = t;
-      const_waypoint_bounds wpb_p = this->get_waypoint_bounds(p, start);
-      if(wpb_p.first == wpb_p.second)
-	return *(wpb_p.first);
-      return this->space.move_position_toward(*(wpb_p.first),(t - wpb_p.first->time) / (wpb_p.second->time - wpb_p.first->time),*(wpb_p.second));
-    };
-    
-    /**
-     * Computes the waypoint-point pair that is on the trajectory at the given time.
-     * \param t The time at which the waypoint-point pair is sought.
-     * \return The waypoint-point pair that is on the trajectory at the given time.
-     */
-    waypoint_pair get_waypoint_at_time(double t) const {
-      BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
-      const_waypoint_descriptor start = this->waypoints.begin();
-      point_type p = *start;
-      p.time = t;
-      const_waypoint_bounds wpb_p = this->get_waypoint_bounds(p, start);
-      if(wpb_p.first == wpb_p.second)
-	return std::make_pair(wpb_p.first, *(wpb_p.first));
-      return std::make_pair(wpb_p.first, this->space.move_position_toward(*(wpb_p.first),(t - wpb_p.first->time) / (wpb_p.second->time - wpb_p.first->time),*(wpb_p.second)));
-    };
-    
     
 };
 
