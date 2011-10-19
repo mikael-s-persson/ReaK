@@ -41,6 +41,8 @@
 #include "time_topology.hpp"
 #include "path_planning/temporal_space_concept.hpp"
 
+#include "base/named_object.hpp"
+
 namespace ReaK {
 
 namespace pp {
@@ -53,14 +55,16 @@ namespace pp {
  * is provided by the user. Models the TemporalSpaceConcept.
  * \tparam Topology The topology type which represents the spatial dimensions, should model MetricSpaceConcept.
  * \tparam TimeTopology The topology type which represents the time dimension, should model MetricSpaceConcept.
- * \tparam DistanceMetric The distance metric type for the temporal-space, should model the TemporalDistMetricConcept.
+ * \tparam TemporalDistanceMetric The distance metric type for the temporal-space, should model the TemporalDistMetricConcept.
  */
-template <typename Topology, typename TimeTopology, typename DistanceMetric = spatial_distance_only>
-class temporal_space {
+template <typename Topology, typename TimeTopology, typename TemporalDistanceMetric = spatial_distance_only>
+class temporal_space : public named_object {
   public:
     typedef TimeTopology time_topology;
     typedef Topology space_topology;
-    typedef DistanceMetric distance_metric;
+    typedef TemporalDistanceMetric distance_metric;
+    
+    typedef typename temporal_space<Topology,TimeTopology,TemporalDistanceMetric> self;
     
     /**
      * This nested type represents the points of the temporal-space.
@@ -168,19 +172,33 @@ class temporal_space {
     
   public:
     /**
-     * Constructor from a space-topology and a maximum time value.
+     * Parametrized constructor.
      * \param aSpace The space topology to be used.
-     * \param aMaxTime The extent of the temporal values.
+     * \param aTime The time topology to be used.
+     * \param aDist The temporal distance metric functor to use.
      */
-    explicit temporal_space(const space_topology& aSpace, const time_topology& aTime) :
-                            space(aSpace), time(aTime) { };
+    explicit temporal_space(const std::string& aName = "",
+			    const space_topology& aSpace = space_topology(), 
+			    const time_topology& aTime = time_topology(),
+			    const distance_metric& aDist = distance_metric()) :
+                            named_object(), space(aSpace), time(aTime), dist(aDist) { this->setName(aName); };
     
     typedef point point_type;
     typedef point_difference point_difference_type;
     
+    /** Returns the underlying space topology. */
     const space_topology& get_space_topology() const { return space; };
+    /** Returns the underlying time topology. */
     const time_topology& get_time_topology() const { return time; };
+    /** Returns the temporal distance metric functor used. */
     const distance_metric& get_distance_metric() const { return dist; };
+    
+    /** Returns the underlying space topology. */
+    space_topology& get_space_topology() { return space; };
+    /** Returns the underlying time topology. */
+    time_topology& get_time_topology() { return time; };
+    /** Returns the temporal distance metric functor used. */
+    distance_metric& get_distance_metric() { return dist; };
 
     /**
      * Returns a random point within the temporal-space.
@@ -249,6 +267,27 @@ class temporal_space {
     double norm(const point_difference& a) const {
       return dist(a, time, space);
     };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(space)
+        & RK_SERIAL_SAVE_WITH_NAME(time)
+	& RK_SERIAL_SAVE_WITH_NAME(dist);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(space)
+        & RK_SERIAL_LOAD_WITH_NAME(time)
+	& RK_SERIAL_LOAD_WITH_NAME(dist);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400004,1,"temporal_space",named_object)
     
 };
 

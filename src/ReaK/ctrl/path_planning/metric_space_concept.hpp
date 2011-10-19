@@ -152,38 +152,6 @@ struct MetricSpaceConcept {
   
 };
 
-/**
- * This class is the default distance metric functor which models the DistanceMetricConcept.
- * This class will simply rely on the distance and norm functions included in the 
- * given topology (assuming it models the MetricSpaceConcept).
- */
-struct default_distance_metric {
-  /** 
-   * This function returns the distance between two points on a topology.
-   * \tparam Point The point-type.
-   * \tparam Topology The topology.
-   * \param a The first point.
-   * \param b The second point.
-   * \param s The topology or space on which the points lie.
-   * \return The distance between two points on a topology.
-   */
-  template <typename Point, typename Topology>
-  double operator()(const Point& a, const Point& b, const Topology& s) const {
-    return s.distance(a, b);
-  };
-  /** 
-   * This function returns the norm of a difference between two points on a topology.
-   * \tparam PointDiff The point-difference-type.
-   * \tparam Topology The topology.
-   * \param a The point-difference.
-   * \param s The topology or space on which the points lie.
-   * \return The norm of the difference between two points on a topology.
-   */
-  template <typename PointDiff, typename Topology>
-  double operator()(const PointDiff& a, const Topology& s) const {
-    return s.norm(a);
-  };
-};
 
 
 };

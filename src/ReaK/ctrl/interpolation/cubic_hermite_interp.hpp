@@ -58,76 +58,69 @@ namespace pp {
   
 namespace detail {
   
-  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
   inline 
   typename boost::enable_if< 
-    boost::mpl::equal_to< 
+    boost::mpl::less< 
       Idx, 
-      boost::mpl::size_t<0> 
+      boost::mpl::size_t<2> 
     >,
-  void >::type cubic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
-                                              const DiffSpace& space, const TimeSpace& t_space,
-					      double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
-    get<0>(result) = space.get_space<0>(t_space).adjust(get<0>(a), 
-      ((3.0 - 2.0 * t_normal) * t_normal * t_normal) * space.get_space<0>(t_space).difference(get<0>(b),get<0>(a))
-      + (t_normal * (1.0 - t_normal * (2.0 + t_normal))) * space.descend_to_space<0>(get<1>(a),t_factor, t_space)
-      + (t_normal * t_normal * (t_normal - 1.0)) * space.descend_to_space<0>(get<1>(b),t_factor, t_space) );
+  void >::type cubic_hermite_interpolate_HOT_impl(PointType& result, const PointDiff1& dv1v0, const PointDiff1& d_ldp1p0_v0,
+                                                  const DiffSpace& space, const TimeSpace& t_space,
+				 	          double t_factor, double t_normal) {
+    /* nothing to do. */
   };
   
-  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<1> 
-    >,
-  void >::type cubic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
-                                              const DiffSpace& space, const TimeSpace& t_space,
-				 	      double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
-    cubic_hermite_interpolate_impl< boost::mpl::size_t<0>, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
-    
-    get<1>(result) = space.get_space<1>(t_space).adjust(get<1>(a),
-      ((1.0 - t_normal) * 6.0 * t_normal) * space.get_space<1>(t_space).difference( space.lift_to_space<1>(space.get_space<0>(t_space).difference(get<0>(b),get<0>(a)), t_factor, t_space), get<1>(a))
-      + (t_normal * (2.0 - 3.0 * t_normal)) * space.get_space<1>(t_space).difference(get<1>(b),get<1>(a)));
-  };
-  
-  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
   inline 
   typename boost::enable_if< 
     boost::mpl::equal_to< 
       Idx, 
       boost::mpl::size_t<2> 
     >,
-  void >::type cubic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
-                                              const DiffSpace& space, const TimeSpace& t_space,
-					      double t_factor, double t_normal) {
+  void >::type cubic_hermite_interpolate_HOT_impl(PointType& result, const PointDiff1& dv1v0, const PointDiff1& d_ldp1p0_v0,
+                                                  const DiffSpace& space, const TimeSpace& t_space,
+				 	          double t_factor, double t_normal) {
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
     using boost::tuples::get;
 #endif
-    cubic_hermite_interpolate_impl< boost::mpl::size_t<1>, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
-    
-    get<2>(result) = space.get_space<2>(t_space).adjust( space.lift_to_space<2>(space.get_space<1>(t_space).difference(get<1>(a),get<1>(b)), t_factor, t_space),
-      (6.0 - 12.0 * t_normal) * space.get_space<2>(t_space).difference( space.lift_to_space<2>( space.get_space<1>(t_space).difference( space.lift_to_space<1>(space.get_space<0>(t_space).difference(get<0>(b),get<0>(a)), t_factor, t_space), get<1>(a)), t_factor, t_space), space.lift_to_space<2>(0.5 * space.get_space<1>(t_space).difference(get<1>(a),get<1>(b)), t_factor, t_space)));
+    get<2>(result) = space.get_space<2>(t_space).adjust( 
+      space.lift_to_space<2>(dv1v0, t_factor, t_space),
+      (6.0 - 12.0 * t_normal) * space.get_space<2>(t_space).difference( space.lift_to_space<2>( d_ldp1p0_v0, t_factor, t_space), 
+									space.lift_to_space<2>( 0.5 * dv1v0, t_factor, t_space)));
   };
   
-  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
   inline 
   typename boost::enable_if< 
     boost::mpl::equal_to< 
       Idx, 
       boost::mpl::size_t<3> 
+    >,
+  void >::type cubic_hermite_interpolate_HOT_impl(PointType& result, const PointDiff1& dv1v0, const PointDiff1& d_ldp1p0_v0,
+                                                  const DiffSpace& space, const TimeSpace& t_space,
+				 	          double t_factor, double t_normal) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    using std::get;
+#else
+    using boost::tuples::get;
+#endif
+    cubic_hermite_interpolate_HOT_impl< boost::mpl::size_t<2>, PointType, PointDiff1, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
+    
+    get<3>(result) = space.lift_to_space<3>(-12.0 * space.get_space<2>(t_space).difference( space.lift_to_space<2>( d_ldp1p0_v0, t_factor, t_space), 
+											    space.lift_to_space<2>( 0.5 * dv1v0, t_factor, t_space)),t_factor, t_space);
+  };
+  
+  
+  
+  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::less< 
+      Idx, 
+      boost::mpl::size_t<4> 
     >,
   void >::type cubic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
                                               const DiffSpace& space, const TimeSpace& t_space,
@@ -137,9 +130,34 @@ namespace detail {
 #else
     using boost::tuples::get;
 #endif
-    cubic_hermite_interpolate_impl< boost::mpl::size_t<2>, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
     
-    get<3>(result) = space.lift_to_space<3>(-12.0 * space.get_space<2>(t_space).difference( space.lift_to_space<2>( space.get_space<1>(t_space).difference( space.lift_to_space<1>(space.get_space<0>(t_space).difference(get<0>(b),get<0>(a)), t_factor, t_space), get<1>(a)), t_factor, t_space), space.lift_to_space<2>(0.5 * space.get_space<1>(t_space).difference(get<1>(a),get<1>(b)), t_factor, t_space)),t_factor, t_space);
+    typedef typename derived_N_order_space<DiffSpace,0,TimeSpace>::type Space0;
+    typedef typename derived_N_order_space<DiffSpace,1,TimeSpace>::type Space1;
+    
+    typedef typename metric_topology_traits<Space0>::point_type PointType0;
+    typedef typename metric_topology_traits<Space1>::point_type PointType1;
+    
+    typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
+    typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
+    
+    PointDiff0 dp1p0 = space.get_space<0>(t_space).difference( get<0>(b), get<0>(a) );
+    PointDiff1 dv1v0 = space.get_space<1>(t_space).difference( get<1>(b), get<1>(a) );
+    PointDiff1 d_ldp1p0_v0 = space.get_space<1>(t_space).difference( space.lift_to_space<1>(dp1p0, t_factor, t_space), get<1>(a));
+    
+    double t2 = t_normal * t_normal;
+    double t3 = t_normal * t2;
+    
+    get<0>(result) = space.get_space<0>(t_space).adjust(get<0>(a), 
+      (3.0 * t2 - 2.0 * t3) * dp1p0
+      + (t_normal - t2 * 2.0 - t3) * space.descend_to_space<0>(get<1>(a),t_factor, t_space)
+      + (t3 - t2) * space.descend_to_space<0>(get<1>(b),t_factor, t_space) );
+    
+    get<1>(result) = space.get_space<1>(t_space).adjust(get<1>(a),
+      ((t_normal - t2) * 6.0) * d_ldp1p0_v0
+      + (2.0 * t_normal - 3.0 * t2) * dv1v0);
+    
+    cubic_hermite_interpolate_HOT_impl< Idx, PointType, PointDiff1, DiffSpace, TimeSpace >(result, dv1v0, d_ldp1p0_v0, space, t_space, t_factor, t_normal);
+    
   };
   
   template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>

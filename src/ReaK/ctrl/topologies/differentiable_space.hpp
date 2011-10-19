@@ -1,11 +1,15 @@
 /**
  * \file differentiable_space.hpp
  * 
- * This library provides classes that define a differentiable-space. A differentiable-space is 
- * a simple association of two topologies to relate them by a derivative-integral relationship.
+ * This library provides classes that define a differentiable-space. This class template can be used to 
+ * glue together a number of spaces by a differentiation relationship,
+ * where each differentiation / integration operation (or more formally speaking, each lift and descent 
+ * through the tangent bundle) is governed by its own differentiation rule. This class template models 
+ * the MetricSpaceConcept (if all underlying spaces do as well), and models the DifferentiableSpaceConcept
+ * for as high an order as there are differentiation rules and spaces to support.
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
- * \date September 2011
+ * \date October 2011
  */
 
 /*
@@ -36,13 +40,17 @@
 #include "base/defs.hpp"
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
-#include <cmath>
 #include "time_topology.hpp"
 #include "path_planning/metric_space_concept.hpp"
+#include "metric_space_tuple.hpp"
 
-#include "lin_alg/arithmetic_tuple.hpp"
-#include "base/serializable.hpp"
-#include "rtti/so_register_type.hpp"
+#include <cmath>
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+#include <type_traits>
+#else
+#include <boost/type_traits.hpp>
+#endif
 
 namespace ReaK {
 
@@ -53,18 +61,53 @@ namespace pp {
  * point-difference (e.g. finite-difference) to the tangent space, or to descend 
  * a tangent vector to a point-difference.
  */
-struct default_differentiation_rule {
+struct default_differentiation_rule : public serialization::serializable {
+  /**
+   * This function will lift a point-difference vector into its corresponding tangent vector.
+   * This function performs a simple division, dp / dt.
+   * \tparam T The destination type, a point in the tangent space.
+   * \tparam U The source type, a point-difference in the base space.
+   * \tparam V A type representing the independent variable's difference (e.g. time-difference).
+   * \tparam TSpace The type of the independent space (e.g. time-space).
+   * \param v The resulting point in the tangent space.
+   * \param dp The point-difference that is being lifted.
+   * \param dt The time-difference value (i.e. the difference in the independent variable). 
+   */
   template <typename T, typename U, typename V, typename TSpace>
-  static void lift(T& v, const U& dp, const V& dt, const TSpace&) const {
-    v = dp / dt;
+  void lift(T& v, const U& dp, const V& dt, const TSpace&) const {
+    v = dp * (1.0 / dt);
   };
+  /**
+   * This function will descend a tangent vector into its corresponding point-difference vector.
+   * This function performs a simple multiplication, v * dt.
+   * \tparam T The destination type, a point-difference in the base space.
+   * \tparam U The source type, a point in the tangent space.
+   * \tparam V A type representing the independent variable's difference (e.g. time-difference).
+   * \tparam TSpace The type of the independent space (e.g. time-space).
+   * \param dp The resulting point-difference in the base space.
+   * \param v The point in the tangent space that is being descended.
+   * \param dt The time-difference value (i.e. the difference in the independent variable). 
+   */
   template <typename T, typename U, typename V, typename TSpace>
-  static void descend(T& dp, const U& v, const V& dt, const TSpace&) const {
+  void descend(T& dp, const U& v, const V& dt, const TSpace&) const {
     dp = v * dt;
   };
+  
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
+
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE(default_differentiation_rule,0xC2420000,1,"default_differentiation_rule",serialization::serializable)
 };
 
-
+/**
+ * This class defines a tuple of default differentiation rules. This is useful for applying the 
+ * default differentiation rule to all the differentiation operations on a given differentiable_space.
+ */
 template <std::size_t Order>
 struct default_differentiation_rule_tuple {
   BOOST_STATIC_ASSERT(false);
@@ -165,471 +208,70 @@ struct default_differentiation_rule_tuple<10> {
                            default_differentiation_rule> type;
 };
 
-
-namespace detail {
   
-  
-  template <std::size_t Size, typename SpaceTuple>
-  struct differentiable_point_tuple_impl { 
-    BOOST_STATIC_ASSERT(false);
-  };
-  
-#ifdef RK_ENABLE_CXX0X_FEATURES
-  
-  template <std::size_t Size, typename... Spaces>
-  struct differentiable_point_tuple_impl< Size, std::tuple<Spaces...> > {
-    typedef arithmetic_tuple< typename metric_topology_traits<Spaces>::point_type... > type;
-  };
-  
-  template <std::size_t Size, typename... Spaces>
-  struct differentiable_point_tuple_impl< Size, arithmetic_tuple<Spaces...> > {
-    typedef arithmetic_tuple< typename metric_topology_traits<Spaces>::point_type... > type;
-  };
-  
-#else
-  template <typename SpaceTuple>
-  struct differentiable_point_tuple_impl< 1, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_tuple_impl< 2, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_tuple_impl< 3, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_tuple_impl< 4, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_tuple_impl< 5, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_tuple_impl< 6, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_tuple_impl< 7, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_tuple_impl< 8, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_tuple_impl< 9, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::point_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_tuple_impl< 10, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<9,SpaceTuple>::type >::point_type > type;
-  };
-
-#endif
-
-  template <typename SpaceTuple>
-  struct differentiable_point_tuple : differentiable_point_tuple_impl< arithmetic_tuple_size<SpaceTuple>::type::value, SpaceTuple > { };
-  
-  
-  
-  
-  
-  template <std::size_t Size, typename SpaceTuple>
-  struct differentiable_point_difference_tuple_impl { 
-    BOOST_STATIC_ASSERT(false);
-  };
-  
-#ifdef RK_ENABLE_CXX0X_FEATURES
-  
-  template <std::size_t Size, typename... Spaces>
-  struct differentiable_point_difference_tuple_impl< Size, std::tuple<Spaces...> > {
-    typedef arithmetic_tuple< typename metric_topology_traits<Spaces>::point_difference_type... > type;
-  };
-  
-  template <std::size_t Size, typename... Spaces>
-  struct differentiable_point_difference_tuple_impl< Size, arithmetic_tuple<Spaces...> > {
-    typedef arithmetic_tuple< typename metric_topology_traits<Spaces>::point_difference_type... > type;
-  };
-  
-#else
-  template <typename SpaceTuple>
-  struct differentiable_point_difference_tuple_impl< 1, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_difference_tuple_impl< 2, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_difference_tuple_impl< 3, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_difference_tuple_impl< 4, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_difference_tuple_impl< 5, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_difference_tuple_impl< 6, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_difference_tuple_impl< 7, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_difference_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_difference_tuple_impl< 8, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_difference_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_difference_tuple_impl< 9, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::point_difference_type > type;
-  };
-
-  template <typename SpaceTuple>
-  struct differentiable_point_difference_tuple_impl< 10, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<9,SpaceTuple>::type >::point_difference_type > type;
-  };
-
-#endif
-
-  template <typename SpaceTuple>
-  struct differentiable_point_difference_tuple : differentiable_point_difference_tuple_impl< arithmetic_tuple_size<SpaceTuple>::type::value, SpaceTuple > { };
-  
-  
-  
-  
-  
-  template <std::size_t Order, typename SpaceTuple> 
-  class differentiable_space_impl {
-    public:
-      typedef typename differentiable_point_tuple< SpaceTuple >::type point_type;
-      typedef typename differentiable_point_difference_tuple< SpaceTuple >::type point_difference_type;
-      
-      static double distance(const SpaceTuple& s, const point_type& p1, const point_type& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	double result = differentiable_space_impl<Order-1,SpaceTuple>::distance(s,p1,p2);
-	result += get<Order>(s).distance(get<Order>(p1),get<Order>(p2));
-	return result;
-      };
-      
-      static double norm(const SpaceTuple& s, const point_difference_type& dp) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	double result = differentiable_space_impl<Order-1,SpaceTuple>::norm(s,dp);
-	result += get<Order>(s).norm(get<Order>(dp));
-	return result;
-      };
-      
-      static void random_point(const SpaceTuple& s, point_type& p) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	differentiable_space_impl<Order-1,SpaceTuple>::random_point(s,p);
-	get<Order>(p) = get<Order>(s).random_point();
-      };
-      
-      static void difference(const SpaceTuple& s, point_difference_type& dp, const point_type& p1, const point_type& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	differentiable_space_impl<Order-1,SpaceTuple>::difference(s,dp,p1,p2);
-	get<Order>(dp) = get<Order>(s).difference(get<Order>(p1),get<Order>(p2));
-      };
-      
-      static void move_position_toward(const SpaceTuple& s, point_type& pr, const point_type& p1, double d, const point_type& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	differentiable_space_impl<Order-1,SpaceTuple>::move_position_toward(s,pr,p1,d,p2);
-	get<Order>(pr) = get<Order>(s).move_position_toward(get<Order>(p1),d,get<Order>(p2));
-      };
-      
-      static void origin(const SpaceTuple& s, point_type& p) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	differentiable_space_impl<Order-1,SpaceTuple>::origin(s,p);
-	get<Order>(p) = get<Order>(s).origin();
-      };
-      
-      static void adjust(const SpaceTuple& s, point_type& pr, const point_type& p, const point_difference_type& dp) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	differentiable_space_impl<Order-1,SpaceTuple>::adjust(s,pr,p,dp);
-	get<Order>(pr) = get<Order>(s).adjust(get<Order>(p),get<Order>(dp));
-      };
-  };
-  
-  template <typename SpaceTuple> 
-  class differentiable_space_impl<0,SpaceTuple> {
-    public:
-      typedef typename differentiable_point_tuple< SpaceTuple >::type point_type;
-      typedef typename differentiable_point_difference_tuple< SpaceTuple >::type point_difference_type;
-      
-      static double distance(const SpaceTuple& s, const point_type& p1, const point_type& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	return get<0>(s).distance(get<0>(p1),get<0>(p2));
-      };
-      
-      static double norm(const SpaceTuple& s, const point_difference_type& dp) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	return get<0>(s).norm(get<0>(dp));
-      };
-      
-      static void random_point(const SpaceTuple& s, point_type& p) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	get<0>(p) = get<0>(s).random_point();
-      };
-      
-      static void difference(const SpaceTuple& s, point_difference_type& dp, const point_type& p1, const point_type& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	get<0>(dp) = get<0>(s).difference(get<0>(p1),get<0>(p2));
-      };
-      
-      static void move_position_toward(const SpaceTuple& s, point_type& pr, const point_type& p1, double d, const point_type& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	get<0>(pr) = get<0>(s).move_position_toward(get<0>(p1),d,get<0>(p2));
-      };
-      
-      static void origin(const SpaceTuple& s, point_type& p) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	get<0>(p) = get<0>(s).origin();
-      };
-      
-      static void adjust(const SpaceTuple& s, point_type& pr, const point_type& p, const point_difference_type& dp) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
-	get<0>(pr) = get<0>(s).adjust(get<0>(p),get<0>(dp));
-      };
-  };
-  
-  
-  
-  
-  
-  
-  
-};
-
-
-
-  
-template <typename IndependentSpace, typename SpaceTuple, typename DiffRuleTuple = typename default_differentiation_rule_tuple<  >::type >
-class differentiable_space : public serialization::serializable {
+/**
+ * This class template can be used to glue together a number of spaces by a differentiation relationship,
+ * where each differentiation / integration operation (or more formally speaking, each lift and descent 
+ * through the tangent bundle) is governed by its own differentiation rule. This class template models 
+ * the MetricSpaceConcept (if all underlying spaces do as well), and models the DifferentiableSpaceConcept
+ * for as high an order as there are differentiation rules and spaces to support.
+ * 
+ * \tparam IndependentSpace The type of the independent-space against which the differentiation is 
+ *                          taken (e.g. time_topology). There are no formal requirements on this type, 
+ *                          it is merely used as a placeholder by this class (although the differentiation 
+ *                          rules might require more of this type).
+ * \tparam SpaceTuple A tuple type (e.g. arithmetic_tuple) which provides a set of spaces that are arranged 
+ *                    in sequence of differentiation levels (e.g. space 0 -- diff --> space 1 -- diff --> space 2 ...).
+ * \tparam TupleDistanceMetric A distance metric type which models the DistanceMetricConcept and operates on a 
+ *                             space-tuple (e.g. arithmetic_tuple).
+ * \tparam DiffRuleTuple A tuple type (e.g. arithmetic_tuple) which provides a set of differentiation rules 
+ *                       to use in order to move vectors across the tangent bundle 
+ */
+template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric = manhattan_tuple_distance, typename DiffRuleTuple = typename default_differentiation_rule_tuple< arithmetic_tuple_size<SpaceTuple>::type::value - 1 >::type >
+class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceMetric> {
   protected:
-    SpaceTuple m_spaces;
+    DiffRuleTuple m_diff_rules;
     
   public:
-    typedef differentiable_space< IndependentSpace, SpaceTuple, DiffRuleTuple > self;
+    typedef differentiable_space< IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRuleTuple > self;
+    typedef metric_space_tuple<SpaceTuple,TupleDistanceMetric> base_type;
     
+    /**
+     * This nested class template is a meta-function to obtain the type of the space of a given 
+     * differential order.
+     * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
+     * \tparam IndependentSpace2 The independent space against which the differentiation is done (e.g. time).
+     */
     template <int Idx, typename IndependentSpace2 = IndependentSpace>
     struct space {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      BOOST_STATIC_ASSERT((std::is_convertible< const IndependentSpace2&, const IndependentSpace&>::value));
+#else
+      BOOST_STATIC_ASSERT((boost::is_convertible< const IndependentSpace2&, const IndependentSpace&>::value));
+#endif
       typedef typename arithmetic_tuple_element<Idx, SpaceTuple>::type type;
     };
       
-    BOOST_STATIC_CONSTANT(std::size_t, differential_order = arithmetic_tuple_size<SpaceTuple>::type::value);
-      
-    typedef typename differentiable_point_tuple< SpaceTuple >::type point_type;
-    typedef typename differentiable_point_difference_tuple< SpaceTuple >::type point_difference_type;
-      
-    double distance(const point_type& p1, const point_type& p2) const {
-      return detail::differentiable_space_impl<differential_order, SpaceTuple>::distance(m_spaces, p1, p2);
-    };
+    BOOST_STATIC_CONSTANT(std::size_t, differential_order = arithmetic_tuple_size<SpaceTuple>::type::value - 1);
     
-    double norm(const point_difference_type& dp) const {
-      return detail::differentiable_space_impl<differential_order, SpaceTuple>::norm(m_spaces, dp);
-    };
+    /**
+     * Parametrized and default constructor.
+     * \param aSpaces The space tuple to initialize the spaces with.
+     * \param aDist The distance metric functor on the space-tuple.
+     * \param aDiffRules The differentiation rule tuple to initialize the diff-rule functors with.
+     */
+    differentiable_space(const SpaceTuple& aSpaces = SpaceTuple(), 
+			 const TupleDistanceMetric& aDist = TupleDistanceMetric(),
+			 const DiffRuleTuple& aDiffRules = DiffRuleTuple()) :
+			 base_type(aSpaces,aDist), 
+			 m_diff_rules(aDiffRules) { };
     
-    point_type random_point() const {
-      point_type result;
-      detail::differentiable_space_impl<differential_order, SpaceTuple>::random_point(m_spaces,result);
-      return result;
-    };
+    using base_type::get_space;
     
-    point_difference_type difference(const point_type& p1, const point_type& p2) const {
-      point_difference_type result;
-      detail::differentiable_space_impl<differential_order, SpaceTuple>::difference(m_spaces,result,p1,p2);
-      return result;
-    };
-    
-    point_type move_position_toward(const point_type& p1, double d, const point_type& p2) const {
-      point_type result;
-      detail::differentiable_space_impl<differential_order, SpaceTuple>::move_position_toward(m_spaces,result,p1,d,p2);
-      return result;
-    };
-    
-    point_type origin() const {
-      point_type result;
-      detail::differentiable_space_impl<differential_order, SpaceTuple>::origin(m_spaces,result);
-      return result;
-    };
-    
-    point_type adjust(const point_type& p1, const point_difference_type& dp) const {
-      point_type result;
-      detail::differentiable_space_impl<differential_order, SpaceTuple>::adjust(m_spaces,result,p1,dp);
-      return result;
-    };
-      
-    
+    /**
+     * This function returns the space at a given differential order against a given independent-space.
+     * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
+     */
     template <int Idx>
     const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(const IndependentSpace&) const {
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -637,26 +279,94 @@ class differentiable_space : public serialization::serializable {
 #else
       using boost::tuples::get;
 #endif
-      return get<Idx>(m_spaces);
+      return get<Idx>(this->m_spaces);
     };
     
+    /**
+     * This function returns the space at a given differential order against a given independent-space.
+     * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
+     */
+    template <int Idx>
+    typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(const IndependentSpace&) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      using std::get;
+#else
+      using boost::tuples::get;
+#endif
+      return get<Idx>(this->m_spaces);
+    };
+    
+    /**
+     * This function returns the differentiation functor at a given order against a given independent-space.
+     * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
+     */
+    template <int Idx>
+    const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_diff_rule(const IndependentSpace&) const {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      using std::get;
+#else
+      using boost::tuples::get;
+#endif
+      return get<Idx>(m_diff_rules);
+    };
+    
+    /**
+     * This function returns the differentiation functor at a given order against a given independent-space.
+     * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
+     */
+    template <int Idx>
+    typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_diff_rule(const IndependentSpace&) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      using std::get;
+#else
+      using boost::tuples::get;
+#endif
+      return get<Idx>(m_diff_rules);
+    };
+    
+    /**
+     * This function lifts a point-difference in space Idx-1 into a point in space Idx.
+     * \tparam Idx The differential order of the destination space.
+     * \param dp The point-difference in the space Idx-1.
+     * \param dt The point-difference in the independent-space (e.g. time).
+     * \param t_space The independent-space.
+     * \return The point in space Idx which is the tangential lift of the point-difference in space Idx-1.
+     */
     template <int Idx>
     typename arithmetic_tuple_element<Idx, point_type>::type 
       lift_to_space(const typename arithmetic_tuple_element<Idx-1, point_difference_type>::type& dp,
 		    const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
 		    const IndependentSpace& t_space) {
       typename arithmetic_tuple_element<Idx, point_type>::type result;
-      arithmetic_tuple_element<Idx-1, DiffRuleTuple >::type::lift(result, dp, dt, t_space);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      using std::get;
+#else
+      using boost::tuples::get;
+#endif
+      get<Idx-1>(m_diff_rules).lift(result, dp, dt, t_space);
       return result;
     };
     
+    /**
+     * This function descends a point in space Idx+1 into a point-difference in space Idx.
+     * \tparam Idx The differential order of the destination space.
+     * \param v The point in the space Idx+1.
+     * \param dt The point-difference in the independent-space (e.g. time).
+     * \param t_space The independent-space.
+     * \return The point-difference in space Idx which is the tangential descent of the point in space Idx+1.
+     */
     template <int Idx>
     typename arithmetic_tuple_element<Idx, point_difference_type>::type 
       descend_to_space(const typename arithmetic_tuple_element<Idx+1, point_type>::type& v,
 		       const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
 		       const IndependentSpace& t_space) {
       typename arithmetic_tuple_element<Idx, point_difference_type>::type result;
-      arithmetic_tuple_element<Idx, DiffRuleTuple >::type::descend(result, v, dt, t_space);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      using std::get;
+#else
+      using boost::tuples::get;
+#endif
+      get<Idx>(m_diff_rules).descend(result, v, dt, t_space);
       return result;
     };
     
@@ -666,38 +376,18 @@ class differentiable_space : public serialization::serializable {
 *******************************************************************************/
     
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      A & RK_SERIAL_SAVE_WITH_NAME(m_spaces);
+      base_type::save(A,base_type::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(m_diff_rules);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      A & RK_SERIAL_LOAD_WITH_NAME(m_spaces);
+      base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(m_diff_rules);
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400003,1,"differentiable_space",base_type)
 
 };
 
-
-};
-
-
-namespace rtti {
-
-template <typename IndependentSpace, typename SpaceTuple, typename DiffRuleTuple>
-struct get_type_id< pp::differentiable_space<IndependentSpace,SpaceTuple,DiffRuleTuple> > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 0xC2400003);
-  static std::string type_name() { return "differentiable_space"; };
-  static construct_ptr CreatePtr() { return NULL; };
-  
-  typedef const serialization::serializable& save_type;
-  typedef serialization::serializable& load_type;
-};
-
-template <typename IndependentSpace, typename SpaceTuple, typename DiffRuleTuple, typename Tail>
-struct get_type_info< pp::differentiable_space<IndependentSpace,SpaceTuple,DiffRuleTuple>, Tail > {
-  typedef detail::type_id< pp::differentiable_space<IndependentSpace,SpaceTuple,DiffRuleTuple> , typename get_type_info< IndependentSpace, 
-                                                                                                 get_type_info< SpaceTuple, Tail> >::type> type;
-  static std::string type_name() { return get_type_id< pp::differentiable_space<IndependentSpace,SpaceTuple,DiffRuleTuple> >::type_name() + "<" + get_type_id<IndependentSpace>::type_name() + "," + get_type_id< SpaceTuple >::type_name() + ">" + "," + Tail::type_name(); };
-};
 
 };
 
