@@ -184,6 +184,17 @@ namespace detail {
 
 
 
+/**
+ * This function template computes a cubic Hermite interpolation between two points in a 
+ * temporal and once-differentiable topology.
+ * \tparam PointType The point type on the temporal and once-differentiable topology.
+ * \tparam Topology The temporal and once-differentiable topology type.
+ * \param a The starting point of the interpolation.
+ * \param b The ending point of the interpolation.
+ * \param t The time value at which the interpolated point is sought.
+ * \param space The space on which the points reside.
+ * \return The interpolated point at time t, between a and b.
+ */
 template <typename PointType, typename Topology>
 PointType cubic_hermite_interpolate(const PointType& a, const PointType& b, double t, const Topology& space) {
   BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
@@ -201,7 +212,22 @@ PointType cubic_hermite_interpolate(const PointType& a, const PointType& b, doub
 };
 
 
+/**
+ * This functor class implements a cubic Hermite interpolation in a temporal and once-differentiable 
+ * topology.
+ */
 struct cubic_hermite_interpolator {
+  /**
+   * This function template computes a cubic Hermite interpolation between two points in a   
+   * temporal and once-differentiable topology.
+   * \tparam PointType The point type on the temporal and once-differentiable topology.
+   * \tparam Topology The temporal and once-differentiable topology type.
+   * \param a The starting point of the interpolation.
+   * \param b The ending point of the interpolation.
+   * \param t The time value at which the interpolated point is sought.
+   * \param space The space on which the points reside.
+   * \return The interpolated point at time t, between a and b.
+   */
   template <typename PointType, typename Topology>
   PointType operator()(const PointType& a, const PointType& b, double t, const Topology& space) const {
     return cubic_hermite_interpolate(a,b,t,space);
@@ -215,7 +241,7 @@ struct cubic_hermite_interpolator {
 /**
  * This class implements a trajectory in a temporal and once-differentiable topology.
  * The trajectory is represented by a set of waypoints and all intermediate points 
- * are computed with a linear interpolation. This class models the SpatialTrajectoryConcept.
+ * are computed with a cubic Hermite interpolation. This class models the SpatialTrajectoryConcept.
  * \tparam Topology The topology type on which the points and the path can reside, should model the TemporalSpaceConcept and the DifferentiableSpaceConcept (order 1 with space against time).
  * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the DistanceMetricConcept.
  */

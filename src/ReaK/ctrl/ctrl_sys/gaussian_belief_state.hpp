@@ -466,7 +466,7 @@ struct gaussian_sampler {
    * \return A random state-sample from the gaussian probability distribution
    */
   state_type operator()() const {
-    boost::variate_generator< pp::global_rng_type&, boost::normal_distribution<scalar_type> > var_rnd(*pp::get_global_rng(), boost::normal_distribution<scalar_type>());
+    boost::variate_generator< pp::global_rng_type&, boost::normal_distribution<scalar_type> > var_rnd(pp::get_global_rng(), boost::normal_distribution<scalar_type>());
     
     state_difference_type z = diff(mean_state,mean_state);
     for(size_type i = 0; i < z.size(); ++i)

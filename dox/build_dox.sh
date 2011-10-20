@@ -39,6 +39,20 @@ doxygen ../ReaKmbd_kte_Doxyfile
 qhelpgenerator html/index.qhp -o ../ReaKmbd_kte_dox.qch
 cd ..
 }
+build_ctrl_sys()
+{
+cd ctrl_sys
+doxygen ../ReaKctrl_sys_Doxyfile
+qhelpgenerator html/index.qhp -o ../ReaKctrl_sys_dox.qch
+cd ..
+}
+build_pp()
+{
+cd pp
+doxygen ../ReaKpp_Doxyfile
+qhelpgenerator html/index.qhp -o ../ReaKpp_dox.qch
+cd ..
+}
 clean_dox()
 {
 rm -R html
@@ -52,6 +66,10 @@ rm -R allcore/html
 rm -R allcore/pdflatex
 rm -R mbd_kte/html
 rm -R mbd_kte/pdflatex
+rm -R ctrl_sys/html
+rm -R ctrl_sys/pdflatex
+rm -R pp/html
+rm -R pp/pdflatex
 }
 build_all()
 {
@@ -62,6 +80,8 @@ build_misc
 build_math
 build_allcore
 build_mbd_kte
+build_ctrl_sys
+build_pp
 }
 case $1 in
   "all") build_all;;
@@ -71,6 +91,8 @@ case $1 in
   "allcore") build_allcore;;
   "alllib") build_alllib;;
   "mbd_kte") build_mbd_kte;;
+  "ctrl_sys") build_ctrl_sys;;
+  "pp") build_pp;;
   "clean") clean_dox;;
 esac
 

@@ -274,6 +274,17 @@ namespace detail {
 
 
 
+/**
+ * This function template computes a quintic Hermite interpolation between two points in a 
+ * temporal and twice-differentiable topology.
+ * \tparam PointType The point type on the temporal and twice-differentiable topology.
+ * \tparam Topology The temporal and twice-differentiable topology type.
+ * \param a The starting point of the interpolation.
+ * \param b The ending point of the interpolation.
+ * \param t The time value at which the interpolated point is sought.
+ * \param space The space on which the points reside.
+ * \return The interpolated point at time t, between a and b.
+ */
 template <typename PointType, typename Topology>
 PointType quintic_hermite_interpolate(const PointType& a, const PointType& b, double t, const Topology& space) {
   BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
@@ -291,7 +302,22 @@ PointType quintic_hermite_interpolate(const PointType& a, const PointType& b, do
 };
 
 
+/**
+ * This functor class implements a quintic Hermite interpolation in a temporal and twice-differentiable 
+ * topology.
+ */
 struct quintic_hermite_interpolator {
+  /**
+   * This function template computes a quintic Hermite interpolation between two points in a 
+   * temporal and twice-differentiable topology.
+   * \tparam PointType The point type on the temporal and twice-differentiable topology.
+   * \tparam Topology The temporal and twice-differentiable topology type.
+   * \param a The starting point of the interpolation.
+   * \param b The ending point of the interpolation.
+   * \param t The time value at which the interpolated point is sought.
+   * \param space The space on which the points reside.
+   * \return The interpolated point at time t, between a and b.
+   */
   template <typename PointType, typename Topology>
   PointType operator()(const PointType& a, const PointType& b, double t, const Topology& space) const {
     return quintic_hermite_interpolate(a,b,t,space);
