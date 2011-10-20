@@ -114,6 +114,11 @@ struct default_differentiation_rule_tuple {
 };
 
 template <>
+struct default_differentiation_rule_tuple<0> {
+  typedef arithmetic_tuple<default_differentiation_rule> type;
+};
+
+template <>
 struct default_differentiation_rule_tuple<1> {
   typedef arithmetic_tuple<default_differentiation_rule> type;
 };

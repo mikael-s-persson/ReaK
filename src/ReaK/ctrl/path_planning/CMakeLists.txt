@@ -11,9 +11,10 @@ set(PATH_PLANNING_HEADERS
   "${RKPATHPLANNINGDIR}/reachability_sort.hpp"
   "${RKPATHPLANNINGDIR}/spatial_path_concept.hpp"
   "${RKPATHPLANNINGDIR}/spatial_trajectory_concept.hpp"
-  "${RKPATHPLANNINGDIR}/spatial_pt_to_pt.hpp"
   "${RKPATHPLANNINGDIR}/predicted_trajectory_concept.hpp"
   "${RKPATHPLANNINGDIR}/differentiable_space_concept.hpp"
+  "${RKPATHPLANNINGDIR}/bounded_space_concept.hpp"
+  "${RKPATHPLANNINGDIR}/global_rng.hpp"
 )
 
 #add_library(reak_path_planning STATIC ${PATH_PLANNING_SOURCES})

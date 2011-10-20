@@ -65,6 +65,7 @@ jacobian_3D_2D<T>           0x00000029   bin: 0000 0000 0000 0000 0000 0000 0010
 jacobian_3D_3D<T>           0x0000002A   bin: 0000 0000 0000 0000 0000 0000 0010 1010  D
 quat<T>                     0x0000002B   bin: 0000 0000 0000 0000 0000 0000 0010 1011  D
 arithmetic_tuple<T...>      0x0000002C   bin: 0000 0000 0000 0000 0000 0000 0010 1100  D
+unit_quat<T>                0x0000002D   bin: 0000 0000 0000 0000 0000 0000 0010 1101  D
 
 
 //Subsumption architecture  0xC14*****
@@ -238,6 +239,9 @@ hyperball_topology<V,M>     0xC2400008   bin: 1100 0010 0100 0000 0000 0000 0000
 hyperbox_topology<V,M>      0xC2400009   bin: 1100 0010 0100 0000 0000 0000 0000 1001  D-R
 metric_space_tuple<ST,D>    0xC240000A   bin: 1100 0010 0100 0000 0000 0000 0000 1010  D-R
 time_poisson_topology       0xC240000B   bin: 1100 0010 0100 0000 0000 0000 0000 1011  D-R
+quaternion_topology<T>      0xC240000C   bin: 1100 0010 0100 0000 0000 0000 0000 1100  D-R
+ang_velocity_3D_topology<T> 0xC240000C   bin: 1100 0010 0100 0000 0000 0000 0000 1100  D-R
+ang_accel_3D_topology<T>    0xC240000C bin:1100 0010 0100 0000 0000 0000 0000 1100  D-R
 
 //Distance metrics:         0xC241****
 default_distance_metric     0xC2410000   bin: 1100 0010 0100 0001 0000 0000 0000 0000  D-R

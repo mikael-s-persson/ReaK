@@ -260,8 +260,8 @@ class quat {
     };
   
     /** Negation operator. */
-    self operator -() const {
-      return self(-q[0], -q[1], -q[2], -q[3]);
+    friend self operator -(const self& Q) {
+      return self(-Q.q[0], -Q.q[1], -Q.q[2], -Q.q[3]);
     };
   
     /** Substraction operator. */
@@ -671,6 +671,267 @@ class quat {
 };
 
 
+
+
+
+
+
+
+
+
+/**
+ * This template class defines a quaternion-valued variable (not a unit-quaternion for representing rotations).
+ */
+template <class T>
+class unit_quat : public quat<T> {
+  public:
+    typedef unit_quat<T> self;
+    
+    typedef T value_type;
+    typedef T& reference;
+    typedef const T& const_reference;
+    typedef T* pointer;
+    typedef const T* const_pointer;
+    typedef void allocator_type;
+    
+    typedef pointer iterator;
+    typedef const_pointer const_iterator;
+    
+    typedef std::size_t size_type;
+    typedef std::ptrdiff_t difference_type;
+    
+    typedef T scalar_type;
+    typedef vect<T,3> vector_type;
+          
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 4);
+    
+/*******************************************************************************
+                         Constructors / Destructors
+*******************************************************************************/
+  
+    /**
+     * Default constructor, always yields (1.0, 0.0, 0.0, 0.0).
+     */
+    unit_quat() : quat(scalar_type(1.0)) { };
+    
+    /**
+     * Constructor from quaternion value.
+     */
+    explicit unit_quat(const quat<T>& aQ) : quat(scalar_type(1.0)) { 
+      using std::sqrt;
+      scalar_type factor = sqrt(aQ.q[0] * aQ.q[0] + aQ.q[1] * aQ.q[1] + aQ.q[2] * aQ.q[2] + aQ.q[3] * aQ.q[3]); 
+      if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
+	factor = 1.0 / factor;
+        this->q[0] = aQ.q[0] * factor; 
+        this->q[1] = aQ.q[1] * factor; 
+        this->q[2] = aQ.q[2] * factor; 
+        this->q[3] = aQ.q[3] * factor;
+      };
+    };
+    
+    /**
+     * Converts a 4D vector into a quaternion.
+     */
+    explicit unit_quat(const vect<value_type,4>& V): quat(scalar_type(1.0)) { 
+      using std::sqrt;
+      scalar_type factor = norm(V); 
+      if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
+	factor = 1.0 / factor;
+        this->q[0] = V[0] * factor; 
+        this->q[1] = V[1] * factor; 
+        this->q[2] = V[2] * factor; 
+        this->q[3] = V[3] * factor;
+      };
+    };
+    
+    /**
+     * Convstructs a quaternion from 4 components.
+     */
+    unit_quat(const_reference q0, const_reference q1, const_reference q2, const_reference q3) : quat(scalar_type(1.0)) { 
+      using std::sqrt;
+      scalar_type factor = sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3); 
+      if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
+	factor = 1.0 / factor;
+        this->q[0] = q0 * factor; 
+        this->q[1] = q1 * factor; 
+        this->q[2] = q2 * factor; 
+        this->q[3] = q3 * factor;
+      };
+    };
+    
+    //Copy-constructor is default.
+    //Assignment operator is default.
+    
+    // NOTE hiding the non-const overloads in the base class is intentional here:
+    
+    /**
+     * Array indexing operator, accessor for read only.
+     * \test PASSED
+     */
+    const_reference operator [](size_type i) const {
+      if(i >= 4)
+	throw std::range_error("Quaternion index out of range.");
+      return q[i];
+    };
+    
+    /**
+     * Returns a const-iterator to the first element of the quaternion (viewed as a 4D vector).
+     */
+    const_iterator begin() const { return q; };
+    /**
+     * Returns a const-iterator to the one-past-last element of the quaternion (viewed as a 4D vector).
+     */
+    const_iterator end() const { return q + 4; };
+      
+/*******************************************************************************
+                         Assignment Operators
+*******************************************************************************/
+
+    /**
+     * Assignment operator.
+     */
+    self& operator =(const self& Q) {
+      this->q[0] = Q.q[0];
+      this->q[1] = Q.q[1];
+      this->q[2] = Q.q[2];
+      this->q[3] = Q.q[3];
+      return *this; 
+    };
+    
+    /** Multiplication-assignment operator. */
+    self& operator *=(const self& C) {
+      return (*this = ((*this) * C));
+    };
+  
+/*******************************************************************************
+                         Basic Operators
+*******************************************************************************/
+  
+    /** Negation operator. */
+    friend self operator -(self Q) {
+      Q.q[0] = -Q.q[0];
+      Q.q[1] = -Q.q[1];
+      Q.q[2] = -Q.q[2];
+      Q.q[3] = -Q.q[3];
+      return Q;
+    };
+  
+    /**
+     * Multiplication by a quaternion.
+     * \test PASSED
+     */
+    friend
+    self operator *(const self& Q1, const self& Q2) {
+      return self(Q2.q[0] * Q1.q[0] - Q2.q[1] * Q1.q[1] - Q2.q[2] * Q1.q[2] - Q2.q[3] * Q1.q[3],
+                  Q2.q[0] * Q1.q[1] + Q2.q[3] * Q1.q[2] - Q2.q[2] * Q1.q[3] + Q2.q[1] * Q1.q[0],
+                  Q2.q[0] * Q1.q[2] - Q2.q[3] * Q1.q[1] + Q2.q[1] * Q1.q[3] + Q2.q[2] * Q1.q[0],
+                  Q2.q[0] * Q1.q[3] + Q2.q[2] * Q1.q[1] - Q2.q[1] * Q1.q[2] + Q2.q[3] * Q1.q[0]);
+    };
+  
+    
+  
+    /** Quaternionic conjugate for a quaternion value. */
+    friend self conj(self x) {
+      x.q[1] = -x.q[1];
+      x.q[2] = -x.q[2];
+      x.q[3] = -x.q[3];
+      return x;
+    };
+    
+    /**
+     * Square magnitude of the quaternion.
+     * \test PASSED
+     */
+    friend value_type norm_sqr(const self& v) {
+      return value_type(1.0);
+    };
+
+    /**
+     * Magnitude of the quaternion.
+     * \test PASSED
+     */
+    friend value_type norm(const self& v) {
+      return value_type(1.0);
+    };
+
+
+    /**
+     * Unit quaternion in the same direction.
+     * \test PASSED
+     */
+    friend self unit(const self& v) {
+      return v;
+    };
+  
+
+    //Exponential and logarithmic functions:
+
+    /** Compute exponential function (function), for a quaternion value. */
+    friend self exp(const vector_type& x) {
+      using std::sin; using std::cos;
+      using std::exp;
+      using std::sqrt;
+      value_type theta = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
+      if(theta < std::numeric_limits<value_type>::epsilon())
+	return self();
+      value_type fact = sin(theta) / theta;
+      return self(cos(theta), fact * x.q[1], fact * x.q[2], fact * x.q[3]);
+    };  
+
+    /** Compute natural logarithm (function), for a quaternion value. */
+    friend vector_type log(const self& x) {
+      using std::atan2;
+      using std::sqrt;
+      value_type st = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
+      if(st < std::numeric_limits<value_type>::epsilon())
+	return vector_type(value_type(0.0),value_type(0.0),value_type(0.0));
+      value_type fact = atan2(st,x.q[0]) / st;
+      return vector_type(fact * x.q[1], fact * x.q[2], fact * x.q[3]);
+    };
+    
+    
+    //Power functions
+
+    /** Raise to power (function), for a quaternion value.*/
+    friend self pow(const self& base, const self& exponent) {
+      return exp(exponent * log(base));
+    };  
+
+    /** Compute square root (function), for a quaternion value.*/
+    friend self sqrt(const self& x) {
+      return exp( 0.5 * log(x) );
+    };  
+    
+    /**
+     * Inverts the quaternion.
+     */
+    friend self invert(const self& x) {
+      return conj(x);
+    };
+
+
+    //Rounding, absolute value and remainder functions:
+
+    /** Compute absolute value (function), for a quaternion value. */
+    friend value_type fabs(const self& x) {
+      return 1.0;
+    };  
+  
+    
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 namespace serialization {
   
   /// Loading a quaternion value.
@@ -717,6 +978,16 @@ struct get_type_id< quat<T> > {
   typedef quat<T>& load_type;
 };
 
+template <typename T>
+struct get_type_id< unit_quat<T> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000002D);
+  static std::string type_name() { return "ReaK::unit_quat"; };
+  static construct_ptr CreatePtr() { return NULL; };
+  
+  typedef const quat<T>& save_type;
+  typedef quat<T>& load_type;
+};
+
 };
 
 
@@ -744,6 +1015,32 @@ template <typename T>
 struct has_allocator_vector< quat<T> > {
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef has_allocator_vector< quat<T> > type;
+};
+
+
+template <typename T>
+struct is_readable_vector< unit_quat<T> > {
+  BOOST_STATIC_CONSTANT( bool, value = true );
+  typedef is_readable_vector< unit_quat<T> > type;
+};
+
+template <typename T>
+struct is_writable_vector< unit_quat<T> > {
+  BOOST_STATIC_CONSTANT( bool, value = false );
+  typedef is_writable_vector< unit_quat<T> > type;
+};
+
+template <typename T>
+struct is_resizable_vector< quat<T> > {
+  BOOST_STATIC_CONSTANT( bool, value = false );
+  typedef is_resizable_vector< unit_quat<T> > type;
+};
+
+
+template <typename T>
+struct has_allocator_vector< quat<T> > {
+  BOOST_STATIC_CONSTANT( bool, value = false );
+  typedef has_allocator_vector< unit_quat<T> > type;
 };
 
 
