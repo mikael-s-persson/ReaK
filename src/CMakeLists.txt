@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 # Use the following root directory on wopa laptop
 # set(CODEROOT "/home/wopa/mpersson/mpersson/code")
@@ -40,6 +40,18 @@ else()
   message(STATUS "Configured compiler options and output directories for *nix GCC toolset.")
 endif()
 
+# Git related macros and commands:
+find_package(Git)
+
+if(GIT_FOUND)
+  message(STATUS "Git package was found: '${GIT_EXECUTABLE}'")
+  set(PRINT_VERSION_COMMAND ${GIT_EXECUTABLE} describe)
+  set(PRINT_FILE_DATE_COMMAND_STR "${GIT_EXECUTABLE} log --pretty=format:'Author: %an <%ae>%nDate: %ad' --date=short -n 1")
+else()
+  set(PRINT_VERSION_COMMAND ${CMAKE_COMMAND} -E echo unknown version)
+  set(PRINT_FILE_DATE_COMMAND_STR "${CMAKE_COMMAND} -E echo")
+endif()
+
 # Now set the global macros for setting up targets.
 macro(setup_custom_target target_name CUSTOM_OUTPUT_PATH)
   set_property(TARGET ${target_name} PROPERTY RUNTIME_OUTPUT_DIRECTORY "${BINROOT}")
@@ -66,6 +78,7 @@ macro(configure_doxyfile TARGET_NAME TARGET_TITLE TARGET_BRIEF TARGET_INPUT_PATH
     set(DOXY_TARGET_TITLE "${TARGET_TITLE}")
     set(DOXY_TARGET_BRIEF "${TARGET_BRIEF}")
     set(DOXY_TARGET_INPUT_PATH "${TARGET_INPUT_PATH}")
+    set(DOXY_TARGET_FILE_VERSION_FILTER "\"${PRINT_FILE_DATE_COMMAND_STR} \"")
     if(NOT EXISTS "${DOXROOT}/${DOXY_TARGET_OUTPUT_DIR}")
       file(MAKE_DIRECTORY "${DOXROOT}/${DOXY_TARGET_OUTPUT_DIR}")
     endif()
@@ -77,6 +90,7 @@ macro(configure_doxyfile TARGET_NAME TARGET_TITLE TARGET_BRIEF TARGET_INPUT_PATH
 endmacro(configure_doxyfile)
 
 if (DOXYGEN_FOUND)
+  message(STATUS "Doxygen package was found.")
   add_custom_target(dox)
   if(WIN32)
     find_package(HTMLHelp)
@@ -94,7 +108,7 @@ if (DOXYGEN_FOUND)
                    NAMES qhelpgenerator-qt4 qhelpgenerator
                    PATHS ${QT_BINARY_DIR} NO_DEFAULT_PATH)
       if(QT_QHELPGENERATOR_EXECUTABLE)
-        message(STATUS "QHelpGenerator executable was found.")
+        message(STATUS "QHelpGenerator executable was found: '${QT_QHELPGENERATOR_EXECUTABLE}'")
         set(DOXY_COMPRESSED_HELP_GEN ${QT_QHELPGENERATOR_EXECUTABLE})
       else()
         message(STATUS "WARNING : Compressed help-files cannot be generated on this platform (qhelpgenerator is missing).")
@@ -107,22 +121,22 @@ if (DOXYGEN_FOUND)
         set(DOXY_COMPRESSED_HELP_GEN ${HTML_HELP_COMPILER})
         set(DOXY_COMPRESSED_HELP_INPUT "${TARGET_NAME}/html/index.hhp")
       else()
-        set(DOXY_COMPRESSED_HELP_GEN "echo ")
+        set(DOXY_COMPRESSED_HELP_GEN ${CMAKE_COMMAND} -E echo)
         set(DOXY_COMPRESSED_HELP_INPUT "Skipping compressed help-file generation for '${TARGET_NAME}'...")
       endif()
     else()
       if(QT_QHELPGENERATOR_EXECUTABLE)
         set(DOXY_COMPRESSED_HELP_GEN ${QT_QHELPGENERATOR_EXECUTABLE})
-        set(DOXY_COMPRESSED_HELP_INPUT ${TARGET_NAME}/html/index.qhp -o ${TARGET_NAME}_dox.qch)
+        set(DOXY_COMPRESSED_HELP_INPUT "${TARGET_NAME}/html/index.qhp" -o "${TARGET_NAME}_dox.qch")
       else()
-        set(DOXY_COMPRESSED_HELP_GEN "echo ")
+        set(DOXY_COMPRESSED_HELP_GEN ${CMAKE_COMMAND} -E echo)
         set(DOXY_COMPRESSED_HELP_INPUT "Skipping compressed help-file generation for '${TARGET_NAME}'...")
       endif()
     endif()
     add_custom_target(${TARGET_NAME}_dox 
                       ${CMAKE_COMMAND} -E remove -f "${TARGET_NAME}_Doxyfile.out"
               COMMAND ${CMAKE_COMMAND} -E copy "${TARGET_NAME}_Doxyfile" "${TARGET_NAME}_Doxyfile.out"
-              COMMAND git describe >> "${TARGET_NAME}_Doxyfile.out"
+              COMMAND ${PRINT_VERSION_COMMAND} >> "${TARGET_NAME}_Doxyfile.out"
               COMMAND ${DOXYGEN_EXECUTABLE} "${TARGET_NAME}_Doxyfile.out"
               COMMAND ${CMAKE_COMMAND} -E remove -f "${TARGET_NAME}_Doxyfile.out"
               COMMAND ${DOXY_COMPRESSED_HELP_GEN} ${DOXY_COMPRESSED_HELP_INPUT}
