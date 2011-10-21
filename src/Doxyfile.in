@@ -25,13 +25,13 @@ DOXYFILE_ENCODING      = UTF-8
 # The PROJECT_NAME tag is a single word (or a sequence of words surrounded 
 # by quotes) that should identify the project.
 
-PROJECT_NAME           = "ReaK Library - All libraries"
+PROJECT_NAME           = @DOXY_TARGET_TITLE@
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description
 # for a project that appears at the top of each page and should give viewer
 # a quick idea about the purpose of the project. Keep the description short.
 
-PROJECT_BRIEF          = "A complete library for robotics modeling, control and path-planning."
+PROJECT_BRIEF          = @DOXY_TARGET_BRIEF@
 
 # With the PROJECT_LOGO tag one can specify an logo or icon that is 
 # included in the documentation. The maximum height of the logo should not 
@@ -45,7 +45,7 @@ PROJECT_LOGO           =
 # If a relative path is entered, it will be relative to the location 
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = ReaK
+OUTPUT_DIRECTORY       = @DOXY_TARGET_OUTPUT_DIR@
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create 
 # 4096 sub-directories (in 2 levels) under the output directory of each output 
@@ -131,7 +131,7 @@ FULL_PATH_NAMES        = YES
 # If left blank the directory from which doxygen is run is used as the 
 # path to strip.
 
-STRIP_FROM_PATH        = ../src
+STRIP_FROM_PATH        = @DOXY_TARGET_ROOT_DIR@
 
 # The STRIP_FROM_INC_PATH tag can be used to strip a user-defined part of 
 # the path mentioned in the documentation of a class, which tells 
@@ -606,7 +606,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = ../src/ReaK/core ../src/ReaK/ctrl ../src/ReaK/examples
+INPUT                  = @DOXY_TARGET_INPUT_PATH@
 
 # This tag can be used to specify the character encoding of the source files 
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is 
@@ -1029,7 +1029,7 @@ QCH_FILE               =
 # Qt Help Project output. For more information please see 
 # http://doc.trolltech.com/qthelpproject.html#namespace
 
-QHP_NAMESPACE          = org.doxygen.ReaK
+QHP_NAMESPACE          = org.doxygen.@DOXY_TARGET_NAME@
 
 # The QHP_VIRTUAL_FOLDER tag specifies the namespace to use when generating 
 # Qt Help Project output. For more information please see 

@@ -3,6 +3,8 @@ project(ReaK)
 # The following definition of RK_VERBOSITY determines the depth-level of the debug option of the programs (usually between 0 (no debug output) and 10 (full debug output)).
 add_definitions(-DRK_VERBOSITY=3)
 
+set(REAK_VERSION_NUMBER "0.20")
+
 # These are the main sub-directories
 set(RKCOREDIR "${REAKDIR}/core")
 set(RKCTRLDIR "${REAKDIR}/ctrl")
@@ -14,6 +16,9 @@ set(RKAIDIR "${REAKDIR}/ai")
 
 set(RKSUBDIRS ${RKCOREDIR} ${RKCTRLDIR} ${RKEXAMPLESDIR})
 #set(RKSUBDIRS ${RKSUBDIRS} ${RKCOREOLDDIR} ${RKCTRLOLDDIR})
+
+configure_doxyfile(ReaK "\"ReaK Library - All libraries\"" "\"A complete library for robotics modeling, control and path-planning.\"" "${DOXTOSRCDIR}${RKCOREDIR} ${DOXTOSRCDIR}${RKCTRLDIR} ${DOXTOSRCDIR}${RKEXAMPLESDIR}")
+add_doxygen_target(ReaK)
 
 if (WIN32)
   set(BOOST_INCLUDE_DIRS "boost_1_46_0/")
