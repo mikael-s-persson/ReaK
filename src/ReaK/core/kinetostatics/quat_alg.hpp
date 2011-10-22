@@ -523,7 +523,7 @@ class quat {
       value_type theta = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(theta < std::numeric_limits<value_type>::epsilon())
 	return self(cos(x.q[0]));
-      value_type fact = sin(x.q[0]) * sinh(theta) / theta;
+      value_type fact = - sin(x.q[0]) * sinh(theta) / theta;
       return self(cos(x.q[0]) * cosh(theta), fact * x.q[1], fact * x.q[2], fact * x.q[3]);
     }; 
 
