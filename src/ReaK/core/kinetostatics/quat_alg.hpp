@@ -712,12 +712,12 @@ class unit_quat : public quat<T> {
     /**
      * Default constructor, always yields (1.0, 0.0, 0.0, 0.0).
      */
-    unit_quat() : quat(scalar_type(1.0)) { };
+    unit_quat() : quat<T>(scalar_type(1.0)) { };
     
     /**
      * Constructor from quaternion value.
      */
-    explicit unit_quat(const quat<T>& aQ) : quat(scalar_type(1.0)) { 
+    explicit unit_quat(const quat<T>& aQ) : quat<T>(scalar_type(1.0)) { 
       using std::sqrt;
       scalar_type factor = sqrt(aQ.q[0] * aQ.q[0] + aQ.q[1] * aQ.q[1] + aQ.q[2] * aQ.q[2] + aQ.q[3] * aQ.q[3]); 
       if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
@@ -732,7 +732,7 @@ class unit_quat : public quat<T> {
     /**
      * Converts a 4D vector into a quaternion.
      */
-    explicit unit_quat(const vect<value_type,4>& V): quat(scalar_type(1.0)) { 
+    explicit unit_quat(const vect<value_type,4>& V): quat<T>(scalar_type(1.0)) { 
       using std::sqrt;
       scalar_type factor = norm(V); 
       if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
@@ -747,7 +747,7 @@ class unit_quat : public quat<T> {
     /**
      * Convstructs a quaternion from 4 components.
      */
-    unit_quat(const_reference q0, const_reference q1, const_reference q2, const_reference q3) : quat(scalar_type(1.0)) { 
+    unit_quat(const_reference q0, const_reference q1, const_reference q2, const_reference q3) : quat<T>(scalar_type(1.0)) { 
       using std::sqrt;
       scalar_type factor = sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3); 
       if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
@@ -771,17 +771,17 @@ class unit_quat : public quat<T> {
     const_reference operator [](size_type i) const {
       if(i >= 4)
 	throw std::range_error("Quaternion index out of range.");
-      return q[i];
+      return this->q[i];
     };
     
     /**
      * Returns a const-iterator to the first element of the quaternion (viewed as a 4D vector).
      */
-    const_iterator begin() const { return q; };
+    const_iterator begin() const { return this->q; };
     /**
      * Returns a const-iterator to the one-past-last element of the quaternion (viewed as a 4D vector).
      */
-    const_iterator end() const { return q + 4; };
+    const_iterator end() const { return this->q + 4; };
       
 /*******************************************************************************
                          Assignment Operators
@@ -1031,14 +1031,14 @@ struct is_writable_vector< unit_quat<T> > {
 };
 
 template <typename T>
-struct is_resizable_vector< quat<T> > {
+struct is_resizable_vector< unit_quat<T> > {
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef is_resizable_vector< unit_quat<T> > type;
 };
 
 
 template <typename T>
-struct has_allocator_vector< quat<T> > {
+struct has_allocator_vector< unit_quat<T> > {
   BOOST_STATIC_CONSTANT( bool, value = false );
   typedef has_allocator_vector< unit_quat<T> > type;
 };
