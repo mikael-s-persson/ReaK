@@ -543,7 +543,7 @@ class quat {
     friend self tan(const self& x) {
       using std::cos; using std::sin; 
       using std::cosh; using std::sinh;
-      using std::sqrt;
+      using std::sqrt; using std::tan;
       value_type theta = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(theta < std::numeric_limits<value_type>::epsilon())
 	return self(tan(x.q[0]));
@@ -556,7 +556,7 @@ class quat {
     friend self acos(const self& x) {
       using std::sqrt;
       using std::pow; using std::log;
-      using std::atan2; using std::cos; using std::sin;
+      using std::atan2; using std::cos; using std::sin; using std::acos;
       value_type ss_sht = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(ss_sht < std::numeric_limits<value_type>::epsilon())
 	return self(acos(x.q[0]));
@@ -581,6 +581,8 @@ class quat {
     /** Compute arc sine (function), for a quaternion value.*/
     friend self asin(const self& x) {
       using std::sqrt;
+      using std::pow; using std::log;
+      using std::atan2; using std::cos; using std::sin; using std::asin;
       value_type cs_sht = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(cs_sht < std::numeric_limits<value_type>::epsilon())
 	return self(asin(x.q[0]));
@@ -605,7 +607,8 @@ class quat {
     /** Compute arc tangent (function), for a quaternion value.*/
     friend self atan(const self& x) {
       using std::sqrt;
-      using std::atan;
+      using std::pow; using std::log;
+      using std::atan2; using std::cos; using std::sin; using std::atan;
       value_type tmp = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(tmp < std::numeric_limits<value_type>::epsilon())
 	return self(atan(x.q[0]));
@@ -866,18 +869,7 @@ class unit_quat : public quat<T> {
 
     //Exponential and logarithmic functions:
 
-    /** Compute exponential function (function), for a quaternion value. */
-    friend self exp(const vector_type& x) {
-      using std::sin; using std::cos;
-      using std::exp;
-      using std::sqrt;
-      value_type theta = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
-      if(theta < std::numeric_limits<value_type>::epsilon())
-	return self();
-      value_type fact = sin(theta) / theta;
-      return self(cos(theta), fact * x.q[1], fact * x.q[2], fact * x.q[3]);
-    };  
-
+    
     /** Compute natural logarithm (function), for a quaternion value. */
     friend vector_type log(const self& x) {
       using std::atan2;
@@ -893,7 +885,7 @@ class unit_quat : public quat<T> {
     //Power functions
 
     /** Raise to power (function), for a quaternion value.*/
-    friend self pow(const self& base, const self& exponent) {
+    friend self pow(const self& base, const scalar_type& exponent) {
       return exp(exponent * log(base));
     };  
 
@@ -923,9 +915,18 @@ class unit_quat : public quat<T> {
 
 
 
-
-
-
+/** Compute exponential function (function), for a quaternion value. */
+template <typename T>
+unit_quat<T> exp(const vect<T,3>& x) {
+  using std::sin; using std::cos;
+  using std::exp;
+  using std::sqrt;
+  T theta = sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
+  if(theta < std::numeric_limits<T>::epsilon())
+    return unit_quat<T>();
+  T fact = sin(theta) / theta;
+  return unit_quat<T>(cos(theta), fact * x[0], fact * x[1], fact * x[2]);
+};  
 
 
 

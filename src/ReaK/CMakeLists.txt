@@ -21,7 +21,7 @@ configure_doxyfile(ReaK "\"ReaK Library - All libraries\"" "\"A complete library
 add_doxygen_target(ReaK)
 
 if (WIN32)
-  set(BOOST_INCLUDE_DIRS "boost_1_46_0/")
+  set(BOOST_INCLUDE_DIRS "C:/boost/boost_1_46_0/")
   if (MSVC)
     set(BOOST_LIB_TOPDIR "C:/boost/boost_1_46_0/stage_msvc/lib/")
     link_directories("${BOOST_LIB_TOPDIR}")

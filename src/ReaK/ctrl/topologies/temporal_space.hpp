@@ -64,16 +64,16 @@ class temporal_space : public named_object {
     typedef Topology space_topology;
     typedef TemporalDistanceMetric distance_metric;
     
-    typedef typename temporal_space<Topology,TimeTopology,TemporalDistanceMetric> self;
+    typedef temporal_space<Topology,TimeTopology,TemporalDistanceMetric> self;
     
     /**
      * This nested type represents the points of the temporal-space.
      */
     struct point {
-      time_topology::point_type time; ///< Holds the time associated to the space-time point.
-      space_topology::point_type pt; ///< Holds the spatial-point associated to the space-time point.
+      typename metric_topology_traits<time_topology>::point_type time; ///< Holds the time associated to the space-time point.
+      typename metric_topology_traits<space_topology>::point_type pt; ///< Holds the spatial-point associated to the space-time point.
     
-      BOOST_STATIC_CONSTANT(std::size_t, dimensions = space_topology::point_type::dimensions);
+      BOOST_STATIC_CONSTANT(std::size_t, dimensions = metric_topology_traits<space_topology>::dimensions);
       
       /**
        * Default constructor.
@@ -84,8 +84,8 @@ class temporal_space : public named_object {
        * \param aTime The time associated to the space-time point.
        * \param aPt The spatial-point associated to the space-time point.
        */
-      point(const time_topology::point_type& aTime, 
-	    const space_topology::point_type& aPt) : 
+      point(const typename metric_topology_traits<time_topology>::point_type& aTime, 
+	    const typename metric_topology_traits<space_topology>::point_type& aPt) : 
 	    time(aTime), pt(aPt) { };
      
       /* This should not be there, because of the principle of minimum requirements.
@@ -98,10 +98,10 @@ class temporal_space : public named_object {
      * This nested type represents the difference between two points of the temporal-space.
      */
     struct point_difference {
-      time_topology::point_difference_type time; ///< Holds the time-difference.
-      space_topology::point_difference_type pt; ///< Holds the spatial-difference.
+      typename metric_topology_traits<time_topology>::point_difference_type time; ///< Holds the time-difference.
+      typename metric_topology_traits<space_topology>::point_difference_type pt; ///< Holds the spatial-difference.
       
-      BOOST_STATIC_CONSTANT(std::size_t, dimensions = space_topology::point_difference_type::dimensions);
+      BOOST_STATIC_CONSTANT(std::size_t, dimensions = metric_topology_traits<space_topology>::dimensions);
       /**
        * Default constructor.
        */
@@ -111,8 +111,8 @@ class temporal_space : public named_object {
        * \param aTime The time difference.
        * \param aPt The spatial-difference.
        */
-      point_difference(const time_topology::point_difference_type& aTime,
-	               const space_topology::point_difference_type& aPt) : 
+      point_difference(const typename metric_topology_traits<time_topology>::point_difference_type& aTime,
+	               const typename metric_topology_traits<space_topology>::point_difference_type& aPt) : 
 	               time(aTime), pt(aPt) { };
 
       point_difference operator-() const {

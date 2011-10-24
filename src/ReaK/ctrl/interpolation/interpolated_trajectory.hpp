@@ -38,6 +38,8 @@
 
 #include "waypoint_container.hpp"
 
+#include "topologies/basic_distance_metrics.hpp"
+
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 #include <cmath>
@@ -71,13 +73,19 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
     
     typedef Interpolator interpolator_type;
     
+    typedef typename base_class_type::const_waypoint_descriptor const_waypoint_descriptor;
+    typedef typename base_class_type::const_waypoint_bounds const_waypoint_bounds;
+    typedef typename base_class_type::point_type point_type;
+    typedef typename base_class_type::topology topology;
+    typedef typename base_class_type::distance_metric distance_metric;
+    
     typedef std::pair<const_waypoint_descriptor, point_type> waypoint_pair;
     
   private:
     
     interpolator_type interp;
     
-    interpolated_trajectory(const cubic_hermite_interp<Topology,Interpolator,DistanceMetric>&); //non-copyable.
+    interpolated_trajectory(const interpolated_trajectory<Topology,Interpolator,DistanceMetric>&); //non-copyable.
     interpolated_trajectory<Topology,Interpolator,DistanceMetric>& operator=(const interpolated_trajectory<Topology,Interpolator,DistanceMetric>&);
     
     double travel_distance_impl(const point_type& a, const const_waypoint_bounds& wpb_a, 
@@ -102,8 +110,8 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
      * \param aDist The distance metric functor that the trajectory should use.
      * \param aInterp The interpolator functor that the trajectory should use.
      */
-    explicit cubic_hermite_interp(const topology& aSpace, const distance_metric& aDist = distance_metric(), const interpolator_type& aInterp = interpolator_type()) : 
-                                  base_class_type(aSpace, aDist), interp(aInterp) { };
+    explicit interpolated_trajectory(const topology& aSpace, const distance_metric& aDist = distance_metric(), const interpolator_type& aInterp = interpolator_type()) : 
+                                     base_class_type(aSpace, aDist), interp(aInterp) { };
     
     /**
      * Constructs the trajectory from a space, the start and end points.
@@ -113,8 +121,8 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
      * \param aDist The distance metric functor that the trajectory should use.
      * \param aInterp The interpolator functor that the trajectory should use.
      */
-    cubic_hermite_interp(const topology& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric(), const interpolator_type& aInterp = interpolator_type()) :
-                         base_class_type(aSpace, aStart, aEnd, aDist), interp(aInterp) { };
+    interpolated_trajectory(const topology& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric(), const interpolator_type& aInterp = interpolator_type()) :
+                            base_class_type(aSpace, aStart, aEnd, aDist), interp(aInterp) { };
 			
     /**
      * Constructs the trajectory from a range of points and their space.
@@ -126,8 +134,8 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
      * \param aInterp The interpolator functor that the trajectory should use.
      */
     template <typename ForwardIter>
-    cubic_hermite_interp(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric(), const interpolator_type& aInterp = interpolator_type()) : 
-                         base_class_type(aBegin, aEnd, aSpace, aDist), interp(aInterp) { };
+    interpolated_trajectory(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric(), const interpolator_type& aInterp = interpolator_type()) : 
+                            base_class_type(aBegin, aEnd, aSpace, aDist), interp(aInterp) { };
     
     /**
      * Standard swap function.
@@ -197,7 +205,7 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
 	double d1 = it->time - prev->time;
 	if(d1 > dt)
 	  return std::make_pair(it_prev, interp(*prev, *(wpb_a.second), prev->time + dt, this->space));
-	d -= d1; prev = &(*it); it_prev = it; ++it;
+	dt -= d1; prev = &(*it); it_prev = it; ++it;
       };
       return std::make_pair(it_prev,*prev);
     };

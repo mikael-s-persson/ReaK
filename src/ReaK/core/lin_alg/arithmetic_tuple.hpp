@@ -84,7 +84,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_addassign_impl( Tuple& lhs, const Tuple& rhs) {
-    tuple_addassign_impl< boost::mpl::prior<Idx>,Tuple >(lhs,rhs);
+    tuple_addassign_impl< typename boost::mpl::prior<Idx>::type,Tuple >(lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -110,7 +110,7 @@ namespace detail {
       boost::mpl::size_t<0>
     >,
   void >::type tuple_subassign_impl( Tuple& lhs, const Tuple& rhs) {
-    tuple_subassign_impl< boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+    tuple_subassign_impl< typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -136,7 +136,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_mulassign_impl( Tuple& lhs, const Tuple& rhs) {
-    tuple_mulassign_impl<boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+    tuple_mulassign_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -162,7 +162,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_divassign_impl( Tuple& lhs, const Tuple& rhs) {
-    tuple_divassign_impl<boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+    tuple_divassign_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -188,7 +188,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_smulassign_impl( Tuple& lhs, const Scalar& rhs) {
-    tuple_smulassign_impl<boost::mpl::prior<Idx>,Tuple,Scalar>(lhs,rhs);
+    tuple_smulassign_impl<typename boost::mpl::prior<Idx>::type,Tuple,Scalar>(lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -214,7 +214,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_sdivassign_impl( Tuple& lhs, const Scalar& rhs) {
-    tuple_sdivassign_impl<boost::mpl::prior<Idx>,Tuple,Scalar>(lhs,rhs);
+    tuple_sdivassign_impl<typename boost::mpl::prior<Idx>::type,Tuple,Scalar>(lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -242,7 +242,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_add_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) {
-    tuple_add_impl<boost::mpl::prior<Idx>,Tuple>(result,lhs,rhs);
+    tuple_add_impl<typename boost::mpl::prior<Idx>::type,Tuple>(result,lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -268,7 +268,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_sub_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) {
-    tuple_sub_impl<boost::mpl::prior<Idx>,Tuple>(result,lhs,rhs);
+    tuple_sub_impl<typename boost::mpl::prior<Idx>::type,Tuple>(result,lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -294,7 +294,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_neg_impl( Tuple& result, const Tuple& lhs) {
-    tuple_neg_impl<boost::mpl::prior<Idx>,Tuple>(result,lhs);
+    tuple_neg_impl<typename boost::mpl::prior<Idx>::type,Tuple>(result,lhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -320,7 +320,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_mul_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) {
-    tuple_mul_impl<boost::mpl::prior<Idx>,Tuple>(result,lhs,rhs);
+    tuple_mul_impl<typename boost::mpl::prior<Idx>::type,Tuple>(result,lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -346,7 +346,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_div_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) {
-    tuple_div_impl<boost::mpl::prior<Idx>,Tuple>(result,lhs,rhs);
+    tuple_div_impl<typename boost::mpl::prior<Idx>::type,Tuple>(result,lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -372,7 +372,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_muls_impl( Tuple& result, const Tuple& lhs, const Scalar& rhs) {
-    tuple_muls_impl<boost::mpl::prior<Idx>,Tuple,Scalar>(result,lhs,rhs);
+    tuple_muls_impl<typename boost::mpl::prior<Idx>::type,Tuple,Scalar>(result,lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -398,7 +398,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_smul_impl( Tuple& result, const Scalar& lhs, const Tuple& rhs) {
-    tuple_smul_impl<boost::mpl::prior<Idx>,Tuple,Scalar>(result,lhs,rhs);
+    tuple_smul_impl<typename boost::mpl::prior<Idx>::type,Tuple,Scalar>(result,lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -424,7 +424,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_divs_impl( Tuple& result, const Tuple& lhs, const Scalar& rhs) {
-    tuple_divs_impl<boost::mpl::prior<Idx>,Tuple,Scalar>(result,lhs,rhs);
+    tuple_divs_impl<typename boost::mpl::prior<Idx>::type,Tuple,Scalar>(result,lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -453,7 +453,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_save_impl( serialization::oarchive& lhs, const Tuple& rhs) {
-    tuple_save_impl<boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+    tuple_save_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -479,7 +479,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_save_nvp_impl( serialization::oarchive& lhs, const std::pair< std::string, const Tuple& >& rhs) {
-    tuple_save_nvp_impl<boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+    tuple_save_nvp_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -509,7 +509,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_load_impl( serialization::iarchive& lhs, Tuple& rhs) {
-    tuple_load_impl<boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+    tuple_load_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -535,7 +535,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_load_nvp_impl( serialization::iarchive& lhs, const std::pair< std::string, Tuple& >& rhs) {
-    tuple_load_nvp_impl<boost::mpl::prior<Idx>,Tuple>(lhs,rhs);
+    tuple_load_nvp_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -612,7 +612,7 @@ struct is_arithmetic_tuple< arithmetic_tuple< T... > > :
 /* Specialization, see general template docs. */
 template <typename... T>
 struct arithmetic_tuple_size< arithmetic_tuple< T... > > : 
-  boost::mpl::size_t< sizeof... T > { };
+  boost::mpl::size_t< sizeof... (T) > { };
   
 /**
  * This function template can be used to create an arithmetic-tuple.
@@ -958,7 +958,7 @@ Tuple >::type operator -(const Tuple& lhs, const Tuple& rhs) {
  */  
 template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
-Tuple >::type operator -(const Tuple& lhs) const {
+Tuple >::type operator -(const Tuple& lhs) {
   Tuple result;
   detail::tuple_neg_impl<arithmetic_tuple_size<Tuple>,Tuple>(result, lhs);
   return result;

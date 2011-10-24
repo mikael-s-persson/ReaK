@@ -165,20 +165,22 @@ class line_segment_topology : public line_topology<T>
   typedef boost::uniform_01<global_rng_type&, T> rand_t;
 
   public:
-    typedef line_segment_topology<T,RandomNumberGenerator> self;
+    typedef line_segment_topology<T> self;
     
-    typedef line_topology::point_type point_type;
-    typedef line_topology::point_difference_type point_difference_type;
+    typedef typename line_topology<T>::point_type point_type;
+    typedef typename line_topology<T>::point_difference_type point_difference_type;
     
-    BOOST_STATIC_CONSTANT(std::size_t, dimensions = line_topology::dimensions);
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = line_topology<T>::dimensions);
 
     /**
      * Default constructor.
      * \param aStart The minimum bound of the line-segment.
      * \param aEnd The maximum bound of the line-segment.
      */
-    explicit line_segment_topology(point_type aStart = point_type(0.0), point_type aEnd = point_type(1.0)) 
-      : start_pt(aStart), end_pt(aEnd) { };
+    explicit line_segment_topology(const std::string& aName = "line_segment_topology", 
+				   point_type aStart = point_type(0.0), 
+				   point_type aEnd = point_type(1.0)) 
+      : line_topology<T>(aName), start_pt(aStart), end_pt(aEnd) { };
    
     /**
      * Generates a random point in the space, uniformly distributed.
@@ -269,7 +271,7 @@ class line_segment_topology : public line_topology<T>
         & RK_SERIAL_LOAD_WITH_NAME(end_pt);
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400006,1,"line_segment_topology",line_topology<T>)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400006,1,"line_segment_topology",line_topology<T>)
 };
 
 

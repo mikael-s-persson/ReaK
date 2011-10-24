@@ -56,19 +56,19 @@ namespace pp {
 template <typename SpatialPath>
 struct spatial_path_traits {
   /** This type describes a point in the space or topology. */
-  typedef SpatialPath::point_type point_type;
+  typedef typename SpatialPath::point_type point_type;
   /** This type describes the difference between two points in the space or topology. */
-  typedef SpatialPath::point_difference_type point_difference_type;
+  typedef typename SpatialPath::point_difference_type point_difference_type;
   
   /** This type describes waypoints used by the path to quickly access local parameters of the path. */
-  typedef SpatialPath::waypoint_descriptor waypoint_descriptor;
+  typedef typename SpatialPath::waypoint_descriptor waypoint_descriptor;
   /** This type describes const-waypoints used by the path to quickly access local parameters of the path. */
-  typedef SpatialPath::const_waypoint_descriptor const_waypoint_descriptor;
+  typedef typename SpatialPath::const_waypoint_descriptor const_waypoint_descriptor;
   
   /** This type is the topology type in which the path exists. */
-  typedef SpatialPath::topology topology;
+  typedef typename SpatialPath::topology topology;
   /** This type is the distance metric type used on the topology and defining the travel distances along the path. */
-  typedef SpatialPath::distance_metric distance_metric;
+  typedef typename SpatialPath::distance_metric distance_metric;
   
   /** This constant defines the dimensions of the topology (0 if unknown at compile-time). */
   BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology::point_type::dimensions);
@@ -108,8 +108,8 @@ struct SpatialPathConcept {
   BOOST_CONCEPT_ASSERT((DistanceMetricConcept< typename spatial_path_traits<SpatialPath>::distance_metric, Topology >));
   
   SpatialPath p;
-  Topology::point_type pt;
-  std::pair< typename spatial_path_traits<SpatialPath>::const_waypoint_descriptor, Topology::point_type> w_p;
+  typename metric_topology_traits<Topology>::point_type pt;
+  std::pair< typename spatial_path_traits<SpatialPath>::const_waypoint_descriptor, typename metric_topology_traits<Topology>::point_type> w_p;
   double d;
   BOOST_CONCEPT_USAGE(SpatialPathConcept)
   {
@@ -128,6 +128,7 @@ struct SpatialPathConcept {
 struct invalid_path : public std::exception {
   std::string message;
   invalid_path(const std::string& aSender) : message(std::string("Invalid path reported! Originating from ") + aSender) { };
+  virtual ~invalid_path() throw();
   const char* what() const throw() {
     return message.c_str();
   };

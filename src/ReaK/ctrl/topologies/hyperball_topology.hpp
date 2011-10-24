@@ -59,7 +59,7 @@ namespace pp {
  * \tparam Vector The vector-type for the topology, should model an Arithmetic concept and WritableVectorConcept.
  * \tparam PDMatrix The matrix-type for the hyper-ellipsoid, should model the ReadableMatrixConcept.
  */
-template <typename Vector, typename PDMatrix = mat< vect_traits<Vector>::value_type, mat_structure::identity > >
+template <typename Vector, typename PDMatrix = mat< typename vect_traits<Vector>::value_type, mat_structure::identity > >
 class hyperball_topology : public vector_topology<Vector>
 {
   public:
@@ -76,17 +76,20 @@ class hyperball_topology : public vector_topology<Vector>
     point_type center_point;
     double radius_value;
     pd_matrix_type scaling_mat;
+    double radial_dim_correction;
     
   public:
     
     hyperball_topology(const std::string& aName = "hyperball_topology",
                        const point_type& aOrigin = point_type(),
 		       double aRadius = 1.0,
-		       const pd_matrix_type& aScaling = pd_matrix_type() ) : 
+		       const pd_matrix_type& aScaling = pd_matrix_type(),
+		       double aRadialDimCorrection = double(dimensions) ) : 
 		       vector_topology<Vector>(aName),
 		       center_point(aOrigin),
 		       radius_value(aRadius),
-		       scaling_mat(aScaling) { };
+		       scaling_mat(aScaling),
+		       radial_dim_correction(aRadialDimCorrection) { };
 		       
 		       
     /**
@@ -119,8 +122,8 @@ class hyperball_topology : public vector_topology<Vector>
         dp[i] = var_rnd();
       
       using std::sqrt;
-      double factor = boost::uniform_01<pp::global_rng_type&,double>(pp::get_global_rng())() * radius_value / sqrt(dp * dp);
-    
+      double factor = std::pow(boost::uniform_01<pp::global_rng_type&,double>(pp::get_global_rng())(),1.0 / radial_dim_correction) * radius_value / sqrt(dp * dp);
+      
       return this->adjust(center_point,(L * (factor * dp)));
     };
 
@@ -171,17 +174,19 @@ class hyperball_topology : public vector_topology<Vector>
       ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(center_point)
         & RK_SERIAL_SAVE_WITH_NAME(radius_value)
-        & RK_SERIAL_SAVE_WITH_NAME(scaling_mat);
+        & RK_SERIAL_SAVE_WITH_NAME(scaling_mat)
+        & RK_SERIAL_SAVE_WITH_NAME(radial_dim_correction);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(center_point)
         & RK_SERIAL_LOAD_WITH_NAME(radius_value)
-        & RK_SERIAL_LOAD_WITH_NAME(scaling_mat);
+        & RK_SERIAL_LOAD_WITH_NAME(scaling_mat)
+        & RK_SERIAL_LOAD_WITH_NAME(radial_dim_correction);
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400008,1,"hyperball_topology",vector_topology<Vector>)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400008,1,"hyperball_topology",vector_topology<Vector>)
     
 };
 

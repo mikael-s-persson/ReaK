@@ -87,7 +87,7 @@ namespace detail {
 #else
     using boost::tuples::get;
 #endif
-    get<1>(result) = space.lift_to_space<1>(dp1p0, t_factor, t_space);
+    get<1>(result) = space.template lift_to_space<1>(dp1p0, t_factor, t_space);
   };
   
   template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
@@ -106,15 +106,15 @@ namespace detail {
     using boost::tuples::get;
 #endif
     
-    typedef typename derived_N_order_space<DiffSpace,0,TimeSpace>::type Space0;
+    typedef typename derived_N_order_space<DiffSpace,TimeSpace,0>::type Space0;
     
     typedef typename metric_topology_traits<Space0>::point_type PointType0;
     
     typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
     
-    PointDiff0 dp1p0 = space.get_space<0>(t_space).difference( get<0>(b), get<0>(a) );
+    PointDiff0 dp1p0 = space.template get_space<0>(t_space).difference( get<0>(b), get<0>(a) );
     
-    get<0>(result) = space.get_space<0>(t_space).adjust(get<0>(a), t_normal * dp1p0);
+    get<0>(result) = space.template get_space<0>(t_space).adjust(get<0>(a), t_normal * dp1p0);
     
     linear_interpolate_HOT_impl< Idx, PointType, PointDiff0, DiffSpace, TimeSpace >(result, dp1p0, space, t_space, t_factor, t_normal);
     
@@ -135,9 +135,9 @@ namespace detail {
 #else
     using boost::tuples::get;
 #endif
-    linear_interpolate_impl< boost::mpl::prior<Idx>, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
+    linear_interpolate_impl< typename boost::mpl::prior<Idx>::type, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
     
-    get< Idx::type::value >(result) = space.get_space< Idx::type::value >(t_space).origin();
+    get< Idx::type::value >(result) = space.template get_space< Idx::type::value >(t_space).origin();
   };
   
 };
@@ -159,6 +159,8 @@ template <typename PointType, typename Topology>
 PointType linear_interpolate(const PointType& a, const PointType& b, double t, const Topology& space) {
   BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
   BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<Topology>::space_topology, 0, typename temporal_topology_traits<Topology>::time_topology >));
+  typedef typename temporal_topology_traits<Topology>::space_topology SpaceType;
+  
   double t_factor = b.time - a.time;
   if(std::fabs(t_factor) < std::numeric_limits<double>::epsilon())
     throw singularity_error("Normalizing factor in cubic Hermite spline is zero!");
@@ -212,7 +214,11 @@ class linear_interp : public interpolated_trajectory<Topology,linear_interpolato
     BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<Topology>::space_topology, 1, typename temporal_topology_traits<Topology>::time_topology >));
     
     typedef linear_interp<Topology,DistanceMetric> self;
-    typedef interpolated_trajectory<Topology,cubic_hermite_interpolator,DistanceMetric> base_class_type;
+    typedef interpolated_trajectory<Topology,linear_interpolator,DistanceMetric> base_class_type;
+    
+    typedef typename base_class_type::point_type point_type;
+    typedef typename base_class_type::topology topology;
+    typedef typename base_class_type::distance_metric distance_metric;
     
   public:
     /**
@@ -244,7 +250,7 @@ class linear_interp : public interpolated_trajectory<Topology,linear_interpolato
      */
     template <typename ForwardIter>
     linear_interp(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
-                  base_class_type(aBegin, aEnd, aSpace, aDist) { };
+                  base_class_type(aBegin, aEnd, aSpace, aDist, linear_interpolator()) { };
     
 };
 

@@ -52,7 +52,7 @@ namespace detail {
   
   template <std::size_t Size, typename SpaceTuple>
   struct point_type_tuple_impl { 
-    BOOST_STATIC_ASSERT(false);
+    //BOOST_STATIC_ASSERT(false);
   };
   
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -174,7 +174,7 @@ namespace detail {
   
   template <std::size_t Size, typename SpaceTuple>
   struct point_difference_type_tuple_impl { 
-    BOOST_STATIC_ASSERT(false);
+    //BOOST_STATIC_ASSERT(false);
   };
   
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -463,7 +463,7 @@ class metric_space_tuple : public serialization::serializable {
      */
     point_type random_point() const {
       point_type result;
-      detail::metric_space_tuple_impl<differential_order, SpaceTuple>::random_point(m_spaces,result);
+      detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::random_point(m_spaces,result);
       return result;
     };
     
@@ -472,7 +472,7 @@ class metric_space_tuple : public serialization::serializable {
      */
     point_difference_type difference(const point_type& p1, const point_type& p2) const {
       point_difference_type result;
-      detail::metric_space_tuple_impl<differential_order, SpaceTuple>::difference(m_spaces,result,p1,p2);
+      detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::difference(m_spaces,result,p1,p2);
       return result;
     };
     
@@ -481,7 +481,7 @@ class metric_space_tuple : public serialization::serializable {
      */
     point_type move_position_toward(const point_type& p1, double d, const point_type& p2) const {
       point_type result;
-      detail::metric_space_tuple_impl<differential_order, SpaceTuple>::move_position_toward(m_spaces,result,p1,d,p2);
+      detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::move_position_toward(m_spaces,result,p1,d,p2);
       return result;
     };
     
@@ -490,7 +490,7 @@ class metric_space_tuple : public serialization::serializable {
      */
     point_type origin() const {
       point_type result;
-      detail::metric_space_tuple_impl<differential_order, SpaceTuple>::origin(m_spaces,result);
+      detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::origin(m_spaces,result);
       return result;
     };
     
@@ -499,7 +499,7 @@ class metric_space_tuple : public serialization::serializable {
      */
     point_type adjust(const point_type& p1, const point_difference_type& dp) const {
       point_type result;
-      detail::metric_space_tuple_impl<differential_order, SpaceTuple>::adjust(m_spaces,result,p1,dp);
+      detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::adjust(m_spaces,result,p1,dp);
       return result;
     };
     
@@ -567,7 +567,7 @@ class metric_space_tuple : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(m_dist);
     };
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240000A,1,"metric_space_tuple",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240000A,1,"metric_space_tuple",serialization::serializable)
 
 };
 
@@ -584,49 +584,49 @@ namespace std {
   
 /* Specialization, see general template docs. */
   template <typename SpaceTuple, typename TupleDistanceMetric>
-  class tuple_size< ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
+  class tuple_size< ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
     public tuple_size< SpaceTuple > { };
     
 /* Specialization, see general template docs. */
   template <typename SpaceTuple, typename TupleDistanceMetric>
-  class tuple_size< const ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
+  class tuple_size< const ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
     public tuple_size< const SpaceTuple > { };
     
 /* Specialization, see general template docs. */
   template <typename SpaceTuple, typename TupleDistanceMetric>
-  class tuple_size< volatile ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
+  class tuple_size< volatile ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
     public tuple_size< volatile SpaceTuple > { };
     
 /* Specialization, see general template docs. */
   template <typename SpaceTuple, typename TupleDistanceMetric>
-  class tuple_size< const volatile ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
+  class tuple_size< const volatile ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
     public tuple_size< const volatile SpaceTuple > { };
   
   
 /* Specialization, see general template docs. */
   template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  class tuple_element< Idx, ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  class tuple_element< Idx, ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
     public:
       typedef typename tuple_element< Idx, SpaceTuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  class tuple_element< Idx, const ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  class tuple_element< Idx, const ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
     public:
       typedef typename tuple_element< Idx, const SpaceTuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  class tuple_element< Idx, volatile ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  class tuple_element< Idx, volatile ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
     public:
       typedef typename tuple_element< Idx, volatile SpaceTuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  class tuple_element< Idx, const volatile ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  class tuple_element< Idx, const volatile ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
     public:
       typedef typename tuple_element< Idx, const volatile SpaceTuple >::type type;
   };
@@ -641,48 +641,48 @@ namespace tuples {
   
 /* Specialization, see general template docs. */
   template <typename SpaceTuple, typename TupleDistanceMetric>
-  struct length< ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
+  struct length< ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
     ReaK::arithmetic_tuple_size< SpaceTuple > { };
     
 /* Specialization, see general template docs. */
   template <typename SpaceTuple, typename TupleDistanceMetric>
-  struct length< const ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
+  struct length< const ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
     ReaK::arithmetic_tuple_size< SpaceTuple > { };
     
 /* Specialization, see general template docs. */
   template <typename SpaceTuple, typename TupleDistanceMetric>
-  class length< volatile ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
+  class length< volatile ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
     ReaK::arithmetic_tuple_size< SpaceTuple > { };
     
 /* Specialization, see general template docs. */
   template <typename SpaceTuple, typename TupleDistanceMetric>
-  class length< const volatile ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
+  class length< const volatile ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
     ReaK::arithmetic_tuple_size< SpaceTuple > { };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  class element< Idx, ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  class element< Idx, ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
     public:
       typedef typename element< Idx, SpaceTuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  class element< Idx, const ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  class element< Idx, const ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
     public:
       typedef typename element< Idx, const SpaceTuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  class element< Idx, volatile ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  class element< Idx, volatile ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
     public:
       typedef typename element< Idx, volatile SpaceTuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  class element< Idx, const volatile ReaK::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  class element< Idx, const volatile ReaK::pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
     public:
       typedef typename element< Idx, const volatile SpaceTuple >::type type;
   };
@@ -699,34 +699,34 @@ namespace ReaK {
   
 /* Specialization, see general template docs. */
   template <typename SpaceTuple, typename TupleDistanceMetric>
-  struct arithmetic_tuple_size< metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
+  struct arithmetic_tuple_size< pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
     arithmetic_tuple_size< SpaceTuple > { };
   
   
 /* Specialization, see general template docs. */
   template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  class arithmetic_tuple_element< Idx, metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  class arithmetic_tuple_element< Idx, pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
     public:
       typedef typename arithmetic_tuple_element< Idx, SpaceTuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  class arithmetic_tuple_element< Idx, const metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  class arithmetic_tuple_element< Idx, const pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
     public:
       typedef typename arithmetic_tuple_element< Idx, const SpaceTuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  class arithmetic_tuple_element< Idx, volatile metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  class arithmetic_tuple_element< Idx, volatile pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
     public:
       typedef typename arithmetic_tuple_element< Idx, volatile SpaceTuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  class arithmetic_tuple_element< Idx, const volatile metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  class arithmetic_tuple_element< Idx, const volatile pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
     public:
       typedef typename arithmetic_tuple_element< Idx, const volatile SpaceTuple >::type type;
   };

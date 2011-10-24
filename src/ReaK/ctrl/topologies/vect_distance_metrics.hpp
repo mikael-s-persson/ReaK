@@ -94,7 +94,7 @@ struct manhattan_distance_metric : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_CONCRETE_1BASE(manhattan_distance_metric,0xC2410001,1,"manhattan_distance_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(manhattan_distance_metric,0xC2410001,1,"manhattan_distance_metric",serialization::serializable)
 };
 
 
@@ -149,7 +149,7 @@ struct euclidean_distance_metric : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_CONCRETE_1BASE(euclidean_distance_metric,0xC2410002,1,"euclidean_distance_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(euclidean_distance_metric,0xC2410002,1,"euclidean_distance_metric",serialization::serializable)
 };
 
 
@@ -206,7 +206,7 @@ struct inf_norm_distance_metric : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_CONCRETE_1BASE(inf_norm_distance_metric,0xC2410003,1,"inf_norm_distance_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(inf_norm_distance_metric,0xC2410003,1,"inf_norm_distance_metric",serialization::serializable)
 };
 
 
@@ -267,7 +267,7 @@ struct p_norm_distance_metric : public serialization::serializable {
     A & RK_SERIAL_LOAD_WITH_NAME(p_value);
   };
 
-  RK_RTTI_MAKE_CONCRETE_1BASE(p_norm_distance_metric,0xC2410004,1,"p_norm_distance_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(p_norm_distance_metric,0xC2410004,1,"p_norm_distance_metric",serialization::serializable)
 };
 
 

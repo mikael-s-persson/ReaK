@@ -36,6 +36,8 @@
 
 #include "topologies/temporal_space.hpp"
 
+#include "topologies/basic_distance_metrics.hpp"
+
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 #include <cmath>
@@ -58,7 +60,7 @@ template <typename Topology, typename DistanceMetric = default_distance_metric>
 class waypoint_container_base {
   public:
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric>));
+    BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,Topology>));
     
     typedef waypoint_container_base<Topology,DistanceMetric> self;
     typedef Topology topology;
@@ -184,7 +186,7 @@ class waypoint_container_base {
 template <typename SpaceTopology, typename TimeTopology, typename DistanceMetric, typename DistanceMetricBase>
 class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, DistanceMetric>, DistanceMetricBase > {
   public:
-    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((MetricSpaceConcept< temporal_space<SpaceTopology, TimeTopology, DistanceMetric> >));
     
     typedef waypoint_container_base<temporal_space<SpaceTopology, TimeTopology, DistanceMetric>,DistanceMetricBase> self;
     typedef temporal_space<SpaceTopology, TimeTopology, DistanceMetric> topology;
@@ -193,7 +195,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
     typedef typename metric_topology_traits< temporal_space<SpaceTopology, TimeTopology, DistanceMetric> >::point_difference_type point_difference_type;
     
     struct waypoint_time_ordering {
-      bool operator()(const point_type& p1, const point_type& p2) {
+      bool operator()(const point_type& p1, const point_type& p2) const {
 	return p1.time < p2.time;
       };
     };
@@ -304,6 +306,13 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
     
     typedef waypoint_container<Topology,DistanceMetric> self;
     typedef waypoint_container_base<Topology,DistanceMetric> base_class_type;
+    
+    typedef typename base_class_type::container_type container_type;
+    typedef typename base_class_type::topology topology;
+    typedef typename base_class_type::distance_metric distance_metric;
+    typedef typename base_class_type::point_type point_type;
+    typedef typename base_class_type::const_waypoint_descriptor const_waypoint_descriptor;
+    typedef typename base_class_type::waypoint_descriptor waypoint_descriptor;
     
     typedef typename container_type::size_type size_type;
     typedef typename container_type::value_type value_type;
@@ -436,13 +445,13 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
     };
     
     void erase( waypoint_descriptor position) {
-      if((position == waypoints.begin()) && (waypoints.size == 1))
+      if((position == this->waypoints.begin()) && (this->waypoints.size == 1))
 	throw invalid_path("Cannot empty the list of waypoints!");
       this->waypoints.erase(position);
     };
     
     void erase( waypoint_descriptor first, waypoint_descriptor last) {
-      if((first == waypoints.begin()) && (last == waypoints.end()))
+      if((first == this->waypoints.begin()) && (last == this->waypoints.end()))
 	throw invalid_path("Cannot empty the list of waypoints!");
       this->waypoints.erase(first, last);
     };

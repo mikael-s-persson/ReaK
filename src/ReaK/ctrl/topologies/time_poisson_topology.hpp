@@ -66,8 +66,8 @@ class time_poisson_topology : public time_topology
     double mean_discrete_time; 
     
     explicit time_poisson_topology(const std::string& aName = "time_poisson_topology",
-                                   double aTimeStep,
-				   double aMeanDiscreteTime) : 
+                                   double aTimeStep = 1.0,
+				   double aMeanDiscreteTime = 1.0) : 
 				   time_topology(aName),
 				   time_step(aTimeStep),
 				   mean_discrete_time(aMeanDiscreteTime) { };
@@ -77,8 +77,10 @@ class time_poisson_topology : public time_topology
      * \note This function actually returns the origin of the space.
      */
     point_type random_point() const {
-      boost::variate_generator< global_rng_type, boost::poisson_distribution< double > > var_gen(get_global_rng(),boost::poisson_distribution< double >(mean_discrete_time));
-      return time_step * std::floor(var_gen());
+      boost::variate_generator< global_rng_type&, boost::lognormal_distribution< double > > var_gen(get_global_rng(),boost::lognormal_distribution< double >(2.0, 1.0));
+      //boost::variate_generator< global_rng_type&, boost::lognormal_distribution< double > > var_gen(get_global_rng(),boost::lognormal_distribution< double >(std::log(mean_discrete_time) + 1.0, 1.0));
+      //boost::variate_generator< global_rng_type&, boost::poisson_distribution< int, double > > var_gen(get_global_rng(),boost::poisson_distribution< int, double >(mean_discrete_time));
+      return time_step * int(0.5 * mean_discrete_time * point_type(var_gen()));
     };
     
 /*******************************************************************************
@@ -97,7 +99,7 @@ class time_poisson_topology : public time_topology
         & RK_SERIAL_LOAD_WITH_NAME(mean_discrete_time);
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(time_poisson_topology,0xC240000B,1,"time_poisson_topology",time_topology)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(time_poisson_topology,0xC240000B,1,"time_poisson_topology",time_topology)
 
 };
 

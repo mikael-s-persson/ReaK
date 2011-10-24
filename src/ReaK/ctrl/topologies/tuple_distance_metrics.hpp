@@ -75,7 +75,7 @@ namespace detail {
   };
   
   template <typename SpaceTuple> 
-  class manhattan_tuple_distance_impl<0,SpaceTuple> {
+  struct manhattan_tuple_distance_impl<0,SpaceTuple> {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -130,7 +130,7 @@ namespace detail {
   };
   
   template <typename SpaceTuple> 
-  class euclidean_tuple_distance_impl<0,SpaceTuple> {
+  struct euclidean_tuple_distance_impl<0,SpaceTuple> {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -187,7 +187,7 @@ namespace detail {
   };
   
   template <typename SpaceTuple> 
-  class p_norm_tuple_distance_impl<0,SpaceTuple> {
+  struct p_norm_tuple_distance_impl<0,SpaceTuple> {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2, int p_value) {
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -250,7 +250,7 @@ namespace detail {
   };
   
   template <typename SpaceTuple> 
-  class inf_norm_tuple_distance_impl<0,SpaceTuple> {
+  struct inf_norm_tuple_distance_impl<0,SpaceTuple> {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -325,7 +325,7 @@ struct manhattan_tuple_distance : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_CONCRETE_1BASE(manhattan_tuple_distance,0xC2410005,1,"manhattan_tuple_distance",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(manhattan_tuple_distance,0xC2410005,1,"manhattan_tuple_distance",serialization::serializable)
 };
 
 
@@ -376,7 +376,7 @@ struct euclidean_tuple_distance : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_CONCRETE_1BASE(euclidean_tuple_distance,0xC2410006,1,"euclidean_tuple_distance",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(euclidean_tuple_distance,0xC2410006,1,"euclidean_tuple_distance",serialization::serializable)
 };
 
 
@@ -399,8 +399,7 @@ struct inf_norm_tuple_distance : public serialization::serializable {
    * \return The norm of the difference between two points on a topology-tuple.
    */
   template <typename PointDiff, typename Topology>
-  typename boost::enable_if< ReaK::is_readable_vector<PointDiff>,
-  double >::type operator()(const PointDiff& a, const Topology& s) const {
+  double operator()(const PointDiff& a, const Topology& s) const {
     return detail::inf_norm_tuple_distance_impl< arithmetic_tuple_size<Topology>::type::value - 1, Topology >::norm(s,a);
   };
   
@@ -426,7 +425,7 @@ struct inf_norm_tuple_distance : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_CONCRETE_1BASE(inf_norm_tuple_distance,0xC2410007,1,"inf_norm_tuple_distance",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(inf_norm_tuple_distance,0xC2410007,1,"inf_norm_tuple_distance",serialization::serializable)
 };
 
 
@@ -451,8 +450,7 @@ struct p_norm_tuple_distance : public serialization::serializable {
    * \return The norm of the difference between two points  on a topology-tuple.
    */
   template <typename PointDiff, typename Topology>
-  typename boost::enable_if< ReaK::is_readable_vector<PointDiff>,
-  double >::type operator()(const PointDiff& a, const Topology& s) const {
+  double operator()(const PointDiff& a, const Topology& s) const {
     using std::pow;
     return pow(detail::euclidean_tuple_distance_impl< arithmetic_tuple_size<Topology>::type::value - 1, Topology >::norm(s,a,p_value), 1.0 / p_value);
   };
@@ -484,7 +482,7 @@ struct p_norm_tuple_distance : public serialization::serializable {
     A & RK_SERIAL_LOAD_WITH_NAME(p_value);
   };
 
-  RK_RTTI_MAKE_CONCRETE_1BASE(p_norm_tuple_distance,0xC2410008,1,"p_norm_tuple_distance",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(p_norm_tuple_distance,0xC2410008,1,"p_norm_tuple_distance",serialization::serializable)
 };
 
 

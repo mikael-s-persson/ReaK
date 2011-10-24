@@ -43,6 +43,7 @@
 
 #else
 
+#include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
 
 #endif

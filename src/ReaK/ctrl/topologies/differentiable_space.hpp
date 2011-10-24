@@ -101,7 +101,7 @@ struct default_differentiation_rule : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_CONCRETE_1BASE(default_differentiation_rule,0xC2420000,1,"default_differentiation_rule",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(default_differentiation_rule,0xC2420000,1,"default_differentiation_rule",serialization::serializable)
 };
 
 /**
@@ -110,7 +110,7 @@ struct default_differentiation_rule : public serialization::serializable {
  */
 template <std::size_t Order>
 struct default_differentiation_rule_tuple {
-  BOOST_STATIC_ASSERT(false);
+  //BOOST_STATIC_ASSERT(false);
 };
 
 template <>
@@ -241,6 +241,9 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
     typedef differentiable_space< IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRuleTuple > self;
     typedef metric_space_tuple<SpaceTuple,TupleDistanceMetric> base_type;
     
+    typedef typename base_type::point_type point_type;
+    typedef typename base_type::point_difference_type point_difference_type;
+    
     /**
      * This nested class template is a meta-function to obtain the type of the space of a given 
      * differential order.
@@ -341,7 +344,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
     typename arithmetic_tuple_element<Idx, point_type>::type 
       lift_to_space(const typename arithmetic_tuple_element<Idx-1, point_difference_type>::type& dp,
 		    const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
-		    const IndependentSpace& t_space) {
+		    const IndependentSpace& t_space) const {
       typename arithmetic_tuple_element<Idx, point_type>::type result;
 #ifdef RK_ENABLE_CXX0X_FEATURES
       using std::get;
@@ -364,7 +367,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
     typename arithmetic_tuple_element<Idx, point_difference_type>::type 
       descend_to_space(const typename arithmetic_tuple_element<Idx+1, point_type>::type& v,
 		       const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
-		       const IndependentSpace& t_space) {
+		       const IndependentSpace& t_space) const {
       typename arithmetic_tuple_element<Idx, point_difference_type>::type result;
 #ifdef RK_ENABLE_CXX0X_FEATURES
       using std::get;
@@ -389,7 +392,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
       A & RK_SERIAL_LOAD_WITH_NAME(m_diff_rules);
     };
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400003,1,"differentiable_space",base_type)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400003,1,"differentiable_space",base_type)
 
 };
 

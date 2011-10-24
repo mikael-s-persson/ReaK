@@ -35,6 +35,8 @@
 #ifndef REAK_DIFFERENTIABLE_SPACE_CONCEPT_HPP
 #define REAK_DIFFERENTIABLE_SPACE_CONCEPT_HPP
 
+#include "base/defs.hpp"
+
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
@@ -86,8 +88,8 @@ struct DifferentiableSpaceConcept : DifferentiableSpaceConcept<DifferentiableSpa
   
   BOOST_STATIC_ASSERT(differentiable_space_traits<DifferentiableSpace>::order >= Order);
   
-  typedef typename derived_N_order_space<DifferentiableSpace,Order-1,IndependentTopology>::type base_space_type;
-  typedef typename derived_N_order_space<DifferentiableSpace,Order,IndependentTopology>::type derived_space_type;
+  typedef typename derived_N_order_space<DifferentiableSpace,IndependentTopology,Order-1>::type base_space_type;
+  typedef typename derived_N_order_space<DifferentiableSpace,IndependentTopology,Order>::type derived_space_type;
   
   BOOST_CONCEPT_ASSERT((MetricSpaceConcept< derived_space_type >));
   
@@ -99,9 +101,9 @@ struct DifferentiableSpaceConcept : DifferentiableSpaceConcept<DifferentiableSpa
   
   BOOST_CONCEPT_USAGE(DifferentiableSpaceConcept) 
   {
-    const derived_space_type& space = this->diff_space.get_space<Order>(this->t_space);
-    v = this->diff_space.lift_to_space<Order>(dp,dt,this->t_space);
-    dp = this->diff_space.descend_to_space<Order-1>(v,dt,this->t_space);
+    const derived_space_type& space = this->diff_space.template get_space<Order>(this->t_space); RK_UNUSED(space);
+    v = this->diff_space.template lift_to_space<Order>(dp,dt,this->t_space);
+    dp = this->diff_space.template descend_to_space<Order-1>(v,dt,this->t_space);
   };
   
 };
@@ -109,7 +111,7 @@ struct DifferentiableSpaceConcept : DifferentiableSpaceConcept<DifferentiableSpa
 template <typename DifferentiableSpace, typename IndependentTopology>
 struct DifferentiableSpaceConcept<DifferentiableSpace, 0, IndependentTopology> {
   
-  typedef typename derived_N_order_space<DifferentiableSpace,0>::type base_space_type;
+  typedef typename derived_N_order_space<DifferentiableSpace,IndependentTopology,0>::type base_space_type;
   
   BOOST_CONCEPT_ASSERT((MetricSpaceConcept< base_space_type >));
   BOOST_CONCEPT_ASSERT((MetricSpaceConcept< IndependentTopology >));
@@ -119,7 +121,7 @@ struct DifferentiableSpaceConcept<DifferentiableSpace, 0, IndependentTopology> {
   
   BOOST_CONCEPT_USAGE(DifferentiableSpaceConcept) 
   { 
-    const base_space_type& space = this->diff_space.get_space<0>(this->t_space);
+    const base_space_type& space = this->diff_space.template get_space<0>(this->t_space); RK_UNUSED(space);
   };
 };
 

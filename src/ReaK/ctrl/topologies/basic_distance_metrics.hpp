@@ -86,7 +86,7 @@ struct default_distance_metric : public serialization::serializable {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(default_distance_metric,0xC2410000,1,"default_distance_metric",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(default_distance_metric,0xC2410000,1,"default_distance_metric",serialization::serializable)
 };
 
 

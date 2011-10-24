@@ -175,7 +175,7 @@ namespace detail {
 #else
     using boost::tuples::get;
 #endif
-    cubic_hermite_interpolate_impl< boost::mpl::prior<Idx>, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
+    cubic_hermite_interpolate_impl< typename boost::mpl::prior<Idx>::type, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
     
     get< Idx::type::value >(result) = space.get_space< Idx::type::value >(t_space).origin();
   };
