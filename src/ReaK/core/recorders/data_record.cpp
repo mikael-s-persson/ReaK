@@ -37,11 +37,7 @@ void data_recorder::record_process::operator()() {
   boost::posix_time::ptime last_time = boost::posix_time::microsec_clock::local_time();
   while(parent.colCount != 0) {
     {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      std::unique_lock< std::mutex > lock_here(parent.access_mutex);
-#else
       boost::unique_lock< boost::mutex > lock_here(parent.access_mutex);
-#endif
       if((parent.rowCount > parent.maxBufferSize) || (currentIter % iterStep == 0))
 	parent.writeRow();
     };
@@ -54,29 +50,17 @@ void data_recorder::record_process::operator()() {
       currentIter = 0;
     };
     ++currentIter;
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    std::this_thread::yield();
-#else
     boost::this_thread::yield();
-#endif
   };
 };
 
 
 data_recorder::~data_recorder() {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-  std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
   boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
   colCount = 0;
   if((writing_thread) && (writing_thread->joinable())) {
     lock_here.unlock();
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    if(writing_thread->get_id() != std::this_thread::get_id())
-#else
     if(writing_thread->get_id() != boost::this_thread::get_id())
-#endif
       writing_thread->join();
     lock_here.lock();
     writing_thread.reset();
@@ -85,11 +69,7 @@ data_recorder::~data_recorder() {
 
 
 data_recorder& data_recorder::operator <<(double value) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-  std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
   boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
   if(colCount != 0) {
     if(currentColumn < colCount) {
       values_rm.push(value);
@@ -101,11 +81,7 @@ data_recorder& data_recorder::operator <<(double value) {
 };
 
 data_recorder& data_recorder::operator <<(const std::string& name) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-  std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
   boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
   if(colCount == 0) {
     names.push_back(name);
   };
@@ -113,11 +89,7 @@ data_recorder& data_recorder::operator <<(const std::string& name) {
 };
 
 data_recorder& data_recorder::operator <<(flag some_flag) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-  std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
   boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
   if(some_flag == end_name_row) {
     if(colCount != 0)
       throw improper_flag();
@@ -125,11 +97,7 @@ data_recorder& data_recorder::operator <<(flag some_flag) {
     writeNames();
     currentColumn = 0;
     rowCount = 0;
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    writing_thread = ReaK::shared_pointer<std::thread>::type(new std::thread(record_process(*this)));
-#else
     writing_thread = ReaK::shared_pointer<boost::thread>::type(new boost::thread(record_process(*this)));
-#endif
   } else if(some_flag == end_value_row) {
     if(colCount == 0)
       throw improper_flag();
@@ -176,11 +144,7 @@ void data_extractor::extract_process::operator()() {
   boost::posix_time::ptime last_time = boost::posix_time::microsec_clock::local_time();
   while(parent.colCount != 0) {
     {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      std::unique_lock< std::mutex > lock_here(parent.access_mutex);
-#else
       boost::unique_lock< boost::mutex > lock_here(parent.access_mutex);
-#endif
       if((parent.values_rm.size() < parent.minBufferSize * parent.colCount) || 
 	 (currentIter % iterStep == 0))
 	if(!parent.readRow())
@@ -195,29 +159,17 @@ void data_extractor::extract_process::operator()() {
       currentIter = 0;
     };
     ++currentIter;
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    std::this_thread::yield();
-#else
     boost::this_thread::yield();
-#endif
   };
 };
 
 
 data_extractor::~data_extractor() {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-  std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
   boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
   colCount = 0;
   if((reading_thread) && (reading_thread->joinable())) {
     lock_here.unlock();
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    if(reading_thread->get_id() != std::this_thread::get_id())
-#else
     if(reading_thread->get_id() != boost::this_thread::get_id())
-#endif
       reading_thread->join();
     lock_here.lock();
     reading_thread.reset();
@@ -226,11 +178,7 @@ data_extractor::~data_extractor() {
 
 
 data_extractor& data_extractor::operator >>(double& value) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-  std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
   boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
   if(colCount != 0) {
     if(currentColumn < colCount) {
       if(values_rm.empty()) {
@@ -248,11 +196,7 @@ data_extractor& data_extractor::operator >>(double& value) {
 };
 
 data_extractor& data_extractor::operator >>(std::string& name) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-  std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
   boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
   if(currentNameCol < colCount) {
     name = names[currentNameCol++];
   } else
@@ -261,11 +205,7 @@ data_extractor& data_extractor::operator >>(std::string& name) {
 };
 
 data_extractor& data_extractor::operator >>(flag some_flag) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-  std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
   boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
   if(some_flag == end_value_row) {
     if(colCount == 0)
       throw improper_flag();
@@ -300,11 +240,7 @@ void data_extractor::setFileName(const std::string& aFileName) {
   if((loadFile(aFileName)) && (readNames())) {
     fileName = aFileName;
     currentColumn = 0;
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    reading_thread = std::shared_ptr< std::thread >(new std::thread(extract_process(*this)));
-#else
-    reading_thread = boost::shared_ptr<boost::thread>(new boost::thread(extract_process(*this)));
-#endif
+    reading_thread = ReaK::shared_pointer<boost::thread>::type(new boost::thread(extract_process(*this)));
   };
 };
 

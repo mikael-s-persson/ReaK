@@ -254,8 +254,8 @@ euclidean_tuple_distance    0xC2410006   bin: 1100 0010 0100 0001 0000 0000 0000
 inf_norm_tuple_distance     0xC2410007   bin: 1100 0010 0100 0001 0000 0000 0000 0111  D-R
 p_norm_tuple_distance       0xC2410008   bin: 1100 0010 0100 0001 0000 0000 0000 1000  D-R
 
-space_only_temporal_dist    0xC2410010   bin: 1100 0010 0100 0001 0000 0000 0001 0000  
-time_only_temporal_dist     0xC2410011   bin: 1100 0010 0100 0001 0000 0000 0001 0001  
+space_only_temporal_dist    0xC2410010   bin: 1100 0010 0100 0001 0000 0000 0001 0000  D-R
+time_only_temporal_dist     0xC2410011   bin: 1100 0010 0100 0001 0000 0000 0001 0001  D-R
 
 //Differentiation Rules:    0xC242****
 default_differentiation_rule 0xC2420000  bin: 1100 0010 0100 0010 0000 0000 0000 0000  D-R

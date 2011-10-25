@@ -35,18 +35,8 @@
 
 #include "base/defs.hpp"
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
-
-#define _GLIBCXX_USE_SCHED_YIELD 1
-#define _GLIBCXX_USE_NANOSLEEP 1
-#include <thread>
-
-#else
-
 #include <boost/thread/thread.hpp>
 #include <boost/thread/mutex.hpp>
-
-#endif
 
 
 #include <string>
@@ -128,17 +118,8 @@ class data_recorder : public shared_object {
     std::vector<std::string> names; ///< Holds the list of column names.
     std::queue<double> values_rm; ///< Holds the data buffer.
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
-
-    std::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
-    ReaK::shared_pointer<std::thread>::type writing_thread; ///< Holds the instance of the data writing thread.
-
-#else
-
     boost::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
     ReaK::shared_pointer<boost::thread>::type writing_thread; ///< Holds the instance of the data writing thread.
-
-#endif
 
     /**
      * This class is used as a callable function-object for data writing thread.
@@ -218,11 +199,7 @@ class data_recorder : public shared_object {
 	& RK_SERIAL_SAVE_WITH_NAME(names);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
       boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
       colCount = 0;
       if(writing_thread) {
         lock_here.unlock();
@@ -241,11 +218,7 @@ class data_recorder : public shared_object {
       values_rm = std::queue<double>();
       lock_here.unlock();
       setFileName(fileName);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      writing_thread = ReaK::shared_pointer<std::thread>::type(new std::thread(record_process(*this)));
-#else
       writing_thread = ReaK::shared_pointer<boost::thread>::type(new boost::thread(record_process(*this)));
-#endif
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(data_recorder,0x81100001,1,"data_recorder",shared_object)
@@ -269,13 +242,8 @@ class data_extractor : public shared_object {
     std::vector<std::string> names; ///< Holds the list of column names.
     std::queue<double> values_rm; ///< Holds the data buffer.
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    std::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
-    ReaK::shared_pointer<std::thread>::type reading_thread; ///< Holds the instance of the data writing thread.
-#else
     boost::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
     ReaK::shared_pointer<boost::thread>::type reading_thread; ///< Holds the instance of the data writing thread.
-#endif
 
     /**
      * This class is used as a callable function-object for data writing thread.
@@ -358,11 +326,7 @@ class data_extractor : public shared_object {
 	& RK_SERIAL_SAVE_WITH_NAME(names);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
       boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
       colCount = 0;
       if(reading_thread) {
         lock_here.unlock();
@@ -382,11 +346,7 @@ class data_extractor : public shared_object {
       lock_here.unlock();
       setFileName(fileName);
       
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      reading_thread = ReaK::shared_pointer<std::thread>::type( new std::thread(extract_process(*this)));
-#else
       reading_thread = ReaK::shared_pointer<boost::thread>::type(new boost::thread(extract_process(*this)));
-#endif
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(data_extractor,0x81200001,1,"data_extractor",shared_object)

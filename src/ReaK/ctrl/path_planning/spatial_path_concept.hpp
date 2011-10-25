@@ -128,7 +128,7 @@ struct SpatialPathConcept {
 struct invalid_path : public std::exception {
   std::string message;
   invalid_path(const std::string& aSender) : message(std::string("Invalid path reported! Originating from ") + aSender) { };
-  virtual ~invalid_path() throw();
+  virtual ~invalid_path() throw() { };
   const char* what() const throw() {
     return message.c_str();
   };

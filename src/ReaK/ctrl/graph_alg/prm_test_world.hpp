@@ -99,10 +99,11 @@ class prm_test_world {
     typedef boost::property< boost::vertex_position_t, point_type, //for PRM
 	    boost::property< boost::vertex_rhs_t, double,       //for A*
 	    boost::property< boost::vertex_distance_t, double,  //for A*
+	    boost::property< boost::vertex_index_t, std::size_t,
 	    boost::property< boost::vertex_density_t, double,   //for PRM
 	    boost::property< boost::vertex_color_t, boost::default_color_type, //for A*
 	    boost::property< boost::vertex_predecessor_t, boost::adjacency_list_traits<boost::vecS,boost::vecS,boost::undirectedS,boost::vecS>::vertex_descriptor, //for A*
-	    boost::no_property > > > > > > WorldGridVertexProperties;
+	    boost::no_property > > > > > > > WorldGridVertexProperties;
 
     typedef boost::property< boost::edge_weight_t, double, //for A*
             boost::no_property> WorldGridEdgeProperties;
@@ -145,6 +146,7 @@ class prm_test_world {
     boost::rectangle_topology<boost::minstd_rand> m_space;
     boost::property_map<WorldGridType, boost::vertex_position_t>::type m_position;
     boost::property_map<WorldGridType, boost::vertex_distance_t>::type m_distance;
+    boost::property_map<WorldGridType, boost::vertex_index_t>::type m_index;
     boost::property_map<WorldGridType, boost::vertex_predecessor_t>::type m_pred;
     boost::property_map<WorldGridType, boost::vertex_density_t>::type m_density;
     boost::property_map<WorldGridType, boost::edge_weight_t>::type m_weight;
@@ -429,6 +431,7 @@ class prm_test_world {
                    m_space(m_rng,0, aWorldMapImage.size().height, aWorldMapImage.size().width, 0),
                    m_position(boost::get(boost::vertex_position, grid)),
                    m_distance(boost::get(boost::vertex_distance, grid)),
+                   m_index(boost::get(boost::vertex_index, grid)),
                    m_pred(boost::get(boost::vertex_predecessor, grid)),
                    m_density(boost::get(boost::vertex_density, grid)),
                    m_weight(boost::get(boost::edge_weight, grid)),
@@ -537,7 +540,7 @@ class prm_test_world {
 		     get(vertex_rhs, grid),
 		     m_distance,
 		     m_weight,
-		     double(0.0),
+		     m_index,
 		     get(vertex_color,grid),
 		     std::less<double>(), std::plus<double>(),
 		     std::numeric_limits< double >::infinity(),

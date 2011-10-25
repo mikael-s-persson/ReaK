@@ -53,11 +53,7 @@ void ssv_recorder::setFileName(const std::string& aFileName) {
   if(colCount != 0) {
     *this << close;
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
     boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
     if(output_file.is_open())
       output_file.close();
     output_file.open(aFileName.c_str());
@@ -67,11 +63,7 @@ void ssv_recorder::setFileName(const std::string& aFileName) {
       writeNames();
     };
   } else {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
     boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
     if(output_file.is_open())
       output_file.close();
     output_file.open(aFileName.c_str());
@@ -115,21 +107,13 @@ bool ssv_extractor::loadFile(const std::string& aFileName) {
   if(colCount != 0) {
     *this >> close;
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
     boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
     if(input_file.is_open())
       input_file.close();
     input_file.open(aFileName.c_str());
     fileName = aFileName;
   } else {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    std::unique_lock< std::mutex > lock_here(access_mutex);
-#else
     boost::unique_lock< boost::mutex > lock_here(access_mutex);
-#endif
     if(input_file.is_open())
       input_file.close();
     input_file.open(aFileName.c_str());

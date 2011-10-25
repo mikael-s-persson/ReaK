@@ -40,6 +40,7 @@
 
 #include "time_topology.hpp"
 #include "path_planning/temporal_space_concept.hpp"
+#include "temporal_distance_metrics.hpp"
 
 #include "base/named_object.hpp"
 
