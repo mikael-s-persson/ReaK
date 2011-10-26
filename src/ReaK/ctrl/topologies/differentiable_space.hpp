@@ -274,8 +274,8 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
 			 base_type(aSpaces,aDist), 
 			 m_diff_rules(aDiffRules) { };
     
-    using base_type::get_space;
-    
+    using base_type::get_space; 
+
     /**
      * This function returns the space at a given differential order against a given independent-space.
      * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
@@ -287,7 +287,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
 #else
       using boost::tuples::get;
 #endif
-      return get<Idx>(this->m_spaces);
+      return this->template get_space<Idx>();
     };
     
     /**
@@ -301,7 +301,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
 #else
       using boost::tuples::get;
 #endif
-      return get<Idx>(this->m_spaces);
+      return this->template get_space<Idx>();
     };
     
     /**
@@ -309,7 +309,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
      * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
      */
     template <int Idx>
-    const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_diff_rule(const IndependentSpace&) const {
+    const typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(const IndependentSpace&) const {
 #ifdef RK_ENABLE_CXX0X_FEATURES
       using std::get;
 #else
@@ -323,7 +323,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
      * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
      */
     template <int Idx>
-    typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_diff_rule(const IndependentSpace&) {
+    typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(const IndependentSpace&) {
 #ifdef RK_ENABLE_CXX0X_FEATURES
       using std::get;
 #else
@@ -337,6 +337,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
      * \tparam Idx The differential order of the destination space.
      * \param dp The point-difference in the space Idx-1.
      * \param dt The point-difference in the independent-space (e.g. time).
+     * \param space The differentiable-space.
      * \param t_space The independent-space.
      * \return The point in space Idx which is the tangential lift of the point-difference in space Idx-1.
      */
@@ -360,6 +361,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
      * \tparam Idx The differential order of the destination space.
      * \param v The point in the space Idx+1.
      * \param dt The point-difference in the independent-space (e.g. time).
+     * \param space The differentiable-space.
      * \param t_space The independent-space.
      * \return The point-difference in space Idx which is the tangential descent of the point in space Idx+1.
      */
@@ -395,6 +397,84 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400003,1,"differentiable_space",base_type)
 
 };
+
+
+
+/**
+ * This function returns the space at a given differential order against a given independent-space.
+ * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
+ */
+template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace& t) {
+  return s.template get_space<Idx>(t);
+};
+    
+/**
+ * This function returns the space at a given differential order against a given independent-space.
+ * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
+ */
+template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace& t) {
+  return s.template get_space<Idx>(t);
+};
+
+/**
+ * This function returns the differentiation functor at a given order against a given independent-space.
+ * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
+ */
+template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+const typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace& t) {
+  return s.template get_diff_rule<Idx>(t);
+};
+    
+/**
+ * This function returns the differentiation functor at a given order against a given independent-space.
+ * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
+ */
+template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace& t) {
+  return s.template get_diff_rule<Idx>(t);
+};
+    
+/**
+ * This function lifts a point-difference in space Idx-1 into a point in space Idx.
+ * \tparam Idx The differential order of the destination space.
+ * \param dp The point-difference in the space Idx-1.
+ * \param dt The point-difference in the independent-space (e.g. time).
+ * \param space The differentiable-space.
+ * \param t_space The independent-space.
+ * \return The point in space Idx which is the tangential lift of the point-difference in space Idx-1.
+ */
+template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+typename arithmetic_tuple_element<Idx, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>::point_type>::type 
+  lift_to_space(const typename arithmetic_tuple_element<Idx-1, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>::point_difference_type>::type& dp,
+		const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
+		const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& space,
+		const IndependentSpace& t_space) {
+  return space.template lift_to_space<Idx>(dp,dt,t_space);
+};
+    
+    /**
+     * This function descends a point in space Idx+1 into a point-difference in space Idx.
+     * \tparam Idx The differential order of the destination space.
+     * \param v The point in the space Idx+1.
+     * \param dt The point-difference in the independent-space (e.g. time).
+     * \param space The differentiable-space.
+     * \param t_space The independent-space.
+     * \return The point-difference in space Idx which is the tangential descent of the point in space Idx+1.
+     */
+template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+typename arithmetic_tuple_element<Idx, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>::point_difference_type>::type 
+  descend_to_space(const typename arithmetic_tuple_element<Idx+1, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>::point_type>::type& v,
+		   const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
+		   const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& space,
+		   const IndependentSpace& t_space) {
+  return space.template descend_to_space<Idx>(v,dt,t_space);
+};
+
+
+
+
 
 
 };

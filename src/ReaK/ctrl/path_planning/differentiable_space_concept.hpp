@@ -49,13 +49,24 @@ namespace ReaK {
 namespace pp {
 
 
-
+/**
+ * This traits class defines the traits that characterize a differentiable space. The only 
+ * property, currently, is the "order" constant that gives the order of differentiation possible
+ * on the given differentiable space (see DifferentiableSpaceConcept).
+ * \tparam DifferentiableSpace The differentiable space for which the traits are sought.
+ */
 template <typename DifferentiableSpace>
 struct differentiable_space_traits {
   
   BOOST_STATIC_CONSTANT(std::size_t, order = DifferentiableSpace::differential_order);
 };
 
+/**
+ * This meta-function provides the type of N-order differential space with a differentiable space bundle.
+ * \tparam DifferentiableSpace The differentiable space for which the N-order differential space is sought.
+ * \tparam IndependentTopology The independent space against which the differentiation is applied.
+ * \tparam Order The order of differentiation of the differential space type that is sought.
+ */
 template <typename DifferentiableSpace, typename IndependentTopology, unsigned int Order>
 struct derived_N_order_space {
   typedef typename DifferentiableSpace::template space<Order,IndependentTopology>::type type;
@@ -75,11 +86,11 @@ struct derived_N_order_space {
  * 
  * Valid expressions:
  * 
- * space = diff_space.get_space<0..N>(t_space);  The metric space (space) corresponding to the 0 to Nth order derivative space can be obtained given an independent space (e.g. time topology, t_space).
+ * space = get_space<0..N>(diff_space,t_space);  The metric space (space) corresponding to the 0 to Nth order derivative space can be obtained given an independent space (e.g. time topology, t_space).
  * 
- * v = diff_space.lift_to_space<1..N>(dp,dt,t_space);  A derivative-point (v) can be obtained from lifting a point-difference (dp) from the space via a difference-point on the independent space (dt). This expression is analogous to v = dp / dt.
+ * v = lift_to_space<1..N>(dp,dt,diff_space,t_space);  A derivative-point (v) can be obtained from lifting a point-difference (dp) from the space via a difference-point on the independent space (dt). This expression is analogous to v = dp / dt.
  * 
- * dp = diff_space.descend_to_space<0..N-1>(v,dt,t_space);  A point-difference (dp) can be obtained from descending a derivative-point (v) to the space via a difference-point on the independent space (dt). This expression is analogous to dp = v * dt.
+ * dp = descend_to_space<0..N-1>(v,dt,diff_space,t_space);  A point-difference (dp) can be obtained from descending a derivative-point (v) to the space via a difference-point on the independent space (dt). This expression is analogous to dp = v * dt.
  * 
  * \tparam Topology The topology type to be checked for this concept.
  */
@@ -101,9 +112,9 @@ struct DifferentiableSpaceConcept : DifferentiableSpaceConcept<DifferentiableSpa
   
   BOOST_CONCEPT_USAGE(DifferentiableSpaceConcept) 
   {
-    const derived_space_type& space = this->diff_space.template get_space<Order>(this->t_space); RK_UNUSED(space);
-    v = this->diff_space.template lift_to_space<Order>(dp,dt,this->t_space);
-    dp = this->diff_space.template descend_to_space<Order-1>(v,dt,this->t_space);
+    const derived_space_type& space = get_space<Order>(this->diff_space,this->t_space); RK_UNUSED(space);
+    v = lift_to_space<Order>(dp,dt,this->diff_space,this->t_space);
+    dp = descend_to_space<Order-1>(v,dt,this->diff_space,this->t_space);
   };
   
 };
@@ -121,7 +132,7 @@ struct DifferentiableSpaceConcept<DifferentiableSpace, 0, IndependentTopology> {
   
   BOOST_CONCEPT_USAGE(DifferentiableSpaceConcept) 
   { 
-    const base_space_type& space = this->diff_space.template get_space<0>(this->t_space); RK_UNUSED(space);
+    const base_space_type& space = get_space<0>(this->diff_space,this->t_space); RK_UNUSED(space);
   };
 };
 

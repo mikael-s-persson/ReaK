@@ -538,9 +538,13 @@ class metric_space_tuple : public serialization::serializable {
      * \tparam Idx The index of the space.
      */
     template <int Idx>
-    friend
-    const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get(const self& s) {
-      return s.get_space<Idx>();
+    const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get() const {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      using std::get;
+#else
+      using boost::tuples::get;
+#endif
+      return get<Idx>(m_spaces);
     };
     
     /**
@@ -548,9 +552,13 @@ class metric_space_tuple : public serialization::serializable {
      * \tparam Idx The index of the space.
      */
     template <int Idx>
-    friend
-    typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get(self& s) {
-      return s.get_space<Idx>();
+    typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get() {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      using std::get;
+#else
+      using boost::tuples::get;
+#endif
+      return get<Idx>(m_spaces);
     };
     
     
@@ -570,6 +578,45 @@ class metric_space_tuple : public serialization::serializable {
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240000A,1,"metric_space_tuple",serialization::serializable)
 
 };
+
+
+/**
+ * This function returns the space at a given index.
+ * \tparam Idx The index of the space.
+ */
+template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
+const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(const metric_space_tuple<SpaceTuple,TupleDistanceMetric>& s) {
+  return s.template get_space<Idx>();
+};
+    
+/**
+ * This function returns the space at a given index.
+ * \tparam Idx The index of the space.
+ */
+template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
+typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(metric_space_tuple<SpaceTuple,TupleDistanceMetric>& s) {
+  return s.template get_space<Idx>();
+};
+    
+/**
+ * This function returns the space at a given index.
+ * \tparam Idx The index of the space.
+ */
+template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
+const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get(const metric_space_tuple<SpaceTuple,TupleDistanceMetric>& s) {
+  return s.template get<Idx>();
+};
+    
+/**
+ * This function returns the space at a given index.
+ * \tparam Idx The index of the space.
+ */
+template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
+typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get(metric_space_tuple<SpaceTuple,TupleDistanceMetric>& s) {
+  return s.template get<Idx>();
+};
+    
+
 
 
 

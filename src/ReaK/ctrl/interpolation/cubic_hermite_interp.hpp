@@ -86,10 +86,10 @@ namespace detail {
 #else
     using boost::tuples::get;
 #endif
-    get<2>(result) = space.template get_space<2>(t_space).adjust( 
-      space.template lift_to_space<2>(dv1v0, t_factor, t_space),
-      (6.0 - 12.0 * t_normal) * space.template get_space<2>(t_space).difference( space.template lift_to_space<2>( d_ldp1p0_v0, t_factor, t_space), 
-									space.template lift_to_space<2>( 0.5 * dv1v0, t_factor, t_space)));
+    get<2>(result) = get_space<2>(space,t_space).adjust( 
+      lift_to_space<2>(dv1v0, t_factor, space, t_space),
+      (6.0 - 12.0 * t_normal) * get_space<2>(space,t_space).difference( lift_to_space<2>( d_ldp1p0_v0, t_factor, space, t_space), 
+									lift_to_space<2>( 0.5 * dv1v0, t_factor, space, t_space)));
   };
   
   template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
@@ -109,8 +109,8 @@ namespace detail {
 #endif
     cubic_hermite_interpolate_HOT_impl< boost::mpl::size_t<2>, PointType, PointDiff1, DiffSpace, TimeSpace >(result,dv1v0,d_ldp1p0_v0,space,t_space,t_factor,t_normal);
     
-    get<3>(result) = space.template lift_to_space<3>(-12.0 * space.template get_space<2>(t_space).difference( space.template lift_to_space<2>( d_ldp1p0_v0, t_factor, t_space), 
-											    space.template lift_to_space<2>( 0.5 * dv1v0, t_factor, t_space)),t_factor, t_space);
+    get<3>(result) = lift_to_space<3>(-12.0 * get_space<2>(space, t_space).difference( lift_to_space<2>( d_ldp1p0_v0, t_factor, space, t_space), 
+										       lift_to_space<2>( 0.5 * dv1v0, t_factor, space, t_space)),t_factor, space, t_space);
   };
   
   
@@ -140,19 +140,19 @@ namespace detail {
     typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
     typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
     
-    PointDiff0 dp1p0 = space.template get_space<0>(t_space).difference( get<0>(b), get<0>(a) );
-    PointDiff1 dv1v0 = space.template get_space<1>(t_space).difference( get<1>(b), get<1>(a) );
-    PointDiff1 d_ldp1p0_v0 = space.template get_space<1>(t_space).difference( space.template lift_to_space<1>(dp1p0, t_factor, t_space), get<1>(a));
+    PointDiff0 dp1p0 = get_space<0>(space,t_space).difference( get<0>(b), get<0>(a) );
+    PointDiff1 dv1v0 = get_space<1>(space,t_space).difference( get<1>(b), get<1>(a) );
+    PointDiff1 d_ldp1p0_v0 = get_space<1>(space,t_space).difference( lift_to_space<1>(dp1p0, t_factor, space, t_space), get<1>(a));
     
     double t2 = t_normal * t_normal;
     double t3 = t_normal * t2;
     
-    get<0>(result) = space.template get_space<0>(t_space).adjust(get<0>(a), 
+    get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(a), 
       (3.0 * t2 - 2.0 * t3) * dp1p0
-      + (t_normal - t2 * 2.0 + t3) * space.template descend_to_space<0>(get<1>(a),t_factor, t_space)
-      + (t3 - t2) * space.template descend_to_space<0>(get<1>(b),t_factor, t_space) );
+      + (t_normal - t2 * 2.0 + t3) * descend_to_space<0>(get<1>(a),t_factor, space, t_space)
+      + (t3 - t2) * descend_to_space<0>(get<1>(b), t_factor, space, t_space) );
     
-    get<1>(result) = space.template get_space<1>(t_space).adjust(get<1>(a),
+    get<1>(result) = get_space<1>(space,t_space).adjust(get<1>(a),
       ((t_normal - t2) * 6.0) * d_ldp1p0_v0
       - (2.0 * t_normal - 3.0 * t2) * dv1v0);
     
@@ -177,7 +177,7 @@ namespace detail {
 #endif
     cubic_hermite_interpolate_impl< typename boost::mpl::prior<Idx>::type, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
     
-    get< Idx::type::value >(result) = space.template get_space< Idx::type::value >(t_space).origin();
+    get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
   };
   
 };

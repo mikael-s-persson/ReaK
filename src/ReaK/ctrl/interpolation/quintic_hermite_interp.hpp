@@ -94,11 +94,11 @@ namespace detail {
 #endif
         
    // lift( 
-    get<3>(result) = space.template lift_to_space<3>(
+    get<3>(result) = lift_to_space<3>(
    //   (5 - 30 t + 30 t^2) * ( diff( lift( 6 * diff( lift( diff( p1, p0 ) ), v0 ) ), a0 ) + diff( a1, lift( 6 * diff( v1, lift( diff( p1, p0 ) ) ) ) ) ) 
       (5.0 - (30.0 - 30.0 * t_normal) * t_normal) * da_term1
    //   + (3 - 6 t) * ( diff( lift( diff( v1, v0 ) ), a0 ) - diff( a1, lift( diff( v1, v0 ) ) ) ) + diff(a1, a0)
-      + (3.0 - 6.0 * t_normal) * da_term2 + da1a0, t_factor, t_space);
+      + (3.0 - 6.0 * t_normal) * da_term2 + da1a0, t_factor, space, t_space);
 
   };
   
@@ -122,12 +122,12 @@ namespace detail {
     quintic_hermite_interpolate_HOT_impl< boost::mpl::size_t<3>, PointType, PointDiff2, DiffSpace, TimeSpace >(result,da1a0,da_term1,da_term2,space,t_space,t_factor,t_normal);
       
    // lift( diff(
-    get<4>(result) = space.template lift_to_space<4>( space.template get_space<3>(t_space).difference(
+    get<4>(result) = lift_to_space<4>( get_space<3>(space,t_space).difference(
    //   (-30 + 60 t) * (
-      space.template lift_to_space<3>((60.0 * t_normal - 30.0) * da_term1, t_factor, t_space),
+      lift_to_space<3>((60.0 * t_normal - 30.0) * da_term1, t_factor, space, t_space),
    //   , 6 * (
-      space.template lift_to_space<3>(6.0 * da_term2, t_factor, t_space)
-    ), t_factor, t_space);
+      lift_to_space<3>(6.0 * da_term2, t_factor, space, t_space)
+    ), t_factor, space, t_space);
     
   };
   
@@ -151,16 +151,16 @@ namespace detail {
     quintic_hermite_interpolate_HOT_impl< boost::mpl::size_t<4>, PointType, PointDiff2, DiffSpace, TimeSpace >(result,da1a0,da_term1,da_term2,space,t_space,t_factor,t_normal);
     
    // lift( diff(
-    get<5>(result) = space.template lift_to_space<5>( space.template get_space<4>(t_space).difference(
+    get<5>(result) = lift_to_space<5>( get_space<4>(space,t_space).difference(
    //   lift( 60 * diff(
-       space.template lift_to_space<4>( 60.0 * space.template get_space<3>(t_space).difference(   
+       lift_to_space<4>( 60.0 * get_space<3>(space,t_space).difference(   
    //     lift( diff( lift( 6 * diff( lift( diff( p1, p0 ) ), v0 ) ), a0 )
-        space.template lift_to_space<3>( da_term1, t_factor, t_space), 
+        lift_to_space<3>( da_term1, t_factor, space, t_space), 
    //     , lift( diff( lift( 6 * diff( v1, lift( diff( p1, p0 ) ) ) ), a1 ) )
-        space.template get_space<3>(t_space).origin() ), t_factor, t_space),
+        get_space<3>(space,t_space).origin() ), t_factor, space, t_space),
    //   , origin<4>
-      space.template get_space<4>(t_space).origin()
-    ), t_factor, t_space);
+      get_space<4>(space,t_space).origin()
+    ), t_factor, space, t_space);
     
   };
   
@@ -192,13 +192,13 @@ namespace detail {
     typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
     typedef typename metric_topology_traits<Space2>::point_difference_type PointDiff2;
     
-    PointDiff0 dp1p0 = space.template get_space<0>(t_space).difference( get<0>(b), get<0>(a) );
-    PointDiff1 dv1v0 = space.template get_space<1>(t_space).difference( get<1>(b), get<1>(a) );
-    PointType1 ldp1p0 = space.template lift_to_space<1>(dp1p0, t_factor, t_space);
-    PointDiff1 d_ldp1p0_v0 = space.template get_space<1>(t_space).difference( ldp1p0, get<1>(a) );
-    PointDiff1 d_v1_ldp1p0 = space.template get_space<1>(t_space).difference( get<1>(b), ldp1p0 );
-    PointDiff1 i_a0 = space.template descend_to_space<1>(get<2>(a), t_factor, t_space);
-    PointDiff1 i_a1 = space.template descend_to_space<1>(get<2>(b), t_factor, t_space);
+    PointDiff0 dp1p0 = get_space<0>(space,t_space).difference( get<0>(b), get<0>(a) );
+    PointDiff1 dv1v0 = get_space<1>(space,t_space).difference( get<1>(b), get<1>(a) );
+    PointType1 ldp1p0 = lift_to_space<1>(dp1p0, t_factor, space, t_space);
+    PointDiff1 d_ldp1p0_v0 = get_space<1>(space,t_space).difference( ldp1p0, get<1>(a) );
+    PointDiff1 d_v1_ldp1p0 = get_space<1>(space,t_space).difference( get<1>(b), ldp1p0 );
+    PointDiff1 i_a0 = descend_to_space<1>(get<2>(a), t_factor, space, t_space);
+    PointDiff1 i_a1 = descend_to_space<1>(get<2>(b), t_factor, space, t_space);
     
     double t2 = t_normal * t_normal;
     double t3 = t_normal * t2;
@@ -206,38 +206,38 @@ namespace detail {
     double t5 = t4 * t_normal;
    
    // p0 +
-    get<0>(result) = space.template get_space<0>(t_space).adjust(get<0>(a), 
+    get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(a), 
    //   (10 t^3 - 15 t^4 + 6 t^5) * (diff(p1,p0) - 0.5 (desc(v0) + desc(v1)) )
-      (10.0 * t3 - 15.0 * t4 + 6.0 * t5) * ( dp1p0 - 0.5 * ( space.template descend_to_space<0>(get<1>(a),t_factor, t_space) 
-	                                                   + space.template descend_to_space<0>(get<1>(b),t_factor, t_space) ) )
+      (10.0 * t3 - 15.0 * t4 + 6.0 * t5) * ( dp1p0 - 0.5 * ( descend_to_space<0>(get<1>(a),t_factor, space, t_space) 
+	                                                   + descend_to_space<0>(get<1>(b),t_factor, space, t_space) ) )
    //   + t desc(v0 +
-      + t_normal * space.template descend_to_space<0>( space.template get_space<1>().adjust(get<1>(a),
+      + t_normal * descend_to_space<0>( get_space<1>(space,t_space).adjust(get<1>(a),
    //           (t^2 - 0.5 t^3) diff(v1,v0) + (0.5 t - 1.5 t^2 + 1.5 t^3 - 0.5 t^4) desc(a0) + (0.5 t^2 - t^3 + 0.5 t^4) desc(a1) )
         (t2 - 0.5 * t3) * dv1v0 + (0.5 * (t_normal - 3.0 * t2 + 3.0 * t3 - t4)) * i_a0 + (0.5 * (t2 - 2.0 * t3 + t4)) * i_a1
-      ), t_factor, t_space));
+      ), t_factor, space, t_space));
     
    // v0 + 
-    get<1>(result) = space.template get_space<1>(t_space).adjust(get<1>(a),
+    get<1>(result) = get_space<1>(space,t_space).adjust(get<1>(a),
    //   (15 t^2 - 30 t^3 + 15 t^4) * ( diff( lift( diff(p1,p0) ) , v0 ) - diff( v1, lift( diff(p1,p0) ) ) )
       (15.0 * (t2 - 2.0 * t3 + t4)) * (d_ldp1p0_v0 - d_v1_ldp1p0)
    //   (3 t^2 - 2 t^3) diff(v1,v0) + (t - 4.5 t^2 + 6 t^3 - 2.5 t^4) desc(a0) + (1.5 t^2 - 4 t^3 + 2.5 t^4) desc(a1)
       + (3.0 * t2 - 2.0 * t3) * dv1v0 + (t_normal - 4.5 * t2 + 6.0 * t3 - 2.5 * t4) * i_a0 + (1.5 * t2 - 4.0 * t3 + 2.5 * t4) * i_a1 
     );
     
-    PointType2 l6d_ldp1p0_v0 = space.template lift_to_space<2>( 6.0 * d_ldp1p0_v0, t_factor, t_space);
-    PointType2 l6d_v1_ldp1p0 = space.template lift_to_space<2>( 6.0 * d_v1_ldp1p0, t_factor, t_space);
-    PointDiff2 d_l6d_ldp1p0_v0_a0 = space.template get_space<2>(t_space).difference( l6d_ldp1p0_v0, get<2>(a) );
-    PointDiff2 d_a1_l6d_v1_ldp1p0 = space.template get_space<2>(t_space).difference( get<2>(b), l6d_v1_ldp1p0 );
-    PointType2 ldv1v0 = space.template lift_to_space<2>( dv1v0, t_factor, t_space);
-    PointDiff2 d_ldv1v0_a0 = space.template get_space<2>(t_space).difference( ldv1v0, get<2>(a) );
-    PointDiff2 d_a1_ldv1v0 = space.template get_space<2>(t_space).difference( get<2>(b), ldv1v0 );
-    PointDiff2 da1a0 = space.template get_space<2>(t_space).difference( get<2>(b), get<2>(a) );
+    PointType2 l6d_ldp1p0_v0 = lift_to_space<2>( 6.0 * d_ldp1p0_v0, t_factor, space, t_space);
+    PointType2 l6d_v1_ldp1p0 = lift_to_space<2>( 6.0 * d_v1_ldp1p0, t_factor, space, t_space);
+    PointDiff2 d_l6d_ldp1p0_v0_a0 = get_space<2>(space,t_space).difference( l6d_ldp1p0_v0, get<2>(a) );
+    PointDiff2 d_a1_l6d_v1_ldp1p0 = get_space<2>(space,t_space).difference( get<2>(b), l6d_v1_ldp1p0 );
+    PointType2 ldv1v0 = lift_to_space<2>( dv1v0, t_factor, space, t_space);
+    PointDiff2 d_ldv1v0_a0 = get_space<2>(space,t_space).difference( ldv1v0, get<2>(a) );
+    PointDiff2 d_a1_ldv1v0 = get_space<2>(space,t_space).difference( get<2>(b), ldv1v0 );
+    PointDiff2 da1a0 = get_space<2>(space,t_space).difference( get<2>(b), get<2>(a) );
     
     PointDiff2 da_term1 = d_l6d_ldp1p0_v0_a0 + d_a1_l6d_v1_ldp1p0;
     PointDiff2 da_term2 = d_ldv1v0_a0 - d_a1_ldv1v0;
     
    // a0 + 
-    get<2>(result) = space.template get_space<2>(t_space).adjust( get<2>(a), 
+    get<2>(result) = get_space<2>(space,t_space).adjust( get<2>(a), 
    //   (5 t - 15 t^2 + 10 t^3) * (diff( lift( 6 * diff( lift( diff( p1, p0 ) ), v0 ) ), a0 ) + diff( a1, lift( 6 * diff( v1, lift( diff( p1, p0 ) ) ) ) ) )
       (5.0 * (t_normal - 3.0 * t2 + 2.0 * t3)) * da_term1
    //   + (3 t - 3 t^2) * ( diff( lift( diff( v1, v0 ) ), a0 ) - diff( a1, lift( diff( v1, v0 ) ) ) ) + t diff(a1, a0)
@@ -267,7 +267,7 @@ namespace detail {
 #endif
     quintic_hermite_interpolate_impl< typename boost::mpl::prior<Idx>::type, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
     
-    get< Idx::type::value >(result) = space.template get_space< Idx::type::value >(t_space).origin();
+    get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
   };
   
 };

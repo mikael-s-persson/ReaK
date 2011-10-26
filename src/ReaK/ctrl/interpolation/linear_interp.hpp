@@ -87,7 +87,7 @@ namespace detail {
 #else
     using boost::tuples::get;
 #endif
-    get<1>(result) = space.template lift_to_space<1>(dp1p0, t_factor, t_space);
+    get<1>(result) = lift_to_space<1>(dp1p0, t_factor, space, t_space);
   };
   
   template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
@@ -112,9 +112,9 @@ namespace detail {
     
     typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
     
-    PointDiff0 dp1p0 = space.template get_space<0>(t_space).difference( get<0>(b), get<0>(a) );
+    PointDiff0 dp1p0 = get_space<0>(space,t_space).difference( get<0>(b), get<0>(a) );
     
-    get<0>(result) = space.template get_space<0>(t_space).adjust(get<0>(a), t_normal * dp1p0);
+    get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(a), t_normal * dp1p0);
     
     linear_interpolate_HOT_impl< Idx, PointType, PointDiff0, DiffSpace, TimeSpace >(result, dp1p0, space, t_space, t_factor, t_normal);
     
@@ -137,7 +137,7 @@ namespace detail {
 #endif
     linear_interpolate_impl< typename boost::mpl::prior<Idx>::type, PointType, DiffSpace, TimeSpace >(result,a,b,space,t_space,t_factor,t_normal);
     
-    get< Idx::type::value >(result) = space.template get_space< Idx::type::value >(t_space).origin();
+    get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
   };
   
 };
