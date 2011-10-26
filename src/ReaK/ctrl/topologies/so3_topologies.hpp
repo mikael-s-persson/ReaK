@@ -80,15 +80,15 @@ class quaternion_topology : public named_object
     /**
      * Returns the distance between two points.
      */
-    double distance(const point_type& a, const point_type& b) const 
+    virtual double distance(const point_type& a, const point_type& b) const 
     {
-      return ReaK::norm(this->difference(b,a);
+      return ReaK::norm(this->difference(b,a));
     }
     
     /**
      * Returns the norm of the difference between two points.
      */
-    double norm(const point_difference_type& delta) const {
+    virtual double norm(const point_difference_type& delta) const {
       return ReaK::norm(delta);
     }
     
@@ -115,14 +115,14 @@ class quaternion_topology : public named_object
     /**
      * Returns the difference between two points (analogous to a - b, but implemented in SO(3) Lie algebra).
      */
-    point_difference_type difference(const point_type& a, const point_type& b) const {
+    virtual point_difference_type difference(const point_type& a, const point_type& b) const {
       return T(2.0) * log(conj(b) * a);
     };
 
     /**
      * Returns the addition of a point-difference to a point.
      */
-    point_type adjust(const point_type& a, const point_difference_type& delta) const {
+    virtual point_type adjust(const point_type& a, const point_difference_type& delta) const {
       return a * exp( 0.5 * delta );
     };
 
@@ -149,6 +149,91 @@ class quaternion_topology : public named_object
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240000C,1,"quaternion_topology",named_object)
     
 };
+
+
+/**
+ * This class implements a rate-limited quaternion-space. This topology will produce distance and norm
+ * values which are expressed in a time-unit and represent the time needed to travel along a given 
+ * quaternion difference vector (for the norm function, and the distance function gives the time 
+ * needed to travel between two given quaternions) assuming that the entire travel is done at the 
+ * specified maximum angular speed.
+ * \tparam T The value-type for the topology.
+ */
+template <typename T>
+class rate_limited_quat_space : public quaternion_topology<T>
+{
+  public:
+    typedef rate_limited_quat_space<T> self;
+    typedef quaternion_topology<T> base;
+    
+    typedef typename base::point_type point_type;
+    typedef typename base::point_difference_type point_difference_type;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 3);
+    
+    double max_angular_speed;
+    
+    /**
+     * Default constructor.
+     * \param aName The name of the topology.
+     * \param aMaxAngSpeed The maximum angular speed that limits the rate of motion between SO(3) configurations.
+     */
+    rate_limited_quat_space(const std::string& aName = "rate_limited_quat_space", 
+			    double aMaxAngSpeed = 1.0) : 
+			    base(aName),
+			    max_angular_speed(aMaxAngSpeed) { 
+      if(max_angular_speed < std::numeric_limits<double>::epsilon())
+	throw singularity_error("Maximum angular speed cannot be less-than or equal to 0!");
+    };
+    
+    /**
+     * Returns the distance between two points.
+     */
+    double distance(const point_type& a, const point_type& b) const 
+    {
+      return ReaK::norm(this->difference(b,a)) / max_angular_speed;
+    };
+    
+    /**
+     * Returns the norm of the difference between two points.
+     */
+    double norm(const point_difference_type& delta) const {
+      return ReaK::norm(delta) / max_angular_speed;
+    };
+    
+    /**
+     * Returns the difference between two points (analogous to a - b, but implemented in SO(3) Lie algebra).
+     */
+    point_difference_type difference(const point_type& a, const point_type& b) const {
+      return T(2.0 / max_angular_speed) * log(conj(b) * a);
+    };
+
+    /**
+     * Returns the addition of a point-difference to a point.
+     */
+    point_type adjust(const point_type& a, const point_difference_type& delta) const {
+      return a * exp( (0.5 * max_angular_speed) * delta );
+    };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      base::save(A,base::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(max_angular_speed);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      base::load(A,base::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(max_angular_speed);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240000F,1,"rate_limited_quat_space",base)
+    
+};
+
 
 /**
  * This class implements an angular velocity topology (for SO(3)). The angular velocities are constrained

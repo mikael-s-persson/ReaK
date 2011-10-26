@@ -240,8 +240,9 @@ hyperbox_topology<V,M>      0xC2400009   bin: 1100 0010 0100 0000 0000 0000 0000
 metric_space_tuple<ST,D>    0xC240000A   bin: 1100 0010 0100 0000 0000 0000 0000 1010  D-R
 time_poisson_topology       0xC240000B   bin: 1100 0010 0100 0000 0000 0000 0000 1011  D-R
 quaternion_topology<T>      0xC240000C   bin: 1100 0010 0100 0000 0000 0000 0000 1100  D-R
-ang_velocity_3D_topology<T> 0xC240000C   bin: 1100 0010 0100 0000 0000 0000 0000 1100  D-R
-ang_accel_3D_topology<T>    0xC240000C bin:1100 0010 0100 0000 0000 0000 0000 1100  D-R
+ang_velocity_3D_topology<T> 0xC240000D   bin: 1100 0010 0100 0000 0000 0000 0000 1101  D-R
+ang_accel_3D_topology<T>    0xC240000E   bin: 1100 0010 0100 0000 0000 0000 0000 1110  D-R
+rate_limited_quat_space<T>  0xC240000F   bin: 1100 0010 0100 0000 0000 0000 0000 1111  D-R
 
 //Distance metrics:         0xC241****
 default_distance_metric     0xC2410000   bin: 1100 0010 0100 0001 0000 0000 0000 0000  D-R
@@ -259,6 +260,7 @@ time_only_temporal_dist     0xC2410011   bin: 1100 0010 0100 0001 0000 0000 0001
 
 //Differentiation Rules:    0xC242****
 default_differentiation_rule 0xC2420000  bin: 1100 0010 0100 0010 0000 0000 0000 0000  D-R
+reach_time_differentiation  0xC2420001   bin: 1100 0010 0100 0010 0000 0000 0000 0001  D-R
 
 
 

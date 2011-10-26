@@ -35,7 +35,7 @@
 #define REAK_REACHABILITY_SPACE_HPP
 
 #include "temporal_space.hpp"
-#include "reachability_space_concept.hpp"
+#include "path_planning/reachability_space_concept.hpp"
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
