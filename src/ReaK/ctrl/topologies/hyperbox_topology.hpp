@@ -176,6 +176,22 @@ class hyperbox_topology : public vector_topology<Vector>
 	dp[j] = lower_corner[j] - a[j];
       return dp;
     };
+      
+    /**
+     * Tests if a given point is within the boundary of this space.
+     */
+    bool is_in_bounds(const point_type& a) const {
+      for(typename vect_traits<point_type>::size_type i = 0; i < a.size(); ++i) {
+	if(lower_corner[i] < upper_corner[i]) {
+	  if((a[i] < lower_corner[i]) || (a[i] > upper_corner[i]))
+	    return false;
+	} else {
+	  if((a[i] > lower_corner[i]) || (a[i] < upper_corner[i]))
+	    return false;
+	};
+      };
+      return true;
+    };
 
     /**
      * Returns the origin of the space (the lower-limit).

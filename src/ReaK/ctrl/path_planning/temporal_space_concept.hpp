@@ -113,6 +113,10 @@ struct TemporalDistMetricConcept {
  * 
  * Valid expressions:
  * 
+ * s_space = space.get_space_topology();  The spatial-topology (s_space) can be obtained from the temporal-space (space).
+ * 
+ * t_space = space.get_time_topology();  The time-topology (t_space) can be obtained from the temporal-space (space).
+ * 
  * See MetricSpaceConcept.
  * 
  * \tparam Topology The topology type to be checked for this concept.
@@ -124,6 +128,8 @@ struct TemporalSpaceConcept : public MetricSpaceConcept< Topology > {
   
   BOOST_CONCEPT_USAGE(TemporalSpaceConcept)
   {
+    const typename temporal_topology_traits<Topology>::space_topology& cs_space = this->space.get_space_topology();
+    const typename temporal_topology_traits<Topology>::time_topology& ct_space = this->space.get_time_topology();
   };
   
 };

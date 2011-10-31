@@ -150,6 +150,14 @@ class hyperball_topology : public vector_topology<Vector>
       point_difference_type c2a = this->difference(a,center_point);
       return (radius_value - this->norm(c2a)) * c2a;
     };
+      
+    /**
+     * Tests if a given point is within the boundary of this space.
+     */
+    bool is_in_bounds(const point_type& a) const {
+      point_difference_type c2a = this->difference(a,center_point);
+      return radius_value >= this->norm(c2a);
+    };
 
     /**
      * Returns the origin of the space (the lower-limit).

@@ -132,6 +132,13 @@ class quaternion_topology : public named_object
     point_type origin() const {
       return point_type(); //this just creates the "no-rotation" quaternion.
     };
+      
+    /**
+     * Tests if a given point is within the boundary of this space.
+     */
+    bool is_in_bounds(const point_type& a) const {
+      return true;
+    };
 
     
 /*******************************************************************************
@@ -213,6 +220,13 @@ class rate_limited_quat_space : public quaternion_topology<T>
      */
     point_type adjust(const point_type& a, const point_difference_type& delta) const {
       return a * exp( (0.5 * max_angular_speed) * delta );
+    };
+      
+    /**
+     * Tests if a given point is within the boundary of this space.
+     */
+    bool is_in_bounds(const point_type& a) const {
+      return true;
     };
     
     

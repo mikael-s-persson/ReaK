@@ -57,6 +57,8 @@ namespace pp {
  * 
  * pd = space.get_diff_to_boundary(p);  The difference (pd) between a point (p) and the closest boundary-point of the metric-space can be obtained.
  * 
+ * bool b = space.is_in_bounds(p);  A point can be checked for being with the bounds of the space.
+ * 
  * \tparam Topology The topology type to be checked for this concept.
  */
 template <typename Topology>
@@ -69,6 +71,7 @@ struct BoundedSpaceConcept {
   {
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     pd = space.get_diff_to_boundary(p);
+    bool b = space.is_in_bounds(p);
   };
   
 };

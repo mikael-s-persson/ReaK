@@ -233,6 +233,20 @@ class line_segment_topology : public line_topology<T>
       else
         return end_pt - a;
     };
+      
+    /**
+     * Tests if a given point is within the boundary of this space.
+     */
+    bool is_in_bounds(const point_type& a) const {
+      if(end_pt > start_pt) {
+        if((a > end_pt) || (a < start_pt))
+  	  return false;
+      } else {
+        if((a < end_pt) || (a > start_pt))
+	  return false;
+      };
+      return true;
+    };
 
     /**
      * Returns the origin of the space (the lower-limit).

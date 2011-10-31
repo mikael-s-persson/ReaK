@@ -39,10 +39,12 @@
 
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/differentiable_space_concept.hpp"
+#include "path_planning/bounded_space_concept.hpp"
 
 #include "lin_alg/arithmetic_tuple.hpp"
 #include "base/serializable.hpp"
 #include "tuple_distance_metrics.hpp"
+#include "time_topology.hpp"
 
 namespace ReaK {
 
@@ -117,32 +119,65 @@ struct reach_time_differentiation : public serialization::serializable {
  * \tparam SpaceTuple A tuple type (e.g. arithmetic_tuple) which provides a set of spaces to glue together.
  * \tparam TupleDistanceMetric A distance metric type which models the DistanceMetricConcept and operates on a space-tuple (e.g. arithmetic_tuple).
  */
-template <typename DiffSpace, typename TupleDistanceMetric = manhattan_tuple_distance >
-class metric_space_tuple : public serialization::serializable {
+template <typename DiffSpace, typename TimeSpace = time_topology >
+class order1_rate_limited_space : public serialization::serializable {
   protected:
-    SpaceTuple m_spaces;
-    TupleDistanceMetric m_dist;
+    DiffSpace m_space;
+    TimeSpace t_space;
     
   public:
-    typedef metric_space_tuple< SpaceTuple, TupleDistanceMetric > self;
+    typedef order1_rate_limited_space< DiffSpace, TimeSpace > self;
     
-    typedef typename detail::point_type_tuple< SpaceTuple >::type point_type;
-    typedef typename detail::point_difference_type_tuple< SpaceTuple >::type point_difference_type;
+    typedef TimeSpace time_topology;
+    typedef DiffSpace space_topology;
+    
+    typedef typename metric_topology_traits<DiffSpace>::point_type point_type;
+    typedef typename metric_topology_traits<DiffSpace>::point_difference_type point_difference_type;
+    
+    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< space_topology, 1, time_topology >));
+    BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<typename derived_N_order_space< space_topology, time_topology, 0 >::type>));
+    BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept<typename derived_N_order_space< space_topology, time_topology, 1 >::type>));
     
     /**
      * Parametrized and default constructor.
      * \param aSpaces The space tuple to initialize the spaces with.
-     * \param aDist The distance metric functor on the space-tuple.
      */
-    metric_space_tuple(const SpaceTuple& aSpaces = SpaceTuple(), 
-		       const TupleDistanceMetric& aDist = TupleDistanceMetric()) :
-		       m_spaces(aSpaces), m_dist(aDist) { };
+    order1_rate_limited_space(const DiffSpace& aSpace = DiffSpace()) :
+		              m_space(aSpace) { };
       
     /**
      * Returns the distance between two points.
      */
     double distance(const point_type& p1, const point_type& p2) const {
-      return m_dist(p1, p2, m_spaces);
+      
+      typedef typename derived_N_order_space<space_topology,time_topology,0>::type Space0;
+      typedef typename derived_N_order_space<space_topology,time_topology,1>::type Space1;
+    
+      typedef typename metric_topology_traits<Space0>::point_type PointType0;
+      typedef typename metric_topology_traits<Space1>::point_type PointType1;
+    
+      typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
+      typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
+      
+      const Space0& s0 = get_space<0>(m_space,t_space);
+      const Space1& s1 = get_space<1>(m_space,t_space);
+      
+      PointType1 vp = 
+      
+      while(true) {
+        //generate random point in underlying topology:
+        point_type result = m_space.random_point();
+        
+        //check if the position is possible based on the time it takes to stop the motion.
+        double tv = s1.distance(get<1>(result.pt),s1.origin());
+	PointDiff0 dp0 = descend_to_space<0>(get<1>(result.pt), 0.5 * tv, m_space.get_space_topology(), m_space.get_time_topology());
+        if( s0.is_in_bounds(s0.adjust(get<0>(result.pt),  dp0)) && 
+	    s0.is_in_bounds(s0.adjust(get<0>(result.pt), -dp0)) )
+	  return result;
+      };
+      
+      
+      return m_dist(p1, p2, m_space);
     };
     
     /**
@@ -156,18 +191,36 @@ class metric_space_tuple : public serialization::serializable {
      * Generates a random point in the space, uniformly distributed.
      */
     point_type random_point() const {
-      point_type result;
-      detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::random_point(m_spaces,result);
-      return result;
+      typedef typename derived_N_order_space<space_topology,time_topology,0>::type Space0;
+      typedef typename derived_N_order_space<space_topology,time_topology,1>::type Space1;
+    
+      typedef typename metric_topology_traits<Space0>::point_type PointType0;
+      typedef typename metric_topology_traits<Space1>::point_type PointType1;
+    
+      typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
+      typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
+      
+      const Space0& s0 = get_space<0>(m_space,m_space.get_time_topology());
+      const Space1& s1 = get_space<1>(m_space,m_space.get_time_topology());
+      
+      while(true) {
+        //generate random point in underlying topology:
+        point_type result = m_space.random_point();
+        
+        //check if the position is possible based on the time it takes to stop the motion.
+        double tv = s1.distance(get<1>(result.pt),s1.origin());
+	PointDiff0 dp0 = descend_to_space<0>(get<1>(result.pt), 0.5 * tv, m_space.get_space_topology(), m_space.get_time_topology());
+        if( s0.is_in_bounds(s0.adjust(get<0>(result.pt),  dp0)) && 
+	    s0.is_in_bounds(s0.adjust(get<0>(result.pt), -dp0)) )
+	  return result;
+      };
     };
     
     /**
      * Returns the difference between two points (a - b).
      */
     point_difference_type difference(const point_type& p1, const point_type& p2) const {
-      point_difference_type result;
-      detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::difference(m_spaces,result,p1,p2);
-      return result;
+      return m_space.difference(p1,p2);
     };
     
     /**

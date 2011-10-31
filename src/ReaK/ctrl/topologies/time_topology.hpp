@@ -131,6 +131,13 @@ class time_topology : public named_object
     point_type origin() const {
       return 0.0;
     };
+      
+    /**
+     * Tests if a given point is within the boundary of this space.
+     */
+    bool is_in_bounds(const point_type& a) const {
+      return true;
+    };
     
     
 /*******************************************************************************
