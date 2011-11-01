@@ -262,6 +262,12 @@ time_only_temporal_dist     0xC2410011   bin: 1100 0010 0100 0001 0000 0000 0001
 default_differentiation_rule 0xC2420000  bin: 1100 0010 0100 0010 0000 0000 0000 0000  D-R
 reach_time_differentiation  0xC2420001   bin: 1100 0010 0100 0010 0000 0000 0000 0001  D-R
 
+//Interpolator Factories:   0xC243****
+linear_interpolator_factory 0xC2430001   bin: 1100 0010 0100 0011 0000 0000 0000 0001  D-R
+cubic_hermite_interp_factory 0xC2430002  bin: 1100 0010 0100 0011 0000 0000 0000 0010  
+quintic_hermite_interp_factory 0xC2430003 bin:1100 0010 0100 0011 0000 0000 0000 0011  
+
+
 
 
 

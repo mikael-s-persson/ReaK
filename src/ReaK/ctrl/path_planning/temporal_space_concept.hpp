@@ -61,42 +61,7 @@ struct temporal_topology_traits {
   typedef typename TemporalTopology::space_topology space_topology;
   
 };
-  
 
-/**
- * This concept defines the requirements to fulfill in order to model a temporal distance-metric 
- * as used in ReaK::pp. A temporal distance-metric is essentially a callable type that can compute 
- * both the distance between two points and the corresponding norm of a difference between 
- * two points in a temporal-space.
- * 
- * Required concepts:
- * 
- * TemporalTopology should have the traits of a temporal space (temporal_topology_traits).
- * 
- * Valid expressions:
- * 
- * dist = d(p1, p2, t, s);  The distance (dist) can be obtained by calling the distance metric (d) on two points (p1,p2) and providing a const-ref to the time-topology (t) and space-topology (s).
- * 
- * dist = d(pd, t, s);  The distance (dist) can be obtained by calling the distance metric (d) on a point-difference (pd) and providing a const-ref to the time-topology (t) and space-topology (s).
- * 
- * \tparam DistanceMetric The distance metric type to be checked for this concept.
- * \tparam Topology The topology to which the distance metric should apply.
- */
-template <typename DistanceMetric, typename TemporalTopology>
-struct TemporalDistMetricConcept {
-  DistanceMetric d;
-  typename temporal_topology_traits<TemporalTopology>::space_topology s;
-  typename temporal_topology_traits<TemporalTopology>::time_topology t;
-  typename temporal_topology_traits<TemporalTopology>::point_type p1, p2;
-  typename temporal_topology_traits<TemporalTopology>::point_difference_type pd;
-  double dist;
-  BOOST_CONCEPT_USAGE(TemporalDistMetricConcept)
-  {
-    dist = d(p1, p2, t, s);
-    dist = d(pd, t, s);
-  };
-  
-};
 
 /**
  * This concept defines the requirements to fulfill in order to model a temporal-space 

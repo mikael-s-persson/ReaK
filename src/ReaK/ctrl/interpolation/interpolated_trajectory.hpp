@@ -35,6 +35,7 @@
 #define REAK_INTERPOLATED_TRAJECTORY_HPP
 
 #include "path_planning/spatial_trajectory_concept.hpp"
+#include "path_planning/interpolator_concept.hpp"
 
 #include "waypoint_container.hpp"
 
@@ -59,19 +60,21 @@ namespace pp {
  * The trajectory is represented by a set of waypoints and all intermediate points 
  * are computed with a linear interpolation. This class models the SpatialTrajectoryConcept.
  * \tparam Topology The topology type on which the points and the path can reside, should model the TemporalSpaceConcept.
- * \tparam Interpolator The interpolation functor type on which the points and the path can reside, should be callable as p_int = interpolator(p1, p2, time, temporal_space).
- * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the DistanceMetricConcept.
+ * \tparam InterpolatorFactory The interpolation factory type which can create interpolators for on the given topology, should model the InterpolatorFactoryConcept.
+ * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the TemporalDistMetricConcept.
  */
-template <typename Topology, typename Interpolator, typename DistanceMetric = default_distance_metric>
+template <typename Topology, typename InterpolatorFactory, typename DistanceMetric = default_distance_metric>
 class interpolated_trajectory : public waypoint_container<Topology,DistanceMetric> {
   public:
     
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((InterpolatorFactoryConcept<InterpolatorFactory,Topology,DistanceMetric>));
     
-    typedef interpolated_trajectory<Topology,Interpolator,DistanceMetric> self;
+    typedef interpolated_trajectory<Topology,InterpolatorFactory,DistanceMetric> self;
     typedef waypoint_container<Topology,DistanceMetric> base_class_type;
     
-    typedef Interpolator interpolator_type;
+    typedef InterpolatorFactory interpolator_factory_type;
+    typedef typename interpolator_factory_traits<interpolator_factory_type>::interpolator_type interpolator_type;
     
     typedef typename base_class_type::const_waypoint_descriptor const_waypoint_descriptor;
     typedef typename base_class_type::const_waypoint_bounds const_waypoint_bounds;
@@ -85,8 +88,8 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
     
     interpolator_type interp;
     
-    interpolated_trajectory(const interpolated_trajectory<Topology,Interpolator,DistanceMetric>&); //non-copyable.
-    interpolated_trajectory<Topology,Interpolator,DistanceMetric>& operator=(const interpolated_trajectory<Topology,Interpolator,DistanceMetric>&);
+    interpolated_trajectory(const interpolated_trajectory<Topology,InterpolatorFactory,DistanceMetric>&); //non-copyable.
+    interpolated_trajectory<Topology,InterpolatorFactory,DistanceMetric>& operator=(const interpolated_trajectory<Topology,InterpolatorFactory,DistanceMetric>&);
     
     double travel_distance_impl(const point_type& a, const const_waypoint_bounds& wpb_a, 
 				const point_type& b, const const_waypoint_bounds& wpb_b) const {

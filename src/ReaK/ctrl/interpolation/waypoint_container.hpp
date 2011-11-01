@@ -304,6 +304,9 @@ template <typename Topology, typename DistanceMetric = default_distance_metric>
 class waypoint_container : public waypoint_container_base<Topology,DistanceMetric> {
   public:
     
+    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,Topology>));
+    
     typedef waypoint_container<Topology,DistanceMetric> self;
     typedef waypoint_container_base<Topology,DistanceMetric> base_class_type;
     
