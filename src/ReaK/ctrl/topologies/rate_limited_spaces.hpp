@@ -149,42 +149,16 @@ class order1_rate_limited_space : public serialization::serializable {
      * Returns the distance between two points.
      */
     double distance(const point_type& p1, const point_type& p2) const {
-      
-      typedef typename derived_N_order_space<space_topology,time_topology,0>::type Space0;
-      typedef typename derived_N_order_space<space_topology,time_topology,1>::type Space1;
-    
-      typedef typename metric_topology_traits<Space0>::point_type PointType0;
-      typedef typename metric_topology_traits<Space1>::point_type PointType1;
-    
-      typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
-      typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
-      
-      const Space0& s0 = get_space<0>(m_space,t_space);
-      const Space1& s1 = get_space<1>(m_space,t_space);
-      
-      PointType1 vp = 
-      
-      while(true) {
-        //generate random point in underlying topology:
-        point_type result = m_space.random_point();
-        
-        //check if the position is possible based on the time it takes to stop the motion.
-        double tv = s1.distance(get<1>(result.pt),s1.origin());
-	PointDiff0 dp0 = descend_to_space<0>(get<1>(result.pt), 0.5 * tv, m_space.get_space_topology(), m_space.get_time_topology());
-        if( s0.is_in_bounds(s0.adjust(get<0>(result.pt),  dp0)) && 
-	    s0.is_in_bounds(s0.adjust(get<0>(result.pt), -dp0)) )
-	  return result;
-      };
-      
-      
-      return m_dist(p1, p2, m_space);
+      return get_space<0>(m_space,t_space).distance(get<0>(p1),get<0>(p2))
+           + get_space<1>(m_space,t_space).distance(get<1>(p1),get<1>(p2));
     };
     
     /**
      * Returns the norm of the difference between two points.
      */
     double norm(const point_difference_type& dp) const {
-      return m_dist(dp, m_spaces);
+      return get_space<0>(m_space,t_space).norm(get<0>(dp))
+           + get_space<1>(m_space,t_space).norm(get<1>(dp));
     };
     
     /**
