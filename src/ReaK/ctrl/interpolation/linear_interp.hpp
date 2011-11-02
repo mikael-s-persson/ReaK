@@ -223,18 +223,18 @@ class linear_interpolator {
     
     template <typename DistanceMetric>
     double travel_distance_to(const point_type& pt, const DistanceMetric& dist) const {
-      BOOST_CONCEPT_ASSERT((TemporalDistMetricConcept<DistanceMetric>));
+      BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,topology>));
       if(parent && start_point)
-	return dist(pt, *start_point, parent->get_temporal_space()->get_time_topology(), parent->get_temporal_space()->get_space_topology());
+	return dist(pt, *start_point, *(parent->get_temporal_space()));
       else
 	return 0.0;
     };
     
     template <typename DistanceMetric>
     double travel_distance_from(const point_type& pt, const DistanceMetric& dist) const {
-      BOOST_CONCEPT_ASSERT((TemporalDistMetricConcept<DistanceMetric>));
+      BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,topology>));
       if(parent && end_point)
-	return dist(*end_point, pt, parent->get_temporal_space()->get_time_topology(), parent->get_temporal_space()->get_space_topology());
+	return dist(*end_point, pt, *(parent->get_temporal_space()));
       else
 	return 0.0;
     };
@@ -244,7 +244,7 @@ class linear_interpolator {
 	return point_type();
       double t_factor = end_point->time - start_point->time;
       if(std::fabs(t_factor) < std::numeric_limits<double>::epsilon())
-        throw singularity_error("Normalizing factor in cubic Hermite spline is zero!");
+        throw singularity_error("Normalizing factor in linear interpolation is zero!");
       double t_normal = (t - start_point->time) / t_factor;
       
       point_type result;
@@ -270,7 +270,7 @@ class linear_interpolator_factory : public serialization::serializable {
     typedef linear_interpolator<self> interpolator_type;
   
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
-    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<topology>::space_topology, 0, typename temporal_topology_traits<Topology>::time_topology >));
+    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<TemporalTopology>::space_topology, 0, typename temporal_topology_traits<TemporalTopology>::time_topology >));
   private:
     const topology* p_space;
   public:
@@ -307,13 +307,13 @@ class linear_interpolator_factory : public serialization::serializable {
  * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the DistanceMetricConcept.
  */
 template <typename Topology, typename DistanceMetric = default_distance_metric>
-class linear_interp : public interpolated_trajectory<Topology,linear_interpolator_factory<Topology>,DistanceMetric> {
+class linear_interp_traj : public interpolated_trajectory<Topology,linear_interpolator_factory<Topology>,DistanceMetric> {
   public:
     
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<Topology>::space_topology, 1, typename temporal_topology_traits<Topology>::time_topology >));
     
-    typedef linear_interp<Topology,DistanceMetric> self;
+    typedef linear_interp_traj<Topology,DistanceMetric> self;
     typedef interpolated_trajectory<Topology,linear_interpolator_factory<Topology>,DistanceMetric> base_class_type;
     
     typedef typename base_class_type::point_type point_type;
@@ -327,8 +327,8 @@ class linear_interp : public interpolated_trajectory<Topology,linear_interpolato
      * \param aSpace The space on which the path is.
      * \param aDist The distance metric functor that the path should use.
      */
-    explicit linear_interp(const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
-                           base_class_type(aSpace, aDist) { };
+    explicit linear_interp_traj(const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
+                                base_class_type(aSpace, aDist, linear_interpolator_factory<Topology>(&aSpace)) { };
     
     /**
      * Constructs the path from a space, the start and end points.
@@ -337,8 +337,8 @@ class linear_interp : public interpolated_trajectory<Topology,linear_interpolato
      * \param aEnd The end-point of the path.
      * \param aDist The distance metric functor that the path should use.
      */
-    linear_interp(const topology& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
-                  base_class_type(aSpace, aStart, aEnd, aDist) { };
+    linear_interp_traj(const topology& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
+                       base_class_type(aSpace, aStart, aEnd, aDist, linear_interpolator_factory<Topology>(&aSpace)) { };
 			
     /**
      * Constructs the path from a range of points and their space.
@@ -349,8 +349,8 @@ class linear_interp : public interpolated_trajectory<Topology,linear_interpolato
      * \param aDist The distance metric functor that the path should use.
      */
     template <typename ForwardIter>
-    linear_interp(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
-                  base_class_type(aBegin, aEnd, aSpace, aDist, linear_interpolator()) { };
+    linear_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
+                       base_class_type(aBegin, aEnd, aSpace, aDist, linear_interpolator_factory<Topology>(&aSpace)) { };
     
 };
 

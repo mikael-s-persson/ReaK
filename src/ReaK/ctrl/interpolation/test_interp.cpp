@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
     ReaK::recorder::ssv_recorder output_rec("test_interp_results/linear_interp.ssv");
     output_rec << "time" << "pos" << "vel" << "acc" << "jerk" << ReaK::recorder::data_recorder::end_name_row;
     
-    ReaK::pp::linear_interp<TempTopoType> interp(pts.begin(), pts.end(), topo);
+    ReaK::pp::linear_interp_traj<TempTopoType> interp(pts.begin(), pts.end(), topo);
     
     for(double t = 0.0; t <= max_time; t += time_step) {
       TempPointType p = interp.get_point_at_time(t);
@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
     ReaK::recorder::ssv_recorder output_rec("test_interp_results/cubic_interp.ssv");
     output_rec << "time" << "pos" << "vel" << "acc" << "jerk" << ReaK::recorder::data_recorder::end_name_row;
     
-    ReaK::pp::cubic_hermite_interp<TempTopoType> interp(pts.begin(), pts.end(), topo);
+    ReaK::pp::cubic_hermite_interp_traj<TempTopoType> interp(pts.begin(), pts.end(), topo);
     
     for(double t = 0.0; t <= max_time; t += time_step) {
       TempPointType p = interp.get_point_at_time(t);
@@ -131,7 +131,7 @@ int main(int argc, char** argv) {
     ReaK::recorder::ssv_recorder output_rec("test_interp_results/quintic_interp.ssv");
     output_rec << "time" << "pos" << "vel" << "acc" << "jerk" << ReaK::recorder::data_recorder::end_name_row;
     
-    ReaK::pp::quintic_hermite_interp<TempTopoType> interp(pts.begin(), pts.end(), topo);
+    ReaK::pp::quintic_hermite_interp_traj<TempTopoType> interp(pts.begin(), pts.end(), topo);
     
     for(double t = 0.0; t <= max_time; t += time_step) {
       TempPointType p = interp.get_point_at_time(t);

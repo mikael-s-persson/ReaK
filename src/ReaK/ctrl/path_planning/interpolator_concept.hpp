@@ -96,7 +96,7 @@ struct interpolator_factory_traits {
 template <typename Interpolator, typename Topology, typename DistanceMetric>
 struct InterpolatorConcept {
   BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT((TemporalDistMetricConcept< DistanceMetric, Topology >));
+  BOOST_CONCEPT_ASSERT((DistanceMetricConcept< DistanceMetric, Topology >));
   
   Interpolator interp;
   typename temporal_topology_traits<Topology>::point_type pt;

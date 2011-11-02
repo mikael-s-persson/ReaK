@@ -93,8 +93,8 @@ struct TemporalSpaceConcept : public MetricSpaceConcept< Topology > {
   
   BOOST_CONCEPT_USAGE(TemporalSpaceConcept)
   {
-    const typename temporal_topology_traits<Topology>::space_topology& cs_space = this->space.get_space_topology();
-    const typename temporal_topology_traits<Topology>::time_topology& ct_space = this->space.get_time_topology();
+    const typename temporal_topology_traits<Topology>::space_topology& cs_space = this->space.get_space_topology(); RK_UNUSED(cs_space);
+    const typename temporal_topology_traits<Topology>::time_topology& ct_space = this->space.get_time_topology(); RK_UNUSED(ct_space);
   };
   
 };

@@ -110,7 +110,7 @@ struct spatial_trajectory_traits {
 template <typename SpatialTrajectory, typename Topology>
 struct SpatialTrajectoryConcept {
   BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT((TemporalDistMetricConcept< typename spatial_trajectory_traits<SpatialTrajectory>::distance_metric, Topology >));
+  BOOST_CONCEPT_ASSERT((DistanceMetricConcept< typename spatial_trajectory_traits<SpatialTrajectory>::distance_metric, Topology >));
   
   SpatialTrajectory p;
   typename temporal_topology_traits<Topology>::point_type pt;

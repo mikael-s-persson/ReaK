@@ -217,7 +217,7 @@ class temporal_space : public named_object {
      * \return The distance between a and b.
      */
     double distance(const point& a, const point& b) const {
-      return dist(a, b, time, space);
+      return dist(a, b, *this);
     };
 
     /**
@@ -266,7 +266,7 @@ class temporal_space : public named_object {
      * \return The norm of a difference between two points.
      */
     double norm(const point_difference& a) const {
-      return dist(a, time, space);
+      return dist(a, *this);
     };
     
     
