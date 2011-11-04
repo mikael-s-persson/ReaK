@@ -121,6 +121,44 @@ struct InterpolatorConcept {
 
 
 /**
+ * This concept class defines the requirements for a class to model a limited interpolator
+ * concept as used in ReaK::pp. A limited interpolator is simply an object that stores some 
+ * representation of an interpolated segment between two points and also provides functions 
+ * to characterize the feasibility of the interpolated segment with respect to the limits 
+ * imposed by the topology on the interpolation (the nature of those limits are internal 
+ * to the implementation, but should translate into some feasibility test and some minimum
+ * travel time required to make the interpolation feasible, in theory).
+ * 
+ * Required concepts:
+ * 
+ * The interpolator should model the InterpolatorConcept with the given topology and distance-metric.
+ * 
+ * Valid expressions:
+ * 
+ * dt = interp.get_minimum_travel_time();  The minimum travel time required to reach the end-point can be obtained as a time-difference (interval).
+ * 
+ * bool b = interp.is_segment_feasible();  The segment can be tested for feasibility, i.e., if it is possible to reach the end-point at its associated time while respecting the limits.
+ * 
+ * \tparam Interpolator The trajectory type for which this concept is checked.
+ * \tparam Topology The temporal-topology type on which the trajectory should be able to exist.
+ * \tparam DistanceMetric The distance metric type to be used on the topology and along the interpolated segments.
+ */
+template <typename LimitedInterpolator, typename Topology, typename DistanceMetric>
+struct LimitedInterpolatorConcept : public InterpolatorConcept<LimitedInterpolator,Topology,DistanceMetric> {
+  
+  typename temporal_topology_traits<Topology>::time_topology::point_difference_type dt;
+  
+  BOOST_CONCEPT_USAGE(LimitedInterpolatorConcept)
+  {
+    dt = this->interp.get_minimum_travel_time();
+    bool b = this->interp.is_segment_feasible();
+  };
+  
+};
+
+
+
+/**
  * This concept class defines the requirements for a class to model an interpolator
  * concept as used in ReaK::pp. An interpolator is simply an object that stores some 
  * representation of an interpolated segment between two points. The basic scheme used 
