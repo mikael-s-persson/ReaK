@@ -52,6 +52,10 @@
 #include "lin_alg/mat_num_exceptions.hpp"
 #include "topologies/basic_distance_metrics.hpp"
 #include "path_planning/bounded_space_concept.hpp"
+#include "root_finders/secant_method.hpp"
+#include "root_finders/newton_raphson_method.hpp"
+#include <root_finders/bisection_method.hpp>
+#include <boost/bind.hpp>
 
 namespace ReaK {
 
@@ -133,7 +137,7 @@ namespace detail {
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
   };
   
-  
+  inline
   double svp_compute_slack_time(double beta, double dt, double norm_delta, const vect<double,5>& coefs) {
     using std::sqrt;
     return beta * ( dt - sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4])) 
@@ -141,6 +145,7 @@ namespace detail {
            - norm_delta;
   };
     
+  inline
   double svp_compute_derivative_slack_time(double beta, double dt, double norm_delta, const vect<double,5>& coefs) {
     using std::sqrt;
     double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]));
@@ -149,6 +154,7 @@ namespace detail {
   };
   
   
+  inline
   double svp_compute_travel_time(double beta, double norm_delta, const vect<double,5>& coefs) {
     using std::sqrt;
     return sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4])) 
@@ -156,6 +162,7 @@ namespace detail {
            + norm_delta / beta;
   };
     
+  inline
   double svp_compute_derivative_travel_time(double beta, double norm_delta, const vect<double,5>& coefs) {
     using std::sqrt;
     double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]));
@@ -237,6 +244,7 @@ class svp_interpolator {
     PointDiff0 delta_first_order;
     PointType1 peak_velocity;
     double min_delta_time;
+    PointType1 best_peak_velocity;
     
     void update_delta_value() {
       if(parent && start_point && end_point) {
@@ -246,21 +254,139 @@ class svp_interpolator {
 	double norm_delta = space_0.norm( delta_first_order );
 	double beta = 1.0;
 	peak_velocity = lift_to_space<1>(delta_first_order, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
-	PointType1 prev_peak_velocity = peak_velocity;
+	vect<double,5> coefs( space_1.distance( get<1>(start_point->pt), space_1.origin() ),
+	                      0.0,
+		              space_1.distance( get<1>(end_point->pt), space_1.origin() ),
+	                      0.0,
+		              space_1.get_radius());
 	for(unsigned int i = 0; i < 20; ++i) {
-	  vect<double,5> coefs( space_1.distance( get<1>(start_point->pt), space_1.origin() ),
-	                        0.0,
-		                space_1.distance( get<1>(end_point->pt), space_1.origin() ),
-	                        0.0,
-		                space_1.get_radius());
+	  PointType1 prev_peak_velocity = peak_velocity;
+	  
+	  peak_velocity = lift_to_space<1>(delta_first_order, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
 	  double temp = space_1.distance(get<1>(start_point->pt), peak_velocity);
 	  coefs[1] = (coefs[0] * coefs[0] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[0] * coefs[4]);
 	  temp = space_1.distance(get<1>(end_point->pt), peak_velocity);
 	  coefs[3] = (coefs[2] * coefs[2] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[2] * coefs[4]);
 	  
+	  if(detail::svp_compute_derivative_travel_time(1.0,norm_delta,coefs) > 0.0) {
+	    double upper = 1.0;
+	    double lower = 0.5;
+	    while(detail::svp_compute_derivative_travel_time(lower,norm_delta,coefs) > 0.0) {
+	      upper = lower;
+	      lower *= 0.5;
+	    };
+	    bisection_method(lower, upper, boost::bind(detail::svp_compute_derivative_travel_time,_1,boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
+	    beta = upper;
+	  } else {
+	    beta = 1.0;
+	  };
 	  
+	  min_delta_time = detail::svp_compute_travel_time(beta,norm_delta,coefs);
+	  peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
+	  
+	  PointDiff0 descended_peak_velocity = descend_to_space<0>(peak_velocity,1.0,parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology());
+	  delta_first_order = space_0.difference(
+	    space_0.adjust(get<0>(end_point->pt), (-0.5 * space_1.distance(peak_velocity, get<1>(end_point->pt))) * ( descended_peak_velocity
+	                                                                                                             + descend_to_space<0>(get<1>(end_point->pt),1.0,parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()) )),
+	    space_0.adjust(get<0>(start_point->pt), (0.5 * space_1.distance(peak_velocity, get<1>(start_point->pt))) * (descended_peak_velocity
+	                                                                                                                + descend_to_space<0>(get<1>(start_point->pt),1.0,parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()) ))
+	  );
+	  norm_delta = space_0.norm(delta_first_order);
+	  peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
+	  
+	  if( space_1.distance(prev_peak_velocity, peak_velocity) < 1e-6 * space_1.get_radius() ) {
+	    break;
+	  };
 	  
 	};
+	best_peak_velocity = peak_velocity;
+	double delta_time = start_point->time - end_point->time;
+	if(min_delta_time > delta_time)
+	  return;
+	for(unsigned int i = 0; i < 20; ++i) {
+	  PointType1 prev_peak_velocity = peak_velocity;
+	  
+	  peak_velocity = lift_to_space<1>(delta_first_order, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
+	  double temp = space_1.distance(get<1>(start_point->pt), peak_velocity);
+	  coefs[1] = (coefs[0] * coefs[0] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[0] * coefs[4]);
+	  temp = space_1.distance(get<1>(end_point->pt), peak_velocity);
+	  coefs[3] = (coefs[2] * coefs[2] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[2] * coefs[4]);
+	  double beta_peak1 = coefs[0] * coefs[1] / (coefs[4] * coefs[4]);
+	  double beta_peak2 = coefs[2] * coefs[3] / (coefs[4] * coefs[4]);
+	  if(beta_peak1 > beta_peak2)
+	    std::swap(beta_peak1, beta_peak2);
+	  if(beta_peak2 > 1.0)
+	    beta_peak2 = 1.0;
+	  if((beta_peak1 > 0.0) && (detail::svp_compute_slack_time(beta_peak1,delta_time,norm_delta,coefs) > 0.0)) {
+	    //there must be a root between peak1 and 0.
+	    double beta_low = 0.0;
+	    double beta_temp = beta_peak1;
+	    bisection_method(beta_low, beta_peak1, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
+	    
+	    if(detail::svp_compute_slack_time(beta_peak2,delta_time,norm_delta,coefs) < 0.0) {
+	      //there must be a root between peak1 and peak2.
+	      bisection_method(beta_temp, beta_peak2, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
+	    } else if(detail::svp_compute_slack_time(1.0,delta_time,norm_delta,coefs) < 0.0) {
+	      //there must be a root between peak2 and 1.0.
+	      beta_temp = beta_peak2;
+	      beta_peak2 = 1.0;
+	      bisection_method(beta_temp, beta_peak2, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
+	    } else {
+	      beta_peak2 = 5.0;
+	    };
+	    
+	  } else {
+	    double beta_low = 0.0;
+	    if(beta_peak1 > 0.0) {
+	      beta_low = beta_peak1;
+	    };
+	    if((beta_peak2 > 0.0) && (detail::svp_compute_slack_time(beta_peak2,delta_time,norm_delta,coefs) > 0.0)) {
+	      //there must be a root between beta_low and beta_peak2.
+	      beta_peak1 = beta_peak2;
+	      bisection_method(beta_low, beta_peak1, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
+	      if(detail::svp_compute_slack_time(1.0,delta_time,norm_delta,coefs) < 0.0) {
+		//there must be a root between beta_peak2 and 1.0.
+		beta_low = beta_peak2;
+		beta_peak2 = 1.0;
+		bisection_method(beta_low,beta_peak2, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
+	      } else {
+		beta_peak2 = 5.0;
+	      };
+	    } else {
+	      if(beta_peak2 > beta_low)
+		beta_low = beta_peak2;
+	      beta_peak1 = 1.0;
+	      if(detail::svp_compute_slack_time(1.0,delta_time,norm_delta,coefs) > 0.0) {
+		//there must be a root between beta_peak2 and 1.0.
+		bisection_method(beta_low, beta_peak1, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
+	      };
+	      beta_peak2 = 5.0;
+	    };
+	  };
+	  
+	  if( std::fabs(beta - beta_peak1) < std::fabs(beta - beta_peak2) ) {
+	    beta = beta_peak1;
+	  } else {
+	    beta = beta_peak2;
+	  };
+	  
+	  peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
+	  
+	  PointDiff0 descended_peak_velocity = descend_to_space<0>(peak_velocity,1.0,parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology());
+	  delta_first_order = space_0.difference(
+	    space_0.adjust(get<0>(end_point->pt), (-0.5 * space_1.distance(peak_velocity, get<1>(end_point->pt))) * ( descended_peak_velocity
+	                                                                                                             + descend_to_space<0>(get<1>(end_point->pt),1.0,parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()) )),
+	    space_0.adjust(get<0>(start_point->pt), (0.5 * space_1.distance(peak_velocity, get<1>(start_point->pt))) * (descended_peak_velocity
+	                                                                                                                + descend_to_space<0>(get<1>(start_point->pt),1.0,parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()) ))
+	  );
+	  norm_delta = space_0.norm(delta_first_order);
+	  peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
+	  
+	  if( space_1.distance(prev_peak_velocity, peak_velocity) < 1e-6 * space_1.get_radius() ) {
+	    break;
+	  };
+	};
+	
       };
     };
   
