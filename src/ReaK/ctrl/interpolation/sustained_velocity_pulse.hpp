@@ -133,6 +133,39 @@ namespace detail {
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
   };
   
+  
+  double svp_compute_slack_time(double beta, double dt, double norm_delta, const vect<double,5>& coefs) {
+    using std::sqrt;
+    return beta * ( dt - sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4])) 
+                       - sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4])) )
+           - norm_delta;
+  };
+    
+  double svp_compute_derivative_slack_time(double beta, double dt, double norm_delta, const vect<double,5>& coefs) {
+    using std::sqrt;
+    double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]));
+    double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4]));
+    return dt - term1 - term2 + 2.0 * beta * coefs[4] * ((coefs[0] * coefs[1] - coefs[4] * beta) / term1 + (coefs[2] * coefs[3] - coefs[4] * beta) / term2);
+  };
+  
+  
+  double svp_compute_travel_time(double beta, double norm_delta, const vect<double,5>& coefs) {
+    using std::sqrt;
+    return sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4])) 
+           + sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4])) 
+           + norm_delta / beta;
+  };
+    
+  double svp_compute_derivative_travel_time(double beta, double norm_delta, const vect<double,5>& coefs) {
+    using std::sqrt;
+    double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]));
+    double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4]));
+    return 2.0 * coefs[4] * ((coefs[4] * beta - coefs[0] * coefs[1]) / term1 + (coefs[4] * beta - coefs[2] * coefs[3]) / term2) 
+           - norm_delta / (beta * beta);
+  };
+  
+  
+  
 };
 
 
@@ -175,14 +208,15 @@ PointType svp_interpolate(const PointType& a, const PointType& b, double t, cons
 };
 
 /**
- * This functor class implements a cubic Hermite interpolation in a temporal and once-differentiable 
+ * This functor class implements a sustained velocity pulse (SVP) interpolation in a temporal and once-differentiable 
  * topology.
  * \tparam TemporalTopology The temporal topology on which the interpolation is done.
  */
-template <typename Factory>
-class linear_interpolator {
+template <typename Factory, 
+          std::size_t Dimensions >
+class svp_interpolator {
   public:
-    typedef linear_interpolator<Factory> self;
+    typedef svp_interpolator<Factory> self;
     typedef typename Factory::point_type point_type;
     typedef typename Factory::topology topology;
   
@@ -191,15 +225,42 @@ class linear_interpolator {
     typedef typename metric_topology_traits<Space0>::point_type PointType0;
     typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
   
+    typedef typename derived_N_order_space< typename temporal_topology_traits<topology>::space_topology,
+                                            typename temporal_topology_traits<topology>::time_topology,1>::type Space1;
+    typedef typename metric_topology_traits<Space0>::point_type PointType1;
+    typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff1;
+  
   private:
     const Factory* parent;
     const point_type* start_point;
     const point_type* end_point;
     PointDiff0 delta_first_order;
+    PointType1 peak_velocity;
+    double min_delta_time;
     
     void update_delta_value() {
       if(parent && start_point && end_point) {
-        delta_first_order = get_space<0>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).difference( get<0>(end_point->pt), get<0>(start_point->pt) );
+	const Space0& space_0 = get_space<0>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology());
+        const Space1& space_1 = get_space<1>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology());
+        delta_first_order = space_0.difference( get<0>(end_point->pt), get<0>(start_point->pt) );
+	double norm_delta = space_0.norm( delta_first_order );
+	double beta = 1.0;
+	peak_velocity = lift_to_space<1>(delta_first_order, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
+	PointType1 prev_peak_velocity = peak_velocity;
+	for(unsigned int i = 0; i < 20; ++i) {
+	  vect<double,5> coefs( space_1.distance( get<1>(start_point->pt), space_1.origin() ),
+	                        0.0,
+		                space_1.distance( get<1>(end_point->pt), space_1.origin() ),
+	                        0.0,
+		                space_1.get_radius());
+	  double temp = space_1.distance(get<1>(start_point->pt), peak_velocity);
+	  coefs[1] = (coefs[0] * coefs[0] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[0] * coefs[4]);
+	  temp = space_1.distance(get<1>(end_point->pt), peak_velocity);
+	  coefs[3] = (coefs[2] * coefs[2] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[2] * coefs[4]);
+	  
+	  
+	  
+	};
       };
     };
   
@@ -209,8 +270,8 @@ class linear_interpolator {
     /**
      * Default constructor.
      */
-    linear_interpolator(const Factory* aParent = NULL, const point_type* aStart = NULL, const point_type* aEnd = NULL) :
-                        parent(aParent), start_point(aStart), end_point(aEnd) {
+    svp_interpolator(const Factory* aParent = NULL, const point_type* aStart = NULL, const point_type* aEnd = NULL) :
+                     parent(aParent), start_point(aStart), end_point(aEnd) {
       update_delta_value();
     };
     
@@ -260,19 +321,25 @@ class linear_interpolator {
 };
 
 /**
- * This class is a factory class for linear interpolators on a temporal differentiable space.
+ * This class is a factory class for sustained velocity pulse (SVP) interpolators on a temporal differentiable space.
  * \tparam TemporalTopology The temporal topology on which the interpolation is done, should model TemporalSpaceConcept.
  */
 template <typename TemporalTopology>
-class linear_interpolator_factory : public serialization::serializable {
+class svp_interpolator_factory : public serialization::serializable {
   public:
-    typedef linear_interpolator_factory<TemporalTopology> self;
+    typedef svp_interpolator_factory<TemporalTopology> self;
     typedef TemporalTopology topology;
     typedef typename temporal_topology_traits<TemporalTopology>::point_type point_type;
-    typedef linear_interpolator<self> interpolator_type;
   
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
-    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<TemporalTopology>::space_topology, 0, typename temporal_topology_traits<TemporalTopology>::time_topology >));
+    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<TemporalTopology>::space_topology, 1, typename temporal_topology_traits<TemporalTopology>::time_topology >));
+    BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< derived_N_order_space<typename temporal_topology_traits<TemporalTopology>::space_topology, typename temporal_topology_traits<TemporalTopology>::time_topology, 1> >));
+    
+    typedef typename derived_N_order_space< typename temporal_topology_traits<topology>::space_topology,
+                                            typename temporal_topology_traits<topology>::time_topology,0>::type Space0;
+    
+    typedef svp_interpolator<self, metric_topology_traits< Space0 >::dimensions> interpolator_type;
+    
   private:
     const topology* p_space;
   public:

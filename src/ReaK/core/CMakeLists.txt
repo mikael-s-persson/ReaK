@@ -7,6 +7,7 @@ set(RKRTTIDIR "${RKCOREDIR}/rtti")
 set(RKSERIALIZATIONDIR "${RKCOREDIR}/serialization")
 set(RKRECORDERSDIR "${RKCOREDIR}/recorders")
 set(RKINTEGRATORSDIR "${RKCOREDIR}/integrators")
+set(RKROOTFINDERSDIR "${RKCOREDIR}/root_finders")
 
 set(RKCORESUBDIRS 
   ${RKBASEDIR} 
@@ -17,12 +18,13 @@ set(RKCORESUBDIRS
   ${RKRECORDERSDIR}
   ${RKINTEGRATORSDIR} 
   ${RKOPTIMDIR}
+  ${RKROOTFINDERSDIR}
 )
 
 configure_doxyfile(ReaKallcore 
                    "\"ReaK Library - All core libraries\"" 
                    "\"Core libraries for software architectural elements and advanced numerical analysis software.\"" 
-                   "${DOXTOSRCDIR}${RKBASEDIR} ${DOXTOSRCDIR}${RKLINALGDIR} ${DOXTOSRCDIR}${RKKINETOSTATICSDIR} ${DOXTOSRCDIR}${RKRTTIDIR} ${DOXTOSRCDIR}${RKSERIALIZATIONDIR} ${DOXTOSRCDIR}${RKRECORDERSDIR} ${DOXTOSRCDIR}${RKINTEGRATORSDIR}")
+                   "${DOXTOSRCDIR}${RKBASEDIR} ${DOXTOSRCDIR}${RKLINALGDIR} ${DOXTOSRCDIR}${RKKINETOSTATICSDIR} ${DOXTOSRCDIR}${RKRTTIDIR} ${DOXTOSRCDIR}${RKSERIALIZATIONDIR} ${DOXTOSRCDIR}${RKRECORDERSDIR} ${DOXTOSRCDIR}${RKINTEGRATORSDIR} ${DOXTOSRCDIR}${RKROOTFINDERSDIR}")
 add_doxygen_target(ReaKallcore)
 
 configure_doxyfile(ReaKcore 
@@ -34,7 +36,7 @@ add_doxygen_target(ReaKcore)
 configure_doxyfile(ReaKmath 
                    "\"ReaK Library - Math libraries\"" 
                    "\"An advanced numerical analysis tool-set for linear algebra, matrix numerical methods, kinetostatics, and numerical integration.\"" 
-                   "${DOXTOSRCDIR}${RKBASEDIR} ${DOXTOSRCDIR}${RKLINALGDIR} ${DOXTOSRCDIR}${RKKINETOSTATICSDIR} ${DOXTOSRCDIR}${RKINTEGRATORSDIR}")
+                   "${DOXTOSRCDIR}${RKBASEDIR} ${DOXTOSRCDIR}${RKLINALGDIR} ${DOXTOSRCDIR}${RKKINETOSTATICSDIR} ${DOXTOSRCDIR}${RKINTEGRATORSDIR} ${DOXTOSRCDIR}${RKROOTFINDERSDIR}")
 add_doxygen_target(ReaKmath)
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
