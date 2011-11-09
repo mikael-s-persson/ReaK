@@ -69,64 +69,95 @@ namespace detail {
   typename boost::enable_if< 
     boost::mpl::less< 
       Idx, 
-      boost::mpl::size_t<1> 
+      boost::mpl::size_t<2> 
     >,
-  void >::type linear_interpolate_HOT_impl(PointType& result, const PointDiff1& dv1v0, const PointDiff1& d_ldp1p0_v0,
-                                                  const DiffSpace& space, const TimeSpace& t_space,
-				 	          double t_factor, double t_normal) {
+  void >::type svp_interpolate_HOT_impl(PointType& result, const PointDiff1& delta_second_order,
+                                        const DiffSpace& space, const TimeSpace& t_space,
+				 	double t_factor) {
     /* nothing to do. */
   };
   
-  template <typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace>
+  template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
   inline 
   typename boost::enable_if< 
     boost::mpl::equal_to< 
       Idx, 
-      boost::mpl::size_t<1> 
+      boost::mpl::size_t<2> 
     >,
-  void >::type linear_interpolate_HOT_impl(PointType& result, const PointDiff0& dp1p0,
-                                           const DiffSpace& space, const TimeSpace& t_space,
-				 	   double t_factor, double t_normal) {
+  void >::type svp_interpolate_HOT_impl(PointType& result, const PointDiff1& delta_second_order,
+                                        const DiffSpace& space, const TimeSpace& t_space,
+					double t_factor) {
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
     using boost::tuples::get;
 #endif
-    get<1>(result) = lift_to_space<1>(dp1p0, t_factor, space, t_space);
+    get<2>(result) = lift_to_space<2>(delta_second_order, t_factor, space, t_space);
   };
   
-  template <typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace>
+  template <typename Idx, typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
   inline 
   typename boost::enable_if< 
     boost::mpl::less< 
       Idx, 
-      boost::mpl::size_t<2> 
+      boost::mpl::size_t<3> 
     >,
-  void >::type linear_interpolate_impl(PointType& result, const PointType& a, const PointDiff0& dp1p0,
-                                       const DiffSpace& space, const TimeSpace& t_space,
-				       double t_factor, double t_normal) {
+  void >::type svp_interpolate_impl(PointType& result, const PointType& start_point, const PointType& end_point, 
+				    const PointDiff0& delta_first_order, const PointType1& peak_velocity,
+                                    const DiffSpace& space, const TimeSpace& t_space,
+				    double dt, double dt_total) {
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
     using boost::tuples::get;
 #endif
     
-    get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(a), t_normal * dp1p0);
-    
-    linear_interpolate_HOT_impl< Idx, PointType, PointDiff0, DiffSpace, TimeSpace >(result, dp1p0, space, t_space, t_factor, t_normal);
+    double dt1 = get_space<1>(space,t_space).distance(get<1>(start_point), peak_velocity);
+    double dt2 = get_space<1>(space,t_space).distance(peak_velocity, get<1>(end_point));
+    if(dt1 > dt) {
+      get<1>(result) = get_space<1>(space,t_space).adjust(get<1>(start_point),
+	(dt / dt1) * get_space<1>(space,t_space).difference(peak_velocity,get<1>(start_point)));
+      
+      get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(start_point), 
+        (0.5 * dt) * (descend_to_space<0>(get<1>(result),1.0,space,t_space)
+                      + descend_to_space<0>(get<1>(start_point),1.0,space,t_space)));
+      
+      if(Idx > 1)
+        svp_interpolate_HOT_impl<Idx>(result,get_space<1>(space,t_space).difference(peak_velocity,get<1>(start_point)),space,t_space,dt1);
+    } else if(dt_total - dt2 < dt) {
+      get<1>(result) = get_space<1>(space,t_space).adjust(get<1>(end_point),
+	((dt_total - dt) / dt2) * get_space<1>(space,t_space).difference(peak_velocity,get<1>(end_point)));
+      
+      get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(end_point), 
+        (-0.5 * (dt_total - dt)) * (descend_to_space<0>(get<1>(result),1.0,space,t_space)
+                                    + descend_to_space<0>(get<1>(end_point),1.0,space,t_space)));
+      
+      if(Idx > 1)
+        svp_interpolate_HOT_impl<Idx>(result,get_space<1>(space,t_space).difference(get<1>(end_point),peak_velocity),space,t_space,dt2);
+    } else {
+      get<1>(result) = peak_velocity;
+      
+      get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(start_point), 
+        descend_to_space<0>(get<1>(start_point),0.5 * dt1,space,t_space)
+	+ descend_to_space<0>(peak_velocity,dt - 0.5 * dt1,space,t_space));
+      
+      if(Idx > 1)
+        svp_interpolate_HOT_impl<Idx>(result,get_space<1>(space,t_space).difference(peak_velocity,peak_velocity),space,t_space,dt2);
+    };
     
   };
   
-  template <typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace>
+  template <typename Idx, typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
   inline 
   typename boost::enable_if< 
     boost::mpl::greater< 
       Idx, 
-      boost::mpl::size_t<1> 
+      boost::mpl::size_t<2> 
     >,
-  void >::type linear_interpolate_impl(PointType& result, const PointType& a, const PointDiff0 dp1p0, 
-				       const DiffSpace& space, const TimeSpace& t_space,
-				       double t_factor, double t_normal) {
+  void >::type svp_interpolate_impl(PointType& result, const PointType& a, 
+				    const PointDiff0 delta_first_order, const PointType1& peak_velocity, 
+				    const DiffSpace& space, const TimeSpace& t_space,
+				    double dt, double dt_total) {
 #ifdef RK_ENABLE_CXX0X_FEATURES
     using std::get;
 #else
@@ -172,6 +203,168 @@ namespace detail {
   };
   
   
+  template <typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
+  double svp_compute_min_delta_time(const PointType& start_point, const PointType& end_point,
+                                    PointDiff0& delta_first_order, PointType1& peak_velocity,
+				    double& norm_delta, double& beta,
+				    const DiffSpace& space, const TimeSpace& t_space,
+				    double num_tol = 1E-6, unsigned int max_iter = 20) {
+    
+    typedef typename derived_N_order_space< DiffSpace, TimeSpace, 0>::type Space0;
+    typedef typename derived_N_order_space< DiffSpace, TimeSpace, 1>::type Space1;
+    
+    const Space0& space_0 = get_space<0>(space,t_space);
+    const Space1& space_1 = get_space<1>(space,t_space);
+    double result = 0.0;
+    vect<double,5> coefs( space_1.distance( get<1>(start_point), space_1.origin() ),
+	                  0.0,
+		          space_1.distance( get<1>(end_point), space_1.origin() ),
+	                  0.0,
+		          space_1.get_radius());
+    for(unsigned int i = 0; i < max_iter; ++i) {
+      PointType1 prev_peak_velocity = peak_velocity;
+	  
+      peak_velocity = lift_to_space<1>(delta_first_order, norm_delta, space, t_space);
+      double temp = space_1.distance(get<1>(start_point), peak_velocity);
+      coefs[1] = (coefs[0] * coefs[0] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[0] * coefs[4]);
+      temp = space_1.distance(get<1>(end_point), peak_velocity);
+      coefs[3] = (coefs[2] * coefs[2] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[2] * coefs[4]);
+	  
+      if(svp_compute_derivative_travel_time(1.0,norm_delta,coefs) > 0.0) {
+        double upper = 1.0;
+        double lower = 0.5;
+        while(svp_compute_derivative_travel_time(lower,norm_delta,coefs) > 0.0) {
+          upper = lower;
+          lower *= 0.5;
+        };
+        bisection_method(lower, upper, boost::bind(svp_compute_derivative_travel_time,_1,boost::cref(norm_delta),boost::cref(coefs)), num_tol);
+        beta = upper;
+      } else {
+        beta = 1.0;
+      };
+  
+      result = svp_compute_travel_time(beta,norm_delta,coefs);
+      peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, space, t_space);
+  
+      PointDiff0 descended_peak_velocity = descend_to_space<0>(peak_velocity,1.0,space,t_space);
+      delta_first_order = space_0.difference(
+        space_0.adjust(get<0>(end_point), (-0.5 * space_1.distance(peak_velocity, get<1>(end_point))) * ( descended_peak_velocity
+                                                                                                          + descend_to_space<0>(get<1>(end_point),1.0,space,t_space) )),
+        space_0.adjust(get<0>(start_point), (0.5 * space_1.distance(peak_velocity, get<1>(start_point))) * (descended_peak_velocity
+                                                                                                            + descend_to_space<0>(get<1>(start_point),1.0,space,t_space) ))
+      );
+      norm_delta = space_0.norm(delta_first_order);
+      peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, space, t_space);
+  
+      if( space_1.distance(prev_peak_velocity, peak_velocity) < 1e-6 * space_1.get_radius() ) {
+        break;
+      };
+	  
+    };
+    return result;
+  };
+  
+  template <typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
+  void svp_compute_peak_velocity(const PointType& start_point, const PointType& end_point,
+                                 PointDiff0& delta_first_order, PointType1& peak_velocity,
+				 double& norm_delta, double& beta, double delta_time,
+				 const DiffSpace& space, const TimeSpace& t_space,
+				 double num_tol = 1E-6, unsigned int max_iter = 20) {
+        
+    typedef typename derived_N_order_space< DiffSpace, TimeSpace, 0>::type Space0;
+    typedef typename derived_N_order_space< DiffSpace, TimeSpace, 1>::type Space1;
+    
+    const Space0& space_0 = get_space<0>(space,t_space);
+    const Space1& space_1 = get_space<1>(space,t_space);
+    vect<double,5> coefs( space_1.distance( get<1>(start_point), space_1.origin() ),
+	                  0.0,
+		          space_1.distance( get<1>(end_point), space_1.origin() ),
+	                  0.0,
+		          space_1.get_radius());
+    for(unsigned int i = 0; i < max_iter; ++i) {
+      PointType1 prev_peak_velocity = peak_velocity;
+  
+      peak_velocity = lift_to_space<1>(delta_first_order, norm_delta, space, t_space);
+      double temp = space_1.distance(get<1>(start_point), peak_velocity);
+      coefs[1] = (coefs[0] * coefs[0] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[0] * coefs[4]);
+      temp = space_1.distance(get<1>(end_point), peak_velocity);
+      coefs[3] = (coefs[2] * coefs[2] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[2] * coefs[4]);
+      double beta_peak1 = coefs[0] * coefs[1] / (coefs[4] * coefs[4]);
+      double beta_peak2 = coefs[2] * coefs[3] / (coefs[4] * coefs[4]);
+      if(beta_peak1 > beta_peak2)
+        std::swap(beta_peak1, beta_peak2);
+      if(beta_peak2 > 1.0)
+        beta_peak2 = 1.0;
+      if((beta_peak1 > 0.0) && (svp_compute_slack_time(beta_peak1,delta_time,norm_delta,coefs) > 0.0)) {
+        //there must be a root between peak1 and 0.
+        double beta_low = 0.0;
+        double beta_temp = beta_peak1;
+        bisection_method(beta_low, beta_peak1, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), num_tol);
+        
+        if(detail::svp_compute_slack_time(beta_peak2,delta_time,norm_delta,coefs) < 0.0) {
+          //there must be a root between peak1 and peak2.
+          bisection_method(beta_temp, beta_peak2, boost::bind(svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), num_tol);
+        } else if(svp_compute_slack_time(1.0,delta_time,norm_delta,coefs) < 0.0) {
+          //there must be a root between peak2 and 1.0.
+          beta_temp = beta_peak2;
+          beta_peak2 = 1.0;
+          bisection_method(beta_temp, beta_peak2, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), num_tol);
+        } else {
+          beta_peak2 = 5.0;
+        };
+        
+      } else {
+        double beta_low = 0.0;
+        if(beta_peak1 > 0.0) {
+          beta_low = beta_peak1;
+        };
+        if((beta_peak2 > 0.0) && (detail::svp_compute_slack_time(beta_peak2,delta_time,norm_delta,coefs) > 0.0)) {
+          //there must be a root between beta_low and beta_peak2.
+          beta_peak1 = beta_peak2;
+          bisection_method(beta_low, beta_peak1, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), num_tol);
+          if(detail::svp_compute_slack_time(1.0,delta_time,norm_delta,coefs) < 0.0) {
+            //there must be a root between beta_peak2 and 1.0.
+	    beta_low = beta_peak2;
+	    beta_peak2 = 1.0;
+	    bisection_method(beta_low,beta_peak2, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), num_tol);
+          } else {
+	    beta_peak2 = 5.0;
+          };
+        } else {
+          if(beta_peak2 > beta_low)
+	    beta_low = beta_peak2;
+	    beta_peak1 = 1.0;
+          if(detail::svp_compute_slack_time(1.0,delta_time,norm_delta,coefs) > 0.0) {
+	    //there must be a root between beta_peak2 and 1.0.
+	    bisection_method(beta_low, beta_peak1, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), num_tol);
+	  };
+          beta_peak2 = 5.0;
+        };
+      };
+      
+      if( std::fabs(beta - beta_peak1) < std::fabs(beta - beta_peak2) ) {
+        beta = beta_peak1;
+      } else {
+        beta = beta_peak2;
+      };
+      
+      peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, space, t_space);
+      
+      PointDiff0 descended_peak_velocity = descend_to_space<0>(peak_velocity,1.0,space,t_space);
+      delta_first_order = space_0.difference(
+        space_0.adjust(get<0>(end_point), (-0.5 * space_1.distance(peak_velocity, get<1>(end_point))) * ( descended_peak_velocity
+                                                                                                          + descend_to_space<0>(get<1>(end_point),1.0,space,t_space) )),
+        space_0.adjust(get<0>(start_point), (0.5 * space_1.distance(peak_velocity, get<1>(start_point))) * (descended_peak_velocity
+                                                                                                            + descend_to_space<0>(get<1>(start_point),1.0,space,t_space) ))
+      );
+      norm_delta = space_0.norm(delta_first_order);
+      peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, space, t_space);
+      
+      if( space_1.distance(prev_peak_velocity, peak_velocity) < 1e-6 * space_1.get_radius() ) {
+        break;
+      };
+    };
+  };
   
 };
 
@@ -248,144 +441,29 @@ class svp_interpolator {
     
     void update_delta_value() {
       if(parent && start_point && end_point) {
-	const Space0& space_0 = get_space<0>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology());
-        const Space1& space_1 = get_space<1>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology());
-        delta_first_order = space_0.difference( get<0>(end_point->pt), get<0>(start_point->pt) );
+	delta_first_order = get_space<1>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).difference( get<0>(end_point->pt), get<0>(start_point->pt) );
 	double norm_delta = space_0.norm( delta_first_order );
 	double beta = 1.0;
 	peak_velocity = lift_to_space<1>(delta_first_order, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
-	vect<double,5> coefs( space_1.distance( get<1>(start_point->pt), space_1.origin() ),
-	                      0.0,
-		              space_1.distance( get<1>(end_point->pt), space_1.origin() ),
-	                      0.0,
-		              space_1.get_radius());
-	for(unsigned int i = 0; i < 20; ++i) {
-	  PointType1 prev_peak_velocity = peak_velocity;
-	  
-	  peak_velocity = lift_to_space<1>(delta_first_order, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
-	  double temp = space_1.distance(get<1>(start_point->pt), peak_velocity);
-	  coefs[1] = (coefs[0] * coefs[0] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[0] * coefs[4]);
-	  temp = space_1.distance(get<1>(end_point->pt), peak_velocity);
-	  coefs[3] = (coefs[2] * coefs[2] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[2] * coefs[4]);
-	  
-	  if(detail::svp_compute_derivative_travel_time(1.0,norm_delta,coefs) > 0.0) {
-	    double upper = 1.0;
-	    double lower = 0.5;
-	    while(detail::svp_compute_derivative_travel_time(lower,norm_delta,coefs) > 0.0) {
-	      upper = lower;
-	      lower *= 0.5;
-	    };
-	    bisection_method(lower, upper, boost::bind(detail::svp_compute_derivative_travel_time,_1,boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
-	    beta = upper;
-	  } else {
-	    beta = 1.0;
-	  };
-	  
-	  min_delta_time = detail::svp_compute_travel_time(beta,norm_delta,coefs);
-	  peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
-	  
-	  PointDiff0 descended_peak_velocity = descend_to_space<0>(peak_velocity,1.0,parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology());
-	  delta_first_order = space_0.difference(
-	    space_0.adjust(get<0>(end_point->pt), (-0.5 * space_1.distance(peak_velocity, get<1>(end_point->pt))) * ( descended_peak_velocity
-	                                                                                                             + descend_to_space<0>(get<1>(end_point->pt),1.0,parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()) )),
-	    space_0.adjust(get<0>(start_point->pt), (0.5 * space_1.distance(peak_velocity, get<1>(start_point->pt))) * (descended_peak_velocity
-	                                                                                                                + descend_to_space<0>(get<1>(start_point->pt),1.0,parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()) ))
-	  );
-	  norm_delta = space_0.norm(delta_first_order);
-	  peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
-	  
-	  if( space_1.distance(prev_peak_velocity, peak_velocity) < 1e-6 * space_1.get_radius() ) {
-	    break;
-	  };
-	  
-	};
+	
+	min_delta_time = detail::svp_compute_min_delta_time(start_point->pt, end_point->pt, 
+	                                                    delta_first_order, peak_velocity,
+						            norm_delta, beta,
+						            parent->get_temporal_space()->get_space_topology(),
+							    parent->get_temporal_space()->get_time_topology(),
+							    1e-6, 20);
 	best_peak_velocity = peak_velocity;
-	double delta_time = start_point->time - end_point->time;
+	
+	double delta_time = end_point->time - start_point->time;
 	if(min_delta_time > delta_time)
 	  return;
-	for(unsigned int i = 0; i < 20; ++i) {
-	  PointType1 prev_peak_velocity = peak_velocity;
-	  
-	  peak_velocity = lift_to_space<1>(delta_first_order, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
-	  double temp = space_1.distance(get<1>(start_point->pt), peak_velocity);
-	  coefs[1] = (coefs[0] * coefs[0] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[0] * coefs[4]);
-	  temp = space_1.distance(get<1>(end_point->pt), peak_velocity);
-	  coefs[3] = (coefs[2] * coefs[2] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[2] * coefs[4]);
-	  double beta_peak1 = coefs[0] * coefs[1] / (coefs[4] * coefs[4]);
-	  double beta_peak2 = coefs[2] * coefs[3] / (coefs[4] * coefs[4]);
-	  if(beta_peak1 > beta_peak2)
-	    std::swap(beta_peak1, beta_peak2);
-	  if(beta_peak2 > 1.0)
-	    beta_peak2 = 1.0;
-	  if((beta_peak1 > 0.0) && (detail::svp_compute_slack_time(beta_peak1,delta_time,norm_delta,coefs) > 0.0)) {
-	    //there must be a root between peak1 and 0.
-	    double beta_low = 0.0;
-	    double beta_temp = beta_peak1;
-	    bisection_method(beta_low, beta_peak1, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
-	    
-	    if(detail::svp_compute_slack_time(beta_peak2,delta_time,norm_delta,coefs) < 0.0) {
-	      //there must be a root between peak1 and peak2.
-	      bisection_method(beta_temp, beta_peak2, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
-	    } else if(detail::svp_compute_slack_time(1.0,delta_time,norm_delta,coefs) < 0.0) {
-	      //there must be a root between peak2 and 1.0.
-	      beta_temp = beta_peak2;
-	      beta_peak2 = 1.0;
-	      bisection_method(beta_temp, beta_peak2, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
-	    } else {
-	      beta_peak2 = 5.0;
-	    };
-	    
-	  } else {
-	    double beta_low = 0.0;
-	    if(beta_peak1 > 0.0) {
-	      beta_low = beta_peak1;
-	    };
-	    if((beta_peak2 > 0.0) && (detail::svp_compute_slack_time(beta_peak2,delta_time,norm_delta,coefs) > 0.0)) {
-	      //there must be a root between beta_low and beta_peak2.
-	      beta_peak1 = beta_peak2;
-	      bisection_method(beta_low, beta_peak1, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
-	      if(detail::svp_compute_slack_time(1.0,delta_time,norm_delta,coefs) < 0.0) {
-		//there must be a root between beta_peak2 and 1.0.
-		beta_low = beta_peak2;
-		beta_peak2 = 1.0;
-		bisection_method(beta_low,beta_peak2, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
-	      } else {
-		beta_peak2 = 5.0;
-	      };
-	    } else {
-	      if(beta_peak2 > beta_low)
-		beta_low = beta_peak2;
-	      beta_peak1 = 1.0;
-	      if(detail::svp_compute_slack_time(1.0,delta_time,norm_delta,coefs) > 0.0) {
-		//there must be a root between beta_peak2 and 1.0.
-		bisection_method(beta_low, beta_peak1, boost::bind(detail::svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(norm_delta),boost::cref(coefs)), 1e-6);
-	      };
-	      beta_peak2 = 5.0;
-	    };
-	  };
-	  
-	  if( std::fabs(beta - beta_peak1) < std::fabs(beta - beta_peak2) ) {
-	    beta = beta_peak1;
-	  } else {
-	    beta = beta_peak2;
-	  };
-	  
-	  peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
-	  
-	  PointDiff0 descended_peak_velocity = descend_to_space<0>(peak_velocity,1.0,parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology());
-	  delta_first_order = space_0.difference(
-	    space_0.adjust(get<0>(end_point->pt), (-0.5 * space_1.distance(peak_velocity, get<1>(end_point->pt))) * ( descended_peak_velocity
-	                                                                                                             + descend_to_space<0>(get<1>(end_point->pt),1.0,parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()) )),
-	    space_0.adjust(get<0>(start_point->pt), (0.5 * space_1.distance(peak_velocity, get<1>(start_point->pt))) * (descended_peak_velocity
-	                                                                                                                + descend_to_space<0>(get<1>(start_point->pt),1.0,parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()) ))
-	  );
-	  norm_delta = space_0.norm(delta_first_order);
-	  peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology());
-	  
-	  if( space_1.distance(prev_peak_velocity, peak_velocity) < 1e-6 * space_1.get_radius() ) {
-	    break;
-	  };
-	};
+	
+	detail::svp_compute_peak_velocity(start_point->pt, end_point->pt, 
+	                                  delta_first_order, peak_velocity,
+					  norm_delta, beta, delta_time,
+					  parent->get_temporal_space()->get_space_topology(),
+					  parent->get_temporal_space()->get_time_topology(),
+					  1e-6, 20);
 	
       };
     };
@@ -431,17 +509,49 @@ class svp_interpolator {
     point_type get_point_at_time(double t) const {
       if(!parent || !start_point || !end_point)
 	return point_type();
-      double t_factor = end_point->time - start_point->time;
-      if(std::fabs(t_factor) < std::numeric_limits<double>::epsilon())
-        throw singularity_error("Normalizing factor in linear interpolation is zero!");
-      double t_normal = (t - start_point->time) / t_factor;
+      if(t <= start_point->time)
+	return *start_point;
+      if(t >= end_point->time)
+	return *end_point;
+      double dt_total = end_point->time - start_point->time;
+      double dt = t - start_point->time;
+      
+      const Space0& space_0 = get_space<0>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology());
+      const Space1& space_1 = get_space<1>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology());
+      
+      double dt1 = space_1.distance(peak_velocity, get<1>(start_point));
+      if(dt1 > dt) {
+	
+      };
+      PointDiff0 descended_peak_velocity = descend_to_space<0>(peak_velocity,1.0,space,t_space);
+      
+      delta_first_order = space_0.difference(
+        space_0.adjust(get<0>(end_point), (-0.5 * space_1.distance(peak_velocity, get<1>(end_point))) * ( descended_peak_velocity
+                                                                                                          + descend_to_space<0>(get<1>(end_point),1.0,space,t_space) )),
+        space_0.adjust(get<0>(start_point), (0.5 * space_1.distance(peak_velocity, get<1>(start_point))) * (descended_peak_velocity
+                                                                                                            + descend_to_space<0>(get<1>(start_point),1.0,space,t_space) ))
+      );
       
       point_type result;
       result.time = t;
       
-      detail::linear_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< typename temporal_topology_traits<topology>::space_topology >::order> >(result.pt, start_point->pt, delta_first_order, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology(), t_factor, t_normal);
+      detail::svp_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< typename temporal_topology_traits<topology>::space_topology >::order> >(result.pt, start_point->pt, end_point->pt, delta_first_order, peak_velocity, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology(), dt, dt_total);
   
       return result;   
+    };
+    
+    double get_minimum_travel_time() const {
+      if(parent && start_point && end_point)
+	return min_delta_time;
+      else 
+	return std::numeric_limits<double>::infinity();
+    };
+    
+    bool is_segment_feasible() const {
+      if(parent && start_point && end_point)
+        return (min_delta_time < end_point->time - start_point->time);
+      else
+	return false;
     };
     
 };
