@@ -264,8 +264,10 @@ reach_time_differentiation  0xC2420001   bin: 1100 0010 0100 0010 0000 0000 0000
 
 //Interpolator Factories:   0xC243****
 linear_interpolator_factory 0xC2430001   bin: 1100 0010 0100 0011 0000 0000 0000 0001  D-R
-cubic_hermite_interp_factory 0xC2430002  bin: 1100 0010 0100 0011 0000 0000 0000 0010  
-quintic_hermite_interp_factory 0xC2430003 bin:1100 0010 0100 0011 0000 0000 0000 0011  
+cubic_hermite_interp_factory 0xC2430002  bin: 1100 0010 0100 0011 0000 0000 0000 0010  D-R
+quintic_hermite_interp_factory 0xC2430003 bin:1100 0010 0100 0011 0000 0000 0000 0011  D-R
+svp_interpolator_factory    0xC2430004   bin: 1100 0010 0100 0011 0000 0000 0000 0100  D-R
+sap_interpolator_factory    0xC2430005   bin: 1100 0010 0100 0011 0000 0000 0000 0101  
 
 
 

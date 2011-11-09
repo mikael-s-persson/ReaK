@@ -292,7 +292,7 @@ class linear_interpolator_factory : public serialization::serializable {
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2420001,1,"linear_interpolator_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430001,1,"linear_interpolator_factory",serialization::serializable)
 };
 
 

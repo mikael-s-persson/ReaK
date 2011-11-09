@@ -71,7 +71,7 @@ struct BoundedSpaceConcept {
   {
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     pd = space.get_diff_to_boundary(p);
-    bool b = space.is_in_bounds(p);
+    bool b = space.is_in_bounds(p); RK_UNUSED(b);
   };
   
 };
@@ -100,7 +100,7 @@ struct SphereBoundedSpaceConcept {
   BOOST_CONCEPT_USAGE(SphereBoundedSpaceConcept) 
   {
     BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<Topology>));
-    d = space.get_radius();
+    d = space.get_radius(); RK_UNUSED(d);
   };
   
 };

@@ -61,7 +61,7 @@ struct metric_topology_traits {
   typedef typename Topology::point_difference_type point_difference_type;
   
   /** The dimensions of the space (0 if unknown at compile-time). */
-  BOOST_STATIC_CONSTANT(std::size_t, dimensions = point_type::dimensions);
+  BOOST_STATIC_CONSTANT(std::size_t, dimensions = Topology::dimensions);
   
 };
 

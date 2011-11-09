@@ -351,7 +351,7 @@ class cubic_hermite_interp_factory : public serialization::serializable {
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2420002,1,"cubic_hermite_interp_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430002,1,"cubic_hermite_interp_factory",serialization::serializable)
 };
 
 

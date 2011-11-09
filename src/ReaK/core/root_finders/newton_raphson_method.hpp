@@ -82,7 +82,7 @@ void newton_raphson_method(T& x, RootedFunction f, DerivativeFunction df, const 
     yp_value = df(x);
     
     if( ++i > max_iter )
-      throw maximum_iteration("Newton-Raphson method diverged, as detected by reaching the maximum iteration limit!");
+      throw maximum_iteration(max_iter);
     
   };
   

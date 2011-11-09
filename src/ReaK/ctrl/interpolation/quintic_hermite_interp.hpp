@@ -510,7 +510,7 @@ class quintic_hermite_interp_factory : public serialization::serializable {
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2420003,1,"quintic_hermite_interp_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430003,1,"quintic_hermite_interp_factory",serialization::serializable)
 };
 
 

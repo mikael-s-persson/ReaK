@@ -8,6 +8,7 @@ set(INTERPOLATION_HEADERS
   "${RKINTERPOLATIONDIR}/quintic_hermite_interp.hpp"
   "${RKINTERPOLATIONDIR}/interpolated_trajectory.hpp"
   "${RKINTERPOLATIONDIR}/waypoint_container.hpp"
+  "${RKINTERPOLATIONDIR}/sustained_velocity_pulse.hpp"
 )
 
 #add_library(reak_interpolation STATIC ${INTERPOLATION_SOURCES})
@@ -19,6 +20,10 @@ setup_custom_target(test_interp "${SRCROOT}${RKINTERPOLATIONDIR}")
 target_link_libraries(test_interp ${BOOST_THREAD_LIB})
 target_link_libraries(test_interp reak_core)
 
+add_executable(test_lim_interp "${SRCROOT}${RKINTERPOLATIONDIR}/test_lim_interp.cpp")
+setup_custom_target(test_lim_interp "${SRCROOT}${RKINTERPOLATIONDIR}")
+target_link_libraries(test_lim_interp ${BOOST_THREAD_LIB})
+target_link_libraries(test_lim_interp reak_core)
 
 
 

@@ -65,17 +65,17 @@ T secant_method(const T& low_bound, const T& hi_bound, RootedFunction f, const T
   T x0_value = f(x0);
   T x1_value = f(x1);
   
-  if( x0_value * x1_value > 0.0 )
-    return (fabs(x0_value) < fabs(x1_value) ? x0 : x1);
+//   if( x0_value * x1_value > 0.0 )
+//     return (fabs(x0_value) < fabs(x1_value) ? x0 : x1);
   
   while((fabs(x0 - x1) > tol) && (fabs(x0_value - x1_value) > tol)) {
     
     T x2 = x1 - x1_value * (x1 - x0) / (x1_value - x0_value);
     
-    if(x2 > hi_bound)
-      return hi_bound;
-    if(x2 < low_bound)
-      return low_bound;
+//     if(x2 > hi_bound)
+//       return hi_bound;
+//     if(x2 < low_bound)
+//       return low_bound;
     
     x0 = x1; x0_value = x1_value;
     x1 = x2; x1_value = f(x1);
