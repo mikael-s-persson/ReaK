@@ -1,9 +1,9 @@
 /**
- * \file sustained_velocity_pulse.hpp
+ * \file sustained_acceleration_pulse.hpp
  * 
  * This library provides an implementation of a trajectory within a temporal topology.
  * The path is represented by a set of waypoints and all intermediate points 
- * are computed with a rate-limited sustained velocity pulse (SVP) interpolation.
+ * are computed with a rate-limited sustained acceleration pulse (SAP) interpolation.
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date November 2011
@@ -31,8 +31,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_SUSTAINED_VELOCITY_PULSE_HPP
-#define REAK_SUSTAINED_VELOCITY_PULSE_HPP
+#ifndef REAK_SUSTAINED_ACCELERATION_PULSE_HPP
+#define REAK_SUSTAINED_ACCELERATION_PULSE_HPP
 
 #include "path_planning/spatial_trajectory_concept.hpp"
 
@@ -60,10 +60,10 @@ namespace pp {
 
 
 /**
- * This function template computes a Sustained Velocity Pulse (SVP) interpolation between two points in a 
- * temporal and once-differentiable topology.
- * \tparam PointType The point type on the temporal and once-differentiable topology.
- * \tparam Topology The temporal and once-differentiable topology type.
+ * This function template computes a Sustained Acceleration Pulse (SAP) interpolation between two points in a 
+ * temporal and twice-differentiable topology.
+ * \tparam PointType The point type on the temporal and twice-differentiable topology.
+ * \tparam Topology The temporal and twice-differentiable topology type.
  * \param a The starting point of the interpolation.
  * \param b The ending point of the interpolation.
  * \param t The time value at which the interpolated point is sought.
@@ -71,12 +71,13 @@ namespace pp {
  * \return The interpolated point at time t, between a and b.
  */
 template <typename PointType, typename Topology>
-PointType svp_interpolate(const PointType& a, const PointType& b, double t, const Topology& space) {
+PointType sap_interpolate(const PointType& a, const PointType& b, double t, const Topology& space) {
   BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
   typedef typename temporal_topology_traits<Topology>::space_topology SpaceType;
   typedef typename temporal_topology_traits<Topology>::time_topology TimeSpaceType;
-  BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< SpaceType, 1, TimeSpaceType>));
+  BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< SpaceType, 2, TimeSpaceType>));
   BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< typename derived_N_order_space<SpaceType, TimeSpaceType, 1>::type >));
+  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< typename derived_N_order_space<SpaceType, TimeSpaceType, 2>::type >));
   
   typedef typename derived_N_order_space< SpaceType, TimeSpaceType,0>::type Space0;
   typedef typename metric_topology_traits<Space0>::point_type PointType0;
@@ -85,7 +86,11 @@ PointType svp_interpolate(const PointType& a, const PointType& b, double t, cons
   typedef typename derived_N_order_space< SpaceType, TimeSpaceType,1>::type Space1;
   typedef typename metric_topology_traits<Space1>::point_type PointType1;
   typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
-  
+
+  typedef typename derived_N_order_space< SpaceType, TimeSpaceType,2>::type Space2;
+  typedef typename metric_topology_traits<Space2>::point_type PointType2;
+  typedef typename metric_topology_traits<Space2>::point_difference_type PointDiff2;
+
   PointDiff0 delta_first_order = get_space<0>(space.get_space_topology(),space.get_time_topology()).difference( get<0>(b.pt), get<0>(a.pt) );
   double norm_delta = get_space<0>(space.get_space_topology(),space.get_time_topology()).norm( delta_first_order );
   double beta = 1.0;
@@ -157,8 +162,8 @@ class svp_interpolator {
   
     typedef typename derived_N_order_space< typename temporal_topology_traits<topology>::space_topology,
                                             typename temporal_topology_traits<topology>::time_topology,1>::type Space1;
-    typedef typename metric_topology_traits<Space1>::point_type PointType1;
-    typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
+    typedef typename metric_topology_traits<Space0>::point_type PointType1;
+    typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff1;
   
   private:
     const Factory* parent;
