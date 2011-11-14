@@ -301,51 +301,26 @@ namespace detail {
       typedef typename point_difference_type_tuple< SpaceTuple >::type point_difference_type;
       
       static void random_point(const SpaceTuple& s, point_type& p) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
 	metric_space_tuple_impl<Order-1,SpaceTuple>::random_point(s,p);
 	get<Order>(p) = get<Order>(s).random_point();
       };
       
       static void difference(const SpaceTuple& s, point_difference_type& dp, const point_type& p1, const point_type& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
 	metric_space_tuple_impl<Order-1,SpaceTuple>::difference(s,dp,p1,p2);
 	get<Order>(dp) = get<Order>(s).difference(get<Order>(p1),get<Order>(p2));
       };
       
       static void move_position_toward(const SpaceTuple& s, point_type& pr, const point_type& p1, double d, const point_type& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
 	metric_space_tuple_impl<Order-1,SpaceTuple>::move_position_toward(s,pr,p1,d,p2);
 	get<Order>(pr) = get<Order>(s).move_position_toward(get<Order>(p1),d,get<Order>(p2));
       };
       
       static void origin(const SpaceTuple& s, point_type& p) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
 	metric_space_tuple_impl<Order-1,SpaceTuple>::origin(s,p);
 	get<Order>(p) = get<Order>(s).origin();
       };
       
       static void adjust(const SpaceTuple& s, point_type& pr, const point_type& p, const point_difference_type& dp) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
 	metric_space_tuple_impl<Order-1,SpaceTuple>::adjust(s,pr,p,dp);
 	get<Order>(pr) = get<Order>(s).adjust(get<Order>(p),get<Order>(dp));
       };
@@ -358,47 +333,22 @@ namespace detail {
       typedef typename point_difference_type_tuple< SpaceTuple >::type point_difference_type;
       
       static void random_point(const SpaceTuple& s, point_type& p) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
 	get<0>(p) = get<0>(s).random_point();
       };
       
       static void difference(const SpaceTuple& s, point_difference_type& dp, const point_type& p1, const point_type& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
 	get<0>(dp) = get<0>(s).difference(get<0>(p1),get<0>(p2));
       };
       
       static void move_position_toward(const SpaceTuple& s, point_type& pr, const point_type& p1, double d, const point_type& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
 	get<0>(pr) = get<0>(s).move_position_toward(get<0>(p1),d,get<0>(p2));
       };
       
       static void origin(const SpaceTuple& s, point_type& p) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
 	get<0>(p) = get<0>(s).origin();
       };
       
       static void adjust(const SpaceTuple& s, point_type& pr, const point_type& p, const point_difference_type& dp) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        using std::get;
-#else
-        using boost::tuples::get;
-#endif
 	get<0>(pr) = get<0>(s).adjust(get<0>(p),get<0>(dp));
       };
   };
@@ -510,12 +460,7 @@ class metric_space_tuple : public serialization::serializable {
      * \tparam Idx The index of the space.
      */
     template <int Idx>
-    const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space() const {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
+    const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space_impl() const {
       return get<Idx>(m_spaces);
     };
     
@@ -524,12 +469,7 @@ class metric_space_tuple : public serialization::serializable {
      * \tparam Idx The index of the space.
      */
     template <int Idx>
-    typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space() {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
+    typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space_impl() {
       return get<Idx>(m_spaces);
     };
     
@@ -538,12 +478,7 @@ class metric_space_tuple : public serialization::serializable {
      * \tparam Idx The index of the space.
      */
     template <int Idx>
-    const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get() const {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
+    const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_impl() const {
       return get<Idx>(m_spaces);
     };
     
@@ -552,12 +487,7 @@ class metric_space_tuple : public serialization::serializable {
      * \tparam Idx The index of the space.
      */
     template <int Idx>
-    typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get() {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
+    typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_impl() {
       return get<Idx>(m_spaces);
     };
     
@@ -579,14 +509,13 @@ class metric_space_tuple : public serialization::serializable {
 
 };
 
-
 /**
  * This function returns the space at a given index.
  * \tparam Idx The index of the space.
  */
 template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
 const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(const metric_space_tuple<SpaceTuple,TupleDistanceMetric>& s) {
-  return s.template get_space<Idx>();
+  return s.template get_space_impl<Idx>();
 };
     
 /**
@@ -595,7 +524,7 @@ const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(const 
  */
 template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
 typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(metric_space_tuple<SpaceTuple,TupleDistanceMetric>& s) {
-  return s.template get_space<Idx>();
+  return s.template get_space_impl<Idx>();
 };
     
 /**
@@ -604,7 +533,7 @@ typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(metric_space
  */
 template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
 const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get(const metric_space_tuple<SpaceTuple,TupleDistanceMetric>& s) {
-  return s.template get<Idx>();
+  return s.template get_impl<Idx>();
 };
     
 /**
@@ -613,9 +542,8 @@ const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get(const metric
  */
 template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
 typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get(metric_space_tuple<SpaceTuple,TupleDistanceMetric>& s) {
-  return s.template get<Idx>();
+  return s.template get_impl<Idx>();
 };
-    
 
 
 

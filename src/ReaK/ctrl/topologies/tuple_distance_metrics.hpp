@@ -49,11 +49,6 @@ namespace detail {
   struct manhattan_tuple_distance_impl {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       double result = manhattan_tuple_distance_impl<Idx-1,SpaceTuple>::distance(s,p1,p2);
       using std::fabs;
       result += fabs(get<Idx>(s).distance(get<Idx>(p1),get<Idx>(p2)));
@@ -62,11 +57,6 @@ namespace detail {
       
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       double result = manhattan_tuple_distance_impl<Idx-1,SpaceTuple>::norm(s,dp);
       using std::fabs;
       result += fabs(get<Idx>(s).norm(get<Idx>(dp)));
@@ -78,22 +68,12 @@ namespace detail {
   struct manhattan_tuple_distance_impl<0,SpaceTuple> {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       using std::fabs;
       return fabs(get<0>(s).distance(get<0>(p1),get<0>(p2)));
     };
       
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       using std::fabs;
       return fabs(get<0>(s).norm(get<0>(dp)));
     };
@@ -104,11 +84,6 @@ namespace detail {
   struct euclidean_tuple_distance_impl {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       double result = euclidean_tuple_distance_impl<Idx-1,SpaceTuple>::distance(s,p1,p2);
       double r = get<Idx>(s).distance(get<Idx>(p1),get<Idx>(p2));
       result += r * r;
@@ -117,11 +92,6 @@ namespace detail {
       
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       double result = euclidean_tuple_distance_impl<Idx-1,SpaceTuple>::norm(s,dp);
       double r = get<Idx>(s).norm(get<Idx>(dp));
       result += r * r;
@@ -133,22 +103,12 @@ namespace detail {
   struct euclidean_tuple_distance_impl<0,SpaceTuple> {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       double r = get<0>(s).distance(get<0>(p1),get<0>(p2));
       return r * r;
     };
       
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       double r = get<0>(s).norm(get<0>(dp));
       return r * r;
     };
@@ -159,11 +119,6 @@ namespace detail {
   struct p_norm_tuple_distance_impl {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2, int p_value) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       double result = p_norm_tuple_distance_impl<Idx-1,SpaceTuple>::distance(s,p1,p2,p_value);
       double r = get<Idx>(s).distance(get<Idx>(p1),get<Idx>(p2));
       using std::pow;
@@ -173,11 +128,6 @@ namespace detail {
       
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp, int p_value) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       double result = p_norm_tuple_distance_impl<Idx-1,SpaceTuple>::norm(s,dp,p_value);
       double r = get<Idx>(s).norm(get<Idx>(dp));
       using std::pow;
@@ -190,11 +140,6 @@ namespace detail {
   struct p_norm_tuple_distance_impl<0,SpaceTuple> {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2, int p_value) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       double r = get<0>(s).distance(get<0>(p1),get<0>(p2));
       using std::pow;
       return pow(r,p_value);
@@ -202,11 +147,6 @@ namespace detail {
       
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp, int p_value) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       double r = get<0>(s).norm(get<0>(dp));
       using std::pow;
       return pow(r,p_value);
@@ -218,11 +158,6 @@ namespace detail {
   struct inf_norm_tuple_distance_impl {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       double result = inf_norm_tuple_distance_impl<Idx-1,SpaceTuple>::distance(s,p1,p2);
       using std::fabs;
       double r = fabs(get<Idx>(s).distance(get<Idx>(p1),get<Idx>(p2)));
@@ -234,11 +169,6 @@ namespace detail {
       
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       double result = inf_norm_tuple_distance_impl<Idx-1,SpaceTuple>::norm(s,dp);
       using std::fabs;
       double r = fabs(get<Idx>(s).norm(get<Idx>(dp)));
@@ -253,11 +183,6 @@ namespace detail {
   struct inf_norm_tuple_distance_impl<0,SpaceTuple> {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       using std::fabs;
       double r = fabs(get<0>(s).distance(get<0>(p1),get<0>(p2)));
       return r;
@@ -265,11 +190,6 @@ namespace detail {
       
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       using std::fabs;
       double r = fabs(get<0>(s).norm(get<0>(dp)));
       return r;

@@ -87,11 +87,6 @@ namespace detail {
 						    const PointDiff2& da_term1, const PointDiff2& da_term2, 
                                                     const DiffSpace& space, const TimeSpace& t_space,
 					            double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
         
    // lift( 
     get<3>(result) = lift_to_space<3>(
@@ -114,11 +109,6 @@ namespace detail {
 						    const PointDiff2& da_term1, const PointDiff2& da_term2, 
                                                     const DiffSpace& space, const TimeSpace& t_space,
 					            double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     quintic_hermite_interpolate_HOT_impl< boost::mpl::size_t<3>, PointType, PointDiff2, DiffSpace, TimeSpace >(result,da1a0,da_term1,da_term2,space,t_space,t_factor,t_normal);
       
    // lift( diff(
@@ -143,11 +133,6 @@ namespace detail {
 						    const PointDiff2& da_term1, const PointDiff2& da_term2, 
                                                     const DiffSpace& space, const TimeSpace& t_space,
 					            double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     quintic_hermite_interpolate_HOT_impl< boost::mpl::size_t<4>, PointType, PointDiff2, DiffSpace, TimeSpace >(result,da1a0,da_term1,da_term2,space,t_space,t_factor,t_normal);
     
    // lift( diff(
@@ -179,11 +164,6 @@ namespace detail {
 						const PointDiff2& da1a0, const PointDiff2& da_term1, const PointDiff2& da_term2,
                                                 const DiffSpace& space, const TimeSpace& t_space,
 					        double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     /*
     typedef typename derived_N_order_space<DiffSpace,TimeSpace,0>::type Space0;
     typedef typename derived_N_order_space<DiffSpace,TimeSpace,1>::type Space1;
@@ -270,11 +250,6 @@ namespace detail {
 						const PointDiff2& da1a0, const PointDiff2& da_term1, const PointDiff2& da_term2,
                                                 const DiffSpace& space, const TimeSpace& t_space,
 					        double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     quintic_hermite_interpolate_impl< typename boost::mpl::prior<Idx>::type, PointType, PointDiff0, PointDiff1, PointDiff2, DiffSpace, TimeSpace >(result,a,b,dp1p0,dv1v0,d_ldp1p0_v0,d_v1_ldp1p0,i_a0,i_a1,da1a0,da_term1,da_term2,space,t_space,t_factor,t_normal);
     
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();

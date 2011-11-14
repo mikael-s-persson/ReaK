@@ -81,11 +81,6 @@ namespace detail {
   void >::type cubic_hermite_interpolate_HOT_impl(PointType& result, const PointDiff1& dv1v0, const PointDiff1& d_ldp1p0_v0,
                                                   const DiffSpace& space, const TimeSpace& t_space,
 				 	          double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     get<2>(result) = get_space<2>(space,t_space).adjust( 
       lift_to_space<2>(dv1v0, t_factor, space, t_space),
       (6.0 - 12.0 * t_normal) * get_space<2>(space,t_space).difference( lift_to_space<2>( d_ldp1p0_v0, t_factor, space, t_space), 
@@ -102,11 +97,6 @@ namespace detail {
   void >::type cubic_hermite_interpolate_HOT_impl(PointType& result, const PointDiff1& dv1v0, const PointDiff1& d_ldp1p0_v0,
                                                   const DiffSpace& space, const TimeSpace& t_space,
 				 	          double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     cubic_hermite_interpolate_HOT_impl< boost::mpl::size_t<2>, PointType, PointDiff1, DiffSpace, TimeSpace >(result,dv1v0,d_ldp1p0_v0,space,t_space,t_factor,t_normal);
     
     get<3>(result) = lift_to_space<3>(-12.0 * get_space<2>(space, t_space).difference( lift_to_space<2>( d_ldp1p0_v0, t_factor, space, t_space), 
@@ -126,11 +116,6 @@ namespace detail {
 					      const PointDiff0& dp1p0, const PointDiff1& dv1v0, const PointDiff1 d_ldp1p0_v0,
                                               const DiffSpace& space, const TimeSpace& t_space,
 					      double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
 
     double t2 = t_normal * t_normal;
     double t3 = t_normal * t2;
@@ -159,11 +144,6 @@ namespace detail {
 					      const PointDiff0& dp1p0, const PointDiff1& dv1v0, const PointDiff1 d_ldp1p0_v0,
                                               const DiffSpace& space, const TimeSpace& t_space,
 					      double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     cubic_hermite_interpolate_impl< typename boost::mpl::prior<Idx>::type, PointType, DiffSpace, TimeSpace >(result,a,b,dp1p0,dv1v0,d_ldp1p0_v0,space,t_space,t_factor,t_normal);
     
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();

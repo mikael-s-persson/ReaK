@@ -76,13 +76,131 @@ namespace detail {
   void >::type svp_interpolate_HOT_impl(PointType& result, const PointDiff1& delta_second_order,
                                         const DiffSpace& space, const TimeSpace& t_space,
 					double t_factor) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     get<2>(result) = lift_to_space<2>(delta_second_order, t_factor, space, t_space);
   };
+  
+  
+  
+  
+  
+  template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
+  inline
+  typename boost::enable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<2>
+    >,
+  void >::type svp_constant_accel_motion_HOT_impl(PointType&, const PointDiff1&, 
+                                                  const DiffSpace&, const TimeSpace&) {
+    /* Nothing to do. */ 
+  };
+  
+  template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
+  inline
+  typename boost::enable_if<
+    boost::mpl::equal_to<
+      Idx,
+      boost::mpl::size_t<2>
+    >,
+  void >::type svp_constant_accel_motion_HOT_impl(PointType& result, const PointDiff1& descended_accel, 
+                                                  const DiffSpace& space, const TimeSpace& t_space) {
+    get<2>(result) = lift_to_space<2>(descended_accel,1.0,space,t_space);
+  };
+  
+  template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
+  inline
+  typename boost::enable_if<
+    boost::mpl::greater<
+      Idx,
+      boost::mpl::size_t<2>
+    >,
+  void >::type svp_constant_accel_motion_HOT_impl(PointType& result, const PointDiff1& descended_accel, 
+                                                  const DiffSpace& space, const TimeSpace& t_space) {
+    svp_constant_accel_motion_HOT_impl< typename boost::mpl::prior<Idx>::type >(result, descended_accel, space, t_space);
+    
+    get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
+  };
+  
+  template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
+  inline
+  void svp_constant_accel_motion_impl(PointType& result, const PointDiff1& descended_accel,
+                                      const DiffSpace& space, const TimeSpace& t_space, double dt) {
+    
+    get<0>(result) = 
+      get_space<0>(space,t_space).adjust( get<0>(result),
+        descend_to_space<0>( get_space<1>(space,t_space).adjust( get<1>(result), 
+          0.5 * dt * descended_accel), dt, space, t_space) );
+      
+    get<1>(result) = 
+      get_space<1>(space,t_space).adjust( get<1>(result), 
+        dt * descended_accel );
+
+    if(Idx::type::value > 1) 
+      svp_constant_accel_motion_HOT_impl<Idx>(result,descended_accel,space,t_space);
+    
+    return;
+  };
+  
+  
+  
+  template <typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace>
+  inline
+  typename boost::enable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type svp_constant_vel_motion_HOT_impl(PointType& result, const PointDiff0& descended_vel, 
+                                                const DiffSpace& space, const TimeSpace& t_space) {
+    /* Nothing to do. */ 
+  };
+  
+  template <typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace>
+  inline
+  typename boost::enable_if<
+    boost::mpl::equal_to<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type svp_constant_vel_motion_HOT_impl(PointType& result, const PointDiff0& descended_vel, 
+                                                const DiffSpace& space, const TimeSpace& t_space) {
+    get<1>(result) = lift_to_space<1>(descended_vel,1.0,space,t_space);
+  };
+  
+  template <typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace>
+  inline
+  typename boost::enable_if<
+    boost::mpl::greater<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type svp_constant_vel_motion_HOT_impl(PointType& result, const PointDiff0& descended_vel, 
+                                                const DiffSpace& space, const TimeSpace& t_space) {
+    svp_constant_vel_motion_HOT_impl< typename boost::mpl::prior<Idx>::type >(result, space, t_space);
+    
+    get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
+  };
+  
+  template <typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace>
+  inline
+  void svp_constant_vel_motion_impl(PointType& result, const PointDiff0& descended_vel,
+                                    const DiffSpace& space, const TimeSpace& t_space, double dt) {
+      
+    get<0>(result) = 
+      get_space<0>(space,t_space).adjust( get<0>(result), dt * descended_vel);
+      
+    if(Idx::type::value > 0) 
+      svp_constant_vel_motion_HOT_impl<Idx>(result,descended_vel,space,t_space);
+    
+    return;
+  };
+  
+  
+  
+  
+  
+  
+  
   
   template <typename Idx, typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
   inline 
@@ -95,44 +213,50 @@ namespace detail {
 				    const PointDiff0& delta_first_order, const PointType1& peak_velocity,
                                     const DiffSpace& space, const TimeSpace& t_space,
 				    double dt, double dt_total) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     
     double dt1 = get_space<1>(space,t_space).distance(get<1>(start_point), peak_velocity);
     double dt2 = get_space<1>(space,t_space).distance(peak_velocity, get<1>(end_point));
-    double dt_inter = dt_total - dt2;
-    if(dt1 > dt) {
-      get<1>(result) = get_space<1>(space,t_space).adjust(get<1>(start_point),
-	(dt / dt1) * get_space<1>(space,t_space).difference(peak_velocity,get<1>(start_point)));
-      
-      get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(start_point), 
-        (0.5 * dt) * (descend_to_space<0>(get<1>(result),1.0,space,t_space)
-                      + descend_to_space<0>(get<1>(start_point),1.0,space,t_space)));
-      
-      if(Idx::type::value > 1)
-        svp_interpolate_HOT_impl<Idx>(result,get_space<1>(space,t_space).difference(peak_velocity,get<1>(start_point)),space,t_space,dt1);
-    } else if(dt_inter < dt) {
-      get<1>(result) = get_space<1>(space,t_space).adjust(peak_velocity,
-	((dt - dt_inter) / dt2) * get_space<1>(space,t_space).difference(get<1>(end_point),peak_velocity));
-      
-      get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(end_point), 
-        (-0.5 * (dt_total - dt)) * (descend_to_space<0>(get<1>(result),1.0,space,t_space)
-                                    + descend_to_space<0>(get<1>(end_point),1.0,space,t_space)));
-      
-      if(Idx::type::value > 1)
-        svp_interpolate_HOT_impl<Idx>(result,get_space<1>(space,t_space).difference(get<1>(end_point),peak_velocity),space,t_space,dt2);
-    } else {
-      get<1>(result) = peak_velocity;
-      
-      get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(start_point), 
-        descend_to_space<0>(get<1>(start_point),0.5 * dt1,space,t_space)
-	+ descend_to_space<0>(peak_velocity,dt - 0.5 * dt1,space,t_space));
-      
-      if(Idx::type::value > 1)
-        svp_interpolate_HOT_impl<Idx>(result,get_space<1>(space,t_space).difference(peak_velocity,peak_velocity),space,t_space,dt2);
+    dt_total -= dt1 + dt2;
+    
+    result = start_point;
+    
+    //Phase 1: constant acceleration to the peak-velocity:
+    
+    if(dt1 > std::numeric_limits<double>::epsilon()) {
+      svp_constant_accel_motion_impl<Idx>(
+	result,
+	(1.0 / dt1) * get_space<1>(space,t_space).difference(peak_velocity,get<1>(start_point)),
+        space, t_space,
+	(dt > dt1 ? dt1 : dt)
+      );
+    };
+    dt -= dt1;
+    if(dt < 0.0)
+      return;
+    
+    //Phase 2: constant velocity (or cruise phase):
+    
+    if(dt_total > std::numeric_limits<double>::epsilon()) {
+      svp_constant_accel_motion_impl<Idx>(
+	result,
+	descend_to_space<0>(peak_velocity, 1.0, space, t_space),
+        space, t_space,
+	(dt > dt_total ? dt_total : dt)
+      );
+    };
+    dt -= dt_total;
+    if(dt < 0.0)
+      return;
+    
+    //Phase 3: constant acceleration to end-velocity:
+    
+    if(dt2 > std::numeric_limits<double>::epsilon()) {
+      svp_constant_accel_motion_impl<Idx>(
+	result,
+	(1.0 / dt2) * get_space<1>(space,t_space).difference(get<1>(end_point),peak_velocity),
+	space, t_space,
+	(dt > dt2 ? dt2 : dt)
+      );
     };
     
   };
@@ -148,15 +272,15 @@ namespace detail {
 				    const PointDiff0& delta_first_order, const PointType1& peak_velocity, 
 				    const DiffSpace& space, const TimeSpace& t_space,
 				    double dt, double dt_total) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     svp_interpolate_impl< typename boost::mpl::prior<Idx>::type >(result,start_point,end_point,delta_first_order,peak_velocity,space,t_space,dt,dt_total);
     
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
   };
+  
+  
+  
+  
+  
   
   inline
   double svp_compute_slack_time(double beta, double dt, double beta_0, double norm_delta, const vect<double,5>& coefs) {

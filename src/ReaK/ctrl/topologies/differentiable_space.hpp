@@ -274,47 +274,12 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
 			 base_type(aSpaces,aDist), 
 			 m_diff_rules(aDiffRules) { };
     
-    using base_type::get_space; 
-
-    /**
-     * This function returns the space at a given differential order against a given independent-space.
-     * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
-     */
-    template <int Idx>
-    const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(const IndependentSpace&) const {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
-      return this->template get_space<Idx>();
-    };
-    
-    /**
-     * This function returns the space at a given differential order against a given independent-space.
-     * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
-     */
-    template <int Idx>
-    typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(const IndependentSpace&) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
-      return this->template get_space<Idx>();
-    };
-    
     /**
      * This function returns the differentiation functor at a given order against a given independent-space.
      * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
      */
     template <int Idx>
-    const typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(const IndependentSpace&) const {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
+    const typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule_impl(const IndependentSpace&) const {
       return get<Idx>(m_diff_rules);
     };
     
@@ -323,12 +288,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
      * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
      */
     template <int Idx>
-    typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(const IndependentSpace&) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
+    typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule_impl(const IndependentSpace&) {
       return get<Idx>(m_diff_rules);
     };
     
@@ -347,11 +307,6 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
 		    const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
 		    const IndependentSpace& t_space) const {
       typename arithmetic_tuple_element<Idx, point_type>::type result;
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       get<Idx-1>(m_diff_rules).lift(result, dp, dt, t_space);
       return result;
     };
@@ -371,11 +326,6 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
 		       const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
 		       const IndependentSpace& t_space) const {
       typename arithmetic_tuple_element<Idx, point_difference_type>::type result;
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      using std::get;
-#else
-      using boost::tuples::get;
-#endif
       get<Idx>(m_diff_rules).descend(result, v, dt, t_space);
       return result;
     };
@@ -405,8 +355,8 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
  * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
  */
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
-const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace& t) {
-  return s.template get_space<Idx>(t);
+const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace&) {
+  return get_space<Idx>(s);
 };
     
 /**
@@ -414,8 +364,8 @@ const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(const 
  * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
  */
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
-typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace& t) {
-  return s.template get_space<Idx>(t);
+typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace&) {
+  return get_space<Idx>(s);
 };
 
 /**
@@ -423,8 +373,8 @@ typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(differentiab
  * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
  */
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
-const typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace& t) {
-  return s.template get_diff_rule<Idx>(t);
+const typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace&) {
+  return s.template get_diff_rule_impl<Idx>();
 };
     
 /**
@@ -432,8 +382,8 @@ const typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule
  * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
  */
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
-typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace& t) {
-  return s.template get_diff_rule<Idx>(t);
+typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace&) {
+  return s.template get_diff_rule_impl<Idx>();
 };
     
 /**

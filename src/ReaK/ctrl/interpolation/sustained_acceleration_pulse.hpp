@@ -52,7 +52,7 @@
 #include "topologies/basic_distance_metrics.hpp"
 #include "path_planning/bounded_space_concept.hpp"
 
-#include "sustained_velocity_pulse_detail.hpp"
+#include "sustained_acceleration_pulse_detail.hpp"
 
 namespace ReaK {
 
@@ -93,10 +93,10 @@ PointType sap_interpolate(const PointType& a, const PointType& b, double t, cons
 
   PointDiff0 delta_first_order = get_space<0>(space.get_space_topology(),space.get_time_topology()).difference( get<0>(b.pt), get<0>(a.pt) );
   double norm_delta = get_space<0>(space.get_space_topology(),space.get_time_topology()).norm( delta_first_order );
-  double beta = 1.0;
+  double beta = 0.0;
   PointType1 peak_velocity = get_space<1>(space.get_space_topology(),space.get_time_topology()).origin();
 	
-  double min_delta_time = detail::svp_compute_min_delta_time(a.pt, b.pt, 
+  double min_delta_time = detail::sap_compute_min_delta_time(a.pt, b.pt, 
 	                                                     delta_first_order, peak_velocity,
 						             norm_delta, beta,
 						             space.get_space_topology(),
@@ -116,7 +116,7 @@ PointType sap_interpolate(const PointType& a, const PointType& b, double t, cons
       )
     );
 	
-    detail::svp_compute_peak_velocity(a.pt, b.pt, 
+    detail::sap_compute_peak_velocity(a.pt, b.pt, 
 	                              delta_first_order, peak_velocity,
 				      norm_delta, beta, delta_time,
 				      space.get_space_topology(),
@@ -137,19 +137,19 @@ PointType sap_interpolate(const PointType& a, const PointType& b, double t, cons
   PointType result;
   result.time = t;
       
-  detail::svp_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< SpaceType >::order> >(result.pt, a.pt, b.pt, delta_first_order, peak_velocity, space.get_space_topology(), space.get_time_topology(), dt, dt_total);
+  detail::sap_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< SpaceType >::order> >(result.pt, a.pt, b.pt, delta_first_order, peak_velocity, space.get_space_topology(), space.get_time_topology(), dt, dt_total);
   
   return result;    
 };
 
 /**
- * This functor class implements a sustained velocity pulse (SVP) interpolation in a temporal and once-differentiable 
- * topology.
+ * This functor class implements a sustained acceleration pulse (SVP) interpolation in a temporal 
+ * and twice-differentiable topology.
  * \tparam TemporalTopology The temporal topology on which the interpolation is done.
  */
 template <typename Factory, 
           std::size_t Dimensions >
-class svp_interpolator {
+class sap_interpolator {
   public:
     typedef svp_interpolator<Factory,Dimensions> self;
     typedef typename Factory::point_type point_type;
@@ -181,7 +181,7 @@ class svp_interpolator {
 	double beta = 0.0;
 	peak_velocity = get_space<1>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).origin();
 	
-	min_delta_time = detail::svp_compute_min_delta_time(start_point->pt, end_point->pt, 
+	min_delta_time = detail::sap_compute_min_delta_time(start_point->pt, end_point->pt, 
 	                                                    delta_first_order, peak_velocity,
 						            norm_delta, beta,
 						            parent->get_temporal_space()->get_space_topology(),
@@ -203,7 +203,7 @@ class svp_interpolator {
 	  )
 	);
 	
-	detail::svp_compute_peak_velocity(start_point->pt, end_point->pt, 
+	detail::sap_compute_peak_velocity(start_point->pt, end_point->pt, 
 	                                  delta_first_order, peak_velocity,
 					  norm_delta, beta, delta_time,
 					  parent->get_temporal_space()->get_space_topology(),
@@ -219,7 +219,7 @@ class svp_interpolator {
     /**
      * Default constructor.
      */
-    svp_interpolator(const Factory* aParent = NULL, const point_type* aStart = NULL, const point_type* aEnd = NULL) :
+    sap_interpolator(const Factory* aParent = NULL, const point_type* aStart = NULL, const point_type* aEnd = NULL) :
                      parent(aParent), start_point(aStart), end_point(aEnd) {
       update_delta_value();
     };
@@ -266,7 +266,7 @@ class svp_interpolator {
       point_type result;
       result.time = t;
       
-      detail::svp_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< typename temporal_topology_traits<topology>::space_topology >::order> >(result.pt, start_point->pt, end_point->pt, delta_first_order, peak_velocity, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology(), dt, dt_total);
+      detail::sap_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< typename temporal_topology_traits<topology>::space_topology >::order> >(result.pt, start_point->pt, end_point->pt, delta_first_order, peak_velocity, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology(), dt, dt_total);
   
       return result;   
     };
@@ -288,31 +288,33 @@ class svp_interpolator {
 };
 
 /**
- * This class is a factory class for sustained velocity pulse (SVP) interpolators on a temporal differentiable space.
+ * This class is a factory class for sustained acceleration pulse (SAP) interpolators on a temporal 
+ * differentiable space.
  * \tparam TemporalTopology The temporal topology on which the interpolation is done, should model TemporalSpaceConcept, 
- *                          with a spatial topology that is once-differentiable (see DifferentiableSpaceConcept) and 
- *                          whose 1-order derivative space has a spherical bound (see SphereBoundedSpaceConcept).
+ *                          with a spatial topology that is twice-differentiable (see DifferentiableSpaceConcept) and 
+ *                          whose 1-order and 2-order derivative space has a spherical bound (see SphereBoundedSpaceConcept).
  */
 template <typename TemporalTopology>
-class svp_interpolator_factory : public serialization::serializable {
+class sap_interpolator_factory : public serialization::serializable {
   public:
-    typedef svp_interpolator_factory<TemporalTopology> self;
+    typedef sap_interpolator_factory<TemporalTopology> self;
     typedef TemporalTopology topology;
     typedef typename temporal_topology_traits<TemporalTopology>::point_type point_type;
   
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
-    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<TemporalTopology>::space_topology, 1, typename temporal_topology_traits<TemporalTopology>::time_topology >));
+    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<TemporalTopology>::space_topology, 2, typename temporal_topology_traits<TemporalTopology>::time_topology >));
     BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< typename derived_N_order_space<typename temporal_topology_traits<TemporalTopology>::space_topology, typename temporal_topology_traits<TemporalTopology>::time_topology, 1>::type >));
+    BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< typename derived_N_order_space<typename temporal_topology_traits<TemporalTopology>::space_topology, typename temporal_topology_traits<TemporalTopology>::time_topology, 2>::type >));
     
     typedef typename derived_N_order_space< typename temporal_topology_traits<topology>::space_topology,
                                             typename temporal_topology_traits<topology>::time_topology,0>::type Space0;
     
-    typedef svp_interpolator<self, metric_topology_traits< Space0 >::dimensions> interpolator_type;
+    typedef sap_interpolator<self, metric_topology_traits< Space0 >::dimensions> interpolator_type;
     
   private:
     const topology* p_space;
   public:
-    svp_interpolator_factory(const topology* aPSpace = NULL) : p_space(aPSpace) { };
+    sap_interpolator_factory(const topology* aPSpace = NULL) : p_space(aPSpace) { };
   
     void set_temporal_space(const topology* aPSpace) { p_space = aPSpace; };
     const topology* get_temporal_space() const { return p_space; };
@@ -330,7 +332,7 @@ class svp_interpolator_factory : public serialization::serializable {
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430004,1,"svp_interpolator_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430005,1,"sap_interpolator_factory",serialization::serializable)
 };
 
 
@@ -338,24 +340,24 @@ class svp_interpolator_factory : public serialization::serializable {
 
   
 /**
- * This class implements a trajectory in a temporal and once-differentiable topology.
+ * This class implements a trajectory in a temporal and twice-differentiable topology.
  * The trajectory is represented by a set of waypoints and all intermediate points 
- * are computed with a sustained velocity pulse interpolation (limited). This class models 
+ * are computed with a sustained acceleration pulse interpolation (limited). This class models 
  * the SpatialTrajectoryConcept.
  * \tparam Topology The temporal topology on which the interpolation is done, should model TemporalSpaceConcept, 
- *                  with a spatial topology that is once-differentiable (see DifferentiableSpaceConcept) and 
- *                  whose 1-order derivative space has a spherical bound (see SphereBoundedSpaceConcept).
+ *                  with a spatial topology that is twice-differentiable (see DifferentiableSpaceConcept) and 
+ *                  whose 1-order and 2-order derivative spaces have a spherical bound (see SphereBoundedSpaceConcept).
  * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the DistanceMetricConcept.
  */
 template <typename Topology, typename DistanceMetric = default_distance_metric>
-class svp_interp_traj : public interpolated_trajectory<Topology,svp_interpolator_factory<Topology>,DistanceMetric> {
+class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator_factory<Topology>,DistanceMetric> {
   public:
     
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<Topology>::space_topology, 1, typename temporal_topology_traits<Topology>::time_topology >));
+    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<Topology>::space_topology, 2, typename temporal_topology_traits<Topology>::time_topology >));
     
-    typedef svp_interp_traj<Topology,DistanceMetric> self;
-    typedef interpolated_trajectory<Topology,svp_interpolator_factory<Topology>,DistanceMetric> base_class_type;
+    typedef sap_interp_traj<Topology,DistanceMetric> self;
+    typedef interpolated_trajectory<Topology,sap_interpolator_factory<Topology>,DistanceMetric> base_class_type;
     
     typedef typename base_class_type::point_type point_type;
     typedef typename base_class_type::topology topology;
@@ -368,8 +370,8 @@ class svp_interp_traj : public interpolated_trajectory<Topology,svp_interpolator
      * \param aSpace The space on which the path is.
      * \param aDist The distance metric functor that the path should use.
      */
-    explicit svp_interp_traj(const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
-                             base_class_type(aSpace, aDist, svp_interpolator_factory<Topology>(&aSpace)) { };
+    explicit sap_interp_traj(const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
+                             base_class_type(aSpace, aDist, sap_interpolator_factory<Topology>(&aSpace)) { };
     
     /**
      * Constructs the path from a space, the start and end points.
@@ -378,8 +380,8 @@ class svp_interp_traj : public interpolated_trajectory<Topology,svp_interpolator
      * \param aEnd The end-point of the path.
      * \param aDist The distance metric functor that the path should use.
      */
-    svp_interp_traj(const topology& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
-                    base_class_type(aSpace, aStart, aEnd, aDist, svp_interpolator_factory<Topology>(&aSpace)) { };
+    sap_interp_traj(const topology& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
+                    base_class_type(aSpace, aStart, aEnd, aDist, sap_interpolator_factory<Topology>(&aSpace)) { };
 			
     /**
      * Constructs the path from a range of points and their space.
@@ -390,8 +392,8 @@ class svp_interp_traj : public interpolated_trajectory<Topology,svp_interpolator
      * \param aDist The distance metric functor that the path should use.
      */
     template <typename ForwardIter>
-    svp_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
-                    base_class_type(aBegin, aEnd, aSpace, aDist, svp_interpolator_factory<Topology>(&aSpace)) { };
+    sap_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
+                    base_class_type(aBegin, aEnd, aSpace, aDist, sap_interpolator_factory<Topology>(&aSpace)) { };
     
 };
 

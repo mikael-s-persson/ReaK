@@ -82,11 +82,6 @@ namespace detail {
   void >::type linear_interpolate_HOT_impl(PointType& result, const PointDiff0& dp1p0,
                                            const DiffSpace& space, const TimeSpace& t_space,
 				 	   double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     get<1>(result) = lift_to_space<1>(dp1p0, t_factor, space, t_space);
   };
   
@@ -100,11 +95,6 @@ namespace detail {
   void >::type linear_interpolate_impl(PointType& result, const PointType& a, const PointDiff0& dp1p0,
                                        const DiffSpace& space, const TimeSpace& t_space,
 				       double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     
     get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(a), t_normal * dp1p0);
     
@@ -122,11 +112,6 @@ namespace detail {
   void >::type linear_interpolate_impl(PointType& result, const PointType& a, const PointDiff0 dp1p0, 
 				       const DiffSpace& space, const TimeSpace& t_space,
 				       double t_factor, double t_normal) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    using std::get;
-#else
-    using boost::tuples::get;
-#endif
     linear_interpolate_impl< typename boost::mpl::prior<Idx>::type, PointType, PointDiff0, DiffSpace, TimeSpace >(result,a,dp1p0,space,t_space,t_factor,t_normal);
     
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
