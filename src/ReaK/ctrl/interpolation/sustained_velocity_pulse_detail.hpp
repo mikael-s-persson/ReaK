@@ -150,8 +150,8 @@ namespace detail {
       Idx,
       boost::mpl::size_t<1>
     >,
-  void >::type svp_constant_vel_motion_HOT_impl(PointType& result, const PointDiff0& descended_vel, 
-                                                const DiffSpace& space, const TimeSpace& t_space) {
+  void >::type svp_constant_vel_motion_HOT_impl(PointType&, const PointDiff0&, 
+                                                const DiffSpace&, const TimeSpace&) {
     /* Nothing to do. */ 
   };
   
@@ -176,7 +176,7 @@ namespace detail {
     >,
   void >::type svp_constant_vel_motion_HOT_impl(PointType& result, const PointDiff0& descended_vel, 
                                                 const DiffSpace& space, const TimeSpace& t_space) {
-    svp_constant_vel_motion_HOT_impl< typename boost::mpl::prior<Idx>::type >(result, space, t_space);
+    svp_constant_vel_motion_HOT_impl< typename boost::mpl::prior<Idx>::type >(result, descended_vel, space, t_space);
     
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
   };
@@ -237,7 +237,7 @@ namespace detail {
     //Phase 2: constant velocity (or cruise phase):
     
     if(dt_total > std::numeric_limits<double>::epsilon()) {
-      svp_constant_accel_motion_impl<Idx>(
+      svp_constant_vel_motion_impl<Idx>(
 	result,
 	descend_to_space<0>(peak_velocity, 1.0, space, t_space),
         space, t_space,

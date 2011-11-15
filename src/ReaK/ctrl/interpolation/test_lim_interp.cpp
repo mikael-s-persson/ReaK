@@ -35,15 +35,16 @@ using std::ptrdiff_t;
 
 #include "recorders/ssv_recorder.hpp"
 #include "sustained_velocity_pulse.hpp"
+#include "sustained_acceleration_pulse.hpp"
 
 
 int main(int argc, char** argv) {
 
-  if(argc < 10) {
+  if(argc < 11) {
 
     std::cout << "Error: Arguments to the program were incorrect!" << std::endl
               << "Usage:" << std::endl
-              << "\t\t./test_interp [time_step] [interp_time_step] [min_time] [max_time] [max_vel] [start_pt] [start_vel] [end_pt] [end_vel]" << std::endl;
+              << "\t\t./test_interp [time_step] [interp_time_step] [min_time] [max_time] [max_vel] [max_accel] [start_pt] [start_vel] [end_pt] [end_vel]" << std::endl;
 
     return 1;
   };
@@ -68,20 +69,24 @@ int main(int argc, char** argv) {
   { std::stringstream ss(argv[5]);
     ss >> max_vel; };
     
-  double start_pt;
+  double max_accel;
   { std::stringstream ss(argv[6]);
+    ss >> max_accel; };
+    
+  double start_pt;
+  { std::stringstream ss(argv[7]);
     ss >> start_pt; };
   
   double start_vel;
-  { std::stringstream ss(argv[7]);
+  { std::stringstream ss(argv[8]);
     ss >> start_vel; };
   
   double end_pt;
-  { std::stringstream ss(argv[8]);
+  { std::stringstream ss(argv[9]);
     ss >> end_pt; };
   
   double end_vel;
-  { std::stringstream ss(argv[9]);
+  { std::stringstream ss(argv[10]);
     ss >> end_vel; };
     
   typedef ReaK::arithmetic_tuple< 
@@ -99,16 +104,15 @@ int main(int argc, char** argv) {
   TempTopoType topo( "temporal_space",
     SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-20.0, 20.0),
                    ReaK::pp::line_segment_topology<double>("vel_topo",-max_vel, max_vel),
-                   ReaK::pp::line_segment_topology<double>("acc_topo",-20.0, 20.0),
+                   ReaK::pp::line_segment_topology<double>("acc_topo",-max_accel, max_accel),
                    ReaK::pp::line_segment_topology<double>("jerk_topo",-20.0, 20.0)));
   
   std::vector< TempPointType > pts;
   pts.push_back( TempPointType(0.0, PointType(start_pt,start_vel,0.0,0.0)) );
   pts.push_back( TempPointType(min_time, PointType(end_pt,end_vel,0.0,0.0)) );
-  double current_end_time = min_time;
   
   try {
-    while(current_end_time < max_time) {
+    for(double current_end_time = min_time; current_end_time < max_time; current_end_time += interp_time_step) {
       std::stringstream ss; ss << "test_interp_results/svp_interp_" << current_end_time << ".ssv";
       RK_NOTICE(1,"Creating file: '" << ss.str() << "'");
       ReaK::recorder::ssv_recorder output_rec(ss.str());
@@ -123,7 +127,23 @@ int main(int argc, char** argv) {
 	output_rec << p.time << std::get<0>(p.pt) << std::get<1>(p.pt) << std::get<2>(p.pt) << std::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
       };
       output_rec << ReaK::recorder::data_recorder::flush;
-      current_end_time += interp_time_step;
+    };
+    
+    for(double current_end_time = min_time; current_end_time < max_time; current_end_time += interp_time_step) {
+      std::stringstream ss; ss << "test_interp_results/sap_interp_" << current_end_time << ".ssv";
+      RK_NOTICE(1,"Creating file: '" << ss.str() << "'");
+      ReaK::recorder::ssv_recorder output_rec(ss.str());
+      output_rec << "time" << "pos" << "vel" << "acc" << "jerk" << ReaK::recorder::data_recorder::end_name_row;
+    
+      pts[1].time = current_end_time;
+      
+      ReaK::pp::sap_interp_traj<TempTopoType> interp(pts.begin(), pts.end(), topo);
+      
+      for(double t = 0.0; t <= current_end_time; t += time_step) {
+	TempPointType p = interp.get_point_at_time(t);
+	output_rec << p.time << std::get<0>(p.pt) << std::get<1>(p.pt) << std::get<2>(p.pt) << std::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
+      };
+      output_rec << ReaK::recorder::data_recorder::flush;
     };
     
   } catch (std::exception& e) {

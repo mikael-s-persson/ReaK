@@ -143,7 +143,7 @@ namespace detail {
     get<2>(result) = get_space<2>(space,t_space).adjust( get<2>(result), dt * descended_jerk );
     
     if(Idx::type::value > 2) 
-      sap_constant_jerk_motion_HOT_impl(result,descended_jerk,space,t_space);
+      sap_constant_jerk_motion_HOT_impl<Idx>(result,descended_jerk,space,t_space);
     
     return;
   };
@@ -174,7 +174,7 @@ namespace detail {
     if( dt_vp < 0.0 ) {
       //means that we don't have time to reach the maximum acceleration:
       dt_vp = 0.0;
-      dt_ap = sqrt(4.0 * dt_amax * dt_vp_1st) * 0.5;
+      dt_ap = sqrt(dt_amax * dt_vp_1st);
     };
     
     double dt_vp2_1st = get_space<1>(space,t_space).distance(peak_velocity, get<1>(end_point));
@@ -184,7 +184,7 @@ namespace detail {
     if( dt_vp2 < 0.0 ) {
       //means that we don't have time to reach the maximum acceleration:
       dt_vp2 = 0.0;
-      dt_ap2 = sqrt(4.0 * dt_amax * dt_vp2_1st) * 0.5;
+      dt_ap2 = sqrt(dt_amax * dt_vp2_1st);
     };
     dt_total -= dt_vp2 + 2.0 * dt_ap2 + dt_vp + 2.0 * dt_ap;
     
@@ -341,6 +341,9 @@ namespace detail {
     double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]));
     double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4]));
     
+    double term1_0 = sqrt(coefs[0] * coefs[0] - beta_0 * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta_0 * coefs[4]));
+    double term2_0 = sqrt(coefs[2] * coefs[2] - beta_0 * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta_0 * coefs[4]));
+    
     if(term1 < dt_amax)
       term1 = sqrt(4.0 * term1 * dt_amax);
     else
@@ -390,7 +393,7 @@ namespace detail {
       if( dt_vp1 < 0.0 ) {
         //means that we don't have time to reach the maximum acceleration:
         dt_vp1 = 0.0;
-        dt_ap1 = sqrt(4.0 * dt_amax * dt_vp1_1st) * 0.5;
+        dt_ap1 = sqrt(dt_amax * dt_vp1_1st);
       };
       
       double dt_vp2_1st = get_space<1>(space,t_space).distance(peak_velocity, get<1>(end_point));
@@ -400,26 +403,34 @@ namespace detail {
       if( dt_vp2 < 0.0 ) {
         //means that we don't have time to reach the maximum acceleration:
         dt_vp2 = 0.0;
-        dt_ap2 = sqrt(4.0 * dt_amax * dt_vp2_1st) * 0.5;
+        dt_ap2 = sqrt(dt_amax * dt_vp2_1st);
       };
       
       
       PointDiff0 start_to_peak = get_space<0>(space,t_space).difference(get<0>(start_point),get<0>(start_point));
       
       if( dt_vp1_1st > num_tol * get_space<1>(space,t_space).get_radius() ) {
-        start_to_peak =
-          descend_to_space<0>( get_space<1>(space,t_space).adjust( get<1>(start_point),
-	    (0.5 * (dt_ap1 + dt_vp1 + dt_vp1 * dt_ap1 / (dt_vp1 + dt_ap1)) * dt_ap1 / (dt_vp1_1st * dt_amax)) * 
-	    get_space<1>(space,t_space).difference(peak_velocity, get<1>(start_point))), dt_vp1 + dt_ap1, space, t_space);
+	start_to_peak = 
+	  descend_to_space<0>( get<1>(start_point), dt_vp1, space, t_space)
+	  + descend_to_space<0>( get_space<1>(space,t_space).adjust( get<1>(start_point),
+	      ((0.75 * dt_ap1 * (dt_ap1 + dt_vp1) + 0.25 * dt_vp1 * dt_vp1) / (dt_amax * dt_vp1_1st)) * 
+	      get_space<1>(space,t_space).difference(peak_velocity, get<1>(start_point))
+            ),
+	    2.0 * dt_ap1, space, t_space);
+	
       };
       
       PointDiff0 peak_to_end = get_space<0>(space,t_space).difference(get<0>(end_point),get<0>(end_point));
       
       if( dt_vp2_1st > num_tol * get_space<0>(space,t_space).get_radius() ) {
-        peak_to_end =
-          descend_to_space<0>( get_space<1>(space,t_space).adjust( peak_velocity,
-	    (0.5 * (dt_ap2 + dt_vp2 + dt_vp2 * dt_ap2 / (dt_vp2 + dt_ap2)) * dt_ap2 / (dt_vp2_1st * dt_amax)) * 
-	    get_space<1>(space,t_space).difference(get<1>(end_point), peak_velocity)), dt_vp2 + dt_ap2, space, t_space);
+	peak_to_end = 
+	  descend_to_space<0>( peak_velocity, dt_vp2, space, t_space)
+	  + descend_to_space<0>( get_space<1>(space,t_space).adjust( peak_velocity,
+	      ((0.75 * dt_ap2 * (dt_ap2 + dt_vp2) + 0.25 * dt_vp2 * dt_vp2) / (dt_amax * dt_vp2_1st)) * 
+	      get_space<1>(space,t_space).difference(get<1>(end_point), peak_velocity)
+            ),
+	    2.0 * dt_ap2, space, t_space);
+
       };
       
       delta_first_order = get_space<0>(space,t_space).difference(
@@ -449,7 +460,7 @@ namespace detail {
       } else {
         upper = 1.0;
         lower = 0.5;
-        while(sap_compute_derivative_travel_time(lower,beta,norm_delta,coefs) > 0.0) {
+        while(sap_compute_derivative_travel_time(lower,beta,norm_delta,coefs,dt_amax) > 0.0) {
           upper = lower;
           lower *= 0.5;
         };
@@ -476,35 +487,35 @@ namespace detail {
     double beta_peak1 = 1.0;
     double beta_peak2 = 5.0;
       
-    if(svp_compute_slack_time(1.0,delta_time,beta,norm_delta,coefs,dt_amax) > 0.0) {
+    if(sap_compute_slack_time(1.0,delta_time,beta,norm_delta,coefs,dt_amax) > 0.0) {
       //means I have a single root in the interval, so I can solve for it:
       double beta_low = 0.5;
-      while(svp_compute_slack_time(beta_low,delta_time,beta,norm_delta,coefs,dt_amax) > 0.0) {
+      while(sap_compute_slack_time(beta_low,delta_time,beta,norm_delta,coefs,dt_amax) > 0.0) {
         beta_peak1 = beta_low;
         beta_low *= 0.5;
       };
-      bisection_method(beta_low, beta_peak1, boost::bind(svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+      bisection_method(beta_low, beta_peak1, boost::bind(sap_compute_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
     } else {
       //This means that I must have either a parabola-looking curve, or it never goes positive.
       // so, find the maximum in the interval, by finding the zero of the derivative:
       double beta_low = 0.5;
-      while(svp_compute_derivative_slack_time(beta_low,delta_time,beta,norm_delta,coefs,dt_amax) < 0.0) {
+      while(sap_compute_derivative_slack_time(beta_low,delta_time,beta,norm_delta,coefs,dt_amax) < 0.0) {
         beta_peak1 = beta_low;
         beta_low *= 0.5;
       };
-      bisection_method(beta_low,beta_peak1, boost::bind(svp_compute_derivative_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
-      if( svp_compute_slack_time(beta_peak1,delta_time,beta,norm_delta,coefs,dt_amax) > 0.0 ) {
+      bisection_method(beta_low,beta_peak1, boost::bind(sap_compute_derivative_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+      if( sap_compute_slack_time(beta_peak1,delta_time,beta,norm_delta,coefs,dt_amax) > 0.0 ) {
         //this means the maximum slack-time is actually positive, meaning there must be a root on either side.
         beta_peak2 = beta_peak1;
         beta_low = 0.5 * beta_peak1;
-        while(svp_compute_slack_time(beta_low,delta_time,beta,delta_time,coefs,dt_amax) > 0.0) {
+        while(sap_compute_slack_time(beta_low,delta_time,beta,delta_time,coefs,dt_amax) > 0.0) {
           beta_peak1 = beta_low;
           beta_low *= 0.5;
         };
-        bisection_method(beta_low, beta_peak1, boost::bind(svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+        bisection_method(beta_low, beta_peak1, boost::bind(sap_compute_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
         beta_low = beta_peak2;
         beta_peak2 = 1.0;
-        bisection_method(beta_low, beta_peak2, boost::bind(svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+        bisection_method(beta_low, beta_peak2, boost::bind(sap_compute_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
           
         //make sure that the second root does not cause a reversal of the travel direction:
         if( norm_delta + coefs[4] * (beta * beta - beta_peak2 * beta_peak2) < 0.0 ) {
@@ -527,7 +538,7 @@ namespace detail {
   };
   
   bool sap_no_slack_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& slack, double delta_time, double dt_amax) {
-    slack = svp_compute_slack_time(beta,delta_time,beta,norm_delta,coefs,dt_amax);
+    slack = sap_compute_slack_time(beta,delta_time,beta,norm_delta,coefs,dt_amax);
     RK_NOTICE(1,"   gives slack-time = " << slack);
     return (std::fabs(slack) < 100.0 * num_tol * delta_time );
   };
