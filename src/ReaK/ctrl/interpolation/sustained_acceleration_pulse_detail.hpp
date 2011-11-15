@@ -289,91 +289,178 @@ namespace detail {
   };
   
   inline
-  double sap_compute_slack_time(double beta, double dt, double beta_0, double norm_delta, const vect<double,5>& coefs, double dt_amax) {
+  vect<double,2> sap_compute_projected_deltas(double beta, const vect<double,5>& coefs, double dt_amax, double& A_0, double& A_1) {
+    using std::sqrt;
+    vect<double,2> result;
+    A_0 = sqrt( coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]) );
+    double t_0 = coefs[0] * coefs[1] / coefs[4];
+    if(A_0 < dt_amax)
+      result[0] = 0.5 * sqrt( dt_amax * A_0 ) * ( t_0 + 3.0 * beta );
+    else
+      result[0] = 0.5 * ((dt_amax + A_0) * (beta + t_0) + dt_amax * dt_amax / A_0 * (beta - t_0));
+    A_1 = sqrt( coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4]) );
+    double t_1 = coefs[2] * coefs[3] / coefs[4];
+    if(A_1 < dt_amax)
+      result[1] = 0.5 * sqrt( dt_amax * A_1 ) * (t_1 + 3.0 * beta);
+    else
+      result[1] = 0.5 * ((dt_amax + A_1) * (beta + t_1) + dt_amax * dt_amax / A_1 * (beta - t_1));
+    return result;
+  };
+
+  inline
+  vect<double,2> sap_compute_projected_deltas(double beta, const vect<double,5>& coefs, double dt_amax) {
+    double A_0, A_1;
+    return sap_compute_projected_deltas(beta,coefs,dt_amax,A_0,A_1);
+  };
+  
+  inline
+  vect<double,2> sap_compute_derivative_projected_deltas(double beta, const vect<double,5>& coefs, double dt_amax, double A_0, double A_1) {
+    using std::sqrt;
+    using std::fabs;
+    vect<double,2> result;
+    if(A_0 < dt_amax) {
+      if((fabs( coefs[0] * coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[0] * (1.0 - coefs[1]) / coefs[4]) < 1e-6))
+	result[0] = sqrt(dt_amax * A_0);
+      else
+        result[0] = sqrt(dt_amax * A_0) * (1.5 + 0.25 * (3.0 * beta * coefs[4] + coefs[0] * coefs[1]) * 
+                                                        (beta * coefs[4] - coefs[0] * coefs[1]) / (A_0 * A_0));
+    } else {
+      result[0] = beta * coefs[4] * (beta * coefs[4] - coefs[0] * coefs[1]) / A_0 
+                + 0.5 * ((1.0 + dt_amax * dt_amax / (A_0 * A_0)) * coefs[0] * coefs[0] * (1 - coefs[1] * coefs[1]) / A_0
+                         + dt_amax);
+    };
+    if(A_1 < dt_amax) {
+      if((fabs( coefs[2] * coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[2] * (1.0 - coefs[3]) / coefs[4]) < 1e-6))
+	result[1] = sqrt(dt_amax * A_1);
+      else
+        result[1] = sqrt(dt_amax * A_1) * (1.5 + 0.25 * (3.0 * beta * coefs[4] + coefs[2] * coefs[3]) * 
+                                                        (beta * coefs[4] - coefs[2] * coefs[3]) / (A_1 * A_1));
+    } else {
+      result[1] = beta * coefs[4] * (beta * coefs[4] - coefs[2] * coefs[3]) / A_1 
+                + 0.5 * ((1.0 + dt_amax * dt_amax / (A_1 * A_1)) * coefs[2] * coefs[2] * (1 - coefs[3] * coefs[3]) / A_1
+                         + dt_amax);
+    };
+    return result;
+  };
+  
+  inline
+  double sap_compute_slack_time(double beta, double dt, const vect<double,2>& deltas_0, double norm_delta, const vect<double,5>& coefs, double dt_amax) {
     using std::sqrt;
     using std::fabs;
     
-    double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]));
-    double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4]));
+    double A_0, A_1;
+    vect<double,2> deltas_1 = sap_compute_projected_deltas(beta,coefs,dt_amax,A_0,A_1);
     
-    if(term1 < dt_amax)
-      term1 = sqrt(4.0 * term1 * dt_amax);
+    if(A_0 < dt_amax)
+      A_0 = sqrt(4.0 * A_0 * dt_amax);
     else
-      term1 += dt_amax;
-    if(term2 < dt_amax)
-      term2 = sqrt(4.0 * term2 * dt_amax);
+      A_0 += dt_amax;
+    if(A_1 < dt_amax)
+      A_1 = sqrt(4.0 * A_1 * dt_amax);
     else
-      term2 += dt_amax;
+      A_1 += dt_amax;
     
-    double c = (norm_delta + coefs[4] * (beta_0 * beta_0 - beta * beta) );
+    double c = (norm_delta - deltas_1[0] - deltas_1[1] + deltas_0[0] + deltas_0[1]);
     
-    return dt - term1 - term2 - fabs(c) / beta;
+    return dt - A_0 - A_1 - fabs(c) / beta;
   };
     
   inline
-  double sap_compute_derivative_slack_time(double beta, double dt, double beta_0, double norm_delta, const vect<double,5>& coefs, double dt_amax) {
+  double sap_compute_derivative_slack_time(double beta, double dt, const vect<double,2>& deltas_0, double norm_delta, const vect<double,5>& coefs, double dt_amax) {
     using std::sqrt;
     using std::fabs;
     
-    double c = (norm_delta + coefs[4] * (beta_0 * beta_0 - beta * beta) );
+    double A_0, A_1;
+    vect<double,2> deltas_1 = sap_compute_projected_deltas(beta,coefs,dt_amax,A_0,A_1);
     
-    double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]));
-    double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4]));
+    double c = (norm_delta - deltas_1[0] - deltas_1[1] + deltas_0[0] + deltas_0[1]);
     
-    double dterm1 = coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / term1;
-    double dterm2 = coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / term2;
-    if(term1 < dt_amax)
-      dterm1 *= sqrt(dt_amax / term1);
-    if(term2 < dt_amax)
-      dterm2 *= sqrt(dt_amax / term2);
+    vect<double,2> deltas_dot_1 = sap_compute_derivative_projected_deltas(beta,coefs,dt_amax,A_0,A_1);
     
-    return fabs(c) / (beta * beta) - ( c > 0.0 ? -2.0 : 2.0) * coefs[4] - dterm1 - dterm2;
+    double c_dot = -deltas_dot_1[0] - deltas_dot_1[1];
+    
+    double dt0, dt1;
+    if(A_0 < dt_amax) {
+      if((fabs( coefs[0] * coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[0] * (1.0 - coefs[1]) / coefs[4]) < 1e-6))
+	dt0 = -0.5 * sqrt(dt_amax * A_0) / beta;
+      else
+        dt0 = sqrt(dt_amax / A_0) * coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
+    } else {
+      dt0 = coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
+    };
+    if(A_1 < dt_amax) {
+      if((fabs( coefs[2] * coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[2] * (1.0 - coefs[3]) / coefs[4]) < 1e-6))
+	dt1 = -0.5 * sqrt(dt_amax * A_1) / beta;
+      else
+        dt1 = sqrt(dt_amax / A_1) * coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
+    } else {
+      dt1 = coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
+    };
+    
+    return fabs(c) / (beta * beta) - ( c > 0.0 ? c_dot : -c_dot) / beta - dt0 - dt1;
   };
   
   
   inline
-  double sap_compute_travel_time(double beta, double beta_0, double norm_delta, const vect<double,5>& coefs, double dt_amax) {
+  double sap_compute_travel_time(double beta, const vect<double,2>& deltas_0, double norm_delta, const vect<double,5>& coefs, double dt_amax) {
     using std::sqrt;
     using std::fabs;
     
-    double c = (norm_delta + coefs[4] * (beta_0 * beta_0 - beta * beta) );
+    double A_0, A_1;
+    vect<double,2> deltas_1 = sap_compute_projected_deltas(beta,coefs,dt_amax,A_0,A_1);
     
-    double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]));
-    double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4]));
-    
-    double term1_0 = sqrt(coefs[0] * coefs[0] - beta_0 * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta_0 * coefs[4]));
-    double term2_0 = sqrt(coefs[2] * coefs[2] - beta_0 * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta_0 * coefs[4]));
-    
-    if(term1 < dt_amax)
-      term1 = sqrt(4.0 * term1 * dt_amax);
+    if(A_0 < dt_amax)
+      A_0 = sqrt(4.0 * A_0 * dt_amax);
     else
-      term1 += dt_amax;
-    if(term2 < dt_amax)
-      term2 = sqrt(4.0 * term2 * dt_amax);
+      A_0 += dt_amax;
+    if(A_1 < dt_amax)
+      A_1 = sqrt(4.0 * A_1 * dt_amax);
     else
-      term2 += dt_amax;
+      A_1 += dt_amax;
     
-    return term1 + term2 + fabs(c) / beta;
+    double c = (norm_delta - deltas_1[0] - deltas_1[1] + deltas_0[0] + deltas_0[1]);
+    
+    return A_0 + A_1 + fabs(c) / beta;
   };
     
   inline
-  double sap_compute_derivative_travel_time(double beta, double beta_0, double norm_delta, const vect<double,5>& coefs, double dt_amax) {
+  double sap_compute_derivative_travel_time(double beta, const vect<double,2>& deltas_0, double norm_delta, const vect<double,5>& coefs, double dt_amax) {
     using std::sqrt;
     using std::fabs;
     
-    double c = (norm_delta + coefs[4] * (beta_0 * beta_0 - beta * beta) );
+        
+    double A_0, A_1;
+    vect<double,2> deltas_1 = sap_compute_projected_deltas(beta,coefs,dt_amax,A_0,A_1);
     
-    double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]));
-    double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4]));
+    double c = (norm_delta - deltas_1[0] - deltas_1[1] + deltas_0[0] + deltas_0[1]);
     
-    double dterm1 = coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / term1;
-    double dterm2 = coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / term2;
-    if(term1 < dt_amax)
-      dterm1 *= sqrt(dt_amax / term1);
-    if(term2 < dt_amax)
-      dterm2 *= sqrt(dt_amax / term2);
+    //RK_NOTICE(1,"  dt-der: norm-dp = " << norm_delta << " deltas_1 = " << deltas_1 << " deltas_0 = " << deltas_0 << " c = " << c);
     
-    return dterm1 + dterm2 - fabs(c) / (beta * beta) + ( c > 0.0 ? -2.0 : 2.0) * coefs[4];
+    vect<double,2> deltas_dot_1 = sap_compute_derivative_projected_deltas(beta,coefs,dt_amax,A_0,A_1);
+    
+    double c_dot = -deltas_dot_1[0] - deltas_dot_1[1];
+    
+    double dt0, dt1;
+    if(A_0 < dt_amax) {
+      if((fabs( coefs[0] * coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[0] * (1.0 - coefs[1]) / coefs[4]) < 1e-6))
+	dt0 = -0.5 * sqrt(dt_amax * A_0) / beta;
+      else
+        dt0 = sqrt(dt_amax / A_0) * coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
+    } else {
+      dt0 = coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
+    };
+    if(A_1 < dt_amax) {
+      if((fabs( coefs[2] * coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[2] * (1.0 - coefs[3]) / coefs[4]) < 1e-6))
+	dt1 = -0.5 * sqrt(dt_amax * A_1) / beta;
+      else
+        dt1 = sqrt(dt_amax / A_1) * coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
+    } else {
+      dt1 = coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
+    };
+    
+    //RK_NOTICE(1,"  dt-der: deltas_dot_1 are " << deltas_dot_1 << " dt0 is " << dt0 << " dt1 is " << dt1 << " c_dot is " << c_dot);
+    
+    return dt0 + dt1 - fabs(c) / (beta * beta) + ( c > 0.0 ? c_dot : -c_dot) / beta;
   };
   
   struct sap_update_delta_first_order {
@@ -383,7 +470,9 @@ namespace detail {
 		    double& norm_delta, const double& beta,
 		    const DiffSpace& space, const TimeSpace& t_space,
 		    double num_tol = 1E-6) {
-    
+      using std::fabs;
+      using std::sqrt;
+      
       double dt_amax = get_space<2>(space,t_space).get_radius();
       
       double dt_vp1_1st = get_space<1>(space,t_space).distance(get<1>(start_point), peak_velocity);
@@ -439,35 +528,40 @@ namespace detail {
       );
       
       norm_delta = get_space<0>(space,t_space).norm(delta_first_order);
-      if(norm_delta > num_tol)
+      PointDiff0 descended_peak_velocity = descend_to_space<0>(peak_velocity,1.0,space,t_space);
+      double normA = get_space<0>(space,t_space).norm(descended_peak_velocity);
+      double normC = get_space<0>(space,t_space).norm(descended_peak_velocity - delta_first_order);
+      if( normC * normC > normA * normA + norm_delta * norm_delta )
+        norm_delta = -norm_delta;
+      if(fabs(norm_delta) > num_tol)
         peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, space, t_space);
       
-      PointDiff0 descended_peak_velocity = descend_to_space<0>(peak_velocity,1.0,space,t_space);
-      if( get_space<0>(space,t_space).norm(descended_peak_velocity - delta_first_order) > get_space<0>(space,t_space).norm(descended_peak_velocity) )
-        norm_delta = -norm_delta;
     };
   };
   
   double sap_solve_for_min_dt_beta(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double dt_amax) {
-    if(sap_compute_derivative_travel_time(1.0,beta,norm_delta,coefs,dt_amax) > 0.0) {
+    vect<double,2> deltas_0 = sap_compute_projected_deltas(beta,coefs,dt_amax);
+    if(sap_compute_derivative_travel_time(1.0,deltas_0,norm_delta,coefs,dt_amax) > 0.0) {
+      //RK_NOTICE(1,"   dt-rate at edge is " << sap_compute_derivative_travel_time(1.0,deltas_0,norm_delta,coefs,dt_amax));
       double upper = 1.0;
-      double lower = 0.5;
-      while((lower < 0.99) && (sap_compute_derivative_travel_time(lower,beta,norm_delta,coefs,dt_amax) > 0.0)) {
+      double lower = 0.1;
+      while((lower < 0.99) && (sap_compute_derivative_travel_time(lower,deltas_0,norm_delta,coefs,dt_amax) > 0.0)) {
         lower += 0.5 * (upper - lower);
       };
       if(lower < 0.99) {
-        bisection_method(lower, upper, boost::bind(sap_compute_derivative_travel_time,_1,boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+        bisection_method(lower, upper, boost::bind(sap_compute_derivative_travel_time,_1,boost::cref(deltas_0),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
       } else {
         upper = 1.0;
-        lower = 0.5;
-        while(sap_compute_derivative_travel_time(lower,beta,norm_delta,coefs,dt_amax) > 0.0) {
+        lower = 0.9;
+        while(sap_compute_derivative_travel_time(lower,deltas_0,norm_delta,coefs,dt_amax) > 0.0) {
           upper = lower;
           lower *= 0.5;
         };
-        bisection_method(lower, upper, boost::bind(sap_compute_derivative_travel_time,_1,boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+        bisection_method(lower, upper, boost::bind(sap_compute_derivative_travel_time,_1,boost::cref(deltas_0),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
       };
       //make sure that the second root does not cause a reversal of the travel direction:
-      if( (norm_delta > 0.0) && ( norm_delta + coefs[4] * (beta * beta - upper * upper) < 0.0 )) {
+      vect<double,2> deltas_1 = sap_compute_projected_deltas(upper,coefs,dt_amax);
+      if( (norm_delta > 0.0) && ( (norm_delta - deltas_1[0] - deltas_1[1] + deltas_0[0] + deltas_0[1]) < 0.0 )) {
         upper = std::sqrt(beta * beta + norm_delta / coefs[4]);
       };
       beta = upper;
@@ -478,7 +572,7 @@ namespace detail {
   };
   
   bool sap_min_dt_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& result, double dt_amax) {
-    result = sap_compute_travel_time(beta,beta,norm_delta,coefs,dt_amax);
+    result = sap_compute_travel_time(beta,sap_compute_projected_deltas(beta,coefs,dt_amax),norm_delta,coefs,dt_amax);
     RK_NOTICE(1,"   gives min-dt = " << result);
     return true;
   };
@@ -487,38 +581,41 @@ namespace detail {
     double beta_peak1 = 1.0;
     double beta_peak2 = 5.0;
       
-    if(sap_compute_slack_time(1.0,delta_time,beta,norm_delta,coefs,dt_amax) > 0.0) {
+    vect<double,2> deltas_0 = sap_compute_projected_deltas(beta,coefs,dt_amax);
+    
+    if(sap_compute_slack_time(1.0,delta_time,deltas_0,norm_delta,coefs,dt_amax) > 0.0) {
       //means I have a single root in the interval, so I can solve for it:
       double beta_low = 0.5;
-      while(sap_compute_slack_time(beta_low,delta_time,beta,norm_delta,coefs,dt_amax) > 0.0) {
+      while(sap_compute_slack_time(beta_low,delta_time,deltas_0,norm_delta,coefs,dt_amax) > 0.0) {
         beta_peak1 = beta_low;
         beta_low *= 0.5;
       };
-      bisection_method(beta_low, beta_peak1, boost::bind(sap_compute_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+      bisection_method(beta_low, beta_peak1, boost::bind(sap_compute_slack_time,_1,boost::cref(delta_time),boost::cref(deltas_0),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
     } else {
       //This means that I must have either a parabola-looking curve, or it never goes positive.
       // so, find the maximum in the interval, by finding the zero of the derivative:
       double beta_low = 0.5;
-      while(sap_compute_derivative_slack_time(beta_low,delta_time,beta,norm_delta,coefs,dt_amax) < 0.0) {
+      while(sap_compute_derivative_slack_time(beta_low,delta_time,deltas_0,norm_delta,coefs,dt_amax) < 0.0) {
         beta_peak1 = beta_low;
         beta_low *= 0.5;
       };
-      bisection_method(beta_low,beta_peak1, boost::bind(sap_compute_derivative_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
-      if( sap_compute_slack_time(beta_peak1,delta_time,beta,norm_delta,coefs,dt_amax) > 0.0 ) {
+      bisection_method(beta_low,beta_peak1, boost::bind(sap_compute_derivative_slack_time,_1,boost::cref(delta_time),boost::cref(deltas_0),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+      if( sap_compute_slack_time(beta_peak1,delta_time,deltas_0,norm_delta,coefs,dt_amax) > 0.0 ) {
         //this means the maximum slack-time is actually positive, meaning there must be a root on either side.
         beta_peak2 = beta_peak1;
         beta_low = 0.5 * beta_peak1;
-        while(sap_compute_slack_time(beta_low,delta_time,beta,delta_time,coefs,dt_amax) > 0.0) {
+        while(sap_compute_slack_time(beta_low,delta_time,deltas_0,delta_time,coefs,dt_amax) > 0.0) {
           beta_peak1 = beta_low;
           beta_low *= 0.5;
         };
-        bisection_method(beta_low, beta_peak1, boost::bind(sap_compute_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+        bisection_method(beta_low, beta_peak1, boost::bind(sap_compute_slack_time,_1,boost::cref(delta_time),boost::cref(deltas_0),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
         beta_low = beta_peak2;
         beta_peak2 = 1.0;
-        bisection_method(beta_low, beta_peak2, boost::bind(sap_compute_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+        bisection_method(beta_low, beta_peak2, boost::bind(sap_compute_slack_time,_1,boost::cref(delta_time),boost::cref(deltas_0),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
           
         //make sure that the second root does not cause a reversal of the travel direction:
-        if( norm_delta + coefs[4] * (beta * beta - beta_peak2 * beta_peak2) < 0.0 ) {
+        vect<double,2> deltas_1 = sap_compute_projected_deltas(beta_peak2,coefs,dt_amax);
+        if( (norm_delta > 0.0) && ( (norm_delta - deltas_1[0] - deltas_1[1] + deltas_0[0] + deltas_0[1]) < 0.0 )) {
           beta_peak2 = 5.0;
         };
       };
@@ -538,7 +635,7 @@ namespace detail {
   };
   
   bool sap_no_slack_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& slack, double delta_time, double dt_amax) {
-    slack = sap_compute_slack_time(beta,delta_time,beta,norm_delta,coefs,dt_amax);
+    slack = sap_compute_slack_time(beta,delta_time,sap_compute_projected_deltas(beta,coefs,dt_amax),norm_delta,coefs,dt_amax);
     RK_NOTICE(1,"   gives slack-time = " << slack);
     return (std::fabs(slack) < 100.0 * num_tol * delta_time );
   };
