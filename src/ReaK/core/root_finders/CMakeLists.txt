@@ -13,9 +13,9 @@ set(ROOTFINDERS_HEADERS
 
 setup_headers("${ROOTFINDERS_HEADERS}" "${RKROOTFINDERSDIR}")
 
-#add_executable(test_root_finder "${SRCROOT}${RKROOTFINDERSDIR}/test.cpp")
-#setup_custom_target(test_root_finder "${SRCROOT}${RKROOTFINDERSDIR}")
-#target_link_libraries(test_root_finder reak_rtti)
+add_executable(test_root_finders_perf "${SRCROOT}${RKROOTFINDERSDIR}/test_root_finders_perf.cpp")
+setup_custom_target(test_root_finders_perf "${SRCROOT}${RKROOTFINDERSDIR}")
+target_link_libraries(test_root_finders_perf reak_rtti)
 
 
 

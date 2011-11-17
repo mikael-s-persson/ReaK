@@ -41,6 +41,7 @@
 #include "path_planning/differentiable_space_concept.hpp"
 
 #include "root_finders/bisection_method.hpp"
+#include "root_finders/secant_method.hpp"
 
 #include "sustained_velocity_pulse_detail.hpp"
 
@@ -319,22 +320,28 @@ namespace detail {
     using std::fabs;
     vect<double,2> result;
     if(A_0 < dt_amax) {
-      if((fabs( coefs[0] * coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[0] * (1.0 - coefs[1]) / coefs[4]) < 1e-6))
-	result[0] = sqrt(dt_amax * A_0);
-      else
-        result[0] = sqrt(dt_amax * A_0) * (1.5 + 0.25 * (3.0 * beta * coefs[4] + coefs[0] * coefs[1]) * 
-                                                        (beta * coefs[4] - coefs[0] * coefs[1]) / (A_0 * A_0));
+//       if((fabs( coefs[0] * coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[0] * (1.0 - coefs[1]) / coefs[4]) < 1e-6))
+//         result[0] = sqrt(dt_amax * A_0);
+//       else
+//         result[0] = sqrt(dt_amax * A_0) * (1.5 + 0.25 * (3.0 * beta * coefs[4] + coefs[0] * coefs[1]) * 
+//                                                         (beta * coefs[4] - coefs[0] * coefs[1]) / (A_0 * A_0));
+      result[0] = beta * coefs[4] * (beta * coefs[4] - coefs[0] * coefs[1]) / dt_amax 
+                + coefs[0] * coefs[0] * (1 - coefs[1] * coefs[1]) / dt_amax
+                + 0.5 * dt_amax;
     } else {
       result[0] = beta * coefs[4] * (beta * coefs[4] - coefs[0] * coefs[1]) / A_0 
                 + 0.5 * ((1.0 + dt_amax * dt_amax / (A_0 * A_0)) * coefs[0] * coefs[0] * (1 - coefs[1] * coefs[1]) / A_0
                          + dt_amax);
     };
     if(A_1 < dt_amax) {
-      if((fabs( coefs[2] * coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[2] * (1.0 - coefs[3]) / coefs[4]) < 1e-6))
-	result[1] = sqrt(dt_amax * A_1);
-      else
-        result[1] = sqrt(dt_amax * A_1) * (1.5 + 0.25 * (3.0 * beta * coefs[4] + coefs[2] * coefs[3]) * 
-                                                        (beta * coefs[4] - coefs[2] * coefs[3]) / (A_1 * A_1));
+//       if((fabs( coefs[2] * coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[2] * (1.0 - coefs[3]) / coefs[4]) < 1e-6))
+//         result[1] = sqrt(dt_amax * A_1);
+//       else
+//         result[1] = sqrt(dt_amax * A_1) * (1.5 + 0.25 * (3.0 * beta * coefs[4] + coefs[2] * coefs[3]) * 
+//                                                         (beta * coefs[4] - coefs[2] * coefs[3]) / (A_1 * A_1));
+      result[1] = beta * coefs[4] * (beta * coefs[4] - coefs[2] * coefs[3]) / dt_amax 
+                + coefs[2] * coefs[2] * (1 - coefs[3] * coefs[3]) / dt_amax
+                + 0.5 * dt_amax;
     } else {
       result[1] = beta * coefs[4] * (beta * coefs[4] - coefs[2] * coefs[3]) / A_1 
                 + 0.5 * ((1.0 + dt_amax * dt_amax / (A_1 * A_1)) * coefs[2] * coefs[2] * (1 - coefs[3] * coefs[3]) / A_1
@@ -381,18 +388,20 @@ namespace detail {
     
     double dt0, dt1;
     if(A_0 < dt_amax) {
-      if((fabs( coefs[0] * coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[0] * (1.0 - coefs[1]) / coefs[4]) < 1e-6))
-	dt0 = -0.5 * sqrt(dt_amax * A_0) / beta;
-      else
-        dt0 = sqrt(dt_amax / A_0) * coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
+//       if((fabs( coefs[0] * coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[0] * (1.0 - coefs[1]) / coefs[4]) < 1e-6))
+//         dt0 = -0.5 * sqrt(dt_amax * A_0) / beta;
+//       else
+//         dt0 = sqrt(dt_amax / A_0) * coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
+      dt0 = coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / dt_amax;
     } else {
       dt0 = coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
     };
     if(A_1 < dt_amax) {
-      if((fabs( coefs[2] * coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[2] * (1.0 - coefs[3]) / coefs[4]) < 1e-6))
-	dt1 = -0.5 * sqrt(dt_amax * A_1) / beta;
-      else
-        dt1 = sqrt(dt_amax / A_1) * coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
+//       if((fabs( coefs[2] * coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[2] * (1.0 - coefs[3]) / coefs[4]) < 1e-6))
+//         dt1 = -0.5 * sqrt(dt_amax * A_1) / beta;
+//       else
+//         dt1 = sqrt(dt_amax / A_1) * coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
+      dt1 = coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / dt_amax;
     } else {
       dt1 = coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
     };
@@ -442,23 +451,25 @@ namespace detail {
     
     double dt0, dt1;
     if(A_0 < dt_amax) {
-      if((fabs( coefs[0] * coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[0] * (1.0 - coefs[1]) / coefs[4]) < 1e-6))
-	dt0 = -0.5 * sqrt(dt_amax * A_0) / beta;
-      else
-        dt0 = sqrt(dt_amax / A_0) * coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
+//       if((fabs( coefs[0] * coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[0] * (1.0 - coefs[1]) / coefs[4]) < 1e-6))
+//         dt0 = -0.5 * sqrt(dt_amax * A_0) / beta;
+//       else
+//         dt0 = sqrt(dt_amax / A_0) * coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
+      dt0 = coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / dt_amax;
     } else {
       dt0 = coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
     };
     if(A_1 < dt_amax) {
-      if((fabs( coefs[2] * coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[2] * (1.0 - coefs[3]) / coefs[4]) < 1e-6))
-	dt1 = -0.5 * sqrt(dt_amax * A_1) / beta;
-      else
-        dt1 = sqrt(dt_amax / A_1) * coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
+//       if((fabs( coefs[2] * coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[2] * (1.0 - coefs[3]) / coefs[4]) < 1e-6))
+//         dt1 = -0.5 * sqrt(dt_amax * A_1) / beta;
+//       else
+//         dt1 = sqrt(dt_amax / A_1) * coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
+      dt1 = coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / dt_amax;
     } else {
       dt1 = coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
     };
     
-    //RK_NOTICE(1,"  dt-der: deltas_dot_1 are " << deltas_dot_1 << " dt0 is " << dt0 << " dt1 is " << dt1 << " c_dot is " << c_dot);
+    RK_NOTICE(1,"   dt-der iter");
     
     return dt0 + dt1 - fabs(c) / (beta * beta) + ( c > 0.0 ? c_dot : -c_dot) / beta;
   };
@@ -549,7 +560,9 @@ namespace detail {
         lower += 0.5 * (upper - lower);
       };
       if(lower < 0.99) {
-        bisection_method(lower, upper, boost::bind(sap_compute_derivative_travel_time,_1,boost::cref(deltas_0),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+	RK_NOTICE(1,"  starting dt-der iterations....");
+        brent_method(lower, upper, boost::bind(sap_compute_derivative_travel_time,_1,boost::cref(deltas_0),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+	RK_NOTICE(1,"  done.");
       } else {
         upper = 1.0;
         lower = 0.9;
@@ -557,7 +570,9 @@ namespace detail {
           upper = lower;
           lower *= 0.5;
         };
-        bisection_method(lower, upper, boost::bind(sap_compute_derivative_travel_time,_1,boost::cref(deltas_0),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+	RK_NOTICE(1,"  starting dt-der iterations....");
+        brent_method(lower, upper, boost::bind(sap_compute_derivative_travel_time,_1,boost::cref(deltas_0),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
+	RK_NOTICE(1,"  done.");
       };
       //make sure that the second root does not cause a reversal of the travel direction:
       vect<double,2> deltas_1 = sap_compute_projected_deltas(upper,coefs,dt_amax);

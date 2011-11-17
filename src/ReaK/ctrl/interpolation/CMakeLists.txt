@@ -9,6 +9,9 @@ set(INTERPOLATION_HEADERS
   "${RKINTERPOLATIONDIR}/interpolated_trajectory.hpp"
   "${RKINTERPOLATIONDIR}/waypoint_container.hpp"
   "${RKINTERPOLATIONDIR}/sustained_velocity_pulse.hpp"
+  "${RKINTERPOLATIONDIR}/sustained_velocity_pulse_detail.hpp"
+  "${RKINTERPOLATIONDIR}/sustained_acceleration_pulse.hpp"
+  "${RKINTERPOLATIONDIR}/sustained_acceleration_pulse_detail.hpp"
 )
 
 #add_library(reak_interpolation STATIC ${INTERPOLATION_SOURCES})

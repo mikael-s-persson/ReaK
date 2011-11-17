@@ -34,6 +34,7 @@
 
 #include <limits>
 #include <cmath>
+#include <algorithm>
 
 namespace ReaK {
 
@@ -44,8 +45,7 @@ namespace ReaK {
 
 
 /**
- * This function template performs a secant method search for the root of a function. This assumes 
- * that the function is monotonic and has a unique root between the two given bounds.
+ * This function template performs a secant method search for the root of a function.
  * \tparam T A scalar value type of the independent and dependent value of the function.
  * \tparam RootedFunction A unary functor type.
  * \param low_bound The lower bound of the search for the root.
@@ -67,8 +67,10 @@ T secant_method(const T& low_bound, const T& hi_bound, RootedFunction f, const T
   
 //   if( x0_value * x1_value > 0.0 )
 //     return (fabs(x0_value) < fabs(x1_value) ? x0 : x1);
+  T abs_tol = tol * fabs(hi_bound - low_bound);
+  T abs_f_tol = tol * (fabs(x0_value) + fabs(x1_value));
   
-  while((fabs(x0 - x1) > tol) && (fabs(x0_value - x1_value) > tol)) {
+  while((fabs(x0 - x1) > abs_tol) && (fabs(x0_value - x1_value) > abs_f_tol)) {
     
     T x2 = x1 - x1_value * (x1 - x0) / (x1_value - x0_value);
     
@@ -84,6 +86,303 @@ T secant_method(const T& low_bound, const T& hi_bound, RootedFunction f, const T
   
   return x1;
 };
+
+
+
+/**
+ * This function template performs the Illinois algorithm for the root of a function. This assumes 
+ * that the function is monotonic and has a unique root between the two given bounds.
+ * \tparam T A scalar value type of the independent and dependent value of the function.
+ * \tparam RootedFunction A unary functor type.
+ * \param low_bound The lower bound of the search for the root, and store as output the lower-bound of the narrowed down interval in which the root exists.
+ * \param hi_bound The upper bound of the search for the root, and store as output the upper-bound of the narrowed down interval in which the root exists.
+ * \param f The functor of which the root is sought.
+ * \param tol The tolerance on the size of the narrowed-down intervale in which the root exists.
+ */
+template <typename T,
+	  typename RootedFunction>
+void illinois_method(T& low_bound, T& hi_bound, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon()) 
+{
+  using std::fabs;
+  
+  T x0_value = f(low_bound);
+  T x1_value = f(hi_bound);
+  
+   if( x0_value * x1_value > 0.0 )
+     return;
+  
+  int last_retained_bound = 0;
+  T abs_tol = tol * fabs(hi_bound - low_bound);
+  T abs_f_tol = tol * (fabs(x0_value) + fabs(x1_value));
+  
+  while(fabs(low_bound - hi_bound) > abs_tol) {
+    
+    T x2 = hi_bound - x1_value * (hi_bound - low_bound) / (x1_value - x0_value);
+    
+    T x2_value = f(x2);
+    
+    if(x2_value * x1_value > 0.0) {
+      hi_bound = x2;
+      if(fabs(x2_value) < abs_f_tol) {
+	low_bound = hi_bound;
+	return;
+      };
+      if(last_retained_bound == -1) {
+	x0_value *= 0.5;
+      };
+      x1_value = x2_value;
+      last_retained_bound = -1;
+    } else {
+      low_bound = x2;
+      if(fabs(x2_value) < abs_f_tol) {
+	hi_bound = low_bound;
+	return;
+      };
+      if(last_retained_bound == 1) {
+	x1_value *= 0.5;
+      };
+      x0_value = x2_value;
+      last_retained_bound = 1;
+    };
+    
+  };
+  
+};
+
+
+
+
+/**
+ * This function template performs the Ford-3 algorithm for the root of a function. This assumes 
+ * that the function is monotonic and has a unique root between the two given bounds. The Ford-3
+ * method is a Illinois-type method with a refined choice of scaling factor that acheives super-linear
+ * convergence.
+ * \tparam T A scalar value type of the independent and dependent value of the function.
+ * \tparam RootedFunction A unary functor type.
+ * \param low_bound The lower bound of the search for the root, and store as output the lower-bound of the narrowed down interval in which the root exists.
+ * \param hi_bound The upper bound of the search for the root, and store as output the upper-bound of the narrowed down interval in which the root exists.
+ * \param f The functor of which the root is sought.
+ * \param tol The tolerance on the size of the narrowed-down intervale in which the root exists.
+ */
+template <typename T,
+	  typename RootedFunction>
+void ford3_method(T& low_bound, T& hi_bound, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon()) 
+{
+  using std::fabs;
+  
+  T x0_value = f(low_bound);
+  T x1_value = f(hi_bound);
+  
+   if( x0_value * x1_value > 0.0 )
+     return;
+  
+  int last_retained_bound = 0;
+  T abs_tol = tol * fabs(hi_bound - low_bound);
+  T abs_f_tol = tol * (fabs(x0_value) + fabs(x1_value));
+  
+  while(fabs(low_bound - hi_bound) > abs_tol) {
+    
+    T x2 = hi_bound - x1_value * (hi_bound - low_bound) / (x1_value - x0_value);
+    
+    T x2_value = f(x2);
+    
+    if(x2_value * x1_value > 0.0) {
+      hi_bound = x2;
+      if(fabs(x2_value) < abs_f_tol) {
+	low_bound = hi_bound;
+	return;
+      };
+      if(last_retained_bound == -1) {
+	x0_value *= 1.0 - x2_value / (x1_value * (1.0 - x2_value / x0_value));
+      };
+      x1_value = x2_value;
+      last_retained_bound = -1;
+    } else {
+      low_bound = x2;
+      if(fabs(x2_value) < abs_f_tol) {
+	hi_bound = low_bound;
+	return;
+      };
+      if(last_retained_bound == 1) {
+	x1_value *= 1.0 - x2_value / (x0_value * (1.0 - x2_value / x1_value));
+      };
+      x0_value = x2_value;
+      last_retained_bound = 1;
+    };
+    
+  };
+  
+};
+
+
+
+
+
+/**
+ * This function template performs Brent's method for the root of a function. This assumes 
+ * that the function is monotonic and has a unique root between the two given bounds. 
+ * \tparam T A scalar value type of the independent and dependent value of the function.
+ * \tparam RootedFunction A unary functor type.
+ * \param a The lower bound of the search for the root, and store as output the lower-bound of the narrowed down interval in which the root exists.
+ * \param b The upper bound of the search for the root, and store as output the upper-bound of the narrowed down interval in which the root exists.
+ * \param f The functor of which the root is sought.
+ * \param tol The tolerance on the size of the narrowed-down intervale in which the root exists.
+ */
+template <typename T,
+	  typename RootedFunction>
+void brent_method(T& a, T& b, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon()) 
+{
+  using std::fabs;
+  using std::swap;
+  
+  T a_value = f(a);
+  T b_value = f(b);
+  
+  if( a_value * b_value > 0.0 )
+    return;
+  if( fabs(a_value) < fabs(b_value) ) {
+    swap(a,b);
+    swap(a_value,b_value);
+  };
+  T c = a;
+  T c_value = a_value;
+  T d = c;
+  
+  bool flag = true;
+  T abs_tol = tol * fabs(a - b);
+  T abs_f_tol = tol * fabs(a_value - b_value);
+  
+  while(fabs(b - a) > abs_tol) {
+    T s = a;
+    if( ( fabs( a_value - c_value ) > tol * fabs( a_value ) ) &&
+        ( fabs( b_value - c_value ) > tol * fabs( a_value ) ) ) {
+      s = a * b_value * c_value / ((a_value - b_value) * (a_value - c_value))
+        + b * a_value * c_value / ((b_value - a_value) * (b_value - c_value))
+	+ c * a_value * b_value / ((c_value - a_value) * (c_value - b_value));
+    } else {
+      s = b - b_value * (b - a) / (b_value - a_value);
+    };
+    
+    T a3_b = 0.25 * (3.0 * a + b);
+    if( ((fabs(s - a3_b) > fabs(b - a3_b)) || (fabs(s - b) > fabs(b - a3_b))) 
+      || (flag && (fabs(s - b) >= fabs(b - c) * 0.5))
+      || (!flag && (fabs(s - b) >= fabs(c - d) * 0.5))
+      || (flag && (fabs(b - c) < abs_tol))
+      || (!flag && (fabs(c - d) < abs_tol)) ) {
+      s = 0.5 * (a + b);
+      flag = true;
+    } else
+      flag = false;
+    
+    T s_value = f(s);
+    if(fabs(s_value) < abs_f_tol) {
+      a = b = s;
+      return;
+    };
+    
+    d = c;
+    c = b;
+    c_value = b_value;
+    
+    if(a_value * s_value > 0.0) {
+      a = s;
+      a_value = s_value;
+    } else {
+      b = s;
+      b_value = s_value;
+    };
+    if(fabs(a_value) < fabs(b_value)) {
+      swap(a,b);
+      swap(a_value,b_value);
+    };
+    
+  };
+  
+};
+
+
+
+
+
+
+/**
+ * This function template performs Ridder's method for the root of a function. This assumes 
+ * that the function is monotonic and has a unique root between the two given bounds.
+ * \tparam T A scalar value type of the independent and dependent value of the function.
+ * \tparam RootedFunction A unary functor type.
+ * \param low_bound The lower bound of the search for the root, and store as output the lower-bound of the narrowed down interval in which the root exists.
+ * \param hi_bound The upper bound of the search for the root, and store as output the upper-bound of the narrowed down interval in which the root exists.
+ * \param f The functor of which the root is sought.
+ * \param tol The tolerance on the size of the narrowed-down intervale in which the root exists.
+ */
+template <typename T,
+	  typename RootedFunction>
+void ridders_method(T& low_bound, T& hi_bound, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon()) 
+{
+  using std::fabs;
+  using std::sqrt;
+  
+  T x0_value = f(low_bound);
+  T x1_value = f(hi_bound);
+  
+   if( x0_value * x1_value > 0.0 )
+     return;
+  
+  T abs_tol = tol * fabs(hi_bound - low_bound);
+  T abs_f_tol = tol * fabs(x0_value - x1_value);
+  
+  while(fabs(low_bound - hi_bound) > abs_tol) {
+    
+    T x2 = 0.5 * (hi_bound + low_bound);
+    T x2_value = f(x2);
+    if(fabs(x2_value) < abs_f_tol) {
+      low_bound = hi_bound = x2;
+      return;
+    };
+    
+    T x3 = x2 + (x2 - hi_bound) * (x0_value > 0.0 ? x2_value : -x2_value) / sqrt(x2_value * x2_value - x0_value * x1_value);
+    T x3_value = f(x3);
+    if(fabs(x3_value) < abs_f_tol) {
+      low_bound = hi_bound = x3;
+      return;
+    };
+    
+    if( x0_value * x2_value > 0.0 ) {
+      if( ( x0_value * x3_value > 0.0 ) && ( fabs(x2 - low_bound) < fabs(x3 - low_bound) ) ) {
+	low_bound = x3;
+	x0_value = x3_value;
+      } else {
+        low_bound = x2;
+        x0_value = x2_value;
+      };
+      if( x1_value * x3_value > 0.0 ) {
+	hi_bound = x3;
+	x1_value = x3_value;
+      };
+    } else {
+      if( (x1_value * x3_value > 0.0 ) && ( fabs(x2 - hi_bound) < fabs(x3 - hi_bound) ) ) {
+	hi_bound = x3;
+	x1_value = x3_value;
+      } else {
+	hi_bound = x2;
+	x1_value = x2_value;
+      };
+      if( x0_value * x3_value > 0.0 ) {
+	low_bound = x3;
+	x0_value = x3_value;
+      };
+    };
+    
+  };
+  
+};
+
+
+
+
+
+
+
 
 
 
