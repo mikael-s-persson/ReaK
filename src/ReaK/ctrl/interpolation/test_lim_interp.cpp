@@ -151,6 +151,34 @@ int main(int argc, char** argv) {
     std::cout << "Message: " << e.what() << std::endl;
     return 1;
   };
+  
+  typedef ReaK::arithmetic_tuple< 
+            TopoType, 
+            TopoType 
+          > SpaceTupleType2;
+  typedef ReaK::pp::metric_space_tuple<SpaceTupleType2> TopoType2;
+  typedef ReaK::pp::metric_topology_traits<TopoType2>::point_type PointType2;
+  typedef ReaK::pp::temporal_space< TopoType2, ReaK::pp::time_poisson_topology> TempTopoType2;
+  typedef ReaK::pp::metric_topology_traits<TempTopoType2>::point_type TempPointType2;
+    
+  TempTopoType2 topo2( "temporal_space_tuple",
+    SpaceTupleType2(
+      SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-20.0, 20.0),
+                     ReaK::pp::line_segment_topology<double>("vel_topo",-max_vel, max_vel),
+                     ReaK::pp::line_segment_topology<double>("acc_topo",-max_accel, max_accel),
+                     ReaK::pp::line_segment_topology<double>("jerk_topo",-20.0, 20.0)),
+      SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-20.0, 20.0),
+                     ReaK::pp::line_segment_topology<double>("vel_topo",-max_vel, max_vel),
+                     ReaK::pp::line_segment_topology<double>("acc_topo",-max_accel, max_accel),
+                     ReaK::pp::line_segment_topology<double>("jerk_topo",-20.0, 20.0))));
+  
+  std::vector< TempPointType2 > pts2;
+  pts2.push_back( TempPointType2(0.0, PointType2(PointType(start_pt,start_vel,0.0,0.0), PointType(start_pt,start_vel,0.0,0.0)) ));
+  pts2.push_back( TempPointType2(min_time, PointType2(PointType(end_pt,end_vel,0.0,0.0),PointType(end_pt,end_vel,0.0,0.0)) ));
+  
+  ReaK::pp::svp_interp_traj<TempTopoType2> interp2(pts2.begin(), pts2.end(), topo2);
+  
+  
 
   return 0;
 };

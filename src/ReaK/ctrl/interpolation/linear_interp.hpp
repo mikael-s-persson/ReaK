@@ -39,6 +39,7 @@
 #include "path_planning/differentiable_space_concept.hpp"
 
 #include "interpolated_trajectory.hpp"
+#include "generic_interpolator_factory.hpp"
 
 #include "lin_alg/arithmetic_tuple.hpp"
 
@@ -134,9 +135,10 @@ namespace detail {
  */
 template <typename PointType, typename Topology>
 PointType linear_interpolate(const PointType& a, const PointType& b, double t, const Topology& space) {
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
   typedef typename temporal_topology_traits<Topology>::space_topology SpaceType;
   typedef typename temporal_topology_traits<Topology>::time_topology TimeSpaceType;
+  
+  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
   BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< SpaceType, 0, TimeSpaceType>));
   
   double t_factor = b.time - a.time;
@@ -157,6 +159,102 @@ PointType linear_interpolate(const PointType& a, const PointType& b, double t, c
   return result;      
 };
 
+
+
+/**
+ * This functor class implements a linear interpolation in a temporal and zero-differentiable 
+ * topology.
+ * \tparam SpaceType The topology on which the interpolation is done, should model MetricSpaceConcept and DifferentiableSpaceConcept zero times against time.
+ * \tparam TimeSpaceType The time topology.
+ */
+
+template <typename SpaceType, typename TimeSpaceType>
+class linear_interpolator {
+  public:
+    typedef linear_interpolator<SpaceType,TimeSpaceType> self;
+    typedef typename metric_topology_traits<SpaceType>::point_type point_type;
+    
+    typedef typename derived_N_order_space< SpaceType,TimeSpaceType,0>::type Space0;
+    typedef typename metric_topology_traits<Space0>::point_type PointType0;
+    typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
+  
+    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<SpaceType>));
+    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< SpaceType, 0, TimeSpaceType >));
+    
+  private:
+    PointDiff0 delta_first_order;
+    
+  public:
+    
+    /**
+     * Default constructor.
+     */
+    linear_interpolator() { };
+    
+    /**
+     * Constructs the interpolator with its start and end points.
+     * \tparam Factory The factory type that can be used to store fly-weight parameters used by the interpolator.
+     * \param start_point The start point of the interpolation.
+     * \param end_point The end point of the interpolation.
+     * \param space The metric space on which the interpolation resides.
+     * \param t_space The time-space against which the interpolation is done.
+     * \param factory The factory object that stores relevant fly-weight parameters for the interpolator.
+     */
+    template <typename Factory>
+    linear_interpolator(const point_type& start_point, const point_type& end_point, double dt,
+		        const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
+      initialize(start_point,end_point,dt,space,t_space,factory);
+    };
+    
+    /**
+     * Initializes the interpolator with its start and end points.
+     * \tparam Factory The factory type that can be used to store fly-weight parameters used by the interpolator.
+     * \param start_point The start point of the interpolation.
+     * \param end_point The end point of the interpolation.
+     * \param space The metric space on which the interpolation resides.
+     * \param t_space The time-space against which the interpolation is done.
+     * \param factory The factory object that stores relevant fly-weight parameters for the interpolator.
+     */
+    template <typename Factory>
+    void initialize(const point_type& start_point, const point_type& end_point, double,
+		    const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
+      delta_first_order = get_space<0>(space,t_space).difference( get<0>(end_point), get<0>(start_point) );
+    };
+    
+    /**
+     * Computes the point at a given delta-time from the start-point.
+     * \tparam Factory The factory type that can be used to store fly-weight parameters used by the interpolator.
+     * \param result The result point of the interpolation.
+     * \param start_point The start point of the interpolation.
+     * \param end_point The end point of the interpolation.
+     * \param space The metric space on which the interpolation resides.
+     * \param t_space The time-space against which the interpolation is done.
+     * \param dt The time difference from the start-point to the resulting interpolated point.
+     * \param dt_total The time difference from the start-point to the end point.
+     * \param factory The factory object that stores relevant fly-weight parameters for the interpolator.
+     */
+    template <typename Factory>
+    void compute_point(point_type& result, const point_type& start_point, const point_type& end_point,
+		       const SpaceType& space, const TimeSpaceType& t_space, 
+		       double dt, double dt_total, const Factory& factory) const {
+      if(std::fabs(dt_total) < std::numeric_limits<double>::epsilon())
+        throw singularity_error("Normalizing factor in linear interpolation is zero!");
+      double t_normal = dt / dt_total;
+      
+      detail::linear_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< SpaceType >::order> >(result, start_point, delta_first_order, space, t_space, dt_total, t_normal);
+    };
+    
+    /**
+     * Returns the minimum travel time between the initialized start and end points.
+     * \return The minimum travel time between the initialized start and end points.
+     */
+    double get_minimum_travel_time() const {
+      return 0.0;
+    };
+    
+};
+
+#if 0
 /**
  * This functor class implements a cubic Hermite interpolation in a temporal and once-differentiable 
  * topology.
@@ -241,6 +339,7 @@ class linear_interpolator {
     };
     
 };
+#endif
 
 /**
  * This class is a factory class for linear interpolators on a temporal differentiable space.
@@ -252,10 +351,9 @@ class linear_interpolator_factory : public serialization::serializable {
     typedef linear_interpolator_factory<TemporalTopology> self;
     typedef TemporalTopology topology;
     typedef typename temporal_topology_traits<TemporalTopology>::point_type point_type;
-    typedef linear_interpolator<self> interpolator_type;
+    typedef generic_interpolator<self,linear_interpolator> interpolator_type;
   
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
-    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<TemporalTopology>::space_topology, 0, typename temporal_topology_traits<TemporalTopology>::time_topology >));
   private:
     const topology* p_space;
   public:

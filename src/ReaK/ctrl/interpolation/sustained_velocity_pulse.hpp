@@ -39,6 +39,7 @@
 #include "path_planning/differentiable_space_concept.hpp"
 
 #include "interpolated_trajectory.hpp"
+#include "generic_interpolator_factory.hpp"
 
 #include "lin_alg/arithmetic_tuple.hpp"
 
@@ -86,57 +87,157 @@ PointType svp_interpolate(const PointType& a, const PointType& b, double t, cons
   typedef typename metric_topology_traits<Space1>::point_type PointType1;
   typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
   
-  PointDiff0 delta_first_order = get_space<0>(space.get_space_topology(),space.get_time_topology()).difference( get<0>(b.pt), get<0>(a.pt) );
-  double norm_delta = get_space<0>(space.get_space_topology(),space.get_time_topology()).norm( delta_first_order );
-  double beta = 1.0;
-  PointType1 peak_velocity = get_space<1>(space.get_space_topology(),space.get_time_topology()).origin();
-	
-  double min_delta_time = detail::svp_compute_min_delta_time(a.pt, b.pt, 
-	                                                     delta_first_order, peak_velocity,
-						             norm_delta, beta,
-						             space.get_space_topology(),
-							     space.get_time_topology(),
-							     1e-6, 20);
-	
-  double delta_time = b.time - a.time;
-  if(min_delta_time < delta_time) {
-    
-    beta = beta * min_delta_time / delta_time;
-    peak_velocity = get_space<1>(space.get_space_topology(),space.get_time_topology()).adjust(
-      get_space<1>(space.get_space_topology(),space.get_time_topology()).origin(),
-      (min_delta_time / delta_time) *
-      get_space<1>(space.get_space_topology(),space.get_time_topology()).difference(
-        peak_velocity,
-        get_space<1>(space.get_space_topology(),space.get_time_topology()).origin()
-      )
-    );
-	
-    detail::svp_compute_peak_velocity(a.pt, b.pt, 
-	                              delta_first_order, peak_velocity,
-				      norm_delta, beta, delta_time,
-				      space.get_space_topology(),
-				      space.get_time_topology(),
-				      1e-6, 100);
-	
-  };
-  
   if(t <= a.time)
     return a;
   if(t >= b.time)
     return b;
-  double dt_total = b.time - a.time;
-  if(min_delta_time > dt_total)
-    dt_total = min_delta_time;
+  
+  PointDiff0 delta_first_order;
+  PointType1 peak_velocity;
+  
+  double delta_time = b.time - a.time;
+  
+  double slack = detail::svp_compute_interpolation_data_impl(a.pt, b.pt,
+                                                             delta_first_order, peak_velocity,
+					                     space.get_space_topology(),
+						             space.get_time_topology(),
+						             delta_time, NULL,
+							     1e-6, 60);
+  
+  if(slack < 0.0)
+    delta_time -= slack;
   double dt = t - a.time;
       
   PointType result;
   result.time = t;
       
-  detail::svp_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< SpaceType >::order> >(result.pt, a.pt, b.pt, delta_first_order, peak_velocity, space.get_space_topology(), space.get_time_topology(), dt, dt_total);
+  detail::svp_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< SpaceType >::order> >(result.pt, a.pt, b.pt, delta_first_order, peak_velocity, space.get_space_topology(), space.get_time_topology(), dt, delta_time);
   
   return result;    
 };
 
+
+
+
+
+
+
+/**
+ * This functor class implements a sustained velocity pulse (SVP) interpolation in a temporal and once-differentiable 
+ * topology.
+ * \tparam SpaceType The topology on which the interpolation is done, should model MetricSpaceConcept and DifferentiableSpaceConcept once against time.
+ * \tparam TimeSpaceType The time topology.
+ */
+template <typename SpaceType, typename TimeSpaceType>
+class svp_interpolator {
+  public:
+    typedef svp_interpolator<SpaceType,TimeSpaceType> self;
+    typedef typename metric_topology_traits<SpaceType>::point_type point_type;
+  
+    typedef typename derived_N_order_space< SpaceType,TimeSpaceType,0>::type Space0;
+    typedef typename metric_topology_traits<Space0>::point_type PointType0;
+    typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
+    typedef typename derived_N_order_space< SpaceType,TimeSpaceType,1>::type Space1;
+    typedef typename metric_topology_traits<Space1>::point_type PointType1;
+    typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
+    
+    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<SpaceType>));
+    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< SpaceType, 1, TimeSpaceType >));
+    BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< typename derived_N_order_space<SpaceType, TimeSpaceType, 1>::type >));
+    
+  private:
+    PointDiff0 delta_first_order;
+    PointType1 peak_velocity;
+    double min_delta_time;
+    PointType1 best_peak_velocity;
+  
+  public:
+    
+    
+    /**
+     * Default constructor.
+     */
+    svp_interpolator() : min_delta_time(std::numeric_limits<double>::infinity()) { };
+    
+    /**
+     * Constructs the interpolator with its start and end points.
+     * \tparam Factory The factory type that can be used to store fly-weight parameters used by the interpolator.
+     * \param start_point The start point of the interpolation.
+     * \param end_point The end point of the interpolation.
+     * \param space The metric space on which the interpolation resides.
+     * \param t_space The time-space against which the interpolation is done.
+     * \param factory The factory object that stores relevant fly-weight parameters for the interpolator.
+     */
+    template <typename Factory>
+    svp_interpolator(const point_type& start_point, const point_type& end_point, double dt,
+		     const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
+      initialize(start_point,end_point,dt,space,t_space,factory);
+    };
+    
+    /**
+     * Initializes the interpolator with its start and end points.
+     * \tparam Factory The factory type that can be used to store fly-weight parameters used by the interpolator.
+     * \param start_point The start point of the interpolation.
+     * \param end_point The end point of the interpolation.
+     * \param dt The time difference between the start point to the end point of the interpolation.
+     * \param space The metric space on which the interpolation resides.
+     * \param t_space The time-space against which the interpolation is done.
+     * \param factory The factory object that stores relevant fly-weight parameters for the interpolator.
+     */
+    template <typename Factory>
+    void initialize(const point_type& start_point, const point_type& end_point, double dt,
+		    const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
+      
+      min_delta_time = detail::svp_compute_interpolation_data_impl(start_point, end_point,
+	                                                           delta_first_order, peak_velocity,
+						                   space, t_space, dt, &best_peak_velocity,
+						                   1e-6, 60);
+    };
+    
+    /**
+     * Computes the point at a given delta-time from the start-point.
+     * \tparam Factory The factory type that can be used to store fly-weight parameters used by the interpolator.
+     * \param result The result point of the interpolation.
+     * \param start_point The start point of the interpolation.
+     * \param end_point The end point of the interpolation.
+     * \param space The metric space on which the interpolation resides.
+     * \param t_space The time-space against which the interpolation is done.
+     * \param dt The time difference from the start-point to the resulting interpolated point.
+     * \param dt_total The time difference from the start-point to the end point.
+     * \param factory The factory object that stores relevant fly-weight parameters for the interpolator.
+     */
+    template <typename Factory>
+    void compute_point(point_type& result, const point_type& start_point, const point_type& end_point,
+		       const SpaceType& space, const TimeSpaceType& t_space, 
+		       double dt, double dt_total, const Factory& factory) const {
+      if(dt <= 0.0) {
+	result = start_point;
+	return;
+      };
+      if(dt >= dt_total) {
+	result = end_point;
+	return;
+      };
+      
+      detail::svp_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< SpaceType >::order> >(result, start_point, end_point, delta_first_order, peak_velocity, space, t_space, dt, dt_total);
+    };
+    
+    /**
+     * Returns the minimum travel time between the initialized start and end points.
+     * \return The minimum travel time between the initialized start and end points.
+     */
+    double get_minimum_travel_time() const {
+      return min_delta_time;
+    };
+    
+};
+
+
+
+
+
+
+#if 0
 /**
  * This functor class implements a sustained velocity pulse (SVP) interpolation in a temporal and once-differentiable 
  * topology.
@@ -171,39 +272,16 @@ class svp_interpolator {
     
     void update_delta_value() {
       if(parent && start_point && end_point) {
-	delta_first_order = get_space<0>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).difference( get<0>(end_point->pt), get<0>(start_point->pt) );
-	double norm_delta = get_space<0>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).norm( delta_first_order );
-	double beta = 0.0;
-	peak_velocity = get_space<1>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).origin();
-	
-	min_delta_time = detail::svp_compute_min_delta_time(start_point->pt, end_point->pt, 
-	                                                    delta_first_order, peak_velocity,
-						            norm_delta, beta,
-						            parent->get_temporal_space()->get_space_topology(),
-							    parent->get_temporal_space()->get_time_topology(),
-							    1e-6, 20);
-	best_peak_velocity = peak_velocity;
-	
 	double delta_time = end_point->time - start_point->time;
-	if(min_delta_time > delta_time)
-	  return;
-    
-        beta = beta * min_delta_time / delta_time;
-	peak_velocity = get_space<1>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).adjust(
-	  get_space<1>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).origin(),
-	  (min_delta_time / delta_time) *
-	  get_space<1>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).difference(
-	    peak_velocity,
-	    get_space<1>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).origin()
-	  )
-	);
 	
-	detail::svp_compute_peak_velocity(start_point->pt, end_point->pt, 
-	                                  delta_first_order, peak_velocity,
-					  norm_delta, beta, delta_time,
-					  parent->get_temporal_space()->get_space_topology(),
-					  parent->get_temporal_space()->get_time_topology(),
-					  1e-6, 100);
+	double slack = detail::svp_compute_interpolation_data_impl(start_point->pt, end_point->pt,
+	                                                           delta_first_order, peak_velocity,
+						                   parent->get_temporal_space()->get_space_topology(),
+						                   parent->get_temporal_space()->get_time_topology(),
+						                   delta_time, &best_peak_velocity,
+							           1e-6, 60);
+	
+	min_delta_time = delta_time - slack;
 	
       };
     };
@@ -281,6 +359,7 @@ class svp_interpolator {
     };
     
 };
+#endif
 
 /**
  * This class is a factory class for sustained velocity pulse (SVP) interpolators on a temporal differentiable space.
@@ -296,13 +375,8 @@ class svp_interpolator_factory : public serialization::serializable {
     typedef typename temporal_topology_traits<TemporalTopology>::point_type point_type;
   
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
-    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<TemporalTopology>::space_topology, 1, typename temporal_topology_traits<TemporalTopology>::time_topology >));
-    BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< typename derived_N_order_space<typename temporal_topology_traits<TemporalTopology>::space_topology, typename temporal_topology_traits<TemporalTopology>::time_topology, 1>::type >));
     
-    typedef typename derived_N_order_space< typename temporal_topology_traits<topology>::space_topology,
-                                            typename temporal_topology_traits<topology>::time_topology,0>::type Space0;
-    
-    typedef svp_interpolator<self, metric_topology_traits< Space0 >::dimensions> interpolator_type;
+    typedef generic_interpolator<self, svp_interpolator> interpolator_type;
     
   private:
     const topology* p_space;
@@ -347,7 +421,6 @@ class svp_interp_traj : public interpolated_trajectory<Topology,svp_interpolator
   public:
     
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<Topology>::space_topology, 1, typename temporal_topology_traits<Topology>::time_topology >));
     
     typedef svp_interp_traj<Topology,DistanceMetric> self;
     typedef interpolated_trajectory<Topology,svp_interpolator_factory<Topology>,DistanceMetric> base_class_type;

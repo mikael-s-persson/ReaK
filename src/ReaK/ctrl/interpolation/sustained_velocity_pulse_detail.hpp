@@ -562,6 +562,47 @@ namespace detail {
     return slack;
   };
   
+  
+  template <typename PointType, typename DiffSpace, typename TimeSpace>
+  double svp_compute_interpolation_data_impl(const PointType& start_point, const PointType& end_point,
+                                             typename metric_topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,0>::type >::point_difference_type& delta_first_order,
+					     typename metric_topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type& peak_velocity,
+					     const DiffSpace& space, const TimeSpace& t_space,
+					     double delta_time = 0.0,
+					     typename metric_topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type* best_peak_velocity = NULL, 
+					     double num_tol = 1e-6, unsigned int max_iter = 20) {
+    delta_first_order = get_space<0>(space,t_space).difference( get<0>(end_point), get<0>(start_point) );
+    double norm_delta = get_space<0>(space,t_space).norm( delta_first_order );
+    double beta = 0.0;
+    peak_velocity = get_space<1>(space,t_space).origin();
+    
+    double min_delta_time = svp_compute_min_delta_time(start_point, end_point, 
+                                                       delta_first_order, peak_velocity,
+					               norm_delta, beta, space, t_space, 1e-6, 20);
+    if(best_peak_velocity)
+      *best_peak_velocity = peak_velocity;
+    
+    if(min_delta_time > delta_time)
+      return min_delta_time;
+    
+    beta = beta * min_delta_time / delta_time;
+    peak_velocity = get_space<1>(space,t_space).adjust(
+      get_space<1>(space,t_space).origin(),
+      (min_delta_time / delta_time) *
+      get_space<1>(space,t_space).difference(
+        peak_velocity,
+        get_space<1>(space,t_space).origin()
+      )
+    );
+    
+    svp_compute_peak_velocity(start_point, end_point, 
+                              delta_first_order, peak_velocity,
+			      norm_delta, beta, delta_time,
+			      space, t_space, 1e-6, 100);
+    
+    return min_delta_time;
+  };
+  
 };
 
 
