@@ -160,6 +160,12 @@ class waypoint_container_base {
     const topology& getSpace() const throw() { return space; };
     
     /**
+     * Returns the space on which the path resides.
+     * \return The space on which the path resides.
+     */
+    const topology& get_temporal_space() const throw() { return space; };
+    
+    /**
      * Returns the distance metric that the path uses.
      * \return The distance metric that the path uses.
      */
@@ -271,6 +277,12 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * \return The space on which the path resides.
      */
     const topology& getSpace() const throw() { return space; };
+    
+    /**
+     * Returns the space on which the path resides.
+     * \return The space on which the path resides.
+     */
+    const topology& get_temporal_space() const throw() { return space; };
     
     /**
      * Returns the distance metric that the path uses.

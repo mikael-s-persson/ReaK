@@ -409,6 +409,77 @@ class sap_interpolator_factory : public serialization::serializable {
 
 
 
+/**
+ * This functor class is a distance metric based on the reach-time of a SAP interpolation between
+ * two points in a differentiable space.
+ * \tparam TimeSpaceType The time topology type against which the interpolation is done.
+ */
+template <typename TimeSpaceType>
+struct sap_reach_time_metric : public serialization::serializable {
+  
+  typedef sap_reach_time_metric<TimeSpaceType> self;
+  
+  TimeSpaceType t_space;
+  double tolerance;
+  unsigned int maximum_iterations;
+  
+  sap_reach_time_metric(const TimeSpaceType& t_space = TimeSpaceType(),
+                        double aTolerance = 1e-6, 
+			unsigned int aMaxIter = 60) : 
+			tolerance(aTolerance),
+			maximum_iterations(aMaxIter) { };
+  
+  /** 
+   * This function returns the distance between two points on a topology.
+   * \tparam Point The point-type.
+   * \tparam Topology The topology.
+   * \param a The first point.
+   * \param b The second point.
+   * \param s The topology or space on which the points lie.
+   * \return The distance between two points on a topology.
+   */
+  template <typename Point, typename Topology>
+  double operator()(const Point& a, const Point& b, const Topology& s) const {
+    detail::generic_interpolator_impl<sap_interpolator,Topology,TimeSpaceType> interp;
+    interp.initialize(a, b, 0.0, s, t_space, *this);
+    return interp.get_minimum_travel_time();
+  };
+  
+  /** 
+   * This function returns the norm of a difference between two points on a topology.
+   * \tparam PointDiff The point-difference-type.
+   * \tparam Topology The topology.
+   * \param a The point-difference.
+   * \param s The topology or space on which the points lie.
+   * \return The norm of the difference between two points on a topology.
+   */
+  template <typename PointDiff, typename Topology>
+  double operator()(const PointDiff& a, const Topology& s) const {
+    detail::generic_interpolator_impl<sap_interpolator,Topology,TimeSpaceType> interp;
+    interp.initialize(s.origin(), s.adjust(s.origin(),a), 0.0, s, t_space, *this);
+    return interp.get_minimum_travel_time();
+  };
+  
+      
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+    A & RK_SERIAL_SAVE_WITH_NAME(t_space)
+      & RK_SERIAL_SAVE_WITH_NAME(tolerance)
+      & RK_SERIAL_SAVE_WITH_NAME(maximum_iterations);
+  };
+
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+    A & RK_SERIAL_LOAD_WITH_NAME(t_space)
+      & RK_SERIAL_LOAD_WITH_NAME(tolerance)
+      & RK_SERIAL_LOAD_WITH_NAME(maximum_iterations);
+  };
+
+  RK_RTTI_MAKE_ABSTRACT_1BASE(sap_reach_time_metric,0xC241000A,1,"sap_reach_time_metric",serialization::serializable)
+};
+
 
   
 /**

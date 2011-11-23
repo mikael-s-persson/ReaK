@@ -104,6 +104,8 @@ struct spatial_trajectory_traits {
  * 
  * w_p = p.get_waypoint_at_time(t);  The waypoint, along the trajectory (p), at a given time (t) can be obtained.
  * 
+ * const topology& space = p.get_temporal_space();  The temporal space on which the trajectory lies can be obtained.
+ * 
  * \tparam SpatialTrajectory The trajectory type for which this concept is checked.
  * \tparam Topology The temporal-topology type on which the trajectory should be able to exist.
  */
@@ -114,7 +116,7 @@ struct SpatialTrajectoryConcept {
   
   SpatialTrajectory p;
   typename temporal_topology_traits<Topology>::point_type pt;
-  std::pair< typename spatial_path_traits<SpatialTrajectory>::const_waypoint_descriptor, 
+  std::pair< typename spatial_trajectory_traits<SpatialTrajectory>::const_waypoint_descriptor, 
              typename temporal_topology_traits<Topology>::point_type> w_p;
   typedef typename temporal_topology_traits<Topology>::time_topology time_topology;
   typename time_topology::point_difference_type dt;
@@ -129,6 +131,8 @@ struct SpatialTrajectoryConcept {
     w_p = p.move_time_diff_from(w_p, dt);
     d = p.travel_distance(w_p, w_p);
     w_p = p.get_waypoint_at_time(t);
+    
+    const typename spatial_trajectory_traits<SpatialTrajectory>::topology& space = p.get_temporal_space(); RK_UNUSED(space);
   };
   
 };

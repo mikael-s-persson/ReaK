@@ -72,7 +72,8 @@ namespace pp {
  * \return The interpolated point at time t, between a and b.
  */
 template <typename PointType, typename Topology>
-PointType svp_interpolate(const PointType& a, const PointType& b, double t, const Topology& space) {
+PointType svp_interpolate(const PointType& a, const PointType& b, double t, const Topology& space, 
+			  double tolerance = 1e-6, unsigned int maximum_iterations = 60) {
   BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
   typedef typename temporal_topology_traits<Topology>::space_topology SpaceType;
   typedef typename temporal_topology_traits<Topology>::time_topology TimeSpaceType;
@@ -102,7 +103,7 @@ PointType svp_interpolate(const PointType& a, const PointType& b, double t, cons
 					                     space.get_space_topology(),
 						             space.get_time_topology(),
 						             delta_time, NULL,
-							     1e-6, 60);
+							     tolerance, maximum_iterations);
   
   if(slack < 0.0)
     delta_time -= slack;
@@ -191,7 +192,7 @@ class svp_interpolator {
       min_delta_time = detail::svp_compute_interpolation_data_impl(start_point, end_point,
 	                                                           delta_first_order, peak_velocity,
 						                   space, t_space, dt, &best_peak_velocity,
-						                   1e-6, 60);
+						                   factory.tolerance, factory.maximum_iterations);
     };
     
     /**
@@ -381,7 +382,15 @@ class svp_interpolator_factory : public serialization::serializable {
   private:
     const topology* p_space;
   public:
-    svp_interpolator_factory(const topology* aPSpace = NULL) : p_space(aPSpace) { };
+    double tolerance;
+    unsigned int maximum_iterations;
+    
+    svp_interpolator_factory(const topology* aPSpace = NULL, 
+			     double aTolerance = 1e-6, 
+			     unsigned int aMaxIter = 60) : 
+			     p_space(aPSpace),
+			     tolerance(aTolerance),
+			     maximum_iterations(aMaxIter) { };
   
     void set_temporal_space(const topology* aPSpace) { p_space = aPSpace; };
     const topology* get_temporal_space() const { return p_space; };
@@ -389,19 +398,97 @@ class svp_interpolator_factory : public serialization::serializable {
     interpolator_type create_interpolator(const point_type* pp1, const point_type* pp2) const {
       return interpolator_type(this, pp1, pp2);
     };
+    
   
   
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
     
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      A & RK_SERIAL_SAVE_WITH_NAME(tolerance)
+        & RK_SERIAL_SAVE_WITH_NAME(maximum_iterations);
+    };
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
+      A & RK_SERIAL_LOAD_WITH_NAME(tolerance)
+        & RK_SERIAL_LOAD_WITH_NAME(maximum_iterations);
+    };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430004,1,"svp_interpolator_factory",serialization::serializable)
 };
 
+
+/**
+ * This functor class is a distance metric based on the reach-time of a SVP interpolation between
+ * two points in a differentiable space.
+ * \tparam TimeSpaceType The time topology type against which the interpolation is done.
+ */
+template <typename TimeSpaceType>
+struct svp_reach_time_metric : public serialization::serializable {
+  
+  typedef svp_reach_time_metric<TimeSpaceType> self;
+  
+  TimeSpaceType t_space;
+  double tolerance;
+  unsigned int maximum_iterations;
+  
+  svp_reach_time_metric(const TimeSpaceType& t_space = TimeSpaceType(),
+                        double aTolerance = 1e-6, 
+			unsigned int aMaxIter = 60) : 
+			tolerance(aTolerance),
+			maximum_iterations(aMaxIter) { };
+  
+  /** 
+   * This function returns the distance between two points on a topology.
+   * \tparam Point The point-type.
+   * \tparam Topology The topology.
+   * \param a The first point.
+   * \param b The second point.
+   * \param s The topology or space on which the points lie.
+   * \return The distance between two points on a topology.
+   */
+  template <typename Point, typename Topology>
+  double operator()(const Point& a, const Point& b, const Topology& s) const {
+    detail::generic_interpolator_impl<svp_interpolator,Topology,TimeSpaceType> interp;
+    interp.initialize(a, b, 0.0, s, t_space, *this);
+    return interp.get_minimum_travel_time();
+  };
+  
+  /** 
+   * This function returns the norm of a difference between two points on a topology.
+   * \tparam PointDiff The point-difference-type.
+   * \tparam Topology The topology.
+   * \param a The point-difference.
+   * \param s The topology or space on which the points lie.
+   * \return The norm of the difference between two points on a topology.
+   */
+  template <typename PointDiff, typename Topology>
+  double operator()(const PointDiff& a, const Topology& s) const {
+    detail::generic_interpolator_impl<svp_interpolator,Topology,TimeSpaceType> interp;
+    interp.initialize(s.origin(), s.adjust(s.origin(),a), 0.0, s, t_space, *this);
+    return interp.get_minimum_travel_time();
+  };
+  
+      
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+    A & RK_SERIAL_SAVE_WITH_NAME(t_space)
+      & RK_SERIAL_SAVE_WITH_NAME(tolerance)
+      & RK_SERIAL_SAVE_WITH_NAME(maximum_iterations);
+  };
+
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+    A & RK_SERIAL_LOAD_WITH_NAME(t_space)
+      & RK_SERIAL_LOAD_WITH_NAME(tolerance)
+      & RK_SERIAL_LOAD_WITH_NAME(maximum_iterations);
+  };
+
+  RK_RTTI_MAKE_ABSTRACT_1BASE(svp_reach_time_metric,0xC2410009,1,"svp_reach_time_metric",serialization::serializable)
+};
 
 
 
