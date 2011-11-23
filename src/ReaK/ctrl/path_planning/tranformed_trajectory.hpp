@@ -33,6 +33,9 @@
 #ifndef REAK_TRANSFORMED_TRAJECTORY_HPP
 #define REAK_TRANSFORMED_TRAJECTORY_HPP
 
+#include "base/defs.hpp"
+#include "base/shared_object.hpp"
+
 #include "spatial_trajectory_concept.hpp"
 #include "topological_map_concepts.hpp"
 
@@ -57,7 +60,7 @@ namespace pp {
  *                 topology (of the InputTrajectory) and the given topology.
  */
 template <typename Topology, typename InputTrajectory, typename Mapping>
-class transformed_trajectory {
+class transformed_trajectory : public shared_object {
   public:
     typedef typename spatial_trajectory_traits<InputTrajectory>::topology input_topology;
     
@@ -76,8 +79,8 @@ class transformed_trajectory {
     
   private:
     
-    const Topology& space;
-    InputTrajectory& traject;
+    typename shared_pointer<const Topology>::type space;
+    typename shared_pointer<const InputTrajectory>::type traject;
     Mapping map;
     
   public:
@@ -88,7 +91,9 @@ class transformed_trajectory {
      * \param aTrajectory The underlying trajectory to use.
      * \param aMap The homeomorphic mapping object to use.
      */
-    explicit transformed_trajectory(const Topology& aSpace, InputTrajectory& aTrajectory, const Mapping& aMap = Mapping()) : 
+    explicit transformed_trajectory(const typename shared_pointer<const Topology>::type& aSpace = typename shared_pointer<const Topology>::type(new Topology()), 
+				    const typename shared_pointer<const InputTrajectory>::type& aTrajectory = typename shared_pointer<const InputTrajectory>::type(new InputTrajectory()), 
+				    const Mapping& aMap = Mapping()) : 
                                     space(aSpace), traject(aTrajectory), map(aMap) { };
     
     /**
@@ -98,8 +103,8 @@ class transformed_trajectory {
      * \return The travel distance between two points if traveling along the path.
      */
     double travel_distance(const point_type& a, const point_type& b) const {
-      return traject.travel_distance(map.map_to_space(a,space,traject.get_temporal_space()),
-				     map.map_to_space(b,space,traject.get_temporal_space()));
+      return traject->travel_distance(map.map_to_space(a,*space,traject->get_temporal_space()),
+			 	      map.map_to_space(b,*space,traject->get_temporal_space()));
     };
     
     /**
@@ -109,8 +114,8 @@ class transformed_trajectory {
      * \return The travel distance between two points if traveling along the path.
      */
     double travel_distance(waypoint_pair& a, waypoint_pair& b) const {
-      return traject.travel_distance(std::make_pair(a.first, map.map_to_space(a.second,space,traject.get_temporal_space())),
-				     std::make_pair(b.first, map.map_to_space(b.second,space,traject.get_temporal_space())));
+      return traject->travel_distance(std::make_pair(a.first, map.map_to_space(a.second,*space,traject->get_temporal_space())),
+				      std::make_pair(b.first, map.map_to_space(b.second,*space,traject->get_temporal_space())));
     };
     
     
@@ -122,8 +127,8 @@ class transformed_trajectory {
      */
     point_type move_time_diff_from(const point_type& a, double dt) const {
       return map.map_to_space(
-	traject.move_time_diff_from( map.map_to_space(a,space,traject.get_temporal_space()),dt),
-	traject.get_temporal_space(), space);
+	traject->move_time_diff_from( map.map_to_space(a,*space,traject->get_temporal_space()),dt),
+	traject->get_temporal_space(), *space);
     };
     
     /**
@@ -134,8 +139,8 @@ class transformed_trajectory {
      */
     waypoint_pair move_time_diff_from(const waypoint_pair& a, double dt) const {
       std::pair< const_waypoint_descriptor, typename spatial_trajectory_traits<InputTrajectory>::point_type> result = 
-        traject.move_time_diff_from( std::make_pair(a.second,map.map_to_space(a.second,space,traject.get_temporal_space())), dt);
-      return std::make_pair( result.first, map.map_to_space(result.second, traject.get_temporal_space(), space));
+        traject->move_time_diff_from( std::make_pair(a.second,map.map_to_space(a.second,*space,traject->get_temporal_space())), dt);
+      return std::make_pair( result.first, map.map_to_space(result.second, traject->get_temporal_space(), *space));
     };
        
     /**
@@ -144,7 +149,7 @@ class transformed_trajectory {
      * \return The point that is on the trajectory at the given time.
      */
     point_type get_point_at_time(double t) const {
-      return map.map_to_space(traject.get_point_at_time(t), traject.get_temporal_space(), space);
+      return map.map_to_space(traject->get_point_at_time(t), traject->get_temporal_space(), *space);
     };
     
     /**
@@ -154,16 +159,37 @@ class transformed_trajectory {
      */
     waypoint_pair get_waypoint_at_time(double t) const {
       std::pair< const_waypoint_descriptor, typename spatial_trajectory_traits<InputTrajectory>::point_type> result = 
-        traject.get_waypoint_at_time(t);
-      return std::make_pair( result.first, map.map_to_space(result.second, traject.get_temporal_space(), space));
+        traject->get_waypoint_at_time(t);
+      return std::make_pair( result.first, map.map_to_space(result.second, traject->get_temporal_space(), *space));
     };
     
     /**
      * Returns the space on which the path resides.
      * \return The space on which the path resides.
      */
-    const topology& get_temporal_space() const throw() { return space; };
+    const topology& get_temporal_space() const throw() { return *space; };
     
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(space)
+        & RK_SERIAL_SAVE_WITH_NAME(traject)
+	& RK_SERIAL_SAVE_WITH_NAME(map);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(space)
+        & RK_SERIAL_LOAD_WITH_NAME(traject)
+	& RK_SERIAL_LOAD_WITH_NAME(map);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2440008,1,"transformed_trajectory",shared_object)
     
 };
 

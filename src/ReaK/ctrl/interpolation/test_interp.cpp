@@ -79,11 +79,12 @@ int main(int argc, char** argv) {
   typedef ReaK::pp::temporal_space< TopoType, ReaK::pp::time_poisson_topology> TempTopoType;
   typedef ReaK::pp::metric_topology_traits<TempTopoType>::point_type TempPointType;
     
-  TempTopoType topo( "temporal_space",
-    SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-2.0 * amplitude, 2.0 * amplitude),
-                   ReaK::pp::line_segment_topology<double>("vel_topo",-2.0 * amplitude, 2.0 * amplitude),
-                   ReaK::pp::line_segment_topology<double>("acc_topo",-2.0 * amplitude, 2.0 * amplitude),
-                   ReaK::pp::line_segment_topology<double>("jerk_topo",-2.0 * amplitude, 2.0 * amplitude)));
+  ReaK::shared_pointer< TempTopoType >::type topo = 
+    ReaK::shared_pointer< TempTopoType >::type( new TempTopoType( "temporal_space",
+      SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-2.0 * amplitude, 2.0 * amplitude),
+                     ReaK::pp::line_segment_topology<double>("vel_topo",-2.0 * amplitude, 2.0 * amplitude),
+                     ReaK::pp::line_segment_topology<double>("acc_topo",-2.0 * amplitude, 2.0 * amplitude),
+                     ReaK::pp::line_segment_topology<double>("jerk_topo",-2.0 * amplitude, 2.0 * amplitude))));
   
   std::vector< TempPointType > pts;
   
@@ -99,7 +100,7 @@ int main(int argc, char** argv) {
     
     for(double t = 0.0; t <= max_time; t += time_step) {
       TempPointType p = interp.get_point_at_time(t);
-      output_rec << p.time << std::get<0>(p.pt) << std::get<1>(p.pt) << std::get<2>(p.pt) << std::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
+      output_rec << p.time << ReaK::get<0>(p.pt) << ReaK::get<1>(p.pt) << ReaK::get<2>(p.pt) << ReaK::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
     };
     output_rec << ReaK::recorder::data_recorder::flush;
     
@@ -117,7 +118,7 @@ int main(int argc, char** argv) {
     
     for(double t = 0.0; t <= max_time; t += time_step) {
       TempPointType p = interp.get_point_at_time(t);
-      output_rec << p.time << std::get<0>(p.pt) << std::get<1>(p.pt) << std::get<2>(p.pt) << std::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
+      output_rec << p.time << ReaK::get<0>(p.pt) << ReaK::get<1>(p.pt) << ReaK::get<2>(p.pt) << ReaK::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
     };
     output_rec << ReaK::recorder::data_recorder::flush;
     
@@ -135,7 +136,7 @@ int main(int argc, char** argv) {
     
     for(double t = 0.0; t <= max_time; t += time_step) {
       TempPointType p = interp.get_point_at_time(t);
-      output_rec << p.time << std::get<0>(p.pt) << std::get<1>(p.pt) << std::get<2>(p.pt) << std::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
+      output_rec << p.time << ReaK::get<0>(p.pt) << ReaK::get<1>(p.pt) << ReaK::get<2>(p.pt) << ReaK::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
     };
     output_rec << ReaK::recorder::data_recorder::flush;
     

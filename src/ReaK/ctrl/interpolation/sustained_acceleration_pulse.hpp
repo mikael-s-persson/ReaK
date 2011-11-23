@@ -34,6 +34,8 @@
 #ifndef REAK_SUSTAINED_ACCELERATION_PULSE_HPP
 #define REAK_SUSTAINED_ACCELERATION_PULSE_HPP
 
+#include "base/defs.hpp"
+
 #include "path_planning/spatial_trajectory_concept.hpp"
 
 #include "path_planning/differentiable_space_concept.hpp"
@@ -195,7 +197,7 @@ class sap_interpolator {
                                                                    delta_first_order, peak_velocity,
 								   space, t_space,
 								   dt, &best_peak_velocity,
-								   1e-6, 60);
+								   factory.tolerance, factory.maximum_iterations);
     };
     
     /**
@@ -238,133 +240,6 @@ class sap_interpolator {
 
 
 
-
-
-
-#if 0
-/**
- * This functor class implements a sustained acceleration pulse (SVP) interpolation in a temporal 
- * and twice-differentiable topology.
- * \tparam TemporalTopology The temporal topology on which the interpolation is done.
- */
-template <typename Factory, 
-          std::size_t Dimensions >
-class sap_interpolator {
-  public:
-    typedef sap_interpolator<Factory,Dimensions> self;
-    typedef typename Factory::point_type point_type;
-    typedef typename Factory::topology topology;
-  
-    typedef typename derived_N_order_space< typename temporal_topology_traits<topology>::space_topology,
-                                            typename temporal_topology_traits<topology>::time_topology,0>::type Space0;
-    typedef typename metric_topology_traits<Space0>::point_type PointType0;
-    typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
-  
-    typedef typename derived_N_order_space< typename temporal_topology_traits<topology>::space_topology,
-                                            typename temporal_topology_traits<topology>::time_topology,1>::type Space1;
-    typedef typename metric_topology_traits<Space0>::point_type PointType1;
-    typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff1;
-  
-  private:
-    const Factory* parent;
-    const point_type* start_point;
-    const point_type* end_point;
-    PointDiff0 delta_first_order;
-    PointType1 peak_velocity;
-    double min_delta_time;
-    PointType1 best_peak_velocity;
-    
-    void update_delta_value() {
-      if(parent && start_point && end_point) {
-	
-	double delta_time = end_point->time - start_point->time;
-	
-	min_delta_time = detail::sap_compute_interpolation_data_impl(start_point->pt, end_point->pt,
-                                                                     delta_first_order, peak_velocity,
-								     parent->get_temporal_space()->get_space_topology(),
-								     parent->get_temporal_space()->get_time_topology(),
-								     delta_time, &best_peak_velocity,
-								     1e-6, 60);
-	
-      };
-    };
-  
-  public:
-    
-    
-    /**
-     * Default constructor.
-     */
-    sap_interpolator(const Factory* aParent = NULL, const point_type* aStart = NULL, const point_type* aEnd = NULL) :
-                     parent(aParent), start_point(aStart), end_point(aEnd) {
-      update_delta_value();
-    };
-    
-    void set_segment(const point_type* aStart, const point_type* aEnd) {
-      start_point = aStart;
-      end_point = aEnd;
-      update_delta_value();
-    };
-    
-    const point_type* get_start_point() const { return start_point; };
-    const point_type* get_end_point() const { return end_point; };
-    
-    template <typename DistanceMetric>
-    double travel_distance_to(const point_type& pt, const DistanceMetric& dist) const {
-      BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,topology>));
-      if(parent && start_point)
-	return dist(pt, *start_point, *(parent->get_temporal_space()));
-      else
-	return 0.0;
-    };
-    
-    template <typename DistanceMetric>
-    double travel_distance_from(const point_type& pt, const DistanceMetric& dist) const {
-      BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,topology>));
-      if(parent && end_point)
-	return dist(*end_point, pt, *(parent->get_temporal_space()));
-      else
-	return 0.0;
-    };
-    
-    point_type get_point_at_time(double t) const {
-      if(!parent || !start_point || !end_point)
-	return point_type();
-      if(t <= start_point->time)
-	return *start_point;
-      if(t >= end_point->time)
-	return *end_point;
-      double dt_total = end_point->time - start_point->time;
-      if(min_delta_time > dt_total)
-	dt_total = min_delta_time;
-      double dt = t - start_point->time;
-      
-      point_type result;
-      result.time = t;
-      
-      detail::sap_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< typename temporal_topology_traits<topology>::space_topology >::order> >(result.pt, start_point->pt, end_point->pt, delta_first_order, peak_velocity, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology(), dt, dt_total);
-  
-      return result;   
-    };
-    
-    double get_minimum_travel_time() const {
-      if(parent && start_point && end_point)
-	return min_delta_time;
-      else 
-	return std::numeric_limits<double>::infinity();
-    };
-    
-    bool is_segment_feasible() const {
-      if(parent && start_point && end_point)
-        return (min_delta_time < end_point->time - start_point->time);
-      else
-	return false;
-    };
-    
-};
-#endif
-
-
 /**
  * This class is a factory class for sustained acceleration pulse (SAP) interpolators on a temporal 
  * differentiable space.
@@ -384,12 +259,20 @@ class sap_interpolator_factory : public serialization::serializable {
     typedef generic_interpolator<self,sap_interpolator> interpolator_type;
     
   private:
-    const topology* p_space;
+    typename shared_pointer<topology>::type space;
   public:
-    sap_interpolator_factory(const topology* aPSpace = NULL) : p_space(aPSpace) { };
+    double tolerance;
+    unsigned int maximum_iterations;
+    
+    sap_interpolator_factory(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(), 
+			     double aTolerance = 1e-6, 
+			     unsigned int aMaxIter = 60) : 
+			     space(aSpace),
+			     tolerance(aTolerance),
+			     maximum_iterations(aMaxIter)  { };
   
-    void set_temporal_space(const topology* aPSpace) { p_space = aPSpace; };
-    const topology* get_temporal_space() const { return p_space; };
+    void set_temporal_space(const typename shared_pointer<topology>::type& aSpace) { space = aSpace; };
+    const typename shared_pointer<topology>::type& get_temporal_space() const { return space; };
   
     interpolator_type create_interpolator(const point_type* pp1, const point_type* pp2) const {
       return interpolator_type(this, pp1, pp2);
@@ -400,9 +283,17 @@ class sap_interpolator_factory : public serialization::serializable {
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
     
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { 
+      A & RK_SERIAL_SAVE_WITH_NAME(space)
+        & RK_SERIAL_SAVE_WITH_NAME(tolerance)
+        & RK_SERIAL_SAVE_WITH_NAME(maximum_iterations);
+    };
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
+      A & RK_SERIAL_LOAD_WITH_NAME(space)
+        & RK_SERIAL_LOAD_WITH_NAME(tolerance)
+        & RK_SERIAL_LOAD_WITH_NAME(maximum_iterations);
+    };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430005,1,"sap_interpolator_factory",serialization::serializable)
 };
@@ -419,13 +310,14 @@ struct sap_reach_time_metric : public serialization::serializable {
   
   typedef sap_reach_time_metric<TimeSpaceType> self;
   
-  TimeSpaceType t_space;
+  typename shared_pointer<TimeSpaceType>::type t_space;
   double tolerance;
   unsigned int maximum_iterations;
   
-  sap_reach_time_metric(const TimeSpaceType& t_space = TimeSpaceType(),
+  sap_reach_time_metric(const typename shared_pointer<TimeSpaceType>::type& aTimeSpace = typename shared_pointer<TimeSpaceType>::type(new TimeSpaceType()),
                         double aTolerance = 1e-6, 
 			unsigned int aMaxIter = 60) : 
+			t_space(aTimeSpace),
 			tolerance(aTolerance),
 			maximum_iterations(aMaxIter) { };
   
@@ -441,7 +333,7 @@ struct sap_reach_time_metric : public serialization::serializable {
   template <typename Point, typename Topology>
   double operator()(const Point& a, const Point& b, const Topology& s) const {
     detail::generic_interpolator_impl<sap_interpolator,Topology,TimeSpaceType> interp;
-    interp.initialize(a, b, 0.0, s, t_space, *this);
+    interp.initialize(a, b, 0.0, s, *t_space, *this);
     return interp.get_minimum_travel_time();
   };
   
@@ -456,7 +348,7 @@ struct sap_reach_time_metric : public serialization::serializable {
   template <typename PointDiff, typename Topology>
   double operator()(const PointDiff& a, const Topology& s) const {
     detail::generic_interpolator_impl<sap_interpolator,Topology,TimeSpaceType> interp;
-    interp.initialize(s.origin(), s.adjust(s.origin(),a), 0.0, s, t_space, *this);
+    interp.initialize(s.origin(), s.adjust(s.origin(),a), 0.0, s, *t_space, *this);
     return interp.get_minimum_travel_time();
   };
   
@@ -512,8 +404,8 @@ class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator
      * \param aSpace The space on which the path is.
      * \param aDist The distance metric functor that the path should use.
      */
-    explicit sap_interp_traj(const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
-                             base_class_type(aSpace, aDist, sap_interpolator_factory<Topology>(&aSpace)) { };
+    explicit sap_interp_traj(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric& aDist = distance_metric()) : 
+                             base_class_type(aSpace, aDist, sap_interpolator_factory<Topology>(aSpace)) { };
     
     /**
      * Constructs the path from a space, the start and end points.
@@ -522,8 +414,8 @@ class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator
      * \param aEnd The end-point of the path.
      * \param aDist The distance metric functor that the path should use.
      */
-    sap_interp_traj(const topology& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
-                    base_class_type(aSpace, aStart, aEnd, aDist, sap_interpolator_factory<Topology>(&aSpace)) { };
+    sap_interp_traj(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
+                    base_class_type(aSpace, aStart, aEnd, aDist, sap_interpolator_factory<Topology>(aSpace)) { };
 			
     /**
      * Constructs the path from a range of points and their space.
@@ -534,9 +426,24 @@ class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator
      * \param aDist The distance metric functor that the path should use.
      */
     template <typename ForwardIter>
-    sap_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
-                    base_class_type(aBegin, aEnd, aSpace, aDist, sap_interpolator_factory<Topology>(&aSpace)) { };
+    sap_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric& aDist = distance_metric()) : 
+                    base_class_type(aBegin, aEnd, aSpace, aDist, sap_interpolator_factory<Topology>(aSpace)) { };
     
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      base_class_type::save(A,base_class_type::getStaticObjectType()->TypeVersion());
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      base_class_type::load(A,base_class_type::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2440007,1,"sap_interp_traj",base_class_type)
 };
 
 

@@ -43,11 +43,135 @@
 #include "temporal_distance_metrics.hpp"
 
 #include "base/named_object.hpp"
+#include <X11/X.h>
 
 namespace ReaK {
 
 namespace pp {
 
+/**
+ * This type represents the points of a temporal-space.
+ */
+template <typename SpacePoint, typename TimePoint>
+struct temporal_point : public serialization::serializable {
+  typedef temporal_point<SpacePoint,TimePoint> self;
+  
+  TimePoint time; ///< Holds the time associated to the space-time point.
+  SpacePoint pt; ///< Holds the spatial-point associated to the space-time point.
+    
+  /**
+   * Default constructor.
+   */
+  temporal_point() : time(), pt() { };
+  /**
+   * Constructor from a time and spatial point.
+   * \param aTime The time associated to the space-time point.
+   * \param aPt The spatial-point associated to the space-time point.
+   */
+  temporal_point(const TimePoint& aTime, 
+	         const SpacePoint& aPt) : 
+	         time(aTime), pt(aPt) { };
+		 
+  
+  
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { 
+      A & RK_SERIAL_SAVE_WITH_NAME(time)
+        & RK_SERIAL_SAVE_WITH_NAME(pt);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
+      A & RK_SERIAL_LOAD_WITH_NAME(time)
+        & RK_SERIAL_LOAD_WITH_NAME(pt);
+    };
+
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000002E,1,"temporal_point",serialization::serializable)
+};
+
+/**
+ * This nested type represents the difference between two points of the temporal-space.
+ */
+template <typename SpaceDiff, typename TimeDiff>
+struct temporal_point_difference : public serialization::serializable {
+  typedef temporal_point_difference<SpaceDiff,TimeDiff> self;
+  
+  TimeDiff time; ///< Holds the time-difference.
+  SpaceDiff pt; ///< Holds the spatial-difference.
+      
+  /**
+   * Default constructor.
+   */
+  temporal_point_difference() : time(), pt() { };
+  /**
+   * Constructor from a time and space difference.
+   * \param aTime The time difference.
+   * \param aPt The spatial-difference.
+   */
+  temporal_point_difference(const TimeDiff& aTime,
+	                    const SpaceDiff& aPt) : 
+	                    time(aTime), pt(aPt) { };
+
+  self operator-() const {
+    return self(-time,-pt);
+  };
+
+  friend self operator*(const self& a, double b) {
+    return self(a.time * b, a.pt * b);
+  };
+
+  friend self operator*(double a, const self& b) {
+    return self(a * b.time, a * b.pt);
+  };
+      
+  self& operator+=(const self& b) {
+    time += b.time;
+    pt += b.pt;
+    return *this;
+  };
+
+  self& operator-=(const self& b) {
+    time -= b.time;
+    pt -= b.pt;
+    return *this;
+  };
+      
+  friend self operator+(const self& a, const self& b) {
+    self result;
+    result.time = a.time + b.time;
+    result.pt = a.pt + b.pt;
+    return result;
+  };
+
+  friend self operator-(const self& a, const self& b) {
+    self result;
+    result.time = a.time - b.time;
+    result.pt = a.pt - b.pt;
+    return result;
+  };
+  
+  
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { 
+      A & RK_SERIAL_SAVE_WITH_NAME(time)
+        & RK_SERIAL_SAVE_WITH_NAME(pt);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
+      A & RK_SERIAL_LOAD_WITH_NAME(time)
+        & RK_SERIAL_LOAD_WITH_NAME(pt);
+    };
+
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000002F,1,"temporal_point_difference",serialization::serializable)
+
+};
+  
+  
 
 /**
  * This class implementats a temporal-space which augments a 
@@ -67,109 +191,10 @@ class temporal_space : public named_object {
     
     typedef temporal_space<Topology,TimeTopology,TemporalDistanceMetric> self;
     
-    /**
-     * This nested type represents the points of the temporal-space.
-     */
-    struct point {
-      typename metric_topology_traits<time_topology>::point_type time; ///< Holds the time associated to the space-time point.
-      typename metric_topology_traits<space_topology>::point_type pt; ///< Holds the spatial-point associated to the space-time point.
-    
-      BOOST_STATIC_CONSTANT(std::size_t, dimensions = metric_topology_traits<space_topology>::dimensions);
-      
-      /**
-       * Default constructor.
-       */
-      point() { };
-      /**
-       * Constructor from a time and spatial point.
-       * \param aTime The time associated to the space-time point.
-       * \param aPt The spatial-point associated to the space-time point.
-       */
-      point(const typename metric_topology_traits<time_topology>::point_type& aTime, 
-	    const typename metric_topology_traits<space_topology>::point_type& aPt) : 
-	    time(aTime), pt(aPt) { };
-     
-      /* This should not be there, because of the principle of minimum requirements.
-      double& operator[](std::size_t i) { return pt[i]; };
-      const double& operator[](std::size_t i) const { return pt[i]; };
-      */
-    };
-  
-    /**
-     * This nested type represents the difference between two points of the temporal-space.
-     */
-    struct point_difference {
-      typename metric_topology_traits<time_topology>::point_difference_type time; ///< Holds the time-difference.
-      typename metric_topology_traits<space_topology>::point_difference_type pt; ///< Holds the spatial-difference.
-      
-      BOOST_STATIC_CONSTANT(std::size_t, dimensions = metric_topology_traits<space_topology>::dimensions);
-      /**
-       * Default constructor.
-       */
-      point_difference() : time(), pt() { };
-      /**
-       * Constructor from a time and space difference.
-       * \param aTime The time difference.
-       * \param aPt The spatial-difference.
-       */
-      point_difference(const typename metric_topology_traits<time_topology>::point_difference_type& aTime,
-	               const typename metric_topology_traits<space_topology>::point_difference_type& aPt) : 
-	               time(aTime), pt(aPt) { };
-
-      point_difference operator-() const {
-        return point_difference(-time,-pt);
-      };
-
-      friend point_difference operator*(const point_difference& a, double b) {
-        return point_difference(a.time * b, a.pt * b);
-      };
-
-      friend point_difference operator*(double a, const point_difference& b) {
-        return point_difference(a * b.time, a * b.pt);
-      };
-      
-      point_difference& operator+=(const point_difference& b) {
-        time += b.time;
-	pt += b.pt;
-        return *this;
-      };
-
-      point_difference& operator-=(const point_difference& b) {
-        time -= b.time;
-	pt -= b.pt;
-        return *this;
-      };
-      
-      friend point_difference operator+(const point_difference& a, const point_difference& b) {
-        point_difference result;
-	result.time = a.time + b.time;
-	result.pt = a.pt + b.pt;
-        return result;
-      };
-
-      friend point_difference operator-(const point_difference& a, const point_difference& b) {
-        point_difference result;
-	result.time = a.time - b.time;
-	result.pt = a.pt - b.pt;
-        return result;
-      };
-
-      /* This should not be there, because of the principle of minimum requirements.
-      double& operator[](std::size_t i) { return pt[i]; };
-      const double& operator[](std::size_t i) const { return pt[i]; };
-      
-      friend double dot(const point_difference& a, const point_difference& b) {
-        return dot(a.pt, b.pt);
-      };*/
-
-    };
   protected:
     space_topology space;
     time_topology time;
     distance_metric dist;
-        
-    temporal_space(const temporal_space&); //non-copyable.
-    temporal_space& operator=(const temporal_space&);
     
   public:
     /**
@@ -184,8 +209,10 @@ class temporal_space : public named_object {
 			    const distance_metric& aDist = distance_metric()) :
                             named_object(), space(aSpace), time(aTime), dist(aDist) { this->setName(aName); };
     
-    typedef point point_type;
-    typedef point_difference point_difference_type;
+    typedef temporal_point<typename metric_topology_traits<space_topology>::point_type,
+                           typename metric_topology_traits<time_topology>::point_type> point_type;
+    typedef temporal_point_difference<typename metric_topology_traits<space_topology>::point_difference_type,
+                                      typename metric_topology_traits<time_topology>::point_difference_type> point_difference_type;
     
     /** Returns the underlying space topology. */
     const space_topology& get_space_topology() const { return space; };
@@ -205,9 +232,9 @@ class temporal_space : public named_object {
      * Returns a random point within the temporal-space.
      * \return A random point within the temporal-space.
      */
-    point random_point() const 
+    point_type random_point() const 
     {
-      return point(time.random_point(), space.random_point());
+      return point_type(time.random_point(), space.random_point());
     }
     
     /**
@@ -216,7 +243,7 @@ class temporal_space : public named_object {
      * \param b The second point.
      * \return The distance between a and b.
      */
-    double distance(const point& a, const point& b) const {
+    double distance(const point_type& a, const point_type& b) const {
       return dist(a, b, *this);
     };
 
@@ -227,9 +254,9 @@ class temporal_space : public named_object {
      * \param b The second point.
      * \return The point which is at a fraction between two points.
      */
-    point move_position_toward(const point& a, double fraction, const point& b) const {
-      return point(time.move_position_toward(a.time, fraction, b.time),
-	           space.move_position_toward(a.pt, fraction, b.pt));
+    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const {
+      return point_type(time.move_position_toward(a.time, fraction, b.time),
+	                space.move_position_toward(a.pt, fraction, b.pt));
     };
 
     /**
@@ -238,8 +265,8 @@ class temporal_space : public named_object {
      * \param b The second point.
      * \return The difference between the two points.
      */
-    point_difference difference(const point& a, const point& b) const {
-      return point_difference(time.difference(a.time, b.time), space.difference(a.pt, b.pt));
+    point_difference_type difference(const point_type& a, const point_type& b) const {
+      return point_difference_type(time.difference(a.time, b.time), space.difference(a.pt, b.pt));
     };
 
     /**
@@ -248,16 +275,16 @@ class temporal_space : public named_object {
      * \param delta The point-difference.
      * \return The addition of a point-difference to a point.
      */
-    point adjust(const point& a, const point_difference& delta) const {
-      return point(time.adjust(a.time, delta.time), space.adjust(a.pt, delta.pt));
+    point_type adjust(const point_type& a, const point_difference_type& delta) const {
+      return point_type(time.adjust(a.time, delta.time), space.adjust(a.pt, delta.pt));
     };
   
     /**
      * Returns the origin of the temporal-space.
      * \return The origin of the temporal-space.
      */
-    point origin() const {
-      return point(time.origin(), space.origin());
+    point_type origin() const {
+      return point_type(time.origin(), space.origin());
     };
 
     /**
@@ -265,7 +292,7 @@ class temporal_space : public named_object {
      * \param a The difference between two points.
      * \return The norm of a difference between two points.
      */
-    double norm(const point_difference& a) const {
+    double norm(const point_difference_type& a) const {
       return dist(a, *this);
     };
     

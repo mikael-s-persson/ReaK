@@ -307,103 +307,6 @@ class cubic_hermite_interpolator {
 
 
 
-
-#if 0
-/**
- * This functor class implements a cubic Hermite interpolation in a temporal and once-differentiable 
- * topology.
- * \tparam TemporalTopology The temporal topology on which the interpolation is done.
- */
-template <typename Factory>
-class cubic_hermite_interpolator {
-  public:
-    typedef cubic_hermite_interpolator<Factory> self;
-    typedef typename Factory::point_type point_type;
-    typedef typename Factory::topology topology;
-  
-    typedef typename derived_N_order_space< typename temporal_topology_traits<topology>::space_topology,
-                                            typename temporal_topology_traits<topology>::time_topology,0>::type Space0;
-    typedef typename metric_topology_traits<Space0>::point_type PointType0;
-    typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
-    typedef typename derived_N_order_space< typename temporal_topology_traits<topology>::space_topology,
-                                            typename temporal_topology_traits<topology>::time_topology,1>::type Space1;
-    typedef typename metric_topology_traits<Space1>::point_type PointType1;
-    typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
-  
-  private:
-    const Factory* parent;
-    const point_type* start_point;
-    const point_type* end_point;
-    PointDiff0 delta_first_order;
-    PointDiff1 delta_second_order;
-    PointDiff1 delta_lifted_first_and_second;
-    
-    void update_delta_value() {
-      if(parent && start_point && end_point) {
-	double t_factor = end_point->time - start_point->time;
-        delta_first_order = get_space<0>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).difference( get<0>(end_point->pt), get<0>(start_point->pt) );
-	delta_second_order = get_space<1>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).difference( get<1>(end_point->pt), get<1>(start_point->pt) );
-	delta_lifted_first_and_second = get_space<1>(parent->get_temporal_space()->get_space_topology(),parent->get_temporal_space()->get_time_topology()).difference( lift_to_space<1>(delta_first_order, t_factor, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology()), get<1>(start_point->pt));
-      };
-    };
-  
-  public:
-    
-    
-    /**
-     * Default constructor.
-     */
-    cubic_hermite_interpolator(const Factory* aParent = NULL, const point_type* aStart = NULL, const point_type* aEnd = NULL) :
-                               parent(aParent), start_point(aStart), end_point(aEnd) {
-      update_delta_value();
-    };
-    
-    void set_segment(const point_type* aStart, const point_type* aEnd) {
-      start_point = aStart;
-      end_point = aEnd;
-      update_delta_value();
-    };
-    
-    const point_type* get_start_point() const { return start_point; };
-    const point_type* get_end_point() const { return end_point; };
-    
-    template <typename DistanceMetric>
-    double travel_distance_to(const point_type& pt, const DistanceMetric& dist) const {
-      BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,topology>));
-      if(parent && start_point)
-	return dist(pt, *start_point, *(parent->get_temporal_space()));
-      else
-	return 0.0;
-    };
-    
-    template <typename DistanceMetric>
-    double travel_distance_from(const point_type& pt, const DistanceMetric& dist) const {
-      BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,topology>));
-      if(parent && end_point)
-	return dist(*end_point, pt, *(parent->get_temporal_space()));
-      else
-	return 0.0;
-    };
-    
-    point_type get_point_at_time(double t) const {
-      if(!parent || !start_point || !end_point)
-	return point_type();
-      double t_factor = end_point->time - start_point->time;
-      if(std::fabs(t_factor) < std::numeric_limits<double>::epsilon())
-        throw singularity_error("Normalizing factor in cubic Hermite spline is zero!");
-      double t_normal = (t - start_point->time) / t_factor;
-      
-      point_type result;
-      result.time = t;
-      
-      detail::cubic_hermite_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< typename temporal_topology_traits<topology>::space_topology >::order> >(result.pt, start_point->pt, end_point->pt, delta_first_order, delta_second_order, delta_lifted_first_and_second, parent->get_temporal_space()->get_space_topology(), parent->get_temporal_space()->get_time_topology(), t_factor, t_normal);
-  
-      return result;   
-    };
-    
-};
-#endif
-
 /**
  * This class is a factory class for cubic Hermite interpolators on a temporal differentiable space.
  * \tparam TemporalTopology The temporal topology on which the interpolation is done, should model TemporalSpaceConcept.
@@ -418,12 +321,12 @@ class cubic_hermite_interp_factory : public serialization::serializable {
   
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
   private:
-    const topology* p_space;
+    typename shared_pointer<topology>::type space;
   public:
-    cubic_hermite_interp_factory(const topology* aPSpace = NULL) : p_space(aPSpace) { };
+    cubic_hermite_interp_factory(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type()) : space(aSpace) { };
   
-    void set_temporal_space(const topology* aPSpace) { p_space = aPSpace; };
-    const topology* get_temporal_space() const { return p_space; };
+    void set_temporal_space(const typename shared_pointer<topology>::type& aSpace) { space = aSpace; };
+    const typename shared_pointer<topology>::type& get_temporal_space() const { return space; };
   
     interpolator_type create_interpolator(const point_type* pp1, const point_type* pp2) const {
       return interpolator_type(this, pp1, pp2);
@@ -434,9 +337,13 @@ class cubic_hermite_interp_factory : public serialization::serializable {
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
     
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      A & RK_SERIAL_SAVE_WITH_NAME(space);
+    };
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      A & RK_SERIAL_LOAD_WITH_NAME(space);
+    };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430002,1,"cubic_hermite_interp_factory",serialization::serializable)
 };
@@ -474,8 +381,8 @@ class cubic_hermite_interp_traj : public interpolated_trajectory<Topology,cubic_
      * \param aSpace The space on which the path is.
      * \param aDist The distance metric functor that the path should use.
      */
-    explicit cubic_hermite_interp_traj(const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
-                                       base_class_type(aSpace, aDist, cubic_hermite_interp_factory<Topology>(&aSpace)) { };
+    explicit cubic_hermite_interp_traj(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric& aDist = distance_metric()) : 
+                                       base_class_type(aSpace, aDist, cubic_hermite_interp_factory<Topology>(aSpace)) { };
     
     /**
      * Constructs the path from a space, the start and end points.
@@ -484,8 +391,8 @@ class cubic_hermite_interp_traj : public interpolated_trajectory<Topology,cubic_
      * \param aEnd The end-point of the path.
      * \param aDist The distance metric functor that the path should use.
      */
-    cubic_hermite_interp_traj(const topology& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
-                              base_class_type(aSpace, aStart, aEnd, aDist, cubic_hermite_interp_factory<Topology>(&aSpace)) { };
+    cubic_hermite_interp_traj(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
+                              base_class_type(aSpace, aStart, aEnd, aDist, cubic_hermite_interp_factory<Topology>(aSpace)) { };
 			
     /**
      * Constructs the path from a range of points and their space.
@@ -496,9 +403,25 @@ class cubic_hermite_interp_traj : public interpolated_trajectory<Topology,cubic_
      * \param aDist The distance metric functor that the path should use.
      */
     template <typename ForwardIter>
-    cubic_hermite_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
-                              base_class_type(aBegin, aEnd, aSpace, aDist, cubic_hermite_interp_factory<Topology>(&aSpace)) { };
+    cubic_hermite_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric& aDist = distance_metric()) : 
+                              base_class_type(aBegin, aEnd, aSpace, aDist, cubic_hermite_interp_factory<Topology>(aSpace)) { };
     
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      base_class_type::save(A,base_class_type::getStaticObjectType()->TypeVersion());
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      base_class_type::load(A,base_class_type::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2440004,1,"cubic_hermite_interp_traj",base_class_type)
+			      
 };
 
 

@@ -39,6 +39,8 @@
 #ifndef REAK_INTERPOLATOR_CONCEPT_HPP
 #define REAK_INTERPOLATOR_CONCEPT_HPP
 
+#include "base/defs.hpp"
+
 #include "temporal_space_concept.hpp"
 
 #include <boost/config.hpp>
@@ -179,7 +181,7 @@ struct LimitedInterpolatorConcept : public InterpolatorConcept<LimitedInterpolat
  * 
  * interp = interp_fact.create_interpolator(&pt, &pt);  An interpolator object (interp) can be created from the factory object (interp_fact) given a start and end point as pointers (&pt,&pt).
  * 
- * interp_fact.set_temporal_space(pspace);  The temporal space object used by the interpolators can be set as a const pointer to a topology.
+ * interp_fact.set_temporal_space(pspace);  The temporal space object used by the interpolators can be set as a const shared-pointer to a topology.
  * 
  * \tparam InterpolatorFactory The interpolator factory type for which this concept is checked.
  * \tparam Topology The temporal-topology type on which the interpolated segments should exist.
@@ -193,7 +195,7 @@ struct InterpolatorFactoryConcept {
   InterpolatorFactory interp_fact;
   typename interpolator_factory_traits<InterpolatorFactory>::interpolator_type interp;
   typename interpolator_factory_traits<InterpolatorFactory>::point_type pt;
-  const Topology* pspace;
+  typename shared_pointer<Topology>::type pspace;
   
   BOOST_CONCEPT_USAGE(InterpolatorFactoryConcept)
   {

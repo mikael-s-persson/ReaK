@@ -561,10 +561,11 @@ class iarchive : public archive {
     friend iarchive& operator >>(iarchive& in, std::set<T,Compare,Allocator>& v) {
       unsigned int count;
       in >> count;
-      v.resize(count);
-      typename std::set<T,Compare,Allocator>::iterator it = v.begin();
-      for(;it!=v.end();++it)
-	in >> (*it);
+      for(unsigned int i = 0;i < count;++i) {
+	T temp;
+	in >> temp;
+	v.insert(v.end(), temp);
+      };
       return in;
     };
 
@@ -573,12 +574,12 @@ class iarchive : public archive {
     friend iarchive& operator &(iarchive& in, const std::pair<std::string, std::set<T,Compare,Allocator>& >& v) {
       unsigned int count;
       in & RK_SERIAL_LOAD_WITH_ALIAS(v.first + "_count", count);
-      v.second.resize(count);
-      typename std::set<T,Compare,Allocator>::iterator it = v.second.begin();
-      for(unsigned int i=0;it!=v.second.end();++it) {
+      for(unsigned int i=0; i < count;++i) {
 	std::stringstream s_stream;
 	s_stream << v.first << "_q[" << i++ << "]";
-	in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), (*it));
+	T temp;
+	in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), temp);
+	v.second.insert(v.second.end(), temp);
       };
       return in;
     };

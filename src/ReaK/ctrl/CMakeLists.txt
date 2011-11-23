@@ -5,8 +5,9 @@ set(RKCTRLSYSDIR "${RKCTRLDIR}/ctrl_sys")
 set(RKMBDKTEDIR "${RKCTRLDIR}/mbd_kte")
 set(RKINTERPOLATIONDIR "${RKCTRLDIR}/interpolation")
 set(RKTOPOLOGIESDIR "${RKCTRLDIR}/topologies")
+set(RKHEURISTICSDIR "${RKCTRLDIR}/heuristics")
 
-set(RKCTRLSUBDIRS ${RKMBDKTEDIR} ${RKGRAPHALGDIR} ${RKPATHPLANNINGDIR} ${RKCTRLSYSDIR} ${RKINTERPOLATIONDIR} ${RKTOPOLOGIESDIR})
+set(RKCTRLSUBDIRS ${RKMBDKTEDIR} ${RKGRAPHALGDIR} ${RKPATHPLANNINGDIR} ${RKCTRLSYSDIR} ${RKINTERPOLATIONDIR} ${RKTOPOLOGIESDIR} ${RKHEURISTICSDIR})
 
 configure_doxyfile(ReaKctrl_sys 
                    "\"ReaK Library - Control and Estimation libraries\"" 
@@ -17,7 +18,7 @@ add_doxygen_target(ReaKctrl_sys)
 configure_doxyfile(ReaKpp 
                    "\"ReaK Library - Path-planning libraries\"" 
                    "\"A collection of path-planning methods, graph-search methods, interpolation and topology-based numerical analysis.\"" 
-                   "${DOXTOSRCDIR}${RKGRAPHALGDIR} ${DOXTOSRCDIR}${RKPATHPLANNINGDIR} ${DOXTOSRCDIR}${RKINTERPOLATIONDIR} ${DOXTOSRCDIR}${RKTOPOLOGIESDIR}")
+                   "${DOXTOSRCDIR}${RKGRAPHALGDIR} ${DOXTOSRCDIR}${RKPATHPLANNINGDIR} ${DOXTOSRCDIR}${RKINTERPOLATIONDIR} ${DOXTOSRCDIR}${RKTOPOLOGIESDIR} ${DOXTOSRCDIR}${RKHEURISTICSDIR}")
 add_doxygen_target(ReaKpp)
 
 configure_doxyfile(ReaKmbd_kte 

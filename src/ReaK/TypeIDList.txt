@@ -66,6 +66,9 @@ jacobian_3D_3D<T>           0x0000002A   bin: 0000 0000 0000 0000 0000 0000 0010
 quat<T>                     0x0000002B   bin: 0000 0000 0000 0000 0000 0000 0010 1011  D
 arithmetic_tuple<T...>      0x0000002C   bin: 0000 0000 0000 0000 0000 0000 0010 1100  D
 unit_quat<T>                0x0000002D   bin: 0000 0000 0000 0000 0000 0000 0010 1101  D
+temporal_point<S,T>         0x0000002E   bin: 0000 0000 0000 0000 0000 0000 0010 1110  D
+temporal_point_difference<S,T>0x0000002F bin: 0000 0000 0000 0000 0000 0000 0010 1111  D
+
 
 
 //Subsumption architecture  0xC14*****
@@ -260,6 +263,9 @@ sap_reach_time_metric       0xC241000A   bin: 1100 0010 0100 0001 0000 0000 0000
 space_only_temporal_dist    0xC2410010   bin: 1100 0010 0100 0001 0000 0000 0001 0000  D-R
 time_only_temporal_dist     0xC2410011   bin: 1100 0010 0100 0001 0000 0000 0001 0001  D-R
 
+goal_reach_time_heuristic   0xC2410020   bin: 1100 0010 0100 0001 0000 0000 0010 0000  D-R
+distance_to_goal_heuristic  0xC2410021   bin: 1100 0010 0100 0001 0000 0000 0010 0001  D-R
+
 //Differentiation Rules:    0xC242****
 default_differentiation_rule 0xC2420000  bin: 1100 0010 0100 0010 0000 0000 0000 0000  D-R
 reach_time_differentiation  0xC2420001   bin: 1100 0010 0100 0010 0000 0000 0000 0001  D-R
@@ -271,7 +277,16 @@ quintic_hermite_interp_factory 0xC2430003 bin:1100 0010 0100 0011 0000 0000 0000
 svp_interpolator_factory    0xC2430004   bin: 1100 0010 0100 0011 0000 0000 0000 0100  D-R
 sap_interpolator_factory    0xC2430005   bin: 1100 0010 0100 0011 0000 0000 0000 0101  
 
-
+//Trajectories:             0xC244****
+waypoint_container_base     0xC2440000   bin: 1100 0010 0100 0100 0000 0000 0000 0000  D-R
+waypoint_container          0xC2440001   bin: 1100 0010 0100 0100 0000 0000 0000 0001  D-R
+interpolated_trajectory     0xC2440002   bin: 1100 0010 0100 0100 0000 0000 0000 0010  D-R
+linear_interp_traj          0xC2440003   bin: 1100 0010 0100 0100 0000 0000 0000 0011  D-R
+cubic_hermite_interp_traj   0xC2440004   bin: 1100 0010 0100 0100 0000 0000 0000 0100  D-R
+quintic_hermite_interp_traj 0xC2440005   bin: 1100 0010 0100 0100 0000 0000 0000 0101  D-R
+svp_interp_traj             0xC2440006   bin: 1100 0010 0100 0100 0000 0000 0000 0110  D-R
+sap_interp_traj             0xC2440007   bin: 1100 0010 0100 0100 0000 0000 0000 0111  D-R
+transformed_trajectory      0xC2440008   bin: 1100 0010 0100 0100 0000 0000 0000 1000  D-R
 
 
 

@@ -32,6 +32,9 @@
 #ifndef REAK_WAYPOINT_CONTAINER_HPP
 #define REAK_WAYPOINT_CONTAINER_HPP
 
+#include "base/defs.hpp"
+#include "base/shared_object.hpp"
+
 #include "path_planning/spatial_trajectory_concept.hpp"
 
 #include "topologies/temporal_space.hpp"
@@ -57,7 +60,7 @@ namespace pp {
  * \tparam DistanceMetric The distance metric used to assess the distance between points.
  */
 template <typename Topology, typename DistanceMetric = default_distance_metric>
-class waypoint_container_base {
+class waypoint_container_base : public shared_object {
   public:
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,Topology>));
@@ -75,7 +78,7 @@ class waypoint_container_base {
     
   protected:
     
-    const topology& space;
+    typename shared_pointer<topology>::type space;
     distance_metric dist;
     
     container_type waypoints;
@@ -83,21 +86,23 @@ class waypoint_container_base {
     typedef std::pair<const_waypoint_descriptor, const_waypoint_descriptor> const_waypoint_bounds;
         
     const_waypoint_bounds get_waypoint_bounds(const point_type& p, const_waypoint_descriptor start) const {
+      if(!space)
+	return std::make_pair(waypoints.begin(),waypoints.begin());
       const_waypoint_descriptor it_end = waypoints.end();
       if(start == it_end)
 	throw invalid_path("Waypoints exhausted during waypoint query!");
-      double d1 = dist(*start,p,space);
+      double d1 = dist(*start,p,*space);
       const_waypoint_descriptor it2 = start; ++it2;
       if(it2 == it_end)
 	return std::make_pair(start,start);
-      double d2 = dist(*it2,p,space);
-      double d12 = dist(*start,*it2,space);
+      double d2 = dist(*it2,p,*space);
+      double d12 = dist(*start,*it2,*space);
       double c12 = (d1 * d1 + d2 * d2 - d12 * d12) / (2.0 * d1 * d2); //cosine of the summet angle of the triangle.
       const_waypoint_descriptor it3 = it2; ++it3;
       // NOTE basically this loop will select the interval with the triangle (start,p,it2) with the largest angle at p.
       while(it3 != it_end) {
-	double d3 = dist(*it3,p,space);
-	double d23 = dist(*it2, *it3, space);
+	double d3 = dist(*it3,p,*space);
+	double d23 = dist(*it2, *it3, *space);
 	double c23 = (d2 * d2 + d3 * d3 - d23 * d23) / (2.0 * d2 * d3);
 	if(c23 > c12) {
 	  break;
@@ -118,11 +123,11 @@ class waypoint_container_base {
      * \param aSpace The space on which the waypoints are.
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
-    explicit waypoint_container_base(const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
+    explicit waypoint_container_base(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric& aDist = distance_metric()) : 
                                      space(aSpace), 
                                      dist(aDist),
                                      waypoints() { 
-      waypoints.push_back(space.origin());
+      waypoints.push_back(space->origin());
     };
     
     /**
@@ -132,7 +137,7 @@ class waypoint_container_base {
      * \param aEnd The end-point of the waypoints.
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
-    waypoint_container_base(const topology& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
+    waypoint_container_base(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
                             space(aSpace), dist(aDist), waypoints() {
       waypoints.push_back(aStart);
       waypoints.push_back(aEnd);
@@ -147,7 +152,7 @@ class waypoint_container_base {
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
     template <typename ForwardIter>
-    waypoint_container_base(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
+    waypoint_container_base(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric& aDist = distance_metric()) : 
                             space(aSpace), dist(aDist), waypoints(aBegin,aEnd) {
       if(aBegin == aEnd)
 	throw invalid_path("Empty list of waypoints!");
@@ -157,13 +162,13 @@ class waypoint_container_base {
      * Returns the space on which the path resides.
      * \return The space on which the path resides.
      */
-    const topology& getSpace() const throw() { return space; };
+    const topology& getSpace() const throw() { return *space; };
     
     /**
      * Returns the space on which the path resides.
      * \return The space on which the path resides.
      */
-    const topology& get_temporal_space() const throw() { return space; };
+    const topology& get_temporal_space() const throw() { return *space; };
     
     /**
      * Returns the distance metric that the path uses.
@@ -176,10 +181,31 @@ class waypoint_container_base {
      */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
+      swap(lhs.space,rhs.space);
       swap(lhs.dist,rhs.dist);
       lhs.waypoints.swap(rhs.waypoints);
     };
     
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      ReaK::shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(space)
+        & RK_SERIAL_SAVE_WITH_NAME(dist)
+        & RK_SERIAL_SAVE_WITH_NAME(waypoints);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      ReaK::shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(space)
+        & RK_SERIAL_LOAD_WITH_NAME(dist)
+        & RK_SERIAL_LOAD_WITH_NAME(waypoints);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2440000,1,"waypoint_container_base",shared_object)
 };
 
 
@@ -190,7 +216,7 @@ class waypoint_container_base {
  * \tparam DistanceMetric The distance metric used to assess the distance between points.
  */
 template <typename SpaceTopology, typename TimeTopology, typename DistanceMetric, typename DistanceMetricBase>
-class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, DistanceMetric>, DistanceMetricBase > {
+class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, DistanceMetric>, DistanceMetricBase > : public shared_object {
   public:
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept< temporal_space<SpaceTopology, TimeTopology, DistanceMetric> >));
     
@@ -213,7 +239,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
     
   protected:
     
-    const topology& space;
+    typename shared_pointer<topology>::type space;
     distance_metric dist;
     
     container_type waypoints;
@@ -237,11 +263,11 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * \param aSpace The space on which the waypoints are.
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
-    explicit waypoint_container_base(const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
+    explicit waypoint_container_base(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric& aDist = distance_metric()) : 
                                      space(aSpace), 
                                      dist(aDist),
                                      waypoints() { 
-      waypoints.insert(space.origin());
+      waypoints.insert(space->origin());
     };
     
     /**
@@ -251,7 +277,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * \param aEnd The end-point of the waypoints.
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
-    waypoint_container_base(const topology& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
+    waypoint_container_base(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
                             space(aSpace), dist(aDist), waypoints() {
       waypoints.insert(aStart);
       waypoints.insert( waypoints.end(), aEnd);
@@ -266,7 +292,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
     template <typename ForwardIter>
-    waypoint_container_base(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
+    waypoint_container_base(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric& aDist = distance_metric()) : 
                             space(aSpace), dist(aDist), waypoints(aBegin,aEnd) {
       if(aBegin == aEnd)
 	throw invalid_path("Empty list of waypoints!");
@@ -276,13 +302,13 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * Returns the space on which the path resides.
      * \return The space on which the path resides.
      */
-    const topology& getSpace() const throw() { return space; };
+    const topology& getSpace() const throw() { return *space; };
     
     /**
      * Returns the space on which the path resides.
      * \return The space on which the path resides.
      */
-    const topology& get_temporal_space() const throw() { return space; };
+    const topology& get_temporal_space() const throw() { return *space; };
     
     /**
      * Returns the distance metric that the path uses.
@@ -295,9 +321,30 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
+      swap(lhs.space,rhs.space);
       swap(lhs.dist,rhs.dist);
       lhs.waypoints.swap(rhs.waypoints);
     };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      ReaK::shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(space)
+        & RK_SERIAL_SAVE_WITH_NAME(dist)
+        & RK_SERIAL_SAVE_WITH_NAME(waypoints);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      ReaK::shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(space)
+        & RK_SERIAL_LOAD_WITH_NAME(dist)
+        & RK_SERIAL_LOAD_WITH_NAME(waypoints);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2440000,1,"waypoint_container_base",shared_object)
     
 };
 
@@ -339,7 +386,7 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
      * \param aSpace The space on which the waypoints are.
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
-    explicit waypoint_container(const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
+    explicit waypoint_container(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric& aDist = distance_metric()) : 
                                 base_class_type(aSpace,aDist) { };
     
     /**
@@ -349,7 +396,7 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
      * \param aEnd The end-point of the waypoints.
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
-    waypoint_container(const topology& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
+    waypoint_container(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
                        base_class_type(aSpace,aStart,aEnd,aDist) { };
 
     /**
@@ -361,7 +408,7 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
     template <typename ForwardIter>
-    waypoint_container(ForwardIter aBegin, ForwardIter aEnd, const topology& aSpace, const distance_metric& aDist = distance_metric()) : 
+    waypoint_container(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric& aDist = distance_metric()) : 
                        base_class_type(aBegin, aEnd, aSpace, aDist) { };
     
     /**
@@ -474,6 +521,20 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
     typename container_type::allocator_type get_allocator() const { return this->waypoints.get_allocator(); };
     
     
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      base_class_type::save(A,base_class_type::getStaticObjectType()->TypeVersion());
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      base_class_type::load(A,base_class_type::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2440001,1,"waypoint_container",base_class_type)
     
     
 };
