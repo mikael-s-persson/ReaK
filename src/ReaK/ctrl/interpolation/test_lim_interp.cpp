@@ -101,11 +101,12 @@ int main(int argc, char** argv) {
   typedef ReaK::pp::temporal_space< TopoType, ReaK::pp::time_poisson_topology> TempTopoType;
   typedef ReaK::pp::metric_topology_traits<TempTopoType>::point_type TempPointType;
     
-  TempTopoType topo( "temporal_space",
-    SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-20.0, 20.0),
-                   ReaK::pp::line_segment_topology<double>("vel_topo",-max_vel, max_vel),
-                   ReaK::pp::line_segment_topology<double>("acc_topo",-max_accel, max_accel),
-                   ReaK::pp::line_segment_topology<double>("jerk_topo",-20.0, 20.0)));
+  ReaK::shared_pointer< TempTopoType >::type topo = 
+    ReaK::shared_pointer< TempTopoType >::type(new TempTopoType( "temporal_space",
+      SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-20.0, 20.0),
+                     ReaK::pp::line_segment_topology<double>("vel_topo",-max_vel, max_vel),
+                     ReaK::pp::line_segment_topology<double>("acc_topo",-max_accel, max_accel),
+                     ReaK::pp::line_segment_topology<double>("jerk_topo",-20.0, 20.0))));
   
   std::vector< TempPointType > pts;
   pts.push_back( TempPointType(0.0, PointType(start_pt,start_vel,0.0,0.0)) );
@@ -124,7 +125,7 @@ int main(int argc, char** argv) {
       
       for(double t = 0.0; t <= current_end_time; t += time_step) {
 	TempPointType p = interp.get_point_at_time(t);
-	output_rec << p.time << std::get<0>(p.pt) << std::get<1>(p.pt) << std::get<2>(p.pt) << std::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
+	output_rec << p.time << ReaK::get<0>(p.pt) << ReaK::get<1>(p.pt) << ReaK::get<2>(p.pt) << ReaK::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
       };
       output_rec << ReaK::recorder::data_recorder::flush;
     };
@@ -141,7 +142,7 @@ int main(int argc, char** argv) {
       
       for(double t = 0.0; t <= current_end_time; t += time_step) {
 	TempPointType p = interp.get_point_at_time(t);
-	output_rec << p.time << std::get<0>(p.pt) << std::get<1>(p.pt) << std::get<2>(p.pt) << std::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
+	output_rec << p.time << ReaK::get<0>(p.pt) << ReaK::get<1>(p.pt) << ReaK::get<2>(p.pt) << ReaK::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
       };
       output_rec << ReaK::recorder::data_recorder::flush;
     };
@@ -161,16 +162,17 @@ int main(int argc, char** argv) {
   typedef ReaK::pp::temporal_space< TopoType2, ReaK::pp::time_poisson_topology> TempTopoType2;
   typedef ReaK::pp::metric_topology_traits<TempTopoType2>::point_type TempPointType2;
     
-  TempTopoType2 topo2( "temporal_space_tuple",
-    SpaceTupleType2(
-      SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-20.0, 20.0),
-                     ReaK::pp::line_segment_topology<double>("vel_topo",-max_vel, max_vel),
-                     ReaK::pp::line_segment_topology<double>("acc_topo",-max_accel, max_accel),
-                     ReaK::pp::line_segment_topology<double>("jerk_topo",-20.0, 20.0)),
-      SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-20.0, 20.0),
-                     ReaK::pp::line_segment_topology<double>("vel_topo",-max_vel, max_vel),
-                     ReaK::pp::line_segment_topology<double>("acc_topo",-max_accel, max_accel),
-                     ReaK::pp::line_segment_topology<double>("jerk_topo",-20.0, 20.0))));
+  ReaK::shared_pointer< TempTopoType2 >::type topo2 =
+    ReaK::shared_pointer< TempTopoType2 >::type( new TempTopoType2( "temporal_space_tuple",
+      SpaceTupleType2(
+        SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-20.0, 20.0),
+                       ReaK::pp::line_segment_topology<double>("vel_topo",-max_vel, max_vel),
+                       ReaK::pp::line_segment_topology<double>("acc_topo",-max_accel, max_accel),
+                       ReaK::pp::line_segment_topology<double>("jerk_topo",-20.0, 20.0)),
+        SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-20.0, 20.0),
+                       ReaK::pp::line_segment_topology<double>("vel_topo",-max_vel, max_vel),
+                       ReaK::pp::line_segment_topology<double>("acc_topo",-max_accel, max_accel),
+                       ReaK::pp::line_segment_topology<double>("jerk_topo",-20.0, 20.0)))));
   
   std::vector< TempPointType2 > pts2;
   pts2.push_back( TempPointType2(0.0, PointType2(PointType(start_pt,start_vel,0.0,0.0), PointType(start_pt,start_vel,0.0,0.0)) ));
