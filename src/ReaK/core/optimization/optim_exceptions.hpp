@@ -34,7 +34,7 @@
 
 #include "base/defs.hpp"
 
-#include <exceptions>
+#include <exception>
 
 namespace ReaK {
   

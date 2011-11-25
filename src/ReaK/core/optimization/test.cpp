@@ -24,6 +24,8 @@
 #include <cmath>
 #include "line_search.hpp"
 
+#include "finite_diff_jacobians.hpp"
+
 #include <iostream>
 
 static int evalCount;
@@ -59,6 +61,19 @@ int main() {
   std::cout << "The Fibonacci Search has found: " << ((l + u) * 0.5);
   std::cout << " with " << evalCount << " cost function evaluations." << std::endl;
 
+  ReaK::mat<double,ReaK::mat_structure::rectangular> J(1,1);
+  double x = 0.5;
+    
+  std::cout << "Jacobian at point x = 0.5 is:" << std::endl;
+  ReaK::optim::compute_jacobian_2pts_forward(max_truss_section_stress,x,max_truss_section_stress(x),J);
+  std::cout << "  2-pts Forward: " << J << std::endl;
+  
+  ReaK::optim::compute_jacobian_2pts_central(max_truss_section_stress,x,max_truss_section_stress(x),J);
+  std::cout << "  2-pts Central: " << J << std::endl;
+  
+  ReaK::optim::compute_jacobian_5pts_central(max_truss_section_stress,x,max_truss_section_stress(x),J);
+  std::cout << "  5-pts Central: " << J << std::endl;
+  
   return 0;
 };
 

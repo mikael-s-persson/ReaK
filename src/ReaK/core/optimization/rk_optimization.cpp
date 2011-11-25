@@ -26,6 +26,9 @@
 #ifndef RK_OptimizationC
 #define RK_OptimizationC
 
+#if 0
+//The following functions have been ported to the new framework.
+
 template <class T>
 void WeightJacobian2PtsForward(void* UserData, TBasisMap Map, T *u, T *hx, T *hxx, T delta, T *jac, bool rowMajor)
 {
@@ -743,6 +746,7 @@ int ComputeCovariance(T* JtJ, T* C, T sumsq, unsigned int N, unsigned int M)
 
   return rnk;
 };
+#endif
 
 template <class T>
 int LMNonLinLsq(void* UserData, TBasisMap Map, FBasisFunction Jacf, T* u, T* x, unsigned int itmax, T tau, T epsj, T epsw, T epsx, T info[9], T* covar)
