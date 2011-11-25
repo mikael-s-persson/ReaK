@@ -32,10 +32,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LINE_SEARCH_HPP
-#define LINE_SEARCH_HPP
+#ifndef REAK_LINE_SEARCH_HPP
+#define REAK_LINE_SEARCH_HPP
 
-#include "function_types.hpp"
+#include "base/defs.hpp"
 
 #include <vector>
 
@@ -47,118 +47,143 @@ namespace optim {
 
 namespace detail { 
  
-  template <class T>
-  value_cost_pair<T> DichotomousSearchImpl(const cost_function_1D<T>& aFunc, T aLowBound, T aUpBound, T aToleranceX, T aDelta) {
+  template <typename T, typename Function>
+  T dichotomous_search_impl(Function f, T& low_bound, T& up_bound, T delta, T tol) {
     using std::fabs;
-    T midpoint = (aLowBound + aUpBound) * T(0.5);
-    if(fabs(aUpBound - aLowBound) < aToleranceX)
-      return value_cost_pair<T>(midpoint,aFunc.computeCost(midpoint));
-    T f1 = aFunc.computeCost(midpoint - aDelta);
-    T f2 = aFunc.computeCost(midpoint + aDelta);
-    if( f1 > f2 )
-      return DichotomousSearchImpl(aFunc,midpoint - aDelta,aUpBound,aToleranceX,aDelta * T(0.5));
-    else
-      return DichotomousSearchImpl(aFunc,aLowBound,midpoint + aDelta,aToleranceX,aDelta * T(0.5));
+    while (true) {
+      T midpoint = (low_bound + up_bound) * T(0.5);
+      if(fabs(up_bound - low_bound) < tol)
+        return f(midpoint);
+      T f1 = f(midpoint - delta);
+      T f2 = f(midpoint + delta);
+      if( f1 > f2 ) {
+	low_bound = midpoint - delta;
+	delta *= T(0.5);
+      } else {
+	up_bound = midpoint + delta;
+	delta *= T(0.5);
+      };
+    };
   };
   
   const double GoldenRatioPhi = 1.618033988;
   
-  template <class T>
-  value_cost_pair<T> GoldenSectionSearchImpl(const cost_function_1D<T>& aFunc, const value_cost_pair<T>& A, const value_cost_pair<T>& C, const value_cost_pair<T>& B, T aToleranceX) {
+  template <typename T, typename Function>
+  T golden_section_search_impl(Function f, T& low_bound, T& up_bound, T tol) {
     using std::fabs;
-    if(fabs(A.value - B.value) < fabs(aToleranceX))
-      return value_cost_pair<T>((A.value + B.value) / 2, aFunc.computeCost((A.value + B.value) / 2));
+    
+    T mid_value = low_bound + (up_bound - low_bound) / GoldenRatioPhi;
+    T mid_cost = f(mid_value);
+    
+    while (true) {
+      if(fabs(low_bound - up_bound) < tol)
+        return f((low_bound + up_bound) * T(0.5));
   
-    value_cost_pair<T> D(C.value + (B.value - C.value) / GoldenRatioPhi, T(0));
-    D.cost = aFunc.computeCost(D.value);
-  
-    if(D.cost < C.cost)
-      return GoldenSectionSearchImpl(aFunc,C,D,B,aToleranceX);
-    else
-      return GoldenSectionSearchImpl(aFunc,D,C,A,aToleranceX);
+      T test_value = mid_value + (up_bound - mid_value) / GoldenRatioPhi;
+      T test_cost = f(test_value);
+      
+      if(test_cost < mid_cost) {
+	low_bound = mid_value; 
+	mid_value = test_value; mid_cost = test_cost;
+      } else {
+	up_bound = low_bound;
+	low_bound = test_value;
+      };
+    };
   };
   
   
-  template <class T>
-  value_cost_pair<T> FibonacciSearchImpl(const cost_function_1D<T>& aFunc, T aLowBound, T aUpBound, 
-                                         value_cost_pair<T> X1, value_cost_pair<T> X2, 
-                                         std::vector<int>::reverse_iterator aFibIter) {
-    if((*aFibIter) == 2)
-      return X1; //termination condition when fib(n-j+2) == 2 (meaning X1 and X2 have converged to the same value).
-    if(X1.cost > X2.cost) {
-      T tmp = aUpBound - T(*(aFibIter+2)) / T(*aFibIter) * (aUpBound - X1.value);
-      return FibonacciSearchImpl(aFunc,X1.value,aUpBound,X2,value_cost_pair<T>(tmp,aFunc.computeCost(tmp)),aFibIter+1);
-    } else {
-      T tmp = aLowBound + T(*(aFibIter+2)) / T(*aFibIter) * (X2.value - aLowBound);
-      return FibonacciSearchImpl(aFunc,aLowBound,X2.value,value_cost_pair<T>(tmp,aFunc.computeCost(tmp)),X1,aFibIter+1);
+  std::vector<int>::reverse_iterator get_fibonacci_iter_for_tolerance(double low_bound, double up_bound, double tol) {
+    using std::fabs;
+    static int first_fib[2] = {0,1};
+    static std::vector<int> fib_seq(first_fib,first_fib + 2);
+    while(fabs(up_bound - low_bound) > fib_seq.back() * tol)
+      fib_seq.push_back(fib_seq.back() + (*(fib_seq.rbegin()+1)));
+    return fib_seq.rbegin();
+  };
+  
+  
+  template <typename T, typename Function>
+  T fibonacci_search_impl(Function f, T& low_bound, T& up_bound, T tol) {
+    std::vector<int>::reverse_iterator fib_iter = get_fibonacci_iter_for_tolerance(low_bound, up_bound, tol);
+    
+    T Lstar2 = (up_bound - low_bound) * T(*(fib_iter+2)) / T(*fib_iter);
+    T x1 = low_bound + Lstar2; T x1_value = f(x1);
+    T x2 = up_bound  - Lstar2; T x2_value = f(x2);
+    while(true) {
+      ++fib_iter;
+      if((*fib_iter) == 2)
+        return x1_value;
+      if(x1_value > x2_value) {
+        low_bound = x1;
+	x1 = x2; x1_value = x2_value;
+	x2 = up_bound - T(*(fib_iter+2)) / T(*fib_iter) * (up_bound - low_bound); 
+	x2_value = f(x2);
+      } else {
+        up_bound = x2;
+	x2 = x1; x2_value = x1_value;
+	x1 = low_bound + T(*(fib_iter+2)) / T(*fib_iter) * (up_bound - low_bound); 
+	x1_value = f(x1);
+      };
     };
   };
   
 };
   
 /**
- * This function performs a 1D optimum Dichotomous search on a unimodal cost function aFunc to find the value for 
+ * This function performs a 1D optimum Dichotomous search on a unimodal cost function to find the value for 
  * the lowest cost (both value and cost are returned by this function as a pair). The search guarantees
- * an uncertainty interval of length aToleranceX and limits the search to within (aLowBound .. aUpBound).
- * \param aFunc the cost function-object (an object which implements the interface cost_function_1D).
- * \param aLowBound the lower bound for the search (must be lower than aUpBound).
- * \param aUpBound the upper bound for the search (must be greater than aLowBound).
- * \param aToleranceX the uncertainty on the X value at which the optimization should stop.
- * \return a value and cost pair that is the optimum point found, within uncertainty interval of length aToleranceX.
+ * an uncertainty interval of length tol and limits the search to within (low_bound .. up_bound).
+ * \tparam T The value type for the scalar that represents both the independent variable and the cost values.
+ * \tparam Function A functor type for a unary function that computes the cost for a given independent variable value.
+ * \param f The cost functor.
+ * \param low_bound The lower bound for the search.
+ * \param up_bound the upper bound for the search.
+ * \param tol the uncertainty on the X value at which the optimization should stop.
+ * \return the cost that is the optimum point found, within uncertainty interval (low_bound, up_bound).
  */
-template <class T>
-value_cost_pair<T> DichotomousSearch(const cost_function_1D<T>& aFunc, T aLowBound, T aUpBound, T aToleranceX) {
-  return detail::DichotomousSearchImpl(aFunc,aLowBound,aUpBound,aToleranceX,T((aUpBound - aLowBound) * 0.1));
+template <typename T, typename Function>
+T dichotomous_search(Function f, T& low_bound, T& up_bound, T tol) {
+  return detail::dichotomous_search_impl(f,low_bound,up_bound,T((up_bound - low_bound) * 0.1),tol);
 };
 
 /**
- * This function performs a 1D optimum Golden-Section search on a unimodal cost function aFunc to find the value for 
+ * This function performs a 1D optimum Golden-Section search on a unimodal cost function to find the value for 
  * the lowest cost (both value and cost are returned by this function as a pair). The search guarantees
- * an uncertainty interval of length aToleranceX and limits the search to within (aBound1 .. aBound2).
- * \param aFunc the cost function-object (an object which implements the interface cost_function_1D).
- * \param aBound1 the first bound for the search.
- * \param aBound2 the second bound for the search.
- * \param aToleranceX the uncertainty on the X value at which the optimization should stop.
- * \return a value and cost pair that is the optimum point found, within uncertainty interval of length aToleranceX.
+ * an uncertainty interval of length tol and limits the search to within (bound1 .. bound2) (the bounds 
+ * do not need to be sorted).
+ * \tparam T The value type for the scalar that represents both the independent variable and the cost values.
+ * \tparam Function A functor type for a unary function that computes the cost for a given independent variable value.
+ * \param f the cost functor.
+ * \param bound1 the first bound for the search.
+ * \param bound2 the second bound for the search.
+ * \param tol the uncertainty on the X value at which the optimization should stop.
+ * \return the cost that is the optimum point found, within uncertainty interval (bound1, bound2).
  */
-template <class T>
-value_cost_pair<T> GoldenSectionSearch(const cost_function_1D<T>& aFunc, T aBound1, T aBound2, T aToleranceX) {
-  value_cost_pair<T> A(aBound1, T(0));
-  value_cost_pair<T> B(aBound2, T(0));
-  value_cost_pair<T> C(A.value + (B.value - A.value) / detail::GoldenRatioPhi, T(0));
-  C.cost = aFunc.computeCost(C.value);
-  return detail::GoldenSectionSearchImpl(aFunc, A, C, B, aToleranceX);
+template <typename T, typename Function>
+T golden_section_search(Function f, T& bound1, T& bound2, T tol) {
+  return detail::golden_section_search_impl(f, bound1, bound2, tol);
 };
 
 /**
  * This function performs a 1D optimum Fibonacci search on a unimodal cost function aFunc to find the value for 
  * the lowest cost (both value and cost are returned by this function as a pair). The search guarantees
  * an uncertainty interval of length aToleranceX and limits the search to within (aLowBound .. aUpBound).
- * \param aFunc the cost function-object (an object which implements the interface cost_function_1D).
- * \param aLowBound the lower bound for the search (must be lower than aUpBound).
- * \param aUpBound the upper bound for the search (must be greater than aLowBound).
- * \param aToleranceX the uncertainty on the X value at which the optimization should stop.
- * \return a value and cost pair that is the optimum point found, within uncertainty interval of length aToleranceX.
+ * \tparam T The value type for the scalar that represents both the independent variable and the cost values.
+ * \tparam Function A functor type for a unary function that computes the cost for a given independent variable value.
+ * \param f the cost functor.
+ * \param low_bound the lower bound for the search.
+ * \param up_bound the upper bound for the search.
+ * \param tol the uncertainty on the X value at which the optimization should stop.
+ * \return the cost that is the optimum point found, within uncertainty interval (low_bound, up_bound).
  */
-template <class T>
-value_cost_pair<T> FibonacciSearch(const cost_function_1D<T>& aFunc, T aLowBound, T aUpBound, T aToleranceX) {
-  using std::fabs;
+template <typename T, typename Function>
+T fibonacci_search(Function f, T& low_bound, T& up_bound, T tol) {
   using std::swap;
-  if(aLowBound > aUpBound)
-    swap(aLowBound,aUpBound);
+  if(low_bound > up_bound)
+    swap(low_bound,up_bound);
   
-  std::vector<int> fib_seq;
-  fib_seq.push_back(0);
-  fib_seq.push_back(1);
-  while(fabs(aUpBound - aLowBound) > fib_seq.back() * aToleranceX)
-    fib_seq.push_back(fib_seq.back() + (*(fib_seq.rbegin()+1)));
-  
-  std::vector<int>::reverse_iterator FibIter = fib_seq.rbegin();
-  T Lstar2 = (aUpBound - aLowBound) * (*(FibIter+2)) / (*FibIter);
-  value_cost_pair<T> X1(aLowBound + Lstar2,aFunc.computeCost(aLowBound + Lstar2));
-  value_cost_pair<T> X2(aUpBound - Lstar2,aFunc.computeCost(aUpBound - Lstar2));
-  
-  return detail::FibonacciSearchImpl(aFunc,aLowBound,aUpBound,X1,X2,FibIter+1);
+  return detail::fibonacci_search_impl(f,low_bound,up_bound,tol);
 };
 
 

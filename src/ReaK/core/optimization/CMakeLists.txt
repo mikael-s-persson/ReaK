@@ -4,7 +4,8 @@ set(OPTIM_SOURCES
 
 set(OPTIM_HEADERS 
   "${RKOPTIMDIR}/line_search.hpp"
-  "${RKOPTIMDIR}/function_types.hpp"
+  "${RKOPTIMDIR}/optim_exceptions.hpp"
+  "${RKOPTIMDIR}/simplex_method.hpp"
 )
 
 setup_headers("${OPTIM_HEADERS}" "${RKOPTIMDIR}")

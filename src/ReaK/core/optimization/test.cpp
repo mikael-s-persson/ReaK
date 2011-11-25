@@ -26,38 +26,40 @@
 
 #include <iostream>
 
-template <class T>
-class MaxTrussSectionStress : public ReaK::optim::cost_function_1D<T> {
-  public:
-    mutable int evalCount;
-    MaxTrussSectionStress() : evalCount(0) { };
-    virtual T computeCost(const T& aParameter) const {
-      T sigma1 = 0.8165 / aParameter;
-      T sigma2 = 1.1154 / (1 - aParameter);
-      evalCount++;
-      return (sigma1 > sigma2 ? sigma1 : sigma2);
-    };
-  
+static int evalCount;
+
+double max_truss_section_stress(double x) {
+  double sigma1 = 0.8165 / x;
+  double sigma2 = 1.1154 / (1 - x);
+  evalCount++;
+  return (sigma1 > sigma2 ? sigma1 : sigma2);  
 };
 
 
 int main() {
 
   std::cout << "The actual optimal parameter from analytical calculation is 0.42264." << std::endl;
-  MaxTrussSectionStress<double> DichotomousCF;
+  
+  evalCount = 0;
+  double l = 0.30; double u = 0.48;
+  ReaK::optim::dichotomous_search(max_truss_section_stress, l, u, 0.0018);
   std::cout << "The Dichotomous Search has found: " 
-            << ReaK::optim::DichotomousSearch(DichotomousCF, 0.30, 0.48, 0.0018).value;
-  std::cout << " with " << DichotomousCF.evalCount << " cost function evaluations." << std::endl;
-  MaxTrussSectionStress<double> GoldenSectionCF;
-  std::cout << "The Golden Section Search has found: " 
-            << ReaK::optim::GoldenSectionSearch(GoldenSectionCF, 0.30, 0.48, 0.0018).value;
-  std::cout << " with " << GoldenSectionCF.evalCount << " cost function evaluations." << std::endl;
-  MaxTrussSectionStress<double> FibonacciCF;
-  std::cout << "The Fibonacci Search has found: " 
-            << ReaK::optim::FibonacciSearch(FibonacciCF, 0.30, 0.48, 0.0018).value;
-  std::cout << " with " << FibonacciCF.evalCount << " cost function evaluations." << std::endl;
+            << ((l + u) * 0.5);
+  std::cout << " with " << evalCount << " cost function evaluations." << std::endl;
+  
+  evalCount = 0;
+  l = 0.30; u = 0.48;
+  ReaK::optim::golden_section_search(max_truss_section_stress, l, u, 0.0018);
+  std::cout << "The Golden Section Search has found: " << ((l + u) * 0.5);
+  std::cout << " with " << evalCount << " cost function evaluations." << std::endl;
+  
+  evalCount = 0;
+  l = 0.30; u = 0.48;
+  ReaK::optim::fibonacci_search(max_truss_section_stress, l, u, 0.0018);
+  std::cout << "The Fibonacci Search has found: " << ((l + u) * 0.5);
+  std::cout << " with " << evalCount << " cost function evaluations." << std::endl;
 
-
+  return 0;
 };
 
 

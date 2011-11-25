@@ -73,6 +73,7 @@ typedef struct {
  * a set of basis functions.
  *
  * \author Mikael Persson
+ * \note This function has been ported to the new framework (see finite_diff_jacobians.hpp).
  */
 template <class T>
 void WeightJacobian2PtsForward(void* UserData, ///< The pointer that is passed uniterpreted to the map function.
@@ -89,6 +90,7 @@ void WeightJacobian2PtsForward(void* UserData, ///< The pointer that is passed u
  * a set of basis functions.
  *
  * \author Mikael Persson
+ * \note This function has been ported to the new framework (see finite_diff_jacobians.hpp).
  */
 template <class T>
 void WeightJacobian2PtsCentral(void* UserData, ///< The pointer that is passed uniterpreted to the map function.
@@ -106,6 +108,7 @@ void WeightJacobian2PtsCentral(void* UserData, ///< The pointer that is passed u
  * times (for each partial derivative) and still gaining an order 5 estimation.
  *
  * \author Mikael Persson
+ * \note This function has been ported to the new framework (see finite_diff_jacobians.hpp).
  */
 template <class T>
 void Jacobian5Pts(void* UserData, ///< The pointer that is passed uniterpreted to the map function.
@@ -121,6 +124,7 @@ void Jacobian5Pts(void* UserData, ///< The pointer that is passed uniterpreted t
  * times (for each partial derivative) and still gaining an order 5 estimation.
  *
  * \author Mikael Persson
+ * \note This function has been ported to the new framework (see finite_diff_jacobians.hpp).
  */
 template <class T>
 void Jacobian5Pts(void* UserData, ///< The pointer that is passed uniterpreted to the map function.
@@ -142,6 +146,7 @@ void Jacobian5Pts(void* UserData, ///< The pointer that is passed uniterpreted t
  *   Chvatal, Vasek, Linear Programming, W. H. Freeman and Company, 1983.
  *
  * \author Mikael Persson
+ * \note This function has been ported to the new framework (see simplex_method.hpp).
  */
 template <class T>
 int SimplexMethod(T* A, ///< The constraint matrix of dimension M*N.
@@ -167,6 +172,7 @@ int SimplexMethod(T* A, ///< The constraint matrix of dimension M*N.
  * the following compuation:\n\n   Rx = Q'b (where R is upper triangular)
  *
  * \author Mikael Persson
+ * \note This function has been ported to the new framework (see mat_num.hpp).
  */
 template <class T>
 void LinearLeastSquare(T* A, ///< A matrix of M rows and N columns, where M > N for a solution to exist.
