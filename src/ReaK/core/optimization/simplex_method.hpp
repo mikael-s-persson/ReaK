@@ -2,7 +2,9 @@
  * \file simplex_method.hpp
  *
  * The following library is an implementation of the Simplex Method to solve a linear programming 
- * problem. The algorithm follows that of Chvatal and Vasek 1983.
+ * problem. The algorithm follows that of Chvatal and Vasek 1983. This simplex method should not 
+ * be confused with the Nelder-Mead method which is also sometimes referred to as the simplex method
+ * (see nelder_mead_method.hpp).
  *
  * \author Mikael Persson <mikael.s.persson@gmail.com>
  * \date November 2011

@@ -746,7 +746,6 @@ int ComputeCovariance(T* JtJ, T* C, T sumsq, unsigned int N, unsigned int M)
 
   return rnk;
 };
-#endif
 
 template <class T>
 int LMNonLinLsq(void* UserData, TBasisMap Map, FBasisFunction Jacf, T* u, T* x, unsigned int itmax, T tau, T epsj, T epsw, T epsx, T info[9], T* covar)
@@ -2168,6 +2167,7 @@ int LBFGSMinimize(void* UserData,
     memmove(xold, x,Map.input_count*sizeof(T));
   };
 };
+#endif
 
 #endif //RK_OptimizationC
 

@@ -125,7 +125,8 @@ void backsub_Cholesky_impl(const Matrix1& L, Matrix2& B) {
  */
 template <typename Matrix1, typename Matrix2>
 typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             ((mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
+                             ((mat_traits<Matrix1>::structure == mat_structure::square) ||
+                              (mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
                               (mat_traits<Matrix1>::structure == mat_structure::tridiagonal)) &&
                              is_writable_matrix<Matrix2>::value &&
                              is_resizable_matrix<Matrix2>::value &&
@@ -153,7 +154,8 @@ void >::type decompose_Cholesky(const Matrix1& A, Matrix2& L, typename mat_trait
  */
 template <typename Matrix1, typename Matrix2>
 typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             ((mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
+                             ((mat_traits<Matrix1>::structure == mat_structure::square) ||
+                              (mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
                               (mat_traits<Matrix1>::structure == mat_structure::tridiagonal)) &&
                              is_writable_matrix<Matrix2>::value &&
                              (mat_traits<Matrix2>::structure == mat_structure::lower_triangular),
@@ -248,7 +250,8 @@ typename mat_traits<Matrix>::value_type >::type determinant_Cholesky(const Matri
  */
 template <typename Matrix1, typename Matrix2>
 typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             ((mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
+                             ((mat_traits<Matrix1>::structure == mat_structure::square) ||
+                              (mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
                               (mat_traits<Matrix1>::structure == mat_structure::tridiagonal)) &&
                              is_fully_writable_matrix<Matrix2>::value,
 void >::type linsolve_Cholesky(const Matrix1& A, Matrix2& b, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
@@ -281,7 +284,8 @@ void >::type linsolve_Cholesky(const Matrix1& A, Matrix2& b, typename mat_traits
  */
 template <typename Matrix1, typename Matrix2>
 typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             ((mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
+                             ((mat_traits<Matrix1>::structure == mat_structure::square) ||
+                              (mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
                               (mat_traits<Matrix1>::structure == mat_structure::tridiagonal)) &&
                              is_writable_matrix<Matrix2>::value &&
                              !is_fully_writable_matrix<Matrix2>::value,
@@ -473,7 +477,8 @@ struct Cholesky_linsolver {
  */
 template <typename Matrix1, typename Matrix2>
 typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             ((mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
+                             ((mat_traits<Matrix1>::structure == mat_structure::square) ||
+                              (mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
                               (mat_traits<Matrix1>::structure == mat_structure::tridiagonal) ||
 			      (mat_traits<Matrix1>::structure == mat_structure::diagonal) ||
 			      (mat_traits<Matrix1>::structure == mat_structure::identity)) &&
