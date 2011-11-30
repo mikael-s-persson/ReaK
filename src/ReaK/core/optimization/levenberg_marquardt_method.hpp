@@ -64,8 +64,7 @@ int levenberg_marquardt_nllsq_impl(Function f, JacobianFunction fill_jac,
   typedef typename vect_traits<InputVector>::size_type SizeType;
   
   /* Check if the problem is defined properly */
-  if ((y.size() < x.size()) ||
-      (itmax <= 1))
+  if (y.size() < x.size())
     throw improper_problem("Levenberg-Marquardt requires M > N!");
   
   mat<ValueType,mat_structure::rectangular> J(y.size(),x.size());
@@ -87,6 +86,8 @@ int levenberg_marquardt_nllsq_impl(Function f, JacobianFunction fill_jac,
   ValueType epsx_sq = epsx * epsx;
   if(epsy <= 0.0) 
     epsy = 1E-17;
+  if(itmax <= 1)
+    itmax = 2;
 
   /* compute e=x - f(p) and its L2 norm */
   OutputVector y_approx = f(x);
