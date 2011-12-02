@@ -47,7 +47,7 @@ namespace ReaK {
   
 namespace optim {
 
-
+#if 0
 /**
  * This function finds the minimum of a function, given its derivative, using a quasi-newton search 
  * direction, a BFGS approximation of the Hessian (without restarts), and using a line-search approach 
@@ -105,7 +105,7 @@ void broyden_class_method(Function f, GradFunction df, Vector& x, typename vect_
   quasi_newton_line_search(f,df,x,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_broyden<typename vect_traits<Vector>::value_type>(phi),tol);
   
 };
-
+#endif
 
 };
 

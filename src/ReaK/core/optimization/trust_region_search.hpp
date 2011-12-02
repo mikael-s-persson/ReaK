@@ -40,6 +40,10 @@
 #include "lin_alg/mat_alg.hpp"
 #include "lin_alg/mat_cholesky.hpp"
 
+#include "newton_search_directions.hpp"
+
+#include <boost/bind.hpp>
+
 namespace ReaK {
   
   
@@ -65,8 +69,8 @@ namespace detail {
   };
   
   
-  template <typename Vector, typename Matrix, typename T>
-  void compute_dogleg_point_impl(const Vector& g, const Matrix& B, Vector& p, T& norm_p, T radius, T tol) {
+  template <typename Vector, typename Matrix, typename T, typename NewtonDirectioner>
+  void compute_dogleg_point_impl(const Vector& g, const Matrix& B, Vector& p, T& norm_p, T radius, NewtonDirectioner get_direction, T tol) {
     using std::sqrt;
     T gg = g * g;
     T gBg = g * (B * g);
@@ -79,10 +83,9 @@ namespace detail {
       return;
     };
     
-    Vector pb = -g;
-    mat_vect_adaptor<Vector> pb_mat(pb);
+    Vector pb = g;
     try {
-      linsolve_Cholesky(B,pb_mat,tol);
+      get_direction(B,g,pb,tol);
     } catch(singularity_error&) {
       p = pu;
       norm_p = sqrt(norm_sqr_pu);
@@ -184,7 +187,7 @@ typename boost::enable_if<
     is_readable_matrix<Matrix>
   >,
 void >::type compute_dogleg_point(const Vector& g, const Matrix& B, Vector& p, typename vect_traits<Vector>::value_type& norm_p, typename vect_traits<Vector>::value_type radius, typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
-  detail::compute_dogleg_point_impl(g,B,p,norm_p,radius,tol);
+  detail::compute_dogleg_point_impl(g,B,p,norm_p,radius,newton_direction<Matrix,Vector>,tol);
 };
 
 /**
@@ -210,6 +213,38 @@ struct trust_region_solver_dogleg {
   };
 };
 
+/**
+ * This functor class computes the dogleg point which follows the steepest descent and then the 
+ * regularized Newton direction in order to minimizes a quadratic function within a 
+ * trust-region of a given radius.
+ */
+template <typename T>
+struct trust_region_solver_dogleg_reg {
+  regularized_newton_directioner<T> get_reg_direction;
+  
+  /**
+   * Parametrized Constructor.
+   * \param aTau The initial relative damping factor for the damping the Hessian matrix (the actual damping factor is relative to the trace of the Hessian).
+   */
+  trust_region_solver_dogleg_reg(T aTau = T(1e-3)) : get_reg_direction(aTau) { };
+  /**
+   * This function computes the dogleg point which follows the steepest descent and then the 
+   * regularized Newton direction in order to minimizes a quadratic function within a 
+   * trust-region of a given radius.
+   * \tparam Vector A writable vector type.
+   * \tparam Matrix A readable matrix type.
+   * \param g The gradient vector of the function at the center of the trust-region.
+   * \param B The Hessian (or approximate Hessian) of the function at the center of the trust-region.
+   * \param p The resulting cauchy-point.
+   * \param norm_p The resulting norm of the cauchy-point (less-than or equal to the trust-region radius).
+   * \param radius The radius of the trust-region.
+   * \param tol The tolerance at which to consider values to be zero.
+   */
+  template <typename Vector, typename Matrix>
+  void operator()(const Vector& g, const Matrix& B, Vector& p, typename vect_traits<Vector>::value_type& norm_p, typename vect_traits<Vector>::value_type radius, typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) const {
+    detail::compute_dogleg_point_impl(g,B,p,norm_p,radius,boost::bind(&regularized_newton_directioner<T>::template operator()<Matrix,Vector>,&get_reg_direction,_1,_2,_3,_4),tol);
+  };
+};
 
 
 
