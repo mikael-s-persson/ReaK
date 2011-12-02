@@ -28,7 +28,7 @@
 
 #include "conjugate_gradient_methods.hpp"
 #include "nelder_mead_method.hpp"
-#include "bfgs_methods.hpp"
+#include "quasi_newton_methods.hpp"
 #include "trust_region_search.hpp"
 
 #include "path_planning/global_rng.hpp"
@@ -201,7 +201,7 @@ int main() {
   std::cout << "  SR1 trust-region method started at " << x_2D << std::endl;
   ReaK::optim::quasi_newton_trust_region(banana_function,banana_function_grad, x_2D, 0.5, 
 					 ReaK::optim::trust_region_solver_dogleg(),
-					 ReaK::optim::hessian_update_sr1(), 1e-7);
+					 ReaK::optim::hessian_update_sr1(), ReaK::optim::no_limit_functor(), 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
   std::cout << "    function gives: " << banana_function(x_2D) << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
   
@@ -303,7 +303,7 @@ int main() {
   std::cout << "  SR1 trust-region method started at " << x_2D << std::endl;
   ReaK::optim::quasi_newton_trust_region(easy_function,easy_function_grad, x_2D, 0.5, 
 					 ReaK::optim::trust_region_solver_dogleg(),
-					 ReaK::optim::hessian_update_sr1(), 1e-7);
+					 ReaK::optim::hessian_update_sr1(), ReaK::optim::no_limit_functor(), 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
   std::cout << "    function gives: " << easy_function(x_2D) << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
   
