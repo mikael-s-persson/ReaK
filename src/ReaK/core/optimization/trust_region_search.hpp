@@ -178,6 +178,7 @@ namespace detail {
 /**
  * This function computes the Cauchy point which is a steepest descent point that minimizes a 
  * function within a trust-region of a given radius.
+ * TEST PASSED
  * \tparam Vector A writable vector type.
  * \tparam Matrix A readable matrix type.
  * \param g The gradient vector of the function at the center of the trust-region.
@@ -200,6 +201,7 @@ void >::type compute_cauchy_point(const Vector& g, const Matrix& B, Vector& p, t
 /**
  * This functor class computes the Cauchy point which is a steepest descent point that minimizes a 
  * function within a trust-region of a given radius.
+ * TEST PASSED
  */
 struct trust_region_solver_cauchy {
   /**
@@ -225,6 +227,7 @@ struct trust_region_solver_cauchy {
 /**
  * This function computes the dogleg point which follows the steepest descent and then the Newton 
  * direction in order to minimizes a quadratic function within a trust-region of a given radius.
+ * TEST PASSED
  * \tparam Vector A writable vector type.
  * \tparam Matrix A readable matrix type.
  * \param g The gradient vector of the function at the center of the trust-region.
@@ -247,6 +250,7 @@ void >::type compute_dogleg_point(const Vector& g, const Matrix& B, Vector& p, t
 /**
  * This functor class computes the dogleg point which follows the steepest descent and then the Newton 
  * direction in order to minimizes a quadratic function within a trust-region of a given radius.
+ * TEST PASSED
  */
 struct trust_region_solver_dogleg {
   /**
@@ -271,6 +275,7 @@ struct trust_region_solver_dogleg {
  * This functor class computes the dogleg point which follows the steepest descent and then the 
  * regularized Newton direction in order to minimizes a quadratic function within a 
  * trust-region of a given radius.
+ * \test Must create a unit-test for this.
  */
 template <typename T>
 struct trust_region_solver_dogleg_reg {
@@ -305,6 +310,7 @@ struct trust_region_solver_dogleg_reg {
  * This function computes the dogleg point which follows the steepest descent and then the minimum 
  * norm pseudo-inverse direction in order to minimizes a quadratic function within a trust-region 
  * of a given radius.
+ * \test Must create a unit-test for this.
  * \tparam Vector1 A writable vector type.
  * \tparam Matrix A readable matrix type.
  * \tparam Vector2 A writable vector type.
@@ -330,6 +336,7 @@ void >::type compute_right_pinv_dogleg(const Vector1& g, const Matrix& B, Vector
  * This functor class computes the dogleg point which follows the steepest descent and then the minimum 
  * norm pseudo-inverse direction in order to minimizes a quadratic function within a trust-region 
  * of a given radius.
+ * \test Must create a unit-test for this.
  */
 struct tr_solver_right_pinv_dogleg {
   /**
@@ -356,6 +363,7 @@ struct tr_solver_right_pinv_dogleg {
  * This functor class computes the dogleg point which follows the steepest descent and then the 
  * regularized minimum norm pseudo-inverse direction in order to minimizes a quadratic function 
  * within a trust-region of a given radius.
+ * \test Must create a unit-test for this.
  */
 template <typename T>
 struct tr_solver_right_pinv_dogleg_reg {

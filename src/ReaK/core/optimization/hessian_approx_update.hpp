@@ -47,6 +47,7 @@ namespace optim {
 
 /**
  * This function updates an approximate Hessian matrix B using the symmetric rank-one update.
+ * TEST PASSED
  * \tparam Matrix A fully writable matrix type.
  * \tparam Vector A readable vector type.
  * \param B The current approximation of the Hessian matrix.
@@ -87,6 +88,7 @@ struct hessian_update_sr1 {
 
 /**
  * This function updates an approximate inverse Hessian matrix H using the symmetric rank-one update.
+ * TEST PASSED
  * \tparam Matrix A fully writable matrix type.
  * \tparam Vector A readable vector type.
  * \param H The current approximation of the inverse Hessian matrix.
@@ -126,6 +128,7 @@ struct inv_hessian_update_sr1 {
 
 /**
  * This function updates an approximate Hessian matrix B using the Davidon-Fletcher-Powell update.
+ * TEST PASSED
  * \tparam Matrix A fully writable matrix type.
  * \tparam Vector A readable vector type.
  * \param B The current approximation of the Hessian matrix.
@@ -165,6 +168,7 @@ struct hessian_update_dfp {
 
 /**
  * This function updates an approximate inverse Hessian matrix H using the Davidon-Fletcher-Powell update.
+ * TEST PASSED
  * \tparam Matrix A fully writable matrix type.
  * \tparam Vector A readable vector type.
  * \param H The current approximation of the inverse Hessian matrix.
@@ -208,6 +212,7 @@ struct inv_hessian_update_dfp {
 /**
  * This function updates an approximate Hessian matrix B using the 
  * Broyden-Fletcher-Goldfarb-Shanno (BFGS) update.
+ * TEST PASSED
  * \tparam Matrix A fully writable matrix type.
  * \tparam Vector A readable vector type.
  * \param B The current approximation of the Hessian matrix.
@@ -249,6 +254,7 @@ struct hessian_update_bfgs {
 /**
  * This function updates an approximate inverse Hessian matrix H using the 
  * Broyden-Fletcher-Goldfarb-Shanno (BFGS) update.
+ * TEST PASSED
  * \tparam Matrix A fully writable matrix type.
  * \tparam Vector A readable vector type.
  * \param H The current approximation of the inverse Hessian matrix.
@@ -292,6 +298,7 @@ struct inv_hessian_update_bfgs {
 
 /**
  * This function updates an approximate Hessian matrix B using the Broyden-class update.
+ * TEST PASSED
  * \tparam Matrix A fully writable matrix type.
  * \tparam Vector A readable vector type.
  * \param B The current approximation of the Hessian matrix.
@@ -338,6 +345,7 @@ struct hessian_update_broyden {
 
 /**
  * This function updates an approximate inverse Hessian matrix H using the Broyden-class update.
+ * TEST PASSED
  * \tparam Matrix A fully writable matrix type.
  * \tparam Vector A readable vector type.
  * \param H The current approximation of the inverse Hessian matrix.

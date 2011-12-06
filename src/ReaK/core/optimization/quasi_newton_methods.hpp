@@ -60,6 +60,7 @@ namespace optim {
  * direction, an approximation of the Hessian (without restarts), and using a line-search approach 
  * (satisfying the strong Wolfe conditions). Note that this function is the underlying optimization 
  * loop used by most quasi-Newton methods (see bfgs_method, dfp_method, and broyden_class_method).
+ * TEST PASSED
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam Vector The vector type of the independent variable for the function.
@@ -128,6 +129,7 @@ void quasi_newton_line_search(Function f, GradFunction df, Vector& x, LineSearch
  * direction, an approximation of the Hessian (without restarts), and using a trust-region approach. 
  * Note that this function is the underlying optimization loop used by most quasi-Newton 
  * methods (see bfgs_method, dfp_method, and broyden_class_method).
+ * TEST PASSED
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam Vector The vector type of the independent variable for the function.
@@ -212,6 +214,7 @@ void quasi_newton_trust_region(Function f, GradFunction df, Vector& x, typename 
  * This function finds the minimum of a function, given its derivative, using a quasi-newton search 
  * direction, a BFGS approximation of the Hessian (without restarts), and using a line-search approach 
  * (the line-search is a "sloppy" expand-and-zoom approach that looks to satisfy the strong Wolfe conditions).
+ * TEST PASSED
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam Vector The vector type of the independent variable for the function.
@@ -233,6 +236,7 @@ void bfgs_method(Function f, GradFunction df, Vector& x,
  * direction, a BFGS approximation of the Hessian (without restarts), and using a line-search approach 
  * (the line-search is a "sloppy" expand-and-zoom approach that looks to satisfy the strong Wolfe conditions).
  * This overload version allows for simple limits to be imposed on the steps.
+ * TEST PASSED
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam Vector The vector type of the independent variable for the function.
@@ -255,6 +259,7 @@ void limited_bfgs_method(Function f, GradFunction df, Vector& x, LimitFunction i
  * This function finds the minimum of a function, given its derivative, using a quasi-newton search 
  * direction, a DFP approximation of the Hessian (without restarts), and using a line-search approach 
  * (the line-search is a "sloppy" expand-and-zoom approach that looks to satisfy the strong Wolfe conditions).
+ * TEST PASSED
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam Vector The vector type of the independent variable for the function.
@@ -276,6 +281,7 @@ void dfp_method(Function f, GradFunction df, Vector& x,
  * direction, a DFP approximation of the Hessian (without restarts), and using a line-search approach 
  * (the line-search is a "sloppy" expand-and-zoom approach that looks to satisfy the strong Wolfe conditions).
  * This overload version allows for simple limits to be imposed on the steps.
+ * TEST PASSED
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam Vector The vector type of the independent variable for the function.
@@ -298,6 +304,7 @@ void limited_dfp_method(Function f, GradFunction df, Vector& x, LimitFunction im
  * This function finds the minimum of a function, given its derivative, using a quasi-newton search 
  * direction, a Broyden-class approximation of the Hessian (without restarts), and using a line-search approach 
  * (the line-search is a "sloppy" expand-and-zoom approach that looks to satisfy the strong Wolfe conditions).
+ * TEST PASSED
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam Vector The vector type of the independent variable for the function.
@@ -321,6 +328,7 @@ void broyden_class_method(Function f, GradFunction df, Vector& x,
  * direction, a Broyden-class approximation of the Hessian (without restarts), and using a line-search approach 
  * (the line-search is a "sloppy" expand-and-zoom approach that looks to satisfy the strong Wolfe conditions).
  * This overload version allows for simple limits to be imposed on the steps.
+ * TEST PASSED
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam Vector The vector type of the independent variable for the function.
@@ -347,6 +355,7 @@ void limited_broyden_class_method(Function f, GradFunction df, Vector& x, LimitF
  * This function finds the minimum of a function, given its derivative, using a quasi-newton search 
  * direction, a symmetric rank-1 (SR-1) approximation of the Hessian (without restarts), and using a 
  * trust-region approach (with Dogleg solver).
+ * TEST PASSED
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam Vector The vector type of the independent variable for the function.
@@ -372,6 +381,7 @@ void sr1_tr_method(Function f, GradFunction df, Vector& x,
  * direction, a symmetric rank-1 (SR-1) approximation of the Hessian (without restarts), and using a 
  * trust-region approach (with Dogleg solver).
  * This overload version allows for simple limits to be imposed on the steps.
+ * TEST PASSED
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam Vector The vector type of the independent variable for the function.

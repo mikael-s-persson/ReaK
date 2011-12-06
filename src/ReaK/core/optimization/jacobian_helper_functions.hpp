@@ -62,6 +62,7 @@ namespace optim {
  * evaluation of a function. therefore, none of the parameters
  * should be unusually small (in particular, zero) or any
  * other value which may cause loss of significance.
+ * \test Must create a unit-test for this.
  * 
  * \tparam Function The functor type that can represent the evaluation function.
  * \tparam Vector1 The input vector type.
@@ -149,6 +150,7 @@ Vector2 check_jacobian_consistency(Function f, const Vector1& x, const Vector2& 
  * The function returns the rank of JtJ if successful, 0 on error
  *
  * JtJ and C are MxM
+ * \test Must create a unit-test for this.
  * 
  * \tparam Matrix1 The matrix type which represents the approximate Hessian.
  * \tparam Matrix2 The matrix type which represents the resulting covariance matrix.

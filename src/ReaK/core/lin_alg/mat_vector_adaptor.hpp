@@ -171,6 +171,15 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
     size_type get_col_count() const throw() { return colCount; };
     
     /**
+     * Sets the row-count (number of rows) of the matrix (however, it actually does nothing).
+     */
+    void set_row_count(size_type) throw() { };
+    /**
+     * Sets the column-count (number of columns) of the matrix (however, it actually does nothing).
+     */
+    void set_col_count(size_type) throw() { };
+    
+    /**
      * Gets the row-count and column-count of the matrix, as a std::pair of values.
      * \return the row-count and column-count of the matrix, as a std::pair of values.
      * \test PASSED
@@ -395,6 +404,15 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
      * \test PASSED
      */
     size_type get_col_count() const throw() { return colCount; };
+    
+    /**
+     * Sets the row-count (number of rows) of the matrix (however, it actually does nothing).
+     */
+    void set_row_count(size_type) throw() { };
+    /**
+     * Sets the column-count (number of columns) of the matrix (however, it actually does nothing).
+     */
+    void set_col_count(size_type) throw() { };
     
     /**
      * Gets the row-count and column-count of the matrix, as a std::pair of values.

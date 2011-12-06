@@ -78,6 +78,7 @@ namespace detail {
 /**
  * This functor class can be used to compute the Fletcher-Reeves beta-value for the 
  * conjugate gradient methods.
+ * TEST PASSED
  */
 struct fletcher_reeves_beta {
   
@@ -119,6 +120,7 @@ struct fletcher_reeves_beta {
 /**
  * This functor class can be used to compute the Polak-Ribiere beta-value for the 
  * conjugate gradient methods.
+ * TEST PASSED
  */
 struct polak_ribiere_beta {
   
@@ -158,6 +160,7 @@ struct polak_ribiere_beta {
 /**
  * This functor class can be used to compute the Hestenes-Stiefel beta-value for the 
  * conjugate gradient methods.
+ * TEST PASSED
  */
 struct hestenes_stiefel_beta {
   
@@ -198,6 +201,7 @@ struct hestenes_stiefel_beta {
 /**
  * This functor class can be used to compute the Dai-Yuan beta-value for the 
  * conjugate gradient methods.
+ * TEST PASSED
  */
 struct dai_yuan_beta {
   
@@ -240,6 +244,7 @@ struct dai_yuan_beta {
 /**
  * This functor class can be used to compute the Hager-Zhang beta-value for the 
  * conjugate gradient methods.
+ * TEST PASSED
  */
 struct hager_zhang_beta {
   
@@ -285,6 +290,7 @@ struct hager_zhang_beta {
  * number of iterations. This algorithm only works under the assumption that the minimized function 
  * is an exact quadratic, use the non-linear version if it is otherwise. Also, if the positive definite
  * matrix A is ill-conditioned, then it is preferrable to use the pre-conditionned version (see overload).
+ * \test Must create a unit-test for this.
  * \tparam Vector A vector type.
  * \tparam Matrix A matrix type that represents that positive-definite symmetric matrix.
  * \param b The left-hand-side of the "Ax = b" equation.
@@ -331,6 +337,7 @@ void >::type linear_conj_grad_method(const Vector& b, const Matrix& A, Vector& x
  * is most appropriate if the positive definite matrix A is ill-conditioned. This algorithm uses a 
  * matrix M_inv which pre-conditions the residual vector to improve the convergence, M_inv should be
  * chosen such that the condition number of the product "M_inv * A" is low (approaching 1.0).
+ * \test Must create a unit-test for this.
  * \tparam Vector A vector type.
  * \tparam Matrix A matrix type that represents that positive-definite symmetric matrix.
  * \param b The left-hand-side of the "Ax = b" equation.
@@ -380,6 +387,7 @@ void >::type linear_conj_grad_method(const Vector& b, const Matrix& A, const Mat
  * fletcher_reeves_beta, polak_ribiere_beta, or hestenes_stiefel_beta. The functor needed to compute
  * the alpha value is a line-search functor, similar to line_search_backtracking (preferred), 
  * bounded_line_srch_fibonacci, bounded_line_srch_gold_sect, or bounded_line_srch_dichotomous.
+ * TEST PASSED
  * \tparam Function A functor type to represent the cost-function.
  * \tparam GradFunction A functor type to represent the gradient of the cost-function.
  * \tparam Vector The vector type of the independent variable on which the search is performed.

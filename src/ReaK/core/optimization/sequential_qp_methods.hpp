@@ -179,6 +179,7 @@ namespace detail {
  *    g(x) = 0 \n
  * \n
  *  given grad(f)(x), Hess(f)(x), and Jac(g)(x).\n
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -332,6 +333,7 @@ struct byrd_omojokun_sqp_tr_factory {
  * This function template creates a factory object to construct a Constraint Newton-method optimizer 
  * routine that uses a trust-region approach. To set the constraints, manipulate the returned factory
  * object (e.g. set_eq_constraints() etc.). 
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -367,6 +369,7 @@ byrd_omojokun_sqp_tr_factory<Function,GradFunction,HessianFunction,T>
  *    g(x) = 0 \n
  * \n
  *  given grad(f)(x), Hess(f)(x), and Jac(g)(x).\n
+ * \test Must create a unit-test for this.
  * 
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.

@@ -73,6 +73,7 @@ int levenberg_marquardt_nllsq_impl(Function f, JacobianFunction fill_jac,
   mat<ValueType,mat_structure::scalar> mu(x.size(),0.0);
   InputVector Jte = x;
   InputVector Dp = x; Dp -= x;
+  mat_vect_adaptor<InputVector> Dp_mat(Dp);
   InputVector pDp = x;
   impose_limits(x,Dp); // make sure the initial solution is feasible.
   x += Dp;
@@ -98,7 +99,7 @@ int levenberg_marquardt_nllsq_impl(Function f, JacobianFunction fill_jac,
   unsigned int nu = 2;
   for(unsigned int k = 0; k < itmax; ++k) {
     
-    if(p_eL2 < epsy){ 
+    if(p_eL2 < epsy)
       return 1;  //residual is too small.
 
     fill_jac(J,x,y_approx);
@@ -135,7 +136,7 @@ int levenberg_marquardt_nllsq_impl(Function f, JacobianFunction fill_jac,
       /* solve augmented equations */
       try {
         Dp = Jte;
-        linsolve_Cholesky(make_damped_matrix(JtJ,mu),Dp,epsj);
+        linsolve_Cholesky(make_damped_matrix(JtJ,mu),Dp_mat,epsj);
 	
 	impose_limits(x,Dp);
 	ValueType Dp_L2 = Dp * Dp;
@@ -195,7 +196,12 @@ int levenberg_marquardt_nllsq_impl(Function f, JacobianFunction fill_jac,
 /**
  * This function finds the non-linear least-square solution to a vector function.
  * This function uses the Levenberg-Marquardt method (which is a kind of adaptive 
- * damped-least square method, or trust-region Gauss-Newton).
+ * damped-least square method, or trust-region Gauss-Newton). This method performs  
+ * very well for most non-linear systems (i.e. a Vanilla solution) and can cope with 
+ * some level of rank-deficiency (but not recommended for highly rank-deficient 
+ * jacobians), and for very well-conditioned problems, the basic Gauss-Newton method 
+ * is often a better choice (see gauss_newton_nllsq).
+ * TEST PASSED
  * \tparam Function The functor type.
  * \tparam JacobianFunction The functor type to fill the Jacobian matrix.
  * \tparam InputVector The vector type of the independent variable of the function.
@@ -233,6 +239,12 @@ int levenberg_marquardt_nllsq(Function f, JacobianFunction fill_jac,
  * This function finds the non-linear least-square solution to a vector function with
  * limits imposed on the search domain. This function uses the Levenberg-Marquardt method
  * (which is a kind of adaptive damped-least square method, or trust-region Gauss-Newton).
+ * This method performs  
+ * very well for most non-linear systems (i.e. a Vanilla solution) and can cope with 
+ * some level of rank-deficiency (but not recommended for highly rank-deficient 
+ * jacobians), and for very well-conditioned problems, the basic Gauss-Newton method 
+ * is often a better choice (see gauss_newton_nllsq).
+ * TEST PASSED
  * \tparam Function The functor type.
  * \tparam JacobianFunction The functor type to fill the Jacobian matrix.
  * \tparam InputVector The vector type of the independent variable of the function.

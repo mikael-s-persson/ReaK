@@ -49,6 +49,7 @@ namespace optim {
 
 /**
  * This function finds the regularized newton search direction from a given Hessian matrix and gradient vector.
+ * \test Must create a unit-test for this.
  * \tparam Matrix The Hessian type.
  * \tparam Vector The vector type of the independent variable for the function.
  * \tparam ScalarMatrix The vector type of the independent variable for the function.
@@ -82,6 +83,7 @@ void regularized_newton_direction(const Matrix& H, const Vector& x_grad, Vector&
 /**
  * This functor can be used to find the regularized newton search direction from a 
  * given Hessian matrix and gradient vector.
+ * \test Must create a unit-test for this.
  * \tparam T The value-type.
  */
 template <typename T>
@@ -115,6 +117,7 @@ struct regularized_newton_directioner {
 
 /**
  * This function finds the newton search direction from a given Hessian matrix and gradient vector.
+ * \test Must create a unit-test for this.
  * \tparam Matrix The Hessian type.
  * \tparam Vector The vector type of the independent variable for the function.
  * \param H The Hessian symmetric matrix of the function to be optimized.
@@ -129,7 +132,21 @@ void newton_direction(const Matrix& H, const Vector& x_grad, Vector& p, const ty
   linsolve_Cholesky(H,p_mat,tol * trace(H));
 };
 
+/**
+ * This functor can be used to find the newton search direction from a 
+ * given Hessian matrix and gradient vector.
+ * \test Must create a unit-test for this.
+ */
 struct newton_directioner {
+  /**
+   * This function finds the search direction from a given Hessian matrix and gradient vector.
+   * \tparam Matrix The Hessian type.
+   * \tparam Vector The vector type of the independent variable for the function.
+   * \param H The Hessian symmetric matrix of the function to be optimized.
+   * \param x_grad The gradient of the function being optimized.
+   * \param p The resulting search direction.
+   * \param tol The relative tolerance on the singularity-detection.
+   */
   template <typename Matrix, typename Vector>
   void operator()(const Matrix& H, const Vector& x_grad, Vector& p, const typename mat_traits<Matrix>::value_type& tol) const {
     newton_direction(H,x_grad,p,tol);

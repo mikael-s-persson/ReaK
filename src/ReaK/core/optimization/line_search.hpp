@@ -245,6 +245,7 @@ namespace detail {
  * This function performs a 1D optimum Dichotomous search on a unimodal cost function to find the value for 
  * the lowest cost (both value and cost are returned by this function as a pair). The search guarantees
  * an uncertainty interval of length tol and limits the search to within (low_bound .. up_bound).
+ * TEST PASSED
  * \tparam T The value type for the scalar that represents both the independent variable and the cost values.
  * \tparam Function A functor type for a unary function that computes the cost for a given independent variable value.
  * \param f The cost functor.
@@ -262,6 +263,7 @@ T dichotomous_search(Function f, T& low_bound, T& up_bound, T tol) {
  * This functor class wraps a call to a Dichotomous search in order to find the minimum of a 
  * vector function across a line-search (i.e. with a search direction). This functor only 
  * provides bounded searches (with an upper and lower bound provided).
+ * TEST PASSED
  */
 struct bounded_line_srch_dichotomous {
   
@@ -318,6 +320,7 @@ struct bounded_line_srch_dichotomous {
  * the lowest cost (both value and cost are returned by this function as a pair). The search guarantees
  * an uncertainty interval of length tol and limits the search to within (bound1 .. bound2) (the bounds 
  * do not need to be sorted).
+ * TEST PASSED
  * \tparam T The value type for the scalar that represents both the independent variable and the cost values.
  * \tparam Function A functor type for a unary function that computes the cost for a given independent variable value.
  * \param f the cost functor.
@@ -335,6 +338,7 @@ T golden_section_search(Function f, T& bound1, T& bound2, T tol) {
  * This functor class wraps a call to a Golden-Section search in order to find the minimum of a 
  * vector function across a line-search (i.e. with a search direction). This functor only 
  * provides bounded searches (with an upper and lower bound provided).
+ * TEST PASSED
  */
 struct bounded_line_srch_gold_sect {
   
@@ -389,6 +393,7 @@ struct bounded_line_srch_gold_sect {
  * This function performs a 1D optimum Fibonacci search on a unimodal cost function aFunc to find the value for 
  * the lowest cost (both value and cost are returned by this function as a pair). The search guarantees
  * an uncertainty interval of length aToleranceX and limits the search to within (aLowBound .. aUpBound).
+ * TEST PASSED
  * \tparam T The value type for the scalar that represents both the independent variable and the cost values.
  * \tparam Function A functor type for a unary function that computes the cost for a given independent variable value.
  * \param f the cost functor.
@@ -410,6 +415,7 @@ T fibonacci_search(Function f, T& low_bound, T& up_bound, T tol) {
  * This functor class wraps a call to a Fibonacci search in order to find the minimum of a 
  * vector function across a line-search (i.e. with a search direction). This functor only 
  * provides bounded searches (with an upper and lower bound provided).
+ * TEST PASSED
  */
 struct bounded_line_srch_fibonacci {
   
@@ -464,6 +470,7 @@ struct bounded_line_srch_fibonacci {
  * This function performs a 1D optimum Backtracking search on a unimodal cost function f to find the value for 
  * the lowest cost (both value and cost are returned by this function as a pair). The search guarantees
  * that the strong Wolfe conditions are met at the obtained optimal point.
+ * TEST PASSED
  * \tparam T The value type for the scalar that represents both the independent variable and the cost values.
  * \tparam Function A functor type for a unary function that computes the cost for a given independent variable value.
  * \param f the cost functor.
@@ -485,6 +492,7 @@ T backtracking_search(Function f, GradFunction df, T& low_bound, T& up_bound, T 
  * vector function across a line-search (i.e. with a search direction). This functor only 
  * provides bounded searches (with an upper and lower bound provided) and returns the minimum 
  * according to the strong Wolfe conditions.
+ * TEST PASSED
  * \tparam T A scalar type.
  */
 template <typename T>
@@ -529,6 +537,7 @@ struct line_search_backtracking {
  * This function performs a 1D optimum Expand-and-Zoom search on a unimodal cost function f to find the value for 
  * the lowest cost (both value and cost are returned by this function as a pair). The search guarantees
  * that the strong Wolfe conditions are met at the obtained optimal point.
+ * TEST PASSED
  * \tparam T The value type for the scalar that represents both the independent variable and the cost values.
  * \tparam Function A functor type for a unary function that computes the cost for a given independent variable value.
  * \param f the cost functor.
@@ -550,6 +559,7 @@ T expand_and_zoom_search(Function f, GradFunction df, T& low_bound, T& up_bound,
  * vector function across a line-search (i.e. with a search direction). This functor only 
  * provides bounded searches (with an upper and lower bound provided) and returns the minimum 
  * according to the strong Wolfe conditions.
+ * TEST PASSED
  * \tparam T A scalar type.
  */
 template <typename T>

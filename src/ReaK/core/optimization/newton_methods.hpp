@@ -150,6 +150,7 @@ namespace detail {
  * This functor is a factory class to construct a Newton-method optimizer routine that uses a 
  * line-search approach. Use make_newton_method_ls to
  * construct this without having to specify the template arguments explicitly.
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -252,6 +253,7 @@ struct newton_method_ls_factory {
 /**
  * This function template creates a factory object to construct a Newton-method optimizer routine 
  * that uses a line-search approach. 
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -278,6 +280,7 @@ newton_method_ls_factory<Function,GradFunction,HessianFunction,double>
 /**
  * This function finds the minimum of a function, given its derivative and Hessian, using a newton search 
  * direction and using a line-search approach (satisfying the strong Wolfe conditions).
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -304,6 +307,7 @@ void newton_method_ls(Function f, GradFunction df, HessianFunction fill_hessian,
 /**
  * This function finds the minimum of a function, given its derivative and Hessian, using a regularized 
  * newton search direction and using a line-search approach (satisfying the strong Wolfe conditions).
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -333,6 +337,7 @@ void reg_newton_method_ls(Function f, GradFunction df, HessianFunction fill_hess
  * This function finds the minimum of a function, given its derivative and Hessian, using a newton search 
  * direction, a function to impose simple limits on the search domain, and a line-search 
  * approach (satisfying the strong Wolfe conditions).
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -361,6 +366,7 @@ void limited_newton_method_ls(Function f, GradFunction df, HessianFunction fill_
  * This function finds the minimum of a function, given its derivative and Hessian, using a regularized 
  * newton search direction, a function to impose simple limits on the search domain, and a line-search 
  * approach (satisfying the strong Wolfe conditions).
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -394,6 +400,7 @@ void limited_reg_newton_method_ls(Function f, GradFunction df, HessianFunction f
  * This functor is a factory class to construct a Newton-method optimizer routine that uses a 
  * trust-region approach. Use make_newton_method_tr to
  * construct this without having to specify the template arguments explicitly.
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -499,6 +506,7 @@ struct newton_method_tr_factory {
 /**
  * This function template creates a factory object to construct a Newton-method optimizer routine 
  * that uses a trust-region approach. 
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -531,6 +539,7 @@ newton_method_tr_factory<Function,GradFunction,HessianFunction,T>
 /**
  * This function finds the minimum of a function, given its derivative and Hessian, using a newton search 
  * direction and using a trust-region approach (dogleg solver).
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -557,6 +566,7 @@ void newton_method_tr(Function f, GradFunction df, HessianFunction fill_hessian,
 /**
  * This function finds the minimum of a function, given its derivative and Hessian, using a 
  * regularized newton search direction and using a trust-region approach (dogleg solver).
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -587,6 +597,7 @@ void reg_newton_method_tr(Function f, GradFunction df, HessianFunction fill_hess
  * This function finds the minimum of a function, given its derivative and Hessian, using a newton search 
  * direction, a function to impose simple limits on the search domain and using a trust-region 
  * approach (dogleg solver).
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -616,6 +627,7 @@ void limited_newton_method_tr(Function f, GradFunction df, HessianFunction fill_
  * This function finds the minimum of a function, given its derivative and Hessian, using a 
  * regularized newton search direction, a function to impose simple limits on the search domain
  * and using a trust-region approach (dogleg solver).
+ * \test Must create a unit-test for this.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.

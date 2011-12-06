@@ -135,6 +135,7 @@ void nelder_mead_method_impl(Function f, std::multimap<T, Vector>& pts, Vector& 
  * simplex method (not to be confused with the simplex method in linear programming, 
  * see simplex_method.hpp). This overload version takes a simplex that is already provided by the
  * caller through an iterator range.
+ * TEST PASSED but bad convergence (expected).
  * \tparam Function The functor type that can map (Vector -> T).
  * \tparam Vector A writable vector type the represents the independent vector.
  * \tparam T A scalar type.
@@ -168,6 +169,7 @@ void >::type nelder_mead_method(ForwardIter first, ForwardIter last, Function f,
  * simplex method (not to be confused with the simplex method in linear programming, 
  * see simplex_method.hpp). This overload version takes a random-number generator (see Boost.Random)
  * and uses it to generate the initial simplex around the initial guess with a given initial spread (std-dev).
+ * TEST PASSED but bad convergence (expected).
  * \tparam Function The functor type that can map (Vector -> T).
  * \tparam Vector A writable vector type the represents the independent vector.
  * \tparam T A scalar type.

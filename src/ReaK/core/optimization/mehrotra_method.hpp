@@ -63,6 +63,7 @@ namespace optim {
  * \n
  * The implementation was inspired from the algorithm described in the book:\n
  *   Nocedal, Numerical Optimization, 2nd Ed..
+ * \test Must create a unit-test for this.
  * 
  * \tparam Matrix A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
  * \tparam Vector1 A vector type, should model the WritableVectorConcept.
@@ -244,6 +245,7 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
  * \n
  * The implementation was inspired from the algorithm described in the book:\n
  *   Nocedal, Numerical Optimization, 2nd Ed..
+ * \test Must create a unit-test for this.
  * 
  * \tparam Matrix1 A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
  * \tparam Vector1 A vector type, should model the WritableVectorConcept.

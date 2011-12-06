@@ -45,6 +45,7 @@ namespace optim {
 
 /**
  * This limit functor is a no-op limiter which imposes no limits on the candidate step.
+ * TEST PASSED
  */
 struct no_limit_functor {
   /**
@@ -58,6 +59,7 @@ struct no_limit_functor {
 /**
  * This function limits a proposed step size such that the resulting vector is within 
  * the bounds of a hyperbox defined by lower and upper bound vectors.
+ * TEST PASSED
  * \tparam Vector A vector type.
  * \param x The current vector.
  * \param dx The proposed step.

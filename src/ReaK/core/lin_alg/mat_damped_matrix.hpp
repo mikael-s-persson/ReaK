@@ -102,9 +102,9 @@ class mat_damped_matrix {
      */
     value_type operator()(size_type i,size_type j) const { 
       if( i == j )
-	return m_sqr(i,i) + m_diag(i,i);
+	return (*m_sqr)(i,i) + (*m_diag)(i,i);
       else
-	return m_sqr(i,j);
+	return (*m_sqr)(i,j);
     };
 
     /**

@@ -175,6 +175,7 @@ namespace detail {
  * \n
  * The implementation was inspired from the algorithm described in the book:\n
  *   Chvatal, Vasek, Linear Programming, W. H. Freeman and Company, 1983.
+ * \test Must create a unit-test for this.
  * 
  * \tparam Matrix A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
  * \tparam Vector A vector type, should model the WritableVectorConcept.

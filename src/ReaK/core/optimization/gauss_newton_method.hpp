@@ -54,26 +54,32 @@ namespace detail {
 template <typename Function, typename JacobianFunction, 
           typename InputVector, typename OutputVector, 
 	  typename LinearLsqSolver, typename LimitFunction>
-void gauss_newton_nllsq_impl(Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, 
+void gauss_newton_nllsq_impl(Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter,
 			     LinearLsqSolver lin_solve, LimitFunction impose_limits, typename vect_traits<InputVector>::value_type tol = typename vect_traits<InputVector>::value_type(1e-6)) {
   typedef typename vect_traits<InputVector>::value_type ValueType;
   using std::sqrt; using std::fabs;
   
   OutputVector y_approx = f(x);
   OutputVector r = y - y_approx;
+  ValueType abs_x_tol = norm(x) * tol;
+  ValueType abs_y_tol = (norm(y) + norm(y_approx)) * tol;
   mat<ValueType, mat_structure::rectangular> J(y.size(), x.size());
   fill_jac(J,x,y_approx);
   InputVector e = x;
   mat_vect_adaptor<InputVector> e_mat(e);
-  lin_solve(J,e_mat,mat_vect_adaptor<OutputVector>(r),tol);
+  lin_solve(J,e_mat,mat_vect_adaptor<OutputVector>(r),abs_y_tol);
   impose_limits(x,e);
-  while (norm(e) > tol) {
+  abs_x_tol += norm(e) * tol;
+  unsigned int iter = 0;
+  while (norm(e) > abs_x_tol) {
+    if(++iter > max_iter)
+      throw maximum_iteration(max_iter);
     x += e;
     y_approx = f(x);
     r = y; r -= y_approx;
     fill_jac(J,x,y_approx);
     e = r * J;
-    lin_solve(J,e_mat,mat_vect_adaptor<OutputVector>(r),tol);
+    lin_solve(J,e_mat,mat_vect_adaptor<OutputVector>(r),abs_y_tol);
     impose_limits(x,e);
   };
 };
@@ -82,7 +88,9 @@ void gauss_newton_nllsq_impl(Function f, JacobianFunction fill_jac, InputVector&
 
 
 /**
- * This function finds the non-linear least-square solution to a vector function.
+ * This function finds the non-linear least-square solution to a vector function. This method performs very 
+ * well for well-conditioned systems.
+ * TEST PASSED
  * \tparam Function The functor type.
  * \tparam JacobianFunction The functor type to fill the Jacobian matrix.
  * \tparam InputVector The vector type of the independent variable of the function.
@@ -95,14 +103,16 @@ void gauss_newton_nllsq_impl(Function f, JacobianFunction fill_jac, InputVector&
  */
 template <typename Function, typename JacobianFunction, 
           typename InputVector, typename OutputVector>
-void gauss_newton_nllsq(Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, 
+void gauss_newton_nllsq(Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter = 100,
 			     typename vect_traits<InputVector>::value_type tol = typename vect_traits<InputVector>::value_type(1e-6)) {
-  detail::gauss_newton_nllsq_impl(f,fill_jac,x,y,QR_linlsqsolver(),no_limit_functor(),tol);
+  detail::gauss_newton_nllsq_impl(f,fill_jac,x,y,max_iter,QR_linlsqsolver(),no_limit_functor(),tol);
 };
 
 /**
  * This function finds the non-linear least-square solution to a vector function with
- * limits imposed on the search domain.
+ * limits imposed on the search domain. This method performs very 
+ * well for well-conditioned systems.
+ * TEST PASSED
  * \tparam Function The functor type.
  * \tparam JacobianFunction The functor type to fill the Jacobian matrix.
  * \tparam InputVector The vector type of the independent variable of the function.
@@ -118,9 +128,9 @@ void gauss_newton_nllsq(Function f, JacobianFunction fill_jac, InputVector& x, c
 template <typename Function, typename JacobianFunction, 
           typename InputVector, typename OutputVector, 
 	  typename LimitFunction>
-void limited_gauss_newton_nllsq(Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, 
+void limited_gauss_newton_nllsq(Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter, 
 			     LimitFunction impose_limits, typename vect_traits<InputVector>::value_type tol = typename vect_traits<InputVector>::value_type(1e-6)) {
-  detail::gauss_newton_nllsq_impl(f,fill_jac,x,y,QR_linlsqsolver(),impose_limits,tol);
+  detail::gauss_newton_nllsq_impl(f,fill_jac,x,y,max_iter,QR_linlsqsolver(),impose_limits,tol);
 };
 
 

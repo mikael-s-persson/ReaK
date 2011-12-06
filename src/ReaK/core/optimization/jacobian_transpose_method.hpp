@@ -53,7 +53,7 @@ namespace detail {
 template <typename Function, typename GradFunction, 
           typename InputVector, typename OutputVector, 
 	  typename LimitFunction>
-void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y, 
+void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter,
 			           LimitFunction impose_limits, typename vect_traits<InputVector>::value_type tol = typename vect_traits<InputVector>::value_type(1e-6)) {
   typedef typename vect_traits<InputVector>::value_type ValueType;
   using std::sqrt; using std::fabs;
@@ -63,8 +63,12 @@ void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVecto
   mat<ValueType, mat_structure::rectangular> J(y.size(), x.size());
   InputVector e = x; e -= x;
   OutputVector Je = y;
-  ValueType alpha = ValueType(1.0);
+  ValueType abs_x_tol = norm(x) * tol;
+  ValueType abs_sqr_y_tol = (y * y) * tol;
+  unsigned int iter = 0;
   do {
+    if(++iter > max_iter)
+      throw maximum_iteration(max_iter);
     x += e;
     y_approx = f(x);
     r = y; r -= y_approx;
@@ -72,19 +76,22 @@ void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVecto
     e = r * J;
     Je = J * e;
     ValueType alpha = Je * Je;
-    if(alpha < tol)
+    if(alpha < abs_sqr_y_tol)
       return;
     alpha = (r * Je) / alpha;
     e *= alpha;
     impose_limits(x,e);
-  } while(norm(e) > tol);
+  } while(norm(e) > abs_x_tol);
 };
 
 };
 
 
 /**
- * This function finds the non-linear least-square solution to a vector function.
+ * This function finds the non-linear least-square solution to a vector function. This method performs  
+ * OK for systems with very mild non-linearities (essentially linear and full-rank, otherwise, use 
+ * Gauss-Newton, Levenberg-Marquardt or a generic optimization routine).
+ * TEST PASSED
  * \tparam Function The functor type.
  * \tparam JacobianFunction The functor type to fill the Jacobian matrix.
  * \tparam InputVector The vector type of the independent variable of the function.
@@ -97,14 +104,17 @@ void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVecto
  */
 template <typename Function, typename GradFunction, 
           typename InputVector, typename OutputVector>
-void jacobian_transpose_nllsq(Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y, 
+void jacobian_transpose_nllsq(Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter = 100, 
 			      typename vect_traits<InputVector>::value_type tol = typename vect_traits<InputVector>::value_type(1e-6)) {
-  detail::jacobian_transpose_nllsq_impl(f,fill_jac,x,y,no_limit_functor(),tol);
+  detail::jacobian_transpose_nllsq_impl(f,fill_jac,x,y,max_iter,no_limit_functor(),tol);
 };
 
 /**
  * This function finds the non-linear least-square solution to a vector function with
- * limits imposed on the search domain.
+ * limits imposed on the search domain. This method performs  
+ * OK for systems with very mild non-linearities (essentially linear and full-rank, otherwise, use 
+ * Gauss-Newton, Levenberg-Marquardt or a generic optimization routine).
+ * TEST PASSED
  * \tparam Function The functor type.
  * \tparam JacobianFunction The functor type to fill the Jacobian matrix.
  * \tparam InputVector The vector type of the independent variable of the function.
@@ -120,9 +130,9 @@ void jacobian_transpose_nllsq(Function f, GradFunction fill_jac, InputVector& x,
 template <typename Function, typename GradFunction, 
           typename InputVector, typename OutputVector, 
 	  typename LimitFunction>
-void limited_jacobian_transpose_nllsq(Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y, 
+void limited_jacobian_transpose_nllsq(Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter,
 			     LimitFunction impose_limits, typename vect_traits<InputVector>::value_type tol = typename vect_traits<InputVector>::value_type(1e-6)) {
-  detail::jacobian_transpose_nllsq_impl(f,fill_jac,x,y,impose_limits,tol);
+  detail::jacobian_transpose_nllsq_impl(f,fill_jac,x,y,max_iter,impose_limits,tol);
 };
 
 
