@@ -118,6 +118,60 @@ namespace detail {
   };
   
   
+  template <typename Vector1, typename Matrix, typename Vector2, typename T, typename NewtonDirectioner>
+  void compute_right_pinv_dogleg_impl(const Vector1& c, const Matrix& A, Vector2& p, T& norm_p, T radius, NewtonDirectioner get_direction, T tol) {
+    using std::sqrt;
+    
+    Vector2 Atc = c * A;
+    Vector1 AAtc = A * Atc;
+    T  cAAc  =  Atc * Atc;
+    T cAAAAc = AAtc * AAtc;
+    Vector2 pu = (-cAAc / cAAAAc) * Atc;
+    T norm_sqr_pu = (cAAc * cAAc * cAAc) / (cAAAAc * cAAAAc);
+    if(norm_sqr_pu > radius * radius) {
+      p = pu;
+      p *= radius / sqrt(norm_sqr_pu);
+      norm_p = radius;
+      return;
+    };
+    
+    Vector1 cb = c;
+    mat<T,mat_structure::symmetric> AAt = A * transpose(A);
+    try {
+      get_direction(AAt,c,cb,tol);
+    } catch(singularity_error&) {
+      p = pu;
+      norm_p = sqrt(norm_sqr_pu);
+      return;
+    };
+    Vector2 pb = cb * A;
+    norm_p = norm(pb);
+    if(norm_p < radius) {
+      p = pb;
+      return;
+    };
+    
+    Vector2 dp = pb; dp -= pu;
+    T norm_sqr_dp = dp * dp;
+    T cross_term = T(2.0) * ( pu * dp );
+    
+    T temp = sqrt( cross_term * cross_term - T(4.0) * norm_sqr_dp * (norm_sqr_pu - radius * radius) );
+    T alpha1 = (-cross_term + temp) / (T(2.0) * norm_sqr_dp);
+    T alpha2 = (-cross_term - temp) / (T(2.0) * norm_sqr_dp);
+    if((alpha1 > T(0.0)) && (alpha1 <= T(1.0))) {
+      norm_p = radius;
+      p = dp;
+      p *= alpha1;
+      p += pu;
+    } else {
+      norm_p = radius;
+      p = dp;
+      p *= alpha2;
+      p += pu;
+    };
+  };
+  
+  
 };
 
 
@@ -245,6 +299,93 @@ struct trust_region_solver_dogleg_reg {
     detail::compute_dogleg_point_impl(g,B,p,norm_p,radius,boost::bind(&regularized_newton_directioner<T>::template operator()<Matrix,Vector>,&get_reg_direction,_1,_2,_3,_4),tol);
   };
 };
+
+
+/**
+ * This function computes the dogleg point which follows the steepest descent and then the minimum 
+ * norm pseudo-inverse direction in order to minimizes a quadratic function within a trust-region 
+ * of a given radius.
+ * \tparam Vector1 A writable vector type.
+ * \tparam Matrix A readable matrix type.
+ * \tparam Vector2 A writable vector type.
+ * \param g The gradient vector of the function at the center of the trust-region.
+ * \param B The Jacobian matrix of the function at the center of the trust-region.
+ * \param p The resulting point.
+ * \param norm_p The resulting norm of the cauchy-point (less-than or equal to the trust-region radius).
+ * \param radius The radius of the trust-region.
+ * \param tol The tolerance at which to consider values to be zero.
+ */
+template <typename Vector1, typename Matrix, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_writable_vector<Vector1>,
+    is_readable_matrix<Matrix>,
+    is_writable_vector<Vector2>
+  >,
+void >::type compute_right_pinv_dogleg(const Vector1& g, const Matrix& B, Vector2& p, typename vect_traits<Vector2>::value_type& norm_p, typename vect_traits<Vector2>::value_type radius, typename vect_traits<Vector2>::value_type tol = typename vect_traits<Vector2>::value_type(1e-6)) {
+  detail::compute_right_pinv_dogleg_impl(g,B,p,norm_p,radius,newton_direction<mat<typename vect_traits<Vector2>::value_type,mat_structure::symmetric>,Vector1>,tol);
+};
+
+/**
+ * This functor class computes the dogleg point which follows the steepest descent and then the minimum 
+ * norm pseudo-inverse direction in order to minimizes a quadratic function within a trust-region 
+ * of a given radius.
+ */
+struct tr_solver_right_pinv_dogleg {
+  /**
+   * This function computes the dogleg point which follows the steepest descent and then the minimum 
+   * norm pseudo-inverse direction in order to minimizes a quadratic function within a trust-region 
+   * of a given radius.
+   * \tparam Vector1 A writable vector type.
+   * \tparam Matrix A readable matrix type.
+   * \tparam Vector2 A writable vector type.
+   * \param g The gradient vector of the function at the center of the trust-region.
+   * \param B The Jacobian matrix of the function at the center of the trust-region.
+   * \param p The resulting point.
+   * \param norm_p The resulting norm of the cauchy-point (less-than or equal to the trust-region radius).
+   * \param radius The radius of the trust-region.
+   * \param tol The tolerance at which to consider values to be zero.
+   */
+  template <typename Vector1, typename Matrix, typename Vector2>
+  void operator()(const Vector1& g, const Matrix& B, Vector2& p, typename vect_traits<Vector2>::value_type& norm_p, typename vect_traits<Vector2>::value_type radius, typename vect_traits<Vector2>::value_type tol = typename vect_traits<Vector2>::value_type(1e-6)) const {
+    compute_right_pinv_dogleg(g,B,p,norm_p,radius,tol);
+  };
+};
+
+/**
+ * This functor class computes the dogleg point which follows the steepest descent and then the 
+ * regularized minimum norm pseudo-inverse direction in order to minimizes a quadratic function 
+ * within a trust-region of a given radius.
+ */
+template <typename T>
+struct tr_solver_right_pinv_dogleg_reg {
+  regularized_newton_directioner<T> get_reg_direction;
+  
+  /**
+   * Parametrized Constructor.
+   * \param aTau The initial relative damping factor for the damping the Hessian matrix (the actual damping factor is relative to the trace of the Hessian).
+   */
+  tr_solver_right_pinv_dogleg_reg(T aTau = T(1e-3)) : get_reg_direction(aTau) { };
+  /**
+   * This function computes the dogleg point which follows the steepest descent and then the 
+   * regularized minimum norm pseudo-inverse direction in order to minimizes a quadratic function 
+   * within a trust-region of a given radius.
+   * \tparam Vector1 A writable vector type.
+   * \tparam Matrix A readable matrix type.
+   * \tparam Vector2 A writable vector type.
+   * \param g The gradient vector of the function at the center of the trust-region.
+   * \param B The Jacobian matrix of the function at the center of the trust-region.
+   * \param p The resulting point.
+   * \param norm_p The resulting norm of the cauchy-point (less-than or equal to the trust-region radius).
+   * \param radius The radius of the trust-region.
+   * \param tol The tolerance at which to consider values to be zero.
+   */
+  template <typename Vector1, typename Matrix, typename Vector2>
+  void operator()(const Vector1& g, const Matrix& B, Vector2& p, typename vect_traits<Vector2>::value_type& norm_p, typename vect_traits<Vector2>::value_type radius, typename vect_traits<Vector2>::value_type tol = typename vect_traits<Vector2>::value_type(1e-6)) const {
+    detail::compute_right_pinv_dogleg_impl(g,B,p,norm_p,radius,boost::bind(&regularized_newton_directioner<T>::template operator()<mat<typename vect_traits<Vector2>::value_type,mat_structure::symmetric>,Vector1>,&get_reg_direction,_1,_2,_3,_4),tol);
+  };
+};
+
 
 
 

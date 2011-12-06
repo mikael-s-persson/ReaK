@@ -129,6 +129,13 @@ void newton_direction(const Matrix& H, const Vector& x_grad, Vector& p, const ty
   linsolve_Cholesky(H,p_mat,tol * trace(H));
 };
 
+struct newton_directioner {
+  template <typename Matrix, typename Vector>
+  void operator()(const Matrix& H, const Vector& x_grad, Vector& p, const typename mat_traits<Matrix>::value_type& tol) const {
+    newton_direction(H,x_grad,p,tol);
+  };
+};
+
 
 
 

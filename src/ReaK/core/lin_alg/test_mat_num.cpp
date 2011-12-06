@@ -144,6 +144,22 @@ int main() {
   
   RK_NOTICE(2,"There were " << passed << " successful tests passed on the math_gen library, out of 45 possible successes.");
   
+  
+  
+  mat<double,mat_structure::rectangular> m_test(2,3);
+  m_test(0,0) = 1.0; m_test(0,1) = 2.0; m_test(0,2) = 3.0; 
+  m_test(1,0) = 4.0; m_test(1,1) = 5.0; m_test(1,2) = 6.0; 
+  
+  std::cout << m_test << std::endl;
+  mat<double,mat_structure::rectangular> m_test_R(2,3);
+  mat<double,mat_structure::square> m_test_Q(mat<double,mat_structure::identity>(2));
+  detail::decompose_QR_impl< mat<double,mat_structure::rectangular>, mat<double,mat_structure::square> >(m_test,&m_test_Q,1e-6);
+  std::cout << m_test_Q << std::endl;
+  std::cout << m_test << std::endl;
+  std::cout << (m_test_Q * m_test) << std::endl;
+  
+  
+  
   return 0;
 };
 

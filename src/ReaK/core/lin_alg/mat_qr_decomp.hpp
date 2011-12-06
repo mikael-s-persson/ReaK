@@ -188,6 +188,24 @@ void backsub_R_impl(const Matrix1& R, Matrix2& b, typename mat_traits<Matrix1>::
 };  
 
 
+template <typename Matrix1, typename Matrix2>
+void forwardsub_L_impl(const Matrix1& L, Matrix2& B, typename mat_traits<Matrix1>::value_type NumTol) {
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  SizeType N = L.get_row_count();
+  SizeType M = B.get_col_count();
+  for(SizeType j=0;j<M;++j) { //for every column of B
+    //Start solving L * Y = B
+    for(SizeType i=0;i<N;++i) { //for every row of L
+      for(SizeType k=0;k<i;++k) //for every element of row i in L before the diagonal.
+	B(i,j) -= L(i,k) * B(k,j); // subtract to B(i,j) the product of L(i,k) * Y(k,j)
+      if(fabs(L(i,i)) < NumTol)
+        throw singularity_error("L");
+      B(i,j) /= L(i,i); // do Y(i,j) = (B(i,j) - sum_k(L(i,k) * Y(k,j))) / L(i,i)
+    };
+  };
+};
+
+
 
 template <typename Matrix1, typename Matrix2, typename Matrix3>
 void linlsq_QR_impl(const Matrix1& A, Matrix2& x,const Matrix3& b, typename mat_traits<Matrix1>::value_type NumTol)
