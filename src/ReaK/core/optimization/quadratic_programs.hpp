@@ -75,9 +75,9 @@ namespace optim {
  * \author Mikael Persson
  */
 template <typename Matrix1, typename Vector1, typename Matrix2, typename Vector2>
-int null_space_QP_method(const Matrix1& A, const Vector1& b, 
+void null_space_QP_method(const Matrix1& A, const Vector1& b, 
 			 const Matrix2&  G, const Vector2& c, Vector2& x,
-			 typename vect_traits<Vector1>::value_type tol = std::numeric_limits<typename vect_traits<Vector>::value_type>::epsilon()) {
+			 typename vect_traits<Vector1>::value_type tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;
@@ -103,7 +103,7 @@ int null_space_QP_method(const Matrix1& A, const Vector1& b,
   mat_vect_adaptor< Vector2 > p_y(x,M,1,0);
   for(SizeType i = 0; i < M; ++i) 
     p_y(i,0) = -h[i];
-  detail::forwardsub_L_impl(L,p_y,tol * trace(L) / ValueType(M));
+  ReaK::detail::forwardsub_L_impl(L,p_y,tol * trace(L) / ValueType(M));
   
   //solve for p_z:
   mat_vect_adaptor< Vector2 > p_z(x,N - M,1,M);
@@ -147,9 +147,9 @@ int null_space_QP_method(const Matrix1& A, const Vector1& b,
  * \author Mikael Persson
  */
 template <typename Matrix1, typename Vector1, typename Matrix2, typename Vector2>
-int projected_CG_method(const Matrix1& A, const Vector1& b, 
+void projected_CG_method(const Matrix1& A, const Vector1& b, 
 			const Matrix2&  G, const Vector2& c, Vector2& x,
-			typename vect_traits<Vector1>::value_type tol = std::numeric_limits<typename vect_traits<Vector>::value_type>::epsilon()) {
+			typename vect_traits<Vector1>::value_type tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;
@@ -167,13 +167,13 @@ int projected_CG_method(const Matrix1& A, const Vector1& b,
   
   Vector1 b_tmp = b;
   mat_vect_adaptor<Vector1> b_tmp_mat(b_tmp);
-  detail::backsub_Cholesky_impl(L,b_tmp_mat);
+  ReaK::detail::backsub_Cholesky_impl(L,b_tmp_mat);
   x = b_tmp * A;
   
   Vector2 r = G * x + c;
   Vector1 Ar = A * r;
   mat_vect_adaptor<Vector1> Ar_mat(Ar);
-  detail::backsub_Cholesky_impl(L,Ar_mat);
+  ReaK::detail::backsub_Cholesky_impl(L,Ar_mat);
   Vector2 g = r; g -= Ar * A;
   Vector2 d = -g;
   Vector2 Gd = G * d;
@@ -185,7 +185,7 @@ int projected_CG_method(const Matrix1& A, const Vector1& b,
     x += alpha * d;
     r += alpha * Gd;
     Ar = A * r;
-    detail::backsub_Cholesky_impl(L,Ar_mat);
+    ReaK::detail::backsub_Cholesky_impl(L,Ar_mat);
     g = r; g -= Ar * A;
     ValueType rg_p = r * g;
     ValueType beta = rg_p / rg;

@@ -63,7 +63,7 @@ namespace optim {
  * \n
  * The implementation was inspired from the algorithm described in the book:\n
  *   Nocedal, Numerical Optimization, 2nd Ed..
- * \test Must create a unit-test for this.
+ * \test Must create a unit-test for this. So far, this method fails the tests.
  * 
  * \tparam Matrix A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
  * \tparam Vector1 A vector type, should model the WritableVectorConcept.
@@ -78,7 +78,7 @@ namespace optim {
  */
 template <typename Matrix, typename Vector1, typename Vector2>
 void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector2& x,
-		     typename vect_traits<Vector1>::value_type tol = std::numeric_limits<typename vect_traits<Vector>::value_type>::epsilon()) {
+		     typename vect_traits<Vector1>::value_type tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;
@@ -91,18 +91,18 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
   mat<ValueType,mat_structure::rectangular> R(N,M);
   mat<ValueType,mat_structure::square> Q(N);
   decompose_QR(A_tmp,Q,R,tol);
-  mat<ValueType,mat_structure::rectangular> L = transpose(R);
+  mat<ValueType,mat_structure::rectangular> L = mat<ValueType,mat_structure::rectangular>(transpose(R));
   L.set_col_count(M,true);
   
   // first phase, obtain a starting feasible interior-point solution:
   Vector1 b_tmp = b;
   mat_vect_adaptor<Vector1> b_tmp_mat(b_tmp);
-  detail::backsub_Cholesky_impl(L,b_tmp_mat);
+  ReaK::detail::backsub_Cholesky_impl(L,b_tmp_mat);
   x = b_tmp * A;
   
   Vector1 lambda = A * c;
   mat_vect_adaptor<Vector1> lambda_mat(lambda);
-  detail::backsub_Cholesky_impl(L,lambda_mat);
+  ReaK::detail::backsub_Cholesky_impl(L,lambda_mat);
   
   Vector2 s = x - (lambda * A);
   
@@ -152,7 +152,7 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
   //second phase, the predictor-corrector loop:
   do {
     dl = r_b;
-    for(SizeType i = 0; i < dx_aff.size(); ++i) {
+    for(SizeType i = 0; i < dx.size(); ++i) {
       dx[i] = r_c[i] * x_s[i] + x[i];
     };
     dl += A * dx;
@@ -165,8 +165,8 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
     decompose_QR(A_tmp,Q,R,tol);
     L = transpose(R);
     L.set_col_count(M,true);
-    mat_vect_adaptor<Vector1> dl_mat(dl_aff);
-    detail::backsub_Cholesky_impl(L,dl_mat);
+    mat_vect_adaptor<Vector1> dl_mat(dl);
+    ReaK::detail::backsub_Cholesky_impl(L,dl_mat);
     ds = r_c - (dl * A);
     for(SizeType i = 0; i < N; ++i)
       dx[i] = -x[i] - x_s[i] * ds[i];
@@ -194,7 +194,7 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
       ds[i] = r_c[i] * x_s[i];
     };
     dl += A * (ds - dx);
-    detail::backsub_Cholesky_impl(L,dl_mat);
+    ReaK::detail::backsub_Cholesky_impl(L,dl_mat);
     ds = r_c - (dl * A);
     for(SizeType i = 0; i < N; ++i)
       dx[i] -= x_s[i] * ds[i];
@@ -266,7 +266,7 @@ template <typename Matrix1, typename Vector1, typename Matrix2, typename Vector2
 void mehrotra_QP_method(const Matrix1& A, const Vector1& b, 
 		        const Matrix2& G, const Vector2& c, 
 		        const Matrix3& E, const Vector3& d, Vector2& x,
-		        typename vect_traits<Vector1>::value_type tol = std::numeric_limits<typename vect_traits<Vector>::value_type>::epsilon()) {
+		        typename vect_traits<Vector1>::value_type tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;
@@ -309,7 +309,7 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
   if(K > 0) {
     r_e -= E * x;
     dx_y = r_e_mat;
-    detail::forwardsub_L_impl(E_L,dx_y,tol * trace(E_L) / ValueType(K));
+    ReaK::detail::forwardsub_L_impl(E_L,dx_y,tol * trace(E_L) / ValueType(K));
     
     mat<ValueType,mat_structure::rectangular> e_y = E_Y * dx_y;
     r_b_mat -= A * e_y;
@@ -332,7 +332,7 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
   mat<ValueType, mat_structure::square> LHS_L(N-K);
   
   decompose_Cholesky(ZG_AAZ, LHS_L, tol * trace(ZG_AAZ) / ValueType(N-K));
-  detail::backsub_Cholesky_impl(LHS_L, dx_z);
+  ReaK::detail::backsub_Cholesky_impl(LHS_L, dx_z);
   
   Vector1 dl = r_b;
   mat_vect_adaptor< Vector1 > dl_mat(dl);
@@ -369,7 +369,7 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     if(K > 0) {
       r_e -= E * x;
       dx_y = r_e_mat;
-      detail::forwardsub_L_impl(E_L,dx_y,tol * trace(E_L) / ValueType(K));
+      ReaK::detail::forwardsub_L_impl(E_L,dx_y,tol * trace(E_L) / ValueType(K));
     
       mat<ValueType,mat_structure::rectangular> e_y = E_Y * dx_y;
       r_b_mat -= A * e_y;
@@ -387,7 +387,7 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     };
     ZG_AAZ = AZ_t * AZ_temp + ZGZ;
     decompose_Cholesky(ZG_AAZ, LHS_L, tol * trace(ZG_AAZ) / ValueType(N-K));
-    detail::backsub_Cholesky_impl(LHS_L, dx_z);
+    ReaK::detail::backsub_Cholesky_impl(LHS_L, dx_z);
     dl_mat = r_b_mat - AZ_temp * dx_z;
     for(SizeType i = 0; i < M; ++i)
       dy[i] = -y[i] * (dl[i] / l[i] + ValueType(1.0));
@@ -406,7 +406,7 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
       r_b[i] += (sigma * mu - dl[i] * dy[i]) / y[i];
     
     dx_z = E_Z_t * r_c_mat + AZ_t * r_b_mat;
-    detail::backsub_Cholesky_impl(LHS_L, dx_z);
+    ReaK::detail::backsub_Cholesky_impl(LHS_L, dx_z);
     dl_mat = r_b_mat - AZ_temp * dx_z;
     for(SizeType i = 0; i < M; ++i)
       dy[i] = -y[i] * (dl[i] / l[i] + ValueType(1.0));
@@ -425,7 +425,9 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     y += alpha * dy;
     
     eta += ValueType(0.25) * (ValueType(1.0) - eta);
-  } while( alpha * alpha * (dx * dx) > abs_tol );
+    if( alpha * alpha * (dx * dx) < abs_tol )
+      break;
+  } while( true );
   
 };
 

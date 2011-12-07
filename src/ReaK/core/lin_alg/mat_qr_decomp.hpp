@@ -396,6 +396,61 @@ struct QR_linlsqsolver {
 };
 
 
+
+/**
+ * Solves the linear minimum-norm problem (AX = B with min_X(||X||)) via Householder reflections.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \param A rectangular matrix with row-count >= column-count.
+ * \param x stores the solution matrix as output (ColCount x ColCount2).
+ * \param b stores the RHS of the linear system of equation (RowCount x ColCount2).
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix A does not have equal-or-more rows than columns or if b's
+ *                          row count does not match that of A or if x's row count does not match the
+ *                          column count of A.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
+                             is_fully_writable_matrix<Matrix2>::value &&
+                             is_readable_matrix<Matrix3>::value,
+void >::type minnorm_QR(const Matrix1& A, Matrix2& x, const Matrix3& b, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  if(A.get_row_count() > A.get_col_count())
+    throw std::range_error("Linear Minimum-Norm solution is only possible on a matrix with row-count <= column-count!");
+  if(A.get_row_count() != b.get_row_count())
+    throw std::range_error("Linear Minimum-Norm solution is only possible if row count of b is equal to row count of A!");
+  
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  
+  mat<ValueType,mat_structure::rectangular> R(A);
+  mat_transpose_view< mat<ValueType,mat_structure::rectangular> > R_t(R);
+  detail::decompose_QR_impl(R_t,static_cast<mat<ValueType,mat_structure::square>*>(NULL),NumTol);
+  
+  mat<ValueType,mat_structure::rectangular> b_tmp(b);
+  detail::backsub_R_impl(R_t,b_tmp,NumTol);
+  detail::forwardsub_L_impl(R,b_tmp,NumTol);
+  
+  x = transpose_view(A) * b;
+};
+
+
+/**
+ * Functor to wrap a call to a QR decomposition-based linear minimum-norm solver.
+ */
+struct QR_minnormsolver {
+  template <typename Matrix1, typename Matrix2, typename Matrix3>
+  void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+    minnorm_QR(A,X,B,NumTol);
+  };
+};
+
+
 /**
  * Performs back-substitution to solve R x = b, where R is an upper-triangular matrix.
  *

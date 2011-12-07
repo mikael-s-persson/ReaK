@@ -29,8 +29,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_SIMPLEX_METHOD_HPP
-#define REAK_SIMPLEX_METHOD_HPP
+#ifndef REAK_OPTIM_EXCEPTIONS_HPP
+#define REAK_OPTIM_EXCEPTIONS_HPP
 
 #include "base/defs.hpp"
 
@@ -39,6 +39,7 @@
 namespace ReaK {
   
   
+/** This namespace contains optimization methods (linear, quadratic and non-linear, mostly dense-matrix implementations). */
 namespace optim {
 
 

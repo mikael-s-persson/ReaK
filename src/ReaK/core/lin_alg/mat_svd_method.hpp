@@ -633,9 +633,10 @@ typename mat_traits<Matrix>::value_type >::type condition_number_SVD(const Matri
 template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
 typename mat_traits<Matrix>::size_type >::type numrank_SVD(const Matrix& E, typename mat_traits<Matrix>::value_type NumTol = 1E-8) {
+  using std::fabs;
   typename mat_traits<Matrix>::size_type r = 0;
   for (typename mat_traits<Matrix>::size_type i=0;i<E.get_row_count();++i) {
-    if (E(i,i) > E(0,0)*NumTol)
+    if (fabs(E(i,i)) > fabs(E(0,0))*NumTol)
       ++r;
   };
   return r;
@@ -664,6 +665,7 @@ void >::type pseudoinvert_SVD(const Matrix1& U, const Matrix2& E, const Matrix3&
   if((U.get_col_count() != E.get_row_count()) || (E.get_row_count() > V.get_row_count()))
     throw std::range_error("Dimensions of the U E V matrices don't match a singular value decomposition!");
   typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::fabs;
   
   A_pinv.set_row_count(V.get_col_count());
   A_pinv.set_col_count(U.get_row_count());
@@ -671,7 +673,7 @@ void >::type pseudoinvert_SVD(const Matrix1& U, const Matrix2& E, const Matrix3&
     for(SizeType j=0;j<U.get_row_count();++j) {
       A_pinv(i,j) = 0.0;
       for(SizeType k=0;k<E.get_row_count();++k) {
-        if(E(k,k) > NumTol)
+        if(fabs(E(k,k)) > fabs(E(0,0)) * NumTol)
           A_pinv(i,j) += V(i,k) * U(j,k) / E(k,k);
       };
     };
@@ -722,6 +724,7 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
 void >::type pseudoinvert_SVD(const Matrix1& A, Matrix2& A_pinv, typename mat_traits<Matrix1>::value_type NumTol = 1E-15) {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::fabs;
   
   int nu = (A.get_row_count() > A.get_col_count() ? A.get_col_count() : A.get_row_count());
   mat<ValueType,mat_structure::rectangular> U(A.get_row_count(),nu);
@@ -737,7 +740,7 @@ void >::type pseudoinvert_SVD(const Matrix1& A, Matrix2& A_pinv, typename mat_tr
     for(SizeType j=0;j<U.get_row_count();++j) {
       A_pinv(i,j) = 0.0;
       for(SizeType k=0;k<E.get_row_count();++k) {
-        if(E(k,k) > NumTol)
+        if(fabs(E(k,k)) > fabs(E(0,0)) * NumTol)
           A_pinv(i,j) += V(i,k) * U(j,k) / E(k,k);
       };
     };

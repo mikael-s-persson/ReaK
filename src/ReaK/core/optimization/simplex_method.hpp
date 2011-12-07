@@ -53,11 +53,12 @@ namespace optim {
 namespace detail {
   
   
-  template <typename Matrix, typename Vector>
+  template <typename Matrix, typename Vector, typename T>
   void simplex_method_loop_impl(const Matrix& A, Matrix& B, const Vector& c, Vector& c_B, 
                                 Vector& x, const Vector& l, const Vector& u,
 				std::vector< typename vect_traits<Vector>::size_type >& i_b,
-				std::vector< typename vect_traits<Vector>::size_type >& i_n) {
+				std::vector< typename vect_traits<Vector>::size_type >& i_n,
+				T tol) {
     typedef typename vect_traits<Vector>::value_type ValueType;
     typedef typename vect_traits<Vector>::size_type SizeType;
     using std::swap;
@@ -67,18 +68,19 @@ namespace detail {
     
     Matrix B_Q(M,M);
     Matrix B_R(M,M);
-    decompose_QR(B,B_Q,B_R);
+    decompose_QR(B,B_Q,B_R,tol);
   
     while(true) {
       // Step 1
       Vector y = c_B * B_Q;
-      backsub_R(B_R,y);
+      mat_vect_adaptor<Vector> y_mat(y);
+      ReaK::detail::backsub_R_impl(B_R,y_mat,tol);
     
       // Step 2
       ValueType sum;
       SizeType enter_var = N;
       for(SizeType i=0; i < N; ++i) {
-	sum = y * slice(A)(range(0,M-1),i_n[i]);
+	sum = y * slice(A)(range(SizeType(0),M-1),i_n[i]);
         if (((sum < c[i_n[i]]) && (x[i_n[i]] < u[i_n[i]])) 
 	    || ((sum > c[i_n[i]]) && (x[i_n[i]] > l[i_n[i]]))) {
           enter_var = i;
@@ -88,9 +90,9 @@ namespace detail {
       if (enter_var == N)
         return;
       // Step 3
-      y = slice(A)(range(0,M-1),i_n[enter_var]);
+      y = slice(A)(range(SizeType(0),M-1),i_n[enter_var]);
       y = y * B_Q;
-      backsub_R(B_R,y);
+      ReaK::detail::backsub_R_impl(B_R,y_mat,tol);
       // Step 4
       if (sum < c[i_n[enter_var]]) {
         ValueType t_max = std::numeric_limits<ValueType>::infinity();
@@ -118,8 +120,8 @@ namespace detail {
           x[i_n[enter_var]] += t_max;
           for (SizeType i=0; i < M; ++i)
             x[i_b[i]] -= t_max * y[i];
-	  slice(B)(range(0,M-1),leave_var) = slice(A)(range(0,M-1),i_n[enter_var]);
-	  decompose_QR(B,B_Q,B_R);
+	  slice(B)(range(SizeType(0),M-1),leave_var) = slice(A)(range(SizeType(0),M-1),i_n[enter_var]);
+	  decompose_QR(B,B_Q,B_R,tol);
           c_B[leave_var] = c[i_n[enter_var]];
 	  swap(i_b[leave_var],i_n[enter_var]);
         } else
@@ -150,8 +152,8 @@ namespace detail {
           x[i_n[enter_var]] -= t_max;
           for (SizeType i=0; i < M; ++i)
             x[i_b[i]] += t_max * y[i];
-	  slice(B)(range(0,M-1),leave_var) = slice(A)(range(0,M-1),i_n[enter_var]);
-	  decompose_QR(B,B_Q,B_R);
+	  slice(B)(range(SizeType(0),M-1),leave_var) = slice(A)(range(SizeType(0),M-1),i_n[enter_var]);
+	  decompose_QR(B,B_Q,B_R,tol);
           c_B[leave_var] = c[i_n[enter_var]];
 	  swap(i_b[leave_var],i_n[enter_var]);
         } else
@@ -175,7 +177,7 @@ namespace detail {
  * \n
  * The implementation was inspired from the algorithm described in the book:\n
  *   Chvatal, Vasek, Linear Programming, W. H. Freeman and Company, 1983.
- * \test Must create a unit-test for this.
+ * \test Must create a unit-test for this. So far, this method fails the tests.
  * 
  * \tparam Matrix A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
  * \tparam Vector A vector type, should model the WritableVectorConcept.
@@ -191,9 +193,9 @@ namespace detail {
  * \author Mikael Persson
  */
 template <typename Matrix, typename Vector>
-int simplex_method(const Matrix& A, const Vector& b, const Vector& c, 
-                   Vector& x0, const Vector& l, const Vector& u,
-		   typename vect_traits<Vector>::value_type tol = std::numeric_limits<typename vect_traits<Vector>::value_type>::epsilon()) {
+void simplex_method(const Matrix& A, const Vector& b, const Vector& c, 
+                    Vector& x0, const Vector& l, const Vector& u,
+		    typename vect_traits<Vector>::value_type tol = std::numeric_limits<typename vect_traits<Vector>::value_type>::epsilon()) {
   typedef typename vect_traits<Vector>::value_type ValueType;
   typedef typename vect_traits<Vector>::size_type SizeType;
   using std::swap;
@@ -216,12 +218,12 @@ int simplex_method(const Matrix& A, const Vector& b, const Vector& c,
   std::copy(u.begin(), u.end(), u_G.begin());
   
   Matrix A_G(M,N+M);
-  sub(A_G)(range(0,M-1),range(0,N-1)) = A;
-  sub(A_G)(range(0,M-1),range(N,N+M-1)) = mat<ValueType,mat_structure::identity>(M);
+  sub(A_G)(range(SizeType(0),M-1),range(SizeType(0),N-1)) = A;
+  sub(A_G)(range(SizeType(0),M-1),range(N,N+M-1)) = mat<ValueType,mat_structure::identity>(M);
   
-  Matrix B = mat<ValueType,mat_structure::identity>(M);
-  Matrix B_Q = mat<ValueType,mat_structure::identity>(M);
-  Matrix B_R = mat<ValueType,mat_structure::identity>(M);
+  Matrix B = Matrix(mat<ValueType,mat_structure::identity>(M));
+  Matrix B_Q = Matrix(mat<ValueType,mat_structure::identity>(M));
+  Matrix B_R = Matrix(mat<ValueType,mat_structure::identity>(M));
   
   std::vector< SizeType > i_b(M);
   for(SizeType i=0; i < M; ++i)
@@ -242,7 +244,8 @@ int simplex_method(const Matrix& A, const Vector& b, const Vector& c,
     x[N+i] = b_G[i];
     for(SizeType j=0; j < N; ++j)
       x[N+i] -= A(i,j) * x[j];
-    FeasibleStart &&= (fabs(x[N+i]) < tol);
+    if(FeasibleStart)
+      FeasibleStart = (fabs(x[N+i]) < tol);
     if (x[N+i] >= 0.0) {
       l_G[N+i] = 0.0;
       u_G[N+i] = std::numeric_limits<ValueType>::infinity();
@@ -256,7 +259,7 @@ int simplex_method(const Matrix& A, const Vector& b, const Vector& c,
   
   if (!FeasibleStart) {
     // First-Phase
-    detail::simplex_method_loop_impl(A_G,B,c_G,c_B,x,l_G,u_G,i_b,i_n);
+    detail::simplex_method_loop_impl(A_G,B,c_G,c_B,x,l_G,u_G,i_b,i_n,tol);
     
     // Did the first phase succeed?
     for (SizeType i=0; i < M; ++i)
@@ -265,21 +268,22 @@ int simplex_method(const Matrix& A, const Vector& b, const Vector& c,
   };
   
   // Getting Rid of the Artificial Variables
-  decompose_QR(B,B_Q,B_R);
+  decompose_QR(B,B_Q,B_R,tol);
   for(SizeType i=0; i < M; ++i) {
     if(i_b[i] >= N) {
-      Vector y = slice(A_G)(range(0,M-1),i_b[i]);
+      Vector y; y = slice(A_G)(range(SizeType(0),M-1),i_b[i]);
       y = y * B_Q;
-      backsub_R(B_R,y);
+      mat_vect_adaptor<Vector> y_mat(y);
+      ReaK::detail::backsub_R_impl(B_R,y_mat,tol);
       for(SizeType j=0; j < N; ++j) {
-        T sum = y * slice(A_G)(range(0,M-1),i_n[j]);
+        ValueType sum = y * slice(A_G)(range(SizeType(0),M-1),i_n[j]);
         if ((sum != 0.0) && (i_n[j] < N)) {
-	  slice(B)(range(0,M-1),i) = slice(A_G)(range(0,M-1),i_n[j]);
+	  slice(B)(range(SizeType(0),M-1),i) = slice(A_G)(range(SizeType(0),M-1),i_n[j]);
           swap(i_b[i],i_n[j]);
 	  break;
         };
       };
-      decompose_QR(B,B_Q,B_R);
+      decompose_QR(B,B_Q,B_R,tol);
     };
   };
   // Getting Rid of the Redundant equations
@@ -293,11 +297,11 @@ int simplex_method(const Matrix& A, const Vector& b, const Vector& c,
       Matrix tempB(M,M);
       Vector tempb(M);
       
-      tempB = sub(B)(range(0,i_b[i]-N-1),range(0,i-1)) & sub(B)(range(0,i_b[i]-N-1),range(i+1,M)) |
-              sub(B)(range(i_b[i]-N+1,M),range(0,i-1)) & sub(B)(range(i_b[i]-N+1,M),range(i+1,M)) ;
+      tempB = ((sub(B)(range(SizeType(0),i_b[i]-N-1),range(SizeType(0),i-1)) & sub(B)(range(SizeType(0),i_b[i]-N-1),range(i+1,M))) |
+               (sub(B)(range(i_b[i]-N+1,M),range(SizeType(0),i-1)) & sub(B)(range(i_b[i]-N+1,M),range(i+1,M))));
       
-      tempA = sub(A_G)(range(0,i_b[i]-N-1),range(0,N-1)) |
-              sub(A_G)(range(i_b[i]-N+1,M),range(0,N-1));
+      tempA = ((sub(A_G)(range(SizeType(0),i_b[i]-N-1),range(SizeType(0),N-1))) |
+               (sub(A_G)(range(i_b[i]-N+1,M),range(SizeType(0),N-1))));
       
       std::copy(b_G.begin(),b_G.begin() + i_b[i] - N, tempb.begin());
       std::copy(b_G.begin() + i_b[i] - N + 1, b_G.end(), tempb.begin() + i_b[i] - N);
@@ -306,7 +310,7 @@ int simplex_method(const Matrix& A, const Vector& b, const Vector& c,
       swap(tempB,B);
     };
   };
-  decompose_QR(B,B_Q,B_R);
+  decompose_QR(B,B_Q,B_R,tol);
 
   // Prepare the variables for the second phase
   {
@@ -338,7 +342,7 @@ int simplex_method(const Matrix& A, const Vector& b, const Vector& c,
     i_n.swap(tempIN);
   };
   
-  detail::simplex_method_loop_impl(A_G,B,c,c_B,x,l,u,i_b,i_n);
+  detail::simplex_method_loop_impl(A_G,B,c,c_B,x,l,u,i_b,i_n,tol);
   
   x0 = x;
   

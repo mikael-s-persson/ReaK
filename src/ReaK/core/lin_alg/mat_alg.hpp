@@ -57,6 +57,7 @@
 
 #include "mat_vector_adaptor.hpp"
 #include "mat_views.hpp"
+#include "mat_transpose_view.hpp"
 #include "mat_slices.hpp"
 #include "mat_composite_adaptor.hpp"
 

@@ -53,6 +53,7 @@
 
 #include <boost/config.hpp>
 #include <boost/static_assert.hpp>
+#include <boost/mpl/and.hpp>
 
 //#include "rk_math_traits.hpp"
 
@@ -1793,7 +1794,9 @@ class vect_n : public serialization::serializable {
      * Standard add-and-store operator.
      * \test PASSED
      */
-    self& operator +=(const self& V) {
+    template <typename Vector>
+    typename boost::enable_if< is_readable_vector<Vector>,
+    self& >::type operator +=(const Vector& V) {
       if(q.size() != V.q.size())
         throw std::range_error("Vector size mismatch.");
       for(size_type i=0;i<q.size();++i)
@@ -1805,7 +1808,9 @@ class vect_n : public serialization::serializable {
      * Standard sub-and-store operator.
      * \test PASSED
      */
-    self& operator -=(const self& V) {
+    template <typename Vector>
+    typename boost::enable_if< is_readable_vector<Vector>,
+    self& >::type operator -=(const Vector& V) {
       if(q.size() != V.q.size())
         throw std::range_error("Vector size mismatch.");
       for(size_type i=0;i<q.size();++i)
@@ -2003,14 +2008,18 @@ bool colinear(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
  * Add two vectors.
  * \test PASSED
  */
-template <typename T, typename Allocator>
-vect_n<T,Allocator> operator +(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
+template <typename Vector1, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_writable_vector<Vector1>,
+    is_readable_vector<Vector2>
+  >,
+Vector1 >::type operator +(const Vector1& v1, const Vector2& v2) {
   if(v1.size() != v2.size())
     throw std::range_error("Vector size mismatch.");
-  std::vector<T,Allocator> result(v1.size());
-  for(unsigned int i=0;i<v1.size();++i)
-    result[i] = v1[i] + v2[i];
-  return vect_n<T,Allocator>(result);
+  Vector1 result(v1);
+  result += v2;
+  return result;
 };
 
     /**
@@ -2029,26 +2038,37 @@ vect_n<T,Allocator> operator -(const vect_n<T,Allocator>& v) {
      * Sub two vectors.
      * \test PASSED
      */
-template <typename T, typename Allocator>
-vect_n<T,Allocator> operator -(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
+template <typename Vector1, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_writable_vector<Vector1>,
+    is_readable_vector<Vector2>
+  >,
+Vector1 >::type operator -(const Vector1& v1, const Vector2& v2) {
   if(v1.size() != v2.size())
     throw std::range_error("Vector size mismatch.");
-  std::vector<T,Allocator> result(v1.size());
-  for(unsigned int i=0;i<v1.size();++i)
-    result[i] = v1[i] - v2[i];
-  return vect_n<T,Allocator>(result);
+  Vector1 result(v1);
+  result -= v2;
+  return result;
 };
 
     /**
      * Dot Product.
      * \test PASSED
      */
-template <typename T, typename Allocator>
-T operator *(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
+template <typename Vector1, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_readable_vector<Vector1>,
+    is_readable_vector<Vector2>
+  >,
+vect_traits<Vector1> >::type::value_type operator *(const Vector1& v1, const Vector2& v2) {
   if(v1.size() != v2.size())
     throw std::range_error("Vector size mismatch.");
-  T result(0);
-  for(unsigned int i=0;i<v1.size();++i)
+  typedef typename vect_traits<Vector1>::value_type ValueType;
+  typedef typename vect_traits<Vector1>::size_type SizeType;
+  typename vect_traits<Vector1>::value_type result(0);
+  for(SizeType i=0; i < v1.size(); ++i)
     result += v1[i] * v2[i];
   return result;
 };
@@ -2057,36 +2077,48 @@ T operator *(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
      * Scalar-vector product.
      * \test PASSED
      */
-template <typename T, typename Allocator>
-vect_n<T,Allocator> operator *(const vect_n<T,Allocator>& v, const T& S) {
-  std::vector<T,Allocator> result(v.size());
-  for(unsigned int i=0;i<v.size();++i)
-    result[i] = v[i] * S;
-  return vect_n<T,Allocator>(result);
+template <typename T, typename Vector>
+typename boost::enable_if< 
+  boost::mpl::and_<
+    is_writable_vector<Vector>,
+    boost::mpl::not_< is_readable_vector<T> >
+  >,
+Vector >::type operator *(const Vector& v, const T& S) {
+  Vector result(v);
+  result *= S;
+  return result;
 };
 
     /**
      * Scalar-vector product.
      * \test PASSED
      */
-template <typename T, typename Allocator>
-vect_n<T,Allocator> operator *(const T& S, const vect_n<T,Allocator>& v) {
-  std::vector<T,Allocator> result(v.size());
-  for(unsigned int i=0;i<v.size();++i)
-    result[i] = v[i] * S;
-  return vect_n<T,Allocator>(result);
+template <typename T, typename Vector>
+typename boost::enable_if< 
+  boost::mpl::and_<
+    is_writable_vector<Vector>,
+    boost::mpl::not_< is_readable_vector<T> >
+  >,
+Vector >::type operator *(const T& S, const Vector& v) {
+  Vector result(v);
+  result *= S;
+  return result;
 };
 
     /**
      * Scalar-vector division.
      * \test PASSED
      */
-template <typename T, typename Allocator>
-vect_n<T,Allocator> operator /(const vect_n<T,Allocator>& v, const T& S) {
-  std::vector<T,Allocator> result(v.size());
-  for(unsigned int i=0;i<v.size();++i)
-    result[i] = v[i] / S;
-  return vect_n<T,Allocator>(result);
+template <typename T, typename Vector>
+typename boost::enable_if< 
+  boost::mpl::and_<
+    is_writable_vector<Vector>,
+    boost::mpl::not_< is_readable_vector<T> >
+  >,
+Vector >::type operator /(const Vector& v, const T& S) {
+  Vector result(v);
+  result /= S;
+  return result;
 };
 
 

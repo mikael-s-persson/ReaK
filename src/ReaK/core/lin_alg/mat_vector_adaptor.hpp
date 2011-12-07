@@ -120,6 +120,19 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
     /**
      * Standard assignment operator.
      */
+    self& operator=(const self& rhs) {
+      if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != colCount))
+	throw std::range_error("Matrix dimensions mismatch.");
+      size_type it = offset;
+      for(size_type j=0;j<colCount;++j)
+        for(size_type i=0;i<rowCount;++i,++it)
+	  (*v)[it] = rhs(i,j);
+      return *this;
+    };
+    
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
     self& >::type operator=(const Matrix& rhs) {
@@ -350,6 +363,19 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
       swap(lhs.rowCount,rhs.rowCount);
       swap(lhs.colCount,rhs.colCount);
       return;
+    };
+    
+    /**
+     * Standard assignment operator.
+     */
+    self& operator=(const self& rhs) {
+      if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != colCount))
+	throw std::range_error("Matrix dimensions mismatch.");
+      size_type it = offset;
+      for(size_type i=0;i<rowCount;++i)
+        for(size_type j=0;j<colCount;++j,++it)
+	  (*v)[it] = rhs(i,j);
+      return *this;
     };
     
     /**
