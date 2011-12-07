@@ -60,7 +60,7 @@ namespace optim {
  * \n
  * The implementation was inspired from the algorithm described in the book:\n
  *   Nocedal, Numerical Optimization, 2nd Ed..
- * \test Must create a unit-test for this.
+ * TEST PASSED
  * 
  * \tparam Matrix A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
  * \tparam Vector1 A vector type, should model the WritableVectorConcept.
@@ -86,24 +86,27 @@ void null_space_QP_method(const Matrix1& A, const Vector1& b,
   SizeType N = c.size();
   SizeType M = b.size();
   
-  mat<ValueType,mat_structure::rectangular> A_tmp(transpose(A));
+  mat<ValueType,mat_structure::rectangular> A_tmp(transpose_view(A));
   mat<ValueType,mat_structure::rectangular> R(N,M);
   mat<ValueType,mat_structure::square> Q(N);
   decompose_QR(A_tmp,Q,R,tol);
-  mat<ValueType,mat_structure::rectangular> L = transpose(R);
+  mat<ValueType,mat_structure::rectangular> L = mat<ValueType,mat_structure::rectangular>(transpose_view(R));
   L.set_col_count(M,true);
   
   mat_const_sub_block< mat<ValueType,mat_structure::square> > Y(Q, N, M, 0, 0);
   mat_const_sub_block< mat<ValueType,mat_structure::square> > Z(Q, N, N - M, 0, M);
-  
-  Vector1 h = A * x - b;
-  Vector2 g = c + G * x;
+  RK_NOTICE(2," Found the null-space basis to be Z = " << Z);
   
   //forward-sub with L to find p_y
   mat_vect_adaptor< Vector2 > p_y(x,M,1,0);
-  for(SizeType i = 0; i < M; ++i) 
-    p_y(i,0) = -h[i];
-  ReaK::detail::forwardsub_L_impl(L,p_y,tol * trace(L) / ValueType(M));
+  ValueType L_abstrace(0.0);
+  for(SizeType i = 0; i < M; ++i) {
+    p_y(i,0) = b[i];
+    L_abstrace += fabs(L(i,i));
+  };
+  ReaK::detail::forwardsub_L_impl(L,p_y,tol * L_abstrace / ValueType(M));
+  
+  RK_NOTICE(2," Found the particular solution to Ax = b as x = " << (Y * p_y) << " Ax = " << A * (Y * p_y));
   
   //solve for p_z:
   mat_vect_adaptor< Vector2 > p_z(x,N - M,1,M);
@@ -111,10 +114,14 @@ void null_space_QP_method(const Matrix1& A, const Vector1& b,
   for(SizeType i = 0; i < N-M; ++i) {
     p_z(i,0) = ValueType(0.0);
     for(SizeType j = 0; j < N; ++j)
-      p_z(i,0) -= Z(j,i) * (g[j] + GY_py(j,0));
+      p_z(i,0) -= Z(j,i) * (c[j] + GY_py(j,0));
   };
-  mat<ValueType, mat_structure::symmetric> ZGZ = transpose(Z) * G * Z;
-  linsolve_Cholesky(ZGZ, p_z, trace(ZGZ) * tol / ValueType(N-M));
+  mat<ValueType, mat_structure::symmetric> ZGZ = mat<ValueType, mat_structure::symmetric>(transpose_view(Z) * G * Z);
+
+  ValueType ZGZ_abstrace(0.0);
+  for(SizeType i = 0; i < N-M; ++i)
+    ZGZ_abstrace += fabs(ZGZ(i,i));
+  linsolve_Cholesky(ZGZ, p_z, ZGZ_abstrace * tol / ValueType(N-M));
   
   x = Q * x;
   
@@ -132,7 +139,7 @@ void null_space_QP_method(const Matrix1& A, const Vector1& b,
  * \n
  * The implementation was inspired from the algorithm described in the book:\n
  *   Nocedal, Numerical Optimization, 2nd Ed..
- * \test Must create a unit-test for this.
+ * TEST PASSED
  * 
  * \tparam Matrix A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
  * \tparam Vector1 A vector type, should model the WritableVectorConcept.
@@ -158,39 +165,49 @@ void projected_CG_method(const Matrix1& A, const Vector1& b,
   SizeType N = c.size();
   SizeType M = b.size();
   
-  mat<ValueType,mat_structure::rectangular> A_tmp(transpose(A));
+  mat<ValueType,mat_structure::rectangular> A_tmp(transpose_view(A));
   mat<ValueType,mat_structure::rectangular> R(N,M);
   mat<ValueType,mat_structure::square> Q(N);
   decompose_QR(A_tmp,Q,R,tol);
-  mat<ValueType,mat_structure::rectangular> L = transpose(R);
+  mat<ValueType,mat_structure::rectangular> L = mat<ValueType,mat_structure::rectangular>(transpose_view(R));
   L.set_col_count(M,true);
   
   Vector1 b_tmp = b;
   mat_vect_adaptor<Vector1> b_tmp_mat(b_tmp);
   ReaK::detail::backsub_Cholesky_impl(L,b_tmp_mat);
   x = b_tmp * A;
+  RK_NOTICE(2,"  PCG starting with x = " << x << " giving Ax = " << (A * x));
   
   Vector2 r = G * x + c;
+  RK_NOTICE(2,"  PCG starting with x = " << r);
   Vector1 Ar = A * r;
   mat_vect_adaptor<Vector1> Ar_mat(Ar);
   ReaK::detail::backsub_Cholesky_impl(L,Ar_mat);
   Vector2 g = r; g -= Ar * A;
+  RK_NOTICE(2,"  PCG starting with g = " << g);
   Vector2 d = -g;
   Vector2 Gd = G * d;
   ValueType rg = r * g;
-  ValueType abs_tol = fabs(rg) * tol;
+  ValueType abs_tol = trace(G) * tol;
   
-  while(fabs(rg) < abs_tol) {
+  unsigned int k = 0;
+  while(fabs(rg) > abs_tol) {
     ValueType alpha = rg / (d * Gd);
     x += alpha * d;
+    RK_NOTICE(2,"  PCG new x = " << x << " giving Ax = " << (A * x));
     r += alpha * Gd;
+    RK_NOTICE(2,"  PCG new r = " << r << " giving Gx + c = " << (G * x + c));
     Ar = A * r;
     ReaK::detail::backsub_Cholesky_impl(L,Ar_mat);
     g = r; g -= Ar * A;
+    RK_NOTICE(2,"  PCG new g = " << g);
     ValueType rg_p = r * g;
     ValueType beta = rg_p / rg;
     rg = rg_p;
     d *= beta; d -= g;
+    Gd = G * d;
+    if(++k > 10)
+      break;
   };
   
 };

@@ -245,7 +245,7 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
  * \n
  * The implementation was inspired from the algorithm described in the book:\n
  *   Nocedal, Numerical Optimization, 2nd Ed..
- * \test Must create a unit-test for this.
+ * \test Must create a unit-test for this. TEST PASSED for equality constraints only.
  * 
  * \tparam Matrix1 A general matrix type, should model the WritableMatrixConcept (and be fully-writable).
  * \tparam Vector1 A vector type, should model the WritableVectorConcept.
@@ -285,12 +285,14 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
   mat<ValueType,mat_structure::rectangular> E_R(N,K);
   mat<ValueType,mat_structure::square> E_Q(N);
   decompose_QR(E_tmp,E_Q,E_R,tol);
-  mat<ValueType,mat_structure::rectangular> E_L = transpose(E_R);
+  mat<ValueType,mat_structure::rectangular> E_L = mat<ValueType,mat_structure::rectangular>(transpose(E_R));
   E_L.set_col_count(K,true);
+  ValueType E_L_trace(0.0);
+  for(SizeType i = 0; i < K; ++i)
+    E_L_trace += fabs(E_L(i,i));
   
   mat_const_sub_block< mat<ValueType,mat_structure::square> > E_Y(E_Q, N, K, 0, 0);
   mat_const_sub_block< mat<ValueType,mat_structure::square> > E_Z(E_Q, N, N - K, 0, K);
-  mat<ValueType,mat_structure::rectangular> E_Z_t = transpose(E_Z);
   Vector2 dx = x;
   mat_vect_adaptor< Vector2 > dx_y(dx,K,1,0);
   mat_vect_adaptor< Vector2 > dx_z(dx,N-K,1,K);
@@ -309,7 +311,7 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
   if(K > 0) {
     r_e -= E * x;
     dx_y = r_e_mat;
-    ReaK::detail::forwardsub_L_impl(E_L,dx_y,tol * trace(E_L) / ValueType(K));
+    ReaK::detail::forwardsub_L_impl(E_L,dx_y,tol * E_L_trace / ValueType(K));
     
     mat<ValueType,mat_structure::rectangular> e_y = E_Y * dx_y;
     r_b_mat -= A * e_y;
@@ -324,11 +326,10 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     for(SizeType j = 0; j < N; ++j)
       dx_z(i,0) += E_Z(j,i) * r_c[j];
   };
-  mat<ValueType, mat_structure::symmetric> ZGZ = E_Z_t * G * E_Z;
+  mat<ValueType, mat_structure::symmetric> ZGZ(transpose_view(E_Z) * G * E_Z);
   
-  mat<ValueType, mat_structure::rectangular> AZ = A * E_Z;
-  mat<ValueType, mat_structure::rectangular> AZ_t = transpose(AZ);
-  mat<ValueType, mat_structure::symmetric> ZG_AAZ = AZ_t * AZ + ZGZ;
+  mat<ValueType, mat_structure::rectangular> AZ(A * E_Z);
+  mat<ValueType, mat_structure::symmetric> ZG_AAZ(transpose_view(AZ) * AZ + ZGZ);
   mat<ValueType, mat_structure::square> LHS_L(N-K);
   
   decompose_Cholesky(ZG_AAZ, LHS_L, tol * trace(ZG_AAZ) / ValueType(N-K));
@@ -369,7 +370,7 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     if(K > 0) {
       r_e -= E * x;
       dx_y = r_e_mat;
-      ReaK::detail::forwardsub_L_impl(E_L,dx_y,tol * trace(E_L) / ValueType(K));
+      ReaK::detail::forwardsub_L_impl(E_L,dx_y,tol * E_L_trace / ValueType(K));
     
       mat<ValueType,mat_structure::rectangular> e_y = E_Y * dx_y;
       r_b_mat -= A * e_y;
@@ -378,14 +379,14 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     for(SizeType i = 0; i < M; ++i)
       r_b[i] *= l[i] / y[i];
     
-    dx_z = E_Z_t * r_c_mat + AZ_t * r_b_mat;
+    dx_z = transpose_view(E_Z) * r_c_mat + transpose_view(AZ) * r_b_mat;
     
     mat<ValueType, mat_structure::rectangular> AZ_temp = AZ;
     for(SizeType i = 0; i < M; ++i) {
       for(SizeType j = 0; j < N-K; ++j)
 	AZ_temp(i,j) *= l[i] / y[i];
     };
-    ZG_AAZ = AZ_t * AZ_temp + ZGZ;
+    ZG_AAZ = transpose_view(AZ) * AZ_temp + ZGZ;
     decompose_Cholesky(ZG_AAZ, LHS_L, tol * trace(ZG_AAZ) / ValueType(N-K));
     ReaK::detail::backsub_Cholesky_impl(LHS_L, dx_z);
     dl_mat = r_b_mat - AZ_temp * dx_z;
@@ -405,7 +406,7 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     for(SizeType i = 0; i < M; ++i)
       r_b[i] += (sigma * mu - dl[i] * dy[i]) / y[i];
     
-    dx_z = E_Z_t * r_c_mat + AZ_t * r_b_mat;
+    dx_z = transpose_view(E_Z) * r_c_mat + transpose_view(AZ) * r_b_mat;
     ReaK::detail::backsub_Cholesky_impl(LHS_L, dx_z);
     dl_mat = r_b_mat - AZ_temp * dx_z;
     for(SizeType i = 0; i < M; ++i)
