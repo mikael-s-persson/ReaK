@@ -41,13 +41,13 @@ void vmc_revolute_joint_2D::doForce(kte_pass_flag aFlag, const shared_pointer<fr
     ReaK::vect<double,2> tmp_f = ReaK::rot_mat_2D<double>(mAngle->q) * mEnd->Force;
     mBase->Force += tmp_f;
     if(fabs(mAngle->q_dot) > mSlipVelocity) 
-      mAngle->f += mEnd->Torque - mAngle->q_dot / fabs(mAngle->q_dot) * mSlipCoef * norm(tmp_f);
+      mAngle->f += mEnd->Torque - mAngle->q_dot / fabs(mAngle->q_dot) * mSlipCoef * norm_2(tmp_f);
     else {
       if(mEnd->Torque >= 0.0) {
-        double tmp2 = mStictionCoef * norm(tmp_f);
+        double tmp2 = mStictionCoef * norm_2(tmp_f);
         mAngle->f += mEnd->Torque + (tmp2 > mEnd->Torque ? mEnd->Torque : tmp2);
       } else {
-        double tmp2 = mStictionCoef * norm(tmp_f);
+        double tmp2 = mStictionCoef * norm_2(tmp_f);
         mAngle->f += mEnd->Torque - (tmp2 > -mEnd->Torque ? -mEnd->Torque : tmp2);
       };
     };
@@ -80,14 +80,14 @@ void vmc_revolute_joint_3D::doForce(kte_pass_flag aFlag, const shared_pointer<fr
     mBase->Force += tmp_f;
     double tmp_t = mEnd->Torque * mAxis;
     if(fabs(mAngle->q_dot) > mSlipVelocity) 
-      mAngle->f += tmp_t - mAngle->q_dot / fabs(mAngle->q_dot) * mSlipCoef * norm(tmp_f);
+      mAngle->f += tmp_t - mAngle->q_dot / fabs(mAngle->q_dot) * mSlipCoef * norm_2(tmp_f);
     else {
       //mAngle->f += tmp_t;
       if(tmp_t >= 0.0) {
-        double tmp2 = mStictionCoef * norm(tmp_f);
+        double tmp2 = mStictionCoef * norm_2(tmp_f);
         mAngle->f += tmp_t + tmp2; //(tmp2 > tmp_t ? tmp_t : tmp2);
       } else {
-        double tmp2 = mStictionCoef * norm(tmp_f);
+        double tmp2 = mStictionCoef * norm_2(tmp_f);
         mAngle->f += tmp_t - tmp2; //(tmp2 > -tmp_t ? -tmp_t : tmp2);
       };
     };

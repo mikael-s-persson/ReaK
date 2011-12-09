@@ -63,7 +63,7 @@ void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVecto
   mat<ValueType, mat_structure::rectangular> J(y.size(), x.size());
   InputVector e = x; e -= x;
   OutputVector Je = y;
-  ValueType abs_x_tol = norm(x) * tol;
+  ValueType abs_x_tol = norm_2(x) * tol;
   ValueType abs_sqr_y_tol = (y * y) * tol;
   unsigned int iter = 0;
   do {
@@ -81,7 +81,7 @@ void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVecto
     alpha = (r * Je) / alpha;
     e *= alpha;
     impose_limits(x,e);
-  } while(norm(e) > abs_x_tol);
+  } while(norm_2(e) > abs_x_tol);
 };
 
 };

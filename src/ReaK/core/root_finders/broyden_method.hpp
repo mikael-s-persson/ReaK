@@ -90,7 +90,7 @@ void broyden_good_method(const Vector& x_prev, Vector& x0, RootedFunction f, con
     dx = -J_inv * y0;
     x0 += dx;
     
-    if(norm(dx) < tol)
+    if(norm_2(dx) < tol)
       return;
   
     if( ++iter > max_iter ) 
@@ -156,7 +156,7 @@ void broyden_fast_method(const Vector& x_prev, Vector& x0, RootedFunction f, con
     dx = -J_inv * y0;
     x0 += dx;
     
-    if(norm(dx) < tol)
+    if(norm_2(dx) < tol)
       return;
   
     if( ++iter > max_iter ) 

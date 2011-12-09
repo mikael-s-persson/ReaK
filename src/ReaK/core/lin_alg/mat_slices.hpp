@@ -38,6 +38,8 @@
 
 #include "mat_alg_general.hpp"
 
+#include "vect_alg.hpp"
+
 namespace ReaK {
 
 /**
@@ -190,6 +192,22 @@ class mat_row_slice {
     const_reference operator [](size_type i) const {
       return (*m)(offset + i,colIndex);
     };
+    
+    /**
+     * Sub-vector operator, accessor for read/write.
+     * \test PASSED
+     */
+    vect_ref_view<self> operator[](const std::pair<size_type,size_type>& r) {
+      return sub(*this)[r];
+    };
+
+    /**
+     * Sub-vector operator, accessor for read only.
+     * \test PASSED
+     */
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+      return sub(*this)[r];
+    };
 
     /**
      * Array indexing operator, accessor for read/write.
@@ -212,59 +230,6 @@ class mat_row_slice {
      */
     allocator_type get_allocator() const { return m->get_allocator(); };
     
-    
-/*******************************************************************************
-                         Assignment Operators
-*******************************************************************************/
-
-
-    /**
-     * Standard add-and-store operator.
-     * \test PASSED
-     */
-    template <typename Vector>
-    typename boost::enable_if_c< is_readable_vector<Vector>::value,
-    self& >::type operator +=(const Vector& V) {
-      if(count != V.size())
-        throw std::range_error("Vector size mismatch.");
-      for(size_type i=0;i<count;++i)
-	(*m)(offset + i,colIndex) += V[i];
-      return *this;
-    };
-
-    /**
-     * Standard sub-and-store operator.
-     * \test PASSED
-     */
-    template <typename Vector>
-    typename boost::enable_if_c< is_readable_vector<Vector>::value,
-    self& >::type operator -=(const Vector& V) {
-      if(count != V.size())
-        throw std::range_error("Vector size mismatch.");
-      for(size_type i=0;i<count;++i)
-	(*m)(offset + i,colIndex) -= V[i];
-      return *this;
-    };
-
-    /**
-     * Scalar multiply-and-store operator for gain.
-     * \test PASSED
-     */
-    self& operator *=(const_reference S) {
-      for(size_type i=0;i<count;++i)
-	(*m)(offset + i,colIndex) *= S;
-      return *this;
-    };
-
-    /**
-     * Scalar divide-and-store operator for gain.
-     * \test PASSED
-     */
-    self& operator /=(const_reference S) {
-      for(size_type i=0;i<count;++i)
-	(*m)(offset + i,colIndex) /= S;
-      return *this;
-    };
   
 };
 
@@ -297,6 +262,10 @@ struct has_allocator_vector< mat_row_slice<Matrix> > {
 };
 
 
+template <typename Matrix>
+struct vect_copy< mat_row_slice<Matrix> > {
+  typedef vect_n< typename vect_traits< mat_row_slice<Matrix> >::value_type > type;
+};
 
 
 
@@ -431,6 +400,14 @@ class mat_const_row_slice {
     };
 
     /**
+     * Sub-vector operator, accessor for read only.
+     * \test PASSED
+     */
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+      return sub(*this)[r];
+    };
+
+    /**
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
@@ -475,6 +452,10 @@ struct has_allocator_vector< mat_const_row_slice<Matrix> > {
 };
 
 
+template <typename Matrix>
+struct vect_copy< mat_const_row_slice<Matrix> > {
+  typedef vect_n< typename vect_traits< mat_const_row_slice<Matrix> >::value_type > type;
+};
 
 
 
@@ -646,6 +627,22 @@ class mat_col_slice {
     const_reference operator [](size_type i) const {
       return (*m)(rowIndex,offset + i);
     };
+    
+    /**
+     * Sub-vector operator, accessor for read/write.
+     * \test PASSED
+     */
+    vect_ref_view<self> operator[](const std::pair<size_type,size_type>& r) {
+      return sub(*this)[r];
+    };
+
+    /**
+     * Sub-vector operator, accessor for read only.
+     * \test PASSED
+     */
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+      return sub(*this)[r];
+    };
 
     /**
      * Array indexing operator, accessor for read/write.
@@ -668,59 +665,7 @@ class mat_col_slice {
      */
     allocator_type get_allocator() const { return m->get_allocator(); };
     
-    
-/*******************************************************************************
-                         Assignment Operators
-*******************************************************************************/
 
-
-    /**
-     * Standard add-and-store operator.
-     * \test PASSED
-     */
-    template <typename Vector>
-    typename boost::enable_if_c< is_readable_vector<Vector>::value,
-    self& >::type operator +=(const Vector& V) {
-      if(count != V.size())
-        throw std::range_error("Vector size mismatch.");
-      for(size_type i=0;i<count;++i)
-	(*m)(rowIndex,offset + i) += V[i];
-      return *this;
-    };
-
-    /**
-     * Standard sub-and-store operator.
-     * \test PASSED
-     */
-    template <typename Vector>
-    typename boost::enable_if_c< is_readable_vector<Vector>::value,
-    self& >::type operator -=(const Vector& V) {
-      if(count != V.size())
-        throw std::range_error("Vector size mismatch.");
-      for(size_type i=0;i<count;++i)
-	(*m)(rowIndex,offset + i) -= V[i];
-      return *this;
-    };
-
-    /**
-     * Scalar multiply-and-store operator for gain.
-     * \test PASSED
-     */
-    self& operator *=(const_reference S) {
-      for(size_type i=0;i<count;++i)
-	(*m)(rowIndex,offset + i) *= S;
-      return *this;
-    };
-
-    /**
-     * Scalar divide-and-store operator for gain.
-     * \test PASSED
-     */
-    self& operator /=(const_reference S) {
-      for(size_type i=0;i<count;++i)
-	(*m)(rowIndex,offset + i) /= S;
-      return *this;
-    };
   
 };
 
@@ -750,6 +695,12 @@ template <typename Matrix>
 struct has_allocator_vector< mat_col_slice<Matrix> > {
   BOOST_STATIC_CONSTANT( bool, value = has_allocator_matrix<Matrix>::value );
   typedef has_allocator_vector< mat_col_slice<Matrix> > type;
+};
+
+
+template <typename Matrix>
+struct vect_copy< mat_col_slice<Matrix> > {
+  typedef vect_n< typename vect_traits< mat_col_slice<Matrix> >::value_type > type;
 };
 
 
@@ -892,6 +843,14 @@ class mat_const_col_slice {
     };
 
     /**
+     * Sub-vector operator, accessor for read only.
+     * \test PASSED
+     */
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+      return sub(*this)[r];
+    };
+
+    /**
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
@@ -935,6 +894,11 @@ struct has_allocator_vector< mat_const_col_slice<Matrix> > {
 };
 
 
+
+template <typename Matrix>
+struct vect_copy< mat_const_col_slice<Matrix> > {
+  typedef vect_n< typename vect_traits< mat_const_col_slice<Matrix> >::value_type > type;
+};
 
 
 

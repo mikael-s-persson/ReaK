@@ -483,11 +483,11 @@ int main() {
 	return 1;
       };
       vect<double,3> v1(1.0,1.0,2.0);
-      if( norm( (r_45z * v1) - vect<double,3>(0.0,std::sqrt(2.0),2.0) ) > 1.15*std::numeric_limits<double>::epsilon() ) {
+      if( norm_2( (r_45z * v1) - vect<double,3>(0.0,std::sqrt(2.0),2.0) ) > 1.15*std::numeric_limits<double>::epsilon() ) {
 	RK_ERROR("r_45z * v(1,1,2) is not correct!");
 	return 1;
       };
-      if( norm( (v1 * r_45z) - vect<double,3>(std::sqrt(2.0),0.0,2.0) ) > 1.15*std::numeric_limits<double>::epsilon() ) {
+      if( norm_2( (v1 * r_45z) - vect<double,3>(std::sqrt(2.0),0.0,2.0) ) > 1.15*std::numeric_limits<double>::epsilon() ) {
 	RK_ERROR("v(1,1,2) * r_45z is not correct!");
 	return 1;
       };
@@ -600,7 +600,7 @@ int main() {
         RK_ERROR("q_ident is equal to q_45z!");
         return 1;
       };
-      if( norm( (q_45z * v1) - vect<double,3>(0.0,std::sqrt(2.0),2.0) ) > 1.5 * std::numeric_limits<double>::epsilon() ) {
+      if( norm_2( (q_45z * v1) - vect<double,3>(0.0,std::sqrt(2.0),2.0) ) > 1.5 * std::numeric_limits<double>::epsilon() ) {
 	RK_ERROR("q_45z * v(1,1,2) is not correct!");
 	return 1;
       };
@@ -730,25 +730,25 @@ int main() {
       };
       axis_angle<double> a_45z_cpy(a_45z);
       if( ( fabs( a_45z_cpy.angle() - 0.25 * M_PI ) > std::numeric_limits<double>::epsilon() ) ||
-          ( norm( a_45z_cpy.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
+          ( norm_2( a_45z_cpy.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
 	RK_ERROR("a_45z copy does not have the correct angle-axis!");
 	return 1;
       };
       axis_angle<double> a_45z_r(r_45z);
       if( ( fabs( a_45z_r.angle() - 0.25 * M_PI ) > std::numeric_limits<double>::epsilon() ) ||
-          ( norm( a_45z_r.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
+          ( norm_2( a_45z_r.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
 	RK_ERROR("a_45z created from r_45z does not have the correct angle-axis!");
 	return 1;
       };
       axis_angle<double> a_45z_q(q_45z);
       if( ( fabs( a_45z_q.angle() - 0.25 * M_PI ) > std::numeric_limits<double>::epsilon() ) ||
-          ( norm( a_45z_q.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
+          ( norm_2( a_45z_q.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
 	RK_ERROR("a_45z created from q_45z does not have the correct angle-axis!");
 	return 1;
       };
       axis_angle<double> a_45z_e(e_45z);
       if( ( fabs( a_45z_e.angle() - 0.25 * M_PI ) > std::numeric_limits<double>::epsilon() ) ||
-          ( norm( a_45z_e.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
+          ( norm_2( a_45z_e.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
 	RK_ERROR("a_45z created from e_45z does not have the correct angle-axis!");
 	return 1;
       };
@@ -762,25 +762,25 @@ int main() {
       };
       a_45z_cpy = a_45z;
       if( ( fabs( a_45z_cpy.angle() - 0.25 * M_PI ) > std::numeric_limits<double>::epsilon() ) ||
-          ( norm( a_45z_cpy.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
+          ( norm_2( a_45z_cpy.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
 	RK_ERROR("a_45z copy-assigned does not have the correct angle-axis!");
 	return 1;
       };
       a_45z_cpy = r_45z;
       if( ( fabs( a_45z_cpy.angle() - 0.25 * M_PI ) > std::numeric_limits<double>::epsilon() ) ||
-          ( norm( a_45z_cpy.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
+          ( norm_2( a_45z_cpy.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
 	RK_ERROR("a_45z copy-assigned from r_45z does not have the correct angle-axis!");
 	return 1;
       };
       a_45z_cpy = q_45z;
       if( ( fabs( a_45z_cpy.angle() - 0.25 * M_PI ) > std::numeric_limits<double>::epsilon() ) ||
-          ( norm( a_45z_cpy.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
+          ( norm_2( a_45z_cpy.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
 	RK_ERROR("a_45z copy-assigned from q_45z does not have the correct angle-axis!");
 	return 1;
       };
       a_45z_cpy = e_45z;
       if( ( fabs( a_45z_cpy.angle() - 0.25 * M_PI ) > std::numeric_limits<double>::epsilon() ) ||
-          ( norm( a_45z_cpy.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
+          ( norm_2( a_45z_cpy.axis() - vect<double,3>(0.0,0.0,1.0) ) > std::numeric_limits<double>::epsilon() ) ){
 	RK_ERROR("a_45z copy-assigned from e_45z does not have the correct angle-axis!");
 	return 1;
       };
@@ -1140,17 +1140,17 @@ int main() {
       axis_angle<double> a_weird_e(e_weird);
       axis_angle<double> a_weird_r(r_weird);
       if( ( fabs(a_weird_q.angle() - a_weird.angle()) > std::numeric_limits<double>::epsilon() ) ||
-	  ( norm(a_weird_q.axis() - a_weird.axis()) > std::numeric_limits<double>::epsilon() ) ) {
+	  ( norm_2(a_weird_q.axis() - a_weird.axis()) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Weird rotation does not translate correctly from axis-angle to quaternion and back!");
         return 1;
       };
       if( ( fabs(a_weird_e.angle() - a_weird.angle()) > 20.0*std::numeric_limits<double>::epsilon() ) ||
-	  ( norm(a_weird_e.axis() - a_weird.axis()) > 20.0*std::numeric_limits<double>::epsilon() ) ) {
+	  ( norm_2(a_weird_e.axis() - a_weird.axis()) > 20.0*std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Weird rotation does not translate correctly from axis-angle to Euler-angles and back!");
         return 1;
       };
       if( ( fabs(a_weird_r.angle() - a_weird.angle()) > 20.0*std::numeric_limits<double>::epsilon() ) ||
-	  ( norm(a_weird_r.axis() - a_weird.axis()) > 20.0*std::numeric_limits<double>::epsilon() ) ) {
+	  ( norm_2(a_weird_r.axis() - a_weird.axis()) > 20.0*std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Weird rotation does not translate correctly from axis-angle to rotation3D and back!");
         return 1;
       };
@@ -1163,12 +1163,12 @@ int main() {
       vect<double,4> v_e(q_res[0],q_res[1],q_res[2],q_res[3]);
       q_res = quaternion<double>(a_45z * r_weird * e_45z);
       vect<double,4> v_r(q_res[0],q_res[1],q_res[2],q_res[3]);
-      if( ( norm( v_a - v_q ) > std::numeric_limits<double>::epsilon() ) ||
-          ( norm( v_a - v_e ) > 1.25 * std::numeric_limits<double>::epsilon() ) ||
-          ( norm( v_a - v_r ) > std::numeric_limits<double>::epsilon() ) ||
-          ( norm( v_q - v_e ) > std::numeric_limits<double>::epsilon() ) ||
-          ( norm( v_q - v_r ) > std::numeric_limits<double>::epsilon() ) ||
-          ( norm( v_e - v_r ) > 1.25 * std::numeric_limits<double>::epsilon() ) ) {
+      if( ( norm_2( v_a - v_q ) > std::numeric_limits<double>::epsilon() ) ||
+          ( norm_2( v_a - v_e ) > 1.25 * std::numeric_limits<double>::epsilon() ) ||
+          ( norm_2( v_a - v_r ) > std::numeric_limits<double>::epsilon() ) ||
+          ( norm_2( v_q - v_e ) > std::numeric_limits<double>::epsilon() ) ||
+          ( norm_2( v_q - v_r ) > std::numeric_limits<double>::epsilon() ) ||
+          ( norm_2( v_e - v_r ) > 1.25 * std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Inter-operability tests between axis-angle, euler-angles, quaternions and rotation3D have failed!");
         return 1;
       };

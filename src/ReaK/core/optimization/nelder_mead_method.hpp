@@ -70,7 +70,7 @@ T nelder_mead_compute_std_dev(const std::multimap<T, Vector>& pts, const Vector&
   
   ValueType result = ValueType(0.0);
   for(IterType it = pts.begin(); it != pts.end(); ++it)
-    result += norm_sqr(it->second - c);
+    result += norm_2_sqr(it->second - c);
   return sqrt(result / ValueType(pts.size()));
 };
 

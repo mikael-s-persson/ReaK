@@ -100,7 +100,7 @@ void quasi_newton_line_search(Function f, GradFunction df, Vector& x, LineSearch
   y -= x_grad;
   mat<ValueType,mat_structure::square> H(mat<ValueType,mat_structure::scalar>(x.size(),(y * s) / (y * y)));
   
-  while( norm(x_grad) > abs_tol ) {
+  while( norm_2(x_grad) > abs_tol ) {
     update_inv_hessian(H,s,y);
     p = H * x_grad;
     // check Wolfe for alpha 1.0
@@ -175,7 +175,7 @@ void quasi_newton_trust_region(Function f, GradFunction df, Vector& x, typename 
   Vector y_Bp = y; y_Bp -= B * p;
   
   while( true ) {
-    if( fabs(p * y_Bp) >= r_tol * norm_p * norm(y_Bp) )
+    if( fabs(p * y_Bp) >= r_tol * norm_p * norm_2(y_Bp) )
       update_hessian(B,p,y);
     
     ValueType ratio = aredux / predux;
@@ -193,7 +193,7 @@ void quasi_newton_trust_region(Function f, GradFunction df, Vector& x, typename 
       x_value = xt_value;
       x_grad = xt_grad;
     };
-    if(norm(x_grad) < abs_tol)
+    if(norm_2(x_grad) < abs_tol)
       return;
     solve_step(x_grad,B,p,norm_p,radius,tol);
     impose_limits(x,p);

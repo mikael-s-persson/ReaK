@@ -61,17 +61,17 @@ void gauss_newton_nllsq_impl(Function f, JacobianFunction fill_jac, InputVector&
   
   OutputVector y_approx = f(x);
   OutputVector r = y - y_approx;
-  ValueType abs_x_tol = norm(x) * tol;
-  ValueType abs_y_tol = (norm(y) + norm(y_approx)) * tol;
+  ValueType abs_x_tol = norm_2(x) * tol;
+  ValueType abs_y_tol = (norm_2(y) + norm_2(y_approx)) * tol;
   mat<ValueType, mat_structure::rectangular> J(y.size(), x.size());
   fill_jac(J,x,y_approx);
   InputVector e = x;
   mat_vect_adaptor<InputVector> e_mat(e);
   lin_solve(J,e_mat,mat_vect_adaptor<OutputVector>(r),abs_y_tol);
   impose_limits(x,e);
-  abs_x_tol += norm(e) * tol;
+  abs_x_tol += norm_2(e) * tol;
   unsigned int iter = 0;
-  while (norm(e) > abs_x_tol) {
+  while (norm_2(e) > abs_x_tol) {
     if(++iter > max_iter)
       throw maximum_iteration(max_iter);
     x += e;

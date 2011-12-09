@@ -55,7 +55,7 @@ namespace detail {
   
   template <typename Vector, typename Matrix, typename T>
   void compute_cauchy_point_impl(const Vector& g, const Matrix& B, Vector& p, T& norm_p, T radius, T tol) {
-    T norm_g = norm(g);
+    T norm_g = norm_2(g);
     p = (-radius / norm_g) * g;
     norm_p = radius;
     T gBg = g * (B * g);
@@ -91,7 +91,7 @@ namespace detail {
       norm_p = sqrt(norm_sqr_pu);
       return;
     };
-    norm_p = norm(pb);
+    norm_p = norm_2(pb);
     if(norm_p < radius) {
       p = pb;
       return;
@@ -145,7 +145,7 @@ namespace detail {
       return;
     };
     Vector2 pb = cb * A;
-    norm_p = norm(pb);
+    norm_p = norm_2(pb);
     if(norm_p < radius) {
       p = pb;
       return;

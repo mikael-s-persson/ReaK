@@ -120,7 +120,7 @@ void spring_2D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>
   using std::fabs;
 
   vect<double,2> diff = mAnchor1->Position - mAnchor2->Position;
-  double diff_mag = norm(diff);
+  double diff_mag = norm_2(diff);
   if(diff_mag > 1E-7) {
     double force_mag = (diff_mag - mRestLength) * mStiffness;
 
@@ -182,7 +182,7 @@ void spring_3D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>
   using std::fabs;
 
   vect<double,3> diff = mAnchor1->Position - mAnchor2->Position;
-  double diff_mag = norm(diff);
+  double diff_mag = norm_2(diff);
   if(diff_mag > 1E-7) {
 
     double force_mag = (diff_mag - mRestLength) * mStiffness;

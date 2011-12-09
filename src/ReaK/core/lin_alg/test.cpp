@@ -116,56 +116,56 @@ try {
       ++passed;
     else
       RK_ERROR("operator*(double,vect<double,3>) test did not pass!");
-    if(std::fabs(norm_sqr(gravity_acc) - 9.81*9.81) < 100.0*std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2_sqr(gravity_acc) - 9.81*9.81) < 100.0*std::numeric_limits<double>::epsilon())
       ++passed;
     else
-      RK_ERROR("norm_sqr(vect<double,3>) test did not pass!");
-    if(std::fabs(norm(gravity_acc) - 9.81) < 10.0*std::numeric_limits<double>::epsilon())
+      RK_ERROR("norm_2_sqr(vect<double,3>) test did not pass!");
+    if(std::fabs(norm_2(gravity_acc) - 9.81) < 10.0*std::numeric_limits<double>::epsilon())
       ++passed;
     else
-      RK_ERROR("norm(vect<double,3>) test did not pass!");
+      RK_ERROR("norm_2(vect<double,3>) test did not pass!");
     vect<double,3> gravity_dir(unit(gravity_acc));
-    if(std::fabs(norm(gravity_dir) - 1.0) < std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(gravity_dir) - 1.0) < std::numeric_limits<double>::epsilon())
       ++passed;
     else
       RK_ERROR("unit(vect<double,3>) test did not pass!");
-    if(std::fabs(norm(vect<double,1>(1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(vect<double,1>(1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
       ++passed;
     else
       RK_ERROR("vect<double,1>(d) test did not pass!");
-    if(std::fabs(norm(vect<double,2>(0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(vect<double,2>(0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
       ++passed;
     else
       RK_ERROR("vect<double,2>(d,d) test did not pass!");
-    if(std::fabs(norm(vect<double,3>(0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(vect<double,3>(0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
       ++passed;
     else
       RK_ERROR("vect<double,3>(d,d,d) test did not pass!");
-    if(std::fabs(norm(vect<double,4>(0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(vect<double,4>(0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
       ++passed;
     else
       RK_ERROR("vect<double,4>(d,d,d,d) test did not pass!");
-    if(std::fabs(norm(vect<double,5>(0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(vect<double,5>(0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
       ++passed;
     else
       RK_ERROR("vect<double,5>(d,d,d,d,d) test did not pass!");
-    if(std::fabs(norm(vect<double,6>(0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(vect<double,6>(0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
       ++passed;
     else
       RK_ERROR("vect<double,6>(d,d,d,d,d,d) test did not pass!");
-    if(std::fabs(norm(vect<double,7>(0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(vect<double,7>(0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
       ++passed;
     else
       RK_ERROR("vect<double,7>(d,d,d,d,d,d,d) test did not pass!");
-    if(std::fabs(norm(vect<double,8>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(vect<double,8>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
       ++passed;
     else
       RK_ERROR("vect<double,8>(d,d,d,d,d,d,d,d) test did not pass!");
-    if(std::fabs(norm(vect<double,9>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(vect<double,9>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
       ++passed;
     else
       RK_ERROR("vect<double,9>(d,d,d,d,d,d,d,d,d) test did not pass!");
-    if(std::fabs(norm(vect<double,10>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(vect<double,10>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0)) - 1.0) < std::numeric_limits<double>::epsilon())
       ++passed;
     else
       RK_ERROR("vect<double,10>(d,d,d,d,d,d,d,d,d,d) test did not pass!");
@@ -181,7 +181,7 @@ try {
     else
       RK_ERROR("operator%(double,vect<double,3>) test did not pass!");
     
-    double dist_sqr = norm_sqr(displacement);               //RK_NOTICE(2,"Passed: " << passed << " should have 34.");
+    double dist_sqr = norm_2_sqr(displacement);               //RK_NOTICE(2,"Passed: " << passed << " should have 34.");
     vect<double,3> displacement_inv(-displacement); 
     if(std::fabs(displacement_inv * displacement + dist_sqr) < std::numeric_limits<double>::epsilon())
                                                  ++passed;
@@ -193,16 +193,16 @@ try {
     if(displacement == displacement)             ++passed;
 
     long_displacement += displacement;                     //RK_NOTICE(2,"Passed: " << passed << " should have 41.");
-    if(std::fabs(norm(long_displacement) - 11.0*norm(displacement)) < 200.0*std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(long_displacement) - 11.0*norm_2(displacement)) < 200.0*std::numeric_limits<double>::epsilon())
                                                  ++passed;
     long_displacement *= 2.0;
-    if(std::fabs(norm(long_displacement) - 22.0*norm(displacement)) < 400.0*std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(long_displacement) - 22.0*norm_2(displacement)) < 400.0*std::numeric_limits<double>::epsilon())
                                                  ++passed;
     long_displacement /= 2.0;
-    if(std::fabs(norm(long_displacement) - 11.0*norm(displacement)) < 200.0*std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(long_displacement) - 11.0*norm_2(displacement)) < 200.0*std::numeric_limits<double>::epsilon())
                                                  ++passed;
     long_displacement -= displacement;
-    if(std::fabs(norm(long_displacement) - 10.0*norm(displacement)) < 200.0*std::numeric_limits<double>::epsilon())
+    if(std::fabs(norm_2(long_displacement) - 10.0*norm_2(displacement)) < 200.0*std::numeric_limits<double>::epsilon())
                                                  ++passed;
                                                            //RK_NOTICE(2,"Passed: " << passed << " should have 45.");
   };
@@ -226,8 +226,8 @@ try {
     double gravity_potential = gravity_force * displacement;
     RK_NOTICE(2,"Gravity Potential is: " << gravity_potential);
 
-    double dist_sqr = norm_sqr(displacement);
-    double distance = norm(displacement);
+    double dist_sqr = norm_2_sqr(displacement);
+    double distance = norm_2(displacement);
     vect_n<double> displacement_inv(-displacement);
     vect_n<double> long_displacement(10.0, 20.0, 30.0);
     bool is_colinear = colinear(displacement,long_displacement);

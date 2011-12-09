@@ -91,7 +91,7 @@ void damper_2D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>
 
 
   vect<double,2> diff = mAnchor1->Position - mAnchor2->Position;
-  double force_sqrmag = norm_sqr(diff);
+  double force_sqrmag = norm_2_sqr(diff);
   if(force_sqrmag > 1E-7) {
     diff *= ((mAnchor1->Velocity - mAnchor2->Velocity) * diff) * mDamping / force_sqrmag;
 
@@ -138,7 +138,7 @@ void damper_3D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>
     return;
 
   vect<double,3> diff = mAnchor1->Position - mAnchor2->Position;
-  double force_sqrmag = norm_sqr(diff);
+  double force_sqrmag = norm_2_sqr(diff);
   if(force_sqrmag > 1E-7) {
     diff *= ((mAnchor1->Velocity - mAnchor2->Velocity) * diff) * mDamping / force_sqrmag;
 

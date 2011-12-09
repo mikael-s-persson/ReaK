@@ -53,9 +53,9 @@ void inertial_beam_2D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_s
   vect<double,2> diff = mAnchor1->Position - mAnchor2->Position;
 
   mAnchor1->Force -= 0.5 * mMass * mAnchor1->Acceleration * mAnchor1->Rotation;
-  mAnchor1->Torque += 0.5 * mMass * mAnchor1->AngAcceleration * norm_sqr(diff);
+  mAnchor1->Torque += 0.5 * mMass * mAnchor1->AngAcceleration * norm_2_sqr(diff);
   mAnchor2->Force -= 0.5 * mMass * mAnchor2->Acceleration * mAnchor2->Rotation;
-  mAnchor2->Torque += 0.5 * mMass * mAnchor2->AngAcceleration * norm_sqr(diff);
+  mAnchor2->Torque += 0.5 * mMass * mAnchor2->AngAcceleration * norm_2_sqr(diff);
 
 };
 

@@ -71,7 +71,16 @@ struct vect_traits {
     
 };
 
-
+/**
+ * This meta-function provides the vector type needed as a destination type for a 
+ * copy (deep-copy) of a given vector type.
+ * \tparam Vector A vector type.
+ */
+template <typename Vector>
+struct vect_copy {
+  /** The type of a copy of the given vector type. */
+  typedef Vector type;
+};
 
 
 

@@ -138,9 +138,76 @@ idem for vectors  --------------------------------------------------------------
 idem for rotation  --------------------------------------------------------------X
 idem for kinetostatics  ---------------------------------------------------------X
 
-port optimization library to generic functions
-
 make tensor library with compliance to generic concepts of matrix and vectors
+
+
+///----------------OPTIMIZATION--------------
+
+Linear Programming
+  primal-dual simplex method   --------------------------------------------------X
+    test with simple LP problems   -----------------------------------------FAILED
+  mehrotra's interior-point method   --------------------------------------------X
+    test with simple LP problems   -----------------------------------------FAILED
+Quadratic Programming
+  Equality-constrained
+    null-space direct method   --------------------------------------------------X
+      test with simple ECQP problems   ------------------------------------------X
+    projected conjugate gradient method   ---------------------------------------X
+      test with simple ECQP problems   ------------------------------------------X
+    mehrotra's QP method   ------------------------------------------------------X
+      test with simple ECQP problems   ------------------------------------------X
+  Inequality-constrained
+    mehrotra's QP method   ------------------------------------------------------X
+      test with simple ICQP problems   
+Non-Linear Least-square   
+  Unconstrained (aside from limiters)
+    Gauss-Newton method   -------------------------------------------------------X
+      test with various non-linear functions   ----------------------------------X (reasonable)
+    Jacobian-transpose method   -------------------------------------------------X
+      test with various non-linear functions   ----------------------------------X (shit)
+    Levenberg-Marquardt method (DLS with trust-region)   ------------------------X
+      test with various non-linear functions   ----------------------------------X (best)
+Non-Linear Optimization problems
+  Unconstrained (aside from limiters)
+    Nelder-Mead method   --------------------------------------------------------X
+      test with various non-linear functions   --------------------------------BAD (expected)
+    Quasi-Newton line-search methods   ------------------------------------------X
+      test with various non-linear functions   ----------------------------------X (best: bfgs)
+    Quasi-Newton trust-region methods   -----------------------------------------X
+      test with various non-linear functions   ----------------------------------X (best: sr1)
+    Conjugate-Gradient method   -------------------------------------------------X
+      test with various non-linear functions   ----------------------------------X (so so..)
+    Newton line-search methods   ------------------------------------------------X
+      test with various non-linear functions (idea: use nllsq)   
+    Newton trust-region methods   -----------------------------------------------X
+      test with various non-linear functions (idea: use nllsq)   
+  Equality-constrained
+    Bound-constrained Newton methods (Augmented Lagrangian methods)   -----------X
+      test with various non-linear functions   
+    Bound-constrained Quasi-Newton methods (Augmented Lagrangian methods)   
+      test with various non-linear functions   
+    Byrd-Omojokun SQP method   --------------------------------------------------X
+      test with various non-linear functions   
+    Line-search Interior-point method
+      Newton direction   
+      Quasi-Newton direction   
+    Trust-region Interior-point method
+      Newton direction   
+      Quasi-Newton direction   
+  Inequality-constrained
+    Bound-constrained Newton methods (Augmented Lagrangian methods)   -----------X
+      test with various non-linear functions   
+    Bound-constrained Quasi-Newton methods (Augmented Lagrangian methods)   
+      test with various non-linear functions   
+    Byrd-Omojokun SQP method (with non-negative limiters)   ---------------------X
+      test with various non-linear functions   
+    Line-search Interior-point method
+      Newton direction   
+      Quasi-Newton direction   
+    Trust-region Interior-point method
+      Newton direction   
+      Quasi-Newton direction   
+    
 
 
 ///----------------INTEGRATORS---------------

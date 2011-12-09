@@ -306,11 +306,11 @@ int main() {
     try {
       optim::gauss_newton_nllsq(funcs[i],func_jacs[i],x,y,200,1e-8);
       std::cout << "  Gauss-Newton method gives:\n"
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Gauss-Newton method failed with error: " << e.what() << std::endl
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     };
     
@@ -320,11 +320,11 @@ int main() {
     try {
       optim::jacobian_transpose_nllsq(funcs[i],func_jacs[i],x,y,500,1e-8);
       std::cout << "  Jacobian-Transpose method gives:\n"
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Jacobian-Transpose method failed with error: " << e.what() << std::endl
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     };
     
@@ -334,11 +334,11 @@ int main() {
     try {
       optim::levenberg_marquardt_nllsq(funcs[i],func_jacs[i],x,y,200,1e-4,1e-14,1e-8,1e-14);
       std::cout << "  Levenberg-Marquardt method gives:\n"
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Levenberg-Marquardt method failed with error: " << e.what() << std::endl
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     };
     
@@ -353,11 +353,11 @@ int main() {
       optim::make_gauss_newton_nllsq(funcs[i],func_jacs[i],y,200,1e-8)
         .set_lin_solver(SVD_linlsqsolver())(x);
       std::cout << "  Gauss-Newton method with SVD solver gives:\n"
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Gauss-Newton method failed with error: " << e.what() << std::endl
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     };
     
@@ -368,11 +368,11 @@ int main() {
       optim::make_levenberg_marquardt_nllsq(funcs[i],func_jacs[i],y,200,1e-4,1e-14,1e-8,1e-14)
         .set_lin_solver(SVD_linlsqsolver())(x);
       std::cout << "  Levenberg-Marquardt method with SVD solver gives:\n"
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Levenberg-Marquardt method failed with error: " << e.what() << std::endl
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     };
     
@@ -385,11 +385,11 @@ int main() {
     try {
       optim::limited_gauss_newton_nllsq(funcs[i],func_jacs[i],x,y,200,boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,func_lowers[i],func_uppers[i]),1e-8);
       std::cout << "  Box-limited Gauss-Newton method gives:\n"
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Box-limited Gauss-Newton method failed with error: " << e.what() << std::endl
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     };
     
@@ -399,11 +399,11 @@ int main() {
     try {
       optim::limited_jacobian_transpose_nllsq(funcs[i],func_jacs[i],x,y,500,boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,func_lowers[i],func_uppers[i]),1e-8);
       std::cout << "  Box-limited Jacobian-Transpose method gives:\n"
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Box-limited Jacobian-Transpose method failed with error: " << e.what() << std::endl
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     };
     
@@ -413,11 +413,11 @@ int main() {
     try {
       optim::limited_levenberg_marquardt_nllsq(funcs[i],func_jacs[i],x,y,boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,func_lowers[i],func_uppers[i]),200,1e-4,1e-14,1e-8,1e-14);
       std::cout << "  Box-limited Levenberg-Marquardt method gives:\n"
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Box-limited Levenberg-Marquardt method failed with error: " << e.what() << std::endl
-                << "    x = " << x << " with error = " << norm(x - func_sols[i]) << "\n"
+                << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     };
     

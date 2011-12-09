@@ -91,9 +91,9 @@ namespace detail {
     Vector l_g(M, ValueType(1.0)); //choose initial lambda vector to be 1.0.
     Vector l_h(K, ValueType(1.0));
   
-    ValueType c_norm_star = (norm(g_value) + norm(h_value)) / ValueType(K + M);
+    ValueType c_norm_star = (norm_2(g_value) + norm_2(h_value)) / ValueType(K + M);
     ValueType eta_star = tol * c_norm_star;
-    ValueType norm_star = norm(x) / ValueType(N) + ValueType(1.0);
+    ValueType norm_star = norm_2(x) / ValueType(N) + ValueType(1.0);
     ValueType omega_star = tol * norm_star;
   
     ValueType omega = norm_star / mu;
@@ -131,7 +131,7 @@ namespace detail {
 	  if(s[i] + p_s[i] < ValueType(0.0))
 	    p_s[i] = -s[i];  //impose non-negativity on the s-space.
         xt = x; xt += p;
-	norm_p = norm(p);
+	norm_p = norm_2(p);
 	st = s; st += p_s;
 	g_value = g(xt);
 	h_value = h(xt) - st;

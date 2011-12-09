@@ -415,7 +415,7 @@ void non_linear_conj_grad_method(Function f, GradFunction df, Vector& x, BetaCal
   ValueType beta = ValueType(1.0);
   ValueType adfp_prev = ValueType(-1.0);
   
-  while( norm(Dx) > abs_tol ) {
+  while( norm_2(Dx) > abs_tol ) {
     ValueType alpha_0 = adfp_prev;
     adfp_prev = (Dx * dx); alpha_0 /= adfp_prev;
     alpha = get_alpha(f,df,ValueType(0.0),alpha_0,x,Dx,tol);

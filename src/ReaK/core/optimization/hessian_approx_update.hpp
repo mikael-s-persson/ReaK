@@ -69,12 +69,12 @@ void >::type sr1_hessian_update(Matrix& B, const Vector& dx, const Vector& dy) {
   r -= B * dx;
   ValueType denom = r * dx;
   
-  if(fabs(denom) < std::numeric_limits<ValueType>::epsilon() * norm_sqr(r))
+  if(fabs(denom) < std::numeric_limits<ValueType>::epsilon() * norm_2_sqr(r))
     throw singularity_error("SR-1 Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < B.get_row_count(); ++i)
-    for(SizeType j = 0; j < B.get_col_count(); ++j)
-      B(i,j) += r[i] * r[j] / denom;
+    for(SizeType j = 0; j <= i; ++j)
+      B(j,i) = (B(i,j) += r[i] * r[j] / denom);
   
 };
 
@@ -114,8 +114,8 @@ void >::type sr1_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& d
     throw singularity_error("SR-1 Inverse Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < H.get_row_count(); ++i)
-    for(SizeType j = 0; j < H.get_col_count(); ++j)
-      H(i,j) += r[i] * r[j] / denom;
+    for(SizeType j = 0; j <= i; ++j)
+      H(j,i) = (H(i,j) += r[i] * r[j] / denom);
   
 };
 
@@ -154,8 +154,8 @@ void >::type dfp_hessian_update(Matrix& B, const Vector& dx, const Vector& dy) {
     throw singularity_error("DFP Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < B.get_row_count(); ++i)
-    for(SizeType j = 0; j < B.get_col_count(); ++j)
-      B(i,j) += (dy[i] * xBxy[j] / denom - dy[i] * Bx[j] - Bx[i] * dy[j] + dy[i] * dy[j]) / denom;
+    for(SizeType j = 0; j <= i; ++j)
+      B(j,i) = (B(i,j) += (dy[i] * xBxy[j] / denom - dy[i] * Bx[j] - Bx[i] * dy[j] + dy[i] * dy[j]) / denom);
   
 };
 
@@ -195,8 +195,8 @@ void >::type dfp_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& d
     throw singularity_error("DFP Inverse Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < H.get_row_count(); ++i)
-    for(SizeType j = 0; j < H.get_col_count(); ++j)
-      H(i,j) += dx[i] * dx[j] / denom1 - Hy[i] * Hy[j] / denom2;
+    for(SizeType j = 0; j <= i; ++j)
+      H(j,i) = (H(i,j) += dx[i] * dx[j] / denom1 - Hy[i] * Hy[j] / denom2);
   
 };
 
@@ -239,8 +239,8 @@ void >::type bfgs_hessian_update(Matrix& B, const Vector& dx, const Vector& dy) 
     throw singularity_error("BFGS Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < B.get_row_count(); ++i)
-    for(SizeType j = 0; j < B.get_col_count(); ++j)
-      B(i,j) += dy[i] * dy[j] / denom1 - Bx[i] * Bx[j] / denom2;
+    for(SizeType j = 0; j <= i; ++j)
+      B(j,i) = (B(i,j) += dy[i] * dy[j] / denom1 - Bx[i] * Bx[j] / denom2);
   
 };
 
@@ -280,8 +280,8 @@ void >::type bfgs_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& 
     throw singularity_error("BFGS Inverse Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < H.get_row_count(); ++i)
-    for(SizeType j = 0; j < H.get_col_count(); ++j)
-      H(i,j) += (dx[i] * yHyx[j] / denom - dx[i] * Hy[j] - Hy[i] * dx[j] + dx[i] * dx[j]) / denom;
+    for(SizeType j = 0; j <= i; ++j)
+      H(j,i) = (H(i,j) += (dx[i] * yHyx[j] / denom - dx[i] * Hy[j] - Hy[i] * dx[j] + dx[i] * dx[j]) / denom);
   
 };
 
@@ -326,9 +326,9 @@ void >::type broyden_class_hessian_update(Matrix& B, const Vector& dx, const Vec
     throw singularity_error("Broyden-class Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < B.get_row_count(); ++i)
-    for(SizeType j = 0; j < B.get_col_count(); ++j)
-      B(i,j) += (ValueType(1.0) - phi) * (dy[i] * dy[j] / denom1 - Bx[i] * Bx[j] / denom2)
-              + phi * (dy[i] * xBxy[j] / denom1 - dy[i] * Bx[j] - Bx[i] * dy[j] + dy[i] * dy[j]) / denom1;
+    for(SizeType j = 0; j <= i; ++j)
+      B(j,i) = (B(i,j) += (ValueType(1.0) - phi) * (dy[i] * dy[j] / denom1 - Bx[i] * Bx[j] / denom2)
+                          + phi * (dy[i] * xBxy[j] / denom1 - dy[i] * Bx[j] - Bx[i] * dy[j] + dy[i] * dy[j]) / denom1);
   
 };
 
@@ -375,9 +375,9 @@ void >::type broyden_class_inv_hessian_update(Matrix& H, const Vector& dx, const
     throw singularity_error("Broyden-class Inverse Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < H.get_row_count(); ++i)
-    for(SizeType j = 0; j < H.get_col_count(); ++j)
-      H(i,j) += (ValueType(1.0) - phi) * (dx[i] * dx[j] / denom1 - Hy[i] * Hy[j] / denom2)
-              + phi * (dx[i] * yHyx[j] / denom1 - dx[i] * Hy[j] - Hy[i] * dx[j] + dx[i] * dx[j]) / denom1;
+    for(SizeType j = 0; j <= i; ++j)
+      H(j,i) = (H(i,j) += (ValueType(1.0) - phi) * (dx[i] * dx[j] / denom1 - Hy[i] * Hy[j] / denom2)
+                           + phi * (dx[i] * yHyx[j] / denom1 - dx[i] * Hy[j] - Hy[i] * dx[j] + dx[i] * dx[j]) / denom1);
   
 };
 
@@ -394,6 +394,47 @@ struct inv_hessian_update_broyden {
 
 
 
+
+template <typename HessianFunction>
+struct hessian_update_dual_exact {
+  HessianFunction fill_hessian;
+  hessian_update_dual_exact(HessianFunction aFillHessian) : fill_hessian(aFillHessian) { };
+  template <typename Matrix, typename T, typename Vector>
+  void operator()(Matrix& B, const Vector& x, const T& x_value, const Vector& x_grad, const Vector&, const Vector&) const {
+    fill_hessian(B,x,x_value,x_grad);
+  };
+  template <typename Matrix, typename T, typename Vector>
+  void operator()(Matrix& B, const Vector& x, const T& x_value, const Vector& x_grad) const {
+    fill_hessian(B,x,x_value,x_grad);
+  };
+};
+
+template <typename HessianUpdater>
+struct hessian_update_dual_quasi {
+  HessianUpdater update_hessian;
+  hessian_update_dual_quasi(HessianUpdater aUpdateHessian) : update_hessian(aUpdateHessian) { };
+  template <typename Matrix, typename T, typename Vector>
+  void operator()(Matrix& B, const Vector&, const T&, const Vector&, const Vector& dx, const Vector& dy) const {
+    update_hessian(B,dx,dy);
+  };
+  template <typename Matrix, typename T, typename Vector>
+  void operator()(Matrix&, const Vector&, const T&, const Vector&) const { };
+};
+
+// This thing here would be nice but there is no way to make it happen (how to mix the exact hessian of the function with the update of the lagrangian's hessian without loosing the previous updates).
+// template <typename HessianFunction, typename HessianUpdater>
+// struct hessian_lagrangian_update_dual {
+//   HessianFunction fill_hessian;
+//   HessianUpdater update_hessian;
+//   hessian_update_dual_quasi(HessianFunction aFillHessian, HessianUpdater aUpdateHessian) : fill_hessian(aFillHessian), update_hessian(aUpdateHessian) { };
+//   template <typename Matrix, typename T, typename Vector>
+//   void operator()(Matrix& B, const Vector& x, const T& x_value, const Vector& x_grad, const Vector& dx, Vector dl) const {
+//     mat<T,mat_structure::symmetric> H(x.size());
+//     fill_hessian(H,x,x_value,x_grad);
+//     dl -= H * dx;
+//     update_hessian(B,dx,dl);
+//   };
+// };
 
 
 

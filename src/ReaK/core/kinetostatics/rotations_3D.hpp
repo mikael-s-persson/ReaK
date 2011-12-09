@@ -1724,7 +1724,7 @@ class axis_angle : public serialization::serializable {
     quaternion<value_type> getQuaternion() const {
       using std::cos;
       using std::sin;
-      value_type t = norm(mAxis);
+      value_type t = norm_2(mAxis);
       if(t == value_type(0.0))
         return quaternion<value_type>(value_type(1.0),value_type(0.0),value_type(0.0),value_type(0.0));
       t = sin(value_type(0.5)*mAngle);
@@ -1741,7 +1741,7 @@ class axis_angle : public serialization::serializable {
       using std::asin;
       using std::atan2;
       value_type quat[4];
-      value_type t = norm(mAxis);
+      value_type t = norm_2(mAxis);
       if(t == value_type(0.0)) {
         quat[0] = value_type(1.0);
         quat[1] = value_type(0.0);

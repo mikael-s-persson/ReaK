@@ -407,7 +407,7 @@ class quat {
      * Square magnitude of the quaternion.
      * \test PASSED
      */
-    friend value_type norm_sqr(const self& v) {
+    friend value_type norm_2_sqr(const self& v) {
       return v.q[0] * v.q[0] + v.q[1] * v.q[1] + v.q[2] * v.q[2] + v.q[3] * v.q[3];
     };
 
@@ -415,9 +415,9 @@ class quat {
      * Magnitude of the quaternion.
      * \test PASSED
      */
-    friend value_type norm(const self& v) {
+    friend value_type norm_2(const self& v) {
       using std::sqrt;
-      return sqrt( norm_sqr(v) );
+      return sqrt( norm_2_sqr(v) );
     };
 
 
@@ -426,7 +426,7 @@ class quat {
      * \test PASSED
      */
     friend self unit(const self& v) {
-      return v * (1.0 / norm(v));
+      return v * (1.0 / norm_2(v));
     };
 
     /**
@@ -435,9 +435,9 @@ class quat {
      */
     friend bool colinear(const self& v1, const self& v2) {
       using std::fabs;
-      T tmp_mag1 = norm(v1);
-      T tmp_mag2 = norm(v2);
-      T tmp_comb = norm(v1 + v2);
+      T tmp_mag1 = norm_2(v1);
+      T tmp_mag2 = norm_2(v2);
+      T tmp_comb = norm_2(v1 + v2);
       return (((tmp_mag1 + tmp_mag2) * (T(1.0) - std::numeric_limits<T>::epsilon()) <= tmp_comb) || 
               (fabs(tmp_mag1 - tmp_mag2) * (T(1.0) + std::numeric_limits<T>::epsilon()) >= tmp_comb));
     };
@@ -490,7 +490,7 @@ class quat {
      * Inverts the quaternion.
      */
     friend self invert(const self& x) {
-      value_type tmp = 1.0 / norm_sqr(x);
+      value_type tmp = 1.0 / norm_2_sqr(x);
       return self(x.q[0] * tmp, -x.q[1] * tmp, -x.q[2] * tmp, -x.q[3] * tmp);
     };
 
@@ -504,7 +504,7 @@ class quat {
 
     /** Compute absolute value (function), for a quaternion value. */
     friend value_type fabs(const self& x) {
-      return norm(x);
+      return norm_2(x);
     };  
 
     /** Round down value (function), for a quaternion value.*/
@@ -737,7 +737,7 @@ class unit_quat : public quat<T> {
      */
     explicit unit_quat(const vect<value_type,4>& V): quat<T>(scalar_type(1.0)) { 
       using std::sqrt;
-      scalar_type factor = norm(V); 
+      scalar_type factor = norm_2(V); 
       if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
 	factor = 1.0 / factor;
         this->q[0] = V[0] * factor; 
@@ -845,7 +845,7 @@ class unit_quat : public quat<T> {
      * Square magnitude of the quaternion.
      * \test PASSED
      */
-    friend value_type norm_sqr(const self& v) {
+    friend value_type norm_2_sqr(const self& v) {
       return value_type(1.0);
     };
 
@@ -853,7 +853,7 @@ class unit_quat : public quat<T> {
      * Magnitude of the quaternion.
      * \test PASSED
      */
-    friend value_type norm(const self& v) {
+    friend value_type norm_2(const self& v) {
       return value_type(1.0);
     };
 

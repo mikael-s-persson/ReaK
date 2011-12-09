@@ -327,7 +327,7 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       for(int i = 0; i < 20; ++i) {
 	vect<double,3> w1_next = mInertiaMomentInv * (half_dp 
 	                          + quaternion<double>( exp( quat<double>( (-0.25 * mDt) * w1_prev) ) ) * dp0);
-	if(norm(w1_next - w1_prev) < 1E-6 * norm(w1_next + w1_prev)) {
+	if(norm_2(w1_next - w1_prev) < 1E-6 * norm_2(w1_next + w1_prev)) {
 	  w1_prev = w1_next;
 	  break;
 	} else

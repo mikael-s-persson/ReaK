@@ -124,7 +124,7 @@ struct StateVectorConcept {
     ds -= ds;
     ds = -ds;
     ds = unit(ds);
-    v = norm(ds);
+    v = norm_2(ds);
     sz = ds.size();
   };
   

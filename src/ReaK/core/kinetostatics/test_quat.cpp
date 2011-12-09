@@ -106,12 +106,12 @@ int main() {
 	RK_ERROR("q_45z * q_45z * invert(q_45z) * invert(q_45z) does not have the correct elements!");
 	return 1;
       };
-      if( ( fabs( norm_sqr(q_45z) - 1.0) > std::numeric_limits<double>::epsilon() ) ){
-	RK_ERROR("norm_sqr(q_45z) does not have the correct value!");
+      if( ( fabs( norm_2_sqr(q_45z) - 1.0) > std::numeric_limits<double>::epsilon() ) ){
+	RK_ERROR("norm_2_sqr(q_45z) does not have the correct value!");
 	return 1;
       };
-      if( ( fabs( norm(q_45z) - 1.0) > std::numeric_limits<double>::epsilon() ) ){
-	RK_ERROR("norm(q_45z) does not have the correct value!");
+      if( ( fabs( norm_2(q_45z) - 1.0) > std::numeric_limits<double>::epsilon() ) ){
+	RK_ERROR("norm_2(q_45z) does not have the correct value!");
 	return 1;
       };
       q_45z *= 2.0;
@@ -249,12 +249,12 @@ int main() {
 	RK_ERROR("uq_45z * uq_45z * invert(uq_45z) * invert(uq_45z) does not have the correct elements!");
 	return 1;
       };
-      if( ( fabs( norm_sqr(q_45z) - 1.0) > std::numeric_limits<double>::epsilon() ) ){
-	RK_ERROR("norm_sqr(uq_45z) does not have the correct value!");
+      if( ( fabs( norm_2_sqr(q_45z) - 1.0) > std::numeric_limits<double>::epsilon() ) ){
+	RK_ERROR("norm_2_sqr(uq_45z) does not have the correct value!");
 	return 1;
       };
-      if( ( fabs( norm(q_45z) - 1.0) > std::numeric_limits<double>::epsilon() ) ){
-	RK_ERROR("norm(uq_45z) does not have the correct value!");
+      if( ( fabs( norm_2(q_45z) - 1.0) > std::numeric_limits<double>::epsilon() ) ){
+	RK_ERROR("norm_2(uq_45z) does not have the correct value!");
 	return 1;
       };
 

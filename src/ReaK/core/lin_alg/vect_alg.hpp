@@ -50,6 +50,8 @@
 #include "rtti/typed_primitives.hpp"
 
 #include "vect_concepts.hpp"
+#include "vect_views.hpp"
+#include "vect_index_iterator.hpp"
 
 #include <boost/config.hpp>
 #include <boost/static_assert.hpp>
@@ -647,6 +649,22 @@ class vect : public serialization::serializable {
     const_reference operator [](size_type i) const {
       return q[i];
     };
+    
+    /**
+     * Sub-vector operator, accessor for read/write.
+     * \test PASSED
+     */
+    vect_ref_view<self> operator[](const std::pair<size_type,size_type>& r) {
+      return sub(*this)[r];
+    };
+
+    /**
+     * Sub-vector operator, accessor for read only.
+     * \test PASSED
+     */
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+      return sub(*this)[r];
+    };
 
     /**
      * Array indexing operator, accessor for read/write.
@@ -690,48 +708,6 @@ class vect : public serialization::serializable {
         throw std::range_error("Vector size mismatch.");
       for(size_type i=0; i < Size; ++i)
 	q[i] = V[i];
-      return *this;
-    };
-
-    /**
-     * Standard add-and-store operator.
-     * \test PASSED
-     */
-    self& operator +=(const self& V) {
-      for(size_type i=0;i< Size;++i)
-	q[i] += V[i];
-      return *this;
-    };
-
-    /**
-     * Standard sub-and-store operator.
-     * \test PASSED
-     */
-    self& operator -=(const self& V) {
-      for(size_type i=0;i<Size;++i)
-	q[i] -= V[i];
-      return *this;
-    };
-
-    /**
-     * Scalar multiply-and-store operator for gain.
-     * \test PASSED
-     */
-    template <typename U>
-    self& operator *=(const U& S) {
-      for(size_type i=0;i<Size;++i)
-	q[i] = value_type(q[i] * S);
-      return *this;
-    };
-
-    /**
-     * Scalar divide-and-store operator for gain.
-     * \test PASSED
-     */
-    template <typename U>
-    self& operator /=(const U& S) {
-      for(size_type i=0;i<Size;++i)
-	q[i] = value_type(q[i] / S);
       return *this;
     };
 
@@ -912,147 +888,11 @@ vect<T,20> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5
 
 
 
-/*******************************************************************************
-                         Basic Functions
-*******************************************************************************/
-
-
-/**
- * Square magnitude of the vector.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-T norm_sqr(const vect<T,Size>& v) {
-  T sum(0);
-  for(unsigned int i=0;i<Size;++i)
-    sum += v.q[i]*v.q[i];
-  return sum;
-};
-
-/**
- * Magnitude of the vector.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-T norm(const vect<T,Size>& v) {
-  return std::sqrt( norm_sqr(v) );
-};
-
-
-/**
- * Unit vector in the same direction.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-vect<T,Size> unit(const vect<T,Size>& v) {
-  T m = norm(v);
-  T result[Size];
-  for(unsigned int i=0; i<Size; ++i)
-    result[i] = v.q[i] / m;
-  return vect<T,Size>(result);
-};
-
-/**
- * Checks if two vectors are colinear.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-bool colinear(const vect<T,Size>& v1, const vect<T,Size>& v2) {
-  T tmp_mag1 = norm(v1);
-  T tmp_mag2 = norm(v2);
-  T tmp_comb = norm(v1 + v2);
-  return (((tmp_mag1 + tmp_mag2) * (T(1.0) - std::numeric_limits<T>::epsilon()) <= tmp_comb) || 
-          (std::fabs(tmp_mag1 - tmp_mag2) * (T(1.0) + std::numeric_limits<T>::epsilon()) >= tmp_comb));
-};
-
 
 /*******************************************************************************
                          Basic Operators
 *******************************************************************************/
 
-/**
- * Add two vectors.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-vect<T,Size> operator +(const vect<T,Size>& v1, const vect<T,Size>& v2) {
-  T result[Size];
-  for(unsigned int i=0;i<Size;++i)
-    result[i] = v1[i] + v2[i];
-  return vect<T,Size>(result);
-};
-
-/**
- * Invert the vector.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-vect<T,Size> operator -(const vect<T,Size>& v) {
-  T result[Size];
-  for(unsigned int i=0;i<Size;++i)
-    result[i] = -v[i];
-  return vect<T,Size>(result);
-};
-
-/**
- * Sub two vectors.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-vect<T,Size> operator -(const vect<T,Size>& v1, const vect<T,Size>& v2) {
-  T result[Size];
-  for(unsigned int i=0;i<Size;++i)
-    result[i] = v1[i] - v2[i];
-  return vect<T,Size>(result);
-};
-
-/**
- * Dot Product.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-T operator *(const vect<T,Size>& v1, const vect<T,Size>& v2) {
-  T result(0);
-  for(unsigned int i=0;i<Size;++i)
-    result += v1[i] * v2[i];
-  return result;
-};
-
-/**
- * Scalar-vector product.
- * \test PASSED
- */
-template <typename T, unsigned int Size, typename U>
-vect<T,Size> operator *(const vect<T,Size>& V, const U& S) {
-  T result[Size];
-  for(unsigned int i=0;i<Size;++i)
-    result[i] = V[i] * S;
-  return vect<T,Size>(result);
-};
-
-/**
- * Scalar-vector product.
- * \test PASSED
- */
-template <typename T, unsigned int Size, typename U>
-vect<T,Size> operator *(const U& S,const vect<T,Size>& V) {
-  T result[Size];
-  for(unsigned int i=0;i<Size;++i)
-    result[i] = V[i] * S;
-  return vect<T,Size>(result);
-};
-
-/**
- * Scalar-vector division.
- * \test PASSED
- */
-template <typename T, unsigned int Size, typename U>
-vect<T,Size> operator /(const vect<T,Size>& V, const U& S) {
-  T result[Size];
-  for(unsigned int i=0;i<Size;++i)
-    result[i] = V[i] / S;
-  return vect<T,Size>(result);
-};
 
 /**
  * Sub two vectors. For functional interfaces.
@@ -1072,93 +912,7 @@ vect<T,Size> add(const vect<T,Size>& v1, const vect<T,Size>& v2) {
   return v1 + v2;
 };
 
-
-/*******************************************************************************
-                         Comparison Operators
-*******************************************************************************/
-
-/**
- * Equality Comparison operator, component-wise.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-bool operator ==(const vect<T,Size>& v1, const vect<T,Size>& v2) {
-  for(unsigned int i=0;i<Size;++i)
-    if(v1[i] != v2[i])
-      return false;
-  return true;
-};
-
-/**
- * Inequality Comparison operator, component-wise.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-bool operator !=(const vect<T,Size>& v1, const vect<T,Size>& v2) {
-  for(unsigned int i=0;i<Size;++i)
-    if(v1[i] != v2[i])
-      return true;
-  return false;
-};
-
-/**
- * Greater-than Comparison operator, Euclidean norm.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-bool operator >(const vect<T,Size>& v1, const vect<T,Size>& v2) {
-  return (norm_sqr(v1) > norm_sqr(v2));
-};
-
-/**
- * Smaller-than Comparison operator, Euclidean norm.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-bool operator <(const vect<T,Size>& v1, const vect<T,Size>& v2) {
-  return (norm_sqr(v1) < norm_sqr(v2));
-};
-
-/**
- * Greater-or-equal Comparison operator, Euclidean norm.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-bool operator >=(const vect<T,Size>& v1, const vect<T,Size>& v2) {
-  return (norm_sqr(v1) >= norm_sqr(v2));
-};
-
-/**
- * Smaller-or-equal Comparison operator, Euclidean norm.
- * \test PASSED
- */
-template <typename T, unsigned int Size>
-bool operator <=(const vect<T,Size>& v1, const vect<T,Size>& v2) {
-  return (norm_sqr(v1) <= norm_sqr(v2));
-};
     
-
-
-/*******************************************************************************
-                  Streaming, Serializing and RTTI Functionalities
-*******************************************************************************/
-
-/**
- * Prints a fixed-size vector to an output stream as "(v1; v2; v3; ..; vN)".
- * \test PASSED
- */
-template <typename T,unsigned int Size>
-std::ostream& operator <<(std::ostream& out_stream,const vect<T,Size>& V) {
-  out_stream << "(";
-  if(Size > 0)
-    out_stream << V[0];
-  for(unsigned int i=1;i<Size;++i)
-    out_stream << "; " << V[i];
-  return out_stream << ")";
-};
-
-
-
 
 
 /*******************************************************************************
@@ -1743,6 +1497,22 @@ class vect_n : public serialization::serializable {
     };
     
     /**
+     * Sub-vector operator, accessor for read/write.
+     * \test PASSED
+     */
+    vect_ref_view<self> operator[](const std::pair<size_type,size_type>& r) {
+      return sub(*this)[r];
+    };
+
+    /**
+     * Sub-vector operator, accessor for read only.
+     * \test PASSED
+     */
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+      return sub(*this)[r];
+    };
+    
+    /**
      * Array indexing operator, accessor for read/write. <
      * \test PASSED
      */
@@ -1787,54 +1557,6 @@ class vect_n : public serialization::serializable {
       q.resize(V.size());
       for(size_type i=0; i < q.size(); ++i)
 	q[i] = V[i];
-      return *this;
-    };
-
-    /**
-     * Standard add-and-store operator.
-     * \test PASSED
-     */
-    template <typename Vector>
-    typename boost::enable_if< is_readable_vector<Vector>,
-    self& >::type operator +=(const Vector& V) {
-      if(q.size() != V.q.size())
-        throw std::range_error("Vector size mismatch.");
-      for(size_type i=0;i<q.size();++i)
-	q[i] += V[i];
-      return *this;
-    };
-
-    /**
-     * Standard sub-and-store operator.
-     * \test PASSED
-     */
-    template <typename Vector>
-    typename boost::enable_if< is_readable_vector<Vector>,
-    self& >::type operator -=(const Vector& V) {
-      if(q.size() != V.q.size())
-        throw std::range_error("Vector size mismatch.");
-      for(size_type i=0;i<q.size();++i)
-	q[i] -= V[i];
-      return *this;
-    };
-
-    /**
-     * Scalar multiply-and-store operator for gain.
-     * \test PASSED
-     */
-    self& operator *=(const_reference S) {
-      for(size_type i=0;i<q.size();++i)
-	q[i] *= S;
-      return *this;
-    };
-
-    /**
-     * Scalar divide-and-store operator for gain.
-     * \test PASSED
-     */
-    self& operator /=(const_reference S) {
-      for(size_type i=0;i<q.size();++i)
-	q[i] /= S;
       return *this;
     };
 
@@ -1903,6 +1625,19 @@ struct has_allocator_vector< vect_n<T,Allocator> > {
 
 
 
+
+
+template <typename Vector>
+struct vect_copy< vect_ref_view<Vector> > {
+  typedef vect_n< typename vect_traits<Vector>::value_type > type;
+};
+
+template <typename Vector>
+struct vect_copy< vect_const_ref_view<Vector> > {
+  typedef vect_n< typename vect_traits<Vector>::value_type > type;
+};
+
+
 /*******************************************************************************
                          Basic Constructors
 *******************************************************************************/
@@ -1948,28 +1683,336 @@ vect_n<T> make_vect_n(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q
 };
 
 
+
+
+
+
+
+/**
+ * This class implements a variable-size templated vector class in which all vector-elements 
+ * have the same value.
+ */
+template <typename T, std::size_t Size = 0>
+class vect_scalar {
+  public:
+    
+    typedef vect_scalar<T> self;
+    
+    typedef T value_type;
+    typedef T& reference;
+    typedef const T& const_reference;
+    typedef T* pointer;
+    typedef const T* const_pointer;
+    typedef void allocator_type;
+  
+    typedef void iterator;
+    typedef vect_index_const_iter<self> const_iterator;
+  
+    typedef std::size_t size_type;
+    typedef std::ptrdiff_t difference_type;
+  
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = Size);
+
+  private:
+    value_type q; /**< Components of the vector. */
+  public:
+    
+    /**
+     * Returns the size of the vector.
+     */
+    size_type size() const { return Size; };
+    /**
+     * Returns the max-size of the vector.
+     */
+    size_type max_size() const { return Size; };
+    /**
+     * Returns the capacity of the vector.
+     */
+    size_type capacity() const { return Size; };
+    /**
+     * Resizes the vector.
+     */
+    void resize(size_type sz, T c = T()) { };
+    /**
+     * Checks if the vector is empty.
+     */
+    bool empty() const { return true; };
+    /**
+     * Reserve a capacity for the vector.
+     */
+    void reserve(size_type sz) const { };
+    
+    /**
+     * Returns a const-iterator to the first element of the vector.
+     */
+    const_iterator begin() const { return const_iterator(*this,0); };
+    /**
+     * Returns a const-iterator to the one-past-last element of the vector.
+     */
+    const_iterator end() const { return const_iterator(*this,Size); };
+
+/*******************************************************************************
+                         Constructors / Destructors
+*******************************************************************************/
+
+    /**
+     * Constructor for a given value for the vector.
+     * \test PASSED
+     */
+    explicit vect_scalar(const_reference aFill = value_type()) : q(aFill) { };
+
+/*******************************************************************************
+                         Accessors and Methods
+*******************************************************************************/
+
+    /**
+     * Array indexing operator, accessor for read only.
+     * \test PASSED
+     */
+    const_reference operator [](size_type i) const {
+      return q;
+    };
+    
+    /**
+     * Sub-vector operator, accessor for read only.
+     * \test PASSED
+     */
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+      return sub(*this)[r];
+    };
+    
+    /**
+     * Array indexing operator, accessor for read only.
+     * \test PASSED
+     */
+    const_reference operator ()(size_type i) const {
+      return q;
+    };
+    
+    /**
+     * Returns the allocator object of the underlying container.
+     */
+    allocator_type get_allocator() const { };
+
+};
+
+
+template <typename T, std::size_t Size>
+struct is_readable_vector< vect_scalar<T,Size> > {
+  BOOST_STATIC_CONSTANT( bool, value = true );
+  typedef is_readable_vector< vect_scalar<T,Size> > type;
+};
+
+template <typename T, std::size_t Size>
+struct is_writable_vector< vect_scalar<T,Size> > {
+  BOOST_STATIC_CONSTANT( bool, value = false );
+  typedef is_writable_vector< vect_scalar<T,Size> > type;
+};
+
+template <typename T, std::size_t Size>
+struct is_resizable_vector< vect_scalar<T,Size> > {
+  BOOST_STATIC_CONSTANT( bool, value = (Size == 0) );
+  typedef is_resizable_vector< vect_scalar<T,Size> > type;
+};
+
+template <typename T, std::size_t Size>
+struct has_allocator_vector< vect_scalar<T,Size> > {
+  BOOST_STATIC_CONSTANT( bool, value = false );
+  typedef has_allocator_vector< vect_scalar<T,Size> > type;
+};
+
+
+
+
+
+
+
+
+/**
+ * This class implements a variable-size templated vector class in which all vector-elements 
+ * have the same value.
+ */
+template <typename T>
+class vect_scalar<T,0> {
+  public:
+    
+    typedef vect_scalar<T,0> self;
+    
+    typedef T value_type;
+    typedef T& reference;
+    typedef const T& const_reference;
+    typedef T* pointer;
+    typedef const T* const_pointer;
+    typedef void allocator_type;
+  
+    typedef void iterator;
+    typedef vect_index_const_iter<self> const_iterator;
+  
+    typedef std::size_t size_type;
+    typedef std::ptrdiff_t difference_type;
+  
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 0);
+
+  private:
+    value_type q; /**< Components of the vector. */
+    size_type count;
+  public:
+    
+    /**
+     * Returns the size of the vector.
+     */
+    size_type size() const { return count; };
+    /**
+     * Returns the max-size of the vector.
+     */
+    size_type max_size() const { return std::numeric_limits<size_type>::max(); };
+    /**
+     * Returns the capacity of the vector.
+     */
+    size_type capacity() const { return std::numeric_limits<size_type>::max(); };
+    /**
+     * Resizes the vector.
+     */
+    void resize(size_type sz, T c = T()) { count = sz; q = c; };
+    /**
+     * Checks if the vector is empty.
+     */
+    bool empty() const { return (count == 0); };
+    /**
+     * Reserve a capacity for the vector.
+     */
+    void reserve(size_type sz) const { };
+    
+    /**
+     * Returns a const-iterator to the first element of the vector.
+     */
+    const_iterator begin() const { return const_iterator(*this,0); };
+    /**
+     * Returns a const-iterator to the one-past-last element of the vector.
+     */
+    const_iterator end() const { return const_iterator(*this,count); };
+
+/*******************************************************************************
+                         Constructors / Destructors
+*******************************************************************************/
+    /**
+     * Default constructor.
+     * \test PASSED
+     */
+    vect_scalar() : q(), count(0) { };
+
+    /**
+     * Constructor for a given size or dimension of vector.
+     * \test PASSED
+     */
+    explicit vect_scalar(size_type aSize, const_reference aFill = value_type()) : q(aFill), count(aSize) { };
+
+/*******************************************************************************
+                         Accessors and Methods
+*******************************************************************************/
+
+    /**
+     * Array indexing operator, accessor for read only.
+     * \test PASSED
+     */
+    const_reference operator [](size_type i) const {
+      return q;
+    };
+    
+    /**
+     * Sub-vector operator, accessor for read only.
+     * \test PASSED
+     */
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+      return sub(*this)[r];
+    };
+    
+    /**
+     * Array indexing operator, accessor for read only.
+     * \test PASSED
+     */
+    const_reference operator ()(size_type i) const {
+      return q;
+    };
+    
+    /**
+     * Returns the allocator object of the underlying container.
+     */
+    allocator_type get_allocator() const { };
+
+};
+
+
+
+
+
+
+
 /*******************************************************************************
                          Basic Functions
 *******************************************************************************/
+
+
+/**
+ * Square magnitude of the vector.
+ * \test PASSED
+ */
+template <typename Vector>
+typename boost::enable_if<
+  is_readable_vector<Vector>,
+vect_traits<Vector> >::type::value_type norm_2_sqr(const Vector& v) {
+  typedef typename vect_traits<Vector>::value_type ValueType;
+  typedef typename vect_traits<Vector>::size_type SizeType;
+  ValueType sum(0.0);
+  for(SizeType i = 0; i < v.size(); ++i)
+    sum += v[i] * v[i];
+  return sum;
+};
 
 /**
  * Magnitude of the vector.
  * \test PASSED
  */
-template <typename T, typename Allocator>
-T norm(const vect_n<T,Allocator>& v) {
-  return std::sqrt( norm_sqr(v) );
+template <typename Vector>
+typename boost::enable_if<
+  is_readable_vector<Vector>,
+vect_traits<Vector> >::type::value_type norm_2(const Vector& v) {
+  using std::sqrt;
+  return sqrt( norm_2_sqr(v) );
+};
+
+/**
+ * Infinite norm of the vector.
+ * \test PASSED
+ */
+template <typename Vector>
+typename boost::enable_if<
+  is_readable_vector<Vector>,
+vect_traits<Vector> >::type::value_type norm_inf(const Vector& v) {
+  typedef typename vect_traits<Vector>::value_type ValueType;
+  typedef typename vect_traits<Vector>::size_type SizeType;
+  using std::fabs;
+  ValueType result(0.0);
+  for(SizeType i = 0; i < v.size(); ++i)
+    if( result < fabs(v[i]) )
+      result = fabs(v[i]);
+  return result;
 };
 
 /**
  * Square magnitude of the vector.
  * \test PASSED
  */
-template <typename T, typename Allocator>
-T norm_sqr(const vect_n<T,Allocator>& v) {
-  T sum(0);
-  for(unsigned int i=0;i<v.size();++i)
-    sum += v[i] * v[i];
+template <typename Vector>
+typename boost::enable_if<
+  is_readable_vector<Vector>,
+vect_traits<Vector> >::type::value_type norm_1(const Vector& v) {
+  typedef typename vect_traits<Vector>::value_type ValueType;
+  typedef typename vect_traits<Vector>::size_type SizeType;
+  using std::fabs;
+  ValueType sum(0.0);
+  for(SizeType i = 0; i < v.size(); ++i)
+    sum += fabs(v[i]);
   return sum;
 };
 
@@ -1977,23 +2020,28 @@ T norm_sqr(const vect_n<T,Allocator>& v) {
  * Unit vector in the same direction.
  * \test PASSED
  */
-template <typename T, typename Allocator>
-vect_n<T,Allocator> unit(const vect_n<T,Allocator>& v) {
-  T m = norm(v);
-  return v / m;
+template <typename Vector>
+typename boost::enable_if<
+  is_readable_vector<Vector>,
+vect_copy<Vector> >::type::type unit(const Vector& v) {
+  typename vect_copy<Vector>::type result(v);
+  result /= norm_2(result);
+  return result;
 };
 
 /**
  * Checks if two vectors are colinear.
  * \test PASSED
  */
-template <typename T, typename Allocator>
-bool colinear(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
-  T tmp_mag2 = norm(v2);
-  T tmp_mag1 = norm(v1);
-  T tmp_comb = norm(v1 + v2);
-  return (((tmp_mag1 + tmp_mag2) * (T(1.0) - 10.0*std::numeric_limits<T>::epsilon()) < tmp_comb) || 
-          (std::fabs(tmp_mag1 - tmp_mag2) * (T(1.0) + std::numeric_limits<T>::epsilon()) > tmp_comb));
+template <typename Vector1, typename Vector2>
+bool colinear(const Vector1& v1, const Vector2& v2) {
+  typedef typename vect_traits<Vector1>::value_type ValueType;
+  using std::fabs;
+  ValueType tmp_mag2 = norm_2(v2);
+  ValueType tmp_mag1 = norm_2(v1);
+  ValueType tmp_comb = norm_2(v1 + v2);
+  return (((tmp_mag1 + tmp_mag2) * (ValueType(1.0) - ValueType(10.0) * std::numeric_limits<ValueType>::epsilon()) < tmp_comb) || 
+          (fabs(tmp_mag1 - tmp_mag2) * (ValueType(1.0) + std::numeric_limits<ValueType>::epsilon()) > tmp_comb));
 };
 
 
@@ -2003,6 +2051,82 @@ bool colinear(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
 /*******************************************************************************
                          Basic Operators
 *******************************************************************************/
+
+
+
+/**
+ * Standard add-and-store operator.
+ * \test PASSED
+ */
+template <typename Vector1, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_writable_vector<Vector1>,
+    is_readable_vector<Vector2>
+  >,
+Vector1& >::type operator +=(Vector1& v1, const Vector2& v2) {
+  if(v1.size() != v2.size())
+    throw std::range_error("Vector size mismatch.");
+  typedef typename vect_traits<Vector1>::size_type SizeType;
+  for(SizeType i = 0; i < v1.size(); ++i)
+    v1[i] += v2[i];
+  return v1;
+};
+
+/**
+ * Standard sub-and-store operator.
+ * \test PASSED
+ */
+template <typename Vector1, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_writable_vector<Vector1>,
+    is_readable_vector<Vector2>
+  >,
+Vector1& >::type operator -=(Vector1& v1, const Vector2& v2) {
+  if(v1.size() != v2.size())
+    throw std::range_error("Vector size mismatch.");
+  typedef typename vect_traits<Vector1>::size_type SizeType;
+  for(SizeType i = 0; i < v1.size(); ++i)
+    v1[i] -= v2[i];
+  return v1;
+};
+
+/**
+ * Scalar multiply-and-store operator for gain.
+ * \test PASSED
+ */
+template <typename T, typename Vector>
+typename boost::enable_if< 
+  boost::mpl::and_<
+    is_writable_vector<Vector>,
+    boost::mpl::not_< is_readable_vector<T> >
+  >,
+Vector& >::type operator *=(Vector& v, const T& S) {
+  typedef typename vect_traits<Vector>::size_type SizeType;
+  for(SizeType i = 0; i < v.size(); ++i)
+    v[i] *= S;
+  return v;
+};
+
+/**
+ * Scalar divide-and-store operator for gain.
+ * \test PASSED
+ */
+template <typename T, typename Vector>
+typename boost::enable_if< 
+  boost::mpl::and_<
+    is_writable_vector<Vector>,
+    boost::mpl::not_< is_readable_vector<T> >
+  >,
+Vector& >::type operator /=(Vector& v, const T& S) {
+  typedef typename vect_traits<Vector>::size_type SizeType;
+  for(SizeType i = 0; i < v.size(); ++i)
+    v[i] /= S;
+  return v;
+};
+
+
 
 /**
  * Add two vectors.
@@ -2014,48 +2138,51 @@ typename boost::enable_if<
     is_writable_vector<Vector1>,
     is_readable_vector<Vector2>
   >,
-Vector1 >::type operator +(const Vector1& v1, const Vector2& v2) {
+vect_copy<Vector1> >::type::type operator +(const Vector1& v1, const Vector2& v2) {
   if(v1.size() != v2.size())
     throw std::range_error("Vector size mismatch.");
-  Vector1 result(v1);
+  typename vect_copy<Vector1>::type result(v1);
   result += v2;
   return result;
 };
 
-    /**
-     * Invert the vector.
-     * \test PASSED
-     */
-template <typename T, typename Allocator>
-vect_n<T,Allocator> operator -(const vect_n<T,Allocator>& v) {
-  std::vector<T,Allocator> result(v.size());
-  for(unsigned int i=0;i<v.size();++i)
-    result[i] = -v[i];
-  return vect_n<T,Allocator>(result);
+/**
+ * Invert the vector.
+ * \test PASSED
+ */
+template <typename Vector>
+typename boost::enable_if<
+  is_readable_vector<Vector>,
+vect_copy<Vector> >::type::type operator -(const Vector& v) {
+  typedef typename vect_traits<Vector>::size_type SizeType;
+  typename vect_copy<Vector>::type result(v);
+  for(SizeType i = 0; i < v.size(); ++i)
+    result[i] = -result[i];
+  return result;
 };
 
-    /**
-     * Sub two vectors.
-     * \test PASSED
-     */
+/**
+ * Sub two vectors.
+ * \test PASSED
+ */
 template <typename Vector1, typename Vector2>
 typename boost::enable_if<
   boost::mpl::and_<
-    is_writable_vector<Vector1>,
+    is_readable_vector<Vector1>,
     is_readable_vector<Vector2>
   >,
-Vector1 >::type operator -(const Vector1& v1, const Vector2& v2) {
+vect_copy<Vector1> >::type::type operator -(const Vector1& v1, const Vector2& v2) {
   if(v1.size() != v2.size())
     throw std::range_error("Vector size mismatch.");
-  Vector1 result(v1);
+  typename vect_copy<Vector1>::type result(v1);
   result -= v2;
   return result;
 };
 
-    /**
-     * Dot Product.
-     * \test PASSED
-     */
+/**
+ * Dot Product.
+ * \test PASSED
+ */
 template <typename Vector1, typename Vector2>
 typename boost::enable_if<
   boost::mpl::and_<
@@ -2073,53 +2200,56 @@ vect_traits<Vector1> >::type::value_type operator *(const Vector1& v1, const Vec
   return result;
 };
 
-    /**
-     * Scalar-vector product.
-     * \test PASSED
-     */
+/**
+ * Scalar-vector product.
+ * \test PASSED
+ */
 template <typename T, typename Vector>
 typename boost::enable_if< 
   boost::mpl::and_<
-    is_writable_vector<Vector>,
+    is_readable_vector<Vector>,
     boost::mpl::not_< is_readable_vector<T> >
   >,
-Vector >::type operator *(const Vector& v, const T& S) {
-  Vector result(v);
+vect_copy<Vector> >::type::type operator *(const Vector& v, const T& S) {
+  typename vect_copy<Vector>::type result(v);
   result *= S;
   return result;
 };
 
-    /**
-     * Scalar-vector product.
-     * \test PASSED
-     */
+/**
+ * Scalar-vector product.
+ * \test PASSED
+ */
 template <typename T, typename Vector>
 typename boost::enable_if< 
   boost::mpl::and_<
-    is_writable_vector<Vector>,
+    is_readable_vector<Vector>,
     boost::mpl::not_< is_readable_vector<T> >
   >,
-Vector >::type operator *(const T& S, const Vector& v) {
-  Vector result(v);
+vect_copy<Vector> >::type::type operator *(const T& S, const Vector& v) {
+  typename vect_copy<Vector>::type result(v);
   result *= S;
   return result;
 };
 
-    /**
-     * Scalar-vector division.
-     * \test PASSED
-     */
+/**
+ * Scalar-vector division.
+ * \test PASSED
+ */
 template <typename T, typename Vector>
 typename boost::enable_if< 
   boost::mpl::and_<
-    is_writable_vector<Vector>,
+    is_readable_vector<Vector>,
     boost::mpl::not_< is_readable_vector<T> >
   >,
-Vector >::type operator /(const Vector& v, const T& S) {
-  Vector result(v);
+vect_copy<Vector> >::type::type operator /(const Vector& v, const T& S) {
+  typename vect_copy<Vector>::type result(v);
   result /= S;
   return result;
 };
+
+
+
 
 
 /**
@@ -2144,15 +2274,21 @@ vect_n<T,Allocator> add(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>
                          Comparison Operators
 *******************************************************************************/
 
-    /**
-     * Equality Comparison operator, component-wise.
-     * \test PASSED
-     */
-template <typename T, typename Allocator>
-bool operator ==(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
+/**
+ * Equality Comparison operator, component-wise.
+ * \test PASSED
+ */
+template <typename Vector1, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_readable_vector<Vector1>,
+    is_readable_vector<Vector2>
+  >,
+bool >::type operator ==(const Vector1& v1, const Vector2& v2) {
+  typedef typename vect_traits<Vector1>::size_type SizeType;
   if(v1.size() != v2.size())
     return false;
-  for(unsigned int i=0;i<v1.size();++i)
+  for(SizeType i = 0; i < v1.size(); ++i)
     if(v1[i] != v2[i])
       return false;
   return true;
@@ -2162,11 +2298,17 @@ bool operator ==(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
      * Inequality Comparison operator, component-wise.
      * \test PASSED
      */
-template <typename T, typename Allocator>
-bool operator !=(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
+template <typename Vector1, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_readable_vector<Vector1>,
+    is_readable_vector<Vector2>
+  >,
+bool >::type operator !=(const Vector1& v1, const Vector2& v2) {
+  typedef typename vect_traits<Vector1>::size_type SizeType;
   if(v1.size() != v2.size())
     return true;
-  for(unsigned int i=0;i<v1.size();++i)
+  for(SizeType i = 0; i < v1.size(); ++i)
     if(v1[i] != v2[i])
       return true;
   return false;
@@ -2176,36 +2318,56 @@ bool operator !=(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
      * Greater-than Comparison operator, Euclidean norm.
      * \test PASSED
      */
-template <typename T, typename Allocator>
-bool operator >(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
-  return (norm_sqr(v1) > norm_sqr(v2));
+template <typename Vector1, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_readable_vector<Vector1>,
+    is_readable_vector<Vector2>
+  >,
+bool >::type operator >(const Vector1& v1, const Vector2& v2) {
+  return (norm_2_sqr(v1) > norm_2_sqr(v2));
 };
 
     /**
      * Smaller-than Comparison operator, Euclidean norm.
      * \test PASSED
      */
-template <typename T, typename Allocator>
-bool operator <(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
-  return (norm_sqr(v1) < norm_sqr(v2));
+template <typename Vector1, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_readable_vector<Vector1>,
+    is_readable_vector<Vector2>
+  >,
+bool >::type operator <(const Vector1& v1, const Vector2& v2) {
+  return (norm_2_sqr(v1) < norm_2_sqr(v2));
 };
 
     /**
      * Greater-or-equal Comparison operator, Euclidean norm.
      * \test PASSED
      */
-template <typename T, typename Allocator>
-bool operator >=(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
-  return (norm_sqr(v1) >= norm_sqr(v2));
+template <typename Vector1, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_readable_vector<Vector1>,
+    is_readable_vector<Vector2>
+  >,
+bool >::type operator >=(const Vector1& v1, const Vector2& v2) {
+  return (norm_2_sqr(v1) >= norm_2_sqr(v2));
 };
 
     /**
      * Smaller-or-equal Comparison operator, Euclidean norm.
      * \test PASSED
      */
-template <typename T, typename Allocator>
-bool operator <=(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
-  return (norm_sqr(v1) <= norm_sqr(v2));
+template <typename Vector1, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_readable_vector<Vector1>,
+    is_readable_vector<Vector2>
+  >,
+bool >::type operator <=(const Vector1& v1, const Vector2& v2) {
+  return (norm_2_sqr(v1) <= norm_2_sqr(v2));
 };
 
 
@@ -2215,12 +2377,15 @@ bool operator <=(const vect_n<T,Allocator>& v1, const vect_n<T,Allocator>& v2) {
  * Prints a variable-size vector to an output stream as "(v1; v2; v3; ..; vN)".
  * \test PASSED
  */
-template <typename T, typename Allocator>
-std::ostream& operator <<(std::ostream& out_stream,const vect_n<T,Allocator>& V) {
+template <typename Vector>
+typename boost::enable_if<
+  is_readable_vector<Vector>,
+std::ostream& >::type operator <<(std::ostream& out_stream,const Vector& V) {
+  typedef typename vect_traits<Vector>::size_type SizeType;
   out_stream << "(";
-  if(V.q.size() > 0)
+  if(V.size() > 0)
     out_stream << V[0];
-  for(unsigned int i=1;i<V.size();++i)
+  for(SizeType i = 1; i < V.size(); ++i)
     out_stream << "; " << V[i];
   return out_stream << ")";
 };

@@ -37,19 +37,10 @@
 #define REAK_MAT_VIEWS_HPP
 
 #include "mat_alg_general.hpp"
+#include "vect_views.hpp"
 #include <boost/static_assert.hpp>
 
 namespace ReaK {
-
-/**
- * This function template can be used to generate a range of indices for the matrices.
- * A range is simple a pair of first and last indices (notice that the last index is 
- * included in the range).
- */
-template <typename T>
-std::pair<T,T> range(T aFirst,T aLast) {
-  return std::pair<T,T>(aFirst,aLast);
-};
 
   
   

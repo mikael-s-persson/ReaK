@@ -82,14 +82,14 @@ class quaternion_topology : public named_object
      */
     virtual double distance(const point_type& a, const point_type& b) const 
     {
-      return ReaK::norm(this->difference(b,a));
+      return ReaK::norm_2(this->difference(b,a));
     }
     
     /**
      * Returns the norm of the difference between two points.
      */
     virtual double norm(const point_difference_type& delta) const {
-      return ReaK::norm(delta);
+      return ReaK::norm_2(delta);
     }
     
     /**
@@ -198,14 +198,14 @@ class rate_limited_quat_space : public quaternion_topology<T>
      */
     double distance(const point_type& a, const point_type& b) const 
     {
-      return ReaK::norm(this->difference(b,a)) / max_angular_speed;
+      return ReaK::norm_2(this->difference(b,a)) / max_angular_speed;
     };
     
     /**
      * Returns the norm of the difference between two points.
      */
     double norm(const point_difference_type& delta) const {
-      return ReaK::norm(delta) / max_angular_speed;
+      return ReaK::norm_2(delta) / max_angular_speed;
     };
     
     /**
