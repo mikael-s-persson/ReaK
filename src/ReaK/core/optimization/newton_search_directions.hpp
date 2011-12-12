@@ -40,6 +40,8 @@
 #include "lin_alg/mat_cholesky.hpp"
 #include "lin_alg/mat_damped_matrix.hpp"
 
+#include "lin_alg/mat_norms.hpp"
+
 namespace ReaK {
   
   
@@ -58,17 +60,17 @@ namespace optim {
  * \param p The resulting search direction.
  * \param mu The damping scalar matrix to damp the Hessian matrix.
  * \param nu The damping multiplication factor.
- * \param tol The relative tolerance on the singularity-detection.
+ * \param abs_tol The tolerance on the singularity-detection.
  */
 template <typename Matrix, typename Vector, typename ScalarMatrix>
 void regularized_newton_direction(const Matrix& H, const Vector& x_grad, Vector& p, 
 				  ScalarMatrix& mu, typename mat_traits<ScalarMatrix>::value_type& nu,
-				  const typename mat_traits<Matrix>::value_type& tol) {
+				  const typename mat_traits<Matrix>::value_type& abs_tol) {
   while(true) {
     try {
       p = -x_grad;
       mat_vect_adaptor<Vector> p_mat(p);
-      linsolve_Cholesky(make_damped_matrix(H,mu),p_mat,tol * trace(H));
+      linsolve_Cholesky(make_damped_matrix(H,mu),p_mat,abs_tol);
       mu *= typename mat_traits<ScalarMatrix>::value_type(0.33333);
       nu = 2.0;
       break;
@@ -88,8 +90,8 @@ void regularized_newton_direction(const Matrix& H, const Vector& x_grad, Vector&
  */
 template <typename T>
 struct regularized_newton_directioner {
-  mat<T,mat_structure::scalar> mu;
-  T nu;
+  mutable mat<T,mat_structure::scalar> mu;
+  mutable T nu;
   /**
    * Parametrized Constructor.
    * \param aTau The initial relative damping factor for the damping the Hessian matrix (the actual damping factor is relative to the trace of the Hessian).
@@ -103,15 +105,15 @@ struct regularized_newton_directioner {
    * \param H The Hessian symmetric matrix of the function to be optimized.
    * \param x_grad The gradient of the function being optimized.
    * \param p The resulting search direction.
-   * \param tol The relative tolerance on the singularity-detection.
+   * \param abs_tol The tolerance on the singularity-detection.
    */
   template <typename Matrix, typename Vector>
-  void operator()(const Matrix& H, const Vector& x_grad, Vector& p, const T& tol) {
+  void operator()(const Matrix& H, const Vector& x_grad, Vector& p, const T& abs_tol) const {
     if(nu < T(0.0)) {
-      mu = mat<T,mat_structure::scalar>(H.get_row_count(),mu(0,0) * trace(H));
+      mu = mat<T,mat_structure::scalar>(H.get_row_count(),mu(0,0) * frobenius_norm(H));
       nu = 2.0;
     };
-    regularized_newton_direction(H,x_grad,p,mu,nu,tol);
+    regularized_newton_direction(H,x_grad,p,mu,nu,abs_tol);
   };
 };
 
@@ -123,13 +125,13 @@ struct regularized_newton_directioner {
  * \param H The Hessian symmetric matrix of the function to be optimized.
  * \param x_grad The gradient of the function being optimized.
  * \param p The resulting search direction.
- * \param tol The relative tolerance on the singularity-detection.
+ * \param abs_tol The tolerance on the singularity-detection.
  */
 template <typename Matrix, typename Vector>
-void newton_direction(const Matrix& H, const Vector& x_grad, Vector& p, const typename mat_traits<Matrix>::value_type& tol) {
+void newton_direction(const Matrix& H, const Vector& x_grad, Vector& p, const typename mat_traits<Matrix>::value_type& abs_tol) {
   p = -x_grad;
   mat_vect_adaptor<Vector> p_mat(p);
-  linsolve_Cholesky(H,p_mat,tol * trace(H));
+  linsolve_Cholesky(H,p_mat,abs_tol);
 };
 
 /**
@@ -145,11 +147,11 @@ struct newton_directioner {
    * \param H The Hessian symmetric matrix of the function to be optimized.
    * \param x_grad The gradient of the function being optimized.
    * \param p The resulting search direction.
-   * \param tol The relative tolerance on the singularity-detection.
+   * \param abs_tol The tolerance on the singularity-detection.
    */
   template <typename Matrix, typename Vector>
-  void operator()(const Matrix& H, const Vector& x_grad, Vector& p, const typename mat_traits<Matrix>::value_type& tol) const {
-    newton_direction(H,x_grad,p,tol);
+  void operator()(const Matrix& H, const Vector& x_grad, Vector& p, const typename mat_traits<Matrix>::value_type& abs_tol) const {
+    newton_direction(H,x_grad,p,abs_tol);
   };
 };
 

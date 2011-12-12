@@ -35,6 +35,7 @@
 #include "base/defs.hpp"
 
 #include "lin_alg/mat_alg.hpp"
+#include "lin_alg/mat_num_exceptions.hpp"
 
 namespace ReaK {
   
@@ -296,7 +297,8 @@ struct hager_zhang_beta {
  * \param b The left-hand-side of the "Ax = b" equation.
  * \param A A positive definite symmetric matrix (should be well conditioned).
  * \param x The initial guess of the solution, and stores as output the final solution.
- * \param tol The relative tolerance to be acheived by the residual error in the equation.
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance to be acheived by the residual error in the equation.
  */
 template <typename Vector, typename Matrix>
 typename boost::enable_if<
@@ -304,20 +306,22 @@ typename boost::enable_if<
     is_writable_vector<Vector>,
     is_readable_matrix<Matrix>
   >,
-void >::type linear_conj_grad_method(const Vector& b, const Matrix& A, Vector& x, typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+void >::type linear_conj_grad_method(const Vector& b, const Matrix& A, Vector& x, unsigned int max_iter = 100,
+				     typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   typedef typename vect_traits<Vector>::value_type ValueType;
   using std::sqrt;
   
-  ValueType abs_tol = tol * sqrt( b * b );
   Vector r = b - A * x;
   ValueType rr = r * r;
-  abs_tol += tol * sqrt(rr);
   Vector p = r;
   Vector Ap = A * p;
+  unsigned int k = 0;
   while( true ) {
     ValueType alpha = rr / ( p * Ap );
     ValueType beta = 1.0 / rr;
     x += alpha * p;
+    if(++k > max_iter)
+      throw maximum_iteration(max_iter);
     r -= alpha * Ap;
     rr = r * r;
     if( sqrt(rr) < abs_tol )
@@ -344,7 +348,8 @@ void >::type linear_conj_grad_method(const Vector& b, const Matrix& A, Vector& x
  * \param A A positive definite symmetric matrix (should be well conditioned).
  * \param M_inv The preconditionning positive definite symmetric matrix, should be chosen such that the condition number of the product "M_inv * A" is low (approaching 1.0).
  * \param x The initial guess of the solution, and stores as output the final solution.
- * \param tol The relative tolerance to be acheived by the residual error in the equation.
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance to be acheived by the residual error in the equation.
  */
 template <typename Vector, typename Matrix>
 typename boost::enable_if<
@@ -352,17 +357,17 @@ typename boost::enable_if<
     is_writable_vector<Vector>,
     is_readable_matrix<Matrix>
   >,
-void >::type linear_conj_grad_method(const Vector& b, const Matrix& A, const Matrix& M_inv, Vector& x, typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+void >::type linear_conj_grad_method(const Vector& b, const Matrix& A, const Matrix& M_inv, Vector& x, unsigned int max_iter = 100,
+				     typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   typedef typename vect_traits<Vector>::value_type ValueType;
   using std::sqrt;
   
-  ValueType abs_tol = tol * sqrt( b * b );
   Vector r = b - A * x;
   Vector z = M_inv * r;
   ValueType zr = z * r;
-  abs_tol += tol * sqrt(zr);
   Vector p = z;
   Vector Ap = A * p;
+  unsigned int k = 0;
   while( true ) {
     ValueType alpha = zr / ( p * Ap );
     ValueType beta = 1.0 / zr;
@@ -370,6 +375,8 @@ void >::type linear_conj_grad_method(const Vector& b, const Matrix& A, const Mat
     r -= alpha * Ap;
     z = M_inv * r;
     zr = z * r;
+    if(++k > max_iter)
+      throw maximum_iteration(max_iter);
     if( sqrt(zr) < abs_tol )
       break;
     beta *= zr;
@@ -396,31 +403,35 @@ void >::type linear_conj_grad_method(const Vector& b, const Matrix& A, const Mat
  * \param f The cost-function to minimize.
  * \param df The gradient of the cost-function.
  * \param x The initial guess of the solution, and stores, as output, the obtained minimum.
+ * \param max_iter The maximum number of iterations to perform.
  * \param get_beta The functor to use to compute the beta value.
  * \param get_alpha The functor to use to perform the line-search for the "alpha" value (compute the best update along the search direction).
- * \param tol The relative tolerance at which to stop the algorithm.
+ * \param abs_tol The tolerance at which to stop the algorithm.
  */
 template <typename Function, typename GradFunction, typename Vector, 
           typename BetaCalculator, typename LineSearcher>
-void non_linear_conj_grad_method(Function f, GradFunction df, Vector& x, BetaCalculator get_beta, LineSearcher get_alpha, typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+void non_linear_conj_grad_method(Function f, GradFunction df, Vector& x, unsigned int max_iter,
+				 BetaCalculator get_beta, LineSearcher get_alpha, 
+				 typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   typedef typename vect_traits<Vector>::value_type ValueType;
   using std::sqrt;
   
-  ValueType abs_tol = sqrt(x * x) * tol;
   Vector dx = -df(x);
-  abs_tol += sqrt(dx * dx) * tol;
   Vector Dx = dx;
   Vector dx_prev = dx;
   ValueType alpha = ValueType(1.0);
   ValueType beta = ValueType(1.0);
   ValueType adfp_prev = ValueType(-1.0);
+  unsigned int k = 0;
   
   while( norm_2(Dx) > abs_tol ) {
     ValueType alpha_0 = adfp_prev;
     adfp_prev = (Dx * dx); alpha_0 /= adfp_prev;
-    alpha = get_alpha(f,df,ValueType(0.0),alpha_0,x,Dx,tol);
+    alpha = get_alpha(f,df,ValueType(0.0),alpha_0,x,Dx,abs_tol);
     adfp_prev *= alpha;
     x += alpha * Dx;
+    if(++k > max_iter)
+      throw maximum_iteration(max_iter);
     dx_prev = dx;
     dx = -df(x);
     beta = get_beta(dx,dx_prev,Dx);

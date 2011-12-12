@@ -189,11 +189,9 @@ Non-Linear Optimization problems
     Byrd-Omojokun SQP method   --------------------------------------------------X
       test with various non-linear functions   
     Line-search Interior-point method
-      Newton direction   
-      Quasi-Newton direction   
-    Trust-region Interior-point method
-      Newton direction   
-      Quasi-Newton direction   
+      test with various non-linear functions   
+    Trust-region Interior-point method   ----------------------------------------X
+      test with various non-linear functions   
   Inequality-constrained
     Bound-constrained Newton methods (Augmented Lagrangian methods)   -----------X
       test with various non-linear functions   
@@ -202,11 +200,9 @@ Non-Linear Optimization problems
     Byrd-Omojokun SQP method (with non-negative limiters)   ---------------------X
       test with various non-linear functions   
     Line-search Interior-point method
-      Newton direction   
-      Quasi-Newton direction   
-    Trust-region Interior-point method
-      Newton direction   
-      Quasi-Newton direction   
+      test with various non-linear functions   
+    Trust-region Interior-point method   ----------------------------------------X
+      test with various non-linear functions   
     
 
 

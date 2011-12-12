@@ -52,6 +52,7 @@
 #include "vect_concepts.hpp"
 #include "vect_views.hpp"
 #include "vect_index_iterator.hpp"
+#include "mat_concepts.hpp"
 
 #include <boost/config.hpp>
 #include <boost/static_assert.hpp>
@@ -1822,6 +1823,10 @@ struct has_allocator_vector< vect_scalar<T,Size> > {
 };
 
 
+template <typename T, std::size_t Size>
+struct vect_copy< vect_scalar<T,Size> > {
+  typedef vect_n<T> type;
+};
 
 
 
@@ -2069,7 +2074,7 @@ Vector1& >::type operator +=(Vector1& v1, const Vector2& v2) {
     throw std::range_error("Vector size mismatch.");
   typedef typename vect_traits<Vector1>::size_type SizeType;
   for(SizeType i = 0; i < v1.size(); ++i)
-    v1[i] += v2[i];
+    v1[i] = v1[i] + v2[i];
   return v1;
 };
 
@@ -2088,7 +2093,7 @@ Vector1& >::type operator -=(Vector1& v1, const Vector2& v2) {
     throw std::range_error("Vector size mismatch.");
   typedef typename vect_traits<Vector1>::size_type SizeType;
   for(SizeType i = 0; i < v1.size(); ++i)
-    v1[i] -= v2[i];
+    v1[i] = v1[i] - v2[i];
   return v1;
 };
 
@@ -2105,7 +2110,7 @@ typename boost::enable_if<
 Vector& >::type operator *=(Vector& v, const T& S) {
   typedef typename vect_traits<Vector>::size_type SizeType;
   for(SizeType i = 0; i < v.size(); ++i)
-    v[i] *= S;
+    v[i] = v[i] * S;
   return v;
 };
 
@@ -2122,7 +2127,7 @@ typename boost::enable_if<
 Vector& >::type operator /=(Vector& v, const T& S) {
   typedef typename vect_traits<Vector>::size_type SizeType;
   for(SizeType i = 0; i < v.size(); ++i)
-    v[i] /= S;
+    v[i] = v[i] / S;
   return v;
 };
 
@@ -2208,7 +2213,8 @@ template <typename T, typename Vector>
 typename boost::enable_if< 
   boost::mpl::and_<
     is_readable_vector<Vector>,
-    boost::mpl::not_< is_readable_vector<T> >
+    boost::mpl::not_< is_readable_vector<T> >,
+    boost::mpl::not_< is_readable_matrix<T> >
   >,
 vect_copy<Vector> >::type::type operator *(const Vector& v, const T& S) {
   typename vect_copy<Vector>::type result(v);
@@ -2224,7 +2230,8 @@ template <typename T, typename Vector>
 typename boost::enable_if< 
   boost::mpl::and_<
     is_readable_vector<Vector>,
-    boost::mpl::not_< is_readable_vector<T> >
+    boost::mpl::not_< is_readable_vector<T> >,
+    boost::mpl::not_< is_readable_matrix<T> >
   >,
 vect_copy<Vector> >::type::type operator *(const T& S, const Vector& v) {
   typename vect_copy<Vector>::type result(v);
@@ -2240,7 +2247,8 @@ template <typename T, typename Vector>
 typename boost::enable_if< 
   boost::mpl::and_<
     is_readable_vector<Vector>,
-    boost::mpl::not_< is_readable_vector<T> >
+    boost::mpl::not_< is_readable_vector<T> >,
+    boost::mpl::not_< is_readable_matrix<T> >
   >,
 vect_copy<Vector> >::type::type operator /(const Vector& v, const T& S) {
   typename vect_copy<Vector>::type result(v);

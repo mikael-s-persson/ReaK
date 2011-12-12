@@ -72,13 +72,14 @@ namespace optim {
  * \param b The b vector of dimension M.
  * \param c The cost vector of dimension N.
  * \param x Stores, as output, the optimal vector.
- * \param tol The numerical tolerance to which the solution is accepted (relative tolerance on the steps).
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance to which the solution is accepted (tolerance on the steps).
  * 
  * \author Mikael Persson
  */
 template <typename Matrix, typename Vector1, typename Vector2>
-void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector2& x,
-		     typename vect_traits<Vector1>::value_type tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
+void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector2& x, unsigned int max_iter = 100,
+		     typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;
@@ -87,11 +88,11 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
   SizeType N = c.size();
   SizeType M = b.size();
   
-  mat<ValueType,mat_structure::rectangular> A_tmp(transpose(A));
+  mat<ValueType,mat_structure::rectangular> A_tmp(transpose_view(A));
   mat<ValueType,mat_structure::rectangular> R(N,M);
   mat<ValueType,mat_structure::square> Q(N);
-  decompose_QR(A_tmp,Q,R,tol);
-  mat<ValueType,mat_structure::rectangular> L = mat<ValueType,mat_structure::rectangular>(transpose(R));
+  decompose_QR(A_tmp,Q,R,abs_tol);
+  mat<ValueType,mat_structure::rectangular> L = mat<ValueType,mat_structure::rectangular>(transpose_view(R));
   L.set_col_count(M,true);
   
   // first phase, obtain a starting feasible interior-point solution:
@@ -146,8 +147,8 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
   Vector2 ds = s;
   
   ValueType eta(0.9);
-  ValueType abs_tol = (x * x) * tol;
   ValueType mu = (x * s) / ValueType(N);
+  unsigned int k = 0;
   
   //second phase, the predictor-corrector loop:
   do {
@@ -162,8 +163,8 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
       for(SizeType j = 0; j < M; ++j)
         A_tmp(i,j) = A(j,i) * tmp;
     };
-    decompose_QR(A_tmp,Q,R,tol);
-    L = transpose(R);
+    decompose_QR(A_tmp,Q,R,abs_tol);
+    L = transpose_view(R);
     L.set_col_count(M,true);
     mat_vect_adaptor<Vector1> dl_mat(dl);
     ReaK::detail::backsub_Cholesky_impl(L,dl_mat);
@@ -228,6 +229,9 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
       x_s /= s[i];
     
     eta += ValueType(0.25) * (ValueType(1.0) - eta);
+    
+    if(++k > max_iter)
+      throw maximum_iteration(max_iter);
   } while( (dx * dx) > abs_tol );
   
 };
@@ -258,22 +262,23 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
  * \param E The equality-constraint matrix of dimension K*N.
  * \param d The equality-constraint vector of dimension K.
  * \param x Stores, as output, the optimal vector.
- * \param tol The numerical tolerance to which the solution is accepted (relative tolerance on the steps).
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance to which the solution is accepted (tolerance on the steps).
  * 
  * \author Mikael Persson
  */
 template <typename Matrix1, typename Vector1, typename Matrix2, typename Vector2, typename Matrix3, typename Vector3>
 void mehrotra_QP_method(const Matrix1& A, const Vector1& b, 
 		        const Matrix2& G, const Vector2& c, 
-		        const Matrix3& E, const Vector3& d, Vector2& x,
-		        typename vect_traits<Vector1>::value_type tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
+		        const Matrix3& E, const Vector3& d, Vector2& x, unsigned int max_iter,
+		        typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;
   using std::fabs;
   
   if(A.get_row_count() == 0) {
-    null_space_QP_method(E,d,G,c,x,tol);
+    null_space_QP_method(E,d,G,c,x,abs_tol);
     return;
   };
   
@@ -281,11 +286,11 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
   SizeType M = b.size();
   SizeType K = d.size();
   
-  mat<ValueType,mat_structure::rectangular> E_tmp(transpose(E));
+  mat<ValueType,mat_structure::rectangular> E_tmp(transpose_view(E));
   mat<ValueType,mat_structure::rectangular> E_R(N,K);
   mat<ValueType,mat_structure::square> E_Q(N);
-  decompose_QR(E_tmp,E_Q,E_R,tol);
-  mat<ValueType,mat_structure::rectangular> E_L = mat<ValueType,mat_structure::rectangular>(transpose(E_R));
+  decompose_QR(E_tmp,E_Q,E_R,abs_tol);
+  mat<ValueType,mat_structure::rectangular> E_L = mat<ValueType,mat_structure::rectangular>(transpose_view(E_R));
   E_L.set_col_count(K,true);
   ValueType E_L_trace(0.0);
   for(SizeType i = 0; i < K; ++i)
@@ -311,7 +316,7 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
   if(K > 0) {
     r_e -= E * x;
     dx_y = r_e_mat;
-    ReaK::detail::forwardsub_L_impl(E_L,dx_y,tol * E_L_trace / ValueType(K));
+    ReaK::detail::forwardsub_L_impl(E_L,dx_y,abs_tol);
     
     mat<ValueType,mat_structure::rectangular> e_y = E_Y * dx_y;
     r_b_mat -= A * e_y;
@@ -332,7 +337,7 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
   mat<ValueType, mat_structure::symmetric> ZG_AAZ(transpose_view(AZ) * AZ + ZGZ);
   mat<ValueType, mat_structure::square> LHS_L(N-K);
   
-  decompose_Cholesky(ZG_AAZ, LHS_L, tol * trace(ZG_AAZ) / ValueType(N-K));
+  decompose_Cholesky(ZG_AAZ, LHS_L, abs_tol);
   ReaK::detail::backsub_Cholesky_impl(LHS_L, dx_z);
   
   Vector1 dl = r_b;
@@ -354,9 +359,9 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
       l[i] = ValueType(1.0);
   };
   
-  ValueType abs_tol = (x * x) * tol;
   ValueType mu = (y * l) / ValueType(M);
   ValueType eta(0.5);
+  unsigned int k = 0;
   
   do {
     r_c = -c;
@@ -370,7 +375,7 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     if(K > 0) {
       r_e -= E * x;
       dx_y = r_e_mat;
-      ReaK::detail::forwardsub_L_impl(E_L,dx_y,tol * E_L_trace / ValueType(K));
+      ReaK::detail::forwardsub_L_impl(E_L,dx_y,abs_tol);
     
       mat<ValueType,mat_structure::rectangular> e_y = E_Y * dx_y;
       r_b_mat -= A * e_y;
@@ -387,13 +392,13 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
 	AZ_temp(i,j) *= l[i] / y[i];
     };
     ZG_AAZ = transpose_view(AZ) * AZ_temp + ZGZ;
-    decompose_Cholesky(ZG_AAZ, LHS_L, tol * trace(ZG_AAZ) / ValueType(N-K));
+    decompose_Cholesky(ZG_AAZ, LHS_L, abs_tol);
     ReaK::detail::backsub_Cholesky_impl(LHS_L, dx_z);
     dl_mat = r_b_mat - AZ_temp * dx_z;
     for(SizeType i = 0; i < M; ++i)
       dy[i] = -y[i] * (dl[i] / l[i] + ValueType(1.0));
     
-    ValueType alpha = ValueType(1.0) - tol;
+    ValueType alpha = ValueType(0.995);
     for(SizeType i = 0; i < M; ++i) {
       if( y[i] < -alpha * dy[i] )
 	alpha = -y[i] / dy[i];
@@ -412,8 +417,8 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     for(SizeType i = 0; i < M; ++i)
       dy[i] = -y[i] * (dl[i] / l[i] + ValueType(1.0));
     
-    ValueType a_p = ValueType(1.0) - tol;
-    ValueType a_d = ValueType(1.0) - tol;
+    ValueType a_p = ValueType(0.995);
+    ValueType a_d = ValueType(0.995);
     for(SizeType i = 0; i < M; ++i) {
       if( a_p * dy[i] < -eta * y[i] )
 	a_p = -eta * y[i] / dy[i];
@@ -426,7 +431,9 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     y += alpha * dy;
     
     eta += ValueType(0.25) * (ValueType(1.0) - eta);
-    if( alpha * alpha * (dx * dx) < abs_tol )
+    if(++k > max_iter)
+      throw maximum_iteration(max_iter);
+    if( alpha * norm_2(dx) < abs_tol )
       break;
   } while( true );
   

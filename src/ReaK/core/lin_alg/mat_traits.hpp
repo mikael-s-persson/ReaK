@@ -43,7 +43,6 @@
 #include <boost/type_traits.hpp>
 
 #include "rtti/so_type.hpp"
-#include "vect_alg.hpp"
 
 namespace ReaK {
   

@@ -124,7 +124,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  BFGS method started at " << x_2D << std::endl;
-  ReaK::optim::bfgs_method(banana_function,banana_function_grad, x_2D, 1e-7);
+  ReaK::optim::bfgs_method(banana_function,banana_function_grad, x_2D, 100, 1e-7, 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
   std::cout << "    function gives: " << banana_function(x_2D) << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
   
@@ -132,7 +132,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  DFP method started at " << x_2D << std::endl;
-  ReaK::optim::dfp_method(banana_function,banana_function_grad, x_2D, 1e-7);
+  ReaK::optim::dfp_method(banana_function,banana_function_grad, x_2D, 100, 1e-7, 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
   std::cout << "    function gives: " << banana_function(x_2D) << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
   
@@ -140,7 +140,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  Broyden-class method started at " << x_2D << std::endl;
-  ReaK::optim::broyden_class_method(banana_function,banana_function_grad, x_2D, 0.5, 1e-7);
+  ReaK::optim::broyden_class_method(banana_function,banana_function_grad, x_2D, 0.5, 100, 1e-7, 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
   std::cout << "    function gives: " << banana_function(x_2D) << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
   
@@ -148,7 +148,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  FR CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(banana_function,banana_function_grad, x_2D, 
+  ReaK::optim::non_linear_conj_grad_method(banana_function,banana_function_grad, x_2D, 100,
 					   ReaK::optim::fletcher_reeves_beta(), 
 					   ReaK::optim::line_search_expand_and_zoom<double>(1e-4,0.1), 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
@@ -158,7 +158,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  PR CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(banana_function,banana_function_grad, x_2D, 
+  ReaK::optim::non_linear_conj_grad_method(banana_function,banana_function_grad, x_2D, 100,
 					   ReaK::optim::polak_ribiere_beta(), 
 					   ReaK::optim::line_search_expand_and_zoom<double>(1e-4,0.1), 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
@@ -168,7 +168,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  HS CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(banana_function,banana_function_grad, x_2D, 
+  ReaK::optim::non_linear_conj_grad_method(banana_function,banana_function_grad, x_2D, 100,
 					   ReaK::optim::hestenes_stiefel_beta(), 
 					   ReaK::optim::line_search_expand_and_zoom<double>(1e-4,0.1), 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
@@ -178,7 +178,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  DY CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(banana_function,banana_function_grad, x_2D, 
+  ReaK::optim::non_linear_conj_grad_method(banana_function,banana_function_grad, x_2D, 100,
 					   ReaK::optim::dai_yuan_beta(), 
 					   ReaK::optim::line_search_expand_and_zoom<double>(1e-4,0.1), 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
@@ -188,7 +188,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  HZ CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(banana_function,banana_function_grad, x_2D, 
+  ReaK::optim::non_linear_conj_grad_method(banana_function,banana_function_grad, x_2D, 100,
 					   ReaK::optim::hager_zhang_beta(), 
 					   ReaK::optim::line_search_expand_and_zoom<double>(1e-4,0.1), 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
@@ -199,9 +199,9 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  SR1 trust-region method started at " << x_2D << std::endl;
-  ReaK::optim::quasi_newton_trust_region(banana_function,banana_function_grad, x_2D, 0.5, 
+  ReaK::optim::quasi_newton_trust_region(banana_function,banana_function_grad, x_2D, 0.5, 100,
 					 ReaK::optim::trust_region_solver_dogleg(),
-					 ReaK::optim::hessian_update_sr1(), ReaK::optim::no_limit_functor(), 1e-7);
+					 ReaK::optim::hessian_update_sr1(), ReaK::optim::no_limit_functor(), 1e-7, 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
   std::cout << "    function gives: " << banana_function(x_2D) << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
   
@@ -226,7 +226,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  BFGS method started at " << x_2D << std::endl;
-  ReaK::optim::bfgs_method(easy_function,easy_function_grad, x_2D, 1e-7);
+  ReaK::optim::bfgs_method(easy_function,easy_function_grad, x_2D, 100, 1e-7, 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
   std::cout << "    function gives: " << easy_function(x_2D) << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
   
@@ -234,7 +234,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  DFP method started at " << x_2D << std::endl;
-  ReaK::optim::dfp_method(easy_function,easy_function_grad, x_2D, 1e-7);
+  ReaK::optim::dfp_method(easy_function,easy_function_grad, x_2D, 100, 1e-7, 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
   std::cout << "    function gives: " << easy_function(x_2D) << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
   
@@ -242,7 +242,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  Broyden-class method started at " << x_2D << std::endl;
-  ReaK::optim::broyden_class_method(easy_function,easy_function_grad, x_2D, 0.5, 1e-7);
+  ReaK::optim::broyden_class_method(easy_function,easy_function_grad, x_2D, 0.5, 100, 1e-7, 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
   std::cout << "    function gives: " << easy_function(x_2D) << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
   
@@ -250,7 +250,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  FR CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(easy_function,easy_function_grad, x_2D, 
+  ReaK::optim::non_linear_conj_grad_method(easy_function,easy_function_grad, x_2D, 100,
 					   ReaK::optim::fletcher_reeves_beta(), 
 					   ReaK::optim::line_search_expand_and_zoom<double>(1e-4,0.1), 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
@@ -260,7 +260,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  PR CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(easy_function,easy_function_grad, x_2D, 
+  ReaK::optim::non_linear_conj_grad_method(easy_function,easy_function_grad, x_2D, 100,
 					   ReaK::optim::polak_ribiere_beta(), 
 					   ReaK::optim::line_search_expand_and_zoom<double>(1e-4,0.1), 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
@@ -270,7 +270,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  HS CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(easy_function,easy_function_grad, x_2D, 
+  ReaK::optim::non_linear_conj_grad_method(easy_function,easy_function_grad, x_2D, 100,
 					   ReaK::optim::hestenes_stiefel_beta(), 
 					   ReaK::optim::line_search_expand_and_zoom<double>(1e-4,0.1), 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
@@ -280,7 +280,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  DY CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(easy_function,easy_function_grad, x_2D, 
+  ReaK::optim::non_linear_conj_grad_method(easy_function,easy_function_grad, x_2D, 100,
 					   ReaK::optim::dai_yuan_beta(), 
 					   ReaK::optim::line_search_expand_and_zoom<double>(1e-4,0.1), 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
@@ -290,7 +290,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  HZ CG method started at " << x_2D << std::endl;
-  ReaK::optim::non_linear_conj_grad_method(easy_function,easy_function_grad, x_2D, 
+  ReaK::optim::non_linear_conj_grad_method(easy_function,easy_function_grad, x_2D, 100,
 					   ReaK::optim::hager_zhang_beta(), 
 					   ReaK::optim::line_search_expand_and_zoom<double>(1e-4,0.1), 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
@@ -301,9 +301,9 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  SR1 trust-region method started at " << x_2D << std::endl;
-  ReaK::optim::quasi_newton_trust_region(easy_function,easy_function_grad, x_2D, 0.5, 
+  ReaK::optim::quasi_newton_trust_region(easy_function,easy_function_grad, x_2D, 0.5, 100,
 					 ReaK::optim::trust_region_solver_dogleg(),
-					 ReaK::optim::hessian_update_sr1(), ReaK::optim::no_limit_functor(), 1e-7);
+					 ReaK::optim::hessian_update_sr1(), ReaK::optim::no_limit_functor(), 1e-7, 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
   std::cout << "    function gives: " << easy_function(x_2D) << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
   

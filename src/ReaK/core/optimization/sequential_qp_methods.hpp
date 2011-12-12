@@ -68,7 +68,7 @@ namespace detail {
 				        Vector& x, typename vect_traits<Vector>::value_type max_radius,
 					unsigned int max_iter,
 			                TrustRegionSolver solve_step, LimitFunction impose_limits, 
-			                typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6), 
+			                typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
 				        typename vect_traits<Vector>::value_type kappa = typename vect_traits<Vector>::value_type(1e-4), 
 				        typename vect_traits<Vector>::value_type rho = typename vect_traits<Vector>::value_type(1e-4)) {
     typedef typename vect_traits<Vector>::value_type ValueType;
@@ -80,16 +80,16 @@ namespace detail {
     Vector gt_value = g_value;
     SizeType M = g_value.size();
     
-    mat<T, mat_structure::rectangular> Jac_g(M,N);
+    mat<ValueType, mat_structure::rectangular> Jac_g(M,N);
     fill_g_jac(Jac_g,x,g_value);
-    mat_transpose_view< mat<T, mat_structure::rectangular> > Jac_g_t = transpose_view(Jac_g);
+    mat_transpose_view< mat<ValueType, mat_structure::rectangular> > Jac_g_t = transpose_view(Jac_g);
     
     if(M == 0) { //this means it is an unconstrained problem.
-      newton_method_tr_impl(f,df,fill_hessian,x,max_radius,solve_step,impose_limits,tol);
+      newton_method_tr_impl(f,df,fill_hessian,x,max_radius,max_iter,solve_step,impose_limits,abs_tol,abs_tol,kappa);
       return;
     };
     
-    ValueType mu(0.0);
+    ValueType mu = -std::numeric_limits<ValueType>::infinity();
     
     ValueType radius = ValueType(0.5) * max_radius;
     ValueType x_value = f(x);
@@ -97,14 +97,12 @@ namespace detail {
     
     Vector l(M, ValueType(1.0)); //choose initial lambda vector to be 1.0.
     mat_vect_adaptor<Vector> l_mat(l);
-    linlsq_QR(Jac_g_t,l_mat,mat_vect_adaptor<Vector>(x_grad),norm_2(l * Jac_g) * tol / ValueType(N));
+    linlsq_QR(Jac_g_t,l_mat,mat_vect_adaptor<Vector>(x_grad),abs_tol);
     
     ValueType c_norm_star = norm_2(g_value);
-    ValueType abs_c_tol = tol * c_norm_star;
     Vector lag(x_grad - l * Jac_g);
     Vector lagt = lag;
-    ValueType norm_star = norm_2(lag);
-    ValueType abs_grad_tol = tol * norm_star;
+    ValueType norm_star = norm_2(lag);;
     
     
     mat<ValueType,mat_structure::symmetric> H(mat<ValueType,mat_structure::identity>(x.size()));
@@ -119,12 +117,18 @@ namespace detail {
     
     unsigned int k = 0;
     
-    while((norm_star > abs_grad_tol) || (c_norm_star > abs_c_tol)) {
+    while((norm_star > abs_tol) || (c_norm_star > abs_tol)) {
       
-      solve_step(g_value,Jac_g,v,norm_v,ValueType(0.8) * radius,tol);
+      solve_step(g_value,Jac_g,v,norm_v,ValueType(0.8) * radius,abs_tol);
       r = g_value; r += Jac_g * v;
       
-      projected_CG_method(Jac_g, r - g_value, H, x_grad, p, tol);
+      try {
+	null_space_QP_method(Jac_g, r - g_value, H, x_grad, p, abs_tol, radius);
+      } catch(singularity_error&) {
+	try {
+          projected_CG_method(Jac_g, r - g_value, H, x_grad, p, max_iter, abs_tol);
+	} catch(maximum_iteration&) { };
+      };
       norm_p = norm_2(p);
       if(norm_p > radius) {
 	p *= radius / norm_p;
@@ -135,11 +139,11 @@ namespace detail {
       ValueType pHp = p * (H * p);
       ValueType mu_t;
       if(pHp > ValueType(0.0))
-        mu_t = (x_grad * p + ValueType(0.5) * pHp) / ((ValueType(1.0) - rho) * norm_1(g_value));
+        mu_t = fabs(x_grad * p + ValueType(0.5) * pHp) / ((ValueType(1.0) - rho) * norm_1(g_value));
       else
-	mu_t = (x_grad * p) / ((ValueType(1.0) - rho) * norm_1(g_value));
+	mu_t = fabs(x_grad * p) / ((ValueType(1.0) - rho) * norm_1(g_value));
       if(mu < mu_t)
-	mu = mu_t + abs_c_tol;
+	mu = mu_t + abs_tol;
       
       ValueType pred = mu * (c_norm_star - norm_2(g_value + Jac_g * p))
                        - x_grad * p - pHp;
@@ -147,6 +151,10 @@ namespace detail {
       ValueType xt_value = f(xt);
       gt_value = g(xt);
       ValueType ared = x_value + mu * c_norm_star - xt_value - mu * norm_2(gt_value);
+      
+      //RK_NOTICE(1,"  x = " << x << " xt = " << xt << " x_value = " << x_value << " xt_value = " << xt_value);
+      //RK_NOTICE(1,"  H = " << H << " Jac_g = " << Jac_g << " p = " << p << " pHp = " << pHp << " grad * p = " << x_grad * p);
+      //RK_NOTICE(1,"  pred = " << pred << " ared = " << pred << " mu = " << mu << " c_norm = " << c_norm_star << " ct_norm = " << norm_2(gt_value));
       
       if(ared > kappa * pred) {
 	//step is accepted.
@@ -156,12 +164,12 @@ namespace detail {
 	g_value = gt_value;
 	c_norm_star = norm_2(g_value);
 	fill_g_jac(Jac_g,x,g_value);
-        if(norm_p > ValueType(0.8) * radius) {
+        if((ared > 0.8 * pred) && (norm_p > ValueType(0.8) * radius)) {
           radius *= ValueType(2.0);
           if(radius > max_radius)
             radius = max_radius;
         };
-        linlsq_QR(Jac_g_t,l_mat,mat_vect_adaptor<Vector>(x_grad),abs_grad_tol);
+        linlsq_QR(Jac_g_t,l_mat,mat_vect_adaptor<Vector>(x_grad),abs_tol);
 	lagt = x_grad - l * Jac_g;
 	norm_star = norm_2(lagt);
         fill_hessian(H,x,x_value,x_grad,p,lagt - lag);
@@ -357,8 +365,8 @@ struct bosqp_newton_tr_factory {
    */
   template <typename NewEqFunction, typename NewEqJacFunction>
   bosqp_newton_tr_factory<Function,GradFunction,HessianFunction,T,
-                               NewEqFunction, NewEqJacFunction,
-                               TrustRegionSolver, LimitFunction>
+                          NewEqFunction, NewEqJacFunction,
+                          TrustRegionSolver, LimitFunction>
     set_eq_constraints(NewEqFunction new_g, NewEqJacFunction new_fill_g_jac) const {
     return bosqp_newton_tr_factory<Function,GradFunction,HessianFunction,T,
                                    NewEqFunction, NewEqJacFunction,

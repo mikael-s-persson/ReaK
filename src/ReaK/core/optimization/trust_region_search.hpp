@@ -54,12 +54,12 @@ namespace detail {
  
   
   template <typename Vector, typename Matrix, typename T>
-  void compute_cauchy_point_impl(const Vector& g, const Matrix& B, Vector& p, T& norm_p, T radius, T tol) {
+  void compute_cauchy_point_impl(const Vector& g, const Matrix& B, Vector& p, T& norm_p, T radius, T abs_tol) {
     T norm_g = norm_2(g);
     p = (-radius / norm_g) * g;
     norm_p = radius;
     T gBg = g * (B * g);
-    if( gBg > tol * norm_g ) {
+    if( gBg > abs_tol ) {
       T tau = norm_g * norm_g * norm_g / (radius * gBg);
       if(tau < T(1.0)) {
         p *= tau;
@@ -70,7 +70,7 @@ namespace detail {
   
   
   template <typename Vector, typename Matrix, typename T, typename NewtonDirectioner>
-  void compute_dogleg_point_impl(const Vector& g, const Matrix& B, Vector& p, T& norm_p, T radius, NewtonDirectioner get_direction, T tol) {
+  void compute_dogleg_point_impl(const Vector& g, const Matrix& B, Vector& p, T& norm_p, T radius, NewtonDirectioner get_direction, T abs_tol) {
     using std::sqrt;
     T gg = g * g;
     T gBg = g * (B * g);
@@ -85,10 +85,15 @@ namespace detail {
     
     Vector pb = g;
     try {
-      get_direction(B,g,pb,tol);
+      get_direction(B,g,pb,abs_tol);
     } catch(singularity_error&) {
       p = pu;
       norm_p = sqrt(norm_sqr_pu);
+      return;
+    };
+    if(pb * (B * pb) < 0.0) {
+      p = pu;
+      norm_p = norm_2(p);
       return;
     };
     norm_p = norm_2(pb);
@@ -119,7 +124,7 @@ namespace detail {
   
   
   template <typename Vector1, typename Matrix, typename Vector2, typename T, typename NewtonDirectioner>
-  void compute_right_pinv_dogleg_impl(const Vector1& c, const Matrix& A, Vector2& p, T& norm_p, T radius, NewtonDirectioner get_direction, T tol) {
+  void compute_right_pinv_dogleg_impl(const Vector1& c, const Matrix& A, Vector2& p, T& norm_p, T radius, NewtonDirectioner get_direction, T abs_tol) {
     using std::sqrt;
     
     Vector2 Atc = c * A;
@@ -136,12 +141,17 @@ namespace detail {
     };
     
     Vector1 cb = c;
-    mat<T,mat_structure::symmetric> AAt = A * transpose(A);
+    mat<T,mat_structure::symmetric> AAt ( A * transpose_view(A) );
     try {
-      get_direction(AAt,c,cb,tol);
+      get_direction(AAt,c,cb,abs_tol);
     } catch(singularity_error&) {
       p = pu;
       norm_p = sqrt(norm_sqr_pu);
+      return;
+    };
+    if(cb * (AAt * cb) < 0.0) {
+      p = pu;
+      norm_p = norm_2(p);
       return;
     };
     Vector2 pb = cb * A;
@@ -186,7 +196,7 @@ namespace detail {
  * \param p The resulting cauchy-point.
  * \param norm_p The resulting norm of the cauchy-point (less-than or equal to the trust-region radius).
  * \param radius The radius of the trust-region.
- * \param tol The tolerance at which to consider values to be zero.
+ * \param abs_tol The tolerance at which to consider values to be zero.
  */
 template <typename Vector, typename Matrix>
 typename boost::enable_if<
@@ -194,8 +204,8 @@ typename boost::enable_if<
     is_writable_vector<Vector>,
     is_readable_matrix<Matrix>
   >,
-void >::type compute_cauchy_point(const Vector& g, const Matrix& B, Vector& p, typename vect_traits<Vector>::value_type& norm_p, typename vect_traits<Vector>::value_type radius, typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
-  detail::compute_cauchy_point_impl(g,B,p,norm_p,radius,tol);
+void >::type compute_cauchy_point(const Vector& g, const Matrix& B, Vector& p, typename vect_traits<Vector>::value_type& norm_p, typename vect_traits<Vector>::value_type radius, typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+  detail::compute_cauchy_point_impl(g,B,p,norm_p,radius,abs_tol);
 };
 
 /**
@@ -214,11 +224,11 @@ struct trust_region_solver_cauchy {
    * \param p The resulting cauchy-point.
    * \param norm_p The resulting norm of the cauchy-point (less-than or equal to the trust-region radius).
    * \param radius The radius of the trust-region.
-   * \param tol The tolerance at which to consider values to be zero.
+   * \param abs_tol The tolerance at which to consider values to be zero.
    */
   template <typename Vector, typename Matrix>
-  void operator()(const Vector& g, const Matrix& B, Vector& p, typename vect_traits<Vector>::value_type& norm_p, typename vect_traits<Vector>::value_type radius, typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) const {
-    compute_cauchy_point(g,B,p,norm_p,radius,tol);
+  void operator()(const Vector& g, const Matrix& B, Vector& p, typename vect_traits<Vector>::value_type& norm_p, typename vect_traits<Vector>::value_type radius, typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) const {
+    compute_cauchy_point(g,B,p,norm_p,radius,abs_tol);
   };
 };
 
@@ -235,7 +245,7 @@ struct trust_region_solver_cauchy {
  * \param p The resulting cauchy-point.
  * \param norm_p The resulting norm of the cauchy-point (less-than or equal to the trust-region radius).
  * \param radius The radius of the trust-region.
- * \param tol The tolerance at which to consider values to be zero.
+ * \param abs_tol The tolerance at which to consider values to be zero.
  */
 template <typename Vector, typename Matrix>
 typename boost::enable_if<
@@ -243,8 +253,8 @@ typename boost::enable_if<
     is_writable_vector<Vector>,
     is_readable_matrix<Matrix>
   >,
-void >::type compute_dogleg_point(const Vector& g, const Matrix& B, Vector& p, typename vect_traits<Vector>::value_type& norm_p, typename vect_traits<Vector>::value_type radius, typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
-  detail::compute_dogleg_point_impl(g,B,p,norm_p,radius,newton_direction<Matrix,Vector>,tol);
+void >::type compute_dogleg_point(const Vector& g, const Matrix& B, Vector& p, typename vect_traits<Vector>::value_type& norm_p, typename vect_traits<Vector>::value_type radius, typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+  detail::compute_dogleg_point_impl(g,B,p,norm_p,radius,newton_direction<Matrix,Vector>,abs_tol);
 };
 
 /**
@@ -263,11 +273,11 @@ struct trust_region_solver_dogleg {
    * \param p The resulting cauchy-point.
    * \param norm_p The resulting norm of the cauchy-point (less-than or equal to the trust-region radius).
    * \param radius The radius of the trust-region.
-   * \param tol The tolerance at which to consider values to be zero.
+   * \param abs_tol The tolerance at which to consider values to be zero.
    */
   template <typename Vector, typename Matrix>
-  void operator()(const Vector& g, const Matrix& B, Vector& p, typename vect_traits<Vector>::value_type& norm_p, typename vect_traits<Vector>::value_type radius, typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) const {
-    compute_dogleg_point(g,B,p,norm_p,radius,tol);
+  void operator()(const Vector& g, const Matrix& B, Vector& p, typename vect_traits<Vector>::value_type& norm_p, typename vect_traits<Vector>::value_type radius, typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) const {
+    compute_dogleg_point(g,B,p,norm_p,radius,abs_tol);
   };
 };
 
@@ -297,11 +307,11 @@ struct trust_region_solver_dogleg_reg {
    * \param p The resulting cauchy-point.
    * \param norm_p The resulting norm of the cauchy-point (less-than or equal to the trust-region radius).
    * \param radius The radius of the trust-region.
-   * \param tol The tolerance at which to consider values to be zero.
+   * \param abs_tol The tolerance at which to consider values to be zero.
    */
   template <typename Vector, typename Matrix>
-  void operator()(const Vector& g, const Matrix& B, Vector& p, typename vect_traits<Vector>::value_type& norm_p, typename vect_traits<Vector>::value_type radius, typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) const {
-    detail::compute_dogleg_point_impl(g,B,p,norm_p,radius,boost::bind(&regularized_newton_directioner<T>::template operator()<Matrix,Vector>,&get_reg_direction,_1,_2,_3,_4),tol);
+  void operator()(const Vector& g, const Matrix& B, Vector& p, typename vect_traits<Vector>::value_type& norm_p, typename vect_traits<Vector>::value_type radius, typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) const {
+    detail::compute_dogleg_point_impl(g,B,p,norm_p,radius,boost::bind(&regularized_newton_directioner<T>::template operator()<Matrix,Vector>,&get_reg_direction,_1,_2,_3,_4),abs_tol);
   };
 };
 
@@ -319,7 +329,7 @@ struct trust_region_solver_dogleg_reg {
  * \param p The resulting point.
  * \param norm_p The resulting norm of the cauchy-point (less-than or equal to the trust-region radius).
  * \param radius The radius of the trust-region.
- * \param tol The tolerance at which to consider values to be zero.
+ * \param abs_tol The tolerance at which to consider values to be zero.
  */
 template <typename Vector1, typename Matrix, typename Vector2>
 typename boost::enable_if<
@@ -328,8 +338,8 @@ typename boost::enable_if<
     is_readable_matrix<Matrix>,
     is_writable_vector<Vector2>
   >,
-void >::type compute_right_pinv_dogleg(const Vector1& g, const Matrix& B, Vector2& p, typename vect_traits<Vector2>::value_type& norm_p, typename vect_traits<Vector2>::value_type radius, typename vect_traits<Vector2>::value_type tol = typename vect_traits<Vector2>::value_type(1e-6)) {
-  detail::compute_right_pinv_dogleg_impl(g,B,p,norm_p,radius,newton_direction<mat<typename vect_traits<Vector2>::value_type,mat_structure::symmetric>,Vector1>,tol);
+void >::type compute_right_pinv_dogleg(const Vector1& g, const Matrix& B, Vector2& p, typename vect_traits<Vector2>::value_type& norm_p, typename vect_traits<Vector2>::value_type radius, typename vect_traits<Vector2>::value_type abs_tol = typename vect_traits<Vector2>::value_type(1e-6)) {
+  detail::compute_right_pinv_dogleg_impl(g,B,p,norm_p,radius,newton_direction<mat<typename vect_traits<Vector2>::value_type,mat_structure::symmetric>,Vector1>,abs_tol);
 };
 
 /**
@@ -351,11 +361,11 @@ struct tr_solver_right_pinv_dogleg {
    * \param p The resulting point.
    * \param norm_p The resulting norm of the cauchy-point (less-than or equal to the trust-region radius).
    * \param radius The radius of the trust-region.
-   * \param tol The tolerance at which to consider values to be zero.
+   * \param abs_tol The tolerance at which to consider values to be zero.
    */
   template <typename Vector1, typename Matrix, typename Vector2>
-  void operator()(const Vector1& g, const Matrix& B, Vector2& p, typename vect_traits<Vector2>::value_type& norm_p, typename vect_traits<Vector2>::value_type radius, typename vect_traits<Vector2>::value_type tol = typename vect_traits<Vector2>::value_type(1e-6)) const {
-    compute_right_pinv_dogleg(g,B,p,norm_p,radius,tol);
+  void operator()(const Vector1& g, const Matrix& B, Vector2& p, typename vect_traits<Vector2>::value_type& norm_p, typename vect_traits<Vector2>::value_type radius, typename vect_traits<Vector2>::value_type abs_tol = typename vect_traits<Vector2>::value_type(1e-6)) const {
+    compute_right_pinv_dogleg(g,B,p,norm_p,radius,abs_tol);
   };
 };
 
@@ -386,11 +396,11 @@ struct tr_solver_right_pinv_dogleg_reg {
    * \param p The resulting point.
    * \param norm_p The resulting norm of the cauchy-point (less-than or equal to the trust-region radius).
    * \param radius The radius of the trust-region.
-   * \param tol The tolerance at which to consider values to be zero.
+   * \param abs_tol The tolerance at which to consider values to be zero.
    */
   template <typename Vector1, typename Matrix, typename Vector2>
-  void operator()(const Vector1& g, const Matrix& B, Vector2& p, typename vect_traits<Vector2>::value_type& norm_p, typename vect_traits<Vector2>::value_type radius, typename vect_traits<Vector2>::value_type tol = typename vect_traits<Vector2>::value_type(1e-6)) const {
-    detail::compute_right_pinv_dogleg_impl(g,B,p,norm_p,radius,boost::bind(&regularized_newton_directioner<T>::template operator()<mat<typename vect_traits<Vector2>::value_type,mat_structure::symmetric>,Vector1>,&get_reg_direction,_1,_2,_3,_4),tol);
+  void operator()(const Vector1& g, const Matrix& B, Vector2& p, typename vect_traits<Vector2>::value_type& norm_p, typename vect_traits<Vector2>::value_type radius, typename vect_traits<Vector2>::value_type abs_tol = typename vect_traits<Vector2>::value_type(1e-6)) const {
+    detail::compute_right_pinv_dogleg_impl(g,B,p,norm_p,radius,boost::bind(&regularized_newton_directioner<T>::template operator()<mat<typename vect_traits<Vector2>::value_type,mat_structure::symmetric>,Vector1>,&get_reg_direction,_1,_2,_3,_4),abs_tol);
   };
 };
 

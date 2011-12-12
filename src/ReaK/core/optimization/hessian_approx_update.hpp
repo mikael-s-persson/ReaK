@@ -58,7 +58,7 @@ template <typename Matrix, typename Vector>
 typename boost::enable_if<
   boost::mpl::and_<
     is_readable_vector<Vector>,
-    is_fully_writable_matrix<Matrix>
+    is_writable_matrix<Matrix>
   >,
 void >::type sr1_hessian_update(Matrix& B, const Vector& dx, const Vector& dy) {
   typedef typename mat_traits<Matrix>::value_type ValueType;
@@ -99,7 +99,7 @@ template <typename Matrix, typename Vector>
 typename boost::enable_if<
   boost::mpl::and_<
     is_readable_vector<Vector>,
-    is_fully_writable_matrix<Matrix>
+    is_writable_matrix<Matrix>
   >,
 void >::type sr1_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& dy) {
   typedef typename mat_traits<Matrix>::value_type ValueType;
@@ -139,7 +139,7 @@ template <typename Matrix, typename Vector>
 typename boost::enable_if<
   boost::mpl::and_<
     is_readable_vector<Vector>,
-    is_fully_writable_matrix<Matrix>
+    is_writable_matrix<Matrix>
   >,
 void >::type dfp_hessian_update(Matrix& B, const Vector& dx, const Vector& dy) {
   typedef typename mat_traits<Matrix>::value_type ValueType;
@@ -179,7 +179,7 @@ template <typename Matrix, typename Vector>
 typename boost::enable_if<
   boost::mpl::and_<
     is_readable_vector<Vector>,
-    is_fully_writable_matrix<Matrix>
+    is_writable_matrix<Matrix>
   >,
 void >::type dfp_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& dy) {
   typedef typename mat_traits<Matrix>::value_type ValueType;
@@ -223,7 +223,7 @@ template <typename Matrix, typename Vector>
 typename boost::enable_if<
   boost::mpl::and_<
     is_readable_vector<Vector>,
-    is_fully_writable_matrix<Matrix>
+    is_writable_matrix<Matrix>
   >,
 void >::type bfgs_hessian_update(Matrix& B, const Vector& dx, const Vector& dy) {
   typedef typename mat_traits<Matrix>::value_type ValueType;
@@ -265,7 +265,7 @@ template <typename Matrix, typename Vector>
 typename boost::enable_if<
   boost::mpl::and_<
     is_readable_vector<Vector>,
-    is_fully_writable_matrix<Matrix>
+    is_writable_matrix<Matrix>
   >,
 void >::type bfgs_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& dy) {
   typedef typename mat_traits<Matrix>::value_type ValueType;
@@ -309,7 +309,7 @@ template <typename Matrix, typename Vector>
 typename boost::enable_if<
   boost::mpl::and_<
     is_readable_vector<Vector>,
-    is_fully_writable_matrix<Matrix>
+    is_writable_matrix<Matrix>
   >,
 void >::type broyden_class_hessian_update(Matrix& B, const Vector& dx, const Vector& dy, typename vect_traits<Vector>::value_type phi = typename vect_traits<Vector>::value_type(0.5)) {
   typedef typename mat_traits<Matrix>::value_type ValueType;
@@ -357,7 +357,7 @@ template <typename Matrix, typename Vector>
 typename boost::enable_if<
   boost::mpl::and_<
     is_readable_vector<Vector>,
-    is_fully_writable_matrix<Matrix>
+    is_writable_matrix<Matrix>
   >,
 void >::type broyden_class_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& dy, typename vect_traits<Vector>::value_type phi = typename vect_traits<Vector>::value_type(0.5)) {
   typedef typename mat_traits<Matrix>::value_type ValueType;

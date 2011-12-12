@@ -54,7 +54,9 @@ template <typename Function, typename GradFunction,
           typename InputVector, typename OutputVector, 
 	  typename LimitFunction>
 void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter,
-			           LimitFunction impose_limits, typename vect_traits<InputVector>::value_type tol = typename vect_traits<InputVector>::value_type(1e-6)) {
+			           LimitFunction impose_limits, 
+				   typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6), 
+				   typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
   typedef typename vect_traits<InputVector>::value_type ValueType;
   using std::sqrt; using std::fabs;
   
@@ -63,8 +65,6 @@ void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVecto
   mat<ValueType, mat_structure::rectangular> J(y.size(), x.size());
   InputVector e = x; e -= x;
   OutputVector Je = y;
-  ValueType abs_x_tol = norm_2(x) * tol;
-  ValueType abs_sqr_y_tol = (y * y) * tol;
   unsigned int iter = 0;
   do {
     if(++iter > max_iter)
@@ -76,12 +76,12 @@ void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVecto
     e = r * J;
     Je = J * e;
     ValueType alpha = Je * Je;
-    if(alpha < abs_sqr_y_tol)
+    if(alpha < abs_grad_tol)
       return;
     alpha = (r * Je) / alpha;
     e *= alpha;
     impose_limits(x,e);
-  } while(norm_2(e) > abs_x_tol);
+  } while(norm_2(e) > abs_tol);
 };
 
 };
@@ -100,13 +100,16 @@ void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVecto
  * \param fill_jac The Jacobian of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
  * \param y The fixed vector of outputs to be matched in a least-square approximation.
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance on the norm of the step size.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, 
           typename InputVector, typename OutputVector>
 void jacobian_transpose_nllsq(Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter = 100, 
-			      typename vect_traits<InputVector>::value_type tol = typename vect_traits<InputVector>::value_type(1e-6)) {
-  detail::jacobian_transpose_nllsq_impl(f,fill_jac,x,y,max_iter,no_limit_functor(),tol);
+			      typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6), 
+			      typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
+  detail::jacobian_transpose_nllsq_impl(f,fill_jac,x,y,max_iter,no_limit_functor(),abs_tol,abs_grad_tol);
 };
 
 /**
@@ -124,15 +127,18 @@ void jacobian_transpose_nllsq(Function f, GradFunction fill_jac, InputVector& x,
  * \param fill_jac The Jacobian of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
  * \param y The fixed vector of outputs to be matched in a least-square approximation.
+ * \param max_iter The maximum number of iterations to perform.
  * \param impose_limits The functor to use to limit the proposed steps to satisfy some constraints on the underlying independent vector-space.
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param abs_tol The tolerance on the norm of the step size.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, 
           typename InputVector, typename OutputVector, 
 	  typename LimitFunction>
 void limited_jacobian_transpose_nllsq(Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter,
-			     LimitFunction impose_limits, typename vect_traits<InputVector>::value_type tol = typename vect_traits<InputVector>::value_type(1e-6)) {
-  detail::jacobian_transpose_nllsq_impl(f,fill_jac,x,y,max_iter,impose_limits,tol);
+				      LimitFunction impose_limits, typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6),
+				      typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
+  detail::jacobian_transpose_nllsq_impl(f,fill_jac,x,y,max_iter,impose_limits,abs_tol,abs_grad_tol);
 };
 
 

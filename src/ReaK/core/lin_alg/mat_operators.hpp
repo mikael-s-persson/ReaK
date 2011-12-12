@@ -921,19 +921,24 @@ typename boost::enable_if_c< is_readable_matrix<Matrix2>::value &&
  * \throw std::range_error if the matrix column count does not correspond to the vector dimension.
  * \test PASSED
  */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Vector>
-typename boost::enable_if_c< is_readable_vector<Vector>::value, 
- vect_n< T, Allocator > >::type
-  operator *(const mat<T,Structure,Alignment,Allocator>& M, const Vector& V) {
-    typedef vect_n< T, Allocator > result_type;
+template <typename Matrix, typename Vector>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_readable_matrix<Matrix>,
+    is_readable_vector<Vector>
+ >,
+vect_copy<Vector> >::type::type operator *(const Matrix& M, const Vector& V) {
+    typedef typename vect_copy< Vector >::type result_type;
     if(V.size() != M.get_col_count())
       throw std::range_error("Matrix dimension mismatch.");
-    typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::value_type ValueType;
-    typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::size_type SizeType;
-    result_type result(M.get_row_count(),T(0),M.get_allocator());
-    for(SizeType i=0;i<M.get_row_count();++i)
+    typedef typename mat_traits< Matrix >::value_type ValueType;
+    typedef typename mat_traits< Matrix >::size_type SizeType;
+    result_type result(M.get_row_count());
+    for(SizeType i=0;i<M.get_row_count();++i) {
+      result[i] = ValueType(0.0);
       for(SizeType j=0;j<M.get_col_count();++j)
         result[i] += M(i,j) * V[j];
+    };
     return result;
   };
   
@@ -946,18 +951,21 @@ typename boost::enable_if_c< is_readable_vector<Vector>::value,
  * \throw std::range_error if the matrix row count does not correspond to the vector dimension.
  * \test PASSED
  */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Vector>
-typename boost::enable_if_c< is_readable_vector<Vector>::value, 
- vect_n< T, Allocator > >::type
-  operator *(const Vector& V,const mat<T,Structure,Alignment,Allocator>& M) {
-    typedef vect_n< T, Allocator > result_type;
+template <typename Matrix, typename Vector>
+typename boost::enable_if< 
+  boost::mpl::and_<
+    is_readable_matrix<Matrix>,
+    is_readable_vector<Vector>
+ >,
+vect_copy< Vector > >::type::type operator *(const Vector& V,const Matrix& M) {
+    typedef typename vect_copy< Vector >::type result_type;
     if(V.size() != M.get_row_count())
       throw std::range_error("Matrix dimension mismatch.");
-    typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::value_type ValueType;
-    typedef typename mat_traits< mat<T,Structure,Alignment,Allocator> >::size_type SizeType;
-    result_type result(M.get_col_count(),T(0),V.get_allocator());
+    typedef typename mat_traits< Matrix >::value_type ValueType;
+    typedef typename mat_traits< Matrix >::size_type SizeType;
+    result_type result(M.get_col_count());
     for(SizeType j=0;j<M.get_col_count();++j) {
-      result[j] = 0;
+      result[j] = ValueType(0.0);
       for(SizeType i=0;i<M.get_row_count();++i) {
         result[j] += M(i,j) * V[i];
       };

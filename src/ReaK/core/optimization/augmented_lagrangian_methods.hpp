@@ -61,9 +61,10 @@ namespace detail {
   void bcl_newton_method_tr_impl(Function f, GradFunction df, HessianFunction fill_hessian,  
 				 EqFunction g, EqJacFunction fill_g_jac,
 				 IneqFunction h, IneqJacFunction fill_h_jac,
-			         Vector& x, typename vect_traits<Vector>::value_type max_radius, 
+			         Vector& x, typename vect_traits<Vector>::value_type max_radius, unsigned int max_iter,
 			         TrustRegionSolver solve_step, LimitFunction impose_limits, 
-			         typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6), 
+			         typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+			         typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6), 
 				 typename vect_traits<Vector>::value_type kappa = typename vect_traits<Vector>::value_type(1e-4)) {
     typedef typename vect_traits<Vector>::value_type ValueType;
     typedef typename vect_traits<Vector>::size_type SizeType;
@@ -71,33 +72,36 @@ namespace detail {
     
     SizeType N = x.size();
     Vector h_value = h(x);
-    Vector s = -h_value;
+    Vector ht_value = h_value;
+    Vector s = h_value;
     SizeType K = h_value.size();
     Vector g_value = g(x);
+    Vector gt_value = g_value;
     SizeType M = g_value.size();
     
-    mat<T, mat_structure::rectangular> Jac_g(M,N);
-    fill_g_jac(Jac_g,x,g_value);
-    mat<T, mat_structure::rectangular> Jac_h(K,N);
-    fill_h_jac(Jac_h,x,h_value);
-  
     if((M == 0) && (K == 0)) { //this means it is an unconstrained problem.
-      newton_method_tr_impl(f,df,fill_hessian,x,max_radius,solve_step,impose_limits,tol);
+      newton_method_tr_impl(f,df,fill_hessian,x,max_radius,max_iter,solve_step,impose_limits,abs_tol,abs_grad_tol,kappa);
       return;
     };
-    
+      
     ValueType mu(10.0);
     
+    mat<ValueType, mat_structure::rectangular> Jac_g(M,N);
+    fill_g_jac(Jac_g,x,g_value);
+    mat<ValueType, mat_structure::rectangular> Jac_h(K,N);
+    fill_h_jac(Jac_h,x,h_value);
+    mat<ValueType, mat_structure::rectangular> muJac_h(-mu * Jac_h);
+  
     Vector l_g(M, ValueType(1.0)); //choose initial lambda vector to be 1.0.
     Vector l_h(K, ValueType(1.0));
   
-    ValueType c_norm_star = (norm_2(g_value) + norm_2(h_value)) / ValueType(K + M);
-    ValueType eta_star = tol * c_norm_star;
-    ValueType norm_star = norm_2(x) / ValueType(N) + ValueType(1.0);
-    ValueType omega_star = tol * norm_star;
+    //ValueType c_norm_star = (norm_2(g_value) + norm_2(h_value)) / ValueType(K + M);
+    ValueType eta_star = abs_tol;
+    //ValueType norm_star = norm_2(x) / ValueType(N) + ValueType(1.0);
+    ValueType omega_star = abs_tol;
   
-    ValueType omega = norm_star / mu;
-    ValueType eta = pow(mu,ValueType(-0.1)) * c_norm_star;
+    ValueType omega = 1.0 / mu;
+    ValueType eta = pow(mu,ValueType(-0.1));
     
     ValueType radius = ValueType(0.5) * max_radius;
     ValueType x_value = f(x);
@@ -105,42 +109,68 @@ namespace detail {
     
     ValueType L_value = x_value - l_g * g_value + ValueType(0.5) * mu * (g_value * g_value); 
                       // + 0.5 * mu * (h_value - s) * (h_value - s) - l_h * (h_value - s)
-    Vector L_grad_s = l_h; // - mu * (h_value - s)
-    Vector rhs_grad = x_grad - l_g * Jac_g + mu * (g_value * Jac_g);
+    Vector L_grad; L_grad.resize(N+K);
+    L_grad[range(0,N-1)] = x_grad - l_g * Jac_g - l_h * Jac_h + mu * (g_value * Jac_g);
+    L_grad[range(N,N+K-1)] = l_h; // - mu * (h_value - s)
     
-    Vector p = rhs_grad;
+    Vector p = L_grad;
+    Vector p_x = x;
     Vector p_s = s;
     ValueType norm_p = std::numeric_limits<ValueType>::max();
+    ValueType norm_p_total(0.0);
     mat<ValueType,mat_structure::symmetric> H(x.size());
     fill_hessian(H,x,x_value,x_grad);
     
-    mat<ValueType,mat_structure::symmetric> JJ_g(transpose(Jac_g) * Jac_g);
-    JJ_g *= mu;
-    mat<ValueType,mat_structure::symmetric> L_H = H; L_H += JJ_g;
+    mat<ValueType,mat_structure::symmetric> JJ(transpose_view(Jac_g) * Jac_g + transpose_view(Jac_h) * Jac_h);
+    JJ *= mu;
+    mat<ValueType,mat_structure::symmetric> L_H = H; L_H += JJ;
+    
+    mat<ValueType,mat_structure::symmetric> La_H(N+K);
+    sub(La_H)(range(0,N-1),range(0,N-1)) = H; sub(La_H)(range(0,N-1),range(0,N-1)) += JJ;
+    sub(La_H)(range(0,N-1),range(N,N+K-1)) = transpose_view(muJac_h);
+    sub(La_H)(range(N,N+K-1),range(N,N+K-1)) = mat<ValueType,mat_structure::scalar>(K,mu);
+    
+//     mat_vert_cat<
+//       mat_const_ref_horiz_cat< mat<ValueType,mat_structure::symmetric>, mat_transpose_view< mat<ValueType,mat_structure::rectangular> > >,
+//       mat_const_ref_horiz_cat< mat<ValueType,mat_structure::rectangular>, mat<ValueType,mat_structure::scalar> >
+//     > La_H(
+//       mat_const_ref_horiz_cat< mat<ValueType,mat_structure::symmetric>, mat_transpose_view< mat<ValueType,mat_structure::rectangular> > >(L_H,muJac_h_t),
+//       mat_const_ref_horiz_cat< mat<ValueType,mat_structure::rectangular>, mat<ValueType,mat_structure::scalar> >(muJac_h,mu_mat)
+//     );
+      
     
     Vector xt = x;
     Vector st = s;
     
+    ValueType c_norm = sqrt(g_value * g_value);
+    ValueType c_norm_max(c_norm);
+    
+    unsigned int k = 0;
+    
     while (true) {
     
-      while(norm_p > omega) {
-        solve_step(rhs_grad,L_H,p,norm_p,radius,tol);
-        p_s = (ValueType(-1.0) / mu) * L_grad_s + Jac_h * p;
-	impose_limits(x,p);  //impose limits on the x-space
+      do {
+        solve_step(L_grad,La_H,p,norm_p,radius,abs_tol);
+	p_x = p[range(0,N-1)];
+        p_s = p[range(N,N+K-1)];
+	impose_limits(x,p_x);  //impose limits on the x-space
 	for(SizeType i = 0; i < K; ++i) 
 	  if(s[i] + p_s[i] < ValueType(0.0))
 	    p_s[i] = -s[i];  //impose non-negativity on the s-space.
-        xt = x; xt += p;
+	p[range(0,N-1)] = p_x;
+        p[range(N,N+K-1)] = p_s;
+	xt = x; xt += p_x;
 	norm_p = norm_2(p);
 	st = s; st += p_s;
-	g_value = g(xt);
-	h_value = h(xt) - st;
+	gt_value = g(xt);
+	ht_value = h(xt) - st;
 	ValueType xt_value = f(xt);
-	ValueType Lt_value = f(xt) - l_g * g_value - l_h * h_value + ValueType(0.5) * mu * (g_value * g_value + h_value * h_value);
+	ValueType Lt_value = f(xt) - l_g * gt_value - l_h * ht_value + ValueType(0.5) * mu * (gt_value * gt_value + ht_value * ht_value);
         ValueType aredux = L_value - Lt_value;
-        ValueType predux = -(rhs_grad * p + ValueType(0.5) * (p * (L_H * p)) + L_grad_s * p_s + ValueType(2.5) * (L_grad_s * L_grad_s));
-        
+        ValueType predux = -(L_grad * p + ValueType(0.5) * (p * (La_H * p)));
+    
         ValueType ratio = aredux / predux;
+        //RK_NOTICE(1," ratio = " << ratio << " kappa = " << kappa << " aredux = " << aredux << " norm_p = " << norm_p);
         if( ratio > ValueType(0.75) ) {
           if(norm_p > ValueType(0.8) * radius) {
             radius *= ValueType(2.0);
@@ -150,188 +180,73 @@ namespace detail {
         } else if( ratio < ValueType(0.1) ) {
           radius *= ValueType(0.5);
         };
-        if( ratio > kappa ) {  //the step is accepted.
+	if( ratio > kappa ) {  //the step is accepted.
           x = xt;
+	  norm_p_total += norm_p;
+	  if(norm_p < omega * norm_p_total)
+	    break;
           x_value = xt_value;
 	  L_value = Lt_value;
-          x_grad = df(x);
-          fill_hessian(H,x,x_value,x_grad);
+	  x_grad = df(x);
 	  s = st;
+	  g_value = gt_value;
+	  h_value = ht_value;
 	  fill_h_jac(Jac_h,x,h_value + s);
+	  muJac_h = -mu * Jac_h;
+	  sub(La_H)(range(0,N-1),range(N,N+K-1)) = transpose_view(muJac_h);
 	  fill_g_jac(Jac_g,x,g_value);
-	  JJ_g = transpose(Jac_g) * Jac_g; JJ_g *= mu;
-	  L_H = H; L_H += JJ_g;
-	  L_grad_s = l_h - mu * h_value;
-	  rhs_grad = x_grad - l_g * Jac_g + mu * g_value * Jac_g;
+	  L_grad[range(0,N-1)] = x_grad - l_g * Jac_g - l_h * Jac_h + mu * g_value * Jac_g + mu * h_value * Jac_h;
+	  L_grad[range(N,N+K-1)] = l_h - mu * h_value;
+          fill_hessian(H,x,x_value,x_grad);
+	  JJ = transpose_view(Jac_g) * Jac_g + transpose_view(Jac_h) * Jac_h; JJ *= mu;
+	  sub(La_H)(range(0,N-1),range(0,N-1)) = H; sub(La_H)(range(0,N-1),range(0,N-1)) += JJ;
+	  c_norm = sqrt(h_value * h_value + g_value * g_value);
+	  if(c_norm_max < c_norm)
+	    c_norm_max = c_norm;
+	  //RK_NOTICE(1," L_value = " << L_value << " x = " << x << " c_norm = " << c_norm << " norm_p = " << norm_p);
         };
-      };
+	if( ++k > max_iter )
+	  throw maximum_iteration(max_iter);
+      } while(true);
       
+      //if( ++k > max_iter )
+	//throw maximum_iteration(max_iter);
       
-      ValueType c_norm = sqrt(h_value * h_value + g_value * g_value);
-      if( c_norm < eta ) {
+      if( c_norm < eta * c_norm_max ) {
       
         if((c_norm < eta_star) && (norm_p < omega_star)) //in theory, this test should involve the projected gradient, but I think that the step-size is sufficient.
 	  return;
       
 	l_g -= mu * g_value;
 	l_h -= mu * h_value;
+	L_value = x_value - l_g * g_value - l_h * h_value + ValueType(0.5) * mu * (g_value * g_value + h_value * h_value);
         eta *= pow(mu,ValueType(-0.9));
+	if(eta < eta_star)
+	  eta = eta_star;
         omega /= mu;
+	if(omega < omega_star)
+	  omega = omega_star;
       } else {
         mu *= ValueType(100.0);
-        eta = pow(mu,ValueType(-0.1)) * c_norm_star;
-        omega = norm_star / mu;
+	sub(La_H)(range(N,N+K-1),range(N,N+K-1)) = mat<ValueType,mat_structure::scalar>(K,mu);
+	muJac_h = -mu * Jac_h;
+	sub(La_H)(range(0,N-1),range(N,N+K-1)) = transpose_view(muJac_h);
+        L_value = x_value - l_g * g_value - l_h * h_value + ValueType(0.5) * mu * (g_value * g_value + h_value * h_value);
+        eta = pow(mu,ValueType(-0.1));
+	if(eta * c_norm_max < eta_star)
+	  eta = eta_star / c_norm_max;
+        omega = 1.0 / mu;
+	if(omega * norm_p_total < omega_star)
+	  omega = omega_star / norm_p_total;
       };
+      L_grad[range(0,N-1)] = x_grad - l_g * Jac_g - l_h * Jac_h + mu * g_value * Jac_g + mu * h_value * Jac_h;
+      L_grad[range(N,N+K-1)] = l_h - mu * h_value;
       
     };
   };
 
 
   
-  
-  template <typename Function, typename Vector, 
-            typename EqFunction, typename IneqFunction, 
-	    typename T>
-  T compute_lagrangian_impl(Function f, const Vector& x, 
-                            EqFunction g, IneqFunction h,
-			    const Vector& l, T mu,
-			    unsigned int N, unsigned int K) {
-    typedef typename vect_traits<Vector>::size_type SizeType;
-    
-    Vector x_r(N);
-    for(SizeType i = 0; i < N; ++i)
-      x_r[i] = x[i];
-    T result = f(x_r);
-    Vector c_g = g(x_r);
-    SizeType M = c_g.size();
-    Vector c_h = h(x_r);
-    for(SizeType i = 0; i < K; ++i)
-      c_h -= x[i + N];
-    for(SizeType i = 0; i < M; ++i)
-      result += T(0.5) * mu * c_g[i] * c_g[i] - l[i] * c_g[i];
-    for(SizeType i = 0; i < K; ++i)
-      result += T(0.5) * mu * c_h[i] * c_h[i] - l[i + M] * c_h[i];
-    return result;
-  };
-  
-  
-  template <typename GradFunction, typename Vector, 
-            typename EqFunction, typename EqJacFunction, 
-	    typename IneqFunction, typename IneqJacFunction,
-	    typename T>
-  Vector compute_lagrangian_grad_impl(GradFunction df, const Vector& x,  
-                                      EqFunction g, EqJacFunction fill_g_jac,
-				      IneqFunction h, IneqJacFunction fill_h_jac,
-			              const Vector& l, T mu,
-			              unsigned int N, unsigned int K) {
-    typedef typename vect_traits<Vector>::size_type SizeType;
-    
-    Vector x_r(N);
-    for(SizeType i = 0; i < N; ++i)
-      x_r[i] = x[i];
-    Vector g_r = df(x_r);
-    Vector c_g = g(x_r);
-    SizeType M = c_g.size();
-    Vector c_h = h(x_r);
-    
-    mat<T, mat_structure::rectangular> Jac_g(M,N);
-    fill_g_jac(Jac_g,x_r,c_g);
-    mat<T, mat_structure::rectangular> Jac_h(K,N);
-    fill_h_jac(Jac_h,x_r,c_h);
-    for(SizeType i = 0; i < K; ++i)
-      c_h -= x[i + N];
-    
-    for(SizeType j = 0; j < N; ++j) {
-      for(SizeType i = 0; i < M; ++i)
-        g_r[j] += mu * c_g[i] * Jac_g(i,j) - l[i] * Jac_g(i,j);
-      for(SizeType i = 0; i < K; ++i)
-        g_r[j] += mu * c_h[i] * Jac_h(i,j) - l[i + M] * Jac_h(i,j);
-    };
-    
-    Vector result(x.size());
-    for(SizeType i = 0; i < N; ++i)
-      result[i] = g_r[i];
-    for(SizeType i = 0; i < K; ++j)
-      result[i+N] = l[i + M] - mu * c_h[i];
-    
-    return result;
-  };
-  
-  
-  template <typename Function, typename GradFunction, typename HessianFunction, 
-            typename EqFunction, typename EqJacFunction,
-	    typename IneqFunction, typename IneqJacFunction, typename T>
-  struct lagrangian_hess_filler_impl {
-    Function f;
-    GradFunction df;
-    HessianFunction fill_hessian;
-    EqFunction g;
-    EqJacFunction fill_g_jac;
-    IneqFunction h;
-    IneqJacFunction fill_h_jac;
-    T mu;
-    unsigned int N, K;
-    
-    lagrangian_hess_filler_impl(Function aF, GradFunction aDf, HessianFunction aFill_hessian,
-				EqFunction aG, EqJacFunction aFill_g_jac,
-				IneqFunction aH, IneqJacFunction aFill_h_jac,
-			        T aMu, unsigned int aN, unsigned int aK) :
-			        f(aF), df(aDf), fill_hessian(aFill_hessian), 
-			        g(aG), fill_g_jac(aFill_g_jac),
-			        h(aH), fill_h_jac(aFill_h_jac),
-			        mu(aMu), N(aN), K(aK) { };
-     
-    template <typename HessianMatrix, typename Vector>
-    void operator()(HessianMatrix& H, const Vector& x, const T& x_value, const Vector& x_grad) const {
-      typedef typename vect_traits<Vector>::size_type SizeType;
-      if(H.get_row_count() != N + K)
-        H.set_row_count(N+K);
-      if(H.get_col_count() != N + K)
-        H.set_col_count(N+K);
-    
-      Vector x_r(N);
-      for(SizeType i = 0; i < N; ++i)
-        x_r[i] = x[i];
-      fill_hessian(sub(H)(range(0,N-1),range(0,N-1)),x_r,f(x),df(x));
-    
-      Vector c_g = g(x_r);
-      SizeType M = c_g.size();
-      Vector c_h = h(x_r);
-    
-      mat<T, mat_structure::rectangular> Jac_g(M,N);
-      fill_g_jac(Jac_g,x_r,c_g);
-      mat<T, mat_structure::rectangular> Jac_h(K,N);
-      fill_h_jac(Jac_h,x_r,c_h);
-    
-      mat<T, mat_structure::rectangular> Jac_h_t = transpose(Jac_h);
-      sub(H)(range(0,N-1),range(0,N-1)) += mu * mat<T,mat_structure::symmetric>(transpose(Jac_g) * Jac_g + Jac_h_t * Jac_h);
-      sub(H)(range(0,N-1),range(N,N+K-1)) = mu * Jac_h_t;
-      sub(H)(range(N,N+K-1),range(0,N-1)) = mu * Jac_h;
-      sub(H)(range(N,N+K-1),range(N,N+K-1)) = mat<T,mat_structure::scalar>(K,mu);
-      
-    };
-    
-  };
-  
-  template <typename Function, typename GradFunction, typename HessianFunction, 
-            typename EqFunction, typename EqJacFunction,
-	    typename IneqFunction, typename IneqJacFunction, typename T>
-  lagrangian_hess_filler_impl<Function, GradFunction, HessianFunction, 
-                              EqFunction, EqJacFunction,
-	                      IneqFunction,IneqJacFunction,T> 
-    make_lagrangian_hess_filler_impl(
-      Function aF, GradFunction aDf, HessianFunction aFill_hessian,
-      EqFunction aG, EqJacFunction aFill_g_jac,
-      IneqFunction aH, IneqJacFunction aFill_h_jac,
-      T aMu, unsigned int aN, unsigned int aK) {
-    return lagrangian_hess_filler_impl<Function, GradFunction, HessianFunction, 
-                                       EqFunction, EqJacFunction,
-	                               IneqFunction,IneqJacFunction,T>(
-			                 aF, aDf, aFill_hessian, 
-			                 aG, aFill_g_jac,
-			                 aH, aFill_h_jac,
-			                 aMu, aN, aK);
-  };
   
   struct impose_positive_slacks {
     unsigned int K;
@@ -407,7 +322,9 @@ struct constraint_newton_method_tr_factory {
   GradFunction df;
   HessianFunction fill_hessian;
   T max_radius;
-  T tol;
+  unsigned int max_iter;
+  T abs_tol;
+  T abs_grad_tol;
   T eta;
   EqFunction g;
   EqJacFunction fill_g_jac;
@@ -422,25 +339,28 @@ struct constraint_newton_method_tr_factory {
    * \param aDf The gradient of the function to minimize.
    * \param aFillHessian The functor object that can fill the Hessian symmetric matrix of the function to be optimized. 
    * \param aMaxRadius The maximum trust-region radius to use (i.e. maximum optimization step).
+   * \param aMaxIter The maximum number of iterations to perform.
    * \param aG The function that computes the equality constraints.
    * \param aFillGJac The function that computes the jacobian matrix of the equality constaints.
    * \param aH The function that computes the inequality constraints.
    * \param aFillHJac The function that computes the jacobian matrix of the inequality constraints.
    * \param aTol The tolerance on the norm of the gradient (and thus the step size).
+   * \param aGradTol The tolerance on the norm of the gradient (and thus the step size).
    * \param aEta The tolerance on the decrease in order to accept a step in the trust region.
    * \param aSolveStep The functor that can solve for the step to take within the trust-region.
    * \param aImposeLimits The functor that can impose simple limits on the search domain (e.g. box-constraints or non-negativity).
    */
   constraint_newton_method_tr_factory(Function aF, GradFunction aDf,
-				      HessianFunction aFillHessian, T aMaxRadius,
+				      HessianFunction aFillHessian, T aMaxRadius, unsigned int aMaxIter,
 				      EqFunction aG = EqFunction(), EqJacFunction aFillGJac = EqJacFunction(),
 				      IneqFunction aH = IneqFunction(), IneqJacFunction aFillHJac = IneqJacFunction(),
-				      T aTol = T(1e-6),
+				      T aTol = T(1e-6), T aGradTol = T(1e-6),
 				      T aEta = T(1e-4),
 				      TrustRegionSolver aSolveStep = TrustRegionSolver(),
 				      LimitFunction aImposeLimits = LimitFunction()) :
 				      f(aF), df(aDf), fill_hessian(aFillHessian),
-				      max_radius(aMaxRadius), tol(aTol), eta(aEta),
+				      max_radius(aMaxRadius), max_iter(aMaxIter), 
+				      abs_tol(aTol), abs_grad_tol(aGradTol), eta(aEta),
 				      g(aG), fill_g_jac(aFillGJac), h(aH), fill_h_jac(aFillHJac),
 				      solve_step(aSolveStep),
 				      impose_limits(aImposeLimits) { };
@@ -454,9 +374,9 @@ struct constraint_newton_method_tr_factory {
   void operator()(Vector& x) const {
     detail::bcl_newton_method_tr_impl(
       f, df, fill_hessian, g, fill_g_jac, 
-      h, fill_h_jac, x, max_radius,
+      h, fill_h_jac, x, max_radius, max_iter,
       solve_step,
-      impose_limits,tol,eta);
+      impose_limits,abs_tol,abs_grad_tol,eta);
   };
     
   /**
@@ -471,9 +391,9 @@ struct constraint_newton_method_tr_factory {
     return constraint_newton_method_tr_factory<Function,GradFunction,HessianFunction,T,
                                                EqFunction, EqJacFunction, IneqFunction, IneqJacFunction,
                                                trust_region_solver_dogleg_reg<T>, LimitFunction>(f,df,fill_hessian,
-					                                                         max_radius, 
+					                                                         max_radius, max_iter,
 												 g, fill_g_jac, h, fill_h_jac,
-												 tol, eta,
+												 abs_tol, abs_grad_tol, eta,
 										                 trust_region_solver_dogleg_reg<T>(tau),
 										                 impose_limits);
   };
@@ -491,9 +411,9 @@ struct constraint_newton_method_tr_factory {
     return constraint_newton_method_tr_factory<Function,GradFunction,HessianFunction,T,
                                                EqFunction, EqJacFunction, IneqFunction, IneqJacFunction,
                                                NewTrustRegionSolver, LimitFunction>(f,df,fill_hessian,
-					                                            max_radius, 
+					                                            max_radius, max_iter,
 									            g, fill_g_jac, h, fill_h_jac,
-									            tol, eta,
+									            abs_tol, abs_grad_tol, eta,
 									            new_solver,impose_limits);
   };
     
@@ -513,9 +433,9 @@ struct constraint_newton_method_tr_factory {
     return constraint_newton_method_tr_factory<Function,GradFunction,HessianFunction,T,
                                                EqFunction, EqJacFunction, IneqFunction, IneqJacFunction,
                                                TrustRegionSolver, NewLimitFunction>(f,df,fill_hessian,
-					                                            max_radius, 
+					                                            max_radius, max_iter,
 									            g, fill_g_jac, h, fill_h_jac,
-									            tol, eta,
+									            abs_tol, abs_grad_tol, eta,
 									            solve_step,new_limits);
   };
     
@@ -535,9 +455,9 @@ struct constraint_newton_method_tr_factory {
     return constraint_newton_method_tr_factory<Function,GradFunction,HessianFunction,T,
                                                NewEqFunction, NewEqJacFunction, IneqFunction, IneqJacFunction,
                                                TrustRegionSolver, LimitFunction>(f,df,fill_hessian,
-					                                         max_radius, 
+					                                         max_radius, max_iter,
 									         new_g, new_fill_g_jac, h, fill_h_jac,
-									         tol, eta,
+									         abs_tol, abs_grad_tol, eta,
 									         solve_step,impose_limits);
   };
     
@@ -557,9 +477,9 @@ struct constraint_newton_method_tr_factory {
     return constraint_newton_method_tr_factory<Function,GradFunction,HessianFunction,T,
                                                EqFunction, EqJacFunction, NewIneqFunction, NewIneqJacFunction,
                                                TrustRegionSolver, LimitFunction>(f,df,fill_hessian,
-					                                         max_radius, 
+					                                         max_radius, max_iter,
 									         g, fill_g_jac, new_h, new_fill_h_jac,
-									         tol, eta,
+									         abs_tol, abs_grad_tol, eta,
 									         solve_step,impose_limits);
   };
     
@@ -578,16 +498,18 @@ struct constraint_newton_method_tr_factory {
  * \param df The gradient of the function to minimize.
  * \param fill_hessian The functor object that can fill the Hessian symmetric matrix of the function to be optimized. 
  * \param max_radius The maximum trust-region radius to use (i.e. maximum optimization step).
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance on the norm of the step size.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  * \param eta The tolerance on the decrease in order to accept a step in the trust region.
  */
 template <typename Function, typename GradFunction, typename HessianFunction, typename T>
 constraint_newton_method_tr_factory<Function,GradFunction,HessianFunction,T> 
   make_constraint_newton_method_tr(Function f, GradFunction df,
-                                   HessianFunction fill_hessian, T max_radius,
-			           T tol = T(1e-6),
+                                   HessianFunction fill_hessian, T max_radius, unsigned int max_iter,
+			           T abs_tol = T(1e-6), T abs_grad_tol = T(1e-6),
 			           T eta = T(1e-4)) {
-  return constraint_newton_method_tr_factory<Function,GradFunction,HessianFunction,T>(f,df,fill_hessian,max_radius,no_constraint_functor(),no_constraint_jac_functor(),no_constraint_functor(),no_constraint_jac_functor(),tol,eta);
+  return constraint_newton_method_tr_factory<Function,GradFunction,HessianFunction,T>(f,df,fill_hessian,max_radius,max_iter,no_constraint_functor(),no_constraint_jac_functor(),no_constraint_functor(),no_constraint_jac_functor(),abs_tol,abs_grad_tol,eta);
 };
 
 
@@ -627,7 +549,9 @@ constraint_newton_method_tr_factory<Function,GradFunction,HessianFunction,T>
  * \param h The function that computes the inequality constraints.
  * \param fill_h_jac The function that computes the jacobian matrix of the inequality constraints.
  * \param max_radius The maximum trust-region radius to use (i.e. maximum optimization step).
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance on the norm of the step size.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename HessianFunction, typename Vector, 
           typename EqFunction, typename EqJacFunction, 
@@ -635,14 +559,15 @@ template <typename Function, typename GradFunction, typename HessianFunction, ty
 void constraint_newton_method_tr(Function f, GradFunction df, HessianFunction fill_hessian, Vector& x, 
 				 EqFunction g, EqJacFunction fill_g_jac,
 				 IneqFunction h, IneqJacFunction fill_h_jac,
-		                 typename vect_traits<Vector>::value_type max_radius,
-		                 typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+		                 typename vect_traits<Vector>::value_type max_radius, unsigned int max_iter = 100,
+		                 typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6),
+		                 typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
   detail::bcl_newton_method_tr_impl(
     f, df, fill_hessian, g, fill_g_jac, 
-    h, fill_h_jac, x, max_radius,
+    h, fill_h_jac, x, max_radius, max_iter,
     trust_region_solver_dogleg(),
-    no_limit_functor(),tol
+    no_limit_functor(),abs_tol,abs_grad_tol
   );
   
 };
@@ -672,20 +597,23 @@ void constraint_newton_method_tr(Function f, GradFunction df, HessianFunction fi
  * \param g The function that computes the equality constraints.
  * \param fill_g_jac The function that computes the jacobian matrix of the equality constaints.
  * \param max_radius The maximum trust-region radius to use (i.e. maximum optimization step).
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance on the norm of the step size.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename HessianFunction, typename Vector, 
           typename EqFunction, typename EqJacFunction>
 void eq_cnstr_newton_method_tr(Function f, GradFunction df, HessianFunction fill_hessian, Vector& x, 
 			       EqFunction g, EqJacFunction fill_g_jac,
-			       typename vect_traits<Vector>::value_type max_radius,
-		               typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+			       typename vect_traits<Vector>::value_type max_radius, unsigned int max_iter = 100,
+		               typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6),
+		               typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
   detail::bcl_newton_method_tr_impl(
     f, df, fill_hessian, g, fill_g_jac, 
-    detail::no_constraint_functor(), detail::no_constraint_jac_functor(), x, max_radius,
+    no_constraint_functor(), no_constraint_jac_functor(), x, max_radius, max_iter,
     trust_region_solver_dogleg(),
-    no_limit_functor(),tol
+    no_limit_functor(),abs_tol,abs_grad_tol
   );
   
 };
@@ -715,21 +643,24 @@ void eq_cnstr_newton_method_tr(Function f, GradFunction df, HessianFunction fill
  * \param h The function that computes the inequality constraints.
  * \param fill_h_jac The function that computes the jacobian matrix of the inequality constraints.
  * \param max_radius The maximum trust-region radius to use (i.e. maximum optimization step).
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance on the norm of the step size.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename HessianFunction, typename Vector, 
           typename IneqFunction, typename IneqJacFunction>
 void ineq_cnstr_newton_method_tr(Function f, GradFunction df, HessianFunction fill_hessian, Vector& x, 
 				 IneqFunction h, IneqJacFunction fill_h_jac,
-		                 typename vect_traits<Vector>::value_type max_radius,
-		                 typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+		                 typename vect_traits<Vector>::value_type max_radius, unsigned int max_iter = 100,
+		                 typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6),
+		                 typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
   detail::bcl_newton_method_tr_impl(
     f, df, fill_hessian, 
-    detail::no_constraint_functor(), detail::no_constraint_jac_functor(),
-    h, fill_h_jac, x, max_radius,
+    no_constraint_functor(), no_constraint_jac_functor(),
+    h, fill_h_jac, x, max_radius, max_iter,
     trust_region_solver_dogleg(),
-    no_limit_functor(),tol
+    no_limit_functor(),abs_tol,abs_grad_tol
   );
   
 };

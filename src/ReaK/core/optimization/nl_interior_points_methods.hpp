@@ -72,7 +72,7 @@ namespace detail {
 				  typename vect_traits<Vector>::value_type mu, 
 				  unsigned int max_iter,
 			          TrustRegionSolver solve_step, LimitFunction impose_limits, 
-			          typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6), 
+			          typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
 				  typename vect_traits<Vector>::value_type kappa = typename vect_traits<Vector>::value_type(1e-4),
 				  typename vect_traits<Vector>::value_type tau = typename vect_traits<Vector>::value_type(0.995),
 				  typename vect_traits<Vector>::value_type rho = typename vect_traits<Vector>::value_type(1e-4)) {
@@ -81,57 +81,71 @@ namespace detail {
     using std::sqrt; using std::fabs; using std::log;
     
     SizeType N = x.size();
-    Vector gt_value = g(x);
-    SizeType M = gt_value.size();
     Vector ht_value = h(x);
     SizeType K = ht_value.size();
-    Vector c; c.resize(M+K);
-    c[range(0,M-1)] = gt_value;
-    c[range(M,M+K-1)] = ht_value;
-    
-    if((M == 0) && (K == 0)) { //this means it is an unconstrained problem. TODO change this to dispatch on the type of the fill-hessian functor.
-      newton_method_tr_impl(f,df,fill_hessian,x,max_radius,solve_step,impose_limits,tol);
-      return;
-    };
-    
-    mat<ValueType, mat_structure::rectangular> Jac_g(M,N);
-    fill_g_jac(Jac_g,x,gt_value);
-    
     mat<ValueType, mat_structure::rectangular> Jac_h(K,N);
     fill_h_jac(Jac_h,x,ht_value);
     
-    mat<ValueType,mat_structure::diagonal> mS(K);
-    mat<ValueType,mat_structure::nil> Zero_mk(M,K);
-    
-    mat_vert_cat< 
-      mat_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::nil> >,
-      mat_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::diagonal> >
-    > Jac_aug(
-      mat_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::nil> >(
-	Jac_g, Zero_mk
-      ),
-      mat_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::diagonal> >(
-	Jac_h, mS
-      )
-    );
-    
     //compute initial slack vector and roughly adjust x if needed.
     Vector s = ht_value;
+    for(SizeType i = 0; i < K; ++i)
+      s[i] = ValueType(1.0);
     ValueType min_s(0.0);
     for(SizeType i = 0; i < K; ++i)
       if( s[i] < min_s )
 	min_s = s[i];
-    min_s *= ValueType(-1.5);
+    min_s *= ValueType(-0.1);
     
-    if(min_s > ValueType(0.0)) {
+    while(min_s > abs_tol) {
+      RK_NOTICE(1," s = " << s << " x = " << x << " h = " << ht_value << " Jac = " << Jac_h);
       Vector e_s(s);
       for(SizeType i = 0; i < K; ++i)
 	e_s[i] = min_s;
       s += e_s;
-      x += e_s * Jac_h;
+      Vector dx = x;
+      mat_vect_adaptor<Vector> dx_mat(dx);
+      minnorm_QR(Jac_h,dx_mat,mat_vect_adaptor<Vector>(e_s),abs_tol);
+      RK_NOTICE(1," e_s = " << e_s << " dx = " << dx);
+      x += dx;
+      ht_value = h(x);
+      fill_h_jac(Jac_h,x,ht_value);
+      s = ht_value;
+      min_s = ValueType(0.0);
+      for(SizeType i = 0; i < K; ++i)
+        if( s[i] < min_s )
+	  min_s = s[i];
+      min_s *= ValueType(-0.1);
     };
+    if(min_s > ValueType(0.0))
+      s += vect_scalar<double>(K,ValueType(1000.0) * abs_tol);
+    
+    Vector gt_value = g(x);
+    SizeType M = gt_value.size();
+    Vector c; c.resize(M+K);
+    c[range(0,M-1)] = gt_value;
+    
+    mat<ValueType, mat_structure::rectangular> Jac_g(M,N);
+    fill_g_jac(Jac_g,x,gt_value);
+    
+    if((M == 0) && (K == 0)) { //this means it is an unconstrained problem. TODO change this to dispatch on the type of the fill-hessian functor.
+      newton_method_tr_impl(f,df,fill_hessian,x,max_radius,max_iter,solve_step,impose_limits,abs_tol,abs_tol,kappa);
+      return;
+    };
+    
+    mat<ValueType,mat_structure::diagonal> mS(K);
+    mat<ValueType,mat_structure::nil> Zero_mk(M,K);
+    
+    mat_const_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::nil> > Jac_upper(Jac_g, Zero_mk);
+    mat_const_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::diagonal> > Jac_lower(Jac_h, mS);
+    
+    mat_const_ref_vert_cat< 
+      mat_const_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::nil> >,
+      mat_const_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::diagonal> >
+    > Jac_aug(Jac_upper,Jac_lower);
+    
+    
     mS = mat<ValueType,mat_structure::diagonal>(-s);
-    c[range(M,M+K-1)] -= s;
+    c[range(M,M+K-1)] = ht_value - s;
     
     ValueType gt_norm = norm_2(c[range(0,M-1)]);
     ValueType ht_norm = norm_2(c[range(M,M+K-1)]);
@@ -156,7 +170,7 @@ namespace detail {
     ValueType norm_v = std::numeric_limits<ValueType>::max();
     Vector r = c;
     //ValueType rho(0.1);
-    ValueType tol_mu = 1e-2 + tol;
+    //ValueType tol_mu = 1e-2 + tol;
     
     ValueType log_s(0.0);
     for(SizeType i = 0; i < K; ++i)
@@ -164,17 +178,19 @@ namespace detail {
     
     
     ValueType c_norm_star = norm_2(c);
-    ValueType abs_c_tol = tol * (c_norm_star + norm_2(s) + norm_2(x));
     ValueType nu(std::numeric_limits<ValueType>::min());
     
     Vector yz; yz.resize(M+K);
     mat_vect_adaptor<Vector> yz_mat(yz);
     vect_ref_view< Vector > y(yz[range(0,M-1)]);
     vect_ref_view< Vector > z(yz[range(M,M+K-1)]);
-    linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_c_tol);
+    linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
+    
+    for(SizeType i = 0; i < K; ++i)
+      if(z[i] < abs_tol)
+	z[i] = abs_tol;
     
     ValueType norm_star = norm_2(x_grad) + norm_2(y * Jac_g) + norm_2(z * Jac_h);
-    ValueType abs_grad_tol = tol * norm_star;
     Vector l(x_grad - y * Jac_g - z * Jac_h);
     Vector lt = l;
     norm_star = norm_2(l);
@@ -186,17 +202,13 @@ namespace detail {
     mat<ValueType,mat_structure::nil> Zero_nk(N,K);
     mat<ValueType,mat_structure::nil> Zero_kn(K,N);
     
-    mat_vert_cat< 
+    mat_const_ref_horiz_cat< mat<ValueType, mat_structure::symmetric>, mat<ValueType, mat_structure::nil> > H_upper(H, Zero_nk);
+    mat_const_ref_horiz_cat< mat<ValueType, mat_structure::nil>, mat<ValueType, mat_structure::diagonal> > H_lower(Zero_kn, SES);
+    
+    mat_const_ref_vert_cat< 
       mat_const_ref_horiz_cat< mat<ValueType, mat_structure::symmetric>, mat<ValueType, mat_structure::nil> >,
       mat_const_ref_horiz_cat< mat<ValueType, mat_structure::nil>, mat<ValueType, mat_structure::diagonal> >
-    > H_aug(
-      mat_ref_horiz_cat< mat<ValueType, mat_structure::symmetric>, mat<ValueType, mat_structure::nil> >(
-	H, Zero_nk
-      ),
-      mat_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::diagonal> >(
-	Zero_kn, SES
-      )
-    );
+    > H_aug(H_upper,H_lower);
     
     ValueType Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) );
     if(Err_value < norm_star)
@@ -208,7 +220,7 @@ namespace detail {
     
     unsigned int k = 0;
     
-    while(Err_value > abs_grad_tol) {
+    do {
       
       //compute error with mu.
       Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) + p_grad[range(N,N+K-1)] );
@@ -219,43 +231,61 @@ namespace detail {
       if(Err_value < ht_norm)
         Err_value = ht_norm;
       
-      ValueType abs_grad_tol_mu = abs_grad_tol * (mu / tol);
+      ValueType abs_tol_mu = mu;
+      if(abs_tol_mu < abs_tol)
+	abs_tol_mu = abs_tol;
       
-      while((Err_value > abs_grad_tol_mu) && (++k <= max_iter)) {
+      radius = 0.5 * max_radius;
+      rho = 1.0 - mu;
+      
+      while((Err_value > abs_tol_mu) && (++k <= max_iter)) {
         
-        solve_step(c,Jac_aug,v,norm_v,ValueType(0.8) * radius, abs_grad_tol_mu);
+        solve_step(c,Jac_aug,v,norm_v,ValueType(0.8) * radius, abs_tol_mu);
 	for(SizeType i = 0; i < K; ++i)
 	  if( v[N + i] < -0.5 * tau )
 	    v[N + i] = -0.5 * tau;
 	r = c + Jac_aug * v;
 	
-        projected_CG_method(Jac_aug, r - c, H_aug, p_grad, p, abs_grad_tol_mu);
+	try {
+	  null_space_QP_method(Jac_aug, r - c, H_aug, p_grad, p, abs_tol, radius);
+	} catch(singularity_error&) {
+	  try {
+            projected_CG_method(Jac_aug, r - c, H_aug, p_grad, p, max_iter, abs_tol_mu);
+	  } catch(maximum_iteration&) { };
+	};
+	
         norm_p = norm_2(p);
+	if(norm_p < abs_tol_mu) {
+	  if(abs_tol_mu <= abs_tol)
+	    return;
+	  break;
+	};
+	
         if(norm_p > radius) {
 	  p *= radius / norm_p;
 	  norm_p = radius;
         };
 	for(SizeType i = 0; i < N; ++i)
-	  p_x[i] = s[i] * p[i];
+	  p_x[i] = p[i];
         for(SizeType i = 0; i < K; ++i) {
 	  if( p[i+N] < -tau )
 	    p[i+N] = -tau;
-	  p_s[i] = p[i+N];
+	  p_s[i] = s[i] * p[i+N];
 	};
 	impose_limits(x,p_x);
-      
+        
         ValueType pHp = p * (H_aug * p);
-	ValueType dm_p = Jac_aug * p;
-	ValueType dq_p = p_grad * p + pHp;
+	ValueType dm_p = c_norm_star - norm_2(c + Jac_aug * p);
+	ValueType dq_p = p_grad * p + ValueType(0.5) * pHp;
         ValueType nu_t;
         if(pHp > ValueType(0.0))
           nu_t = (p_grad * p + ValueType(0.5) * pHp) / ((ValueType(1.0) - rho) * norm_1(c));
         else
 	  nu_t = (p_grad * p) / ((ValueType(1.0) - rho) * norm_1(c));
         if(nu < nu_t)
-	  nu = nu_t + abs_c_tol;
-	ValueType pred = -rho * nu * dm_p;
-	
+	  nu = nu_t + abs_tol;
+	ValueType pred = nu * dm_p - dq_p;
+	//RK_NOTICE(1,"   NU = " << nu);
 	
         xt = x; xt += p_x;
 	st = s; st += p_s;
@@ -267,10 +297,14 @@ namespace detail {
           log_st += log(st[i]);
 	ValueType ct_norm_star = sqrt(norm_2_sqr(gt_value) + norm_2_sqr(ht_value));
 	
+	//RK_NOTICE(1," x = " << x << " s = " << s << " x_value = " << x_value << " log_s = " << log_s << " c_norm_star = " << c_norm_star << " mu = " << mu);
+        //RK_NOTICE(1," xt = " << xt << " st = " << st << " xt_value = " << xt_value << " log_st = " << log_st << " ct_norm_star = " << ct_norm_star);
+        
         ValueType ared = x_value - xt_value - mu * (log_s - log_st) 
 	                + nu * (c_norm_star - ct_norm_star);
 	
-      
+	//RK_NOTICE(1," x = " << x << " ared = " << ared << " pred = " << pred << " norm_p = " << norm_2(p_x));
+        
         if(ared >= kappa * pred) {
 	  //step is accepted. NOTE TODO A lot of shit to update here.
 	  x += p_x;
@@ -285,12 +319,15 @@ namespace detail {
 	  c_norm_star = ct_norm_star;
 	  fill_g_jac(Jac_g,x,gt_value);      
 	  fill_h_jac(Jac_h,x,ht_value + st);
-	  if(norm_p > ValueType(0.8) * radius) {
+	  if((ared >= ValueType(0.8) * pred) && (norm_p > ValueType(0.8) * radius)) {
             radius *= ValueType(2.0);
             if(radius > max_radius)
               radius = max_radius;
           };
-          linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_c_tol);
+          linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
+	  for(SizeType i = 0; i < K; ++i)
+            if(z[i] < abs_tol)
+              z[i] = abs_tol;
 	  lt = x_grad - y * Jac_g - z * Jac_h;
 	  norm_star = norm_2(lt);
           fill_hessian(H,x,x_value,x_grad,p_x,lt - l);
@@ -305,29 +342,50 @@ namespace detail {
             Err_value = gt_norm;
           if(Err_value < ht_norm)
             Err_value = ht_norm;
+	  //RK_NOTICE(1," Err_value = " << Err_value << " c_norm_star = " << c_norm_star << " s = " << s << " z = " << z << " y = " << y);
         } else {
+	  if(radius < abs_tol_mu)
+	    break;
           radius = ValueType(0.7) * norm_p;
         };
       };
       if(k > max_iter)
 	throw maximum_iteration(max_iter);
+      //if(radius < abs_tol)
+	//return;
       
       //decrease mu;
-      ValueType sigma(2.0);
-      ValueType zeta(1.0);
-      ValueType sz_k = s * z / ValueType(K);
-      for(SizeType i = 0; i < K; ++i)
-	if( SES(i,i) < zeta * sz_k )
-	  zeta = SES(i,i) / sz_k;
-      if(zeta < 0.5)  //this is just for numerical stability (takes the denominator where it will equalize the quantities involved).
-	sigma = (ValueType(1.0) - zeta) / (ValueType(20.0) * zeta);
-      else
-	sigma = ValueType(0.05) * ((ValueType(1.0) - zeta) / zeta);
-      if(sigma > ValueType(2.0))
-	sigma = ValueType(2.0);
-      sigma *= sigma * sigma * ValueType(0.1);
-      mu = sigma * sz_k;
+      if( K > 1 ) {
+        ValueType sigma(2.0);
+        ValueType zeta(1.0);
+        ValueType sz_k = s * z / ValueType(K);
+        for(SizeType i = 0; i < K; ++i)
+	  if( SES(i,i) < zeta * sz_k )
+	    zeta = SES(i,i) / sz_k;
+        if(zeta < 0.5)  //this is just for numerical stability (takes the denominator where it will equalize the quantities involved).
+	  sigma = (ValueType(1.0) - zeta) / (ValueType(20.0) * zeta);
+        else
+          sigma = ValueType(0.05) * ((ValueType(1.0) - zeta + abs_tol) / zeta);
+        if(sigma > ValueType(2.0))
+	  sigma = ValueType(2.0);
+        sigma *= sigma * sigma * ValueType(0.1);
+        mu = sigma * sz_k;
+        //RK_NOTICE(1," inter-step: s = " << s << " z = " << z << " sz_k = " << sz_k << " zeta = " << zeta << " sigma = " << sigma << " mu = " << mu);
+      } else {
+	mu *= 0.1;
+      };
+      
       p_grad[range(N,N+K-1)] = vect_scalar<ValueType>(K,-mu);
+      linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
+      for(SizeType i = 0; i < K; ++i)
+        if(z[i] < abs_tol)
+          z[i] = abs_tol;
+      l = x_grad - y * Jac_g - z * Jac_h;
+      norm_star = norm_2(l);
+      for(SizeType i = 0; i < K; ++i)
+        SES(i,i) = z[i] * s[i];
+      
+      tau = 1.0 - mu;
       
       //compute error without mu.
       Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) );
@@ -337,8 +395,8 @@ namespace detail {
         Err_value = gt_norm;
       if(Err_value < ht_norm)
         Err_value = ht_norm;
-      
-    };
+      //RK_NOTICE(1,"Err_value = " << Err_value);
+    } while(Err_value > abs_tol);
   };
   
   
@@ -635,7 +693,7 @@ nlip_newton_tr_factory<Function,GradFunction,HessianFunction,T>
   make_nlip_newton_tr(Function f, GradFunction df, HessianFunction fill_hessian, 
 		       T max_radius, T mu, unsigned int max_iter,
 		       T tol = T(1e-6), T eta = T(1e-4), T tau = T(0.995), T rho = T(1e-4)) {
-  return nlip_newton_tr_factory<Function,GradFunction,HessianFunction,T>(f,df,fill_hessian,max_radius,mu,max_iter,no_constraint_functor(),no_constraint_jac_functor(),tol,eta,tau,rho);
+  return nlip_newton_tr_factory<Function,GradFunction,HessianFunction,T>(f,df,fill_hessian,max_radius,mu,max_iter,no_constraint_functor(),no_constraint_jac_functor(),no_constraint_functor(),no_constraint_jac_functor(),tol,eta,tau,rho);
 };
 
 

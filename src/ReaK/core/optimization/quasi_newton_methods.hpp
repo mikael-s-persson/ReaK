@@ -70,26 +70,29 @@ namespace optim {
  * \param f The function to minimize.
  * \param df The gradient of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
+ * \param max_iter The maximum number of iterations to perform.
  * \param get_alpha The functor that can perform a line-search which satisfy the strong Wolfe conditions.
  * \param update_inv_hessian The functor that can update the inverse of a Hessian given the changes in the solution and the function gradient.
  * \param impose_limits The functor to use to limit the proposed steps to satisfy some constraints on the underlying independent vector-space.
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param abs_tol The tolerance on the norm of the steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename Vector, typename LineSearcher, typename InvHessianUpdater, typename LimitFunction>
-void quasi_newton_line_search(Function f, GradFunction df, Vector& x, LineSearcher get_alpha, InvHessianUpdater update_inv_hessian, LimitFunction impose_limits, typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+void quasi_newton_line_search(Function f, GradFunction df, Vector& x, unsigned int max_iter, LineSearcher get_alpha, 
+			      InvHessianUpdater update_inv_hessian, LimitFunction impose_limits, 
+			      typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+			      typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   typedef typename vect_traits<Vector>::value_type ValueType;
   using std::sqrt; using std::fabs;
   
-  ValueType abs_tol = sqrt(x * x) * tol;
   ValueType x_value = f(x);
   Vector x_grad = -df(x);
-  abs_tol += sqrt(x_grad * x_grad) * tol;
   
   Vector p = x_grad;
   ValueType alpha = ValueType(1.0);
   ValueType pxg = p * x_grad;
   if((f(x + p) > x_value - ValueType(1e-4) * pxg) || (fabs(p * df(x + p)) > ValueType(0.9) * fabs(pxg)))
-    alpha = get_alpha(f,df,ValueType(0.0),ValueType(2.0),x,p,tol);
+    alpha = get_alpha(f,df,ValueType(0.0),ValueType(2.0),x,p,abs_tol);
   
   Vector s = alpha * p;
   impose_limits(x,s);
@@ -98,19 +101,27 @@ void quasi_newton_line_search(Function f, GradFunction df, Vector& x, LineSearch
   x_value = f(x);
   x_grad = -df(x);
   y -= x_grad;
-  mat<ValueType,mat_structure::square> H(mat<ValueType,mat_structure::scalar>(x.size(),(y * s) / (y * y)));
+  mat<ValueType,mat_structure::symmetric> H(mat<ValueType,mat_structure::scalar>(x.size(),(y * s) / (y * y)));
   
-  while( norm_2(x_grad) > abs_tol ) {
+  unsigned int k = 0;
+  
+  while( norm_2(x_grad) > abs_grad_tol ) {
     update_inv_hessian(H,s,y);
     p = H * x_grad;
     // check Wolfe for alpha 1.0
     alpha = ValueType(1.0);
     pxg = p * x_grad;
     if((f(x + p) > x_value - ValueType(1e-4) * pxg) || (fabs(p * df(x + p)) > ValueType(0.9) * fabs(pxg)))
-      alpha = get_alpha(f,df,ValueType(0.0),ValueType(2.0),x,p,tol);
+      alpha = get_alpha(f,df,ValueType(0.0),ValueType(2.0),x,p,abs_tol);
     s = alpha * p;
     impose_limits(x,s);
+    if(norm_2(s) > abs_tol)
+      return;
     x += s;
+      
+    if(++k > max_iter)
+      throw maximum_iteration(max_iter);
+    
     y = x_grad;
     x_value = f(x);
     x_grad = -df(x);
@@ -140,29 +151,35 @@ void quasi_newton_line_search(Function f, GradFunction df, Vector& x, LineSearch
  * \param df The gradient of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
  * \param max_radius The maximum trust-region radius to use (i.e. maximum optimization step).
+ * \param max_iter The maximum number of iterations to perform.
  * \param solve_step The functor that can find the solution to the approximate quadratic over the current trust-region.
  * \param update_hessian The functor that can update the Hessian given the changes in the solution and the function gradient.
  * \param impose_limits The functor to use to limit the proposed steps to satisfy some constraints on the underlying independent vector-space.
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param abs_tol The tolerance on the norm of the steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  * \param eta The tolerance on the ratio between actual reduction and predicted reduction in order to accept a given step.
  * \param r_tol The tolerance on the alignment of the step and the residual in order to trigger an update of the approximate Hessian matrix.
  */
 template <typename Function, typename GradFunction, typename Vector, typename TrustRegionSolver, typename HessianUpdater, typename LimitFunction>
-void quasi_newton_trust_region(Function f, GradFunction df, Vector& x, typename vect_traits<Vector>::value_type max_radius, TrustRegionSolver solve_step, HessianUpdater update_hessian, LimitFunction impose_limits, typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6), typename vect_traits<Vector>::value_type eta = typename vect_traits<Vector>::value_type(1e-4), typename vect_traits<Vector>::value_type r_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+void quasi_newton_trust_region(Function f, GradFunction df, Vector& x, 
+			       typename vect_traits<Vector>::value_type max_radius, unsigned int max_iter, 
+			       TrustRegionSolver solve_step, HessianUpdater update_hessian, LimitFunction impose_limits, 
+			       typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+			       typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6), 
+			       typename vect_traits<Vector>::value_type eta = typename vect_traits<Vector>::value_type(1e-4), 
+			       typename vect_traits<Vector>::value_type r_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   typedef typename vect_traits<Vector>::value_type ValueType;
   using std::sqrt; using std::fabs;
   
-  ValueType abs_tol = sqrt(x * x) * tol;
   ValueType radius = ValueType(0.5) * max_radius;
 
   ValueType x_value = f(x);
   Vector x_grad = df(x);
-  abs_tol += sqrt(x_grad * x_grad) * tol;
   
   Vector p = -x_grad;
   ValueType norm_p;
   mat<ValueType,mat_structure::square> B(mat<ValueType,mat_structure::identity>(x.size()));
-  solve_step(x_grad,B,p,norm_p,radius,tol);
+  solve_step(x_grad,B,p,norm_p,radius,abs_tol);
   impose_limits(x,p);
   Vector xt = x; xt += p;
   ValueType xt_value = f(xt);
@@ -193,11 +210,13 @@ void quasi_newton_trust_region(Function f, GradFunction df, Vector& x, typename 
       x_value = xt_value;
       x_grad = xt_grad;
     };
-    if(norm_2(x_grad) < abs_tol)
+    if(norm_2(x_grad) < abs_grad_tol)
       return;
-    solve_step(x_grad,B,p,norm_p,radius,tol);
+    solve_step(x_grad,B,p,norm_p,radius,abs_tol);
     impose_limits(x,p);
     xt = x; xt += p;
+    if(norm_2(p) < abs_tol)
+      return;
     xt_value = f(xt);
     xt_grad = df(xt);
     aredux = x_value - xt_value;
@@ -221,13 +240,16 @@ void quasi_newton_trust_region(Function f, GradFunction df, Vector& x, typename 
  * \param f The function to minimize.
  * \param df The gradient of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance on the norm of the steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename Vector>
-void bfgs_method(Function f, GradFunction df, Vector& x, 
-		 typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+void bfgs_method(Function f, GradFunction df, Vector& x, unsigned int max_iter, 
+		 typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+		 typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
-  quasi_newton_line_search(f,df,x,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_bfgs(),no_limit_functor(),tol);
+  quasi_newton_line_search(f,df,x,max_iter,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_bfgs(),no_limit_functor(),abs_tol,abs_grad_tol);
   
 };
 
@@ -244,14 +266,17 @@ void bfgs_method(Function f, GradFunction df, Vector& x,
  * \param f The function to minimize.
  * \param df The gradient of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
+ * \param max_iter The maximum number of iterations to perform.
  * \param impose_limits The functor to use to limit the proposed steps to satisfy some constraints on the underlying independent vector-space.
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param abs_tol The tolerance on the norm of the steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename Vector, typename LimitFunction>
-void limited_bfgs_method(Function f, GradFunction df, Vector& x, LimitFunction impose_limits, 
-			 typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+void limited_bfgs_method(Function f, GradFunction df, Vector& x, unsigned int max_iter, LimitFunction impose_limits, 
+			 typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+			 typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
-  quasi_newton_line_search(f,df,x,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_bfgs(),impose_limits,tol);
+  quasi_newton_line_search(f,df,x,max_iter,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_bfgs(),impose_limits,abs_tol,abs_grad_tol);
   
 };
 
@@ -266,13 +291,16 @@ void limited_bfgs_method(Function f, GradFunction df, Vector& x, LimitFunction i
  * \param f The function to minimize.
  * \param df The gradient of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance on the norm of the steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename Vector>
-void dfp_method(Function f, GradFunction df, Vector& x, 
-		typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+void dfp_method(Function f, GradFunction df, Vector& x, unsigned int max_iter,
+		typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6),
+		typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
-  quasi_newton_line_search(f,df,x,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_dfp(),no_limit_functor(),tol);
+  quasi_newton_line_search(f,df,x,max_iter,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_dfp(),no_limit_functor(),abs_tol,abs_grad_tol);
   
 };
 
@@ -289,14 +317,17 @@ void dfp_method(Function f, GradFunction df, Vector& x,
  * \param f The function to minimize.
  * \param df The gradient of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
+ * \param max_iter The maximum number of iterations to perform.
  * \param impose_limits The functor to use to limit the proposed steps to satisfy some constraints on the underlying independent vector-space.
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param abs_tol The tolerance on the norm of the steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename Vector, typename LimitFunction>
-void limited_dfp_method(Function f, GradFunction df, Vector& x, LimitFunction impose_limits, 
-			typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+void limited_dfp_method(Function f, GradFunction df, Vector& x, unsigned int max_iter, LimitFunction impose_limits, 
+			typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+			typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
-  quasi_newton_line_search(f,df,x,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_dfp(),impose_limits,tol);
+  quasi_newton_line_search(f,df,x,max_iter,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_dfp(),impose_limits,abs_tol,abs_grad_tol);
   
 };
 
@@ -311,15 +342,18 @@ void limited_dfp_method(Function f, GradFunction df, Vector& x, LimitFunction im
  * \param f The function to minimize.
  * \param df The gradient of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
+ * \param max_iter The maximum number of iterations to perform.
  * \param phi The fraction to use in the Broyden-class hessian approximation (0: BFGS only, 1: DFP only).
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param abs_tol The tolerance on the norm of the steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename Vector>
-void broyden_class_method(Function f, GradFunction df, Vector& x, 
+void broyden_class_method(Function f, GradFunction df, Vector& x, unsigned int max_iter,
 			  typename vect_traits<Vector>::value_type phi = typename vect_traits<Vector>::value_type(0.5), 
-			  typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+			  typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+			  typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
-  quasi_newton_line_search(f,df,x,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_broyden<typename vect_traits<Vector>::value_type>(phi),no_limit_functor(),tol);
+  quasi_newton_line_search(f,df,x,max_iter,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_broyden<typename vect_traits<Vector>::value_type>(phi),no_limit_functor(),abs_tol,abs_grad_tol);
   
 };
 
@@ -336,16 +370,19 @@ void broyden_class_method(Function f, GradFunction df, Vector& x,
  * \param f The function to minimize.
  * \param df The gradient of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
+ * \param max_iter The maximum number of iterations to perform.
  * \param impose_limits The functor to use to limit the proposed steps to satisfy some constraints on the underlying independent vector-space.
  * \param phi The fraction to use in the Broyden-class hessian approximation (0: BFGS only, 1: DFP only).
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param abs_tol The tolerance on the norm of the steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename Vector, typename LimitFunction>
-void limited_broyden_class_method(Function f, GradFunction df, Vector& x, LimitFunction impose_limits, 
+void limited_broyden_class_method(Function f, GradFunction df, Vector& x, unsigned int max_iter, LimitFunction impose_limits, 
 				  typename vect_traits<Vector>::value_type phi = typename vect_traits<Vector>::value_type(0.5), 
-				  typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+				  typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+				  typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
-  quasi_newton_line_search(f,df,x,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_broyden<typename vect_traits<Vector>::value_type>(phi),impose_limits,tol);
+  quasi_newton_line_search(f,df,x,max_iter,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_broyden<typename vect_traits<Vector>::value_type>(phi),impose_limits,abs_tol,abs_grad_tol);
   
 };
 
@@ -363,16 +400,20 @@ void limited_broyden_class_method(Function f, GradFunction df, Vector& x, LimitF
  * \param df The gradient of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
  * \param max_radius The maximum radius of the trust-region.
- * \param tol The relative tolerance on the norms.
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance on the norm of the steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename Vector>
 void sr1_tr_method(Function f, GradFunction df, Vector& x, 
 		   typename vect_traits<Vector>::value_type max_radius = typename vect_traits<Vector>::value_type(1.0), 
-		   typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+		   unsigned int max_iter = 100,
+		   typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6),
+		   typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
-  quasi_newton_trust_region(f,df, x, max_radius, 
+  quasi_newton_trust_region(f,df, x, max_radius, max_iter,
 			    trust_region_solver_dogleg(),
-			    hessian_update_sr1(),no_limit_functor(), tol);
+			    hessian_update_sr1(),no_limit_functor(), abs_tol, abs_grad_tol);
   
 };
 
@@ -391,16 +432,20 @@ void sr1_tr_method(Function f, GradFunction df, Vector& x,
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
  * \param impose_limits The functor to use to limit the proposed steps to satisfy some constraints on the underlying independent vector-space.
  * \param max_radius The maximum radius of the trust-region.
- * \param tol The relative tolerance on the norms.
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance on the norm of the steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient.
  */
 template <typename Function, typename GradFunction, typename Vector, typename LimitFunction>
 void limited_sr1_tr_method(Function f, GradFunction df, Vector& x, LimitFunction impose_limits,
 		           typename vect_traits<Vector>::value_type max_radius = typename vect_traits<Vector>::value_type(1.0), 
-		           typename vect_traits<Vector>::value_type tol = typename vect_traits<Vector>::value_type(1e-6)) {
+			   unsigned int max_iter = 100,
+		           typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6),
+		           typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
-  quasi_newton_trust_region(f,df, x, max_radius, 
+  quasi_newton_trust_region(f,df, x, max_radius, max_iter,
 			    trust_region_solver_dogleg(),
-			    hessian_update_sr1(),impose_limits, tol);
+			    hessian_update_sr1(),impose_limits, abs_tol, abs_grad_tol);
   
 };
 

@@ -57,7 +57,7 @@ template <typename Function, typename JacobianFunction,
 	  typename LinearSolver, typename LimitFunction, typename T>
 int levenberg_marquardt_nllsq_impl(Function f, JacobianFunction fill_jac, 
 				    InputVector& x, const OutputVector& y, 
-				    LinearSolver lin_solve, LimitFunction impose_limits, unsigned int itmax, 
+				    LinearSolver lin_solve, LimitFunction impose_limits, unsigned int max_iter, 
 				    T tau, T epsj, T epsx, T epsy)
 {
   typedef typename vect_traits<InputVector>::value_type ValueType;
@@ -87,8 +87,8 @@ int levenberg_marquardt_nllsq_impl(Function f, JacobianFunction fill_jac,
   ValueType epsx_sq = epsx * epsx;
   if(epsy <= 0.0) 
     epsy = 1E-17;
-  if(itmax <= 1)
-    itmax = 2;
+  if(max_iter <= 1)
+    max_iter = 2;
 
   /* compute e=x - f(p) and its L2 norm */
   OutputVector y_approx = f(x);
@@ -97,7 +97,7 @@ int levenberg_marquardt_nllsq_impl(Function f, JacobianFunction fill_jac,
   ValueType p_eL2 = e * e;
   
   unsigned int nu = 2;
-  for(unsigned int k = 0; k < itmax; ++k) {
+  for(unsigned int k = 0; k < max_iter; ++k) {
     
     if(p_eL2 < epsy)
       return 1;  //residual is too small.
@@ -184,7 +184,7 @@ int levenberg_marquardt_nllsq_impl(Function f, JacobianFunction fill_jac,
   };
 
   //if this point is reached, it means we have reached the maximum iterations.
-  throw maximum_iteration(itmax);
+  throw maximum_iteration(max_iter);
 
 };
 

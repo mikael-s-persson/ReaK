@@ -55,23 +55,22 @@ template <typename Function, typename JacobianFunction,
           typename InputVector, typename OutputVector, 
 	  typename LinearLsqSolver, typename LimitFunction>
 void gauss_newton_nllsq_impl(Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter,
-			     LinearLsqSolver lin_solve, LimitFunction impose_limits, typename vect_traits<InputVector>::value_type tol = typename vect_traits<InputVector>::value_type(1e-6)) {
+			     LinearLsqSolver lin_solve, LimitFunction impose_limits, 
+			     typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6), 
+			     typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
   typedef typename vect_traits<InputVector>::value_type ValueType;
   using std::sqrt; using std::fabs;
   
   OutputVector y_approx = f(x);
   OutputVector r = y - y_approx;
-  ValueType abs_x_tol = norm_2(x) * tol;
-  ValueType abs_y_tol = (norm_2(y) + norm_2(y_approx)) * tol;
   mat<ValueType, mat_structure::rectangular> J(y.size(), x.size());
   fill_jac(J,x,y_approx);
   InputVector e = x;
   mat_vect_adaptor<InputVector> e_mat(e);
-  lin_solve(J,e_mat,mat_vect_adaptor<OutputVector>(r),abs_y_tol);
+  lin_solve(J,e_mat,mat_vect_adaptor<OutputVector>(r),abs_grad_tol);
   impose_limits(x,e);
-  abs_x_tol += norm_2(e) * tol;
   unsigned int iter = 0;
-  while (norm_2(e) > abs_x_tol) {
+  while (norm_2(e) > abs_tol) {
     if(++iter > max_iter)
       throw maximum_iteration(max_iter);
     x += e;
@@ -79,7 +78,7 @@ void gauss_newton_nllsq_impl(Function f, JacobianFunction fill_jac, InputVector&
     r = y; r -= y_approx;
     fill_jac(J,x,y_approx);
     e = r * J;
-    lin_solve(J,e_mat,mat_vect_adaptor<OutputVector>(r),abs_y_tol);
+    lin_solve(J,e_mat,mat_vect_adaptor<OutputVector>(r),abs_grad_tol);
     impose_limits(x,e);
   };
 };
@@ -109,7 +108,8 @@ struct gauss_newton_nllsq_factory {
   JacobianFunction fill_jac;
   OutputVector y;
   unsigned int max_iter;
-  T tol;
+  T abs_tol;
+  T abs_grad_tol;
   LimitFunction impose_limits;
   LinearSolver lin_solve;
   
@@ -124,16 +124,17 @@ struct gauss_newton_nllsq_factory {
    * \param aY The desired output vector of the function (to be matched by the algorithm).
    * \param aMaxIter The maximum number of iterations to perform.
    * \param aTol The tolerance on the norm of the step size.
+   * \param aGradTol The tolerance on the norm of the gradient.
    * \param aImposeLimits The functor that can impose simple limits on the search domain (i.e. using this boils down to a gradient projection method, for more complex constraints please use a constraint optimization method instead).
    * \param aLinSolver The functor that can solve a linear system.
    */
   gauss_newton_nllsq_factory(Function aF, JacobianFunction aFillJac,
 			     OutputVector aY, unsigned int aMaxIter = 100,
-			     T aTol = T(1e-6),
+			     T aTol = T(1e-6), T aGradTol = T(1e-6),
 			     LimitFunction aImposeLimits = LimitFunction(),
 			     LinearSolver aLinSolver = LinearSolver()) :
 			     f(aF), fill_jac(aFillJac), y(aY), max_iter(aMaxIter),
-			     tol(aTol), 
+			     abs_tol(aTol), abs_grad_tol(aGradTol), 
 			     impose_limits(aImposeLimits),
 			     lin_solve(aLinSolver) { };
   /**
@@ -148,7 +149,7 @@ struct gauss_newton_nllsq_factory {
   template <typename Vector>
   void operator()(Vector& x) const {
     detail::gauss_newton_nllsq_impl(
-             f,fill_jac,x,y,max_iter,lin_solve,impose_limits,tol);
+             f,fill_jac,x,y,max_iter,lin_solve,impose_limits,abs_tol,abs_grad_tol);
   };
   
   /**
@@ -158,7 +159,11 @@ struct gauss_newton_nllsq_factory {
   /**
    * Sets the relative tolerance on the norm of the step size.
    */
-  self& set_tolerance(T aTol) { tol = aTol; return *this; };
+  self& set_tolerance(T aTol) { abs_tol = aTol; return *this; };
+  /**
+   * Sets the relative tolerance on the norm of the step size.
+   */
+  self& set_gradient_tolerance(T aGradTol) { abs_grad_tol = aGradTol; return *this; };
   
   /**
    * This function remaps the factory to one which will use the given linear system solver.
@@ -172,7 +177,7 @@ struct gauss_newton_nllsq_factory {
     set_lin_solver(NewLinearSolver new_lin_solver) const {
     return gauss_newton_nllsq_factory<
              Function,JacobianFunction,OutputVector,T,
-             LimitFunction,NewLinearSolver>(f,fill_jac,y,max_iter,tol,
+             LimitFunction,NewLinearSolver>(f,fill_jac,y,max_iter,abs_tol,abs_grad_tol,
 					    impose_limits, new_lin_solver);
   };
     
@@ -191,7 +196,7 @@ struct gauss_newton_nllsq_factory {
     set_limiter(NewLimitFunction new_limits) const {
     return gauss_newton_nllsq_factory<
              Function,JacobianFunction,OutputVector,T, 
-	     NewLimitFunction,LinearSolver>(f,fill_jac,y,max_iter,tol,
+	     NewLimitFunction,LinearSolver>(f,fill_jac,y,max_iter,abs_tol,abs_grad_tol,
 					    new_limits, lin_solve);
   };
     
@@ -209,16 +214,16 @@ struct gauss_newton_nllsq_factory {
  * \param y The fixed vector of outputs to be matched in a least-square approximation.
  * \param max_iter The maximum number of iterations to perform.
  * \param tau The initial, relative damping value to damp the Hessian matrix.
- * \param epsj The tolerance on the norm of the jacobian.
- * \param epsx The tolerance on the norm of the estimation steps.
- * \param epsy The tolerance on the norm of the residual vector.
+ * \param abs_tol The tolerance on the norm of the estimation steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient (or residual vector).
  */
 template <typename Function, typename JacobianFunction, typename OutputVector>
 gauss_newton_nllsq_factory<Function,JacobianFunction,OutputVector,typename vect_traits<OutputVector>::value_type> 
   make_gauss_newton_nllsq(Function f, JacobianFunction fill_jac, OutputVector y, unsigned int max_iter = 100, 
-			  typename vect_traits<OutputVector>::value_type tol = typename vect_traits<OutputVector>::value_type(1E-6)) {
+			  typename vect_traits<OutputVector>::value_type abs_tol = typename vect_traits<OutputVector>::value_type(1E-6), 
+			  typename vect_traits<OutputVector>::value_type abs_grad_tol = typename vect_traits<OutputVector>::value_type(1E-6)) {
   return gauss_newton_nllsq_factory<Function,JacobianFunction,OutputVector,typename vect_traits<OutputVector>::value_type>(
-           f,fill_jac,y,max_iter,tol);
+           f,fill_jac,y,max_iter,abs_tol,abs_grad_tol);
 };
 
 
@@ -237,13 +242,16 @@ gauss_newton_nllsq_factory<Function,JacobianFunction,OutputVector,typename vect_
  * \param fill_jac The Jacobian of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
  * \param y The fixed vector of outputs to be matched in a least-square approximation.
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param max_iter The maximum number of iterations to perform.
+ * \param abs_tol The tolerance on the norm of the estimation steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient (or residual vector).
  */
 template <typename Function, typename JacobianFunction, 
           typename InputVector, typename OutputVector>
 void gauss_newton_nllsq(Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter = 100,
-			typename vect_traits<InputVector>::value_type tol = typename vect_traits<InputVector>::value_type(1e-6)) {
-  detail::gauss_newton_nllsq_impl(f,fill_jac,x,y,max_iter,QR_linlsqsolver(),no_limit_functor(),tol);
+			typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6),
+			typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
+  detail::gauss_newton_nllsq_impl(f,fill_jac,x,y,max_iter,QR_linlsqsolver(),no_limit_functor(),abs_tol,abs_grad_tol);
 };
 
 /**
@@ -260,15 +268,19 @@ void gauss_newton_nllsq(Function f, JacobianFunction fill_jac, InputVector& x, c
  * \param fill_jac The Jacobian of the function to minimize.
  * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
  * \param y The fixed vector of outputs to be matched in a least-square approximation.
+ * \param max_iter The maximum number of iterations to perform.
  * \param impose_limits The functor to use to limit the proposed steps to satisfy some constraints on the underlying independent vector-space.
- * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param abs_tol The tolerance on the norm of the estimation steps.
+ * \param abs_grad_tol The tolerance on the norm of the gradient (or residual vector).
  */
 template <typename Function, typename JacobianFunction, 
           typename InputVector, typename OutputVector, 
 	  typename LimitFunction>
 void limited_gauss_newton_nllsq(Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter, 
-			        LimitFunction impose_limits, typename vect_traits<InputVector>::value_type tol = typename vect_traits<InputVector>::value_type(1e-6)) {
-  detail::gauss_newton_nllsq_impl(f,fill_jac,x,y,max_iter,QR_linlsqsolver(),impose_limits,tol);
+			        LimitFunction impose_limits, 
+				typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6), 
+				typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
+  detail::gauss_newton_nllsq_impl(f,fill_jac,x,y,max_iter,QR_linlsqsolver(),impose_limits,abs_tol,abs_grad_tol);
 };
 
 

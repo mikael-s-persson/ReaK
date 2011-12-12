@@ -53,3 +53,10 @@ setup_custom_target(test_optim_qp "${SRCROOT}${RKOPTIMDIR}")
 target_link_libraries(test_optim_qp reak_rtti)
 target_link_libraries(test_optim_qp ${BOOST_THREAD_LIB})
 
+
+add_executable(test_optim_nlp "${SRCROOT}${RKOPTIMDIR}/test_nlp.cpp")
+setup_custom_target(test_optim_nlp "${SRCROOT}${RKOPTIMDIR}")
+
+target_link_libraries(test_optim_nlp reak_rtti)
+target_link_libraries(test_optim_nlp ${BOOST_THREAD_LIB})
+

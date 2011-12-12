@@ -304,7 +304,7 @@ int main() {
     y = funcs[i](x); y *= 0.0;
     evalCount = 0; gradCount = 0;
     try {
-      optim::gauss_newton_nllsq(funcs[i],func_jacs[i],x,y,200,1e-8);
+      optim::gauss_newton_nllsq(funcs[i],func_jacs[i],x,y,200,1e-8,1e-8);
       std::cout << "  Gauss-Newton method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
@@ -318,7 +318,7 @@ int main() {
     y = funcs[i](x); y *= 0.0;
     evalCount = 0; gradCount = 0;
     try {
-      optim::jacobian_transpose_nllsq(funcs[i],func_jacs[i],x,y,500,1e-8);
+      optim::jacobian_transpose_nllsq(funcs[i],func_jacs[i],x,y,500,1e-8,1e-8);
       std::cout << "  Jacobian-Transpose method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
@@ -350,7 +350,7 @@ int main() {
     y = funcs[i](x); y *= 0.0;
     evalCount = 0; gradCount = 0;
     try {
-      optim::make_gauss_newton_nllsq(funcs[i],func_jacs[i],y,200,1e-8)
+      optim::make_gauss_newton_nllsq(funcs[i],func_jacs[i],y,200,1e-8,1e-8)
         .set_lin_solver(SVD_linlsqsolver())(x);
       std::cout << "  Gauss-Newton method with SVD solver gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
@@ -383,7 +383,7 @@ int main() {
     y = funcs[i](x); y *= 0.0;
     evalCount = 0; gradCount = 0;
     try {
-      optim::limited_gauss_newton_nllsq(funcs[i],func_jacs[i],x,y,200,boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,func_lowers[i],func_uppers[i]),1e-8);
+      optim::limited_gauss_newton_nllsq(funcs[i],func_jacs[i],x,y,200,boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,func_lowers[i],func_uppers[i]),1e-8,1e-8);
       std::cout << "  Box-limited Gauss-Newton method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
@@ -397,7 +397,7 @@ int main() {
     y = funcs[i](x); y *= 0.0;
     evalCount = 0; gradCount = 0;
     try {
-      optim::limited_jacobian_transpose_nllsq(funcs[i],func_jacs[i],x,y,500,boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,func_lowers[i],func_uppers[i]),1e-8);
+      optim::limited_jacobian_transpose_nllsq(funcs[i],func_jacs[i],x,y,500,boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,func_lowers[i],func_uppers[i]),1e-8,1e-8);
       std::cout << "  Box-limited Jacobian-Transpose method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
