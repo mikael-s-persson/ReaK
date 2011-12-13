@@ -41,6 +41,7 @@
 #include "lin_alg/mat_alg.hpp"
 #include "lin_alg/mat_num_exceptions.hpp"
 #include "lin_alg/mat_qr_decomp.hpp"
+#include "lin_alg/mat_svd_method.hpp"
 
 #include "newton_search_directions.hpp"
 #include "limit_functions.hpp"
@@ -182,9 +183,13 @@ namespace detail {
     Vector yz; yz.resize(M+K);
     mat_vect_adaptor<Vector> yz_mat(yz);
     vect_ref_view< Vector > y(yz[range(0,M-1)]);
-    vect_ref_view< Vector > z(yz[range(M,M+K-1)]);
-    linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
-    
+    vect_ref_view< Vector > z(yz[range(M,M+K-1)]); //RK_NOTICE(1," reached");
+    try {
+      linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
+      //RK_NOTICE(1," reached");
+    } catch(singularity_error&) {
+      SVD_linlsqsolver()(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
+    };
     for(SizeType i = 0; i < K; ++i)
       if(z[i] < abs_tol)
 	z[i] = abs_tol;
@@ -238,18 +243,18 @@ namespace detail {
       ValueType rho = 1.0 - mu;
       
       while((++k <= max_iter) && (Err_value > abs_tol_mu)) {
-        
-        solve_step(c,Jac_aug,v,norm_v,ValueType(0.8) * radius, abs_tol_mu);
+        //RK_NOTICE(1," reached");
+        solve_step(c,Jac_aug,v,norm_v,ValueType(0.8) * radius, abs_tol_mu); //RK_NOTICE(1," reached");
 	for(SizeType i = 0; i < K; ++i)
 	  if( v[N + i] < -0.5 * tau )
 	    v[N + i] = -0.5 * tau;
 	r = c + Jac_aug * v;
 	
-	try {
-	  null_space_QP_method(Jac_aug, r - c, H_aug, p_grad, p, abs_tol, radius);
+	try {//RK_NOTICE(1," reached");
+	  null_space_QP_method(Jac_aug, r - c, H_aug, p_grad, p, abs_tol, radius);//RK_NOTICE(1," reached");
 	} catch(singularity_error&) {
-	  try {
-            projected_CG_method(Jac_aug, r - c, H_aug, p_grad, p, max_iter, abs_tol_mu);
+	  try {//RK_NOTICE(1," reached");
+            projected_CG_method(Jac_aug, r - c, H_aug, p_grad, p, max_iter, abs_tol_mu);//RK_NOTICE(1," reached");
 	  } catch(maximum_iteration&) { };
 	};
 	
@@ -322,8 +327,8 @@ namespace detail {
             radius *= ValueType(2.0);
             if(radius > max_radius)
               radius = max_radius;
-          };
-          linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
+          };//RK_NOTICE(1," reached");
+          linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);//RK_NOTICE(1," reached");
 	  for(SizeType i = 0; i < K; ++i)
             if(z[i] < abs_tol)
               z[i] = abs_tol;
@@ -440,8 +445,8 @@ namespace detail {
       Vector s = *s0; s += alpha_s * (*p_s);
       Vector x = *x0; x += alpha_s * (*p_x);
       ValueType mulog_s(0.0);
-      for(SizeType i = 0; i < s.size(); ++i)
-	mulog_s += mu * log(s[i]);
+      //for(SizeType i = 0; i < s.size(); ++i)
+	//mulog_s += mu * log(s[i]);
       return f(x) - mulog_s + penalty * (norm_2(g(x)) + norm_2(h(x) - s));
     };
     
@@ -449,8 +454,8 @@ namespace detail {
       Vector s = *s0; s += alpha_s * (*p_s);
       Vector x = *x0; x += alpha_s * (*p_x);
       ValueType muDlog_s(0.0);
-      for(SizeType i = 0; i < s.size(); ++i)
-	muDlog_s +=  (mu * (*p_s)[i]) / s[i];
+      //for(SizeType i = 0; i < s.size(); ++i)
+	//muDlog_s +=  (mu * (*p_s)[i]) / s[i];
       Vector c_g = g(x); 
       mat<ValueType, mat_structure::rectangular> Jac_g(c_g.size(),x.size());
       fill_g_jac(Jac_g,x,c_g); 
@@ -664,9 +669,67 @@ namespace detail {
       //if(abs_tol_mu < abs_tol)
 	//abs_tol_mu = abs_tol;
       
-      ValueType rho = ValueType(0.5) * tau;
+      ValueType rho = ValueType(0.1);
       
       while((++k <= max_iter) && (Err_value > abs_tol_mu)) {
+	
+// 	Vector c_aug; c_aug.resize(N + K);
+// 	c_aug[range(0,N-1)] = l;
+// 	ValueType mu_sqrt = sqrt(mu);
+// 	for(SizeType i = 0; i < K; ++i)
+// 	  c_aug[i+N] = s[i] * z[i] / mu_sqrt - mu_sqrt;
+// 	Vector b_aug; b_aug.resize(M + K);
+// 	b_aug[range(0,M-1)] = -c_g;
+// 	b_aug[range(M,M+K-1)] = s - c_h;
+// 	
+// 	mat<ValueType,mat_structure::rectangular> J_aug(M+K,N+K);
+// 	sub(J_aug)(range(0,M-1),range(0,N-1)) = Jac_g;
+// 	sub(J_aug)(range(M,M+K-1),range(0,N-1)) = Jac_h;
+// 	sub(J_aug)(range(M,M+K-1),range(N,N+K-1)) = (ValueType(-1.0) / mu_sqrt) * mat<ValueType,mat_structure::diagonal>(s);
+// 	
+// 	mat<ValueType,mat_structure::diagonal> E_aug(K);
+// 	for(SizeType i = 0; i < K; ++i)
+// 	  E_aug(i,i) = (z[i] * s[i]) / mu;
+// 	mat<ValueType,mat_structure::symmetric> H_aug( ((H + mat<ValueType,mat_structure::scalar>(N,abs_tol)) & mat<ValueType,mat_structure::nil>(N,K)) | (mat<ValueType,mat_structure::nil>(K,N) & mat<ValueType,mat_structure::identity>(K) ) );
+// 	
+// 	Vector p_aug; p_aug.resize(N+K);
+// 	Vector l_aug; l_aug.resize(M+K);
+// 	
+// 	mat<ValueType,mat_structure::rectangular> rhs_mat(N+M+K+K,1);
+// 	for(SizeType i = 0; i < N+K; ++i)
+// 	  rhs_mat(i,0) = -c_aug[i];
+// 	for(SizeType i = 0; i < M+K; ++i)
+// 	  rhs_mat(i+N+K,0) = b_aug[i];
+// 	mat<ValueType,mat_structure::rectangular> lhs_mat(N+M+K+K,1);
+// 	mat<ValueType,mat_structure::rectangular> H_aug2( (H_aug & transpose_view(J_aug)) | (J_aug & mat<ValueType,mat_structure::scalar>(M+K,-abs_tol) ) );
+// 	RK_NOTICE(1," reached");
+// 	QR_linlsqsolver()(H_aug2,lhs_mat,rhs_mat,abs_tol);
+// 	RK_NOTICE(1," reached");
+// 	for(SizeType i = 0; i < N; ++i)
+// 	  p_x[i] = lhs_mat(i,0);
+// 	for(SizeType i = 0; i < K; ++i)
+// 	  p_s[i] = lhs_mat(i+N,0);
+// 	for(SizeType i = 0; i < M; ++i)
+// 	  p_y[i] = -lhs_mat(i+N+K,0);
+// 	for(SizeType i = 0; i < K; ++i)
+// 	  p_z[i] = -lhs_mat(i+N+K+M,0);
+	
+// 	try {
+// 	  null_space_QP_method(J_aug, b_aug, H_aug, c_aug, p_aug, abs_tol, std::numeric_limits<ValueType>::infinity(), &l_aug);
+// 	} catch(singularity_error&) {
+// 	  try {
+//             projected_CG_method(J_aug, b_aug, H_aug, c_aug, p_aug, max_iter, abs_tol_mu, &l_aug);
+// 	  } catch(maximum_iteration&) { };
+// 	};
+// 	p_x = p_aug[range(0,N-1)];
+// 	p_s = p_aug[range(N,N+K-1)];
+// 	p_y = l_aug[range(0,M-1)];
+// 	p_z = l_aug[range(M,M+K-1)];
+//	
+//	for(SizeType i = 0; i < K; ++i)
+//	  p_s[i] = (mu_sqrt * p_s[i]) / s[i];
+	
+	
 	
 	try {
 	  null_space_QP_method(Jac_g, -c_g, qp_G, qp_c, p_x, abs_tol, std::numeric_limits<ValueType>::infinity(), &p_y);
@@ -676,7 +739,7 @@ namespace detail {
 	  } catch(maximum_iteration&) { };
 	};
 	
-	p_s = Jac_h * p_x + c_h - s;
+// 	p_s = Jac_h * p_x + c_h - s;
 	ValueType alpha_s_max(1.0);
 	ValueType dq_p(0.0);
 	ValueType pHp = p_x * (H * p_x);
@@ -692,24 +755,29 @@ namespace detail {
 	m_func.mu = mu;
 	ValueType alpha_s(0.0);
 	
-	RK_NOTICE(1," nu = " << nu << " alpha_max = " << alpha_s_max << " phi(0) = " << m_func.compute_merit(0.0) << " phi'(0) = " << m_func.compute_derivative_merit(0.0) << " phi(a) = " << m_func.compute_merit(alpha_s_max) << " phi'(a) = " << m_func.compute_derivative_merit(alpha_s_max));
+	//RK_NOTICE(1," nu = " << nu << " alpha_max = " << alpha_s_max << " phi(0) = " << m_func.compute_merit(0.0) << " phi'(0) = " << m_func.compute_derivative_merit(0.0) << " phi(a) = " << m_func.compute_merit(alpha_s_max) << " phi'(a) = " << m_func.compute_derivative_merit(alpha_s_max));
         
-// 	expand_and_zoom_search(boost::bind(&MeritFuncComputer::compute_merit,&m_func,_1),
-// 	                       boost::bind(&MeritFuncComputer::compute_derivative_merit,&m_func,_1),
-// 			       alpha_s, alpha_s_max, abs_tol_mu, kappa, ValueType(0.1));
-	backtracking_search(boost::bind(&MeritFuncComputer::compute_merit,&m_func,_1),
-	                    boost::bind(&MeritFuncComputer::compute_derivative_merit,&m_func,_1),
-			    alpha_s, alpha_s_max, abs_tol_mu, kappa, ValueType(0.5), ValueType(0.75));
+	if(m_func.compute_derivative_merit(alpha_s_max) > ValueType(0.0)) {
 	
-	RK_NOTICE(1," alpha_s = " << alpha_s << " phi(0) = " << m_func.compute_merit(0.0) << " phi'(0) = " << m_func.compute_derivative_merit(0.0) << " phi(a) = " << m_func.compute_merit(alpha_s) << " phi'(a) = " << m_func.compute_derivative_merit(alpha_s));
+// 	  expand_and_zoom_search(boost::bind(&MeritFuncComputer::compute_merit,&m_func,_1),
+// 	                         boost::bind(&MeritFuncComputer::compute_derivative_merit,&m_func,_1),
+// 		 	         alpha_s, alpha_s_max, abs_tol_mu, kappa, ValueType(0.1));
+	  backtracking_search(boost::bind(&MeritFuncComputer::compute_merit,&m_func,_1),
+	                      boost::bind(&MeritFuncComputer::compute_derivative_merit,&m_func,_1),
+		  	      alpha_s, alpha_s_max, 0.0001, kappa, ValueType(0.5), ValueType(0.75));
+	} else {
+	  alpha_s = alpha_s_max;
+	};
+	
+	//RK_NOTICE(1," alpha_s = " << alpha_s << " phi(0) = " << m_func.compute_merit(0.0) << " phi'(0) = " << m_func.compute_derivative_merit(0.0) << " phi(a) = " << m_func.compute_merit(alpha_s) << " phi'(a) = " << m_func.compute_derivative_merit(alpha_s));
         
 	dx = alpha_s * p_x;
         norm_p = norm_2(dx);
 	x += dx;
 	s += alpha_s * p_s;
 	
-	pHp *= alpha_s_max * alpha_s_max;
-	dq_p *= alpha_s_max;
+	pHp *= alpha_s * alpha_s;
+	dq_p *= alpha_s;
         ValueType nu_t;
         if(pHp > ValueType(0.0))
           nu_t = (dq_p + ValueType(0.5) * pHp) / ((ValueType(1.0) - rho) * (norm_1(c_g) + norm_1(c_h - s)));
@@ -720,14 +788,14 @@ namespace detail {
 	else
           nu *= 1.1;
 	
-	p_z = muSES_inv * vect_scalar<ValueType>(K,ValueType(1.0)) - c_h_s - SJac_h * p_x;
+// 	p_z = muSES_inv * vect_scalar<ValueType>(K,ValueType(1.0)) - c_h_s - SJac_h * p_x;
 	ValueType alpha_z((mu * ValueType(K) - s * z) / (s * p_z));
 	for(SizeType i = 0; i < K; ++i) {
 	  if( alpha_z * p_z[i] < -tau )
 	    alpha_z = -tau / p_z[i];
 	  p_z[i] = z[i] * p_z[i];
 	};
-	RK_NOTICE(1," alpha_s = " << alpha_s << " p_x = " << p_x << " norm_p = " << norm_2(alpha_s * p_x) << " p_s = " << p_s << " p_y = " << p_y << " p_z = " << p_z);
+	//RK_NOTICE(1," alpha_s = " << alpha_s << " p_x = " << p_x << " norm_p = " << norm_2(alpha_s * p_x) << " p_s = " << p_s << " p_y = " << p_y << " p_z = " << p_z);
         
 	y += alpha_z * p_y;
 	z += alpha_z * p_z;
@@ -774,7 +842,7 @@ namespace detail {
           Err_value = g_norm;
         if(Err_value < h_norm)
           Err_value = h_norm;
-	RK_NOTICE(1," Err_value = " << Err_value << " g_norm = " << g_norm << " h_norm = " << h_norm << " s = " << s << " z = " << z << " y = " << y);
+	//RK_NOTICE(1," Err_value = " << Err_value << " g_norm = " << g_norm << " h_norm = " << h_norm << " s = " << s << " z = " << z << " y = " << y);
         
 	if(norm_p < abs_tol)
 	  break;

@@ -693,6 +693,133 @@ vect_n<double> p15_upper = vect_n<double>(vect<double,2>(std::numeric_limits<dou
 
 
 
+
+vect_n<double> get_robot1_lengths() {
+  vect_n<double> result(4);
+  result[0] = 3.0;
+  result[1] = 0.35;
+  result[2] = 0.35;
+  result[3] = 0.1;
+  return result;
+};
+
+vect_n<double> get_robot1_desired() {
+  vect_n<double> result(6);
+  result[0] = 2.0;
+  result[1] = 0.5;
+  result[2] = M_PI * 0.5;
+  result[3] = 0.1;
+  result[4] = 0.1;
+  result[5] = 0.1;
+  return result;
+};
+
+double robot1_f(const vect_n<double>& x) {
+  ++evalCount;
+  return x[4] * x[4] + x[5] * x[5] + x[6] * x[6] + x[7] * x[7] + (x[0] * x[0] + x[1] * x[1] + x[2] * x[2] + x[8] * x[8]) * 0.1;
+};
+
+vect_n<double> robot1_grad(const vect_n<double>& x) {
+  ++gradCount;
+  vect_n<double> result(8);
+  result[0] = 0.1 * x[0];
+  result[1] = 0.1 * x[1];
+  result[2] = 0.1 * x[2];
+  result[3] = 0.1 * x[3];
+  result[4] = x[4];
+  result[5] = x[5];
+  result[6] = x[6];
+  result[7] = x[7];
+  return result;
+};
+
+void robot1_H(mat<double,mat_structure::symmetric>& H, const vect_n<double>& x, double f, const vect_n<double>& x_grad) {
+  H.set_col_count(8);
+  H = mat<double,mat_structure::nil>(8,8);
+  H(0,0) = 0.1;
+  H(1,1) = 0.1;
+  H(2,2) = 0.1;
+  H(3,3) = 0.1;
+  H(4,4) = 1.0;
+  H(5,5) = 1.0;
+  H(6,6) = 1.0;
+  H(7,7) = 1.0;
+};
+
+vect_n<double> robot1_g(const vect_n<double>& x) {
+  vect_n<double> result(6);
+  vect_n<double> l = get_robot1_lengths();
+  double s1 = l[1] * cos(x[1]);
+  double s12 = l[2] * cos(x[1] + x[2]);
+  double s123 = l[3] * cos(x[1] + x[2] + x[3]);
+  double c1 = l[1] * cos(x[1]);
+  double c12 = l[2] * cos(x[1] + x[2]);
+  double c123 = l[3] * cos(x[1] + x[2] + x[3]);
+  result = get_robot1_desired();
+  result[0] -= l[0] * x[0] + c1 + c12 + c123;
+  result[1] -= s1 + s12 + s123;
+  result[2] -= x[1] + x[2] + x[3];
+  result[3] -= l[0] * x[4] - s1 * x[5] - s12 * (x[5] + x[6]) - s123 * (x[5] + x[6] + x[7]);
+  result[4] -= c1 * x[5] + c12 * (x[5] + x[6]) + c123 * (x[5] + x[6] + x[7]);
+  result[5] -= x[5] + x[6] + x[7];
+  return result;
+};
+
+void robot1_g_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>& x, const vect_n<double>&) {
+  J.set_col_count(8);
+  J.set_row_count(6);
+  vect_n<double> l = get_robot1_lengths();
+  double s1 = l[1] * cos(x[1]);
+  double s12 = l[2] * cos(x[1] + x[2]);
+  double s123 = l[3] * cos(x[1] + x[2] + x[3]);
+  double c1 = l[1] * cos(x[1]);
+  double c12 = l[2] * cos(x[1] + x[2]);
+  double c123 = l[3] * cos(x[1] + x[2] + x[3]);
+  J(0,0) = -l[0]; J(0,1) = s1 + s12 + s123; J(0,2) = s12 + s123; J(0,3) = s123;
+  J(0,4) = 0.0; J(0,5) = 0.0; J(0,6) = 0.0; J(0,7) = 0.0;
+  J(1,0) = 0.0; J(1,1) = -c1 - c12 - c123; J(1,2) = -c12 - c123; J(1,3) = -c123;
+  J(1,4) = 0.0; J(1,5) = 0.0; J(1,6) = 0.0; J(1,7) = 0.0;
+  J(2,0) = 0.0; J(2,1) = -1.0; J(2,2) = -1.0; J(2,3) = -1.0;
+  J(2,4) = 0.0; J(2,5) = 0.0; J(2,6) = 0.0; J(2,7) = 0.0;
+  
+  s1 *= x[5];
+  s12 *= (x[5] + x[6]);
+  s123 *= (x[5] + x[6] + x[7]);
+  c1 *= (x[5]);
+  c12 *= (x[5] + x[6]);
+  c123 *= (x[5] + x[6] + x[7]);
+  J(3,0) = 0.0; J(3,1) = c1 + c12 + c123; J(3,2) = c12 + c123; J(3,3) = c123;
+  J(3,4) = J(0,0); J(3,5) = J(0,1); J(3,6) = J(0,2); J(3,7) = J(0,3);
+  J(1,0) = 0.0; J(1,1) = s1 + s12 + s123; J(1,2) = s12 + s123; J(1,3) = s123;
+  J(4,4) = J(1,0); J(4,5) = J(1,1); J(4,6) = J(1,2); J(4,7) = J(1,3);
+  J(2,0) = 0.0; J(2,1) = 0.0; J(2,2) = 0.0; J(2,3) = 0.0;
+  J(5,4) = J(2,0); J(5,5) = J(2,1); J(5,6) = J(2,2); J(5,7) = J(2,3);
+};
+
+vect_n<double> robot1_h(const vect_n<double>& x) {
+  vect_n<double> result(2);
+  result[0] = x[0];
+  result[1] = 1.0 - x[0];
+  return result;
+};
+
+void robot1_h_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>&, const vect_n<double>&) {
+  J.set_col_count(8);
+  J.set_row_count(2);
+  J(0,0) = 1.0; J(0,1) = 0.0; J(0,2) = 0.0; J(0,3) = 0.0; J(0,4) = 0.0; J(0,5) = 0.0; J(0,6) = 0.0; J(0,7) = 0.0;
+  J(1,0) = -1.0; J(1,1) = 0.0; J(1,2) = 0.0; J(1,3) = 0.0; J(1,4) = 0.0; J(1,5) = 0.0; J(1,6) = 0.0; J(1,7) = 0.0;
+};
+
+vect_n<double> robot1_sol = vect_n<double>(8,0.0);
+vect_n<double> robot1_start = vect_n<double>(8,1.0);
+vect_n<double> robot1_lower = vect_n<double>(8,-std::numeric_limits<double>::infinity());
+vect_n<double> robot1_upper = vect_n<double>(8,std::numeric_limits<double>::infinity());
+
+
+
+
+
+
 int main() {
   
   std::vector< FunctionPtr > funcs_f;
@@ -851,6 +978,18 @@ int main() {
   funcs_lower.push_back(p15_lower);
   funcs_upper.push_back(p15_upper);
   
+  funcs_f.push_back(robot1_f);
+  funcs_grad.push_back(robot1_grad);
+  funcs_hess.push_back(robot1_H);
+  funcs_g.push_back(robot1_g);
+  funcs_g_jac.push_back(robot1_g_jac);
+  funcs_h.push_back(robot1_h);
+  funcs_h_jac.push_back(robot1_h_jac);
+  funcs_sol.push_back(robot1_sol);
+  funcs_start.push_back(robot1_start);
+  funcs_lower.push_back(robot1_lower);
+  funcs_upper.push_back(robot1_upper);
+  
   
   vect_n<double> x;
   for(std::size_t i = 0; i < funcs_f.size(); ++i) {
@@ -868,12 +1007,14 @@ int main() {
       std::cout << "  Newton method (unconstrained) gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Newton method (unconstrained) failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     };
     
     x = funcs_start[i];
@@ -887,12 +1028,14 @@ int main() {
       std::cout << "  Augmented Lagrangian method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Augmented Lagrangian method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     };
     
     x = funcs_start[i];
@@ -907,12 +1050,14 @@ int main() {
       std::cout << "  Regularized Augmented Lagrangian method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Regularized Augmented Lagrangian method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     };
     
     x = funcs_start[i];
@@ -926,12 +1071,14 @@ int main() {
       std::cout << "  NL Interior-point method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  NL Interior-point method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     };
     
     x = funcs_start[i];
@@ -945,48 +1092,54 @@ int main() {
       std::cout << "  NL Interior-point Quasi-Newton method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  NL Interior-point Quasi-Newton method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     };
     
     x = funcs_start[i];
     evalCount = 0; gradCount = 0;
     try {
-      optim::make_nlip_newton_ls(funcs_f[i],funcs_grad[i],funcs_hess[i],10.0,30,1e-6,1e-3,0.95)
+      optim::make_nlip_newton_ls(funcs_f[i],funcs_grad[i],funcs_hess[i],10.0,30,1e-6,1e-1,0.95)
         .set_eq_constraints(funcs_g[i],funcs_g_jac[i])
 	.set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
 	(x);
       std::cout << "  NL Interior-point method with Line-search gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  NL Interior-point method with Line-search failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     };
     
     x = funcs_start[i];
     evalCount = 0; gradCount = 0;
     try {
-      optim::make_nlip_quasi_newton_ls(funcs_f[i],funcs_grad[i],10.0,30,1e-6,1e-3,0.95)
+      optim::make_nlip_quasi_newton_ls(funcs_f[i],funcs_grad[i],10.0,30,1e-6,1e-1,0.95)
         .set_eq_constraints(funcs_g[i],funcs_g_jac[i])
 	.set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
 	(x);
       std::cout << "  NL Interior-point Quasi-Newton method with Line-search gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  NL Interior-point Quasi-Newton method with Line-search failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     };
     
     
@@ -1002,12 +1155,14 @@ int main() {
       std::cout << "  Byrd-Omojokun SQP method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Byrd-Omojokun SQP method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     };
     
     x = funcs_start[i];
@@ -1020,12 +1175,14 @@ int main() {
       std::cout << "  Byrd-Omojokun SQP Quasi-Newton method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
 	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i]))<< "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Byrd-Omojokun SQP Quasi-Newton method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
-                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
+                << "    |g(x)| = " << norm_2(funcs_g[i](x)) << " and h(x) = " << funcs_h[i](x) << std::endl;
     };
     
     };
