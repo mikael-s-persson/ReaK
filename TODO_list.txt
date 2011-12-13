@@ -180,29 +180,29 @@ Non-Linear Optimization problems
     Newton line-search methods   ------------------------------------------------X
       test with various non-linear functions (idea: use nllsq)   
     Newton trust-region methods   -----------------------------------------------X
-      test with various non-linear functions (idea: use nllsq)   
+      test with various non-linear functions (idea: use nllsq)   ----------------X
   Equality-constrained
     Bound-constrained Newton methods (Augmented Lagrangian methods)   -----------X
-      test with various non-linear functions   
+      test with various non-linear functions   ----------------------------------X (bad, expected)
     Bound-constrained Quasi-Newton methods (Augmented Lagrangian methods)   
       test with various non-linear functions   
     Byrd-Omojokun SQP method   --------------------------------------------------X
-      test with various non-linear functions   
-    Line-search Interior-point method
-      test with various non-linear functions   
+      test with various non-linear functions   ----------------------------------X
+    Line-search Interior-point method   -----------------------------------------X (sucks)
+      test with various non-linear functions   -------------------------------FAIL
     Trust-region Interior-point method   ----------------------------------------X
-      test with various non-linear functions   
+      test with various non-linear functions   ----------------------------------X
   Inequality-constrained
     Bound-constrained Newton methods (Augmented Lagrangian methods)   -----------X
-      test with various non-linear functions   
+      test with various non-linear functions   ----------------------------------X (bad, expected)
     Bound-constrained Quasi-Newton methods (Augmented Lagrangian methods)   
       test with various non-linear functions   
     Byrd-Omojokun SQP method (with non-negative limiters)   ---------------------X
-      test with various non-linear functions   
-    Line-search Interior-point method
-      test with various non-linear functions   
+      test with various non-linear functions   ----------------------------------X
+    Line-search Interior-point method   -----------------------------------------X (sucks)
+      test with various non-linear functions   -------------------------------FAIL
     Trust-region Interior-point method   ----------------------------------------X
-      test with various non-linear functions   
+      test with various non-linear functions   ----------------------------------X
     
 
 

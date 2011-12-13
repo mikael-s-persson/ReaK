@@ -74,8 +74,7 @@ namespace detail {
 			          TrustRegionSolver solve_step, LimitFunction impose_limits, 
 			          typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
 				  typename vect_traits<Vector>::value_type kappa = typename vect_traits<Vector>::value_type(1e-4),
-				  typename vect_traits<Vector>::value_type tau = typename vect_traits<Vector>::value_type(0.995),
-				  typename vect_traits<Vector>::value_type rho = typename vect_traits<Vector>::value_type(1e-4)) {
+				  typename vect_traits<Vector>::value_type tau = typename vect_traits<Vector>::value_type(0.995)) {
     typedef typename vect_traits<Vector>::value_type ValueType;
     typedef typename vect_traits<Vector>::size_type SizeType;
     using std::sqrt; using std::fabs; using std::log;
@@ -236,9 +235,9 @@ namespace detail {
 	abs_tol_mu = abs_tol;
       
       radius = 0.5 * max_radius;
-      rho = 1.0 - mu;
+      ValueType rho = 1.0 - mu;
       
-      while((Err_value > abs_tol_mu) && (++k <= max_iter)) {
+      while((++k <= max_iter) && (Err_value > abs_tol_mu)) {
         
         solve_step(c,Jac_aug,v,norm_v,ValueType(0.8) * radius, abs_tol_mu);
 	for(SizeType i = 0; i < K; ++i)
@@ -414,10 +413,8 @@ namespace detail {
     GradFunction df;
     const Vector* x0;
     const Vector* p_x;
-    ValueType norm_p_x;
     const Vector* s0;
     const Vector* p_s;
-    ValueType norm_p_s;
     ValueType penalty;
     ValueType mu;
     EqFunction g;
@@ -432,8 +429,8 @@ namespace detail {
 			    EqFunction aG, EqJacFunction aFillGJac,
 			    IneqFunction aH, IneqJacFunction aFillHJac) :
 			    f(aF), df(aDF), 
-			    x0(&aX0), p_x(&aPX), norm_p_x(norm_2(aPX)),
-			    s0(&aS0), p_s(&aPS), norm_p_s(norm_2(aPS)), 
+			    x0(&aX0), p_x(&aPX), 
+			    s0(&aS0), p_s(&aPS), 
 			    penalty(aPenalty), mu(aMu),
 			    g(aG), fill_g_jac(aFillGJac),
 			    h(aH), fill_h_jac(aFillHJac) { };
@@ -444,8 +441,7 @@ namespace detail {
       Vector x = *x0; x += alpha_s * (*p_x);
       ValueType mulog_s(0.0);
       for(SizeType i = 0; i < s.size(); ++i)
-	mulog_s += log(s[i]);
-      mulog_s *= mu;
+	mulog_s += mu * log(s[i]);
       return f(x) - mulog_s + penalty * (norm_2(g(x)) + norm_2(h(x) - s));
     };
     
@@ -454,23 +450,26 @@ namespace detail {
       Vector x = *x0; x += alpha_s * (*p_x);
       ValueType muDlog_s(0.0);
       for(SizeType i = 0; i < s.size(); ++i)
-	muDlog_s += (*p_s)[i] / s[i];
-      muDlog_s *= mu;
-      Vector c_g = g(x);
+	muDlog_s +=  (mu * (*p_s)[i]) / s[i];
+      Vector c_g = g(x); 
       mat<ValueType, mat_structure::rectangular> Jac_g(c_g.size(),x.size());
-      fill_g_jac(Jac_g,x,c_g);
+      fill_g_jac(Jac_g,x,c_g); 
       
-      Vector c_h = g(x);
+      Vector c_h = h(x);
       mat<ValueType, mat_structure::rectangular> Jac_h(c_h.size(),x.size());
       fill_h_jac(Jac_h,x,c_h);
       c_h -= s;
-      ValueType norm_c_h = norm_2(c_h);
       
       ValueType result = (*p_x) * df(x);
-      if(c_g.size() > 0)
-	result += ((*p_x) * (c_g * Jac_g)) * (penalty / norm_2(c_g));
-      if(c_h.size() > 0)
-	result += ((*p_x) * (c_h * Jac_h)) * (penalty / norm_c_h) - muDlog_s - (penalty / norm_c_h) * ( (*p_s) * c_h );
+      if(c_g.size() > 0) {
+	c_g = unit(c_g);
+	result += penalty * ((*p_x) * (c_g * Jac_g));
+      };
+      if(c_h.size() > 0) {
+	c_h = unit(c_h);
+	result += penalty * ((*p_x) * (c_h * Jac_h) - (*p_s) * c_h)
+	          - muDlog_s;
+      };
       return result;
     };
     
@@ -480,12 +479,11 @@ namespace detail {
   
   template <typename Function, typename GradFunction, typename HessianFunction, 
             typename Vector, typename EqFunction, typename EqJacFunction, 
-	    typename IneqFunction, typename IneqJacFunction, 
-	    typename TrustRegionSolver, typename LimitFunction>
+	    typename IneqFunction, typename IneqJacFunction>
   void nl_intpoint_method_ls_impl(Function f, GradFunction df, HessianFunction fill_hessian,  
 				  EqFunction g, EqJacFunction fill_g_jac,
 				  IneqFunction h, IneqJacFunction fill_h_jac,
-				  Vector& x, typename vect_traits<Vector>::value_type max_radius,
+				  Vector& x, 
 				  typename vect_traits<Vector>::value_type mu = typename vect_traits<Vector>::value_type(0.1), 
 				  unsigned int max_iter = 100,
 			          typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
@@ -496,23 +494,23 @@ namespace detail {
     using std::sqrt; using std::fabs; using std::log;
     
     SizeType N = x.size();
-    Vector ht_value = h(x);
-    SizeType K = ht_value.size();
+    Vector c_h = h(x);
+    SizeType K = c_h.size();
     mat<ValueType, mat_structure::rectangular> Jac_h(K,N);
-    fill_h_jac(Jac_h,x,ht_value);
+    fill_h_jac(Jac_h,x,c_h);
     
     //compute initial slack vector and roughly adjust x if needed.
-    Vector s = ht_value;
+    Vector s = c_h;
     for(SizeType i = 0; i < K; ++i)
       s[i] = ValueType(1.0);
     ValueType min_s(0.0);
     for(SizeType i = 0; i < K; ++i)
       if( s[i] < min_s )
 	min_s = s[i];
-    min_s *= ValueType(-0.1);
+    min_s *= ValueType(-0.1); 
     
     while(min_s > abs_tol) {
-      RK_NOTICE(1," s = " << s << " x = " << x << " h = " << ht_value << " Jac = " << Jac_h);
+      RK_NOTICE(1," s = " << s << " x = " << x << " h = " << c_h << " Jac = " << Jac_h);
       Vector e_s(s);
       for(SizeType i = 0; i < K; ++i)
 	e_s[i] = min_s;
@@ -522,9 +520,9 @@ namespace detail {
       minnorm_QR(Jac_h,dx_mat,mat_vect_adaptor<Vector>(e_s),abs_tol);
       RK_NOTICE(1," e_s = " << e_s << " dx = " << dx);
       x += dx;
-      ht_value = h(x);
-      fill_h_jac(Jac_h,x,ht_value);
-      s = ht_value;
+      c_h = h(x);
+      fill_h_jac(Jac_h,x,c_h);
+      s = c_h;
       min_s = ValueType(0.0);
       for(SizeType i = 0; i < K; ++i)
         if( s[i] < min_s )
@@ -542,11 +540,11 @@ namespace detail {
     fill_g_jac(Jac_g,x,c_g);
     
     if((M == 0) && (K == 0)) { //this means it is an unconstrained problem. TODO change this to dispatch on the type of the fill-hessian functor.
-      newton_method_ls_impl(f,df,fill_hessian,x,line_search_expand_and_zoom<ValueType>(kappa,ValueType(0.9)),no_limit_functor(),newton_directioner(),max_iter,abs_tol,abs_tol);
+      newton_method_ls_impl(f,df,fill_hessian,x,max_iter,line_search_expand_and_zoom<ValueType>(kappa,ValueType(0.9)),no_limit_functor(),newton_directioner(),abs_tol,abs_tol);
       return;
     };
-    Vector c_h = ht_value - s;
-    ValueType h_norm = norm_2(c_h);
+    
+    ValueType h_norm = norm_2(c_h - s);
     
     ValueType x_value = f(x);
     Vector x_grad = df(x);
@@ -594,8 +592,8 @@ namespace detail {
       log_s += log(s[i]);
     
     
-    ValueType c_norm_star = sqrt(c_g * c_g + c_h * c_h);
-    ValueType nu(std::numeric_limits<ValueType>::min());
+    //ValueType nu(std::numeric_limits<ValueType>::min());
+    ValueType nu(0.1);
     
     
     for(SizeType i = 0; i < K; ++i)
@@ -612,24 +610,31 @@ namespace detail {
       muSES_inv(i,i) = mu / (z[i] * s[i]);
     
     mat<ValueType,mat_structure::rectangular> ZJac_h(Jac_h);
+    mat<ValueType,mat_structure::rectangular> SJac_h(Jac_h);
     for(SizeType i = 0; i < K; ++i)
-      for(SizeType j = 0; j < N; ++j)
+      for(SizeType j = 0; j < N; ++j) {
 	ZJac_h(i,j) *= z[i];
+	SJac_h(i,j) /= s[i];
+      };
     
-    
-    mat<ValueType,mat_structure::symmetric> qp_G(H + transpose_view(Jac_h) * ZJac_h);
+    mat<ValueType,mat_structure::symmetric> qp_G(H + transpose_view(SJac_h) * ZJac_h);
     
     Vector qp_c(x_grad);
-    qp_c -= y * Jac_g - (c_h - muSES_inv * vect_scalar<ValueType>(K,1.0)) * ZJac_h;
+    Vector c_h_s = c_h;
+    for(SizeType i = 0; i < K; ++i)
+      c_h_s[i] /= s[i];
+    qp_c -= y * Jac_g + z * Jac_h - (c_h_s - muSES_inv * vect_scalar<ValueType>(K,1.0)) * ZJac_h;
     
     typedef merit_function_computer<Function,GradFunction,Vector,EqFunction,EqJacFunction,IneqFunction,IneqJacFunction> MeritFuncComputer;
     MeritFuncComputer m_func(f, df, x, p_x, s, p_s, nu, mu, g, fill_g_jac, h, fill_h_jac);
     
     
     ValueType Err_value = ValueType(0.0);
-    for(SizeType i = 0; i < K; ++i)
-      Err_value += (z[i] * s[i]) * (z[i] * s[i]);
-    Err_value = sqrt(Err_value);
+    for(SizeType i = 0; i < K; ++i) {
+      ValueType tmp = z[i] * s[i];
+      if( fabs(tmp) > Err_value )
+        Err_value = fabs(tmp);
+    };
     if(Err_value < norm_star)
       Err_value = norm_star;
     if(Err_value < g_norm)
@@ -643,9 +648,11 @@ namespace detail {
       
       //compute error with mu.
       Err_value = ValueType(0.0);
-      for(SizeType i = 0; i < K; ++i)
-	Err_value += (z[i] * s[i] - mu) * (z[i] * s[i] - mu);
-      Err_value = sqrt(Err_value);
+      for(SizeType i = 0; i < K; ++i) {
+        ValueType tmp = z[i] * s[i] - mu;
+        if( fabs(tmp) > Err_value )
+          Err_value = fabs(tmp);
+      };
       if(Err_value < norm_star)
         Err_value = norm_star;
       if(Err_value < g_norm)
@@ -654,66 +661,74 @@ namespace detail {
         Err_value = h_norm;
       
       ValueType abs_tol_mu = mu;
-      if(abs_tol_mu < abs_tol)
-	abs_tol_mu = abs_tol;
+      //if(abs_tol_mu < abs_tol)
+	//abs_tol_mu = abs_tol;
       
-      ValueType rho = 1.0 - mu;
+      ValueType rho = ValueType(0.5) * tau;
       
-      while((Err_value > abs_tol_mu) && (++k <= max_iter)) {
+      while((++k <= max_iter) && (Err_value > abs_tol_mu)) {
 	
 	try {
-	  null_space_QP_method(Jac_g, -c_g, qp_G, qp_c, p_x, abs_tol, max_radius, &p_y);
+	  null_space_QP_method(Jac_g, -c_g, qp_G, qp_c, p_x, abs_tol, std::numeric_limits<ValueType>::infinity(), &p_y);
 	} catch(singularity_error&) {
 	  try {
             projected_CG_method(Jac_g, -c_g, qp_G, qp_c, p_x, max_iter, abs_tol_mu, &p_y);
 	  } catch(maximum_iteration&) { };
 	};
 	
-	p_s = Jac_h * p_x + c_h;
+	p_s = Jac_h * p_x + c_h - s;
 	ValueType alpha_s_max(1.0);
 	ValueType dq_p(0.0);
-	for(SizeType i = 0; i < K; ++i) {
-	  if( alpha_s_max * p_s[i] < -tau )
-	    alpha_s_max = -tau / p_s[i];
-	  dq_p -= mu * p_s[i];
-	  p_s[i] = s[i] * p_s[i];
-	};
-	
 	ValueType pHp = p_x * (H * p_x);
-	for(SizeType i = 0; i < K; ++i)
-	  pHp += (p_s[i] * z[i]) * (p_s[i] / s[i]);
-	Vector cJx = c_g - Jac_g * p_x;
-	Vector cJs = c_h - Jac_h * p_x - p_s;
-	ValueType dm_p = c_norm_star - sqrt(cJx * cJx + cJs * cJs);
-	dq_p += l * p_x + z * p_s;
-        ValueType nu_t;
-        if(pHp > ValueType(0.0))
-          nu_t = (dq_p + ValueType(0.5) * pHp) / ((ValueType(1.0) - rho) * (norm_1(c_g) + norm_1(c_h)));
-        else
-	  nu_t = dq_p / ((ValueType(1.0) - rho) * (norm_1(c_g) + norm_1(c_h)));
-        if(nu < nu_t)
-	  nu = nu_t + abs_tol;
+	for(SizeType i = 0; i < K; ++i) {
+	  if( alpha_s_max * p_s[i] < -tau * s[i] )
+	    alpha_s_max = -tau * (s[i] / p_s[i]);
+	  dq_p -= mu * p_s[i] - z[i] * (p_s[i] / s[i]);
+	  pHp += p_s[i] * z[i] * (p_s[i] / s[i]);
+	};
+	dq_p += l * p_x;
 	
 	m_func.penalty = nu;
 	m_func.mu = mu;
 	ValueType alpha_s(0.0);
+	
+	RK_NOTICE(1," nu = " << nu << " alpha_max = " << alpha_s_max << " phi(0) = " << m_func.compute_merit(0.0) << " phi'(0) = " << m_func.compute_derivative_merit(0.0) << " phi(a) = " << m_func.compute_merit(alpha_s_max) << " phi'(a) = " << m_func.compute_derivative_merit(alpha_s_max));
+        
+// 	expand_and_zoom_search(boost::bind(&MeritFuncComputer::compute_merit,&m_func,_1),
+// 	                       boost::bind(&MeritFuncComputer::compute_derivative_merit,&m_func,_1),
+// 			       alpha_s, alpha_s_max, abs_tol_mu, kappa, ValueType(0.1));
 	backtracking_search(boost::bind(&MeritFuncComputer::compute_merit,&m_func,_1),
 	                    boost::bind(&MeritFuncComputer::compute_derivative_merit,&m_func,_1),
-			    alpha_s, alpha_s_max, abs_tol_mu, kappa, ValueType(0.9), ValueType(0.8));
+			    alpha_s, alpha_s_max, abs_tol_mu, kappa, ValueType(0.5), ValueType(0.75));
 	
-	p_z = muSES_inv * vect_scalar<ValueType>(K,1.0) - vect_scalar<ValueType>(K,1.0) - p_s;
-	ValueType alpha_z(1.0);
-	for(SizeType i = 0; i < K; ++i) {
-	  p_z[i] = muSES_inv(i,i) - ValueType(1.0) - alpha_s * p_s[i] / s[i];
-	  if( alpha_z * p_z[i] < -tau )
-	    alpha_z = -tau / p_z[i];
-	  p_z[i] = z[i] * p_z[i];
-	};
-	
+	RK_NOTICE(1," alpha_s = " << alpha_s << " phi(0) = " << m_func.compute_merit(0.0) << " phi'(0) = " << m_func.compute_derivative_merit(0.0) << " phi(a) = " << m_func.compute_merit(alpha_s) << " phi'(a) = " << m_func.compute_derivative_merit(alpha_s));
+        
 	dx = alpha_s * p_x;
         norm_p = norm_2(dx);
 	x += dx;
 	s += alpha_s * p_s;
+	
+	pHp *= alpha_s_max * alpha_s_max;
+	dq_p *= alpha_s_max;
+        ValueType nu_t;
+        if(pHp > ValueType(0.0))
+          nu_t = (dq_p + ValueType(0.5) * pHp) / ((ValueType(1.0) - rho) * (norm_1(c_g) + norm_1(c_h - s)));
+        else
+	  nu_t = dq_p / ((ValueType(1.0) - rho) * (norm_1(c_g) + norm_1(c_h - s)));
+        if(nu < nu_t)
+	  nu = nu_t + abs_tol;
+	else
+          nu *= 1.1;
+	
+	p_z = muSES_inv * vect_scalar<ValueType>(K,ValueType(1.0)) - c_h_s - SJac_h * p_x;
+	ValueType alpha_z((mu * ValueType(K) - s * z) / (s * p_z));
+	for(SizeType i = 0; i < K; ++i) {
+	  if( alpha_z * p_z[i] < -tau )
+	    alpha_z = -tau / p_z[i];
+	  p_z[i] = z[i] * p_z[i];
+	};
+	RK_NOTICE(1," alpha_s = " << alpha_s << " p_x = " << p_x << " norm_p = " << norm_2(alpha_s * p_x) << " p_s = " << p_s << " p_y = " << p_y << " p_z = " << p_z);
+        
 	y += alpha_z * p_y;
 	z += alpha_z * p_z;
 	
@@ -721,48 +736,57 @@ namespace detail {
 	g_norm = norm_2(c_g);
 	fill_g_jac(Jac_g,x,c_g);
 	c_h = h(x);
-	fill_g_jac(Jac_h,x,c_h);
-	c_h -= s;
+	fill_h_jac(Jac_h,x,c_h);
+	h_norm = norm_2(c_h - s);
 	ZJac_h = Jac_h;
         for(SizeType i = 0; i < K; ++i)
-          for(SizeType j = 0; j < N; ++j)
+          for(SizeType j = 0; j < N; ++j) {
 	    ZJac_h(i,j) *= z[i];
+	    SJac_h(i,j) /= s[i];
+	  };
 	for(SizeType i = 0; i < K; ++i)
           muSES_inv(i,i) = mu / (z[i] * s[i]);
-        c_norm_star = sqrt( c_g * c_g + c_h * c_h );
 	
 	x_value = f(x);
 	x_grad = df(x);
-	qp_c = x_grad - y * Jac_g;
+	lt = x_grad - y * Jac_g - z * Jac_h;
 	
-	lt = qp_c - z * Jac_h;
+        for(SizeType i = 0; i < K; ++i)
+          c_h_s[i] = c_h[i] / s[i];
         
-	qp_c += (c_h - muSES_inv * vect_scalar<ValueType>(K,1.0)) * ZJac_h;
+	qp_c = lt + (c_h_s - muSES_inv * vect_scalar<ValueType>(K,1.0)) * ZJac_h;
 	
 	fill_hessian(H,x,x_value,x_grad,dx,lt - l);
 	l = lt;
         norm_star = norm_2(l);
 	
-	qp_G = H + transpose_view(Jac_h) * ZJac_h;
+	qp_G = H + transpose_view(SJac_h) * ZJac_h;
 	
 	Err_value = ValueType(0.0);
-	for(SizeType i = 0; i < K; ++i)
-	  Err_value += (z[i] * s[i] - mu) * (z[i] * s[i] - mu);
-	Err_value = sqrt(Err_value);
+	for(SizeType i = 0; i < K; ++i) {
+	  ValueType tmp = z[i] * s[i] - mu;
+	  if( fabs(tmp) > Err_value )
+	    Err_value = fabs(tmp);
+	};
 	if(Err_value < norm_star)
           Err_value = norm_star;
         if(Err_value < g_norm)
           Err_value = g_norm;
         if(Err_value < h_norm)
           Err_value = h_norm;
-	//RK_NOTICE(1," Err_value = " << Err_value << " c_norm_star = " << c_norm_star << " s = " << s << " z = " << z << " y = " << y);
+	RK_NOTICE(1," Err_value = " << Err_value << " g_norm = " << g_norm << " h_norm = " << h_norm << " s = " << s << " z = " << z << " y = " << y);
         
+	if(norm_p < abs_tol)
+	  break;
       };
       if(k > max_iter)
 	throw maximum_iteration(max_iter);
       //if(radius < abs_tol)
 	//return;
       
+      if((abs_tol_mu <= abs_tol) && (norm_p < abs_tol))
+	return;
+	
       //decrease mu;
       if( K > 1 ) {
         ValueType sigma(2.0);
@@ -781,19 +805,22 @@ namespace detail {
         mu = sigma * sz_k;
         //RK_NOTICE(1," inter-step: s = " << s << " z = " << z << " sz_k = " << sz_k << " zeta = " << zeta << " sigma = " << sigma << " mu = " << mu);
       } else {
-	mu *= 0.1;
+	mu *= 0.5;
       };
       
       for(SizeType i = 0; i < K; ++i)
         muSES_inv(i,i) = mu / (z[i] * s[i]);
+      qp_c = l + (c_h_s - muSES_inv * vect_scalar<ValueType>(K,1.0)) * ZJac_h;
       
-      tau = 1.0 - mu;
+      //tau += ValueType(0.5) * (ValueType(1.0) - tau);
       
       //compute error without mu.
       Err_value = ValueType(0.0);
-      for(SizeType i = 0; i < K; ++i)
-        Err_value += (z[i] * s[i]) * (z[i] * s[i]);
-      Err_value = sqrt(Err_value);
+      for(SizeType i = 0; i < K; ++i) {
+	ValueType tmp = z[i] * s[i];
+	if( fabs(tmp) > Err_value )
+	  Err_value = fabs(tmp);
+      };
       if(Err_value < norm_star)
         Err_value = norm_star;
       if(Err_value < g_norm)
@@ -830,7 +857,7 @@ namespace detail {
  *    h(x) >= 0 \n
  * \n
  *  given grad(f)(x), Hess(f)(x), Jac(g)(x) and Jac(h)(x).\n
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is quite good, close to state-of-the-art methods in commercial packages.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -857,7 +884,6 @@ struct nlip_newton_tr_factory {
   T tol;
   T eta;
   T tau;
-  T rho;
   EqFunction g;
   EqJacFunction fill_g_jac;
   IneqFunction h;
@@ -884,7 +910,6 @@ struct nlip_newton_tr_factory {
    * \param aTol The tolerance on the norm of the gradient (and thus the step size).
    * \param aEta The tolerance on the decrease in order to accept a step in the trust region.
    * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint (barrier).
-   * \param aRho The margin on the sufficient decrease of a step in the trust region.
    * \param aSolveStep The functor that can solve for the step to take within the trust-region.
    * \param aImposeLimits The functor that can impose simple limits on the search domain (e.g. box-constraints or non-negativity).
    */
@@ -892,11 +917,12 @@ struct nlip_newton_tr_factory {
 			 T aMaxRadius, T aMu, unsigned int aMaxIter,
 			 EqFunction aG = EqFunction(), EqJacFunction aFillGJac = EqJacFunction(),
 			 IneqFunction aH = EqFunction(), IneqJacFunction aFillHJac = IneqJacFunction(),
-			 T aTol = T(1e-6), T aEta = T(1e-4), T aTau = T(0.995), T aRho = T(1e-4),
+			 T aTol = T(1e-6), T aEta = T(1e-4), T aTau = T(0.995),
 			 TrustRegionSolver aSolveStep = TrustRegionSolver(),
 			 LimitFunction aImposeLimits = LimitFunction()) :
 			 f(aF), df(aDf), fill_hessian(aFillHessian),
-			 max_radius(aMaxRadius), mu(aMu), max_iter(aMaxIter), tol(aTol), eta(aEta), tau(aTau), rho(aRho),
+			 max_radius(aMaxRadius), mu(aMu), max_iter(aMaxIter), 
+			 tol(aTol), eta(aEta), tau(aTau), 
 			 g(aG), fill_g_jac(aFillGJac), 
 			 h(aH), fill_h_jac(aFillHJac), 
 			 solve_step(aSolveStep),
@@ -913,7 +939,7 @@ struct nlip_newton_tr_factory {
       f, df, hessian_update_dual_exact<HessianFunction>(fill_hessian), 
       g, fill_g_jac, h, fill_h_jac,
       x, max_radius, mu, max_iter, solve_step,
-      impose_limits,tol,eta,tau,rho);
+      impose_limits,tol,eta,tau);
   };
   
   /**
@@ -943,10 +969,6 @@ struct nlip_newton_tr_factory {
    * constraint (barrier).
    */
   self& set_barrier_step_margin(T aTau) { tau = aTau; return *this; };
-  /**
-   * Sets the margin on the sufficient decrease of a step in the trust region.
-   */
-  self& set_decrease_margin(T aRho) { rho = aRho; return *this; };
     
   /**
    * This function remaps the factory to one which will use a regularized solver within the trust-region.
@@ -965,7 +987,7 @@ struct nlip_newton_tr_factory {
 					                                             max_radius, mu, max_iter,
 										     g, fill_g_jac, 
 										     h, fill_h_jac, 
-										     tol, eta, tau, rho,
+										     tol, eta, tau,
 										     tr_solver_right_pinv_dogleg_reg<T>(aTau),
 										     impose_limits);
   };
@@ -988,7 +1010,7 @@ struct nlip_newton_tr_factory {
 					                               max_radius, mu, max_iter,
 								       g, fill_g_jac, 
 								       h, fill_h_jac, 
-								       tol, eta, tau, rho,
+								       tol, eta, tau,
 								       new_solver,impose_limits);
   };
     
@@ -1013,7 +1035,7 @@ struct nlip_newton_tr_factory {
 					                               max_radius, mu, max_iter,
 								       g, fill_g_jac, 
 								       h, fill_h_jac, 
-								       tol, eta, tau, rho,
+								       tol, eta, tau,
 								       solve_step,new_limits);
   };
     
@@ -1038,7 +1060,7 @@ struct nlip_newton_tr_factory {
 					                            max_radius, mu, max_iter,
 								    new_g, new_fill_g_jac, 
 								    h, fill_h_jac, 
-								    tol, eta, tau, rho,
+								    tol, eta, tau,
 								    solve_step,impose_limits);
   };
     
@@ -1063,7 +1085,7 @@ struct nlip_newton_tr_factory {
 					                            max_radius, mu, max_iter,
 								    g, fill_g_jac, 
 								    new_h, new_fill_h_jac, 
-								    tol, eta, tau, rho,
+								    tol, eta, tau,
 								    solve_step,impose_limits);
   };
     
@@ -1082,7 +1104,7 @@ struct nlip_newton_tr_factory {
  *    h(x) >= 0 \n
  * \n
  *  given grad(f)(x), Hess(f)(x), Jac(g)(x) and Jac(h)(x).\n
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is quite good, close to state-of-the-art methods in commercial packages.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -1096,14 +1118,13 @@ struct nlip_newton_tr_factory {
  * \param tol The tolerance on the norm of the gradient (and thus the step size).
  * \param eta The tolerance on the decrease in order to accept a step in the trust region.
  * \param tau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint (barrier).
- * \param rho The margin on the sufficient decrease of a step in the trust region.
  */
 template <typename Function, typename GradFunction, typename HessianFunction, typename T>
 nlip_newton_tr_factory<Function,GradFunction,HessianFunction,T> 
   make_nlip_newton_tr(Function f, GradFunction df, HessianFunction fill_hessian, 
 		       T max_radius, T mu, unsigned int max_iter,
-		       T tol = T(1e-6), T eta = T(1e-4), T tau = T(0.995), T rho = T(1e-4)) {
-  return nlip_newton_tr_factory<Function,GradFunction,HessianFunction,T>(f,df,fill_hessian,max_radius,mu,max_iter,no_constraint_functor(),no_constraint_jac_functor(),no_constraint_functor(),no_constraint_jac_functor(),tol,eta,tau,rho);
+		       T tol = T(1e-6), T eta = T(1e-4), T tau = T(0.995)) {
+  return nlip_newton_tr_factory<Function,GradFunction,HessianFunction,T>(f,df,fill_hessian,max_radius,mu,max_iter,no_constraint_functor(),no_constraint_jac_functor(),no_constraint_functor(),no_constraint_jac_functor(),tol,eta,tau);
 };
 
 
@@ -1126,7 +1147,7 @@ nlip_newton_tr_factory<Function,GradFunction,HessianFunction,T>
  *    h(x) >= 0 \n
  * \n
  *  given grad(f)(x), Jac(g)(x) and Jac(h)(x).\n
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is quite good, close to state-of-the-art methods in commercial packages.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam T The value-type of the field on which the optimization is performed.
@@ -1152,7 +1173,6 @@ struct nlip_quasi_newton_tr_factory {
   T tol;
   T eta;
   T tau;
-  T rho;
   EqFunction g;
   EqJacFunction fill_g_jac;
   IneqFunction h;
@@ -1179,7 +1199,6 @@ struct nlip_quasi_newton_tr_factory {
    * \param aTol The tolerance on the norm of the gradient (and thus the step size).
    * \param aEta The tolerance on the decrease in order to accept a step in the trust region.
    * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint (barrier).
-   * \param aRho The margin on the sufficient decrease of a step in the trust region.
    * \param aUpdateHessian The functor object that can update the approximate Hessian matrix of the function to be optimized. 
    * \param aSolveStep The functor that can solve for the step to take within the trust-region.
    * \param aImposeLimits The functor that can impose simple limits on the search domain (e.g. box-constraints or non-negativity).
@@ -1188,13 +1207,13 @@ struct nlip_quasi_newton_tr_factory {
 			       T aMaxRadius, T aMu, unsigned int aMaxIter,
 			       EqFunction aG = EqFunction(), EqJacFunction aFillGJac = EqJacFunction(),
 			       IneqFunction aH = IneqFunction(), IneqJacFunction aFillHJac = IneqJacFunction(),
-			       T aTol = T(1e-6), T aEta = T(1e-4), T aTau = T(0.995), T aRho = T(1e-4),
+			       T aTol = T(1e-6), T aEta = T(1e-4), T aTau = T(0.995),
 			       HessianUpdater aUpdateHessian = HessianUpdater(),
 			       TrustRegionSolver aSolveStep = TrustRegionSolver(),
 			       LimitFunction aImposeLimits = LimitFunction()) :
 			       f(aF), df(aDf), 
 			       max_radius(aMaxRadius), mu(aMu), max_iter(aMaxIter), 
-			       tol(aTol), eta(aEta), tau(aTau), rho(aRho),
+			       tol(aTol), eta(aEta), tau(aTau),
 			       g(aG), fill_g_jac(aFillGJac), 
 			       h(aH), fill_h_jac(aFillHJac), 
 			       update_hessian(aUpdateHessian),
@@ -1210,7 +1229,7 @@ struct nlip_quasi_newton_tr_factory {
   void operator()(Vector& x) const {
     detail::nl_intpoint_method_tr_impl(
       f, df, hessian_update_dual_quasi<HessianUpdater>(update_hessian), g, fill_g_jac, h, fill_h_jac, 
-      x, max_radius, mu, max_iter, solve_step, impose_limits,tol,eta,tau,rho);
+      x, max_radius, mu, max_iter, solve_step, impose_limits,tol,eta,tau);
   };
   
   /**
@@ -1240,10 +1259,6 @@ struct nlip_quasi_newton_tr_factory {
    * constraint (barrier).
    */
   self& set_barrier_step_margin(T aTau) { tau = aTau; return *this; };
-  /**
-   * Sets the margin on the sufficient decrease of a step in the trust region.
-   */
-  self& set_decrease_margin(T aRho) { rho = aRho; return *this; };
     
   /**
    * This function remaps the factory to one which will use a regularized solver within the trust-region.
@@ -1261,7 +1276,7 @@ struct nlip_quasi_newton_tr_factory {
 					                                                   max_radius, mu, max_iter,
 										           g, fill_g_jac, 
 									                   h, fill_h_jac,
-										           tol, eta, tau, rho, update_hessian,
+										           tol, eta, tau, update_hessian,
 										           tr_solver_right_pinv_dogleg_reg<T>(tau),
 										           impose_limits);
   };
@@ -1285,7 +1300,7 @@ struct nlip_quasi_newton_tr_factory {
                                         NewTrustRegionSolver, LimitFunction>(f, df, max_radius, mu, max_iter,
 								             g, fill_g_jac, 
 									     h, fill_h_jac,
-									     tol, eta, tau, rho, 
+									     tol, eta, tau, 
 									     update_hessian, new_solver, impose_limits);
   };
     
@@ -1311,7 +1326,7 @@ struct nlip_quasi_newton_tr_factory {
                                         TrustRegionSolver, NewLimitFunction>(f, df, max_radius, mu, max_iter,
 								             g, fill_g_jac, 
 									     h, fill_h_jac,
-									     tol, eta, tau, rho, 
+									     tol, eta, tau, 
 									     update_hessian, solve_step, new_limits);
   };
     
@@ -1337,7 +1352,7 @@ struct nlip_quasi_newton_tr_factory {
                                         TrustRegionSolver, LimitFunction>(f, df, max_radius, mu, max_iter,
 									  new_g, new_fill_g_jac, 
 									  h, fill_h_jac,
-									  tol, eta, tau, rho, update_hessian,
+									  tol, eta, tau, update_hessian,
 									  solve_step,impose_limits);
   };
     
@@ -1363,7 +1378,7 @@ struct nlip_quasi_newton_tr_factory {
                                         TrustRegionSolver, LimitFunction>(f, df, max_radius, mu, max_iter,
 									  g, fill_g_jac, 
 									  new_h, new_fill_h_jac,
-									  tol, eta, tau, rho, update_hessian,
+									  tol, eta, tau, update_hessian,
 									  solve_step,impose_limits);
   };
     
@@ -1386,7 +1401,7 @@ struct nlip_quasi_newton_tr_factory {
                                         TrustRegionSolver, LimitFunction>(f, df, max_radius, mu, max_iter,
 								          g, fill_g_jac, 
 									  h, fill_h_jac,
-									  tol, eta, tau, rho, 
+									  tol, eta, tau, 
 									  new_update_hessian, 
 									  solve_step, impose_limits);
   };
@@ -1407,7 +1422,7 @@ struct nlip_quasi_newton_tr_factory {
  *    h(x) >= 0 \n
  * \n
  *  given grad(f)(x), Jac(g)(x) and Jac(h)(x).\n
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is quite good, close to state-of-the-art methods in commercial packages.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam T The value-type of the field on which the optimization is performed.
@@ -1419,15 +1434,430 @@ struct nlip_quasi_newton_tr_factory {
  * \param tol The tolerance on the norm of the gradient (and thus the step size).
  * \param eta The tolerance on the decrease in order to accept a step in the trust region.
  * \param tau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint (barrier).
- * \param rho The margin on the sufficient decrease of a step in the trust region.
  */
 template <typename Function, typename GradFunction, typename T>
 nlip_quasi_newton_tr_factory<Function,GradFunction,T> 
   make_nlip_quasi_newton_tr(Function f, GradFunction df, 
 		            T max_radius, T mu, unsigned int max_iter,
-		            T tol = T(1e-6), T eta = T(1e-4), T tau = T(0.995), T rho = T(1e-4)) {
-  return nlip_quasi_newton_tr_factory<Function,GradFunction,T>(f,df,max_radius,mu,max_iter,no_constraint_functor(),no_constraint_jac_functor(),no_constraint_functor(),no_constraint_jac_functor(),tol,eta,tau,rho);
+		            T tol = T(1e-6), T eta = T(1e-4), T tau = T(0.995)) {
+  return nlip_quasi_newton_tr_factory<Function,GradFunction,T>(f,df,max_radius,mu,max_iter,no_constraint_functor(),no_constraint_jac_functor(),no_constraint_functor(),no_constraint_jac_functor(),tol,eta,tau);
 };
+
+
+
+
+
+
+/**
+ * This functor is a factory class to construct a Non-Linear Interior-Point optimizer routine 
+ * that uses a line-search approach and incorporates equality and inequality constraints via 
+ * the sequential quadratic programming method and a Newton direction. Use make_nlip_newton_ls to
+ * construct this without having to specify the template arguments explicitly.
+ * This algorithm is roughly as described in Nocedal's Numerical Optimization 
+ * book. This algorithm solves the following problem:
+ * \n
+ *   min f(x) \n
+ *    g(x) = 0 \n
+ *    h(x) >= 0 \n
+ * \n
+ *  given grad(f)(x), Hess(f)(x), Jac(g)(x) and Jac(h)(x).\n
+ * \test Must create a unit-test for this. So far, all tests have failed, there must be something really wrong in this implementation, but I cannot pin-point it.
+ * \tparam Function The functor type of the function to optimize.
+ * \tparam GradFunction The functor type of the gradient of the function to optimize.
+ * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
+ * \tparam T The value-type of the field on which the optimization is performed.
+ * \tparam EqFunction The functor type of the equality constraints function (vector function).
+ * \tparam EqJacFunction The functor type of the equality constraints jacobian function.
+ * \tparam IneqFunction The functor type of the inequality constraints function (vector function).
+ * \tparam IneqJacFunction The functor type of the inequality constraints jacobian function.
+ */
+template <typename Function, typename GradFunction, typename HessianFunction, typename T,
+          typename EqFunction = no_constraint_functor, typename EqJacFunction = no_constraint_jac_functor, 
+          typename IneqFunction = no_constraint_functor, typename IneqJacFunction = no_constraint_jac_functor>
+struct nlip_newton_ls_factory {
+  Function f;
+  GradFunction df;
+  HessianFunction fill_hessian;
+  T mu;
+  unsigned int max_iter;
+  T tol;
+  T eta;
+  T tau;
+  EqFunction g;
+  EqJacFunction fill_g_jac;
+  IneqFunction h;
+  IneqJacFunction fill_h_jac;
+  
+  typedef nlip_newton_ls_factory<Function,GradFunction,HessianFunction,T,
+                                 EqFunction,EqJacFunction,IneqFunction,IneqJacFunction> self;
+  
+  /**
+   * Parametrized constructor of the factory object.
+   * \param aF The function to minimize.
+   * \param aDf The gradient of the function to minimize.
+   * \param aFillHessian The functor object that can fill the Hessian symmetric matrix of the function to be optimized. 
+   * \param aMu The initial strength of the barrier on the inequalities (initial "barrier parameter"), this parameter is positive and should start with a rather large value (relative to the scale of the function) and will be progressively decreased by the algorithm as it progresses).
+   * \param aMaxIter The maximum number of iterations to perform.
+   * \param aG The function that computes the equality constraints.
+   * \param aFillGJac The function that computes the jacobian matrix of the equality constaints.
+   * \param aG The function that computes the inequality constraints.
+   * \param aFillGJac The function that computes the jacobian matrix of the inequality constaints.
+   * \param aTol The tolerance on the norm of the gradient (and thus the step size).
+   * \param aEta The tolerance on the sufficient decrease in order to accept a line-search step.
+   * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint (barrier).
+   */
+  nlip_newton_ls_factory(Function aF, GradFunction aDf, HessianFunction aFillHessian, 
+			 T aMu, unsigned int aMaxIter,
+			 EqFunction aG = EqFunction(), EqJacFunction aFillGJac = EqJacFunction(),
+			 IneqFunction aH = EqFunction(), IneqJacFunction aFillHJac = IneqJacFunction(),
+			 T aTol = T(1e-6), T aEta = T(1e-4), T aTau = T(0.995)) :
+			 f(aF), df(aDf), fill_hessian(aFillHessian),
+			 mu(aMu), max_iter(aMaxIter), 
+			 tol(aTol), eta(aEta), tau(aTau), 
+			 g(aG), fill_g_jac(aFillGJac), 
+			 h(aH), fill_h_jac(aFillHJac) { };
+  /**
+   * This function finds the minimum of a function, given its derivative and Hessian, 
+   * using a newton search direction and using a trust-region approach.
+   * \tparam Vector The vector type of the independent variable for the function.
+   * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
+   */
+  template <typename Vector>
+  void operator()(Vector& x) const {
+    detail::nl_intpoint_method_ls_impl(
+      f, df, hessian_update_dual_exact<HessianFunction>(fill_hessian), 
+      g, fill_g_jac, h, fill_h_jac,
+      x, mu, max_iter, tol,eta,tau);
+  };
+  
+  /**
+   * Sets the initial strength of the barrier on the inequalities (initial "barrier parameter"), 
+   * this parameter is positive and should start with a rather large value (relative to the scale 
+   * of the function and inequalities) and will be progressively decreased by the algorithm as it progresses).
+   */
+  self& set_initial_barrier_param(T aMu) { mu = aMu; return *this; };
+  /**
+   * Sets the maximum number of iterations to perform.
+   */
+  self& set_max_iteration(unsigned int aMaxIter) { max_iter = aMaxIter; return *this; };
+  /**
+   * Sets the relative tolerance on the norm of the step size.
+   */
+  self& set_tolerance(T aTol) { tol = aTol; return *this; };
+  /**
+   * Sets the tolerance on the sufficient decrease in order to accept a line-search step.
+   */
+  self& set_decrease_tolerance(T aEta) { eta = aEta; return *this; };
+  /**
+   * Sets the portion (close to 1.0) of a total step to do without coming too close to the inequality 
+   * constraint (barrier).
+   */
+  self& set_barrier_step_margin(T aTau) { tau = aTau; return *this; };
+    
+    
+  /**
+   * This function remaps the factory to one which will use the given equality constraints for 
+   * the search domain. The equality constraints must be formulated at g(x) = 0.
+   * \tparam NewEqFunction The functor type of the equality constraints function (vector function).
+   * \tparam NewEqJacFunction The functor type of the equality constraints jacobian function.
+   * \param new_g The function that computes the equality constraints.
+   * \param new_fill_g_jac The function that computes the jacobian matrix of the equality constaints.
+   */
+  template <typename NewEqFunction, typename NewEqJacFunction>
+  nlip_newton_ls_factory<Function,GradFunction,HessianFunction,T,
+                         NewEqFunction, NewEqJacFunction,
+                         IneqFunction, IneqJacFunction>
+    set_eq_constraints(NewEqFunction new_g, NewEqJacFunction new_fill_g_jac) const {
+    return nlip_newton_ls_factory<Function,GradFunction,HessianFunction,T,
+                                  NewEqFunction, NewEqJacFunction,
+                                  IneqFunction, IneqJacFunction>(f,df,fill_hessian,
+					                         mu, max_iter,
+								 new_g, new_fill_g_jac, 
+								 h, fill_h_jac, 
+								 tol, eta, tau);
+  };
+    
+  /**
+   * This function remaps the factory to one which will use the given inequality constraints for 
+   * the search domain. The inequality constraints must be formulated at h(x) >= 0.
+   * \tparam NewIneqFunction The functor type of the inequality constraints function (vector function).
+   * \tparam NewIneqJacFunction The functor type of the inequality constraints jacobian function.
+   * \param new_h The function that computes the inequality constraints.
+   * \param new_fill_h_jac The function that computes the jacobian matrix of the inequality constaints.
+   */
+  template <typename NewIneqFunction, typename NewIneqJacFunction>
+  nlip_newton_ls_factory<Function,GradFunction,HessianFunction,T,
+                         EqFunction, EqJacFunction,
+                         NewIneqFunction, NewIneqJacFunction>
+    set_ineq_constraints(NewIneqFunction new_h, NewIneqJacFunction new_fill_h_jac) const {
+    return nlip_newton_ls_factory<Function,GradFunction,HessianFunction,T,
+                                  EqFunction, EqJacFunction,
+                                  NewIneqFunction, NewIneqJacFunction>(f,df,fill_hessian,
+					                               mu, max_iter,
+								       g, fill_g_jac, 
+								       new_h, new_fill_h_jac, 
+								       tol, eta, tau);
+  };
+    
+};
+
+/**
+ * This function template creates a factory object to construct a Non-Linear 
+ * Interior-Point optimizer routine that uses a line-search approach and 
+ * incorporates equality and inequality constraints via the sequential quadratic 
+ * programming method and a Newton steps. This algorithm is roughly as described 
+ * in Nocedal's Numerical Optimization book. This algorithm solves the following 
+ * problem:
+ * \n
+ *   min f(x) \n
+ *    g(x) = 0 \n
+ *    h(x) >= 0 \n
+ * \n
+ *  given grad(f)(x), Hess(f)(x), Jac(g)(x) and Jac(h)(x).\n
+ * \test Must create a unit-test for this. So far, all tests have failed, there must be something really wrong in this implementation, but I cannot pin-point it.
+ * \tparam Function The functor type of the function to optimize.
+ * \tparam GradFunction The functor type of the gradient of the function to optimize.
+ * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
+ * \tparam T The value-type of the field on which the optimization is performed.
+ * \param f The function to minimize.
+ * \param df The gradient of the function to minimize.
+ * \param fill_hessian The functor object that can fill the Hessian symmetric matrix of the function to be optimized. 
+ * \param mu The initial strength of the barrier on the inequalities (initial "barrier parameter"), this parameter is positive and should start with a rather large value (relative to the scale of the function) and will be progressively decreased by the algorithm as it progresses).
+ * \param max_iter The maximum number of iterations to perform.
+ * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param eta The tolerance on the decrease in order to accept a step in the trust region.
+ * \param tau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint (barrier).
+ */
+template <typename Function, typename GradFunction, typename HessianFunction, typename T>
+nlip_newton_ls_factory<Function,GradFunction,HessianFunction,T> 
+  make_nlip_newton_ls(Function f, GradFunction df, HessianFunction fill_hessian, 
+		      T mu, unsigned int max_iter,
+		      T tol = T(1e-6), T eta = T(1e-4), T tau = T(0.995)) {
+  return nlip_newton_ls_factory<Function,GradFunction,HessianFunction,T>(f,df,fill_hessian,mu,max_iter,no_constraint_functor(),no_constraint_jac_functor(),no_constraint_functor(),no_constraint_jac_functor(),tol,eta,tau);
+};
+
+
+
+
+
+
+/**
+ * This functor is a factory class to construct a Non-Linear 
+ * Interior-Point optimizer routine that uses a line-search approach and 
+ * incorporates equality and inequality constraints via the sequential quadratic 
+ * programming method. This version uses a Quasi-Newton search method (by default the Hessian
+ * approximation is obtained with a symmetric rank-one update). Use make_nlip_quasi_newton_ls to
+ * construct this without having to specify the template arguments explicitly.
+ * This algorithm is roughly as described in Nocedal's Numerical Optimization 
+ * book. This algorithm solves the following problem:
+ * \n
+ *   min f(x) \n
+ *    g(x) = 0 \n
+ *    h(x) >= 0 \n
+ * \n
+ *  given grad(f)(x), Jac(g)(x) and Jac(h)(x).\n
+ * \test Must create a unit-test for this. So far, all tests have failed, there must be something really wrong in this implementation, but I cannot pin-point it.
+ * \tparam Function The functor type of the function to optimize.
+ * \tparam GradFunction The functor type of the gradient of the function to optimize.
+ * \tparam T The value-type of the field on which the optimization is performed.
+ * \tparam EqFunction The functor type of the equality constraints function (vector function).
+ * \tparam EqJacFunction The functor type of the equality constraints jacobian function.
+ * \tparam IneqFunction The functor type of the inequality constraints function (vector function).
+ * \tparam IneqJacFunction The functor type of the inequality constraints jacobian function.
+ * \tparam HessianUpdater The functor type to update the Hessian approximation of the function to optimize.
+ * \tparam TrustRegionSolver A functor type that can solve for a solution step within a trust-region (see trust_region_solver_dogleg for an example).
+ * \tparam LimitFunction A functor type that can impose limits on a proposed solution step (see no_limit_functor or box_limit_function for examples).
+ */
+template <typename Function, typename GradFunction, typename T,
+          typename EqFunction = no_constraint_functor, typename EqJacFunction = no_constraint_jac_functor, 
+	  typename IneqFunction = no_constraint_functor, typename IneqJacFunction = no_constraint_jac_functor, 
+	  typename HessianUpdater = hessian_update_bfgs>
+struct nlip_quasi_newton_ls_factory {
+  Function f;
+  GradFunction df;
+  T mu;
+  unsigned int max_iter;
+  T tol;
+  T eta;
+  T tau;
+  EqFunction g;
+  EqJacFunction fill_g_jac;
+  IneqFunction h;
+  IneqJacFunction fill_h_jac;
+  HessianUpdater update_hessian;
+  
+  typedef nlip_quasi_newton_ls_factory<Function,GradFunction,T,
+                                       EqFunction,EqJacFunction,
+				       IneqFunction,IneqJacFunction,
+				       HessianUpdater> self;
+  
+  /**
+   * Parametrized constructor of the factory object.
+   * \param aF The function to minimize.
+   * \param aDf The gradient of the function to minimize.
+   * \param aMu The initial strength of the barrier on the inequalities (initial "barrier parameter"), this parameter is positive and should start with a rather large value (relative to the scale of the function) and will be progressively decreased by the algorithm as it progresses).
+   * \param aMaxIter The maximum number of iterations to perform.
+   * \param aG The function that computes the equality constraints.
+   * \param aFillGJac The function that computes the jacobian matrix of the equality constaints.
+   * \param aTol The tolerance on the norm of the gradient (and thus the step size).
+   * \param aEta The tolerance on the sufficient decrease in order to accept a line-search step.
+   * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint (barrier).
+   * \param aUpdateHessian The functor object that can update the approximate Hessian matrix of the function to be optimized. 
+   */
+  nlip_quasi_newton_ls_factory(Function aF, GradFunction aDf,
+			       T aMu, unsigned int aMaxIter,
+			       EqFunction aG = EqFunction(), EqJacFunction aFillGJac = EqJacFunction(),
+			       IneqFunction aH = IneqFunction(), IneqJacFunction aFillHJac = IneqJacFunction(),
+			       T aTol = T(1e-6), T aEta = T(1e-4), T aTau = T(0.995),
+			       HessianUpdater aUpdateHessian = HessianUpdater()) :
+			       f(aF), df(aDf), 
+			       mu(aMu), max_iter(aMaxIter), 
+			       tol(aTol), eta(aEta), tau(aTau),
+			       g(aG), fill_g_jac(aFillGJac), 
+			       h(aH), fill_h_jac(aFillHJac), 
+			       update_hessian(aUpdateHessian) { };
+  /**
+   * This function finds the minimum of a function, given its derivative and Hessian, 
+   * using a newton search direction and using a trust-region approach.
+   * \tparam Vector The vector type of the independent variable for the function.
+   * \param x The initial guess to the solution, as well as a storage for the result of the algorihm.
+   */
+  template <typename Vector>
+  void operator()(Vector& x) const {
+    detail::nl_intpoint_method_ls_impl(
+      f, df, hessian_update_dual_quasi<HessianUpdater>(update_hessian), g, fill_g_jac, h, fill_h_jac, 
+      x, mu, max_iter, tol,eta,tau);
+  };
+  
+  /**
+   * Sets the initial strength of the barrier on the inequalities (initial "barrier parameter"), 
+   * this parameter is positive and should start with a rather large value (relative to the scale 
+   * of the function and inequalities) and will be progressively decreased by the algorithm as it progresses).
+   */
+  self& set_initial_barrier_param(T aMu) { mu = aMu; return *this; };
+  /**
+   * Sets the maximum number of iterations to perform.
+   */
+  self& set_max_iteration(unsigned int aMaxIter) { max_iter = aMaxIter; return *this; };
+  /**
+   * Sets the relative tolerance on the norm of the step size.
+   */
+  self& set_tolerance(T aTol) { tol = aTol; return *this; };
+  /**
+   * Sets the tolerance on the sufficient decrease in order to accept a line-search step.
+   */
+  self& set_decrease_tolerance(T aEta) { eta = aEta; return *this; };
+  /**
+   * Sets the portion (close to 1.0) of a total step to do without coming too close to the inequality 
+   * constraint (barrier).
+   */
+  self& set_barrier_step_margin(T aTau) { tau = aTau; return *this; };
+  
+  
+  /**
+   * This function remaps the factory to one which will use the given equality constraints for 
+   * the search domain. The equality constraints must be formulated at g(x) = 0.
+   * \tparam NewEqFunction The functor type of the equality constraints function (vector function).
+   * \tparam NewEqJacFunction The functor type of the equality constraints jacobian function.
+   * \param new_g The function that computes the equality constraints.
+   * \param new_fill_g_jac The function that computes the jacobian matrix of the equality constaints.
+   */
+  template <typename NewEqFunction, typename NewEqJacFunction>
+  nlip_quasi_newton_ls_factory<Function,GradFunction,T,
+                               NewEqFunction,NewEqJacFunction,
+			       IneqFunction, IneqJacFunction, 
+			       HessianUpdater>
+    set_eq_constraints(NewEqFunction new_g, NewEqJacFunction new_fill_g_jac) const {
+    return nlip_quasi_newton_ls_factory<Function,GradFunction,T,
+                                        NewEqFunction, NewEqJacFunction,
+					IneqFunction, IneqJacFunction, 
+					HessianUpdater>(f, df, mu, max_iter,
+						        new_g, new_fill_g_jac, 
+						        h, fill_h_jac,
+						        tol, eta, tau, update_hessian);
+  };
+    
+  /**
+   * This function remaps the factory to one which will use the given inequality constraints for 
+   * the search domain. The inequality constraints must be formulated at h(x) >= 0.
+   * \tparam NewIneqFunction The functor type of the inequality constraints function (vector function).
+   * \tparam NewIneqJacFunction The functor type of the inequality constraints jacobian function.
+   * \param new_h The function that computes the inequality constraints.
+   * \param new_fill_h_jac The function that computes the jacobian matrix of the inequality constaints.
+   */
+  template <typename NewIneqFunction, typename NewIneqJacFunction>
+  nlip_quasi_newton_ls_factory<Function,GradFunction,T,
+                               EqFunction,EqJacFunction,
+			       NewIneqFunction, NewIneqJacFunction, 
+			       HessianUpdater>
+    set_ineq_constraints(NewIneqFunction new_h, NewIneqJacFunction new_fill_h_jac) const {
+    return nlip_quasi_newton_ls_factory<Function,GradFunction,T,
+                                        EqFunction, EqJacFunction,
+					NewIneqFunction, NewIneqJacFunction, 
+					HessianUpdater>(f, df, mu, max_iter,
+						        g, fill_g_jac, 
+						        new_h, new_fill_h_jac,
+						        tol, eta, tau, update_hessian);
+  };
+    
+  /**
+   * This function remaps the factory to one which will use the given solver within the trust-region.
+   * \tparam NewHessianUpdater A new functor type to update the Hessian approximation of the function to optimize.
+   * \param new_update_hessian The new functor object that can update the approximate Hessian matrix of the function to be optimized.
+   */
+  template <typename NewHessianUpdater>
+  nlip_quasi_newton_ls_factory<Function,GradFunction,T,
+                               EqFunction, EqJacFunction, 
+			       IneqFunction, IneqJacFunction, 
+			       NewHessianUpdater>
+    set_hessian_updater(NewHessianUpdater new_update_hessian) const {
+    return nlip_quasi_newton_ls_factory<Function,GradFunction,T,
+                                        EqFunction, EqJacFunction, 
+					IneqFunction, IneqJacFunction, 
+					NewHessianUpdater>(f, df, mu, max_iter,
+							   g, fill_g_jac, 
+							   h, fill_h_jac,
+							   tol, eta, tau, 
+							   new_update_hessian);
+  };
+    
+};
+
+/**
+ * This function template creates a factory object to construct a Non-Linear 
+ * Interior-Point optimizer routine that uses a line-search approach and 
+ * incorporates equality and inequality constraints via the sequential quadratic 
+ * programming method. This version uses a Quasi-Newton search method (by default the Hessian
+ * approximation is obtained with a symmetric rank-one update). 
+ * This algorithm is roughly as described in Nocedal's Numerical Optimization 
+ * book. This algorithm solves the following problem:
+ * \n
+ *   min f(x) \n
+ *    g(x) = 0 \n
+ *    h(x) >= 0 \n
+ * \n
+ *  given grad(f)(x), Jac(g)(x) and Jac(h)(x).\n
+ * \test Must create a unit-test for this. So far, all tests have failed, there must be something really wrong in this implementation, but I cannot pin-point it.
+ * \tparam Function The functor type of the function to optimize.
+ * \tparam GradFunction The functor type of the gradient of the function to optimize.
+ * \tparam T The value-type of the field on which the optimization is performed.
+ * \param f The function to minimize.
+ * \param df The gradient of the function to minimize.
+ * \param mu The initial strength of the barrier on the inequalities (initial "barrier parameter"), this parameter is positive and should start with a rather large value (relative to the scale of the function) and will be progressively decreased by the algorithm as it progresses).
+ * \param max_iter The maximum number of iterations to perform.
+ * \param tol The tolerance on the norm of the gradient (and thus the step size).
+ * \param eta The tolerance on the sufficient decrease in order to accept a line-search step.
+ * \param tau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint (barrier).
+ */
+template <typename Function, typename GradFunction, typename T>
+nlip_quasi_newton_ls_factory<Function,GradFunction,T> 
+  make_nlip_quasi_newton_ls(Function f, GradFunction df, 
+		            T mu, unsigned int max_iter,
+		            T tol = T(1e-6), T eta = T(1e-4), T tau = T(0.995)) {
+  return nlip_quasi_newton_ls_factory<Function,GradFunction,T>(f,df,mu,max_iter,no_constraint_functor(),no_constraint_jac_functor(),no_constraint_functor(),no_constraint_jac_functor(),tol,eta,tau);
+};
+
+
 
 
 

@@ -202,7 +202,7 @@ namespace detail {
  *    g(x) = 0 \n
  * \n
  *  given grad(f)(x), Hess(f)(x), and Jac(g)(x).\n
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is quite good, close to state-of-the-art methods in commercial packages, however, the nlip method almost always performs better.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -391,7 +391,7 @@ struct bosqp_newton_tr_factory {
  *    g(x) = 0 \n
  * \n
  *  given grad(f)(x), Hess(f)(x), and Jac(g)(x).\n
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is quite good, close to state-of-the-art methods in commercial packages, however, the nlip method almost always performs better.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -431,7 +431,7 @@ bosqp_newton_tr_factory<Function,GradFunction,HessianFunction,T>
  *    g(x) = 0 \n
  * \n
  * given grad(f)(x), and Jac(g)(x).\n
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is quite good, close to state-of-the-art methods in commercial packages, however, the nlip method almost always performs better.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianUpdater The functor type to update the Hessian approximation of the function to optimize.
@@ -635,7 +635,7 @@ struct bosqp_quasi_newton_tr_factory {
  *    g(x) = 0 \n
  * \n
  * given grad(f)(x), and Jac(g)(x).\n
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is quite good, close to state-of-the-art methods in commercial packages, however, the nlip method almost always performs better.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam T The value-type of the field on which the optimization is performed.

@@ -110,7 +110,7 @@ void >::type sr1_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& d
   r -= H * dy;
   ValueType denom = r * dy;
   
-  if(fabs(denom) < std::numeric_limits<ValueType>::epsilon())
+  if(fabs(denom) < std::numeric_limits<ValueType>::epsilon() * norm_2_sqr(r))
     throw singularity_error("SR-1 Inverse Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < H.get_row_count(); ++i)
@@ -150,7 +150,7 @@ void >::type dfp_hessian_update(Matrix& B, const Vector& dx, const Vector& dy) {
   ValueType denom = dy * dx;
   Vector xBxy = (dx * Bx) * dy;
   
-  if(fabs(denom) < std::numeric_limits<ValueType>::epsilon())
+  if(fabs(denom) < std::numeric_limits<ValueType>::epsilon() * norm_2_sqr(dy))
     throw singularity_error("DFP Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < B.get_row_count(); ++i)
@@ -190,8 +190,8 @@ void >::type dfp_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& d
   ValueType denom1 = dy * dx;
   ValueType denom2 = dy * Hy;
   
-  if((fabs(denom1) < std::numeric_limits<ValueType>::epsilon())
-     || (fabs(denom2) < std::numeric_limits<ValueType>::epsilon()))
+  if((fabs(denom1) < std::numeric_limits<ValueType>::epsilon() * norm_2_sqr(dx))
+     || (fabs(denom2) < std::numeric_limits<ValueType>::epsilon() * norm_2_sqr(Hy)))
     throw singularity_error("DFP Inverse Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < H.get_row_count(); ++i)
@@ -234,8 +234,8 @@ void >::type bfgs_hessian_update(Matrix& B, const Vector& dx, const Vector& dy) 
   ValueType denom1 = dy * dx;
   ValueType denom2 = dx * Bx;
   
-  if((fabs(denom1) < std::numeric_limits<ValueType>::epsilon())
-     || (fabs(denom2) < std::numeric_limits<ValueType>::epsilon()))
+  if((fabs(denom1) < std::numeric_limits<ValueType>::epsilon() * norm_2_sqr(dy))
+     || (fabs(denom2) < std::numeric_limits<ValueType>::epsilon() * norm_2_sqr(Bx)))
     throw singularity_error("BFGS Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < B.get_row_count(); ++i)
@@ -276,7 +276,7 @@ void >::type bfgs_inv_hessian_update(Matrix& H, const Vector& dx, const Vector& 
   ValueType denom = dy * dx;
   Vector yHyx = (dy * Hy) * dx;
   
-  if(fabs(denom) < std::numeric_limits<ValueType>::epsilon())
+  if(fabs(denom) < std::numeric_limits<ValueType>::epsilon() * norm_2_sqr(dx))
     throw singularity_error("BFGS Inverse Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < H.get_row_count(); ++i)
@@ -321,8 +321,8 @@ void >::type broyden_class_hessian_update(Matrix& B, const Vector& dx, const Vec
   ValueType denom2 = dx * Bx;
   Vector xBxy = denom2 * dy;
   
-  if((fabs(denom1) < std::numeric_limits<ValueType>::epsilon())
-     || (fabs(denom2) < std::numeric_limits<ValueType>::epsilon()))
+  if((fabs(denom1) < std::numeric_limits<ValueType>::epsilon() * norm_2_sqr(dy))
+     || (fabs(denom2) < std::numeric_limits<ValueType>::epsilon() * norm_2_sqr(Bx)))
     throw singularity_error("Broyden-class Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < B.get_row_count(); ++i)
@@ -370,8 +370,8 @@ void >::type broyden_class_inv_hessian_update(Matrix& H, const Vector& dx, const
   ValueType denom2 = dy * Hy;
   Vector yHyx = denom2 * dx;
   
-  if((fabs(denom1) < std::numeric_limits<ValueType>::epsilon())
-     || (fabs(denom2) < std::numeric_limits<ValueType>::epsilon()))
+  if((fabs(denom1) < std::numeric_limits<ValueType>::epsilon() * norm_2_sqr(dx))
+     || (fabs(denom2) < std::numeric_limits<ValueType>::epsilon() * norm_2_sqr(Hy)))
     throw singularity_error("Broyden-class Inverse Hessian update has detected a singular update!");
   
   for(SizeType i = 0; i < H.get_row_count(); ++i)

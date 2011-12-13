@@ -918,7 +918,7 @@ int main() {
     x = funcs_start[i];
     evalCount = 0; gradCount = 0;
     try {
-      optim::make_nlip_newton_tr(funcs_f[i],funcs_grad[i],funcs_hess[i],2.0,0.1,300,1e-6,1e-3,0.99,0.8)
+      optim::make_nlip_newton_tr(funcs_f[i],funcs_grad[i],funcs_hess[i],2.0,0.1,300,1e-6,1e-3,0.99)
         .set_limiter(boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,funcs_lower[i],funcs_upper[i]))
 	.set_eq_constraints(funcs_g[i],funcs_g_jac[i])
 	.set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
@@ -937,7 +937,7 @@ int main() {
     x = funcs_start[i];
     evalCount = 0; gradCount = 0;
     try {
-      optim::make_nlip_quasi_newton_tr(funcs_f[i],funcs_grad[i],2.0,0.1,300,1e-6,1e-3,0.99,0.8)
+      optim::make_nlip_quasi_newton_tr(funcs_f[i],funcs_grad[i],2.0,0.1,300,1e-6,1e-3,0.99)
         .set_limiter(boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,funcs_lower[i],funcs_upper[i]))
 	.set_eq_constraints(funcs_g[i],funcs_g_jac[i])
 	.set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
@@ -948,6 +948,42 @@ int main() {
                 << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  NL Interior-point Quasi-Newton method failed with error: " << e.what() << std::endl
+                << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+    };
+    
+    x = funcs_start[i];
+    evalCount = 0; gradCount = 0;
+    try {
+      optim::make_nlip_newton_ls(funcs_f[i],funcs_grad[i],funcs_hess[i],10.0,30,1e-6,1e-3,0.95)
+        .set_eq_constraints(funcs_g[i],funcs_g_jac[i])
+	.set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
+	(x);
+      std::cout << "  NL Interior-point method with Line-search gives:\n"
+                << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
+	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+    } catch(std::exception& e) {
+      std::cout << "  NL Interior-point method with Line-search failed with error: " << e.what() << std::endl
+                << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+    };
+    
+    x = funcs_start[i];
+    evalCount = 0; gradCount = 0;
+    try {
+      optim::make_nlip_quasi_newton_ls(funcs_f[i],funcs_grad[i],10.0,30,1e-6,1e-3,0.95)
+        .set_eq_constraints(funcs_g[i],funcs_g_jac[i])
+	.set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
+	(x);
+      std::cout << "  NL Interior-point Quasi-Newton method with Line-search gives:\n"
+                << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
+	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;
+    } catch(std::exception& e) {
+      std::cout << "  NL Interior-point Quasi-Newton method with Line-search failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
                 << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
                 << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << std::endl;

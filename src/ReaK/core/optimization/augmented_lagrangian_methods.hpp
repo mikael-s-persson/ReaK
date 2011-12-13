@@ -300,7 +300,7 @@ struct no_constraint_jac_functor {
  *    h(x) >= 0 \n
  * \n
  *  given grad(f)(x), Hess(f)(x), Jac(g)(x), and Jac(h)(x).\n
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is poor, the nlip-tr method always performs better.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -489,7 +489,7 @@ struct constraint_newton_method_tr_factory {
  * This function template creates a factory object to construct a Constraint Newton-method optimizer 
  * routine that uses a trust-region approach. To set the constraints, manipulate the returned factory
  * object (e.g. set_eq_constraints() etc.). 
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is poor, the nlip-tr method always performs better.
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
  * \tparam HessianFunction The functor type to fill in the Hessian of the function to optimize.
@@ -530,7 +530,7 @@ constraint_newton_method_tr_factory<Function,GradFunction,HessianFunction,T>
  * See algorithms eq_cnstr_newton_method_tr and ineq_cnstr_newton_method_tr for versions that take only an
  * equality or inequality constraint, respectively (no_constraint_functor and no_constraint_jac_functor can
  * also be used in-place of the contraint functions if none are desired).
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is poor, the nlip-tr method always performs better.
  * 
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
@@ -582,7 +582,7 @@ void constraint_newton_method_tr(Function f, GradFunction df, HessianFunction fi
  *    g(x) = 0 \n
  * \n
  *  given grad(f)(x), Hess(f)(x), and Jac(g)(x).\n
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is poor, the nlip-tr method always performs better.
  * 
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
@@ -628,7 +628,7 @@ void eq_cnstr_newton_method_tr(Function f, GradFunction df, HessianFunction fill
  *    h(x) >= 0 \n
  * \n
  *  given grad(f)(x), Hess(f)(x), and Jac(h)(x).\n
- * \test Must create a unit-test for this.
+ * TEST PASSED, convergence is poor, the nlip-tr method always performs better.
  * 
  * \tparam Function The functor type of the function to optimize.
  * \tparam GradFunction The functor type of the gradient of the function to optimize.
