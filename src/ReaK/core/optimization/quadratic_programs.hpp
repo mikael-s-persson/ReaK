@@ -78,7 +78,8 @@ template <typename Matrix1, typename Vector1, typename Matrix2, typename Vector2
 void null_space_QP_method(const Matrix1& A, const Vector1& b, 
 			 const Matrix2&  G, const Vector2& c, Vector2& x,
 			 typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon(),
-			 typename vect_traits<Vector1>::value_type max_norm = std::numeric_limits<typename vect_traits<Vector1>::value_type>::infinity()) {
+			 typename vect_traits<Vector1>::value_type max_norm = std::numeric_limits<typename vect_traits<Vector1>::value_type>::infinity(),
+			 Vector1* lambda = NULL) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;
@@ -149,6 +150,12 @@ void null_space_QP_method(const Matrix1& A, const Vector1& b,
   
   x = Q * x;
   
+  if(lambda) {
+    (*lambda) = (c + G *x) * Y;
+    mat_vect_adaptor< Vector1 > lambda_mat(*lambda);
+    ReaK::detail::backsub_R_impl(transpose_view(L),lambda_mat,abs_tol);
+  };
+  
 };
 
 
@@ -180,7 +187,8 @@ void null_space_QP_method(const Matrix1& A, const Vector1& b,
 template <typename Matrix1, typename Vector1, typename Matrix2, typename Vector2>
 void projected_CG_method(const Matrix1& A, const Vector1& b, 
 			const Matrix2&  G, const Vector2& c, Vector2& x, unsigned int max_iter = 20,
-			typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
+			typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon(),
+			Vector1* lambda = NULL) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;
@@ -225,6 +233,12 @@ void projected_CG_method(const Matrix1& A, const Vector1& b,
     Gd = G * d;
     if(++k > max_iter)
       throw maximum_iteration(max_iter);
+  };
+  
+  if(lambda) {
+    (*lambda) = (c + G *x) * mat_const_sub_block< mat<ValueType,mat_structure::square> >(Q, N, M, 0, 0);
+    mat_vect_adaptor< Vector1 > lambda_mat(*lambda);
+    ReaK::detail::backsub_R_impl(transpose_view(L),lambda_mat,abs_tol);
   };
   
 };

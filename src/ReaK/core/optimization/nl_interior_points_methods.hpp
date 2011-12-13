@@ -401,6 +401,416 @@ namespace detail {
   
   
   
+  
+  template <typename Function, typename GradFunction, typename Vector, 
+            typename EqFunction, typename EqJacFunction, 
+	    typename IneqFunction, typename IneqJacFunction>
+  struct merit_function_computer {
+    
+    typedef typename vect_traits<Vector>::value_type ValueType;
+    typedef typename vect_traits<Vector>::size_type SizeType;
+    
+    Function f;
+    GradFunction df;
+    const Vector* x0;
+    const Vector* p_x;
+    ValueType norm_p_x;
+    const Vector* s0;
+    const Vector* p_s;
+    ValueType norm_p_s;
+    ValueType penalty;
+    ValueType mu;
+    EqFunction g;
+    EqJacFunction fill_g_jac;
+    IneqFunction h;
+    IneqJacFunction fill_h_jac;
+    
+    merit_function_computer(Function aF, GradFunction aDF, 
+			    const Vector& aX0, const Vector& aPX,
+			    const Vector& aS0, const Vector& aPS,
+			    ValueType aPenalty, ValueType aMu,
+			    EqFunction aG, EqJacFunction aFillGJac,
+			    IneqFunction aH, IneqJacFunction aFillHJac) :
+			    f(aF), df(aDF), 
+			    x0(&aX0), p_x(&aPX), norm_p_x(norm_2(aPX)),
+			    s0(&aS0), p_s(&aPS), norm_p_s(norm_2(aPS)), 
+			    penalty(aPenalty), mu(aMu),
+			    g(aG), fill_g_jac(aFillGJac),
+			    h(aH), fill_h_jac(aFillHJac) { };
+    
+    
+    ValueType compute_merit(ValueType alpha_s) const {
+      Vector s = *s0; s += alpha_s * (*p_s);
+      Vector x = *x0; x += alpha_s * (*p_x);
+      ValueType mulog_s(0.0);
+      for(SizeType i = 0; i < s.size(); ++i)
+	mulog_s += log(s[i]);
+      mulog_s *= mu;
+      return f(x) - mulog_s + penalty * (norm_2(g(x)) + norm_2(h(x) - s));
+    };
+    
+    ValueType compute_derivative_merit(ValueType alpha_s) const {
+      Vector s = *s0; s += alpha_s * (*p_s);
+      Vector x = *x0; x += alpha_s * (*p_x);
+      ValueType muDlog_s(0.0);
+      for(SizeType i = 0; i < s.size(); ++i)
+	muDlog_s += (*p_s)[i] / s[i];
+      muDlog_s *= mu;
+      Vector c_g = g(x);
+      mat<ValueType, mat_structure::rectangular> Jac_g(c_g.size(),x.size());
+      fill_g_jac(Jac_g,x,c_g);
+      
+      Vector c_h = g(x);
+      mat<ValueType, mat_structure::rectangular> Jac_h(c_h.size(),x.size());
+      fill_h_jac(Jac_h,x,c_h);
+      c_h -= s;
+      ValueType norm_c_h = norm_2(c_h);
+      
+      ValueType result = (*p_x) * df(x);
+      if(c_g.size() > 0)
+	result += ((*p_x) * (c_g * Jac_g)) * (penalty / norm_2(c_g));
+      if(c_h.size() > 0)
+	result += ((*p_x) * (c_h * Jac_h)) * (penalty / norm_c_h) - muDlog_s - (penalty / norm_c_h) * ( (*p_s) * c_h );
+      return result;
+    };
+    
+  };
+  
+  
+  
+  template <typename Function, typename GradFunction, typename HessianFunction, 
+            typename Vector, typename EqFunction, typename EqJacFunction, 
+	    typename IneqFunction, typename IneqJacFunction, 
+	    typename TrustRegionSolver, typename LimitFunction>
+  void nl_intpoint_method_ls_impl(Function f, GradFunction df, HessianFunction fill_hessian,  
+				  EqFunction g, EqJacFunction fill_g_jac,
+				  IneqFunction h, IneqJacFunction fill_h_jac,
+				  Vector& x, typename vect_traits<Vector>::value_type max_radius,
+				  typename vect_traits<Vector>::value_type mu = typename vect_traits<Vector>::value_type(0.1), 
+				  unsigned int max_iter = 100,
+			          typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+				  typename vect_traits<Vector>::value_type kappa = typename vect_traits<Vector>::value_type(1e-4),
+				  typename vect_traits<Vector>::value_type tau = typename vect_traits<Vector>::value_type(0.995)) {
+    typedef typename vect_traits<Vector>::value_type ValueType;
+    typedef typename vect_traits<Vector>::size_type SizeType;
+    using std::sqrt; using std::fabs; using std::log;
+    
+    SizeType N = x.size();
+    Vector ht_value = h(x);
+    SizeType K = ht_value.size();
+    mat<ValueType, mat_structure::rectangular> Jac_h(K,N);
+    fill_h_jac(Jac_h,x,ht_value);
+    
+    //compute initial slack vector and roughly adjust x if needed.
+    Vector s = ht_value;
+    for(SizeType i = 0; i < K; ++i)
+      s[i] = ValueType(1.0);
+    ValueType min_s(0.0);
+    for(SizeType i = 0; i < K; ++i)
+      if( s[i] < min_s )
+	min_s = s[i];
+    min_s *= ValueType(-0.1);
+    
+    while(min_s > abs_tol) {
+      RK_NOTICE(1," s = " << s << " x = " << x << " h = " << ht_value << " Jac = " << Jac_h);
+      Vector e_s(s);
+      for(SizeType i = 0; i < K; ++i)
+	e_s[i] = min_s;
+      s += e_s;
+      Vector dx = x;
+      mat_vect_adaptor<Vector> dx_mat(dx);
+      minnorm_QR(Jac_h,dx_mat,mat_vect_adaptor<Vector>(e_s),abs_tol);
+      RK_NOTICE(1," e_s = " << e_s << " dx = " << dx);
+      x += dx;
+      ht_value = h(x);
+      fill_h_jac(Jac_h,x,ht_value);
+      s = ht_value;
+      min_s = ValueType(0.0);
+      for(SizeType i = 0; i < K; ++i)
+        if( s[i] < min_s )
+	  min_s = s[i];
+      min_s *= ValueType(-0.1);
+    };
+    if(min_s > ValueType(0.0))
+      s += vect_scalar<double>(K,ValueType(1000.0) * abs_tol);
+    
+    Vector c_g = g(x);
+    SizeType M = c_g.size();
+    ValueType g_norm = norm_2(c_g);
+    
+    mat<ValueType, mat_structure::rectangular> Jac_g(M,N);
+    fill_g_jac(Jac_g,x,c_g);
+    
+    if((M == 0) && (K == 0)) { //this means it is an unconstrained problem. TODO change this to dispatch on the type of the fill-hessian functor.
+      newton_method_ls_impl(f,df,fill_hessian,x,line_search_expand_and_zoom<ValueType>(kappa,ValueType(0.9)),no_limit_functor(),newton_directioner(),max_iter,abs_tol,abs_tol);
+      return;
+    };
+    Vector c_h = ht_value - s;
+    ValueType h_norm = norm_2(c_h);
+    
+    ValueType x_value = f(x);
+    Vector x_grad = df(x);
+    mat<ValueType,mat_structure::symmetric> H(mat<ValueType,mat_structure::identity>(x.size()));
+    fill_hessian(H,x,x_value,x_grad);
+    
+    Vector y = c_g;
+    Vector z = c_h;
+    {
+      mat<ValueType,mat_structure::diagonal> mS(K);
+      mat<ValueType,mat_structure::nil> Zero_mk(M,K);
+    
+      mat_const_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::nil> > Jac_upper(Jac_g, Zero_mk);
+      mat_const_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::diagonal> > Jac_lower(Jac_h, mS);
+    
+      mat_const_ref_vert_cat< 
+        mat_const_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::nil> >,
+        mat_const_ref_horiz_cat< mat<ValueType, mat_structure::rectangular>, mat<ValueType, mat_structure::diagonal> >
+      > Jac_aug(Jac_upper,Jac_lower);
+    
+      mS = mat<ValueType,mat_structure::diagonal>(-s);
+    
+      Vector yz; yz.resize(M+K);
+      mat_vect_adaptor<Vector> yz_mat(yz);
+      Vector p_grad; p_grad.resize(N+K);
+      p_grad[range(0,N-1)] = x_grad;
+      p_grad[range(N,N+K-1)] = vect_scalar<ValueType>(K,-mu);
+      linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
+      y = yz[range(0,M-1)];
+      z = yz[range(M,M+K-1)];
+    };
+    
+    
+    Vector xt = x;
+    Vector st = s;
+    Vector p_x = x;
+    Vector dx = x;
+    ValueType norm_p = std::numeric_limits<ValueType>::max();
+    Vector p_s = s;
+    Vector p_y = y;
+    Vector p_z = z;
+    
+    ValueType log_s(0.0);
+    for(SizeType i = 0; i < K; ++i)
+      log_s += log(s[i]);
+    
+    
+    ValueType c_norm_star = sqrt(c_g * c_g + c_h * c_h);
+    ValueType nu(std::numeric_limits<ValueType>::min());
+    
+    
+    for(SizeType i = 0; i < K; ++i)
+      if(z[i] < abs_tol)
+	z[i] = abs_tol;
+    
+    ValueType norm_star = norm_2(x_grad) + norm_2(y * Jac_g) + norm_2(z * Jac_h);
+    Vector l(x_grad - y * Jac_g - z * Jac_h);
+    Vector lt = l;
+    norm_star = norm_2(l);
+    
+    mat<ValueType,mat_structure::diagonal> muSES_inv(K);
+    for(SizeType i = 0; i < K; ++i)
+      muSES_inv(i,i) = mu / (z[i] * s[i]);
+    
+    mat<ValueType,mat_structure::rectangular> ZJac_h(Jac_h);
+    for(SizeType i = 0; i < K; ++i)
+      for(SizeType j = 0; j < N; ++j)
+	ZJac_h(i,j) *= z[i];
+    
+    
+    mat<ValueType,mat_structure::symmetric> qp_G(H + transpose_view(Jac_h) * ZJac_h);
+    
+    Vector qp_c(x_grad);
+    qp_c -= y * Jac_g - (c_h - muSES_inv * vect_scalar<ValueType>(K,1.0)) * ZJac_h;
+    
+    typedef merit_function_computer<Function,GradFunction,Vector,EqFunction,EqJacFunction,IneqFunction,IneqJacFunction> MeritFuncComputer;
+    MeritFuncComputer m_func(f, df, x, p_x, s, p_s, nu, mu, g, fill_g_jac, h, fill_h_jac);
+    
+    
+    ValueType Err_value = ValueType(0.0);
+    for(SizeType i = 0; i < K; ++i)
+      Err_value += (z[i] * s[i]) * (z[i] * s[i]);
+    Err_value = sqrt(Err_value);
+    if(Err_value < norm_star)
+      Err_value = norm_star;
+    if(Err_value < g_norm)
+      Err_value = g_norm;
+    if(Err_value < h_norm)
+      Err_value = h_norm;
+    
+    unsigned int k = 0;
+    
+    do {
+      
+      //compute error with mu.
+      Err_value = ValueType(0.0);
+      for(SizeType i = 0; i < K; ++i)
+	Err_value += (z[i] * s[i] - mu) * (z[i] * s[i] - mu);
+      Err_value = sqrt(Err_value);
+      if(Err_value < norm_star)
+        Err_value = norm_star;
+      if(Err_value < g_norm)
+        Err_value = g_norm;
+      if(Err_value < h_norm)
+        Err_value = h_norm;
+      
+      ValueType abs_tol_mu = mu;
+      if(abs_tol_mu < abs_tol)
+	abs_tol_mu = abs_tol;
+      
+      ValueType rho = 1.0 - mu;
+      
+      while((Err_value > abs_tol_mu) && (++k <= max_iter)) {
+	
+	try {
+	  null_space_QP_method(Jac_g, -c_g, qp_G, qp_c, p_x, abs_tol, max_radius, &p_y);
+	} catch(singularity_error&) {
+	  try {
+            projected_CG_method(Jac_g, -c_g, qp_G, qp_c, p_x, max_iter, abs_tol_mu, &p_y);
+	  } catch(maximum_iteration&) { };
+	};
+	
+	p_s = Jac_h * p_x + c_h;
+	ValueType alpha_s_max(1.0);
+	ValueType dq_p(0.0);
+	for(SizeType i = 0; i < K; ++i) {
+	  if( alpha_s_max * p_s[i] < -tau )
+	    alpha_s_max = -tau / p_s[i];
+	  dq_p -= mu * p_s[i];
+	  p_s[i] = s[i] * p_s[i];
+	};
+	
+	ValueType pHp = p_x * (H * p_x);
+	for(SizeType i = 0; i < K; ++i)
+	  pHp += (p_s[i] * z[i]) * (p_s[i] / s[i]);
+	Vector cJx = c_g - Jac_g * p_x;
+	Vector cJs = c_h - Jac_h * p_x - p_s;
+	ValueType dm_p = c_norm_star - sqrt(cJx * cJx + cJs * cJs);
+	dq_p += l * p_x + z * p_s;
+        ValueType nu_t;
+        if(pHp > ValueType(0.0))
+          nu_t = (dq_p + ValueType(0.5) * pHp) / ((ValueType(1.0) - rho) * (norm_1(c_g) + norm_1(c_h)));
+        else
+	  nu_t = dq_p / ((ValueType(1.0) - rho) * (norm_1(c_g) + norm_1(c_h)));
+        if(nu < nu_t)
+	  nu = nu_t + abs_tol;
+	
+	m_func.penalty = nu;
+	m_func.mu = mu;
+	ValueType alpha_s(0.0);
+	backtracking_search(boost::bind(&MeritFuncComputer::compute_merit,&m_func,_1),
+	                    boost::bind(&MeritFuncComputer::compute_derivative_merit,&m_func,_1),
+			    alpha_s, alpha_s_max, abs_tol_mu, kappa, ValueType(0.9), ValueType(0.8));
+	
+	p_z = muSES_inv * vect_scalar<ValueType>(K,1.0) - vect_scalar<ValueType>(K,1.0) - p_s;
+	ValueType alpha_z(1.0);
+	for(SizeType i = 0; i < K; ++i) {
+	  p_z[i] = muSES_inv(i,i) - ValueType(1.0) - alpha_s * p_s[i] / s[i];
+	  if( alpha_z * p_z[i] < -tau )
+	    alpha_z = -tau / p_z[i];
+	  p_z[i] = z[i] * p_z[i];
+	};
+	
+	dx = alpha_s * p_x;
+        norm_p = norm_2(dx);
+	x += dx;
+	s += alpha_s * p_s;
+	y += alpha_z * p_y;
+	z += alpha_z * p_z;
+	
+	c_g = g(x);
+	g_norm = norm_2(c_g);
+	fill_g_jac(Jac_g,x,c_g);
+	c_h = h(x);
+	fill_g_jac(Jac_h,x,c_h);
+	c_h -= s;
+	ZJac_h = Jac_h;
+        for(SizeType i = 0; i < K; ++i)
+          for(SizeType j = 0; j < N; ++j)
+	    ZJac_h(i,j) *= z[i];
+	for(SizeType i = 0; i < K; ++i)
+          muSES_inv(i,i) = mu / (z[i] * s[i]);
+        c_norm_star = sqrt( c_g * c_g + c_h * c_h );
+	
+	x_value = f(x);
+	x_grad = df(x);
+	qp_c = x_grad - y * Jac_g;
+	
+	lt = qp_c - z * Jac_h;
+        
+	qp_c += (c_h - muSES_inv * vect_scalar<ValueType>(K,1.0)) * ZJac_h;
+	
+	fill_hessian(H,x,x_value,x_grad,dx,lt - l);
+	l = lt;
+        norm_star = norm_2(l);
+	
+	qp_G = H + transpose_view(Jac_h) * ZJac_h;
+	
+	Err_value = ValueType(0.0);
+	for(SizeType i = 0; i < K; ++i)
+	  Err_value += (z[i] * s[i] - mu) * (z[i] * s[i] - mu);
+	Err_value = sqrt(Err_value);
+	if(Err_value < norm_star)
+          Err_value = norm_star;
+        if(Err_value < g_norm)
+          Err_value = g_norm;
+        if(Err_value < h_norm)
+          Err_value = h_norm;
+	//RK_NOTICE(1," Err_value = " << Err_value << " c_norm_star = " << c_norm_star << " s = " << s << " z = " << z << " y = " << y);
+        
+      };
+      if(k > max_iter)
+	throw maximum_iteration(max_iter);
+      //if(radius < abs_tol)
+	//return;
+      
+      //decrease mu;
+      if( K > 1 ) {
+        ValueType sigma(2.0);
+        ValueType zeta(1.0);
+        ValueType sz_k = s * z / ValueType(K);
+        for(SizeType i = 0; i < K; ++i)
+	  if( (z[i] * s[i]) < zeta * sz_k )
+	    zeta = (z[i] * s[i]) / sz_k;
+        if(zeta < 0.5)  //this is just for numerical stability (takes the denominator where it will equalize the quantities involved).
+	  sigma = (ValueType(1.0) - zeta) / (ValueType(20.0) * zeta);
+        else
+          sigma = ValueType(0.05) * ((ValueType(1.0) - zeta + abs_tol) / zeta);
+        if(sigma > ValueType(2.0))
+	  sigma = ValueType(2.0);
+        sigma *= sigma * sigma * ValueType(0.1);
+        mu = sigma * sz_k;
+        //RK_NOTICE(1," inter-step: s = " << s << " z = " << z << " sz_k = " << sz_k << " zeta = " << zeta << " sigma = " << sigma << " mu = " << mu);
+      } else {
+	mu *= 0.1;
+      };
+      
+      for(SizeType i = 0; i < K; ++i)
+        muSES_inv(i,i) = mu / (z[i] * s[i]);
+      
+      tau = 1.0 - mu;
+      
+      //compute error without mu.
+      Err_value = ValueType(0.0);
+      for(SizeType i = 0; i < K; ++i)
+        Err_value += (z[i] * s[i]) * (z[i] * s[i]);
+      Err_value = sqrt(Err_value);
+      if(Err_value < norm_star)
+        Err_value = norm_star;
+      if(Err_value < g_norm)
+        Err_value = g_norm;
+      if(Err_value < h_norm)
+        Err_value = h_norm;
+      //RK_NOTICE(1,"Err_value = " << Err_value);
+    } while(Err_value > abs_tol);
+  };
+  
+  
+  
+  
+  
+  
+  
+  
 };
 
 
