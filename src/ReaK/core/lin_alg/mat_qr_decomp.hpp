@@ -157,12 +157,14 @@ void decompose_QR_impl(Matrix1& A, Matrix2* Q, typename mat_traits<Matrix1>::val
     householder_prod(hhm,subA); // P * R
     
     if(Q) {
-      mat_sub_block<Matrix2> subQ(*Q,N,N - i,0,i);
+      mat_sub_block<Matrix2> subQ(*Q,Q->get_row_count(),N - i,0,i);
       householder_prod(subQ,hhm); // Q_prev * P
     };
   };
   
 };
+
+
 
 
 template <typename Matrix1, typename Matrix2>
@@ -203,6 +205,257 @@ void forwardsub_L_impl(const Matrix1& L, Matrix2& B, typename mat_traits<Matrix1
       B(i,j) /= L(i,i); // do Y(i,j) = (B(i,j) - sum_k(L(i,k) * Y(k,j))) / L(i,i)
     };
   };
+};
+
+
+/* This implementation is that of Golub and vanLoan, the QR with column pivoting. 
+   This algorithm is not guaranteed to always reveal the rank. */
+template <typename Matrix1, typename Matrix2>
+typename mat_traits<Matrix1>::size_type decompose_RRQR_impl(Matrix1& A, Matrix2* Q, mat<typename mat_traits<Matrix1>::value_type,mat_structure::permutation>& P, typename mat_traits<Matrix1>::value_type NumTol)
+{
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::swap;
+  SizeType N = A.get_row_count();
+  SizeType M = A.get_col_count();
+  P.set_row_count(N);
+  householder_matrix< vect_n<ValueType> > hhm;
+  
+  SizeType t = (N-1 > M ? M : N-1);
+  
+  vect_n<ValueType> c(M);
+  for(SizeType i = 0; i < M; ++i)
+    c[i] = slice(A)(range(0,N-1),i) * slice(A)(range(0,N-1),i);
+  
+  for(SizeType i=0;i<t;++i) {
+    
+    ValueType tau(0.0);
+    SizeType k = i;
+    for(SizeType j = i; j < M; ++j) {
+      if(c[j] > tau) {
+        tau = c[j];
+        k = j;
+      };
+    };
+    if(tau < NumTol)
+      return i;
+    if( k != i ) {
+      P.add_column_swap(i,k);
+      for(SizeType j = 0; j < N; ++j)
+	swap(A(j,i),A(j,k));
+      swap(c[i],c[k]);
+    };
+    
+    hhm.set(mat_row_slice<Matrix1>(A,i,i,N - i),NumTol);
+    
+    mat_sub_block<Matrix1> subA(A,N - i,M - i,i,i);
+    householder_prod(hhm,subA); // P * R
+    
+    if(Q) {
+      mat_sub_block<Matrix2> subQ(*Q,Q->get_row_count(),N - i,0,i);
+      householder_prod(subQ,hhm); // Q_prev * P
+    };
+    
+    for(SizeType j = i+1; j < M; ++j)
+      c[j] -= A(i,j) * A(i,j);
+  };
+  return t;
+};
+
+
+/* This implementation is that of Gu and Eisenstat (1994 tech. report), the Strong RRQR algorithm. 
+   This algorithm is guaranteed to always reveal the rank but will incur higher cost than the simpler 
+   column pivoting QR. */
+template <typename Matrix1, typename Matrix2>
+typename mat_traits<Matrix1>::size_type 
+  decompose_StrongRRQR_impl(Matrix1& A, Matrix2* Q, 
+			    mat<typename mat_traits<Matrix1>::value_type,mat_structure::permutation>& P, 
+			    typename mat_traits<Matrix1>::value_type f, 
+			    typename mat_traits<Matrix1>::value_type NumTol)
+{
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::swap; using std::sqrt;
+  SizeType N = A.get_row_count();
+  SizeType M = A.get_col_count();
+  P.set_row_count(M);
+  householder_matrix< vect_n<ValueType> > hhm;
+  
+  SizeType t = (N-1 > M ? M : N-1);
+  
+  mat<ValueType,mat_structure::rectangular> AB(0,M);
+  mat<ValueType,mat_structure::rectangular> AB_prev(0,M);
+  
+  vect_n<ValueType> c(M);
+  for(SizeType i = 0; i < M; ++i)
+    c[i] = slice(A)(range(0,N-1),i) * slice(A)(range(0,N-1),i);
+  vect_n<ValueType> w(t,ValueType(0.0));
+  
+  for(SizeType i=0;i<t;++i) {
+    
+    ValueType tau(0.0);
+    SizeType k = i;
+    for(SizeType j = i; j < M; ++j) {
+      if(c[j] > tau) {
+        tau = c[j];
+        k = j;
+      };
+    };
+    
+    if(tau < NumTol)
+      return i;
+    
+    if( k != i ) {
+      P.add_column_swap(i,k);
+      for(SizeType j = 0; j < N; ++j)
+	swap(A(j,i),A(j,k));
+      swap(c[i],c[k]);
+      for(SizeType j = 0; j < i; ++j)
+	swap(AB(j,0),AB(j,k-i));
+    };
+    
+    // perform the QR update:
+    hhm.set(mat_row_slice<Matrix1>(A,i,i,N - i),NumTol);
+    
+    mat_sub_block<Matrix1> subA(A,N - i,M - i,i,i);
+    householder_prod(hhm,subA); // P * R
+    
+    if(Q) {
+      mat_sub_block<Matrix2> subQ(*Q,Q->get_row_count(),N - i,0,i);
+      householder_prod(subQ,hhm); // Q_prev * P
+    };
+    
+    //update c, w, AB.
+    AB_prev.set_row_count(i+1);
+    AB_prev.set_col_count(M-i-1);
+    for(SizeType j = i+1; j < M; ++j) {
+      for(SizeType l = 0; l < i; ++l)
+	AB_prev(l,j-i-1) = AB(l,j-i) - AB(l,0) * A(i,j) / tau;
+      c[j] = sqrt( c[j] * c[j] - A(i,j) * A(i,j) );
+      AB_prev(i,j-i-1) = A(i,j) / tau;
+    };
+    for(SizeType l = 0; l < i; ++l)
+      w[l] = sqrt(ValueType(1.0) / ( ValueType(1.0) / (w[l] * w[l]) + (AB(l,0) * AB(l,0)) / (tau * tau)));
+    w[i] = tau;
+    swap(AB_prev,AB);
+    
+    if( i == t-1 )
+      break;
+    
+    while( true ) {
+      //compute rho
+      ValueType rho(0.0);
+      SizeType r_i = 0;
+      SizeType r_j = i+1;
+      for(SizeType j = i+1; j < M; ++j) {
+        for(SizeType l = 0; l <= i; ++l) {
+	  if(rho < fabs(AB(l,j-i-1))) {
+	    rho = fabs(AB(l,j-i-1));
+	    r_i = l; r_j = j;
+	  };
+	  if(rho < c[j] / w[l]) {
+	    rho = fabs(AB(l,j-i-1));
+	    r_i = l; r_j = j;
+	  };
+        };
+      };
+      
+      //break if rho is satisfactory.
+      if(rho <= f)
+	break;
+      
+      if( r_j != i+1 ) {
+	//swap r_j and i+1:
+        P.add_column_swap(r_j,i+1);
+        for(SizeType j = 0; j < N; ++j)
+	  swap(A(j,i+1),A(j,r_j));
+        swap(c[i+1],c[r_j]);
+        for(SizeType j = 0; j < i; ++j)
+	  swap(AB(j,0),AB(j,r_j-i-1));
+      };
+      
+      if( r_i != i ) {
+	//swap i and r_i:
+	P.add_column_swap(r_i,i);
+	swap(w[r_i],w[i]);
+	for(SizeType j = 0; j < M-i-1; ++j)
+	  swap(AB(r_i,j),AB(i,j));
+	for(SizeType j = 0; j <= i; ++j)
+	  swap(A(j,r_i),A(j,i));
+	
+	//do a QR pass on the sub-matrix:
+	if(Q) {
+          mat_sub_block<Matrix2> subQ2(*Q,Q->get_row_count(),i-r_i+1,0,r_i);
+	  mat_sub_block<Matrix1> subA2(A,i-r_i+1,M-r_i,r_i,r_i);
+          decompose_QR_impl(subA2,&subQ2,NumTol);
+        } else {
+	  mat_sub_block<Matrix1> subA2(A,i-r_i+1,M-r_i,r_i,r_i);
+          decompose_QR_impl(subA2,static_cast<Matrix2*>(NULL),NumTol);
+        };
+	
+      };
+      
+      // perform the QR update:
+      hhm.set(mat_row_slice<Matrix1>(A,i+1,i+1,N - i-1),NumTol);
+    
+      mat_sub_block<Matrix1> subA3(A,N - i-1,M - i-1,i+1,i+1);
+      householder_prod(hhm,subA3); // P * R
+    
+      if(Q) {
+        mat_sub_block<Matrix2> subQ3(*Q,Q->get_row_count(),N - i-1,0,i+1);
+        householder_prod(subQ3,hhm); // Q_prev * P
+      };
+      
+      for(SizeType j = i+2; j < M; ++j)
+        c[j] = sqrt( c[j] * c[j] - A(i,j) * A(i,j) );
+      
+      //modify the diagonal block of columns i and i + 1.
+      ValueType gamma = A(i,i);
+      ValueType mu = A(i,i+1) / gamma;
+      ValueType nu = A(i+1,i+1) / gamma;
+      ValueType rho2 = mu * mu + nu * nu;
+      vect_n<ValueType> c2(M-i-2);
+      for(SizeType j = i+2; j < M; ++j)
+	c2[j-i-2] = A(i+1,j);
+      mat<ValueType,mat_structure::rectangular> u(i,1);
+      for(SizeType j = 0; j < i; ++j)
+	u(j,0) = A(j,i);
+      backsub_R_impl(sub(A)(range(0,i-1),range(0,i-1)),u,NumTol);
+      
+      P.add_column_swap(i,i+1);
+      for(SizeType j = 0; j <= i+1; ++j)
+	swap(A(j,i),A(j,i+1));
+      
+      hhm.set(mat_row_slice<Matrix1>(A,i,i,2),NumTol);
+    
+      mat_sub_block<Matrix1> subA4(A,2,M - i,i,i);
+      householder_prod(hhm,subA4); // P * R
+    
+      if(Q) {
+        mat_sub_block<Matrix2> subQ4(*Q,Q->get_row_count(),2,0,i);
+        householder_prod(subQ4,hhm); // Q_prev * P
+      };
+      
+      for(SizeType j = 0; j < i; ++j)
+	w[j] = sqrt( w[j] * w[j] + ((AB(j,0) + mu * u(j,0)) * (AB(j,0) + mu * u(j,0))) / (A(i,i) * A(i,i)) - (u(j,0) * u(j,0)) / (gamma * gamma));
+      w[i] = A(i,i);
+      
+      c[i+1] = A(i+1,i+1);
+      for(SizeType j = i+2; j < M; ++j)
+	c[j] = sqrt( c[j] * c[j] + A(i+1,j) * A(i+1,j) - c2[j] * c2[j] );
+      
+      for(SizeType j = i+2; j < M; ++j) {
+        for(SizeType l = 0; l < i; ++l)
+	  AB(l,j-i-1) += (nu * u(l,0) * A(i+1,j) - AB(l,0) * A(i,j) ) / A(i,i);
+        AB(i,j-i-1) = A(i,j) / A(i,i);
+      };
+      for(SizeType j = 0; j < i; ++j)
+	AB(j,0) = (nu * nu * u(j,0) - mu * AB(j,0)) / rho2;
+      AB(i,0) = mu / rho2;
+      
+    };
+  };
+  return t;
 };
 
 
@@ -392,6 +645,69 @@ struct QR_linlsqsolver {
   template <typename Matrix1, typename Matrix2, typename Matrix3>
   void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
     linlsq_QR(A,X,B,NumTol);
+  };
+};
+
+
+/**
+ * Solves the linear least square problem (AX \approx B or X = min_X(||AX - B||)) via Householder 
+ * reflections and a column-pivot strategy to reveal the column-rank of A.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \param A rectangular matrix with row-count >= column-count.
+ * \param x stores the solution matrix as output (ColCount x ColCount2).
+ * \param b stores the RHS of the linear system of equation (RowCount x ColCount2).
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix A does not have equal-or-more rows than columns or if b's
+ *                          row count does not match that of A or if x's row count does not match the
+ *                          column count of A.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
+                             is_fully_writable_matrix<Matrix2>::value &&
+                             is_readable_matrix<Matrix3>::value,
+void >::type linlsq_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  if(A.get_row_count() < A.get_col_count())
+    throw std::range_error("Linear Least-square solution is only possible on a matrix with row-count >= column-count!");
+  if(A.get_row_count() != b.get_row_count())
+    throw std::range_error("Linear Least-square solution is only possible if row count of b is equal to row count of A!");
+
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  
+  mat<ValueType,mat_structure::rectangular> R(A);
+  mat<ValueType,mat_structure::square> Q = mat<ValueType,mat_structure::square>(mat<ValueType,mat_structure::identity>(A.get_row_count()));
+  mat<ValueType,mat_structure::permutation> P(A.get_col_count());
+  
+  mat<ValueType,mat_structure::rectangular> x_tmp = transpose_view(R) * b;
+  
+  SizeType K = detail::decompose_RRQR_impl(R,&Q,P,NumTol);
+  
+  x_tmp = transpose(P) * x_tmp;
+  
+  detail::forwardsub_L_impl(sub(transpose_view(R))(range(0,K-1),range(0,K-1)),x_tmp,NumTol);
+  for(SizeType j = 0; j < x_tmp.get_col_count(); ++j)
+    for(SizeType i = K; i < x_tmp.get_row_count(); ++i)
+      x_tmp(i,j) = 0.0;
+    
+  detail::backsub_R_impl(sub(R)(range(0,K-1),range(0,K-1)),x_tmp,NumTol);
+  x = P * x_tmp;
+};
+
+
+/**
+ * Functor to wrap a call to a QR decomposition-based linear-least-square solver.
+ */
+struct RRQR_linlsqsolver {
+  template <typename Matrix1, typename Matrix2, typename Matrix3>
+  void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+    linlsq_RRQR(A,X,B,NumTol);
   };
 };
 

@@ -82,7 +82,8 @@ namespace mat_structure {
     tridiagonal = 9,
     nil = 10,
     identity = 11,
-    scalar = 12
+    scalar = 12,
+    permutation = 13
   };
 };
   
@@ -196,6 +197,13 @@ template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::scalar > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 12);
   static std::string type_name() { return "scalar"; };
+  static construct_ptr CreatePtr() { return NULL; };
+};
+
+template <>
+struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::permutation > > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 13);
+  static std::string type_name() { return "permutation"; };
   static construct_ptr CreatePtr() { return NULL; };
 };
 
@@ -382,6 +390,14 @@ namespace detail {
     typedef product_priority<mat_structure::identity> type;
   };
   
+  template <>
+  struct product_priority<mat_structure::permutation> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
+    BOOST_STATIC_CONSTANT(std::size_t, value = 48);
+    typedef product_priority<mat_structure::permutation> type;
+  };
+  
   
   
   
@@ -447,6 +463,14 @@ namespace detail {
     typedef std::size_t value_type;
     BOOST_STATIC_CONSTANT(std::size_t, value = 40);
     typedef addition_priority<mat_structure::identity> type;
+  };
+  
+  template <>
+  struct addition_priority<mat_structure::permutation> {
+    typedef boost::mpl::integral_c_tag tag;
+    typedef std::size_t value_type;
+    BOOST_STATIC_CONSTANT(std::size_t, value = 3);
+    typedef addition_priority<mat_structure::permutation> type;
   };
   
   template <>

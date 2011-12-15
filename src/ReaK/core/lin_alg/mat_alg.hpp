@@ -54,6 +54,7 @@
 #include "mat_alg_orthogonal.hpp"
 #include "mat_alg_lower_triangular.hpp"
 #include "mat_alg_upper_triangular.hpp"
+#include "mat_alg_permutation.hpp"
 
 #include "mat_vector_adaptor.hpp"
 #include "mat_views.hpp"
