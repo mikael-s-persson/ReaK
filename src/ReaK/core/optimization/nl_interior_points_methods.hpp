@@ -251,17 +251,20 @@ namespace detail {
 	r = c + Jac_aug * v;
 	
 	try {//RK_NOTICE(1," reached");
-	  null_space_RRQP_method(Jac_aug, r - c, H_aug, p_grad, p, abs_tol, radius);//RK_NOTICE(1," reached");
+	  null_space_QP_method(Jac_aug, r - c, H_aug, p_grad, p, abs_tol, radius);//RK_NOTICE(1," reached");
 	} catch(singularity_error&) {
-	  try {//RK_NOTICE(1," reached");
+	  try {
+	    //RK_NOTICE(4," falling back to PCG method...");
             projected_CG_method(Jac_aug, r - c, H_aug, p_grad, p, max_iter, abs_tol_mu);//RK_NOTICE(1," reached");
 	  } catch(maximum_iteration&) { };
 	};
 	
         norm_p = norm_2(p);
 	if(norm_p < abs_tol_mu) {
-	  if(abs_tol_mu <= abs_tol)
+	  if(abs_tol_mu <= abs_tol) {
+	    //RK_NOTICE(1," Terminating due to small increment!");
 	    return;
+	  };
 	  break;
 	};
 	
@@ -380,7 +383,7 @@ namespace detail {
       };
       
       p_grad[range(N,N+K-1)] = vect_scalar<ValueType>(K,-mu);
-      linlsq_RRQR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
+      linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
       for(SizeType i = 0; i < K; ++i)
         if(z[i] < abs_tol)
           z[i] = abs_tol;
