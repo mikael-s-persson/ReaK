@@ -281,7 +281,10 @@ class airship2D_lin_dt_system : public airship2D_lin_system {
       return output_type(x[0], x[1], x[2], x[3]);
     };
     
-    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const time_type& t, const point_type& x, const input_type& u) const {
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
+				     const time_type&, const time_type&,
+				     const point_type& x, const point_type&, 
+				     const input_type&, const input_type&) const {
       A = mat<double,mat_structure::identity>(7);
       A(0,4) = mDt;
       A(1,5) = mDt;  
@@ -296,7 +299,10 @@ class airship2D_lin_dt_system : public airship2D_lin_system {
       B(4,0) = mDt / mMass;
       B(5,1) = mDt / mMass;
       B(6,2) = mDt / mInertiaMoment;
-      
+    };
+    
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, 
+				    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(4,7);
       set_block(C,mat<double,mat_structure::identity>(4),0,0);
       
@@ -360,7 +366,10 @@ class airship2D_inv_dt_system : public airship2D_lin_dt_system {
   
     virtual ~airship2D_inv_dt_system() { };
         
-    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const time_type& t, const point_type& x, const input_type& u) const {
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
+				     const time_type&, const time_type&, 
+				     const point_type&, const point_type&, 
+				     const input_type&, const input_type&) const {
       A = mat<double,mat_structure::identity>(6);
       A(0,3) = mDt;
       A(1,4) = mDt;  
@@ -373,7 +382,10 @@ class airship2D_inv_dt_system : public airship2D_lin_dt_system {
       B(3,0) = mDt / mMass;
       B(4,1) = mDt / mMass;
       B(5,2) = mDt / mInertiaMoment;
-      
+    };
+        
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, 
+				    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(3,6);
       set_block(C,mat<double,mat_structure::identity>(3),0,0);
       

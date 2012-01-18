@@ -70,14 +70,17 @@ struct discrete_linear_sss_traits {
  * 
  * Valid expression:
  * 
- * sys.get_linear_blocks(A,B,C,D);  The system matrices can be obtained without providing a time or state.
+ * sys.get_state_transition_blocks(A,B);  The system's state transition matrices can be obtained without providing a time or state.
+ * 
+ * sys.get_output_function_blocks(C,D);  The system's output function matrices can be obtained without providing a time or state.
  */
 struct DiscreteLTISystemType {
   template <typename System, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
   void constraints(const System& sys, const Point&, const Input&, const Time&,  
 		   A_t& A, B_t& B, C_t& C, D_t& D) {
-    sys.get_linear_blocks(A, B, C, D);
+    sys.get_state_transition_blocks(A, B);
+    sys.get_output_function_blocks(C, D);
   };
 };
 
@@ -89,14 +92,17 @@ struct DiscreteLTISystemType {
  * 
  * Valid expression:
  * 
- * sys.get_linear_blocks(A,B,C,D,t);  The system matrices can be obtained without providing a state.
+ * sys.get_state_transition_blocks(A,B,t_0,t_1);  The system's state transition matrices can be obtained without providing states, but providing the time before and after the step.
+ * 
+ * sys.get_output_function_blocks(C,D,t_0);  The system's output function matrices can be obtained without providing a state.
  */
 struct DiscreteLTVSystemType {
   template <typename System, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
   void constraints(const System& sys, const Point&, const Input&, const Time& t, 
 		   A_t& A, B_t& B, C_t& C, D_t& D) {
-    sys.get_linear_blocks(A, B, C, D, t);
+    sys.get_state_transition_blocks(A, B, t, t);
+    sys.get_output_function_blocks(C, D, t);
   };
 };
 
@@ -108,14 +114,17 @@ struct DiscreteLTVSystemType {
  * 
  * Valid expression:
  * 
- * sys.get_linear_blocks(A,B,C,D,t,p,u);  The system matrices can be obtained by providing a time, state and input.
+ * sys.get_state_transition_blocks(A,B,t_0,t_1,p_0,p_1,u_0,u_1);  The system's state transition matrices can be obtained by providing the time, state and input, before and after the step is taken.
+ * 
+ * sys.get_output_function_blocks(C,D,t_0,p_0,u_0);  The system's output function matrices can be obtained from the current time, state and input.
  */
 struct DiscreteLinearizedSystemType {
   template <typename System, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
   void constraints(const System& sys, const Point& p, const Input& u, const Time& t, 
 		   A_t& A, B_t& B, C_t& C, D_t& D) {
-    sys.get_linear_blocks(A, B, C, D, t, p, u);
+    sys.get_state_transition_blocks(A, B, t, t, p, p, u, u);
+    sys.get_output_function_blocks(C, D, t, p, u);
   };
 };
   

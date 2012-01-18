@@ -221,6 +221,8 @@ airship3D_inv_system        0xC2310006   bin: 1100 0010 0011 0001 0000 0000 0000
 airship3D_lin_dt_system     0xC2310007   bin: 1100 0010 0011 0001 0000 0000 0000 0111  D-R
 airship3D_inv_dt_system     0xC2310008   bin: 1100 0010 0011 0001 0000 0000 0000 1000  D-R
 airship3D_inv_mom_dt_system 0xC2310009   bin: 1100 0010 0011 0001 0000 0000 0000 1001  D-R
+airship3D_inv_mid_dt_system 0xC231000C   bin: 1100 0010 0011 0001 0000 0000 0000 1100  
+
 satellite2D_imdt_sys        0xC231000A   bin: 1100 0010 0011 0001 0000 0000 0000 1010  D-R
 satellite3D_imdt_sys        0xC231000B   bin: 1100 0010 0011 0001 0000 0000 0000 1011  D-R
 

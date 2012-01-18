@@ -101,10 +101,10 @@ void >::type kalman_predict(const LinearSystem& sys,
   typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
   typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
   StateType x = b.get_mean_state();
-  sys.get_linear_blocks(A, B, C, D, t, x, u);
   
   b.set_mean_state( sys.get_next_state(x, u, t) );
-  b.set_covariance( CovType( ( A * b.get_covariance().get_matrix() * transpose(A) ) + B * Q.get_matrix() * transpose(B) ) );
+  sys.get_state_transition_blocks(A, B, t, t + sys.get_time_step(), x, b.get_mean_state(), u, u);
+  b.set_covariance( CovType( ( A * b.get_covariance().get_matrix() * transpose_view(A) ) + B * Q.get_matrix() * transpose_view(B) ) );
 };
 
 
@@ -157,13 +157,13 @@ void >::type kalman_update(const LinearSystem& sys,
   typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
   StateType x = b.get_mean_state();
   const MatType& P = b.get_covariance().get_matrix();
-  sys.get_linear_blocks(A, B, C, D, t, x, u);
+  sys.get_output_function_blocks(C, D, t, x, u);
   
   OutputType y = z - C * x - D * u;
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S( CP * transpose(C) + R.get_matrix() );
+  mat< ValueType, mat_structure::symmetric > S( CP * transpose_view(C) + R.get_matrix() );
   linsolve_Cholesky(S,CP);
-  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
+  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K( transpose_view(CP) );
    
   b.set_mean_state( x + K * y );
   b.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
@@ -230,16 +230,17 @@ void >::type kalman_filter_step(const LinearSystem& sys,
   typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
   StateType x = b.get_mean_state();
   MatType P = b.get_covariance().get_matrix();
-  sys.get_linear_blocks(A, B, C, D, t, x, u);
 
   x = sys.get_next_state(x, u, t);
-  P = ( A * P * transpose(A)) + B * Q.get_matrix() * transpose(B);
+  sys.get_state_transition_blocks(A, B, t, t + sys.get_time_step(), b.get_mean_state(), x, u, u);
+  P = ( A * P * transpose_view(A)) + B * Q.get_matrix() * transpose_view(B);
   
+  sys.get_output_function_blocks(C, D, t + sys.get_time_step(), x, u);
   OutputType y = z - C * x - D * u;
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S(CP * transpose(C) + R.get_matrix());  
+  mat< ValueType, mat_structure::symmetric > S(CP * transpose_view(C) + R.get_matrix());  
   linsolve_Cholesky(S,CP);
-  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
+  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K( transpose_view(CP) );
    
   b.set_mean_state( x + K * y );
   b.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );

@@ -358,8 +358,11 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       return output_type(x[0], x[1], x[2], x[3], x[4], x[5], x[6]);
     };
     
-    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const time_type& t, const point_type& x, const input_type& u) const {
-      vect<double,3> w(-mDt * x[10],-mDt * x[11],-mDt * x[12]);
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
+				     const time_type& t_0, const time_type&,
+				     const point_type& p_0, const point_type&,
+				     const input_type&, const input_type&) const {
+      vect<double,3> w(-mDt * p_0[10],-mDt * p_0[11],-mDt * p_0[12]);
       
       A = mat<double,mat_structure::identity>(13);
       A(0,7) = mDt;
@@ -368,13 +371,13 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       mat<double,mat_structure::square> JinvWJ(mInertiaMomentInv * mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment);
       set_block(A, mat<double,mat_structure::identity>(3) + JinvWJ, 10, 10);
       
-      w[0] = -0.5 * mDt * x[4];
-      w[1] = -0.5 * mDt * x[5];
-      w[2] = -0.5 * mDt * x[6];
+      w[0] = -0.5 * mDt * p_0[4];
+      w[1] = -0.5 * mDt * p_0[5];
+      w[2] = -0.5 * mDt * p_0[6];
       JinvWJ = mat<double,mat_structure::identity>(3) + 0.5 * JinvWJ;
       vect<double,3> w_JinvWJ = w * JinvWJ;
       set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w_JinvWJ),3,10);
-      set_block(A, ((0.5 * mDt * x[3]) * mat<double,mat_structure::identity>(3) - mat<double,mat_structure::skew_symmetric>(w)) * JinvWJ,4,10);
+      set_block(A, ((0.5 * mDt * p_0[3]) * mat<double,mat_structure::identity>(3) - mat<double,mat_structure::skew_symmetric>(w)) * JinvWJ,4,10);
       
       B = mat<double,mat_structure::nil>(13,6);
       B(0,0) = 0.5 * mDt * mDt / mMass;
@@ -384,13 +387,17 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       w *= mDt * 0.5;
       vect<double,3> w_Jinv = w * mInertiaMomentInv;
       set_block(B, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >( w_Jinv ), 3, 3);
-      set_block(B, (0.25 * mDt * mDt * x[3]) * mInertiaMomentInv - mat<double,mat_structure::skew_symmetric>(w) * mInertiaMomentInv, 4, 3);
+      set_block(B, (0.25 * mDt * mDt * p_0[3]) * mInertiaMomentInv - mat<double,mat_structure::skew_symmetric>(w) * mInertiaMomentInv, 4, 3);
       
       B(7,0) = mDt / mMass;
       B(8,1) = mDt / mMass;
       B(9,2) = mDt / mMass;
       set_block(B, mDt * mInertiaMomentInv, 10, 3);
       
+    };
+    
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, 
+				    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(7,13);
       set_block(C,mat<double,mat_structure::identity>(7),0,0);
       
@@ -453,9 +460,12 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
 			    airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
   
     virtual ~airship3D_inv_dt_system() { };
-        
-    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const time_type& t, const point_type& x, const input_type& u) const {
-      vect<double,3> w(x[10],x[11],x[12]);
+    
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
+				     const time_type& t_0, const time_type&,
+				     const point_type& p_0, const point_type&,
+				     const input_type&, const input_type&) const {
+      vect<double,3> w(p_0[10],p_0[11],p_0[12]);
       
       A = mat<double,mat_structure::identity>(12);
       A(0,6) = mDt;
@@ -478,12 +488,16 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
       B(8,2) = mDt / mMass;
       set_block(B, mDt * mInertiaMomentInv, 9, 3);
       
+    };
+    
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, 
+				    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(6,12);
       set_block(C,mat<double,mat_structure::identity>(6),0,0);
       
       D = mat<double,mat_structure::nil>(6,6);
     };
-        
+    
     invariant_error_type get_invariant_error(const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
       quaternion<double> q_diff = invert(quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6]))) 
                                 * quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6]));
@@ -577,8 +591,10 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
   
     virtual ~airship3D_inv_mom_dt_system() { };
         
-    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const time_type& t, const point_type& x, const input_type& u) const {
-      vect<double,3> w(x[10],x[11],x[12]);
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
+				     const time_type& t_0, const time_type&,
+				     const point_type& p_0, const point_type&,
+				     const input_type&, const input_type&) const {
       
       A = mat<double,mat_structure::identity>(12);
       A(0,6) = mDt;
@@ -598,6 +614,10 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
       B(10,4) = mDt;
       B(11,5) = mDt;
       
+    };
+    
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, 
+				    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(6,12);
       set_block(C,mat<double,mat_structure::identity>(6),0,0);
       
@@ -664,6 +684,147 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
     
 };
 
+
+
+
+
+
+class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
+  public:
+    
+    typedef vect_n<double> point_type;
+    typedef vect_n<double> point_difference_type;
+  
+    typedef double time_type;
+    typedef double time_difference_type;
+  
+    typedef vect_n<double> input_type;
+    typedef vect_n<double> output_type;
+  
+    typedef vect_n<double> invariant_error_type;
+    typedef vect_n<double> invariant_correction_type;
+    typedef mat<double,mat_structure::square> invariant_frame_type;
+  
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
+    BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
+    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 7);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 6);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 12);
+    
+    typedef mat<double,mat_structure::square> matrixA_type;
+    typedef mat<double,mat_structure::rectangular> matrixB_type;
+    typedef mat<double,mat_structure::rectangular> matrixC_type;
+    typedef mat<double,mat_structure::nil> matrixD_type;
+    
+    
+    airship3D_inv_mid_dt_system(const std::string& aName = "", 
+			        double aMass = 1.0, 
+			        const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			        double aDt = 0.001) :
+			        airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
+  
+    virtual ~airship3D_inv_mid_dt_system() { };
+    
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
+				     const time_type&, const time_type&,
+				     const point_type& p_0, const point_type& p_1,
+				     const input_type&, const input_type&) const {
+      
+      mat<double, mat_structure::square> R = (invert( quaternion<double>(vect<double,4>(p_1[3],p_1[4],p_1[5],p_1[6])))
+                                                    * quaternion<double>(vect<double,4>(p_0[3],p_0[4],p_0[5],p_0[6]))).getMat();
+      
+      A = mat<double,mat_structure::identity>(12);
+      A(0,6) = mDt;
+      A(1,7) = mDt;  
+      A(2,8) = mDt;
+      set_block(A, (0.5 * mDt) * (mInertiaMomentInv
+                                  + transpose_view(R) * mInertiaMomentInv * R), 3, 9);
+            
+      B = mat<double,mat_structure::nil>(12,6);
+      B(0,0) = 0.5 * mDt * mDt / mMass;
+      B(1,1) = 0.5 * mDt * mDt / mMass;
+      B(2,2) = 0.5 * mDt * mDt / mMass;
+      set_block(B, (0.5 * mDt * mDt) * mInertiaMomentInv, 3, 3);
+      B(6,0) = mDt / mMass;
+      B(7,1) = mDt / mMass;
+      B(8,2) = mDt / mMass;
+      set_block(B, mDt * mat<double,mat_structure::identity>(3), 9, 3);
+      
+    };
+    
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, 
+				    const time_type&, const point_type&, const input_type&) const {
+      C = mat<double,mat_structure::nil>(6,12);
+      set_block(C,mat<double,mat_structure::identity>(6),0,0);
+      
+      D = mat<double,mat_structure::nil>(6,6);
+    };
+        
+    invariant_error_type get_invariant_error(const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
+      quaternion<double> q_diff = invert(quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6]))) 
+                                * quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6]));
+      quat<double> a = log(quat<double>(q_diff[0],q_diff[1],q_diff[2],q_diff[3]));
+      return invariant_error_type(y[0] - x[0],
+			          y[1] - x[1],
+			          y[2] - x[2],
+	                          2.0 * a[1],
+	                          2.0 * a[2],
+	                          2.0 * a[3]); 
+    };
+    
+    point_type apply_correction(const point_type& x, const invariant_correction_type& c, const input_type&, const time_type&) const {
+      quaternion<double> q_diff(exp(quat<double>(0.0, 0.5 * c[3], 0.5 * c[4], 0.5 * c[5])));
+      quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
+                                 q_diff;
+      vect<double,3> w_new = mInertiaMomentInv * (invert(q_diff) * (mInertiaMoment * vect<double,3>(x[10],x[11],x[12]) + vect<double,3>(c[9],c[10],c[11])));
+      //vect<double,3> w_new = invert(q_diff) * (vect<double,3>(x[10],x[11],x[12]) + vect<double,3>(c[9],c[10],c[11]));
+      return point_type(x[0] + c[0],
+	                x[1] + c[1],
+			x[2] + c[2],
+			q_new[0],
+			q_new[1],
+			q_new[2],
+			q_new[3],
+			x[7] + c[6],
+			x[8] + c[7],
+			x[9] + c[8],
+			w_new[0],
+			w_new[1],
+			w_new[2]);
+    };
+    
+    invariant_frame_type get_invariant_prior_frame(const point_type& x_prev, const point_type& x_prior, const input_type&, const time_type&) const {
+      invariant_frame_type result(mat<double,mat_structure::identity>(12));
+      mat<double,mat_structure::square> R_diff((invert(quaternion<double>(vect<double,4>(x_prior[3],x_prior[4],x_prior[5],x_prior[6])))
+                                                     * quaternion<double>(vect<double,4>(x_prev[3],x_prev[4],x_prev[5],x_prev[6]))).getMat());
+      set_block(result, R_diff, 3, 3);
+      set_block(result, R_diff, 9, 9);
+      return result;
+    };
+    
+    invariant_frame_type get_invariant_posterior_frame(const point_type& x_prior, const point_type& x_post, const input_type&, const time_type&) const {
+      invariant_frame_type result(mat<double,mat_structure::identity>(12));
+      mat<double,mat_structure::square> R_diff((invert(quaternion<double>(vect<double,4>(x_post[3],x_post[4],x_post[5],x_post[6])))
+                                                     * quaternion<double>(vect<double,4>(x_prior[3],x_prior[4],x_prior[5],x_prior[6]))).getMat());
+      set_block(result, R_diff, 3, 3);
+      set_block(result, R_diff, 9, 9);
+      return result;
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      airship3D_lin_dt_system::save(A,airship3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      airship3D_lin_dt_system::load(A,airship3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(airship3D_inv_mid_dt_system,0xC231000C,1,"airship3D_inv_mid_dt_system",airship3D_lin_dt_system)
+    
+};
 
 
 
