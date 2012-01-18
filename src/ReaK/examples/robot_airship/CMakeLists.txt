@@ -59,6 +59,12 @@ setup_custom_target(estimate_airship3D_range "${SRCROOT}${RKROBOTAIRSHIPDIR}")
 target_link_libraries(estimate_airship3D_range ${BOOST_THREAD_LIB})
 target_link_libraries(estimate_airship3D_range reak_core)
 
+add_executable(estimate_airship3D_mc "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_airship3D_mc.cpp")
+setup_custom_target(estimate_airship3D_mc "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+
+target_link_libraries(estimate_airship3D_mc ${BOOST_THREAD_LIB})
+target_link_libraries(estimate_airship3D_mc reak_mbd_kte reak_core)
+
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")

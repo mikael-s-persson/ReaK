@@ -176,58 +176,35 @@ class discretized_lti_sys : public named_object {
     const LTISystem& getSys() const { return sys; };
 
     /**
-     * Fills the given matrices with the discrete-time system matrices.
+     * Fills the given matrices with the discrete-time system's state transition matrices.
      * \param aA Stores, as output, the system matrix A.
      * \param aB Stores, as output, the system matrix B.
-     * \param aC Stores, as output, the system matrix C.
-     * \param aD Stores, as output, the system matrix D.
      */
     template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
     typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
-                                 is_writable_matrix<MatrixB>::value &&
-                                 is_writable_matrix<MatrixC>::value &&
-                                 is_writable_matrix<MatrixD>::value,
-    void >::type get_linear_blocks(MatrixA& aA, MatrixB& aB, MatrixC& aC, MatrixD& aD) const {
+                                 is_writable_matrix<MatrixB>::value,
+    void >::type get_state_transition_blocks(MatrixA& aA, MatrixB& aB, 
+					     const time_type& t_0 = time_type(), const time_type& t_1 = time_type(), 
+					     const point_type& p_0 = point_type(), const point_type& p_1 = point_type(), 
+					     const input_type& u_0 = input_type(), const input_type& u_1 = input_type()) const {
+					     RK_UNUSED(t_0); RK_UNUSED(t_1); RK_UNUSED(p_0); RK_UNUSED(p_1); RK_UNUSED(u_0); RK_UNUSED(u_1); 
       aA = Ad;
       aB = Bd;
-      aC = Cd;
-      aD = Dd;
     };
     
     /**
-     * Fills the given matrices with the discrete-time system matrices.
-     * \param aA Stores, as output, the system matrix A.
-     * \param aB Stores, as output, the system matrix B.
+     * Fills the given matrices with the discrete-time system's output function matrices.
      * \param aC Stores, as output, the system matrix C.
      * \param aD Stores, as output, the system matrix D.
      */
     template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
-    typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
-                                 is_writable_matrix<MatrixB>::value &&
-                                 is_writable_matrix<MatrixC>::value &&
+    typename boost::enable_if_c< is_writable_matrix<MatrixC>::value &&
                                  is_writable_matrix<MatrixD>::value,
-    void >::type get_linear_blocks(MatrixA& aA, MatrixB& aB, MatrixC& aC, MatrixD& aD,const time_type&) const {
-      aA = Ad;
-      aB = Bd;
-      aC = Cd;
-      aD = Dd;
-    };
-    
-    /**
-     * Fills the given matrices with the discrete-time system matrices.
-     * \param aA Stores, as output, the system matrix A.
-     * \param aB Stores, as output, the system matrix B.
-     * \param aC Stores, as output, the system matrix C.
-     * \param aD Stores, as output, the system matrix D.
-     */
-    template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
-    typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
-                                 is_writable_matrix<MatrixB>::value &&
-                                 is_writable_matrix<MatrixC>::value &&
-                                 is_writable_matrix<MatrixD>::value,
-    void >::type get_linear_blocks(MatrixA& aA, MatrixB& aB, MatrixC& aC, MatrixD& aD, const time_type&, const point_type&, const input_type&) const {
-      aA = Ad;
-      aB = Bd;
+    void >::type get_output_function_blocks(MatrixC& aC, MatrixD& aD,
+                                            const time_type& t = time_type(),
+					    const point_type& p = point_type(),
+					    const input_type& u = input_type()) const {
+					    RK_UNUSED(t); RK_UNUSED(p); RK_UNUSED(u);
       aC = Cd;
       aD = Dd;
     };

@@ -116,26 +116,25 @@ void >::type symplectic_kalman_predict(const LinearSystem& sys,
   
   typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A;
   typename discrete_linear_sss_traits<LinearSystem>::matrixB_type B;
-  typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
-  typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
   StateType x = b.get_mean_state();
-  sys.get_linear_blocks(A, B, C, D, t, x, u);
-  SizeType N = A.get_col_count();
   
   const MatType& X = b.get_covariance().get_covarying_block();
   const MatType& Y = b.get_covariance().get_informing_inv_block(); 
+  SizeType N = X.get_row_count();
   
   Tc.set_row_count(2 * N);
   Tc.set_col_count(2 * N);
+
+  b.set_mean_state( sys.get_next_state(x,u,t) );
+  sys.get_state_transition_blocks(A, B, t, t + sys.get_time_step(), x, b.get_mean_state(), u, u);
   
   set_block(Tc, mat<ValueType, mat_structure::nil>(N), N, 0);
   typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A_inv; 
   pseudoinvert_QR(A,A_inv);
-  set_block(Tc, transpose_move(A_inv), N, N);
-  set_block(Tc, (B * Q.get_matrix() * transpose(B)) * mat_const_sub_block< PredictionCovTransMatrix >(Tc, N, N, N, N), 0, N);
+  set_block(Tc, transpose_view(A_inv), N, N);
+  set_block(Tc, (B * Q.get_matrix() * transpose_view(B)) * mat_const_sub_block< PredictionCovTransMatrix >(Tc, N, N, N, N), 0, N);
   set_block(Tc, A, 0, 0);
   
-  b.set_mean_state( sys.get_next_state(x,u,t) );
   b.set_covariance( CovType( MatType( mat_const_sub_block< PredictionCovTransMatrix >(Tc, N, 2*N, 0, 0) * mat_const_ref_vert_cat< MatType, MatType >(X,Y) ),
                              MatType( mat_const_sub_block< PredictionCovTransMatrix >(Tc, N, N, N, N) * Y ) ) );
 };
@@ -195,29 +194,27 @@ void >::type symplectic_kalman_update(const LinearSystem& sys,
   typedef typename mat_traits<MatType>::value_type ValueType;
   typedef typename mat_traits<MatType>::size_type SizeType;
   
-  typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A;
-  typename discrete_linear_sss_traits<LinearSystem>::matrixB_type B;
   typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
   typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
   
   StateType x = b.get_mean_state();
   const MatType& X = b.get_covariance().get_covarying_block();
   const MatType& Y = b.get_covariance().get_informing_inv_block(); 
-  sys.get_linear_blocks(A, B, C, D, t, x, u);
+  sys.get_output_function_blocks(C, D, t, x, u);
   
   OutputType y = z - sys.get_output(x,u,t);
-  mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > YC = transpose(C);
+  mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > YC(transpose_view(C));
   mat< ValueType, mat_structure::symmetric > M = YC * R.get_inverse_matrix() * C;
   linsolve_QR(Y,YC);
   mat< ValueType, mat_structure::symmetric > S = C * X * YC + R.get_matrix();
-  YC = transpose(X * YC);
+  YC = transpose_view(X * YC);
   linsolve_Cholesky(S,YC);
-  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(YC);
+  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K(transpose_view(YC));
    
   b.set_mean_state( x + K * y );
   b.set_covariance( CovType( X, MatType( Y + M * X ) ) );
   
-  SizeType N = A.get_col_count();
+  SizeType N = X.get_row_count();
   Tm.set_row_count(2 * N);
   Tm.set_col_count(2 * N);
   
@@ -300,11 +297,11 @@ void >::type symplectic_kalman_filter_step(const LinearSystem& sys,
   StateType x = b.get_mean_state();
   const MatType& X = b.get_covariance().get_covarying_block();
   const MatType& Y = b.get_covariance().get_informing_inv_block(); 
-  sys.get_linear_blocks(A, B, C, D, t, x, u);
   
   x = sys.get_next_state(x,u,t);
+  sys.get_state_transition_blocks(A, B, t, t + sys.get_time_step(), b.get_mean_state(), x, u, u);
   
-  SizeType N = A.get_col_count();
+  SizeType N = X.get_row_count();
   T.set_row_count(2 * N);
   T.set_col_count(2 * N);
   
@@ -312,22 +309,25 @@ void >::type symplectic_kalman_filter_step(const LinearSystem& sys,
   typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A_inv; 
   pseudoinvert_QR(A,A_inv);
   mat_sub_block< CovTransMatrix > T_lr(T,N,N,N,N);
-  T_lr = transpose_move(A_inv);
+  T_lr = transpose_view(A_inv);
   mat_sub_block< CovTransMatrix > T_ur(T,N,N,0,N);
-  T_ur = (B * Q.get_matrix() * transpose(B)) * T_lr;
+  T_ur = (B * Q.get_matrix() * transpose_view(B)) * T_lr;
   set_block(T, mat<ValueType,mat_structure::nil>(N), N, 0);
   
   X = A * X + T_ur * Y;
   Y = T_lr * Y;
   
+  t += sys.get_time_step();
+  
+  sys.get_output_function_blocks(C, D, t, x, u);
   OutputType y = z - sys.get_output(x,u,t);
-  mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > YC = transpose(C);
+  mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > YC(transpose_view(C));
   mat< ValueType, mat_structure::symmetric > M = YC * R.get_inverse_matrix() * C;
   linsolve_QR(Y,YC);
   mat< ValueType, mat_structure::symmetric > S = C * X * YC + R.get_matrix();
   YC = transpose(X * YC);
   linsolve_Cholesky(S,YC);
-  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(YC);
+  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K(transpose_view(YC));
    
   b.set_mean_state( x + K * y );
   

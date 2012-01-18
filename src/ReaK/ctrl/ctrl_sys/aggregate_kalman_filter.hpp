@@ -116,21 +116,21 @@ void >::type aggregate_kalman_predict(const LinearSystem& sys,
   typedef typename hamiltonian_mat< ValueType >::lower_left HamilMatLL;
   typedef typename hamiltonian_mat< ValueType >::lower_right HamilMatLR;
   
+  using std::swap;
+  
   typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A;
   typename discrete_linear_sss_traits<LinearSystem>::matrixB_type B;
-  typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
-  typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
   
   StateType x = b.get_mean_state();
   MatType P = b.get_covariance().get_matrix();
-  sys.get_linear_blocks(A, B, C, D, t, x, u);
-  SizeType N = A.get_row_count();
 
   StateType x_prior = sys.get_next_state(x,u,t);
-  HamilMatUR Q_tmp(B * Q.get_matrix() * transpose(B));
+  sys.get_state_transition_blocks(A, B, t, t + sys.get_time_step(), x, x_prior, u, u);
+  SizeType N = A.get_row_count();
+  HamilMatUR Q_tmp(B * Q.get_matrix() * transpose_view(B));
   HamilMat Sc_tmp(HamilMatUp(HamilMatUL(A),Q_tmp),
-                  HamilMatLo(HamilMatLL(mat<ValueType,mat_structure::nil>(N)),HamilMatLR(transpose(A))));
-  P = A * P * transpose(A) + Q_tmp;
+                  HamilMatLo(HamilMatLL(mat<ValueType,mat_structure::nil>(N)),HamilMatLR(transpose_view(A))));
+  P = A * P * transpose_view(A) + Q_tmp;
   b.set_mean_state( x_prior );
   b.set_covariance( CovType( P ) );
   swap(Sc,Sc_tmp);
@@ -194,26 +194,26 @@ void >::type aggregate_kalman_update(const LinearSystem& sys,
   typedef typename hamiltonian_mat< ValueType >::lower_left HamilMatLL;
   typedef typename hamiltonian_mat< ValueType >::lower_right HamilMatLR;
   
-  typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A;
-  typename discrete_linear_sss_traits<LinearSystem>::matrixB_type B;
+  using std::swap;
+  
   typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
   typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
   
   StateType x = b.get_mean_state();
   MatType P = b.get_covariance().get_matrix();
-  sys.get_linear_blocks(A, B, C, D, t, x, u);
-  SizeType N = A.get_row_count();
+  sys.get_output_function_blocks(C, D, t, x, u);
+  SizeType N = C.get_col_count();
 
   OutputType y = z - sys.get_output(x, u, t);
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S = CP * transpose(C) + R.get_matrix();
+  mat< ValueType, mat_structure::symmetric > S = CP * transpose_view(C) + R.get_matrix();
   linsolve_Cholesky(S,CP);
-  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
+  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K( transpose_view(CP) );
    
   b.set_mean_state( x + K * y );
   b.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
 
-  HamilMat Sm_tmp(HamilMatUp(HamilMatUL(mat<ValueType,mat_structure::identity>(N)),HamilMatUR(mat<ValueType,mat_structure::nil>(N))),HamilMatLo(HamilMatLL( transpose(C) * R.get_inverse_matrix() * C ),HamilMatLR(mat<ValueType,mat_structure::identity>(N))));
+  HamilMat Sm_tmp(HamilMatUp(HamilMatUL(mat<ValueType,mat_structure::identity>(N)),HamilMatUR(mat<ValueType,mat_structure::nil>(N))),HamilMatLo(HamilMatLL( transpose_view(C) * R.get_inverse_matrix() * C ),HamilMatLR(mat<ValueType,mat_structure::identity>(N))));
   swap(Sm,Sm_tmp);
 };
 
@@ -289,6 +289,8 @@ void >::type aggregate_kalman_filter_step(const LinearSystem& sys,
   typedef typename hamiltonian_mat< ValueType >::lower_left HamilMatLL;
   typedef typename hamiltonian_mat< ValueType >::lower_right HamilMatLR;
   
+  using std::swap;
+  
   typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A;
   typename discrete_linear_sss_traits<LinearSystem>::matrixB_type B;
   typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
@@ -296,26 +298,27 @@ void >::type aggregate_kalman_filter_step(const LinearSystem& sys,
 
   StateType x = b.get_mean_state();
   MatType P = b.get_covariance().get_matrix();
-  sys.get_linear_blocks(A, B, C, D, t, x, u);
-  SizeType N = A.get_row_count();
 
   StateType x_prior = sys.get_next_state(x,u,t);
-  HamilMatUR Q_tmp(B * Q.get_matrix() * transpose(B));
+  sys.get_state_transition_blocks(A, B, t, t + sys.get_time_step(), x, x_prior, u, u);
+  SizeType N = A.get_row_count();
+  HamilMatUR Q_tmp(B * Q.get_matrix() * transpose_view(B));
   HamilMat Sc_tmp(HamilMatUp(HamilMatUL(A),Q_tmp),
-                  HamilMatLo(HamilMatLL(mat<ValueType,mat_structure::nil>(N)),HamilMatLR(transpose(A))));
+                  HamilMatLo(HamilMatLL(mat<ValueType,mat_structure::nil>(N)),HamilMatLR(transpose_view(A))));
   swap(Sc,Sc_tmp);
-  P = A * P * transpose(A) + Q_tmp;
+  P = A * P * transpose_view(A) + Q_tmp;
   
+  sys.get_output_function_blocks(C, D, t + sys.get_time_step(), x_prior, u);
   OutputType y = z - sys.get_output(x_prior, u, t + sys.get_time_step());
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S = CP * transpose(C) + R.get_matrix();
+  mat< ValueType, mat_structure::symmetric > S = CP * transpose_view(C) + R.get_matrix();
   linsolve_Cholesky(S,CP);
-  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
+  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K( transpose_view(CP) );
    
   b.set_mean_state( x_prior + K * y );
   b.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
 
-  HamilMat Sm_tmp(HamilMatUp(HamilMatUL(mat<ValueType,mat_structure::identity>(N)),HamilMatUR(mat<ValueType,mat_structure::nil>(N))),HamilMatLo(HamilMatLL( transpose(C) * R.get_inverse_matrix() * C ),HamilMatLR(mat<ValueType,mat_structure::identity>(N))));
+  HamilMat Sm_tmp(HamilMatUp(HamilMatUL(mat<ValueType,mat_structure::identity>(N)),HamilMatUR(mat<ValueType,mat_structure::nil>(N))),HamilMatLo(HamilMatLL( transpose_view(C) * R.get_inverse_matrix() * C ),HamilMatLR(mat<ValueType,mat_structure::identity>(N))));
   swap(Sm,Sm_tmp);
 };
 
