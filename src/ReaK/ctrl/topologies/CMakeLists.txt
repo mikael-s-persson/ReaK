@@ -24,11 +24,14 @@ set(TOPOLOGIES_HEADERS
 setup_headers("${TOPOLOGIES_HEADERS}" "${RKTOPOLOGIESDIR}")
 
 if(NOT WIN32)
-  add_executable(test_sampling "${SRCROOT}${RKTOPOLOGIESDIR}/test_sampling.cpp")
-  setup_custom_target(test_sampling "${SRCROOT}${RKTOPOLOGIESDIR}")
-  #target_link_libraries(test_adstar ${BOOST_THREAD_LIB})
-  target_link_libraries(test_sampling "-lcv" "-lcvaux")
-  target_link_libraries(test_sampling reak_core)
+
+  if( OpenCV_FOUND )
+    add_executable(test_sampling "${SRCROOT}${RKTOPOLOGIESDIR}/test_sampling.cpp")
+    setup_custom_target(test_sampling "${SRCROOT}${RKTOPOLOGIESDIR}")
+    #target_link_libraries(test_adstar ${Boost_LIBRARIES})
+    target_link_libraries(test_sampling ${OpenCV_LIBS})
+    target_link_libraries(test_sampling reak_core)
+  endif()
 endif()
 
 

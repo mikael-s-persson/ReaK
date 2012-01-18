@@ -53,4 +53,5 @@ get_target_property(RKSERIALIZATIONSOURCES reak_serialization SOURCES)
 add_library(reak_core STATIC ${RKRTTISOURCES} ${RKRECORDERSSOURCES} ${RKSERIALIZATIONSOURCES})
 #target_link_libraries(reak_core reak_rtti reak_serialization reak_recorders)
 setup_custom_target(reak_core "${SRCROOT}${RKCOREDIR}")
+target_link_libraries(reak_core ${Boost_LIBRARIES})
 

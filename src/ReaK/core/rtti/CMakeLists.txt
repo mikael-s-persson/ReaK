@@ -24,7 +24,7 @@ setup_headers("${RTTI_HEADERS}" "${RKRTTIDIR}")
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
-#target_link_libraries(test_math ${BOOST_THREAD_LIB})
+#target_link_libraries(test_math ${Boost_LIBRARIES})
 
 
 
