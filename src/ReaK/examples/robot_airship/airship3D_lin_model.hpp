@@ -317,6 +317,7 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
     point_type get_next_state(const point_type& x, const input_type& u, const time_type t = 0.0) const {
       //this function implements the momentum-conserving trapezoidal rule (variational integrator). This is very similar to the symplectic variational midpoint integrator over Lie Groups.
       
+      /*
       vect<double,3> half_dp(0.5 * mDt * u[3], 0.5 * mDt * u[4], 0.5 * mDt * u[5]);
       vect<double,3> w0(x[10],x[11],x[12]);
       quaternion<double> half_w0_rot = quaternion<double>( exp( quat<double>( (0.25 * mDt) * w0) ) );
@@ -337,6 +338,34 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
                                  half_w0_rot * 
                                  quaternion<double>( exp( quat<double>( (0.25 * mDt) * w1_prev) ) );
+      */
+      
+      vect<double,3> half_dp(0.005 * mDt * u[3], 0.005 * mDt * u[4], 0.005 * mDt * u[5]);
+      vect<double,3> w0(x[10],x[11],x[12]);
+      quaternion<double> half_w0_rot = quaternion<double>( exp( quat<double>( (0.0025 * mDt) * w0) ) );
+      vect<double,3> dp0 = invert(half_w0_rot) * (mInertiaMoment * w0 + half_dp);
+      
+      quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6]));
+      
+      for(unsigned int i = 0; i < 100; ++i) {
+      
+        vect<double,3> w1_prev = w0 + (mInertiaMomentInv * (2.0 * half_dp - (0.01 * mDt) * w0 % (mInertiaMoment * w0)));
+        quaternion<double> half_w1_prev_rot = quaternion<double>( exp( quat<double>( (0.0025 * mDt) * w1_prev) ) );
+	
+        for(int i = 0; i < 20; ++i) {
+          vect<double,3> w1_next = mInertiaMomentInv * (half_dp 
+	                            + invert(half_w1_prev_rot) * dp0);
+	  if(norm_2(w1_next - w1_prev) < 1E-6 * norm_2(w1_next + w1_prev)) {
+	    w1_prev = w1_next;
+	    break;
+	  } else
+	    w1_prev = w1_next;
+        };
+      
+        q_new = q_new * half_w0_rot * half_w1_prev_rot;
+	w0 = w1_prev;
+	half_w0_rot = half_w1_prev_rot;
+      };
 				 
       vect<double,3> dv(mDt * u[0] / mMass, mDt * u[1] / mMass, mDt * u[2] / mMass);
       return point_type( x[0] + mDt * (x[7] + 0.5 * dv[0]),
@@ -349,9 +378,9 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
 			 x[7] + dv[0],
 			 x[8] + dv[1],
 			 x[9] + dv[2],
-			 w1_prev[0],
-			 w1_prev[1],
-			 w1_prev[2]);
+			 w0[0],
+			 w0[1],
+			 w0[2]);
     };
     
     output_type get_output(const point_type& x, const input_type& u, const time_type t = 0.0) const {
