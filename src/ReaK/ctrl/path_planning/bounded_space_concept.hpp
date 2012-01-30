@@ -51,7 +51,7 @@ namespace pp {
  * 
  * Required Models:
  * 
- * The topology should model the MetricSpaceConcept.
+ * The topology should model the TopologyConcept.
  * 
  * Valid expressions:
  * 
@@ -59,17 +59,18 @@ namespace pp {
  * 
  * bool b = space.is_in_bounds(p);  A point can be checked for being with the bounds of the space.
  * 
- * \tparam Topology The topology type to be checked for this concept.
+ * \tparam BoundedSpace The topology type to be checked for this concept.
  */
-template <typename Topology>
+template <typename BoundedSpace>
 struct BoundedSpaceConcept {
-  typename metric_topology_traits<Topology>::point_type p;
-  typename metric_topology_traits<Topology>::point_difference_type pd;
-  Topology space;
+  typename topology_traits<BoundedSpace>::point_type p;
+  typename topology_traits<BoundedSpace>::point_difference_type pd;
+  BoundedSpace space;
+  
+  BOOST_CONCEPT_ASSERT((TopologyConcept<BoundedSpace>));
   
   BOOST_CONCEPT_USAGE(BoundedSpaceConcept) 
   {
-    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     pd = space.get_diff_to_boundary(p);
     bool b = space.is_in_bounds(p); RK_UNUSED(b);
   };
@@ -92,15 +93,13 @@ struct BoundedSpaceConcept {
  * 
  * \tparam Topology The topology type to be checked for this concept.
  */
-template <typename Topology>
-struct SphereBoundedSpaceConcept {
-  Topology space;
+template <typename BoundedSpace>
+struct SphereBoundedSpaceConcept : BoundedSpaceConcept<BoundedSpace> {
   double d;
   
   BOOST_CONCEPT_USAGE(SphereBoundedSpaceConcept) 
   {
-    BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<Topology>));
-    d = space.get_radius(); RK_UNUSED(d);
+    d = this->space.get_radius(); RK_UNUSED(d);
   };
   
 };

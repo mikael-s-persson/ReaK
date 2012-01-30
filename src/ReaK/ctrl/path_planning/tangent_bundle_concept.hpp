@@ -1,10 +1,9 @@
 /**
- * \file differentiable_space_concept.hpp
+ * \file tangent_bundle_concept.hpp
  * 
  * This library defines the meta-functions, traits and concepts related to the construction of a 
- * differentiable space, i.e. a topology which is a metric-space from which a metric-space 
- * which represents the derivative of that topology can be obtained given a topology against
- * which the derivative is taken (e.g. a time-topology).
+ * tangent bundle, i.e. a topology which bundles a sequence of derivative topologies can be 
+ * obtained given a topology against which the derivative is taken (e.g. a time-topology).
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date September 2011
@@ -32,8 +31,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_DIFFERENTIABLE_SPACE_CONCEPT_HPP
-#define REAK_DIFFERENTIABLE_SPACE_CONCEPT_HPP
+#ifndef REAK_TANGENT_BUNDLE_CONCEPT_HPP
+#define REAK_TANGENT_BUNDLE_CONCEPT_HPP
 
 #include "base/defs.hpp"
 
@@ -43,12 +42,13 @@
 #include "metric_space_concept.hpp"
 
 #include <boost/mpl/bool.hpp>
+#include <boost/mpl/integral_c.hpp>
 
 namespace ReaK {
 
 namespace pp {
 
-
+#if 0
 /**
  * This traits class defines the traits that characterize a differentiable space. The only 
  * property, currently, is the "order" constant that gives the order of differentiation possible
@@ -60,29 +60,40 @@ struct differentiable_space_traits {
   
   BOOST_STATIC_CONSTANT(std::size_t, order = DifferentiableSpace::differential_order);
 };
+#endif
 
 /**
- * This meta-function provides the type of N-order differential space with a differentiable space bundle.
- * \tparam DifferentiableSpace The differentiable space for which the N-order differential space is sought.
- * \tparam IndependentTopology The independent space against which the differentiation is applied.
+ * This meta-function provides an integral-constant type with the maximum differential 
+ * order that can be provided by the tangent bundle against a given independent space.
+ * \tparam TangentBundle The tangent bundle whose maximum differential order is sought.
+ * \tparam IndependentSpace The independent space against which the derivation is taken.
+ */
+template <typename TangentBundle, typename IndependentSpace>
+struct max_derivation_order : 
+  boost::mpl::integral_c< std::size_t, TangentBundle::differential_order> { };
+
+/**
+ * This meta-function provides the type of N-order differential space with a tangent bundle.
+ * \tparam TangentBundle The tangent bundle for which the N-order differential space is sought.
+ * \tparam IndependentSpace The independent space against which the differentiation is applied.
  * \tparam Order The order of differentiation of the differential space type that is sought.
  */
-template <typename DifferentiableSpace, typename IndependentTopology, unsigned int Order>
+template <typename TangentBundle, typename IndependentSpace, std::size_t Order>
 struct derived_N_order_space {
-  typedef typename DifferentiableSpace::template space<Order,IndependentTopology>::type type;
+  typedef typename TangentBundle::template space<Order,IndependentSpace>::type type;
 };
 
 
 
 /**
  * This concept defines the requirements to fulfill in order to model a differential relation 
- * as used in ReaK::pp. A differentiable relation serves to map a spatial metric-space 
- * its derivative metric-space with respect to a given independent space (e.g. time). The mapping 
- * also serves to map elements between to two spaces.
+ * as used in ReaK::pp. A differentiable relation serves to map a spatial topology 
+ * its derivative topology with respect to a given independent space (e.g. time). The mapping 
+ * also serves to map elements between to two spaces (tangent lifts and descents).
  * 
  * Required concepts:
  * 
- * All topologies involved should model the MetricSpaceConcept.
+ * All topologies involved should model the TopologyConcept.
  * 
  * Valid expressions:
  * 
@@ -92,25 +103,27 @@ struct derived_N_order_space {
  * 
  * dp = descend_to_space<0..N-1>(v,dt,diff_space,t_space);  A point-difference (dp) can be obtained from descending a derivative-point (v) to the space via a difference-point on the independent space (dt). This expression is analogous to dp = v * dt.
  * 
- * \tparam Topology The topology type to be checked for this concept.
+ * \tparam TangentBundle The topology type to be checked for this concept.
+ * \tparam Order The maximum order of differentiation of the tangent bundle type.
+ * \tparam IndependentSpace The topology type to be checked for this concept.
  */
-template <typename DifferentiableSpace, unsigned int Order, typename IndependentTopology>
-struct DifferentiableSpaceConcept : DifferentiableSpaceConcept<DifferentiableSpace, Order-1, IndependentTopology> {
+template <typename TangentBundle, std::size_t Order, typename IndependentSpace>
+struct TangentBundleConcept : TangentBundleConcept<TangentBundle, Order-1, IndependentSpace> {
   
-  BOOST_STATIC_ASSERT(differentiable_space_traits<DifferentiableSpace>::order >= Order);
+  BOOST_STATIC_ASSERT(max_derivation_order<TangentBundle,IndependentSpace>::value >= Order);
   
-  typedef typename derived_N_order_space<DifferentiableSpace,IndependentTopology,Order-1>::type base_space_type;
-  typedef typename derived_N_order_space<DifferentiableSpace,IndependentTopology,Order>::type derived_space_type;
+  typedef typename derived_N_order_space<TangentBundle,IndependentSpace,Order-1>::type base_space_type;
+  typedef typename derived_N_order_space<TangentBundle,IndependentSpace,Order>::type derived_space_type;
   
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept< derived_space_type >));
+  BOOST_CONCEPT_ASSERT((TopologyConcept< derived_space_type >));
   
-  typename metric_topology_traits<base_space_type>::point_difference_type dp;
+  typename topology_traits<base_space_type>::point_difference_type dp;
   
-  typename metric_topology_traits<derived_space_type>::point_type v;
+  typename topology_traits<derived_space_type>::point_type v;
   
-  typename metric_topology_traits<IndependentTopology>::point_difference_type dt;
+  typename topology_traits<IndependentSpace>::point_difference_type dt;
   
-  BOOST_CONCEPT_USAGE(DifferentiableSpaceConcept) 
+  BOOST_CONCEPT_USAGE(TangentBundleConcept) 
   {
     const derived_space_type& space = get_space<Order>(this->diff_space,this->t_space); RK_UNUSED(space);
     v = lift_to_space<Order>(dp,dt,this->diff_space,this->t_space);
@@ -119,18 +132,18 @@ struct DifferentiableSpaceConcept : DifferentiableSpaceConcept<DifferentiableSpa
   
 };
 
-template <typename DifferentiableSpace, typename IndependentTopology>
-struct DifferentiableSpaceConcept<DifferentiableSpace, 0, IndependentTopology> {
+template <typename TangentBundle, typename IndependentSpace>
+struct TangentBundleConcept<TangentBundle, 0, IndependentSpace> {
   
-  typedef typename derived_N_order_space<DifferentiableSpace,IndependentTopology,0>::type base_space_type;
+  typedef typename derived_N_order_space<TangentBundle,IndependentSpace,0>::type base_space_type;
   
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept< base_space_type >));
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept< IndependentTopology >));
+  BOOST_CONCEPT_ASSERT((TopologyConcept< base_space_type >));
+  BOOST_CONCEPT_ASSERT((TopologyConcept< IndependentSpace >));
   
-  DifferentiableSpace diff_space;
-  IndependentTopology t_space;
+  TangentBundle diff_space;
+  IndependentSpace t_space;
   
-  BOOST_CONCEPT_USAGE(DifferentiableSpaceConcept) 
+  BOOST_CONCEPT_USAGE(TangentBundleConcept) 
   { 
     const base_space_type& space = get_space<0>(this->diff_space,this->t_space); RK_UNUSED(space);
   };

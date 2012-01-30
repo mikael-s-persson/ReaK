@@ -102,8 +102,10 @@ namespace graph {
     typename boost::graph_traits<Graph>::edge_descriptor e;
     typename boost::property_traits<PositionMap>::value_type p;
     bool b;
-    void constraints() {
-      boost::function_requires< boost::CopyConstructibleConcept<Visitor> >();
+    
+    BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
+    
+    BOOST_CONCEPT_USAGE(RRTVisitorConcept) {
       vis.vertex_added(u, g); 
       vis.edge_added(e, g); 
       b = vis.is_position_free(p);
@@ -189,9 +191,11 @@ namespace detail {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-
+    typedef typename ReaK::pp::metric_space_traits< Topology >::distance_metric DistanceMetric;
+    DistanceMetric distance = get(ReaK::pp::distance_metric, space);
+    
     PositionValue p_u = get(position,u);
-    double dist = space.distance(p_target,p_u);
+    double dist = distance(p_target,p_u,space);
     bool reached_target = false;
     while(dist > min_edge_distance) {
       double f_max = std::min(max_edge_distance / dist,1.0);
@@ -212,17 +216,17 @@ namespace detail {
         break;
       } else {
         p_v = space.move_position_toward(p_u, dist, p_target);
-        Vertex v = boost::add_vertex(g);
+        Vertex v = add_vertex(g);
         put(position, v, p_v);
         vis.vertex_added(v,g);
-        std::pair<Edge, bool> ep = boost::add_edge(u,v,g);
+        std::pair<Edge, bool> ep = add_edge(u,v,g);
         if(ep.second)
 	  vis.edge_added(ep.first, g);
         u = v;
         if(collision_detected)
           break;
         p_u = p_v;
-        dist = space.distance(p_target,p_u);
+        dist = distance(p_target,p_u,space);
         if(dist <= min_edge_distance) {
           reached_target = true;
           break;
@@ -278,13 +282,14 @@ namespace detail {
 			   NNFinder find_nearest_neighbor,
 			   unsigned int max_vertex_count,
 			   double max_edge_distance, double min_edge_distance) {
+    BOOST_CONCEPT_ASSERT((RRTVisitorConcept<RRTVisitor,Graph,PositionMap>));
+    
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
-    boost::function_requires< RRTVisitorConcept<RRTVisitor,Graph,PositionMap> >();
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
 
-    if(boost::num_vertices(g) == 0) {
-      Vertex u = boost::add_vertex(g);
+    if(num_vertices(g) == 0) {
+      Vertex u = add_vertex(g);
       PositionValue p = space.random_point();
       while(!vis.is_position_free(p))
 	p = space.random_point();
@@ -292,7 +297,7 @@ namespace detail {
       vis.vertex_added(u, g);
     };
 
-    while((boost::num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
+    while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
       PositionValue p_rnd = space.random_point();
       Vertex u = find_nearest_neighbor(p_rnd,g,space,position);
       detail::expand_rrt_vertex(g,space,vis,position,
@@ -351,16 +356,17 @@ namespace detail {
 			                 NNFinder find_nearest_neighbor,
 			                 unsigned int max_vertex_count,
 			                 double max_edge_distance, double min_edge_distance) {
+    BOOST_CONCEPT_ASSERT((RRTVisitorConcept<RRTVisitor,Graph,PositionMap>));
+    
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
-    boost::function_requires< RRTVisitorConcept<RRTVisitor,Graph,PositionMap> >();
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
 
     PositionValue p_target1; std::pair<Vertex,bool> v_target1;
     PositionValue p_target2; std::pair<Vertex,bool> v_target2;
 
-    if(boost::num_vertices(g1) == 0) {
-      Vertex u = boost::add_vertex(g1);
+    if(num_vertices(g1) == 0) {
+      Vertex u = add_vertex(g1);
       PositionValue p = space.random_point();
       while(!vis.is_position_free(p))
 	p = space.random_point();
@@ -369,13 +375,13 @@ namespace detail {
       v_target2.first = u; v_target2.second = true;
       vis.vertex_added(u, g1);
     } else {
-      Vertex u = boost::vertex(0,g1);
+      Vertex u = vertex(0,g1);
       p_target2 = get(position1, u);
       v_target2.first = u; v_target2.second = true;
     };
 
-    if(boost::num_vertices(g2) == 0) {
-      Vertex u = boost::add_vertex(g2);
+    if(num_vertices(g2) == 0) {
+      Vertex u = add_vertex(g2);
       PositionValue p = space.random_point();
       while(!vis.is_position_free(p))
 	p = space.random_point();
@@ -384,12 +390,12 @@ namespace detail {
       v_target1.first = u; v_target1.second = true;
       vis.vertex_added(u, g2);
     } else {
-      Vertex u = boost::vertex(0,g2);
+      Vertex u = vertex(0,g2);
       p_target1 = get(position2, u);
       v_target1.first = u; v_target1.second = true;
     };
 
-    while((boost::num_vertices(g1) + boost::num_vertices(g2) < max_vertex_count) && (vis.keep_going())) {
+    while((num_vertices(g1) + num_vertices(g2) < max_vertex_count) && (vis.keep_going())) {
       //first, expand the first graph towards its target:
       Vertex u1 = find_nearest_neighbor(p_target1,g1,space,position1);
       std::pair< Vertex, bool> v1 =
