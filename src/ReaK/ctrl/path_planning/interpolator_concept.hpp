@@ -101,10 +101,10 @@ struct InterpolatorConcept {
   BOOST_CONCEPT_ASSERT((DistanceMetricConcept< DistanceMetric, Topology >));
   
   Interpolator interp;
-  typename temporal_topology_traits<Topology>::point_type pt;
-  const typename temporal_topology_traits<Topology>::point_type* ppt;
-  typedef typename temporal_topology_traits<Topology>::time_topology time_topology;
-  typename time_topology::point_type t;
+  typename topology_traits<Topology>::point_type pt;
+  const typename topology_traits<Topology>::point_type* ppt;
+  typedef typename temporal_space_traits<Topology>::time_topology time_topology;
+  typename topology_traits<time_topology>::point_type t;
   double d;
   DistanceMetric dist;
   
@@ -148,7 +148,7 @@ struct InterpolatorConcept {
 template <typename LimitedInterpolator, typename Topology, typename DistanceMetric>
 struct LimitedInterpolatorConcept : public InterpolatorConcept<LimitedInterpolator,Topology,DistanceMetric> {
   
-  typename temporal_topology_traits<Topology>::time_topology::point_difference_type dt;
+  typename topology_traits< typename temporal_space_traits<Topology>::time_topology >::point_difference_type dt;
   
   BOOST_CONCEPT_USAGE(LimitedInterpolatorConcept)
   {

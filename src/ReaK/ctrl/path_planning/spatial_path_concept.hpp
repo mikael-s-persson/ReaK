@@ -104,12 +104,12 @@ struct spatial_path_traits {
 template <typename SpatialPath, typename Topology>
 struct SpatialPathConcept {
   
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
   BOOST_CONCEPT_ASSERT((DistanceMetricConcept< typename spatial_path_traits<SpatialPath>::distance_metric, Topology >));
   
   SpatialPath p;
-  typename metric_topology_traits<Topology>::point_type pt;
-  std::pair< typename spatial_path_traits<SpatialPath>::const_waypoint_descriptor, typename metric_topology_traits<Topology>::point_type> w_p;
+  typename topology_traits<Topology>::point_type pt;
+  std::pair< typename spatial_path_traits<SpatialPath>::const_waypoint_descriptor, typename topology_traits<Topology>::point_type> w_p;
   double d;
   BOOST_CONCEPT_USAGE(SpatialPathConcept)
   {

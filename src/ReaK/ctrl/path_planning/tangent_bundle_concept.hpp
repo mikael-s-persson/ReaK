@@ -48,20 +48,6 @@ namespace ReaK {
 
 namespace pp {
 
-#if 0
-/**
- * This traits class defines the traits that characterize a differentiable space. The only 
- * property, currently, is the "order" constant that gives the order of differentiation possible
- * on the given differentiable space (see DifferentiableSpaceConcept).
- * \tparam DifferentiableSpace The differentiable space for which the traits are sought.
- */
-template <typename DifferentiableSpace>
-struct differentiable_space_traits {
-  
-  BOOST_STATIC_CONSTANT(std::size_t, order = DifferentiableSpace::differential_order);
-};
-#endif
-
 /**
  * This meta-function provides an integral-constant type with the maximum differential 
  * order that can be provided by the tangent bundle against a given independent space.

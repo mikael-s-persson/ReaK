@@ -66,9 +66,9 @@ struct spatial_trajectory_traits {
   /** This type is the temporal-topology type in which the trajectory exists. */
   typedef typename SpatialTrajectory::topology topology;
   /** This type is the time-topology type in which the trajectory's time-stamps exist. */
-  typedef typename temporal_topology_traits<topology>::time_topology time_topology;
+  typedef typename temporal_space_traits<topology>::time_topology time_topology;
   /** This type is the space-topology type in which the trajectory's points exist. */
-  typedef typename temporal_topology_traits<topology>::space_topology space_topology;
+  typedef typename temporal_space_traits<topology>::space_topology space_topology;
   /** This type is the distance metric type used on the temporal-topology and defining the travel distances along the trajectory. */
   typedef typename SpatialTrajectory::distance_metric distance_metric;
   
@@ -115,10 +115,10 @@ struct SpatialTrajectoryConcept {
   BOOST_CONCEPT_ASSERT((DistanceMetricConcept< typename spatial_trajectory_traits<SpatialTrajectory>::distance_metric, Topology >));
   
   SpatialTrajectory p;
-  typename temporal_topology_traits<Topology>::point_type pt;
+  typename temporal_space_traits<Topology>::point_type pt;
   std::pair< typename spatial_trajectory_traits<SpatialTrajectory>::const_waypoint_descriptor, 
-             typename temporal_topology_traits<Topology>::point_type> w_p;
-  typedef typename temporal_topology_traits<Topology>::time_topology time_topology;
+             typename temporal_space_traits<Topology>::point_type> w_p;
+  typedef typename temporal_space_traits<Topology>::time_topology time_topology;
   typename time_topology::point_difference_type dt;
   typename time_topology::point_type t;
   double d;

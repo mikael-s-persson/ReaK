@@ -71,7 +71,7 @@ class transformed_trajectory : public shared_object {
     typedef transformed_trajectory<Topology,InputTrajectory,Mapping> self;
     
     typedef typename spatial_trajectory_traits<InputTrajectory>::const_waypoint_descriptor const_waypoint_descriptor;
-    typedef typename metric_topology_traits<Topology>::point_type point_type;
+    typedef typename topology_traits<Topology>::point_type point_type;
     typedef Topology topology;
     typedef typename spatial_trajectory_traits<InputTrajectory>::distance_metric distance_metric;
     
