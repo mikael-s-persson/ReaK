@@ -54,9 +54,9 @@ namespace ReaK {
 namespace pp {
 
 /**
- * This class implements a quaternion-topology. Because quaternions are constrained on the unit hyper-sphere,
- * this topology does indeed model the MetricSpaceConcept (with random generation of quaternions) although it 
- * is not bounded per se.
+ * This class implements a quaternion-topology. Because quaternions are constrained on the unit 
+ * hyper-sphere, this topology is indeed bounded (yet infinite at the same time). This class
+ * models the MetricSpaceConcept, the LieGroupConcept, and the PointDistributionConcept.
  * \tparam T The value-type for the topology.
  */
 template <typename T>
@@ -68,6 +68,9 @@ class quaternion_topology : public named_object
     typedef unit_quat<T> point_type;
     typedef vect<T,3> point_difference_type;
     
+    typedef default_distance_metric distance_metric_type;
+    typedef default_random_sampler random_sampler_type;
+    
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 3);
     
     /**
@@ -77,20 +80,29 @@ class quaternion_topology : public named_object
       setName(aName);
     };
     
+    
+    /*************************************************************************
+    *                             MetricSpaceConcept
+    * **********************************************************************/
+    
     /**
      * Returns the distance between two points.
      */
     virtual double distance(const point_type& a, const point_type& b) const 
     {
       return ReaK::norm_2(this->difference(b,a));
-    }
+    };
     
     /**
      * Returns the norm of the difference between two points.
      */
     virtual double norm(const point_difference_type& delta) const {
       return ReaK::norm_2(delta);
-    }
+    };
+    
+   /*************************************************************************
+    *                         for PointDistributionConcept
+    * **********************************************************************/
     
     /**
      * Generates a random point in the space, uniformly distributed.
@@ -102,15 +114,10 @@ class quaternion_topology : public named_object
       // distribution of the components on the unit hyper-sphere. N.B., the normalization happens in the 
       // constructor of the unit-quaternion (when constructed from four values).
     };
-
-
-    /**
-     * Returns a point which is at a fraction between two points a to b. This function uses SLERP.
-     */
-    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
-    {
-      return unit(a * pow( conj(a) * b, fraction ));
-    };
+    
+   /*************************************************************************
+    *                             TopologyConcept
+    * **********************************************************************/
 
     /**
      * Returns the difference between two points (analogous to a - b, but implemented in SO(3) Lie algebra).
@@ -140,6 +147,18 @@ class quaternion_topology : public named_object
       return true;
     };
 
+    /*************************************************************************
+    *                             LieGroupConcept
+    * **********************************************************************/
+    
+    /**
+     * Returns a point which is at a fraction between two points a to b. This function uses SLERP.
+     */
+    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
+    {
+      return unit(a * pow( conj(a) * b, fraction ));
+    };
+
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -163,7 +182,8 @@ class quaternion_topology : public named_object
  * values which are expressed in a time-unit and represent the time needed to travel along a given 
  * quaternion difference vector (for the norm function, and the distance function gives the time 
  * needed to travel between two given quaternions) assuming that the entire travel is done at the 
- * specified maximum angular speed.
+ * specified maximum angular speed. This class models the MetricSpaceConcept, the LieGroupConcept, 
+ * and the PointDistributionConcept.
  * \tparam T The value-type for the topology.
  */
 template <typename T>
@@ -175,6 +195,9 @@ class rate_limited_quat_space : public quaternion_topology<T>
     
     typedef typename base::point_type point_type;
     typedef typename base::point_difference_type point_difference_type;
+    
+    typedef default_distance_metric distance_metric_type;
+    typedef typename base::random_sampler_type random_sampler_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 3);
     
@@ -193,6 +216,10 @@ class rate_limited_quat_space : public quaternion_topology<T>
 	throw singularity_error("Maximum angular speed cannot be less-than or equal to 0!");
     };
     
+    /*************************************************************************
+    *                             MetricSpaceConcept
+    * **********************************************************************/
+    
     /**
      * Returns the distance between two points.
      */
@@ -207,6 +234,10 @@ class rate_limited_quat_space : public quaternion_topology<T>
     double norm(const point_difference_type& delta) const {
       return ReaK::norm_2(delta) / max_angular_speed;
     };
+    
+   /*************************************************************************
+    *                             TopologyConcept
+    * **********************************************************************/
     
     /**
      * Returns the difference between two points (analogous to a - b, but implemented in SO(3) Lie algebra).
@@ -261,6 +292,14 @@ class ang_velocity_3D_topology : public hyperball_topology< vect<T,3>, mat<T, ma
     typedef ang_velocity_3D_topology<T> self;
     typedef hyperball_topology< vect<T,3>, mat<T, mat_structure::identity> > base;
     
+    typedef typename base::point_type point_type;
+    typedef typename base::point_type point_difference_type;
+    
+    typedef typename base::distance_metric_type distance_metric_type;
+    typedef typename base::random_sampler_type random_sampler_type;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 3);
+    
     /**
      * Default constructor.
      * \param aMaxAngSpeed The maximum (scalar) angular velocity that bounds this hyper-ball topology.
@@ -301,6 +340,14 @@ class ang_accel_3D_topology : public hyperball_topology< vect<T,3>, mat<T, mat_s
   public:
     typedef ang_accel_3D_topology<T> self;
     typedef hyperball_topology< vect<T,3>, mat<T, mat_structure::identity> > base;
+    
+    typedef typename base::point_type point_type;
+    typedef typename base::point_type point_difference_type;
+    
+    typedef typename base::distance_metric_type distance_metric_type;
+    typedef typename base::random_sampler_type random_sampler_type;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 3);
     
     /**
      * Default constructor.

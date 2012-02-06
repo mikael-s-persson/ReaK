@@ -290,6 +290,9 @@ svp_interp_traj             0xC2440006   bin: 1100 0010 0100 0100 0000 0000 0000
 sap_interp_traj             0xC2440007   bin: 1100 0010 0100 0100 0000 0000 0000 0111  D-R
 transformed_trajectory      0xC2440008   bin: 1100 0010 0100 0100 0000 0000 0000 1000  D-R
 
+//Random-Samplers:          0xC245****   
+default_random_sampler      0xC2450000   bin: 1100 0010 0100 0101 0000 0000 0000 0000  D-R
+
 
 
 //WoPa specific classes     0xC141****

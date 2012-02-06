@@ -60,6 +60,12 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include "topologies/basic_distance_metrics.hpp"
+#include "topologies/default_random_sampler.hpp"
+
+#include "topologies/hyperbox_topology.hpp"
+#include "lin_alg/vect_alg.hpp"
+
 
 namespace boost {
 
@@ -93,9 +99,13 @@ namespace boost {
  */
 class prm_test_world {
   public:
-    typedef boost::rectangle_topology<>::point_type point_type;
-    typedef boost::rectangle_topology<>::point_difference_type point_difference_type;
-
+    typedef ReaK::pp::hyperbox_topology< ReaK::vect<int,2> > space_type;
+    typedef ReaK::pp::topology_traits< space_type >::point_type point_type;
+    typedef ReaK::pp::topology_traits< space_type >::point_difference_type point_difference_type;
+    
+    typedef ReaK::pp::default_distance_metric distance_metric_type;
+    typedef ReaK::pp::default_random_sampler random_sampler_type;
+    
     typedef boost::property< boost::vertex_position_t, point_type, //for PRM
 	    boost::property< boost::vertex_rhs_t, double,       //for A*
 	    boost::property< boost::vertex_distance_t, double,  //for A*
@@ -141,9 +151,8 @@ class prm_test_world {
     unsigned int num_neighbors;
     double max_neighbor_radius;
     unsigned int num_progress_reports;
-
-    boost::minstd_rand m_rng;
-    boost::rectangle_topology<boost::minstd_rand> m_space;
+    
+    space_type m_space;
     boost::property_map<WorldGridType, boost::vertex_position_t>::type m_position;
     boost::property_map<WorldGridType, boost::vertex_distance_t>::type m_distance;
     boost::property_map<WorldGridType, boost::vertex_index_t>::type m_index;
@@ -152,8 +161,7 @@ class prm_test_world {
     boost::property_map<WorldGridType, boost::edge_weight_t>::type m_weight;
     
     
-    typedef ReaK::pp::dvp_tree<VertexType, 
-                               boost::rectangle_topology<>, 
+    typedef ReaK::pp::dvp_tree<VertexType, space_type, 
 			       boost::property_map<WorldGridType, boost::vertex_position_t>::type, 
 			       4> WorldPartition;
     WorldPartition space_part;
@@ -177,7 +185,7 @@ class prm_test_world {
 
     void draw_edge(const point_type& p_u, const point_type& p_v, bool goal_path = false) {
       point_difference_type diff = m_space.difference(p_v, p_u);
-      double dist = m_space.norm(diff);
+      double dist = get(ReaK::pp::distance_metric, m_space)(diff, m_space);
       double d = 0.0;
       while(d <= dist) {
 	point_type p = m_space.adjust(p_u, diff * (d / dist));
@@ -210,15 +218,31 @@ class prm_test_world {
     };
     
     double distance(const point_type& p1, const point_type& p2) const {
-      if(m_space.distance(p2,move_position_toward(p1,1.0,p2)) < std::numeric_limits< double >::epsilon())
-	return m_space.distance(p1,p2); //if p2 is reachable from p1, use Euclidean distance.
+      if(get(ReaK::pp::distance_metric, m_space)(p2,move_position_toward(p1,1.0,p2), m_space) < std::numeric_limits< double >::epsilon())
+	return get(ReaK::pp::distance_metric, m_space)(p1, p2, m_space); //if p2 is reachable from p1, use Euclidean distance.
       else
         return std::numeric_limits<double>::infinity(); //p2 is not reachable from p1.
     };
     
+    double norm(const point_difference_type& dp) const {
+      return get(ReaK::pp::distance_metric, m_space)(dp, m_space);
+    };
+    
+    point_difference_type difference(const point_type& p1, const point_type& p2) const {
+      return m_space.difference(p1,p2);
+    };
+    
+    point_type origin() const {
+      return m_space.origin();
+    };
+    
+    point_type adjust(const point_type& p, const point_difference_type& dp) const {
+      return m_space.adjust(p, dp);
+    };
+    
     point_type move_position_toward(const point_type& p1, double fraction, const point_type& p2) const {
       point_difference_type diff = m_space.difference(p2,p1);
-      double dist = m_space.norm(diff);
+      double dist = get(ReaK::pp::distance_metric, m_space)(diff, m_space);
       double d = 1.0;
       while(d < dist * fraction) {
 	if (!is_free(m_space.adjust(p1, diff * (d / dist)))) {
@@ -235,7 +259,6 @@ class prm_test_world {
     };
     
     void get_best_solution(std::list< point_type >& path) {
-      using namespace boost;
       path.clear();
       VertexType v = goal_node;
       VertexType u = get(m_pred, v);
@@ -276,47 +299,46 @@ class prm_test_world {
     
     void update_density(VertexType u, WorldGridType& g) {
       //take the sum of all weights of outgoing edges.
-      if(boost::out_degree(u,g) == 0) {
-	boost::put(m_density, u, 0.0);
+      if(out_degree(u,g) == 0) {
+	put(m_density, u, 0.0);
 	return;
       };
       double sum = 0.0;
       OutEdgeIter ei, ei_end;
-      for(boost::tie(ei,ei_end) = boost::out_edges(u,g); ei != ei_end; ++ei) {
-	sum += boost::get(m_weight, *ei);
+      for(boost::tie(ei,ei_end) = out_edges(u,g); ei != ei_end; ++ei) {
+	sum += get(m_weight, *ei);
       };
-      sum /= boost::out_degree(u,g) * boost::out_degree(u,g); //this gives the average edge distances divided by the number of adjacent nodes.
-      boost::put(m_density, u, std::exp(-sum*sum));
+      sum /= out_degree(u,g) * out_degree(u,g); //this gives the average edge distances divided by the number of adjacent nodes.
+      put(m_density, u, std::exp(-sum*sum));
     };
     
     VertexType expand_vertex(VertexType u, WorldGridType& g) {
-      point_type p_u = boost::get(m_position, u);
+      point_type p_u = get(m_position, u);
       point_type p_rnd, p_v;
       unsigned int i = 0;
       do {
         p_rnd = m_space.random_point();
-        double dist = m_space.distance(p_u,p_rnd);
+        double dist = get(ReaK::pp::distance_metric, m_space)(p_u, p_rnd, m_space);
         p_v = move_position_toward(p_u, max_edge_length / dist, p_rnd);
 	++i;
-      } while((m_space.distance(p_u, p_v) < 1.0) && (i <= 10));
+      } while((get(ReaK::pp::distance_metric, m_space)(p_u, p_v, m_space) < 1.0) && (i <= 10));
       if(i > 10) {
 	//could not expand vertex u, then just generate a random C-free point.
 	p_v = random_point();
       };
       
-      VertexType v = boost::add_vertex(g);
-      boost::put(m_position, v, p_v);
+      VertexType v = add_vertex(g);
+      put(m_position, v, p_v);
       return v;
     };
 
     void edge_added(EdgeType e, WorldGridType& g) {
-      using namespace boost;
       VertexType u = source(e,g);
       VertexType v = target(e,g);
       point_type p_u = get(m_position, u);
       point_type p_v = get(m_position, v);
       
-      boost::put(m_weight, e, m_space.distance(p_u,p_v));
+      put(m_weight, e, get(ReaK::pp::distance_metric, m_space)(p_u, p_v, m_space));
       
       draw_edge(p_u, p_v);
 
@@ -363,7 +385,6 @@ class prm_test_world {
     };
     
     void register_solution() {
-      using namespace boost;
       
       goal_distance = get(m_distance, goal_node);
       
@@ -396,8 +417,8 @@ class prm_test_world {
     };
     
     double heuristic(VertexType u) {
-      point_type p_u = boost::get(m_position, u);
-      return m_space.distance(p_u, goal_pos);
+      point_type p_u = get(m_position, u);
+      return get(ReaK::pp::distance_metric, m_space)(p_u, goal_pos, m_space);
     };
 
     /**
@@ -427,18 +448,17 @@ class prm_test_world {
                    max_edge_length(aMaxEdgeLength), 
                    robot_radius(aRobotRadius), max_vertex_count(aMaxVertexCount),
                    nn_search_divider(aNNSearchDivider), num_neighbors(aNumNeighbors),
-                   max_neighbor_radius(aMaxNeighborRadius), num_progress_reports(0), m_rng(boost::minstd_rand(std::time(0))),
-                   m_space(m_rng,0, aWorldMapImage.size().height, aWorldMapImage.size().width, 0),
-                   m_position(boost::get(boost::vertex_position, grid)),
-                   m_distance(boost::get(boost::vertex_distance, grid)),
-                   m_index(boost::get(boost::vertex_index, grid)),
-                   m_pred(boost::get(boost::vertex_predecessor, grid)),
-                   m_density(boost::get(boost::vertex_density, grid)),
-                   m_weight(boost::get(boost::edge_weight, grid)),
+                   max_neighbor_radius(aMaxNeighborRadius), num_progress_reports(0), 
+                   m_space("prm_space", point_type(0,0), point_type(aWorldMapImage.size().width,aWorldMapImage.size().height)),
+                   m_position(get(boost::vertex_position, grid)),
+                   m_distance(get(boost::vertex_distance, grid)),
+                   m_index(get(boost::vertex_index, grid)),
+                   m_pred(get(boost::vertex_predecessor, grid)),
+                   m_density(get(boost::vertex_density, grid)),
+                   m_weight(get(boost::edge_weight, grid)),
                    space_part(grid,m_space,m_position),
                    progress_call_back(aProgressCallback), path_found_call_back(aPathFoundCallback)
     {
-      using namespace boost;
       
       if(world_map_image.empty()) {
 	std::cout << __FILE__ << ":" << __LINE__ << " Error: The world image is empty!" << std::endl;
@@ -491,11 +511,11 @@ class prm_test_world {
     ~prm_test_world() { };
 
     void set_start_pos(const point_type& aStart) {
-      while(boost::num_vertices(grid)) {
-	space_part.erase(*(boost::vertices(grid).first));
-	boost::remove_vertex(*(boost::vertices(grid).first),grid);
+      while(num_vertices(grid)) {
+	space_part.erase(*(vertices(grid).first));
+	boost::remove_vertex(*(vertices(grid).first),grid);
       };
-      start_node = current_pos = boost::add_vertex(grid);
+      start_node = current_pos = add_vertex(grid);
       put(m_position, current_pos, aStart);
       put(m_distance, current_pos, 0.0);
       if(nn_search_divider == 1)
@@ -504,7 +524,7 @@ class prm_test_world {
     
     void set_goal_pos(const point_type& aGoal) {
       goal_pos = aGoal;
-      goal_node = boost::add_vertex(grid);
+      goal_node = add_vertex(grid);
       put(m_position, goal_node, aGoal);
       put(m_distance, goal_node, std::numeric_limits< double >::infinity());
       if(nn_search_divider == 1)
@@ -512,7 +532,6 @@ class prm_test_world {
     };
     
     double run() {
-      using namespace boost;
       unsigned int m = max_vertex_count; 
       num_progress_reports = 0;
       while(!(goal_distance < std::numeric_limits<double>::infinity())) {
@@ -521,27 +540,27 @@ class prm_test_world {
 	      grid, 
 	      *this,
 	      ReaK::graph::make_composite_prm_visitor(
-	        bind(&prm_test_world::vertex_added,this,_1,_2),
-                bind(&prm_test_world::edge_added,this,_1,_2),
-	        bind(&prm_test_world::expand_vertex,this,_1,_2),
-                bind(&prm_test_world::update_density,this,_1,_2)),
+	        boost::bind(&prm_test_world::vertex_added,this,_1,_2),
+                boost::bind(&prm_test_world::edge_added,this,_1,_2),
+	        boost::bind(&prm_test_world::expand_vertex,this,_1,_2),
+                boost::bind(&prm_test_world::update_density,this,_1,_2)),
 	      m_position,
 	      m_density,
- 	      bind(&prm_test_world::select_neighborhood,this,_1,_2,_3,_4,_5),
+ 	      boost::bind(&prm_test_world::select_neighborhood,this,_1,_2,_3,_4,_5),
               m, max_vertex_count / 10, max_vertex_count / 50,
-              bind(&prm_test_world::keep_going,this),
+              boost::bind(&prm_test_world::keep_going,this),
 	      std::less<double>()); 
 	std::cout << "Solving shortest-distance.." << std::endl;
-	astar_search(grid,
+	boost::astar_search(grid,
 	             start_node,
-		     bind(&prm_test_world::heuristic,this,_1),
-		     default_astar_visitor(),
+		     boost::bind(&prm_test_world::heuristic,this,_1),
+		     boost::default_astar_visitor(),
 		     m_pred,
-		     get(vertex_rhs, grid),
+		     get(boost::vertex_rhs, grid),
 		     m_distance,
 		     m_weight,
 		     m_index,
-		     get(vertex_color,grid),
+		     get(boost::vertex_color,grid),
 		     std::less<double>(), std::plus<double>(),
 		     std::numeric_limits< double >::infinity(),
 		     double(0.0)); 

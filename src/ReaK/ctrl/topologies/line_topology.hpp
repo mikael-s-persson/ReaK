@@ -45,16 +45,16 @@
 #include <cmath>
 #include "base/named_object.hpp"
 
+#include "basic_distance_metrics.hpp"
+#include "default_random_sampler.hpp"
+
 namespace ReaK {
 
 namespace pp {
 
 /**
- * This class implements an infinite line topology. Since the space is 
- * infinite, there is no way to generate random points from it, and thus, 
- * this class does not model the topology concepts, but defines a number 
- * of functions useful to a derived class that can provide the full 
- * model of a topology.
+ * This class implements an infinite line topology. This class models the TopologyConcept,
+ * the LieGroupConcept, and the MetricSpaceConcept.
  * \tparam T The value-type for the topology (should be an arithmetic type that is implicitly convertable to double).
  */
 template <typename T = double>
@@ -66,29 +66,19 @@ class line_topology : public named_object
     typedef T point_type;
     typedef T point_difference_type;
     
+    typedef default_distance_metric distance_metric_type;
+    
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 1);
     
     line_topology(const std::string& aName = "line_topology") : named_object() {
       setName(aName);
     };
+
     
-    /**
-     * Returns the distance between two points.
-     */
-    double distance(const point_type& a, const point_type& b) const 
-    {
-      using std::fabs;
-      return fabs(b - a);
-    }
-
-    /**
-     * Returns a point which is at a fraction between two points a to b.
-     */
-    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
-    {
-      return a + (b - a) * fraction;
-    }
-
+   /*************************************************************************
+    *                             TopologyConcept
+    * **********************************************************************/
+    
     /**
      * Returns the difference between two points (a - b).
      */
@@ -104,19 +94,23 @@ class line_topology : public named_object
     }
 
     /**
-     * Returns the norm of the difference between two points.
+     * Returns the origin of the space (the lower-limit).
      */
-    point_type pointwise_min(const point_type& a, const point_type& b) const {
-      BOOST_USING_STD_MIN();
-      return min BOOST_PREVENT_MACRO_SUBSTITUTION (a, b);
-    }
-
+    virtual point_type origin() const {
+      return point_type(0);
+    };
+    
+    /*************************************************************************
+    *                             MetricSpaceConcept
+    * **********************************************************************/
+    
     /**
-     * Returns the norm of the difference between two points.
+     * Returns the distance between two points.
      */
-    point_type pointwise_max(const point_type& a, const point_type& b) const {
-      BOOST_USING_STD_MAX();
-      return max BOOST_PREVENT_MACRO_SUBSTITUTION (a, b);
+    double distance(const point_type& a, const point_type& b) const 
+    {
+      using std::fabs;
+      return fabs(b - a);
     }
 
     /**
@@ -133,6 +127,18 @@ class line_topology : public named_object
     double volume(const point_difference_type& delta) const {
       using std::fabs;
       return fabs(delta);
+    }
+
+    /*************************************************************************
+    *                             LieGroupConcept
+    * **********************************************************************/
+    
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
+    {
+      return a + (b - a) * fraction;
     }
 
     
@@ -154,10 +160,11 @@ class line_topology : public named_object
 
 /**
  * This class implements a line-segment topology. The space extends from the minimum value up to some 
- * maximum value. Models the MetricSpaceConcept, BoundedSpaceConcept, and SphereBoundedSpaceConcept.
+ * maximum value. Models the TopologyConcept, LieGroupConcept, MetricSpaceConcept, 
+ * BoundedSpaceConcept, and SphereBoundedSpaceConcept, and also provides a distance-metric and a 
+ * random-sampler (default, uniform sampler).
  * 
  * \tparam T A value-type (scalar value).
- * \tparam RandomNumberGenerator A random number generator functor type.
  */
 template<typename T = double>
 class line_segment_topology : public line_topology<T>
@@ -169,6 +176,9 @@ class line_segment_topology : public line_topology<T>
     
     typedef typename line_topology<T>::point_type point_type;
     typedef typename line_topology<T>::point_difference_type point_difference_type;
+    
+    typedef typename line_topology<T>::distance_metric_type distance_metric_type;
+    typedef default_random_sampler random_sampler_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = line_topology<T>::dimensions);
 
@@ -182,12 +192,21 @@ class line_segment_topology : public line_topology<T>
 				   point_type aEnd = point_type(1.0)) 
       : line_topology<T>(aName), start_pt(aStart), end_pt(aEnd) { };
    
+    
+    /*************************************************************************
+    *                         for PointDistributionConcept
+    * **********************************************************************/
+    
     /**
      * Generates a random point in the space, uniformly distributed.
      */
     point_type random_point() const {
       return rand_t(get_global_rng())() * (end_pt - start_pt) + start_pt;
     };
+    
+    /*************************************************************************
+    *                             BoundedSpaceConcept
+    * **********************************************************************/
 
     /**
      * Takes a point and clips it to within this line-segment space.
@@ -254,6 +273,10 @@ class line_segment_topology : public line_topology<T>
     point_type origin() const {
       return (end_pt - start_pt) * 0.5 + start_pt;
     };
+    
+    /*************************************************************************
+    *                             SphereBoundedSpaceConcept
+    * **********************************************************************/
     
     /**
      * Returns the radius of the space.

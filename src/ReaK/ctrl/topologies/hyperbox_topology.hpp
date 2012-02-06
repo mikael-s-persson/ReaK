@@ -41,6 +41,8 @@
 #include "lin_alg/vect_concepts.hpp"
 
 #include "vector_topology.hpp"
+#include "vect_distance_metrics.hpp"
+#include "default_random_sampler.hpp"
 
 #include <cmath>
 #include "base/named_object.hpp"
@@ -52,18 +54,23 @@ namespace ReaK {
 namespace pp {
 
 /**
- * This library provides classes that define a hyper-box vector-topology. A hyper-box vector-topology is 
+ * This class defines a hyper-box vector-topology. A hyper-box vector-topology is 
  * a vector-topology where the points are vector values and the boundary is a hyper-box.
+ * This class models the MetricSpaceConcept, the LieGroupConcept, the BoundedSpaceConcept, 
+ * and the PointDistributionConcept.
  * \tparam Vector The vector-type for the topology, should model an Arithmetic concept and WritableVectorConcept.
  */
-template <typename Vector>
+template <typename Vector, typename DistanceMetric = euclidean_distance_metric>
 class hyperbox_topology : public vector_topology<Vector>
 {
   public:
-    typedef hyperbox_topology<Vector> self;
+    typedef hyperbox_topology<Vector,DistanceMetric> self;
     
     typedef Vector point_type;
     typedef Vector point_difference_type;
+    
+    typedef DistanceMetric distance_metric_type;
+    typedef default_random_sampler random_sampler_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = vect_traits<Vector>::dimensions);
     
@@ -79,25 +86,10 @@ class hyperbox_topology : public vector_topology<Vector>
 		      vector_topology<Vector>(aName),
 		      lower_corner(aLowerCorner),
 		      upper_corner(aUpperCorner) { };
-		       
-		       
-    /**
-     * Returns the distance between two points.
-     */
-    double distance(const point_type& a, const point_type& b) const 
-    {
-      using std::sqrt;
-      point_difference_type dp = this->difference(b,a);
-      return sqrt(dp * dp);
-    }
     
-    /**
-     * Returns the norm of the difference between two points.
-     */
-    double norm(const point_difference_type& delta) const {
-      using std::sqrt;
-      return sqrt(delta * delta);
-    }
+    /*************************************************************************
+    *                         for PointDistributionConcept
+    * **********************************************************************/
     
     /**
      * Generates a random point in the space, uniformly distributed.
@@ -111,6 +103,10 @@ class hyperbox_topology : public vector_topology<Vector>
       
       return p;
     };
+    
+    /*************************************************************************
+    *                             BoundedSpaceConcept
+    * **********************************************************************/
 
     /**
      * Takes a point and clips it to within this line-segment space.
@@ -194,10 +190,10 @@ class hyperbox_topology : public vector_topology<Vector>
     };
 
     /**
-     * Returns the origin of the space (the lower-limit).
+     * Returns the origin of the space (the center).
      */
     point_type origin() const {
-      return this->adjust(lower_corner,this->difference(upper_corner,lower_corner));
+      return this->adjust(lower_corner,0.5 * this->difference(upper_corner,lower_corner));
     };
 
     

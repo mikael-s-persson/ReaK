@@ -56,7 +56,7 @@ namespace pp {
  */
 template <typename TangentBundle, typename IndependentSpace>
 struct max_derivation_order : 
-  boost::mpl::integral_c< std::size_t, TangentBundle::differential_order> { };
+  boost::mpl::size_t< TangentBundle::differential_order> { };
 
 /**
  * This meta-function provides the type of N-order differential space with a tangent bundle.
@@ -96,7 +96,7 @@ struct derived_N_order_space {
 template <typename TangentBundle, std::size_t Order, typename IndependentSpace>
 struct TangentBundleConcept : TangentBundleConcept<TangentBundle, Order-1, IndependentSpace> {
   
-  BOOST_STATIC_ASSERT(max_derivation_order<TangentBundle,IndependentSpace>::value >= Order);
+  BOOST_STATIC_ASSERT((max_derivation_order<TangentBundle,IndependentSpace>::value >= Order));
   
   typedef typename derived_N_order_space<TangentBundle,IndependentSpace,Order-1>::type base_space_type;
   typedef typename derived_N_order_space<TangentBundle,IndependentSpace,Order>::type derived_space_type;

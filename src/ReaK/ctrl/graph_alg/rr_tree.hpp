@@ -66,6 +66,9 @@
 #include <boost/property_map/property_map.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
+#include "path_planning/metric_space_concept.hpp"
+#include "path_planning/random_sampler_concept.hpp"
+
 
 namespace ReaK {
   
@@ -191,7 +194,7 @@ namespace detail {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-    typedef typename ReaK::pp::metric_space_traits< Topology >::distance_metric DistanceMetric;
+    typedef typename ReaK::pp::metric_space_traits< Topology >::distance_metric_type DistanceMetric;
     DistanceMetric distance = get(ReaK::pp::distance_metric, space);
     
     PositionValue p_u = get(position,u);
@@ -283,6 +286,8 @@ namespace detail {
 			   unsigned int max_vertex_count,
 			   double max_edge_distance, double min_edge_distance) {
     BOOST_CONCEPT_ASSERT((RRTVisitorConcept<RRTVisitor,Graph,PositionMap>));
+    BOOST_CONCEPT_ASSERT((ReaK::pp::LieGroupConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>));
     
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
@@ -290,15 +295,15 @@ namespace detail {
 
     if(num_vertices(g) == 0) {
       Vertex u = add_vertex(g);
-      PositionValue p = space.random_point();
+      PositionValue p = get(ReaK::pp::random_sampler, space)(space);
       while(!vis.is_position_free(p))
-	p = space.random_point();
+	p = get(ReaK::pp::random_sampler, space)(space);
       put(position, u, p);
       vis.vertex_added(u, g);
     };
 
     while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
-      PositionValue p_rnd = space.random_point();
+      PositionValue p_rnd = get(ReaK::pp::random_sampler, space)(space);
       Vertex u = find_nearest_neighbor(p_rnd,g,space,position);
       detail::expand_rrt_vertex(g,space,vis,position,
                                 u,p_rnd,max_edge_distance,min_edge_distance);
@@ -367,9 +372,9 @@ namespace detail {
 
     if(num_vertices(g1) == 0) {
       Vertex u = add_vertex(g1);
-      PositionValue p = space.random_point();
+      PositionValue p = get(ReaK::pp::random_sampler, space)(space);
       while(!vis.is_position_free(p))
-	p = space.random_point();
+	p = get(ReaK::pp::random_sampler, space)(space);
       put(position1, u, p);
       p_target2 = p;
       v_target2.first = u; v_target2.second = true;
@@ -382,9 +387,9 @@ namespace detail {
 
     if(num_vertices(g2) == 0) {
       Vertex u = add_vertex(g2);
-      PositionValue p = space.random_point();
+      PositionValue p = get(ReaK::pp::random_sampler, space)(space);
       while(!vis.is_position_free(p))
-	p = space.random_point();
+	p = get(ReaK::pp::random_sampler, space)(space);
       put(position2, u, p);
       p_target1 = p;
       v_target1.first = u; v_target1.second = true;
@@ -405,11 +410,11 @@ namespace detail {
         //joining vertex has been reached!
         vis.joining_vertex_found(v1.first, g1);
         vis.joining_vertex_found(v_target1.first, g2);
-        p_target2 = space.random_point();
+        p_target2 = get(ReaK::pp::random_sampler, space)(space);
         v_target2.second = false;
       } else {
         if(v1.first == u1) { //we didn't move at all! Unsuccessful expansion.
-          p_target2 = space.random_point();
+          p_target2 = get(ReaK::pp::random_sampler, space)(space);
           v_target2.second = false;
         } else {
           p_target2 = get(position1, v1.first);
@@ -426,11 +431,11 @@ namespace detail {
         //joining vertex has been reached!
         vis.joining_vertex_found(v2.first, g2);
         vis.joining_vertex_found(v_target2.first, g1);
-        p_target1 = space.random_point();
+        p_target1 = get(ReaK::pp::random_sampler, space)(space);
         v_target1.second = false;
       } else {
         if(v2.first == u2) { //we didn't move at all! Unsuccessful expansion.
-          p_target1 = space.random_point();
+          p_target1 = get(ReaK::pp::random_sampler, space)(space);
           v_target1.second = false;
         } else {
           p_target1 = get(position2, v2.first);

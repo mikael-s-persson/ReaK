@@ -51,6 +51,9 @@
 #include "path_planning/topological_search.hpp"
 #include <cmath>
 
+#include "topologies/basic_distance_metrics.hpp"
+#include "topologies/default_random_sampler.hpp"
+
 
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
@@ -92,6 +95,9 @@ class fadprm_test_world {
     
     typedef boost::rectangle_topology<>::point_type point_type;
     typedef boost::rectangle_topology<>::point_difference_type point_difference_type;
+    
+    typedef ReaK::pp::default_distance_metric distance_metric_type;
+    typedef ReaK::pp::default_random_sampler random_sampler_type;
 
     typedef boost::property< boost::vertex_position_t, point_type,
             boost::property< boost::vertex_density_t, double,
@@ -223,6 +229,22 @@ class fadprm_test_world {
         return std::numeric_limits<double>::infinity(); //p2 is not reachable from p1.
     };
     
+    double norm(const point_difference_type& dp) const {
+      return m_space.norm(dp);
+    };
+    
+    point_difference_type difference(const point_type& p1, const point_type& p2) const {
+      return m_space.difference(p1,p2);
+    };
+    
+    point_type origin() const {
+      return m_space.origin();
+    };
+    
+    point_type adjust(const point_type& p, const point_difference_type& dp) const {
+      return m_space.adjust(p, dp);
+    };
+    
     point_type move_position_toward(const point_type& p1, double fraction, const point_type& p2) const {
       point_difference_type diff = m_space.difference(p2,p1);
       double dist = m_space.norm(diff);
@@ -264,45 +286,45 @@ class fadprm_test_world {
     //PRM Visitor concepts:
     void select_neighborhood(const point_type& p, std::vector<VertexType>& Nc, WorldGridType& g, const fadprm_test_world&, boost::property_map<WorldGridType, boost::vertex_position_t>::type) {
       if(nn_search_divider == 0) {
-	ReaK::pp::linear_neighbor_search<>()(p,Nc,g,m_space,m_position,num_neighbors,max_neighbor_radius);
+	ReaK::pp::linear_neighbor_search<>()(p,Nc,g,*this,m_position,num_neighbors,max_neighbor_radius);
       } else {
-	ReaK::pp::best_only_neighbor_search<>(nn_search_divider).operator()(p,Nc,g,m_space,m_position,num_neighbors,max_neighbor_radius);
+	ReaK::pp::best_only_neighbor_search<>(nn_search_divider).operator()(p,Nc,g,*this,m_position,num_neighbors,max_neighbor_radius);
       };
     };
     
     void vertex_added(VertexType u, WorldGridType& g) {
       //compute heuristic:
-      point_type current_coord = boost::get(m_position, current_pos);
-      point_type p_u = boost::get(m_position, u);
+      point_type current_coord = get(m_position, current_pos);
+      point_type p_u = get(m_position, u);
       
-      boost::put(m_heuristic, u, m_space.distance(current_coord,p_u));
+      put(m_heuristic, u, m_space.distance(current_coord,p_u));
     };
     
     void update_density(VertexType u, WorldGridType& g) {
       //take the sum of all weights of outgoing edges.
-      unsigned int deg_u = boost::out_degree(u,g);
+      unsigned int deg_u = out_degree(u,g);
       if(deg_u == 0) {
-	boost::put(m_density, u, 0.0);
+	put(m_density, u, 0.0);
 	return;
       };
       if(deg_u >= max_node_degree) {
 	//no point trying to expand this vertex, at least, from a density stand-point.
-	boost::put(m_density, u, (grid_height+grid_width));
+	put(m_density, u, (grid_height+grid_width));
 	return;
       };
       double sum = 0.0;
       OutEdgeIter ei, ei_end;
-      for(boost::tie(ei,ei_end) = boost::out_edges(u,g); ei != ei_end; ++ei) {
-	sum += boost::get(m_weight, *ei);
+      for(boost::tie(ei,ei_end) = out_edges(u,g); ei != ei_end; ++ei) {
+	sum += get(m_weight, *ei);
       };
       sum /= deg_u * (max_node_degree - deg_u); //this gives the average edge distances divided by the number of adjacent nodes.
-      boost::put(m_density, u, (grid_height+grid_width)*std::exp(-sum*sum));
+      put(m_density, u, (grid_height+grid_width)*std::exp(-sum*sum));
     };
     
     void expand_vertex(VertexType u, WorldGridType& g, std::vector<VertexType>& v_list) {
-      if(boost::num_vertices(g) > current_max_vertex_count) return;
-      point_type p_u = boost::get(m_position, u);
-      while(boost::out_degree(u,g) + 2*v_list.size() < max_node_degree) {
+      if(num_vertices(g) > current_max_vertex_count) return;
+      point_type p_u = get(m_position, u);
+      while(out_degree(u,g) + 2*v_list.size() < max_node_degree) {
         point_type p_rnd, p_v;
         unsigned int i = 0;
         do {
@@ -313,23 +335,22 @@ class fadprm_test_world {
 	  ++i;
         } while((m_space.distance(p_u, p_v) < 1.0) && (i <= 10));
         if(i <= 100) {
-  	  VertexType v = boost::add_vertex(g);
-	  boost::put(m_position, v, p_v);
+  	  VertexType v = add_vertex(g);
+	  put(m_position, v, p_v);
 	  v_list.push_back(v);
         };
       };
-      if(m_space.distance(p_u,boost::get(m_position,current_pos)) < max_edge_length)
+      if(m_space.distance(p_u,get(m_position,current_pos)) < max_edge_length)
         v_list.push_back(current_pos);
     };
 
     void edge_added(EdgeType e, WorldGridType& g) {
-      using namespace boost;      
       VertexType u = source(e,g); 
       VertexType v = target(e,g); 
       point_type p_u = get(m_position, u); 
       point_type p_v = get(m_position, v); 
       
-      boost::put(m_weight, e, m_space.distance(p_u,p_v)); 
+      put(m_weight, e, m_space.distance(p_u,p_v)); 
       
       draw_edge(p_u, p_v); 
 
@@ -340,7 +361,6 @@ class fadprm_test_world {
     };
     
     void register_solution() {
-      using namespace boost;
       std::cout << "Publishing path.." << std::endl;
       goal_distance = get(m_distance, current_pos);
       
@@ -422,7 +442,7 @@ class fadprm_test_world {
     double checkChanges(std::vector< EdgeType >& aList) {
       double max_change = 0.0;
       boost::graph_traits<WorldGridType>::edge_iterator ei, ei_end;
-      for( boost::tie(ei,ei_end) = boost::edges(grid); ei != ei_end; ++ei) {
+      for( boost::tie(ei,ei_end) = edges(grid); ei != ei_end; ++ei) {
 	double ei_change = updateEdgeWeight(*ei);
 	if(std::fabs(ei_change) > 1E-3) {
 	  aList.push_back(*ei);
@@ -567,13 +587,13 @@ class fadprm_test_world {
                       num_neighbors(aNumNeighbors), max_neighbor_radius(aMaxNeighborRadius), 
                       max_node_degree(aMaxNodeDegree), num_progress_reports(0), m_rng(boost::minstd_rand(std::time(0))),
                       m_space(m_rng,0, aWorldMapImage.size().height, aWorldMapImage.size().width, 0),
-                      m_pred(boost::get(boost::vertex_predecessor, grid)),
-                      m_position(boost::get(boost::vertex_position, grid)),
-                      m_density(boost::get(boost::vertex_density, grid)),
-                      m_heuristic(boost::get(boost::vertex_heuristic, grid)),
-                      m_distance(boost::get(boost::vertex_distance, grid)),
-                      m_color(boost::get(boost::vertex_color, grid)),
-                      m_weight(boost::get(boost::edge_weight, grid)),
+                      m_pred(get(boost::vertex_predecessor, grid)),
+                      m_position(get(boost::vertex_position, grid)),
+                      m_density(get(boost::vertex_density, grid)),
+                      m_heuristic(get(boost::vertex_heuristic, grid)),
+                      m_distance(get(boost::vertex_distance, grid)),
+                      m_color(get(boost::vertex_color, grid)),
+                      m_weight(get(boost::edge_weight, grid)),
                       progress_call_back(aProgressCallback), path_found_call_back(aPathFoundCallback)
                       
     {
@@ -631,18 +651,16 @@ class fadprm_test_world {
     };
 
     void run() {
-      using namespace boost;
-      using namespace ReaK::graph;
       
       generate_fadprm(grid, *this,
 		      m_heuristic,
 		      make_composite_fadprm_visitor(
 			default_adstar_visitor(),
 			make_composite_prm_visitor(
-			  bind(&fadprm_test_world::vertex_added,this,_1,_2),
-		          bind(&fadprm_test_world::edge_added,this,_1,_2),
-                          bind(&fadprm_test_world::expand_vertex,this,_1,_2,_3),
-                          bind(&fadprm_test_world::update_density,this,_1,_2))),
+			  boost::bind(&fadprm_test_world::vertex_added,this,_1,_2),
+		          boost::bind(&fadprm_test_world::edge_added,this,_1,_2),
+                          boost::bind(&fadprm_test_world::expand_vertex,this,_1,_2,_3),
+                          boost::bind(&fadprm_test_world::update_density,this,_1,_2))),
 		      m_pred,
 		      m_distance,
 		      get(boost::vertex_rhs, grid),
@@ -650,13 +668,13 @@ class fadprm_test_world {
 		      m_weight,
 		      m_density,
 		      m_position,
-		      bind(&fadprm_test_world::select_neighborhood,this,_1,_2,_3,_4,_5),
+		      boost::bind(&fadprm_test_world::select_neighborhood,this,_1,_2,_3,_4,_5),
 		      m_color,
-		      bind(&fadprm_test_world::adjustEpsilon,this,_1,_2),
-		      bind(&fadprm_test_world::isGoalNotReached, this),
-		      bind(&fadprm_test_world::getStartNode,this),
-		      bind(&fadprm_test_world::checkChanges,this,_1),
-		      bind(&fadprm_test_world::register_solution,this),
+		      boost::bind(&fadprm_test_world::adjustEpsilon,this,_1,_2),
+		      boost::bind(&fadprm_test_world::isGoalNotReached, this),
+		      boost::bind(&fadprm_test_world::getStartNode,this),
+		      boost::bind(&fadprm_test_world::checkChanges,this,_1),
+		      boost::bind(&fadprm_test_world::register_solution,this),
 		      initial_beta, std::numeric_limits< double >::infinity(),
 		      double(0.0), std::less<double>(), std::equal_to<double>(), std::plus<double>(), std::multiplies<double>()
  		     );

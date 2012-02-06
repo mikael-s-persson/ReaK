@@ -41,6 +41,8 @@
 #include "lin_alg/vect_concepts.hpp"
 
 #include "vector_topology.hpp"
+#include "basic_distance_metrics.hpp"
+#include "default_random_sampler.hpp"
 
 #include <cmath>
 #include "base/named_object.hpp"
@@ -56,6 +58,8 @@ namespace pp {
 /**
  * This library provides classes that define a hyper-ball vector-topology. A hyper-ball vector-topology is 
  * a vector-topology where the points are vector values and the boundary is a hyper-ellipsoid.
+ * This class models the MetricSpaceConcept, the LieGroupConcept, the BoundedSpaceConcept, 
+ * the SphereBoundedSpaceConcept, and the PointDistributionConcept.
  * \tparam Vector The vector-type for the topology, should model an Arithmetic concept and WritableVectorConcept.
  * \tparam PDMatrix The matrix-type for the hyper-ellipsoid, should model the ReadableMatrixConcept.
  */
@@ -68,6 +72,9 @@ class hyperball_topology : public vector_topology<Vector>
     typedef Vector point_type;
     typedef Vector point_difference_type;
     
+    typedef default_distance_metric distance_metric_type;
+    typedef default_random_sampler random_sampler_type;
+    
     typedef PDMatrix pd_matrix_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = vect_traits<Vector>::dimensions);
@@ -76,22 +83,22 @@ class hyperball_topology : public vector_topology<Vector>
     point_type center_point;
     double radius_value;
     pd_matrix_type scaling_mat;
-    double radial_dim_correction;
     
   public:
     
     hyperball_topology(const std::string& aName = "hyperball_topology",
                        const point_type& aOrigin = point_type(),
 		       double aRadius = 1.0,
-		       const pd_matrix_type& aScaling = pd_matrix_type(),
-		       double aRadialDimCorrection = double(dimensions) ) : 
+		       const pd_matrix_type& aScaling = pd_matrix_type()) : 
 		       vector_topology<Vector>(aName),
 		       center_point(aOrigin),
 		       radius_value(aRadius),
-		       scaling_mat(aScaling),
-		       radial_dim_correction(aRadialDimCorrection) { };
-		       
-		       
+		       scaling_mat(aScaling) { };
+    
+   /*************************************************************************
+    *                             MetricSpaceConcept
+    * **********************************************************************/
+    
     /**
      * Returns the distance between two points.
      */
@@ -108,24 +115,38 @@ class hyperball_topology : public vector_topology<Vector>
       return sqrt(delta * (scaling_mat * delta));
     }
     
+   /*************************************************************************
+    *                         for PointDistributionConcept
+    * **********************************************************************/
+    
     /**
      * Generates a random point in the space, uniformly distributed.
      */
     point_type random_point() const {
+      point_difference_type dp = this->difference(center_point,center_point);
+      
+      if(dp.size() == 0)
+	return center_point;
+      
+      double radial_dim_correction = double(dp.size());
+      
       mat< typename mat_traits<pd_matrix_type>::value_type, mat_structure::square> L;
       decompose_Cholesky(scaling_mat,L);
       
-      boost::variate_generator< pp::global_rng_type&, boost::normal_distribution<typename vect_traits<point_difference_type>::value_type> > var_rnd(pp::get_global_rng(), boost::normal_distribution<typename vect_traits<point_difference_type>::value_type>());
+      boost::variate_generator< global_rng_type&, boost::normal_distribution<typename vect_traits<point_difference_type>::value_type> > var_rnd(get_global_rng(), boost::normal_distribution<typename vect_traits<point_difference_type>::value_type>());
       
-      point_difference_type dp = this->difference(center_point,center_point);
       for(typename vect_traits<point_difference_type>::size_type i = 0; i < dp.size(); ++i)
         dp[i] = var_rnd();
       
       using std::sqrt;
-      double factor = std::pow(boost::uniform_01<pp::global_rng_type&,double>(pp::get_global_rng())(),1.0 / radial_dim_correction) * radius_value / sqrt(dp * dp);
+      double factor = std::pow(boost::uniform_01<global_rng_type&,double>(get_global_rng())(),1.0 / radial_dim_correction) * radius_value / sqrt(dp * dp);
       
       return this->adjust(center_point,(L * (factor * dp)));
     };
+    
+   /*************************************************************************
+    *                             BoundedSpaceConcept
+    * **********************************************************************/
 
     /**
      * Takes a point and clips it to within this line-segment space.
@@ -166,6 +187,10 @@ class hyperball_topology : public vector_topology<Vector>
       return center_point;
     };
     
+   /*************************************************************************
+    *                             SphereBoundedSpaceConcept
+    * **********************************************************************/
+    
     /**
      * Returns the radius of the space.
      */
@@ -182,16 +207,14 @@ class hyperball_topology : public vector_topology<Vector>
       ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(center_point)
         & RK_SERIAL_SAVE_WITH_NAME(radius_value)
-        & RK_SERIAL_SAVE_WITH_NAME(scaling_mat)
-        & RK_SERIAL_SAVE_WITH_NAME(radial_dim_correction);
+        & RK_SERIAL_SAVE_WITH_NAME(scaling_mat);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(center_point)
         & RK_SERIAL_LOAD_WITH_NAME(radius_value)
-        & RK_SERIAL_LOAD_WITH_NAME(scaling_mat)
-        & RK_SERIAL_LOAD_WITH_NAME(radial_dim_correction);
+        & RK_SERIAL_LOAD_WITH_NAME(scaling_mat);
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400008,1,"hyperball_topology",vector_topology<Vector>)

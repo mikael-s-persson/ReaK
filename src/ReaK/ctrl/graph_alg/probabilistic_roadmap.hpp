@@ -57,6 +57,9 @@
 #include <boost/property_map/property_map.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
+#include "path_planning/metric_space_concept.hpp"
+#include "path_planning/random_sampler_concept.hpp"
+
 namespace ReaK {
 
 namespace graph {
@@ -87,8 +90,8 @@ namespace graph {
     Graph g;
     typename boost::graph_traits<Graph>::vertex_descriptor u;
     typename boost::graph_traits<Graph>::edge_descriptor e;
-    void constraints() {
-      boost::function_requires< boost::CopyConstructibleConcept<Visitor> >();
+    BOOST_CONCEPT_USAGE(PRMVisitorConcept) {
+      BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
       vis.vertex_added(u, g); 
       vis.edge_added(e, g);
       std::vector<typename boost::graph_traits<Graph>::vertex_descriptor> v;
@@ -183,13 +186,13 @@ namespace graph {
       typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-      PositionValue p = boost::get(position, u);
+      PositionValue p = get(position, u);
       std::vector<Vertex> Nc; 
       select_neighborhood(p,Nc,g,free_space,position);
       for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
-	if((u != *it) && (free_space.distance(boost::get(position,*it), p) != std::numeric_limits<double>::infinity())) {
+	if((u != *it) && (get(ReaK::pp::distance_metric, free_space)(get(position,*it), p, free_space) != std::numeric_limits<double>::infinity())) {
 	  //this means that u is reachable from *it.
-	  std::pair<Edge, bool> ep = boost::add_edge(*it,u,g); 
+	  std::pair<Edge, bool> ep = add_edge(*it,u,g); 
 	  if(ep.second) { 
 	    vis.edge_added(ep.first, g); 
 	    vis.update_density(*it, g); 
@@ -218,14 +221,14 @@ namespace graph {
       typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-      PositionValue p = boost::get(position, u);
+      PositionValue p = get(position, u);
       std::vector<Vertex> Pred;
       std::vector<Vertex> Succ;
       select_neighborhood(p,Pred,Succ,g,free_space,position);
       for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
-	if((u != *it) && (free_space.distance(boost::get(position,*it), p) != std::numeric_limits<double>::infinity())) {
+	if((u != *it) && (get(ReaK::pp::distance_metric, free_space)(get(position,*it), p, free_space) != std::numeric_limits<double>::infinity())) {
 	  //this means that u is reachable from *it.
-	  std::pair<Edge, bool> ep = boost::add_edge(*it,u,g); 
+	  std::pair<Edge, bool> ep = add_edge(*it,u,g); 
 	  if(ep.second) { 
 	    vis.edge_added(ep.first, g); 
 	    vis.update_density(*it, g); 
@@ -234,10 +237,10 @@ namespace graph {
 	};
       }; 
       for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-        PositionValue p_succ = boost::get(position,*it);
-	if((u != *it) && (free_space.distance(p, p_succ) != std::numeric_limits<double>::infinity())) {
+        PositionValue p_succ = get(position,*it);
+	if((u != *it) && (get(ReaK::pp::distance_metric, free_space)(p, p_succ, free_space) != std::numeric_limits<double>::infinity())) {
 	  //this means that u is reachable from *it.
-	  std::pair<Edge, bool> ep = boost::add_edge(u,*it,g); 
+	  std::pair<Edge, bool> ep = add_edge(u,*it,g); 
 	  if(ep.second) { 
 	    vis.edge_added(ep.first, g); 
 	    vis.update_density(*it, g);
@@ -263,7 +266,9 @@ namespace graph {
    * \tparam Graph A mutable graph type that can store the roadmap, should model boost::MutableGraphConcept 
    *         and boost::VertexListGraphConcept (either bidirectional or undirected graph, the algorithm 
    *         will deal with either cases as appropriate).
-   * \tparam Topology A topology type on which the vertex positions lie.
+   * \tparam Topology A topology type on which the vertex positions lie, should model the TopologyConcept,
+   *         the MetricSpaceConcept (has an attached distance-metric) and the PointDistributionConcept (has 
+   *         an attached random-sampler functor).
    * \tparam PRMVisitor A PRM visitor type, should model the PRMVisitorConcept.
    * \tparam PositionMap A property-map type that can store the position of each vertex. 
    * \tparam DensityMap A property-map type that can store the density-measures for each vertex.
@@ -317,14 +322,19 @@ namespace graph {
 			   unsigned int num_expanded_vertices,
 			   RunningPredicate keep_going,
 			   CompareFunction compare) {
+    BOOST_CONCEPT_ASSERT((PRMVisitorConcept<PRMVisitor,Graph>));
+    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>)); // for the distance-metric.
+    BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>)); // for the random-sampler.
+    BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
+    BOOST_CONCEPT_ASSERT((boost::MutableGraphConcept<Graph>));
+    
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
-    boost::function_requires< PRMVisitorConcept<PRMVisitor,Graph> >();
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
 
-    if(boost::num_vertices(g) == 0) {
-      Vertex u = boost::add_vertex(g);
-      PositionValue p = free_space.random_point();
+    if(num_vertices(g) == 0) {
+      Vertex u = add_vertex(g);
+      PositionValue p = get(ReaK::pp::random_sampler, free_space)(free_space);
       put(position, u, p);
       vis.vertex_added(u, g);
     };
@@ -337,18 +347,18 @@ namespace graph {
     
     {
       typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
-      for (boost::tie(ui, ui_end) = boost::vertices(g); ui != ui_end; ++ui) {
+      for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
 	vis.update_density(*ui,g);
 	Q.push(*ui);
       };
     };
 
-    while(boost::num_vertices(g) < max_vertex_count) {
+    while(num_vertices(g) < max_vertex_count) {
       //Graph Construction phase:
       unsigned int i = 0;
-      while((i < num_constructed_vertices) && (boost::num_vertices(g) < max_vertex_count) && (keep_going())) {
-        PositionValue p_rnd = free_space.random_point();
-        Vertex u = boost::add_vertex(g); 
+      while((i < num_constructed_vertices) && (num_vertices(g) < max_vertex_count) && (keep_going())) {
+        PositionValue p_rnd = get(ReaK::pp::random_sampler, free_space)(free_space);
+        Vertex u = add_vertex(g); 
         put(position, u, p_rnd);             
         vis.vertex_added(u,g); 
         detail::connect_prm_node(g,free_space,vis,Q,position,u,select_neighborhood);
@@ -357,7 +367,7 @@ namespace graph {
       
       //Node Expansion phase:
       unsigned int j = 0;
-      while((j < num_expanded_vertices) && (boost::num_vertices(g) < max_vertex_count) && (keep_going())) {
+      while((j < num_expanded_vertices) && (num_vertices(g) < max_vertex_count) && (keep_going())) {
 	//use the priority queue to get the vertices that need expansion.
 	Vertex v = Q.top();
 	std::vector<Vertex> u_list;

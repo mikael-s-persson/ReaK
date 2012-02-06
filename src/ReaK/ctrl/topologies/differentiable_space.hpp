@@ -244,6 +244,9 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
     typedef typename base_type::point_type point_type;
     typedef typename base_type::point_difference_type point_difference_type;
     
+    typedef typename base_type::distance_metric_type distance_metric_type;
+    typedef typename base_type::random_sampler_type random_sampler_type;
+    
     /**
      * This nested class template is a meta-function to obtain the type of the space of a given 
      * differential order.
@@ -304,7 +307,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
     template <int Idx>
     typename arithmetic_tuple_element<Idx, point_type>::type 
       lift_to_space(const typename arithmetic_tuple_element<Idx-1, point_difference_type>::type& dp,
-		    const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
+		    const typename topology_traits< IndependentSpace >::point_difference_type& dt,
 		    const IndependentSpace& t_space) const {
       typename arithmetic_tuple_element<Idx, point_type>::type result;
       get<Idx-1>(m_diff_rules).lift(result, dp, dt, t_space);
@@ -323,7 +326,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
     template <int Idx>
     typename arithmetic_tuple_element<Idx, point_difference_type>::type 
       descend_to_space(const typename arithmetic_tuple_element<Idx+1, point_type>::type& v,
-		       const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
+		       const typename topology_traits< IndependentSpace >::point_difference_type& dt,
 		       const IndependentSpace& t_space) const {
       typename arithmetic_tuple_element<Idx, point_difference_type>::type result;
       get<Idx>(m_diff_rules).descend(result, v, dt, t_space);
@@ -398,7 +401,7 @@ typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(diffe
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
 typename arithmetic_tuple_element<Idx, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>::point_type>::type 
   lift_to_space(const typename arithmetic_tuple_element<Idx-1, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>::point_difference_type>::type& dp,
-		const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
+		const typename topology_traits< IndependentSpace >::point_difference_type& dt,
 		const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& space,
 		const IndependentSpace& t_space) {
   return space.template lift_to_space<Idx>(dp,dt,t_space);
@@ -416,7 +419,7 @@ typename arithmetic_tuple_element<Idx, typename differentiable_space<Independent
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
 typename arithmetic_tuple_element<Idx, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>::point_difference_type>::type 
   descend_to_space(const typename arithmetic_tuple_element<Idx+1, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>::point_type>::type& v,
-		   const typename metric_topology_traits< IndependentSpace >::point_difference_type& dt,
+		   const typename topology_traits< IndependentSpace >::point_difference_type& dt,
 		   const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& space,
 		   const IndependentSpace& t_space) {
   return space.template descend_to_space<Idx>(v,dt,t_space);
@@ -429,6 +432,47 @@ typename arithmetic_tuple_element<Idx, typename differentiable_space<Independent
 
 };
 
+};
+
+
+
+namespace ReaK {
+  
+  
+/* Specialization, see general template docs. */
+  template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+  struct arithmetic_tuple_size< pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > : 
+    arithmetic_tuple_size< SpaceTuple > { };
+  
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+  class arithmetic_tuple_element< Idx, pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > {
+    public:
+      typedef typename arithmetic_tuple_element< Idx, SpaceTuple >::type type;
+  };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+  class arithmetic_tuple_element< Idx, const pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > {
+    public:
+      typedef typename arithmetic_tuple_element< Idx, const SpaceTuple >::type type;
+  };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+  class arithmetic_tuple_element< Idx, volatile pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > {
+    public:
+      typedef typename arithmetic_tuple_element< Idx, volatile SpaceTuple >::type type;
+  };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+  class arithmetic_tuple_element< Idx, const volatile pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > {
+    public:
+      typedef typename arithmetic_tuple_element< Idx, const volatile SpaceTuple >::type type;
+  };
+  
 };
 
 #endif

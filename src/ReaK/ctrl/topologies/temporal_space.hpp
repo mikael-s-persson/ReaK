@@ -41,6 +41,7 @@
 #include "time_topology.hpp"
 #include "path_planning/temporal_space_concept.hpp"
 #include "temporal_distance_metrics.hpp"
+#include "default_random_sampler.hpp"
 
 #include "base/named_object.hpp"
 #include <X11/X.h>
@@ -187,14 +188,16 @@ class temporal_space : public named_object {
   public:
     typedef TimeTopology time_topology;
     typedef Topology space_topology;
-    typedef TemporalDistanceMetric distance_metric;
+    
+    typedef TemporalDistanceMetric distance_metric_type;
+    typedef default_random_sampler random_sampler_type;
     
     typedef temporal_space<Topology,TimeTopology,TemporalDistanceMetric> self;
     
   protected:
     space_topology space;
     time_topology time;
-    distance_metric dist;
+    distance_metric_type dist;
     
   public:
     /**
@@ -206,58 +209,42 @@ class temporal_space : public named_object {
     explicit temporal_space(const std::string& aName = "",
 			    const space_topology& aSpace = space_topology(), 
 			    const time_topology& aTime = time_topology(),
-			    const distance_metric& aDist = distance_metric()) :
+			    const distance_metric_type& aDist = distance_metric_type()) :
                             named_object(), space(aSpace), time(aTime), dist(aDist) { this->setName(aName); };
     
-    typedef temporal_point<typename metric_topology_traits<space_topology>::point_type,
-                           typename metric_topology_traits<time_topology>::point_type> point_type;
-    typedef temporal_point_difference<typename metric_topology_traits<space_topology>::point_difference_type,
-                                      typename metric_topology_traits<time_topology>::point_difference_type> point_difference_type;
+    typedef temporal_point<typename topology_traits<space_topology>::point_type,
+                           typename topology_traits<time_topology>::point_type> point_type;
+    typedef temporal_point_difference<typename topology_traits<space_topology>::point_difference_type,
+                                      typename topology_traits<time_topology>::point_difference_type> point_difference_type;
     
     /** Returns the underlying space topology. */
     const space_topology& get_space_topology() const { return space; };
     /** Returns the underlying time topology. */
     const time_topology& get_time_topology() const { return time; };
     /** Returns the temporal distance metric functor used. */
-    const distance_metric& get_distance_metric() const { return dist; };
+    const distance_metric_type& get_distance_metric() const { return dist; };
+    
+    friend 
+    const TemporalDistanceMetric& get(distance_metric_t, const self& space) {
+      return space.dist;
+    };
+    
     
     /** Returns the underlying space topology. */
     space_topology& get_space_topology() { return space; };
     /** Returns the underlying time topology. */
     time_topology& get_time_topology() { return time; };
     /** Returns the temporal distance metric functor used. */
-    distance_metric& get_distance_metric() { return dist; };
-
-    /**
-     * Returns a random point within the temporal-space.
-     * \return A random point within the temporal-space.
-     */
-    point_type random_point() const 
-    {
-      return point_type(time.random_point(), space.random_point());
-    }
+    distance_metric_type& get_distance_metric() { return dist; };
     
-    /**
-     * Computes the distance between two points in the temporal-space.
-     * \param a The first point.
-     * \param b The second point.
-     * \return The distance between a and b.
-     */
-    double distance(const point_type& a, const point_type& b) const {
-      return dist(a, b, *this);
+    friend 
+    TemporalDistanceMetric& get(distance_metric_t, self& space) {
+      return space.dist;
     };
-
-    /**
-     * Returns a point which is at a fraction between two points a to b.
-     * \param a The first point.
-     * \param fraction The fraction between the two points (0 to 1).
-     * \param b The second point.
-     * \return The point which is at a fraction between two points.
-     */
-    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const {
-      return point_type(time.move_position_toward(a.time, fraction, b.time),
-	                space.move_position_toward(a.pt, fraction, b.pt));
-    };
+    
+   /*************************************************************************
+    *                             TopologyConcept
+    * **********************************************************************/
 
     /**
      * Returns the difference between two points (a - b).
@@ -286,6 +273,20 @@ class temporal_space : public named_object {
     point_type origin() const {
       return point_type(time.origin(), space.origin());
     };
+    
+    /*************************************************************************
+    *                             MetricSpaceConcept
+    * **********************************************************************/
+    
+    /**
+     * Computes the distance between two points in the temporal-space.
+     * \param a The first point.
+     * \param b The second point.
+     * \return The distance between a and b.
+     */
+    double distance(const point_type& a, const point_type& b) const {
+      return dist(a, b, *this);
+    };
 
     /**
      * Computes the norm of a difference between two points.
@@ -294,6 +295,35 @@ class temporal_space : public named_object {
      */
     double norm(const point_difference_type& a) const {
       return dist(a, *this);
+    };
+
+    /*************************************************************************
+    *                             LieGroupConcept
+    * **********************************************************************/
+
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     * \param a The first point.
+     * \param fraction The fraction between the two points (0 to 1).
+     * \param b The second point.
+     * \return The point which is at a fraction between two points.
+     */
+    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const {
+      return point_type(time.move_position_toward(a.time, fraction, b.time),
+	                space.move_position_toward(a.pt, fraction, b.pt));
+    };
+
+    /*************************************************************************
+    *                             PointDistributionConcept
+    * **********************************************************************/
+
+    /**
+     * Returns a random point within the temporal-space.
+     * \return A random point within the temporal-space.
+     */
+    point_type random_point() const 
+    {
+      return point_type(get(random_sampler, time)(time), get(random_sampler, space)(space));
     };
     
     
@@ -318,7 +348,6 @@ class temporal_space : public named_object {
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400004,1,"temporal_space",named_object)
     
 };
-
 
 
 };

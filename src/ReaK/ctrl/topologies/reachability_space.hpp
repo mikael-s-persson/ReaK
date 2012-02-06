@@ -61,7 +61,7 @@ struct backward_reachable_norm {
    */
   template <typename PointDiff, typename TimeTopology, typename SpaceTopology>
   double operator()(const PointDiff& a, const TimeTopology& t, const SpaceTopology& s) const {
-    return a.time - s.norm(a.pt);
+    return a.time - get(distance_metric, s)(a.pt, s);
   };
   /**
    * Computes the backward reachable norm for a given point-difference in a temporal-space.
@@ -77,7 +77,7 @@ struct backward_reachable_norm {
    */
   template <typename TimeDiff, typename SpaceDiff, typename TimeTopology, typename SpaceTopology>
   double operator()(const TimeDiff& dt, const SpaceDiff& dp, const TimeTopology& t, const SpaceTopology& s) const {
-    return dt - s.norm(dp);
+    return dt - get(distance_metric, s)(dp, s);
   };
 };
 
@@ -99,7 +99,7 @@ struct forward_reachable_norm {
    */
   template <typename PointDiff, typename TimeTopology, typename SpaceTopology>
   double operator()(const PointDiff& a, const TimeTopology& t, const SpaceTopology& s) const {
-    return a.time + s.norm(a.pt);
+    return a.time + get(distance_metric, s)(a.pt, s);
   };
   /**
    * Computes the forward reachable norm for a given point-difference in a temporal-space.
@@ -115,7 +115,7 @@ struct forward_reachable_norm {
    */
   template <typename TimeDiff, typename SpaceDiff, typename TimeTopology, typename SpaceTopology>
   double operator()(const TimeDiff& dt, const SpaceDiff& dp, const TimeTopology& t, const SpaceTopology& s) const {
-    return dt + s.norm(dp);
+    return dt + get(distance_metric, s)(dp, s);
   };
 };
 
@@ -177,16 +177,17 @@ struct reachable_distance {
  * \tparam Topology A spatial topology whose distance metric represents the minimum travel time between two points, should model the MetricSpaceConcept.
  * \tparam RandomNumberGenerator The random number generator functor type that can introduce the randomness needed for generating samples of the space.
  */
-template <typename Topology, typename RandomNumberGenerator = boost::minstd_rand>
-class reachability_space : public temporal_space<Topology, reachable_distance, RandomNumberGenerator> {
+template <typename Topology>
+class reachability_space : public temporal_space<Topology, reachable_distance> {
   public:
-    typedef temporal_space<Topology, reachable_distance, RandomNumberGenerator> temporal_space_type;
-    typedef temporal_space_type::time_topology time_topology;
-    typedef temporal_space_type::space_topology space_topology;
-    typedef temporal_space_type::distance_metric distance_metric;
+    typedef temporal_space<Topology, reachable_distance> temporal_space_type;
+    typedef typename temporal_space_type::time_topology time_topology;
+    typedef typename temporal_space_type::space_topology space_topology;
+    typedef typename temporal_space_type::distance_metric_type distance_metric_type;
+    typedef typename temporal_space_type::random_sampler_type random_sampler_type;
     
-    typedef temporal_space_type::point_type point_type;
-    typedef temporal_space_type::point_difference_type point_difference_type;
+    typedef typename temporal_space_type::point_type point_type;
+    typedef typename temporal_space_type::point_difference_type point_difference_type;
     
     /**
      * Returns the forward reach of a given point in the temporal-space.

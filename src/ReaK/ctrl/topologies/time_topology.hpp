@@ -39,9 +39,11 @@
 
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
-#include <cmath>
-
 #include "base/named_object.hpp"
+
+#include "basic_distance_metrics.hpp"
+
+#include <cmath>
 
 namespace ReaK {
 
@@ -59,27 +61,17 @@ class time_topology : public named_object
     typedef double point_type;
     typedef double point_difference_type;
     
+    typedef default_distance_metric distance_metric_type;
+    
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 1);
     
     time_topology(const std::string& aName = "time_topology") : named_object() {
       setName(aName);
     };
     
-    /**
-     * Returns the distance between two points.
-     */
-    double distance(const point_type& a, const point_type& b) const 
-    {
-      return std::fabs(b - a);
-    };
-
-    /**
-     * Returns a point which is at a fraction between two points a to b.
-     */
-    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
-    {
-      return a + (b - a) * fraction;
-    };
+   /*************************************************************************
+    *                             TopologyConcept
+    * **********************************************************************/
 
     /**
      * Returns the difference between two points (a - b).
@@ -93,6 +85,53 @@ class time_topology : public named_object
      */
     point_type adjust(const point_type& a, const point_difference_type& delta) const {
       return a + delta;
+    };
+        
+    /**
+     * Returns the origin of the space.
+     */
+    point_type origin() const {
+      return 0.0;
+    };
+    
+    /*************************************************************************
+    *                             MetricSpaceConcept
+    * **********************************************************************/
+    
+    /**
+     * Returns the distance between two points.
+     */
+    double distance(const point_type& a, const point_type& b) const {
+      using std::fabs;
+      return fabs(b - a);
+    };
+
+    /**
+     * Returns the norm of the difference between two points.
+     */
+    double norm(const point_difference_type& delta) const {
+      using std::fabs;
+      return fabs(delta);
+    };
+
+    /**
+     * Returns the volume of the difference between two points.
+     */
+    double volume(const point_difference_type& delta) const {
+      using std::fabs;
+      return fabs(delta);
+    };
+
+    /*************************************************************************
+    *                             LieGroupConcept
+    * **********************************************************************/
+
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
+    {
+      return a + (b - a) * fraction;
     };
 
     /**
@@ -109,27 +148,6 @@ class time_topology : public named_object
     point_type pointwise_max(const point_type& a, const point_type& b) const {
       BOOST_USING_STD_MAX();
       return max BOOST_PREVENT_MACRO_SUBSTITUTION (a, b);
-    };
-
-    /**
-     * Returns the norm of the difference between two points.
-     */
-    double norm(const point_difference_type& delta) const {
-      return std::fabs(delta);
-    };
-
-    /**
-     * Returns the volume of the difference between two points.
-     */
-    double volume(const point_difference_type& delta) const {
-      return std::fabs(delta);
-    };
-        
-    /**
-     * Returns the origin of the space.
-     */
-    point_type origin() const {
-      return 0.0;
     };
       
     /**

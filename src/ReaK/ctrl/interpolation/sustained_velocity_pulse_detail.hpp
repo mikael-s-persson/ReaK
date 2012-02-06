@@ -38,7 +38,7 @@
 #include "lin_alg/mat_num_exceptions.hpp"
 #include "lin_alg/vect_alg.hpp"
 #include "path_planning/bounded_space_concept.hpp"
-#include "path_planning/differentiable_space_concept.hpp"
+#include "path_planning/tangent_bundle_concept.hpp"
 
 #include "root_finders/bisection_method.hpp"
 
@@ -214,8 +214,8 @@ namespace detail {
                                     const DiffSpace& space, const TimeSpace& t_space,
 				    double dt, double dt_total) {
     
-    double dt1 = get_space<1>(space,t_space).distance(get<1>(start_point), peak_velocity);
-    double dt2 = get_space<1>(space,t_space).distance(peak_velocity, get<1>(end_point));
+    double dt1 = get(distance_metric, get_space<1>(space,t_space))(get<1>(start_point), peak_velocity, get_space<1>(space,t_space));
+    double dt2 = get(distance_metric, get_space<1>(space,t_space))(peak_velocity, get<1>(end_point), get_space<1>(space,t_space));
     dt_total -= dt1 + dt2;
     
     result = start_point;
@@ -343,15 +343,15 @@ namespace detail {
     
       PointDiff0 descended_peak_velocity = descend_to_space<0>(peak_velocity,1.0,space,t_space);
       delta_first_order = get_space<0>(space,t_space).difference(
-        get_space<0>(space,t_space).adjust(get<0>(end_point), (-0.5 * get_space<1>(space,t_space).distance(peak_velocity, get<1>(end_point))) * ( descended_peak_velocity
+        get_space<0>(space,t_space).adjust(get<0>(end_point), (-0.5 * get(distance_metric, get_space<1>(space,t_space))(peak_velocity, get<1>(end_point), get_space<1>(space,t_space))) * ( descended_peak_velocity
                                                                                                                                                  + descend_to_space<0>(get<1>(end_point),1.0,space,t_space) )),
-        get_space<0>(space,t_space).adjust(get<0>(start_point), (0.5 * get_space<1>(space,t_space).distance(peak_velocity, get<1>(start_point))) * (descended_peak_velocity
+        get_space<0>(space,t_space).adjust(get<0>(start_point), (0.5 * get(distance_metric, get_space<1>(space,t_space))(peak_velocity, get<1>(start_point), get_space<1>(space,t_space))) * (descended_peak_velocity
                                                                                                                                                     + descend_to_space<0>(get<1>(start_point),1.0,space,t_space) ))
       );
-      norm_delta = get_space<0>(space,t_space).norm(delta_first_order);
+      norm_delta = get(distance_metric, get_space<0>(space,t_space))(delta_first_order, get_space<0>(space,t_space));
       if(norm_delta > num_tol)
         peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, space, t_space);
-      if( get_space<0>(space,t_space).norm(descended_peak_velocity - delta_first_order) > get_space<0>(space,t_space).norm(descended_peak_velocity) )
+      if( get(distance_metric, get_space<0>(space,t_space))(descended_peak_velocity - delta_first_order, get_space<0>(space,t_space)) > get(distance_metric, get_space<0>(space,t_space))(descended_peak_velocity, get_space<0>(space,t_space)) )
         norm_delta = -norm_delta;
     };
   };
@@ -466,9 +466,9 @@ namespace detail {
     
     const Space1& space_1 = get_space<1>(space,t_space);
     
-    vect<double,5> coefs( space_1.distance( get<1>(start_point), space_1.origin() ),
+    vect<double,5> coefs( get(distance_metric, space_1)( get<1>(start_point), space_1.origin(), space_1 ),
 	                  0.0,
-		          space_1.distance( get<1>(end_point), space_1.origin() ),
+		          get(distance_metric, space_1)( get<1>(end_point), space_1.origin(), space_1 ),
 	                  0.0,
 		          space_1.get_radius());
     
@@ -483,9 +483,9 @@ namespace detail {
       
       peak_velocity = space_1.adjust(peak_velocity, space_1.get_diff_to_boundary(peak_velocity));
       
-      double temp = space_1.distance(get<1>(start_point), peak_velocity);
+      double temp = get(distance_metric, space_1)(get<1>(start_point), peak_velocity, space_1);
       coefs[1] = (coefs[0] * coefs[0] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[0] * coefs[4]);
-      temp = space_1.distance(get<1>(end_point), peak_velocity);
+      temp = get(distance_metric, space_1)(get<1>(end_point), peak_velocity, space_1);
       coefs[3] = (coefs[2] * coefs[2] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[2] * coefs[4]);
       
       RK_NOTICE(1,"   coefs = " << coefs);
@@ -504,7 +504,7 @@ namespace detail {
       
       if( pred(beta,norm_delta,coefs,num_tol)
 	 && ( beta > num_tol ) && ( beta <= 1.0)
-	 && ( space_1.distance(prev_peak_velocity, peak_velocity) < 1e-6 * space_1.get_radius() ) ) {
+	 && ( get(distance_metric, space_1)(prev_peak_velocity, peak_velocity, space_1) < 1e-6 * space_1.get_radius() ) ) {
         break;
       };
 	  
@@ -565,14 +565,14 @@ namespace detail {
   
   template <typename PointType, typename DiffSpace, typename TimeSpace>
   double svp_compute_interpolation_data_impl(const PointType& start_point, const PointType& end_point,
-                                             typename metric_topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,0>::type >::point_difference_type& delta_first_order,
-					     typename metric_topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type& peak_velocity,
+                                             typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,0>::type >::point_difference_type& delta_first_order,
+					     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type& peak_velocity,
 					     const DiffSpace& space, const TimeSpace& t_space,
 					     double delta_time = 0.0,
-					     typename metric_topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type* best_peak_velocity = NULL, 
+					     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type* best_peak_velocity = NULL, 
 					     double num_tol = 1e-6, unsigned int max_iter = 20) {
     delta_first_order = get_space<0>(space,t_space).difference( get<0>(end_point), get<0>(start_point) );
-    double norm_delta = get_space<0>(space,t_space).norm( delta_first_order );
+    double norm_delta = get(distance_metric, get_space<0>(space,t_space))( delta_first_order, get_space<0>(space,t_space) );
     double beta = 0.0;
     peak_velocity = get_space<1>(space,t_space).origin();
     

@@ -30,6 +30,8 @@
 
 #include "topological_search.hpp"
 #include "metric_space_search.hpp"
+#include "topologies/hyperbox_topology.hpp"
+#include "lin_alg/vect_alg.hpp"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -43,7 +45,7 @@ namespace boost {
 };
 
 int main() {
-  typedef boost::hypercube_topology<6,boost::minstd_rand> TopologyType;
+  typedef ReaK::pp::hyperbox_topology< ReaK::vect<double,6> > TopologyType;
   
   typedef TopologyType::point_type PointType;
 
@@ -74,16 +76,15 @@ int main() {
   
   for(int i=0;i<7;++i) {
     WorldGridType grid;
-    boost::minstd_rand m_rng(std::time(0));
-    TopologyType m_space(m_rng);
-    boost::property_map<WorldGridType, boost::vertex_position_t>::type m_position(boost::get(boost::vertex_position, grid));
+    TopologyType m_space("",ReaK::vect<double,6>(0.0,0.0,0.0,0.0,0.0,0.0),ReaK::vect<double,6>(1.0,1.0,1.0,1.0,1.0,1.0));
+    boost::property_map<WorldGridType, boost::vertex_position_t>::type m_position(get(boost::vertex_position, grid));
     
     WorldPartition2 part2(grid,m_space,m_position);
     WorldPartition4 part4(grid,m_space,m_position);
     
-    for(int j=0;j<grid_sizes[i];++j) {
-      VertexType v = boost::add_vertex(grid);
-      boost::put(m_position,v,m_space.random_point());
+    for(unsigned int j=0;j < grid_sizes[i];++j) {
+      VertexType v = add_vertex(grid);
+      put(m_position,v,m_space.random_point());
       part2.insert(v);
       part4.insert(v);
     };

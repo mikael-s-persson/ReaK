@@ -75,9 +75,9 @@ int main(int argc, char** argv) {
           > SpaceTupleType;
 
   typedef ReaK::pp::differentiable_space< ReaK::pp::time_poisson_topology, SpaceTupleType > TopoType;
-  typedef ReaK::pp::metric_topology_traits<TopoType>::point_type PointType;
+  typedef ReaK::pp::topology_traits<TopoType>::point_type PointType;
   typedef ReaK::pp::temporal_space< TopoType, ReaK::pp::time_poisson_topology> TempTopoType;
-  typedef ReaK::pp::metric_topology_traits<TempTopoType>::point_type TempPointType;
+  typedef ReaK::pp::topology_traits<TempTopoType>::point_type TempPointType;
     
   ReaK::shared_pointer< TempTopoType >::type topo = 
     ReaK::shared_pointer< TempTopoType >::type( new TempTopoType( "temporal_space",

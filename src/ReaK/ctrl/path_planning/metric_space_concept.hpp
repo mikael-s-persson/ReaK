@@ -134,17 +134,6 @@ struct LieGroupConcept {
   };
   
 };
-  
-  
-/**
- * This traits class defines the types and constants associated to a metric-space.
- * \tparam MetricSpace The topology type for which the metric-space traits are sought.
- */
-template <typename MetricSpace>
-struct metric_space_traits {
-  /** The type that describes the distance-metric type for the space. */
-  typedef typename MetricSpace::distance_metric distance_metric;
-};
 
 /**
  * This concept defines the requirements to fulfill in order to model a distance-metric 
@@ -186,6 +175,17 @@ struct DistanceMetricConcept {
  * to be fetched.
  */
 enum distance_metric_t { distance_metric };
+  
+  
+/**
+ * This traits class defines the types and constants associated to a metric-space.
+ * \tparam MetricSpace The topology type for which the metric-space traits are sought.
+ */
+template <typename MetricSpace>
+struct metric_space_traits {
+  /** The type that describes the distance-metric type for the space. */
+  typedef typename MetricSpace::distance_metric_type distance_metric_type;
+};
 
 /**
  * This concept defines the requirements to fulfill in order to model a metric-space 
@@ -203,12 +203,12 @@ enum distance_metric_t { distance_metric };
 template <typename MetricSpace>
 struct MetricSpaceConcept {
   typename topology_traits<MetricSpace>::point_type p1, p2;
-  typename metric_space_traits<MetricSpace>::distance_metric dist;
+  typename metric_space_traits<MetricSpace>::distance_metric_type dist;
   MetricSpace space;
   double d;
   
   BOOST_CONCEPT_ASSERT((TopologyConcept<MetricSpace>));
-  BOOST_CONCEPT_ASSERT((DistanceMetricConcept<typename metric_space_traits<MetricSpace>::distance_metric>));
+  BOOST_CONCEPT_ASSERT((DistanceMetricConcept<typename metric_space_traits<MetricSpace>::distance_metric_type, MetricSpace>));
   
   BOOST_CONCEPT_USAGE(MetricSpaceConcept) 
   {
