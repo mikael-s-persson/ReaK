@@ -494,7 +494,7 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
 				     const time_type& t_0, const time_type&,
 				     const point_type& p_0, const point_type&,
 				     const input_type&, const input_type&) const {
-      vect<double,3> w(p_0[10],p_0[11],p_0[12]);
+      vect<double,3> w(0.5 * p_0[10],0.5 * p_0[11],0.5 * p_0[12]);
       
       A = mat<double,mat_structure::identity>(12);
       A(0,6) = mDt;
