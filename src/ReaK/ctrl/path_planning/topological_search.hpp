@@ -59,6 +59,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <iterator>
 
 #include "metric_space_concept.hpp"
 
@@ -154,7 +155,13 @@ namespace pp {
 	    typename OutputContainer,
             typename GetDistanceFunction,
 	    typename CompareFunction>
-  inline void min_dist_linear_search(ForwardIterator first,
+  inline 
+  typename boost::disable_if< 
+    boost::is_same< 
+      typename OutputContainer::value_type,
+      ForwardIterator
+    >,
+  void >::type min_dist_linear_search(ForwardIterator first,
 				     ForwardIterator last,
 				     OutputContainer& output,
 				     GetDistanceFunction distance,
@@ -170,15 +177,73 @@ namespace pp {
       if(!compare(d, radius)) 
 	continue;
       typename std::vector<DistanceValue>::iterator it_lo = std::lower_bound(output_dist.begin(),output_dist.end(),d,compare);
-      if((it_lo != output_dist.end()) || (output_dist.size() < max_neighbors)) {
-	output_dist.insert(it_lo, d);
-	typename OutputContainer::iterator itv = output.begin();
-	for(typename std::vector<DistanceValue>::iterator it = output_dist.begin(); (itv != output.end()) && (it != it_lo); ++itv,++it) ;
-	output.insert(itv, *first);
-	if(output.size() > max_neighbors) {
-	  output.pop_back();
-	  output_dist.pop_back();
-	};
+      output_dist.insert(it_lo, d);
+      typename OutputContainer::iterator itv = output.begin();
+      std::advance(itv, it_lo - output_dist.begin());
+      output.insert(itv, *first);
+      if(output.size() > max_neighbors) {
+	output.pop_back();
+	output_dist.pop_back();
+	radius = d;
+      };
+    };
+  };
+  
+  /**
+   * This function template is similar to std::min_element but can be used when the comparison 
+   * involves computing a derived quantity (a.k.a. distance). This algorithm will search for the 
+   * the elements in the range [first,last) with the "smallest" distances (of course, both the 
+   * distance metric and comparison can be overriden to perform something other than the canonical
+   * Euclidean distance and less-than comparison, which would yield the element with minimum distance).
+   * This function will fill the output container with a number of nearest-neighbors.
+   * \tparam DistanceValue The value-type for the distance measures.
+   * \tparam ForwardIterator The forward-iterator type.
+   * \tparam OutputContainer The container type which can contain the list of nearest-neighbors (STL like container, with iterators, insert, size, and pop_back).
+   * \tparam GetDistanceFunction The functor type to compute the distance measure.
+   * \tparam CompareFunction The functor type that can compare two distance measures (strict weak-ordering).
+   * \param first Start of the range in which to search.
+   * \param last One element past the last element in the range in which to search.
+   * \param output The container that will have the sorted list of elements with the smallest distance.
+   * \param distance A callable object that returns a DistanceValue for a given element from the ForwardIterator dereferencing.
+   * \param compare A callable object that returns true if the first element is the preferred one (less-than) of the two.
+   * \param max_neighbors The maximum number of elements of smallest distance to output in the sorted list.
+   * \param radius The maximum distance value for which an element qualifies to be part of the output list.
+   */
+  template <typename DistanceValue,
+	    typename ForwardIterator,
+	    typename OutputContainer,
+            typename GetDistanceFunction,
+	    typename CompareFunction>
+  inline 
+  typename boost::enable_if< 
+    boost::is_same< 
+      typename OutputContainer::value_type,
+      ForwardIterator
+    >,
+  void >::type min_dist_linear_search(ForwardIterator first,
+				     ForwardIterator last,
+				     OutputContainer& output,
+				     GetDistanceFunction distance,
+				     CompareFunction compare,
+				     std::size_t max_neighbors = 1,
+				     DistanceValue radius = std::numeric_limits<DistanceValue>::infinity()) {
+    output.clear();
+    if(first == last) return;
+    std::vector<DistanceValue> output_dist;
+    output_dist.reserve(max_neighbors);
+    for(; first != last; ++first) {
+      DistanceValue d = distance(*first);
+      if(!compare(d, radius)) 
+	continue;
+      typename std::vector<DistanceValue>::iterator it_lo = std::lower_bound(output_dist.begin(),output_dist.end(),d,compare);
+      output_dist.insert(it_lo, d);
+      typename OutputContainer::iterator itv = output.begin();
+      std::advance(itv, it_lo - output_dist.begin());
+      output.insert(itv, first);
+      if(output.size() > max_neighbors) {
+	output.pop_back();
+	output_dist.pop_back();
+	radius = d;
       };
     };
   };
@@ -261,7 +326,9 @@ namespace pp {
     typename boost::graph_traits<Graph>::vertex_descriptor operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
 								      Graph& g, 
 								      const Topology& space, 
-								      PositionMap position) {
+								      PositionMap position) const {
+      BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+      BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
       VertexIter ui,ui_end; 
@@ -302,13 +369,78 @@ namespace pp {
 		    const Topology& space, 
 		    PositionMap position, 
 		    unsigned int max_neighbors = 1, 
-		    double radius = std::numeric_limits<double>::infinity()) {
+		    double radius = std::numeric_limits<double>::infinity()) const {
+      BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+      BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
       VertexIter ui,ui_end; 
       boost::tie(ui,ui_end) = vertices(g);
       min_dist_linear_search(ui,ui_end,output,
 			     boost::bind(&linear_neighbor_search::distance<Vertex,Topology,PositionMap>,
+					 this,
+		                         boost::cref(p),
+		                         _1,
+		                         boost::cref(space),
+		                         position),
+			     m_compare,max_neighbors,radius);
+    };
+
+    /**
+     * This call-operator finds the nearest vertex of a graph, to a given position.
+     * \tparam ForwardIter A forward-iterator type.
+     * \tparam Topology The topology type which contains the positions.
+     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
+     * \param p A position in the space, to which the nearest-neighbor is sought.
+     * \param first The first of all candidates nearest-neighbors.
+     * \param last The last of all candidates nearest-neighbors (one-passed-last, as is usual in C++).
+     * \param space The topology objects which define the space in which the positions reside.
+     * \param position The property-map which can retrieve the position associated to each vertex.
+     */
+    template <typename ForwardIter, typename Topology, typename PositionMap>
+    ForwardIter operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
+		           ForwardIter first, ForwardIter last, 
+			   const Topology& space, PositionMap position) const {
+      BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+      return min_dist_linear_search(first, last,
+				    boost::bind(&linear_neighbor_search::distance< typename std::iterator_traits<ForwardIter>::value_type,Topology,PositionMap>,
+						this,
+		                                boost::cref(p),
+		                                _1,
+		                                boost::cref(space),
+		                                position),
+				    m_compare,std::numeric_limits<double>::infinity());
+    };
+    
+    /**
+     * This call-operator finds the nearest vertices of a graph, to a given position.
+     * \tparam ForwardIter A forward-iterator type.
+     * \tparam Topology The topology type which contains the positions.
+     * \tparam PositionMap The property-map type which can store the position associated 
+     *         with each vertex.
+     * \tparam OutputContainer The container type which can contain the list of 
+     *         nearest-neighbors (STL like container, with iterators, insert, size, and pop_back).
+     * \param p A position in the space, to which the nearest-neighbors are sought.
+     * \param first The first of all candidates nearest-neighbors.
+     * \param last The last of all candidates nearest-neighbors (one-passed-last, as is usual in C++).
+     * \param output The container for the list of nearest-neighbors, the output of this 
+     *        function, and will be sorted from the nearest neighbor in increasing order.
+     * \param space The topology objects which define the space in which the positions reside.
+     * \param position The property-map which can retrieve the position associated to each vertex.
+     * \param max_neighbors The maximum number of neighbors to have in the list.
+     * \param radius The minimum distance around the position that a vertex should be in to be 
+     *        considered a neighbor.
+     */
+    template <typename ForwardIter, typename Topology, typename PositionMap, typename OutputContainer>
+    void operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
+		    ForwardIter first, ForwardIter last, 
+		    OutputContainer& output, 
+                    const Topology& space, PositionMap position, 
+		    unsigned int max_neighbors = 1, 
+		    double radius = std::numeric_limits<double>::infinity()) const {
+      BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
+      min_dist_linear_search(first, last, output,
+			     boost::bind(&linear_neighbor_search::distance<typename std::iterator_traits<ForwardIter>::value_type,Topology,PositionMap>,
 					 this,
 		                         boost::cref(p),
 		                         _1,
@@ -387,7 +519,7 @@ namespace pp {
      * This call-operator finds the nearest vertex of a graph, to a given position.
      * \tparam Graph The graph type which can contain the vertices, should 
      *         model boost::VertexListGraphConcept and boost::IncidenceGraphConcept.
-     * \tparam Topology The topology type which contains the positions.
+     * \tparam Topology The topology type which contains the positions, should model the MetricSpaceConcept.
      * \tparam PositionMap The property-map type which can store the position associated with each vertex.
      * \param p A position in the space, to which the nearest-neighbor is sought.
      * \param g A graph containing the vertices from which to find the nearest-neighbor, 
@@ -398,6 +530,9 @@ namespace pp {
     template <typename Graph, typename Topology, typename PositionMap>
     typename boost::graph_traits<Graph>::vertex_descriptor operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
 								      Graph& g, const Topology& space, PositionMap position) {
+      BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
+      BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<Graph>));
+      BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       if(m_vertex_num_divider == 0)
 	m_vertex_num_divider = 1;
@@ -465,6 +600,9 @@ namespace pp {
     template <typename Graph, typename Topology, typename PositionMap, typename OutputContainer>
     void operator()(const typename boost::property_traits<PositionMap>::value_type& p, OutputContainer& output, 
 		    Graph& g, const Topology& space, PositionMap position, unsigned int max_neighbors = 1, double radius = std::numeric_limits<double>::infinity()) {
+      BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
+      BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<Graph>));
+      BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       output.clear();
       std::vector<double> output_dist;
