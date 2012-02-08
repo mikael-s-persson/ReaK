@@ -60,6 +60,8 @@
 #include <vector>
 #include <algorithm>
 
+#include "metric_space_concept.hpp"
+
 namespace ReaK {
   
 namespace pp {
@@ -157,11 +159,12 @@ namespace pp {
 				     OutputContainer& output,
 				     GetDistanceFunction distance,
 				     CompareFunction compare,
-				     unsigned int max_neighbors = 1,
+				     std::size_t max_neighbors = 1,
 				     DistanceValue radius = std::numeric_limits<DistanceValue>::infinity()) {
     output.clear();
     if(first == last) return;
     std::vector<DistanceValue> output_dist;
+    output_dist.reserve(max_neighbors);
     for(; first != last; ++first) {
       DistanceValue d = distance(*first);
       if(!compare(d, radius)) 
@@ -241,7 +244,7 @@ namespace pp {
     template <typename Vertex, typename Topology, typename PositionMap>
     double distance(const typename boost::property_traits<PositionMap>::value_type& p,
                     Vertex u, const Topology& space, PositionMap position) const {
-      return space.distance(p, get(position, u));
+      return get(distance_metric, space)(p, get(position, u), space);
     };
 
     /**
@@ -261,8 +264,16 @@ namespace pp {
 								      PositionMap position) {
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
-      VertexIter ui,ui_end; tie(ui,ui_end) = boost::vertices(g);
-      return *(min_dist_linear_search(ui,ui_end,boost::bind(&linear_neighbor_search::distance<Vertex,Topology,PositionMap>,this,p,_1,space,position),m_compare,std::numeric_limits<double>::infinity()));
+      VertexIter ui,ui_end; 
+      boost::tie(ui,ui_end) = vertices(g);
+      return *(min_dist_linear_search(ui,ui_end,
+				      boost::bind(&linear_neighbor_search::distance<Vertex,Topology,PositionMap>,
+						  this,
+		                                  boost::cref(p),
+		                                  _1,
+		                                  boost::cref(space),
+		                                  position),
+				      m_compare,std::numeric_limits<double>::infinity()));
     };
     
     /**
@@ -294,8 +305,16 @@ namespace pp {
 		    double radius = std::numeric_limits<double>::infinity()) {
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
-      VertexIter ui,ui_end; tie(ui,ui_end) = boost::vertices(g);
-      min_dist_linear_search(ui,ui_end,output,boost::bind(&linear_neighbor_search::distance<Vertex,Topology,PositionMap>,this,p,_1,space,position),m_compare,max_neighbors,radius);
+      VertexIter ui,ui_end; 
+      boost::tie(ui,ui_end) = vertices(g);
+      min_dist_linear_search(ui,ui_end,output,
+			     boost::bind(&linear_neighbor_search::distance<Vertex,Topology,PositionMap>,
+					 this,
+		                         boost::cref(p),
+		                         _1,
+		                         boost::cref(space),
+		                         position),
+			     m_compare,max_neighbors,radius);
     };
   };
 
@@ -338,7 +357,7 @@ namespace pp {
     template <typename Vertex, typename Topology, typename PositionMap>
     double distance(const typename boost::property_traits<PositionMap>::value_type& p,
                     Vertex u, const Topology& space, PositionMap position) const {
-      return space.distance(p, get(position, u));
+      return get(distance_metric, space)(p, get(position, u), space);
     };
 
     template <typename Graph, typename Topology, typename PositionMap>
@@ -348,11 +367,11 @@ namespace pp {
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::out_edge_iterator EdgeIter;
       d_min = distance(p,u,space,position); 
-      while(boost::out_degree(u,g)) {
+      while(out_degree(u,g)) {
         Vertex v_min = u;
         EdgeIter ei, ei_end;
-        for(boost::tie(ei,ei_end) = boost::out_edges(u,g); ei != ei_end; ++ei) {
-          Vertex v = boost::target(*ei,g); double d_v = distance(p,v,space,position); 
+        for(boost::tie(ei,ei_end) = out_edges(u,g); ei != ei_end; ++ei) {
+          Vertex v = target(*ei,g); double d_v = distance(p,v,space,position); 
           if(m_compare(d_v,d_min)) {
             d_min = d_v; v_min = v;
           };
@@ -382,11 +401,11 @@ namespace pp {
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       if(m_vertex_num_divider == 0)
 	m_vertex_num_divider = 1;
-      Vertex u_min = boost::vertex(std::rand() % boost::num_vertices(g),g);
+      Vertex u_min = vertex(std::rand() % num_vertices(g),g);
       double d_min;
       search(p,u_min,d_min,g,space,position);
-      for(unsigned int i = 0; i < boost::num_vertices(g) / m_vertex_num_divider; ++i) {
-        double d_v; Vertex v = boost::vertex(std::rand() % boost::num_vertices(g),g);
+      for(unsigned int i = 0; i < num_vertices(g) / m_vertex_num_divider; ++i) {
+        double d_v; Vertex v = vertex(std::rand() % num_vertices(g),g);
         search(p,v,d_v,g,space,position);
         if(m_compare(d_v,d_min)) {
           d_min = d_v; u_min = v;
@@ -416,8 +435,8 @@ namespace pp {
         };
       };
       EdgeIter ei, ei_end;
-      for(boost::tie(ei,ei_end) = boost::out_edges(u,g); ei != ei_end; ++ei) {
-	Vertex v = boost::target(*ei,g); double d_v = distance(p,v,space,position);
+      for(boost::tie(ei,ei_end) = out_edges(u,g); ei != ei_end; ++ei) {
+	Vertex v = target(*ei,g); double d_v = distance(p,v,space,position);
 	if(m_compare(d_v,d_min))
 	  search(p,v,output,output_dist,d_v,g,space,position,max_neighbors,radius);
       };
@@ -451,8 +470,8 @@ namespace pp {
       std::vector<double> output_dist;
       if(m_vertex_num_divider == 0)
 	m_vertex_num_divider = 1;
-      for(unsigned int i = 0; i < boost::num_vertices(g) / m_vertex_num_divider; ++i) {
-        Vertex v = boost::vertex(std::rand() % boost::num_vertices(g),g);
+      for(unsigned int i = 0; i < num_vertices(g) / m_vertex_num_divider; ++i) {
+        Vertex v = vertex(std::rand() % num_vertices(g),g);
 	double d_v = distance(p,v,space,position);
         search(p,v,output,output_dist,d_v,g,space,position,max_neighbors,radius);
       };
