@@ -211,6 +211,7 @@ class dvp_tree
       return (*m)[k1] < (*m)[k2];
     };
     
+    /* Invalidates vertices */
     void construct_node(vertex_type aNode, 
 			typename std::vector<Key>::iterator aBegin, 
 			typename std::vector<Key>::iterator aEnd, 
@@ -244,6 +245,7 @@ class dvp_tree
       };
     };
     
+    /* Doesn't invalidate vertices */
     void find_nearest_impl(const point_type& aPoint, distance_type& aSigma, vertex_type aNode, std::multimap<distance_type, Key>& aList, std::size_t K) const {
       typedef typename std::multimap<distance_type, Key>::value_type ListType;
       Key current_key = get(m_key, aNode);
@@ -320,7 +322,7 @@ class dvp_tree
       };
     };
     
-    vertex_type get_leaf(const point_type& aPoint, vertex_type aNode) {
+    vertex_type get_leaf(const point_type& aPoint, vertex_type aNode) const {
       Key current_key = get(m_key, aNode);
       distance_type current_dist = m_distance(aPoint, get(m_position, current_key), m_space);
       out_edge_iter ei,ei_end;
@@ -336,7 +338,7 @@ class dvp_tree
       return get_leaf(aPoint,result);
     };
     
-    vertex_type get_key(Key aVertex, const point_type& aPoint, vertex_type aNode) {
+    vertex_type get_key(Key aVertex, const point_type& aPoint, vertex_type aNode) const {
       Key current_key = get(m_key, aNode);
       if(current_key == aVertex) return aNode;
       distance_type current_dist = m_distance(aPoint, get(m_position, current_key), m_space);
@@ -353,6 +355,7 @@ class dvp_tree
       return get_key(aVertex,aPoint,result);
     };
     
+    /* Doesn't invalidate vertices */
     void update_mu_upwards(const point_type& aPoint, vertex_type aNode) {
       if(aNode == m_root) return;
       vertex_type parent = source(*(in_edges(aNode,m_tree).first), m_tree);
@@ -362,7 +365,7 @@ class dvp_tree
       update_mu_upwards(aPoint,parent);
     };
     
-    bool is_leaf_node(vertex_type aNode) {
+    bool is_leaf_node(vertex_type aNode) const {
       if(out_degree(aNode,m_tree) == 0) return true;
       out_edge_iter ei,ei_end;
       for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
@@ -372,7 +375,7 @@ class dvp_tree
       return true;
     };
     
-    bool is_node_full(vertex_type aNode, int& depth_limit) {
+    bool is_node_full(vertex_type aNode, int& depth_limit) const {
       if(depth_limit < 0)
 	return false;
       if((out_degree(aNode,m_tree) == 0) && (depth_limit == 0))
@@ -397,7 +400,7 @@ class dvp_tree
       return true;
     };
     
-    void collect_keys(std::vector<Key>& aList, vertex_type aNode) {
+    void collect_keys(std::vector<Key>& aList, vertex_type aNode) const {
       aList.push_back(get(m_key, aNode));
       out_edge_iter ei,ei_end;
       for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei)
@@ -405,7 +408,7 @@ class dvp_tree
     };
     
     template <typename Predicate>
-    void collect_keys(std::vector<Key>& aList, vertex_type aNode, Predicate aShouldAdd) {
+    void collect_keys(std::vector<Key>& aList, vertex_type aNode, Predicate aShouldAdd) const {
       Key k = get(m_key, aNode);
       if(aShouldAdd(k))
         aList.push_back(k);
@@ -414,6 +417,7 @@ class dvp_tree
 	collect_keys(aList,target(*ei,m_tree));
     };
     
+    /* Invalidates vertices */
     void clear_node(vertex_type aNode) {
       if(out_degree(aNode,m_tree) == 0) return;
       out_edge_iter ei,ei_end;
