@@ -68,14 +68,17 @@ int main() {
                              TopologyType, 
 			     boost::property_map<WorldGridType, boost::vertex_position_t>::type, 
 			     2> WorldPartition2;
-
-  const unsigned int grid_sizes[] = {100, 200, 500, 1000, 2000, 5000, 10000};
   
-  std::ofstream outFile("test_vp_tree_results_6.dat");
-  outFile << "N\tVP2\tVP2-f\tVP4\tVP4-f\tLS" << std::endl;
+  const unsigned int grid_sizes[] = {100, 200, 300, 400, 500, 800, 1000, 1100, 1300, 1500, 1700, 
+                                     1900, 2000, 2200, 2500, 3000, 3500, 4000, 4500, 5000, 6000,
+				     7000, 8000, 9000, 10000, 12000, 15000, 20000, 25000};
   
-  for(int i=0;i<7;++i) {
+  std::ofstream outFile("test_vp_results/dvp_umap_vecS_3.dat");
+  outFile << "N\tVP2\tVP2d\tVP2e\tVP2-fg\tVP2-fd\tVP2-f\tVP2-fe\tVP4\tVP4d\tVP4e\tVP4-fg\tVP4-fd\tVP4-f\tVP4-fe\tLS\t (all times in micro-seconds per query per vertex)" << std::endl;
+  
+  for(int i=0;i<29;++i) {
     WorldGridType grid;
+    std::size_t eval_count;
     TopologyType m_space("",ReaK::vect<double,6>(0.0,0.0,0.0,0.0,0.0,0.0),ReaK::vect<double,6>(1.0,1.0,1.0,1.0,1.0,1.0));
     boost::property_map<WorldGridType, boost::vertex_position_t>::type m_position(get(boost::vertex_position, grid));
     
@@ -89,59 +92,91 @@ int main() {
       part4.insert(v);
     };
     
-    WorldPartition2 part2_fresh(grid,m_space,m_position);
-    WorldPartition4 part4_fresh(grid,m_space,m_position);
-    
     outFile << grid_sizes[i];
     std::cout << "N = " << grid_sizes[i] << std::endl;
     
     ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition2> nn_finder2;
     nn_finder2.graph_tree_map[&grid] = &part2;
     boost::posix_time::ptime t_start = boost::posix_time::microsec_clock::local_time();
-    for(unsigned int i=0;i<10000;++i) {
+    eval_count = 0;
+    for(unsigned int j=0;j<10000;++j) {
       nn_finder2(m_space.random_point(),grid,m_space,m_position);
+      eval_count += part2.get_dist_eval();
     };
     boost::posix_time::time_duration dt = boost::posix_time::microsec_clock::local_time() - t_start;
-    outFile << "\t" << dt.total_microseconds() * 0.0001;
+    outFile << "\t" << dt.total_microseconds() * 0.0001 / double(grid_sizes[i]);
     std::cout << "VP2" << std::endl;
+    
+    outFile << "\t" << part2.depth();
+    
+    outFile << "\t" << eval_count * 0.0001;
+    
+    t_start = boost::posix_time::microsec_clock::local_time();
+    WorldPartition2 part2_fresh(grid,m_space,m_position);
+    dt = boost::posix_time::microsec_clock::local_time() - t_start;
+    outFile << "\t" << dt.total_microseconds() * 0.0001 / double(grid_sizes[i]);
+    
+    outFile << "\t" << part2_fresh.depth();
     
     ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition2> nn_finder2_fresh;
     nn_finder2_fresh.graph_tree_map[&grid] = &part2_fresh;
     t_start = boost::posix_time::microsec_clock::local_time();
-    for(unsigned int i=0;i<10000;++i) {
+    eval_count = 0;
+    for(unsigned int j=0;j<10000;++j) {
       nn_finder2_fresh(m_space.random_point(),grid,m_space,m_position);
+      eval_count += part2_fresh.get_dist_eval();
     };
     dt = boost::posix_time::microsec_clock::local_time() - t_start;
-    outFile << "\t" << dt.total_microseconds() * 0.0001;
+    outFile << "\t" << dt.total_microseconds() * 0.0001 / double(grid_sizes[i]);
     std::cout << "VP2-fresh" << std::endl;
+    
+    outFile << "\t" << eval_count * 0.0001;
     
     ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition4> nn_finder4;
     nn_finder4.graph_tree_map[&grid] = &part4;
     t_start = boost::posix_time::microsec_clock::local_time();
-    for(unsigned int i=0;i<10000;++i) {
+    eval_count = 0;
+    for(unsigned int j=0;j<10000;++j) {
       nn_finder4(m_space.random_point(),grid,m_space,m_position);
+      eval_count += part4.get_dist_eval();
     };
     dt = boost::posix_time::microsec_clock::local_time() - t_start;
-    outFile << "\t" << dt.total_microseconds() * 0.0001;
+    outFile << "\t" << dt.total_microseconds() * 0.0001 / double(grid_sizes[i]);
     std::cout << "VP4" << std::endl;
+    
+    outFile << "\t" << part4.depth();
+    
+    outFile << "\t" << eval_count * 0.0001;
+    
+    t_start = boost::posix_time::microsec_clock::local_time();
+    WorldPartition4 part4_fresh(grid,m_space,m_position);
+    dt = boost::posix_time::microsec_clock::local_time() - t_start;
+    outFile << "\t" << dt.total_microseconds() * 0.0001 / double(grid_sizes[i]);
+    
+    outFile << "\t" << part4_fresh.depth();
     
     ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition4> nn_finder4_fresh;
     nn_finder4_fresh.graph_tree_map[&grid] = &part4_fresh;
     t_start = boost::posix_time::microsec_clock::local_time();
-    for(unsigned int i=0;i<10000;++i) {
+    eval_count = 0;
+    for(unsigned int j=0;j<10000;++j) {
       nn_finder4_fresh(m_space.random_point(),grid,m_space,m_position);
+      eval_count += part4_fresh.get_dist_eval();
     };
     dt = boost::posix_time::microsec_clock::local_time() - t_start;
-    outFile << "\t" << dt.total_microseconds() * 0.0001;
+    outFile << "\t" << dt.total_microseconds() * 0.0001 / double(grid_sizes[i]);
     std::cout << "VP4-fresh" << std::endl;
+    
+    outFile << "\t" << eval_count * 0.0001;
     
     ReaK::pp::linear_neighbor_search<> lnn_finder;
     t_start = boost::posix_time::microsec_clock::local_time();
-    for(unsigned int i=0;i<10000;++i) {
+    eval_count = 0;
+    for(unsigned int j=0;j<10000;++j) {
       lnn_finder(m_space.random_point(),grid,m_space,m_position);
     };
     dt = boost::posix_time::microsec_clock::local_time() - t_start;
-    outFile << "\t" << dt.total_microseconds() * 0.0001;
+    outFile << "\t" << dt.total_microseconds() * 0.0001 / double(grid_sizes[i]);
     std::cout << "Linear Search" << std::endl;
         
     outFile << std::endl;
