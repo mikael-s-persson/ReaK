@@ -59,15 +59,15 @@ namespace pp {
 
 
 /**
- * This class implements a Dynamic Vantage-Point Tree (DVP-Tree) that
- * allows for O(logN) time nearest-neighbor queries in a metric-space. A DVP-tree is essentially
- * a generalization of a search tree which only requires the space to have a metric which 
- * respects the triangular inequality. 
- * \tparam Key The key type for the tree, essentially the key value is the vertex descriptor type.
- * \tparam Topology The topology type on which the points can reside, should model the MetricSpaceConcept.
- * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the iterators) to a point (position).
+ * This class implements a D-Ary Breadth-first tree that is tailored 
+ * to store elements of a tree as if their were inserted in a breadth-first manner. This type
+ * of tree structure is good for both breadth-first search and depth-first search because 
+ * of locality of reference issues. Ideally, for the least amount of wasted memory, the tree 
+ * should be kept balanced, and this implementation assumes that. The storage pattern is 
+ * similar to a binary heap tree-structure.
+ * \tparam VertexProperties A POD type to be attached to each vertex in the tree.
  * \tparam Arity The arity of the tree, e.g., 2 means a binary-tree.
- * \tparam VPChooser The functor type to use to choose the vantage-point out of a set of vertices.
+ * \tparam EdgeProperties A POD type to be attached to each edge in the tree.
  */
 template <typename VertexProperties,
           std::size_t Arity = 2,
@@ -467,8 +467,34 @@ class d_ary_bf_tree
       return m_vertices[e_i.source_vertex].e[e_i.edge_index];
     };
     
+    bool is_valid(const vertex_descriptor& v_i) const {
+      return ( m_vertices[v_i].out_degree >= 0 );
+    };
     
-    std::pair< out_edge_iterator, out_edge_iterator > get_out_edges(const vertex_descriptor& v) const {
+    edge_size_type get_out_degree( const vertex_descriptor& v_i) const {
+      if( m_vertices[v_i].out_degree < 0 )
+	return 0;
+      else
+	return m_vertices[v_i].out_degree;
+    };
+    
+    edge_size_type get_in_degree( const vertex_descriptor& v_i) const {
+      if(( v_i == 0 ) || ( m_vertices[v_i].out_degree < 0 ))
+	return 0;
+      else
+	return 1;
+    };
+    
+    vertex_descriptor add_child(const vertex_descriptor& v) {
+      if( m_vertices[v].out_degree < 0 ) 
+	throw std::range_error("Cannot add child-node to an empty node!");
+      if( m_vertices[v].out_degree == Arity ) 
+	throw std::range_error("Cannot add child-node to a full node!");
+      vertex_descriptor result = Arity * v + 1 + m_vertices[v].out_degree;
+      if( result >= m_vertices.size() )
+	m_vertices.resize(result + 1);
+      m_vertices[result].out_degree = 0;
+      ++(m_vertices[v].out_degree);
       
     };
     
@@ -506,7 +532,7 @@ std::pair<
   out_edges( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
 	     const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
   typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::out_edge_iterator OutIter;
-  return std::make_pair(OutIter(v,0),OutIter(v,g[v].out_degree));
+  return std::make_pair(OutIter(v,0),OutIter(v,g.get_out_degree(v)));
 };
 
 template <typename VertexProperties,
@@ -515,7 +541,7 @@ template <typename VertexProperties,
 std::size_t
   out_degree( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
 	      const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  return ((g[v].out_degree <= 0) ? 0 : g[v].out_degree);
+  return g.get_out_degree(v);
 };
 
 /***********************************************************************************************
@@ -540,7 +566,7 @@ template <typename VertexProperties,
 std::size_t
   in_degree( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
 	     const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  return (((v == 0) || (g[v].out_degree < 0)) ? 0 : 1);
+  return g.get_in_degree(v);
 };
 
 template <typename VertexProperties,
@@ -549,7 +575,7 @@ template <typename VertexProperties,
 std::size_t
   degree( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
 	  const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  return in_degree(v,g) + out_degree(v,g);
+  return g.get_in_degree(v) + g.get_out_degree(v);
 };
 
 
