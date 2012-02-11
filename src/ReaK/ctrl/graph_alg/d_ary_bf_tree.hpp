@@ -37,21 +37,12 @@
 #ifndef REAK_D_ARY_BF_TREE_HPP
 #define REAK_D_ARY_BF_TREE_HPP
 
-#include <boost/bind.hpp>
-#include <boost/lambda/lambda.hpp>
-#include <boost/graph/graph_concepts.hpp>
-#include <boost/property_map/property_map.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 
-#include <map>
-#include <unordered_map>
 #include <vector>
-#include "metric_space_concept.hpp"
-#include "global_rng.hpp"
-#include <lin_alg/vect_alg.hpp>
-
+#include <stdexcept>
+#include <map>
+#include <iterator>
 
 namespace ReaK {
 
@@ -485,8 +476,8 @@ class d_ary_bf_tree
 	return 1;
     };
     
-    vertex_descriptor add_child(const vertex_descriptor& v) {
-      if( m_vertices[v].out_degree < 0 ) 
+    std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v) {
+      if( (v >= m_vertices.size()) || (m_vertices[v].out_degree < 0) ) 
 	throw std::range_error("Cannot add child-node to an empty node!");
       if( m_vertices[v].out_degree == Arity ) 
 	throw std::range_error("Cannot add child-node to a full node!");
@@ -495,8 +486,28 @@ class d_ary_bf_tree
 	m_vertices.resize(result + 1);
       m_vertices[result].out_degree = 0;
       ++(m_vertices[v].out_degree);
-      
+      return std::make_pair(result, edge_descriptor(v, m_vertices[v].out_degree - 1));
     };
+    
+    void remove_branch(vertex_descriptor v) {
+      if( (v >= m_vertices.size()) || (m_vertices[v].out_degree < 0) )
+	return;  // vertex is already deleted.
+      // this traversal order is intentional (traverse pre-order depth-first, and 
+      // delay removal of empty tail elements as much as possible, such that it is only required once).
+      int max_child = m_vertices[v].out_degree;
+      m_vertices[v].out_degree = -1;
+      for( int i = 0; i < max_child; ++i)
+	remove_branch(Arity * v + 1 + i);
+      // remove empty vertices from the end of the container:
+      if( v == m_vertices.size() - 1 ) {
+	while( m_vertices[v].out_degree < 0 )
+	  --v;
+	++v;
+	m_vertices.erase(m_vertices.begin() + v, m_vertices.end());
+      };
+    };
+    
+    
     
 };
 
@@ -661,6 +672,31 @@ typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor
   typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor Edge;
   return Edge((v - 1) / Arity, (v - 1) % Arity);
 };
+
+
+/***********************************************************************************************
+ *                             MutableTreeConcept
+ * ********************************************************************************************/
+
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties >
+std::pair< 
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
+  add_child_vertex( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
+                    const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  return g.add_child(v);
+};
+
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties >
+void remove_branch( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
+                    const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  return g.remove_branch(v);
+};
+
 
 
 
