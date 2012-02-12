@@ -1,10 +1,12 @@
 /**
- * \file d_ary_bf_tree.hpp
+ * \file d_ary_cob_tree.hpp
  * 
- * This library provides a class that implements a D-Ary Breadth-first tree that is tailored 
- * to store elements of a tree as if their were inserted in a breadth-first manner. This type
+ * This library provides a class that implements a D-Ary Cache-Oblivious B-tree (COB-tree) that is tailored 
+ * to store elements of a tree as if they were inserted in a breadth-first manner. This type
  * of tree structure is good for both breadth-first search and depth-first search because 
- * of locality of reference issues. Ideally, for the least amount of wasted memory, the tree 
+ * of locality of reference issues, much than a classic breadth-first layout because a recursive 
+ * break-down into sub-trees allow for better cache performance for any memory hierarchy (i.e. 
+ * cache-oblivious). Ideally, for the least amount of wasted memory, the tree 
  * should be kept balanced, and this implementation assumes that. The storage pattern is 
  * similar to a binary heap tree-structure.
  * 
@@ -34,8 +36,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_D_ARY_BF_TREE_HPP
-#define REAK_D_ARY_BF_TREE_HPP
+#ifndef REAK_D_ARY_COB_TREE_HPP
+#define REAK_D_ARY_COB_TREE_HPP
 
 #include <boost/graph/properties.hpp>
 
@@ -62,11 +64,12 @@ namespace pp {
  */
 template <typename VertexProperties,
           std::size_t Arity = 2,
-          typename EdgeProperties = boost::no_property >
-class d_ary_bf_tree
+          typename EdgeProperties = boost::no_property,
+	  std::size_t CuttingDepth = 8 >
+class d_ary_cob_tree
 {
   public:
-    typedef d_ary_bf_tree<VertexProperties, Arity, EdgeProperties> self;
+    typedef d_ary_cob_tree<VertexProperties, Arity, EdgeProperties, CuttingDepth> self;
     
     typedef VertexProperties vertex_property_type;
     typedef EdgeProperties edge_property_type;
@@ -398,7 +401,7 @@ class d_ary_bf_tree
      * Construct the D-ary BF-tree with a given reserved depth.
      * \param aDepth The depth of the graph to reserve space for.
      */
-    d_ary_bf_tree(vertices_size_type aDepth = 0) : m_vertex_count(0) {
+    d_ary_cob_tree(vertices_size_type aDepth = 0) : m_vertex_count(0) {
       vertices_size_type vert_count = 1;
       vertices_size_type accum = 1;
       for(vertices_size_type i = 0; i < aDepth; ++i) {
@@ -460,13 +463,6 @@ class d_ary_bf_tree
     
     bool is_valid(const vertex_descriptor& v_i) const {
       return (v_i < m_vertices.size()) && ( m_vertices[v_i].out_degree >= 0 );
-    };
-    
-    edge_size_type get_raw_out_degree( const vertex_descriptor& v_i) const {
-      if( m_vertices[v_i].out_degree < 0 )
-	return 0;
-      else 
-	return m_vertices[v_i].out_degree;
     };
     
     edge_size_type get_out_degree( const vertex_descriptor& v_i) const {
@@ -549,44 +545,48 @@ class d_ary_bf_tree
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
-  source( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor& e,
-	  const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor
+  source( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor& e,
+	  const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
   return e.source_vertex;
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
-  target( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor& e,
-	  const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor
+  target( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor& e,
+	  const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
   return Arity * e.source_vertex + 1 + e.edge_index;
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
 std::pair<
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::out_edge_iterator,
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::out_edge_iterator >
-  out_edges( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-	     const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::out_edge_iterator OutIter;
-  return std::make_pair(OutIter(v,0),OutIter(v,g.get_raw_out_degree(v)));
+ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::out_edge_iterator,
+ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::out_edge_iterator >
+  out_edges( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+	     const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
+  typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::out_edge_iterator OutIter;
+  return std::make_pair(OutIter(v,0),OutIter(v,g.get_out_degree(v)));
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
 std::size_t
-  out_degree( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-	      const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  out_degree( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+	      const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.get_out_degree(v);
 };
 
@@ -596,34 +596,37 @@ std::size_t
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
 std::pair<
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::in_edge_iterator,
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::in_edge_iterator >
-  in_edges( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-	    const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::in_edge_iterator InIter;
+ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::in_edge_iterator,
+ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::in_edge_iterator >
+  in_edges( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+	    const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
+  typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::in_edge_iterator InIter;
   return std::make_pair(InIter(v),InIter());
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
 std::size_t
-  in_degree( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-             const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  in_degree( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+             const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.get_in_degree(v);
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
 std::size_t
-  degree( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-          const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  degree( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+          const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.get_in_degree(v) + g.get_out_degree(v);
 };
 
@@ -634,14 +637,15 @@ std::size_t
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
 std::pair<
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::adjacency_iterator,
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::adjacency_iterator >
-  in_edges( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-	    const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::adjacency_iterator AdjIter;
+ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::adjacency_iterator,
+ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::adjacency_iterator >
+  in_edges( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+	    const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
+  typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::adjacency_iterator AdjIter;
   return std::make_pair(AdjIter(((v - 1) / Arity) * Arity + 1),
 			AdjIter(((v - 1) / Arity + 1) * Arity));
 };
@@ -653,23 +657,25 @@ std::pair<
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
 std::pair<
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator,
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator >
-  vertices( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator VIter;
+ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator,
+ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator >
+  vertices( const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
+  typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator VIter;
   return std::make_pair(VIter(0),
 			VIter(g.capacity()));
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertices_size_type
-  num_vertices( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertices_size_type
+  num_vertices( const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.capacity();
 };
 
@@ -680,23 +686,25 @@ typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertices_size_typ
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
 std::pair<
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_iterator,
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_iterator >
-  edges( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_iterator EIter;
+ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_iterator,
+ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_iterator >
+  edges( const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
+  typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_iterator EIter;
   return std::make_pair(EIter(0,0),
 			EIter(g.capacity(),Arity));
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertices_size_type
-  num_edges( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertices_size_type
+  num_edges( const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.capacity() * Arity;
 };
 
@@ -707,13 +715,14 @@ typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertices_size_typ
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor
-  edge( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor&,
-	const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-        const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor Edge;
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor
+  edge( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor&,
+	const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+        const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
+  typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor Edge;
   return Edge((v - 1) / Arity, (v - 1) % Arity);
 };
 
@@ -725,54 +734,59 @@ typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
-  root_vertex( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor
+  root_vertex( const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.get_root_vertex();
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
-  create_root( d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor
+  create_root( d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.create_root_vertex();
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
 std::pair< 
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
-  add_child_vertex( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
+  add_child_vertex( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+                    d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.add_child(v);
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
-void remove_branch( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+void remove_branch( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+                    d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.remove_branch(v);
 };
 
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
 std::pair< 
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator,
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator >
-  child_vertices( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-                  const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator VIter;
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator,
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator >
+  child_vertices( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+                  const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
+  typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator VIter;
   return std::make_pair(VIter(Arity * v + 1),VIter(Arity * (v + 1)));
 };
 
@@ -785,19 +799,21 @@ typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator >
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
-bool is_vertex_valid( typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor u,
-                      const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+bool is_vertex_valid( typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor u,
+                      const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.is_valid(u);
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
-          typename EdgeProperties >
+          typename EdgeProperties,
+          std::size_t CuttingDepth >
 inline
-bool is_edge_valid( typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor e,
-                    const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+bool is_edge_valid( typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor e,
+                    const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.is_valid(target(e,g));
 };
 

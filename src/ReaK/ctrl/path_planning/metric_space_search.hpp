@@ -49,6 +49,8 @@
 #include "metric_space_concept.hpp"
 #include "global_rng.hpp"
 
+#include "graph_alg/bgl_tree_adaptor.hpp"
+
 namespace boost {
 
   enum edge_vp_distance_t { edge_vp_distance };
@@ -229,16 +231,18 @@ class dvp_tree
       aBegin++;
       if((aEnd - aBegin) < static_cast<int>(Arity)) {
 	for(KeyIter it = aBegin; it != aEnd; ++it) {
-	  vertex_type k = add_vertex(m_tree);
+	  vertex_type k; edge_type e;
+	  boost::tie(k,e) = add_child_vertex(aNode, m_tree);
 	  put(m_key, k, *it);
-	  put(m_mu, add_edge(aNode,k,m_tree).first, aDistMap[*it]);
+	  put(m_mu, e, aDistMap[*it]);
 	};
       } else {
 	for(unsigned int i=Arity;i>=1;--i) {
-	  vertex_type k = add_vertex(m_tree);
+	  vertex_type k; edge_type e;
+	  boost::tie(k,e) = add_child_vertex(aNode, m_tree);
 	  int num_children = (aEnd - aBegin) / i;
 	  std::nth_element(aBegin, aBegin + (num_children-1), aEnd, boost::bind(closer,&aDistMap,_1,_2));
-	  put(m_mu, add_edge(aNode,k,m_tree).first, aDistMap[*(aBegin + (num_children-1))]);
+	  put(m_mu, e, aDistMap[*(aBegin + (num_children-1))]);
 	  KeyIter temp = aBegin; aBegin += num_children;
 	  construct_node(k,temp,aBegin,aDistMap);
 	};
@@ -423,15 +427,10 @@ class dvp_tree
       out_edge_iter ei,ei_end;
       std::vector<vertex_type> children;
       children.reserve(out_degree(aNode,m_tree));
-      for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
-	vertex_type v = target(*ei,m_tree);
-	clear_node(v);
-	children.push_back(v);
-      };
-      for(std::vector<vertex_type>::iterator it = children.begin(); it != children.end(); ++it) {
-	remove_edge(aNode, *it,m_tree);
-	remove_vertex(*it,m_tree);
-      };
+      for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei)
+	children.push_back(target(*ei,m_tree));
+      for(std::vector<vertex_type>::iterator it = children.begin(); it != children.end(); ++it)
+	remove_branch(*it,m_tree);
     };
     
     std::size_t get_depth(vertex_type aNode) const {
@@ -467,9 +466,9 @@ class dvp_tree
              m_position(aPosition), m_vp_chooser(aVPChooser) {
       if(num_vertices(g) == 0) return;
       
-      m_root = add_vertex(m_tree);
+      m_root = create_root(m_tree);
       typename boost::graph_traits<Graph>::vertex_iterator vi,vi_end;
-      tie(vi,vi_end) = vertices(g);
+      boost::tie(vi,vi_end) = vertices(g);
       std::vector<Key> v(vi,vi_end); //Copy the list of vertices to random access memory.
       std::unordered_map<Key,distance_type> dist_map;
       construct_node(m_root, v.begin(), v.end(), dist_map);
@@ -497,7 +496,7 @@ class dvp_tree
              m_position(aPosition), m_vp_chooser(aVPChooser) {
       if(aBegin == aEnd) return;
       
-      m_root = add_vertex(m_tree);
+      m_root = create_root(m_tree);
       std::vector<Key> v(aBegin,aEnd); //Copy the list of vertices to random access memory.
       std::unordered_map<Key,distance_type> dist_map;
       construct_node(m_root, v.begin(), v.end(), dist_map);
@@ -524,14 +523,14 @@ class dvp_tree
      */
     void insert(Key u) { 
       if(num_vertices(m_tree) == 0) {
-	m_root = add_vertex(m_tree);
+	m_root = create_root(m_tree);
 	put(m_key,m_root,u);
 	return;
       };
       point_type u_pt = get(m_position, u); 
       vertex_type u_realleaf = get_leaf(u_pt,m_root);
       if(u_realleaf == m_root) { //if the root is the leaf, it requires special attention since no parent exists.
-	vertex_type u_node = add_vertex(m_tree); 
+        vertex_type u_node = add_vertex(m_tree); 
 	put(m_key, u_node, u); 
 	put(m_mu, add_edge(u_realleaf,u_node,m_tree).first, m_distance(u_pt, get(m_position,get(m_key,u_realleaf)), m_space)); 
 	update_mu_upwards(u_pt,u_realleaf); 
