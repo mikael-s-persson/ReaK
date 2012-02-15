@@ -50,6 +50,7 @@
 #include "global_rng.hpp"
 
 #include "graph_alg/bgl_tree_adaptor.hpp"
+#include "graph_alg/d_ary_bf_tree.hpp"
 
 namespace boost {
 
@@ -181,6 +182,8 @@ class dvp_tree
     typedef double distance_type;
     
   private:
+    
+#if 1
     typedef boost::property< boost::vertex_vp_key_index_t, Key, boost::no_property > vertex_properties; 
     
     typedef boost::property< boost::edge_vp_distance_t, distance_type, boost::no_property > edge_properties;
@@ -190,8 +193,8 @@ class dvp_tree
 	  	                   edge_properties,
 		                   boost::vecS> tree_indexer;
 				   
-    typedef boost::adjacency_list_traits<boost::vecS,boost::listS,boost::bidirectionalS,boost::vecS>::vertex_descriptor vertex_type;
-    typedef boost::adjacency_list_traits<boost::vecS,boost::listS,boost::bidirectionalS,boost::vecS>::edge_descriptor edge_type;
+    typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor vertex_type;
+    typedef typename boost::graph_traits<tree_indexer>::edge_descriptor edge_type;
     typedef typename boost::graph_traits<tree_indexer>::out_edge_iterator out_edge_iter;
     typedef typename boost::graph_traits<tree_indexer>::in_edge_iterator in_edge_iter;
     
@@ -199,6 +202,25 @@ class dvp_tree
     vertex_type m_root;
     typename boost::property_map< tree_indexer, boost::vertex_vp_key_index_t >::type m_key;
     typename boost::property_map< tree_indexer, boost::edge_vp_distance_t >::type m_mu;
+#else
+    typedef Key vertex_properties; 
+    
+    typedef distance_type edge_properties;
+    
+    typedef ReaK::pp::d_ary_bf_tree< vertex_properties,
+                                     2, edge_properties> tree_indexer;
+				   
+    typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor vertex_type;
+    typedef typename boost::graph_traits<tree_indexer>::edge_descriptor edge_type;
+    typedef typename boost::graph_traits<tree_indexer>::out_edge_iterator out_edge_iter;
+    typedef typename boost::graph_traits<tree_indexer>::in_edge_iterator in_edge_iter;
+    
+    tree_indexer m_tree;
+    vertex_type m_root;
+    tree_indexer& m_key;
+    tree_indexer& m_mu;
+#endif
+    
     const Topology& m_space;
     typename metric_space_traits<Topology>::distance_metric_type m_distance;
     PositionMap m_position;
@@ -213,7 +235,8 @@ class dvp_tree
       return (*m)[k1] < (*m)[k2];
     };
     
-    /* Invalidates vertices */
+    /* NOTE Invalidates vertices */
+    /* Does not require persistent vertices */
     void construct_node(vertex_type aNode, 
 			typename std::vector<Key>::iterator aBegin, 
 			typename std::vector<Key>::iterator aEnd, 
@@ -249,7 +272,8 @@ class dvp_tree
       };
     };
     
-    /* Doesn't invalidate vertices */
+    /* Does not invalidate vertices */
+    /* Does not require persistent vertices */
     void find_nearest_impl(const point_type& aPoint, distance_type& aSigma, vertex_type aNode, std::multimap<distance_type, Key>& aList, std::size_t K) const {
       typedef typename std::multimap<distance_type, Key>::value_type ListType;
       Key current_key = get(m_key, aNode);
@@ -326,6 +350,8 @@ class dvp_tree
       };
     };
     
+    /* Does not invalidate vertices */
+    /* Does not require persistent vertices */
     vertex_type get_leaf(const point_type& aPoint, vertex_type aNode) const {
       Key current_key = get(m_key, aNode);
       distance_type current_dist = m_distance(aPoint, get(m_position, current_key), m_space);
@@ -342,15 +368,17 @@ class dvp_tree
       return get_leaf(aPoint,result);
     };
     
+    /* Does not invalidate vertices */
+    /* Does not require persistent vertices */
     vertex_type get_key(Key aVertex, const point_type& aPoint, vertex_type aNode) const {
       Key current_key = get(m_key, aNode);
       if(current_key == aVertex) return aNode;
       distance_type current_dist = m_distance(aPoint, get(m_position, current_key), m_space);
-      out_edge_iter ei,ei_end;
       //first, locate the partition in which aPoint is:
       if(out_degree(aNode,m_tree) == 0)
-	return vertex_type();
+	throw int(0);
       vertex_type result = aNode;
+      out_edge_iter ei,ei_end;
       for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
 	result = target(*ei,m_tree);
 	if(current_dist < get(m_mu, *ei)) 
@@ -359,7 +387,8 @@ class dvp_tree
       return get_key(aVertex,aPoint,result);
     };
     
-    /* Doesn't invalidate vertices */
+    /* Does not invalidate vertices */
+    /* Does not require persistent vertices */
     void update_mu_upwards(const point_type& aPoint, vertex_type aNode) {
       if(aNode == m_root) return;
       vertex_type parent = source(*(in_edges(aNode,m_tree).first), m_tree);
@@ -369,6 +398,8 @@ class dvp_tree
       update_mu_upwards(aPoint,parent);
     };
     
+    /* Does not invalidate vertices */
+    /* Does not require persistent vertices */
     bool is_leaf_node(vertex_type aNode) const {
       if(out_degree(aNode,m_tree) == 0) return true;
       out_edge_iter ei,ei_end;
@@ -379,6 +410,8 @@ class dvp_tree
       return true;
     };
     
+    /* Does not invalidate vertices */
+    /* Does not require persistent vertices */
     bool is_node_full(vertex_type aNode, int& depth_limit) const {
       if(depth_limit < 0)
 	return false;
@@ -404,6 +437,8 @@ class dvp_tree
       return true;
     };
     
+    /* Does not invalidate vertices */
+    /* Does not require persistent vertices */
     void collect_keys(std::vector<Key>& aList, vertex_type aNode) const {
       aList.push_back(get(m_key, aNode));
       out_edge_iter ei,ei_end;
@@ -411,17 +446,8 @@ class dvp_tree
 	collect_keys(aList,target(*ei,m_tree));
     };
     
-    template <typename Predicate>
-    void collect_keys(std::vector<Key>& aList, vertex_type aNode, Predicate aShouldAdd) const {
-      Key k = get(m_key, aNode);
-      if(aShouldAdd(k))
-        aList.push_back(k);
-      out_edge_iter ei,ei_end;
-      for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei)
-	collect_keys(aList,target(*ei,m_tree));
-    };
-    
-    /* Invalidates vertices */
+    /* NOTE Invalidates vertices */
+    /* NOTE Requires persistent vertices */
     void clear_node(vertex_type aNode) {
       if(out_degree(aNode,m_tree) == 0) return;
       out_edge_iter ei,ei_end;
@@ -429,10 +455,12 @@ class dvp_tree
       children.reserve(out_degree(aNode,m_tree));
       for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei)
 	children.push_back(target(*ei,m_tree));
-      for(std::vector<vertex_type>::iterator it = children.begin(); it != children.end(); ++it)
+      for(typename std::vector<vertex_type>::iterator it = children.begin(); it != children.end(); ++it)
 	remove_branch(*it,m_tree);
     };
     
+    /* Does not invalidate vertices */
+    /* Does not require persistent vertices */
     std::size_t get_depth(vertex_type aNode) const {
       std::size_t max_depth = 0;
       out_edge_iter ei,ei_end;
@@ -460,8 +488,13 @@ class dvp_tree
 	     PositionMap aPosition,
 	     VPChooser aVPChooser = VPChooser()) : 
 	     m_tree(), m_root(), 
+#if 1
              m_key(get(boost::vertex_vp_key_index,m_tree)), 
              m_mu(get(boost::edge_vp_distance,m_tree)),
+#else
+             m_key(m_tree), 
+             m_mu(m_tree),
+#endif
              m_space(aSpace), m_distance(get(distance_metric,aSpace)), 
              m_position(aPosition), m_vp_chooser(aVPChooser) {
       if(num_vertices(g) == 0) return;
@@ -490,8 +523,13 @@ class dvp_tree
 	     PositionMap aPosition,
 	     VPChooser aVPChooser = VPChooser()) : 
 	     m_tree(), m_root(), 
+#if 1
              m_key(get(boost::vertex_vp_key_index,m_tree)), 
              m_mu(get(boost::edge_vp_distance,m_tree)),
+#else
+             m_key(m_tree), 
+             m_mu(m_tree),
+#endif
              m_space(aSpace), m_distance(get(distance_metric,aSpace)), 
              m_position(aPosition), m_vp_chooser(aVPChooser) {
       if(aBegin == aEnd) return;
@@ -530,9 +568,10 @@ class dvp_tree
       point_type u_pt = get(m_position, u); 
       vertex_type u_realleaf = get_leaf(u_pt,m_root);
       if(u_realleaf == m_root) { //if the root is the leaf, it requires special attention since no parent exists.
-        vertex_type u_node = add_vertex(m_tree); 
+        vertex_type u_node; edge_type l_u;
+	boost::tie(u_node, l_u) = add_child_vertex(u_realleaf, m_tree); //add_vertex(m_tree); 
 	put(m_key, u_node, u); 
-	put(m_mu, add_edge(u_realleaf,u_node,m_tree).first, m_distance(u_pt, get(m_position,get(m_key,u_realleaf)), m_space)); 
+	put(m_mu, l_u, m_distance(u_pt, get(m_position,get(m_key,u_realleaf)), m_space)); 
 	update_mu_upwards(u_pt,u_realleaf); 
 	return;
       };
@@ -575,9 +614,10 @@ class dvp_tree
 	} else {
 	  //this means that either the root node is full or there are branches of the tree that are deeper than u_realleaf, 
 	  // and thus, in either case, u_realleaf should be expanded.
-	  p = add_vertex(m_tree);
+	  edge_type l_p;
+	  boost::tie(p, l_p) = add_child_vertex(u_realleaf, m_tree);
 	  put(m_key, p, u);
-	  put(m_mu, add_edge(u_realleaf,p,m_tree).first, m_distance(u_pt, get(m_position,get(m_key,u_realleaf)), m_space));
+	  put(m_mu, l_p, m_distance(u_pt, get(m_position,get(m_key,u_realleaf)), m_space));
 	  update_mu_upwards(u_pt,u_realleaf);
 	};
       };
@@ -590,7 +630,6 @@ class dvp_tree
      */
     template <typename ForwardIterator>
     void insert(ForwardIterator aBegin, ForwardIterator aEnd) { 
-      if(num_vertices(m_tree) == 0) return;
       std::for_each(aBegin,aEnd,boost::bind(&dvp_tree<Key,Topology,PositionMap,Arity,VPChooser>::insert,this,_1));
       //TODO: There's got to be a better way to insert many elements (most likely a similar strategy to the erase multiple function).
     };
@@ -600,14 +639,32 @@ class dvp_tree
      * \param u The vertex to be removed from the DVP-tree.
      */
     void erase(Key u) { 
-      if(num_vertices(m_tree) == 0) return;
+      if(num_vertices(m_tree) == 0) 
+	return;
       point_type u_pt = get(m_position, u);
-      vertex_type u_node = get_key(u, u_pt, m_root);
-      if(u_node == vertex_type()) return;
-      out_edge_iter ei,ei_end;
+      vertex_type u_node;
+      try {
+        u_node = get_key(u, u_pt, m_root);
+      } catch (int err) {
+        return;
+      };
+      out_edge_iter ei, ei_end;
       std::vector<Key> key_list;
-      for(boost::tie(ei,ei_end) = out_edges(u_node,m_tree); ei != ei_end; ++ei)
-	collect_keys(key_list,target(*ei,m_tree));
+      if( out_degree(u_node, m_tree) > 0 ) {
+        for(boost::tie(ei,ei_end) = out_edges(u_node,m_tree); ei != ei_end; ++ei)
+	  collect_keys(key_list,target(*ei,m_tree));
+      } else {
+	if( u_node == m_root ) {
+	  clear();
+	  return;
+	};
+	vertex_type u_child = u_node;
+	u_node = source(*(in_edges(u_node,m_tree).first), m_tree);
+	for(boost::tie(ei,ei_end) = out_edges(u_node,m_tree); ei != ei_end; ++ei) {
+	  if( target(*ei, m_tree) != u_child )
+	    collect_keys(key_list,target(*ei, m_tree));
+	};
+      };
       clear_node(u_node);
       std::unordered_map<Key,distance_type> dist_map;
       construct_node(u_node, key_list.begin(), key_list.end(), dist_map);
@@ -622,32 +679,70 @@ class dvp_tree
     template <typename ForwardIterator>
     void erase(ForwardIterator aBegin, ForwardIterator aEnd) { 
       if(num_vertices(m_tree) == 0) return;
-      typedef std::list< std::pair< vertex_type,std::vector<Key> > > key_listing;
+      typedef std::list< std::pair< std::pair< Key, Key>, std::vector<Key> > > key_listing;
       key_listing key_lists; //will hold a list of unique nodes and all their non-erased 
-      for(;aBegin != aEnd;++aBegin) {
-	point_type u_pt = get(m_position, *aBegin);
-	vertex_type u_node = get_key(*aBegin, u_pt, m_root);
-	if(u_node == vertex_type()) continue;
-	key_lists.push_back( std::make_pair(u_node, std::vector<Key>()) );
-	for(typename key_listing::iterator it = key_lists.begin(); ((it != key_lists.end()) && (it->first != u_node)); ++it) {
-	  Key v = get(m_key,it->first);
-	  if(get_key(v,get(m_position,v),u_node) == it->first) {
-	    //this means that v is a child of u_node, thus, it's key_list should be merged with u_nodes list.
-	    key_lists.back().second.insert(key_lists.back().second.end(),it->second.begin(),it->second.end());
-	    remove_edge(source(*(in_edges(v,m_tree).first),m_tree),v,m_tree);
-	    remove_vertex(v,m_tree);
-	    key_lists.erase(it--);
+      
+      for(ForwardIterator first = aBegin; first != aEnd; ++first) {
+	// check if the key is already in the key-listings.
+	bool already_collected = false;
+	for(typename key_listing::iterator it = key_lists.begin(); it != key_lists.end(); ++it) {
+	  typename std::vector<Key>::iterator it_key = std::binary_search(it->second.begin(), it->second.end(), *first);
+	  if( it_key != it->second.end() ) {
+	    // the key was found in this key-listing.
+	    it->second.erase(it_key);
+	    already_collected = true;
+	    break;
 	  };
 	};
+	if(already_collected) continue;
+	vertex_type u_node;
+	try {
+	  u_node = get_key(*first, get(m_position, *first), m_root);
+	} catch (int err) {
+	  continue;
+	};
+	
+	key_lists.push_back( std::make_pair(std::make_pair(*first, *first), std::vector<Key>()) );
 	out_edge_iter ei,ei_end;
-	for(boost::tie(ei,ei_end) = out_edges(u_node,m_tree); ei != ei_end; ++ei)
-	  collect_keys(key_lists.back().second,target(*ei,m_tree),boost::bind<bool>(boost::lambda::unlambda(_1 == std::find(aBegin,aEnd,_2)),aEnd,_1));
-	clear_node(u_node);
+	if(out_degree(u_node, m_tree) == 0) {
+	  if( u_node == m_root ) {
+	    clear();
+	    return;
+	  };
+	  vertex_type u_child = u_node;
+	  u_node = source(*(in_edges(u_node,m_tree).first), m_tree);
+	  for(boost::tie(ei,ei_end) = out_edges(u_node,m_tree); ei != ei_end; ++ei) {
+	    if( target(*ei, m_tree) != u_child )
+	      collect_keys(key_lists.back().second,target(*ei, m_tree));
+	  };
+	  key_lists.back().first.second = get(m_key, u_node, m_tree);
+	} else {
+	  for(boost::tie(ei,ei_end) = out_edges(u_node, m_tree); ei != ei_end; ++ei)
+	    collect_keys(key_lists.back().second, target(*ei,m_tree));
+	};
+	std::sort(key_lists.back().second.begin(), key_lists.back().second.end());
       };
-      //at this point, there should be a list of nodes to be reconstructed along with a list of keys that they should contain.
+      
       for(typename key_listing::iterator it = key_lists.begin(); it != key_lists.end(); ++it) {
-	std::unordered_map<Key,distance_type> dist_map;
-	construct_node(it->first,it->second.begin(),it->second.end(),dist_map);
+	typename key_listing::iterator it2 = it; ++it2;
+	for(; it2 != key_lists.end(); ++it2) {
+	  typename std::vector<Key>::iterator it_key = std::binary_search(it2->second.begin(), it2->second.end(), it->first.first);
+	  if( it_key != it2->second.end() ) {
+	    // the key was found in this key-listing.
+	    it2->second.erase(it_key);
+	    key_lists.erase(it--);
+	    break;
+	  };
+	};
+      };
+      
+      for(typename key_listing::iterator it = key_lists.begin(); it != key_lists.end(); ++it) {
+	try {
+	  vertex_type u_node = get_key(it->first.second, get(m_position, it->first.second), m_root);
+	  clear_node(u_node);
+	  std::unordered_map<Key,distance_type> dist_map;
+	  construct_node(u_node,it->second.begin(),it->second.end(),dist_map);
+	} catch (int err) { };
       };
     };
     
@@ -655,8 +750,10 @@ class dvp_tree
      * Clears the DVP-tree. 
      */
     void clear() {
-      m_tree.clear();
-      m_root = vertex_type();
+      if( num_vertices(m_tree) == 0 ) {
+        remove_branch(m_root,m_tree);
+        m_root = vertex_type();
+      };
     }; 
     
     /**

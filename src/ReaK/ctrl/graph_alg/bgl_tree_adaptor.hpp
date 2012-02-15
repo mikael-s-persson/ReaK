@@ -48,18 +48,16 @@ namespace boost {
 template <typename Graph >
 inline
 typename graph_traits<Graph>::vertex_descriptor
-  root_vertex( const Graph& g) {
+  get_root_vertex( const Graph& g) {
   return *(vertices(g).first);
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename Graph >
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
-  create_root( d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename graph_traits<Graph>::vertex_descriptor
+  create_root( Graph& g) {
   if(num_vertices(g) > 0)
-    remove_branch(root_vertex(g), g);
+    remove_branch(get_root_vertex(g), g);
   return add_vertex(g);
 };
 
@@ -78,7 +76,7 @@ typename graph_traits<Graph>::edge_descriptor >
 
 template <typename Graph >
 inline
-void remove_branch( typename graph_traits<Graph>::vertex_descriptor& u,
+void remove_branch( const typename graph_traits<Graph>::vertex_descriptor& u,
                     Graph& g) {
   typedef typename graph_traits<Graph>::out_edge_iterator EdgeIter;
   typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
@@ -86,7 +84,7 @@ void remove_branch( typename graph_traits<Graph>::vertex_descriptor& u,
   EdgeIter ei, ei_end;
   for( tie(ei, ei_end) = out_edges(u,g); ei != ei_end; ++ei)
     v_list.push_back(target(*ei,g));
-  for( std::vector<Vertex>::iterator it = v_list.begin(); it != v_list.end(); ++it)
+  for( typename std::vector<Vertex>::iterator it = v_list.begin(); it != v_list.end(); ++it)
     remove_branch(*it, g);
   clear_vertex(u, g);
   remove_vertex(u, g);

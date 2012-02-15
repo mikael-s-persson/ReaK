@@ -73,7 +73,7 @@ int main() {
                                      1900, 2000, 2200, 2500, 3000, 3500, 4000, 4500, 5000, 6000,
 				     7000, 8000, 9000, 10000, 12000, 15000, 20000, 25000};
   
-  std::ofstream outFile("test_vp_results/dvp_umap_vecS_3.dat");
+  std::ofstream outFile("test_vp_results/dvp_umap_vecS_4.dat");
   outFile << "N\tVP2\tVP2d\tVP2e\tVP2-fg\tVP2-fd\tVP2-f\tVP2-fe\tVP4\tVP4d\tVP4e\tVP4-fg\tVP4-fd\tVP4-f\tVP4-fe\tLS\t (all times in micro-seconds per query per vertex)" << std::endl;
   
   for(int i=0;i<29;++i) {
