@@ -525,6 +525,20 @@ class d_ary_bf_tree
       return std::make_pair(result, edge_descriptor(v, new_edge));
     };
     
+    void update_out_degree(vertex_descriptor v) {
+      if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) )
+	return;  // vertex is already updated.
+      for( int i = Arity; i > 0; --i) {
+	vertex_descriptor u = Arity * v + i;
+	if( ( u < vertex_descriptor(m_vertices.size()) ) &&
+	    ( m_vertices[u].out_degree >= 0 ) ) {
+	  m_vertices[v].out_degree = i;
+	  return;
+	};
+      };
+      m_vertices[v].out_degree = 0;
+    };
+    
     void remove_branch(vertex_descriptor v) {
       if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) )
 	return;  // vertex is already deleted.
@@ -532,9 +546,11 @@ class d_ary_bf_tree
       // this traversal order is intentional (traverse pre-order depth-first, and 
       // delay removal of empty tail elements as much as possible, such that it is only required once).
       int max_child = m_vertices[v].out_degree;
-      m_vertices[v].out_degree = -1;
       for( int i = 0; i < max_child; ++i)
 	remove_branch(Arity * v + 1 + i);
+      m_vertices[v].out_degree = -1;
+      if( v != 0 )  // if the node is not the root one, then update the out-degree of the parent node:
+	update_out_degree( (v - 1) / Arity );
       // remove empty vertices from the end of the container:
       if( v == vertex_descriptor(m_vertices.size() - 1) ) {
 	while( (v > 0) && ( m_vertices[v].out_degree < 0 ) )
@@ -552,6 +568,7 @@ class d_ary_bf_tree
       if(m_vertices[0].out_degree >= 0)
 	remove_branch(0);
       m_vertices[0].out_degree = 0;
+      ++m_vertex_count;
       return 0;
     };
     
@@ -686,7 +703,7 @@ template <typename VertexProperties,
 inline
 typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertices_size_type
   num_vertices( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  return g.capacity();
+  return g.size();
 };
 
 
@@ -713,7 +730,7 @@ template <typename VertexProperties,
 inline
 typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertices_size_type
   num_edges( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  return g.capacity() * Arity;
+  return g.size() - 1;
 };
 
 

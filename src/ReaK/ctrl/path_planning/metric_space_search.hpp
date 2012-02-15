@@ -183,7 +183,7 @@ class dvp_tree
     
   private:
     
-#if 1
+#if 0
     typedef boost::property< boost::vertex_vp_key_index_t, Key, boost::no_property > vertex_properties; 
     
     typedef boost::property< boost::edge_vp_distance_t, distance_type, boost::no_property > edge_properties;
@@ -208,7 +208,7 @@ class dvp_tree
     typedef distance_type edge_properties;
     
     typedef ReaK::pp::d_ary_bf_tree< vertex_properties,
-                                     2, edge_properties> tree_indexer;
+                                     Arity, edge_properties> tree_indexer;
 				   
     typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor vertex_type;
     typedef typename boost::graph_traits<tree_indexer>::edge_descriptor edge_type;
@@ -252,9 +252,11 @@ class dvp_tree
       put(m_key, aNode, *aBegin);
       aDistMap.erase(*aBegin);
       aBegin++;
+      if( out_degree(aNode, m_tree) != 0 )
+	clear_node(aNode);
       if((aEnd - aBegin) < static_cast<int>(Arity)) {
 	for(KeyIter it = aBegin; it != aEnd; ++it) {
-	  vertex_type k; edge_type e;
+	  vertex_type k; edge_type e; 
 	  boost::tie(k,e) = add_child_vertex(aNode, m_tree);
 	  put(m_key, k, *it);
 	  put(m_mu, e, aDistMap[*it]);
@@ -488,7 +490,7 @@ class dvp_tree
 	     PositionMap aPosition,
 	     VPChooser aVPChooser = VPChooser()) : 
 	     m_tree(), m_root(), 
-#if 1
+#if 0
              m_key(get(boost::vertex_vp_key_index,m_tree)), 
              m_mu(get(boost::edge_vp_distance,m_tree)),
 #else
@@ -523,7 +525,7 @@ class dvp_tree
 	     PositionMap aPosition,
 	     VPChooser aVPChooser = VPChooser()) : 
 	     m_tree(), m_root(), 
-#if 1
+#if 0
              m_key(get(boost::vertex_vp_key_index,m_tree)), 
              m_mu(get(boost::edge_vp_distance,m_tree)),
 #else
@@ -561,17 +563,23 @@ class dvp_tree
      */
     void insert(Key u) { 
       if(num_vertices(m_tree) == 0) {
-	m_root = create_root(m_tree);
-	put(m_key,m_root,u);
+	m_root = create_root(m_tree); 
+	put(m_key,m_root,u); 
 	return;
       };
       point_type u_pt = get(m_position, u); 
       vertex_type u_realleaf = get_leaf(u_pt,m_root);
       if(u_realleaf == m_root) { //if the root is the leaf, it requires special attention since no parent exists.
-        vertex_type u_node; edge_type l_u;
-	boost::tie(u_node, l_u) = add_child_vertex(u_realleaf, m_tree); //add_vertex(m_tree); 
-	put(m_key, u_node, u); 
-	put(m_mu, l_u, m_distance(u_pt, get(m_position,get(m_key,u_realleaf)), m_space)); 
+        //vertex_type u_node; edge_type l_u;
+	//boost::tie(u_node, l_u) = add_child_vertex(u_realleaf, m_tree); //add_vertex(m_tree); 
+	//put(m_key, u_node, u); 
+	//put(m_mu, l_u, m_distance(u_pt, get(m_position,get(m_key,u_realleaf)), m_space)); 
+	std::vector<Key> key_list;       
+	collect_keys(key_list,u_realleaf);   
+	key_list.push_back(u); 
+	clear_node(u_realleaf); 
+	std::unordered_map<Key,distance_type> dist_map; 
+	construct_node(u_realleaf, key_list.begin(), key_list.end(), dist_map); 
 	update_mu_upwards(u_pt,u_realleaf); 
 	return;
       };
@@ -582,43 +590,43 @@ class dvp_tree
 	//OR 
 	// if leaf is not really a leaf, then it means that this sub-tree is definitely not balanced and not full either,
 	//  then all the Keys ought to be collected and u_leaf ought to be reconstructed.
-	std::vector<Key> key_list; 
-	collect_keys(key_list,u_leaf); 
+	std::vector<Key> key_list;       
+	collect_keys(key_list,u_leaf);   
 	key_list.push_back(u); 
-	clear_node(u_leaf); 
+	clear_node(u_leaf);              
 	std::unordered_map<Key,distance_type> dist_map; 
 	construct_node(u_leaf, key_list.begin(), key_list.end(), dist_map); 
-	update_mu_upwards(u_pt,u_leaf); 
+	update_mu_upwards(u_pt,u_leaf);  
       } else {
 	//if it is a full-leaf, then this is a leaf node, and it is balanced but full, 
 	// we should then find a non-full parent.
-	vertex_type p = u_leaf;
+	vertex_type p = u_leaf;   
 	int actual_depth_limit = 1;
 	int last_depth_limit = actual_depth_limit;
   	while((p != m_root) && (is_node_full(p,last_depth_limit))) {
 	  p = source(*(in_edges(p,m_tree).first),m_tree);
 	  last_depth_limit = ++actual_depth_limit;
 	};
-	bool is_p_full = false;
+	bool is_p_full = false; 
 	if(p == m_root)
 	  is_p_full = is_node_full(p,last_depth_limit);
 	if((!is_p_full) && (last_depth_limit >= 0)) {
 	  //this means that we can add our key to the sub-tree of p and reconstruct from there.
-	  std::vector<Key> key_list;
-	  collect_keys(key_list,p);
+	  std::vector<Key> key_list;     
+	  collect_keys(key_list,p);      
 	  key_list.push_back(u);
-	  clear_node(p);
+	  clear_node(p);                 
 	  std::unordered_map<Key,distance_type> dist_map;
 	  construct_node(p, key_list.begin(), key_list.end(), dist_map);
-	  update_mu_upwards(u_pt,p);
+	  update_mu_upwards(u_pt,p);     
 	} else {
 	  //this means that either the root node is full or there are branches of the tree that are deeper than u_realleaf, 
 	  // and thus, in either case, u_realleaf should be expanded.
-	  edge_type l_p;
+	  edge_type l_p;                 
 	  boost::tie(p, l_p) = add_child_vertex(u_realleaf, m_tree);
-	  put(m_key, p, u);
+	  put(m_key, p, u);              
 	  put(m_mu, l_p, m_distance(u_pt, get(m_position,get(m_key,u_realleaf)), m_space));
-	  update_mu_upwards(u_pt,u_realleaf);
+	  update_mu_upwards(u_pt,u_realleaf);   
 	};
       };
     };
