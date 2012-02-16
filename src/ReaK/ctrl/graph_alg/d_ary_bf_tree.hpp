@@ -511,7 +511,7 @@ class d_ary_bf_tree
 	throw std::range_error("Cannot add child-node to an empty node!");
       int new_edge = 0;
       for(; new_edge < m_vertices[v].out_degree; ++new_edge)
-	if( m_vertices[new_edge].out_degree < 0 )
+	if( m_vertices[Arity * v + 1 + new_edge].out_degree < 0 )
 	  break;
       if( new_edge == Arity ) 
 	throw std::range_error("Cannot add child-node to a full node!");

@@ -40,15 +40,41 @@
 #define REAK_D_ARY_COB_TREE_HPP
 
 #include <boost/graph/properties.hpp>
+#include <boost/config.hpp>
 
 #include <vector>
 #include <stdexcept>
 #include <map>
+#include <unordered_map>
 #include <iterator>
 
 namespace ReaK {
 
 namespace pp {
+  
+  
+namespace detail {
+  
+  
+  template <std::size_t Arity, std::size_t CuttingDepth>
+  struct get_cob_block_property {
+    BOOST_STATIC_CONSTANT(std::size_t, fanout = Arity * get_cob_block_property<Arity, CuttingDepth - 1>::fanout);
+    BOOST_STATIC_CONSTANT(std::size_t, vertex_count = fanout + get_cob_block_property<Arity, CuttingDepth - 1>::vertex_count);
+  };
+  
+  template <std::size_t Arity>
+  struct get_cob_block_property<Arity, 1> {
+    BOOST_STATIC_CONSTANT(std::size_t, fanout = Arity);
+    BOOST_STATIC_CONSTANT(std::size_t, vertex_count = 1);
+  };
+  
+  template <std::size_t Arity>
+  struct get_cob_block_property<Arity, 0> {
+    char cannot_instantiate_this_specialization[0];
+  };
+  
+  
+};
 
 
 /**
@@ -71,6 +97,9 @@ class d_ary_cob_tree
   public:
     typedef d_ary_cob_tree<VertexProperties, Arity, EdgeProperties, CuttingDepth> self;
     
+    BOOST_STATIC_CONSTANT(std::size_t, BlockFanout = (detail::get_cob_block_property< Arity, CuttingDepth >::fanout));
+    BOOST_STATIC_CONSTANT(std::size_t, BlockVertexCount = (detail::get_cob_block_property< Arity, CuttingDepth >::vertex_count));
+    
     typedef VertexProperties vertex_property_type;
     typedef EdgeProperties edge_property_type;
     
@@ -84,17 +113,84 @@ class d_ary_cob_tree
     
     typedef std::vector< value_type > container_type;
     
-    typedef typename container_type::difference_type vertex_descriptor;
+    typedef std::unordered_map< std::size_t, container_type > block_map_type;
     
     typedef typename container_type::size_type vertices_size_type;
     typedef vertices_size_type edge_size_type;
     typedef vertices_size_type degree_size_type;
     
+    struct vertex_descriptor {
+      typedef typename container_type::difference_type vertex_index_type;
+      
+      std::size_t block_id;
+      vertex_index_type vertex_id;
+      
+      vertex_descriptor(std::size_t aBlockID = 0, 
+			vertex_index_type aVertexID = 0) : 
+			block_id(aBlockID), vertex_id(aVertexID) { };
+      
+      friend bool operator==( const vertex_descriptor& lhs, const vertex_descriptor& rhs) { 
+	return ((lhs.block_id == rhs.block_id) && (lhs.vertex_id == rhs.vertex_id)); 
+      };
+      friend bool operator!=( const vertex_descriptor& lhs, const vertex_descriptor& rhs) { 
+	return ((lhs.block_id != rhs.block_id) || (lhs.vertex_id != rhs.vertex_id)); 
+      };
+      friend bool operator <( const vertex_descriptor& lhs, const vertex_descriptor& rhs) {
+	if( lhs.block_id == rhs.block_id )
+	  return ( lhs.vertex_id < rhs.vertex_id );
+	else 
+	  return ( lhs.block_id < rhs.block_id );
+      };
+      friend bool operator<=( const vertex_descriptor& lhs, const vertex_descriptor& rhs) {
+	if( lhs.block_id == rhs.block_id )
+	  return ( lhs.vertex_id <= rhs.vertex_id );
+	else 
+	  return ( lhs.block_id < rhs.block_id );
+      };
+      friend bool operator >( const vertex_descriptor& lhs, const vertex_descriptor& rhs) {
+	if( lhs.block_id == rhs.block_id )
+	  return ( lhs.vertex_id > rhs.vertex_id );
+	else 
+	  return ( lhs.block_id > rhs.block_id );
+      };
+      friend bool operator>=( const vertex_descriptor& lhs, const vertex_descriptor& rhs) {
+	if( lhs.block_id == rhs.block_id )
+	  return ( lhs.vertex_id >= rhs.vertex_id );
+	else 
+	  return ( lhs.block_id > rhs.block_id );
+      };
+      
+      bool is_root() const { 
+	return ((block_id == 0) && (vertex_id == 0));
+      };
+      
+      vertex_descriptor get_child(std::size_t i) const {
+	vertex_index_type result = Arity * vertex_id + 1 + i;
+	if( result >= BlockVertexCount ) {
+	  result -= BlockVertexCount;
+	  return vertex_descriptor(BlockFanout * block_id + 1 + result, 0);
+	};
+	return vertex_descriptor(block_id, result);
+      };
+      
+      vertex_descriptor get_parent() const {
+	if(vertex_id == 0)
+	  return vertex_descriptor((block_id - 1) / BlockFanout, ( ( (block_id - 1) % BlockFanout ) / Arity + BlockVertexCount ) - BlockFanout / Arity);
+	return vertex_descriptor(block_id, (vertex_id - 1) / Arity);
+      };
+      
+      std::ptrdiff_t get_in_edge() const {
+	if(vertex_id == 0)
+	  return ( (block_id - 1) % BlockFanout ) % Arity;
+	return (vertex_id - 1) % Arity;
+      };
+      
+    };
     
     struct edge_descriptor {
       vertex_descriptor source_vertex;
       std::ptrdiff_t edge_index;
-      edge_descriptor(vertex_descriptor aSrc = 0, std::size_t aEdgeId = 0) : source_vertex(aSrc), edge_index(aEdgeId) { };
+      edge_descriptor(vertex_descriptor aSrc = vertex_descriptor(), std::size_t aEdgeId = 0) : source_vertex(aSrc), edge_index(aEdgeId) { };
       
       friend bool operator==( const edge_descriptor& lhs, const edge_descriptor& rhs) { 
 	return ((lhs.source_vertex == rhs.source_vertex) && (lhs.edge_index == rhs.edge_index)); 
@@ -170,7 +266,7 @@ class d_ary_cob_tree
       out_edge_iterator& operator +=(difference_type i) { base.edge_index += i; return *this; };
       out_edge_iterator& operator -=(difference_type i) { base.edge_index -= i; return *this; };
       
-      value_type operator[](difference_type i) const { return edge_descriptor(base.source_vertex, base.edge_index + i); };
+      value_type operator[](difference_type i) const { return edge_descriptor(base.source_vertex, base.edge_index + i); };
       reference operator*() { return base; };
       pointer operator->() { return &base; };
     };
@@ -183,12 +279,9 @@ class d_ary_cob_tree
       typedef std::random_access_iterator_tag iterator_category;
       
       edge_descriptor base;
-      in_edge_iterator(const vertex_descriptor& aBase = vertex_descriptor(-1)) : base((aBase - 1) / Arity, (aBase - 1) % Arity ) { 
-	if((base.edge_index < 0) || (base.source_vertex < 0)) {
-	  base.source_vertex = -1;
-	  base.edge_index = -1;
-	};
-      };
+      in_edge_iterator() : base( vertex_descriptor(), -1) { };
+      in_edge_iterator(const vertex_descriptor& aBase) : 
+          base(aBase.get_parent(), aBase.get_in_edge()) { };
       
       friend bool operator==( const in_edge_iterator& lhs, const in_edge_iterator& rhs) { return lhs.base == rhs.base; };
       friend bool operator!=( const in_edge_iterator& lhs, const in_edge_iterator& rhs) { return lhs.base != rhs.base; };
@@ -206,19 +299,19 @@ class d_ary_cob_tree
 	if( i != 0 )
 	  return in_edge_iterator();
 	else
-	  return *this;
+	  return lhs;
       };
       friend in_edge_iterator operator+(difference_type i, const in_edge_iterator& rhs) {
 	if( i != 0 )
 	  return in_edge_iterator();
 	else
-	  return *this;
+	  return rhs;
       };
       friend in_edge_iterator operator-(const in_edge_iterator& lhs, difference_type i) {
 	if( i != 0 )
 	  return in_edge_iterator();
 	else
-	  return *this;
+	  return lhs;
       };
       friend difference_type operator-(const in_edge_iterator& lhs, const in_edge_iterator& rhs) {
         if(lhs.base.edge_index == rhs.base.edge_index)
@@ -244,7 +337,7 @@ class d_ary_cob_tree
 	if( i == 0 )
 	  return base;
 	else
-	  throw std::range_error("Tried to index past the only incident edge in a BF Tree structure!");
+	  throw std::range_error("Tried to index past the only incident edge in a COB-Tree structure!");
       };
       reference operator*() { return base; };
       pointer operator->() { return &base; };
@@ -271,7 +364,11 @@ class d_ary_cob_tree
       edge_iterator& operator++() { 
 	++base.edge_index; 
 	if(base.edge_index == Arity) {
-	  ++base.source_vertex;
+	  ++base.source_vertex.vertex_id;
+	  if(base.source_vertex.vertex_id == BlockVertexCount) {
+	    ++base.source_vertex.block_id;
+	    base.source_vertex.vertex_id = 0;
+	  };
 	  base.edge_index = 0;
 	};
 	return *this;
@@ -280,13 +377,21 @@ class d_ary_cob_tree
 	out_edge_iterator result(*this); 
 	++base.edge_index; 
 	if(base.edge_index == Arity) {
-	  ++base.source_vertex;
+	  ++base.source_vertex.vertex_id;
+	  if(base.source_vertex.vertex_id == BlockVertexCount) {
+	    ++base.source_vertex.block_id;
+	    base.source_vertex.vertex_id = 0;
+	  };
 	  base.edge_index = 0;
 	};
 	return result; 
       };
       edge_iterator& operator--() { 
 	if(base.edge_index == 0) {
+	  if(base.source_vertex.vertex_id == 0) {
+	    --base.source_vertex.block_id;
+	    base.source_vertex.vertex_id = BlockVertexCount;
+	  };
 	  --base.source_vertex;
 	  base.edge_index = Arity;
 	};
@@ -296,6 +401,10 @@ class d_ary_cob_tree
       edge_iterator operator--(int) { 
 	out_edge_iterator result(*this); 
 	if(base.edge_index == 0) {
+	  if(base.source_vertex.vertex_id == 0) {
+	    --base.source_vertex.block_id;
+	    base.source_vertex.vertex_id = BlockVertexCount;
+	  };
 	  --base.source_vertex;
 	  base.edge_index = Arity;
 	};
@@ -303,42 +412,46 @@ class d_ary_cob_tree
 	return result; 
       };
       
-      friend edge_iterator operator+(const edge_iterator& lhs, difference_type i) {
-	edge_descriptor new_base(lhs.base.source_vertex, lhs.base.edge_index + i);
-	new_base.source_vertex += new_base.edge_index / Arity;
-	new_base.edge_index %= Arity;
-	return edge_iterator(new_base);
-      };
-      friend edge_iterator operator+(difference_type i, const edge_iterator& rhs) {
-	edge_descriptor new_base(rhs.base.source_vertex, rhs.base.edge_index + i);
-	new_base.source_vertex += new_base.edge_index / Arity;
-	new_base.edge_index %= Arity;
-	return edge_iterator(new_base);
-      };
-      friend edge_iterator operator-(const edge_iterator& lhs, difference_type i) {
-	edge_descriptor new_base(lhs.base.source_vertex, lhs.base.edge_index - i);
-	new_base.source_vertex += new_base.edge_index / Arity;
-	new_base.edge_index %= Arity;
-	return edge_iterator(new_base);
-      };
-      friend difference_type operator-(const edge_iterator& lhs, const edge_iterator& rhs) {
-	return difference_type( (lhs.base.source_vertex - rhs.source_vertex) * Arity + lhs.base.edge_index - rhs.base.edge_index);
-      };
-      
       edge_iterator& operator +=(difference_type i) { 
 	base.edge_index += i; 
-	base.source_vertex += base.edge_index / Arity;
+	base.source_vertex.vertex_id += base.edge_index / Arity;
+	base.source_vertex.block_id += base.source_vertex.vertex_id / BlockVertexCount;
+	base.source_vertex.vertex_id %= BlockVertexCount;
 	base.edge_index %= Arity;
 	return *this;
       };
       edge_iterator& operator -=(difference_type i) { 
 	base.edge_index -= i; 
-	base.source_vertex += base.edge_index / Arity;
+	base.source_vertex.vertex_id += base.edge_index / Arity;
+	base.source_vertex.block_id += base.source_vertex.vertex_id / BlockVertexCount;
+	base.source_vertex.vertex_id %= BlockVertexCount;
 	base.edge_index %= Arity;
 	return *this;
       };
       
-      value_type operator[](difference_type i) const { return (*this + i).base; };
+      friend edge_iterator operator+(const edge_iterator& lhs, difference_type i) {
+	edge_iterator result(lhs);
+	result += i;
+	return result;
+      };
+      friend edge_iterator operator+(difference_type i, const edge_iterator& rhs) {
+	edge_iterator result(rhs);
+	result += i;
+	return result;
+      };
+      friend edge_iterator operator-(const edge_iterator& lhs, difference_type i) {
+	edge_iterator result(lhs);
+	result -= i;
+	return result;
+      };
+      friend difference_type operator-(const edge_iterator& lhs, const edge_iterator& rhs) {
+	return difference_type(lhs.base.source_vertex.block_id * BlockVertexCount)
+	       - difference_type(rhs.base.source_vertex.block_id * BlockVertexCount) 
+	       + difference_type( (lhs.base.source_vertex.vertex_id - rhs.source_vertex.vertex_id) * Arity
+	                         + lhs.base.edge_index - rhs.base.edge_index);
+      };
+      
+      value_type operator[](difference_type i) const { return (*this + i).base; };
       reference operator*() { return base; };
       pointer operator->() { return &base; };
     };
@@ -360,21 +473,68 @@ class d_ary_cob_tree
       friend bool operator <( const vertex_iterator& lhs, const vertex_iterator& rhs) { return lhs.base < rhs.base; };
       friend bool operator <=(const vertex_iterator& lhs, const vertex_iterator& rhs) { return lhs.base <= rhs.base; };
       
-      vertex_iterator& operator++() { ++base; return *this; };
-      vertex_iterator operator++(int) { vertex_iterator result(*this); ++base; return result; };
-      vertex_iterator& operator--() { --base; return *this; };
-      vertex_iterator operator--(int) { vertex_iterator result(*this); --base; return result; };
+      vertex_iterator& operator++() { 
+	++base.vertex_id;
+	base.block_id += base.vertex_id / BlockVertexCount;
+	base.vertex_id %= BlockVertexCount;
+	return *this; 
+      };
+      vertex_iterator operator++(int) { 
+	vertex_iterator result(*this); 
+        ++base.vertex_id;
+	base.block_id += base.vertex_id / BlockVertexCount;
+	base.vertex_id %= BlockVertexCount;
+	return result; 
+      };
+      vertex_iterator& operator--() { 
+	--base.vertex_id; 
+	base.block_id += base.vertex_id / BlockVertexCount;
+	base.vertex_id %= BlockVertexCount;
+	return *this;
+      };
+      vertex_iterator operator--(int) { 
+	vertex_iterator result(*this); 
+	--base.vertex_id; 
+	base.block_id += base.vertex_id / BlockVertexCount;
+	base.vertex_id %= BlockVertexCount;
+	return result; 
+      };
       
-      friend vertex_iterator operator+(const vertex_iterator& lhs, difference_type i) { return vertex_iterator(lhs.base + i); };
-      friend vertex_iterator operator+(difference_type i, const vertex_iterator& rhs) { return vertex_iterator(rhs.base + i); };
-      friend vertex_iterator operator-(const vertex_iterator& lhs, difference_type i) { return vertex_iterator(lhs.base - i); };
-      friend difference_type operator-(const vertex_iterator& lhs, const vertex_iterator& rhs) { return lhs.base - rhs.base; };
+      vertex_iterator& operator +=(difference_type i) { 
+	base.vertex_id += i; 
+	base.block_id += base.vertex_id / BlockVertexCount;
+	base.vertex_id %= BlockVertexCount;
+	return *this; 
+      };
+      vertex_iterator& operator -=(difference_type i) { 
+	base.vertex_id -= i; 
+	base.block_id += base.vertex_id / BlockVertexCount;
+	base.vertex_id %= BlockVertexCount;
+	return *this; 
+      };
       
-      vertex_iterator& operator +=(difference_type i) { base += i; return *this; };
-      vertex_iterator& operator -=(difference_type i) { base -= i; return *this; };
+      friend vertex_iterator operator+(const vertex_iterator& lhs, difference_type i) { 
+	vertex_iterator result(lhs);
+	result += i;
+	return result; 
+      };
+      friend vertex_iterator operator+(difference_type i, const vertex_iterator& rhs) { 
+	vertex_iterator result(rhs);
+	result += i;
+	return result; 
+      };
+      friend vertex_iterator operator-(const vertex_iterator& lhs, difference_type i) { 
+	vertex_iterator result(lhs);
+	result -= i;
+	return result; 
+      };
+      friend difference_type operator-(const vertex_iterator& lhs, const vertex_iterator& rhs) { 
+	return (difference_type(lhs.base.block_id) - difference_type(rhs.base.block_id)) * BlockVertexCount
+	       + lhs.base.vertex_id - rhs.base.vertex_id; 
+      };
       
-      value_type operator[](difference_type i) const { return base + i; };
       reference operator*() { return base; };
+      value_type operator[](difference_type i) const { return *(*this + i); };
       pointer operator->() { return &base; };
     };
     
@@ -392,7 +552,7 @@ class d_ary_cob_tree
     
   private:
     
-    container_type m_vertices;
+    block_map_type m_vertices;
     vertices_size_type m_vertex_count;
     
   public:
@@ -402,13 +562,22 @@ class d_ary_cob_tree
      * \param aDepth The depth of the graph to reserve space for.
      */
     d_ary_cob_tree(vertices_size_type aDepth = 0) : m_vertex_count(0) {
-      vertices_size_type vert_count = 1;
-      vertices_size_type accum = 1;
-      for(vertices_size_type i = 0; i < aDepth; ++i) {
-	accum *= Arity;
-	vert_count += accum;
+      std::size_t block_id = 0;
+      std::size_t block_count = 1;
+      while(true) {
+        vertices_size_type vert_count = 1;
+        vertices_size_type accum = 1;
+        for(vertices_size_type i = 0; i < aDepth; ++i) {
+	  accum *= Arity;
+	  vert_count += accum;
+        };
+	for(std::size_t i = 0; i < block_count; ++i, ++block_id)
+          m_vertices[block_id].resize(vert_count);
+	block_count *= BlockFanout;
+	if(aDepth <= CuttingDepth)
+	  break;
+	aDepth -= CuttingDepth;
       };
-      m_vertices.resize(vert_count);
     };
     
     /**
@@ -423,7 +592,7 @@ class d_ary_cob_tree
      */
     std::size_t size() const { return m_vertex_count; };
     
-    std::size_t capacity() const { return m_vertices.size(); };
+    std::size_t capacity() const { return m_vertices.size() * BlockVertexCount; };
     
     std::size_t depth() const { 
       vertices_size_type vert_count = 1;
@@ -444,7 +613,7 @@ class d_ary_cob_tree
     
     void clear() { 
       m_vertices.clear();
-      m_vertices.resize(1);
+      m_vertices[0].resize(1);
       m_vertex_count = 0;
     };
     
