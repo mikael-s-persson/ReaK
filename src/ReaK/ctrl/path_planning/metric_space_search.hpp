@@ -51,6 +51,7 @@
 
 #include "graph_alg/bgl_tree_adaptor.hpp"
 #include "graph_alg/d_ary_bf_tree.hpp"
+#include "graph_alg/d_ary_cob_tree.hpp"
 
 namespace boost {
 

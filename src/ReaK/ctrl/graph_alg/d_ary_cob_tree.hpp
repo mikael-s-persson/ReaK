@@ -58,8 +58,8 @@ namespace detail {
   
   template <std::size_t Arity, std::size_t CuttingDepth>
   struct get_cob_block_property {
-    BOOST_STATIC_CONSTANT(std::size_t, fanout = Arity * get_cob_block_property<Arity, CuttingDepth - 1>::fanout);
-    BOOST_STATIC_CONSTANT(std::size_t, vertex_count = fanout + get_cob_block_property<Arity, CuttingDepth - 1>::vertex_count);
+    BOOST_STATIC_CONSTANT(std::size_t, fanout = (Arity * get_cob_block_property<Arity, CuttingDepth - 1>::fanout));
+    BOOST_STATIC_CONSTANT(std::size_t, vertex_count = (get_cob_block_property<Arity, CuttingDepth - 1>::fanout + get_cob_block_property<Arity, CuttingDepth - 1>::vertex_count));
   };
   
   template <std::size_t Arity>
@@ -116,11 +116,11 @@ class d_ary_cob_tree
     typedef std::unordered_map< std::size_t, container_type > block_map_type;
     
     typedef typename container_type::size_type vertices_size_type;
-    typedef vertices_size_type edge_size_type;
+    typedef typename container_type::difference_type vertex_index_type;
+    typedef vertices_size_type edges_size_type;
     typedef vertices_size_type degree_size_type;
     
     struct vertex_descriptor {
-      typedef typename container_type::difference_type vertex_index_type;
       
       std::size_t block_id;
       vertex_index_type vertex_id;
@@ -166,7 +166,7 @@ class d_ary_cob_tree
       
       vertex_descriptor get_child(std::size_t i) const {
 	vertex_index_type result = Arity * vertex_id + 1 + i;
-	if( result >= BlockVertexCount ) {
+	if( result >= vertex_index_type(BlockVertexCount) ) {
 	  result -= BlockVertexCount;
 	  return vertex_descriptor(BlockFanout * block_id + 1 + result, 0);
 	};
@@ -352,7 +352,7 @@ class d_ary_cob_tree
       
       edge_descriptor base;
       edge_iterator(const edge_descriptor& aBase = edge_descriptor()) : base(aBase) { };
-      out_edge_iterator(vertex_descriptor aSrc, std::size_t aEdgeId) : base(aSrc, aEdgeId) { };
+      edge_iterator(vertex_descriptor aSrc, std::size_t aEdgeId) : base(aSrc, aEdgeId) { };
       
       friend bool operator==( const edge_iterator& lhs, const edge_iterator& rhs) { return lhs.base == rhs.base; };
       friend bool operator!=( const edge_iterator& lhs, const edge_iterator& rhs) { return lhs.base != rhs.base; };
@@ -360,57 +360,6 @@ class d_ary_cob_tree
       friend bool operator >=(const edge_iterator& lhs, const edge_iterator& rhs) { return lhs.base >= rhs.base; };
       friend bool operator <( const edge_iterator& lhs, const edge_iterator& rhs) { return lhs.base < rhs.base; };
       friend bool operator <=(const edge_iterator& lhs, const edge_iterator& rhs) { return lhs.base <= rhs.base; };
-      
-      edge_iterator& operator++() { 
-	++base.edge_index; 
-	if(base.edge_index == Arity) {
-	  ++base.source_vertex.vertex_id;
-	  if(base.source_vertex.vertex_id == BlockVertexCount) {
-	    ++base.source_vertex.block_id;
-	    base.source_vertex.vertex_id = 0;
-	  };
-	  base.edge_index = 0;
-	};
-	return *this;
-      };
-      edge_iterator operator++(int) { 
-	out_edge_iterator result(*this); 
-	++base.edge_index; 
-	if(base.edge_index == Arity) {
-	  ++base.source_vertex.vertex_id;
-	  if(base.source_vertex.vertex_id == BlockVertexCount) {
-	    ++base.source_vertex.block_id;
-	    base.source_vertex.vertex_id = 0;
-	  };
-	  base.edge_index = 0;
-	};
-	return result; 
-      };
-      edge_iterator& operator--() { 
-	if(base.edge_index == 0) {
-	  if(base.source_vertex.vertex_id == 0) {
-	    --base.source_vertex.block_id;
-	    base.source_vertex.vertex_id = BlockVertexCount;
-	  };
-	  --base.source_vertex;
-	  base.edge_index = Arity;
-	};
-	--base.edge_index; 
-	return *this;
-      };
-      edge_iterator operator--(int) { 
-	out_edge_iterator result(*this); 
-	if(base.edge_index == 0) {
-	  if(base.source_vertex.vertex_id == 0) {
-	    --base.source_vertex.block_id;
-	    base.source_vertex.vertex_id = BlockVertexCount;
-	  };
-	  --base.source_vertex;
-	  base.edge_index = Arity;
-	};
-	--base.edge_index; 
-	return result; 
-      };
       
       edge_iterator& operator +=(difference_type i) { 
 	base.edge_index += i; 
@@ -429,6 +378,23 @@ class d_ary_cob_tree
 	return *this;
       };
       
+      edge_iterator& operator++() { 
+	return *this += 1;
+      };
+      edge_iterator operator++(int) { 
+	edge_iterator result(*this); 
+	*this += 1;
+	return result; 
+      };
+      edge_iterator& operator--() {
+	return *this -= 1;
+      };
+      edge_iterator operator--(int) { 
+	edge_iterator result(*this); 
+	*this -= 1;
+	return result; 
+      };
+      
       friend edge_iterator operator+(const edge_iterator& lhs, difference_type i) {
 	edge_iterator result(lhs);
 	result += i;
@@ -445,10 +411,9 @@ class d_ary_cob_tree
 	return result;
       };
       friend difference_type operator-(const edge_iterator& lhs, const edge_iterator& rhs) {
-	return difference_type(lhs.base.source_vertex.block_id * BlockVertexCount)
-	       - difference_type(rhs.base.source_vertex.block_id * BlockVertexCount) 
-	       + difference_type( (lhs.base.source_vertex.vertex_id - rhs.source_vertex.vertex_id) * Arity
-	                         + lhs.base.edge_index - rhs.base.edge_index);
+	return (difference_type(lhs.base.source_vertex.block_id) - difference_type(rhs.base.source_vertex.block_id)) * BlockVertexCount
+	     + (difference_type(lhs.base.source_vertex.vertex_id) - difference_type(rhs.source_vertex.vertex_id)) * Arity
+	      + difference_type(lhs.base.edge_index) - difference_type(rhs.base.edge_index);
       };
       
       value_type operator[](difference_type i) const { return (*this + i).base; };
@@ -473,33 +438,6 @@ class d_ary_cob_tree
       friend bool operator <( const vertex_iterator& lhs, const vertex_iterator& rhs) { return lhs.base < rhs.base; };
       friend bool operator <=(const vertex_iterator& lhs, const vertex_iterator& rhs) { return lhs.base <= rhs.base; };
       
-      vertex_iterator& operator++() { 
-	++base.vertex_id;
-	base.block_id += base.vertex_id / BlockVertexCount;
-	base.vertex_id %= BlockVertexCount;
-	return *this; 
-      };
-      vertex_iterator operator++(int) { 
-	vertex_iterator result(*this); 
-        ++base.vertex_id;
-	base.block_id += base.vertex_id / BlockVertexCount;
-	base.vertex_id %= BlockVertexCount;
-	return result; 
-      };
-      vertex_iterator& operator--() { 
-	--base.vertex_id; 
-	base.block_id += base.vertex_id / BlockVertexCount;
-	base.vertex_id %= BlockVertexCount;
-	return *this;
-      };
-      vertex_iterator operator--(int) { 
-	vertex_iterator result(*this); 
-	--base.vertex_id; 
-	base.block_id += base.vertex_id / BlockVertexCount;
-	base.vertex_id %= BlockVertexCount;
-	return result; 
-      };
-      
       vertex_iterator& operator +=(difference_type i) { 
 	base.vertex_id += i; 
 	base.block_id += base.vertex_id / BlockVertexCount;
@@ -511,6 +449,23 @@ class d_ary_cob_tree
 	base.block_id += base.vertex_id / BlockVertexCount;
 	base.vertex_id %= BlockVertexCount;
 	return *this; 
+      };
+      
+      vertex_iterator& operator++() { 
+	return *this += 1;
+      };
+      vertex_iterator operator++(int) { 
+	vertex_iterator result(*this); 
+        *this += 1;
+	return result; 
+      };
+      vertex_iterator& operator--() { 
+	return *this -= 1;
+      };
+      vertex_iterator operator--(int) { 
+	vertex_iterator result(*this); 
+	*this -= 1;
+	return result; 
       };
       
       friend vertex_iterator operator+(const vertex_iterator& lhs, difference_type i) { 
@@ -530,7 +485,7 @@ class d_ary_cob_tree
       };
       friend difference_type operator-(const vertex_iterator& lhs, const vertex_iterator& rhs) { 
 	return (difference_type(lhs.base.block_id) - difference_type(rhs.base.block_id)) * BlockVertexCount
-	       + lhs.base.vertex_id - rhs.base.vertex_id; 
+	       + difference_type(lhs.base.vertex_id) - difference_type(rhs.base.vertex_id); 
       };
       
       reference operator*() { return base; };
@@ -552,7 +507,7 @@ class d_ary_cob_tree
     
   private:
     
-    block_map_type m_vertices;
+    mutable block_map_type m_vertices;  //NOTE This member must be mutable to account for the fact that indexing in the map might add an entry to it.
     vertices_size_type m_vertex_count;
     
   public:
@@ -595,12 +550,27 @@ class d_ary_cob_tree
     std::size_t capacity() const { return m_vertices.size() * BlockVertexCount; };
     
     std::size_t depth() const { 
-      vertices_size_type vert_count = 1;
+      vertices_size_type block_level = 0;
       vertices_size_type accum = 1;
       vertices_size_type depth_count = 0;
-      for(; vert_count < m_vertices.size(); ++depth_count) {
-	accum *= Arity;
-	vert_count += accum;
+      while(true) {
+	vertices_size_type max_vertex_count = 0;
+	for(vertices_size_type i = 0; i < accum; ++i) {
+	  if( m_vertices[i].size() > max_vertex_count ) 
+	    max_vertex_count = m_vertices[i].size();
+	};
+	if(max_vertex_count + BlockFanout / Arity > BlockVertexCount)
+	  depth_count += CuttingDepth;
+	else {
+	  vertices_size_type accum2 = 1;
+	  for(vertices_size_type vert_count = 1; vert_count < max_vertex_count; ++depth_count) {
+	    accum2 *= Arity;
+	    vert_count += accum2;
+          };
+	  return depth_count;
+	};
+	accum *= BlockFanout;
+	++block_level;
       };
       return depth_count; 
     };
@@ -618,90 +588,137 @@ class d_ary_cob_tree
     };
     
     vertex_property_type& operator[]( const vertex_descriptor& v_i) {
-      return m_vertices[v_i].v;
+      return m_vertices[v_i.block_id][v_i.vertex_id].v;
     };
     const vertex_property_type& operator[]( const vertex_descriptor& v_i) const {
-      return m_vertices[v_i].v;
+      return m_vertices[v_i.block_id][v_i.vertex_id].v;
     };
     edge_property_type& operator[]( const edge_descriptor& e_i) {
-      return m_vertices[e_i.source_vertex].e[e_i.edge_index];
+      return m_vertices[e_i.source_vertex.block_id][e_i.source_vertex.vertex_id].e[e_i.edge_index];
     };
     const edge_property_type& operator[]( const edge_descriptor& e_i) const {
-      return m_vertices[e_i.source_vertex].e[e_i.edge_index];
+      return m_vertices[e_i.source_vertex.block_id][e_i.source_vertex.vertex_id].e[e_i.edge_index];
+    };
+    
+    friend const vertex_property_type& get( const self& g, const vertex_descriptor& v_i) {
+      return g[v_i];
+    };
+    
+    friend void put( self& g, const vertex_descriptor& v_i, const vertex_property_type& value) {
+      g[v_i] = value;
+    };
+    
+    friend const edge_property_type& get( const self& g, const edge_descriptor& e_i) {
+      return g[e_i];
+    };
+    
+    friend void put( self& g, const edge_descriptor& e_i, const edge_property_type& value) {
+      g[e_i] = value;
     };
     
     bool is_valid(const vertex_descriptor& v_i) const {
-      return (v_i < m_vertices.size()) && ( m_vertices[v_i].out_degree >= 0 );
+      return (v_i.vertex_id < vertex_index_type( m_vertices[v_i.block_id].size() )) && 
+             (m_vertices[v_i.block_id][v_i.vertex_id].out_degree >= 0);
     };
     
-    edge_size_type get_out_degree( const vertex_descriptor& v_i) const {
-      if( m_vertices[v_i].out_degree < 0 )
+    edges_size_type get_out_degree( const vertex_descriptor& v_i) const {
+      if( (v_i.vertex_id >= vertex_index_type(m_vertices[v_i.block_id].size())) || ((m_vertices[v_i.block_id][v_i.vertex_id].out_degree) < 0) )
 	return 0;
       else {
-	edge_size_type result = 0;
-	for(edge_size_type i = 0; i < m_vertices[v_i].out_degree; ++i) {
-	  if( ( v_i * Arity + i + 1 < m_vertices.size() ) &&
-	      ( m_vertices[v_i * Arity + i + 1].out_degree >= 0 ) )
+	edges_size_type result = 0;
+	for(edges_size_type i = 0; i < edges_size_type(m_vertices[v_i.block_id][v_i.vertex_id].out_degree); ++i) {
+	  vertex_descriptor v_c = v_i.get_child(i);
+	  if( is_valid(v_c) )
 	    ++result;
 	};
 	return result;
       };
     };
     
-    edge_size_type get_in_degree( const vertex_descriptor& v_i) const {
-      if(( v_i == 0 ) || ( m_vertices[v_i].out_degree < 0 ))
+    edges_size_type get_raw_out_degree( const vertex_descriptor& v_i) const {
+      if( (v_i.vertex_id >= vertex_index_type(m_vertices[v_i.block_id].size())) || ((m_vertices[v_i.block_id][v_i.vertex_id].out_degree) < 0) )
+	return 0;
+      else
+	return m_vertices[v_i.block_id][v_i.vertex_id].out_degree;
+    };
+    
+    edges_size_type get_in_degree( const vertex_descriptor& v_i) const {
+      if(( ( v_i.block_id == 0 ) && ( v_i.vertex_id == 0 ) ) || 
+	 ( !is_valid(v_i) ))
 	return 0;
       else
 	return 1;
     };
     
     std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v) {
-      if( (v >= m_vertices.size()) || (m_vertices[v].out_degree < 0) ) 
+      if( (v.vertex_id >= vertex_index_type(m_vertices[v.block_id].size())) || ((m_vertices[v.block_id][v.vertex_id].out_degree) < 0) )
 	throw std::range_error("Cannot add child-node to an empty node!");
       int new_edge = 0;
-      for(; new_edge < m_vertices[v].out_degree; ++new_edge)
-	if( m_vertices[new_edge].out_degree < 0 )
+      for(; new_edge < m_vertices[v.block_id][v.vertex_id].out_degree; ++new_edge) {
+	vertex_descriptor v_c = v.get_child(new_edge);
+	if( (m_vertices[v_c.block_id][v_c.vertex_id].out_degree) < 0 )
 	  break;
+      };
       if( new_edge == Arity ) 
 	throw std::range_error("Cannot add child-node to a full node!");
-      vertex_descriptor result = Arity * v + 1 + new_edge;
-      if( result >= m_vertices.size() )
-	m_vertices.resize(result + 1);
-      m_vertices[result].out_degree = 0;
-      if( new_edge == m_vertices[v].out_degree )
-        ++(m_vertices[v].out_degree);
+      vertex_descriptor result = v.get_child(new_edge);
+      if( result.vertex_id >= vertex_index_type(m_vertices[result.block_id].size()) )
+	m_vertices[result.block_id].resize(result.vertex_id + 1);
+      m_vertices[result.block_id][result.vertex_id].out_degree = 0;
+      if( new_edge == m_vertices[v.block_id][v.vertex_id].out_degree )
+        ++(m_vertices[v.block_id][v.vertex_id].out_degree);
       ++m_vertex_count;
       return std::make_pair(result, edge_descriptor(v, new_edge));
     };
     
-    void remove_branch(vertex_descriptor v) {
-      if( (v >= m_vertices.size()) || (m_vertices[v].out_degree < 0) )
+    void update_out_degree(const vertex_descriptor& v) {
+      if( !is_valid(v) )
+	return;  // vertex is already updated.
+      for( int i = Arity; i > 0; --i) {
+	vertex_descriptor u = v.get_child( i - 1 );
+	if( is_valid(u) ) {
+	  m_vertices[v.block_id][v.vertex_id].out_degree = i;
+	  return;
+	};
+      };
+      m_vertices[v.block_id][v.vertex_id].out_degree = 0;
+    };
+    
+    void remove_branch(const vertex_descriptor& v) {
+      if( !is_valid(v) )
 	return;  // vertex is already deleted.
       --m_vertex_count;
       // this traversal order is intentional (traverse pre-order depth-first, and 
       // delay removal of empty tail elements as much as possible, such that it is only required once).
-      int max_child = m_vertices[v].out_degree;
-      m_vertices[v].out_degree = -1;
+      int max_child = m_vertices[v.block_id][v.vertex_id].out_degree;
       for( int i = 0; i < max_child; ++i)
-	remove_branch(Arity * v + 1 + i);
+	remove_branch(v.get_child(i));
+      m_vertices[v.block_id][v.vertex_id].out_degree = -1;
+      if( v != vertex_descriptor(0,0) )  // if the node is not the root one, then update the out-degree of the parent node:
+	update_out_degree( v.get_parent() );
       // remove empty vertices from the end of the container:
-      if( v == m_vertices.size() - 1 ) {
-	while( (v > 0) && ( m_vertices[v].out_degree < 0 ) )
-	  --v;
-	++v;
-	m_vertices.erase(m_vertices.begin() + v, m_vertices.end());
+      if( v.vertex_id == vertex_index_type(m_vertices[v.block_id].size()) - 1 ) {
+	vertex_iterator v_it(v);
+        while( (v_it->vertex_id > 0) && ( (m_vertices[v_it->block_id][v_it->vertex_id].out_degree) < 0 ) )
+	  --v_it;
+	//if( (m_vertices[v_it->block_id][v_it->vertex_id].out_degree) >= 0 )
+	  ++v_it;
+        m_vertices[v_it->block_id].erase(m_vertices[v_it->block_id].begin() + v_it->vertex_id, m_vertices[v_it->block_id].end());
       };
     };
     
     vertex_descriptor get_root_vertex() const {
-      return 0; 
+      return vertex_descriptor(0,0); 
     };
     
     vertex_descriptor create_root_vertex() {
-      if(m_vertices[0].out_degree >= 0)
-	remove_branch(0);
-      m_vertices[0].out_degree = 0;
-      return 0;
+      if(m_vertices[0].size() == 0)
+	m_vertices[0].resize(1);
+      if(m_vertices[0][0].out_degree >= 0)
+	remove_branch(vertex_descriptor(0,0));
+      m_vertices[0][0].out_degree = 0;
+      ++m_vertex_count;
+      return vertex_descriptor(0,0);
     };
     
     
@@ -715,7 +732,7 @@ class d_ary_cob_tree
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor
   source( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor& e,
@@ -726,18 +743,18 @@ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::ver
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor
   target( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor& e,
 	  const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
-  return Arity * e.source_vertex + 1 + e.edge_index;
+  return e.source_vertex.get_child(e.edge_index);
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 std::pair<
  typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::out_edge_iterator,
@@ -745,13 +762,13 @@ std::pair<
   out_edges( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
 	     const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::out_edge_iterator OutIter;
-  return std::make_pair(OutIter(v,0),OutIter(v,g.get_out_degree(v)));
+  return std::make_pair(OutIter(v,0),OutIter(v,g.get_raw_out_degree(v)));
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 std::size_t
   out_degree( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
@@ -766,7 +783,7 @@ std::size_t
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 std::pair<
  typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::in_edge_iterator,
@@ -780,7 +797,7 @@ std::pair<
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 std::size_t
   in_degree( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
@@ -791,7 +808,7 @@ std::size_t
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 std::size_t
   degree( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
@@ -807,16 +824,17 @@ std::size_t
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 std::pair<
  typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::adjacency_iterator,
  typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::adjacency_iterator >
-  in_edges( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
-	    const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
+  adjacent_vertices( typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor v,
+	             const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
   typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::adjacency_iterator AdjIter;
-  return std::make_pair(AdjIter(((v - 1) / Arity) * Arity + 1),
-			AdjIter(((v - 1) / Arity + 1) * Arity));
+  v = v.get_parent();
+  return std::make_pair(AdjIter(v.get_child(0)),
+			AdjIter(v.get_child(Arity)));
 };
 
 
@@ -827,7 +845,7 @@ std::pair<
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 std::pair<
  typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator,
@@ -841,11 +859,11 @@ std::pair<
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertices_size_type
   num_vertices( const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
-  return g.capacity();
+  return g.size();
 };
 
 
@@ -856,25 +874,26 @@ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::ver
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 std::pair<
  typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_iterator,
  typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_iterator >
   edges( const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_iterator EIter;
-  return std::make_pair(EIter(0,0),
-			EIter(g.capacity(),Arity));
+  typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor Vertex;
+  return std::make_pair(EIter(Vertex(0,0), 0),
+			EIter(Vertex(0,0), 0) + g.capacity());
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertices_size_type
   num_edges( const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
-  return g.capacity() * Arity;
+  return g.size() - 1;
 };
 
 
@@ -885,14 +904,14 @@ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::ver
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor
   edge( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor&,
 	const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
         const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
   typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor Edge;
-  return Edge((v - 1) / Arity, (v - 1) % Arity);
+  return Edge(v.get_parent(), v.get_in_edge());
 };
 
 
@@ -904,17 +923,17 @@ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edg
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor
-  root_vertex( const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
+  get_root_vertex( const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.get_root_vertex();
 };
 
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor
   create_root( d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
@@ -924,11 +943,11 @@ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::ver
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 std::pair< 
-typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
-typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor,
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor >
   add_child_vertex( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
                     d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.add_child(v);
@@ -937,7 +956,7 @@ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor 
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 void remove_branch( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
                     d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
@@ -948,7 +967,7 @@ void remove_branch( const typename d_ary_cob_tree<VertexProperties,Arity,EdgePro
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 std::pair< 
 typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator,
@@ -956,7 +975,7 @@ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::ver
   child_vertices( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
                   const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
   typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator VIter;
-  return std::make_pair(VIter(Arity * v + 1),VIter(Arity * (v + 1)));
+  return std::make_pair(VIter(v.get_child(0)),VIter(v.get_child(Arity)));
 };
 
 
@@ -969,7 +988,7 @@ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::ver
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth >
 inline
 bool is_vertex_valid( typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor u,
                       const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
@@ -979,13 +998,12 @@ bool is_vertex_valid( typename d_ary_cob_tree<VertexProperties,Arity,EdgePropert
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
-          std::size_t CuttingDepth >
+	  std::size_t CuttingDepth>
 inline
 bool is_edge_valid( typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor e,
                     const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.is_valid(target(e,g));
 };
-
 
 
 
