@@ -157,6 +157,61 @@ class random_vp_chooser {
 };
 
 
+struct no_position_caching_policy {
+  template < typename PointType >
+  struct vertex_base_property { }; // intentionally empty.
+  
+  template <typename Graph, typename PointType>
+  struct effector {
+    effector(Graph&) { };
+    
+    template <typename Vertex, typename Key, typename PositionMap, typename KeyMap>
+    void put_vertex(Vertex v, Key k, const PositionMap&, const KeyMap& key) const {
+      put(key, v, k);
+    };
+  
+    template <typename Vertex, typename PositionMap, typename KeyMap>
+    PointType get_position(Vertex v, const PositionMap& position, const KeyMap& key) const {
+      return get(position, get(key, v));
+    };
+  };
+};
+
+
+struct position_caching_policy {
+  template <typename PointType>
+  struct vertex_base_property {
+    PointType cached_position_value;
+  };
+  
+  template <typename Graph, typename PointType>
+  struct effector {
+    
+    typename boost::property_map< Graph, PointType vertex_base_property<PointType>::* >::type m_cached_position;
+    
+    effector(Graph& g) : m_cached_position( get(&vertex_base_property<PointType>::cached_position_value, g) ) { };
+    
+    template <typename Vertex, typename Key, typename KeyMap>
+    void put_vertex(Vertex v, Key k, const PointType& pt, const KeyMap& key) const {
+      put(key, v, k);
+      put(m_cached_position, v, pt);
+    };
+    
+    template <typename Vertex, typename Key, typename PositionMap, typename KeyMap>
+    void put_vertex(Vertex v, Key k, const PositionMap& position, const KeyMap& key) const {
+      put(key, v, k);
+      put(m_cached_position, v, get(position, k));
+    };
+  
+    template <typename Vertex, typename PositionMap, typename KeyMap>
+    PointType get_position(Vertex v, const PositionMap&, const KeyMap&) const {
+      return get(m_cached_position, v);
+    };
+  };
+};
+
+
+
 /**
  * This class implements a Dynamic Vantage-Point Tree (DVP-Tree) that
  * allows for O(logN) time nearest-neighbor queries in a metric-space. A DVP-tree is essentially
@@ -172,7 +227,8 @@ template <typename Key,
           typename Topology,
           typename PositionMap,
 	  unsigned int Arity = 2,
-	  typename VPChooser = random_vp_chooser >
+	  typename VPChooser = random_vp_chooser,
+	  typename PositionCachingPolicy = position_caching_policy>
 class dvp_tree
 {
   public:
@@ -184,33 +240,24 @@ class dvp_tree
     
   private:
     
+    struct vertex_properties : PositionCachingPolicy::template vertex_base_property<point_type> {
+      Key k;
+    };
+    
+    struct edge_properties {
+      distance_type d;
+    };
+    
 #if 0
-    typedef boost::property< boost::vertex_vp_key_index_t, Key, boost::no_property > vertex_properties; 
-    
-    typedef boost::property< boost::edge_vp_distance_t, distance_type, boost::no_property > edge_properties;
-    
     typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
                                    vertex_properties,
 	  	                   edge_properties,
 		                   boost::vecS> tree_indexer;
-				   
-    typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor vertex_type;
-    typedef typename boost::graph_traits<tree_indexer>::edge_descriptor edge_type;
-    typedef typename boost::graph_traits<tree_indexer>::out_edge_iterator out_edge_iter;
-    typedef typename boost::graph_traits<tree_indexer>::in_edge_iterator in_edge_iter;
-    
-    tree_indexer m_tree;
-    vertex_type m_root;
-    typename boost::property_map< tree_indexer, boost::vertex_vp_key_index_t >::type m_key;
-    typename boost::property_map< tree_indexer, boost::edge_vp_distance_t >::type m_mu;
 #else
-    typedef Key vertex_properties; 
+    typedef ReaK::graph::d_ary_bf_tree< vertex_properties,
+                                        Arity, edge_properties> tree_indexer;   
+#endif
     
-    typedef distance_type edge_properties;
-    
-    typedef ReaK::pp::d_ary_bf_tree< vertex_properties,
-                                     Arity, edge_properties> tree_indexer;
-				   
     typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor vertex_type;
     typedef typename boost::graph_traits<tree_indexer>::edge_descriptor edge_type;
     typedef typename boost::graph_traits<tree_indexer>::out_edge_iterator out_edge_iter;
@@ -218,9 +265,9 @@ class dvp_tree
     
     tree_indexer m_tree;
     vertex_type m_root;
-    tree_indexer& m_key;
-    tree_indexer& m_mu;
-#endif
+    typename boost::property_map< tree_indexer, Key vertex_properties::* >::type m_key;
+    typename boost::property_map< tree_indexer, distance_type edge_properties::* >::type m_mu;
+    typename PositionCachingPolicy::template effector< tree_indexer, point_type > m_caching_effector;
     
     const Topology& m_space;
     typename metric_space_traits<Topology>::distance_metric_type m_distance;
@@ -250,7 +297,7 @@ class dvp_tree
 	aDistMap[*it] = m_distance(vp_pt, get(m_position, *it), m_space);
       swap(*vp_ind, *aBegin);
       //std::sort(aBegin,aEnd,boost::bind(closer,&aDistMap,_1,_2));
-      put(m_key, aNode, *aBegin);
+      m_caching_effector.put_vertex(aNode, *aBegin, vp_pt, m_key);
       aDistMap.erase(*aBegin);
       aBegin++;
       if( out_degree(aNode, m_tree) != 0 )
@@ -259,7 +306,7 @@ class dvp_tree
 	for(KeyIter it = aBegin; it != aEnd; ++it) {
 	  vertex_type k; edge_type e; 
 	  boost::tie(k,e) = add_child_vertex(aNode, m_tree);
-	  put(m_key, k, *it);
+	  m_caching_effector.put_vertex(k, *it, m_position, m_key);
 	  put(m_mu, e, aDistMap[*it]);
 	};
       } else {
@@ -279,11 +326,15 @@ class dvp_tree
     /* Does not require persistent vertices */
     void find_nearest_impl(const point_type& aPoint, distance_type& aSigma, vertex_type aNode, std::multimap<distance_type, Key>& aList, std::size_t K) const {
       typedef typename std::multimap<distance_type, Key>::value_type ListType;
-      Key current_key = get(m_key, aNode);
-      distance_type current_dist = m_distance(aPoint, get(m_position, current_key), m_space);
+#ifdef RK_DVP_TREE_CACHE_POSITION
+      distance_type current_dist = m_distance(aPoint, get(m_cached_position, aNode), m_space);
+#else
+      distance_type current_dist = m_distance(aPoint, m_caching_effector.get_position(aNode, m_position, m_key), m_space);
+//      distance_type current_dist = m_distance(aPoint, get(m_position, get(m_key, aNode)), m_space);
+#endif
       ++m_num_dist_eval;
       if(current_dist < aSigma) { //is the vantage point within current search bound? Yes...
-        aList.insert(ListType(current_dist, current_key)); //then add the vantage point to the NN list.
+        aList.insert(ListType(current_dist, get(m_key, aNode))); //then add the vantage point to the NN list.
 	if(aList.size() > K) { //are there too many nearest neighbors? Yes...
 	  aList.erase((++aList.rbegin()).base()); //delete last element to keep aList with K elements
 	  aSigma = aList.rbegin()->first; //distance of the last element is now the search bound aSigma.
@@ -356,8 +407,12 @@ class dvp_tree
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
     vertex_type get_leaf(const point_type& aPoint, vertex_type aNode) const {
-      Key current_key = get(m_key, aNode);
-      distance_type current_dist = m_distance(aPoint, get(m_position, current_key), m_space);
+#ifdef RK_DVP_TREE_CACHE_POSITION
+      distance_type current_dist = m_distance(aPoint, get(m_cached_position, aNode), m_space);
+#else
+      distance_type current_dist = m_distance(aPoint, m_caching_effector.get_position(aNode, m_position, m_key), m_space);
+//      distance_type current_dist = m_distance(aPoint, get(m_position, get(m_key, aNode)), m_space);
+#endif
       out_edge_iter ei,ei_end;
       //first, locate the partition in which aPoint is:
       if(out_degree(aNode,m_tree) == 0)
@@ -374,9 +429,9 @@ class dvp_tree
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
     vertex_type get_key(Key aVertex, const point_type& aPoint, vertex_type aNode) const {
-      Key current_key = get(m_key, aNode);
-      if(current_key == aVertex) return aNode;
-      distance_type current_dist = m_distance(aPoint, get(m_position, current_key), m_space);
+      if(get(m_key, aNode) == aVertex) return aNode;
+      distance_type current_dist = m_distance(aPoint, m_caching_effector.get_position(aNode, m_position, m_key), m_space);
+//      distance_type current_dist = m_distance(aPoint, get(m_position, get(m_key, aNode)), m_space);
       //first, locate the partition in which aPoint is:
       if(out_degree(aNode,m_tree) == 0)
 	throw int(0);
@@ -395,7 +450,8 @@ class dvp_tree
     void update_mu_upwards(const point_type& aPoint, vertex_type aNode) {
       if(aNode == m_root) return;
       vertex_type parent = source(*(in_edges(aNode,m_tree).first), m_tree);
-      distance_type dist = m_distance(aPoint, get(m_position,get(m_key,parent)), m_space);
+      distance_type dist = m_distance(aPoint, m_caching_effector.get_position(parent, m_position, m_key), m_space);
+//      distance_type dist = m_distance(aPoint, get(m_position,get(m_key,parent)), m_space);
       if(dist > get(m_mu,*(in_edges(aNode,m_tree).first)))
 	put(m_mu,*(in_edges(aNode,m_tree).first),dist);
       update_mu_upwards(aPoint,parent);
@@ -491,13 +547,9 @@ class dvp_tree
 	     PositionMap aPosition,
 	     VPChooser aVPChooser = VPChooser()) : 
 	     m_tree(), m_root(), 
-#if 0
-             m_key(get(boost::vertex_vp_key_index,m_tree)), 
-             m_mu(get(boost::edge_vp_distance,m_tree)),
-#else
-             m_key(m_tree), 
-             m_mu(m_tree),
-#endif
+             m_key(get(&vertex_properties::k,m_tree)), 
+             m_mu(get(&edge_properties::d,m_tree)), 
+             m_caching_effector(m_tree),
              m_space(aSpace), m_distance(get(distance_metric,aSpace)), 
              m_position(aPosition), m_vp_chooser(aVPChooser) {
       if(num_vertices(g) == 0) return;
@@ -526,13 +578,9 @@ class dvp_tree
 	     PositionMap aPosition,
 	     VPChooser aVPChooser = VPChooser()) : 
 	     m_tree(), m_root(), 
-#if 0
-             m_key(get(boost::vertex_vp_key_index,m_tree)), 
-             m_mu(get(boost::edge_vp_distance,m_tree)),
-#else
-             m_key(m_tree), 
-             m_mu(m_tree),
-#endif
+             m_key(get(&vertex_properties::k,m_tree)), 
+             m_mu(get(&edge_properties::d,m_tree)), 
+             m_caching_effector(m_tree),
              m_space(aSpace), m_distance(get(distance_metric,aSpace)), 
              m_position(aPosition), m_vp_chooser(aVPChooser) {
       if(aBegin == aEnd) return;
@@ -565,7 +613,7 @@ class dvp_tree
     void insert(Key u) { 
       if(num_vertices(m_tree) == 0) {
 	m_root = create_root(m_tree); 
-	put(m_key,m_root,u); 
+	m_caching_effector.put_vertex(m_root, u, m_position, m_key);
 	return;
       };
       point_type u_pt = get(m_position, u); 
@@ -625,8 +673,9 @@ class dvp_tree
 	  // and thus, in either case, u_realleaf should be expanded.
 	  edge_type l_p;                 
 	  boost::tie(p, l_p) = add_child_vertex(u_realleaf, m_tree);
-	  put(m_key, p, u);              
-	  put(m_mu, l_p, m_distance(u_pt, get(m_position,get(m_key,u_realleaf)), m_space));
+	  m_caching_effector.put_vertex(p, u, u_pt, m_key);
+	  put(m_mu, l_p, m_distance(u_pt, m_caching_effector.get_position(u_realleaf, m_position, m_key), m_space));
+//	  put(m_mu, l_p, m_distance(u_pt, get(m_position,get(m_key,u_realleaf)), m_space));
 	  update_mu_upwards(u_pt,u_realleaf);   
 	};
       };

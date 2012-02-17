@@ -50,7 +50,7 @@
 
 namespace ReaK {
 
-namespace pp {
+namespace graph {
   
   
 namespace detail {
@@ -102,6 +102,9 @@ class d_ary_cob_tree
     
     typedef VertexProperties vertex_property_type;
     typedef EdgeProperties edge_property_type;
+    
+    typedef VertexProperties vertex_bundled;
+    typedef EdgeProperties edge_bundled;
     
     struct value_type {
       int out_degree;
@@ -615,6 +618,21 @@ class d_ary_cob_tree
     friend void put( self& g, const edge_descriptor& e_i, const edge_property_type& value) {
       g[e_i] = value;
     };
+    
+    template <typename T, typename Bundle>
+    friend 
+    typename boost::property_map< self, T Bundle::* >::type
+    get( T Bundle::* p, self& g) {
+      return typename boost::property_map< self, T Bundle::* >::type(&g, p);
+    };
+    
+    template <typename T, typename Bundle>
+    friend 
+    typename boost::property_map< self, T Bundle::* >::const_type
+    get( T Bundle::* p, const self& g) {
+      return typename boost::property_map< self, T Bundle::* >::const_type(&g, p);
+    };
+    
     
     bool is_valid(const vertex_descriptor& v_i) const {
       return (v_i.vertex_id < vertex_index_type( m_vertices[v_i.block_id].size() )) && 

@@ -72,7 +72,7 @@ int main() {
    const unsigned int grid_sizes[] = {100, 200, 300, 400, 500, 800, 1000, 1100, 1300, 1500, 1700, 
                                       1900, 2000, 2200, 2500, 3000, 3500, 4000, 4500, 5000, 6000,
  				     7000, 8000, 9000, 10000, 12000, 15000, 20000, 25000, 30000,
-                                      50000, 100000, 200000, 500000, 1000000};
+                                      50000, 100000, 200000, 500000, 1000000, 2000000, 5000000};
 				     
 //  const unsigned int grid_sizes[] = {50000, 100000, 200000, 500000, 1000000,
 //                                     2000000, 5000000, 10000000, 20000000};
@@ -80,7 +80,7 @@ int main() {
   std::ofstream outFile("test_vp_results/dvp_umap_vecS_6.dat");
   outFile << "N\tVP2\tVP4\t (all times in micro-seconds per query per vertex)" << std::endl;
   
-  for(int i=0;i<35;++i) {
+  for(int i=0;i<37;++i) {
     WorldGridType grid;
     std::size_t eval_count;
     TopologyType m_space("",ReaK::vect<double,6>(0.0,0.0,0.0,0.0,0.0,0.0),ReaK::vect<double,6>(1.0,1.0,1.0,1.0,1.0,1.0));
