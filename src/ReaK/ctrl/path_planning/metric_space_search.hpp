@@ -53,6 +53,8 @@
 #include "graph_alg/d_ary_bf_tree.hpp"
 #include "graph_alg/d_ary_cob_tree.hpp"
 
+#include "topological_search.hpp"
+
 namespace boost {
 
   enum edge_vp_distance_t { edge_vp_distance };
@@ -273,7 +275,6 @@ class dvp_tree
     typename metric_space_traits<Topology>::distance_metric_type m_distance;
     PositionMap m_position;
     VPChooser m_vp_chooser;
-    mutable std::size_t m_num_dist_eval;
     
     //non-copyable.
     dvp_tree(const dvp_tree<Key,Topology,PositionMap,Arity,VPChooser>&);
@@ -324,21 +325,17 @@ class dvp_tree
     
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
-    void find_nearest_impl(const point_type& aPoint, distance_type& aSigma, vertex_type aNode, std::multimap<distance_type, Key>& aList, std::size_t K) const {
+    template <typename PriorityQueue>
+    void find_nearest_impl(const point_type& aPoint, distance_type& aSigma, vertex_type aNode, 
+			   PriorityQueue& aList, std::size_t K) const {
       typedef typename std::multimap<distance_type, Key>::value_type ListType;
-#ifdef RK_DVP_TREE_CACHE_POSITION
-      distance_type current_dist = m_distance(aPoint, get(m_cached_position, aNode), m_space);
-#else
       distance_type current_dist = m_distance(aPoint, m_caching_effector.get_position(aNode, m_position, m_key), m_space);
-//      distance_type current_dist = m_distance(aPoint, get(m_position, get(m_key, aNode)), m_space);
-#endif
-      ++m_num_dist_eval;
       if(current_dist < aSigma) { //is the vantage point within current search bound? Yes...
-        aList.insert(ListType(current_dist, get(m_key, aNode))); //then add the vantage point to the NN list.
-	if(aList.size() > K) { //are there too many nearest neighbors? Yes...
-	  aList.erase((++aList.rbegin()).base()); //delete last element to keep aList with K elements
-	  aSigma = aList.rbegin()->first; //distance of the last element is now the search bound aSigma.
-	};
+        //then add the vantage point to the NN list.
+        aList.push(std::pair<distance_type, Key>(current_dist, get(m_key, aNode)));
+	if(aList.size() > K) //are there too many nearest neighbors? Yes...
+	  aList.pop(); //delete last element to keep aList with K elements
+	aSigma = aList.top().first; //distance of the last element is now the search bound aSigma.
       };
       out_edge_iter ei,ei_end;
       //first, locate the partition in which aPoint is:
@@ -604,8 +601,6 @@ class dvp_tree
     
     std::size_t depth() const { return get_depth(m_root); };
     
-    std::size_t get_dist_eval() const { return m_num_dist_eval; };
-    
     /**
      * Inserts a key-value (vertex).
      * \param u The vertex to be added to the DVP-tree.
@@ -821,90 +816,127 @@ class dvp_tree
      */
     Key find_nearest(const point_type& aPoint) const {
       if(num_vertices(m_tree) == 0) return Key();
-      std::multimap<distance_type,Key> m;
+      std::priority_queue< std::pair<distance_type, Key>,
+                           std::vector< std::pair< distance_type, Key > >,
+			   detail::compare_pair_first< distance_type, Key, std::less< distance_type > > > Q;
       distance_type sig = std::numeric_limits<distance_type>::infinity();
-      m_num_dist_eval = 0;
-      find_nearest_impl(aPoint,sig,m_root,m,1);
-      return m.begin()->second;
+      find_nearest_impl(aPoint,sig,m_root,Q,1);
+      return Q.top().second;
     };
     
     /**
      * Finds the K nearest-neighbors to a given position.
+     * \tparam OutputIterator The bidirectional- output-iterator type which can contain the 
+     *         list of nearest-neighbors.
      * \param aPoint The position from which to find the nearest-neighbors.
-     * \param aList Stores, as output, a map of all the K nearest-neighbors to aPoint, the map gives the distance and vertex pairs.
+     * \param aOutputBegin An iterator to the first place where to put the sorted list of 
+     *        elements with the smallest distance.
      * \param K The number of nearest-neighbors.
+     * \param R The maximum distance value for the nearest-neighbors.
+     * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
      */
-    void find_nearest(const point_type& aPoint, std::multimap<distance_type, Key>& aList, std::size_t K) const {
-      if(num_vertices(m_tree) == 0) return;
-      aList.clear();
-      distance_type sig = std::numeric_limits<distance_type>::infinity();
-      m_num_dist_eval = 0;
-      find_nearest_impl(aPoint,sig,m_root,aList,K);
+    template <typename OutputIterator>
+    OutputIterator find_nearest(const point_type& aPoint, OutputIterator aOutputBegin, std::size_t K, distance_type R = std::numeric_limits<distance_type>::infinity()) const {
+      if(num_vertices(m_tree) == 0) return aOutputBegin;
+      std::priority_queue< std::pair<distance_type, Key>,
+                           std::vector< std::pair< distance_type, Key > >,
+			   detail::compare_pair_first< distance_type, Key, std::less< distance_type > > > Q;
+      find_nearest_impl(aPoint,R,m_root,Q,K);
+      return detail::copy_neighbors_from_queue<Key, distance_type>(Q, aOutputBegin);
     };
     
     /**
      * Finds the nearest-neighbors to a given position within a given range (radius).
+     * \tparam OutputIterator The bidirectional- output-iterator type which can contain the 
+     *         list of nearest-neighbors.
      * \param aPoint The position from which to find the nearest-neighbors.
-     * \param aList Stores, as output, a map of all the nearest-neighbors to aPoint, the map gives the distance and vertex pairs.
+     * \param aOutputBegin An iterator to the first place where to put the sorted list of 
+     *        elements with the smallest distance.
      * \param R The maximum distance value for the nearest-neighbors.
+     * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
      */
-    void find_in_range(const point_type& aPoint, std::multimap<distance_type, Key>& aList, distance_type R) const {
-      if(num_vertices(m_tree) == 0) return;
-      m_num_dist_eval = 0;
-      find_nearest_impl(aPoint,R,m_root,aList,num_vertices(m_tree));
-    };
-    
-    /**
-     * Takes a vertex, finds its nearest-neighbor and then it adds it to the DVP-tree.
-     * \param aVertex The vertex to be added to the DVP-tree.
-     * \return The nearest-neighbor of the given vertex.
-     */
-    Key insert_and_find_nearest(Key aVertex) {
-      Key result = find_nearest(get(m_position,aVertex));
-      insert(aVertex);
-    };
-    
-    /**
-     * Takes a vertex, finds its K nearest-neighbors and then it adds it to the DVP-tree.
-     * \param aVertex The vertex to be added to the DVP-tree.
-     * \param aList Stores, as output, a map of all the K nearest-neighbors to aVertex, the map gives the distance and vertex pairs.
-     * \param K The number of nearest-neighbors.
-     */
-    void insert_and_find_nearest(Key aVertex, std::list<Key>& aList, std::size_t K) { 
-      find_nearest(get(m_position,aVertex),aList,K);
-      insert(aVertex);
-    };
-    
-    /**
-     * Takes a vertex, finds its nearest-neighbors within a range and then it adds it to the DVP-tree.
-     * \param aVertex The vertex to be added to the DVP-tree.
-     * \param aList Stores, as output, a map of all the nearest-neighbors to aVertex, the map gives the distance and vertex pairs.
-     * \param R The maximum distance value for the nearest-neighbors.
-     */
-    void insert_and_find_in_range(Key aVertex, std::list<Key>& aList, distance_type R) {
-      find_in_range(get(m_position,aVertex),aList,R);
-      insert(aVertex);
+    template <typename OutputIterator>
+    OutputIterator find_in_range(const point_type& aPoint, OutputIterator aOutputBegin, distance_type R) const {
+      if(num_vertices(m_tree) == 0) return aOutputBegin;
+      std::priority_queue< std::pair<distance_type, Key>,
+                           std::vector< std::pair< distance_type, Key > >,
+			   detail::compare_pair_first< distance_type, Key, std::less< distance_type > > > Q;
+      find_nearest_impl(aPoint,R,m_root,Q,num_vertices(m_tree));
+      return detail::copy_neighbors_from_queue<Key, distance_type>(Q, aOutputBegin);
     };
     
     
 };
 
 
-
+/**
+ * This class template is used as a type of kind of associative container for DVP-trees that 
+ * span distinct graphs. For problems in which multiple graphs exist and nearest-neighbors 
+ * may be queried from any of these graphs, one can use this class to associate each graph 
+ * with a dvp-tree. This class is callable as a single query and a KNN / range query.
+ * \tparam Graph The graph type which can contain the vertices.
+ * \tparam DVPTree The DVP-tree type that is used to perform the nearest-neighbor queries.
+ */
 template <typename Graph, typename DVPTree>
 struct multi_dvp_tree_search {
+  /** This associative container is used to store and access the DVP-trees. */
   typename std::map<Graph*, DVPTree*> graph_tree_map;
+  
   multi_dvp_tree_search() : graph_tree_map() { };
   
+  
+  /**
+   * This call-operator finds the nearest vertex of a graph, to a given position.
+   * \tparam Topology The topology type which contains the positions, should model the MetricSpaceConcept.
+   * \tparam PositionMap The property-map type which can store the position associated with each vertex.
+   * \param p A position in the space, to which the nearest-neighbor is sought.
+   * \param g A graph containing the vertices from which to find the nearest-neighbor, 
+   *        should be tree-structured.
+   * \param space The topology objects which define the space in which the positions reside.
+   * \param position The property-map which can retrieve the position associated to each vertex.
+   */
   template <typename Topology, typename PositionMap>
   typename boost::graph_traits<Graph>::vertex_descriptor operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
-                                                                    Graph& g, const Topology& space, PositionMap position) {
-    typename std::map<Graph*,DVPTree*>::iterator it = graph_tree_map.find(&g);
+                                                                    Graph& g, const Topology& space, PositionMap position) const {
+    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
     if((it != graph_tree_map.end()) && (it->second))
       return it->second->find_nearest(p);
     else
       return typename boost::graph_traits<Graph>::vertex_descriptor();
   };
+  
+  /**
+     * This call-operator finds the nearest vertices of a graph, to a given position.
+     * \tparam Topology The topology type which contains the positions.
+     * \tparam PositionMap The property-map type which can store the position associated 
+     *         with each vertex.
+     * \tparam OutputIterator The bidirectional- output-iterator type which can contain the 
+     *         list of nearest-neighbors.
+     * \param p A position in the space, to which the nearest-neighbors are sought.
+     * \param output_first An iterator to the first place where to put the sorted list of 
+     *        elements with the smallest distance.
+     * \param g A graph containing the vertices from which to find the nearest-neighbors, 
+     *        should be tree-structured.
+     * \param space The topology objects which define the space in which the positions reside.
+     * \param position The property-map which can retrieve the position associated to each vertex.
+     * \param max_neighbors The maximum number of neighbors to have in the list.
+     * \param radius The minimum distance around the position that a vertex should be in to be 
+     *        considered a neighbor.
+     * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
+     */
+    template <typename Topology, typename PositionMap, typename OutputIterator>
+    OutputIterator operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
+		              OutputIterator output_first, 
+		              Graph& g, const Topology& space, PositionMap position, 
+		              std::size_t max_neighbors = 1, double radius = std::numeric_limits<double>::infinity()) const {
+    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
+    if((it != graph_tree_map.end()) && (it->second))
+      return it->second->find_nearest(p, output_first, max_neighbors, radius);
+    else
+      return output_first;
+    };
+  
+  
 };
 
 

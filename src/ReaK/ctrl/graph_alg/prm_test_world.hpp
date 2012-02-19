@@ -278,17 +278,16 @@ class prm_test_world {
 
     //PRM Visitor concepts:
     void select_neighborhood(const point_type& p, std::vector<VertexType>& Nc, WorldGridType& g, const prm_test_world&, boost::property_map<WorldGridType, boost::vertex_position_t>::type) {
+      Nc.resize(num_neighbors);
+      std::vector<VertexType>::iterator last;
       if(nn_search_divider == 0) {
-	ReaK::pp::linear_neighbor_search<>()(p,Nc,g,m_space,m_position,num_neighbors,max_neighbor_radius);
+	last = ReaK::pp::linear_neighbor_search<>()(p,Nc.begin(),g,m_space,m_position,num_neighbors,max_neighbor_radius);
       } else if(nn_search_divider == 1) {
-	std::multimap<double,VertexType> neighbors;
-	space_part.find_nearest(p,neighbors,num_neighbors);
-	std::multimap<double,VertexType>::iterator it_end = neighbors.lower_bound(max_neighbor_radius);
-	for(std::multimap<double,VertexType>::iterator it = neighbors.begin(); it != it_end; ++it)
-	  Nc.push_back(it->second);
+	last = space_part.find_nearest(p,Nc.begin(),num_neighbors,max_neighbor_radius);
       } else {
-	ReaK::pp::best_only_neighbor_search<>(nn_search_divider).operator()(p,Nc,g,m_space,m_position,num_neighbors,max_neighbor_radius);
+	last = ReaK::pp::best_only_neighbor_search<>(nn_search_divider).operator()(p,Nc.begin(),g,m_space,m_position,num_neighbors,max_neighbor_radius);
       };
+      Nc.erase(last, Nc.end());
     };
     
     void vertex_added(VertexType u, WorldGridType& g) {

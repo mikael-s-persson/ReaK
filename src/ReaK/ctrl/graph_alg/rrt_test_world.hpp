@@ -526,32 +526,6 @@ class rrt_test_world {
 	      m_position, m_position_goal,
  	      nn_finder,
               m, max_edge_length, 1.0);
-	    
-	    boost::posix_time::ptime t_start = boost::posix_time::microsec_clock::local_time();
-	    for(unsigned int i=0;i<100000;++i) {
-	      nn_finder(m_space.random_point(),grid,m_space,m_position);
-	    };
-	    boost::posix_time::time_duration dt = boost::posix_time::microsec_clock::local_time() - t_start;
-	    std::cout << "100000 queries of the vp-tree took: " << dt.total_microseconds() << " microsec on " << num_vertices(grid) << " vertices." << std::endl;
-	    
-	    WorldPartition fresh_partition(grid,m_space,m_position);
-	    ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition> nn_finder_fresh;
-	    nn_finder_fresh.graph_tree_map[&grid] = &fresh_partition;
-	    t_start = boost::posix_time::microsec_clock::local_time();
-	    for(unsigned int i=0;i<100000;++i) {
-	      nn_finder_fresh(m_space.random_point(),grid,m_space,m_position);
-	    };
-	    dt = boost::posix_time::microsec_clock::local_time() - t_start;
-	    std::cout << "100000 queries of a fresh vp-tree took: " << dt.total_microseconds() << " microsec on " << num_vertices(grid) << " vertices." << std::endl;
-	    
-	    ReaK::pp::linear_neighbor_search<> lnn_finder;
-	    t_start = boost::posix_time::microsec_clock::local_time();
-	    for(unsigned int i=0;i<100000;++i) {
-	      lnn_finder(m_space.random_point(),grid,m_space,m_position);
-	    };
-	    dt = boost::posix_time::microsec_clock::local_time() - t_start;
-	    std::cout << "100000 queries of the linear search took: " << dt.total_microseconds() << " microsec on " << num_vertices(grid) << " vertices." << std::endl;
-	    
 	  } else {                         //calls the bidirectional RRT, with the best_only_neighbor_search
             ReaK::graph::generate_bidirectional_rrt(
 	      grid, grid_goal,

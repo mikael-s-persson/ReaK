@@ -285,11 +285,14 @@ class fadprm_test_world {
     
     //PRM Visitor concepts:
     void select_neighborhood(const point_type& p, std::vector<VertexType>& Nc, WorldGridType& g, const fadprm_test_world&, boost::property_map<WorldGridType, boost::vertex_position_t>::type) {
+      Nc.resize(num_neighbors);
+      std::vector<VertexType>::iterator last;
       if(nn_search_divider == 0) {
-	ReaK::pp::linear_neighbor_search<>()(p,Nc,g,*this,m_position,num_neighbors,max_neighbor_radius);
+	last = ReaK::pp::linear_neighbor_search<>()(p,Nc.begin(),g,*this,m_position,num_neighbors,max_neighbor_radius);
       } else {
-	ReaK::pp::best_only_neighbor_search<>(nn_search_divider).operator()(p,Nc,g,*this,m_position,num_neighbors,max_neighbor_radius);
+	last = ReaK::pp::best_only_neighbor_search<>(nn_search_divider).operator()(p,Nc.begin(),g,*this,m_position,num_neighbors,max_neighbor_radius);
       };
+      Nc.erase(last, Nc.end());
     };
     
     void vertex_added(VertexType u, WorldGridType& g) {
