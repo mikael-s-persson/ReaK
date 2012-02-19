@@ -42,6 +42,7 @@
 #include "lin_alg/arithmetic_tuple.hpp"
 #include "base/serializable.hpp"
 #include "tuple_distance_metrics.hpp"
+#include "default_random_sampler.hpp"
 
 namespace ReaK {
 
@@ -59,108 +60,108 @@ namespace detail {
   
   template <std::size_t Size, typename... Spaces>
   struct point_type_tuple_impl< Size, std::tuple<Spaces...> > {
-    typedef arithmetic_tuple< typename metric_topology_traits<Spaces>::point_type... > type;
+    typedef arithmetic_tuple< typename topology_traits<Spaces>::point_type... > type;
   };
   
   template <std::size_t Size, typename... Spaces>
   struct point_type_tuple_impl< Size, arithmetic_tuple<Spaces...> > {
-    typedef arithmetic_tuple< typename metric_topology_traits<Spaces>::point_type... > type;
+    typedef arithmetic_tuple< typename topology_traits<Spaces>::point_type... > type;
   };
   
 #else
   template <typename SpaceTuple>
   struct point_type_tuple_impl< 1, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_type_tuple_impl< 2, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_type_tuple_impl< 3, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_type_tuple_impl< 4, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_type_tuple_impl< 5, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_type_tuple_impl< 6, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_type_tuple_impl< 7, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_type_tuple_impl< 8, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_type_tuple_impl< 9, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::point_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::point_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_type_tuple_impl< 10, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::point_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<9,SpaceTuple>::type >::point_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::point_type,
+                              typename topology_traits< typename arithmetic_tuple_element<9,SpaceTuple>::type >::point_type > type;
   };
 
 #endif
@@ -181,108 +182,108 @@ namespace detail {
   
   template <std::size_t Size, typename... Spaces>
   struct point_difference_type_tuple_impl< Size, std::tuple<Spaces...> > {
-    typedef arithmetic_tuple< typename metric_topology_traits<Spaces>::point_difference_type... > type;
+    typedef arithmetic_tuple< typename topology_traits<Spaces>::point_difference_type... > type;
   };
   
   template <std::size_t Size, typename... Spaces>
   struct point_difference_type_tuple_impl< Size, arithmetic_tuple<Spaces...> > {
-    typedef arithmetic_tuple< typename metric_topology_traits<Spaces>::point_difference_type... > type;
+    typedef arithmetic_tuple< typename topology_traits<Spaces>::point_difference_type... > type;
   };
   
 #else
   template <typename SpaceTuple>
   struct point_difference_type_tuple_impl< 1, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_difference_type_tuple_impl< 2, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_difference_type_tuple_impl< 3, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_difference_type_tuple_impl< 4, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_difference_type_tuple_impl< 5, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_difference_type_tuple_impl< 6, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_difference_type_tuple_impl< 7, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_difference_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_difference_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_difference_type_tuple_impl< 8, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_difference_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_difference_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_difference_type_tuple_impl< 9, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::point_difference_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::point_difference_type > type;
   };
 
   template <typename SpaceTuple>
   struct point_difference_type_tuple_impl< 10, SpaceTuple > { 
-    typedef arithmetic_tuple< typename metric_topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::point_difference_type,
-                              typename metric_topology_traits< typename arithmetic_tuple_element<9,SpaceTuple>::type >::point_difference_type > type;
+    typedef arithmetic_tuple< typename topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::point_difference_type,
+                              typename topology_traits< typename arithmetic_tuple_element<9,SpaceTuple>::type >::point_difference_type > type;
   };
 
 #endif
@@ -302,7 +303,7 @@ namespace detail {
       
       static void random_point(const SpaceTuple& s, point_type& p) {
 	metric_space_tuple_impl<Order-1,SpaceTuple>::random_point(s,p);
-	get<Order>(p) = get<Order>(s).random_point();
+	get<Order>(p) = get(random_sampler,get<Order>(s))(get<Order>(s));
       };
       
       static void difference(const SpaceTuple& s, point_difference_type& dp, const point_type& p1, const point_type& p2) {
@@ -333,7 +334,7 @@ namespace detail {
       typedef typename point_difference_type_tuple< SpaceTuple >::type point_difference_type;
       
       static void random_point(const SpaceTuple& s, point_type& p) {
-	get<0>(p) = get<0>(s).random_point();
+	get<0>(p) = get(random_sampler,get<0>(s))(get<0>(s));
       };
       
       static void difference(const SpaceTuple& s, point_difference_type& dp, const point_type& p1, const point_type& p2) {
@@ -385,6 +386,9 @@ class metric_space_tuple : public serialization::serializable {
     typedef typename detail::point_type_tuple< SpaceTuple >::type point_type;
     typedef typename detail::point_difference_type_tuple< SpaceTuple >::type point_difference_type;
     
+    typedef TupleDistanceMetric distance_metric_type;
+    typedef default_random_sampler random_sampler_type;
+    
     /**
      * Parametrized and default constructor.
      * \param aSpaces The space tuple to initialize the spaces with.
@@ -393,6 +397,10 @@ class metric_space_tuple : public serialization::serializable {
     metric_space_tuple(const SpaceTuple& aSpaces = SpaceTuple(), 
 		       const TupleDistanceMetric& aDist = TupleDistanceMetric()) :
 		       m_spaces(aSpaces), m_dist(aDist) { };
+    
+    /*************************************************************************
+    *                             MetricSpaceConcept
+    * **********************************************************************/
       
     /**
      * Returns the distance between two points.
@@ -408,6 +416,20 @@ class metric_space_tuple : public serialization::serializable {
       return m_dist(dp, m_spaces);
     };
     
+    friend
+    TupleDistanceMetric& get(distance_metric_t, self& space) {
+      return space.m_dist;
+    };
+    
+    friend
+    const TupleDistanceMetric& get(distance_metric_t, const self& space) {
+      return space.m_dist;
+    };
+    
+   /*************************************************************************
+    *                             PointDistributionConcept
+    * **********************************************************************/
+    
     /**
      * Generates a random point in the space, uniformly distributed.
      */
@@ -417,21 +439,16 @@ class metric_space_tuple : public serialization::serializable {
       return result;
     };
     
+   /*************************************************************************
+    *                             TopologyConcept
+    * **********************************************************************/
+    
     /**
      * Returns the difference between two points (a - b).
      */
     point_difference_type difference(const point_type& p1, const point_type& p2) const {
       point_difference_type result;
       detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::difference(m_spaces,result,p1,p2);
-      return result;
-    };
-    
-    /**
-     * Returns a point which is at a fraction between two points a to b.
-     */
-    point_type move_position_toward(const point_type& p1, double d, const point_type& p2) const {
-      point_type result;
-      detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::move_position_toward(m_spaces,result,p1,d,p2);
       return result;
     };
     
@@ -450,6 +467,19 @@ class metric_space_tuple : public serialization::serializable {
     point_type adjust(const point_type& p1, const point_difference_type& dp) const {
       point_type result;
       detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::adjust(m_spaces,result,p1,dp);
+      return result;
+    };
+
+    /*************************************************************************
+    *                             LieGroupConcept
+    * **********************************************************************/
+    
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    point_type move_position_toward(const point_type& p1, double d, const point_type& p2) const {
+      point_type result;
+      detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::move_position_toward(m_spaces,result,p1,d,p2);
       return result;
     };
     

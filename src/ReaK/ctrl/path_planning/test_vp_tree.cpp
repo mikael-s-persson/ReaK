@@ -30,6 +30,8 @@
 
 #include "topological_search.hpp"
 #include "metric_space_search.hpp"
+#include "topologies/hyperbox_topology.hpp"
+#include "lin_alg/vect_alg.hpp"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -43,7 +45,7 @@ namespace boost {
 };
 
 int main() {
-  typedef boost::hypercube_topology<6,boost::minstd_rand> TopologyType;
+  typedef ReaK::pp::hyperbox_topology< ReaK::vect<double,6> > TopologyType;
   
   typedef TopologyType::point_type PointType;
 
@@ -66,83 +68,69 @@ int main() {
                              TopologyType, 
 			     boost::property_map<WorldGridType, boost::vertex_position_t>::type, 
 			     2> WorldPartition2;
-
-  const unsigned int grid_sizes[] = {100, 200, 500, 1000, 2000, 5000, 10000};
   
-  std::ofstream outFile("test_vp_tree_results_6.dat");
-  outFile << "N\tVP2\tVP2-f\tVP4\tVP4-f\tLS" << std::endl;
+   const unsigned int grid_sizes[] = {100, 200, 300, 400, 500, 800, 1000, 1100, 1300, 1500, 1700, 
+                                      1900, 2000, 2200, 2500, 3000, 3500, 4000, 4500, 5000, 6000,
+ 				     7000, 8000, 9000, 10000, 12000, 15000, 20000, 25000, 30000,
+                                      50000, 100000, 200000, 500000, 1000000, 2000000, 5000000};
+				     
+//  const unsigned int grid_sizes[] = {50000, 100000, 200000, 500000, 1000000,
+//                                     2000000, 5000000, 10000000, 20000000};
   
-  for(int i=0;i<7;++i) {
+  std::ofstream outFile("test_vp_results/dvp_umap_vecS_6.dat");
+  outFile << "N\tVP2\tVP4\t (all times in micro-seconds per query per vertex)" << std::endl;
+  
+  for(int i=0;i<37;++i) {
     WorldGridType grid;
-    boost::minstd_rand m_rng(std::time(0));
-    TopologyType m_space(m_rng);
-    boost::property_map<WorldGridType, boost::vertex_position_t>::type m_position(boost::get(boost::vertex_position, grid));
+    TopologyType m_space("",ReaK::vect<double,6>(0.0,0.0,0.0,0.0,0.0,0.0),ReaK::vect<double,6>(1.0,1.0,1.0,1.0,1.0,1.0));
+    boost::property_map<WorldGridType, boost::vertex_position_t>::type m_position(get(boost::vertex_position, grid));
     
-    WorldPartition2 part2(grid,m_space,m_position);
-    WorldPartition4 part4(grid,m_space,m_position);
-    
-    for(int j=0;j<grid_sizes[i];++j) {
-      VertexType v = boost::add_vertex(grid);
-      boost::put(m_position,v,m_space.random_point());
-      part2.insert(v);
-      part4.insert(v);
+    for(unsigned int j=0;j < grid_sizes[i];++j) {
+      VertexType v = add_vertex(grid);
+      put(m_position,v,m_space.random_point()); 
     };
-    
-    WorldPartition2 part2_fresh(grid,m_space,m_position);
-    WorldPartition4 part4_fresh(grid,m_space,m_position);
     
     outFile << grid_sizes[i];
     std::cout << "N = " << grid_sizes[i] << std::endl;
     
-    ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition2> nn_finder2;
-    nn_finder2.graph_tree_map[&grid] = &part2;
-    boost::posix_time::ptime t_start = boost::posix_time::microsec_clock::local_time();
-    for(unsigned int i=0;i<10000;++i) {
-      nn_finder2(m_space.random_point(),grid,m_space,m_position);
-    };
-    boost::posix_time::time_duration dt = boost::posix_time::microsec_clock::local_time() - t_start;
-    outFile << "\t" << dt.total_microseconds() * 0.0001;
-    std::cout << "VP2" << std::endl;
+    {
+    WorldPartition2 part2_fresh(grid,m_space,m_position);
     
     ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition2> nn_finder2_fresh;
     nn_finder2_fresh.graph_tree_map[&grid] = &part2_fresh;
-    t_start = boost::posix_time::microsec_clock::local_time();
-    for(unsigned int i=0;i<10000;++i) {
+    boost::posix_time::ptime t_start = boost::posix_time::microsec_clock::local_time();
+    for(unsigned int j=0;j<1000;++j) {
       nn_finder2_fresh(m_space.random_point(),grid,m_space,m_position);
     };
-    dt = boost::posix_time::microsec_clock::local_time() - t_start;
-    outFile << "\t" << dt.total_microseconds() * 0.0001;
+    boost::posix_time::time_duration dt = boost::posix_time::microsec_clock::local_time() - t_start;
+    outFile << "\t" << dt.total_microseconds() * 0.001 / double(grid_sizes[i]);
     std::cout << "VP2-fresh" << std::endl;
-    
-    ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition4> nn_finder4;
-    nn_finder4.graph_tree_map[&grid] = &part4;
-    t_start = boost::posix_time::microsec_clock::local_time();
-    for(unsigned int i=0;i<10000;++i) {
-      nn_finder4(m_space.random_point(),grid,m_space,m_position);
     };
-    dt = boost::posix_time::microsec_clock::local_time() - t_start;
-    outFile << "\t" << dt.total_microseconds() * 0.0001;
-    std::cout << "VP4" << std::endl;
+    
+    {
+    WorldPartition4 part4_fresh(grid,m_space,m_position);
     
     ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition4> nn_finder4_fresh;
     nn_finder4_fresh.graph_tree_map[&grid] = &part4_fresh;
-    t_start = boost::posix_time::microsec_clock::local_time();
-    for(unsigned int i=0;i<10000;++i) {
+    boost::posix_time::ptime t_start = boost::posix_time::microsec_clock::local_time();
+    for(unsigned int j=0;j<1000;++j) {
       nn_finder4_fresh(m_space.random_point(),grid,m_space,m_position);
     };
-    dt = boost::posix_time::microsec_clock::local_time() - t_start;
-    outFile << "\t" << dt.total_microseconds() * 0.0001;
+    boost::posix_time::time_duration dt = boost::posix_time::microsec_clock::local_time() - t_start;
+    outFile << "\t" << dt.total_microseconds() * 0.001 / double(grid_sizes[i]);
     std::cout << "VP4-fresh" << std::endl;
+    };
     
+    /*
     ReaK::pp::linear_neighbor_search<> lnn_finder;
     t_start = boost::posix_time::microsec_clock::local_time();
-    for(unsigned int i=0;i<10000;++i) {
+    for(unsigned int j=0;j<1000;++j) {
       lnn_finder(m_space.random_point(),grid,m_space,m_position);
     };
     dt = boost::posix_time::microsec_clock::local_time() - t_start;
-    outFile << "\t" << dt.total_microseconds() * 0.0001;
+    outFile << "\t" << dt.total_microseconds() * 0.001 / double(grid_sizes[i]);
     std::cout << "Linear Search" << std::endl;
-        
+    */    
     outFile << std::endl;
   };
 

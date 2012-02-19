@@ -38,6 +38,8 @@
 #include <cmath>
 #include "lin_alg/arithmetic_tuple.hpp"
 
+#include "path_planning/metric_space_concept.hpp"
+
 namespace ReaK {
 
 namespace pp {
@@ -51,7 +53,7 @@ namespace detail {
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
       double result = manhattan_tuple_distance_impl<Idx-1,SpaceTuple>::distance(s,p1,p2);
       using std::fabs;
-      result += fabs(get<Idx>(s).distance(get<Idx>(p1),get<Idx>(p2)));
+      result += fabs(get(distance_metric,get<Idx>(s))(get<Idx>(p1), get<Idx>(p2), get<Idx>(s)));
       return result;
     };
       
@@ -59,7 +61,7 @@ namespace detail {
     static double norm(const SpaceTuple& s, const PointDiff& dp) {
       double result = manhattan_tuple_distance_impl<Idx-1,SpaceTuple>::norm(s,dp);
       using std::fabs;
-      result += fabs(get<Idx>(s).norm(get<Idx>(dp)));
+      result += fabs(get(distance_metric,get<Idx>(s))(get<Idx>(dp), get<Idx>(s)));
       return result;
     };
   };
@@ -69,13 +71,13 @@ namespace detail {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
       using std::fabs;
-      return fabs(get<0>(s).distance(get<0>(p1),get<0>(p2)));
+      return fabs(get(distance_metric,get<0>(s))(get<0>(p1), get<0>(p2), get<0>(s)));
     };
       
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp) {
       using std::fabs;
-      return fabs(get<0>(s).norm(get<0>(dp)));
+      return fabs(get(distance_metric,get<0>(s))(get<0>(dp), get<0>(s)));
     };
   };
   
@@ -85,7 +87,7 @@ namespace detail {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
       double result = euclidean_tuple_distance_impl<Idx-1,SpaceTuple>::distance(s,p1,p2);
-      double r = get<Idx>(s).distance(get<Idx>(p1),get<Idx>(p2));
+      double r = get(distance_metric,get<Idx>(s))(get<Idx>(p1), get<Idx>(p2), get<Idx>(s));
       result += r * r;
       return result;
     };
@@ -93,7 +95,7 @@ namespace detail {
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp) {
       double result = euclidean_tuple_distance_impl<Idx-1,SpaceTuple>::norm(s,dp);
-      double r = get<Idx>(s).norm(get<Idx>(dp));
+      double r = get(distance_metric,get<Idx>(s))(get<Idx>(dp), get<Idx>(s));
       result += r * r;
       return result;
     };
@@ -103,13 +105,13 @@ namespace detail {
   struct euclidean_tuple_distance_impl<0,SpaceTuple> {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
-      double r = get<0>(s).distance(get<0>(p1),get<0>(p2));
+      double r = get(distance_metric,get<0>(s))(get<0>(p1), get<0>(p2), get<0>(s));
       return r * r;
     };
       
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp) {
-      double r = get<0>(s).norm(get<0>(dp));
+      double r = get(distance_metric,get<0>(s))(get<0>(dp), get<0>(s));
       return r * r;
     };
   };
@@ -120,7 +122,7 @@ namespace detail {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2, int p_value) {
       double result = p_norm_tuple_distance_impl<Idx-1,SpaceTuple>::distance(s,p1,p2,p_value);
-      double r = get<Idx>(s).distance(get<Idx>(p1),get<Idx>(p2));
+      double r = get(distance_metric,get<Idx>(s))(get<Idx>(p1), get<Idx>(p2), get<Idx>(s));
       using std::pow;
       result += pow(r,p_value);
       return result;
@@ -129,7 +131,7 @@ namespace detail {
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp, int p_value) {
       double result = p_norm_tuple_distance_impl<Idx-1,SpaceTuple>::norm(s,dp,p_value);
-      double r = get<Idx>(s).norm(get<Idx>(dp));
+      double r = get(distance_metric,get<Idx>(s))(get<Idx>(dp), get<Idx>(s));
       using std::pow;
       result += pow(r,p_value);
       return result;
@@ -140,14 +142,14 @@ namespace detail {
   struct p_norm_tuple_distance_impl<0,SpaceTuple> {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2, int p_value) {
-      double r = get<0>(s).distance(get<0>(p1),get<0>(p2));
+      double r = get(distance_metric,get<0>(s))(get<0>(p1), get<0>(p2), get<0>(s));
       using std::pow;
       return pow(r,p_value);
     };
       
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp, int p_value) {
-      double r = get<0>(s).norm(get<0>(dp));
+      double r = get(distance_metric,get<0>(s))(get<0>(dp), get<0>(s));
       using std::pow;
       return pow(r,p_value);
     };
@@ -160,7 +162,7 @@ namespace detail {
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
       double result = inf_norm_tuple_distance_impl<Idx-1,SpaceTuple>::distance(s,p1,p2);
       using std::fabs;
-      double r = fabs(get<Idx>(s).distance(get<Idx>(p1),get<Idx>(p2)));
+      double r = fabs(get(distance_metric,get<Idx>(s))(get<Idx>(p1), get<Idx>(p2), get<Idx>(s)));
       if(result < r)
 	return r;
       else
@@ -171,7 +173,7 @@ namespace detail {
     static double norm(const SpaceTuple& s, const PointDiff& dp) {
       double result = inf_norm_tuple_distance_impl<Idx-1,SpaceTuple>::norm(s,dp);
       using std::fabs;
-      double r = fabs(get<Idx>(s).norm(get<Idx>(dp)));
+      double r = fabs(get(distance_metric,get<Idx>(s))(get<Idx>(dp), get<Idx>(s)));
       if(result < r)
 	return r;
       else
@@ -184,14 +186,14 @@ namespace detail {
     template <typename PointType>
     static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
       using std::fabs;
-      double r = fabs(get<0>(s).distance(get<0>(p1),get<0>(p2)));
+      double r = fabs(get(distance_metric,get<0>(s))(get<0>(p1), get<0>(p2), get<0>(s)));
       return r;
     };
       
     template <typename PointDiff>
     static double norm(const SpaceTuple& s, const PointDiff& dp) {
       using std::fabs;
-      double r = fabs(get<0>(s).norm(get<0>(dp)));
+      double r = fabs(get(distance_metric,get<0>(s))(get<0>(dp), get<0>(s)));
       return r;
     };
   };
@@ -248,6 +250,13 @@ struct manhattan_tuple_distance : public serialization::serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(manhattan_tuple_distance,0xC2410005,1,"manhattan_tuple_distance",serialization::serializable)
 };
 
+template <typename MetricSpace>
+typename boost::enable_if< 
+  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
+                  manhattan_tuple_distance >,
+manhattan_tuple_distance >::type get(distance_metric_t, const MetricSpace&) {
+  return manhattan_tuple_distance();
+};
 
 
 /**
@@ -299,6 +308,14 @@ struct euclidean_tuple_distance : public serialization::serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(euclidean_tuple_distance,0xC2410006,1,"euclidean_tuple_distance",serialization::serializable)
 };
 
+template <typename MetricSpace>
+typename boost::enable_if< 
+  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
+                  euclidean_tuple_distance >,
+euclidean_tuple_distance >::type get(distance_metric_t, const MetricSpace&) {
+  return euclidean_tuple_distance();
+};
+
 
 
 
@@ -346,6 +363,14 @@ struct inf_norm_tuple_distance : public serialization::serializable {
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(inf_norm_tuple_distance,0xC2410007,1,"inf_norm_tuple_distance",serialization::serializable)
+};
+
+template <typename MetricSpace>
+typename boost::enable_if< 
+  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
+                  inf_norm_tuple_distance >,
+inf_norm_tuple_distance >::type get(distance_metric_t, const MetricSpace&) {
+  return inf_norm_tuple_distance();
 };
 
 
@@ -403,6 +428,14 @@ struct p_norm_tuple_distance : public serialization::serializable {
   };
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(p_norm_tuple_distance,0xC2410008,1,"p_norm_tuple_distance",serialization::serializable)
+};
+
+template <typename MetricSpace>
+typename boost::enable_if< 
+  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
+                  p_norm_tuple_distance >,
+p_norm_tuple_distance >::type get(distance_metric_t, const MetricSpace&) {
+  return p_norm_tuple_distance();
 };
 
 

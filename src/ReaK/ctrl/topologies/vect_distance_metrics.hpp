@@ -38,6 +38,8 @@
 #include <cmath>
 #include "lin_alg/vect_concepts.hpp"
 
+#include "path_planning/metric_space_concept.hpp"
+
 namespace ReaK {
 
 namespace pp {
@@ -97,6 +99,15 @@ struct manhattan_distance_metric : public serialization::serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(manhattan_distance_metric,0xC2410001,1,"manhattan_distance_metric",serialization::serializable)
 };
 
+typedef manhattan_distance_metric norm1_distance_metric;
+
+template <typename MetricSpace>
+typename boost::enable_if< 
+  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
+                  manhattan_distance_metric >,
+manhattan_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
+  return manhattan_distance_metric();
+};
 
 
 /**
@@ -152,6 +163,15 @@ struct euclidean_distance_metric : public serialization::serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(euclidean_distance_metric,0xC2410002,1,"euclidean_distance_metric",serialization::serializable)
 };
 
+typedef euclidean_distance_metric norm2_distance_metric;
+
+template <typename MetricSpace>
+typename boost::enable_if< 
+  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
+                  euclidean_distance_metric >,
+euclidean_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
+  return euclidean_distance_metric();
+};
 
 
 
@@ -209,6 +229,13 @@ struct inf_norm_distance_metric : public serialization::serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(inf_norm_distance_metric,0xC2410003,1,"inf_norm_distance_metric",serialization::serializable)
 };
 
+template <typename MetricSpace>
+typename boost::enable_if< 
+  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
+                  inf_norm_distance_metric >,
+inf_norm_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
+  return inf_norm_distance_metric();
+};
 
 
 /**
@@ -268,6 +295,14 @@ struct p_norm_distance_metric : public serialization::serializable {
   };
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(p_norm_distance_metric,0xC2410004,1,"p_norm_distance_metric",serialization::serializable)
+};
+
+template <typename MetricSpace>
+typename boost::enable_if< 
+  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
+                  p_norm_distance_metric >,
+p_norm_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
+  return p_norm_distance_metric();
 };
 
 

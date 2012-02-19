@@ -63,7 +63,7 @@ struct spatial_distance_only : public serialization::serializable {
   template <typename Point, typename TemporalTopology>
   double operator()(const Point& a, const Point& b, const TemporalTopology& s) const {
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
-    return s.get_space_topology().distance(a.pt, b.pt);
+    return get(distance_metric,s.get_space_topology())(a.pt, b.pt, s.get_space_topology());
   };
   /**
    * Computes the norm by calling the norm-function of the space-topology (s) on a point-difference (a).
@@ -76,7 +76,7 @@ struct spatial_distance_only : public serialization::serializable {
   template <typename PointDiff, typename TemporalTopology>
   double operator()(const PointDiff& a, const TemporalTopology& s) const {
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
-    return s.get_space_topology().norm(a.pt);
+    return get(distance_metric,s.get_space_topology())(a.pt, s.get_space_topology());
   };
       
 /*******************************************************************************
@@ -113,7 +113,7 @@ struct time_distance_only : public serialization::serializable {
    */
   template <typename Point, typename TemporalTopology, typename SpaceTopology>
   double operator()(const Point& a, const Point& b, const TemporalTopology& s) const {
-    return s.get_time_topology().distance(a.time, b.time);
+    return get(distance_metric,s.get_time_topology())(a.time, b.time, s.get_time_topology());
   };
   /**
    * Computes the norm by calling the norm-function of the time-topology (t) on a point-difference (a).
@@ -125,7 +125,7 @@ struct time_distance_only : public serialization::serializable {
    */
   template <typename PointDiff, typename TemporalTopology, typename SpaceTopology>
   double operator()(const PointDiff& a, const TemporalTopology& s) const {
-    return s.get_time_topology().norm(a.time);
+    return get(distance_metric,s.get_time_topology())(a.time, s.get_time_topology());
   };
       
 /*******************************************************************************

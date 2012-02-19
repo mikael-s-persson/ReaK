@@ -46,35 +46,35 @@ namespace pp {
 
 /**
  * This traits class defines the characteristics associated to a temporal-space type.
- * \tparam TemporalTopology The temporal-space type for which the traits are sought.
+ * \tparam TemporalSpace The temporal-space type for which the traits are sought.
  */
-template <typename TemporalTopology>
-struct temporal_topology_traits {
+template <typename TemporalSpace>
+struct temporal_space_traits {
   /** The type that describes a point in the space. */
-  typedef typename TemporalTopology::point_type point_type;
+  typedef typename TemporalSpace::point_type point_type;
   /** The type that describes a difference between points in the space. */
-  typedef typename TemporalTopology::point_difference_type point_difference_type;
+  typedef typename TemporalSpace::point_difference_type point_difference_type;
   
   /** The topology type which describes the space in which the time values reside. */
-  typedef typename TemporalTopology::time_topology time_topology;
+  typedef typename TemporalSpace::time_topology time_topology;
   /** The topology type which describes the space in which the spatial points reside. */
-  typedef typename TemporalTopology::space_topology space_topology;
+  typedef typename TemporalSpace::space_topology space_topology;
   
 };
 
 
 /**
  * This concept defines the requirements to fulfill in order to model a temporal-space 
- * as used in ReaK::pp. A temporal space is constituted of a spatial metric-space 
- * and a time topology (also a metric-space). The temporal space is also a metric-space.
+ * as used in ReaK::pp. A temporal space is constituted of a spatial topology 
+ * and a time topology. The temporal space is also a topology.
  * 
  * Required concepts:
  * 
- * The space-topology should model the MetricSpaceConcept.
+ * The space-topology should model the TopologyConcept.
  * 
- * The time-topology should model the MetricSpaceConcept.
+ * The time-topology should model the TopologyConcept.
  * 
- * The temporal-topology should model the MetricSpaceConcept.
+ * The temporal-space should model the TopologyConcept.
  * 
  * Valid expressions:
  * 
@@ -82,19 +82,17 @@ struct temporal_topology_traits {
  * 
  * t_space = space.get_time_topology();  The time-topology (t_space) can be obtained from the temporal-space (space).
  * 
- * See MetricSpaceConcept.
- * 
- * \tparam Topology The topology type to be checked for this concept.
+ * \tparam TemporalSpace The topology type to be checked for this concept.
  */
-template <typename Topology>
-struct TemporalSpaceConcept : public MetricSpaceConcept< Topology > {
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept< typename temporal_topology_traits<Topology>::space_topology >));
-  BOOST_CONCEPT_ASSERT((MetricSpaceConcept< typename temporal_topology_traits<Topology>::time_topology >));
+template <typename TemporalSpace>
+struct TemporalSpaceConcept : public TopologyConcept< TemporalSpace > {
+  BOOST_CONCEPT_ASSERT((TopologyConcept< typename temporal_space_traits<TemporalSpace>::space_topology >));
+  BOOST_CONCEPT_ASSERT((TopologyConcept< typename temporal_space_traits<TemporalSpace>::time_topology >));
   
   BOOST_CONCEPT_USAGE(TemporalSpaceConcept)
   {
-    const typename temporal_topology_traits<Topology>::space_topology& cs_space = this->space.get_space_topology(); RK_UNUSED(cs_space);
-    const typename temporal_topology_traits<Topology>::time_topology& ct_space = this->space.get_time_topology(); RK_UNUSED(ct_space);
+    const typename temporal_space_traits<TemporalSpace>::space_topology& cs_space = this->space.get_space_topology(); RK_UNUSED(cs_space);
+    const typename temporal_space_traits<TemporalSpace>::time_topology& ct_space = this->space.get_time_topology(); RK_UNUSED(ct_space);
   };
   
 };

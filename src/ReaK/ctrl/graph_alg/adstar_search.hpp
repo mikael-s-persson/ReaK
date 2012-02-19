@@ -111,7 +111,7 @@ namespace graph {
    */
   template <typename Visitor, typename Graph>
   struct ADStarVisitorConcept {
-    void constraints()
+    BOOST_CONCEPT_USAGE(ADStarVisitorConcept)
     {
       boost::function_requires< boost::CopyConstructibleConcept<Visitor> >();
       vis.initialize_vertex(u, g);   //whenever the vertex is first initialized.
@@ -304,7 +304,7 @@ namespace graph {
 
       template <typename Vertex, typename BidirectionalGraph>
       void update_vertex(Vertex u, BidirectionalGraph& g) {
-	boost::function_requires< boost::BidirectionalGraphConcept<BidirectionalGraph> >();
+	BOOST_CONCEPT_ASSERT((boost::BidirectionalGraphConcept<BidirectionalGraph>));
 	typedef boost::graph_traits<BidirectionalGraph> GTraits;
 	typename GTraits::in_edge_iterator ei, ei_end;
 
@@ -665,8 +665,8 @@ namespace graph {
     IndexInHeapMap index_in_heap;
     {
       typename boost::graph_traits<VertexListGraph>::vertex_iterator ui, ui_end;
-      for (boost::tie(ui, ui_end) = boost::vertices(g); ui != ui_end; ++ui) {
-        put(index_in_heap,*ui, (std::size_t)(-1)); //this ugly C-style cast is required to match the boost::d_ary_heap_indirect implementation.
+      for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
+        put(index_in_heap,*ui, static_cast<std::size_t>(-1)); //this ugly C-style cast is required to match the boost::d_ary_heap_indirect implementation.
       };
     };
 
@@ -802,7 +802,7 @@ namespace graph {
     typedef boost::color_traits<ColorValue> Color;
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typename boost::graph_traits<VertexListGraph>::vertex_iterator ui, ui_end;
-    for (boost::tie(ui, ui_end) = boost::vertices(g); ui != ui_end; ++ui) {
+    for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
       put(color, *ui, Color::white());
       put(distance, *ui, inf);
       put(rhs, *ui, inf);

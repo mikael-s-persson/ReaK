@@ -29,15 +29,15 @@ if(NOT WIN32)
   if( OpenCV_FOUND )
     add_executable(test_rrt "${SRCROOT}${RKGRAPHALGDIR}/test_rrt.cpp")
     setup_custom_target(test_rrt "${SRCROOT}${RKGRAPHALGDIR}")
-    target_link_libraries(test_rrt ${OpenCV_LIBS})
+    target_link_libraries(test_rrt ${OpenCV_LIBS} reak_core)
 
     add_executable(test_prm "${SRCROOT}${RKGRAPHALGDIR}/test_prm.cpp")
     setup_custom_target(test_prm "${SRCROOT}${RKGRAPHALGDIR}")
-    target_link_libraries(test_prm ${OpenCV_LIBS})
+    target_link_libraries(test_prm ${OpenCV_LIBS} reak_core)
 
     add_executable(test_fadprm "${SRCROOT}${RKGRAPHALGDIR}/test_fadprm.cpp")
     setup_custom_target(test_fadprm "${SRCROOT}${RKGRAPHALGDIR}")
-    target_link_libraries(test_fadprm ${OpenCV_LIBS})
+    target_link_libraries(test_fadprm ${OpenCV_LIBS} reak_core)
   endif()
 endif()
 

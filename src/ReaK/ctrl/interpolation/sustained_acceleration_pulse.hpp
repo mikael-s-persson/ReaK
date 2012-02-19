@@ -38,7 +38,7 @@
 
 #include "path_planning/spatial_trajectory_concept.hpp"
 
-#include "path_planning/differentiable_space_concept.hpp"
+#include "path_planning/tangent_bundle_concept.hpp"
 
 #include "interpolated_trajectory.hpp"
 #include "generic_interpolator_factory.hpp"
@@ -75,24 +75,32 @@ namespace pp {
  */
 template <typename PointType, typename Topology>
 PointType sap_interpolate(const PointType& a, const PointType& b, double t, const Topology& space) {
+  typedef typename temporal_space_traits<Topology>::space_topology SpaceType;
+  typedef typename temporal_space_traits<Topology>::time_topology TimeSpaceType;
   BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  typedef typename temporal_topology_traits<Topology>::space_topology SpaceType;
-  typedef typename temporal_topology_traits<Topology>::time_topology TimeSpaceType;
-  BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< SpaceType, 2, TimeSpaceType>));
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<SpaceType>));
+  BOOST_CONCEPT_ASSERT((TangentBundleConcept< SpaceType, 2, TimeSpaceType>));
   BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< typename derived_N_order_space<SpaceType, TimeSpaceType, 1>::type >));
   BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< typename derived_N_order_space<SpaceType, TimeSpaceType, 2>::type >));
   
   typedef typename derived_N_order_space< SpaceType, TimeSpaceType,0>::type Space0;
-  typedef typename metric_topology_traits<Space0>::point_type PointType0;
-  typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
+  typedef typename topology_traits<Space0>::point_type PointType0;
+  typedef typename topology_traits<Space0>::point_difference_type PointDiff0;
   
   typedef typename derived_N_order_space< SpaceType, TimeSpaceType,1>::type Space1;
-  typedef typename metric_topology_traits<Space1>::point_type PointType1;
-  typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
+  typedef typename topology_traits<Space1>::point_type PointType1;
+  typedef typename topology_traits<Space1>::point_difference_type PointDiff1;
 
   typedef typename derived_N_order_space< SpaceType, TimeSpaceType,2>::type Space2;
-  typedef typename metric_topology_traits<Space2>::point_type PointType2;
-  typedef typename metric_topology_traits<Space2>::point_difference_type PointDiff2;
+  typedef typename topology_traits<Space2>::point_type PointType2;
+  typedef typename topology_traits<Space2>::point_difference_type PointDiff2;
+  
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space0>));
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space1>));
+  BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space2>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space2>));
   
   if(t <= a.time)
     return a;
@@ -116,8 +124,8 @@ PointType sap_interpolate(const PointType& a, const PointType& b, double t, cons
       
   PointType result;
   result.time = t;
-      
-  detail::sap_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< SpaceType >::order> >(result.pt, a.pt, b.pt, delta_first_order, peak_velocity, space.get_space_topology(), space.get_time_topology(), dt, delta_time);
+  
+  detail::sap_interpolate_impl< max_derivation_order< SpaceType, TimeSpaceType > >(result.pt, a.pt, b.pt, delta_first_order, peak_velocity, space.get_space_topology(), space.get_time_topology(), dt, delta_time);
   
   return result;    
 };
@@ -136,20 +144,30 @@ template <typename SpaceType, typename TimeSpaceType>
 class sap_interpolator {
   public:
     typedef sap_interpolator<SpaceType,TimeSpaceType> self;
-    typedef typename metric_topology_traits<SpaceType>::point_type point_type;
+    typedef typename topology_traits<SpaceType>::point_type point_type;
   
     typedef typename derived_N_order_space< SpaceType,TimeSpaceType,0>::type Space0;
-    typedef typename metric_topology_traits<Space0>::point_type PointType0;
-    typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
+    typedef typename topology_traits<Space0>::point_type PointType0;
+    typedef typename topology_traits<Space0>::point_difference_type PointDiff0;
     typedef typename derived_N_order_space< SpaceType,TimeSpaceType,1>::type Space1;
-    typedef typename metric_topology_traits<Space1>::point_type PointType1;
-    typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
+    typedef typename topology_traits<Space1>::point_type PointType1;
+    typedef typename topology_traits<Space1>::point_difference_type PointDiff1;
+    typedef typename derived_N_order_space< SpaceType,TimeSpaceType,2>::type Space2;
+    typedef typename topology_traits<Space1>::point_type PointType2;
+    typedef typename topology_traits<Space1>::point_difference_type PointDiff2;
     
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<SpaceType>));
-    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< SpaceType, 2, TimeSpaceType >));
+    BOOST_CONCEPT_ASSERT((TangentBundleConcept< SpaceType, 2, TimeSpaceType >));
     BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< typename derived_N_order_space<SpaceType, TimeSpaceType, 1>::type >));
     BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< typename derived_N_order_space<SpaceType, TimeSpaceType, 2>::type >));
   
+    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space0>));
+    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space1>));
+    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space2>));
+    BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
+    BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
+    BOOST_CONCEPT_ASSERT((LieGroupConcept<Space2>));
+    
   private:
     PointDiff0 delta_first_order;
     PointType1 peak_velocity;
@@ -225,7 +243,7 @@ class sap_interpolator {
 	return;
       };
       
-      detail::sap_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< SpaceType >::order> >(result, start_point, end_point, delta_first_order, peak_velocity, space, t_space, dt, dt_total);
+      detail::sap_interpolate_impl< max_derivation_order< SpaceType, TimeSpaceType > >(result, start_point, end_point, delta_first_order, peak_velocity, space, t_space, dt, dt_total);
     };
     
     /**
@@ -252,7 +270,7 @@ class sap_interpolator_factory : public serialization::serializable {
   public:
     typedef sap_interpolator_factory<TemporalTopology> self;
     typedef TemporalTopology topology;
-    typedef typename temporal_topology_traits<TemporalTopology>::point_type point_type;
+    typedef typename topology_traits<TemporalTopology>::point_type point_type;
   
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
     
@@ -384,7 +402,7 @@ struct sap_reach_time_metric : public serialization::serializable {
  *                  whose 1-order and 2-order derivative spaces have a spherical bound (see SphereBoundedSpaceConcept).
  * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the DistanceMetricConcept.
  */
-template <typename Topology, typename DistanceMetric = default_distance_metric>
+template <typename Topology, typename DistanceMetric = typename metric_space_traits<Topology>::distance_metric_type>
 class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator_factory<Topology>,DistanceMetric> {
   public:
     
@@ -395,7 +413,7 @@ class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator
     
     typedef typename base_class_type::point_type point_type;
     typedef typename base_class_type::topology topology;
-    typedef typename base_class_type::distance_metric distance_metric;
+    typedef typename base_class_type::distance_metric_type distance_metric_type;
     
   public:
     /**
@@ -404,7 +422,7 @@ class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator
      * \param aSpace The space on which the path is.
      * \param aDist The distance metric functor that the path should use.
      */
-    explicit sap_interp_traj(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric& aDist = distance_metric()) : 
+    explicit sap_interp_traj(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
                              base_class_type(aSpace, aDist, sap_interpolator_factory<Topology>(aSpace)) { };
     
     /**
@@ -414,7 +432,7 @@ class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator
      * \param aEnd The end-point of the path.
      * \param aDist The distance metric functor that the path should use.
      */
-    sap_interp_traj(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
+    sap_interp_traj(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
                     base_class_type(aSpace, aStart, aEnd, aDist, sap_interpolator_factory<Topology>(aSpace)) { };
 			
     /**
@@ -426,7 +444,7 @@ class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator
      * \param aDist The distance metric functor that the path should use.
      */
     template <typename ForwardIter>
-    sap_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric& aDist = distance_metric()) : 
+    sap_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
                     base_class_type(aBegin, aEnd, aSpace, aDist, sap_interpolator_factory<Topology>(aSpace)) { };
     
     

@@ -35,6 +35,8 @@
 
 #include "base/serializable.hpp"
 
+#include "path_planning/metric_space_concept.hpp"
+
 namespace ReaK {
 
 namespace pp {
@@ -87,6 +89,15 @@ struct default_distance_metric : public serialization::serializable {
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(default_distance_metric,0xC2410000,1,"default_distance_metric",serialization::serializable)
+};
+
+
+template <typename MetricSpace>
+typename boost::enable_if< 
+  boost::is_same< typename metric_space_traits<MetricSpace>::distance_metric_type, 
+                  default_distance_metric>,
+default_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
+  return default_distance_metric();
 };
 
 

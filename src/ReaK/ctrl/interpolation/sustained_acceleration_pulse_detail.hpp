@@ -38,7 +38,7 @@
 #include "lin_alg/mat_num_exceptions.hpp"
 #include "lin_alg/vect_alg.hpp"
 #include "path_planning/bounded_space_concept.hpp"
-#include "path_planning/differentiable_space_concept.hpp"
+#include "path_planning/tangent_bundle_concept.hpp"
 
 #include "root_finders/bisection_method.hpp"
 #include "root_finders/secant_method.hpp"
@@ -168,7 +168,7 @@ namespace detail {
     
     double dt_amax = get_space<2>(space,t_space).get_radius();
     
-    double dt_vp_1st = get_space<1>(space,t_space).distance(get<1>(start_point), peak_velocity);
+    double dt_vp_1st = get(distance_metric, get_space<1>(space,t_space))(get<1>(start_point), peak_velocity, get_space<1>(space,t_space));
     // we know that dt_vp_2nd = dt_vp_1st + dt_amax
     double dt_vp = dt_vp_1st - dt_amax;
     double dt_ap = dt_amax;
@@ -178,7 +178,7 @@ namespace detail {
       dt_ap = sqrt(dt_amax * dt_vp_1st);
     };
     
-    double dt_vp2_1st = get_space<1>(space,t_space).distance(peak_velocity, get<1>(end_point));
+    double dt_vp2_1st = get(distance_metric, get_space<1>(space,t_space))(peak_velocity, get<1>(end_point), get_space<1>(space,t_space));
     // we know that dt_vp_2nd = dt_vp_1st + dt_amax
     double dt_vp2 = dt_vp2_1st - dt_amax;
     double dt_ap2 = dt_amax;
@@ -486,7 +486,7 @@ namespace detail {
       
       double dt_amax = get_space<2>(space,t_space).get_radius();
       
-      double dt_vp1_1st = get_space<1>(space,t_space).distance(get<1>(start_point), peak_velocity);
+      double dt_vp1_1st = get(distance_metric, get_space<1>(space,t_space))(get<1>(start_point), peak_velocity, get_space<1>(space,t_space));
       // we know that dt_vp_2nd = dt_vp_1st + dt_amax
       double dt_vp1 = dt_vp1_1st - dt_amax;
       double dt_ap1 = dt_amax;
@@ -496,7 +496,7 @@ namespace detail {
         dt_ap1 = sqrt(dt_amax * dt_vp1_1st);
       };
       
-      double dt_vp2_1st = get_space<1>(space,t_space).distance(peak_velocity, get<1>(end_point));
+      double dt_vp2_1st = get(distance_metric, get_space<1>(space,t_space))(peak_velocity, get<1>(end_point), get_space<1>(space,t_space));
       // we know that dt_vp_2nd = dt_vp_1st + dt_amax
       double dt_vp2 = dt_vp2_1st - dt_amax;
       double dt_ap2 = dt_amax;
@@ -538,10 +538,10 @@ namespace detail {
         get_space<0>(space,t_space).adjust(get<0>(start_point), start_to_peak)
       );
       
-      norm_delta = get_space<0>(space,t_space).norm(delta_first_order);
+      norm_delta = get(distance_metric, get_space<0>(space,t_space))(delta_first_order, get_space<0>(space,t_space));
       PointDiff0 descended_peak_velocity = descend_to_space<0>(peak_velocity,1.0,space,t_space);
-      double normA = get_space<0>(space,t_space).norm(descended_peak_velocity);
-      double normC = get_space<0>(space,t_space).norm(descended_peak_velocity - delta_first_order);
+      double normA = get(distance_metric, get_space<0>(space,t_space))(descended_peak_velocity, get_space<0>(space,t_space));
+      double normC = get(distance_metric, get_space<0>(space,t_space))(descended_peak_velocity - delta_first_order, get_space<0>(space,t_space));
       if( normC * normC > normA * normA + norm_delta * norm_delta )
         norm_delta = -norm_delta;
       if(fabs(norm_delta) > num_tol)
@@ -708,15 +708,15 @@ namespace detail {
   
   template <typename PointType, typename DiffSpace, typename TimeSpace>
   double sap_compute_interpolation_data_impl(const PointType& start_point, const PointType& end_point,
-					     typename metric_topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,0>::type >::point_difference_type& delta_first_order,
-					     typename metric_topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type& peak_velocity,
+					     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,0>::type >::point_difference_type& delta_first_order,
+					     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type& peak_velocity,
 					     const DiffSpace& space, const TimeSpace& t_space,
 					     double delta_time = 0.0,
-					     typename metric_topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type* best_peak_velocity = NULL, 
+					     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type* best_peak_velocity = NULL, 
 					     double num_tol = 1e-6, unsigned int max_iter = 20) {
     
     delta_first_order = get_space<0>(space,t_space).difference( get<0>(end_point), get<0>(start_point) );
-    double norm_delta = get_space<0>(space,t_space).norm( delta_first_order );
+    double norm_delta = get(distance_metric, get_space<0>(space,t_space))( delta_first_order, get_space<0>(space,t_space) );
     double beta = 0.0;
     peak_velocity = get_space<1>(space,t_space).origin();
     

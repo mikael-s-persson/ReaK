@@ -36,7 +36,7 @@
 
 #include "path_planning/spatial_trajectory_concept.hpp"
 
-#include "path_planning/differentiable_space_concept.hpp"
+#include "path_planning/tangent_bundle_concept.hpp"
 
 #include "interpolated_trajectory.hpp"
 #include "generic_interpolator_factory.hpp"
@@ -167,10 +167,10 @@ namespace detail {
  */
 template <typename PointType, typename Topology>
 PointType cubic_hermite_interpolate(const PointType& a, const PointType& b, double t, const Topology& space) {
+  typedef typename temporal_space_traits< Topology >::space_topology SpaceType;
+  typedef typename temporal_space_traits< Topology >::time_topology TimeSpaceType;
   BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  typedef typename temporal_topology_traits< Topology >::space_topology SpaceType;
-  typedef typename temporal_topology_traits< Topology >::time_topology TimeSpaceType;
-  BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< SpaceType, 1, TimeSpaceType >));
+  BOOST_CONCEPT_ASSERT((TangentBundleConcept< SpaceType, 1, TimeSpaceType >));
   
   double t_factor = b.time - a.time;
   if(std::fabs(t_factor) < std::numeric_limits<double>::epsilon())
@@ -182,18 +182,21 @@ PointType cubic_hermite_interpolate(const PointType& a, const PointType& b, doub
   
   typedef typename derived_N_order_space<SpaceType,TimeSpaceType,0>::type Space0;
   typedef typename derived_N_order_space<SpaceType,TimeSpaceType,1>::type Space1;
-    
-  typedef typename metric_topology_traits<Space0>::point_type PointType0;
-  typedef typename metric_topology_traits<Space1>::point_type PointType1;
   
-  typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
-  typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
+  
+  typedef typename topology_traits<Space0>::point_type PointType0;
+  typedef typename topology_traits<Space1>::point_type PointType1;
+  
+  typedef typename topology_traits<Space0>::point_difference_type PointDiff0;
+  typedef typename topology_traits<Space1>::point_difference_type PointDiff1;
     
   PointDiff0 dp1p0 = get_space<0>(space.get_space_topology(),space.get_time_topology()).difference( get<0>(b.pt), get<0>(a.pt) );
   PointDiff1 dv1v0 = get_space<1>(space.get_space_topology(),space.get_time_topology()).difference( get<1>(b.pt), get<1>(a.pt) );
   PointDiff1 d_ldp1p0_v0 = get_space<1>(space.get_space_topology(),space.get_time_topology()).difference( lift_to_space<1>(dp1p0, t_factor, space.get_space_topology(), space.get_time_topology()), get<1>(a.pt));
   
-  detail::cubic_hermite_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< SpaceType >::order> >(result.pt, a.pt, b.pt, dp1p0, dv1v0, d_ldp1p0_v0, space.get_space_topology(), space.get_time_topology(), t_factor, t_normal);
+  detail::cubic_hermite_interpolate_impl< max_derivation_order<SpaceType,TimeSpaceType> >(result.pt, a.pt, b.pt, dp1p0, dv1v0, d_ldp1p0_v0, space.get_space_topology(), space.get_time_topology(), t_factor, t_normal);
   
   return result;
 };
@@ -213,17 +216,19 @@ template <typename SpaceType, typename TimeSpaceType>
 class cubic_hermite_interpolator {
   public:
     typedef cubic_hermite_interpolator<SpaceType,TimeSpaceType> self;
-    typedef typename metric_topology_traits<SpaceType>::point_type point_type;
+    typedef typename topology_traits<SpaceType>::point_type point_type;
   
     typedef typename derived_N_order_space< SpaceType, TimeSpaceType, 0>::type Space0;
-    typedef typename metric_topology_traits<Space0>::point_type PointType0;
-    typedef typename metric_topology_traits<Space0>::point_difference_type PointDiff0;
+    typedef typename topology_traits<Space0>::point_type PointType0;
+    typedef typename topology_traits<Space0>::point_difference_type PointDiff0;
     typedef typename derived_N_order_space< SpaceType, TimeSpaceType, 1>::type Space1;
-    typedef typename metric_topology_traits<Space1>::point_type PointType1;
-    typedef typename metric_topology_traits<Space1>::point_difference_type PointDiff1;
+    typedef typename topology_traits<Space1>::point_type PointType1;
+    typedef typename topology_traits<Space1>::point_difference_type PointDiff1;
   
-    BOOST_CONCEPT_ASSERT((MetricSpaceConcept<SpaceType>));
-    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< SpaceType, 1, TimeSpaceType >));
+    BOOST_CONCEPT_ASSERT((TopologyConcept<SpaceType>));
+    BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
+    BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
+    BOOST_CONCEPT_ASSERT((TangentBundleConcept< SpaceType, 1, TimeSpaceType >));
     
   private:
     PointDiff0 delta_first_order;
@@ -291,7 +296,7 @@ class cubic_hermite_interpolator {
         throw singularity_error("Normalizing factor in cubic Hermite spline is zero!");
       double t_normal = dt / dt_total;
       
-      detail::cubic_hermite_interpolate_impl<boost::mpl::size_t<differentiable_space_traits< SpaceType >::order> >(result, start_point, end_point, delta_first_order, delta_second_order, delta_lifted_first_and_second, space, t_space, dt_total, t_normal);   
+      detail::cubic_hermite_interpolate_impl< max_derivation_order<SpaceType, TimeSpaceType> >(result, start_point, end_point, delta_first_order, delta_second_order, delta_lifted_first_and_second, space, t_space, dt_total, t_normal);   
     };
     
     /**
@@ -316,7 +321,7 @@ class cubic_hermite_interp_factory : public serialization::serializable {
   public:
     typedef cubic_hermite_interp_factory<TemporalTopology> self;
     typedef TemporalTopology topology;
-    typedef typename temporal_topology_traits<TemporalTopology>::point_type point_type;
+    typedef typename topology_traits<TemporalTopology>::point_type point_type;
     typedef generic_interpolator<self,cubic_hermite_interpolator> interpolator_type;
   
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
@@ -359,18 +364,18 @@ class cubic_hermite_interp_factory : public serialization::serializable {
  * \tparam Topology The topology type on which the points and the path can reside, should model the TemporalSpaceConcept and the DifferentiableSpaceConcept (order 1 with space against time).
  * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the DistanceMetricConcept.
  */
-template <typename Topology, typename DistanceMetric = default_distance_metric>
+template <typename Topology, typename DistanceMetric = typename metric_space_traits<Topology>::distance_metric_type>
 class cubic_hermite_interp_traj : public interpolated_trajectory<Topology,cubic_hermite_interp_factory<Topology>,DistanceMetric> {
   public:
     
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((DifferentiableSpaceConcept< typename temporal_topology_traits<Topology>::space_topology, 1, typename temporal_topology_traits<Topology>::time_topology >));
+    BOOST_CONCEPT_ASSERT((TangentBundleConcept< typename temporal_space_traits<Topology>::space_topology, 1, typename temporal_space_traits<Topology>::time_topology >));
     
     typedef cubic_hermite_interp_traj<Topology,DistanceMetric> self;
     typedef interpolated_trajectory<Topology,cubic_hermite_interp_factory<Topology>,DistanceMetric> base_class_type;
     
     typedef typename base_class_type::topology topology;
-    typedef typename base_class_type::distance_metric distance_metric;
+    typedef typename base_class_type::distance_metric_type distance_metric_type;
     typedef typename base_class_type::point_type point_type;
     
     
@@ -381,7 +386,7 @@ class cubic_hermite_interp_traj : public interpolated_trajectory<Topology,cubic_
      * \param aSpace The space on which the path is.
      * \param aDist The distance metric functor that the path should use.
      */
-    explicit cubic_hermite_interp_traj(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric& aDist = distance_metric()) : 
+    explicit cubic_hermite_interp_traj(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
                                        base_class_type(aSpace, aDist, cubic_hermite_interp_factory<Topology>(aSpace)) { };
     
     /**
@@ -391,7 +396,7 @@ class cubic_hermite_interp_traj : public interpolated_trajectory<Topology,cubic_
      * \param aEnd The end-point of the path.
      * \param aDist The distance metric functor that the path should use.
      */
-    cubic_hermite_interp_traj(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
+    cubic_hermite_interp_traj(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
                               base_class_type(aSpace, aStart, aEnd, aDist, cubic_hermite_interp_factory<Topology>(aSpace)) { };
 			
     /**
@@ -403,7 +408,7 @@ class cubic_hermite_interp_traj : public interpolated_trajectory<Topology,cubic_
      * \param aDist The distance metric functor that the path should use.
      */
     template <typename ForwardIter>
-    cubic_hermite_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric& aDist = distance_metric()) : 
+    cubic_hermite_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
                               base_class_type(aBegin, aEnd, aSpace, aDist, cubic_hermite_interp_factory<Topology>(aSpace)) { };
     
     

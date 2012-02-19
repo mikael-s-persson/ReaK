@@ -49,12 +49,13 @@ namespace ReaK {
 namespace pp {
   
   
+  
 /**
- * This traits class defines the types and constants associated to a metric-space.
- * \tparam Topology The topology type for which the metric-space traits are sought.
+ * This traits class defines the types and constants associated to a topology.
+ * \tparam Topology The topology type for which the topology traits are sought.
  */
 template <typename Topology>
-struct metric_topology_traits {
+struct topology_traits {
   /** The type that describes a point in the space. */
   typedef typename Topology::point_type point_type;
   /** The type that describes a difference between points in the space. */
@@ -62,6 +63,75 @@ struct metric_topology_traits {
   
   /** The dimensions of the space (0 if unknown at compile-time). */
   BOOST_STATIC_CONSTANT(std::size_t, dimensions = Topology::dimensions);
+  
+};
+
+
+/**
+ * This concept defines the requirements to fulfill in order to model a topology 
+ * as used in ReaK::pp.
+ * 
+ * Valid expressions:
+ * 
+ * dp = space.difference(p1,p2);  The difference (pd) between two points (p1,p2) can be obtained.
+ * 
+ * p1 = space.origin();  The origin of the space can be obtained.
+ * 
+ * p2 = space.adjust(p1,dp);  A point-difference can be scaled (d * pd), added / subtracted to another point-difference and added to a point (p1) to obtain an adjusted point.
+ * 
+ * \tparam Topology The topology type to be checked for this concept.
+ */
+template <typename Topology>
+struct TopologyConcept {
+  typename topology_traits<Topology>::point_type p1, p2;
+  typename topology_traits<Topology>::point_difference_type dp;
+  Topology space;
+  
+  BOOST_CONCEPT_USAGE(TopologyConcept) 
+  {
+    dp = space.difference(p1,p2);
+    p1 = space.origin();
+    p1 = space.adjust(p1,dp);
+  };
+  
+};
+
+
+/**
+ * This concept defines the requirements to fulfill in order to model a Lie Group
+ * as used in ReaK::pp. Basically, a Lie Group is a topology on which the point-difference
+ * type is an arithmetic type (i.e. vector-space).
+ * 
+ * Valid expressions:
+ * 
+ * dp = d * dp + dp - dp;  The differences can be added, subtracted, and multiplied by a scalar.
+ * 
+ * dp = -dp;  The differences can be reversed.
+ * 
+ * dp -= dp;  The differences can be subtracted-and-stored.
+ * 
+ * dp += dp;  The differences can be added-and-stored.
+ * 
+ * dp *= d;  The differences can be multiplied-and-stored by a scalar.
+ * 
+ * \tparam LieGroup The Lie Group type to be checked for this concept.
+ */
+template <typename LieGroup>
+struct LieGroupConcept {
+  
+  BOOST_CONCEPT_ASSERT((TopologyConcept<LieGroup>));
+  
+  typename topology_traits<LieGroup>::point_difference_type dp;
+  double d;
+  
+  BOOST_CONCEPT_USAGE(LieGroupConcept) 
+  {
+    dp = d * dp + dp - dp;
+    dp = -dp;
+    dp -= dp;
+    dp += dp;
+    dp *= d;
+  };
   
 };
 
@@ -73,31 +143,48 @@ struct metric_topology_traits {
  * 
  * Required concepts:
  * 
- * Topology should model the Topology concept of the BGL.
+ * Topology should model the TopologyConcept.
  * 
  * Valid expressions:
  * 
- * dist = d(p1, p2, s);  The distance (dist) can be obtained by calling the distance metric (d) on two points (p1,p2) and providing a const-ref to the topology (or space) (s).
+ * d = dist(p1, p2, space);  The distance (d) can be obtained by calling the distance metric (dist) on two points (p1,p2) and providing a const-ref to the topology (space).
  * 
- * dist = d(pd, s);  The distance (dist) can be obtained by calling the distance metric (d) on a point-difference (pd) and providing a const-ref to the topology (or space) (s).
+ * d = dist(dp, space);  The distance (d) can be obtained by calling the distance metric (dist) on a point-difference (dp) and providing a const-ref to the topology (space).
  * 
  * \tparam DistanceMetric The distance metric type to be checked for this concept.
  * \tparam Topology The topology to which the distance metric should apply.
  */
 template <typename DistanceMetric, typename Topology>
 struct DistanceMetricConcept {
-  DistanceMetric d;
-  Topology s;
-  typename metric_topology_traits<Topology>::point_type p1, p2;
-  typename metric_topology_traits<Topology>::point_difference_type pd;
-  double dist;
+  DistanceMetric dist;
+  Topology space;
+  typename topology_traits<Topology>::point_type p1, p2;
+  typename topology_traits<Topology>::point_difference_type dp;
+  double d;
   
   BOOST_CONCEPT_USAGE(DistanceMetricConcept) 
   {
-    dist = d(p1, p2, s);
-    dist = d(pd, s);
+    d = dist(p1, p2, space);
+    d = dist(dp, space);
   };
   
+};
+
+/**
+ * This tag-type is used to identify (during a "get" call) that the distance-metric object is 
+ * to be fetched.
+ */
+enum distance_metric_t { distance_metric };
+  
+  
+/**
+ * This traits class defines the types and constants associated to a metric-space.
+ * \tparam MetricSpace The topology type for which the metric-space traits are sought.
+ */
+template <typename MetricSpace>
+struct metric_space_traits {
+  /** The type that describes the distance-metric type for the space. */
+  typedef typename MetricSpace::distance_metric_type distance_metric_type;
 };
 
 /**
@@ -107,47 +194,26 @@ struct DistanceMetricConcept {
  * 
  * Valid expressions:
  * 
- * d  = space.distance(p1, p2);  The distance between two points (p1,p2) can be obtained as a double (d).
- * 
- * d  = space.norm(pd);  The norm of the difference (pd) between two points can be obtained as a double (d).
- * 
- * p1 = space.random_point();  A random-point in the metric-space can be obtained.
- * 
- * pd = space.difference(p1,p2);  The difference (pd) between two points (p1,p2) can be obtained.
+ * dist = get(distance_metric, space);  The distance-metric can be obtained by a tagged "get" call on the metric-space.
  * 
  * p1 = space.move_position_toward(p1,d,p2);  A point can be obtained by moving a fraction (d) away from one point (p1) to another (p2).
  * 
- * p1 = space.origin();  The origin of the space can be obtained.
- * 
- * p1 = space.adjust(p1,d * pd + pd - pd);  A point-difference can be scaled (d * pd), added / subtracted to another point-difference and added to a point (p1) to obtain an adjusted point.
- * 
- * pd = -pd;  A point-difference can be negated (reversed) and is assignable.
- *
- * pd -= pd;  A point-difference can be subtracted-and-assigned.
- *
- * pd += pd;  A point-difference can be added-and-assigned.
- * 
- * \tparam Topology The topology type to be checked for this concept.
+ * \tparam MetricSpace The topology type to be checked for this concept.
  */
-template <typename Topology>
+template <typename MetricSpace>
 struct MetricSpaceConcept {
-  typename metric_topology_traits<Topology>::point_type p1, p2;
-  typename metric_topology_traits<Topology>::point_difference_type pd;
-  Topology space;
+  typename topology_traits<MetricSpace>::point_type p1, p2;
+  typename metric_space_traits<MetricSpace>::distance_metric_type dist;
+  MetricSpace space;
   double d;
+  
+  BOOST_CONCEPT_ASSERT((TopologyConcept<MetricSpace>));
+  BOOST_CONCEPT_ASSERT((DistanceMetricConcept<typename metric_space_traits<MetricSpace>::distance_metric_type, MetricSpace>));
   
   BOOST_CONCEPT_USAGE(MetricSpaceConcept) 
   {
-    d  = space.distance(p1, p2);
-    d  = space.norm(pd);
-    p1 = space.random_point();
-    pd = space.difference(p1,p2);
+    dist = get(distance_metric, space);
     p1 = space.move_position_toward(p1,d,p2);
-    p1 = space.origin();
-    p1 = space.adjust(p1,d * pd + pd - pd);
-    pd = -pd;
-    pd -= pd;
-    pd += pd;
   };
   
 };

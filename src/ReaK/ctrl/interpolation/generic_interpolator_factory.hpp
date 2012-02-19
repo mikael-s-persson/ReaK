@@ -32,7 +32,7 @@
 #ifndef REAK_GENERIC_INTERPOLATOR_FACTORY_HPP
 #define REAK_GENERIC_INTERPOLATOR_FACTORY_HPP
 
-#include "path_planning/differentiable_space_concept.hpp"
+#include "path_planning/tangent_bundle_concept.hpp"
 #include "path_planning/temporal_space_concept.hpp"
 
 #include "lin_alg/arithmetic_tuple.hpp"
@@ -254,7 +254,7 @@ class generic_interpolator_impl< InterpolatorImpl, metric_space_tuple<SpaceTuple
     typedef generic_interpolator_impl< InterpolatorImpl, metric_space_tuple<SpaceTuple,TupleDistMetric>, TimeSpaceType > self;
     
     typedef metric_space_tuple<SpaceTuple,TupleDistMetric> SpaceType;
-    typedef typename metric_topology_traits<SpaceType>::point_type point_type;
+    typedef typename topology_traits<SpaceType>::point_type point_type;
   private:
     typename generic_interpolator_impl_tuple< SpaceTuple, InterpolatorImpl, TimeSpaceType >::type interp;
     
@@ -298,8 +298,8 @@ class generic_interpolator {
     typedef generic_interpolator<Factory, InterpolatorImpl> self;
     typedef typename Factory::point_type point_type;
     typedef typename Factory::topology topology;
-    typedef typename temporal_topology_traits<topology>::space_topology SpaceType;
-    typedef typename temporal_topology_traits<topology>::time_topology TimeSpaceType;
+    typedef typename temporal_space_traits<topology>::space_topology SpaceType;
+    typedef typename temporal_space_traits<topology>::time_topology TimeSpaceType;
     
     typedef detail::generic_interpolator_impl< InterpolatorImpl, SpaceType, TimeSpaceType> interpolator_impl_type;
     

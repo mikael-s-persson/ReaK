@@ -40,7 +40,7 @@
 #include <boost/concept_check.hpp>
 
 #include "metric_space_concept.hpp"
-#include "differentiable_space_concept.hpp"
+#include "tangent_bundle_concept.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -55,7 +55,7 @@ namespace pp {
  * 
  * Required Concepts:
  * 
- * Both spaces should model the MetricSpaceConcept.
+ * Both spaces should model the TopologyConcept.
  * 
  * Valid expressions (m of type Mapping):
  * 
@@ -72,9 +72,12 @@ struct BijectionConcept :
   
   InSpace space_in;
   OutSpace space_out;
-  typename metric_topology_traits<InSpace>::point_type p_in;
-  typename metric_topology_traits<OutSpace>::point_type p_out;
+  typename topology_traits<InSpace>::point_type p_in;
+  typename topology_traits<OutSpace>::point_type p_out;
   Mapping m;
+  
+  BOOST_CONCEPT_ASSERT((TopologyConcept<InSpace>));
+  BOOST_CONCEPT_ASSERT((TopologyConcept<OutSpace>));
   
   BOOST_CONCEPT_USAGE(BijectionConcept) 
   {
@@ -130,8 +133,8 @@ template <typename Mapping, typename InSpace, typename OutSpace,
 struct DiffeomorphismConcept :
   public BijectionConcept< Mapping, InSpace, OutSpace >,
   public BijectionConcept< Mapping, OutSpace, InSpace >,
-  public DifferentiableSpaceConcept< InSpace, Order, IndependentSpace>,
-  public DifferentiableSpaceConcept< OutSpace, Order, IndependentSpace> {
+  public TangentBundleConcept< InSpace, Order, IndependentSpace>,
+  public TangentBundleConcept< OutSpace, Order, IndependentSpace> {
   
   BOOST_CONCEPT_USAGE(DiffeomorphismConcept) 
   { };

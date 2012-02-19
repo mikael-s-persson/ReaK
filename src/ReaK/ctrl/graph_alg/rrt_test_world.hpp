@@ -59,6 +59,12 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include "topologies/basic_distance_metrics.hpp"
+#include "topologies/default_random_sampler.hpp"
+
+#include "topologies/hyperbox_topology.hpp"
+#include "lin_alg/vect_alg.hpp"
+
 
 namespace boost {
 
@@ -81,8 +87,15 @@ namespace boost {
  */
 class rrt_test_world {
   public:
-    typedef boost::rectangle_topology<>::point_type pixel_coord;
-    typedef boost::rectangle_topology<>::point_difference_type pixel_difference;
+    typedef ReaK::pp::hyperbox_topology< ReaK::vect<int,2> > space_type;
+    typedef ReaK::pp::topology_traits< space_type >::point_type point_type;
+    typedef ReaK::pp::topology_traits< space_type >::point_difference_type point_difference_type;
+    
+    typedef ReaK::pp::default_distance_metric distance_metric_type;
+    typedef ReaK::pp::default_random_sampler random_sampler_type;
+    
+    typedef point_type pixel_coord;
+    typedef point_difference_type pixel_difference;
 
     typedef boost::property< boost::vertex_position_t, pixel_coord,
             boost::property< boost::vertex_distance_t, double, boost::no_property > > WorldGridVertexProperties;
@@ -124,15 +137,13 @@ class rrt_test_world {
     unsigned int nn_search_divider;
     std::vector< boost::tuples::tuple< double, VertexType, VertexType > > solutions;
 
-    boost::minstd_rand m_rng;
-    boost::rectangle_topology<boost::minstd_rand> m_space;
+    space_type m_space;
     boost::property_map<WorldGridType, boost::vertex_position_t>::type m_position;
     boost::property_map<WorldGridType, boost::vertex_distance_t>::type m_distance;
     boost::property_map<WorldGridType, boost::vertex_position_t>::type m_position_goal;
     boost::property_map<WorldGridType, boost::vertex_distance_t>::type m_distance_goal;
     
-    typedef ReaK::pp::dvp_tree<VertexType, 
-                               boost::rectangle_topology<>, 
+    typedef ReaK::pp::dvp_tree<VertexType, space_type, 
 			       boost::property_map<WorldGridType, boost::vertex_position_t>::type, 
 			       4> WorldPartition;
     WorldPartition space_part;
@@ -157,7 +168,7 @@ class rrt_test_world {
 
     void draw_edge(const pixel_coord& p_u, const pixel_coord& p_v, bool goal_path = false) {
       pixel_difference diff = m_space.difference(p_v, p_u);
-      double dist = m_space.norm(diff);
+      double dist = get(ReaK::pp::distance_metric, m_space)(diff, m_space);
       double d = 0.0;
       while(d <= dist) {
 	pixel_coord p = m_space.adjust(p_u, diff * (d / dist));
@@ -182,7 +193,6 @@ class rrt_test_world {
 
   public:
     void get_best_solution(std::list< pixel_coord >& path) {
-      using namespace boost;
       path.clear();
       if(unidirectional) {
 	VertexType v = goal_node;
@@ -222,15 +232,14 @@ class rrt_test_world {
     };
 
     void edge_added(EdgeType e, WorldGridType& g) {
-      using namespace boost;
       VertexType u = source(e,g);
       VertexType v = target(e,g);
       pixel_coord p_u = ( &g == &grid ? get(m_position, u) : get(m_position_goal,u));
       pixel_coord p_v = ( &g == &grid ? get(m_position, v) : get(m_position_goal,v));
       if(&g == &grid)
-        put(m_distance, v, get(m_distance, u) + m_space.distance(p_u,p_v));
+        put(m_distance, v, get(m_distance, u) + get(ReaK::pp::distance_metric, m_space)(p_u, p_v, m_space));
       else
-        put(m_distance_goal, v, get(m_distance_goal, u) + m_space.distance(p_u,p_v));
+        put(m_distance_goal, v, get(m_distance_goal, u) + get(ReaK::pp::distance_metric, m_space)(p_u, p_v, m_space));
 
       draw_edge(p_u, p_v);
 
@@ -240,7 +249,7 @@ class rrt_test_world {
       //now, check if v is connected with the goal on a straight collision-free path.
       if(&g == &grid) {
       pixel_difference diff = m_space.difference(goal_pos, p_v);
-      double dist = m_space.norm(diff);
+      double dist = get(ReaK::pp::distance_metric, m_space)(diff, m_space);
       if(dist <= max_edge_length) {
 	double d = 1.0;
 	pixel_coord p_g = m_space.adjust(p_v, diff * (d / dist));
@@ -273,12 +282,11 @@ class rrt_test_world {
     };
 
     void joining_vertex_found(VertexType u, WorldGridType& g) {
-      using namespace boost;
       if((solutions.size() == 0) || (solutions.back().get<0>() > 0.0)) {
         if(&g == &grid)
-          solutions.push_back(tuples::make_tuple(-get(m_distance,u),u,goal_node));
+          solutions.push_back(boost::tuples::make_tuple(-get(m_distance,u),u,goal_node));
         else
-          solutions.push_back(tuples::make_tuple(-get(m_distance_goal,u),start_node,u));
+          solutions.push_back(boost::tuples::make_tuple(-get(m_distance_goal,u),start_node,u));
       } else {
         if(&g == &grid) {
           solutions.back().get<0>() = get(m_distance,u) - solutions.back().get<0>();
@@ -359,17 +367,16 @@ class rrt_test_world {
                    best_solution(-1), max_edge_length(aMaxEdgeLength), 
                    robot_radius(aRobotRadius), max_vertex_count(aMaxVertexCount),
                    max_num_results(aMaxNumResults), unidirectional(aUnidirectional),
-		   nn_search_divider(aNNSearchDivider), m_rng(boost::minstd_rand(std::time(0))),
-                   m_space(m_rng,0, aWorldMapImage.size().height, aWorldMapImage.size().width, 0),
-                   m_position(boost::get(boost::vertex_position, grid)),
-                   m_distance(boost::get(boost::vertex_distance, grid)),
-                   m_position_goal(boost::get(boost::vertex_position, grid_goal)),
-                   m_distance_goal(boost::get(boost::vertex_distance, grid_goal)),
+		   nn_search_divider(aNNSearchDivider), 
+                   m_space("rrt_space",pixel_coord(0,0), pixel_coord(aWorldMapImage.size().width, aWorldMapImage.size().height)),
+                   m_position(get(boost::vertex_position, grid)),
+                   m_distance(get(boost::vertex_distance, grid)),
+                   m_position_goal(get(boost::vertex_position, grid_goal)),
+                   m_distance_goal(get(boost::vertex_distance, grid_goal)),
                    space_part(grid,m_space,m_position), space_part_goal(grid_goal,m_space,m_position_goal),
                    progress_call_back(aProgressCallback), path_found_call_back(aPathFoundCallback)
     {
-      using namespace boost;
-
+      
       if(world_map_image.empty()) {
 	std::cout << __FILE__ << ":" << __LINE__ << " Error: The world image is empty!" << std::endl;
 	throw int(0);
@@ -419,11 +426,11 @@ class rrt_test_world {
     ~rrt_test_world() { };
 
     void set_start_pos(const pixel_coord& aStart) {
-      while(boost::num_vertices(grid)) {
-	space_part.erase(*(boost::vertices(grid).first));
-	boost::remove_vertex(*(boost::vertices(grid).first),grid);
+      while(num_vertices(grid)) {
+	space_part.erase(*(vertices(grid).first));
+	remove_vertex(*(vertices(grid).first),grid);
       };
-      start_node = current_pos = boost::add_vertex(grid);
+      start_node = current_pos = add_vertex(grid);
       put(m_position, current_pos, aStart);
       put(m_distance, current_pos, 0.0);
       if(nn_search_divider == 1)
@@ -431,12 +438,12 @@ class rrt_test_world {
     };
     
     void set_goal_pos(const pixel_coord& aGoal) {
-      while(boost::num_vertices(grid_goal)) {
-	space_part_goal.erase(*(boost::vertices(grid_goal).first));
-	boost::remove_vertex(*(boost::vertices(grid_goal).first),grid_goal);
+      while(num_vertices(grid_goal)) {
+	space_part_goal.erase(*(vertices(grid_goal).first));
+	remove_vertex(*(vertices(grid_goal).first),grid_goal);
       };
       goal_pos = aGoal;
-      goal_node = boost::add_vertex(grid_goal);
+      goal_node = add_vertex(grid_goal);
       put(m_position_goal, goal_node, aGoal);
       put(m_distance_goal, goal_node, 0.0);
       if(nn_search_divider == 1)
@@ -444,7 +451,6 @@ class rrt_test_world {
     };
     
     double run() {
-      using namespace boost;
       unsigned int m = max_vertex_count;
       while(!(goal_distance < std::numeric_limits<double>::infinity())) {
 	if(unidirectional) {
@@ -453,11 +459,11 @@ class rrt_test_world {
 	      grid, 
 	      m_space,
 	      ReaK::graph::make_composite_rrt_visitor(
-	        bind(&rrt_test_world::vertex_added,this,_1,_2),
-                bind(&rrt_test_world::edge_added,this,_1,_2),
-	        bind(&rrt_test_world::is_free,this,_1),
-                bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
-                bind(&rrt_test_world::keep_going,this)),
+	        boost::bind(&rrt_test_world::vertex_added,this,_1,_2),
+                boost::bind(&rrt_test_world::edge_added,this,_1,_2),
+	        boost::bind(&rrt_test_world::is_free,this,_1),
+                boost::bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
+                boost::bind(&rrt_test_world::keep_going,this)),
 	      m_position,
  	      ReaK::pp::linear_neighbor_search<>(),
               m, max_edge_length, 1.0);
@@ -468,11 +474,11 @@ class rrt_test_world {
 	      grid,
 	      m_space,
 	      ReaK::graph::make_composite_rrt_visitor(
-		bind(&rrt_test_world::vertex_added,this,_1,_2),
-                bind(&rrt_test_world::edge_added,this,_1,_2),
-	        bind(&rrt_test_world::is_free,this,_1),
-                bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
-                bind(&rrt_test_world::keep_going,this)),
+		boost::bind(&rrt_test_world::vertex_added,this,_1,_2),
+                boost::bind(&rrt_test_world::edge_added,this,_1,_2),
+	        boost::bind(&rrt_test_world::is_free,this,_1),
+                boost::bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
+                boost::bind(&rrt_test_world::keep_going,this)),
               m_position,
 	      nn_finder,
 	      m, max_edge_length, 1.0);
@@ -481,11 +487,11 @@ class rrt_test_world {
 	      grid, 
 	      m_space,
 	      ReaK::graph::make_composite_rrt_visitor(
-	        bind(&rrt_test_world::vertex_added,this,_1,_2),
-                bind(&rrt_test_world::edge_added,this,_1,_2),
-	        bind(&rrt_test_world::is_free,this,_1),
-                bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
-                bind(&rrt_test_world::keep_going,this)),
+	        boost::bind(&rrt_test_world::vertex_added,this,_1,_2),
+                boost::bind(&rrt_test_world::edge_added,this,_1,_2),
+	        boost::bind(&rrt_test_world::is_free,this,_1),
+                boost::bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
+                boost::bind(&rrt_test_world::keep_going,this)),
 	      m_position,
  	      ReaK::pp::best_only_neighbor_search<>(nn_search_divider),
               m, max_edge_length, 1.0);
@@ -496,11 +502,11 @@ class rrt_test_world {
 	      grid, grid_goal,
 	      m_space,
 	      ReaK::graph::make_composite_rrt_visitor(
-	        bind(&rrt_test_world::vertex_added,this,_1,_2),
-                bind(&rrt_test_world::edge_added,this,_1,_2),
-	        bind(&rrt_test_world::is_free,this,_1),
-                bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
-                bind(&rrt_test_world::keep_going,this)),
+	        boost::bind(&rrt_test_world::vertex_added,this,_1,_2),
+                boost::bind(&rrt_test_world::edge_added,this,_1,_2),
+	        boost::bind(&rrt_test_world::is_free,this,_1),
+                boost::bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
+                boost::bind(&rrt_test_world::keep_going,this)),
 	      m_position, m_position_goal,
  	      ReaK::pp::linear_neighbor_search<>(),
               m, max_edge_length, 1.0);
@@ -512,50 +518,24 @@ class rrt_test_world {
 	      grid, grid_goal,
 	      m_space,
 	      ReaK::graph::make_composite_rrt_visitor(
-	        bind(&rrt_test_world::vertex_added,this,_1,_2),
-                bind(&rrt_test_world::edge_added,this,_1,_2),
-	        bind(&rrt_test_world::is_free,this,_1),
-                bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
-                bind(&rrt_test_world::keep_going,this)),
+	        boost::bind(&rrt_test_world::vertex_added,this,_1,_2),
+                boost::bind(&rrt_test_world::edge_added,this,_1,_2),
+	        boost::bind(&rrt_test_world::is_free,this,_1),
+                boost::bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
+                boost::bind(&rrt_test_world::keep_going,this)),
 	      m_position, m_position_goal,
  	      nn_finder,
               m, max_edge_length, 1.0);
-	    
-	    posix_time::ptime t_start = posix_time::microsec_clock::local_time();
-	    for(unsigned int i=0;i<100000;++i) {
-	      nn_finder(m_space.random_point(),grid,m_space,m_position);
-	    };
-	    posix_time::time_duration dt = posix_time::microsec_clock::local_time() - t_start;
-	    std::cout << "100000 queries of the vp-tree took: " << dt.total_microseconds() << " microsec on " << num_vertices(grid) << " vertices." << std::endl;
-	    
-	    WorldPartition fresh_partition(grid,m_space,m_position);
-	    ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition> nn_finder_fresh;
-	    nn_finder_fresh.graph_tree_map[&grid] = &fresh_partition;
-	    t_start = posix_time::microsec_clock::local_time();
-	    for(unsigned int i=0;i<100000;++i) {
-	      nn_finder_fresh(m_space.random_point(),grid,m_space,m_position);
-	    };
-	    dt = posix_time::microsec_clock::local_time() - t_start;
-	    std::cout << "100000 queries of a fresh vp-tree took: " << dt.total_microseconds() << " microsec on " << num_vertices(grid) << " vertices." << std::endl;
-	    
-	    ReaK::pp::linear_neighbor_search<> lnn_finder;
-	    t_start = posix_time::microsec_clock::local_time();
-	    for(unsigned int i=0;i<100000;++i) {
-	      lnn_finder(m_space.random_point(),grid,m_space,m_position);
-	    };
-	    dt = posix_time::microsec_clock::local_time() - t_start;
-	    std::cout << "100000 queries of the linear search took: " << dt.total_microseconds() << " microsec on " << num_vertices(grid) << " vertices." << std::endl;
-	    
 	  } else {                         //calls the bidirectional RRT, with the best_only_neighbor_search
             ReaK::graph::generate_bidirectional_rrt(
 	      grid, grid_goal,
 	      m_space,
 	      ReaK::graph::make_composite_rrt_visitor(
-	        bind(&rrt_test_world::vertex_added,this,_1,_2),
-                bind(&rrt_test_world::edge_added,this,_1,_2),
-	        bind(&rrt_test_world::is_free,this,_1),
-                bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
-                bind(&rrt_test_world::keep_going,this)),
+	        boost::bind(&rrt_test_world::vertex_added,this,_1,_2),
+                boost::bind(&rrt_test_world::edge_added,this,_1,_2),
+	        boost::bind(&rrt_test_world::is_free,this,_1),
+                boost::bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
+                boost::bind(&rrt_test_world::keep_going,this)),
 	      m_position, m_position_goal,
  	      ReaK::pp::best_only_neighbor_search<>(nn_search_divider),
               m, max_edge_length, 1.0);

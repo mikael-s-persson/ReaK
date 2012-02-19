@@ -44,6 +44,8 @@
 #include <boost/random/variate_generator.hpp>
 #include "path_planning/global_rng.hpp"
 
+#include "default_random_sampler.hpp"
+
 namespace ReaK {
 
 namespace pp {
@@ -59,6 +61,9 @@ class time_poisson_topology : public time_topology
   public:
     typedef double point_type;
     typedef double point_difference_type;
+    
+    typedef default_distance_metric distance_metric_type;
+    typedef default_random_sampler random_sampler_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 1);
     

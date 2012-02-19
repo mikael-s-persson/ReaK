@@ -78,11 +78,11 @@ namespace graph {
    */
   template <typename Visitor, typename Graph>
   struct FADPRMVisitorConcept {
-    void constraints()
+    BOOST_CONCEPT_USAGE(FADPRMVisitorConcept)
     {
-      boost::function_requires< boost::CopyConstructibleConcept<Visitor> >();
-      boost::function_requires< PRMVisitorConcept<Visitor,Graph> >();
-      boost::function_requires< ADStarVisitorConcept<Visitor,Graph> >();
+      BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
+      BOOST_CONCEPT_ASSERT((PRMVisitorConcept<Visitor,Graph>));
+      BOOST_CONCEPT_ASSERT((ADStarVisitorConcept<Visitor,Graph>));
     }
   };
   
@@ -243,9 +243,9 @@ namespace graph {
         std::vector<Vertex> Nc;
         m_select_neighborhood(p,Nc,g,m_free_space,m_position); 
         for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
-	  if((u != *it) && (m_free_space.distance(boost::get(m_position,*it),p) != std::numeric_limits<distance_type>::infinity())) {
+	  if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,*it), p, m_free_space) != std::numeric_limits<distance_type>::infinity())) {
 	    //this means that u is reachable from *it.
-	    std::pair<Edge, bool> ep = boost::add_edge(*it,u,g); 
+	    std::pair<Edge, bool> ep = add_edge(*it,u,g); 
 	    if(ep.second) {
 	      m_vis.edge_added(ep.first, g); 
 	      update_key(*it,g); 
@@ -254,7 +254,7 @@ namespace graph {
 	    };
 	  };
         }; 
-	put(m_index_in_heap, u, (std::size_t)(-1));
+	put(m_index_in_heap, u, static_cast<std::size_t>(-1));
 	update_key(u,g); 
 	//m_Q.push(u); put(m_color, u, Color::gray());
 	update_vertex(u,g);
@@ -268,9 +268,9 @@ namespace graph {
 	std::vector<Vertex> Succ;
         m_select_neighborhood(p,Pred,Succ,g,m_free_space,m_position); 
         for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
-	  if((u != *it) && (m_free_space.distance(boost::get(m_position,*it),p) != std::numeric_limits<distance_type>::infinity())) {
+	  if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,*it), p, m_free_space) != std::numeric_limits<distance_type>::infinity())) {
 	    //this means that u is reachable from *it.
-	    std::pair<Edge, bool> ep = boost::add_edge(*it,u,g); 
+	    std::pair<Edge, bool> ep = add_edge(*it,u,g); 
 	    if(ep.second) {
 	      m_vis.edge_added(ep.first, g); 
 	      update_key(*it,g); 
@@ -279,14 +279,14 @@ namespace graph {
 	    };
 	  };
         };
-	put(m_index_in_heap, u, (std::size_t)(-1));
+	put(m_index_in_heap, u, static_cast<std::size_t>(-1));
 	update_key(u,g); 
 	//m_Q.push(u); put(m_color, u, Color::gray());
 	update_vertex(u,g);
 	for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-	  if((u != *it) && (m_free_space.distance(p,boost::get(m_position,*it)) != std::numeric_limits<distance_type>::infinity())) {
+	  if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(p, get(m_position,*it), m_free_space) != std::numeric_limits<distance_type>::infinity())) {
 	    //this means that u is reachable from *it.
-	    std::pair<Edge, bool> ep = boost::add_edge(u,*it,g); 
+	    std::pair<Edge, bool> ep = add_edge(u,*it,g); 
 	    if(ep.second) {
 	      m_vis.edge_added(ep.first, g); 
 	      update_key(*it,g); 
@@ -377,12 +377,12 @@ namespace graph {
 	  rhs_u = m_inf; 
 	  Vertex pred_u = get(m_predecessor, u);
 	  typename GTraits::edge_descriptor pred_e; 
-	  for(boost::tie(ei,ei_end) = boost::in_edges(u,g); ei != ei_end; ++ei) {
-	    distance_type rhs_tmp = m_combine(get(m_weight, *ei), get(m_distance, boost::source(*ei,g))); 
+	  for(boost::tie(ei,ei_end) = in_edges(u,g); ei != ei_end; ++ei) {
+	    distance_type rhs_tmp = m_combine(get(m_weight, *ei), get(m_distance, source(*ei,g))); 
 	    if(m_compare(rhs_tmp, rhs_u)) {
 	      rhs_u = rhs_tmp; 
 	      put(m_rhs, u, rhs_u);
-	      put(m_predecessor, u, boost::source(*ei,g)); 
+	      put(m_predecessor, u, source(*ei,g)); 
 	      pred_e = *ei;
 	    };
 	  };
@@ -601,8 +601,8 @@ namespace graph {
     IndexInHeapMap index_in_heap;
     {
       typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
-      for (boost::tie(ui, ui_end) = boost::vertices(g); ui != ui_end; ++ui) {
-        put(index_in_heap,*ui, (std::size_t)(-1)); //this ugly C-style cast is required to match the boost::d_ary_heap_indirect implementation.
+      for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
+        put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
       };
     };
 
@@ -778,7 +778,12 @@ namespace graph {
      CompareFunction compare = CompareFunction(), EqualCompareFunction equal_compare = EqualCompareFunction(),
      CombineFunction combine = CombineFunction(), ComposeFunction compose = ComposeFunction())
   {
-
+    BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
+    BOOST_CONCEPT_ASSERT((boost::MutableGraphConcept<Graph>));
+    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((FADPRMVisitorConcept<FADPRMVisitor,Graph>));
+    
     typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
     typedef boost::color_traits<ColorValue> Color;
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
@@ -786,14 +791,14 @@ namespace graph {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
     
-    if(boost::num_vertices(g) == 0) {
-      Vertex u = boost::add_vertex(g);
-      PositionValue p = free_space.random_point();
+    if(num_vertices(g) == 0) {
+      Vertex u = add_vertex(g);
+      PositionValue p = get(ReaK::pp::random_sampler, free_space)(free_space);
       put(position, u, p);
       vis.vertex_added(u, g);
     };
     
-    for (boost::tie(ui, ui_end) = boost::vertices(g); ui != ui_end; ++ui) {
+    for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
       put(color, *ui, Color::white());
       put(distance, *ui, inf);
       put(rhs, *ui, inf);

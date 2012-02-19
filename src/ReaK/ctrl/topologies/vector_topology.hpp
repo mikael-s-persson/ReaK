@@ -48,11 +48,8 @@ namespace ReaK {
 namespace pp {
 
 /**
- * This class implements an infinite vector topology. Since the space is 
- * infinite, there is no way to generate random points from it, and thus, 
- * this class does not model the topology concepts, but defines a number 
- * of functions useful to a derived class that can provide the full 
- * model of a topology.
+ * This class implements an infinite vector topology. This class 
+ * models the TopologyConcept and the LieGroupConcept.
  * \tparam Vector The vector-type for the topology, should model an Arithmetic concept and possess a norm() function.
  */
 template <typename Vector>
@@ -69,15 +66,10 @@ class vector_topology : public named_object
     vector_topology(const std::string& aName = "vector_topology") : named_object() {
       setName(aName);
     };
-    
 
-    /**
-     * Returns a point which is at a fraction between two points a to b.
-     */
-    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
-    {
-      return a + (b - a) * vect_traits<Vector>::value_type( fraction );
-    }
+   /*************************************************************************
+    *                             TopologyConcept
+    * **********************************************************************/
 
     /**
      * Returns the difference between two points (a - b).
@@ -93,6 +85,24 @@ class vector_topology : public named_object
       return a + delta;
     }
 
+    /**
+     * Returns the addition of a point-difference to a point.
+     */
+    virtual point_type origin() const {
+      return point_type();
+    }
+
+    /*************************************************************************
+    *                             LieGroupConcept
+    * **********************************************************************/
+    
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
+    {
+      return a + (b - a) * typename vect_traits<Vector>::value_type( fraction );
+    }
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces

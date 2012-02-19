@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
 							     ReaK::vect<double,2>(511.99,511.99));
     
     for(unsigned int i = 0; i < vertex_count; ++i) {
-      ReaK::vect<double,2> v = topo.random_point();
+      ReaK::vect<double,2> v = get(ReaK::pp::random_sampler, topo)(topo);
       world_image.ptr()[ 3 * 512 * int(v[0]) + 3 * int(v[1]) ] = 0;
       world_image.ptr()[ 3 * 512 * int(v[0]) + 3 * int(v[1]) + 1 ] = 0;
       world_image.ptr()[ 3 * 512 * int(v[0]) + 3 * int(v[1]) + 2 ] = 255;
@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
 							      255.99, ReaK::mat<double,ReaK::mat_structure::identity>(2));
     
     for(unsigned int i = 0; i < vertex_count; ++i) {
-      ReaK::vect<double,2> v = topo.random_point();
+      ReaK::vect<double,2> v = get(ReaK::pp::random_sampler, topo)(topo);
       world_image.ptr()[ 3 * 512 * int(v[0]) + 3 * int(v[1]) ] = 0;
       world_image.ptr()[ 3 * 512 * int(v[0]) + 3 * int(v[1]) + 1 ] = 0;
       world_image.ptr()[ 3 * 512 * int(v[0]) + 3 * int(v[1]) + 2 ] = 255;
@@ -133,9 +133,9 @@ int main(int argc, char** argv) {
 					 40.0);
     
     for(unsigned int i = 0; i < vertex_count; ++i) {
-      if(hist.find(int(topo.random_point())) == hist.end())
-	hist[int(topo.random_point())] = 0;
-      ++(hist[int(topo.random_point())]);
+      if(hist.find(int(get(ReaK::pp::random_sampler, topo)(topo))) == hist.end())
+	hist[int(get(ReaK::pp::random_sampler, topo)(topo))] = 0;
+      ++(hist[int(get(ReaK::pp::random_sampler, topo)(topo))]);
     };
     
     for(unsigned int i = 0; i < 512; ++i) {
@@ -165,9 +165,9 @@ int main(int argc, char** argv) {
 					         511.99);
     
     for(unsigned int i = 0; i < vertex_count; ++i) {
-      if(hist.find(int(topo.random_point())) == hist.end())
-	hist[int(topo.random_point())] = 0;
-      ++(hist[int(topo.random_point())]);
+      if(hist.find(int(get(ReaK::pp::random_sampler, topo)(topo))) == hist.end())
+	hist[int(get(ReaK::pp::random_sampler, topo)(topo))] = 0;
+      ++(hist[int(get(ReaK::pp::random_sampler, topo)(topo))]);
     };
     
     for(unsigned int i = 0; i < 512; ++i) {
