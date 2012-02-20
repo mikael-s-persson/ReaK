@@ -1,7 +1,7 @@
 Have a non-directory at the top, so creating directory top_dir
-Adding /media/S_M_P_0/ReaK_github/src/ReaK/CMakeLists.txt to top_dir
-Adding /media/S_M_P_0/ReaK_github/src/ReaK/README to top_dir
-Adding /media/S_M_P_0/ReaK_github/src/ReaK/TypeIDList.txt to top_dir
+Adding /media/S_M_P_3/ReaK_github/src/ReaK//CMakeLists.txt to top_dir
+Adding /media/S_M_P_3/ReaK_github/src/ReaK//README to top_dir
+Adding /media/S_M_P_3/ReaK_github/src/ReaK//TypeIDList.txt to top_dir
 Creating filelist for core
 Creating filelist for ctrl
 Creating filelist for examples
@@ -12,25 +12,25 @@ Computing results.
 
 
 SLOC	Directory	SLOC-by-Language (Sorted)
-31120   core            cpp=31120
-19622   ctrl            cpp=19622
-3041    examples        cpp=3041
+39481   core            cpp=39481
+23501   ctrl            cpp=23501
+3544    examples        cpp=3544
 0       top_dir         (none)
 
 
 Totals grouped by language (dominant language first):
-cpp:          53783 (100.00%)
+cpp:          66526 (100.00%)
 
 
 
 
-Total Physical Source Lines of Code (SLOC)                = 53,783
-Development Effort Estimate, Person-Years (Person-Months) = 13.13 (157.54)
+Total Physical Source Lines of Code (SLOC)                = 66,526
+Development Effort Estimate, Person-Years (Person-Months) = 16.41 (196.95)
  (Basic COCOMO model, Person-Months = 2.4 * (KSLOC**1.05))
-Schedule Estimate, Years (Months)                         = 1.42 (17.10)
+Schedule Estimate, Years (Months)                         = 1.55 (18.61)
  (Basic COCOMO model, Months = 2.5 * (person-months**0.38))
-Estimated Average Number of Developers (Effort/Schedule)  = 9.21
-Total Estimated Cost to Develop                           = $ 1,773,450
+Estimated Average Number of Developers (Effort/Schedule)  = 10.58
+Total Estimated Cost to Develop                           = $ 2,217,086
  (average salary = $56,286/year, overhead = 2.40).
 SLOCCount, Copyright (C) 2001-2004 David A. Wheeler
 SLOCCount is Open Source Software/Free Software, licensed under the GNU GPL.
