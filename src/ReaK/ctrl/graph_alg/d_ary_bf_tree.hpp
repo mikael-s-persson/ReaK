@@ -44,6 +44,8 @@
 #include <map>
 #include <iterator>
 
+#include "bgl_tree_adaptor.hpp"
+
 namespace ReaK {
 
 namespace graph {
@@ -592,6 +594,18 @@ class d_ary_bf_tree
     
     
 };
+
+
+template <std::size_t Arity = 2>
+struct d_ary_bf_tree_storage { };
+
+
+template <typename VertexDescriptor, typename EdgeDescriptor, std::size_t Arity>
+struct tree_storage<VertexDescriptor, EdgeDescriptor, d_ary_bf_tree_storage<Arity> > {
+  typedef d_ary_bf_tree<VertexDescriptor, Arity, EdgeDescriptor> type;
+};
+
+
 
 
 /***********************************************************************************************

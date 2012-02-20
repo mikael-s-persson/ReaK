@@ -39,7 +39,6 @@
 #include <boost/lambda/lambda.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
-#include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 
@@ -49,21 +48,9 @@
 #include "metric_space_concept.hpp"
 #include "global_rng.hpp"
 
-#include "graph_alg/bgl_tree_adaptor.hpp"
 #include "graph_alg/d_ary_bf_tree.hpp"
-#include "graph_alg/d_ary_cob_tree.hpp"
-
 #include "topological_search.hpp"
 
-namespace boost {
-
-  enum edge_vp_distance_t { edge_vp_distance };
-  enum vertex_vp_key_index_t { vertex_vp_key_index };
-
-  BOOST_INSTALL_PROPERTY(edge, vp_distance);
-  BOOST_INSTALL_PROPERTY(vertex, vp_key_index);
-
-};
 
 
 namespace ReaK {
@@ -168,12 +155,12 @@ struct no_position_caching_policy {
     effector(Graph&) { };
     
     template <typename Vertex, typename Key, typename PositionMap, typename KeyMap>
-    void put_vertex(Vertex v, Key k, const PositionMap&, const KeyMap& key) const {
+    void put_vertex(const Vertex& v, const Key& k, const PositionMap&, const KeyMap& key) const {
       put(key, v, k);
     };
   
     template <typename Vertex, typename PositionMap, typename KeyMap>
-    PointType get_position(Vertex v, const PositionMap& position, const KeyMap& key) const {
+    PointType get_position(const Vertex& v, const PositionMap& position, const KeyMap& key) const {
       return get(position, get(key, v));
     };
   };
@@ -194,19 +181,19 @@ struct position_caching_policy {
     effector(Graph& g) : m_cached_position( get(&vertex_base_property<PointType>::cached_position_value, g) ) { };
     
     template <typename Vertex, typename Key, typename KeyMap>
-    void put_vertex(Vertex v, Key k, const PointType& pt, const KeyMap& key) const {
+    void put_vertex(const Vertex& v, const Key& k, const PointType& pt, const KeyMap& key) const {
       put(key, v, k);
       put(m_cached_position, v, pt);
     };
     
     template <typename Vertex, typename Key, typename PositionMap, typename KeyMap>
-    void put_vertex(Vertex v, Key k, const PositionMap& position, const KeyMap& key) const {
+    void put_vertex(const Vertex& v, const Key& k, const PositionMap& position, const KeyMap& key) const {
       put(key, v, k);
       put(m_cached_position, v, get(position, k));
     };
   
     template <typename Vertex, typename PositionMap, typename KeyMap>
-    PointType get_position(Vertex v, const PositionMap&, const KeyMap&) const {
+    PointType get_position(const Vertex& v, const PositionMap&, const KeyMap&) const {
       return get(m_cached_position, v);
     };
   };
@@ -230,6 +217,7 @@ template <typename Key,
           typename PositionMap,
 	  unsigned int Arity = 2,
 	  typename VPChooser = random_vp_chooser,
+	  typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<Arity>,
 	  typename PositionCachingPolicy = position_caching_policy>
 class dvp_tree
 {
@@ -250,15 +238,7 @@ class dvp_tree
       distance_type d;
     };
     
-#if 0
-    typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
-                                   vertex_properties,
-	  	                   edge_properties,
-		                   boost::vecS> tree_indexer;
-#else
-    typedef ReaK::graph::d_ary_bf_tree< vertex_properties,
-                                        Arity, edge_properties> tree_indexer;   
-#endif
+    typedef typename ReaK::graph::tree_storage< vertex_properties, edge_properties, TreeStorageTag>::type tree_indexer;
     
     typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor vertex_type;
     typedef typename boost::graph_traits<tree_indexer>::edge_descriptor edge_type;
@@ -404,17 +384,12 @@ class dvp_tree
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
     vertex_type get_leaf(const point_type& aPoint, vertex_type aNode) const {
-#ifdef RK_DVP_TREE_CACHE_POSITION
-      distance_type current_dist = m_distance(aPoint, get(m_cached_position, aNode), m_space);
-#else
       distance_type current_dist = m_distance(aPoint, m_caching_effector.get_position(aNode, m_position, m_key), m_space);
-//      distance_type current_dist = m_distance(aPoint, get(m_position, get(m_key, aNode)), m_space);
-#endif
-      out_edge_iter ei,ei_end;
       //first, locate the partition in which aPoint is:
       if(out_degree(aNode,m_tree) == 0)
 	return aNode;
       vertex_type result = aNode;
+      out_edge_iter ei,ei_end;
       for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
 	result = target(*ei,m_tree);
 	if(current_dist < get(m_mu, *ei)) 
@@ -428,7 +403,6 @@ class dvp_tree
     vertex_type get_key(Key aVertex, const point_type& aPoint, vertex_type aNode) const {
       if(get(m_key, aNode) == aVertex) return aNode;
       distance_type current_dist = m_distance(aPoint, m_caching_effector.get_position(aNode, m_position, m_key), m_space);
-//      distance_type current_dist = m_distance(aPoint, get(m_position, get(m_key, aNode)), m_space);
       //first, locate the partition in which aPoint is:
       if(out_degree(aNode,m_tree) == 0)
 	throw int(0);
@@ -448,7 +422,6 @@ class dvp_tree
       if(aNode == m_root) return;
       vertex_type parent = source(*(in_edges(aNode,m_tree).first), m_tree);
       distance_type dist = m_distance(aPoint, m_caching_effector.get_position(parent, m_position, m_key), m_space);
-//      distance_type dist = m_distance(aPoint, get(m_position,get(m_key,parent)), m_space);
       if(dist > get(m_mu,*(in_edges(aNode,m_tree).first)))
 	put(m_mu,*(in_edges(aNode,m_tree).first),dist);
       update_mu_upwards(aPoint,parent);
@@ -506,9 +479,9 @@ class dvp_tree
     /* NOTE Requires persistent vertices */
     void clear_node(vertex_type aNode) {
       if(out_degree(aNode,m_tree) == 0) return;
-      out_edge_iter ei,ei_end;
       std::vector<vertex_type> children;
       children.reserve(out_degree(aNode,m_tree));
+      out_edge_iter ei,ei_end;
       for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei)
 	children.push_back(target(*ei,m_tree));
       for(typename std::vector<vertex_type>::iterator it = children.begin(); it != children.end(); ++it)
@@ -614,11 +587,7 @@ class dvp_tree
       point_type u_pt = get(m_position, u); 
       vertex_type u_realleaf = get_leaf(u_pt,m_root);
       if(u_realleaf == m_root) { //if the root is the leaf, it requires special attention since no parent exists.
-        //vertex_type u_node; edge_type l_u;
-	//boost::tie(u_node, l_u) = add_child_vertex(u_realleaf, m_tree); //add_vertex(m_tree); 
-	//put(m_key, u_node, u); 
-	//put(m_mu, l_u, m_distance(u_pt, get(m_position,get(m_key,u_realleaf)), m_space)); 
-	std::vector<Key> key_list;       
+        std::vector<Key> key_list;       
 	collect_keys(key_list,u_realleaf);   
 	key_list.push_back(u); 
 	clear_node(u_realleaf); 

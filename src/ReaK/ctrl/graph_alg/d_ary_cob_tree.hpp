@@ -743,6 +743,18 @@ class d_ary_cob_tree
 };
 
 
+
+template <std::size_t Arity = 2, std::size_t CuttingDepth = 8>
+struct d_ary_cob_tree_storage { };
+
+
+template <typename VertexDescriptor, typename EdgeDescriptor, std::size_t Arity, std::size_t CuttingDepth>
+struct tree_storage<VertexDescriptor, EdgeDescriptor, d_ary_cob_tree_storage<Arity, CuttingDepth> > {
+  typedef d_ary_cob_tree<VertexDescriptor, Arity, EdgeDescriptor, CuttingDepth> type;
+};
+
+
+
 /***********************************************************************************************
  *                             IncidenceGraphConcept
  * ********************************************************************************************/

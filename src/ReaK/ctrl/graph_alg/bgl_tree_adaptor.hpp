@@ -35,9 +35,32 @@
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
+#include <boost/graph/adjacency_list.hpp>
 
 #include <vector>
-    
+
+
+namespace ReaK {
+
+namespace graph {
+
+struct bgl_tree_storage { };
+
+template <typename VertexProperty, 
+          typename EdgeProperty = boost::no_property, 
+	  typename TreeStorage = bgl_tree_storage>
+struct tree_storage {
+  typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
+                                 VertexProperty,
+	  	                 EdgeProperty,
+		                 boost::vecS> type;
+};  
+
+};
+
+};
+
+
 namespace boost {
 
 /***********************************************************************************************
