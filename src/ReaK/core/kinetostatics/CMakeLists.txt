@@ -2,17 +2,17 @@
 #set(KINETOSTATICS_SOURCES "${SRCROOT}${RKMATHDIR}/gen_mat_num.cpp")
 
 set(KINETOSTATICS_HEADERS 
-                 "${RKKINETOSTATICSDIR}/frame_2D.hpp"
-                 "${RKKINETOSTATICSDIR}/frame_3D.hpp"
-                 "${RKKINETOSTATICSDIR}/gen_coord.hpp"
-                 "${RKKINETOSTATICSDIR}/kinetostatics.hpp"
-                 "${RKKINETOSTATICSDIR}/motion_jacobians.hpp"
-                 "${RKKINETOSTATICSDIR}/pose_2D.hpp"
-                 "${RKKINETOSTATICSDIR}/pose_3D.hpp"
-                 "${RKKINETOSTATICSDIR}/quat_alg.hpp"
-                 "${RKKINETOSTATICSDIR}/rotations.hpp"
-                 "${RKKINETOSTATICSDIR}/rotations_2D.hpp"
-                 "${RKKINETOSTATICSDIR}/rotations_3D.hpp"
+  "${RKKINETOSTATICSDIR}/frame_2D.hpp"
+  "${RKKINETOSTATICSDIR}/frame_3D.hpp"
+  "${RKKINETOSTATICSDIR}/gen_coord.hpp"
+  "${RKKINETOSTATICSDIR}/kinetostatics.hpp"
+  "${RKKINETOSTATICSDIR}/motion_jacobians.hpp"
+  "${RKKINETOSTATICSDIR}/pose_2D.hpp"
+  "${RKKINETOSTATICSDIR}/pose_3D.hpp"
+  "${RKKINETOSTATICSDIR}/quat_alg.hpp"
+  "${RKKINETOSTATICSDIR}/rotations.hpp"
+  "${RKKINETOSTATICSDIR}/rotations_2D.hpp"
+  "${RKKINETOSTATICSDIR}/rotations_3D.hpp"
 )
 
 #add_library(reak_kinetostatics STATIC ${KINETOSTATICS_SOURCES})

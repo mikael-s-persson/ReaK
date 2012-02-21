@@ -3,18 +3,22 @@ set(PATH_PLANNING_SOURCES
 )
 
 set(PATH_PLANNING_HEADERS 
-  "${RKPATHPLANNINGDIR}/topological_search.hpp"
-  "${RKPATHPLANNINGDIR}/metric_space_concept.hpp"
-  "${RKPATHPLANNINGDIR}/metric_space_search.hpp"
-  "${RKPATHPLANNINGDIR}/temporal_space_concept.hpp"
-  "${RKPATHPLANNINGDIR}/reachability_space_concept.hpp"
-  "${RKPATHPLANNINGDIR}/reachability_sort.hpp"
-  "${RKPATHPLANNINGDIR}/spatial_path_concept.hpp"
-  "${RKPATHPLANNINGDIR}/spatial_trajectory_concept.hpp"
-  "${RKPATHPLANNINGDIR}/predicted_trajectory_concept.hpp"
-  "${RKPATHPLANNINGDIR}/differentiable_space_concept.hpp"
   "${RKPATHPLANNINGDIR}/bounded_space_concept.hpp"
   "${RKPATHPLANNINGDIR}/global_rng.hpp"
+  "${RKPATHPLANNINGDIR}/interpolator_concept.hpp"
+  "${RKPATHPLANNINGDIR}/metric_space_concept.hpp"
+  "${RKPATHPLANNINGDIR}/metric_space_search.hpp"
+  "${RKPATHPLANNINGDIR}/predicted_trajectory_concept.hpp"
+  "${RKPATHPLANNINGDIR}/random_sampler_concept.hpp"
+  "${RKPATHPLANNINGDIR}/reachability_sort.hpp"
+  "${RKPATHPLANNINGDIR}/reachability_space_concept.hpp"
+  "${RKPATHPLANNINGDIR}/spatial_path_concept.hpp"
+  "${RKPATHPLANNINGDIR}/spatial_trajectory_concept.hpp"
+  "${RKPATHPLANNINGDIR}/tangent_bundle_concept.hpp"
+  "${RKPATHPLANNINGDIR}/temporal_space_concept.hpp"
+  "${RKPATHPLANNINGDIR}/topological_map_concepts.hpp"
+  "${RKPATHPLANNINGDIR}/topological_search.hpp"
+  "${RKPATHPLANNINGDIR}/transformed_trajectory.hpp"
 )
 
 #add_library(reak_path_planning STATIC ${PATH_PLANNING_SOURCES})

@@ -3,11 +3,11 @@
 
 set(BASE_HEADERS 
   "${RKBASEDIR}/defs.hpp"
+  "${RKBASEDIR}/exec_time_profiler.hpp"
   "${RKBASEDIR}/named_object.hpp"
+  "${RKBASEDIR}/serializable.hpp"
   "${RKBASEDIR}/shared_object.hpp"
   "${RKBASEDIR}/shared_object_base.hpp"
-  "${RKBASEDIR}/serializable.hpp"
-  "${RKBASEDIR}/exec_time_profiler.hpp"
 )
 
 

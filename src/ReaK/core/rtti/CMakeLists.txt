@@ -5,12 +5,12 @@ set(RTTI_SOURCES
 )
 
 set(RTTI_HEADERS 
+  "${RKRTTIDIR}/so_register_type.hpp"
   "${RKRTTIDIR}/so_type.hpp"
   "${RKRTTIDIR}/so_type_repo.hpp"
-  "${RKRTTIDIR}/so_register_type.hpp"
-  "${RKRTTIDIR}/typed_primitives.hpp"
-  "${RKRTTIDIR}/typed_object.hpp"
   "${RKRTTIDIR}/typed_containers.hpp"
+  "${RKRTTIDIR}/typed_object.hpp"
+  "${RKRTTIDIR}/typed_primitives.hpp"
 )
 
 add_library(reak_rtti STATIC ${RTTI_SOURCES})

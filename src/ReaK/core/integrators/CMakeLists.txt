@@ -2,9 +2,9 @@
 set(INTEGRATORS_SOURCES )
 
 set(INTEGRATORS_HEADERS 
-  "${RKINTEGRATORSDIR}/integrator.hpp"
-  "${RKINTEGRATORSDIR}/integration_exceptions.hpp"
   "${RKINTEGRATORSDIR}/fixed_step_integrators.hpp"
+  "${RKINTEGRATORSDIR}/integration_exceptions.hpp"
+  "${RKINTEGRATORSDIR}/integrator.hpp"
   "${RKINTEGRATORSDIR}/pred_corr_integrators.hpp"
   "${RKINTEGRATORSDIR}/variable_step_integrators.hpp"
 )

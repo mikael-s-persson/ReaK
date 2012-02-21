@@ -7,7 +7,9 @@ set(GRAPH_ALG_HEADERS
   "${RKGRAPHALGDIR}/rr_tree.hpp"
   "${RKGRAPHALGDIR}/fadprm.hpp"
   "${RKGRAPHALGDIR}/probabilistic_roadmap.hpp"
-  
+  "${RKGRAPHALGDIR}/d_ary_bf_tree.hpp"
+  "${RKGRAPHALGDIR}/d_ary_cob_tree.hpp"
+  "${RKGRAPHALGDIR}/bgl_tree_adaptor.hpp"
 )
 
 #add_library(reak_graph_alg STATIC ${GRAPH_ALG_SOURCES})
