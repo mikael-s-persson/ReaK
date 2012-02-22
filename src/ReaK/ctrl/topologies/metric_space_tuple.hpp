@@ -325,6 +325,16 @@ namespace detail {
 	metric_space_tuple_impl<Order-1,SpaceTuple>::adjust(s,pr,p,dp);
 	get<Order>(pr) = get<Order>(s).adjust(get<Order>(p),get<Order>(dp));
       };
+      
+      static void get_diff_to_boundary(const SpaceTuple& s, point_difference_type& dpr, const point_type& p) {
+	metric_space_tuple_impl<Order-1,SpaceTuple>::get_diff_to_boundary(s,dpr,p);
+	get<Order>(dpr) = get<Order>(s).get_diff_to_boundary(get<Order>(p));
+      };
+      
+      static void is_in_bounds(const SpaceTuple& s, bool& br, const point_type& p) {
+	metric_space_tuple_impl<Order-1,SpaceTuple>::get_diff_to_boundary(s,br,p);
+	br = (br && get<Order>(s).is_in_bounds(get<Order>(p)));
+      };
   };
   
   template <typename SpaceTuple> 
@@ -352,6 +362,14 @@ namespace detail {
       static void adjust(const SpaceTuple& s, point_type& pr, const point_type& p, const point_difference_type& dp) {
 	get<0>(pr) = get<0>(s).adjust(get<0>(p),get<0>(dp));
       };
+      
+      static void get_diff_to_boundary(const SpaceTuple& s, point_difference_type& dpr, const point_type& p) {
+	get<0>(dpr) = get<0>(s).get_diff_to_boundary(get<0>(p));
+      };
+      
+      static void is_in_bounds(const SpaceTuple& s, bool& br, const point_type& p) {
+	br = get<0>(s).is_in_bounds(get<0>(p));
+      };
   };
   
   
@@ -366,8 +384,11 @@ namespace detail {
 
   
 /**
- * This class template can be used to glue together a number of spaces into a tuple. This class template models 
- * the MetricSpaceConcept (if all underlying spaces do as well), and it is also a tuple class (meaning 
+ * This class template can be used to glue together a number of spaces into a tuple. Depending on the models 
+ * supported by the underlying spaces included in the tuple, this class template models 
+ * the TopologyConcept, the MetricSpaceConcept, the PointDistributionConcept, the LieGroupConcept, and 
+ * the BoundedSpaceConcept (i.e. the metric-space tuple class will model all the concepts which are also 
+ * modeled by all the spaces it includes). This class is also a tuple class (meaning 
  * that the Boost.Tuple or std::tuple meta-functions, as well as the ReaK.Arithmetic-tuple meta-functions 
  * will work on this class, with the usual semantics).
  * 
@@ -483,6 +504,28 @@ class metric_space_tuple : public serialization::serializable {
       return result;
     };
     
+    
+    /*************************************************************************
+    *                             BoundedSpaceConcept
+    * **********************************************************************/
+    
+    /**
+     * Returns the difference between two points (a - b).
+     */
+    point_difference_type get_diff_to_boundary(const point_type& p1) const {
+      point_difference_type result;
+      detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::get_diff_to_boundary(m_spaces,result,p1);
+      return result;
+    };
+    
+    /**
+     * Returns the addition of a point-difference to a point.
+     */
+    bool is_in_bounds(const point_type& p1) const {
+      bool result;
+      detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::is_in_bounds(m_spaces,result,p1);
+      return result;
+    };
     
     
     /**

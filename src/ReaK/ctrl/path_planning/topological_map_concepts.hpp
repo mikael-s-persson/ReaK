@@ -87,6 +87,27 @@ struct BijectionConcept :
 };
 
 
+template <typename OuterBijection, typename InnerBijection, typename MiddleSpace>
+struct bijection_cascade {
+  OuterBijection map_outer;
+  InnerBijection map_inner;
+  MiddleSpace mid_space;
+  
+  bijection_cascade(const OuterBijection& aMapOuter, 
+		    const InnerBijection& aMapInner, 
+		    const MiddleSpace& aMidSpace) : 
+		    map_outer(aMapOuter), 
+		    map_inner(aMapInner),
+		    mid_space(aMidSpace) { };
+  
+  template <typename PointType, typename SpaceIn, typename SpaceOut>
+  typename topology_traits<SpaceOut>::point_type map_to_space(const PointType& p_in, const SpaceIn& s_in, const SpaceOut& s_out) const {
+    return map_outer.map_to_space( map_inner.map_to_space(p_in, s_in, mid_space), mid_space, s_out);
+  };
+  
+};
+
+
 
 /**
  * This concept defines the requirements to fulfill in order to model a homeomorphism between 

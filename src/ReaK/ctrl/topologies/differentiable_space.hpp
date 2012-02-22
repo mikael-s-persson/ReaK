@@ -217,9 +217,9 @@ struct default_differentiation_rule_tuple<10> {
 /**
  * This class template can be used to glue together a number of spaces by a differentiation relationship,
  * where each differentiation / integration operation (or more formally speaking, each lift and descent 
- * through the tangent bundle) is governed by its own differentiation rule. This class template models 
- * the MetricSpaceConcept (if all underlying spaces do as well), and models the DifferentiableSpaceConcept
- * for as high an order as there are differentiation rules and spaces to support.
+ * through the tangent bundle) is governed by its own differentiation rule. This class template is based 
+ * on the metric_space_tuple and will thus model all the concepts that metric_space_tuple models, and it 
+ * models the TangentBundleConcept for as high an order as there are differentiation rules and spaces provided.
  * 
  * \tparam IndependentSpace The type of the independent-space against which the differentiation is 
  *                          taken (e.g. time_topology). There are no formal requirements on this type, 

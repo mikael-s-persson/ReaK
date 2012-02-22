@@ -248,6 +248,7 @@ quaternion_topology<T>      0xC240000C   bin: 1100 0010 0100 0000 0000 0000 0000
 ang_velocity_3D_topology<T> 0xC240000D   bin: 1100 0010 0100 0000 0000 0000 0000 1101  D-R
 ang_accel_3D_topology<T>    0xC240000E   bin: 1100 0010 0100 0000 0000 0000 0000 1110  D-R
 rate_limited_quat_space<T>  0xC240000F   bin: 1100 0010 0100 0000 0000 0000 0000 1111  D-R
+reach_time_diff_space<I,X,D> 0xC2400010  bin: 1100 0010 0100 0000 0000 0000 0001 0000  D-R
 
 //Distance metrics:         0xC241****
 default_distance_metric     0xC2410000   bin: 1100 0010 0100 0001 0000 0000 0000 0000  D-R
@@ -292,6 +293,8 @@ transformed_trajectory      0xC2440008   bin: 1100 0010 0100 0100 0000 0000 0000
 
 //Random-Samplers:          0xC245****   
 default_random_sampler      0xC2450000   bin: 1100 0010 0100 0101 0000 0000 0000 0000  D-R
+svp_rate_limited_sampler    0xC2450001   bin: 1100 0010 0100 0001 0000 0000 0000 0001  D-R
+sap_rate_limited_sampler    0xC2450002   bin: 1100 0010 0100 0001 0000 0000 0000 0010  D-R
 
 
 
