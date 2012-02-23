@@ -403,7 +403,7 @@ struct svp_rate_limited_sampler : public serialization::serializable {
     BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
     BOOST_CONCEPT_ASSERT((PointDistributionConcept<Topology>));
     BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((TangentBundleConcept< SpaceType, 1, TimeSpaceType >));
+    BOOST_CONCEPT_ASSERT((TangentBundleConcept<Topology, 1, TimeSpaceType>));
     
     typedef typename derived_N_order_space<Topology, TimeSpaceType, 0>::type Space0;
     typedef typename derived_N_order_space<Topology, TimeSpaceType, 1>::type Space1;
