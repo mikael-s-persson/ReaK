@@ -35,24 +35,34 @@ include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")
 
-#find_package( Qt4 REQUIRED )
-#include( ${QT_USE_FILE} )
-#set( PATHPLANNING_PPTESTER_UIS
-#     "${SRCROOT}${RKPATHPLANNINGDIR}/pptester.ui" 
-#     "${SRCROOT}${RKPATHPLANNINGDIR}/ppresultview.ui"
-#     "${SRCROOT}${RKPATHPLANNINGDIR}/rrtproperties.ui"
-#)
-#QT4_WRAP_UI( PATHPLANNING_PPTESTER_UI_HDRS ${PATHPLANNING_PPTESTER_UIS} )
-#set( PATHPLANNING_PPTESTER_MOC_HDRS
-#     "${SRCROOT}${RKPATHPLANNINGDIR}/pptester_impl.h"
-#)
-#QT4_WRAP_CPP( PATHPLANNING_PPTESTER_MOC_SRCS ${PATHPLANNING_PPTESTER_MOC_HDRS} )
-#include_directories( AFTER ${CMAKE_BINARY_DIR}${RKPATHPLANNINGDIR} )
-#SET (CMAKE_MODULE_PATH "/usr/share/cmake/Modules")
-#INCLUDE (UsePlayerC++)
+find_package( Qt4 )
+if()
+#if(${QT_FOUND})
+  include( ${QT_USE_FILE} )
+  set( PATHPLANNING_PPTESTER_UIS
+     "${SRCROOT}${RKPATHPLANNINGDIR}/pptester.ui" 
+     "${SRCROOT}${RKPATHPLANNINGDIR}/ppresultview.ui"
+     "${SRCROOT}${RKPATHPLANNINGDIR}/rrtproperties.ui"
+  )
+  QT4_WRAP_UI( PATHPLANNING_PPTESTER_UI_HDRS ${PATHPLANNING_PPTESTER_UIS} )
+  set( PATHPLANNING_PPTESTER_MOC_HDRS
+     "${SRCROOT}${RKPATHPLANNINGDIR}/pptester_impl.h"
+  )
+  QT4_WRAP_CPP( PATHPLANNING_PPTESTER_MOC_SRCS ${PATHPLANNING_PPTESTER_MOC_HDRS} )
+  include_directories( AFTER ${CMAKE_BINARY_DIR}${RKPATHPLANNINGDIR} )
+  SET (CMAKE_MODULE_PATH "/usr/share/cmake/Modules")
 
-#PLAYER_ADD_PLAYERCPP_CLIENT(pptester SOURCES "${SRCROOT}${RKPATHPLANNINGDIR}/pptester_impl.cpp" ${PATHPLANNING_PPTESTER_MOC_SRCS} ${PATHPLANNING_PPTESTER_UI_HDRS} LINKFLAGS ${replaceLib} ${QT_LIBRARIES} "-lcv" "-lcvaux" ${Boost_LIBRARIES} ${BOOST_DATE_TIME_LIB})
-#setup_custom_target(pptester "${SRCROOT}${RKPATHPLANNINGDIR}")
+  INCLUDE (UsePlayerC++)
+
+  include_directories(${PLAYERCPP_INCLUDE_DIRS})
+  message(STATUS "PlayerC++ was found at '${PLAYERCPP_INCLUDE_DIRS}'")
+  PLAYER_ADD_PLAYERCPP_CLIENT(pptester SOURCES "${SRCROOT}${RKPATHPLANNINGDIR}/pptester_impl.cpp" ${PATHPLANNING_PPTESTER_MOC_SRCS} ${PATHPLANNING_PPTESTER_UI_HDRS} LINKFLAGS ${replaceLib})
+  target_link_libraries(pptester ${QT_LIBRARIES})
+  target_link_libraries(pptester ${Boost_LIBRARIES})
+  target_link_libraries(pptester ${OpenCV_LIBS})
+  target_link_libraries(pptester reak_core)
+  setup_custom_target(pptester "${SRCROOT}${RKPATHPLANNINGDIR}")
+endif()
 
 
 

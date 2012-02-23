@@ -67,7 +67,7 @@ if (NOT WIN32)
 
 endif()
 
-find_package(Boost 1.44 COMPONENTS thread date_time REQUIRED)
+find_package(Boost 1.42 COMPONENTS thread date_time REQUIRED)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIR})
   add_definitions( "-DHAS_BOOST" )
@@ -82,17 +82,17 @@ endif()
 
 
 
-if(BOOST_THREAD_LIB)
-  message(STATUS "Boost thread library found: '${BOOST_THREAD_LIB}'")
-else()
-  message(WARNING "Boost thread library is missing")
-endif()
-
-if(BOOST_DATE_TIME_LIB)
-  message(STATUS "Boost date-time library found: '${BOOST_DATE_TIME_LIB}'")
-else()
-  message(FATAL_ERROR "Boost date-time library is missing")
-endif()
+# if(BOOST_THREAD_LIB)
+#   message(STATUS "Boost thread library found: '${BOOST_THREAD_LIB}'")
+# else()
+#   message(WARNING "Boost thread library is missing")
+# endif()
+# 
+# if(BOOST_DATE_TIME_LIB)
+#   message(STATUS "Boost date-time library found: '${BOOST_DATE_TIME_LIB}'")
+# else()
+#   message(FATAL_ERROR "Boost date-time library is missing")
+# endif()
 
 #if(NOT BOOST_SYSTEM_LIB)
 #  message(FATAL_ERROR "Boost system library is missing")
