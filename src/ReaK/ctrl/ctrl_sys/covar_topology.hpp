@@ -47,6 +47,9 @@
 
 #include "lin_alg/mat_qr_decomp.hpp"
 #include "lin_alg/mat_exp_methods.hpp"
+#include "path_planning/global_rng.hpp"
+#include "path_planning/metric_space_concept.hpp"
+#include "topologies/default_random_sampler.hpp"
 
 namespace ReaK {
 
@@ -60,17 +63,14 @@ namespace ctrl {
  * a topology for a covariance matrix which can be used in a Gaussian belief-state 
  * topology (see gaussian_belief_space) or elsewhere.
  * 
- * Models: MetricSpaceConcept.
+ * Models: TopologyConcept, MetricSpaceConcept, LieGroupConcept, and PointDistributionConcept.
  * 
  * \tparam Covariance A covariance matrix type, modeling CovarianceMatrixConcept.
- * \tparam RandomNumberGenerator A standard random number generator functor type (e.g. boost::minstd_rand).
  */
-template <typename Covariance, typename RandomNumberGenerator = boost::minstd_rand>
+template <typename Covariance>
 class covar_topology {
-  typedef boost::uniform_01<RandomNumberGenerator, double> rand_t;
-
   public:
-    typedef covar_topology<Covariance,RandomNumberGenerator> self;
+    typedef covar_topology<Covariance> self;
     typedef Covariance point_type; 
     typedef typename covariance_mat_traits<Covariance>::matrix_type matrix_type;
     typedef typename mat_traits<matrix_type>::size_type size_type;
@@ -141,9 +141,22 @@ class covar_topology {
     };
     
     
+    struct distance_metric_type {
+      
+      double operator()(const point_difference_type& dp, const self&) const {
+	return norm(dp);
+      };
+      
+      double operator()(const point_type& a, const point_type& b, const self& s) const {
+	return this->operator()(point_difference_type(a,b),s);
+      };
+      
+    };
+    
+    typedef ReaK::pp::default_random_sampler random_sampler_type;
+    
+    
   private:
-    typename shared_pointer<RandomNumberGenerator>::type gen_ptr;
-    typename shared_pointer<rand_t>::type rand;
     value_type max_eigenvalue;
     size_type mat_size;
     
@@ -155,17 +168,7 @@ class covar_topology {
      * \param aMaxEigenValue The maximum eigen-value of the random covariance matrices.
      */
     explicit covar_topology(size_type aSize = 0, const value_type& aMaxEigenValue = value_type(1.0)) 
-      : gen_ptr(new RandomNumberGenerator), rand(new rand_t(*gen_ptr)), 
-        max_eigenvalue(aMaxEigenValue), mat_size(aSize) { };
-
-    /**
-     * Parametrized constructor with default random-number generator.
-     * \param aGen The random-number generator used to generate random covariance matrices.
-     * \param aSize The size of the covariance matrix.
-     * \param aMaxEigenValue The maximum eigen-value of the random covariance matrices.
-     */
-    explicit covar_topology(RandomNumberGenerator& aGen, size_type aSize = 0, const value_type& aMaxEigenValue = value_type(1.0)) 
-      : gen_ptr(), rand(new rand_t(aGen)), max_eigenvalue(aMaxEigenValue), mat_size(aSize) { };
+      : max_eigenvalue(aMaxEigenValue), mat_size(aSize) { };
                      
     /**
      * Generates a random covariance matrix.
@@ -173,40 +176,19 @@ class covar_topology {
      */
     point_type random_point() const 
     {
+      boost::uniform_01<pp::global_rng_type&, double> uniform_rng(pp::get_global_rng());
       mat<value_type,mat_structure::diagonal> D(mat_size);
       for(size_type i = 0; i < mat_size; ++i)
-	D(i,i) = (*rand)() * max_eigenvalue;
+	D(i,i) = uniform_rng() * max_eigenvalue;
       
       mat<value_type,mat_structure::skew_symmetric> S(mat_size);
       for(size_type i = 1; i < mat_size; ++i)
 	for(size_type j = 0; j < i; ++j)
-	  S(j,i) = (*rand)() * value_type(10.0);
+	  S(j,i) = uniform_rng() * value_type(10.0);
       mat<value_type,mat_structure::square> Q(S);
       exp_PadeSAS(S,Q,QR_linlsqsolver());
       
-      return point_type(matrix_type(transpose(Q) * (D * Q)));
-    }
-    
-    /**
-     * Computes the distance between to covariance matrices, implemented as the Forbenius norm of the 
-     * difference between the two matrices.
-     * \param a The first covariance matrix.
-     * \param b The second covariance matrix.
-     * \return The distance between the covariance matrices.
-     */
-    double distance(const point_type& a, const point_type& b) const {
-      return norm(point_difference_type(a,b));
-    };
-
-    /**
-     * Computes the covariance matrix which is the linear interpolation between two matrices, by a fraction.
-     * \param a The first covariance matrix.
-     * \param fraction The scalar fraction at which the evaluate the linear interpolation.
-     * \param b The second covariance matrix.
-     * \return The interpolated covariance matrix.
-     */
-    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const {
-      return point_type(matrix_type(value_type(1.0 - fraction) * a.get_matrix() + value_type(fraction) * b.get_matrix()));
+      return point_type(matrix_type(transpose_view(Q) * (D * Q)));
     };
 
     /**
@@ -238,18 +220,24 @@ class covar_topology {
     };
 
     /**
-     * Returns the norm of a covariance matrix difference.
-     * \param a The covariance matrix difference.
-     * \return The norm of a covariance matrix difference (Frobenius norm).
+     * Computes the covariance matrix which is the linear interpolation between two matrices, by a fraction.
+     * \param a The first covariance matrix.
+     * \param fraction The scalar fraction at which the evaluate the linear interpolation.
+     * \param b The second covariance matrix.
+     * \return The interpolated covariance matrix.
      */
-    double norm(const point_difference_type& a) const {
-      return ::ReaK::ctrl::norm(a);
+    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const {
+      return point_type(matrix_type(value_type(1.0 - fraction) * a.get_matrix() + value_type(fraction) * b.get_matrix()));
     };
     
     
     
-    
-    
+};
+
+
+template <typename Covariance>
+typename covar_topology<Covariance>::distance_metric_type get(ReaK::pp::distance_metric_t, const covar_topology<Covariance>&) {
+  return typename covar_topology<Covariance>::distance_metric_type();
 };
 
 

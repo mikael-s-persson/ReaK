@@ -37,6 +37,8 @@
 
 #include "gaussian_belief_state.hpp"
 #include "path_planning/metric_space_concept.hpp"
+#include "topologies/basic_distance_metrics.hpp"
+#include "topologies/default_random_sampler.hpp"
 
 namespace ReaK {
 
@@ -50,7 +52,7 @@ namespace ctrl {
  * topology. The distance pseudo-metric used is the symmetric KL-divergence between two 
  * belief-states.
  * 
- * Models: ReaK::pp::MetricSpaceConcept.
+ * Models: TopologyConcept, MetricSpaceConcept, and PointDistributionConcept.
  * 
  * \tparam StateTopology The topology to which the state-vector belongs, should model the ReaK::pp::MetricSpaceConcept.
  * \tparam CovarianceTopology The topology to which the covariance matrix belongs, should model the ReaK::pp::MetricSpaceConcept.
@@ -62,18 +64,18 @@ class gaussian_belief_space {
     typedef StateTopology mean_state_topology;
     typedef CovarianceTopology covariance_topology;
     
-    typedef typename pp::metric_topology_traits<CovarianceTopology>::point_type covariance_type;
-    typedef typename pp::metric_topology_traits<CovarianceTopology>::point_difference_type covariance_diff_type;
+    typedef typename pp::topology_traits<CovarianceTopology>::point_type covariance_type;
+    typedef typename pp::topology_traits<CovarianceTopology>::point_difference_type covariance_diff_type;
     typedef typename covariance_mat_traits<covariance_type>::matrix_type matrix_type;
     typedef typename covariance_mat_traits<covariance_type>::value_type value_type;
     
-    typedef typename pp::metric_topology_traits<StateTopology>::point_type mean_state_type;
-    typedef typename pp::metric_topology_traits<StateTopology>::point_difference_type mean_state_diff_type;
+    typedef typename pp::topology_traits<StateTopology>::point_type mean_state_type;
+    typedef typename pp::topology_traits<StateTopology>::point_difference_type mean_state_diff_type;
     
     typedef typename gaussian_belief_state< covariance_type, mean_state_type > point_type;
     
-    BOOST_CONCEPT_ASSERT((pp::MetricSpaceConcept<StateTopology>));
-    BOOST_CONCEPT_ASSERT((pp::MetricSpaceConcept<CovarianceTopology>));
+    BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateTopology>));
+    BOOST_CONCEPT_ASSERT((pp::TopologyConcept<CovarianceTopology>));
 
     /**
      * This nested class represents the difference between two belief-states (with some fraction).
@@ -81,31 +83,24 @@ class gaussian_belief_space {
     struct point_difference_type {
       point_type b0;
       point_type b1;
-      value_type fraction;
             
       point_difference_type(const point_type& aB0, 
-			    const point_type& aB1,
-			    const value_type& aFraction = value_type(1.0)) :
-                            b0(aB0), b1(aB1), fraction(aFraction) { };
-      
-      point_difference_type operator-() const {
-        return point_difference_type( b1, b0, fraction );
-      };
-
-      friend point_difference_type operator*(const point_difference_type& a, double b) {
-        return point_difference_type(a.b0, a.b1, a.fraction * b);
-      };
-
-      friend point_difference_type operator*(double a, const point_difference_type& b) {
-        return point_difference_type(b.b0, b.b1, b.fraction * a);
-      };
+			    const point_type& aB1) :
+                            b0(aB0), b1(aB1) { };
       
     };
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 0);
+    
+    typedef pp::default_distance_metric distance_metric_type;
+    typedef pp::default_random_sampler random_sampler_type;
+    
+    typedef typename ReaK::shared_pointer<mean_state_topology>::type mean_state_topology_ptr;
+    typedef typename ReaK::shared_pointer<covariance_topology>::type covariance_topology_ptr;
+    
   private:
-    mean_state_topology mean_state_space;
-    covariance_topology covariance_space;
+    mean_state_topology_ptr mean_state_space;
+    covariance_topology_ptr covariance_space;
     
   public:  
     
@@ -114,8 +109,8 @@ class gaussian_belief_space {
      * \param aMeanStateSpace The topology used for the mean-state.
      * \param aCovarianceSpace The topology used for the covariance matrix.
      */
-    gaussian_belief_space(const mean_state_topology& aMeanStateSpace = mean_state_topology(),
-                          const covariance_topology& aCovarianceSpace = covariance_topology()) :
+    gaussian_belief_space(const mean_state_topology_ptr& aMeanStateSpace = mean_state_topology_ptr(new mean_state_topology()),
+                          const covariance_topology_ptr& aCovarianceSpace = covariance_topology_ptr(new covariance_topology())) :
 			  mean_state_space(aMeanStateSpace),
 			  covariance_space(aCovarianceSpace) { };
 			  
@@ -137,7 +132,7 @@ class gaussian_belief_space {
      * \return The symmetric KL-divergence between the two end belief-states.
      */
     double norm(const point_difference_type& dp) const {
-      return double( symKL_divergence(dp.b0,dp.b1) * dp.fraction );
+      return double( symKL_divergence(dp.b0,dp.b1) );
     };
     
     /**
@@ -145,8 +140,8 @@ class gaussian_belief_space {
      * \return a random belief-state from the underlying state and covariance topologies.
      */
     point_type random_point() const {
-      return point_type( mean_state_space.random_point(),
-			 covariance_space.random_point());
+      return point_type( get(pp::random_sampler, *mean_state_space)(*mean_state_space),
+			 get(pp::random_sampler, *covariance_space)(*covariance_space));
     };
     
     /**
@@ -160,24 +155,11 @@ class gaussian_belief_space {
     };
     
     /**
-     * Computes the belief-state which lies a fraction between two belief-states (also works for 
-     * a fraction that is not between 0 and 1).
-     * \param p1 The starting belief-state (d = 0).
-     * \param d The fraction between the two belief-states.
-     * \param p2 The final belief-state (d = 1).
-     * \return The belief-state which lies a fraction between two belief-states.
-     */
-    point_type move_position_toward(const point_type& p1, double d, const point_type& p2) const {
-      return point_type( mean_state_space.move_position_toward(p1.get_mean_state(), d, p2.get_mean_state()),
-			 covariance_space.move_position_toward(p1.get_covariance(), d, p2.get_covariance()) );
-    };
-    
-    /**
      * Computes the origin of the belief-space.
      * \return the origin of the belief-space, as a belief-state with the mean-state at the origin of the mean-state topology and the covariance at the origin of the covariance topology.
      */
     point_type origin() const {
-      return point_type( mean_state_space.origin(), covariance_space.origin() );
+      return point_type( mean_state_space->origin(), covariance_space->origin() );
     };
     
     /**
@@ -187,16 +169,43 @@ class gaussian_belief_space {
      * \return The adjusted belief-state (semantically p1 + dp).
      */
     point_type adjust(const point_type& p1, const point_difference_type& dp) const {
-      return point_type( mean_state_space.adjust( p1.get_mean_state(),
-						  dp.fraction * mean_state_space.difference( dp.b0.get_mean_state(),
-											     dp.b1.get_mean_state() ) ),
-			 covariance_space.adjust( p1.get_covariance(),
-						  dp.fraction * covariance_space.difference( dp.b0.get_covariance(),
-											     dp.b1.get_covariance() ) ) );
+      return point_type( mean_state_space->adjust( p1.get_mean_state(),
+						   mean_state_space->difference( dp.b0.get_mean_state(),
+									         dp.b1.get_mean_state() ) ),
+			 covariance_space->adjust( p1.get_covariance(),
+						   covariance_space->difference( dp.b0.get_covariance(),
+									         dp.b1.get_covariance() ) ) );
     };
     
 };
 
+
+/**
+ * This class is a bijection mapping from a Gaussian belief-space to a state-space (topology) 
+ * by making the assumption of maximum likelihood. In other words, this mapping reduces Gaussian
+ * belief-states into their mean value only.
+ * 
+ * Models: BijectionConcept between a gaussian_belief_space class template and a compatible state topology.
+ */
+struct gaussian_ML_reduction {
+  
+  /**
+   * This function extracts the mean-value (most likely value) from a Gaussian belief-state.
+   * \tparam BeliefPoint The type of the Gaussian belief-state.
+   * \tparam StateSpace The original state-space from which a gaussian_belief_space was constructed.
+   * \tparam CovarSpace The original covariance-space from which a gaussian_belief_space was constructed.
+   * \tparam StateSpaceOut A state-space topology whose point-types are compatible with (constructable from) the mean-state type that the BeliefPoint type would produce.
+   * \param b The belief-state from which the maximum likelihood value is sought.
+   * \return The maximum likelihood value of the belief-state.
+   */
+  template <typename BeliefPoint, typename StateSpace, typename CovarSpace, typename StateSpaceOut>
+  typename pp::topology_traits<StateSpaceOut>::point_type map_to_space(const BeliefPoint& b,
+                                                                       const gaussian_belief_space<StateSpace, CovarSpace>&,
+								       const StateSpaceOut&) const {
+    return typename pp::topology_traits<StateSpaceOut>::point_type(b.get_mean_state());
+  };
+  
+};
 
 
 

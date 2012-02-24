@@ -398,9 +398,8 @@ typename gaussian_pdf<Covariance1,Storage1>::scalar_type symKL_divergence(const 
  * This class template is a callable object (functor) which can generate random samples of 
  * state-vectors taken from a gaussian belief-state.
  * \tparam Covariance The covariance matrix type to store the covariance of the state-vector, should model the CovarianceMatrixConcept.
- * \tparam RNG The random-number generator type used to get the random-ness (boost::minstd_rand is the default).
  */
-template <typename Covariance, typename RNG = boost::minstd_rand >
+template <typename Covariance>
 struct gaussian_sampler {
   typedef gaussian_sampler<Covariance> self;
     
