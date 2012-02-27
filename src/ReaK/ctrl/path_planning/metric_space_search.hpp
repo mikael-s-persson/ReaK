@@ -245,6 +245,9 @@ class dvp_tree
     typedef typename boost::graph_traits<tree_indexer>::out_edge_iterator out_edge_iter;
     typedef typename boost::graph_traits<tree_indexer>::in_edge_iterator in_edge_iter;
     
+    typedef detail::compare_pair_first< distance_type, Key, std::less< distance_type > > priority_compare_type;
+    typedef std::vector< std::pair< distance_type, Key > > priority_queue_type;
+    
     tree_indexer m_tree;
     vertex_type m_root;
     typename boost::property_map< tree_indexer, Key vertex_properties::* >::type m_key;
@@ -305,17 +308,19 @@ class dvp_tree
     
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
-    template <typename PriorityQueue>
     void find_nearest_impl(const point_type& aPoint, distance_type& aSigma, vertex_type aNode, 
-			   PriorityQueue& aList, std::size_t K) const {
+			   priority_queue_type& aList, std::size_t K) const {
       typedef typename std::multimap<distance_type, Key>::value_type ListType;
       distance_type current_dist = m_distance(aPoint, m_caching_effector.get_position(aNode, m_position, m_key), m_space);
       if(current_dist < aSigma) { //is the vantage point within current search bound? Yes...
         //then add the vantage point to the NN list.
-        aList.push(std::pair<distance_type, Key>(current_dist, get(m_key, aNode)));
-	if(aList.size() > K) //are there too many nearest neighbors? Yes...
-	  aList.pop(); //delete last element to keep aList with K elements
-	aSigma = aList.top().first; //distance of the last element is now the search bound aSigma.
+        aList.push_back(std::pair<distance_type, Key>(current_dist, get(m_key, aNode)));
+	std::push_heap(aList.begin(), aList.end(), priority_compare_type());
+        if(aList.size() > K) { //are there too many nearest neighbors? Yes... 
+          std::pop_heap(aList.begin(), aList.end(), priority_compare_type());
+	  aList.pop_back(); //delete last element to keep aList with K elements
+	  aSigma = aList.front().first; //distance of the last element is now the search bound aSigma.
+	};
       };
       out_edge_iter ei,ei_end;
       //first, locate the partition in which aPoint is:
@@ -785,17 +790,15 @@ class dvp_tree
      */
     Key find_nearest(const point_type& aPoint) const {
       if(num_vertices(m_tree) == 0) return Key();
-      std::priority_queue< std::pair<distance_type, Key>,
-                           std::vector< std::pair< distance_type, Key > >,
-			   detail::compare_pair_first< distance_type, Key, std::less< distance_type > > > Q;
+      priority_queue_type Q;
       distance_type sig = std::numeric_limits<distance_type>::infinity();
       find_nearest_impl(aPoint,sig,m_root,Q,1);
-      return Q.top().second;
+      return Q.front().second;
     };
     
     /**
      * Finds the K nearest-neighbors to a given position.
-     * \tparam OutputIterator The bidirectional- output-iterator type which can contain the 
+     * \tparam OutputIterator The forward- output-iterator type which can contain the 
      *         list of nearest-neighbors.
      * \param aPoint The position from which to find the nearest-neighbors.
      * \param aOutputBegin An iterator to the first place where to put the sorted list of 
@@ -807,16 +810,15 @@ class dvp_tree
     template <typename OutputIterator>
     OutputIterator find_nearest(const point_type& aPoint, OutputIterator aOutputBegin, std::size_t K, distance_type R = std::numeric_limits<distance_type>::infinity()) const {
       if(num_vertices(m_tree) == 0) return aOutputBegin;
-      std::priority_queue< std::pair<distance_type, Key>,
-                           std::vector< std::pair< distance_type, Key > >,
-			   detail::compare_pair_first< distance_type, Key, std::less< distance_type > > > Q;
+      priority_queue_type Q;
       find_nearest_impl(aPoint,R,m_root,Q,K);
+      std::sort_heap(Q.begin(), Q.end(), priority_compare_type());
       return detail::copy_neighbors_from_queue<Key, distance_type>(Q, aOutputBegin);
     };
     
     /**
      * Finds the nearest-neighbors to a given position within a given range (radius).
-     * \tparam OutputIterator The bidirectional- output-iterator type which can contain the 
+     * \tparam OutputIterator The forward- output-iterator type which can contain the 
      *         list of nearest-neighbors.
      * \param aPoint The position from which to find the nearest-neighbors.
      * \param aOutputBegin An iterator to the first place where to put the sorted list of 
@@ -827,10 +829,9 @@ class dvp_tree
     template <typename OutputIterator>
     OutputIterator find_in_range(const point_type& aPoint, OutputIterator aOutputBegin, distance_type R) const {
       if(num_vertices(m_tree) == 0) return aOutputBegin;
-      std::priority_queue< std::pair<distance_type, Key>,
-                           std::vector< std::pair< distance_type, Key > >,
-			   detail::compare_pair_first< distance_type, Key, std::less< distance_type > > > Q;
+      priority_queue_type Q;
       find_nearest_impl(aPoint,R,m_root,Q,num_vertices(m_tree));
+      std::sort_heap(Q.begin(), Q.end(), priority_compare_type());
       return detail::copy_neighbors_from_queue<Key, distance_type>(Q, aOutputBegin);
     };
     
@@ -879,7 +880,7 @@ struct multi_dvp_tree_search {
      * \tparam Topology The topology type which contains the positions.
      * \tparam PositionMap The property-map type which can store the position associated 
      *         with each vertex.
-     * \tparam OutputIterator The bidirectional- output-iterator type which can contain the 
+     * \tparam OutputIterator The forward- output-iterator type which can contain the 
      *         list of nearest-neighbors.
      * \param p A position in the space, to which the nearest-neighbors are sought.
      * \param output_first An iterator to the first place where to put the sorted list of 

@@ -145,7 +145,7 @@ namespace pp {
     // This is the case where the output-iterators contain nodes.
     template <typename InputIterator,
               typename DistanceValue,
-	      typename PairPriorityQueue,
+	      typename PairQueue,
 	      typename OutputIterator>
     inline
     typename boost::enable_if<
@@ -153,20 +153,16 @@ namespace pp {
         typename std::iterator_traits< OutputIterator >::value_type,
 	typename std::iterator_traits< InputIterator >::value_type
       >,
-    OutputIterator >::type copy_neighbors_from_queue(PairPriorityQueue& Q, OutputIterator result) {
-      OutputIterator first = result;
-      while( !Q.empty() ) {
-	*result = *(Q.top().second);
-	Q.pop(); ++result;
-      };
-      std::reverse(first, result);
+    OutputIterator >::type copy_neighbors_from_queue(const PairQueue& Q, OutputIterator result) {
+      for(typename PairQueue::const_iterator it = Q.begin(); it != Q.end(); ++it)
+	*(result++) = *(it->second);
       return result;
     };
     
     // This is the case where the output-iterators contain input-iterator.
     template <typename InputIterator,
               typename DistanceValue,
-	      typename PairPriorityQueue,
+	      typename PairQueue,
 	      typename OutputIterator>
     inline
     typename boost::enable_if<
@@ -174,20 +170,16 @@ namespace pp {
         typename std::iterator_traits< OutputIterator >::value_type,
 	InputIterator
       >,
-    OutputIterator >::type copy_neighbors_from_queue(PairPriorityQueue& Q, OutputIterator result) {
-      OutputIterator first = result;
-      while( !Q.empty() ) {
-	*result = Q.top().second;
-	Q.pop(); ++result;
-      };
-      std::reverse(first, result);
+    OutputIterator >::type copy_neighbors_from_queue(const PairQueue& Q, OutputIterator result) {
+      for(typename PairQueue::const_iterator it = Q.begin(); it != Q.end(); ++it)
+	*(result++) = it->second;
       return result;
     };
     
     // This is the case where the output-iterators contain distance-node pairs.
     template <typename InputIterator,
               typename DistanceValue,
-	      typename PairPriorityQueue,
+	      typename PairQueue,
 	      typename OutputIterator>
     inline
     typename boost::enable_if<
@@ -195,20 +187,16 @@ namespace pp {
 	typename std::iterator_traits< OutputIterator >::value_type,
 	std::pair<DistanceValue, typename std::iterator_traits< InputIterator >::value_type >
       >,
-    OutputIterator >::type copy_neighbors_from_queue(PairPriorityQueue& Q, OutputIterator result) {
-      OutputIterator first = result;
-      while( !Q.empty() ) {
-	*result = std::make_pair(Q.top().first, *(Q.top().second));
-	Q.pop(); ++result;
-      };
-      std::reverse(first, result);
+    OutputIterator >::type copy_neighbors_from_queue(const PairQueue& Q, OutputIterator result) {
+      for(typename PairQueue::const_iterator it = Q.begin(); it != Q.end(); ++it)
+	*(result++) = std::make_pair(it->first, *(it->second));
       return result;
     };
     
     // This is the case where the output-iterators contain distance-iterator pairs.
     template <typename InputIterator,
               typename DistanceValue,
-	      typename PairPriorityQueue,
+	      typename PairQueue,
 	      typename OutputIterator>
     inline
     typename boost::enable_if<
@@ -216,13 +204,9 @@ namespace pp {
 	typename std::iterator_traits< OutputIterator >::value_type,
 	std::pair<DistanceValue, InputIterator>
       >,
-    OutputIterator >::type copy_neighbors_from_queue(PairPriorityQueue& Q, OutputIterator result) {
-      OutputIterator first = result;
-      while( !Q.empty() ) {
-	*result = Q.top();
-	Q.pop(); ++result;
-      };
-      std::reverse(first, result);
+    OutputIterator >::type copy_neighbors_from_queue(const PairQueue& Q, OutputIterator result) {
+      for(typename PairQueue::const_iterator it = Q.begin(); it != Q.end(); ++it)
+	*(result++) = *it;
       return result;
     };
     
@@ -238,7 +222,7 @@ namespace pp {
    * This function will fill the output container with a number of nearest-neighbors.
    * \tparam DistanceValue The value-type for the distance measures.
    * \tparam ForwardIterator The forward-iterator type.
-   * \tparam OutputIterator The bidirectional- output-iterator type which can contain the list of nearest-neighbors.
+   * \tparam OutputIterator The forward- output-iterator type which can contain the list of nearest-neighbors.
    * \tparam GetDistanceFunction The functor type to compute the distance measure.
    * \tparam CompareFunction The functor type that can compare two distance measures (strict weak-ordering).
    * \param first Start of the range in which to search.
@@ -263,22 +247,23 @@ namespace pp {
 				        CompareFunction compare,
 				        std::size_t max_neighbors = 1,
 				        DistanceValue radius = std::numeric_limits<DistanceValue>::infinity()) {
-    if(first == last) return output_first;
-    std::priority_queue< std::pair<DistanceValue, ForwardIterator>, 
-                         std::vector< std::pair<DistanceValue, ForwardIterator> >,
-			 detail::compare_pair_first<DistanceValue, ForwardIterator, CompareFunction> > 
-      output_queue = std::priority_queue< std::pair<DistanceValue, ForwardIterator>, 
-                         std::vector< std::pair<DistanceValue, ForwardIterator> >,
-			 detail::compare_pair_first<DistanceValue, ForwardIterator, CompareFunction> >(detail::compare_pair_first<DistanceValue, ForwardIterator, CompareFunction>(compare));
+    if(first == last) 
+      return output_first;
+    detail::compare_pair_first<DistanceValue, ForwardIterator, CompareFunction> p_compare(compare);
+    std::vector< std::pair<DistanceValue, ForwardIterator> > output_queue;
     for(; first != last; ++first) {
       DistanceValue d = distance(*first);
       if(!compare(d, radius)) 
 	continue;
-      output_queue.push(std::pair<DistanceValue, ForwardIterator>(d, first));
-      while(output_queue.size() > max_neighbors)
-	output_queue.pop();
-      radius = output_queue.top().first;
+      output_queue.push_back(std::pair<DistanceValue, ForwardIterator>(d, first));
+      std::push_heap(output_queue.begin(), output_queue.end(), p_compare);
+      if(output_queue.size() > max_neighbors) {
+	std::pop_heap(output_queue.begin(), output_queue.end(), p_compare);
+	output_queue.pop_back();
+        radius = output_queue.front().first;
+      };
     };
+    std::sort_heap(output_queue.begin(), output_queue.end(), p_compare);
     return detail::copy_neighbors_from_queue<ForwardIterator, DistanceValue>(output_queue, output_first);
   };
   
@@ -290,7 +275,7 @@ namespace pp {
    * Euclidean distance and less-than comparison, which would yield the element with minimum distance).
    * \tparam DistanceValue The value-type for the distance measures.
    * \tparam ForwardIterator The forward-iterator type.
-   * \tparam OutputIterator The bidirectional- output-iterator type which can contain the list of nearest-neighbors.
+   * \tparam OutputIterator The forward- output-iterator type which can contain the list of nearest-neighbors.
    * \tparam GetDistanceFunction The functor type to compute the distance measure.
    * \param first Start of the range in which to search.
    * \param last One element past the last element in the range in which to search.
@@ -386,7 +371,7 @@ namespace pp {
      * \tparam Topology The topology type which contains the positions.
      * \tparam PositionMap The property-map type which can store the position associated 
      *         with each vertex.
-     * \tparam OutputIterator The bidirectional- output-iterator type which can contain the 
+     * \tparam OutputIterator The forward- output-iterator type which can contain the 
      *         list of nearest-neighbors.
      * \param p A position in the space, to which the nearest-neighbors are sought.
      * \param output_first An iterator to the first place where to put the sorted list of 
@@ -455,7 +440,7 @@ namespace pp {
      * \tparam Topology The topology type which contains the positions.
      * \tparam PositionMap The property-map type which can store the position associated 
      *         with each vertex.
-     * \tparam OutputIterator The bidirectional- output-iterator type which can contain the 
+     * \tparam OutputIterator The forward- output-iterator type which can contain the 
      *         list of nearest-neighbors.
      * \param p A position in the space, to which the nearest-neighbors are sought.
      * \param first The first of all candidates nearest-neighbors.
@@ -589,25 +574,28 @@ namespace pp {
     };
     
     
-    template <typename Graph, typename Topology, typename PositionMap, typename PriorityQueue>
+    template <typename Graph, typename Topology, typename PositionMap, typename PriorityQueue, typename PriorityCompare>
     void search(const typename boost::property_traits<PositionMap>::value_type& p, 
 		typename boost::graph_traits<Graph>::vertex_descriptor u, 
-		PriorityQueue& output,
+		PriorityQueue& output, PriorityCompare p_compare,
 		double d_min, Graph& g, const Topology& space, PositionMap position, 
 		std::size_t max_neighbors, double& radius) {
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::out_edge_iterator EdgeIter;
       if(m_compare(d_min, radius)) {
-        output.push(std::pair<double, Vertex>(d_min, u));
-        while(output.size() > max_neighbors)
-	  output.pop();
-        radius = output.top().first;
+	output.push_back(std::pair<double, Vertex>(d_min, u));
+	std::push_heap(output.begin(), output.end(), p_compare);
+        if(output.size() > max_neighbors) {
+	  std::pop_heap(output.begin(), output.end(), p_compare);
+	  output.pop_back();
+	  radius = output.front().first;
+	};
       };
       EdgeIter ei, ei_end;
       for(boost::tie(ei,ei_end) = out_edges(u,g); ei != ei_end; ++ei) {
 	Vertex v = target(*ei,g); double d_v = distance(p,v,space,position);
 	if(m_compare(d_v,d_min))
-	  search(p,v,output,d_v,g,space,position,max_neighbors,radius);
+	  search(p,v,output,p_compare,d_v,g,space,position,max_neighbors,radius);
       };
     };
     
@@ -618,7 +606,7 @@ namespace pp {
      * \tparam Topology The topology type which contains the positions.
      * \tparam PositionMap The property-map type which can store the position associated 
      *         with each vertex.
-     * \tparam OutputIterator The bidirectional- output-iterator type which can contain the 
+     * \tparam OutputIterator The forward- output-iterator type which can contain the 
      *         list of nearest-neighbors.
      * \param p A position in the space, to which the nearest-neighbors are sought.
      * \param output_first An iterator to the first place where to put the sorted list of 
@@ -641,19 +629,16 @@ namespace pp {
       BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<Graph>));
       BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-      std::priority_queue< std::pair<double, Vertex>, 
-                           std::vector< std::pair<double, Vertex> >,
-			   detail::compare_pair_first<double, Vertex, CompareFunction> > 
-        output = std::priority_queue< std::pair<double, Vertex>, 
-                           std::vector< std::pair<double, Vertex> >,
-			   detail::compare_pair_first<double, Vertex, CompareFunction> >(detail::compare_pair_first<double, Vertex, CompareFunction>(m_compare));
+      detail::compare_pair_first<double, Vertex, CompareFunction> p_compare(m_compare);
+      std::vector< std::pair<double, Vertex> > output;
       if(m_vertex_num_divider == 0)
 	m_vertex_num_divider = 1;
       for(unsigned int i = 0; i < num_vertices(g) / m_vertex_num_divider; ++i) {
         Vertex v = vertex(std::rand() % num_vertices(g),g);
 	double d_v = distance(p,v,space,position);
-        search(p,v,output,d_v,g,space,position,max_neighbors,radius);
+        search(p,v,output,p_compare,d_v,g,space,position,max_neighbors,radius);
       };
+      std::sort_heap(output.begin(), output.end(), p_compare);
       return detail::copy_neighbors_from_queue<Vertex, double>(output, output_first);
     };
   };

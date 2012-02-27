@@ -52,6 +52,8 @@
 #include "gaussian_belief_state.hpp"
 #include "covariance_matrix.hpp"
 
+#include "path_planning/metric_space_concept.hpp"
+
 namespace ReaK {
 
 namespace ctrl {
@@ -60,51 +62,51 @@ namespace ctrl {
  * This function template performs one prediction step using the (Extended) Kalman Filter method.
  * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept 
  *         at least as a DiscreteLinearizedSystemType.
+ * \tparam StateSpaceType A topology type on which the state-vectors can reside, should model
+ *         the pp::TopologyConcept.
  * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
  *         a unimodular gaussian representation.
- * \tparam SystemNoiseCovariance A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \tparam InputBelief A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
  * \param sys The discrete state-space system used in the state estimation.
- * \param b As input, it stores the belief-state before the prediction step. As output, it stores
+ * \param state_space The state-space topology on which the state representations lie.
+ * \param b_x As input, it stores the belief-state before the prediction step. As output, it stores
  *        the belief-state after the prediction step.
- * \param u The input vector to apply to the state-space system to make the transition of the 
- *        mean-state, i.e., the current input vector.
- * \param Q The input noise covariance matrix. This is the level of uncertainty on the input 
- *        vector components (not the noise on the state transition). This was chosen as the most
- *        common way application (usually system disturbance comes on the input, not on the state).
+ * \param b_u The input belief to apply to the state-space system to make the transition of the 
+ *        mean-state, i.e., the current input vector and its covariance.
  * \param t The current time (before the prediction).
  * 
  */
 template <typename LinearSystem, 
+          typename StateSpaceType,
           typename BeliefState, 
-	  typename SystemNoiseCovariance>
+	  typename InputBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
-void >::type kalman_predict(const LinearSystem& sys,
-			    BeliefState& b,
-			    const typename discrete_sss_traits<LinearSystem>::input_type& u,
-			    const SystemNoiseCovariance& Q,
-			    typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
+void >::type kalman_predict(const LinearSystem& sys, 
+			    const StateSpaceType& state_space,
+			    BeliefState& b_x,
+			    const InputBelief& b_u,
+			    typename discrete_sss_traits<LinearSystem>::time_type t = 0) { RK_UNUSED(state_space);
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
-  BOOST_CONCEPT_ASSERT((DiscreteLinearSSSConcept< LinearSystem, DiscreteLinearizedSystemType >));
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept< StateSpaceType >));
+  BOOST_CONCEPT_ASSERT((DiscreteLinearSSSConcept< LinearSystem, StateSpaceType, DiscreteLinearizedSystemType >));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
   
-  typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
+  typedef typename pp::topology_traits<StateSpaceType>::point_type StateType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
-  typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   
   typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A;
   typename discrete_linear_sss_traits<LinearSystem>::matrixB_type B;
-  typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
-  typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
-  StateType x = b.get_mean_state();
+  StateType x = b_x.get_mean_state();
   
-  b.set_mean_state( sys.get_next_state(x, u, t) );
-  sys.get_state_transition_blocks(A, B, t, t + sys.get_time_step(), x, b.get_mean_state(), u, u);
-  b.set_covariance( CovType( ( A * b.get_covariance().get_matrix() * transpose_view(A) ) + B * Q.get_matrix() * transpose_view(B) ) );
+  b_x.set_mean_state( sys.get_next_state(x, b_u.get_mean_state(), t) );
+  sys.get_state_transition_blocks(A, B, t, t + sys.get_time_step(), x, b_x.get_mean_state(), b_u.get_mean_state(), b_u.get_mean_state());
+  b_x.set_covariance( CovType( ( A * b_x.get_covariance().get_matrix() * transpose_view(A) ) + B * b_u.get_covariance().get_matrix() * transpose_view(B) ) );
 };
 
 
@@ -112,61 +114,67 @@ void >::type kalman_predict(const LinearSystem& sys,
  * This function template performs one measurement update step using the (Extended) Kalman Filter method.
  * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept 
  *         at least as a DiscreteLinearizedSystemType.
+ * \tparam StateSpaceType A topology type on which the state-vectors can reside, should model
+ *         the pp::TopologyConcept.
  * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
  *         a unimodular gaussian representation.
- * \tparam MeasurementNoiseCovariance A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \tparam InputBelief A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
+ * \tparam MeasurementBelief A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
  * \param sys The discrete state-space system used in the state estimation.
- * \param b As input, it stores the belief-state before the update step. As output, it stores
+ * \param state_space The state-space topology on which the state representations lie.
+ * \param b_x As input, it stores the belief-state before the update step. As output, it stores
  *        the belief-state after the update step.
- * \param u The input vector to apply to the state-space system to make the transition of the 
- *        mean-state, i.e., the current input vector.
- * \param z The output vector to that was measured.
- * \param R The output noise covariance matrix. This is the level of uncertainty on the output 
- *        vector components coming from the measurements.
+ * \param b_u The input vector to apply to the state-space system to make the transition of the 
+ *        mean-state, i.e., the current input vector and its covariance.
+ * \param b_z The output belief that was measured, i.e. the measurement vector and its covariance.
  * \param t The current time.
  * 
  */
 template <typename LinearSystem, 
+          typename StateSpaceType,
           typename BeliefState, 
-	  typename MeasurementNoiseCovariance>
+	  typename InputBelief, 
+	  typename MeasurementBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type kalman_update(const LinearSystem& sys,
-			   BeliefState& b,
-			   const typename discrete_sss_traits<LinearSystem>::input_type& u,
-			   const typename discrete_sss_traits<LinearSystem>::output_type& z,
-			   const MeasurementNoiseCovariance& R,
+			   const StateSpaceType& state_space,
+			   BeliefState& b_x,
+			   const InputBelief& b_u,
+			   const MeasurementBelief& b_z,
 			   typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  BOOST_CONCEPT_ASSERT((DiscreteLinearSSSConcept< LinearSystem, DiscreteLinearizedSystemType >));
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept< StateSpaceType >));
+  BOOST_CONCEPT_ASSERT((DiscreteLinearSSSConcept< LinearSystem, StateSpaceType, DiscreteLinearizedSystemType >));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
   
-  typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
+  typedef typename pp::topology_traits<StateSpaceType>::point_type StateType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
   
-  typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A;
-  typename discrete_linear_sss_traits<LinearSystem>::matrixB_type B;
   typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
   typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
-  StateType x = b.get_mean_state();
-  const MatType& P = b.get_covariance().get_matrix();
-  sys.get_output_function_blocks(C, D, t, x, u);
+  StateType x = b_x.get_mean_state();
+  const MatType& P = b_x.get_covariance().get_matrix();
+  sys.get_output_function_blocks(C, D, t, x, b_u.get_mean_state());
   
-  OutputType y = z - C * x - D * u;
+  OutputType y = b_z.get_mean_state() - C * x - D * b_u.get_mean_state();
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S( CP * transpose_view(C) + R.get_matrix() );
+  mat< ValueType, mat_structure::symmetric > S( CP * transpose_view(C) + b_z.get_covariance().get_matrix() );
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K( transpose_view(CP) );
    
-  b.set_mean_state( x + K * y );
-  b.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
+  b_x.set_mean_state( state_space.adjust(x, K * y) );
+  b_x.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
 };
 
 
@@ -176,49 +184,48 @@ void >::type kalman_update(const LinearSystem& sys,
  * in general, more efficient than applying the prediction and update separately.
  * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept 
  *         at least as a DiscreteLinearizedSystemType.
+ * \tparam StateSpaceType A topology type on which the state-vectors can reside, should model
+ *         the pp::TopologyConcept.
  * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
  *         a unimodular gaussian representation.
- * \tparam SystemNoiseCovariance A covariance matrix type modeling the CovarianceMatrixConcept.
- * \tparam MeasurementNoiseCovariance A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \tparam InputBelief A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
+ * \tparam MeasurementBelief A belief state type modeling the ContinuousBeliefStateConcept with
+ *         a unimodular gaussian representation.
  * \param sys The discrete state-space system used in the state estimation.
+ * \param state_space The state-space topology on which the state representations lie.
  * \param b As input, it stores the belief-state before the estimation step. As output, it stores
  *        the belief-state after the estimation step.
- * \param u The input vector to apply to the state-space system to make the transition of the 
- *        mean-state, i.e., the current input vector.
- * \param z The output vector to that was measured.
- * \param Q The input noise covariance matrix. This is the level of uncertainty on the input 
- *        vector components (not the noise on the state transition). This was chosen as the most
- *        common way application (usually system disturbance comes on the input, not on the state).
- * \param R The output noise covariance matrix. This is the level of uncertainty on the output 
- *        vector components coming from the measurements.
+ * \param b_u The input vector to apply to the state-space system to make the transition of the 
+ *        mean-state, i.e., the current input vector and its covariance.
+ * \param b_z The output belief that was measured, i.e. the measurement vector and its covariance.
  * \param t The current time (before the prediction).
  * 
  */
 template <typename LinearSystem, 
+          typename StateSpaceType,
           typename BeliefState, 
-	  typename SystemNoiseCovariance,
-	  typename MeasurementNoiseCovariance>
+	  typename InputBelief, 
+	  typename MeasurementBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type kalman_filter_step(const LinearSystem& sys,
-			        BeliefState& b,
-				const typename discrete_sss_traits<LinearSystem>::input_type& u,
-				const typename discrete_sss_traits<LinearSystem>::output_type& z,
-				const SystemNoiseCovariance& Q,
-				const MeasurementNoiseCovariance& R,
+			        const StateSpaceType& state_space,
+			        BeliefState& b_x,
+			        const InputBelief& b_u,
+			        const MeasurementBelief& b_z,
 				typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  boost::function_requires< DiscreteLinearSSSConcept< LinearSystem, DiscreteLinearizedSystemType > >();
-  boost::function_requires< ContinuousBeliefStateConcept<BeliefState> >();
-  BOOST_CONCEPT_ASSERT((DiscreteLinearSSSConcept< LinearSystem, DiscreteLinearizedSystemType >));
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept< StateSpaceType >));
+  BOOST_CONCEPT_ASSERT((DiscreteLinearSSSConcept< LinearSystem, StateSpaceType, DiscreteLinearizedSystemType >));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
   
-  typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
+  typedef typename pp::topology_traits<StateSpaceType>::point_type StateType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
@@ -228,22 +235,22 @@ void >::type kalman_filter_step(const LinearSystem& sys,
   typename discrete_linear_sss_traits<LinearSystem>::matrixB_type B;
   typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
   typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
-  StateType x = b.get_mean_state();
-  MatType P = b.get_covariance().get_matrix();
+  StateType x = b_x.get_mean_state();
+  MatType P = b_x.get_covariance().get_matrix();
 
-  x = sys.get_next_state(x, u, t);
-  sys.get_state_transition_blocks(A, B, t, t + sys.get_time_step(), b.get_mean_state(), x, u, u);
-  P = ( A * P * transpose_view(A)) + B * Q.get_matrix() * transpose_view(B);
+  x = sys.get_next_state(x, b_u.get_mean_state(), t);
+  sys.get_state_transition_blocks(A, B, t, t + sys.get_time_step(), b_x.get_mean_state(), x, b_u.get_mean_state(), b_u.get_mean_state());
+  P = ( A * P * transpose_view(A)) + B * b_u.get_covariance().get_matrix() * transpose_view(B);
   
-  sys.get_output_function_blocks(C, D, t + sys.get_time_step(), x, u);
-  OutputType y = z - C * x - D * u;
+  sys.get_output_function_blocks(C, D, t + sys.get_time_step(), x, b_u.get_mean_state());
+  OutputType y = b_z.get_mean_state() - C * x - D * b_u.get_mean_state();
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S(CP * transpose_view(C) + R.get_matrix());  
+  mat< ValueType, mat_structure::symmetric > S(CP * transpose_view(C) + b_z.get_covariance().get_matrix());  
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K( transpose_view(CP) );
    
-  b.set_mean_state( x + K * y );
-  b.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
+  b_x.set_mean_state( state_space.adjust( x, K * y ) );
+  b_x.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
 };
 
 

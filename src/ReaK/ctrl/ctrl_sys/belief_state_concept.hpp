@@ -76,10 +76,6 @@ struct belief_state_traits {
   typedef typename BeliefState::state_type state_type;
   /** The scalar type which is arithmetically compatible with the state vector. */
   typedef typename BeliefState::scalar_type scalar_type;
-  /** The sampler type for the belief state, a sampler can produce random state-vectors using the probability distribution of the belief-state. */
-  typedef typename BeliefState::random_sampler_type random_sampler_type;
-  /** The probability distribution function type for the belief state, a pdf can give the probability of a state-vector using the probability distribution of the belief-state. */
-  typedef typename BeliefState::pdf_type pdf_type;
   
   /** This constant defines the distribution tag of the belief-state. */
   BOOST_STATIC_CONSTANT(belief_distribution::tag, distribution = BeliefState::distribution);
@@ -92,41 +88,20 @@ struct belief_state_traits {
 /**
  * This concept class checks that a belief-state models the required concept as used in ReaK::ctrl.
  * 
- * Require concepts:
- * 
- * state-vector type associated to the belief-state should model StateVectorConcept.
- * 
  * Valid expressions:
  * 
- * p = b.get_pdf();  The PDF can be obtained from the belief-state.
- * 
- * s = p(v);  The probability of a state-vector can be obtained from the PDF functor.
- * 
  * v = b.get_most_likely_state();  The most likely state can be obtained from the belief-state.
- * 
- * rs = b.get_random_sampler();  The belief-state sampler can be obtained from the belief-state.
- * 
- * v = rs();  A state vector can be obtained, randomly, from the belief-state sampler.
  * 
  * \tparam BeliefState The belief-state type to be tested against the belief-state concept.
  */
 template <typename BeliefState>
 struct BeliefStateConcept {
-  BOOST_CONCEPT_ASSERT((StateVectorConcept<typename belief_state_traits<BeliefState>::state_type>));
-  
   BeliefState b;
   typename belief_state_traits<BeliefState>::state_type v;
-  typename belief_state_traits<BeliefState>::scalar_type s;
-  typename belief_state_traits<BeliefState>::pdf_type p;
-  typename belief_state_traits<BeliefState>::random_sampler_type rs;
   
   BOOST_CONCEPT_USAGE(BeliefStateConcept)
   {
-    p = b.get_pdf();
-    s = p(v);
     v = b.get_most_likely_state();
-    rs = b.get_random_sampler();
-    v = rs();
   };
   
 };
@@ -163,10 +138,6 @@ struct continuous_belief_state_traits {
   typedef typename ContBeliefState::size_type size_type;
   /** The scalar type which is arithmetically compatible with the state vector. */
   typedef typename ContBeliefState::scalar_type scalar_type;
-  /** The sampler type for the belief state, a sampler can produce random state-vectors using the probability distribution of the belief-state. */
-  typedef typename ContBeliefState::random_sampler_type random_sampler_type;
-  /** The probability distribution function type for the belief state, a pdf can give the probability of a state-vector using the probability distribution of the belief-state. */
-  typedef typename ContBeliefState::pdf_type pdf_type;
   
   /** The covariance matrix type which can represent the covariance of the belief-state, should model CovarianceMatrixConcept. */
   typedef typename ContBeliefState::covariance_type covariance_type;
@@ -191,8 +162,6 @@ struct continuous_belief_state_traits {
  * 
  * c = b.get_covariance();  The covariance matrix can be obtained from the belief-state.
  * 
- * s = diff(v,v) * ( c.get_inverse_matrix() * diff(v,v) );  The covariance matrix can be multiplied with the state-difference type.
- * 
  * b.set_mean_state(v);  The mean-state can be set for the belief-state.
  * 
  * b.set_covariance(c);  The covariance matrix can be set for the belief-state.
@@ -209,8 +178,6 @@ struct ContinuousBeliefStateConcept : BeliefStateConcept<ContBeliefState> {
   {
     this->v = this->b.get_mean_state();
     this->c = this->b.get_covariance();
-    
-    this->s = diff(this->v,this->v) * ( this->c.get_inverse_matrix() * diff(this->v,this->v) );
     
     this->b.set_mean_state(this->v);
     this->b.set_covariance(this->c);
