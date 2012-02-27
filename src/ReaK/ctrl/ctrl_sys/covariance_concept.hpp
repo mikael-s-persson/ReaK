@@ -43,6 +43,7 @@
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
+#include <path_planning/metric_space_concept.hpp>
 
 namespace ReaK {
 
@@ -68,9 +69,6 @@ namespace covariance_storage {
  */
 template <typename CovarianceMatrix>
 struct covariance_mat_traits {
-  
-  /** The type of the points to which the covariance type can describe the covariance of, should model StateVectorConcept. */
-  typedef typename CovarianceMatrix::point_type point_type;
   
   /** The type of the values of the components of the covariance matrix. */
   typedef typename CovarianceMatrix::value_type value_type;
@@ -123,19 +121,19 @@ namespace covariance_initial_level {
  * sz = c.size();  The covariance matrix type can provide its size.
  * 
  * \tparam CovarianceMatrix The covariance matrix type for which the traits are sought.
+ * \tparam StateSpaceType The state-space topology on which the covariance can apply.
  */
-template <typename CovarianceMatrix>
+template <typename CovarianceMatrix, typename StateSpaceType>
 struct CovarianceMatrixConcept {
   
-  typedef typename covariance_mat_traits<CovarianceMatrix>::point_type state_type;
+  typedef typename pp::topology_traits<StateSpaceType>::point_difference_type state_difference_type;
   
   BOOST_CONCEPT_ASSERT((StateVectorConcept<state_type>));
   BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<typename covariance_mat_traits<CovarianceMatrix>::matrix_type>));
   
   CovarianceMatrix c;
-  state_type p;
-  typename state_vector_traits<state_type>::state_difference_type dp;
-  typename state_vector_traits<state_type>::value_type s;
+  state_difference_type dp;
+  typename covariance_mat_traits<CovarianceMatrix>::value_type s;
   typename covariance_mat_traits<CovarianceMatrix>::size_type sz;
   
   typename covariance_mat_traits<CovarianceMatrix>::matrix_type m;

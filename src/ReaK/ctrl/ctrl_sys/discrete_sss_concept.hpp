@@ -37,6 +37,8 @@
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
+#include "path_planning/metric_space_concept.hpp"
+
 namespace ReaK {
 
 namespace ctrl {
@@ -79,39 +81,32 @@ struct discrete_sss_traits {
  * 
  * Valid expressions:
  * 
- * dp = -dp;  A state difference can be negated and assigned.
- * 
- * dp = p - p;  Two states can be subtracted to obtain a state difference vector.
- * 
- * p = p + dp;  A state difference can be added to a state to obtain another state.
- * 
  * dt = sys.get_time_step();  The time-step of the discrete-time system can be obtained.
  * 
- * p = sys.get_next_state(p,u,t);  The next state (p) can be obtained from the current state (p), current input (u) and current time (t).
+ * p = sys.get_next_state(state_space,p,u,t);  The next state (p) can be obtained from the current state (p), current input (u) and current time (t).
  * 
- * y = sys.get_output(p,u,t);  The system's output (y) can be obtained from the state (p), input (u) and time (t).
+ * y = sys.get_output(state_space,p,u,t);  The system's output (y) can be obtained from the state (p), input (u) and time (t).
  * 
  * \tparam DiscreteSystem The type to be tested for being a discrete-time state-space system.
+ * \tparam StateSpaceType The type of the state-space topology on which the state-space system should be able to act.
  */
-template <typename DiscreteSystem>
+template <typename DiscreteSystem, typename StateSpaceType>
 struct DiscreteSSSConcept {
   DiscreteSystem sys;
+  StateSpaceType state_space;
   typename discrete_sss_traits<DiscreteSystem>::point_type p;
-  typename discrete_sss_traits<DiscreteSystem>::point_difference_type dp;
   typename discrete_sss_traits<DiscreteSystem>::time_type t;
   typename discrete_sss_traits<DiscreteSystem>::time_difference_type dt;
   typename discrete_sss_traits<DiscreteSystem>::input_type u;
   typename discrete_sss_traits<DiscreteSystem>::output_type y;
   
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
+  
   BOOST_CONCEPT_USAGE(DiscreteSSSConcept)
-  {
-    dp = -dp;
-    dp = p - p;
-    p = p + dp;
-    
+  { 
     dt = sys.get_time_step();
-    p = sys.get_next_state(p,u,t);
-    y = sys.get_output(p,u,t);
+    p = sys.get_next_state(state_space,p,u,t);
+    y = sys.get_output(state_space,p,u,t);
   };
   
 };

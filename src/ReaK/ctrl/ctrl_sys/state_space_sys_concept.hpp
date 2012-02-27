@@ -40,6 +40,8 @@
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
+#include "path_planning/metric_space_concept.hpp"
+
 /** Main namespace for ReaK */
 namespace ReaK {
 
@@ -89,21 +91,21 @@ struct ss_system_traits {
  * 
  * dp = -dp;  A state-difference can be negated.
  * 
- * p = p + dp;  A state-difference can be added to a state vector,
- * 
  * t = t + dt;  A time-difference can be added to a time value.
  * 
  * dp = dp_dt * dt;  A state-derivative times a time-difference yields a state-difference.
  * 
- * dp_dt = sys.get_state_derivative(p,u,t);  The state-space system (sys) can compute the state-derivative given the current state (p), the current input (u) and the current time (t).
+ * dp_dt = sys.get_state_derivative(state_space,p,u,t);  The state-space system (sys) can compute the state-derivative given the current state (p), the current input (u) and the current time (t).
  * 
- * y = sys.get_output(p,u,t);  The state-space system (sys) can compute the output (y) given the current state (p), the current input (u) and the current time (t).
+ * y = sys.get_output(state_space,p,u,t);  The state-space system (sys) can compute the output (y) given the current state (p), the current input (u) and the current time (t).
  * 
  * \tparam SSSystem The state-space system type which is tested for modeling the state-space system concept.
+ * \tparam StateSpaceType The state-space topology on which this state-space system should operate.
  */
-template <typename SSSystem>
+template <typename SSSystem, typename StateSpaceType>
 struct SSSystemConcept {
   SSSystem sys;
+  StateSpaceType state_space;
   typename ss_system_traits<SSSystem>::point_type p;
   typename ss_system_traits<SSSystem>::point_difference_type dp;
   typename ss_system_traits<SSSystem>::point_derivative_type dp_dt;
@@ -112,14 +114,15 @@ struct SSSystemConcept {
   typename ss_system_traits<SSSystem>::input_type u;
   typename ss_system_traits<SSSystem>::output_type y;
   
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));
+  
   BOOST_CONCEPT_USAGE(SSSystemConcept)
   {
     dp = -dp;
-    p = p + dp;
     t = t + dt;
     dp = dp_dt * dt;  //state-space system requirements
-    dp_dt = sys.get_state_derivative(p,u,t);
-    y = sys.get_output(p,u,t);
+    dp_dt = sys.get_state_derivative(state_space,p,u,t);
+    y = sys.get_output(state_space,p,u,t);
   };
   
 };

@@ -122,6 +122,54 @@ struct is_belief_state {
 
 
 /**
+ * This traits class defines the traits that describe a belief-space (topology of belief-states).
+ * \tparam BeliefSpace The belief-space type for which the traits are sought.
+ */
+template <typename BeliefSpace>
+struct belief_space_traits {
+  
+  /** The state-vector topology type, should model pp::TopologyConcept. */
+  typedef typename BeliefSpace::state_topology state_topology;
+  
+};
+
+/**
+ * This concept class checks that a belief-space models the required concept as used in ReaK::ctrl.
+ * 
+ * Required Concepts:
+ * 
+ * The belief-space type should model the pp::TopologyConcept.
+ * 
+ * The associated state-topology should model the pp::TopologyConcept.
+ * 
+ * The point-type should model the BeliefStateConcept.
+ * 
+ * Valid expressions:
+ * 
+ * s_space = b_space.get_state_topology();  The state-topology can be obtained from the belief-space.
+ * 
+ * \tparam BeliefSpace The belief-space type to be tested against the belief-space concept.
+ */
+template <typename BeliefSpace>
+struct BeliefSpaceConcept : pp::TopologyConcept<BeliefSpace> {
+  
+  typedef typename belief_space_traits< BeliefSpace >::state_topology state_space_type;
+  typedef typename pp::topology_traits< BeliefSpace >::point_type belief_state_type;
+  
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<state_space_type>));
+  BOOST_CONCEPT_ASSERT((BeliefStateConcept<belief_state_type>));
+  
+  BeliefSpace b_space;
+  
+  BOOST_CONCEPT_USAGE(BeliefSpaceConcept)
+  {
+    const state_space_type& s_space = b_space.get_state_topology(); RK_UNUSED(s_space);
+  };
+  
+};
+
+
+/**
  * This class template defines the traits that a continuous belief-state should have. A 
  * continuous belief state is characterized by the fact that the state variables are continuous
  * (as opposed to discrete).
@@ -201,6 +249,52 @@ struct is_continuous_belief_state {
 
 
 
+/**
+ * This traits class defines the traits that describe a continuous belief-space (topology of continuous belief-states).
+ * \tparam ContBeliefSpace The continuous belief-space type for which the traits are sought.
+ */
+template <typename ContBeliefSpace>
+struct continuous_belief_space_traits {
+  
+  /** The state-vector topology type, should model pp::TopologyConcept. */
+  typedef typename ContBeliefSpace::covariance_topology covariance_topology;
+  
+};
+
+/**
+ * This concept class checks that a belief-space models the required concept as used in ReaK::ctrl.
+ * 
+ * Required Concepts:
+ * 
+ * The belief-space type should also model the BeliefSpaceConcept.
+ * 
+ * The associated covariance-topology should model the pp::TopologyConcept.
+ * 
+ * The point-type should model the ContinuousBeliefStateConcept.
+ * 
+ * Valid expressions:
+ * 
+ * c_space = b_space.get_covariance_topology();  The state-topology can be obtained from the belief-space.
+ * 
+ * \tparam BeliefSpace The belief-space type to be tested against the belief-space concept.
+ */
+template <typename ContBeliefSpace>
+struct ContinuousBeliefSpaceConcept : BeliefSpaceConcept<ContBeliefSpace> {
+  
+  typedef typename continuous_belief_space_traits< ContBeliefSpace >::covariance_topology covariance_space_type;
+  typedef typename pp::topology_traits< ContBeliefSpace >::point_type belief_state_type;
+  
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept<covariance_space_type>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<belief_state_type>));
+    
+  BOOST_CONCEPT_USAGE(ContinuousBeliefSpaceConcept)
+  {
+    const covariance_space_type& c_space = this->b_space.get_covariance_topology(); RK_UNUSED(c_space);
+  };
+  
+};
+
+
 
 /**
  * This traits class defines the traits that a belief transfer function should have. A 
@@ -232,17 +326,20 @@ struct belief_transfer_traits {
  * 
  * The associated state-space system should model SSSystemConcept.
  * 
+ * The associated belief-space should model the pp::TopologyConcept.
+ * 
  * Valid expressions:
  * 
  * dt = f.get_time_step();  The time-step of the transfer function can be obtained.
  * 
  * sys = f.get_ss_system();  The state-space system can be obtained from the transfer function.
  * 
- * b = f.get_next_belief(b, t, u, y);  The next belief state (b) can be obtained from the current belief-state (b), current time (t), current input (u), and next measurement (y).
+ * b = f.get_next_belief(belief_space, b, t, u, y);  The next belief state (b) can be obtained from the current belief-state (b), current time (t), current input (u), and next measurement (y).
  *
  * \tparam BeliefTransfer The belief transfer function type to be checked.
+ * \tparam BeliefSpaceType The belief topology type on which the beliefs lie.
  */
-template <typename BeliefTransfer>
+template <typename BeliefTransfer, typename BeliefSpaceType>
 struct BeliefTransferConcept {
   typedef typename belief_transfer_traits< BeliefTransfer >::belief_state BeliefState;
   typedef typename belief_transfer_traits< BeliefTransfer >::state_space_system StateSpaceSystem;
@@ -251,12 +348,14 @@ struct BeliefTransferConcept {
   
   BOOST_CONCEPT_ASSERT((BeliefStateConcept< BeliefState >));
   BOOST_CONCEPT_ASSERT((SSSystemConcept< StateSpaceSystem >));
+  BOOST_CONCEPT_ASSERT((BeliefSpaceConcept< BeliefSpaceType >));
   
   BeliefTransfer f;
   typename ss_system_traits<StateSpaceSystem>::input_type u;
   typename ss_system_traits<StateSpaceSystem>::output_type y;
   BeliefState b;
   StateSpaceSystem sys;
+  BeliefSpaceType belief_space;
   TimeType t;
   TimeDiffType dt;
 
@@ -264,7 +363,7 @@ struct BeliefTransferConcept {
   {
     dt = f.get_time_step();
     sys = f.get_ss_system();
-    b = f.get_next_belief(b, t, u, y);
+    b = f.get_next_belief(belief_space, b, t, u, y);
   };
 };
 
@@ -309,15 +408,16 @@ struct is_belief_transfer {
  * b = f.predict_ML_belief(b, t, u);  The next most-likely updated belief-state (b) can be obtained from the current belief-state (b), current time (t), and current input (u).
  *
  * \tparam BeliefPredictor The belief predictor function type to be checked.
+ * \tparam BeliefSpaceType The belief topology type on which the beliefs lie.
  */
-template <typename BeliefPredictor>
+template <typename BeliefPredictor, typename BeliefSpaceType>
 struct BeliefPredictorConcept : BeliefTransferConcept<BeliefPredictor> {
   
   BOOST_CONCEPT_USAGE(BeliefPredictorConcept)
   {
-    this->b = this->f.predict_belief(this->b, this->t, this->u);
-    this->b = this->f.prediction_to_ML_belief(this->b, this->t, this->u);
-    this->b = this->f.predict_ML_belief(this->b, this->t, this->u);
+    this->b = this->f.predict_belief(this->belief_space, this->b, this->t, this->u);
+    this->b = this->f.prediction_to_ML_belief(this->belief_space, this->b, this->t, this->u);
+    this->b = this->f.predict_ML_belief(this->belief_space, this->b, this->t, this->u);
   };
 };
 

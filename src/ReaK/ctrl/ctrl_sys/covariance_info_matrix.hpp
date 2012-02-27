@@ -56,23 +56,20 @@ namespace ctrl {
  * 
  * Models: CovarianceMatrixConcept
  * 
- * \tparam StateType The state-vector type which the covariance matrix is the covariance of, should model StateVectorConcept.
+ * \tparam VectorType The state-vector type which the covariance matrix is the covariance of, should model StateVectorConcept.
  */
-template <typename StateType>
+template <typename VectorType>
 class covariance_info_matrix : public named_object {
   public:
+    BOOST_CONCEPT_ASSERT((ReadableVectorConcept<VectorType>));
+    
     typedef covariance_info_matrix<T> self;
     
-    typedef StateType point_type;
-    typedef typename state_vector_traits<StateType>::state_difference_type point_difference_type;
-    
-    typedef typename state_vector_traits<StateType>::value_type value_type;
+    typedef typename vect_traits<VectorType>::value_type value_type;
     typedef mat<value_type, mat_structure::symmetric> matrix_type;
     typedef typename matrix_type::size_type size_type;
     
-    BOOST_CONCEPT_ASSERT((StateVectorConcept<StateType>));
-    
-    BOOST_STATIC_CONSTANT(std::size_t, dimensions = vect_traits<point_difference_type>::dimensions);
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = vect_traits<VectorType>::dimensions);
     BOOST_STATIC_CONSTANT(covariance_storage::tag, storage = covariance_storage::information);
     
   private:

@@ -52,16 +52,16 @@ namespace ctrl {
  * topology. The distance pseudo-metric used is the symmetric KL-divergence between two 
  * belief-states.
  * 
- * Models: TopologyConcept, MetricSpaceConcept, and PointDistributionConcept.
+ * Models: TopologyConcept, MetricSpaceConcept, PointDistributionConcept, and ContinuousBeliefSpaceConcept.
  * 
- * \tparam StateTopology The topology to which the state-vector belongs, should model the ReaK::pp::MetricSpaceConcept.
- * \tparam CovarianceTopology The topology to which the covariance matrix belongs, should model the ReaK::pp::MetricSpaceConcept.
+ * \tparam StateTopology The topology to which the state-vector belongs, should model the ReaK::pp::TopologyConcept.
+ * \tparam CovarianceTopology The topology to which the covariance matrix belongs, should model the ReaK::pp::TopologyConcept.
  */
 template <typename StateTopology, typename CovarianceTopology>
 class gaussian_belief_space {
   public:
     typedef gaussian_belief_space< StateTopology, CovarianceTopology > self;
-    typedef StateTopology mean_state_topology;
+    typedef StateTopology state_topology;
     typedef CovarianceTopology covariance_topology;
     
     typedef typename pp::topology_traits<CovarianceTopology>::point_type covariance_type;
@@ -72,7 +72,7 @@ class gaussian_belief_space {
     typedef typename pp::topology_traits<StateTopology>::point_type mean_state_type;
     typedef typename pp::topology_traits<StateTopology>::point_difference_type mean_state_diff_type;
     
-    typedef typename gaussian_belief_state< covariance_type, mean_state_type > point_type;
+    typedef typename gaussian_belief_state< mean_state_type, covariance_type > point_type;
     
     BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateTopology>));
     BOOST_CONCEPT_ASSERT((pp::TopologyConcept<CovarianceTopology>));
@@ -95,11 +95,11 @@ class gaussian_belief_space {
     typedef pp::default_distance_metric distance_metric_type;
     typedef pp::default_random_sampler random_sampler_type;
     
-    typedef typename ReaK::shared_pointer<mean_state_topology>::type mean_state_topology_ptr;
+    typedef typename ReaK::shared_pointer<state_topology>::type state_topology_ptr;
     typedef typename ReaK::shared_pointer<covariance_topology>::type covariance_topology_ptr;
     
   private:
-    mean_state_topology_ptr mean_state_space;
+    state_topology_ptr mean_state_space;
     covariance_topology_ptr covariance_space;
     
   public:  
@@ -109,7 +109,7 @@ class gaussian_belief_space {
      * \param aMeanStateSpace The topology used for the mean-state.
      * \param aCovarianceSpace The topology used for the covariance matrix.
      */
-    gaussian_belief_space(const mean_state_topology_ptr& aMeanStateSpace = mean_state_topology_ptr(new mean_state_topology()),
+    gaussian_belief_space(const state_topology_ptr& aMeanStateSpace = state_topology_ptr(new state_topology()),
                           const covariance_topology_ptr& aCovarianceSpace = covariance_topology_ptr(new covariance_topology())) :
 			  mean_state_space(aMeanStateSpace),
 			  covariance_space(aCovarianceSpace) { };
@@ -123,7 +123,7 @@ class gaussian_belief_space {
      * \return The symmetric KL-divergence between the two belief-states.
      */
     double distance(const point_type& p1, const point_type& p2) const {
-      return double( symKL_divergence(p1,p2) );
+      return double( symKL_divergence(p1,p2,*this) );
     };
     
     /**
@@ -132,7 +132,7 @@ class gaussian_belief_space {
      * \return The symmetric KL-divergence between the two end belief-states.
      */
     double norm(const point_difference_type& dp) const {
-      return double( symKL_divergence(dp.b0,dp.b1) );
+      return double( symKL_divergence(dp.b0,dp.b1,*this) );
     };
     
     /**
@@ -177,6 +177,22 @@ class gaussian_belief_space {
 									         dp.b1.get_covariance() ) ) );
     };
     
+    /**
+     * Returns the state-topology on which the mean-states lie.
+     * \return The state-topology on which the mean-states lie.
+     */
+    const state_topology& get_state_topology() const {
+      return *mean_state_space;
+    };
+
+    /**
+     * Returns the covariance-topology on which the covariances lie.
+     * \return The covariance-topology on which the covariances lie.
+     */
+    const covariance_topology& get_covariance_topology() const {
+      return *covariance_space;
+    };
+
 };
 
 

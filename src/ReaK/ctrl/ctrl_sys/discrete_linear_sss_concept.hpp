@@ -75,12 +75,12 @@ struct discrete_linear_sss_traits {
  * sys.get_output_function_blocks(C,D);  The system's output function matrices can be obtained without providing a time or state.
  */
 struct DiscreteLTISystemType {
-  template <typename System, typename Point, typename Input, typename Time, 
+  template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
-  void constraints(const System& sys, const Point&, const Input&, const Time&,  
+  void constraints(const System& sys, const StateSpaceType& state_space, const Point&, const Input&, const Time&,  
 		   A_t& A, B_t& B, C_t& C, D_t& D) {
-    sys.get_state_transition_blocks(A, B);
-    sys.get_output_function_blocks(C, D);
+    sys.get_state_transition_blocks(A, B, state_space);
+    sys.get_output_function_blocks(C, D, state_space);
   };
 };
 
@@ -97,12 +97,12 @@ struct DiscreteLTISystemType {
  * sys.get_output_function_blocks(C,D,t_0);  The system's output function matrices can be obtained without providing a state.
  */
 struct DiscreteLTVSystemType {
-  template <typename System, typename Point, typename Input, typename Time, 
+  template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
-  void constraints(const System& sys, const Point&, const Input&, const Time& t, 
+  void constraints(const System& sys, const StateSpaceType& state_space, const Point&, const Input&, const Time& t, 
 		   A_t& A, B_t& B, C_t& C, D_t& D) {
-    sys.get_state_transition_blocks(A, B, t, t);
-    sys.get_output_function_blocks(C, D, t);
+    sys.get_state_transition_blocks(A, B, state_space, t, t);
+    sys.get_output_function_blocks(C, D, state_space, t);
   };
 };
 
@@ -119,12 +119,12 @@ struct DiscreteLTVSystemType {
  * sys.get_output_function_blocks(C,D,t_0,p_0,u_0);  The system's output function matrices can be obtained from the current time, state and input.
  */
 struct DiscreteLinearizedSystemType {
-  template <typename System, typename Point, typename Input, typename Time, 
+  template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
-  void constraints(const System& sys, const Point& p, const Input& u, const Time& t, 
+  void constraints(const System& sys, const StateSpaceType& state_space, const Point& p, const Input& u, const Time& t, 
 		   A_t& A, B_t& B, C_t& C, D_t& D) {
-    sys.get_state_transition_blocks(A, B, t, t, p, p, u, u);
-    sys.get_output_function_blocks(C, D, t, p, u);
+    sys.get_state_transition_blocks(A, B, state_space, t, t, p, p, u, u);
+    sys.get_output_function_blocks(C, D, state_space, t, p, u);
   };
 };
   
@@ -141,17 +141,18 @@ struct DiscreteLinearizedSystemType {
  * 
  * Valid expressions:
  * 
- * sys_type.constraints(sys, p, u, t, A, B, C, D);  The system should comply to the constraints of the SystemType concept class.
+ * sys_type.constraints(sys, state_space, p, u, t, A, B, C, D);  The system should comply to the constraints of the SystemType concept class.
  * 
  * p = A * p + B * u;  The next state can be obtained by linear transformation of the state and input using the system matrices.
  * 
  * y = C * p + D * u;  The output can be obtained by linear transformation of the state and input using the system matrices.
  * 
  * \tparam DiscreteSystem The discrete-time state-space system to be tested for linearity.
+ * \tparam StateSpaceType The type of the state-space topology on which the state-space system should be able to act.
  * \tparam SystemType The concept class that tests the system-type, can be either DiscreteLTISystemType, DiscreteLTVSystemType or DiscreteLinearizedSystemType.
  */
-template <typename DiscreteSystem, typename SystemType = DiscreteLTISystemType >
-struct DiscreteLinearSSSConcept : DiscreteSSSConcept<DiscreteSystem> {
+template <typename DiscreteSystem, typename StateSpaceType, typename SystemType = DiscreteLTISystemType >
+struct DiscreteLinearSSSConcept : DiscreteSSSConcept<DiscreteSystem,StateSpaceType> {
   SystemType sys_type;
   
   typename discrete_linear_sss_traits<DiscreteSystem>::matrixA_type A;
@@ -161,7 +162,7 @@ struct DiscreteLinearSSSConcept : DiscreteSSSConcept<DiscreteSystem> {
   
   BOOST_CONCEPT_USAGE(DiscreteLinearSSSConcept)
   {
-    sys_type.constraints(this->sys, this->p, this->u, this->t, A, B, C, D);
+    sys_type.constraints(this->sys, this->state_space, this->p, this->u, this->t, A, B, C, D);
     this->p = A * this->p + B * this->u;
     this->y = C * this->p + D * this->u;
   };
