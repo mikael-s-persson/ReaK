@@ -111,20 +111,21 @@ struct invariant_system_traits {
  * W = sys.get_invariant_posterior_frame(prev_p,p,u,t);  The invariant frame between a state (prev_p) and its posterior corrected value (p) can be obtained, given the input (u) and time (t).
  * 
  * \tparam InvariantDiscreteSystem The state-space system to be checked for compliance to this concept.
+ * \tparam StateSpaceType The state-space topology type with which the invariant system must be compatible.
  */
-template <typename InvariantDiscreteSystem>
-struct InvariantDiscreteSystemConcept : DiscreteLinearSSSConcept<InvariantDiscreteSystem,DiscreteLinearizedSystemType> {
+template <typename InvariantDiscreteSystem, typename StateSpaceType>
+struct InvariantDiscreteSystemConcept : DiscreteLinearSSSConcept<InvariantDiscreteSystem,StateSpaceType,DiscreteLinearizedSystemType> {
   typename invariant_system_traits<InvariantDiscreteSystem>::invariant_error_type e;
   typename invariant_system_traits<InvariantDiscreteSystem>::invariant_correction_type c;
   typename invariant_system_traits<InvariantDiscreteSystem>::invariant_frame_type W;
   
   BOOST_CONCEPT_USAGE(InvariantDiscreteSystemConcept)
   {
-    this->e = this->sys.get_invariant_error(this->p,this->u,this->y,this->t);
-    this->c = transpose(this->C) * this->e;
-    this->p = this->sys.apply_correction(this->p,this->c,this->u,this->t);
-    this->W = this->sys.get_invariant_prior_frame(this->p,this->p,this->u,this->t);
-    this->W = this->sys.get_invariant_posterior_frame(this->p,this->p,this->u,this->t);
+    this->e = this->sys.get_invariant_error(this->state_space,this->p,this->u,this->y,this->t);
+    this->c = transpose_view(this->C) * this->e;
+    this->p = this->sys.apply_correction(this->state_space,this->p,this->c,this->u,this->t);
+    this->W = this->sys.get_invariant_prior_frame(this->state_space,this->p,this->p,this->u,this->t);
+    this->W = this->sys.get_invariant_posterior_frame(this->state_space,this->p,this->p,this->u,this->t);
   };
   
 };
@@ -149,17 +150,18 @@ struct InvariantDiscreteSystemConcept : DiscreteLinearSSSConcept<InvariantDiscre
  * p = sys.apply_correction(p,c,u,t);  The state-vector (p) can be corrected by a state-correction vector (c), given the input (u) and time (t).
  * 
  * \tparam InvariantContinuousSystem The state-space system to be checked for compliance to this concept.
+ * \tparam StateSpaceType The state-space topology type with which the invariant system must be compatible.
  */
-template <typename InvariantContinuousSystem>
-struct InvariantContinuousSystemConcept : LinearSSSystemConcept<InvariantContinuousSystem,LinearizedSystemType> {
+template <typename InvariantContinuousSystem, typename StateSpaceType>
+struct InvariantContinuousSystemConcept : LinearSSSystemConcept<InvariantContinuousSystem,StateSpaceType,LinearizedSystemType> {
   typename invariant_system_traits<InvariantContinuousSystem>::invariant_error_type e;
   typename invariant_system_traits<InvariantContinuousSystem>::invariant_correction_type c;
   
   BOOST_CONCEPT_USAGE(InvariantContinuousSystemConcept)
   {
-    this->e     = this->sys.get_invariant_error(this->p,this->u,this->y,this->t);
-    this->c     = transpose(this->C) * this->e;
-    this->dp_dt = this->sys.apply_correction(this->p,this->dp_dt,this->c,this->u,this->t);
+    this->e     = this->sys.get_invariant_error(this->state_space,this->p,this->u,this->y,this->t);
+    this->c     = transpose_view(this->C) * this->e;
+    this->dp_dt = this->sys.apply_correction(this->state_space,this->p,this->dp_dt,this->c,this->u,this->t);
   };
   
 };

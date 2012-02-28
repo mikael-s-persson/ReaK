@@ -275,7 +275,7 @@ struct KF_belief_transfer {
   typedef KF_belief_transfer<LinearSystem, BeliefState> self;
   typedef BeliefState belief_state;
   typedef LinearSystem state_space_system;
-  typedef typename shared_pointer< LinearSystem >::type state_space_system_ptr;
+  typedef typename shared_pointer< state_space_system >::type state_space_system_ptr;
   typedef typename discrete_sss_traits< state_space_system >::time_type time_type;
   typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
 

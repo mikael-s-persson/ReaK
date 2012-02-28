@@ -40,6 +40,8 @@
 #include "topologies/basic_distance_metrics.hpp"
 #include "topologies/default_random_sampler.hpp"
 
+#include "base/named_object.hpp"
+
 namespace ReaK {
 
 namespace ctrl {
@@ -58,7 +60,7 @@ namespace ctrl {
  * \tparam CovarianceTopology The topology to which the covariance matrix belongs, should model the ReaK::pp::TopologyConcept.
  */
 template <typename StateTopology, typename CovarianceTopology>
-class gaussian_belief_space {
+class gaussian_belief_space : public named_object {
   public:
     typedef gaussian_belief_space< StateTopology, CovarianceTopology > self;
     typedef StateTopology state_topology;
@@ -110,11 +112,12 @@ class gaussian_belief_space {
      * \param aCovarianceSpace The topology used for the covariance matrix.
      */
     gaussian_belief_space(const state_topology_ptr& aMeanStateSpace = state_topology_ptr(new state_topology()),
-                          const covariance_topology_ptr& aCovarianceSpace = covariance_topology_ptr(new covariance_topology())) :
+                          const covariance_topology_ptr& aCovarianceSpace = covariance_topology_ptr(new covariance_topology()),
+			  const std::string& aName = "") :
 			  mean_state_space(aMeanStateSpace),
-			  covariance_space(aCovarianceSpace) { };
-			  
-    
+			  covariance_space(aCovarianceSpace) {
+      setName(aName);
+    };
     
     /**
      * Computes the distance between two belief-states, using symmetric KL-divergence.
@@ -192,6 +195,26 @@ class gaussian_belief_space {
     const covariance_topology& get_covariance_topology() const {
       return *covariance_space;
     };
+    
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(ReaK::serialization::oarchive& aA, unsigned int) const {
+      ReaK::named_object::save(aA,ReaK::named_object::getStaticObjectType()->TypeVersion());
+      aA & RK_SERIAL_SAVE_WITH_NAME(mean_state_space)
+         & RK_SERIAL_SAVE_WITH_NAME(covariance_space);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& aA, unsigned int) {
+      ReaK::named_object::load(aA,ReaK::named_object::getStaticObjectType()->TypeVersion());
+      aA & RK_SERIAL_LOAD_WITH_NAME(mean_state_space)
+         & RK_SERIAL_LOAD_WITH_NAME(covariance_space);
+      
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2300011,1,"gaussian_belief_space",named_object)
 
 };
 

@@ -207,6 +207,7 @@ covariance_info_matrix<T>   0xC2300009   bin: 1100 0010 0011 0000 0000 0000 0000
 decomp_covariance_matrix<T> 0xC230000A   bin: 1100 0010 0011 0000 0000 0000 0000 1010  D-R
 
 gaussian_belief_state<Cov>  0xC2300010   bin: 1100 0010 0011 0000 0000 0000 0001 0000  D-R
+gaussian_belief_space<S,C>  0xC2300011   bin: 1100 0010 0011 0000 0000 0000 0001 0001  D-R
 
 
 

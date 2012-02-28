@@ -96,49 +96,9 @@ class discretized_lti_sys : public named_object {
     matrixC_type Cd;
     matrixD_type Dd;
     
-  public:
-    
-    /**
-     * Parametrized and default constructor.
-     * \param aX_size The size of the state-vector.
-     * \param aU_size The size of the input-vector.
-     * \param aY_size The size of the output-vector.
-     * \param aDt The time-step of the discrete-time system.
-     */
-    discretized_lti_sys(size_type aX_size = 0, size_type aU_size = 0, size_type aY_size = 0, const time_difference_type& aDt = 1, const std::string& aName = "") :
-                        sys(aX_size,aU_size,aY_size,aName + "_continuous"), dt(aDt) {
-      setName(aName);
-      
-      sys.get_linear_blocks(Ad,Bd,Cd,Dd);
-      
-      Ad = mat<value_type, mat_structure::identity>(aX_size);
-    };
-
-    /**
-     * Standard copy-constructor.
-     */
-    discretized_lti_sys(const self& rhs) : sys(rhs.sys), dt(rhs.dt), Ad(rhs.Ad), Bd(rhs.Bd), Cd(rhs.Cd), Dd(rhs.Dd) {
-      setName(rhs.getName());
-    };
-    
-    /**
-     * Parametrized constructor.
-     * \param aA The continuous-time system matrix A.
-     * \param aB The continuous-time system matrix B.
-     * \param aC The continuous-time system matrix C.
-     * \param aD The continuous-time system matrix D.
-     * \param aDt The time-step of the discrete-time system.
-     */
-    template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
-    discretized_lti_sys(const MatrixA& aA, const MatrixB& aB, const MatrixC& aC, const MatrixD& aD, const time_difference_type& aDt, const std::string& aName = "",
-                        typename boost::enable_if_c< is_readable_matrix<MatrixA>::value &&
-                                                     is_readable_matrix<MatrixB>::value &&
-                                                     is_readable_matrix<MatrixC>::value &&
-                                                     is_readable_matrix<MatrixD>::value , void* >::type dummy = NULL) : 
-                        sys(aA,aB,aC,aD,aName + "_continuous"), dt(aDt) { 
-      setName(aName);
-      
-      sys.get_linear_blocks(Ad,Bd,Cd,Dd);
+    void initialize_matrices_impl() {
+      sys.get_state_transition_blocks(Ad,Bd);
+      sys.get_output_function_blocks(Cd,Dd);
       
       mat<value_type, mat_structure::square> A_aug(Ad.get_col_count() + Bd.get_col_count(), value_type(0));
       set_block(A_aug, Ad * dt, 0, 0);
@@ -147,6 +107,27 @@ class discretized_lti_sys : public named_object {
       exp_PadeSAS(A_aug,A_aug_exp,QR_linlsqsolver());
       Ad = get_block(A_aug_exp, 0, 0, Ad.get_row_count(), Ad.get_col_count());
       Bd = get_block(A_aug_exp, 0, Ad.get_col_count(), Bd.get_row_count(), Bd.get_col_count());
+    };
+    
+  public:
+    
+    /**
+     * Parametrized and default constructor.
+     * \param aSys The continuous-time system.
+     * \param aDt The time-step of the discrete-time system.
+     */
+    discretized_lti_sys(const LTISystem& aSys = LTISystem(), const time_difference_type& aDt = 1) :
+                        sys(aSys), dt(aDt) {
+      setName(aSys.getName());
+      
+      initialize_matrices_impl();
+    };
+
+    /**
+     * Standard copy-constructor.
+     */
+    discretized_lti_sys(const self& rhs) : sys(rhs.sys), dt(rhs.dt), Ad(rhs.Ad), Bd(rhs.Bd), Cd(rhs.Cd), Dd(rhs.Dd) {
+      setName(rhs.getName());
     };
   
     /**
@@ -174,16 +155,29 @@ class discretized_lti_sys : public named_object {
      * Returns the underlying continuous-time system.
      */
     const LTISystem& getSys() const { return sys; };
+    
+    /**
+     * Fills the given matrices with the discrete-time system's state transition matrices.
+     * \param aA Stores, as output, the system matrix A.
+     * \param aB Stores, as output, the system matrix B.
+     */
+    template <typename MatrixA, typename MatrixB>
+    typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
+                                 is_writable_matrix<MatrixB>::value,
+    void >::type get_state_transition_blocks(MatrixA& aA, MatrixB& aB) const {
+      aA = Ad;
+      aB = Bd;
+    };
 
     /**
      * Fills the given matrices with the discrete-time system's state transition matrices.
      * \param aA Stores, as output, the system matrix A.
      * \param aB Stores, as output, the system matrix B.
      */
-    template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
+    template <typename StateSpaceType, typename MatrixA, typename MatrixB>
     typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
                                  is_writable_matrix<MatrixB>::value,
-    void >::type get_state_transition_blocks(MatrixA& aA, MatrixB& aB, 
+    void >::type get_state_transition_blocks(MatrixA& aA, MatrixB& aB, const StateSpaceType&, 
 					     const time_type& t_0 = time_type(), const time_type& t_1 = time_type(), 
 					     const point_type& p_0 = point_type(), const point_type& p_1 = point_type(), 
 					     const input_type& u_0 = input_type(), const input_type& u_1 = input_type()) const {
@@ -197,10 +191,23 @@ class discretized_lti_sys : public named_object {
      * \param aC Stores, as output, the system matrix C.
      * \param aD Stores, as output, the system matrix D.
      */
-    template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
+    template <typename MatrixC, typename MatrixD>
     typename boost::enable_if_c< is_writable_matrix<MatrixC>::value &&
                                  is_writable_matrix<MatrixD>::value,
-    void >::type get_output_function_blocks(MatrixC& aC, MatrixD& aD,
+    void >::type get_output_function_blocks(MatrixC& aC, MatrixD& aD) const {
+      aC = Cd;
+      aD = Dd;
+    };
+    
+    /**
+     * Fills the given matrices with the discrete-time system's output function matrices.
+     * \param aC Stores, as output, the system matrix C.
+     * \param aD Stores, as output, the system matrix D.
+     */
+    template <typename StateSpaceType, typename MatrixC, typename MatrixD>
+    typename boost::enable_if_c< is_writable_matrix<MatrixC>::value &&
+                                 is_writable_matrix<MatrixD>::value,
+    void >::type get_output_function_blocks(MatrixC& aC, MatrixD& aD, const StateSpaceType&, 
                                             const time_type& t = time_type(),
 					    const point_type& p = point_type(),
 					    const input_type& u = input_type()) const {
@@ -221,7 +228,8 @@ class discretized_lti_sys : public named_object {
      * \param t The current time.
      * \return The next state, at t + get_time_step().
      */
-    point_type get_next_state(const point_type& p, const input_type& u, const time_type& t = 0) const { RK_UNUSED(t);
+    template <typename StateSpaceType>
+    point_type get_next_state(const StateSpaceType&, const point_type& p, const input_type& u, const time_type& t = 0) const { RK_UNUSED(t);
       return Ad * p + Bd * u;
     };
     
@@ -232,18 +240,15 @@ class discretized_lti_sys : public named_object {
      * \param t The current time.
      * \return The current output.
      */
-    output_type get_output(const point_type& p, const input_type& u, const time_type& t = 0) const { RK_UNUSED(t);
+    template <typename StateSpaceType>
+    output_type get_output(const StateSpaceType&, const point_type& p, const input_type& u, const time_type& t = 0) const { RK_UNUSED(t);
       return Cd * p + Dd * u;
     };
     
-    /**
-     * Adjusts the state by adding a state difference to it.
-     */
-    point_type adjust(const point_type& p, const point_difference_type& dp) const {
-      return sys.adjust(p,dp);
-    };
     
-    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
     
     virtual void RK_CALL save(ReaK::serialization::oarchive& aA, unsigned int) const {
       ReaK::named_object::save(aA,ReaK::named_object::getStaticObjectType()->TypeVersion());
@@ -255,16 +260,7 @@ class discretized_lti_sys : public named_object {
       aA & RK_SERIAL_LOAD_WITH_NAME(sys)
          & RK_SERIAL_LOAD_WITH_NAME(dt);
       
-      sys.get_linear_blocks(Ad,Bd,Cd,Dd);
-      
-      mat<value_type, mat_structure::square> A_aug(Ad.get_col_count() + Bd.get_col_count(), value_type(0));
-      set_block(A_aug, Ad * dt, 0, 0);
-      set_block(A_aug, Bd * dt, 0, Ad.get_col_count());
-      mat<value_type, mat_structure::square> A_aug_exp(Ad.get_col_count() + Bd.get_col_count(), value_type(0));
-      exp_PadeSAS(A_aug,A_aug_exp,QR_linlsqsolver());
-      Ad = get_block(A_aug_exp, 0, 0, Ad.get_row_count(), Ad.get_col_count());
-      Bd = get_block(A_aug_exp, 0, Ad.get_col_count(), Bd.get_row_count(), Bd.get_col_count());
-	 
+      initialize_matrices_impl();
     };
     
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2300005,1,"discretized_lti_sys",named_object)
