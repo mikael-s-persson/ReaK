@@ -49,6 +49,7 @@ namespace ctrl {
  * state-space system, as used in ReaK::ctrl. A continuous-time LTI state-space system is 
  * basically described by four system matrices (A,B,C,D) which make the linear mapping 
  * between the current state and input and the state-derivative and current output.
+ * \tparam T The value-type of the system matrices.
  */
 template <typename T>
 class lti_system_ss : public named_object {
@@ -241,46 +242,27 @@ class lti_system_ss : public named_object {
      * \param aC Stores, as output, the system matrix C.
      * \param aD Stores, as output, the system matrix D.
      */
-    template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
+    template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD, typename StateSpaceType>
     typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
                                  is_writable_matrix<MatrixB>::value &&
                                  is_writable_matrix<MatrixC>::value &&
                                  is_writable_matrix<MatrixD>::value,
-    void >::type get_linear_blocks(const time_type&, MatrixA& aA, MatrixB& aB, MatrixC& aC, MatrixD& aD) const {
+    void >::type get_linear_blocks(MatrixA& aA, MatrixB& aB, MatrixC& aC, MatrixD& aD, const StateSpaceType&, 
+                                   const time_type& = 0, const point_type& = point_type(), const input_type& = input_type()) const {
       aA = A;
       aB = B;
       aC = C;
       aD = D;
     };
-    
-    /**
-     * Fills the given matrices with the continuous-time system matrices.
-     * \param aA Stores, as output, the system matrix A.
-     * \param aB Stores, as output, the system matrix B.
-     * \param aC Stores, as output, the system matrix C.
-     * \param aD Stores, as output, the system matrix D.
-     */
-    template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
-    typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
-                                 is_writable_matrix<MatrixB>::value &&
-                                 is_writable_matrix<MatrixC>::value &&
-                                 is_writable_matrix<MatrixD>::value,
-    void >::type get_linear_blocks(const point_type&, const input_type&, const time_type&, MatrixA& aA, MatrixB& aB, MatrixC& aC, MatrixD& aD) const {
-      aA = A;
-      aB = B;
-      aC = C;
-      aD = D;
-    };
-    
     
     /**
      * Returns state-derivative given the current state, input and time.
      * \param p The current state.
      * \param u The current input.
-     * \param t The current time.
      * \return The state-derivative.
      */
-    point_derivative_type get_state_derivative(const point_type& p, const input_type& u, const time_type& t = 0) const {
+    template <typename StateSpaceType>
+    point_derivative_type get_state_derivative(const StateSpaceType&, const point_type& p, const input_type& u, const time_type& = 0) const {
       return A * p + B * u;
     };
     
@@ -288,18 +270,11 @@ class lti_system_ss : public named_object {
      * Returns output of the system given the current state, input and time.
      * \param p The current state.
      * \param u The current input.
-     * \param t The current time.
      * \return The current output.
      */
-    output_type get_output(const point_type& p, const input_type& u, const time_type& t = 0) const {
+    template <typename StateSpaceType>
+    output_type get_output(const StateSpaceType&, const point_type& p, const input_type& u, const time_type& = 0) const {
       return C * p + D * u;
-    };
-    
-    /**
-     * Adjusts the state by adding a state difference to it.
-     */
-    point_type adjust(const point_type& p, const point_difference_type& dp) const {
-      return p + dp;
     };
     
     

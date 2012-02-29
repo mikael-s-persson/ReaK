@@ -28,8 +28,9 @@
 #include "base/named_object.hpp"
 
 #include "lin_alg/mat_alg.hpp"
-#include <ctrl_sys/sss_exceptions.hpp>
+#include "ctrl_sys/sss_exceptions.hpp"
 
+#include "topologies/vector_topology.hpp"
 
 namespace ReaK {
 
@@ -79,7 +80,7 @@ class airship2D_lin_system : public named_object {
   
     virtual ~airship2D_lin_system() { };
     
-    point_derivative_type get_state_derivative(const point_type& x, const input_type& u, const time_type t = 0.0) const {
+    point_derivative_type get_state_derivative(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
       return point_derivative_type(x[4],
 	                           x[5],
 				   -x[4] * x[6],
@@ -89,11 +90,11 @@ class airship2D_lin_system : public named_object {
 				   u[2] / mInertiaMoment);
     };
     
-    output_type get_output(const point_type& x, const input_type& u, const time_type t = 0.0) const {
+    output_type get_output(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
       return output_type(x[0], x[1], x[2], x[3]);
     };
     
-    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const time_type& t, const point_type& x, const input_type& u) const {
+    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, const time_type& t, const point_type& x, const input_type& u) const {
       A = mat<double,mat_structure::nil>(7,7);
       A(0,4) = 1.0;
       A(1,5) = 1.0;
@@ -169,7 +170,7 @@ class airship2D_inv_system : public airship2D_lin_system {
   
     virtual ~airship2D_inv_system() { };
         
-    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const time_type& t, const point_type& x, const input_type& u) const {
+    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, const time_type& t, const point_type& x, const input_type& u) const {
       A = mat<double,mat_structure::nil>(6,6);
       A(0,3) = 1.0;
       A(1,4) = 1.0;
@@ -186,7 +187,7 @@ class airship2D_inv_system : public airship2D_lin_system {
       D = mat<double,mat_structure::nil>(3,3);
     };
         
-    invariant_error_type get_invariant_error(const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
+    invariant_error_type get_invariant_error(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
       vect<double,2> qy(y[2],y[3]); qy = unit(qy);
       vect<double,2> qx(x[2],x[3]); qx = unit(qx);
       return invariant_error_type(y[0] - x[0],
@@ -195,7 +196,7 @@ class airship2D_inv_system : public airship2D_lin_system {
                                   qy[1] * qx[0] - qy[0] * qx[1]); // s_y * c_x - c_y * s_x
     };
     
-    point_derivative_type apply_correction(const point_type& x, const point_derivative_type& xd, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
+    point_derivative_type apply_correction(const pp::vector_topology< vect_n<double> >&, const point_type& x, const point_derivative_type& xd, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
       return point_type(xd[0] + c[0],
 	                xd[1] + c[1],
 			xd[2] - x[3] * c[2],
@@ -265,7 +266,7 @@ class airship2D_lin_dt_system : public airship2D_lin_system {
     
     time_difference_type get_time_step() const { return mDt; };
     
-    point_type get_next_state(const point_type& x, const input_type& u, const time_type t = 0.0) const {
+    point_type get_next_state(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
       input_type dv(mDt * u[0] / mMass, mDt * u[1] / mMass, mDt * u[2] / mInertiaMoment);
       double delta_theta = mDt * (x[6] + 0.5 * dv[2]); double cdt = cos(delta_theta); double sdt = sin(delta_theta);
       return point_type( x[0] + mDt * (x[4] + 0.5 * dv[0]),
@@ -277,11 +278,11 @@ class airship2D_lin_dt_system : public airship2D_lin_system {
 			 x[6] + dv[2]);
     };
     
-    output_type get_output(const point_type& x, const input_type& u, const time_type t = 0.0) const {
+    output_type get_output(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
       return output_type(x[0], x[1], x[2], x[3]);
     };
     
-    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
 				     const time_type&, const time_type&,
 				     const point_type& x, const point_type&, 
 				     const input_type&, const input_type&) const {
@@ -301,7 +302,7 @@ class airship2D_lin_dt_system : public airship2D_lin_system {
       B(6,2) = mDt / mInertiaMoment;
     };
     
-    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, 
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, 
 				    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(4,7);
       set_block(C,mat<double,mat_structure::identity>(4),0,0);
@@ -366,7 +367,7 @@ class airship2D_inv_dt_system : public airship2D_lin_dt_system {
   
     virtual ~airship2D_inv_dt_system() { };
         
-    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
 				     const time_type&, const time_type&, 
 				     const point_type&, const point_type&, 
 				     const input_type&, const input_type&) const {
@@ -384,7 +385,7 @@ class airship2D_inv_dt_system : public airship2D_lin_dt_system {
       B(5,2) = mDt / mInertiaMoment;
     };
         
-    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, 
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, 
 				    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(3,6);
       set_block(C,mat<double,mat_structure::identity>(3),0,0);
@@ -392,13 +393,13 @@ class airship2D_inv_dt_system : public airship2D_lin_dt_system {
       D = mat<double,mat_structure::nil>(3,3);
     };
         
-    invariant_error_type get_invariant_error(const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
+    invariant_error_type get_invariant_error(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
       return invariant_error_type(y[0] - x[0],
 			          y[1] - x[1],
 			          y[3] * x[2] - y[2] * x[3]); // s_y * c_x - c_y * s_x
     };
     
-    point_type apply_correction(const point_type& x, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
+    point_type apply_correction(const pp::vector_topology< vect_n<double> >&, const point_type& x, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
       using std::fabs;
       using std::sqrt;
       double sc = c[2];
@@ -414,11 +415,11 @@ class airship2D_inv_dt_system : public airship2D_lin_dt_system {
 			x[6] + c[5]);
     };
     
-    invariant_frame_type get_invariant_prior_frame(const point_type&, const point_type&, const input_type&, const time_type&) const {
+    invariant_frame_type get_invariant_prior_frame(const pp::vector_topology< vect_n<double> >&, const point_type&, const point_type&, const input_type&, const time_type&) const {
       return invariant_frame_type(6);
     };
     
-    invariant_frame_type get_invariant_posterior_frame(const point_type&, const point_type&, const input_type&, const time_type&) const {
+    invariant_frame_type get_invariant_posterior_frame(const pp::vector_topology< vect_n<double> >&, const point_type&, const point_type&, const input_type&, const time_type&) const {
       return invariant_frame_type(6);
     };
     

@@ -37,6 +37,8 @@
 #include "ctrl_sys/gaussian_belief_state.hpp"
 #include "ctrl_sys/covariance_matrix.hpp"
 
+#include "topologies/vector_topology.hpp"
+
 #include "integrators/fixed_step_integrators.hpp"
 
 #include "boost/date_time/posix_time/posix_time.hpp"
@@ -117,7 +119,7 @@ int main(int argc, char** argv) {
   boost::posix_time::ptime t1;
   boost::posix_time::time_duration dt[5];
   
-  ctrl::gaussian_belief_state< ctrl::covariance_matrix< vect_n<double> > > 
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
     b_init(vect_n<double>(0.0,0.0,1.0,0.0,0.0,0.0,0.0),
            ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(7,10.0))));
   
@@ -197,19 +199,19 @@ int main(int argc, char** argv) {
 #if 1
   std::cout << "Running Extended Kalman Filter..." << std::endl;
   {
-  ctrl::gaussian_belief_state< ctrl::covariance_matrix< vect_n<double> > > b = b_init;
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0), 
+											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0), 
+											       Rcov);
+  
   recorder::ssv_recorder results(result_filename + "_ekf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
-    ctrl::airship2D_lin_dt_system::matrixA_type A;
-    ctrl::airship2D_lin_dt_system::matrixB_type B;
-    ctrl::airship2D_lin_dt_system::matrixC_type C;
-    ctrl::airship2D_lin_dt_system::matrixD_type D;
-    mdl_lin_dt.get_linear_blocks(A,B,C,D,it->first,b.get_mean_state(),vect_n<double>(0.0,0.0,0.0));
-    ctrl::covariance_matrix< vect_n<double> > Qcov(ctrl::covariance_matrix< vect_n<double> >::matrix_type( B * Qu * transpose(B) ));
     
-    ctrl::kalman_filter_step(mdl_lin_dt,b,vect_n<double>(0.0,0.0,0.0),it->second,Qcov,Rcov,it->first);
+    b_z.set_mean_state(it->second);
+    ctrl::kalman_filter_step(mdl_lin_dt,pp::vector_topology< vect_n<double> >(),b,b_u,b_z,it->first);
     
     vect_n<double> b_mean = b.get_mean_state();
     vect<double,2> tmp = unit(vect<double,2>(b_mean[2],b_mean[3]));
@@ -228,20 +230,19 @@ int main(int argc, char** argv) {
 #if 1
   std::cout << "Running Unscented Kalman Filter..." << std::endl;
   {
-  ctrl::gaussian_belief_state< ctrl::covariance_matrix< vect_n<double> > > b = b_init;
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0), 
+											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0), 
+											       Rcov);
   recorder::ssv_recorder results(result_filename + "_ukf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
-    ctrl::airship2D_lin_dt_system::matrixA_type A;
-    ctrl::airship2D_lin_dt_system::matrixB_type B;
-    ctrl::airship2D_lin_dt_system::matrixC_type C;
-    ctrl::airship2D_lin_dt_system::matrixD_type D;
-    mdl_lin_dt.get_linear_blocks(A,B,C,D,it->first,b.get_mean_state(),vect_n<double>(0.0,0.0,0.0));
-    ctrl::covariance_matrix< vect_n<double> > Qcov(ctrl::covariance_matrix< vect_n<double> >::matrix_type( B * Qu * transpose(B) ));
     
+    b_z.set_mean_state(it->second);
     try {
-      ctrl::unscented_kalman_filter_step(mdl_lin_dt,b,vect_n<double>(0.0,0.0,0.0),it->second,Qcov,Rcov,it->first);
+      ctrl::unscented_kalman_filter_step(mdl_lin_dt,pp::vector_topology< vect_n<double> >(),b,b_u,b_z,it->first);
     } catch(singularity_error& e) {
       RK_ERROR("The Unscented Kalman filtering was interupted by a singularity, at time " << it->first << " with message: " << e.what());
       break;
@@ -268,26 +269,27 @@ int main(int argc, char** argv) {
   std::cout << "Running Invariant Extended Kalman Filter..." << std::endl;
   {
     
-  ctrl::gaussian_belief_state< ctrl::covariance_matrix< vect_n<double> > > 
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
     b(b_init.get_mean_state(),
       ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(6,10.0))));
+  
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0), 
+											       ctrl::covariance_matrix< vect_n<double> >(Qu));
   
   mat<double,mat_structure::diagonal> R_inv(3);
   R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(3,3);
   ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
-    
+  
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0), 
+											       Rcovinv);
+  
   recorder::ssv_recorder results(result_filename + "_iekf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
-    ctrl::airship2D_inv_dt_system::matrixA_type A;
-    ctrl::airship2D_inv_dt_system::matrixB_type B;
-    ctrl::airship2D_inv_dt_system::matrixC_type C;
-    ctrl::airship2D_inv_dt_system::matrixD_type D;
-    mdl_inv_dt.get_linear_blocks(A,B,C,D,it->first,b.get_mean_state(),vect_n<double>(0.0,0.0,0.0));
-    ctrl::covariance_matrix< vect_n<double> > Qcov(ctrl::covariance_matrix< vect_n<double> >::matrix_type( B * Qu * transpose(B) ));
     
-    ctrl::invariant_kalman_filter_step(mdl_inv_dt,b,vect_n<double>(0.0,0.0,0.0),it->second,Qcov,Rcovinv,it->first);
+    b_z.set_mean_state(it->second);
+    ctrl::invariant_kalman_filter_step(mdl_inv_dt,pp::vector_topology< vect_n<double> >(),b,b_u,b_z,it->first);
     
     vect_n<double> b_mean = b.get_mean_state();
     vect<double,2> tmp = unit(vect<double,2>(b_mean[2],b_mean[3]));

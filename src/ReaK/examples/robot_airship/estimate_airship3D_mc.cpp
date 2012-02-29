@@ -212,7 +212,7 @@ int main(int argc, char** argv) {
   
   std::string result_filename;
   double time_step, end_time;
-  ctrl::kte_nl_system airship3D_system("airship3D_system");
+  shared_pointer<ctrl::kte_nl_system>::type airship3D_system(new ctrl::kte_nl_system("airship3D_system"));
   vect_n<double> x_0;
   double mass;
   mat<double,mat_structure::symmetric> inertia_tensor;
@@ -220,7 +220,7 @@ int main(int argc, char** argv) {
   mat<double,mat_structure::diagonal> R;
   unsigned int skips_min, skips_max, mc_count;
   
-  if( !load_parameters(argc, argv, result_filename, time_step, end_time, airship3D_system, x_0, mass, inertia_tensor, Qu, R, skips_min, skips_max, mc_count) )
+  if( !load_parameters(argc, argv, result_filename, time_step, end_time, *airship3D_system, x_0, mass, inertia_tensor, Qu, R, skips_min, skips_max, mc_count) )
     return 1;
   
   boost::variate_generator< boost::minstd_rand, boost::normal_distribution<double> > var_rnd(boost::minstd_rand(static_cast<unsigned int>(time(NULL))), boost::normal_distribution<double>());
@@ -241,6 +241,8 @@ int main(int argc, char** argv) {
   
   std::vector<double> std_devs(1 + 4 * (1 + skips_max - skips_min));
   
+  pp::vector_topology< vect_n<double> > mdl_state_space;
+  
   for(unsigned int i = 0; i < mc_count; ++i) {
     std::list< std::pair< double, vect_n<double> > > measurements;
     std::list< std::pair< double, vect_n<double> > > measurements_noisy;
@@ -259,8 +261,8 @@ int main(int argc, char** argv) {
         u[4] = var_rnd() * sqrt(Qu(4,4));
         u[5] = var_rnd() * sqrt(Qu(5,5));
     
-        x = airship3D_dt_sys.get_next_state(x,u,t);
-        sys_type::output_type y = airship3D_dt_sys.get_output(x,u,t);
+        x = airship3D_dt_sys.get_next_state(mdl_state_space,x,u,t);
+        sys_type::output_type y = airship3D_dt_sys.get_output(mdl_state_space,x,u,t);
     
         std::cout << "\r" << std::setw(20) << t; std::cout.flush();
 	
@@ -311,7 +313,7 @@ int main(int argc, char** argv) {
     x_init[3] = 1.0; x_init[4] = 0.0; x_init[5] = 0.0; x_init[6] = 0.0;
     x_init[7] = 0.0; x_init[8] = 0.0; x_init[9] = 0.0; 
     x_init[10] = 0.0; x_init[11] = 0.0; x_init[12] = 0.0;
-    ctrl::gaussian_belief_state< ctrl::covariance_matrix< vect_n<double> > > 
+    ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
       b_init(x_init,
              ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(13,10.0))));
   
@@ -332,18 +334,24 @@ int main(int argc, char** argv) {
       ctrl::airship3D_inv_dt_system mdl_inv_dt("airship3D_invariant_discrete",mass,inertia_tensor,time_step * j);
       ctrl::airship3D_inv_mom_dt_system mdl_inv_mom_dt("airship3D_invariant_momentum_discrete",mass,inertia_tensor,time_step * j);
       ctrl::airship3D_inv_mid_dt_system mdl_inv_mid_dt("airship3D_invariant_midpoint_discrete",mass,inertia_tensor,time_step * j);
+
       
       //std::cout << "Running Extended Kalman Filter..." << std::endl;
       {
-        ctrl::gaussian_belief_state< ctrl::covariance_matrix< vect_n<double> > > b = b_init;
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
         ctrl::covariance_matrix< vect_n<double> > Qcov;
 	Qcov = Qu_avg;
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
+											             ctrl::covariance_matrix< vect_n<double> >(Qu));
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
+											             Rcov);
         
 	double std_dev = 0.0; int k = 0;
         std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
 	for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end();) {
           
-	  ctrl::kalman_filter_step(mdl_lin_dt,b,vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0),it->second,Qcov,Rcov,it->first - time_step * j);
+	  b_z.set_mean_state(it->second);
+	  ctrl::kalman_filter_step(mdl_lin_dt,mdl_state_space,b,b_u,b_z,it->first - time_step * j);
           
           vect_n<double> b_mean = b.get_mean_state();
           quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
@@ -367,7 +375,7 @@ int main(int argc, char** argv) {
       //std::cout << "Running Invariant Extended Kalman Filter..." << std::endl;
       {
     
-        ctrl::gaussian_belief_state< ctrl::covariance_matrix< vect_n<double> > > 
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
           b(b_init.get_mean_state(),
             ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
   
@@ -377,12 +385,17 @@ int main(int argc, char** argv) {
         ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
         ctrl::covariance_matrix< vect_n<double> > Qcov;
 	Qcov = Qu_avg;
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
+											             ctrl::covariance_matrix< vect_n<double> >(Qu));
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
+											             Rcovinv);
         
         double std_dev = 0.0; int k = 0;
         std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
         for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end();) {
           
-          ctrl::invariant_kalman_filter_step(mdl_inv_dt,b,vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0),it->second,Qcov,Rcovinv,it->first - time_step * j);
+	  b_z.set_mean_state(it->second);
+          ctrl::invariant_kalman_filter_step(mdl_inv_dt,mdl_state_space,b,b_u,b_z,it->first - time_step * j);
           
           vect_n<double> b_mean = b.get_mean_state();
           quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
@@ -406,7 +419,7 @@ int main(int argc, char** argv) {
       //std::cout << "Running Invariant-Momentum Kalman Filter..." << std::endl;
       {
     
-        ctrl::gaussian_belief_state< ctrl::covariance_matrix< vect_n<double> > > 
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
           b(b_init.get_mean_state(),
             ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
   
@@ -416,12 +429,17 @@ int main(int argc, char** argv) {
         ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
         ctrl::covariance_matrix< vect_n<double> > Qcov;
 	Qcov = Qu_avg;
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
+											             ctrl::covariance_matrix< vect_n<double> >(Qu));
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
+											             Rcovinv);
         
         double std_dev = 0.0; int k = 0;
         MeasIter it_orig = measurements.begin();
         for(MeasIter it = measurements_noisy.begin(); it != measurements_noisy.end();) {
           
-          ctrl::invariant_kalman_filter_step(mdl_inv_mom_dt,b,vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0),it->second,Qcov,Rcovinv,it->first - time_step * j);
+	  b_z.set_mean_state(it->second);
+          ctrl::invariant_kalman_filter_step(mdl_inv_mom_dt,mdl_state_space,b,b_u,b_z,it->first - time_step * j);
           
           vect_n<double> b_mean = b.get_mean_state();
           quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
@@ -445,7 +463,7 @@ int main(int argc, char** argv) {
       //std::cout << "Running Invariant-Midpoint Kalman Filter..." << std::endl;
       {
     
-        ctrl::gaussian_belief_state< ctrl::covariance_matrix< vect_n<double> > > 
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
           b(b_init.get_mean_state(),
             ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
   
@@ -455,12 +473,17 @@ int main(int argc, char** argv) {
         ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
         ctrl::covariance_matrix< vect_n<double> > Qcov;
 	Qcov = Qu_avg;
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
+											             ctrl::covariance_matrix< vect_n<double> >(Qu));
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
+											             Rcovinv);
         
         double std_dev = 0.0; int k = 0;
         MeasIter it_orig = measurements.begin();
         for(MeasIter it = measurements_noisy.begin(); it != measurements_noisy.end();) {
           
-          ctrl::invariant_kalman_filter_step(mdl_inv_mid_dt,b,vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0),it->second,Qcov,Rcovinv,it->first - time_step * j);
+	  b_z.set_mean_state(it->second);
+          ctrl::invariant_kalman_filter_step(mdl_inv_mid_dt,mdl_state_space,b,b_u,b_z,it->first - time_step * j);
           
           vect_n<double> b_mean = b.get_mean_state();
           quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));

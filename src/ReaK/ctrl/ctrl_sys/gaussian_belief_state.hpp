@@ -75,7 +75,6 @@ struct gaussian_pdf {
   typedef typename covariance_mat_traits<covariance_type>::matrix_type matrix_type;
   
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type>));
   
   state_type mean_state;
   mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> L; 
@@ -130,6 +129,7 @@ struct gaussian_pdf {
     using std::exp;
     typedef typename pp::topology_traits<Topology>::point_difference_type state_difference_type;
     BOOST_CONCEPT_ASSERT((ReadableVectorConcept<state_difference_type>));
+    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type, state_difference_type>));
     
     if(factor <= scalar_type(0))
       return scalar_type(0);
@@ -177,7 +177,6 @@ struct gaussian_pdf<BeliefState, covariance_storage::information> {
   typedef typename covariance_mat_traits<covariance_type>::matrix_type matrix_type;
   
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type>));
   
   state_type mean_state;
   matrix_type E_inv;
@@ -234,6 +233,7 @@ struct gaussian_pdf<BeliefState, covariance_storage::information> {
     using std::fabs;
     typedef typename pp::topology_traits<Topology>::point_difference_type state_difference_type;
     BOOST_CONCEPT_ASSERT((ReadableVectorConcept<state_difference_type>));
+    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type,state_difference_type>));
       
     if(factor <= scalar_type(0)) 
       return scalar_type(0);
@@ -275,7 +275,6 @@ struct gaussian_pdf<BeliefState, covariance_storage::decomposed> {
   typedef typename covariance_mat_traits<covariance_type>::matrix_type matrix_type;
   
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<covariance_type>));
   
   state_type mean_state;
   mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> QX;
@@ -336,6 +335,7 @@ struct gaussian_pdf<BeliefState, covariance_storage::decomposed> {
     using std::exp;
     typedef typename pp::topology_traits<Topology>::point_difference_type state_difference_type;
     BOOST_CONCEPT_ASSERT((WritableVectorConcept<state_difference_type>));
+    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type,state_difference_type>));
     
     if(factor <= scalar_type(0))
       return scalar_type(0);
@@ -415,7 +415,6 @@ struct gaussian_sampler {
   typedef typename covariance_mat_traits<covariance_type>::matrix_type matrix_type;
   
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type>));
   
   state_type mean_state;
   mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> L;
@@ -472,6 +471,7 @@ struct gaussian_sampler {
     
     typedef typename pp::topology_traits<Topology>::point_difference_type state_difference_type;
     BOOST_CONCEPT_ASSERT((WritableVectorConcept<state_difference_type>));
+    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type,state_difference_type>));
     
     state_difference_type z = space.difference(mean_state, mean_state);
     for(size_type i = 0; i < z.size(); ++i)
@@ -500,6 +500,7 @@ class gaussian_belief_state : public virtual shared_object {
     typedef gaussian_belief_state<StateType, Covariance> self;
     
     typedef StateType state_type;
+    typedef StateType state_difference_type;
     typedef Covariance covariance_type;
     
     typedef typename covariance_mat_traits<covariance_type>::value_type scalar_type;
@@ -509,7 +510,7 @@ class gaussian_belief_state : public virtual shared_object {
     typedef gaussian_pdf<self> pdf_type;
     typedef gaussian_sampler<self> random_sampler_type;
     
-    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<Covariance>));
+    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<Covariance,state_difference_type>));
     
     BOOST_STATIC_CONSTANT(belief_distribution::tag, distribution = belief_distribution::unimodal);
     BOOST_STATIC_CONSTANT(belief_representation::tag, representation = belief_representation::gaussian);

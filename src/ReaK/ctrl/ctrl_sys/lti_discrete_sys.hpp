@@ -49,15 +49,16 @@ namespace ctrl {
  * state-space system, as used in ReaK::ctrl. A discrete-time LTI state-space system is 
  * basically described by four system matrices (A,B,C,D) which make the linear mapping 
  * between the current state and input and the next state and current output.
+ * \tparam T The value-type of the system matrices.
  */
 template <typename T>
 class lti_discrete_sys : public named_object {
   private:
+    T dt;
     mat<T,mat_structure::square> A;
     mat<T,mat_structure::rectangular> B;
     mat<T,mat_structure::rectangular> C;
     mat<T,mat_structure::rectangular> D;
-    T dt;
     
   public:
     typedef lti_discrete_sys<T> self;
@@ -229,20 +230,32 @@ class lti_discrete_sys : public named_object {
      * \return The output-vector's dimension.
      */
     size_type get_output_count() const { return C.get_row_count(); };
+    
+    /**
+     * Fills the given matrices with the discrete-time system's state transition matrices.
+     * \param aA Stores, as output, the system matrix A.
+     * \param aB Stores, as output, the system matrix B.
+     */
+    template <typename MatrixA, typename MatrixB>
+    typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
+                                 is_writable_matrix<MatrixB>::value,
+    void >::type get_state_transition_blocks(MatrixA& aA, MatrixB& aB) const {
+      aA = A;
+      aB = B;
+    };
 
     /**
      * Fills the given matrices with the discrete-time system's state transition matrices.
      * \param aA Stores, as output, the system matrix A.
      * \param aB Stores, as output, the system matrix B.
      */
-    template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
+    template <typename MatrixA, typename MatrixB, typename StateSpaceType>
     typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
                                  is_writable_matrix<MatrixB>::value,
-    void >::type get_state_transition_blocks(MatrixA& aA, MatrixB& aB, 
-					     const time_type& t_0 = time_type(), const time_type& t_1 = time_type(), 
-					     const point_type& p_0 = point_type(), const point_type& p_1 = point_type(), 
-					     const input_type& u_0 = input_type(), const input_type& u_1 = input_type()) const {
-					     RK_UNUSED(t_0); RK_UNUSED(t_1); RK_UNUSED(p_0); RK_UNUSED(p_1); RK_UNUSED(u_0); RK_UNUSED(u_1); 
+    void >::type get_state_transition_blocks(MatrixA& aA, MatrixB& aB, const StateSpaceType&, 
+					     const time_type& = time_type(), const time_type& = time_type(), 
+					     const point_type& = point_type(), const point_type& = point_type(), 
+					     const input_type& = input_type(), const input_type& = input_type()) const {
       aA = A;
       aB = B;
     };
@@ -252,14 +265,26 @@ class lti_discrete_sys : public named_object {
      * \param aC Stores, as output, the system matrix C.
      * \param aD Stores, as output, the system matrix D.
      */
-    template <typename MatrixA, typename MatrixB, typename MatrixC, typename MatrixD>
+    template <typename MatrixC, typename MatrixD>
     typename boost::enable_if_c< is_writable_matrix<MatrixC>::value &&
                                  is_writable_matrix<MatrixD>::value,
-    void >::type get_output_function_blocks(MatrixC& aC, MatrixD& aD,
-                                            const time_type& t = time_type(),
-					    const point_type& p = point_type(),
-					    const input_type& u = input_type()) const {
-					    RK_UNUSED(t); RK_UNUSED(p); RK_UNUSED(u);
+    void >::type get_output_function_blocks(MatrixC& aC, MatrixD& aD) const {
+      aC = C;
+      aD = D;
+    };
+    
+    /**
+     * Fills the given matrices with the discrete-time system's output function matrices.
+     * \param aC Stores, as output, the system matrix C.
+     * \param aD Stores, as output, the system matrix D.
+     */
+    template <typename MatrixC, typename MatrixD, typename StateSpaceType>
+    typename boost::enable_if_c< is_writable_matrix<MatrixC>::value &&
+                                 is_writable_matrix<MatrixD>::value,
+    void >::type get_output_function_blocks(MatrixC& aC, MatrixD& aD, const StateSpaceType&,
+                                            const time_type& = time_type(),
+					    const point_type& = point_type(),
+					    const input_type& = input_type()) const {
       aC = C;
       aD = D;
     };
@@ -276,7 +301,8 @@ class lti_discrete_sys : public named_object {
      * \param t The current time.
      * \return The next state, at t + get_time_step().
      */
-    point_type get_next_state(const point_type& p, const input_type& u, const time_type& t = 0) const {
+    template <typename StateSpaceType>
+    point_type get_next_state(const StateSpaceType&, const point_type& p, const input_type& u, const time_type& = 0) const {
       return A * p + B * u;
     };
     
@@ -287,34 +313,28 @@ class lti_discrete_sys : public named_object {
      * \param t The current time.
      * \return The current output.
      */
-    output_type get_output(const point_type& p, const input_type& u, const time_type& t = 0) const {
+    template <typename StateSpaceType>
+    output_type get_output(const StateSpaceType&, const point_type& p, const input_type& u, const time_type& = 0) const {
       return C * p + D * u;
-    };
-    
-    /**
-     * Adjusts the state by adding a state difference to it.
-     */
-    point_type adjust(const point_type& p, const point_difference_type& dp) const {
-      return p + dp;
     };
     
     
     
     virtual void RK_CALL save(ReaK::serialization::oarchive& aA, unsigned int) const {
       ReaK::named_object::save(aA,ReaK::named_object::getStaticObjectType()->TypeVersion());
-      aA & RK_SERIAL_SAVE_WITH_NAME(A)
+      aA & RK_SERIAL_SAVE_WITH_NAME(dt)
+         & RK_SERIAL_SAVE_WITH_NAME(A)
          & RK_SERIAL_SAVE_WITH_NAME(B)
          & RK_SERIAL_SAVE_WITH_NAME(C)
-         & RK_SERIAL_SAVE_WITH_NAME(D)
-         & RK_SERIAL_SAVE_WITH_NAME(dt);
+         & RK_SERIAL_SAVE_WITH_NAME(D);
     };
     virtual void RK_CALL load(ReaK::serialization::iarchive& aA, unsigned int) {
       ReaK::named_object::load(aA,ReaK::named_object::getStaticObjectType()->TypeVersion());
-      aA & RK_SERIAL_LOAD_WITH_NAME(A)
+      aA & RK_SERIAL_LOAD_WITH_NAME(dt)
+         & RK_SERIAL_LOAD_WITH_NAME(A)
          & RK_SERIAL_LOAD_WITH_NAME(B)
          & RK_SERIAL_LOAD_WITH_NAME(C)
-         & RK_SERIAL_LOAD_WITH_NAME(D)
-         & RK_SERIAL_LOAD_WITH_NAME(dt);
+         & RK_SERIAL_LOAD_WITH_NAME(D);
     };
     
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2300004,1,"lti_discrete_sys",named_object)

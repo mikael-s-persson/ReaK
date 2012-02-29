@@ -46,19 +46,18 @@ namespace detail {
   
   template <typename T,
             typename LinearSystem,
+	    typename StateSpaceType,
             typename SystemNoiseCovariance>
   struct kalman_bucy_predictor : public state_rate_function< T > {
     
-    BOOST_CONCEPT_ASSERT((LinearSSSystemConcept< LinearSystem, LinearizedSystemType >));
-    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
+    BOOST_CONCEPT_ASSERT((LinearSSSystemConcept< LinearSystem, StateSpaceType, LinearizedSystemType >));
+    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance, pp::topology_traits<StateSpaceType>::point_difference_type>));
   
     typedef T value_type;
     typedef std::size_t size_type;
     typedef typename ss_system_traits<LinearSystem>::point_type state_type;
     typedef typename ss_system_traits<LinearSystem>::input_type input_type;
     typedef typename ss_system_traits<LinearSystem>::output_type output_type;
-    typedef typename continuous_belief_state_traits<BeliefState>::covariance_type cov_type;
-    typedef typename covariance_mat_traits< CovType >::matrix_type cov_mat_type;
   
     typedef typename linear_ss_system_traits<LinearSystem>::matrixA_type matrixA_type;
     typedef typename linear_ss_system_traits<LinearSystem>::matrixB_type matrixB_type;
@@ -66,6 +65,7 @@ namespace detail {
     typedef typename linear_ss_system_traits<LinearSystem>::matrixD_type matrixD_type;
     
     const LinearSystem& sys;
+    const StateSpaceType& state_space;
     const input_type& u;
     
     mat<value_type, mat_structure::symmetric> Q;
@@ -76,8 +76,8 @@ namespace detail {
     matrixC_type C;
     matrixD_type D;
     
-    kalman_bucy_system(const LinearSystem& aSys, const input_type& aU, const SystemNoiseCovariance& aQ) :
-		       sys(aSys), u(aU), Q(aQ.get_matrix()) {
+    kalman_bucy_system(const LinearSystem& aSys, const StateSpaceType& aStateSpace, const input_type& aU, const SystemNoiseCovariance& aQ) :
+		       sys(aSys), state_space(aStateSpace), u(aU), Q(aQ.get_matrix()) {
       P.set_row_count(Q.get_row_count());
     };
     
@@ -87,16 +87,15 @@ namespace detail {
       for(size_type i = 0; i < x.size(); ++i) 
 	x[i] = aState[i];
       
-      sys.get_linear_blocks(A, B, C, D, aTime, x, u);
-      
       for(size_type j = 0; j < x.size(); ++j)
 	for(size_type i = 0; i < x.size(); ++i)
 	  P(i,j) = aState[x.size() * (j + 1) + i];
       
-      Kt = R_inv * C * P;
+      sys.get_linear_blocks(A, B, C, D, state_space, aTime, x, u);
+      
       x = A * x + B * u;
       P = A * P;
-      P += Q + transpose(P);
+      P += B * Q + Q * transpose_view(B) + transpose_view(P);
       
       for(size_type i = 0; i < x.size(); ++i) 
 	aStateRate[i] = x[i];
@@ -115,29 +114,28 @@ namespace detail {
 
 
 template <typename LinearSystem, 
+          typename StateSpaceType,
           typename BeliefState, 
-	  typename SystemNoiseCovariance,
-	  typename MeasurementNoiseCovariance>
+	  typename InputBelief, 
+	  typename MeasurementBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type hybrid_kalman_filter_step(const LinearSystem& sys,
 				       integrator< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >& integ,
-				       BeliefState& b,
-				       const typename ss_system_traits<LinearSystem>::input_type& u,
-				       const typename ss_system_traits<LinearSystem>::output_type& z,
-				       const SystemNoiseCovariance& Q,
-				       const MeasurementNoiseCovariance& R,
+			               const StateSpaceType& state_space,
+			               BeliefState& b_x,
+			               const InputBelief& b_u,
+			               const MeasurementBelief& b_z,
 				       typename ss_system_traits<LinearSystem>::time_difference_type dt,
 				       typename ss_system_traits<LinearSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
-  BOOST_CONCEPT_ASSERT((LinearSSSystemConcept< LinearSystem, LinearizedSystemType >));
+  BOOST_CONCEPT_ASSERT((LinearSSSystemConcept< LinearSystem, StateSpaceType, LinearizedSystemType >));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementNoiseCovariance>));
-  
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
   
   typedef typename ss_system_traits<LinearSystem>::point_type StateType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
@@ -145,22 +143,30 @@ void >::type hybrid_kalman_filter_step(const LinearSystem& sys,
   typedef typename mat_traits< MatType >::value_type ValueType;
   typedef typename mat_traits< MatType >::size_type SizeType;
   
+  typedef typename continuous_belief_state_traits<InputBelief>::covariance_type InputCovType;
+  typedef typename continuous_belief_state_traits<MeasurementBelief>::covariance_type OutputCovType;
+  
   integ.setTime(t);
   integ.clearStateVector();
-  StateType x = b.get_mean_state();
+  StateType x = b_x.get_mean_state();
   integ.addStateElements(x);
-  mat<ValueType, mat_structure::square> P = b.get_covariance().get_matrix();
+  mat<ValueType, mat_structure::square> P = b_x.get_covariance().get_matrix();
   
   for(SizeType j = 0; j < P.get_col_count(); ++j) 
     for(SizeType i = 0; i < P.get_row_count(); ++i)
       integ.addStateElement(P(i,j));
   
   integ.setStateRateFunc(
-    boost::shared_ptr< state_rate_function<ValueType> >( 
+    typename shared_pointer< state_rate_function<ValueType> >::type( 
       new detail::kalman_bucy_system<ValueType, 
                                      LinearSystem, 
-				     SystemNoiseCovariance, 
-				     MeasurementNoiseCovariance>( sys, u, z, Q, R ) ));
+				     StateSpaceType,
+				     InputCovType, 
+				     OutputCovType>( sys, state_space, 
+						     b_u.get_mean_state(), 
+						     b_z.get_mean_state(), 
+						     b_u.get_covariance(), 
+						     b_z.get_covariance() ) ));
   
   integ.integrate(t + dt);
   
@@ -177,16 +183,18 @@ void >::type hybrid_kalman_filter_step(const LinearSystem& sys,
   typename linear_ss_system_traits<LinearSystem>::matrixC_type C;
   typename linear_ss_system_traits<LinearSystem>::matrixD_type D;
   
-  sys.get_linear_blocks(A, B, C, D, t, x, u);
+  sys.get_linear_blocks(A, B, C, D, state_space, t, x, u);
   
-  OutputType y = z - C * x - D * u;
+  OutputType y = b_z.get_mean_state() - C * x - D * b_u.get_mean_state();
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S = CP * transpose(C) + R.get_matrix();
+  mat< ValueType, mat_structure::symmetric > S = CP * transpose_view(C) + b_z.get_covariance().get_matrix();
   linsolve_Cholesky(S,CP);
-  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
+  mat< ValueType, mat_structure::rectangular > K = transpose_view(CP);
    
-  b.set_mean_state( x + K * y );
-  b.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
+  b_x.set_mean_state( state_space.adjust(x, K * y) );
+  b_x.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
+  
+  integ.setStateRateFunc(typename shared_pointer< state_rate_function<ValueType> >::type());
   
 };
 

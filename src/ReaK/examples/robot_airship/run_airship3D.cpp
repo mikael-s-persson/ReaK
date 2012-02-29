@@ -141,14 +141,14 @@ int main(int argc, char** argv) {
     return 2;
   };
   
-  ctrl::kte_nl_system airship3D_system("airship3D_system");
+  shared_pointer<ctrl::kte_nl_system>::type airship3D_system(new ctrl::kte_nl_system("airship3D_system"));
   
-  airship3D_system.dofs_3D.push_back(airship3D_frame);
-  airship3D_system.inputs.push_back(airship3D_actuator);
-  airship3D_system.outputs.push_back(airship3D_position);
-  airship3D_system.outputs.push_back(airship3D_rotation);
-  airship3D_system.chain = airship3D_model;
-  airship3D_system.mass_calc = airship3D_mass_calc;
+  airship3D_system->dofs_3D.push_back(airship3D_frame);
+  airship3D_system->inputs.push_back(airship3D_actuator);
+  airship3D_system->outputs.push_back(airship3D_position);
+  airship3D_system->outputs.push_back(airship3D_rotation);
+  airship3D_system->chain = airship3D_model;
+  airship3D_system->mass_calc = airship3D_mass_calc;
   
   typedef ctrl::num_int_dtnl_sys< ctrl::kte_nl_system, dormand_prince45_integrator<double> > sys_type;
   sys_type 
@@ -169,6 +169,7 @@ int main(int argc, char** argv) {
 					   mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
 					   time_step);
   
+  pp::vector_topology< vect_n<double> > mdl_state_space;
   
   recorder::ssv_recorder results(results_filename);
   
@@ -211,11 +212,11 @@ int main(int argc, char** argv) {
     u[4] = var_rnd() * sqrt(Qu(4,4));
     u[5] = var_rnd() * sqrt(Qu(5,5));
     
-    x = airship3D_dt_sys.get_next_state(x,u,t);
-    sys_type::output_type y = airship3D_dt_sys.get_output(x,u,t);
+    x = airship3D_dt_sys.get_next_state(mdl_state_space,x,u,t);
+    sys_type::output_type y = airship3D_dt_sys.get_output(mdl_state_space,x,u,t);
     
-    x_dt = mdl_inv_dt.get_next_state(x_dt,u,t);
-    ctrl::airship3D_inv_dt_system::output_type y_dt = mdl_inv_dt.get_output(x_dt,u,t);
+    x_dt = mdl_inv_dt.get_next_state(mdl_state_space,x_dt,u,t);
+    ctrl::airship3D_inv_dt_system::output_type y_dt = mdl_inv_dt.get_output(mdl_state_space,x_dt,u,t);
     //std::cout << y_dt << std::endl;
     
     std::cout << "\r" << std::setw(20) << t; std::cout.flush();

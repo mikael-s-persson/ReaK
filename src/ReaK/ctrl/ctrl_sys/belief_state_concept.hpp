@@ -218,7 +218,10 @@ struct continuous_belief_state_traits {
  */
 template <typename ContBeliefState>
 struct ContinuousBeliefStateConcept : BeliefStateConcept<ContBeliefState> {
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept< typename continuous_belief_state_traits<ContBeliefState>::covariance_type >));
+  typedef typename continuous_belief_state_traits<ContBeliefState>::state_difference_type state_difference_type;
+  typedef typename continuous_belief_state_traits<ContBeliefState>::covariance_type covariance_type;
+  
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type,state_difference_type>));
   
   typename continuous_belief_state_traits<ContBeliefState>::covariance_type c;
   
@@ -347,8 +350,8 @@ struct BeliefTransferConcept {
   typedef typename belief_transfer_traits< BeliefTransfer >::time_difference_type TimeDiffType;
   
   BOOST_CONCEPT_ASSERT((BeliefStateConcept< BeliefState >));
-  BOOST_CONCEPT_ASSERT((SSSystemConcept< StateSpaceSystem >));
   BOOST_CONCEPT_ASSERT((BeliefSpaceConcept< BeliefSpaceType >));
+  BOOST_CONCEPT_ASSERT((SSSystemConcept< StateSpaceSystem, typename belief_space_traits<BeliefSpaceType>::state_topology >));
   
   BeliefTransfer f;
   typename ss_system_traits<StateSpaceSystem>::input_type u;
@@ -411,7 +414,7 @@ struct is_belief_transfer {
  * \tparam BeliefSpaceType The belief topology type on which the beliefs lie.
  */
 template <typename BeliefPredictor, typename BeliefSpaceType>
-struct BeliefPredictorConcept : BeliefTransferConcept<BeliefPredictor> {
+struct BeliefPredictorConcept : BeliefTransferConcept<BeliefPredictor,BeliefSpaceType> {
   
   BOOST_CONCEPT_USAGE(BeliefPredictorConcept)
   {

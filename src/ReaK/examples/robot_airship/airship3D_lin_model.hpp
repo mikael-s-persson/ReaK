@@ -35,6 +35,8 @@
 #include "kinetostatics/quat_alg.hpp"
 #include "kinetostatics/rotations_3D.hpp"
 
+#include "topologies/vector_topology.hpp"
+
 namespace ReaK {
 
 
@@ -89,7 +91,7 @@ class airship3D_lin_system : public named_object {
   
     virtual ~airship3D_lin_system() { };
     
-    point_derivative_type get_state_derivative(const point_type& x, const input_type& u, const time_type t = 0.0) const {
+    point_derivative_type get_state_derivative(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
       quaternion<double> q(vect<double,4>(x[3],x[4],x[5],x[6]));
       vect<double,3> w(x[10],x[11],x[12]);
       vect<double,4> qd = q.getQuaternionDot(w);
@@ -109,11 +111,11 @@ class airship3D_lin_system : public named_object {
 				   aacc[2]);
     };
     
-    output_type get_output(const point_type& x, const input_type& u, const time_type t = 0.0) const {
+    output_type get_output(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
       return output_type(x[0], x[1], x[2], x[3], x[4], x[5], x[6]);
     };
     
-    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const time_type& t, const point_type& x, const input_type& u) const {
+    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, const time_type& t, const point_type& x, const input_type& u) const {
       vect<double,3> w(-x[10],-x[11],-x[12]);
       
       A = mat<double,mat_structure::nil>(13,13);
@@ -204,7 +206,7 @@ class airship3D_inv_system : public airship3D_lin_system {
   
     virtual ~airship3D_inv_system() { };
         
-    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const time_type& t, const point_type& x, const input_type& u) const {
+    void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, const time_type& t, const point_type& x, const input_type& u) const {
       A = mat<double,mat_structure::nil>(12,12);
       A(0,6) = 1.0;
       A(1,7) = 1.0;
@@ -225,7 +227,7 @@ class airship3D_inv_system : public airship3D_lin_system {
       D = mat<double,mat_structure::nil>(6,6);
     };
         
-    invariant_error_type get_invariant_error(const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
+    invariant_error_type get_invariant_error(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
       quaternion<double> q_diff = quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6])) 
                                 * invert(quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])));
       return invariant_error_type(y[0] - x[0],
@@ -236,7 +238,7 @@ class airship3D_inv_system : public airship3D_lin_system {
 	                          2.0 * q_diff[0] * q_diff[3]); 
     };
     
-    point_derivative_type apply_correction(const point_type& x, const point_derivative_type& xd, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
+    point_derivative_type apply_correction(const pp::vector_topology< vect_n<double> >&, const point_type& x, const point_derivative_type& xd, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
       quaternion<double> q(vect<double,4>(x[3],x[4],x[5],x[6]));
       vect<double,4> dq = q.getQuaternionDot(vect<double,3>(c[3],c[4],c[5]));
       return point_type(xd[0] + c[0],
@@ -314,7 +316,7 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
     
     time_difference_type get_time_step() const { return mDt; };
     
-    point_type get_next_state(const point_type& x, const input_type& u, const time_type t = 0.0) const {
+    point_type get_next_state(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
       //this function implements the momentum-conserving trapezoidal rule (variational integrator). This is very similar to the symplectic variational midpoint integrator over Lie Groups.
       
       /*
@@ -383,11 +385,11 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
 			 w0[2]);
     };
     
-    output_type get_output(const point_type& x, const input_type& u, const time_type t = 0.0) const {
+    output_type get_output(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
       return output_type(x[0], x[1], x[2], x[3], x[4], x[5], x[6]);
     };
     
-    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
 				     const time_type& t_0, const time_type&,
 				     const point_type& p_0, const point_type&,
 				     const input_type&, const input_type&) const {
@@ -425,7 +427,7 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       
     };
     
-    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, 
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, 
 				    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(7,13);
       set_block(C,mat<double,mat_structure::identity>(7),0,0);
@@ -490,7 +492,7 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
   
     virtual ~airship3D_inv_dt_system() { };
     
-    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
 				     const time_type& t_0, const time_type&,
 				     const point_type& p_0, const point_type&,
 				     const input_type&, const input_type&) const {
@@ -519,7 +521,7 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
       
     };
     
-    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, 
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, 
 				    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(6,12);
       set_block(C,mat<double,mat_structure::identity>(6),0,0);
@@ -527,7 +529,7 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
       D = mat<double,mat_structure::nil>(6,6);
     };
     
-    invariant_error_type get_invariant_error(const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
+    invariant_error_type get_invariant_error(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
       quaternion<double> q_diff = invert(quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6]))) 
                                 * quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6]));
       quat<double> a = log(quat<double>(q_diff[0],q_diff[1],q_diff[2],q_diff[3]));
@@ -539,7 +541,7 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
 	                          2.0 * a[3]); 
     };
     
-    point_type apply_correction(const point_type& x, const invariant_correction_type& c, const input_type&, const time_type&) const {
+    point_type apply_correction(const pp::vector_topology< vect_n<double> >&, const point_type& x, const invariant_correction_type& c, const input_type&, const time_type&) const {
       quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
                                  quaternion<double>(exp(quat<double>(0.0, 0.5 * c[3], 0.5 * c[4], 0.5 * c[5])));
       return point_type(x[0] + c[0],
@@ -557,11 +559,11 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
 			x[12] + c[11]);
     };
     
-    invariant_frame_type get_invariant_prior_frame(const point_type&, const point_type&, const input_type&, const time_type&) const {
+    invariant_frame_type get_invariant_prior_frame(const pp::vector_topology< vect_n<double> >&, const point_type&, const point_type&, const input_type&, const time_type&) const {
       return invariant_frame_type(invariant_correction_dimensions);
     };
     
-    invariant_frame_type get_invariant_posterior_frame(const point_type&, const point_type&, const input_type&, const time_type&) const {
+    invariant_frame_type get_invariant_posterior_frame(const pp::vector_topology< vect_n<double> >&, const point_type&, const point_type&, const input_type&, const time_type&) const {
       return invariant_frame_type(invariant_correction_dimensions);
     };
     
@@ -620,7 +622,7 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
   
     virtual ~airship3D_inv_mom_dt_system() { };
         
-    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
 				     const time_type& t_0, const time_type&,
 				     const point_type& p_0, const point_type&,
 				     const input_type&, const input_type&) const {
@@ -645,7 +647,7 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
       
     };
     
-    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, 
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, 
 				    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(6,12);
       set_block(C,mat<double,mat_structure::identity>(6),0,0);
@@ -653,7 +655,7 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
       D = mat<double,mat_structure::nil>(6,6);
     };
         
-    invariant_error_type get_invariant_error(const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
+    invariant_error_type get_invariant_error(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
       quaternion<double> q_diff = invert(quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6]))) 
                                 * quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6]));
       quat<double> a = log(quat<double>(q_diff[0],q_diff[1],q_diff[2],q_diff[3]));
@@ -665,7 +667,7 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
 	                          2.0 * a[3]); 
     };
     
-    point_type apply_correction(const point_type& x, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
+    point_type apply_correction(const pp::vector_topology< vect_n<double> >&, const point_type& x, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
       quaternion<double> q_diff(exp(quat<double>(0.0, 0.5 * c[3], 0.5 * c[4], 0.5 * c[5])));
       quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
                                  q_diff;
@@ -685,7 +687,7 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
 			w_new[2]);
     };
     
-    invariant_frame_type get_invariant_prior_frame(const point_type& x_prev, const point_type& x_prior, const input_type&, const time_type&) const {
+    invariant_frame_type get_invariant_prior_frame(const pp::vector_topology< vect_n<double> >&, const point_type& x_prev, const point_type& x_prior, const input_type&, const time_type&) const {
       invariant_frame_type result(mat<double,mat_structure::identity>(12));
       mat<double,mat_structure::square> R_diff((invert(quaternion<double>(vect<double,4>(x_prior[3],x_prior[4],x_prior[5],x_prior[6])))
                                                  * quaternion<double>(vect<double,4>(x_prev[3],x_prev[4],x_prev[5],x_prev[6]))).getMat());
@@ -694,8 +696,8 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
       return result;
     };
     
-    invariant_frame_type get_invariant_posterior_frame(const point_type& x_prior, const point_type& x_post, const input_type& u, const time_type& t) const {
-      return get_invariant_prior_frame(x_prior,x_post,u,t);
+    invariant_frame_type get_invariant_posterior_frame(const pp::vector_topology< vect_n<double> >& state_space, const point_type& x_prior, const point_type& x_post, const input_type& u, const time_type& t) const {
+      return get_invariant_prior_frame(state_space,x_prior,x_post,u,t);
     };
     
 /*******************************************************************************
@@ -754,7 +756,7 @@ class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
   
     virtual ~airship3D_inv_mid_dt_system() { };
     
-    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
 				     const time_type&, const time_type&,
 				     const point_type& p_0, const point_type& p_1,
 				     const input_type&, const input_type&) const {
@@ -781,7 +783,7 @@ class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
       
     };
     
-    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, 
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, 
 				    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(6,12);
       set_block(C,mat<double,mat_structure::identity>(6),0,0);
@@ -789,7 +791,7 @@ class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
       D = mat<double,mat_structure::nil>(6,6);
     };
         
-    invariant_error_type get_invariant_error(const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
+    invariant_error_type get_invariant_error(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
       quaternion<double> q_diff = invert(quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6]))) 
                                 * quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6]));
       quat<double> a = log(quat<double>(q_diff[0],q_diff[1],q_diff[2],q_diff[3]));
@@ -801,7 +803,7 @@ class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
 	                          2.0 * a[3]); 
     };
     
-    point_type apply_correction(const point_type& x, const invariant_correction_type& c, const input_type&, const time_type&) const {
+    point_type apply_correction(const pp::vector_topology< vect_n<double> >&, const point_type& x, const invariant_correction_type& c, const input_type&, const time_type&) const {
       quaternion<double> q_diff(exp(quat<double>(0.0, 0.5 * c[3], 0.5 * c[4], 0.5 * c[5])));
       quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
                                  q_diff;
@@ -822,7 +824,7 @@ class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
 			w_new[2]);
     };
     
-    invariant_frame_type get_invariant_prior_frame(const point_type& x_prev, const point_type& x_prior, const input_type&, const time_type&) const {
+    invariant_frame_type get_invariant_prior_frame(const pp::vector_topology< vect_n<double> >&, const point_type& x_prev, const point_type& x_prior, const input_type&, const time_type&) const {
       invariant_frame_type result(mat<double,mat_structure::identity>(12));
       mat<double,mat_structure::square> R_diff((invert(quaternion<double>(vect<double,4>(x_prior[3],x_prior[4],x_prior[5],x_prior[6])))
                                                      * quaternion<double>(vect<double,4>(x_prev[3],x_prev[4],x_prev[5],x_prev[6]))).getMat());
@@ -831,7 +833,7 @@ class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
       return result;
     };
     
-    invariant_frame_type get_invariant_posterior_frame(const point_type& x_prior, const point_type& x_post, const input_type&, const time_type&) const {
+    invariant_frame_type get_invariant_posterior_frame(const pp::vector_topology< vect_n<double> >&, const point_type& x_prior, const point_type& x_post, const input_type&, const time_type&) const {
       invariant_frame_type result(mat<double,mat_structure::identity>(12));
       mat<double,mat_structure::square> R_diff((invert(quaternion<double>(vect<double,4>(x_post[3],x_post[4],x_post[5],x_post[6])))
                                                      * quaternion<double>(vect<double,4>(x_prior[3],x_prior[4],x_prior[5],x_prior[6]))).getMat());

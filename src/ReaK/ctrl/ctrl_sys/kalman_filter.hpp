@@ -290,8 +290,8 @@ struct KF_belief_transfer {
   typedef gaussian_belief_state<output_type, MeasurementCovar> output_belief_type;
   
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovar>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementCovar>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovar, input_type>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementCovar, output_type>));
 
   state_space_system_ptr sys; ///< Holds the reference to the system used for the filter.
   SystemNoiseCovar Q; ///< Holds the system's input noise covariance matrix.

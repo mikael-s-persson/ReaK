@@ -384,10 +384,10 @@ struct SKF_belief_transfer {
   typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
 
   typedef typename belief_state_traits< belief_state >::state_type state_type;
-  typedef typename state_vector_traits< state_type >::value_type value_type;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type covariance_type;
   typedef typename decomp_covariance_mat_traits< covariance_type >::matrix_block_type matrix_type;
   typedef typename mat_traits< matrix_type >::value_type mat_value_type;
+  typedef mat_value_type value_type;
   typedef typename mat_traits< matrix_type >::size_type mat_size_type;
 
   typedef typename discrete_sss_traits< state_space_system >::input_type input_type;
@@ -397,8 +397,8 @@ struct SKF_belief_transfer {
   typedef gaussian_belief_state<output_type, MeasurementCovar> output_belief_type;
 
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovar>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementCovar>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovar,input_type>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementCovar,output_type>));
   BOOST_CONCEPT_ASSERT((DecomposedCovarianceConcept<covariance_type>));
   
   state_space_system_ptr sys; ///< Holds the reference to the system used for the filter.

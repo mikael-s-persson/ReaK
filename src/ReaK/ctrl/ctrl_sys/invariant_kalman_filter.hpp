@@ -185,7 +185,7 @@ void >::type invariant_kalman_update(const InvariantSystem& sys,
   
   StateType x = b_x.get_mean_state();
   MatType P = b_x.get_covariance().get_matrix();
-  sys.get_output_function_blocks(C, D, state_space, t, x, u);
+  sys.get_output_function_blocks(C, D, state_space, t, x, b_u.get_mean_state());
   
   typename invariant_system_traits<InvariantSystem>::invariant_error_type e = 
     sys.get_invariant_error(state_space, x, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step());
@@ -322,10 +322,9 @@ struct IKF_belief_transfer {
   typedef gaussian_belief_state<input_type, SystemNoiseCovar> input_belief_type;
   typedef gaussian_belief_state<output_type, MeasurementCovar> output_belief_type;
   
-  BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem>));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovar>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementCovar>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovar,input_type>));
+  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementCovar,output_type>));
 
   state_space_system_ptr sys; ///< Holds the reference to the system used for the filter.
   SystemNoiseCovar Q; ///< Holds the system's input noise covariance matrix.

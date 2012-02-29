@@ -121,14 +121,13 @@ namespace covariance_initial_level {
  * sz = c.size();  The covariance matrix type can provide its size.
  * 
  * \tparam CovarianceMatrix The covariance matrix type for which the traits are sought.
- * \tparam StateSpaceType The state-space topology on which the covariance can apply.
+ * \tparam StateDiffType The state-difference type on which the covariance can apply.
  */
-template <typename CovarianceMatrix, typename StateSpaceType>
+template <typename CovarianceMatrix, typename StateDiffType>
 struct CovarianceMatrixConcept {
   
-  typedef typename pp::topology_traits<StateSpaceType>::point_difference_type state_difference_type;
+  typedef StateDiffType state_difference_type;
   
-  BOOST_CONCEPT_ASSERT((StateVectorConcept<state_type>));
   BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<typename covariance_mat_traits<CovarianceMatrix>::matrix_type>));
   
   CovarianceMatrix c;
@@ -186,9 +185,10 @@ struct decomp_covariance_mat_traits {
  * m = c.get_informing_inv_block();  The informing-inverse block of the covariance matrix decomposition can be obtained.
  * 
  * \tparam CovarianceMatrix The covariance matrix type for which the traits are sought.
+ * \tparam StateDiffType The state-difference type on which the covariance can apply.
  */
-template <typename CovarianceMatrix>
-struct DecomposedCovarianceConcept : CovarianceMatrixConcept<CovarianceMatrix> {
+template <typename CovarianceMatrix, typename StateDiffType>
+struct DecomposedCovarianceConcept : CovarianceMatrixConcept<CovarianceMatrix,StateDiffType> {
   
   typename decomp_covariance_mat_traits<CovarianceMatrix>::matrix_block_type mb;
   

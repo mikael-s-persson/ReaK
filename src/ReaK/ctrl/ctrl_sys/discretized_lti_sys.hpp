@@ -88,26 +88,12 @@ class discretized_lti_sys : public named_object {
     BOOST_CONCEPT_ASSERT((LinearSSSystemConcept<LTISystem,LTISystemType>));
         
   private:
-    LTISystem sys;
     time_difference_type dt;
     
     matrixA_type Ad;
     matrixB_type Bd;
     matrixC_type Cd;
     matrixD_type Dd;
-    
-    void initialize_matrices_impl() {
-      sys.get_state_transition_blocks(Ad,Bd);
-      sys.get_output_function_blocks(Cd,Dd);
-      
-      mat<value_type, mat_structure::square> A_aug(Ad.get_col_count() + Bd.get_col_count(), value_type(0));
-      set_block(A_aug, Ad * dt, 0, 0);
-      set_block(A_aug, Bd * dt, 0, Ad.get_col_count());
-      mat<value_type, mat_structure::square> A_aug_exp(Ad.get_col_count() + Bd.get_col_count(), value_type(0));
-      exp_PadeSAS(A_aug,A_aug_exp,QR_linlsqsolver());
-      Ad = get_block(A_aug_exp, 0, 0, Ad.get_row_count(), Ad.get_col_count());
-      Bd = get_block(A_aug_exp, 0, Ad.get_col_count(), Bd.get_row_count(), Bd.get_col_count());
-    };
     
   public:
     
@@ -117,16 +103,24 @@ class discretized_lti_sys : public named_object {
      * \param aDt The time-step of the discrete-time system.
      */
     discretized_lti_sys(const LTISystem& aSys = LTISystem(), const time_difference_type& aDt = 1) :
-                        sys(aSys), dt(aDt) {
+                        dt(aDt) {
       setName(aSys.getName());
       
-      initialize_matrices_impl();
+      aSys.get_linear_blocks(Ad,Bd,Cd,Dd);
+      
+      mat<value_type, mat_structure::square> A_aug(Ad.get_col_count() + Bd.get_col_count(), value_type(0));
+      set_block(A_aug, Ad * dt, 0, 0);
+      set_block(A_aug, Bd * dt, 0, Ad.get_col_count());
+      mat<value_type, mat_structure::square> A_aug_exp(Ad.get_col_count() + Bd.get_col_count(), value_type(0));
+      exp_PadeSAS(A_aug,A_aug_exp,QR_linlsqsolver());
+      Ad = get_block(A_aug_exp, 0, 0, Ad.get_row_count(), Ad.get_col_count());
+      Bd = get_block(A_aug_exp, 0, Ad.get_col_count(), Bd.get_row_count(), Bd.get_col_count());
     };
 
     /**
      * Standard copy-constructor.
      */
-    discretized_lti_sys(const self& rhs) : sys(rhs.sys), dt(rhs.dt), Ad(rhs.Ad), Bd(rhs.Bd), Cd(rhs.Cd), Dd(rhs.Dd) {
+    discretized_lti_sys(const self& rhs) : dt(rhs.dt), Ad(rhs.Ad), Bd(rhs.Bd), Cd(rhs.Cd), Dd(rhs.Dd) {
       setName(rhs.getName());
     };
   
@@ -135,7 +129,6 @@ class discretized_lti_sys : public named_object {
      */
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
-      swap(lhs.sys,rhs.sys);
       swap(lhs.dt,rhs.dt);
       swap(lhs.Ad,rhs.Ad);
       swap(lhs.Bd,rhs.Bd);
@@ -150,11 +143,6 @@ class discretized_lti_sys : public named_object {
       swap(*this,rhs);
       return *this;
     };
-    
-    /**
-     * Returns the underlying continuous-time system.
-     */
-    const LTISystem& getSys() const { return sys; };
     
     /**
      * Fills the given matrices with the discrete-time system's state transition matrices.
@@ -252,15 +240,19 @@ class discretized_lti_sys : public named_object {
     
     virtual void RK_CALL save(ReaK::serialization::oarchive& aA, unsigned int) const {
       ReaK::named_object::save(aA,ReaK::named_object::getStaticObjectType()->TypeVersion());
-      aA & RK_SERIAL_SAVE_WITH_NAME(sys)
-         & RK_SERIAL_SAVE_WITH_NAME(dt);
+      aA & RK_SERIAL_SAVE_WITH_NAME(dt)
+         & RK_SERIAL_SAVE_WITH_NAME(Ad)
+         & RK_SERIAL_SAVE_WITH_NAME(Bd)
+         & RK_SERIAL_SAVE_WITH_NAME(Cd)
+         & RK_SERIAL_SAVE_WITH_NAME(Dd);
     };
     virtual void RK_CALL load(ReaK::serialization::iarchive& aA, unsigned int) {
       ReaK::named_object::load(aA,ReaK::named_object::getStaticObjectType()->TypeVersion());
-      aA & RK_SERIAL_LOAD_WITH_NAME(sys)
-         & RK_SERIAL_LOAD_WITH_NAME(dt);
-      
-      initialize_matrices_impl();
+      aA & RK_SERIAL_LOAD_WITH_NAME(dt)
+         & RK_SERIAL_LOAD_WITH_NAME(Ad)
+         & RK_SERIAL_LOAD_WITH_NAME(Bd)
+         & RK_SERIAL_LOAD_WITH_NAME(Cd)
+         & RK_SERIAL_LOAD_WITH_NAME(Dd);
     };
     
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2300005,1,"discretized_lti_sys",named_object)

@@ -77,9 +77,7 @@ class covar_topology {
     typedef typename covariance_mat_traits<Covariance>::value_type value_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = point_type::dimensions);
-    
-    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<Covariance>));
-    
+        
     /**
      * This nested class implements the point-difference type for the covariance topology.
      * It implements a simple linear interpolation of the covariance matrices and uses 

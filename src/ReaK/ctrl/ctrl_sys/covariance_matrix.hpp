@@ -78,14 +78,15 @@ class covariance_matrix : public named_object {
      * Parametrized constructor.
      * \param aMat The covariance matrix to which to initialize this object.
      */
-    explicit covariance_matrix(const matrix_type& aMat = matrix_type(), const std::string& aName = "") : mat_cov(aMat) { setName(aName); };
+    template <typename Matrix>
+    explicit covariance_matrix(const Matrix& aMat, typename boost::enable_if< is_readable_matrix<Matrix>, const std::string& >::type aName = "") : mat_cov(aMat) { setName(aName); };
     
     /**
      * Parametrized constructor.
      * \param aSize The size of the covariance matrix.
      * \param aLevel The information level to initialize this object with.
      */
-    explicit covariance_matrix(size_type aSize, 
+    explicit covariance_matrix(size_type aSize = 0, 
 			       covariance_initial_level::tag aLevel = covariance_initial_level::full_info, 
 			       const std::string& aName = "") : 
 			       mat_cov(aSize, value_type( ( aLevel == covariance_initial_level::full_info ? 0 : std::numeric_limits< value_type >::infinity() ) )) { 

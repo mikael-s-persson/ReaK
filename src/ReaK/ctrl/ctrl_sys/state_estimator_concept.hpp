@@ -38,7 +38,7 @@ struct state_estimator_traits {
   typedef typename StateEstimator::system_type system_type;
   typedef typename belief_state_traits<belief_type>::state_type state_type;
   
-  BOOST_STATIC_CONSTANT(std::size_t, dimensions = state_vector_traits<state_type>::dimensions);
+  BOOST_STATIC_CONSTANT(std::size_t, dimensions = ss_system_traits<system_type>::dimensions);
   
 };
 

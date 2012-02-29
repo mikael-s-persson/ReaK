@@ -229,6 +229,7 @@ class kte_nl_system : public named_object {
     /**
      * This function computes the time-derivative of the state-vector for the current state-vector and 
      * input-vector (time is not meaningful, all KTE models are automatic).
+     * \tparam StateSpaceType The state-space topology type on which the underlying system operates.
      * \param p The current state-vector.
      * \param u The current input-vector.
      * \param t The current time (ignored).
@@ -236,7 +237,8 @@ class kte_nl_system : public named_object {
      * \throw std::range_error If the state-vector or input-vector does not have the required dimension.
      * \throw singularity_error If the obtained mass-matrix is singular (thrown from a Cholesky method).
      */
-    point_derivative_type get_state_derivative(const point_type& p, const input_type& u, const time_type& t = 0) const {
+    template <typename StateSpaceType>
+    point_derivative_type get_state_derivative(const StateSpaceType&, const point_type& p, const input_type& u, const time_type& t = 0) const {
       apply_states_and_inputs(p,u);
       
       point_derivative_type pd(get_state_count());
@@ -347,12 +349,14 @@ class kte_nl_system : public named_object {
     
     /**
      * Computes the output of the system at the given state and input.
+     * \tparam StateSpaceType The state-space topology type on which the underlying system operates.
      * \param p The current state-vector.
      * \param u The current input-vector.
      * \param t The current time (ignored).
      * \return The current output of the system when the given states and inputs are applied.
      */
-    output_type get_output(const point_type& p, const input_type& u, const time_type& t = 0) const {
+    template <typename StateSpaceType>
+    output_type get_output(const StateSpaceType&, const point_type& p, const input_type& u, const time_type& t = 0) const {
       apply_states_and_inputs(p,u);
       
       chain->doMotion();
@@ -367,16 +371,6 @@ class kte_nl_system : public named_object {
 	  y[i++] = outputs[j]->getOutput(k);
 	
       return y;
-    };
-    
-    /**
-     * Adds a difference in state to a state-vector.
-     * \param p A state-vector.
-     * \param dp A state-difference vector.
-     * \return p + dp.
-     */
-    point_type adjust(const point_type& p, const point_difference_type& dp) const {
-      return p + dp;
     };
     
     

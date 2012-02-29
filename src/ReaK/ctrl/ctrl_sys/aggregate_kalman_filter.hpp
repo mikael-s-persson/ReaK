@@ -103,17 +103,17 @@ void >::type aggregate_kalman_predict(const LinearSystem& sys,
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
-  BOOST_CONCEPT_ASSERT((pp::TopologyConcept< StateSpaceType >));
-  BOOST_CONCEPT_ASSERT((DiscreteLinearSSSConcept< LinearSystem, StateSpaceType, DiscreteLinearizedSystemType >));
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance>));
-  
   typedef typename pp::topology_traits<StateSpaceType>::point_type StateType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
   typedef typename mat_traits<MatType>::size_type SizeType;
+  
+  BOOST_CONCEPT_ASSERT((pp::TopologyConcept< StateSpaceType >));
+  BOOST_CONCEPT_ASSERT((DiscreteLinearSSSConcept< LinearSystem, StateSpaceType, DiscreteLinearizedSystemType >));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
   
   typedef typename hamiltonian_mat< ValueType >::type HamilMat;
   typedef typename hamiltonian_mat< ValueType >::upper HamilMatUp;
@@ -360,8 +360,6 @@ template <typename LinearSystem,
 struct AKF_belief_transfer {
   
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovar>));
-  BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<MeasurementCovar>));
   
   typedef AKF_belief_transfer<LinearSystem, BeliefState, SystemNoiseCovar, MeasurementCovar> self;
   typedef BeliefState belief_state;
@@ -371,10 +369,9 @@ struct AKF_belief_transfer {
   typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
 
   typedef typename belief_state_traits< belief_state >::state_type state_type;
-  typedef typename state_vector_traits< state_type >::value_type value_type;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type covariance_type;
   typedef typename covariance_mat_traits< covariance_type >::matrix_type matrix_type;
-  typedef typename mat_traits< matrix_type >::value_type mat_value_type;
+  typedef typename mat_traits< matrix_type >::value_type value_type;
   typedef typename mat_traits< matrix_type >::size_type mat_size_type;
 
   typedef typename discrete_sss_traits< state_space_system >::input_type input_type;

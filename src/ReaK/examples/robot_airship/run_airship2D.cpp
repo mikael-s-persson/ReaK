@@ -33,6 +33,7 @@
 #include "ctrl_sys/kte_nl_system.hpp"
 #include "ctrl_sys/num_int_dtnl_system.hpp"
 #include "integrators/variable_step_integrators.hpp"
+#include "topologies/vector_topology.hpp"
 
 #include "serialization/xml_archiver.hpp"
 #include "recorders/ssv_recorder.hpp"
@@ -124,14 +125,14 @@ int main(int argc, char** argv) {
     return 2;
   };
   
-  ctrl::kte_nl_system airship2D_system("airship2D_system");
+  shared_pointer<ctrl::kte_nl_system>::type airship2D_system(new ctrl::kte_nl_system("airship2D_system"));
   
-  airship2D_system.dofs_2D.push_back(airship2D_frame);
-  airship2D_system.inputs.push_back(airship2D_actuator);
-  airship2D_system.outputs.push_back(airship2D_position);
-  airship2D_system.outputs.push_back(airship2D_rotation);
-  airship2D_system.chain = airship2D_model;
-  airship2D_system.mass_calc = airship2D_mass_calc;
+  airship2D_system->dofs_2D.push_back(airship2D_frame);
+  airship2D_system->inputs.push_back(airship2D_actuator);
+  airship2D_system->outputs.push_back(airship2D_position);
+  airship2D_system->outputs.push_back(airship2D_rotation);
+  airship2D_system->chain = airship2D_model;
+  airship2D_system->mass_calc = airship2D_mass_calc;
   
   typedef ctrl::num_int_dtnl_sys< ctrl::kte_nl_system, dormand_prince45_integrator<double> > sys_type;
   sys_type 
@@ -146,6 +147,8 @@ int main(int argc, char** argv) {
 							  1e-3),
 		      time_step,
 		      "airship2D_dt_sys");
+  
+  pp::vector_topology< vect_n<double> > mdl_state_space;
   
   recorder::ssv_recorder results(results_filename);
   
@@ -169,8 +172,8 @@ int main(int argc, char** argv) {
     u[1] = var_rnd() * sqrt(Qu(1,1));
     u[2] = var_rnd() * sqrt(Qu(2,2));
     
-    x = airship2D_dt_sys.get_next_state(x,u,t);
-    sys_type::output_type y = airship2D_dt_sys.get_output(x,u,t);
+    x = airship2D_dt_sys.get_next_state(mdl_state_space,x,u,t);
+    sys_type::output_type y = airship2D_dt_sys.get_output(mdl_state_space,x,u,t);
     
     std::cout << "\r" << std::setw(20) << t; std::cout.flush();
     
