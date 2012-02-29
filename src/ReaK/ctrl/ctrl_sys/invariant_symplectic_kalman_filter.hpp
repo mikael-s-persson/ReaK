@@ -437,7 +437,7 @@ struct ISKF_belief_transfer {
   typedef ISKF_belief_transfer<InvariantSystem, BeliefState> self;
   typedef BeliefState belief_state;
   typedef InvariantSystem state_space_system;
-  typedef typename shared_pointer< state_space_system >::type state_space_system_ptr;
+  typedef shared_ptr< state_space_system > state_space_system_ptr;
   typedef typename discrete_sss_traits< state_space_system >::time_type time_type;
   typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
 

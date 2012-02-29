@@ -101,8 +101,8 @@ int main(int argc, char** argv) {
   typedef ReaK::pp::temporal_space< TopoType, ReaK::pp::time_poisson_topology> TempTopoType;
   typedef ReaK::pp::topology_traits<TempTopoType>::point_type TempPointType;
     
-  ReaK::shared_pointer< TempTopoType >::type topo = 
-    ReaK::shared_pointer< TempTopoType >::type(new TempTopoType( "temporal_space",
+  ReaK::shared_ptr< TempTopoType > topo = 
+    ReaK::shared_ptr< TempTopoType >(new TempTopoType( "temporal_space",
       SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-20.0, 20.0),
                      ReaK::pp::line_segment_topology<double>("vel_topo",-max_vel, max_vel),
                      ReaK::pp::line_segment_topology<double>("acc_topo",-max_accel, max_accel),
@@ -162,8 +162,8 @@ int main(int argc, char** argv) {
   typedef ReaK::pp::temporal_space< TopoType2, ReaK::pp::time_poisson_topology> TempTopoType2;
   typedef ReaK::pp::topology_traits<TempTopoType2>::point_type TempPointType2;
     
-  ReaK::shared_pointer< TempTopoType2 >::type topo2 =
-    ReaK::shared_pointer< TempTopoType2 >::type( new TempTopoType2( "temporal_space_tuple",
+  ReaK::shared_ptr< TempTopoType2 > topo2 =
+    ReaK::shared_ptr< TempTopoType2 >( new TempTopoType2( "temporal_space_tuple",
       SpaceTupleType2(
         SpaceTupleType(ReaK::pp::line_segment_topology<double>("pos_topo",-20.0, 20.0),
                        ReaK::pp::line_segment_topology<double>("vel_topo",-max_vel, max_vel),

@@ -33,7 +33,7 @@ namespace kte {
 
 
 
-void line_point_mindist_2D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
+void line_point_mindist_2D::doMotion(kte_pass_flag aFlag, const shared_ptr<frame_storage>& aStorage) {
   if((!mBase) || (!mEnd))
     return;
   
@@ -47,17 +47,17 @@ void line_point_mindist_2D::doMotion(kte_pass_flag aFlag, const shared_pointer<f
   
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_2D_mapping[mBase]))
-      aStorage->frame_2D_mapping[mBase] = shared_pointer< frame_2D<double> >::type(new frame_2D<double>((*mBase)),scoped_deleter());
+      aStorage->frame_2D_mapping[mBase] = shared_ptr< frame_2D<double> >(new frame_2D<double>((*mBase)),scoped_deleter());
     else
       (*(aStorage->frame_2D_mapping[mBase])) = (*mBase);
     if(!(aStorage->frame_2D_mapping[mEnd]))
-      aStorage->frame_2D_mapping[mEnd] = shared_pointer< frame_2D<double> >::type(new frame_2D<double>((*mEnd)),scoped_deleter());
+      aStorage->frame_2D_mapping[mEnd] = shared_ptr< frame_2D<double> >(new frame_2D<double>((*mEnd)),scoped_deleter());
     else
       (*(aStorage->frame_2D_mapping[mEnd])) = (*mEnd);
   };
 };
     
-void line_point_mindist_2D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
+void line_point_mindist_2D::doForce(kte_pass_flag aFlag, const shared_ptr<frame_storage>& aStorage) {
   if((!mBase) || (!mEnd))
     return;
   
@@ -88,7 +88,7 @@ void line_point_mindist_2D::clearForce() {
 
 
 
-void line_point_mindist_3D::doMotion(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
+void line_point_mindist_3D::doMotion(kte_pass_flag aFlag, const shared_ptr<frame_storage>& aStorage) {
   if((!mBase) || (!mEnd))
     return;
   
@@ -102,17 +102,17 @@ void line_point_mindist_3D::doMotion(kte_pass_flag aFlag, const shared_pointer<f
   
   if((aFlag == store_kinematics) && (aStorage)) {
     if(!(aStorage->frame_3D_mapping[mBase]))
-      aStorage->frame_3D_mapping[mBase] = shared_pointer< frame_3D<double> >::type(new frame_3D<double>((*mBase)),scoped_deleter());
+      aStorage->frame_3D_mapping[mBase] = shared_ptr< frame_3D<double> >(new frame_3D<double>((*mBase)),scoped_deleter());
     else
       (*(aStorage->frame_3D_mapping[mBase])) = (*mBase);
     if(!(aStorage->frame_3D_mapping[mEnd]))
-      aStorage->frame_3D_mapping[mEnd] = shared_pointer< frame_3D<double> >::type(new frame_3D<double>((*mEnd)),scoped_deleter());
+      aStorage->frame_3D_mapping[mEnd] = shared_ptr< frame_3D<double> >(new frame_3D<double>((*mEnd)),scoped_deleter());
     else
       (*(aStorage->frame_3D_mapping[mEnd])) = (*mEnd);
   };
 };
     
-void line_point_mindist_3D::doForce(kte_pass_flag aFlag, const shared_pointer<frame_storage>::type& aStorage) {
+void line_point_mindist_3D::doForce(kte_pass_flag aFlag, const shared_ptr<frame_storage>& aStorage) {
   if((!mBase) || (!mEnd))
     return;
   

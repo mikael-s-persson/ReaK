@@ -79,8 +79,8 @@ class transformed_trajectory : public shared_object {
     
   private:
     
-    typename shared_pointer<const Topology>::type space;
-    typename shared_pointer<const InputTrajectory>::type traject;
+    shared_ptr<const Topology> space;
+    shared_ptr<const InputTrajectory> traject;
     Mapping map;
     
   public:
@@ -91,8 +91,8 @@ class transformed_trajectory : public shared_object {
      * \param aTrajectory The underlying trajectory to use.
      * \param aMap The homeomorphic mapping object to use.
      */
-    explicit transformed_trajectory(const typename shared_pointer<const Topology>::type& aSpace = typename shared_pointer<const Topology>::type(new Topology()), 
-				    const typename shared_pointer<const InputTrajectory>::type& aTrajectory = typename shared_pointer<const InputTrajectory>::type(new InputTrajectory()), 
+    explicit transformed_trajectory(const shared_ptr<const Topology>& aSpace = shared_ptr<const Topology>(new Topology()), 
+				    const shared_ptr<const InputTrajectory>& aTrajectory = shared_ptr<const InputTrajectory>(new InputTrajectory()), 
 				    const Mapping& aMap = Mapping()) : 
                                     space(aSpace), traject(aTrajectory), map(aMap) { };
     

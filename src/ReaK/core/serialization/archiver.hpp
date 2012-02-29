@@ -64,7 +64,7 @@ namespace serialization {
 
 class serializable;
 
-typedef ReaK::shared_pointer< serializable >::type serializable_shared_pointer;
+typedef ReaK::shared_ptr< serializable > serializable_shared_pointer;
 
 
 /// This function constructs a name-value-pair for saving purposes.

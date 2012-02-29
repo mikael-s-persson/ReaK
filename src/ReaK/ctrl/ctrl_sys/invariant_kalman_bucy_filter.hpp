@@ -174,8 +174,8 @@ void >::type invariant_kalman_bucy_filter_step(const InvariantSystem& sys,
     for(SizeType i = 0; i < P.get_row_count(); ++i)
       integ.addStateElement(P(i,j));
   
-  typename shared_pointer< state_rate_function<ValueType> >::type integ_sys =
-    typename shared_pointer< state_rate_function<ValueType> >::type( 
+  shared_ptr< state_rate_function<ValueType> > integ_sys =
+    shared_ptr< state_rate_function<ValueType> >( 
       new detail::invariant_kb_system<ValueType, 
                                       InvariantSystem, 
 				      StateSpaceType,
@@ -201,7 +201,7 @@ void >::type invariant_kalman_bucy_filter_step(const InvariantSystem& sys,
   b_x.set_mean_state(x);
   b_x.set_covariance( CovType( MatType(P) ) );
   
-  integ.setStateRateFunc(typename shared_pointer< state_rate_function<ValueType> >::type());
+  integ.setStateRateFunc(shared_ptr< state_rate_function<ValueType> >());
 };
 
 

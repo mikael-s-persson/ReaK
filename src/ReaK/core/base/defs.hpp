@@ -119,6 +119,8 @@ inline std::string RK_RELATIVE_PATH(const std::string& S) {
 /** Main namespace for ReaK */
 namespace ReaK {
   
+  
+#if 0
 /**
  * This class template alias can be used to specify a shared-pointer type in a C++0x vs. Boost 
  * agnostic way (i.e. under C++0x, type evaluates to std::shared_ptr, otherwise, it gives boost::shared_ptr).
@@ -145,11 +147,23 @@ struct weak_pointer {
 #endif
 };
 
+#endif
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+using std::shared_ptr;
+using std::weak_ptr;
+#else
+using boost::shared_ptr;
+using boost::weak_ptr;
+#endif
+
+
 template<bool> struct CompileTimeChecker
 {
    CompileTimeChecker(...);
 };
 template<> struct CompileTimeChecker<false> { };
+
 };
 #define RK_CT_ASSERT(expr, msg) \
    {\

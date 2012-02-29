@@ -85,7 +85,7 @@ class frame_3D : public pose_3D<T> {
     /**
      * Parametrized constructor, all is set to corresponding parameters.
      */
-    frame_3D(const typename weak_pointer< base >::type& aParent,
+    frame_3D(const weak_ptr< base >& aParent,
 	     const position_type& aPosition,
 	     const rotation_type& aQuat,
 	     const linear_vector_type& aVelocity,
@@ -149,7 +149,7 @@ class frame_3D : public pose_3D<T> {
     self getGlobalFrame() const {
       if(!this->Parent.expired()) {
 	self result;
-        typename shared_pointer< const self >::type p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
+        shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
         if(p)
           result = p->getGlobalFrame();
         else
@@ -177,11 +177,11 @@ class frame_3D : public pose_3D<T> {
      * \note No operations are performed on forces. F is tested for being
      *       castablet to a frame or not.
      */
-    self getFrameRelativeTo(const typename shared_pointer< const base >::type F) const {
+    self getFrameRelativeTo(const shared_ptr< const base >& F) const {
       if(!F)
 	return getGlobalFrame();
       if(this->Parent.expired()) { //If this is at the global node, F can meet this there.
-        typename shared_pointer< const self >::type p = rtti::rk_dynamic_ptr_cast< const self >(F);
+        shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(F);
         if(p)
           return (~(p->getGlobalFrame())) * (*this);
         else
@@ -190,20 +190,20 @@ class frame_3D : public pose_3D<T> {
         if(this->Parent.lock() == F)
           return *this;
         else {
-	  typename shared_pointer< const self >::type p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
+	  shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
 	  if(p)
             return p->getFrameRelativeTo(F) * (*this);
           else
             return self(*(this->Parent.lock())).getFrameRelativeTo(F) * (*this);
         };
       } else if(F->isParentPose(rtti::rk_static_ptr_cast< const base >(this->mThis))) { //If this is somewhere down F's chain.
-        typename shared_pointer< const self >::type p = rtti::rk_dynamic_ptr_cast< const self >(F);
+        shared_ptr< const self >p = rtti::rk_dynamic_ptr_cast< const self >(F);
 	if(p)
           return ~(p->getFrameRelativeTo(rtti::rk_static_ptr_cast< const base >(this->mThis)));
         else
           return ~(self(*F).getFrameRelativeTo(rtti::rk_static_ptr_cast< const base >(this->mThis)));
       } else { //Else means F's chain meets "this"'s chain somewhere down, possibly all the way to the global node.
-        typename shared_pointer< const self >::type p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
+        shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
 	if(p)
           return p->getFrameRelativeTo(F) * (*this);
         else

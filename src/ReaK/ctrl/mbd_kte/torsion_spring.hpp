@@ -53,8 +53,8 @@ namespace kte {
  */
 class torsion_spring_2D : public kte_map {
   private:
-    shared_pointer< frame_2D<double> >::type mAnchor1; ///< Holds the first 2D frame.
-    shared_pointer< frame_2D<double> >::type mAnchor2; ///< Holds the second 2D frame.
+    shared_ptr< frame_2D<double> > mAnchor1; ///< Holds the first 2D frame.
+    shared_ptr< frame_2D<double> > mAnchor2; ///< Holds the second 2D frame.
     double mStiffness; ///< Holds the torsion stiffness of the spring.
     double mSaturation; ///< Holds the saturation torque, or maximum torque the spring can exert, if 0 there is no saturation.
 
@@ -84,8 +84,8 @@ class torsion_spring_2D : public kte_map {
      * \param aSaturation saturation torque of the spring, default 0 will disable saturation.
      */
     torsion_spring_2D(const std::string& aName,
-                      const shared_pointer< frame_2D<double> >::type& aAnchor1,
-                      const shared_pointer< frame_2D<double> >::type& aAnchor2,
+                      const shared_ptr< frame_2D<double> >& aAnchor1,
+                      const shared_ptr< frame_2D<double> >& aAnchor2,
                       double aStiffness,
                       double aSaturation = 0.0) :
                       kte_map(aName),
@@ -99,9 +99,9 @@ class torsion_spring_2D : public kte_map {
      */
     virtual ~torsion_spring_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 
@@ -132,8 +132,8 @@ class torsion_spring_2D : public kte_map {
  */
 class torsion_spring_3D : public kte_map {
   private:
-    shared_pointer< frame_3D<double> >::type mAnchor1; ///< Holds the first 3D frame.
-    shared_pointer< frame_3D<double> >::type mAnchor2; ///< Holds the second 2D frame.
+    shared_ptr< frame_3D<double> > mAnchor1; ///< Holds the first 3D frame.
+    shared_ptr< frame_3D<double> > mAnchor2; ///< Holds the second 2D frame.
     double mStiffness; ///< Holds the torsion stiffness of the spring.
     double mSaturation; ///< Holds the saturation torque, or maximum torque the spring can exert, if 0 there is no saturation.
 
@@ -163,8 +163,8 @@ class torsion_spring_3D : public kte_map {
      * \param aSaturation saturation torque of the spring, default 0 will disable saturation.
      */
     torsion_spring_3D(const std::string& aName,
-              const shared_pointer< frame_3D<double> >::type& aAnchor1,
-              const shared_pointer< frame_3D<double> >::type& aAnchor2,
+              const shared_ptr< frame_3D<double> >& aAnchor1,
+              const shared_ptr< frame_3D<double> >& aAnchor2,
               double aStiffness,
               double aSaturation = 0.0) :
               kte_map(aName),
@@ -178,9 +178,9 @@ class torsion_spring_3D : public kte_map {
      */
     virtual ~torsion_spring_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 

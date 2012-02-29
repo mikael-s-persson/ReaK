@@ -78,14 +78,14 @@ int main(int argc, char** argv) {
   std::string Qu_filename(argv[7]);
   std::string R_filename(argv[8]);
   
-  shared_pointer< frame_3D<double> >::type airship3D_frame;
-  shared_pointer< kte::position_measure_3D >::type airship3D_position;
-  shared_pointer< kte::rotation_measure_3D >::type airship3D_rotation;
+  shared_ptr< frame_3D<double> > airship3D_frame;
+  shared_ptr< kte::position_measure_3D > airship3D_position;
+  shared_ptr< kte::rotation_measure_3D > airship3D_rotation;
   
-  shared_pointer< kte::driving_actuator_3D >::type airship3D_actuator;
-  shared_pointer< kte::inertia_3D >::type airship3D_inertia;
-  shared_pointer< kte::kte_map_chain >::type airship3D_model;
-  shared_pointer< kte::mass_matrix_calc >::type airship3D_mass_calc;
+  shared_ptr< kte::driving_actuator_3D > airship3D_actuator;
+  shared_ptr< kte::inertia_3D > airship3D_inertia;
+  shared_ptr< kte::kte_map_chain > airship3D_model;
+  shared_ptr< kte::mass_matrix_calc > airship3D_mass_calc;
   
   
   try {
@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
     return 2;
   };
   
-  shared_pointer<ctrl::kte_nl_system>::type airship3D_system(new ctrl::kte_nl_system("airship3D_system"));
+  shared_ptr<ctrl::kte_nl_system> airship3D_system(new ctrl::kte_nl_system("airship3D_system"));
   
   airship3D_system->dofs_3D.push_back(airship3D_frame);
   airship3D_system->inputs.push_back(airship3D_actuator);
@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
 							  ReaK::vect_n<double>(),
 							  0.0,
 							  1e-4,
-							  weak_pointer< state_rate_function<double> >::type(),
+							  weak_ptr< state_rate_function<double> >(),
 							  time_step,
 							  time_step * 0.000001,
 							  1e-3),

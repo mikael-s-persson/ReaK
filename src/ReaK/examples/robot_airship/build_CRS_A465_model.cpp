@@ -39,39 +39,39 @@ using namespace rtti;
 int main() {
   
   //declare all the intermediate frames.
-  shared_pointer< frame_3D<double> >::type robot_base(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type track_joint_end(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_joint_1_base(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_joint_1_end(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_joint_2_base(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_joint_2_end(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_joint_3_base(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_joint_3_end(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_joint_4_base(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_joint_4_end(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_joint_5_base(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_joint_5_end(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_joint_6_base(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_joint_6_end(new frame_3D<double>(), scoped_deleter());
-  shared_pointer< frame_3D<double> >::type arm_EE(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > robot_base(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > track_joint_end(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_joint_1_base(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_joint_1_end(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_joint_2_base(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_joint_2_end(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_joint_3_base(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_joint_3_end(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_joint_4_base(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_joint_4_end(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_joint_5_base(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_joint_5_end(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_joint_6_base(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_joint_6_end(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > arm_EE(new frame_3D<double>(), scoped_deleter());
 
   //declare all the joint coordinates.
-  shared_pointer<gen_coord<double> >::type track_joint_coord(new gen_coord<double>(), scoped_deleter());
-  shared_pointer<gen_coord<double> >::type arm_joint_1_coord(new gen_coord<double>(), scoped_deleter());
-  shared_pointer<gen_coord<double> >::type arm_joint_2_coord(new gen_coord<double>(), scoped_deleter());
-  shared_pointer<gen_coord<double> >::type arm_joint_3_coord(new gen_coord<double>(), scoped_deleter());
-  shared_pointer<gen_coord<double> >::type arm_joint_4_coord(new gen_coord<double>(), scoped_deleter()); 
-  shared_pointer<gen_coord<double> >::type arm_joint_5_coord(new gen_coord<double>(), scoped_deleter()); 
-  shared_pointer<gen_coord<double> >::type arm_joint_6_coord(new gen_coord<double>(), scoped_deleter()); 
+  shared_ptr<gen_coord<double> > track_joint_coord(new gen_coord<double>(), scoped_deleter());
+  shared_ptr<gen_coord<double> > arm_joint_1_coord(new gen_coord<double>(), scoped_deleter());
+  shared_ptr<gen_coord<double> > arm_joint_2_coord(new gen_coord<double>(), scoped_deleter());
+  shared_ptr<gen_coord<double> > arm_joint_3_coord(new gen_coord<double>(), scoped_deleter());
+  shared_ptr<gen_coord<double> > arm_joint_4_coord(new gen_coord<double>(), scoped_deleter()); 
+  shared_ptr<gen_coord<double> > arm_joint_5_coord(new gen_coord<double>(), scoped_deleter()); 
+  shared_ptr<gen_coord<double> > arm_joint_6_coord(new gen_coord<double>(), scoped_deleter()); 
   
   //declare all the joint jacobians.
-  shared_pointer<jacobian_gen_3D<double> >::type track_joint_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
-  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_1_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
-  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_2_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
-  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_3_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
-  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_4_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
-  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_5_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
-  shared_pointer<jacobian_gen_3D<double> >::type arm_joint_6_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_ptr<jacobian_gen_3D<double> > track_joint_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_ptr<jacobian_gen_3D<double> > arm_joint_1_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_ptr<jacobian_gen_3D<double> > arm_joint_2_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_ptr<jacobian_gen_3D<double> > arm_joint_3_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_ptr<jacobian_gen_3D<double> > arm_joint_4_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_ptr<jacobian_gen_3D<double> > arm_joint_5_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
+  shared_ptr<jacobian_gen_3D<double> > arm_joint_6_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
   
   //set the absolute position of the torso base and add gravity (z-axis pointing up!) (x-axis pointing forward).
   //normally this frame is set via the feedback from the leg / lower-body motion control of wopa
@@ -84,7 +84,7 @@ int main() {
 ******************************************************************************************************************/
   
   //create revolute joint
-  shared_pointer<prismatic_joint_3D>::type track_joint(new prismatic_joint_3D("track_joint",
+  shared_ptr<prismatic_joint_3D> track_joint(new prismatic_joint_3D("track_joint",
                                                                               track_joint_coord,
                                                                               vect<double,3>(1.0,0.0,0.0),
                                                                               robot_base,
@@ -93,43 +93,43 @@ int main() {
                                                        scoped_deleter());
                                               
   //create motor inertia
-  shared_pointer< joint_dependent_gen_coord >::type track_joint_dep_coord(new joint_dependent_gen_coord(track_joint_coord), 
+  shared_ptr< joint_dependent_gen_coord > track_joint_dep_coord(new joint_dependent_gen_coord(track_joint_coord), 
 									  scoped_deleter() );
   track_joint_dep_coord->add_joint(track_joint_coord, 
-				   shared_pointer< jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+				   shared_ptr< jacobian_gen_gen<double> >(new jacobian_gen_gen<double>(1.0,0.0), 
 										    scoped_deleter()));
-  shared_pointer<inertia_gen>::type track_joint_inertia(new inertia_gen("track_joint_inertia",
+  shared_ptr<inertia_gen> track_joint_inertia(new inertia_gen("track_joint_inertia",
                                                                         track_joint_dep_coord,
                                                                         1.0), 
                                                         scoped_deleter());
   
   //create force actuator
-  shared_pointer<driving_actuator_gen>::type track_actuator(new driving_actuator_gen("track_actuator",
+  shared_ptr<driving_actuator_gen> track_actuator(new driving_actuator_gen("track_actuator",
                                                                                      track_joint_coord,
                                                                                      track_joint),
                                                             scoped_deleter());
   
   //create link from G to F10.0
-  shared_pointer<rigid_link_3D>::type link_0(new rigid_link_3D("link_0",
+  shared_ptr<rigid_link_3D> link_0(new rigid_link_3D("link_0",
                                                                track_joint_end,
                                                                arm_joint_1_base,
-                                                               pose_3D<double>(weak_pointer<pose_3D<double> >::type(),
+                                                               pose_3D<double>(weak_ptr<pose_3D<double> >(),
                                                                                vect<double,3>(0.0,0.0,0.0),
                                                                                quaternion<double>())),
                                              scoped_deleter());
   
   //create arm-base inertia of 
-  shared_pointer< joint_dependent_frame_3D >::type link_0_dep_frame(new joint_dependent_frame_3D(arm_joint_1_base),
+  shared_ptr< joint_dependent_frame_3D > link_0_dep_frame(new joint_dependent_frame_3D(arm_joint_1_base),
 								    scoped_deleter());
   link_0_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
-  shared_pointer<inertia_3D>::type link_0_inertia(new inertia_3D("link_0_inertia",
+  shared_ptr<inertia_3D> link_0_inertia(new inertia_3D("link_0_inertia",
                                                                  link_0_dep_frame,
                                                                  1.0,
                                                                  mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                  scoped_deleter());
   
   //create revolute joint
-  shared_pointer<revolute_joint_3D>::type arm_joint_1(new revolute_joint_3D("arm_joint_1",
+  shared_ptr<revolute_joint_3D> arm_joint_1(new revolute_joint_3D("arm_joint_1",
                                                                             arm_joint_1_coord,
                                                                             vect<double,3>(0.0,0.0,1.0),
                                                                             arm_joint_1_base,
@@ -138,44 +138,44 @@ int main() {
                                                       scoped_deleter());
                                               
   //create motor inertia
-  shared_pointer< joint_dependent_gen_coord >::type arm_joint_1_dep_coord(new joint_dependent_gen_coord(arm_joint_1_coord),
+  shared_ptr< joint_dependent_gen_coord > arm_joint_1_dep_coord(new joint_dependent_gen_coord(arm_joint_1_coord),
 									  scoped_deleter());
   arm_joint_1_dep_coord->add_joint(arm_joint_1_coord,
-                                   shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+                                   shared_ptr<jacobian_gen_gen<double> >(new jacobian_gen_gen<double>(1.0,0.0), 
 										   scoped_deleter()));
-  shared_pointer<inertia_gen>::type arm_joint_1_inertia(new inertia_gen("arm_joint_1_inertia",
+  shared_ptr<inertia_gen> arm_joint_1_inertia(new inertia_gen("arm_joint_1_inertia",
                                                                         arm_joint_1_dep_coord,
                                                                         1.0), //~71 kg m^2
                                                         scoped_deleter());
   
   //create force actuator
-  shared_pointer<driving_actuator_gen>::type arm_joint_1_actuator(new driving_actuator_gen("arm_joint_1_actuator",
+  shared_ptr<driving_actuator_gen> arm_joint_1_actuator(new driving_actuator_gen("arm_joint_1_actuator",
                                                                                            arm_joint_1_coord,
                                                                                            arm_joint_1),
                                                                   scoped_deleter());
   
   //create link from F to CM (note that this is very approximate!!!)
-  shared_pointer<rigid_link_3D>::type link_1(new rigid_link_3D("link_1",
+  shared_ptr<rigid_link_3D> link_1(new rigid_link_3D("link_1",
                                                                 arm_joint_1_end,
                                                                 arm_joint_2_base,
-                                                                pose_3D<double>(weak_pointer<pose_3D<double> >::type(),
+                                                                pose_3D<double>(weak_ptr<pose_3D<double> >(),
                                                                                 vect<double,3>(0.0,0.0,0.3302),
                                                                                 axis_angle<double>(0.5 * M_PI, vect<double,3>(1.0,0.0,0.0)).getQuaternion())),
                                              scoped_deleter());
   
   //create link1 inertia 
-  shared_pointer< joint_dependent_frame_3D >::type link_1_dep_frame(new joint_dependent_frame_3D(arm_joint_2_base),
+  shared_ptr< joint_dependent_frame_3D > link_1_dep_frame(new joint_dependent_frame_3D(arm_joint_2_base),
 								    scoped_deleter());
   link_1_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
   link_1_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
-  shared_pointer<inertia_3D>::type link_1_inertia(new inertia_3D("link_1_inertia",
+  shared_ptr<inertia_3D> link_1_inertia(new inertia_3D("link_1_inertia",
                                                                  link_1_dep_frame,
                                                                  1.0,
                                                                  mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
 
   //create revolute joint
-  shared_pointer<revolute_joint_3D>::type arm_joint_2(new revolute_joint_3D("arm_joint_2",
+  shared_ptr<revolute_joint_3D> arm_joint_2(new revolute_joint_3D("arm_joint_2",
                                                                              arm_joint_2_coord,
                                                                              vect<double,3>(0.0,0.0,1.0),
                                                                              arm_joint_2_base,
@@ -184,45 +184,45 @@ int main() {
                                                       scoped_deleter());
     
   //create motor inertia
-  shared_pointer< joint_dependent_gen_coord >::type arm_joint_2_dep_coord(new joint_dependent_gen_coord(arm_joint_2_coord),
+  shared_ptr< joint_dependent_gen_coord > arm_joint_2_dep_coord(new joint_dependent_gen_coord(arm_joint_2_coord),
 									  scoped_deleter());
   arm_joint_2_dep_coord->add_joint(arm_joint_2_coord,
-                                   shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+                                   shared_ptr<jacobian_gen_gen<double> >(new jacobian_gen_gen<double>(1.0,0.0), 
 										   scoped_deleter()));
-  shared_pointer<inertia_gen>::type arm_joint_2_inertia(new inertia_gen("arm_joint_2_inertia",
+  shared_ptr<inertia_gen> arm_joint_2_inertia(new inertia_gen("arm_joint_2_inertia",
                                                                         arm_joint_2_dep_coord,
                                                                         1.0),
                                                         scoped_deleter());
   
   //create force actuator
-  shared_pointer<driving_actuator_gen>::type arm_joint_2_actuator(new driving_actuator_gen("arm_joint_2_actuator",
+  shared_ptr<driving_actuator_gen> arm_joint_2_actuator(new driving_actuator_gen("arm_joint_2_actuator",
                                                                                            arm_joint_2_coord,
                                                                                            arm_joint_2),
                                                                   scoped_deleter());
   
   //create link 
-  shared_pointer<rigid_link_3D>::type link_2(new rigid_link_3D("link_2",
+  shared_ptr<rigid_link_3D> link_2(new rigid_link_3D("link_2",
                                                                 arm_joint_2_end,
                                                                 arm_joint_3_base,
-                                                                pose_3D<double>(weak_pointer<pose_3D<double> >::type(),
+                                                                pose_3D<double>(weak_ptr<pose_3D<double> >(),
                                                                                 vect<double,3>(0.3048,0.0,0.0),
                                                                                 quaternion<double>())),
                                               scoped_deleter());
   
   //create inertia
-  shared_pointer< joint_dependent_frame_3D >::type link_2_dep_frame(new joint_dependent_frame_3D(arm_joint_3_base),
+  shared_ptr< joint_dependent_frame_3D > link_2_dep_frame(new joint_dependent_frame_3D(arm_joint_3_base),
 								    scoped_deleter());
   link_2_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
   link_2_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
   link_2_dep_frame->add_joint(arm_joint_2_coord,arm_joint_2_jacobian);
-  shared_pointer<inertia_3D>::type link_2_inertia(new inertia_3D("link_2_inertia",
+  shared_ptr<inertia_3D> link_2_inertia(new inertia_3D("link_2_inertia",
                                                                  link_2_dep_frame,
                                                                  1.0,
                                                                  mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
 
   //create revolute joint
-  shared_pointer<revolute_joint_3D>::type arm_joint_3(new revolute_joint_3D("arm_joint_3",
+  shared_ptr<revolute_joint_3D> arm_joint_3(new revolute_joint_3D("arm_joint_3",
                                                                             arm_joint_3_coord,
                                                                             vect<double,3>(0.0,0.0,1.0),
                                                                             arm_joint_3_base,
@@ -231,46 +231,46 @@ int main() {
                                                       scoped_deleter());
   
   //create motor inertia
-  shared_pointer< joint_dependent_gen_coord >::type arm_joint_3_dep_coord(new joint_dependent_gen_coord(arm_joint_3_coord),
+  shared_ptr< joint_dependent_gen_coord > arm_joint_3_dep_coord(new joint_dependent_gen_coord(arm_joint_3_coord),
 									  scoped_deleter());
   arm_joint_3_dep_coord->add_joint(arm_joint_3_coord,
-                                   shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+                                   shared_ptr<jacobian_gen_gen<double> > (new jacobian_gen_gen<double>(1.0,0.0), 
 										   scoped_deleter()));
-  shared_pointer<inertia_gen>::type arm_joint_3_inertia(new inertia_gen("arm_joint_3_inertia",
+  shared_ptr<inertia_gen> arm_joint_3_inertia(new inertia_gen("arm_joint_3_inertia",
                                                                          arm_joint_3_dep_coord,
                                                                          1.0), 
                                                         scoped_deleter());
   
   //create force actuator
-  shared_pointer<driving_actuator_gen>::type arm_joint_3_actuator(new driving_actuator_gen("arm_joint_3_actuator",
+  shared_ptr<driving_actuator_gen> arm_joint_3_actuator(new driving_actuator_gen("arm_joint_3_actuator",
                                                                                            arm_joint_3_coord,
                                                                                            arm_joint_3),
                                                                   scoped_deleter());
   
   //create link 
-  shared_pointer<rigid_link_3D>::type link_3(new rigid_link_3D("link_3",
+  shared_ptr<rigid_link_3D> link_3(new rigid_link_3D("link_3",
                                                                arm_joint_3_end,
                                                                arm_joint_4_base,
-                                                               pose_3D<double>(weak_pointer<pose_3D<double> >::type(),
+                                                               pose_3D<double>(weak_ptr<pose_3D<double> >(),
                                                                                vect<double,3>(0.1500,0.0,0.0),
                                                                                axis_angle<double>(0.5 * M_PI,vect<double,3>(0.0,1.0,0.0)) * axis_angle<double>(0.5 * M_PI,vect<double,3>(0.0,0.0,1.0)))),
                                               scoped_deleter());
   
   //create inertia
-  shared_pointer< joint_dependent_frame_3D >::type link_3_dep_frame(new joint_dependent_frame_3D(arm_joint_4_base),
+  shared_ptr< joint_dependent_frame_3D > link_3_dep_frame(new joint_dependent_frame_3D(arm_joint_4_base),
 								    scoped_deleter());
   link_3_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
   link_3_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
   link_3_dep_frame->add_joint(arm_joint_2_coord,arm_joint_2_jacobian);
   link_3_dep_frame->add_joint(arm_joint_3_coord,arm_joint_3_jacobian);
-  shared_pointer<inertia_3D>::type link_3_inertia(new inertia_3D("link_3_inertia",
+  shared_ptr<inertia_3D> link_3_inertia(new inertia_3D("link_3_inertia",
                                                                  link_3_dep_frame,
                                                                  1.0,
                                                                  mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
 
   //create revolute joint
-  shared_pointer<revolute_joint_3D>::type arm_joint_4(new revolute_joint_3D("arm_joint_4",
+  shared_ptr<revolute_joint_3D> arm_joint_4(new revolute_joint_3D("arm_joint_4",
                                                                             arm_joint_4_coord,
                                                                             vect<double,3>(0.0,0.0,1.0),
                                                                             arm_joint_4_base,
@@ -279,47 +279,47 @@ int main() {
                                                       scoped_deleter());
   
   //create motor inertia
-  shared_pointer< joint_dependent_gen_coord >::type arm_joint_4_dep_coord(new joint_dependent_gen_coord(arm_joint_4_coord),
+  shared_ptr< joint_dependent_gen_coord > arm_joint_4_dep_coord(new joint_dependent_gen_coord(arm_joint_4_coord),
 									  scoped_deleter());
   arm_joint_4_dep_coord->add_joint(arm_joint_4_coord,
-                                   shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+                                   shared_ptr<jacobian_gen_gen<double> >(new jacobian_gen_gen<double>(1.0,0.0), 
 										   scoped_deleter()));
-  shared_pointer<inertia_gen>::type arm_joint_4_inertia(new inertia_gen("arm_joint_4_inertia",
+  shared_ptr<inertia_gen> arm_joint_4_inertia(new inertia_gen("arm_joint_4_inertia",
                                                                         arm_joint_4_dep_coord,
                                                                         1.0), 
                                                         scoped_deleter());
   
   //create force actuator
-  shared_pointer<driving_actuator_gen>::type arm_joint_4_actuator(new driving_actuator_gen("arm_joint_4_actuator",
+  shared_ptr<driving_actuator_gen> arm_joint_4_actuator(new driving_actuator_gen("arm_joint_4_actuator",
                                                                                            arm_joint_4_coord,
                                                                                            arm_joint_4),
                                                                   scoped_deleter());
   
   //create link 
-  shared_pointer<rigid_link_3D>::type link_4(new rigid_link_3D("link_4",
+  shared_ptr<rigid_link_3D> link_4(new rigid_link_3D("link_4",
                                                                arm_joint_4_end,
                                                                arm_joint_5_base,
-                                                               pose_3D<double>(weak_pointer<pose_3D<double> >::type(),
+                                                               pose_3D<double>(weak_ptr<pose_3D<double> >(),
                                                                                vect<double,3>(0.0,0.0,0.1802),
                                                                                axis_angle<double>(-0.5*M_PI,vect<double,3>(1.0,0.0,0.0)).getQuaternion())),
                                              scoped_deleter());
   
   //create inertia
-  shared_pointer< joint_dependent_frame_3D >::type link_4_dep_frame(new joint_dependent_frame_3D(arm_joint_5_base),
+  shared_ptr< joint_dependent_frame_3D > link_4_dep_frame(new joint_dependent_frame_3D(arm_joint_5_base),
 								    scoped_deleter());
   link_4_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
   link_4_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
   link_4_dep_frame->add_joint(arm_joint_2_coord,arm_joint_2_jacobian);
   link_4_dep_frame->add_joint(arm_joint_3_coord,arm_joint_3_jacobian);
   link_4_dep_frame->add_joint(arm_joint_4_coord,arm_joint_4_jacobian);
-  shared_pointer<inertia_3D>::type link_4_inertia(new inertia_3D("link_4_inertia",
+  shared_ptr<inertia_3D> link_4_inertia(new inertia_3D("link_4_inertia",
                                                                  link_4_dep_frame,
                                                                  1.0,
                                                                  mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
 
   //create revolute joint
-  shared_pointer<revolute_joint_3D>::type arm_joint_5(new revolute_joint_3D("arm_joint_5",
+  shared_ptr<revolute_joint_3D> arm_joint_5(new revolute_joint_3D("arm_joint_5",
                                                                             arm_joint_5_coord,
                                                                             vect<double,3>(0.0,0.0,1.0),
                                                                             arm_joint_5_base,
@@ -328,33 +328,33 @@ int main() {
                                                       scoped_deleter());
   
   //create motor inertia
-  shared_pointer< joint_dependent_gen_coord >::type arm_joint_5_dep_coord(new joint_dependent_gen_coord(arm_joint_5_coord),
+  shared_ptr< joint_dependent_gen_coord > arm_joint_5_dep_coord(new joint_dependent_gen_coord(arm_joint_5_coord),
 									  scoped_deleter());
   arm_joint_5_dep_coord->add_joint(arm_joint_5_coord,
-                                   shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+                                   shared_ptr<jacobian_gen_gen<double> >(new jacobian_gen_gen<double>(1.0,0.0), 
 										   scoped_deleter()));
-  shared_pointer<inertia_gen>::type arm_joint_5_inertia(new inertia_gen("arm_joint_5_inertia",
+  shared_ptr<inertia_gen> arm_joint_5_inertia(new inertia_gen("arm_joint_5_inertia",
 									arm_joint_5_dep_coord,
 									1.0),
                                                         scoped_deleter());
   
   //create force actuator
-  shared_pointer<driving_actuator_gen>::type arm_joint_5_actuator(new driving_actuator_gen("arm_joint_5_actuator",
+  shared_ptr<driving_actuator_gen> arm_joint_5_actuator(new driving_actuator_gen("arm_joint_5_actuator",
 											   arm_joint_5_coord,
 											   arm_joint_5),
                                                                   scoped_deleter());
   
   //create link 
-  shared_pointer<rigid_link_3D>::type link_5(new rigid_link_3D("link_5",
+  shared_ptr<rigid_link_3D> link_5(new rigid_link_3D("link_5",
                                                                arm_joint_5_end,
                                                                arm_joint_6_base,
-                                                               pose_3D<double>(weak_pointer<pose_3D<double> >::type(),
+                                                               pose_3D<double>(weak_ptr<pose_3D<double> >(),
                                                                                vect<double,3>(0.0762,0.0,0.0),
                                                                                axis_angle<double>(0.5 * M_PI,vect<double,3>(0.0,1.0,0.0)) * axis_angle<double>(0.5 * M_PI,vect<double,3>(0.0,0.0,1.0)))),
                                              scoped_deleter());
   
   //create inertia
-  shared_pointer< joint_dependent_frame_3D >::type link_5_dep_frame(new joint_dependent_frame_3D(arm_joint_6_base),
+  shared_ptr< joint_dependent_frame_3D > link_5_dep_frame(new joint_dependent_frame_3D(arm_joint_6_base),
 								    scoped_deleter());
   link_5_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
   link_5_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
@@ -362,14 +362,14 @@ int main() {
   link_5_dep_frame->add_joint(arm_joint_3_coord,arm_joint_3_jacobian);
   link_5_dep_frame->add_joint(arm_joint_4_coord,arm_joint_4_jacobian);
   link_5_dep_frame->add_joint(arm_joint_5_coord,arm_joint_5_jacobian);
-  shared_pointer<inertia_3D>::type link_5_inertia(new inertia_3D("link_5_inertia",
+  shared_ptr<inertia_3D> link_5_inertia(new inertia_3D("link_5_inertia",
                                                                  link_5_dep_frame,
                                                                  1.0,
                                                                  mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
   
   //create revolute joint
-  shared_pointer<revolute_joint_3D>::type arm_joint_6(new revolute_joint_3D("arm_joint_6",
+  shared_ptr<revolute_joint_3D> arm_joint_6(new revolute_joint_3D("arm_joint_6",
                                                                             arm_joint_6_coord,
                                                                             vect<double,3>(0.0,0.0,1.0),
                                                                             arm_joint_6_base,
@@ -378,33 +378,33 @@ int main() {
                                                       scoped_deleter());
   
   //create motor inertia
-  shared_pointer< joint_dependent_gen_coord >::type arm_joint_6_dep_coord(new joint_dependent_gen_coord(arm_joint_6_coord),
+  shared_ptr< joint_dependent_gen_coord > arm_joint_6_dep_coord(new joint_dependent_gen_coord(arm_joint_6_coord),
 									  scoped_deleter());
   arm_joint_6_dep_coord->add_joint(arm_joint_6_coord,
-                                   shared_pointer<jacobian_gen_gen<double> >::type(new jacobian_gen_gen<double>(1.0,0.0), 
+                                   shared_ptr<jacobian_gen_gen<double> >(new jacobian_gen_gen<double>(1.0,0.0), 
 										   scoped_deleter()));
-  shared_pointer<inertia_gen>::type arm_joint_6_inertia(new inertia_gen("arm_joint_6_inertia",
+  shared_ptr<inertia_gen> arm_joint_6_inertia(new inertia_gen("arm_joint_6_inertia",
 									arm_joint_6_dep_coord,
                                                                         1.0),
                                                         scoped_deleter());
   
   //create force actuator
-  shared_pointer<driving_actuator_gen>::type arm_joint_6_actuator(new driving_actuator_gen("arm_joint_6_actuator",
+  shared_ptr<driving_actuator_gen> arm_joint_6_actuator(new driving_actuator_gen("arm_joint_6_actuator",
                                                                                            arm_joint_6_coord,
                                                                                            arm_joint_6),
                                                                   scoped_deleter());
   
   //create link 
-  shared_pointer<rigid_link_3D>::type link_6(new rigid_link_3D("link_6",
+  shared_ptr<rigid_link_3D> link_6(new rigid_link_3D("link_6",
                                                                 arm_joint_6_end,
                                                                 arm_EE,
-                                                                pose_3D<double>(weak_pointer<pose_3D<double> >::type(),
+                                                                pose_3D<double>(weak_ptr<pose_3D<double> >(),
                                                                                 vect<double,3>(0.0,0.0,0.0),
                                                                                 quaternion<double>())),
                                              scoped_deleter());
   
   //create inertia
-  shared_pointer< joint_dependent_frame_3D >::type link_6_dep_frame(new joint_dependent_frame_3D(arm_EE),
+  shared_ptr< joint_dependent_frame_3D > link_6_dep_frame(new joint_dependent_frame_3D(arm_EE),
 								    scoped_deleter());
   link_6_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
   link_6_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
@@ -413,13 +413,13 @@ int main() {
   link_6_dep_frame->add_joint(arm_joint_4_coord,arm_joint_4_jacobian);
   link_6_dep_frame->add_joint(arm_joint_5_coord,arm_joint_5_jacobian);
   link_6_dep_frame->add_joint(arm_joint_6_coord,arm_joint_6_jacobian);
-  shared_pointer<inertia_3D>::type link_6_inertia(new inertia_3D("link_6_inertia",
+  shared_ptr<inertia_3D> link_6_inertia(new inertia_3D("link_6_inertia",
                                                                  link_6_dep_frame,
                                                                  1.0,
                                                                  mat<double,mat_structure::symmetric>(1.0,0.0,0.0,1.0,0.0,1.0)),
                                                   scoped_deleter());
   
-  shared_pointer<kte_map_chain>::type CRS_A465_dyn_model(new kte_map_chain("CRS_A465_dyn_model"),
+  shared_ptr<kte_map_chain> CRS_A465_dyn_model(new kte_map_chain("CRS_A465_dyn_model"),
 							 scoped_deleter());
   
   
@@ -459,7 +459,7 @@ int main() {
                       << link_6
                       << link_6_inertia;
   
-  shared_pointer< manipulator_dynamics_model >::type CRS_A465_dyn_manip(new manipulator_dynamics_model("CRS_A465_dyn_manip"),
+  shared_ptr< manipulator_dynamics_model > CRS_A465_dyn_manip(new manipulator_dynamics_model("CRS_A465_dyn_manip"),
 									scoped_deleter());
   
   CRS_A465_dyn_manip->setModel(CRS_A465_dyn_model);
@@ -499,7 +499,7 @@ int main() {
                       << arm_joint_6_actuator;
                       
   
-  shared_pointer< kte_map_chain >::type CRS_A465_kin_model(new kte_map_chain("CRS_A465_kin_model"),
+  shared_ptr< kte_map_chain > CRS_A465_kin_model(new kte_map_chain("CRS_A465_kin_model"),
                                                            scoped_deleter());
   
   *CRS_A465_kin_model << track_joint
@@ -517,7 +517,7 @@ int main() {
                       << arm_joint_6
                       << link_6;
 		      
-  shared_pointer< manipulator_kinematics_model >::type CRS_A465_kin_manip(new manipulator_kinematics_model("CRS_A465_kin_manip"),
+  shared_ptr< manipulator_kinematics_model > CRS_A465_kin_manip(new manipulator_kinematics_model("CRS_A465_kin_manip"),
 									  scoped_deleter());
   
   CRS_A465_kin_manip->setModel(CRS_A465_kin_model);
@@ -540,7 +540,7 @@ int main() {
                       << link_5_dep_frame
                       << link_6_dep_frame;
   
-  shared_pointer< mass_matrix_calc >::type CRS_A465_Mlink_calc(new mass_matrix_calc("CRS_A465_Mlink_calc"),
+  shared_ptr< mass_matrix_calc > CRS_A465_Mlink_calc(new mass_matrix_calc("CRS_A465_Mlink_calc"),
                                                                scoped_deleter());
   
   *CRS_A465_Mlink_calc << link_0_inertia
@@ -558,7 +558,7 @@ int main() {
                        << arm_joint_5_coord
                        << arm_joint_6_coord;
 		      
-  shared_pointer< mass_matrix_calc >::type CRS_A465_Mjoint_calc(new mass_matrix_calc("CRS_A465_Mjoint_calc"),
+  shared_ptr< mass_matrix_calc > CRS_A465_Mjoint_calc(new mass_matrix_calc("CRS_A465_Mjoint_calc"),
                                                                 scoped_deleter());
   
   *CRS_A465_Mjoint_calc << track_joint_inertia

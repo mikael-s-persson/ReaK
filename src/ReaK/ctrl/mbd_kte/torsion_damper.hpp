@@ -48,8 +48,8 @@ namespace kte {
 /** This class defines a torsion damper acting between two 2D frames. */
 class torsion_damper_2D : public kte_map {
   private:
-    shared_pointer< frame_2D<double> >::type mAnchor1; ///< Holds the first 2D frame.
-    shared_pointer< frame_2D<double> >::type mAnchor2; ///< Holds the second 2D frame.
+    shared_ptr< frame_2D<double> > mAnchor1; ///< Holds the first 2D frame.
+    shared_ptr< frame_2D<double> > mAnchor2; ///< Holds the second 2D frame.
     double mDamping; ///< The damping coefficient (in Nms/rad).
 
   public:
@@ -72,8 +72,8 @@ class torsion_damper_2D : public kte_map {
      * \param aDamping damping coefficient (in Nms/rad).
      */
     torsion_damper_2D(const std::string& aName,
-                      const shared_pointer< frame_2D<double> >::type& aAnchor1,
-                      const shared_pointer< frame_2D<double> >::type& aAnchor2,
+                      const shared_ptr< frame_2D<double> >& aAnchor1,
+                      const shared_ptr< frame_2D<double> >& aAnchor2,
                       double aDamping) :
                       kte_map(aName),
                       mAnchor1(aAnchor1),
@@ -85,9 +85,9 @@ class torsion_damper_2D : public kte_map {
      */
     virtual ~torsion_damper_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 
@@ -112,8 +112,8 @@ class torsion_damper_2D : public kte_map {
 /** This class defines a torsion damper acting between two 3D frames. */
 class torsion_damper_3D : public kte_map {
   private:
-    shared_pointer< frame_3D<double> >::type mAnchor1; ///< Holds the first 3D frame.
-    shared_pointer< frame_3D<double> >::type mAnchor2; ///< Holds the second 3D frame.
+    shared_ptr< frame_3D<double> > mAnchor1; ///< Holds the first 3D frame.
+    shared_ptr< frame_3D<double> > mAnchor2; ///< Holds the second 3D frame.
     double mDamping; ///< The damping coefficient (in Nms/rad).
 
   public:
@@ -136,8 +136,8 @@ class torsion_damper_3D : public kte_map {
      * \param aDamping damping coefficient (in Nms/rad).
      */
     torsion_damper_3D(const std::string& aName,
-                      const shared_pointer< frame_3D<double> >::type& aAnchor1,
-                      const shared_pointer< frame_3D<double> >::type& aAnchor2,
+                      const shared_ptr< frame_3D<double> >& aAnchor1,
+                      const shared_ptr< frame_3D<double> >& aAnchor2,
                       double aDamping) :
                       kte_map(aName),
                       mAnchor1(aAnchor1),
@@ -149,9 +149,9 @@ class torsion_damper_3D : public kte_map {
      */
     virtual ~torsion_damper_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 

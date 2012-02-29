@@ -48,8 +48,8 @@ namespace kte {
  */
 class plane_point_mindist_3D : public kte_map {
   private:
-    shared_pointer< frame_3D<double> >::type mBase; ///< Holds the base-frame, or kinematic input, or free-point.
-    shared_pointer< frame_3D<double> >::type mEnd; ///< Holds the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
+    shared_ptr< frame_3D<double> > mBase; ///< Holds the base-frame, or kinematic input, or free-point.
+    shared_ptr< frame_3D<double> > mEnd; ///< Holds the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
     vect<double,3> mNormal; ///< Holds the normal vector of the plane, in global coordinates.
     double mOrigin; ///< Holds the distance to the origin, i.e., mOrigin * mNormal is the vector from the plane to a plane parallel and intersecting the origin.
 
@@ -79,8 +79,8 @@ class plane_point_mindist_3D : public kte_map {
      * \param aOrigin the distance to the origin, i.e., aOrigin * aNormal is the vector from the plane to a plane parallel and intersecting the origin.
      */
     plane_point_mindist_3D(const std::string& aName,
-                           const shared_pointer< frame_3D<double> >::type& aBase,
-                           const shared_pointer< frame_3D<double> >::type& aEnd,
+                           const shared_ptr< frame_3D<double> >& aBase,
+                           const shared_ptr< frame_3D<double> >& aEnd,
                            const vect<double,3>& aNormal,
                            double aOrigin) :
                            kte_map(aName),
@@ -94,9 +94,9 @@ class plane_point_mindist_3D : public kte_map {
      */
     virtual ~plane_point_mindist_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 

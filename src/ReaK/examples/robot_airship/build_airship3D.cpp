@@ -37,57 +37,57 @@
 int main() {
   using namespace ReaK;
   
-  shared_pointer< frame_3D<double> >::type 
+  shared_ptr< frame_3D<double> > 
     global_base( new frame_3D<double>(), scoped_deleter());
   
-  shared_pointer< frame_3D<double> >::type 
+  shared_ptr< frame_3D<double> > 
     airship3D_frame( new frame_3D<double>(), scoped_deleter());
   
-  shared_pointer< frame_3D<double> >::type 
+  shared_ptr< frame_3D<double> > 
     airship3D_output_frame( new frame_3D<double>(), scoped_deleter());
     
-  shared_pointer< jacobian_3D_3D<double> >::type
+  shared_ptr< jacobian_3D_3D<double> > 
     airship3D_joint_jac( new jacobian_3D_3D<double>(), scoped_deleter());
   
-  shared_pointer< kte::free_joint_3D >::type 
+  shared_ptr< kte::free_joint_3D > 
     airship3D_joint( new kte::free_joint_3D("airship3D_joint",
                                             airship3D_frame,
 					    global_base,
 					    airship3D_output_frame,
 					    airship3D_joint_jac), scoped_deleter());
     
-  shared_pointer< kte::joint_dependent_frame_3D >::type
+  shared_ptr< kte::joint_dependent_frame_3D > 
     airship3D_dep_frame( new kte::joint_dependent_frame_3D(airship3D_output_frame),
                          scoped_deleter());
   airship3D_dep_frame->add_joint(airship3D_frame,airship3D_joint_jac);
   
-  shared_pointer< kte::inertia_3D >::type
+  shared_ptr< kte::inertia_3D > 
     airship3D_inertia( new kte::inertia_3D("airship3D_inertia",
                                            airship3D_dep_frame,
 					   1.0,
 					   mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
 		       scoped_deleter());
   
-  shared_pointer< kte::mass_matrix_calc >::type
+  shared_ptr< kte::mass_matrix_calc > 
     airship3D_mass_calc( new kte::mass_matrix_calc("airship3D_mass_calc"), scoped_deleter());
     
   (*airship3D_mass_calc) << airship3D_inertia;
   (*airship3D_mass_calc) << airship3D_frame;
   
-  shared_pointer< kte::driving_actuator_3D >::type
+  shared_ptr< kte::driving_actuator_3D > 
     airship3D_actuator( new kte::driving_actuator_3D("airship3D_actuator",
                                                      airship3D_frame,
 						     airship3D_joint), scoped_deleter());
   
-  shared_pointer< kte::position_measure_3D >::type
+  shared_ptr< kte::position_measure_3D > 
     airship3D_position( new kte::position_measure_3D("airship3D_position",
                                                      airship3D_frame), scoped_deleter());
   
-  shared_pointer< kte::rotation_measure_3D >::type
+  shared_ptr< kte::rotation_measure_3D > 
     airship3D_rotation( new kte::rotation_measure_3D("airship3D_rotation",
                                                      airship3D_frame), scoped_deleter());
   
-  shared_pointer< kte::kte_map_chain >::type
+  shared_ptr< kte::kte_map_chain > 
     airship3D_model( new kte::kte_map_chain("airship3D_model"), scoped_deleter());
     
   (*airship3D_model) << airship3D_position 

@@ -48,7 +48,7 @@ namespace kte {
  */
 class kte_map_chain : public kte_map {
   private:
-    std::vector< shared_pointer<kte_map>::type > mKTEs; ///< Stores the list of KTEs
+    std::vector< shared_ptr<kte_map> > mKTEs; ///< Stores the list of KTEs
 
   public:
 
@@ -62,22 +62,22 @@ class kte_map_chain : public kte_map {
      */
     virtual ~kte_map_chain() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
-      std::vector< shared_pointer<kte_map>::type >::iterator it = mKTEs.begin();
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
+      std::vector< shared_ptr<kte_map> >::iterator it = mKTEs.begin();
       for(;it != mKTEs.end();++it) {
         (*it)->doMotion(aFlag,aStorage);
       };
     };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
-      std::vector< shared_pointer<kte_map>::type >::reverse_iterator rit = mKTEs.rbegin();
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
+      std::vector< shared_ptr<kte_map> >::reverse_iterator rit = mKTEs.rbegin();
       for(;rit != mKTEs.rend();++rit) {
         (*rit)->doForce(aFlag,aStorage);
       };
     };
 
     virtual void clearForce() {
-      std::vector< shared_pointer<kte_map>::type >::iterator it = mKTEs.begin();
+      std::vector< shared_ptr<kte_map> >::iterator it = mKTEs.begin();
       for(;it != mKTEs.end();++it)
         (*it)->clearForce();
     };
@@ -89,7 +89,7 @@ class kte_map_chain : public kte_map {
      * \param aKTE The KTE model to add to this chain.
      * \return reference to this chain (to chain the << operators).
      */
-    kte_map_chain& operator <<(const shared_pointer<kte_map>::type& aKTE) {
+    kte_map_chain& operator <<(const shared_ptr<kte_map>& aKTE) {
       if(aKTE)
         mKTEs.push_back(aKTE);
       return *this;

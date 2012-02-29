@@ -273,12 +273,12 @@ class linear_interpolator_factory : public serialization::serializable {
   
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<topology>));
   private:
-    typename shared_pointer<topology>::type space;
+    shared_ptr<topology> space;
   public:
-    linear_interpolator_factory(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type()) : space(aSpace) { };
+    linear_interpolator_factory(const shared_ptr<topology>& aSpace = shared_ptr<topology>()) : space(aSpace) { };
   
-    void set_temporal_space(const typename shared_pointer<topology>::type& aSpace) { space = aSpace; };
-    const typename shared_pointer<topology>::type& get_temporal_space() const { return space; };
+    void set_temporal_space(const shared_ptr<topology>& aSpace) { space = aSpace; };
+    const shared_ptr<topology>& get_temporal_space() const { return space; };
   
     interpolator_type create_interpolator(const point_type* pp1, const point_type* pp2) const {
       return interpolator_type(this, pp1, pp2);
@@ -332,7 +332,7 @@ class linear_interp_traj : public interpolated_trajectory<Topology,linear_interp
      * \param aSpace The space on which the path is.
      * \param aDist The distance metric functor that the path should use.
      */
-    explicit linear_interp_traj(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
+    explicit linear_interp_traj(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
                                 base_class_type(aSpace, aDist, linear_interpolator_factory<Topology>(aSpace)) { };
     
     /**
@@ -342,7 +342,7 @@ class linear_interp_traj : public interpolated_trajectory<Topology,linear_interp
      * \param aEnd The end-point of the path.
      * \param aDist The distance metric functor that the path should use.
      */
-    linear_interp_traj(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
+    linear_interp_traj(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
                        base_class_type(aSpace, aStart, aEnd, aDist, linear_interpolator_factory<Topology>(aSpace)) { };
 			
     /**
@@ -354,7 +354,7 @@ class linear_interp_traj : public interpolated_trajectory<Topology,linear_interp
      * \param aDist The distance metric functor that the path should use.
      */
     template <typename ForwardIter>
-    linear_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
+    linear_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
                        base_class_type(aBegin, aEnd, aSpace, aDist, linear_interpolator_factory<Topology>(aSpace)) { };
 		       
 		       

@@ -84,7 +84,7 @@ class kte_map : public virtual named_object , public boost::noncopyable {
      * \param aStorage a map of kinetostatic frame storage for stored kinematics and dynamics.
      * \note adaptivity is not yet supported.
      */
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) = 0;
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) = 0;
 
     /**
      * This method performs a force calculation pass (i.e. computes the dynamics).
@@ -94,7 +94,7 @@ class kte_map : public virtual named_object , public boost::noncopyable {
      * \param aStorage a map of kinetostatic frame storage for stored kinematics and dynamics.
      * \note adaptivity is not yet supported.
      */
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) = 0;
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) = 0;
 
     /**
      * This method performs a force clearance pass (i.e. resets all force values to zero).

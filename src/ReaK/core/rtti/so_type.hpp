@@ -65,7 +65,7 @@ namespace serialization {
 /** Main namespace for ReaK's Run-time Type Identification (RTTI) */
 namespace rtti {
   
-typedef ReaK::shared_pointer<shared_object>::type shared_object_shared_pointer;
+typedef ReaK::shared_ptr<shared_object> shared_object_shared_pointer;
 
 typedef shared_object_shared_pointer (RK_CALL *construct_ptr)();
 
@@ -635,8 +635,8 @@ private:
   so_type(const so_type&);
   so_type& operator =(const so_type&);
 public:
-  typedef ReaK::weak_pointer<so_type>::type weak_pointer;
-  typedef ReaK::shared_pointer<so_type>::type shared_pointer;
+  typedef ReaK::weak_ptr<so_type> weak_pointer;
+  typedef ReaK::shared_ptr<so_type> shared_pointer;
 protected:
   
   so_type() : shared_object_base() { };

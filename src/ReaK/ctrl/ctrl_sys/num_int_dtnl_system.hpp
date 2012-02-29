@@ -55,7 +55,7 @@ class num_int_dtnl_sys : public named_object {
   public:
     typedef num_int_dtnl_sys<CTSystem,NumIntegrator> self;
     
-    typedef typename shared_pointer< CTSystem >::type ct_system_ptr;
+    typedef shared_ptr< CTSystem > ct_system_ptr;
     
     typedef typename ss_system_traits<CTSystem>::point_type point_type;
     typedef typename ss_system_traits<CTSystem>::point_difference_type point_difference_type;
@@ -141,14 +141,14 @@ class num_int_dtnl_sys : public named_object {
       integ.setTime(t);
       integ.clearStateVector();
       integ.addStateElements(p);
-      typename shared_pointer< state_rate_function<value_type> >::type temp(new rate_function_impl<StateSpaceType>(state_space, sys, u));
+      shared_ptr< state_rate_function<value_type> > temp(new rate_function_impl<StateSpaceType>(state_space, sys, u));
       integ.setStateRateFunc(temp);
       integ.integrate(t + dt);
       point_type result = point_type(p); 
       size_type i = 0;
       for(typename std::vector<value_type>::const_iterator it = integ.getStateBegin(); it != integ.getStateEnd(); ++it, ++i)
 	result[i] = *it;
-      integ.setStateRateFunc(typename shared_pointer< state_rate_function<value_type> >::type());
+      integ.setStateRateFunc(shared_ptr< state_rate_function<value_type> >());
       return result;
     };
     
@@ -203,7 +203,7 @@ class num_int_dtnl_sys< state_rate_function_with_io<T>, NumIntegrator<T> > : pub
     typedef T value_type;
     typedef typename vect_traits< vect_n<value_type> >::size_type size_type;
     
-    typedef typename shared_pointer< state_rate_function_with_io<value_type> >::type ct_system_ptr;
+    typedef shared_ptr< state_rate_function_with_io<value_type> > ct_system_ptr;
     
     typedef vect_n<value_type> point_type;
     typedef vect_n<value_type> point_difference_type;

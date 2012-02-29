@@ -61,7 +61,7 @@ public:
   jacobian_gen_gen(const value_type& aQdQd = value_type(), 
 		   const value_type& aQdQdd = value_type()) : qd_qd(aQdQd), qd_qdd(aQdQdd) { };
 		   
-  self get_jac_relative_to(const typename shared_pointer< gen_coord<value_type> >::type& ) const {
+  self get_jac_relative_to(const shared_ptr< gen_coord<value_type> >& ) const {
     return *this;
   };
   
@@ -116,7 +116,7 @@ public:
   typedef T value_type;
   typedef jacobian_gen_2D<T> self;
   
-  typename weak_pointer< frame_2D<value_type> >::type Parent; ///< Holds the frame to which the jacobians are relative to.
+  weak_ptr< frame_2D<value_type> > Parent; ///< Holds the frame to which the jacobians are relative to.
   vect<value_type,2> qd_vel; ///< Holds how much velocity is generated at output from the input velocity.
   value_type qd_avel;  ///< Holds how much angular velocity is generated at output from the input velocity.
   vect<value_type,2> qd_acc; ///< Holds how much acceleration is generated at output from the input velocity.
@@ -125,7 +125,7 @@ public:
   /**
    * Parametrized constructor.
    */
-  jacobian_gen_2D(const typename weak_pointer< frame_2D<value_type> >::type& aParent = typename weak_pointer< frame_2D<value_type> >::type(),
+  jacobian_gen_2D(const weak_ptr< frame_2D<value_type> >& aParent = weak_ptr< frame_2D<value_type> >(),
                   const vect<value_type,2>& aQdVel = vect<value_type,2>(),
 		  const value_type& aQdAVel = value_type(), 
 		  const vect<value_type,2>& aQdAcc = vect<value_type,2>(),
@@ -136,7 +136,7 @@ public:
 		  qd_acc(aQdAcc),
 		  qd_aacc(aQdAAcc) { };
   
-  self get_jac_relative_to(const typename shared_pointer< frame_2D<value_type> >::type& aFrame) const {
+  self get_jac_relative_to(const shared_ptr< frame_2D<value_type> >& aFrame) const {
     frame_2D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
     vect<value_type,2> v_tmp = (qd_avel % f2.Position + qd_vel) * f2.Rotation;
     return self( aFrame,
@@ -184,7 +184,7 @@ public:
 
   virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
     if(Parent.expired())
-      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",typename shared_pointer<serialization::serializable>::type());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
     else
       A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
     A & RK_SERIAL_SAVE_WITH_NAME(qd_vel)
@@ -193,7 +193,7 @@ public:
       & RK_SERIAL_SAVE_WITH_NAME(qd_aacc);
   };
   virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-    typename shared_pointer< frame_2D<value_type> >::type tmp;
+    shared_ptr< frame_2D<value_type> > tmp;
     A & RK_SERIAL_LOAD_WITH_ALIAS("Parent",tmp)
       & RK_SERIAL_LOAD_WITH_NAME(qd_vel)
       & RK_SERIAL_LOAD_WITH_NAME(qd_avel)
@@ -215,7 +215,7 @@ public:
   typedef T value_type;
   typedef jacobian_gen_3D<T> self;
   
-  typename weak_pointer< frame_3D<value_type> >::type Parent; ///< Holds the frame to which the jacobians are relative to.
+  weak_ptr< frame_3D<value_type> > Parent; ///< Holds the frame to which the jacobians are relative to.
   vect<value_type,3> qd_vel; ///< Holds how much velocity is generated at output from the input velocity.
   vect<value_type,3> qd_avel; ///< Holds how much angular velocity is generated at output from the input velocity.
   vect<value_type,3> qd_acc; ///< Holds how much acceleration is generated at output from the input velocity.
@@ -224,7 +224,7 @@ public:
   /**
    * Parametrized constructor.
    */
-  jacobian_gen_3D(const typename weak_pointer< frame_3D<value_type> >::type& aParent = typename weak_pointer< frame_3D<value_type> >::type(),
+  jacobian_gen_3D(const weak_ptr< frame_3D<value_type> >& aParent = weak_ptr< frame_3D<value_type> >(),
                   const vect<value_type,3>& aQdVel = vect<value_type,3>(),
 		  const vect<value_type,3>& aQdAVel = vect<value_type,3>(), 
 		  const vect<value_type,3>& aQdAcc = vect<value_type,3>(),
@@ -235,7 +235,7 @@ public:
 		  qd_acc(aQdAcc),
 		  qd_aacc(aQdAAcc) { };
   
-  self get_jac_relative_to(const typename shared_pointer< frame_3D<value_type> >::type& aFrame) const {
+  self get_jac_relative_to(const shared_ptr< frame_3D<value_type> >& aFrame) const {
     
     
     frame_3D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
@@ -296,7 +296,7 @@ public:
 
   virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
     if(Parent.expired())
-      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",typename shared_pointer<serialization::serializable>::type());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
     else
       A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
     A & RK_SERIAL_SAVE_WITH_NAME(qd_vel)
@@ -305,7 +305,7 @@ public:
       & RK_SERIAL_SAVE_WITH_NAME(qd_aacc);
   };
   virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-    typename shared_pointer< frame_3D<value_type> >::type tmp;
+    shared_ptr< frame_3D<value_type> > tmp;
     A & RK_SERIAL_LOAD_WITH_ALIAS("Parent",tmp)
       & RK_SERIAL_LOAD_WITH_NAME(qd_vel)
       & RK_SERIAL_LOAD_WITH_NAME(qd_avel)
@@ -348,7 +348,7 @@ public:
 		  vel_qdd(aVelQdd),
 		  avel_qdd(aAVelQdd) { };
 		   
-  self get_jac_relative_to(const typename shared_pointer< gen_coord<value_type> >::type& ) const {
+  self get_jac_relative_to(const shared_ptr< gen_coord<value_type> >& ) const {
     return *this;
   };
   
@@ -413,7 +413,7 @@ public:
   typedef T value_type;
   typedef jacobian_2D_2D<T> self;
   
-  typename weak_pointer< frame_2D<value_type> >::type Parent; ///< Holds the frame to which the jacobians are relative to.
+  weak_ptr< frame_2D<value_type> > Parent; ///< Holds the frame to which the jacobians are relative to.
   vect<vect<value_type,2>,2> vel_vel; ///< Holds how much velocity is generated at output from the input velocity.
   vect<value_type,2> vel_avel; ///< Holds how much angular velocity is generated at output from the input velocity.
   vect<value_type,2> avel_vel; ///< Holds how much velocity is generated at output from the input angular velocity.
@@ -426,7 +426,7 @@ public:
   /**
    * Parametrized constructor.
    */
-  jacobian_2D_2D(const typename weak_pointer< frame_2D<value_type> >::type& aParent = typename weak_pointer< frame_2D<value_type> >::type(),
+  jacobian_2D_2D(const weak_ptr< frame_2D<value_type> >& aParent = weak_ptr< frame_2D<value_type> >(),
                  const vect<vect<value_type,2>,2>& aVelVel = vect<vect<value_type,2>,2>(),
 		 const vect<value_type,2>& aVelAVel = vect<value_type,2>(),
 		 const vect<value_type,2>& aAVelVel = vect<value_type,2>(),
@@ -445,7 +445,7 @@ public:
 		 avel_acc(aAVelAcc),
 		 avel_aacc(aAVelAAcc) { };
   
-  self get_jac_relative_to(const typename shared_pointer< frame_2D<value_type> >::type& aFrame) const {
+  self get_jac_relative_to(const shared_ptr< frame_2D<value_type> >& aFrame) const {
     
     frame_2D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
 
@@ -525,7 +525,7 @@ public:
 
   virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
     if(Parent.expired())
-      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",typename shared_pointer<serialization::serializable>::type());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
     else
       A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
     A & RK_SERIAL_SAVE_WITH_NAME(vel_vel)
@@ -538,7 +538,7 @@ public:
       & RK_SERIAL_SAVE_WITH_NAME(avel_aacc);
   };
   virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-    typename shared_pointer< frame_2D<value_type> >::type tmp;
+    shared_ptr< frame_2D<value_type> > tmp;
     A & RK_SERIAL_LOAD_WITH_ALIAS("Parent",tmp)
       & RK_SERIAL_LOAD_WITH_NAME(vel_vel)
       & RK_SERIAL_LOAD_WITH_NAME(vel_avel)
@@ -564,7 +564,7 @@ public:
   typedef T value_type;
   typedef jacobian_2D_3D<T> self;
   
-  typename weak_pointer< frame_3D<value_type> >::type Parent; ///< Holds the frame to which the jacobians are relative to.
+  weak_ptr< frame_3D<value_type> > Parent; ///< Holds the frame to which the jacobians are relative to.
   vect<vect<value_type,3>,2> vel_vel; ///< Holds how much velocity is generated at output from the input velocity.
   vect<vect<value_type,3>,2> vel_avel; ///< Holds how much angular velocity is generated at output from the input velocity.
   vect<value_type,3> avel_vel; ///< Holds how much velocity is generated at output from the input angular velocity.
@@ -577,7 +577,7 @@ public:
   /**
    * Parametrized constructor.
    */
-  jacobian_2D_3D(const typename weak_pointer< frame_3D<value_type> >::type& aParent = typename weak_pointer< frame_3D<value_type> >::type(),
+  jacobian_2D_3D(const weak_ptr< frame_3D<value_type> >& aParent = weak_ptr< frame_3D<value_type> >(),
                  const vect<vect<value_type,3>,2>& aVelVel = vect<vect<value_type,3>,2>(),
 		 const vect<vect<value_type,3>,2>& aVelAVel = vect<vect<value_type,3>,2>(),
 		 const vect<value_type,3>& aAVelVel = vect<value_type,3>(),
@@ -596,7 +596,7 @@ public:
 		 avel_acc(aAVelAcc),
 		 avel_aacc(aAVelAAcc) { };
   
-  self get_jac_relative_to(const typename shared_pointer< frame_3D<value_type> >::type& aFrame) const {
+  self get_jac_relative_to(const shared_ptr< frame_3D<value_type> >& aFrame) const {
     
     
     frame_3D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
@@ -713,7 +713,7 @@ public:
 
   virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
     if(Parent.expired())
-      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",typename shared_pointer<serialization::serializable>::type());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
     else
       A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
     A & RK_SERIAL_SAVE_WITH_NAME(vel_vel)
@@ -726,7 +726,7 @@ public:
       & RK_SERIAL_SAVE_WITH_NAME(avel_aacc);
   };
   virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-    typename shared_pointer< frame_3D<value_type> >::type tmp;
+    shared_ptr< frame_3D<value_type> > tmp;
     A & RK_SERIAL_LOAD_WITH_ALIAS("Parent",tmp)
       & RK_SERIAL_LOAD_WITH_NAME(vel_vel)
       & RK_SERIAL_LOAD_WITH_NAME(vel_avel)
@@ -773,7 +773,7 @@ public:
 		  vel_qdd(aVelQdd),
 		  avel_qdd(aAVelQdd) { };
 		   
-  self get_jac_relative_to(const typename shared_pointer< gen_coord<value_type> >::type& ) const {
+  self get_jac_relative_to(const shared_ptr< gen_coord<value_type> >& ) const {
     return *this;
   };
   
@@ -848,7 +848,7 @@ public:
   typedef T value_type;
   typedef jacobian_3D_2D<T> self;
   
-  typename weak_pointer< frame_2D<value_type> >::type Parent; ///< Holds the frame to which the jacobians are relative to.
+  weak_ptr< frame_2D<value_type> > Parent; ///< Holds the frame to which the jacobians are relative to.
   vect<vect<value_type,2>,3> vel_vel; ///< Holds how much velocity is generated at output from the input velocity.
   vect<value_type,3> vel_avel; ///< Holds how much angular velocity is generated at output from the input velocity.
   vect<vect<value_type,2>,3> avel_vel; ///< Holds how much velocity is generated at output from the input angular velocity.
@@ -861,7 +861,7 @@ public:
   /**
    * Parametrized constructor.
    */
-  jacobian_3D_2D(const typename weak_pointer< frame_2D<value_type> >::type& aParent = typename weak_pointer< frame_2D<value_type> >::type(),
+  jacobian_3D_2D(const weak_ptr< frame_2D<value_type> >& aParent = weak_ptr< frame_2D<value_type> >(),
                  const vect<vect<value_type,2>,3>& aVelVel = vect<vect<value_type,2>,3>(),
 		 const vect<value_type,3>& aVelAVel = vect<value_type,3>(),
 		 const vect<vect<value_type,2>,3>& aAVelVel = vect<vect<value_type,2>,3>(),
@@ -880,7 +880,7 @@ public:
 		 avel_acc(aAVelAcc),
 		 avel_aacc(aAVelAAcc) { };
   
-  self get_jac_relative_to(const typename shared_pointer< frame_2D<value_type> >::type& aFrame) const {
+  self get_jac_relative_to(const shared_ptr< frame_2D<value_type> >& aFrame) const {
     
     
     frame_2D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
@@ -1003,7 +1003,7 @@ public:
 
   virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
     if(Parent.expired())
-      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",typename shared_pointer<serialization::serializable>::type());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
     else
       A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
     A & RK_SERIAL_SAVE_WITH_NAME(vel_vel)
@@ -1016,7 +1016,7 @@ public:
       & RK_SERIAL_SAVE_WITH_NAME(avel_aacc);
   };
   virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-    typename shared_pointer< frame_2D<value_type> >::type tmp;
+    shared_ptr< frame_2D<value_type> > tmp;
     A & RK_SERIAL_LOAD_WITH_ALIAS("Parent",tmp)
       & RK_SERIAL_LOAD_WITH_NAME(vel_vel)
       & RK_SERIAL_LOAD_WITH_NAME(vel_avel)
@@ -1042,7 +1042,7 @@ public:
   typedef T value_type;
   typedef jacobian_3D_3D<T> self;
   
-  typename weak_pointer< frame_3D<value_type> >::type Parent; ///< Holds the frame to which the jacobians are relative to.
+  weak_ptr< frame_3D<value_type> > Parent; ///< Holds the frame to which the jacobians are relative to.
   vect<vect<value_type,3>,3> vel_vel; ///< Holds how much velocity is generated at output from the input velocity.
   vect<vect<value_type,3>,3> vel_avel; ///< Holds how much angular velocity is generated at output from the input velocity.
   vect<vect<value_type,3>,3> avel_vel; ///< Holds how much velocity is generated at output from the input angular velocity.
@@ -1055,7 +1055,7 @@ public:
   /**
    * Parametrized constructor.
    */
-  jacobian_3D_3D(const typename weak_pointer< frame_3D<value_type> >::type& aParent = typename weak_pointer< frame_3D<value_type> >::type(),
+  jacobian_3D_3D(const weak_ptr< frame_3D<value_type> >& aParent = weak_ptr< frame_3D<value_type> >(),
                  const vect<vect<value_type,3>,3>& aVelVel = vect<vect<value_type,3>,3>(),
 		 const vect<vect<value_type,3>,3>& aVelAVel = vect<vect<value_type,3>,3>(),
 		 const vect<vect<value_type,3>,3>& aAVelVel = vect<vect<value_type,3>,3>(),
@@ -1074,7 +1074,7 @@ public:
 		 avel_acc(aAVelAcc),
 		 avel_aacc(aAVelAAcc) { };
   
-  self get_jac_relative_to(const typename shared_pointer< frame_3D<value_type> >::type& aFrame) const {
+  self get_jac_relative_to(const shared_ptr< frame_3D<value_type> >& aFrame) const {
     
     
     
@@ -1272,7 +1272,7 @@ public:
 
   virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
     if(Parent.expired())
-      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",typename shared_pointer<serialization::serializable>::type());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
     else
       A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
     A & RK_SERIAL_SAVE_WITH_NAME(vel_vel)
@@ -1285,7 +1285,7 @@ public:
       & RK_SERIAL_SAVE_WITH_NAME(avel_aacc);
   };
   virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-    typename shared_pointer< frame_3D<value_type> >::type tmp;
+    shared_ptr< frame_3D<value_type> > tmp;
     A & RK_SERIAL_LOAD_WITH_ALIAS("Parent",tmp)
       & RK_SERIAL_LOAD_WITH_NAME(vel_vel)
       & RK_SERIAL_LOAD_WITH_NAME(vel_avel)

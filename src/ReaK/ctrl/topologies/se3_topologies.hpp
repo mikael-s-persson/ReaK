@@ -42,8 +42,14 @@
 #include "differentiable_space.hpp"
 #include "metric_space_tuple.hpp"
 
+#include "hyperbox_topology.hpp"
+#include "hyperball_topology.hpp"
+#include "line_topology.hpp"
+
 #include "lin_alg/arithmetic_tuple.hpp"
 #include "lin_alg/vect_alg.hpp"
+
+#include "kinetostatics/frame_3D.hpp"
 
 namespace ReaK {
 
@@ -63,7 +69,7 @@ struct se3_0th_order_topology {
     metric_space_tuple< arithmetic_tuple<
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< vector_topology< vect<T,3> > >, 
+	arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
 	DistanceMetric 
       >,
       differentiable_space< 
@@ -87,8 +93,8 @@ struct se3_1st_order_topology {
       differentiable_space< 
         time_topology, 
 	arithmetic_tuple< 
-	  vector_topology< vect<T,3> >,
-	  vector_topology< vect<T,3> >
+	  hyperbox_topology< vect<T,3> >,
+	  hyperball_topology< vect<T,3> >
 	>, 
 	DistanceMetric 
       >,
@@ -116,9 +122,9 @@ struct se3_2nd_order_topology {
       differentiable_space< 
         time_topology, 
 	arithmetic_tuple< 
-	  vector_topology< vect<T,3> >,
-	  vector_topology< vect<T,3> >,
-	  vector_topology< vect<T,3> >
+	  hyperbox_topology< vect<T,3> >,
+	  hyperball_topology< vect<T,3> >,
+	  hyperball_topology< vect<T,3> >
 	>, 
 	DistanceMetric 
       >,
@@ -132,15 +138,313 @@ struct se3_2nd_order_topology {
 	DistanceMetric 
       > >,
       DistanceMetric 
-    > type;
+    > type; 
+};
+
+
+
+};
+
+
+// Because of ADL rules, the get functions for the arithmetic-tuple types that represent SE(3) states should be in the ReaK namespace.
+
+
+template <typename T>
+frame_3D<T> get_frame_3D(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt) {
+  return frame_3D<T>(weak_ptr< pose_3D<T> >(),
+                           get<0>(get<0>(pt)), 
+			   quaternion<T>(get<0>(get<1>(pt))), 
+			   get<1>(get<0>(pt)), 
+			   get<1>(get<1>(pt)), 
+			   get<2>(get<0>(pt)), 
+			   get<2>(get<1>(pt)),
+			   vect<T,3>(0.0,0.0,0.0), 
+			   vect<T,3>(0.0,0.0,0.0));
+};
+
+template <typename T>
+frame_3D<T> get_frame_3D(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T>, vect<T,3> > >& pt) {
+  return frame_3D<T>(weak_ptr< pose_3D<T> >(),
+                           get<0>(get<0>(pt)), 
+			   quaternion<T>(get<0>(get<1>(pt))), 
+			   get<1>(get<0>(pt)), 
+			   get<1>(get<1>(pt)), 
+			   vect<T,3>(0.0,0.0,0.0), 
+			   vect<T,3>(0.0,0.0,0.0),
+			   vect<T,3>(0.0,0.0,0.0), 
+			   vect<T,3>(0.0,0.0,0.0));
+};
+
+template <typename T>
+frame_3D<T> get_frame_3D(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T> > >& pt) {
+  return frame_3D<T>(weak_ptr< pose_3D<T> >(),
+                           get<0>(get<0>(pt)), 
+			   quaternion<T>(get<0>(get<1>(pt))), 
+			   vect<T,3>(0.0,0.0,0.0), 
+			   vect<T,3>(0.0,0.0,0.0),
+			   vect<T,3>(0.0,0.0,0.0), 
+			   vect<T,3>(0.0,0.0,0.0),
+			   vect<T,3>(0.0,0.0,0.0), 
+			   vect<T,3>(0.0,0.0,0.0));
+};
+
+
+template <typename T>
+void set_frame_3D(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt,
+  const frame_3D<T>& p) {
+  get<0>(get<0>(pt)) = p.Position;
+  get<0>(get<1>(pt)) = unit_quat<T>(p.Quat);
+  get<1>(get<0>(pt)) = p.Velocity;
+  get<1>(get<1>(pt)) = p.AngVelocity;
+  get<2>(get<0>(pt)) = p.Acceleration;
+  get<2>(get<1>(pt)) = p.AngAcceleration;
+};
+
+template <typename T>
+void set_frame_3D(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T>, vect<T,3> > >& pt,
+  const frame_3D<T>& p) {
+  get<0>(get<0>(pt)) = p.Position;
+  get<0>(get<1>(pt)) = unit_quat<T>(p.Quat);
+  get<1>(get<0>(pt)) = p.Velocity;
+  get<1>(get<1>(pt)) = p.AngVelocity;
+};
+
+template <typename T>
+void set_frame_3D(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T> > >& pt,
+  const frame_3D<T>& p) {
+  get<0>(get<0>(pt)) = p.Position;
+  get<0>(get<1>(pt)) = unit_quat<T>(p.Quat);
+};
+
+
+
+
+template <typename T>
+pose_3D<T> get_pose_3D(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T> > >& pt) {
+  return pose_3D<T>(weak_ptr< pose_3D<T> >(),
+                    get<0>(get<0>(pt)), 
+		    quaternion<T>(get<0>(get<1>(pt))));
+};
+
+template <typename T>
+void set_pose_3D(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T> > >& pt,
+  const pose_3D<T>& p) {
+  get<0>(get<0>(pt)) = p.Position;
+  get<0>(get<1>(pt)) = unit_quat<T>(p.Quat);
 };
 
 
 
 
 
-
+template <typename T>
+const unit_quat<T>& get_quaternion(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt) {
+  return get<0>(get<1>(pt));
 };
+
+template <typename T>
+const unit_quat<T>& get_quaternion(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T>, vect<T,3> > >& pt) {
+  return get<0>(get<1>(pt));
+};
+
+template <typename T>
+const unit_quat<T>& get_quaternion(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T> > >& pt) {
+  return get<0>(get<1>(pt));
+};
+
+template <typename T>
+void set_quaternion(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt,
+  const unit_quat<T>& q) {
+  get<0>(get<1>(pt)) = q;
+};
+
+template <typename T>
+void set_quaternion(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T>, vect<T,3> > >& pt,
+  const unit_quat<T>& q) {
+  get<0>(get<1>(pt)) = q;
+};
+
+template <typename T>
+void set_quaternion(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T> > >& pt,
+  const unit_quat<T>& q) {
+  get<0>(get<1>(pt)) = q;
+};
+
+
+
+template <typename T>
+const vect<T,3>& get_position(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt) {
+  return get<0>(get<0>(pt));
+};
+
+template <typename T>
+const vect<T,3>& get_position(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T>, vect<T,3> > >& pt) {
+  return get<0>(get<0>(pt));
+};
+
+template <typename T>
+const vect<T,3>& get_position(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T> > >& pt) {
+  return get<0>(get<0>(pt));
+};
+
+template <typename T>
+void set_position(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt,
+  const vect<T,3>& p) {
+  get<0>(get<0>(pt)) = p;
+};
+
+template <typename T>
+void set_position(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T>, vect<T,3> > >& pt,
+  const vect<T,3>& p) {
+  get<0>(get<0>(pt)) = p;
+};
+
+template <typename T>
+void set_position(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T> > >& pt,
+  const vect<T,3>& p) {
+  get<0>(get<0>(pt)) = p;
+};
+
+
+
+template <typename T>
+const vect<T,3>& get_ang_velocity(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt) {
+  return get<1>(get<1>(pt));
+};
+
+template <typename T>
+const vect<T,3>& get_ang_velocity(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T>, vect<T,3> > >& pt) {
+  return get<1>(get<1>(pt));
+};
+
+template <typename T>
+void set_ang_velocity(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt,
+  const vect<T,3>& p) {
+  get<1>(get<1>(pt)) = p;
+};
+
+template <typename T>
+void set_ang_velocity(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T>, vect<T,3> > >& pt,
+  const vect<T,3>& p) {
+  get<1>(get<1>(pt)) = p;
+};
+
+
+
+template <typename T>
+const vect<T,3>& get_velocity(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt) {
+  return get<1>(get<0>(pt));
+};
+
+template <typename T>
+const vect<T,3>& get_velocity(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T>, vect<T,3> > >& pt) {
+  return get<1>(get<0>(pt));
+};
+
+template <typename T>
+void set_velocity(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt,
+  const vect<T,3>& p) {
+  get<1>(get<0>(pt)) = p;
+};
+
+template <typename T>
+void set_velocity(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T>, vect<T,3> > >& pt,
+  const vect<T,3>& p) {
+  get<1>(get<0>(pt)) = p;
+};
+
+
+
+
+template <typename T>
+const vect<T,3>& get_ang_acceleration(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt) {
+  return get<2>(get<1>(pt));
+};
+
+template <typename T>
+void set_ang_acceleration(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt,
+  const vect<T,3>& p) {
+  get<2>(get<1>(pt)) = p;
+};
+
+
+
+template <typename T>
+const vect<T,3>& get_acceleration(
+  const arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                          arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt) {
+  return get<2>(get<0>(pt));
+};
+
+template <typename T>
+void set_acceleration(
+  arithmetic_tuple< arithmetic_tuple< vect<T,3>,    vect<T,3>, vect<T,3> >,
+                    arithmetic_tuple< unit_quat<T>, vect<T,3>, vect<T,3> > >& pt,
+  const vect<T,3>& p) {
+  get<2>(get<0>(pt)) = p;
+};
+
+
 
 };
 

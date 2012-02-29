@@ -52,8 +52,8 @@ namespace kte {
  */
 class spring_gen : public kte_map {
   private:
-    shared_pointer< gen_coord<double> >::type mAnchor1; ///< Holds the first generalized coordinate.
-    shared_pointer< gen_coord<double> >::type mAnchor2; ///< Holds the second generalized coordinate.
+    shared_ptr< gen_coord<double> > mAnchor1; ///< Holds the first generalized coordinate.
+    shared_ptr< gen_coord<double> > mAnchor2; ///< Holds the second generalized coordinate.
     double mRestLength; ///< Holds the rest-length of the spring.
     double mStiffness; ///< Holds the stiffness of the spring.
     double mSaturation; ///< Holds the saturation force, or maximum force the spring can exert, if 0 there is no saturation.
@@ -90,8 +90,8 @@ class spring_gen : public kte_map {
      * \param aSaturation saturation force of the spring, default 0 will disable saturation.
      */
     spring_gen(const std::string& aName,
-	       const shared_pointer< gen_coord<double> >::type& aAnchor1,
-	       const shared_pointer< gen_coord<double> >::type& aAnchor2,
+	       const shared_ptr< gen_coord<double> >& aAnchor1,
+	       const shared_ptr< gen_coord<double> >& aAnchor2,
 	       double aRestLength,
 	       double aStiffness,
                double aSaturation = 0.0) :
@@ -107,9 +107,9 @@ class spring_gen : public kte_map {
      */
     virtual ~spring_gen() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 
@@ -143,8 +143,8 @@ class spring_gen : public kte_map {
  */
 class spring_2D : public kte_map {
   private:
-    shared_pointer< frame_2D<double> >::type mAnchor1; ///< Holds the first 2D frame.
-    shared_pointer< frame_2D<double> >::type mAnchor2; ///< Holds the second 2D frame.
+    shared_ptr< frame_2D<double> > mAnchor1; ///< Holds the first 2D frame.
+    shared_ptr< frame_2D<double> > mAnchor2; ///< Holds the second 2D frame.
     double mRestLength; ///< Holds the rest-length of the spring.
     double mStiffness; ///< Holds the stiffness of the spring.
     double mSaturation; ///< Holds the saturation force, or maximum force the spring can exert, if 0 there is no saturation.
@@ -181,8 +181,8 @@ class spring_2D : public kte_map {
      * \param aSaturation saturation force of the spring, default 0 will disable saturation.
      */
     spring_2D(const std::string& aName,
-	      const shared_pointer< frame_2D<double> >::type& aAnchor1,
-	      const shared_pointer< frame_2D<double> >::type& aAnchor2,
+	      const shared_ptr< frame_2D<double> >& aAnchor1,
+	      const shared_ptr< frame_2D<double> >& aAnchor2,
 	      double aRestLength,
 	      double aStiffness,
               double aSaturation = 0.0) :
@@ -198,9 +198,9 @@ class spring_2D : public kte_map {
      */
     virtual ~spring_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 
@@ -233,8 +233,8 @@ class spring_2D : public kte_map {
  */
 class spring_3D : public kte_map {
   private:
-    shared_pointer< frame_3D<double> >::type mAnchor1; ///< Holds the first 3D frame.
-    shared_pointer< frame_3D<double> >::type mAnchor2; ///< Holds the second 3D frame.
+    shared_ptr< frame_3D<double> > mAnchor1; ///< Holds the first 3D frame.
+    shared_ptr< frame_3D<double> > mAnchor2; ///< Holds the second 3D frame.
     double mRestLength; ///< Holds the rest-length of the spring.
     double mStiffness; ///< Holds the stiffness of the spring.
     double mSaturation; ///< Holds the saturation force, or maximum force the spring can exert, if 0 there is no saturation.
@@ -271,8 +271,8 @@ class spring_3D : public kte_map {
      * \param aSaturation saturation force of the spring, default 0 will disable saturation.
      */
     spring_3D(const std::string& aName,
-	      const shared_pointer< frame_3D<double> >::type& aAnchor1,
-	      const shared_pointer< frame_3D<double> >::type& aAnchor2,
+	      const shared_ptr< frame_3D<double> >& aAnchor1,
+	      const shared_ptr< frame_3D<double> >& aAnchor2,
 	      double aRestLength,
 	      double aStiffness,
               double aSaturation = 0.0) :
@@ -288,9 +288,9 @@ class spring_3D : public kte_map {
      */
     virtual ~spring_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 

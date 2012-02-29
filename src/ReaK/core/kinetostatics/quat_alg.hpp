@@ -35,6 +35,8 @@
 #include "lin_alg/vect_alg.hpp"
 #include "serialization/archiver.hpp"
 
+#include "rotations_3D.hpp"
+
 #include <cmath>
 
 namespace ReaK {
@@ -785,6 +787,13 @@ class unit_quat : public quat<T> {
      * Returns a const-iterator to the one-past-last element of the quaternion (viewed as a 4D vector).
      */
     const_iterator end() const { return this->q + 4; };
+    
+    /**
+     * Returns the same unit-quaternion, but now as a quaternion class, which is used to represent 3D rotations.
+     */
+    quaternion< value_type > as_rotation() const {
+      return quaternion< value_type >(this->q[0],this->q[1],this->q[2],this->q[3]);
+    };
       
 /*******************************************************************************
                          Assignment Operators

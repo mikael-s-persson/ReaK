@@ -57,12 +57,12 @@ class goal_reach_time_heuristic : public serialization::serializable {
     BOOST_CONCEPT_ASSERT((DistanceMetricConcept<ReachTimeMetric,space_topology>));
     
   private:
-    typename shared_pointer<const Trajectory>::type traject;
+    shared_ptr<const Trajectory> traject;
     ReachTimeMetric dist;
     double tolerance;
   public:
     
-    goal_reach_time_heuristic(const typename shared_pointer<const Trajectory>::type& aTraject, 
+    goal_reach_time_heuristic(const shared_ptr<const Trajectory>& aTraject, 
 			      const ReachTimeMetric& aDist = ReachTimeMetric(),
 			      double aTolerance = 1e-6) :
                               traject(aTraject), dist(aDist), tolerance(aTolerance) { };

@@ -97,8 +97,8 @@ class gaussian_belief_space : public named_object {
     typedef pp::default_distance_metric distance_metric_type;
     typedef pp::default_random_sampler random_sampler_type;
     
-    typedef typename ReaK::shared_pointer<state_topology>::type state_topology_ptr;
-    typedef typename ReaK::shared_pointer<covariance_topology>::type covariance_topology_ptr;
+    typedef ReaK::shared_ptr<state_topology> state_topology_ptr;
+    typedef ReaK::shared_ptr<covariance_topology> covariance_topology_ptr;
     
   private:
     state_topology_ptr mean_state_space;

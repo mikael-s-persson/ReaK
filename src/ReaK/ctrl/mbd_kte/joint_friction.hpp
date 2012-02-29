@@ -47,7 +47,7 @@ namespace kte {
  */
 class joint_dry_microslip_gen : public kte_map {
   private:
-    shared_pointer<gen_coord<double> >::type mAnchor;
+    shared_ptr<gen_coord<double> > mAnchor;
     double mStictionVelocity;
     double mSlipVelocity;
     double mStictionCoef;
@@ -80,7 +80,7 @@ class joint_dry_microslip_gen : public kte_map {
      * Parametrized constructor.
      */
     joint_dry_microslip_gen(const std::string& aName,
-                            const shared_pointer< gen_coord<double> >::type& aAnchor,
+                            const shared_ptr< gen_coord<double> >& aAnchor,
                             double aStictionVelocity,
                             double aSlipVelocity,
                             double aStictionCoef,
@@ -97,9 +97,9 @@ class joint_dry_microslip_gen : public kte_map {
      */
     virtual ~joint_dry_microslip_gen() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 
@@ -133,7 +133,7 @@ class joint_dry_microslip_gen : public kte_map {
  */
 class joint_viscosity_gen : public kte_map {
   private:
-    shared_pointer<gen_coord<double> >::type mAnchor;
+    shared_ptr<gen_coord<double> > mAnchor;
     double mViscosity;
 
   public:
@@ -151,7 +151,7 @@ class joint_viscosity_gen : public kte_map {
      * Parametrized constructor.
      */
     joint_viscosity_gen(const std::string& aName,
-                        const shared_pointer< gen_coord<double> >::type& aAnchor,
+                        const shared_ptr< gen_coord<double> >& aAnchor,
                         double aViscosity) :
                         kte_map(aName),
                         mAnchor(aAnchor),
@@ -162,9 +162,9 @@ class joint_viscosity_gen : public kte_map {
      */
     virtual ~joint_viscosity_gen() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 

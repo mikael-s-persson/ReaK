@@ -238,7 +238,7 @@ iarchive& RK_CALL xml_iarchive::load_serializable_ptr(const std::pair<std::strin
     skipToEndToken(Item.first);
     return *this;
   };
-  ReaK::shared_pointer<shared_object>::type po(p.lock()->CreateObject());
+  ReaK::shared_ptr<shared_object> po(p.lock()->CreateObject());
   if(!po) {
     skipToEndToken(Item.first);
     return *this;

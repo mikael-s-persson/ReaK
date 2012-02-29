@@ -52,6 +52,9 @@ template <class T>
 class quaternion;
 
 template <class T>
+class unit_quat;
+
+template <class T>
 class euler_angles_TB;
 
 template <class T>
@@ -571,6 +574,7 @@ class quaternion : public serialization::serializable {
     friend class euler_angles_TB<value_type>;
     friend class axis_angle<value_type>;
     friend class trans_mat_3D<value_type>;
+    friend class unit_quat<value_type>;
 
 /*******************************************************************************
                          Constructors / Destructors

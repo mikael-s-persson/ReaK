@@ -95,10 +95,10 @@ class vmc_revolute_joint_2D : public revolute_joint_2D {
      * \param aSlipVelocity the micro-slip tolerance in joint speed.
      */
     vmc_revolute_joint_2D(const std::string& aName,
-                          const shared_pointer< gen_coord<double> >::type& aAngle,
-                          const shared_pointer< frame_2D<double> >::type& aBase,
-                          const shared_pointer< frame_2D<double> >::type& aEnd,
-                          const shared_pointer< jacobian_gen_2D<double> >::type& aJacobian = shared_pointer< jacobian_gen_2D<double> >::type(),
+                          const shared_ptr< gen_coord<double> >& aAngle,
+                          const shared_ptr< frame_2D<double> >& aBase,
+                          const shared_ptr< frame_2D<double> >& aEnd,
+                          const shared_ptr< jacobian_gen_2D<double> >& aJacobian = shared_ptr< jacobian_gen_2D<double> >(),
                           double aStictionCoef = 0.5,
 			  double aSlipCoef = 0.3,
 			  double aSlipVelocity = 1E-5) :
@@ -112,7 +112,7 @@ class vmc_revolute_joint_2D : public revolute_joint_2D {
      */
     virtual ~vmc_revolute_joint_2D() { };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       revolute_joint_2D::save(A,revolute_joint_2D::getStaticObjectType()->TypeVersion());
@@ -176,11 +176,11 @@ class vmc_revolute_joint_3D : public revolute_joint_3D {
      * \param aSlipVelocity the micro-slip tolerance in joint speed.
      */
     vmc_revolute_joint_3D(const std::string& aName,
-                          const shared_pointer< gen_coord<double> >::type& aAngle,
+                          const shared_ptr< gen_coord<double> >& aAngle,
 			  const vect<double,3>& aAxis,
-			  const shared_pointer< frame_3D<double> >::type& aBase,
-			  const shared_pointer< frame_3D<double> >::type& aEnd,
-			  const shared_pointer< jacobian_gen_3D<double> >::type& aJacobian = shared_pointer< jacobian_gen_3D<double> >::type(),
+			  const shared_ptr< frame_3D<double> >& aBase,
+			  const shared_ptr< frame_3D<double> >& aEnd,
+			  const shared_ptr< jacobian_gen_3D<double> >& aJacobian = shared_ptr< jacobian_gen_3D<double> >(),
 			  double aStictionCoef = 0.5,
 			  double aSlipCoef = 0.3,
 			  double aSlipVelocity = 1E-5) :
@@ -194,7 +194,7 @@ class vmc_revolute_joint_3D : public revolute_joint_3D {
      */
     virtual ~vmc_revolute_joint_3D() { };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       revolute_joint_3D::save(A,revolute_joint_3D::getStaticObjectType()->TypeVersion());

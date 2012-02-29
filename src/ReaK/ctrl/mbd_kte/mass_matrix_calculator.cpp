@@ -28,7 +28,7 @@ namespace ReaK {
 namespace kte {
 
 
-mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< inertia_gen >::type& aGenInertia) {
+mass_matrix_calc& mass_matrix_calc::operator <<(const shared_ptr< inertia_gen >& aGenInertia) {
 
   if(aGenInertia)
     mGenInertias.push_back(aGenInertia);
@@ -36,7 +36,7 @@ mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< inertia_ge
   return *this;
 };
 
-mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< inertia_2D >::type& a2DInertia) {
+mass_matrix_calc& mass_matrix_calc::operator <<(const shared_ptr< inertia_2D >& a2DInertia) {
 
   if(a2DInertia)
     m2DInertias.push_back(a2DInertia);
@@ -44,7 +44,7 @@ mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< inertia_2D
   return *this;
 };
 
-mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< inertia_3D >::type& a3DInertia) {
+mass_matrix_calc& mass_matrix_calc::operator <<(const shared_ptr< inertia_3D >& a3DInertia) {
 
   if(a3DInertia)
     m3DInertias.push_back(a3DInertia);
@@ -52,7 +52,7 @@ mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< inertia_3D
   return *this;
 };
 
-mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< gen_coord<double> >::type& aCoord) {
+mass_matrix_calc& mass_matrix_calc::operator <<(const shared_ptr< gen_coord<double> >& aCoord) {
 
   if(aCoord)
     mCoords.push_back(aCoord);
@@ -61,7 +61,7 @@ mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< gen_coord<
 };
 
 
-mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< frame_2D<double> >::type& aFrame2D) {
+mass_matrix_calc& mass_matrix_calc::operator <<(const shared_ptr< frame_2D<double> >& aFrame2D) {
   
   if(aFrame2D)
     mFrames2D.push_back(aFrame2D);
@@ -69,7 +69,7 @@ mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< frame_2D<d
   return *this;
 };
 
-mass_matrix_calc& mass_matrix_calc::operator <<(const shared_pointer< frame_3D<double> >::type& aFrame3D) {
+mass_matrix_calc& mass_matrix_calc::operator <<(const shared_ptr< frame_3D<double> >& aFrame3D) {
 
   if(aFrame3D)
     mFrames3D.push_back(aFrame3D);

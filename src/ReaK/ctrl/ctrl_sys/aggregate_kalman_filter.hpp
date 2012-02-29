@@ -364,7 +364,7 @@ struct AKF_belief_transfer {
   typedef AKF_belief_transfer<LinearSystem, BeliefState, SystemNoiseCovar, MeasurementCovar> self;
   typedef BeliefState belief_state;
   typedef LinearSystem state_space_system;
-  typedef typename shared_pointer< LinearSystem >::type state_space_system_ptr;
+  typedef shared_ptr< LinearSystem > state_space_system_ptr;
   typedef typename discrete_sss_traits< state_space_system >::time_type time_type;
   typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
 

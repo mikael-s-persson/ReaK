@@ -71,15 +71,15 @@ namespace ctrl {
 class kte_nl_system : public named_object {
   public:
     
-    std::vector< shared_pointer< gen_coord<double> >::type > dofs_gen; ///< Holds the list of generalized coordinates which are part of the state variables.
-    std::vector< shared_pointer< frame_2D<double> >::type >  dofs_2D; ///< Holds the list of 2D coordinate frames which are part of the state variables.
-    std::vector< shared_pointer< frame_3D<double> >::type >  dofs_3D; ///< Holds the list of 3D coordinate frames which are part of the state variables.
+    std::vector< shared_ptr< gen_coord<double> > > dofs_gen; ///< Holds the list of generalized coordinates which are part of the state variables.
+    std::vector< shared_ptr< frame_2D<double> > >  dofs_2D; ///< Holds the list of 2D coordinate frames which are part of the state variables.
+    std::vector< shared_ptr< frame_3D<double> > >  dofs_3D; ///< Holds the list of 3D coordinate frames which are part of the state variables.
     
-    std::vector< shared_pointer< kte::system_input >::type > inputs; ///< Holds the list of system input objects that are part of the KTE model.
-    std::vector< shared_pointer< kte::system_output >::type > outputs; ///< Holds the list of system output objects that are part of the KTE model.
+    std::vector< shared_ptr< kte::system_input > > inputs; ///< Holds the list of system input objects that are part of the KTE model.
+    std::vector< shared_ptr< kte::system_output > > outputs; ///< Holds the list of system output objects that are part of the KTE model.
     
-    shared_pointer< kte::kte_map_chain >::type chain; ///< Holds the KTE model used.
-    shared_pointer< kte::mass_matrix_calc >::type mass_calc; ///< Holds the KTE mass-matrix calculator used.
+    shared_ptr< kte::kte_map_chain > chain; ///< Holds the KTE model used.
+    shared_ptr< kte::mass_matrix_calc > mass_calc; ///< Holds the KTE mass-matrix calculator used.
     
     typedef kte_nl_system self;
     typedef double value_type;

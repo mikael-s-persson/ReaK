@@ -59,7 +59,7 @@ class pose_2D : public shared_object {
     typedef vect<T,2> vector_type;
     typedef rot_mat_2D<T> rotation_type;
 
-    typename weak_pointer< self >::type Parent; ///< Holds a weak pointer to the pose relative to which this pose is expressed.
+    weak_ptr< self > Parent; ///< Holds a weak pointer to the pose relative to which this pose is expressed.
     
     position_type Position; ///< Position vector of the pose.
     rotation_type Rotation; ///< Rotation matrix of the coordinate axes.
@@ -72,7 +72,7 @@ class pose_2D : public shared_object {
     /**
      * Parametrized constructor, all is set to corresponding parameters.
      */
-    pose_2D(const typename weak_pointer< self >::type& aParent, const position_type& aPosition, const rotation_type& aRotation) :
+    pose_2D(const weak_ptr< self >& aParent, const position_type& aPosition, const rotation_type& aRotation) :
                 shared_object(),
 		Parent(aParent),
 		Position(aPosition),
@@ -108,7 +108,7 @@ class pose_2D : public shared_object {
     /**
      * Returns true if P is part of the parent chain from this pose.
      */
-    bool isParentPose(const typename shared_pointer< const self >::type& P) const {
+    bool isParentPose(const shared_ptr< const self >& P) const {
       if(Parent.expired()) {
 	if(P)
 	  return true;
@@ -127,7 +127,7 @@ class pose_2D : public shared_object {
     /**
      * Returns this 2D pose relative to pose P.
      */
-    self getPoseRelativeTo(const typename shared_pointer< const self >::type& P) const {
+    self getPoseRelativeTo(const shared_ptr< const self >& P) const {
       if(!P)
         return getGlobalPose();
       if(isParentPose(P)) {
@@ -286,14 +286,14 @@ class pose_2D : public shared_object {
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       if(Parent.expired())
-        A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",typename shared_pointer<serialization::serializable>::type());
+        A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
       else
         A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
       A & RK_SERIAL_SAVE_WITH_NAME(Position)
         & RK_SERIAL_SAVE_WITH_NAME(Rotation);
     };
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-      typename shared_pointer< self >::type tmp;
+      shared_ptr< self > tmp;
       A & RK_SERIAL_LOAD_WITH_ALIAS("Parent",tmp)
         & RK_SERIAL_LOAD_WITH_NAME(Position)
         & RK_SERIAL_LOAD_WITH_NAME(Rotation);

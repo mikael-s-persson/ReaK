@@ -101,7 +101,7 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointe
     Item = serializable_shared_pointer();
     return *this;
   };
-  ReaK::shared_pointer<shared_object>::type po(p.lock()->CreateObject());
+  ReaK::shared_ptr<shared_object> po(p.lock()->CreateObject());
   if(!po) {
     file_stream.ignore(hdr.size);
     Item = serializable_shared_pointer();

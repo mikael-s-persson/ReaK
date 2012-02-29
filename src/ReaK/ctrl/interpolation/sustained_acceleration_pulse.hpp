@@ -277,20 +277,20 @@ class sap_interpolator_factory : public serialization::serializable {
     typedef generic_interpolator<self,sap_interpolator> interpolator_type;
     
   private:
-    typename shared_pointer<topology>::type space;
+    shared_ptr<topology> space;
   public:
     double tolerance;
     unsigned int maximum_iterations;
     
-    sap_interpolator_factory(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(), 
+    sap_interpolator_factory(const shared_ptr<topology>& aSpace = shared_ptr<topology>(), 
 			     double aTolerance = 1e-6, 
 			     unsigned int aMaxIter = 60) : 
 			     space(aSpace),
 			     tolerance(aTolerance),
 			     maximum_iterations(aMaxIter)  { };
   
-    void set_temporal_space(const typename shared_pointer<topology>::type& aSpace) { space = aSpace; };
-    const typename shared_pointer<topology>::type& get_temporal_space() const { return space; };
+    void set_temporal_space(const shared_ptr<topology>& aSpace) { space = aSpace; };
+    const shared_ptr<topology>& get_temporal_space() const { return space; };
   
     interpolator_type create_interpolator(const point_type* pp1, const point_type* pp2) const {
       return interpolator_type(this, pp1, pp2);
@@ -328,11 +328,11 @@ struct sap_reach_time_metric : public serialization::serializable {
   
   typedef sap_reach_time_metric<TimeSpaceType> self;
   
-  typename shared_pointer<TimeSpaceType>::type t_space;
+  shared_ptr<TimeSpaceType> t_space;
   double tolerance;
   unsigned int maximum_iterations;
   
-  sap_reach_time_metric(const typename shared_pointer<TimeSpaceType>::type& aTimeSpace = typename shared_pointer<TimeSpaceType>::type(new TimeSpaceType()),
+  sap_reach_time_metric(const shared_ptr<TimeSpaceType>& aTimeSpace = shared_ptr<TimeSpaceType>(new TimeSpaceType()),
                         double aTolerance = 1e-6, 
 			unsigned int aMaxIter = 60) : 
 			t_space(aTimeSpace),
@@ -405,9 +405,9 @@ struct sap_rate_limited_sampler : public serialization::serializable {
   
   typedef sap_rate_limited_sampler<TimeSpaceType> self;
   
-  typename shared_pointer<TimeSpaceType>::type t_space;
+  shared_ptr<TimeSpaceType> t_space;
   
-  sap_rate_limited_sampler(const typename shared_pointer<TimeSpaceType>::type& aTimeSpace = typename shared_pointer<TimeSpaceType>::type(new TimeSpaceType())) : 
+  sap_rate_limited_sampler(const shared_ptr<TimeSpaceType>& aTimeSpace = shared_ptr<TimeSpaceType>(new TimeSpaceType())) : 
 			   t_space(aTimeSpace) { };
   
   /** 
@@ -555,7 +555,7 @@ class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator
      * \param aSpace The space on which the path is.
      * \param aDist The distance metric functor that the path should use.
      */
-    explicit sap_interp_traj(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
+    explicit sap_interp_traj(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
                              base_class_type(aSpace, aDist, sap_interpolator_factory<Topology>(aSpace)) { };
     
     /**
@@ -565,7 +565,7 @@ class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator
      * \param aEnd The end-point of the path.
      * \param aDist The distance metric functor that the path should use.
      */
-    sap_interp_traj(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
+    sap_interp_traj(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
                     base_class_type(aSpace, aStart, aEnd, aDist, sap_interpolator_factory<Topology>(aSpace)) { };
 			
     /**
@@ -577,7 +577,7 @@ class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator
      * \param aDist The distance metric functor that the path should use.
      */
     template <typename ForwardIter>
-    sap_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
+    sap_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
                     base_class_type(aBegin, aEnd, aSpace, aDist, sap_interpolator_factory<Topology>(aSpace)) { };
     
     

@@ -46,8 +46,8 @@ namespace kte {
  */
 class joint_backlash_gen : public kte_map {
   private:
-    shared_pointer<gen_coord<double> >::type mBase;
-    shared_pointer<gen_coord<double> >::type mEnd;
+    shared_ptr<gen_coord<double> > mBase;
+    shared_ptr<gen_coord<double> > mEnd;
     double mGapSize;
 
   public:
@@ -66,8 +66,8 @@ class joint_backlash_gen : public kte_map {
      * Parametrized constructor.
      */
     joint_backlash_gen(const std::string& aName,
-                       const shared_pointer< gen_coord<double> >::type& aBase,
-                       const shared_pointer< gen_coord<double> >::type& aEnd,
+                       const shared_ptr< gen_coord<double> >& aBase,
+                       const shared_ptr< gen_coord<double> >& aEnd,
                        double aGapSize) :
                        kte_map(aName),
                        mBase(aBase),
@@ -79,9 +79,9 @@ class joint_backlash_gen : public kte_map {
      */
     virtual ~joint_backlash_gen() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 

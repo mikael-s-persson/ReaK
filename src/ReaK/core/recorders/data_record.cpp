@@ -97,7 +97,7 @@ data_recorder& data_recorder::operator <<(flag some_flag) {
     writeNames();
     currentColumn = 0;
     rowCount = 0;
-    writing_thread = ReaK::shared_pointer<boost::thread>::type(new boost::thread(record_process(*this)));
+    writing_thread = ReaK::shared_ptr<boost::thread>(new boost::thread(record_process(*this)));
   } else if(some_flag == end_value_row) {
     if(colCount == 0)
       throw improper_flag();
@@ -240,7 +240,7 @@ void data_extractor::setFileName(const std::string& aFileName) {
   if((loadFile(aFileName)) && (readNames())) {
     fileName = aFileName;
     currentColumn = 0;
-    reading_thread = ReaK::shared_pointer<boost::thread>::type(new boost::thread(extract_process(*this)));
+    reading_thread = ReaK::shared_ptr<boost::thread>(new boost::thread(extract_process(*this)));
   };
 };
 

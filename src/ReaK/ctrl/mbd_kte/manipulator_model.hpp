@@ -64,15 +64,15 @@ namespace kte {
  */
 class manipulator_kinematics_model : public kte_map {
   protected:
-    std::vector< shared_pointer< gen_coord<double> >::type > mCoords; ///< Holds the list of generalized coordinates in the system.
-    std::vector< shared_pointer< frame_2D<double> >::type > mFrames2D; ///< Holds the list of 2D coordinates frame in the system.
-    std::vector< shared_pointer< frame_3D<double> >::type > mFrames3D; ///< Holds the list of 3D coordinates frame in the system.
+    std::vector< shared_ptr< gen_coord<double> > > mCoords; ///< Holds the list of generalized coordinates in the system.
+    std::vector< shared_ptr< frame_2D<double> > > mFrames2D; ///< Holds the list of 2D coordinates frame in the system.
+    std::vector< shared_ptr< frame_3D<double> > > mFrames3D; ///< Holds the list of 3D coordinates frame in the system.
 
-    std::vector< shared_pointer< joint_dependent_gen_coord >::type > mDependentGenCoords; ///< Holds the list of dependent generalized coordinates.
-    std::vector< shared_pointer< joint_dependent_frame_2D >::type > mDependent2DFrames; ///< Holds the list of dependent 2D frames.
-    std::vector< shared_pointer< joint_dependent_frame_3D >::type > mDependent3DFrames; ///< Holds the list of dependent 3D frames.
+    std::vector< shared_ptr< joint_dependent_gen_coord > > mDependentGenCoords; ///< Holds the list of dependent generalized coordinates.
+    std::vector< shared_ptr< joint_dependent_frame_2D > > mDependent2DFrames; ///< Holds the list of dependent 2D frames.
+    std::vector< shared_ptr< joint_dependent_frame_3D > > mDependent3DFrames; ///< Holds the list of dependent 3D frames.
 
-    shared_pointer< kte_map_chain >::type mModel; ///< Holds the model of the manipulator as a kte-chain.
+    shared_ptr< kte_map_chain > mModel; ///< Holds the model of the manipulator as a kte-chain.
     
     void getJacobianMatrixAndDerivativeImpl(mat<double,mat_structure::rectangular>* Jac, mat<double,mat_structure::rectangular>* JacDot);
     
@@ -99,55 +99,55 @@ class manipulator_kinematics_model : public kte_map {
      * Sets the manipulator KTE model to use in this object.
      * \param aModel The manipulator KTE model to use in this object.
      */
-    virtual void setModel(const shared_pointer< kte_map_chain >::type& aModel) { mModel = aModel; };
+    virtual void setModel(const shared_ptr< kte_map_chain >& aModel) { mModel = aModel; };
     
     /**
      * Gets the manipulator KTE model used by this object.
      * \return The manipulator KTE model used by this object.
      */
-    const shared_pointer< kte_map_chain >::type& getModel() const { return mModel; };
+    const shared_ptr< kte_map_chain >& getModel() const { return mModel; };
 
     /**
      * Add a dependent generalized coordinate to the jacobian calculation.
      * \param aDependentGenCoord a dependent generalized coordinate to add.
      * \return reference to this.
      */
-    virtual manipulator_kinematics_model& operator <<(const shared_pointer< joint_dependent_gen_coord >::type& aDependentGenCoord);
+    virtual manipulator_kinematics_model& operator <<(const shared_ptr< joint_dependent_gen_coord >& aDependentGenCoord);
 
     /**
      * Add a dependent 2D frame to the jacobian calculation.
      * \param aDependent2DFrame a dependent 2D frame  to add.
      * \return reference to this.
      */
-    virtual manipulator_kinematics_model& operator <<(const shared_pointer< joint_dependent_frame_2D >::type& aDependent2DFrame);
+    virtual manipulator_kinematics_model& operator <<(const shared_ptr< joint_dependent_frame_2D >& aDependent2DFrame);
 
     /**
      * Add a dependent 3D frame to the jacobian calculation.
      * \param aDependent3DFrame a dependent 3D frame to add.
      * \return reference to this.
      */
-    virtual manipulator_kinematics_model& operator <<(const shared_pointer< joint_dependent_frame_3D >::type& aDependent3DFrame);
+    virtual manipulator_kinematics_model& operator <<(const shared_ptr< joint_dependent_frame_3D >& aDependent3DFrame);
 
     /**
      * Add a system generalized coordinate.
      * \param aCoord a system generalized coordinate to add.
      * \return reference to this.
      */
-    virtual manipulator_kinematics_model& operator <<(const shared_pointer< gen_coord<double> >::type& aCoord);
+    virtual manipulator_kinematics_model& operator <<(const shared_ptr< gen_coord<double> >& aCoord);
 
     /**
      * Add a system 2D frame.
      * \param aFrame2D a system 2D frame to add.
      * \return reference to this.
      */
-    virtual manipulator_kinematics_model& operator <<(const shared_pointer< frame_2D<double> >::type& aFrame2D);
+    virtual manipulator_kinematics_model& operator <<(const shared_ptr< frame_2D<double> >& aFrame2D);
 
     /**
      * Add a system 3D frame.
      * \param aFrame3D a system 3D frame to add.
      * \return reference to this.
      */
-    virtual manipulator_kinematics_model& operator <<(const shared_pointer< frame_3D<double> >::type& aFrame3D);
+    virtual manipulator_kinematics_model& operator <<(const shared_ptr< frame_3D<double> >& aFrame3D);
 
     /**
      * Get the total number of position values for all the joint frames concatenated.
@@ -198,22 +198,22 @@ class manipulator_kinematics_model : public kte_map {
     };
     
     /** Get read-only access to the list of generalized coordinates. */
-    const std::vector< shared_pointer< gen_coord<double> >::type >& Coords() const { return mCoords; };
+    const std::vector< shared_ptr< gen_coord<double> > >& Coords() const { return mCoords; };
 
     /** Get read-only access to the list of 2D coordinate frames. */
-    const std::vector< shared_pointer< frame_2D<double> >::type >& Frames2D() const { return mFrames2D; };
+    const std::vector< shared_ptr< frame_2D<double> > >& Frames2D() const { return mFrames2D; };
 
     /** Get read-only access to the list of 3D coordinate frames. */
-    const std::vector< shared_pointer< frame_3D<double> >::type >& Frames3D() const { return mFrames3D; };
+    const std::vector< shared_ptr< frame_3D<double> > >& Frames3D() const { return mFrames3D; };
 
     /** Get read-only access to the list of generalized coordinates. */
-    const std::vector< shared_pointer< joint_dependent_gen_coord >::type >& DependentCoords() const { return mDependentGenCoords; };
+    const std::vector< shared_ptr< joint_dependent_gen_coord > >& DependentCoords() const { return mDependentGenCoords; };
 
     /** Get read-only access to the list of 2D coordinate frames. */
-    const std::vector< shared_pointer< joint_dependent_frame_2D >::type >& DependentFrames2D() const { return mDependent2DFrames; };
+    const std::vector< shared_ptr< joint_dependent_frame_2D > >& DependentFrames2D() const { return mDependent2DFrames; };
 
     /** Get read-only access to the list of 3D coordinate frames. */
-    const std::vector< shared_pointer< joint_dependent_frame_3D >::type >& DependentFrames3D() const { return mDependent3DFrames; };
+    const std::vector< shared_ptr< joint_dependent_frame_3D > >& DependentFrames3D() const { return mDependent3DFrames; };
 
     /**
      * Get the Jacobian matrix for the system (or twist-shaping matrix). The Jacobian takes the velocity 
@@ -235,12 +235,12 @@ class manipulator_kinematics_model : public kte_map {
     virtual void getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, mat<double,mat_structure::rectangular>& JacDot);
 
     
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mModel)
 	mModel->doMotion(aFlag,aStorage);
     };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mModel)
 	mModel->doForce(aFlag,aStorage);
     };
@@ -409,8 +409,8 @@ class manipulator_dynamics_model : public manipulator_kinematics_model, public s
   protected:
     mass_matrix_calc mMassCalc; ///< Holds the model's mass-matrix calculator.
     
-    std::vector< shared_pointer< system_input >::type > mInputs; ///< Holds the list of system input objects that are part of the KTE model.
-    std::vector< shared_pointer< system_output >::type > mOutputs; ///< Holds the list of system output objects that are part of the KTE model.
+    std::vector< shared_ptr< system_input > > mInputs; ///< Holds the list of system input objects that are part of the KTE model.
+    std::vector< shared_ptr< system_output > > mOutputs; ///< Holds the list of system output objects that are part of the KTE model.
     
     
   public:
@@ -439,56 +439,56 @@ class manipulator_dynamics_model : public manipulator_kinematics_model, public s
      * \param aCoord a system generalized coordinate to add.
      * \return reference to this.
      */
-    virtual manipulator_kinematics_model& operator <<(const shared_pointer< gen_coord<double> >::type& aCoord);
+    virtual manipulator_kinematics_model& operator <<(const shared_ptr< gen_coord<double> >& aCoord);
 
     /**
      * Add a system 2D frame.
      * \param aFrame2D a system 2D frame to add.
      * \return reference to this.
      */
-    virtual manipulator_kinematics_model& operator <<(const shared_pointer< frame_2D<double> >::type& aFrame2D);
+    virtual manipulator_kinematics_model& operator <<(const shared_ptr< frame_2D<double> >& aFrame2D);
 
     /**
      * Add a system 3D frame.
      * \param aFrame3D a system 3D frame to add.
      * \return reference to this.
      */
-    virtual manipulator_kinematics_model& operator <<(const shared_pointer< frame_3D<double> >::type& aFrame3D);
+    virtual manipulator_kinematics_model& operator <<(const shared_ptr< frame_3D<double> >& aFrame3D);
     
     /**
      * Add a generalized inertial element.
      * \param aInertiaGen a generalized inertial element to add.
      * \return reference to this.
      */
-    virtual manipulator_dynamics_model& operator <<(const shared_pointer< inertia_gen >::type& aInertiaGen);
+    virtual manipulator_dynamics_model& operator <<(const shared_ptr< inertia_gen >& aInertiaGen);
 
     /**
      * Add a 2D inertial element.
      * \param aInertia2D a 2D inertial element to add.
      * \return reference to this.
      */
-    virtual manipulator_dynamics_model& operator <<(const shared_pointer< inertia_2D >::type& aInertia2D);
+    virtual manipulator_dynamics_model& operator <<(const shared_ptr< inertia_2D >& aInertia2D);
 
     /**
      * Add a 3D inertial element.
      * \param aInertia3D a 3D inertial element to add.
      * \return reference to this.
      */
-    virtual manipulator_dynamics_model& operator <<(const shared_pointer< inertia_3D >::type& aInertia3D);
+    virtual manipulator_dynamics_model& operator <<(const shared_ptr< inertia_3D >& aInertia3D);
     
     /**
      * Add a system input.
      * \param aInput A KTE system input to add.
      * \return reference to this.
      */
-    virtual manipulator_dynamics_model& operator <<(const shared_pointer< system_input >::type& aInput);
+    virtual manipulator_dynamics_model& operator <<(const shared_ptr< system_input >& aInput);
 
     /**
      * Add a system output.
      * \param aOutput A KTE system output to add.
      * \return reference to this.
      */
-    virtual manipulator_dynamics_model& operator <<(const shared_pointer< system_output >::type& aOutput);
+    virtual manipulator_dynamics_model& operator <<(const shared_ptr< system_output >& aOutput);
     
     /**
      * Get the total number of state values for all the joint frames concatenated.
@@ -512,7 +512,7 @@ class manipulator_dynamics_model : public manipulator_kinematics_model, public s
      */
     unsigned int getInputsCount() const {
       unsigned int result = 0;
-      for(std::vector< shared_pointer< system_input >::type >::const_iterator it = mInputs.begin(); it != mInputs.end(); ++it)
+      for(std::vector< shared_ptr< system_input > >::const_iterator it = mInputs.begin(); it != mInputs.end(); ++it)
 	result += (*it)->getInputCount();
       return result;
     };
@@ -523,7 +523,7 @@ class manipulator_dynamics_model : public manipulator_kinematics_model, public s
      */
     unsigned int getOutputsCount() const {
       unsigned int result = 0;
-      for(std::vector< shared_pointer< system_output >::type >::const_iterator it = mOutputs.begin(); it != mOutputs.end(); ++it)
+      for(std::vector< shared_ptr< system_output > >::const_iterator it = mOutputs.begin(); it != mOutputs.end(); ++it)
 	result += (*it)->getOutputCount();
       return result;
     };

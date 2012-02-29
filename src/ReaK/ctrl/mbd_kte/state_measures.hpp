@@ -51,7 +51,7 @@ namespace kte {
  */
 class position_measure_gen : public kte_map, public system_output {
   private:
-    shared_pointer< gen_coord<double> >::type mAnchor; 
+    shared_ptr< gen_coord<double> > mAnchor; 
     double mPosMeasure;
     
   public:
@@ -80,7 +80,7 @@ class position_measure_gen : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     position_measure_gen(const std::string& aName,
-			 const shared_pointer< ReaK::gen_coord<double> >::type& aAnchor) :
+			 const shared_ptr< ReaK::gen_coord<double> >& aAnchor) :
 			 kte_map(aName),
 			 system_output(aName),
 			 mAnchor(aAnchor),
@@ -91,14 +91,14 @@ class position_measure_gen : public kte_map, public system_output {
      */
     virtual ~position_measure_gen() { };
     
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
 	mPosMeasure = mAnchor->q;
       else
 	mPosMeasure = 0.0;
     };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) { };
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
 
     virtual void clearForce() { };
     
@@ -129,7 +129,7 @@ class position_measure_gen : public kte_map, public system_output {
  */
 class position_measure_2D : public kte_map, public system_output {
   private:
-    shared_pointer< frame_2D<double> >::type mAnchor; 
+    shared_ptr< frame_2D<double> > mAnchor; 
     vect<double,2> mPosMeasure;
     
   public:
@@ -163,7 +163,7 @@ class position_measure_2D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     position_measure_2D(const std::string& aName,
-			const shared_pointer< ReaK::frame_2D<double> >::type& aAnchor) :
+			const shared_ptr< ReaK::frame_2D<double> >& aAnchor) :
 			kte_map(aName),
 			system_output(aName),
 			mAnchor(aAnchor),
@@ -174,14 +174,14 @@ class position_measure_2D : public kte_map, public system_output {
      */
     virtual ~position_measure_2D() { };
     
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
 	mPosMeasure = mAnchor->Position;
       else
 	mPosMeasure = vect<double,2>();
     };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) { };
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
 
     virtual void clearForce() { };
     
@@ -212,7 +212,7 @@ class position_measure_2D : public kte_map, public system_output {
  */
 class position_measure_3D : public kte_map, public system_output {
   private:
-    shared_pointer< frame_3D<double> >::type mAnchor; 
+    shared_ptr< frame_3D<double> > mAnchor; 
     vect<double,3> mPosMeasure;
     
   public:
@@ -246,7 +246,7 @@ class position_measure_3D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     position_measure_3D(const std::string& aName,
-			const shared_pointer< ReaK::frame_3D<double> >::type& aAnchor) :
+			const shared_ptr< frame_3D<double> >& aAnchor) :
 			 kte_map(aName),
 			 system_output(aName),
 			 mAnchor(aAnchor),
@@ -257,14 +257,14 @@ class position_measure_3D : public kte_map, public system_output {
      */
     virtual ~position_measure_3D() { };
     
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
 	mPosMeasure = mAnchor->Position;
       else
 	mPosMeasure = vect<double,3>();
     };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) { };
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
 
     virtual void clearForce() { };
     
@@ -295,7 +295,7 @@ class position_measure_3D : public kte_map, public system_output {
  */
 class rotation_measure_2D : public kte_map, public system_output {
   private:
-    shared_pointer< frame_2D<double> >::type mAnchor; 
+    shared_ptr< frame_2D<double> > mAnchor; 
     double mAngleMeasure;
     
   public:
@@ -324,7 +324,7 @@ class rotation_measure_2D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     rotation_measure_2D(const std::string& aName,
-			const shared_pointer< ReaK::frame_2D<double> >::type& aAnchor) :
+			const shared_ptr< frame_2D<double> >& aAnchor) :
 			 kte_map(aName),
 			 system_output(aName),
 			 mAnchor(aAnchor),
@@ -335,14 +335,14 @@ class rotation_measure_2D : public kte_map, public system_output {
      */
     virtual ~rotation_measure_2D() { };
     
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
 	mAngleMeasure = mAnchor->Rotation.getAngle();
       else
 	mAngleMeasure = 0.0;
     };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) { };
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
 
     virtual void clearForce() { };
     
@@ -374,7 +374,7 @@ class rotation_measure_2D : public kte_map, public system_output {
  */
 class rotation_measure_3D : public kte_map, public system_output {
   private:
-    shared_pointer< frame_3D<double> >::type mAnchor; 
+    shared_ptr< frame_3D<double> > mAnchor; 
     quaternion<double> mQuatMeasure;
     
   public:
@@ -408,7 +408,7 @@ class rotation_measure_3D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     rotation_measure_3D(const std::string& aName,
-			const shared_pointer< ReaK::frame_3D<double> >::type& aAnchor) :
+			const shared_ptr< frame_3D<double> >& aAnchor) :
 			 kte_map(aName),
 			 system_output(aName),
 			 mAnchor(aAnchor),
@@ -419,14 +419,14 @@ class rotation_measure_3D : public kte_map, public system_output {
      */
     virtual ~rotation_measure_3D() { };
     
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
 	mQuatMeasure = mAnchor->Quat;
       else
 	mQuatMeasure = quaternion<double>();
     };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) { };
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
 
     virtual void clearForce() { };
     
@@ -457,7 +457,7 @@ class rotation_measure_3D : public kte_map, public system_output {
  */
 class velocity_measure_gen : public kte_map, public system_output {
   private:
-    shared_pointer< gen_coord<double> >::type mAnchor; 
+    shared_ptr< gen_coord<double> > mAnchor; 
     double mVelMeasure;
     
   public:
@@ -486,7 +486,7 @@ class velocity_measure_gen : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     velocity_measure_gen(const std::string& aName,
-			 const shared_pointer< ReaK::gen_coord<double> >::type& aAnchor) :
+			 const shared_ptr< gen_coord<double> >& aAnchor) :
 			 kte_map(aName),
 			 system_output(aName),
 			 mAnchor(aAnchor),
@@ -497,14 +497,14 @@ class velocity_measure_gen : public kte_map, public system_output {
      */
     virtual ~velocity_measure_gen() { };
     
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
 	mVelMeasure = mAnchor->q_dot;
       else
 	mVelMeasure = 0.0;
     };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) { };
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
 
     virtual void clearForce() { };
     
@@ -535,7 +535,7 @@ class velocity_measure_gen : public kte_map, public system_output {
  */
 class velocity_measure_2D : public kte_map, public system_output {
   private:
-    shared_pointer< frame_2D<double> >::type mAnchor; 
+    shared_ptr< frame_2D<double> > mAnchor; 
     vect<double,2> mVelMeasure;
     
   public:
@@ -569,7 +569,7 @@ class velocity_measure_2D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     velocity_measure_2D(const std::string& aName,
-			const shared_pointer< ReaK::frame_2D<double> >::type& aAnchor) :
+			const shared_ptr< frame_2D<double> >& aAnchor) :
 			kte_map(aName),
 			system_output(aName),
 			mAnchor(aAnchor),
@@ -580,14 +580,14 @@ class velocity_measure_2D : public kte_map, public system_output {
      */
     virtual ~velocity_measure_2D() { };
     
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
 	mVelMeasure = mAnchor->Velocity;
       else
 	mVelMeasure = vect<double,2>();
     };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) { };
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
 
     virtual void clearForce() { };
     
@@ -618,7 +618,7 @@ class velocity_measure_2D : public kte_map, public system_output {
  */
 class velocity_measure_3D : public kte_map, public system_output {
   private:
-    shared_pointer< frame_3D<double> >::type mAnchor; 
+    shared_ptr< frame_3D<double> > mAnchor; 
     vect<double,3> mVelMeasure;
     
   public:
@@ -652,7 +652,7 @@ class velocity_measure_3D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     velocity_measure_3D(const std::string& aName,
-			const shared_pointer< ReaK::frame_3D<double> >::type& aAnchor) :
+			const shared_ptr< frame_3D<double> >& aAnchor) :
 			 kte_map(aName),
 			 system_output(aName),
 			 mAnchor(aAnchor),
@@ -663,14 +663,14 @@ class velocity_measure_3D : public kte_map, public system_output {
      */
     virtual ~velocity_measure_3D() { };
     
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
 	mVelMeasure = mAnchor->Velocity;
       else
 	mVelMeasure = vect<double,3>();
     };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) { };
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
 
     virtual void clearForce() { };
     
@@ -701,7 +701,7 @@ class velocity_measure_3D : public kte_map, public system_output {
  */
 class ang_velocity_measure_2D : public kte_map, public system_output {
   private:
-    shared_pointer< frame_2D<double> >::type mAnchor; 
+    shared_ptr< frame_2D<double> > mAnchor; 
     double mAngVelMeasure;
     
   public:
@@ -732,7 +732,7 @@ class ang_velocity_measure_2D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     ang_velocity_measure_2D(const std::string& aName,
-			    const shared_pointer< ReaK::frame_2D<double> >::type& aAnchor) :
+			    const shared_ptr< frame_2D<double> >& aAnchor) :
 			    kte_map(aName),
 			    system_output(aName),
 			    mAnchor(aAnchor),
@@ -743,14 +743,14 @@ class ang_velocity_measure_2D : public kte_map, public system_output {
      */
     virtual ~ang_velocity_measure_2D() { };
     
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
 	mAngVelMeasure = mAnchor->AngVelocity;
       else
 	mAngVelMeasure = 0.0;
     };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) { };
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
 
     virtual void clearForce() { };
     
@@ -781,7 +781,7 @@ class ang_velocity_measure_2D : public kte_map, public system_output {
  */
 class ang_velocity_measure_3D : public kte_map, public system_output {
   private:
-    shared_pointer< frame_3D<double> >::type mAnchor; 
+    shared_ptr< frame_3D<double> > mAnchor; 
     vect<double,3> mAngVelMeasure;
     
   public:
@@ -815,7 +815,7 @@ class ang_velocity_measure_3D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     ang_velocity_measure_3D(const std::string& aName,
-			    const shared_pointer< ReaK::frame_3D<double> >::type& aAnchor) :
+			    const shared_ptr< frame_3D<double> >& aAnchor) :
 			    kte_map(aName),
 			    system_output(aName),
 			    mAnchor(aAnchor),
@@ -826,14 +826,14 @@ class ang_velocity_measure_3D : public kte_map, public system_output {
      */
     virtual ~ang_velocity_measure_3D() { };
     
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) {
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
 	mAngVelMeasure = mAnchor->AngVelocity;
       else
 	mAngVelMeasure = vect<double,3>();
     };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type()) { };
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
 
     virtual void clearForce() { };
     

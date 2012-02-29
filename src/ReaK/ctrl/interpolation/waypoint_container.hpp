@@ -78,7 +78,7 @@ class waypoint_container_base : public shared_object {
     
   protected:
     
-    typename shared_pointer<topology>::type space;
+    shared_ptr<topology> space;
     distance_metric_type dist;
     
     container_type waypoints;
@@ -123,7 +123,7 @@ class waypoint_container_base : public shared_object {
      * \param aSpace The space on which the waypoints are.
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
-    explicit waypoint_container_base(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
+    explicit waypoint_container_base(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
                                      space(aSpace), 
                                      dist(aDist),
                                      waypoints() { 
@@ -137,7 +137,7 @@ class waypoint_container_base : public shared_object {
      * \param aEnd The end-point of the waypoints.
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
-    waypoint_container_base(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
+    waypoint_container_base(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
                             space(aSpace), dist(aDist), waypoints() {
       waypoints.push_back(aStart);
       waypoints.push_back(aEnd);
@@ -152,7 +152,7 @@ class waypoint_container_base : public shared_object {
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
     template <typename ForwardIter>
-    waypoint_container_base(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
+    waypoint_container_base(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
                             space(aSpace), dist(aDist), waypoints(aBegin,aEnd) {
       if(aBegin == aEnd)
 	throw invalid_path("Empty list of waypoints!");
@@ -239,7 +239,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
     
   protected:
     
-    typename shared_pointer<topology>::type space;
+    shared_ptr<topology> space;
     distance_metric_type dist;
     
     container_type waypoints;
@@ -263,7 +263,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * \param aSpace The space on which the waypoints are.
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
-    explicit waypoint_container_base(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
+    explicit waypoint_container_base(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
                                      space(aSpace), 
                                      dist(aDist),
                                      waypoints() { 
@@ -277,7 +277,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * \param aEnd The end-point of the waypoints.
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
-    waypoint_container_base(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
+    waypoint_container_base(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
                             space(aSpace), dist(aDist), waypoints() {
       waypoints.insert(aStart);
       waypoints.insert( waypoints.end(), aEnd);
@@ -292,7 +292,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
     template <typename ForwardIter>
-    waypoint_container_base(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
+    waypoint_container_base(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
                             space(aSpace), dist(aDist), waypoints(aBegin,aEnd) {
       if(aBegin == aEnd)
 	throw invalid_path("Empty list of waypoints!");
@@ -386,7 +386,7 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
      * \param aSpace The space on which the waypoints are.
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
-    explicit waypoint_container(const typename shared_pointer<topology>::type& aSpace = typename shared_pointer<topology>::type(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
+    explicit waypoint_container(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
                                 base_class_type(aSpace,aDist) { };
     
     /**
@@ -396,7 +396,7 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
      * \param aEnd The end-point of the waypoints.
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
-    waypoint_container(const typename shared_pointer<topology>::type& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
+    waypoint_container(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
                        base_class_type(aSpace,aStart,aEnd,aDist) { };
 
     /**
@@ -408,7 +408,7 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
      * \param aDist The distance metric functor that the waypoint-container should use.
      */
     template <typename ForwardIter>
-    waypoint_container(ForwardIter aBegin, ForwardIter aEnd, const typename shared_pointer<topology>::type& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
+    waypoint_container(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
                        base_class_type(aBegin, aEnd, aSpace, aDist) { };
     
     /**

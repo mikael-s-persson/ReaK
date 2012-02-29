@@ -195,7 +195,7 @@ struct InterpolatorFactoryConcept {
   InterpolatorFactory interp_fact;
   typename interpolator_factory_traits<InterpolatorFactory>::interpolator_type interp;
   typename interpolator_factory_traits<InterpolatorFactory>::point_type pt;
-  typename shared_pointer<Topology>::type pspace;
+  shared_ptr<Topology> pspace;
   
   BOOST_CONCEPT_USAGE(InterpolatorFactoryConcept)
   {

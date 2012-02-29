@@ -48,8 +48,8 @@ namespace kte {
  */
 class virtual_kte_interface_gen : public kte_map {
   private:
-    shared_pointer< gen_coord<double> >::type mBase; ///< Holds the base frame of the interface.
-    shared_pointer< gen_coord<double> >::type mEnd; ///< Holds the end frame of the interface.
+    shared_ptr< gen_coord<double> > mBase; ///< Holds the base frame of the interface.
+    shared_ptr< gen_coord<double> > mEnd; ///< Holds the end frame of the interface.
 
   public:
 
@@ -65,8 +65,8 @@ class virtual_kte_interface_gen : public kte_map {
      * \param aEnd end frame of the interface.
      */
     virtual_kte_interface_gen(const std::string& aName,
-                              const shared_pointer< gen_coord<double> >::type& aBase,
-                              const shared_pointer< gen_coord<double> >::type& aEnd) :
+                              const shared_ptr< gen_coord<double> >& aBase,
+                              const shared_ptr< gen_coord<double> >& aEnd) :
                               kte_map(aName),
                               mBase(aBase),
                               mEnd(aEnd) { };
@@ -76,9 +76,9 @@ class virtual_kte_interface_gen : public kte_map {
      */
     virtual ~virtual_kte_interface_gen() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 
@@ -106,8 +106,8 @@ class virtual_kte_interface_gen : public kte_map {
  */
 class virtual_kte_interface_2D : public kte_map {
   private:
-    shared_pointer< frame_2D<double> >::type mBase; ///< Holds the base frame of the interface.
-    shared_pointer< frame_2D<double> >::type mEnd; ///< Holds the end frame of the interface.
+    shared_ptr< frame_2D<double> > mBase; ///< Holds the base frame of the interface.
+    shared_ptr< frame_2D<double> > mEnd; ///< Holds the end frame of the interface.
 
   public:
 
@@ -123,8 +123,8 @@ class virtual_kte_interface_2D : public kte_map {
      * \param aEnd end frame of the interface.
      */
     virtual_kte_interface_2D(const std::string& aName,
-                             const shared_pointer< frame_2D<double> >::type& aBase,
-                             const shared_pointer< frame_2D<double> >::type& aEnd) :
+                             const shared_ptr< frame_2D<double> >& aBase,
+                             const shared_ptr< frame_2D<double> >& aEnd) :
                              kte_map(aName),
                              mBase(aBase),
                              mEnd(aEnd) { };
@@ -134,9 +134,9 @@ class virtual_kte_interface_2D : public kte_map {
      */
     virtual ~virtual_kte_interface_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 
@@ -164,8 +164,8 @@ class virtual_kte_interface_2D : public kte_map {
  */
 class virtual_kte_interface_3D : public kte_map {
   private:
-    shared_pointer< frame_3D<double> >::type mBase; ///< Holds the base frame of the interface.
-    shared_pointer< frame_3D<double> >::type mEnd; ///< Holds the end frame of the interface.
+    shared_ptr< frame_3D<double> > mBase; ///< Holds the base frame of the interface.
+    shared_ptr< frame_3D<double> > mEnd; ///< Holds the end frame of the interface.
 
   public:
 
@@ -181,8 +181,8 @@ class virtual_kte_interface_3D : public kte_map {
      * \param aEnd end frame of the interface.
      */
     virtual_kte_interface_3D(const std::string& aName,
-                             const shared_pointer< frame_3D<double> >::type& aBase,
-                             const shared_pointer< frame_3D<double> >::type& aEnd) :
+                             const shared_ptr< frame_3D<double> >& aBase,
+                             const shared_ptr< frame_3D<double> >& aEnd) :
                              kte_map(aName),
                              mBase(aBase),
                              mEnd(aEnd) { };
@@ -192,9 +192,9 @@ class virtual_kte_interface_3D : public kte_map {
      */
     virtual ~virtual_kte_interface_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 

@@ -621,6 +621,116 @@ typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get(metric_space_tuple
 
 
 
+/**
+ * This meta-function can be used to glue together a number of spaces of the same type into a tuple. 
+ * This class will generate a metric_space_tuple class, which has N spaces of type SpaceType.
+ * 
+ * \tparam SpaceType The type of the spaces to glue together as a metric-space tuple.
+ * \tparam N The number of spaces to glue together as a metric-space tuple.
+ * \tparam TupleDistanceMetric A distance metric type which models the DistanceMetricConcept and operates on a space-tuple (e.g. arithmetic_tuple).
+ */
+template <typename SpaceType, std::size_t N, typename TupleDistanceMetric = manhattan_tuple_distance >
+struct metric_space_array {
+  char cannot_instantiation_the_general_template[0];
+};
+
+template <typename SpaceType, typename TupleDistanceMetric>
+struct metric_space_array<SpaceType,1,TupleDistanceMetric> {
+  typedef metric_space_tuple< arithmetic_tuple<SpaceType>, TupleDistanceMetric > type;
+};
+
+template <typename SpaceType, typename TupleDistanceMetric>
+struct metric_space_array<SpaceType,2,TupleDistanceMetric> {
+  typedef metric_space_tuple< arithmetic_tuple<SpaceType,
+                                               SpaceType>, TupleDistanceMetric > type;
+};
+
+template <typename SpaceType, typename TupleDistanceMetric>
+struct metric_space_array<SpaceType,3,TupleDistanceMetric> {
+  typedef metric_space_tuple< arithmetic_tuple<SpaceType,
+                                               SpaceType,
+                                               SpaceType>, TupleDistanceMetric > type;
+};
+
+template <typename SpaceType, typename TupleDistanceMetric>
+struct metric_space_array<SpaceType,4,TupleDistanceMetric> {
+  typedef metric_space_tuple< arithmetic_tuple<SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType>, TupleDistanceMetric > type;
+};
+
+template <typename SpaceType, typename TupleDistanceMetric>
+struct metric_space_array<SpaceType,5,TupleDistanceMetric> {
+  typedef metric_space_tuple< arithmetic_tuple<SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType>, TupleDistanceMetric > type;
+};
+
+template <typename SpaceType, typename TupleDistanceMetric>
+struct metric_space_array<SpaceType,6,TupleDistanceMetric> {
+  typedef metric_space_tuple< arithmetic_tuple<SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType>, TupleDistanceMetric > type;
+};
+
+template <typename SpaceType, typename TupleDistanceMetric>
+struct metric_space_array<SpaceType,7,TupleDistanceMetric> {
+  typedef metric_space_tuple< arithmetic_tuple<SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType>, TupleDistanceMetric > type;
+};
+
+template <typename SpaceType, typename TupleDistanceMetric>
+struct metric_space_array<SpaceType,8,TupleDistanceMetric> {
+  typedef metric_space_tuple< arithmetic_tuple<SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType>, TupleDistanceMetric > type;
+};
+
+template <typename SpaceType, typename TupleDistanceMetric>
+struct metric_space_array<SpaceType,9,TupleDistanceMetric> {
+  typedef metric_space_tuple< arithmetic_tuple<SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType>, TupleDistanceMetric > type;
+};
+
+template <typename SpaceType, typename TupleDistanceMetric>
+struct metric_space_array<SpaceType,10,TupleDistanceMetric> {
+  typedef metric_space_tuple< arithmetic_tuple<SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType,
+                                               SpaceType>, TupleDistanceMetric > type;
+};
+
+
+
 };
 
 };

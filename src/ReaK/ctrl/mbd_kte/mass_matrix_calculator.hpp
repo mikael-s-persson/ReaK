@@ -53,13 +53,13 @@ namespace kte {
  */
 class mass_matrix_calc : public named_object {
   private:
-    std::vector< shared_pointer< inertia_gen >::type > mGenInertias; ///< Holds the list of generalized coordinate inertial elements.
-    std::vector< shared_pointer< inertia_2D >::type > m2DInertias; ///< Holds the list of 2D inertial elements.
-    std::vector< shared_pointer< inertia_3D >::type > m3DInertias; ///< Holds the list of 3D inertial elements.
+    std::vector< shared_ptr< inertia_gen > > mGenInertias; ///< Holds the list of generalized coordinate inertial elements.
+    std::vector< shared_ptr< inertia_2D > > m2DInertias; ///< Holds the list of 2D inertial elements.
+    std::vector< shared_ptr< inertia_3D > > m3DInertias; ///< Holds the list of 3D inertial elements.
 
-    std::vector< shared_pointer< gen_coord<double> >::type > mCoords; ///< Holds the list of generalized coordinates in the system.
-    std::vector< shared_pointer< frame_2D<double> >::type > mFrames2D; ///< Holds the list of 2D coordinates frame in the system.
-    std::vector< shared_pointer< frame_3D<double> >::type > mFrames3D; ///< Holds the list of 3D coordinates frame in the system.
+    std::vector< shared_ptr< gen_coord<double> > > mCoords; ///< Holds the list of generalized coordinates in the system.
+    std::vector< shared_ptr< frame_2D<double> > > mFrames2D; ///< Holds the list of 2D coordinates frame in the system.
+    std::vector< shared_ptr< frame_3D<double> > > mFrames3D; ///< Holds the list of 3D coordinates frame in the system.
 
   public:
 
@@ -81,51 +81,51 @@ class mass_matrix_calc : public named_object {
      * \param aGenInertia a generalized coordinate inertial element to add.
      * \return reference to this.
      */
-    mass_matrix_calc& operator <<(const shared_pointer< inertia_gen >::type& aGenInertia);
+    mass_matrix_calc& operator <<(const shared_ptr< inertia_gen >& aGenInertia);
 
     /**
      * Add a 2D inertial element to the mass matrix calculation.
      * \param a2DInertia a 2D inertial element to add.
      * \return reference to this.
      */
-    mass_matrix_calc& operator <<(const shared_pointer< inertia_2D >::type& a2DInertia);
+    mass_matrix_calc& operator <<(const shared_ptr< inertia_2D >& a2DInertia);
 
     /**
      * Add a 3D inertial element to the mass matrix calculation.
      * \param a3DInertia a 3D inertial element to add.
      * \return reference to this.
      */
-    mass_matrix_calc& operator <<(const shared_pointer< inertia_3D >::type& a3DInertia);
+    mass_matrix_calc& operator <<(const shared_ptr< inertia_3D >& a3DInertia);
 
     /**
      * Add a system generalized coordinate to the mass matrix calculation.
      * \param aCoord a system generalized coordinate to add.
      * \return reference to this.
      */
-    mass_matrix_calc& operator <<(const shared_pointer< gen_coord<double> >::type& aCoord);
+    mass_matrix_calc& operator <<(const shared_ptr< gen_coord<double> >& aCoord);
 
     /**
      * Add a system generalized coordinate to the mass matrix calculation.
      * \param aFrame2D a system 2D frame to add.
      * \return reference to this.
      */
-    mass_matrix_calc& operator <<(const shared_pointer< frame_2D<double> >::type& aFrame2D);
+    mass_matrix_calc& operator <<(const shared_ptr< frame_2D<double> >& aFrame2D);
 
     /**
      * Add a system generalized coordinate to the mass matrix calculation.
      * \param aFrame3D a system 3D frame to add.
      * \return reference to this.
      */
-    mass_matrix_calc& operator <<(const shared_pointer< frame_3D<double> >::type& aFrame3D);
+    mass_matrix_calc& operator <<(const shared_ptr< frame_3D<double> >& aFrame3D);
 
     /** Get read-only access to the list of generalized coordinates. */
-    const std::vector< shared_pointer< gen_coord<double> >::type >& Coords() const { return mCoords; };
+    const std::vector< shared_ptr< gen_coord<double> > >& Coords() const { return mCoords; };
 
     /** Get read-only access to the list of 2D coordinate frames. */
-    const std::vector< shared_pointer< frame_2D<double> >::type >& Frames2D() const { return mFrames2D; };
+    const std::vector< shared_ptr< frame_2D<double> > >& Frames2D() const { return mFrames2D; };
 
     /** Get read-only access to the list of 3D coordinate frames. */
-    const std::vector< shared_pointer< frame_3D<double> >::type >& Frames3D() const { return mFrames3D; };
+    const std::vector< shared_ptr< frame_3D<double> > >& Frames3D() const { return mFrames3D; };
 
     /**
      * Get the mass matrix for the system.

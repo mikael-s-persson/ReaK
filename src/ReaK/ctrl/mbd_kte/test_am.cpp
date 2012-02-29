@@ -47,28 +47,28 @@ using namespace serialization;
 int main() {
 
 #if 1
-  shared_pointer<frame_2D<double> >::type base_frame = rtti::rk_dynamic_ptr_cast< frame_2D<double> >(frame_2D<double>::Create());
-  shared_pointer<frame_2D<double> >::type joint_frame = rtti::rk_dynamic_ptr_cast< frame_2D<double> >(frame_2D<double>::Create());
-  shared_pointer<frame_2D<double> >::type end_frame = rtti::rk_dynamic_ptr_cast< frame_2D<double> >(frame_2D<double>::Create());
-  shared_pointer<gen_coord<double> >::type joint_coord = rtti::rk_dynamic_ptr_cast< gen_coord<double> >(gen_coord<double>::Create());
+  shared_ptr<frame_2D<double> > base_frame = rtti::rk_dynamic_ptr_cast< frame_2D<double> >(frame_2D<double>::Create());
+  shared_ptr<frame_2D<double> > joint_frame = rtti::rk_dynamic_ptr_cast< frame_2D<double> >(frame_2D<double>::Create());
+  shared_ptr<frame_2D<double> > end_frame = rtti::rk_dynamic_ptr_cast< frame_2D<double> >(frame_2D<double>::Create());
+  shared_ptr<gen_coord<double> > joint_coord = rtti::rk_dynamic_ptr_cast< gen_coord<double> >(gen_coord<double>::Create());
   
   base_frame->Acceleration = vect<double,2>(0,9.81); //add gravity
 
   //create motor inertia
-  shared_pointer<inertia_gen>::type motor_inertia(new inertia_gen("motor_inertia",
-								  shared_pointer< joint_dependent_gen_coord >::type(new joint_dependent_gen_coord(joint_coord)),5),scoped_deleter());
+  shared_ptr<inertia_gen> motor_inertia(new inertia_gen("motor_inertia",
+							shared_ptr< joint_dependent_gen_coord >(new joint_dependent_gen_coord(joint_coord)),5),scoped_deleter());
   //create friction
-  shared_pointer<joint_dry_microslip_gen>::type friction(new joint_dry_microslip_gen("friction",joint_coord,1E-6,2E-6,1,0.9),scoped_deleter());
+  shared_ptr<joint_dry_microslip_gen> friction(new joint_dry_microslip_gen("friction",joint_coord,1E-6,2E-6,1,0.9),scoped_deleter());
   //create revolute joint
-  shared_pointer<revolute_joint_2D>::type rev_joint(new revolute_joint_2D("joint1",joint_coord,base_frame,joint_frame),scoped_deleter());
+  shared_ptr<revolute_joint_2D> rev_joint(new revolute_joint_2D("joint1",joint_coord,base_frame,joint_frame),scoped_deleter());
   //create actuator
-  shared_pointer<force_actuator_gen>::type actuator(new force_actuator_gen("actuator",joint_coord,rev_joint),scoped_deleter());
+  shared_ptr<force_actuator_gen> actuator(new force_actuator_gen("actuator",joint_coord,rev_joint),scoped_deleter());
   //create link of lenght 0.5 meters
-  shared_pointer<rigid_link_2D>::type link1(new rigid_link_2D("link1",joint_frame,end_frame,pose_2D<double>(weak_pointer<pose_2D<double> >::type(),vect<double,2>(0.5,0.0),rot_mat_2D<double>(0.0))),scoped_deleter());
+  shared_ptr<rigid_link_2D> link1(new rigid_link_2D("link1",joint_frame,end_frame,pose_2D<double>(weak_ptr<pose_2D<double> >(),vect<double,2>(0.5,0.0),rot_mat_2D<double>(0.0))),scoped_deleter());
   //create end mass of 1.0 kg (point mass only)
-  shared_pointer<inertia_2D>::type mass1(new inertia_2D("mass1",
-							shared_pointer< joint_dependent_frame_2D >::type(new joint_dependent_frame_2D(end_frame)),
-							1.0,0.0),scoped_deleter());
+  shared_ptr<inertia_2D> mass1(new inertia_2D("mass1",
+				              shared_ptr< joint_dependent_frame_2D >(new joint_dependent_frame_2D(end_frame)),
+				              1.0,0.0),scoped_deleter());
 
   kte_map_chain adv_pendulum("adv_pendulum");
 
@@ -92,8 +92,8 @@ int main() {
   };
 
 #else
-  shared_pointer< gen_coord<double> >::type joint_coord;
-  shared_pointer<frame_2D<double> >::type end_frame;
+  shared_ptr< gen_coord<double> > joint_coord;
+  shared_ptr<frame_2D<double> > end_frame;
 
 #if 1
   kte_map_chain adv_pendulum;

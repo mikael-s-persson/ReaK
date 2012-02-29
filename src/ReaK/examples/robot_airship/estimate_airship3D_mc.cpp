@@ -92,14 +92,14 @@ bool load_parameters(int argc, char** argv, std::string& results_filename,
   };
   
   
-  ReaK::shared_pointer< ReaK::frame_3D<double> >::type         airship3D_frame;
-  ReaK::shared_pointer< ReaK::kte::position_measure_3D >::type airship3D_position;
-  ReaK::shared_pointer< ReaK::kte::rotation_measure_3D >::type airship3D_rotation;
+  ReaK::shared_ptr< ReaK::frame_3D<double> >        airship3D_frame;
+  ReaK::shared_ptr< ReaK::kte::position_measure_3D > airship3D_position;
+  ReaK::shared_ptr< ReaK::kte::rotation_measure_3D > airship3D_rotation;
   
-  ReaK::shared_pointer< ReaK::kte::driving_actuator_3D >::type airship3D_actuator;
-  ReaK::shared_pointer< ReaK::kte::inertia_3D >::type          airship3D_inertia;
-  ReaK::shared_pointer< ReaK::kte::kte_map_chain >::type       airship3D_model;
-  ReaK::shared_pointer< ReaK::kte::mass_matrix_calc >::type    airship3D_mass_calc;
+  ReaK::shared_ptr< ReaK::kte::driving_actuator_3D > airship3D_actuator;
+  ReaK::shared_ptr< ReaK::kte::inertia_3D >          airship3D_inertia;
+  ReaK::shared_ptr< ReaK::kte::kte_map_chain >       airship3D_model;
+  ReaK::shared_ptr< ReaK::kte::mass_matrix_calc >    airship3D_mass_calc;
   
   std::string model_filename(argv[1]);
   try {
@@ -212,7 +212,7 @@ int main(int argc, char** argv) {
   
   std::string result_filename;
   double time_step, end_time;
-  shared_pointer<ctrl::kte_nl_system>::type airship3D_system(new ctrl::kte_nl_system("airship3D_system"));
+  shared_ptr<ctrl::kte_nl_system> airship3D_system(new ctrl::kte_nl_system("airship3D_system"));
   vect_n<double> x_0;
   double mass;
   mat<double,mat_structure::symmetric> inertia_tensor;
@@ -232,7 +232,7 @@ int main(int argc, char** argv) {
 							  ReaK::vect_n<double>(),
 							  0.0,
 							  time_step * 0.01,
-							  weak_pointer< state_rate_function<double> >::type(),
+							  weak_ptr< state_rate_function<double> >(),
 							  time_step,
 							  time_step * 0.00001,
 							  1e-2),

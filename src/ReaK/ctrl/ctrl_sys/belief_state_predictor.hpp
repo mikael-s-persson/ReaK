@@ -35,10 +35,13 @@
 
 #include "belief_state_concept.hpp"
 #include "state_vector_concept.hpp"
+#include "discrete_sss_concept.hpp"
+
 #include "path_planning/predicted_trajectory_concept.hpp"
 #include "path_planning/temporal_space_concept.hpp"
 
 #include "topologies/temporal_space.hpp"
+#include "topologies/vector_topology.hpp"
 
 #include <deque>
 #include <iterator>
@@ -60,7 +63,7 @@ namespace ctrl {
  * 
  * \tparam BeliefTopology The topology of the belief-space, should model the BeliefSpaceConcept.
  * \tparam BeliefPredictor The belief-state predictor function type, should model BeliefPredictorConcept.
- * \tparam InputTrajectory The input vector trajectory to provide input vectors at any given time, should model the SpatialTrajectoryConcept.
+ * \tparam InputTrajectory The input vector trajectory to provide input vectors at any given time, should model the SpatialTrajectoryConcept over a vector-topology of input vectors.
  */
 template <typename BeliefTopology, 
           typename BeliefPredictor,
@@ -68,26 +71,29 @@ template <typename BeliefTopology,
 class belief_predicted_trajectory {
   public:
     
-    typedef belief_predicted_trajectory<BeliefTopology,BeliefPredictor> self;
+    typedef belief_predicted_trajectory<BeliefTopology,BeliefPredictor,InputTrajectory> self;
     typedef BeliefPredictor predictor_type;
     
     typedef pp::temporal_space< BeliefTopology > topology;
-    typedef typename pp::temporal_topology_traits<topology>::time_topology time_topology;
-    typedef typename pp::temporal_topology_traits<topology>::space_topology space_topology;
+    typedef shared_ptr<topology> topology_ptr;
+    typedef typename pp::temporal_space_traits<topology>::time_topology time_topology;
+    typedef typename pp::temporal_space_traits<topology>::space_topology space_topology;
     
-    typedef typename pp::temporal_topology_traits< topology >::point_type point_type;
-    typedef typename pp::temporal_topology_traits< topology >::point_difference_type point_difference_type;
+    typedef typename pp::temporal_space_traits< topology >::point_type point_type;
+    typedef typename pp::temporal_space_traits< topology >::point_difference_type point_difference_type;
     
-    typedef typename pp::metric_topology_traits<time_topology>::point_type time_type;
-    typedef typename pp::metric_topology_traits<time_topology>::point_difference_type time_difference_type;
+    typedef typename pp::topology_traits<time_topology>::point_type time_type;
+    typedef typename pp::topology_traits<time_topology>::point_difference_type time_difference_type;
     
-    typedef typename pp::metric_topology_traits<space_topology>::point_type belief_state;
-    typedef typename pp::metric_topology_traits<space_topology>::point_difference_type belief_state_diff;
+    typedef typename pp::topology_traits<space_topology>::point_type belief_state;
+    typedef typename pp::topology_traits<space_topology>::point_difference_type belief_state_diff;
+    
+    typedef typename discrete_sss_traits< predictor_type >::input_type input_type;
     
     BOOST_CONCEPT_ASSERT((pp::TemporalSpaceConcept<topology>));
-    BOOST_CONCEPT_ASSERT((BeliefStateConcept<belief_state>));
-    BOOST_CONCEPT_ASSERT((BeliefPredictorConcept<BeliefPredictor>));
-    BOOST_CONCEPT_ASSERT((SpatialTrajectoryConcept<InputTrajectory>));
+    BOOST_CONCEPT_ASSERT((BeliefSpaceConcept<space_topology>));
+    BOOST_CONCEPT_ASSERT((BeliefPredictorConcept<BeliefPredictor, space_topology>));
+    BOOST_CONCEPT_ASSERT((SpatialTrajectoryConcept<InputTrajectory, pp::vector_topology<input_type> >));
    
     /**
      * This nested class defines a waypoint in a predicted belief trajectory. A waypoint 
@@ -111,7 +117,7 @@ class belief_predicted_trajectory {
     
   private:
     container_type waypoints;
-    topology space;
+    topology_ptr space;
     InputTrajectory input;
     
   public:
@@ -125,7 +131,7 @@ class belief_predicted_trajectory {
      */
     belief_predicted_trajectory(const point_type& aInitialPoint,
                                 const predictor_type& aInitialPredictor,
-				const topology& aSpace = topology(),
+				const topology_ptr& aSpace = topology_ptr(new topology()),
 				const InputTrajectory& aInputTrajectory = InputTrajectory()) :
 				waypoints(1,waypoint(aInitialPoint,aInitialPredictor)),
 				space(aSpace),
@@ -172,7 +178,7 @@ class belief_predicted_trajectory {
 	time_type t = it->point.time;
         for(;it != waypoints.end();++it) {
 	  it->point = point_type(t, b);
-	  it->predictor.predict_belief(b, t, input.get_point(t));
+	  it->predictor.predict_belief(space->get_space_topology(), b, t, input.get_point(t));
 	  t = t + it->predictor.get_time_step();
         };
       } else if(sz != waypoints.size())
@@ -237,7 +243,7 @@ class belief_predicted_trajectory {
       waypoints.push_back(value);
       belief_state b = it->point.pt;
       time_type t = it->point.time;
-      b = it->predictor.predict_belief(b, t, input.get_point(t));
+      b = it->predictor.predict_belief(space->get_space_topology(), b, t, input.get_point(t));
       waypoints.back().point = point_type(t + it->predictor.get_time_step(),b);
     };
     /**
@@ -251,7 +257,7 @@ class belief_predicted_trajectory {
       time_type t = it->point.time;
       for(;it != waypoints.end();++it) {
 	it->point = point_type(t, b);
-	b = it->predictor.predict_belief(b, t, input.get_point(t));
+	b = it->predictor.predict_belief(space->get_space_topology(), b, t, input.get_point(t));
 	t = t + it->predictor.get_time_step();
       };
     };
@@ -272,7 +278,7 @@ class belief_predicted_trajectory {
         dt_tot = cit->point.time - wp.second.time;
       };
       const point_type& tmp = cit->point;
-      return waypoint_point_pair(--cit,space.move_position_toward(wp.second,dt / dt_tot,tmp));
+      return waypoint_point_pair(--cit,space->move_position_toward(wp.second,dt / dt_tot,tmp));
     };
     /**
      * Returns the travel distance, along the trajectory, from one waypoint to another.
@@ -282,17 +288,17 @@ class belief_predicted_trajectory {
      */
     double travel_distance(const waypoint_point_pair& wp1, const waypoint_point_pair& wp2) const {
       if(wp1.first == wp2.first)
-	return space.distance(wp1.second,wp2.second);
+	return get(pp::distance_metric, *space)(wp1.second, wp2.second, *space);
       ++(wp1.first);
       if(wp1.first == waypoints.end())
-	return space.distance(wp1.second,wp2.second);
-      double sum = space.distance(wp1.second,wp1.first->point);
+	return get(pp::distance_metric, *space)(wp1.second, wp2.second, *space);
+      double sum = get(pp::distance_metric, *space)(wp1.second, wp1.first->point, *space);
       while( wp1.first != wp2.first ) {
 	const point_type& tmp = wp1.first->point;
 	++(wp1.first);
-	sum += space.distance(tmp, wp1.first->point);
+	sum += get(pp::distance_metric, *space)(tmp, wp1.first->point, *space);
       };
-      sum += space.distance(wp2.first->point, wp2.second);
+      sum += get(pp::distance_metric, *space)(wp2.first->point, wp2.second, *space);
       return sum;
     };
     /**
@@ -329,7 +335,7 @@ class belief_predicted_trajectory {
       belief_state b = it->point.pt;
       for(;it != waypoints.end();++it) {
 	it->point = point_type(t, b);
-	b = it->predictor.predict_belief(b, t, input.get_point(t));
+	b = it->predictor.predict_belief(space->get_space_topology(), b, t, input.get_point(t));
 	t = t + it->predictor.get_time_step();
       };
     };

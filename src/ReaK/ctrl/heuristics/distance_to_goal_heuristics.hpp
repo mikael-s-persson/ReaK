@@ -59,11 +59,11 @@ class distance_to_goal_heuristic : public serialization::serializable {
     BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,topology>));
     
   private:
-    typename shared_pointer<const Trajectory>::type traject;
+    shared_ptr<const Trajectory> traject;
     DistanceMetric dist;
   public:
     
-    distance_to_goal_heuristic(const typename shared_pointer<const Trajectory>::type& aTraject, 
+    distance_to_goal_heuristic(const shared_ptr<const Trajectory>& aTraject, 
 			       const DistanceMetric& aDist = DistanceMetric()) :
                                traject(aTraject), dist(aDist) { };
   

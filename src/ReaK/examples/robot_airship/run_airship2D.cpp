@@ -74,13 +74,13 @@ int main(int argc, char** argv) {
   std::string Qu_filename(argv[6]);
   std::string R_filename(argv[7]);
   
-  shared_pointer< frame_2D<double> >::type airship2D_frame;
-  shared_pointer< kte::position_measure_2D >::type airship2D_position;
-  shared_pointer< kte::rotation_measure_2D >::type airship2D_rotation;
+  shared_ptr< frame_2D<double> > airship2D_frame;
+  shared_ptr< kte::position_measure_2D > airship2D_position;
+  shared_ptr< kte::rotation_measure_2D > airship2D_rotation;
   
-  shared_pointer< kte::driving_actuator_2D >::type airship2D_actuator;
-  shared_pointer< kte::kte_map_chain >::type airship2D_model;
-  shared_pointer< kte::mass_matrix_calc >::type airship2D_mass_calc;
+  shared_ptr< kte::driving_actuator_2D > airship2D_actuator;
+  shared_ptr< kte::kte_map_chain > airship2D_model;
+  shared_ptr< kte::mass_matrix_calc > airship2D_mass_calc;
   
   
   try {
@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
     return 2;
   };
   
-  shared_pointer<ctrl::kte_nl_system>::type airship2D_system(new ctrl::kte_nl_system("airship2D_system"));
+  shared_ptr<ctrl::kte_nl_system> airship2D_system(new ctrl::kte_nl_system("airship2D_system"));
   
   airship2D_system->dofs_2D.push_back(airship2D_frame);
   airship2D_system->inputs.push_back(airship2D_actuator);
@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
 							  ReaK::vect_n<double>(),
 							  0.0,
 							  1e-4,
-							  weak_pointer< state_rate_function<double> >::type(),
+							  weak_ptr< state_rate_function<double> >(),
 							  time_step,
 							  time_step * 0.000001,
 							  1e-3),

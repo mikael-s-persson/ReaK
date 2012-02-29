@@ -157,7 +157,7 @@ void >::type hybrid_kalman_filter_step(const LinearSystem& sys,
       integ.addStateElement(P(i,j));
   
   integ.setStateRateFunc(
-    typename shared_pointer< state_rate_function<ValueType> >::type( 
+    shared_ptr< state_rate_function<ValueType> >( 
       new detail::kalman_bucy_system<ValueType, 
                                      LinearSystem, 
 				     StateSpaceType,
@@ -194,7 +194,7 @@ void >::type hybrid_kalman_filter_step(const LinearSystem& sys,
   b_x.set_mean_state( state_space.adjust(x, K * y) );
   b_x.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
   
-  integ.setStateRateFunc(typename shared_pointer< state_rate_function<ValueType> >::type());
+  integ.setStateRateFunc(shared_ptr< state_rate_function<ValueType> >());
   
 };
 

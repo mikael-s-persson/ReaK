@@ -49,8 +49,8 @@ namespace kte {
  */
 class inertial_beam_2D : public kte_map {
   private:
-    shared_pointer< frame_2D<double> >::type mAnchor1; ///< Holds the first end of the beam.
-    shared_pointer< frame_2D<double> >::type mAnchor2; ///< Holds the second end of the beam.
+    shared_ptr< frame_2D<double> > mAnchor1; ///< Holds the first end of the beam.
+    shared_ptr< frame_2D<double> > mAnchor2; ///< Holds the second end of the beam.
     double mMass; ///< Holds the total mass of the beam, half of which is lumped at each end.
 
   public:
@@ -76,8 +76,8 @@ class inertial_beam_2D : public kte_map {
      * \param aMass the total mass of the beam, half of which is lumped at each end.
      */
     inertial_beam_2D(const std::string& aName,
-		     const shared_pointer< frame_2D<double> >::type& aAnchor1,
-		     const shared_pointer< frame_2D<double> >::type& aAnchor2,
+		     const shared_ptr< frame_2D<double> >& aAnchor1,
+		     const shared_ptr< frame_2D<double> >& aAnchor2,
 		     double aMass) :
 		     kte_map(aName),
 		     mAnchor1(aAnchor1),
@@ -89,9 +89,9 @@ class inertial_beam_2D : public kte_map {
      */
     virtual ~inertial_beam_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 
@@ -120,8 +120,8 @@ class inertial_beam_2D : public kte_map {
  */
 class inertial_beam_3D : public kte_map {
   private:
-    shared_pointer< frame_3D<double> >::type mAnchor1; ///< Holds the first end of the beam.
-    shared_pointer< frame_3D<double> >::type mAnchor2; ///< Holds the second end of the beam.
+    shared_ptr< frame_3D<double> > mAnchor1; ///< Holds the first end of the beam.
+    shared_ptr< frame_3D<double> > mAnchor2; ///< Holds the second end of the beam.
     double mMass; ///< Holds the total mass of the beam, half of which is lumped at each end.
 
   public:
@@ -147,8 +147,8 @@ class inertial_beam_3D : public kte_map {
      * \param aMass the total mass of the beam, half of which is lumped at each end.
      */
     inertial_beam_3D(const std::string& aName,
-		     const shared_pointer< frame_3D<double> >::type& aAnchor1,
-		     const shared_pointer< frame_3D<double> >::type& aAnchor2,
+		     const shared_ptr< frame_3D<double> >& aAnchor1,
+		     const shared_ptr< frame_3D<double> >& aAnchor2,
 		     double aMass) :
 		     kte_map(aName),
 		     mAnchor1(aAnchor1),
@@ -160,9 +160,9 @@ class inertial_beam_3D : public kte_map {
      */
     virtual ~inertial_beam_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 

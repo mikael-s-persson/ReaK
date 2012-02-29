@@ -51,9 +51,9 @@ namespace kte {
  */
 class flexible_beam_2D : public kte_map {
   private:
-    shared_pointer< frame_2D<double> >::type mAnchor1; ///< Holds the first end of the beam.
-    shared_pointer< frame_2D<double> >::type mAnchor2; ///< Holds the second end of the beam.
-    shared_pointer< frame_2D<double> >::type mObjectFrame; ///< Holds the center frame of the beam (i.e. its bulk).
+    shared_ptr< frame_2D<double> > mAnchor1; ///< Holds the first end of the beam.
+    shared_ptr< frame_2D<double> > mAnchor2; ///< Holds the second end of the beam.
+    shared_ptr< frame_2D<double> > mObjectFrame; ///< Holds the center frame of the beam (i.e. its bulk).
     double mRestLength; ///< The undeformed length of the beam.
     double mStiffness; ///< The linear stiffness of the beam, stress-strain relation, iso-tropically.
     double mTorsionStiffness; ///< The angular or torsion stiffness of the beam, iso-tropically.
@@ -98,9 +98,9 @@ class flexible_beam_2D : public kte_map {
      * \param aTorsionStiffness the angular or torsion stiffness of the beam, iso-tropically.
      */
     flexible_beam_2D(const std::string& aName,
-                     const shared_pointer< frame_2D<double> >::type& aAnchor1,
-                     const shared_pointer< frame_2D<double> >::type& aAnchor2,
-                     const shared_pointer< frame_2D<double> >::type& aObjectFrame,
+                     const shared_ptr< frame_2D<double> >& aAnchor1,
+                     const shared_ptr< frame_2D<double> >& aAnchor2,
+                     const shared_ptr< frame_2D<double> >& aObjectFrame,
                      double aRestLength,
                      double aStiffness,
                      double aTorsionStiffness) :
@@ -117,9 +117,9 @@ class flexible_beam_2D : public kte_map {
      */
     virtual ~flexible_beam_2D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 
@@ -157,9 +157,9 @@ class flexible_beam_2D : public kte_map {
  */
 class flexible_beam_3D : public kte_map {
   private:
-    shared_pointer< frame_3D<double> >::type mAnchor1; ///< Holds the first end of the beam.
-    shared_pointer< frame_3D<double> >::type mAnchor2; ///< Holds the second end of the beam.
-    shared_pointer< frame_3D<double> >::type mObjectFrame; ///< Holds the center frame of the beam (i.e. its bulk).
+    shared_ptr< frame_3D<double> > mAnchor1; ///< Holds the first end of the beam.
+    shared_ptr< frame_3D<double> > mAnchor2; ///< Holds the second end of the beam.
+    shared_ptr< frame_3D<double> > mObjectFrame; ///< Holds the center frame of the beam (i.e. its bulk).
     double mRestLength; ///< The undeformed length of the beam.
     double mStiffness; ///< The linear stiffness of the beam, stress-strain relation, iso-tropically.
     double mTorsionStiffness; ///< The angular or torsion stiffness of the beam, iso-tropically.
@@ -203,9 +203,9 @@ class flexible_beam_3D : public kte_map {
      * \param aTorsionStiffness the angular or torsion stiffness of the beam, iso-tropically.
      */
     flexible_beam_3D(const std::string& aName,
-                     shared_pointer< frame_3D<double> >::type& aAnchor1,
-                     shared_pointer< frame_3D<double> >::type& aAnchor2,
-                     shared_pointer< frame_3D<double> >::type& aObjectFrame,
+                     shared_ptr< frame_3D<double> >& aAnchor1,
+                     shared_ptr< frame_3D<double> >& aAnchor2,
+                     shared_ptr< frame_3D<double> >& aObjectFrame,
                      double aRestLength,
                      double aStiffness,
                      double aTorsionStiffness) :
@@ -222,9 +222,9 @@ class flexible_beam_3D : public kte_map {
      */
     virtual ~flexible_beam_3D() { };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_pointer<frame_storage>::type& aStorage = shared_pointer<frame_storage>::type());
+    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
 
     virtual void clearForce();
 
