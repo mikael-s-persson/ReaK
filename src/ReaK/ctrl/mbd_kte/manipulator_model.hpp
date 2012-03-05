@@ -53,6 +53,9 @@ namespace ReaK {
 namespace kte {
 
 
+class manip_kin_mdl_jac_calculator; // forward-declaration.
+  
+
 /**
  * This class stores the required information to represent the kinematic model of a manipulator.
  * Here, a manipulator is defined as a kinematic chain with "input" coordinates (or frames) and 
@@ -74,10 +77,10 @@ class manipulator_kinematics_model : public kte_map {
 
     shared_ptr< kte_map_chain > mModel; ///< Holds the model of the manipulator as a kte-chain.
     
-    void getJacobianMatrixAndDerivativeImpl(mat<double,mat_structure::rectangular>* Jac, mat<double,mat_structure::rectangular>* JacDot);
+    friend class manip_kin_mdl_jac_calculator;
     
   public:
-
+    
     /**
      * Default constructor.
      */
@@ -221,7 +224,7 @@ class manipulator_kinematics_model : public kte_map {
      * of the system's dependent coordinates and frames.
      * \param Jac stores, as output, the calculated system's Jacobian matrix.
      */
-    virtual void getJacobianMatrix(mat<double,mat_structure::rectangular>& Jac);
+    virtual void getJacobianMatrix(mat<double,mat_structure::rectangular>& Jac) const;
 
     /**
      * Get the Jacobian matrix for the system (or twist-shaping matrix), and its time-derivative. 
@@ -232,7 +235,7 @@ class manipulator_kinematics_model : public kte_map {
      * \param Jac stores, as output, the calculated system's Jacobian matrix.
      * \param JacDot stores, as output, the calculated time-derivative of the system's Jacobian matrix.
      */
-    virtual void getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, mat<double,mat_structure::rectangular>& JacDot);
+    virtual void getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, mat<double,mat_structure::rectangular>& JacDot) const;
 
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {

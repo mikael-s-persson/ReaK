@@ -26,6 +26,8 @@
 #include "lin_alg/mat_num_exceptions.hpp"
 #include "lin_alg/mat_cholesky.hpp"
 
+#include "manipulator_model_helper.hpp"
+
 namespace ReaK {
 
 namespace kte {
@@ -69,232 +71,15 @@ manipulator_kinematics_model& manipulator_kinematics_model::operator <<(const sh
 };
 
 
-void manipulator_kinematics_model::getJacobianMatrix(mat<double,mat_structure::rectangular>& Jac) {
-  getJacobianMatrixAndDerivativeImpl(&Jac,NULL);
+void manipulator_kinematics_model::getJacobianMatrix(mat<double,mat_structure::rectangular>& Jac) const {
+  manip_kin_mdl_jac_calculator(this).getJacobianMatrix(Jac);
 };
 
 void manipulator_kinematics_model::getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, 
-								  mat<double,mat_structure::rectangular>& JacDot) {
-  getJacobianMatrixAndDerivativeImpl(&Jac,&JacDot);
+								  mat<double,mat_structure::rectangular>& JacDot) const {
+  manip_kin_mdl_jac_calculator(this).getJacobianMatrixAndDerivative(Jac,JacDot);
 };
   
-void manipulator_kinematics_model::getJacobianMatrixAndDerivativeImpl(mat<double,mat_structure::rectangular>* Jac, 
-								      mat<double,mat_structure::rectangular>* JacDot) {
-  unsigned int m = getDependentVelocitiesCount();
-  unsigned int n = getJointVelocitiesCount();
-  *Jac    = mat<double,mat_structure::nil>(m,n);
-  if(JacDot)
-    *JacDot = mat<double,mat_structure::nil>(m,n);
-
-  unsigned int RowInd = 0;
-  
-/****************************************************************************************
- *                             Gen Coords 
- * *************************************************************************************/
-  
-  
-  for(unsigned int i=0; i<mCoords.size(); ++i) {
-    RowInd = 0;
-    
-    for(unsigned int j=0; j<mDependentGenCoords.size(); ++j) {
-      if(mDependentGenCoords[j]->mUpStreamJoints.find(mCoords[i]) != mDependentGenCoords[j]->mUpStreamJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,1,1,RowInd,i);
-	if(JacDot) {
-	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,1,1,RowInd,i);
-	  mDependentGenCoords[j]
-	    ->mUpStreamJoints[mCoords[i]]
-	      ->write_to_matrices(subJac,subJacDot);
-	} else {
-	  mDependentGenCoords[j]
-	    ->mUpStreamJoints[mCoords[i]]
-	      ->write_to_matrices(subJac);
-	};
-      };
-      RowInd++;
-    };
-    
-    for(unsigned int j=0; j<mDependent2DFrames.size(); ++j) {
-      if(mDependent2DFrames[j]->mUpStreamJoints.find(mCoords[i]) != mDependent2DFrames[j]->mUpStreamJoints.end()) {
-
-	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,3,1,RowInd,i);
-	if(JacDot) {
-	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,3,1,RowInd,i);
-	  mDependent2DFrames[j]
-	    ->mUpStreamJoints[mCoords[i]]
-	      ->get_jac_relative_to(mDependent2DFrames[j]->mFrame)
-	        .write_to_matrices(subJac,subJacDot);
-	} else {
-	  mDependent2DFrames[j]
-	    ->mUpStreamJoints[mCoords[i]]
-	      ->get_jac_relative_to(mDependent2DFrames[j]->mFrame)
-	        .write_to_matrices(subJac);
-	};
-      };
-      RowInd += 3;
-    };
-    
-    for(unsigned int j=0; j<mDependent3DFrames.size(); ++j) {
-      if(mDependent3DFrames[j]->mUpStreamJoints.find(mCoords[i]) != mDependent3DFrames[j]->mUpStreamJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,6,1,RowInd,i);
-	if(JacDot) {
-  	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,6,1,RowInd,i);
-	  mDependent3DFrames[j]
-	    ->mUpStreamJoints[mCoords[i]]
-	      ->get_jac_relative_to(mDependent3DFrames[j]->mFrame)
-	        .write_to_matrices(subJac,subJacDot);
-	} else {
-	  mDependent3DFrames[j]
-	    ->mUpStreamJoints[mCoords[i]]
-	      ->get_jac_relative_to(mDependent3DFrames[j]->mFrame)
-	        .write_to_matrices(subJac);
-	};
-      };
-      RowInd += 6;
-    };
-  };
-
-  
-/****************************************************************************************
- *                             2D Frames 
- * *************************************************************************************/
-  
-  unsigned int base_i = mCoords.size();
-  for(unsigned int i=0; i<mFrames2D.size(); ++i) {
-    RowInd = 0;
-
-    for(unsigned int j=0; j<mDependentGenCoords.size(); ++j) {
-      if(mDependentGenCoords[j]->mUpStream2DJoints.find(mFrames2D[i]) != mDependentGenCoords[j]->mUpStream2DJoints.end()) {
-		
-	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,1,3,RowInd,3*i+base_i);
-	if(JacDot) {
-	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,1,3,RowInd,3*i+base_i);
-	  mDependentGenCoords[j]
-	    ->mUpStream2DJoints[mFrames2D[i]]
-	      ->write_to_matrices(subJac,subJacDot);
-	} else {
-	  mDependentGenCoords[j]
-	    ->mUpStream2DJoints[mFrames2D[i]]
-	      ->write_to_matrices(subJac);
-	};
-      };
-      RowInd++;
-    };
-
-    for(unsigned int j=0; j<mDependent2DFrames.size(); ++j) {
-      if(mDependent2DFrames[j]->mUpStream2DJoints.find(mFrames2D[i]) != mDependent2DFrames[j]->mUpStream2DJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,3,3,RowInd,3*i+base_i);
-	if(JacDot) {
-  	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,3,3,RowInd,3*i+base_i);
-	  mDependent2DFrames[j]
-	    ->mUpStream2DJoints[mFrames2D[i]]
-	      ->get_jac_relative_to(mDependent2DFrames[j]->mFrame)
-	        .write_to_matrices(subJac,subJacDot);
-	} else {
-	  mDependent2DFrames[j]
-	    ->mUpStream2DJoints[mFrames2D[i]]
-	      ->get_jac_relative_to(mDependent2DFrames[j]->mFrame)
-	        .write_to_matrices(subJac);
-	};
-      };
-      RowInd += 3;
-    };
-
-    for(unsigned int j=0; j<mDependent3DFrames.size(); ++j) {
-      if(mDependent3DFrames[j]->mUpStream2DJoints.find(mFrames2D[i]) != mDependent3DFrames[j]->mUpStream2DJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,6,3,RowInd,3*i+base_i);
-	if(JacDot) {
-	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,6,3,RowInd,3*i+base_i);
-	  mDependent3DFrames[j]
-	    ->mUpStream2DJoints[mFrames2D[i]]
-	      ->get_jac_relative_to(mDependent3DFrames[j]->mFrame)
-	        .write_to_matrices(subJac,subJacDot);
-	} else {
-	  mDependent3DFrames[j]
-	    ->mUpStream2DJoints[mFrames2D[i]]
-	      ->get_jac_relative_to(mDependent3DFrames[j]->mFrame)
-	        .write_to_matrices(subJac);
-	};
-      };
-      RowInd += 6;
-    };
-  };
-
-  
-  
-/****************************************************************************************
- *                             3D Frames 
- * *************************************************************************************/
-  
-  base_i = mCoords.size() + 3*mFrames2D.size();
-  for(unsigned int i=0; i<mFrames3D.size(); ++i) {
-    RowInd = 0; 
-
-    for(unsigned int j=0; j<mDependentGenCoords.size(); ++j) {
-      if(mDependentGenCoords[j]->mUpStreamJoints.find(mCoords[i]) != mDependentGenCoords[j]->mUpStreamJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,1,6,RowInd,6*i+base_i);
-	if(JacDot) {
-	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,1,6,RowInd,6*i+base_i);
-	  mDependentGenCoords[j]
-	    ->mUpStream3DJoints[mFrames3D[i]]
-	      ->write_to_matrices(subJac,subJacDot);
-	} else {
-	  mDependentGenCoords[j]
-	    ->mUpStream3DJoints[mFrames3D[i]]
-	      ->write_to_matrices(subJac);
-	};
-      };
-      RowInd++;
-    };
-
-    for(unsigned int j=0; j<mDependent2DFrames.size(); ++j) {
-      if(mDependent2DFrames[j]->mUpStream3DJoints.find(mFrames3D[i]) != mDependent2DFrames[j]->mUpStream3DJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,3,6,RowInd,6*i+base_i);
-	if(JacDot) {
-	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,3,6,RowInd,6*i+base_i);
-	  mDependent2DFrames[j]
-	    ->mUpStream3DJoints[mFrames3D[i]]
-	      ->get_jac_relative_to(mDependent2DFrames[j]->mFrame)
-	        .write_to_matrices(subJac,subJacDot);
-	} else {
-	  mDependent2DFrames[j]
-	    ->mUpStream3DJoints[mFrames3D[i]]
-	      ->get_jac_relative_to(mDependent2DFrames[j]->mFrame)
-	        .write_to_matrices(subJac);
-	};
-      };
-      RowInd += 3;
-    };
-
-    for(unsigned int j=0; j<mDependent3DFrames.size(); ++j) {
-      if(mDependent3DFrames[j]->mUpStream3DJoints.find(mFrames3D[i]) != mDependent3DFrames[j]->mUpStream3DJoints.end()) {
-		
-	mat_sub_block< mat<double,mat_structure::rectangular> > subJac(*Jac,6,6,RowInd,6*i+base_i);
-	if(JacDot) {
-	  mat_sub_block< mat<double,mat_structure::rectangular> > subJacDot(*JacDot,6,6,RowInd,6*i+base_i);
-	  mDependent3DFrames[j]
-	    ->mUpStream3DJoints[mFrames3D[i]]
-	      ->get_jac_relative_to(mDependent3DFrames[j]->mFrame)
-	        .write_to_matrices(subJac,subJacDot);
-	} else {
-	  mDependent3DFrames[j]
-	    ->mUpStream3DJoints[mFrames3D[i]]
-	      ->get_jac_relative_to(mDependent3DFrames[j]->mFrame)
-	        .write_to_matrices(subJac);
-	};
-      };
-      RowInd += 6;
-    };
-  };
-
-};
-
-
 
 
 
