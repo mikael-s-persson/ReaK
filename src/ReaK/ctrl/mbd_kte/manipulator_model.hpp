@@ -53,6 +53,7 @@ namespace ReaK {
 namespace kte {
 
 
+class manip_kin_mdl_joint_io; //forward-declaration.
 class manip_kin_mdl_jac_calculator; // forward-declaration.
   
 
@@ -77,6 +78,7 @@ class manipulator_kinematics_model : public kte_map {
 
     shared_ptr< kte_map_chain > mModel; ///< Holds the model of the manipulator as a kte-chain.
     
+    friend class manip_kin_mdl_joint_io;
     friend class manip_kin_mdl_jac_calculator;
     
   public:
