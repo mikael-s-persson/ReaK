@@ -612,6 +612,38 @@ class quadratic_cost_evaluator : public manip_clik_cost_evaluator {
 };
 
 
+    
+struct manip_clik_cost_function {
+  const manip_clik_cost_evaluator* parent;
+      
+  manip_clik_cost_function(const manip_clik_cost_evaluator* aParent) : parent(aParent) { };
+      
+  double operator()(const vect_n<double>& x) const {
+    return parent->compute_cost(x);
+  };
+};
+    
+struct manip_clik_cost_grad {
+  const manip_clik_cost_evaluator* parent;
+      
+  manip_clik_cost_grad(const manip_clik_cost_evaluator* aParent) : parent(aParent) { };
+      
+  vect_n<double> operator()(const vect_n<double>& x) const {
+    return parent->compute_cost_grad(x);
+  };
+};
+    
+struct manip_clik_cost_hess {
+  const manip_clik_cost_evaluator* parent;
+      
+  manip_clik_cost_hess(const manip_clik_cost_evaluator* aParent) : parent(aParent) { };
+      
+  void operator()(mat<double,mat_structure::symmetric>& H, const vect_n<double>& x, double f, const vect_n<double>& x_grad) const {
+    return parent->compute_cost_hessian(H,x,f,x_grad);
+  };
+};
+
+
 
 
 /**
@@ -880,40 +912,10 @@ class manip_clik_calculator {
     };
     
     
-    struct cost_function {
-      const manip_clik_cost_evaluator* parent;
-      
-      cost_function(const manip_clik_cost_evaluator* aParent) : parent(aParent) { };
-      
-      double operator()(const vect_n<double>& x) const {
-	return parent->compute_cost(x);
-      };
-    };
     
-    struct cost_grad {
-      const manip_clik_cost_evaluator* parent;
-      
-      cost_grad(const manip_clik_cost_evaluator* aParent) : parent(aParent) { };
-      
-      vect_n<double> operator()(const vect_n<double>& x) const {
-	return parent->compute_cost_grad(x);
-      };
-    };
-    
-    struct cost_hess {
-      const manip_clik_cost_evaluator* parent;
-      
-      cost_hess(const manip_clik_cost_evaluator* aParent) : parent(aParent) { };
-      
-      void operator()(mat<double,mat_structure::symmetric>& H, const vect_n<double>& x, double f, const vect_n<double>& x_grad) const {
-	return parent->compute_cost_hessian(H,x,f,x_grad);
-      };
-    };
-    
-    
-    typedef optim::nlip_newton_tr_factory<cost_function,
-                                          cost_grad,
-					  cost_hess,
+    typedef optim::nlip_newton_tr_factory<manip_clik_cost_function,
+                                          manip_clik_cost_grad,
+					  manip_clik_cost_hess,
 					  double,
 					  eq_function,
 					  eq_jac_filler,
@@ -944,9 +946,9 @@ class manip_clik_calculator {
 			  model(aModel), 
 			  cost_evaluator(aCostEvaluator),
 			  optimizer(
-			    cost_function(aCostEvaluator),
-			    cost_grad(aCostEvaluator),
-			    cost_hess(aCostEvaluator),
+			    manip_clik_cost_function(aCostEvaluator),
+			    manip_clik_cost_grad(aCostEvaluator),
+			    manip_clik_cost_hess(aCostEvaluator),
 			    aMaxRadius, aMu, aMaxIter,
 	                    eq_function(this), eq_jac_filler(this),
 			    ineq_function(this), ineq_jac_filler(this),
@@ -981,7 +983,16 @@ class manip_clik_calculator {
      */
     ~manip_clik_calculator() { };
     
-    
+    /**
+     * This function takes its given desired 'end-effector' states and solves the inverse 
+     * kinematics problem to find the corresponding joint states. 
+     * \pre The joint states at which the manipulator model is before the function call 
+     *      will act as the initial guess for the inverse kinematics solution.
+     *      Before calling this function, it is assumed that all the parameters of the 
+     *      optimization have been properly set.
+     * \post The joint states which solve the inverse kinematics problem will be set in 
+     *       the manipulator model.
+     */
     void solveInverseKinematics() {
       
       vect_n<double> x(model->getJointPositionsCount() + model->getJointVelocitiesCount());
@@ -995,14 +1006,17 @@ class manip_clik_calculator {
       const manip_clik_cost_evaluator* tmp_cost_eval = NULL;
       if(!cost_evaluator) {
 	tmp_cost_eval = new quadratic_cost_evaluator(vect_n<double>(x.size(), double(0.0)),
-	                                             mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(x.size())) );
+	                                             mat<double,mat_structure::symmetric>(
+						       ( mat<double,mat_structure::nil>(model->getJointPositionsCount(), model->getJointPositionsCount() + model->getJointVelocitiesCount()) |
+						       ( mat<double,mat_structure::nil>(model->getJointVelocitiesCount(), model->getJointPositionsCount()) & mat<double,mat_structure::identity>(model->getJointVelocitiesCount()) ) )
+						     ) );
       };
       
       if(tmp_cost_eval)
 	cost_evaluator = tmp_cost_eval;
-      optimizer.f = cost_function(cost_evaluator);
-      optimizer.df = cost_grad(cost_evaluator);
-      optimizer.fill_hessian = cost_hess(cost_evaluator);
+      optimizer.f = manip_clik_cost_function(cost_evaluator);
+      optimizer.df = manip_clik_cost_grad(cost_evaluator);
+      optimizer.fill_hessian = manip_clik_cost_hess(cost_evaluator);
       
       optimizer( x );
       
