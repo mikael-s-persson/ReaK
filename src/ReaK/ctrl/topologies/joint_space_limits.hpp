@@ -351,6 +351,181 @@ namespace detail {
   
   
   
+  template <typename Idx, typename PointType1, typename PointType2, typename Vector>
+  typename boost::disable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type create_0th_rl_joint_vector_impl(PointType1& result, const PointType2& pt, const Vector& speed_limits) {
+    create_0th_rl_joint_vector_impl< boost::mpl::prior<Idx> >(result, pt, speed_limits);
+    
+    get< 0 >(get< Idx::type::value >(result)) = get< 0 >(get< Idx::type::value >(pt)) / speed_limits[Idx::type::value];
+  };
+  
+  template <typename Idx, typename PointType1, typename PointType2, typename Vector>
+  typename boost::enable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type create_0th_rl_joint_vector_impl(PointType1& result, const PointType2& pt, const Vector& speed_limits) {
+    get< 0 >(get< 0 >(result)) = get< 0 >(get< 0 >(pt)) / speed_limits[0];
+  };
+  
+  
+  
+  template <typename Idx, typename PointType1, typename PointType2, typename Vector>
+  typename boost::disable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type create_1st_rl_joint_vector_impl(PointType1& result, const PointType2& pt, 
+					       const Vector& speed_limits, const Vector& accel_limits) {
+    create_1st_rl_joint_vector_impl< boost::mpl::prior<Idx> >(result, pt, speed_limits, accel_limits);
+    
+    get< 0 >(get< Idx::type::value >(result)) = get< 0 >(get< Idx::type::value >(pt)) / speed_limits[Idx::type::value];
+    get< 1 >(get< Idx::type::value >(result)) = get< 1 >(get< Idx::type::value >(pt)) / accel_limits[Idx::type::value];
+  };
+  
+  template <typename Idx, typename PointType1, typename PointType2, typename Vector>
+  typename boost::enable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type create_1st_rl_joint_vector_impl(PointType1& result, const PointType2& pt, 
+					       const Vector& speed_limits, const Vector& accel_limits) {
+    get< 0 >(get< 0 >(result)) = get< 0 >(get< 0 >(pt)) / speed_limits[0];
+    get< 1 >(get< 0 >(result)) = get< 1 >(get< 0 >(pt)) / accel_limits[0];
+  };
+  
+  
+  
+  
+  template <typename Idx, typename PointType1, typename PointType2, typename Vector>
+  typename boost::disable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type create_2nd_rl_joint_vector_impl(PointType1& result, const PointType2& pt, 
+					       const Vector& speed_limits, 
+					       const Vector& accel_limits, 
+					       const Vector& jerk_limits) {
+    create_2nd_rl_joint_vector_impl< boost::mpl::prior<Idx> >(result, pt, speed_limits, accel_limits, jerk_limits);
+    
+    get< 0 >(get< Idx::type::value >(result)) = get< 0 >(get< Idx::type::value >(pt)) / speed_limits[Idx::type::value];
+    get< 1 >(get< Idx::type::value >(result)) = get< 1 >(get< Idx::type::value >(pt)) / accel_limits[Idx::type::value];
+    get< 2 >(get< Idx::type::value >(result)) = get< 2 >(get< Idx::type::value >(pt)) / jerk_limits[Idx::type::value];
+  };
+  
+  template <typename Idx, typename PointType1, typename PointType2, typename Vector>
+  typename boost::enable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type create_2nd_rl_joint_vector_impl(PointType1& result, const PointType2& pt, 
+					       const Vector& speed_limits, 
+					       const Vector& accel_limits, 
+					       const Vector& jerk_limits) {
+    get< 0 >(get< 0 >(result)) = get< 0 >(get< 0 >(pt)) / speed_limits[0];
+    get< 1 >(get< 0 >(result)) = get< 1 >(get< 0 >(pt)) / accel_limits[0];
+    get< 2 >(get< 0 >(result)) = get< 2 >(get< 0 >(pt)) / jerk_limits[0];
+  };
+  
+  
+  
+  
+  template <typename Idx, typename PointType1, typename PointType2, typename Vector>
+  typename boost::disable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type create_0th_joint_vector_impl(PointType1& result, const PointType2& pt, const Vector& speed_limits) {
+    create_0th_joint_vector_impl< boost::mpl::prior<Idx> >(result, pt, speed_limits);
+    
+    get< 0 >(get< Idx::type::value >(result)) = get< 0 >(get< Idx::type::value >(pt)) * speed_limits[Idx::type::value];
+  };
+  
+  template <typename Idx, typename PointType1, typename PointType2, typename Vector>
+  typename boost::enable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type create_0th_joint_vector_impl(PointType1& result, const PointType2& pt, const Vector& speed_limits) {
+    get< 0 >(get< 0 >(result)) = get< 0 >(get< 0 >(pt)) * speed_limits[0];
+  };
+  
+  
+  
+  template <typename Idx, typename PointType1, typename PointType2, typename Vector>
+  typename boost::disable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type create_1st_joint_vector_impl(PointType1& result, const PointType2& pt, 
+					       const Vector& speed_limits, const Vector& accel_limits) {
+    create_1st_joint_vector_impl< boost::mpl::prior<Idx> >(result, pt, speed_limits, accel_limits);
+    
+    get< 0 >(get< Idx::type::value >(result)) = get< 0 >(get< Idx::type::value >(pt)) * speed_limits[Idx::type::value];
+    get< 1 >(get< Idx::type::value >(result)) = get< 1 >(get< Idx::type::value >(pt)) * accel_limits[Idx::type::value];
+  };
+  
+  template <typename Idx, typename PointType1, typename PointType2, typename Vector>
+  typename boost::enable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type create_1st_joint_vector_impl(PointType1& result, const PointType2& pt, 
+					       const Vector& speed_limits, const Vector& accel_limits) {
+    get< 0 >(get< 0 >(result)) = get< 0 >(get< 0 >(pt)) * speed_limits[0];
+    get< 1 >(get< 0 >(result)) = get< 1 >(get< 0 >(pt)) * accel_limits[0];
+  };
+  
+  
+  
+  
+  template <typename Idx, typename PointType1, typename PointType2, typename Vector>
+  typename boost::disable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type create_2nd_joint_vector_impl(PointType1& result, const PointType2& pt, 
+					       const Vector& speed_limits, 
+					       const Vector& accel_limits, 
+					       const Vector& jerk_limits) {
+    create_2nd_joint_vector_impl< boost::mpl::prior<Idx> >(result, pt, speed_limits, accel_limits, jerk_limits);
+    
+    get< 0 >(get< Idx::type::value >(result)) = get< 0 >(get< Idx::type::value >(pt)) * speed_limits[Idx::type::value];
+    get< 1 >(get< Idx::type::value >(result)) = get< 1 >(get< Idx::type::value >(pt)) * accel_limits[Idx::type::value];
+    get< 2 >(get< Idx::type::value >(result)) = get< 2 >(get< Idx::type::value >(pt)) * jerk_limits[Idx::type::value];
+  };
+  
+  template <typename Idx, typename PointType1, typename PointType2, typename Vector>
+  typename boost::enable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<1>
+    >,
+  void >::type create_2nd_joint_vector_impl(PointType1& result, const PointType2& pt, 
+					       const Vector& speed_limits, 
+					       const Vector& accel_limits, 
+					       const Vector& jerk_limits) {
+    get< 0 >(get< 0 >(result)) = get< 0 >(get< 0 >(pt)) * speed_limits[0];
+    get< 1 >(get< 0 >(result)) = get< 1 >(get< 0 >(pt)) * accel_limits[0];
+    get< 2 >(get< 0 >(result)) = get< 2 >(get< 0 >(pt)) * jerk_limits[0];
+  };
+  
+  
+  
 };
 
 
@@ -376,6 +551,80 @@ struct joint_limits_1st_order {
       N,
       DistanceMetric >::type result;
     detail::create_0th_rl_joint_space_impl<boost::mpl::size_t<N-1>, T, N, DistanceMetric >(result, j_space, speed_limits);
+    return result;
+  };
+  
+  
+  typename topology_traits<
+    typename metric_space_array<
+      rl_joint_space_0th_order<T>::type,
+      N,
+      DistanceMetric 
+    >::type
+  >::point_type map_to_space(
+      const typename topology_traits<
+        typename metric_space_array<
+          joint_space_0th_order<T>::type,
+	  N,
+	  DistanceMetric 
+        >::type
+      >::point_type& pt,
+      const typename metric_space_array<
+        joint_space_0th_order<T>::type,
+	N,
+	DistanceMetric 
+      >::type& ,
+      const typename metric_space_array<
+        rl_joint_space_0th_order<T>::type,
+	N,
+	DistanceMetric 
+      >::type& 
+    ) {
+    typename topology_traits<
+      typename metric_space_array<
+        rl_joint_space_0th_order<T>::type,
+        N,
+        DistanceMetric 
+      >::type
+    >::point_type result;
+    detail::create_0th_rl_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits);
+    return result;
+  };
+  
+  
+  typename topology_traits<
+    typename metric_space_array<
+      joint_space_0th_order<T>::type,
+      N,
+      DistanceMetric 
+    >::type
+  >::point_type map_to_space(
+      const typename topology_traits<
+        typename metric_space_array<
+          rl_joint_space_0th_order<T>::type,
+	  N,
+	  DistanceMetric 
+        >::type
+      >::point_type& pt,
+      const typename metric_space_array<
+        rl_joint_space_0th_order<T>::type,
+	N,
+	DistanceMetric 
+      >::type& ,
+      const typename metric_space_array<
+        joint_space_0th_order<T>::type,
+	N,
+	DistanceMetric 
+      >::type& 
+    ) {
+    typename topology_traits<
+      typename metric_space_array<
+        joint_space_0th_order<T>::type,
+        N,
+        DistanceMetric 
+      >::type
+    >::point_type result;
+    detail::create_0th_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits);
     return result;
   };
   
@@ -408,6 +657,81 @@ struct joint_limits_2nd_order {
       N,
       DistanceMetric >::type result;
     detail::create_1st_rl_joint_space_impl<boost::mpl::size_t<N-1>, T, N, DistanceMetric >(result, j_space, speed_limits);
+    return result;
+  };
+  
+  
+  
+  typename topology_traits<
+    typename metric_space_array<
+      rl_joint_space_1st_order<T>::type,
+      N,
+      DistanceMetric 
+    >::type
+  >::point_type map_to_space(
+      const typename topology_traits<
+        typename metric_space_array<
+          joint_space_1st_order<T>::type,
+	  N,
+	  DistanceMetric 
+        >::type
+      >::point_type& pt,
+      const typename metric_space_array<
+        joint_space_1st_order<T>::type,
+	N,
+	DistanceMetric 
+      >::type& ,
+      const typename metric_space_array<
+        rl_joint_space_1st_order<T>::type,
+	N,
+	DistanceMetric 
+      >::type& 
+    ) {
+    typename topology_traits<
+      typename metric_space_array<
+        rl_joint_space_1st_order<T>::type,
+        N,
+        DistanceMetric 
+      >::type
+    >::point_type result;
+    detail::create_1st_rl_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits, accel_limits);
+    return result;
+  };
+  
+  
+  typename topology_traits<
+    typename metric_space_array<
+      joint_space_1st_order<T>::type,
+      N,
+      DistanceMetric 
+    >::type
+  >::point_type map_to_space(
+      const typename topology_traits<
+        typename metric_space_array<
+          rl_joint_space_1st_order<T>::type,
+	  N,
+	  DistanceMetric 
+        >::type
+      >::point_type& pt,
+      const typename metric_space_array<
+        rl_joint_space_1st_order<T>::type,
+	N,
+	DistanceMetric 
+      >::type& ,
+      const typename metric_space_array<
+        joint_space_1st_order<T>::type,
+	N,
+	DistanceMetric 
+      >::type& 
+    ) {
+    typename topology_traits<
+      typename metric_space_array<
+        joint_space_1st_order<T>::type,
+        N,
+        DistanceMetric 
+      >::type
+    >::point_type result;
+    detail::create_1st_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits, accel_limits);
     return result;
   };
   
@@ -446,6 +770,80 @@ struct joint_limits_3rd_order {
       N,
       DistanceMetric >::type result;
     detail::create_2nd_rl_joint_space_impl<boost::mpl::size_t<N-1>, T, N, DistanceMetric >(result, j_space, speed_limits);
+    return result;
+  };
+  
+  
+  typename topology_traits<
+    typename metric_space_array<
+      rl_joint_space_2nd_order<T>::type,
+      N,
+      DistanceMetric 
+    >::type
+  >::point_type map_to_space(
+      const typename topology_traits<
+        typename metric_space_array<
+          joint_space_2nd_order<T>::type,
+	  N,
+	  DistanceMetric 
+        >::type
+      >::point_type& pt,
+      const typename metric_space_array<
+        joint_space_2nd_order<T>::type,
+	N,
+	DistanceMetric 
+      >::type& ,
+      const typename metric_space_array<
+        rl_joint_space_2nd_order<T>::type,
+	N,
+	DistanceMetric 
+      >::type& 
+    ) {
+    typename topology_traits<
+      typename metric_space_array<
+        rl_joint_space_2nd_order<T>::type,
+        N,
+        DistanceMetric 
+      >::type
+    >::point_type result;
+    detail::create_2nd_rl_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits, accel_limits, jerk_limits);
+    return result;
+  };
+  
+  
+  typename topology_traits<
+    typename metric_space_array<
+      joint_space_2nd_order<T>::type,
+      N,
+      DistanceMetric 
+    >::type
+  >::point_type map_to_space(
+      const typename topology_traits<
+        typename metric_space_array<
+          rl_joint_space_2nd_order<T>::type,
+	  N,
+	  DistanceMetric 
+        >::type
+      >::point_type& pt,
+      const typename metric_space_array<
+        rl_joint_space_2nd_order<T>::type,
+	N,
+	DistanceMetric 
+      >::type& ,
+      const typename metric_space_array<
+        joint_space_2nd_order<T>::type,
+	N,
+	DistanceMetric 
+      >::type& 
+    ) {
+    typename topology_traits<
+      typename metric_space_array<
+        joint_space_2nd_order<T>::type,
+        N,
+        DistanceMetric 
+      >::type
+    >::point_type result;
+    detail::create_2nd_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits, accel_limits, jerk_limits);
     return result;
   };
   
