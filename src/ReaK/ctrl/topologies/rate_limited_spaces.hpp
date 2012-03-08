@@ -347,6 +347,296 @@ class reach_time_diff_space : public differentiable_space<IndependentSpace,Space
 
 
 
+
+template <typename RateLimitedSpace>
+struct get_rate_illimited_space { 
+  typedef RateLimitedSpace type;
+};
+
+template <typename NormalSpace>
+struct get_rate_limited_space {  
+  typedef NormalSpace type;
+};
+
+
+
+namespace detail {
+  
+  
+  template <std::size_t Size, typename SpaceTuple>
+  struct get_rate_illimited_space_tuple_impl { 
+    //BOOST_STATIC_ASSERT(false);
+  };
+  
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  
+  template <std::size_t Size, typename... Spaces>
+  struct get_rate_illimited_space_tuple_impl< Size, std::tuple<Spaces...> > {
+    typedef arithmetic_tuple< typename get_rate_illimited_space<Spaces>::type... > type;
+  };
+  
+  template <std::size_t Size, typename... Spaces>
+  struct get_rate_illimited_space_tuple_impl< Size, arithmetic_tuple<Spaces...> > {
+    typedef arithmetic_tuple< typename get_rate_illimited_space<Spaces>::type... > type;
+  };
+  
+#else
+  template <typename SpaceTuple>
+  struct get_rate_illimited_space_tuple_impl< 1, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_illimited_space_tuple_impl< 2, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_illimited_space_tuple_impl< 3, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_illimited_space_tuple_impl< 4, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_illimited_space_tuple_impl< 5, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<4,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_illimited_space_tuple_impl< 6, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<4,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<5,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_illimited_space_tuple_impl< 7, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<4,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<5,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<6,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_illimited_space_tuple_impl< 8, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<4,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<5,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<6,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<7,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_illimited_space_tuple_impl< 9, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<4,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<5,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<6,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<7,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<8,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_illimited_space_tuple_impl< 10, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_illimited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<4,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<5,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<6,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<7,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<8,SpaceTuple>::type >::type,
+                              typename get_rate_illimited_space< typename arithmetic_tuple_element<9,SpaceTuple>::type >::type > type;
+  };
+
+#endif
+
+  template <typename SpaceTuple>
+  struct get_rate_illimited_space_tuple : get_rate_illimited_space_tuple_impl< arithmetic_tuple_size<SpaceTuple>::type::value, SpaceTuple > { };
+  
+  
+  template <std::size_t Size, typename SpaceTuple>
+  struct get_rate_limited_space_tuple_impl { 
+    //BOOST_STATIC_ASSERT(false);
+  };
+  
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  
+  template <std::size_t Size, typename... Spaces>
+  struct get_rate_limited_space_tuple_impl< Size, std::tuple<Spaces...> > {
+    typedef arithmetic_tuple< typename get_rate_limited_space<Spaces>::type... > type;
+  };
+  
+  template <std::size_t Size, typename... Spaces>
+  struct get_rate_limited_space_tuple_impl< Size, arithmetic_tuple<Spaces...> > {
+    typedef arithmetic_tuple< typename get_rate_limited_space<Spaces>::type... > type;
+  };
+  
+#else
+  template <typename SpaceTuple>
+  struct get_rate_limited_space_tuple_impl< 1, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_limited_space_tuple_impl< 2, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_limited_space_tuple_impl< 3, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_limited_space_tuple_impl< 4, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_limited_space_tuple_impl< 5, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<4,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_limited_space_tuple_impl< 6, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<4,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<5,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_limited_space_tuple_impl< 7, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<4,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<5,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<6,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_limited_space_tuple_impl< 8, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<4,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<5,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<6,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<7,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_limited_space_tuple_impl< 9, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<4,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<5,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<6,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<7,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<8,SpaceTuple>::type >::type > type;
+  };
+
+  template <typename SpaceTuple>
+  struct get_rate_limited_space_tuple_impl< 10, SpaceTuple > { 
+    typedef arithmetic_tuple< typename get_rate_limited_space< typename arithmetic_tuple_element<0,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<1,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<2,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<3,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<4,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<5,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<6,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<7,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<8,SpaceTuple>::type >::type,
+                              typename get_rate_limited_space< typename arithmetic_tuple_element<9,SpaceTuple>::type >::type > type;
+  };
+
+#endif
+
+  template <typename SpaceTuple>
+  struct get_rate_limited_space_tuple : get_rate_limited_space_tuple_impl< arithmetic_tuple_size<SpaceTuple>::type::value, SpaceTuple > { };
+  
+  
+};
+
+
+
+
+template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric>
+struct get_rate_illimited_space< reach_time_diff_space<IndependentSpace,SpaceTuple,TupleDistanceMetric> > {
+  typedef differentiable_space<IndependentSpace,typename detail::get_rate_illimited_space_tuple<SpaceTuple>::type,TupleDistanceMetric> type;
+};
+
+
+template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric>
+struct get_rate_limited_space< differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric> > {
+  typedef reach_time_diff_space<IndependentSpace,typename detail::get_rate_limited_space_tuple<SpaceTuple>::type,TupleDistanceMetric> type;
+};
+
+
+
+template <typename SpaceTuple, typename TupleDistanceMetric>
+struct get_rate_illimited_space< metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  typedef differentiable_space< typename detail::get_rate_illimited_space_tuple<SpaceTuple>::type, TupleDistanceMetric> type;
+};
+
+
+template <typename SpaceTuple, typename TupleDistanceMetric>
+struct get_rate_limited_space< metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
+  typedef reach_time_diff_space< typename detail::get_rate_limited_space_tuple<SpaceTuple>::type, TupleDistanceMetric> type;
+};
+
+
+
+
+
+
+
+
 };
 
 };

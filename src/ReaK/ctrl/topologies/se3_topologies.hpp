@@ -50,6 +50,7 @@
 #include "lin_alg/vect_alg.hpp"
 
 #include "kinetostatics/frame_3D.hpp"
+#include "rate_limited_spaces.hpp"
 
 namespace ReaK {
 
@@ -140,6 +141,233 @@ struct se3_2nd_order_topology {
       DistanceMetric 
     > type; 
 };
+
+
+
+
+template <typename SE3Space>
+struct is_se3_space : boost::mpl::false_ { };
+
+
+template <typename T, typename DistanceMetric>
+struct is_se3_space< 
+    metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+	arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+	DistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+	arithmetic_tuple< quaternion_topology<T> >, 
+	DistanceMetric 
+      > >,
+      DistanceMetric 
+    > > : boost::mpl::true_ { };
+
+template <typename T, typename DistanceMetric>
+struct is_se3_space< 
+    metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+	arithmetic_tuple< 
+	  hyperbox_topology< vect<T,3> >,
+	  hyperball_topology< vect<T,3> >
+	>, 
+	DistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+	arithmetic_tuple< 
+	  quaternion_topology<T>,
+	  ang_velocity_3D_topology<T>
+	>, 
+	DistanceMetric 
+      > >,
+      DistanceMetric 
+    > > : boost::mpl::true_ { };
+
+template <typename T, typename DistanceMetric>
+struct is_se3_space< 
+    metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+	arithmetic_tuple< 
+	  hyperbox_topology< vect<T,3> >,
+	  hyperball_topology< vect<T,3> >,
+	  hyperball_topology< vect<T,3> >
+	>, 
+	DistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+	arithmetic_tuple< 
+	  quaternion_topology<T>,
+	  ang_velocity_3D_topology<T>,
+	  ang_accel_3D_topology<T>
+	>, 
+	DistanceMetric 
+      > >,
+      DistanceMetric 
+    > > : boost::mpl::true_ { };
+
+
+    
+    
+
+
+/**
+ * This meta-function defines the type for a 0th order SE(3) topology (a zero-differentiable space).
+ * \tparam T The value type for the topology.
+ * \tparam DistanceMetric The distance metric to apply to the tuple.
+ */
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+struct rl_se3_0th_order_topology {
+  typedef 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+	arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+	DistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+	arithmetic_tuple< quaternion_topology<T> >, 
+	DistanceMetric 
+      > >,
+      DistanceMetric 
+    > type;
+};
+
+/**
+ * This meta-function defines the type for a 1st order SE(3) topology (a zero-differentiable space).
+ * \tparam T The value type for the topology.
+ * \tparam DistanceMetric The distance metric to apply to the tuple.
+ */
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+struct rl_se3_1st_order_topology {
+  typedef 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+	arithmetic_tuple< 
+	  hyperbox_topology< vect<T,3> >,
+	  hyperball_topology< vect<T,3> >
+	>, 
+	DistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+	arithmetic_tuple< 
+	  quaternion_topology<T>,
+	  ang_velocity_3D_topology<T>
+	>, 
+	DistanceMetric 
+      > >,
+      DistanceMetric 
+    > type;
+};
+
+/**
+ * This meta-function defines the type for a 2nd order SE(3) topology (a zero-differentiable space).
+ * \tparam T The value type for the topology.
+ * \tparam DistanceMetric The distance metric to apply to the tuple.
+ */
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+struct rl_se3_2nd_order_topology {
+  typedef 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+	arithmetic_tuple< 
+	  hyperbox_topology< vect<T,3> >,
+	  hyperball_topology< vect<T,3> >,
+	  hyperball_topology< vect<T,3> >
+	>, 
+	DistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+	arithmetic_tuple< 
+	  quaternion_topology<T>,
+	  ang_velocity_3D_topology<T>,
+	  ang_accel_3D_topology<T>
+	>, 
+	DistanceMetric 
+      > >,
+      DistanceMetric 
+    > type; 
+};
+
+
+
+
+template <typename SE3Space>
+struct is_rate_limited_se3_space : boost::mpl::false_ { };
+
+
+template <typename T, typename DistanceMetric>
+struct is_rate_limited_se3_space< 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+	arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+	DistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+	arithmetic_tuple< quaternion_topology<T> >, 
+	DistanceMetric 
+      > >,
+      DistanceMetric 
+    > > : boost::mpl::true_ { };
+
+template <typename T, typename DistanceMetric>
+struct is_rate_limited_se3_space< 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+	arithmetic_tuple< 
+	  hyperbox_topology< vect<T,3> >,
+	  hyperball_topology< vect<T,3> >
+	>, 
+	DistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+	arithmetic_tuple< 
+	  quaternion_topology<T>,
+	  ang_velocity_3D_topology<T>
+	>, 
+	DistanceMetric 
+      > >,
+      DistanceMetric 
+    > > : boost::mpl::true_ { };
+
+template <typename T, typename DistanceMetric>
+struct is_rate_limited_se3_space< 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+	arithmetic_tuple< 
+	  hyperbox_topology< vect<T,3> >,
+	  hyperball_topology< vect<T,3> >,
+	  hyperball_topology< vect<T,3> >
+	>, 
+	DistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+	arithmetic_tuple< 
+	  quaternion_topology<T>,
+	  ang_velocity_3D_topology<T>,
+	  ang_accel_3D_topology<T>
+	>, 
+	DistanceMetric 
+      > >,
+      DistanceMetric 
+    > > : boost::mpl::true_ { };
+    
 
 
 

@@ -116,6 +116,46 @@ struct joint_space_2nd_order {
 
 
 
+template <typename JointSpace>
+struct is_normal_joint_space : boost::mpl::false_ { };
+
+
+template <typename T, typename DistanceMetric>
+struct is_normal_joint_space< 
+    differentiable_space< 
+      time_topology, 
+      arithmetic_tuple< 
+        line_segment_topology<T>
+      >, 
+      DistanceMetric 
+    > > : boost::mpl::true_ { };
+
+template <typename T, typename DistanceMetric>
+struct is_normal_joint_space< 
+    differentiable_space< 
+      time_topology, 
+      arithmetic_tuple< 
+        line_segment_topology<T>,
+        line_segment_topology<T>
+      >, 
+      DistanceMetric 
+    > > : boost::mpl::true_ { };
+
+template <typename T, typename DistanceMetric>
+struct is_normal_joint_space< 
+    differentiable_space< 
+      time_topology, 
+      arithmetic_tuple< 
+        line_segment_topology<T>,
+        line_segment_topology<T>,
+        line_segment_topology<T>
+      >, 
+      DistanceMetric 
+    > > : boost::mpl::true_ { };
+
+
+
+
 
 /**
  * This meta-function defines the type for a rate-limited 0th order single-joint space (a zero-differentiable space).
@@ -170,6 +210,45 @@ struct rl_joint_space_2nd_order {
       DistanceMetric 
     > type;
 };
+
+
+
+template <typename JointSpace>
+struct is_rate_limited_joint_space : boost::mpl::false_ { };
+
+
+template <typename T, typename DistanceMetric>
+struct is_rate_limited_joint_space< 
+    reach_time_diff_space< 
+      time_topology, 
+      arithmetic_tuple< 
+        line_segment_topology<T>
+      >, 
+      DistanceMetric 
+    > > : boost::mpl::true_ { };
+
+template <typename T, typename DistanceMetric>
+struct is_rate_limited_joint_space< 
+    reach_time_diff_space< 
+      time_topology, 
+      arithmetic_tuple< 
+        line_segment_topology<T>,
+        line_segment_topology<T>
+      >, 
+      DistanceMetric 
+    > > : boost::mpl::true_ { };
+
+template <typename T, typename DistanceMetric>
+struct is_rate_limited_joint_space< 
+    reach_time_diff_space< 
+      time_topology, 
+      arithmetic_tuple< 
+        line_segment_topology<T>,
+        line_segment_topology<T>,
+        line_segment_topology<T>
+      >, 
+      DistanceMetric 
+    > > : boost::mpl::true_ { };
 
 
 
