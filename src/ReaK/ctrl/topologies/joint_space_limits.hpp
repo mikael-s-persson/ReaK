@@ -535,95 +535,31 @@ template <typename T, std::size_t N, typename DistanceMetric = inf_norm_tuple_di
 struct joint_limits_1st_order {
   vect<T, N> speed_limits;
   
+  typedef typename metric_space_array< rl_joint_space_0th_order<T>::type, N, DistanceMetric >::type rate_limited_space_type;
+  typedef typename metric_space_array< joint_space_0th_order<T>::type, N, DistanceMetric >::type normal_space_type;
+  
   joint_limits_1st_order(const vect<T,N>& aSpeedLimits) : speed_limits(aSpeedLimits) { };
   
-  typename metric_space_array<
-    rl_joint_space_0th_order<T>::type,
-    N,
-    DistanceMetric >::type make_rl_joint_space(
-      const typename metric_space_array<
-        joint_space_0th_order<T>::type,
-	N,
-	DistanceMetric >::type& j_space
-    ) {
-    typename metric_space_array<
-      rl_joint_space_0th_order<T>::type,
-      N,
-      DistanceMetric >::type result;
+  rate_limited_space_type make_rl_joint_space(const normal_space_type& j_space) {
+    rate_limited_space_type result;
     detail::create_0th_rl_joint_space_impl<boost::mpl::size_t<N-1>, T, N, DistanceMetric >(result, j_space, speed_limits);
     return result;
   };
   
   
-  typename topology_traits<
-    typename metric_space_array<
-      rl_joint_space_0th_order<T>::type,
-      N,
-      DistanceMetric 
-    >::type
-  >::point_type map_to_space(
-      const typename topology_traits<
-        typename metric_space_array<
-          joint_space_0th_order<T>::type,
-	  N,
-	  DistanceMetric 
-        >::type
-      >::point_type& pt,
-      const typename metric_space_array<
-        joint_space_0th_order<T>::type,
-	N,
-	DistanceMetric 
-      >::type& ,
-      const typename metric_space_array<
-        rl_joint_space_0th_order<T>::type,
-	N,
-	DistanceMetric 
-      >::type& 
-    ) {
-    typename topology_traits<
-      typename metric_space_array<
-        rl_joint_space_0th_order<T>::type,
-        N,
-        DistanceMetric 
-      >::type
-    >::point_type result;
+  typename topology_traits< rate_limited_space_type >::point_type map_to_space(
+      const typename topology_traits< normal_space_type >::point_type& pt,
+      const normal_space_type& , const rate_limited_space_type& ) {
+    typename topology_traits< rate_limited_space_type >::point_type result;
     detail::create_0th_rl_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits);
     return result;
   };
   
   
-  typename topology_traits<
-    typename metric_space_array<
-      joint_space_0th_order<T>::type,
-      N,
-      DistanceMetric 
-    >::type
-  >::point_type map_to_space(
-      const typename topology_traits<
-        typename metric_space_array<
-          rl_joint_space_0th_order<T>::type,
-	  N,
-	  DistanceMetric 
-        >::type
-      >::point_type& pt,
-      const typename metric_space_array<
-        rl_joint_space_0th_order<T>::type,
-	N,
-	DistanceMetric 
-      >::type& ,
-      const typename metric_space_array<
-        joint_space_0th_order<T>::type,
-	N,
-	DistanceMetric 
-      >::type& 
-    ) {
-    typename topology_traits<
-      typename metric_space_array<
-        joint_space_0th_order<T>::type,
-        N,
-        DistanceMetric 
-      >::type
-    >::point_type result;
+  typename topology_traits< normal_space_type >::point_type map_to_space(
+      const typename topology_traits< rate_limited_space_type >::point_type& pt,
+      const rate_limited_space_type& , const normal_space_type& ) {
+    typename topology_traits< normal_space_type >::point_type result;
     detail::create_0th_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits);
     return result;
   };
@@ -638,99 +574,36 @@ struct joint_limits_2nd_order {
   vect<T, N> speed_limits;
   vect<T, N> accel_limits;
   
+  typedef typename metric_space_array< rl_joint_space_1st_order<T>::type, N, DistanceMetric >::type rate_limited_space_type;
+  typedef typename metric_space_array< joint_space_1st_order<T>::type, N, DistanceMetric >::type normal_space_type;
+  
+  
   joint_limits_2nd_order(const vect<T,N>& aSpeedLimits, 
                          const vect<T,N>& aAccelLimits) : 
                          speed_limits(aSpeedLimits), 
                          accel_limits(aAccelLimits) { };
   
-  typename metric_space_array<
-    rl_joint_space_1st_order<T>::type,
-    N,
-    DistanceMetric >::type make_rl_joint_space(
-      const typename metric_space_array<
-        joint_space_1st_order<T>::type,
-	N,
-	DistanceMetric >::type& j_space
-    ) {
-    typename metric_space_array<
-      rl_joint_space_1st_order<T>::type,
-      N,
-      DistanceMetric >::type result;
+  rate_limited_space_type make_rl_joint_space(const normal_space_type& j_space) {
+    rate_limited_space_type result;
     detail::create_1st_rl_joint_space_impl<boost::mpl::size_t<N-1>, T, N, DistanceMetric >(result, j_space, speed_limits);
     return result;
   };
   
   
   
-  typename topology_traits<
-    typename metric_space_array<
-      rl_joint_space_1st_order<T>::type,
-      N,
-      DistanceMetric 
-    >::type
-  >::point_type map_to_space(
-      const typename topology_traits<
-        typename metric_space_array<
-          joint_space_1st_order<T>::type,
-	  N,
-	  DistanceMetric 
-        >::type
-      >::point_type& pt,
-      const typename metric_space_array<
-        joint_space_1st_order<T>::type,
-	N,
-	DistanceMetric 
-      >::type& ,
-      const typename metric_space_array<
-        rl_joint_space_1st_order<T>::type,
-	N,
-	DistanceMetric 
-      >::type& 
-    ) {
-    typename topology_traits<
-      typename metric_space_array<
-        rl_joint_space_1st_order<T>::type,
-        N,
-        DistanceMetric 
-      >::type
-    >::point_type result;
+  typename topology_traits< rate_limited_space_type >::point_type map_to_space(
+      const typename topology_traits< normal_space_type >::point_type& pt,
+      const normal_space_type& , const rate_limited_space_type& ) {
+    typename topology_traits< rate_limited_space_type >::point_type result;
     detail::create_1st_rl_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits, accel_limits);
     return result;
   };
   
   
-  typename topology_traits<
-    typename metric_space_array<
-      joint_space_1st_order<T>::type,
-      N,
-      DistanceMetric 
-    >::type
-  >::point_type map_to_space(
-      const typename topology_traits<
-        typename metric_space_array<
-          rl_joint_space_1st_order<T>::type,
-	  N,
-	  DistanceMetric 
-        >::type
-      >::point_type& pt,
-      const typename metric_space_array<
-        rl_joint_space_1st_order<T>::type,
-	N,
-	DistanceMetric 
-      >::type& ,
-      const typename metric_space_array<
-        joint_space_1st_order<T>::type,
-	N,
-	DistanceMetric 
-      >::type& 
-    ) {
-    typename topology_traits<
-      typename metric_space_array<
-        joint_space_1st_order<T>::type,
-        N,
-        DistanceMetric 
-      >::type
-    >::point_type result;
+  typename topology_traits< normal_space_type >::point_type map_to_space(
+      const typename topology_traits< rate_limited_space_type >::point_type& pt,
+      const rate_limited_space_type& , const normal_space_type& ) {
+    typename topology_traits< normal_space_type >::point_type result;
     detail::create_1st_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits, accel_limits);
     return result;
   };
@@ -749,6 +622,10 @@ struct joint_limits_3rd_order {
   vect<T, N> accel_limits;
   vect<T, N> jerk_limits;
   
+  typedef typename metric_space_array< rl_joint_space_2nd_order<T>::type, N, DistanceMetric >::type rate_limited_space_type;
+  typedef typename metric_space_array< joint_space_2nd_order<T>::type, N, DistanceMetric >::type normal_space_type;
+  
+  
   joint_limits_3rd_order(const vect<T,N>& aSpeedLimits, 
                          const vect<T,N>& aAccelLimits, 
                          const vect<T,N>& aJerkLimits) : 
@@ -756,93 +633,26 @@ struct joint_limits_3rd_order {
                          accel_limits(aAccelLimits), 
                          jerk_limits(aJerkLimits) { };
   
-  typename metric_space_array<
-    rl_joint_space_2nd_order<T>::type,
-    N,
-    DistanceMetric >::type make_rl_joint_space(
-      const typename metric_space_array<
-        joint_space_2nd_order<T>::type,
-	N,
-	DistanceMetric >::type& j_space
-    ) {
-    typename metric_space_array<
-      rl_joint_space_2nd_order<T>::type,
-      N,
-      DistanceMetric >::type result;
+  rate_limited_space_type make_rl_joint_space(const normal_space_type& j_space) {
+    rate_limited_space_type result;
     detail::create_2nd_rl_joint_space_impl<boost::mpl::size_t<N-1>, T, N, DistanceMetric >(result, j_space, speed_limits);
     return result;
   };
   
   
-  typename topology_traits<
-    typename metric_space_array<
-      rl_joint_space_2nd_order<T>::type,
-      N,
-      DistanceMetric 
-    >::type
-  >::point_type map_to_space(
-      const typename topology_traits<
-        typename metric_space_array<
-          joint_space_2nd_order<T>::type,
-	  N,
-	  DistanceMetric 
-        >::type
-      >::point_type& pt,
-      const typename metric_space_array<
-        joint_space_2nd_order<T>::type,
-	N,
-	DistanceMetric 
-      >::type& ,
-      const typename metric_space_array<
-        rl_joint_space_2nd_order<T>::type,
-	N,
-	DistanceMetric 
-      >::type& 
-    ) {
-    typename topology_traits<
-      typename metric_space_array<
-        rl_joint_space_2nd_order<T>::type,
-        N,
-        DistanceMetric 
-      >::type
-    >::point_type result;
+  typename topology_traits< rate_limited_space_type >::point_type map_to_space(
+      const typename topology_traits< normal_space_type >::point_type& pt,
+      const normal_space_type& , const rate_limited_space_type& ) {
+    typename topology_traits< rate_limited_space_type >::point_type result;
     detail::create_2nd_rl_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits, accel_limits, jerk_limits);
     return result;
   };
   
   
-  typename topology_traits<
-    typename metric_space_array<
-      joint_space_2nd_order<T>::type,
-      N,
-      DistanceMetric 
-    >::type
-  >::point_type map_to_space(
-      const typename topology_traits<
-        typename metric_space_array<
-          rl_joint_space_2nd_order<T>::type,
-	  N,
-	  DistanceMetric 
-        >::type
-      >::point_type& pt,
-      const typename metric_space_array<
-        rl_joint_space_2nd_order<T>::type,
-	N,
-	DistanceMetric 
-      >::type& ,
-      const typename metric_space_array<
-        joint_space_2nd_order<T>::type,
-	N,
-	DistanceMetric 
-      >::type& 
-    ) {
-    typename topology_traits<
-      typename metric_space_array<
-        joint_space_2nd_order<T>::type,
-        N,
-        DistanceMetric 
-      >::type
-    >::point_type result;
+  typename topology_traits< normal_space_type >::point_type map_to_space(
+      const typename topology_traits< rate_limited_space_type >::point_type& pt,
+      const rate_limited_space_type& , const normal_space_type& ) {
+    typename topology_traits< normal_space_type >::point_type result;
     detail::create_2nd_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits, accel_limits, jerk_limits);
     return result;
   };
