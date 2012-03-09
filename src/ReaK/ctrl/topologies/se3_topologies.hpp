@@ -232,7 +232,7 @@ struct rl_se3_0th_order_topology {
       >,
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< quaternion_topology<T> >, 
+	arithmetic_tuple< rate_limited_quat_space<T> >, 
 	DistanceMetric 
       > >,
       DistanceMetric 
@@ -259,7 +259,7 @@ struct rl_se3_1st_order_topology {
       reach_time_diff_space< 
         time_topology, 
 	arithmetic_tuple< 
-	  quaternion_topology<T>,
+	  rate_limited_quat_space<T>,
 	  ang_velocity_3D_topology<T>
 	>, 
 	DistanceMetric 
@@ -289,7 +289,7 @@ struct rl_se3_2nd_order_topology {
       reach_time_diff_space< 
         time_topology, 
 	arithmetic_tuple< 
-	  quaternion_topology<T>,
+	  rate_limited_quat_space<T>,
 	  ang_velocity_3D_topology<T>,
 	  ang_accel_3D_topology<T>
 	>, 
@@ -316,7 +316,7 @@ struct is_rate_limited_se3_space<
       >,
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< quaternion_topology<T> >, 
+	arithmetic_tuple< rate_limited_quat_space<T> >, 
 	DistanceMetric 
       > >,
       DistanceMetric 
@@ -336,7 +336,7 @@ struct is_rate_limited_se3_space<
       reach_time_diff_space< 
         time_topology, 
 	arithmetic_tuple< 
-	  quaternion_topology<T>,
+	  rate_limited_quat_space<T>,
 	  ang_velocity_3D_topology<T>
 	>, 
 	DistanceMetric 
@@ -359,7 +359,7 @@ struct is_rate_limited_se3_space<
       reach_time_diff_space< 
         time_topology, 
 	arithmetic_tuple< 
-	  quaternion_topology<T>,
+	  rate_limited_quat_space<T>,
 	  ang_velocity_3D_topology<T>,
 	  ang_accel_3D_topology<T>
 	>, 

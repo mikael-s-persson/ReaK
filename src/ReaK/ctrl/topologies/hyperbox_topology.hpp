@@ -80,6 +80,9 @@ class hyperbox_topology : public vector_topology<Vector>
     
   public:
     
+    const point_type& get_lower_corner() const { return lower_corner; };
+    const point_type& get_upper_corner() const { return upper_corner; };
+    
     hyperbox_topology(const std::string& aName = "hyperbox_topology",
                       const point_type& aLowerCorner = point_type(),
 		      const point_type& aUpperCorner = point_type()) : 

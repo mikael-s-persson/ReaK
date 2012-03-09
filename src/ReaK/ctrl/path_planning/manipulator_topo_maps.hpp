@@ -93,6 +93,21 @@ namespace detail {
     *(model->Frames3D()[f3d_i++]) = get_frame_3D(pt);
   };
   
+  template <typename PointType, typename InSpace>
+  typename boost::disable_if< 
+    boost::mpl::or_<
+      is_normal_joint_space<InSpace>,
+      is_se2_space<InSpace>,
+      is_se3_space<InSpace>
+    >,  
+  void >::type write_one_joint_coord_impl( const PointType& pt,
+					   const InSpace& space_in,
+					   std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
+				           const shared_ptr< kte::manipulator_kinematics_model >& model) {
+    write_joint_coordinates_impl< boost::mpl::prior< arithmetic_tuple_size<InSpace> > >(pt, space_in, gen_i, f2d_i, f3d_i, model);
+  };
+  
+  
   
   template <typename Idx, typename PointType, typename InSpaceTuple>
   typename boost::disable_if< 
@@ -119,17 +134,21 @@ namespace detail {
 					     const InSpaceTuple& space_in,
 					     std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
 				             const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    gen_i = 0; f2d_i = 0; f3d_i = 0;
     write_one_joint_coord_impl(get<0>(pt),get<0>(space_in),gen_i,f2d_i,f3d_i,model);
   };
   
-  template <typename Idx, typename PointType, typename InSpaceTuple>
+  template <typename PointType, typename InSpaceTuple>
   void write_joint_coordinates_impl( const PointType& pt,
 				     const InSpaceTuple& space_in,
 				     const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    std::size_t gen_i,f2d_i,f3d_i;
-    write_joint_coordinates_impl< Idx >(pt,space_in,gen_i,f2d_i,f3d_i,model);
+    std::size_t gen_i = 0;
+    std::size_t f2d_i = 0;
+    std::size_t f3d_i = 0;
+    write_joint_coordinates_impl< boost::mpl::prior< arithmetic_tuple_size<InSpaceTuple> > >(pt,space_in,gen_i,f2d_i,f3d_i,model);
   };
+  
+  
+  
   
   
   
@@ -163,6 +182,20 @@ namespace detail {
     set_frame_3D(pt,*(model->Frames3D()[f3d_i++]));
   };
   
+  template <typename PointType, typename InSpace>
+  typename boost::disable_if< 
+    boost::mpl::or_<
+      is_normal_joint_space<InSpace>,
+      is_se2_space<InSpace>,
+      is_se3_space<InSpace>
+    >,  
+  void >::type read_one_joint_coord_impl( PointType& pt,
+					  const InSpace& space_in,
+					  std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
+				          const shared_ptr< kte::manipulator_kinematics_model >& model) {
+    read_joint_coordinates_impl< boost::mpl::prior< arithmetic_tuple_size<InSpace> > >(pt, space_in, gen_i, f2d_i, f3d_i, model);
+  };
+  
   
   template <typename Idx, typename PointType, typename InSpaceTuple>
   typename boost::disable_if< 
@@ -170,10 +203,10 @@ namespace detail {
       Idx, 
       boost::mpl::size_t<1> 
     >,
-  void >::type read_joint_coordinates_impl( const PointType& pt,
-					     const InSpaceTuple& space_in,
-					     std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-				             const shared_ptr< kte::manipulator_kinematics_model >& model) {
+  void >::type read_joint_coordinates_impl( PointType& pt,
+					    const InSpaceTuple& space_in,
+					    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
+				            const shared_ptr< kte::manipulator_kinematics_model >& model) {
     read_joint_coordinates_impl< boost::mpl::prior<Idx> >(pt,space_in,gen_i,f2d_i,f3d_i,model);
     
     read_one_joint_coord_impl(get<Idx::type::value>(pt),get<Idx::type::value>(space_in),gen_i,f2d_i,f3d_i,model);
@@ -185,19 +218,20 @@ namespace detail {
       Idx, 
       boost::mpl::size_t<1> 
     >,
-  void >::type read_joint_coordinates_impl( const PointType& pt,
-					     const InSpaceTuple& space_in,
-					     std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-				             const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    gen_i = 0; f2d_i = 0; f3d_i = 0;
+  void >::type read_joint_coordinates_impl( PointType& pt,
+					    const InSpaceTuple& space_in,
+					    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
+				            const shared_ptr< kte::manipulator_kinematics_model >& model) {
     read_one_joint_coord_impl(get<0>(pt),get<0>(space_in),gen_i,f2d_i,f3d_i,model);
   };
   
   template <typename Idx, typename PointType, typename InSpaceTuple>
-  void read_joint_coordinates_impl( const PointType& pt,
+  void read_joint_coordinates_impl( PointType& pt,
 				    const InSpaceTuple& space_in,
 				    const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    std::size_t gen_i,f2d_i,f3d_i;
+    std::size_t gen_i = 0;
+    std::size_t f2d_i = 0;
+    std::size_t f3d_i = 0;
     read_joint_coordinates_impl< Idx >(pt,space_in,gen_i,f2d_i,f3d_i,model);
   };
   
@@ -237,6 +271,20 @@ namespace detail {
     *(model->DependentFrames3D()[f3d_i++]->mFrame) = get_frame_3D(pt);
   };
   
+  template <typename PointType, typename InSpace>
+  typename boost::disable_if< 
+    boost::mpl::or_<
+      is_normal_joint_space<InSpace>,
+      is_se2_space<InSpace>,
+      is_se3_space<InSpace>
+    >,  
+  void >::type write_one_dependent_coord_impl( const PointType& pt,
+					       const InSpace& space_in,
+					       std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
+				               const shared_ptr< kte::manipulator_kinematics_model >& model) {
+    write_dependent_coordinates_impl< boost::mpl::prior< arithmetic_tuple_size<InSpace> > >(pt, space_in, gen_i, f2d_i, f3d_i, model);
+  };
+  
   
   template <typename Idx, typename PointType, typename InSpaceTuple>
   typename boost::disable_if< 
@@ -263,7 +311,6 @@ namespace detail {
 					         const InSpaceTuple& space_in,
 					         std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
 				                 const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    gen_i = 0; f2d_i = 0; f3d_i = 0;
     write_one_dependent_coord_impl(get<0>(pt),get<0>(space_in),gen_i,f2d_i,f3d_i,model);
   };
   
@@ -271,9 +318,13 @@ namespace detail {
   void write_dependent_coordinates_impl( const PointType& pt,
 				         const InSpaceTuple& space_in,
 				         const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    std::size_t gen_i,f2d_i,f3d_i;
+    std::size_t gen_i = 0;
+    std::size_t f2d_i = 0;
+    std::size_t f3d_i = 0;
     write_dependent_coordinates_impl< Idx >(pt,space_in,gen_i,f2d_i,f3d_i,model);
   };
+  
+  
   
   
   
@@ -307,6 +358,20 @@ namespace detail {
     set_frame_3D(pt,*(model->DependentFrames3D()[f3d_i++]->mFrame));
   };
   
+  template <typename PointType, typename InSpace>
+  typename boost::disable_if< 
+    boost::mpl::or_<
+      is_normal_joint_space<InSpace>,
+      is_se2_space<InSpace>,
+      is_se3_space<InSpace>
+    >,  
+  void >::type read_one_dependent_coord_impl( PointType& pt,
+					      const InSpace& space_in,
+					      std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
+				              const shared_ptr< kte::manipulator_kinematics_model >& model) {
+    read_dependent_coordinates_impl< boost::mpl::prior< arithmetic_tuple_size<InSpace> > >(pt, space_in, gen_i, f2d_i, f3d_i, model);
+  };
+  
   
   template <typename Idx, typename PointType, typename InSpaceTuple>
   typename boost::disable_if< 
@@ -314,13 +379,13 @@ namespace detail {
       Idx, 
       boost::mpl::size_t<1> 
     >,
-  void >::type read_dependent_coordinates_impl( const PointType& pt,
+  void >::type read_dependent_coordinates_impl( PointType& pt,
 					        const InSpaceTuple& space_in,
 					        std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
 				                const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    read_joint_coordinates_impl< boost::mpl::prior<Idx> >(pt,space_in,gen_i,f2d_i,f3d_i,model);
+    read_dependent_coordinates_impl< boost::mpl::prior<Idx> >(pt,space_in,gen_i,f2d_i,f3d_i,model);
     
-    read_one_joint_coord_impl(get<Idx::type::value>(pt),get<Idx::type::value>(space_in),gen_i,f2d_i,f3d_i,model);
+    read_one_dependent_coord_impl(get<Idx::type::value>(pt),get<Idx::type::value>(space_in),gen_i,f2d_i,f3d_i,model);
   };
   
   template <typename Idx, typename PointType, typename InSpaceTuple>
@@ -329,20 +394,21 @@ namespace detail {
       Idx, 
       boost::mpl::size_t<1> 
     >,
-  void >::type read_dependent_coordinates_impl( const PointType& pt,
+  void >::type read_dependent_coordinates_impl( PointType& pt,
 					        const InSpaceTuple& space_in,
 					        std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
 				                const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    gen_i = 0; f2d_i = 0; f3d_i = 0;
-    read_one_joint_coord_impl(get<0>(pt),get<0>(space_in),gen_i,f2d_i,f3d_i,model);
+    read_one_dependent_coord_impl(get<0>(pt),get<0>(space_in),gen_i,f2d_i,f3d_i,model);
   };
   
   template <typename PointType, typename InSpaceTuple>
   void read_dependent_coordinates_impl( const PointType& pt,
 				        const InSpaceTuple& space_in,
 				        const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    std::size_t gen_i,f2d_i,f3d_i;
-    read_joint_coordinates_impl< boost::mpl::prior< arithmetic_tuple_size< InSpaceTuple > > >(pt,space_in,gen_i,f2d_i,f3d_i,model);
+    std::size_t gen_i = 0;
+    std::size_t f2d_i = 0;
+    std::size_t f3d_i = 0;
+    read_dependent_coordinates_impl< boost::mpl::prior< arithmetic_tuple_size< InSpaceTuple > > >(pt,space_in,gen_i,f2d_i,f3d_i,model);
   };
   
   
@@ -371,7 +437,7 @@ namespace detail {
 			     const OutSpace& space_out,
 			     const RateLimitMap& j_limits,
 			     const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    typedef typename RateLimitMap::normal_space_type NormalJointSpace;
+    typedef typename get_rate_illimited_space< InSpace >::type NormalJointSpace;
     NormalJointSpace normal_j_space;
     typename topology_traits<NormalJointSpace>::point_type pt_inter = j_limits.map_to_space(pt, space_in, normal_j_space);
     write_joint_coordinates_impl(pt_inter, normal_j_space, model);
@@ -391,7 +457,7 @@ namespace detail {
   
   
   
-  template <typename PointType, typename OutSpace>
+  template <typename OutSpace>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_normal_joint_space<OutSpace>,
@@ -417,7 +483,7 @@ namespace detail {
     ++gen_i;
   };
   
-  template <typename PointType, typename OutSpace>
+  template <typename OutSpace>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_normal_joint_space<OutSpace>,
@@ -443,7 +509,7 @@ namespace detail {
     ++gen_i;
   };
   
-  template <typename PointType, typename OutSpace>
+  template <typename OutSpace>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_se2_space<OutSpace>,
@@ -500,7 +566,7 @@ namespace detail {
     ++f2d_i;
   };
   
-  template <typename PointType, typename OutSpace>
+  template <typename OutSpace>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_se2_space<OutSpace>,
@@ -559,7 +625,7 @@ namespace detail {
   };
   
   
-  template <typename PointType, typename OutSpace>
+  template <typename OutSpace>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_se3_space<OutSpace>,
@@ -639,7 +705,7 @@ namespace detail {
     
   };
   
-  template <typename PointType, typename OutSpace>
+  template <typename OutSpace>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_se3_space<OutSpace>,
@@ -725,6 +791,22 @@ namespace detail {
     
   };
   
+  template <typename OutSpace>
+  typename boost::disable_if< 
+    boost::mpl::or_<
+      is_normal_joint_space<OutSpace>,
+      is_se2_space<OutSpace>,
+      is_se3_space<OutSpace>
+    >,  
+  void >::type write_one_joint_bound_impl( const OutSpace& space_out,
+					   std::size_t offset,
+					   std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
+				           kte::manip_clik_calculator& ik_calc,
+			                   const shared_ptr< kte::manipulator_kinematics_model >& model,
+				           vect_n<double>& centers, vect_n<double>& diag_gains) {
+    write_joint_bounds_impl< boost::mpl::prior< arithmetic_tuple_size<OutSpace> > >(space_out, offset, gen_i, f2d_i, f3d_i, ik_calc, model, centers, diag_gains);
+  };
+  
   
   
   template <typename Idx, typename OutSpaceTuple>
@@ -758,7 +840,6 @@ namespace detail {
 					const shared_ptr< kte::manipulator_kinematics_model >& model,
 					vect_n<double>& centers,
 					vect_n<double>& diag_gains) {
-    gen_i = 0; f2d_i = 0; f3d_i = 0;
     write_one_joint_bound_impl(get<0>(space_out),offset,gen_i,f2d_i,f3d_i,ik_calc,model,centers,diag_gains);
   };
   
@@ -768,7 +849,9 @@ namespace detail {
 			        const shared_ptr< kte::manipulator_kinematics_model >& model,
 			        vect_n<double>& centers,
 			        vect_n<double>& diag_gains) {
-    std::size_t gen_i,f2d_i,f3d_i;
+    std::size_t gen_i = 0;
+    std::size_t f2d_i = 0;
+    std::size_t f3d_i = 0;
     write_joint_bounds_impl< boost::mpl::prior< arithmetic_tuple_size< OutSpaceTuple > > >(space_out,model->getJointPositionsCount(),gen_i,f2d_i,f3d_i,ik_calc,model,centers,diag_gains);
   };
   
@@ -819,7 +902,7 @@ namespace detail {
   
   
   
-  template <typename PointType, typename OutSpace, typename RateLimitMap>
+  template <typename OutSpace, typename RateLimitMap>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_rate_limited_joint_space<OutSpace>,
@@ -846,7 +929,7 @@ namespace detail {
     ++gen_i;
   };
   
-  template <typename PointType, typename OutSpace, typename RateLimitMap>
+  template <typename OutSpace, typename RateLimitMap>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_rate_limited_joint_space<OutSpace>,
@@ -873,7 +956,7 @@ namespace detail {
     ++gen_i;
   };
   
-  template <typename PointType, typename OutSpace>
+  template <typename OutSpace>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_rate_limited_se2_space<OutSpace>,
@@ -1188,7 +1271,6 @@ namespace detail {
 					const shared_ptr< kte::manipulator_kinematics_model >& model,
 					vect_n<double>& centers,
 					vect_n<double>& diag_gains) {
-    gen_i = 0; f2d_i = 0; f3d_i = 0;
     write_one_joint_bound_impl(get<0>(space_out),offset,gen_i,f2d_i,f3d_i,ik_calc,model,centers,diag_gains);
   };
   
@@ -1198,7 +1280,9 @@ namespace detail {
 			        const shared_ptr< kte::manipulator_kinematics_model >& model,
 			        vect_n<double>& centers,
 			        vect_n<double>& diag_gains) {
-    std::size_t gen_i,f2d_i,f3d_i;
+    std::size_t gen_i = 0;
+    std::size_t f2d_i = 0;
+    std::size_t f3d_i = 0;
     write_joint_bounds_impl< boost::mpl::prior< arithmetic_tuple_size< OutSpaceTuple > > >(space_out,model->getJointPositionsCount(),gen_i,f2d_i,f3d_i,ik_calc,model,centers,diag_gains);
   };
   
