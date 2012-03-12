@@ -417,11 +417,11 @@ namespace detail {
   
   
   template <typename InSpace, typename OutSpace>
-  void compute_DK_3dEE_impl( typename topology_traits<OutSpace>::point_type& result,
-			     const typename topology_traits<InSpace>::point_type& pt,
-			     const InSpace& space_in,
-			     const OutSpace& space_out,
-			     const shared_ptr< kte::manipulator_kinematics_model >& model) {
+  void compute_serial_DK_impl( typename topology_traits<OutSpace>::point_type& result,
+			       const typename topology_traits<InSpace>::point_type& pt,
+			       const InSpace& space_in,
+			       const OutSpace& space_out,
+			       const shared_ptr< kte::manipulator_kinematics_model >& model) {
     write_joint_coordinates_impl(pt, space_in, model);
     
     model->doMotion();
@@ -431,12 +431,12 @@ namespace detail {
   
   
   template <typename InSpace, typename OutSpace, typename RateLimitMap>
-  void compute_DK_3dEE_impl( typename topology_traits<OutSpace>::point_type& result,
-			     const typename topology_traits<InSpace>::point_type& pt,
-			     const InSpace& space_in,
-			     const OutSpace& space_out,
-			     const RateLimitMap& j_limits,
-			     const shared_ptr< kte::manipulator_kinematics_model >& model) {
+  void compute_serial_DK_impl( typename topology_traits<OutSpace>::point_type& result,
+			       const typename topology_traits<InSpace>::point_type& pt,
+			       const InSpace& space_in,
+			       const OutSpace& space_out,
+			       const RateLimitMap& j_limits,
+			       const shared_ptr< kte::manipulator_kinematics_model >& model) {
     typedef typename get_rate_illimited_space< InSpace >::type NormalJointSpace;
     NormalJointSpace normal_j_space;
     typename topology_traits<NormalJointSpace>::point_type pt_inter = j_limits.map_to_space(pt, space_in, normal_j_space);
@@ -524,11 +524,8 @@ namespace detail {
 				           kte::manip_clik_calculator& ik_calc,
 			                   const shared_ptr< kte::manipulator_kinematics_model >& model,
 				           vect_n<double>& centers, vect_n<double>& diag_gains) {
-    vect<double,2> p_o = get<0>(get<0>(space_out)).origin(); 
-    vect<double,2> p_up = p_o + vect<double,2>(1.0,1.0);
-    vect<double,2> p_lo = p_o - vect<double,2>(1.0,1.0);
-    p_up += get<0>(get<0>(space_out)).get_diff_to_boundary(p_up);
-    p_lo += get<0>(get<0>(space_out)).get_diff_to_boundary(p_lo);
+    vect<double,2> p_lo = get<0>(get<0>(space_out)).get_lower_bound();
+    vect<double,2> p_up = get<0>(get<0>(space_out)).get_upper_bound();
     ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i] = p_lo[0];
     ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i + 1] = p_lo[1];
     ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i] = p_up[0];
@@ -581,11 +578,8 @@ namespace detail {
 				           kte::manip_clik_calculator& ik_calc,
 			                   const shared_ptr< kte::manipulator_kinematics_model >& model,
 				           vect_n<double>& centers, vect_n<double>& diag_gains) {
-    vect<double,2> p_o = get<0>(get<0>(space_out)).origin(); 
-    vect<double,2> p_up = p_o + vect<double,2>(1.0,1.0);
-    vect<double,2> p_lo = p_o - vect<double,2>(1.0,1.0);
-    p_up += get<0>(get<0>(space_out)).get_diff_to_boundary(p_up);
-    p_lo += get<0>(get<0>(space_out)).get_diff_to_boundary(p_lo);
+    vect<double,2> p_lo = get<0>(get<0>(space_out)).get_lower_bound();
+    vect<double,2> p_up = get<0>(get<0>(space_out)).get_upper_bound();
     ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i] = p_lo[0];
     ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i + 1] = p_lo[1];
     ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i] = p_up[0];
@@ -641,11 +635,8 @@ namespace detail {
 			                   const shared_ptr< kte::manipulator_kinematics_model >& model,
 				           vect_n<double>& centers, vect_n<double>& diag_gains) {
     
-    vect<double,3> p_o = get<0>(get<0>(space_out)).origin(); 
-    vect<double,3> p_up = p_o + vect<double,3>(1.0,1.0,1.0);
-    vect<double,3> p_lo = p_o - vect<double,3>(1.0,1.0,1.0);
-    p_up += get<0>(get<0>(space_out)).get_diff_to_boundary(p_up);
-    p_lo += get<0>(get<0>(space_out)).get_diff_to_boundary(p_lo);
+    vect<double,3> p_lo = get<0>(get<0>(space_out)).get_lower_bound();
+    vect<double,3> p_up = get<0>(get<0>(space_out)).get_upper_bound();
     ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i] = p_lo[0];
     ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 1] = p_lo[1];
     ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 2] = p_lo[2];
@@ -721,11 +712,8 @@ namespace detail {
 			                   const shared_ptr< kte::manipulator_kinematics_model >& model,
 				           vect_n<double>& centers, vect_n<double>& diag_gains) {
     
-    vect<double,3> p_o = get<0>(get<0>(space_out)).origin(); 
-    vect<double,3> p_up = p_o + vect<double,3>(1.0,1.0,1.0);
-    vect<double,3> p_lo = p_o - vect<double,3>(1.0,1.0,1.0);
-    p_up += get<0>(get<0>(space_out)).get_diff_to_boundary(p_up);
-    p_lo += get<0>(get<0>(space_out)).get_diff_to_boundary(p_lo);
+    vect<double,3> p_lo = get<0>(get<0>(space_out)).get_lower_bound();
+    vect<double,3> p_up = get<0>(get<0>(space_out)).get_upper_bound();
     ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i] = p_lo[0];
     ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 1] = p_lo[1];
     ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 2] = p_lo[2];
@@ -858,12 +846,12 @@ namespace detail {
   
   
   template <typename InSpace, typename OutSpace>
-  void compute_IK_3dEE_impl( typename topology_traits<OutSpace>::point_type& result,
-			     const typename topology_traits<InSpace>::point_type& pt,
-			     const InSpace& space_in,
-			     const OutSpace& space_out,
-			     const shared_ptr< kte::manipulator_kinematics_model >& model,
-                             const vect_n<double>& preferred_posture) {
+  void compute_serial_IK_impl( typename topology_traits<OutSpace>::point_type& result,
+			       const typename topology_traits<InSpace>::point_type& pt,
+			       const InSpace& space_in,
+			       const OutSpace& space_out,
+			       const shared_ptr< kte::manipulator_kinematics_model >& model,
+                               const vect_n<double>& preferred_posture) {
     
     write_dependent_coordinates_impl(pt,space_in,model);
     
@@ -918,13 +906,13 @@ namespace detail {
 				           kte::manip_clik_calculator& ik_calc,
 			                   const shared_ptr< kte::manipulator_kinematics_model >& model,
 				           vect_n<double>& centers, vect_n<double>& diag_gains) {
-    ik_calc.lower_bounds[gen_i] = j_limits.speed_limits[gen_i] * (get<0>(space_out).origin() - get<0>(space_out).get_radius());
-    ik_calc.upper_bounds[gen_i] = j_limits.speed_limits[gen_i] * (get<0>(space_out).origin() + get<0>(space_out).get_radius());
-    ik_calc.lower_bounds[offset + gen_i] = -j_limits.speed_limits[gen_i];
-    ik_calc.upper_bounds[offset + gen_i] = j_limits.speed_limits[gen_i];
+    ik_calc.lower_bounds[gen_i] = j_limits.gen_speed_limits[gen_i] * (get<0>(space_out).origin() - get<0>(space_out).get_radius());
+    ik_calc.upper_bounds[gen_i] = j_limits.gen_speed_limits[gen_i] * (get<0>(space_out).origin() + get<0>(space_out).get_radius());
+    ik_calc.lower_bounds[offset + gen_i] = -j_limits.gen_speed_limits[gen_i];
+    ik_calc.upper_bounds[offset + gen_i] = j_limits.gen_speed_limits[gen_i];
     
     centers[offset + gen_i] = 0.0;
-    diag_gains[gen_i] = j_limits.speed_limits[gen_i]; diag_gains[gen_i] = 1.0 / (diag_gains[gen_i] * diag_gains[gen_i]);
+    diag_gains[gen_i] = j_limits.gen_speed_limits[gen_i]; diag_gains[gen_i] = 1.0 / (diag_gains[gen_i] * diag_gains[gen_i]);
     diag_gains[offset + gen_i] = 1.0;
     ++gen_i;
   };
@@ -945,18 +933,18 @@ namespace detail {
 				           kte::manip_clik_calculator& ik_calc,
 			                   const shared_ptr< kte::manipulator_kinematics_model >& model,
 				           vect_n<double>& centers, vect_n<double>& diag_gains) {
-    ik_calc.lower_bounds[gen_i] = j_limits.speed_limits[gen_i] * (get<0>(space_out).origin() - get<0>(space_out).get_radius());
-    ik_calc.upper_bounds[gen_i] = j_limits.speed_limits[gen_i] * (get<0>(space_out).origin() + get<0>(space_out).get_radius());
-    ik_calc.lower_bounds[offset + gen_i] = j_limits.accel_limits[gen_i] * (get<1>(space_out).origin() - get<1>(space_out).get_radius());
-    ik_calc.upper_bounds[offset + gen_i] = j_limits.accel_limits[gen_i] * (get<1>(space_out).origin() + get<1>(space_out).get_radius());
+    ik_calc.lower_bounds[gen_i] = j_limits.gen_speed_limits[gen_i] * (get<0>(space_out).origin() - get<0>(space_out).get_radius());
+    ik_calc.upper_bounds[gen_i] = j_limits.gen_speed_limits[gen_i] * (get<0>(space_out).origin() + get<0>(space_out).get_radius());
+    ik_calc.lower_bounds[offset + gen_i] = j_limits.gen_accel_limits[gen_i] * (get<1>(space_out).origin() - get<1>(space_out).get_radius());
+    ik_calc.upper_bounds[offset + gen_i] = j_limits.gen_accel_limits[gen_i] * (get<1>(space_out).origin() + get<1>(space_out).get_radius());
     
-    centers[offset + gen_i] = j_limits.accel_limits[gen_i] * get<1>(space_out).origin();
-    diag_gains[gen_i] = j_limits.speed_limits[gen_i]; diag_gains[gen_i] = 1.0 / (diag_gains[gen_i] * diag_gains[gen_i]);
-    diag_gains[offset + gen_i] = j_limits.accel_limits[gen_i]; diag_gains[offset + gen_i] = 1.0 / (diag_gains[offset + gen_i] * diag_gains[offset + gen_i]);
+    centers[offset + gen_i] = j_limits.gen_accel_limits[gen_i] * get<1>(space_out).origin();
+    diag_gains[gen_i] = j_limits.gen_speed_limits[gen_i]; diag_gains[gen_i] = 1.0 / (diag_gains[gen_i] * diag_gains[gen_i]);
+    diag_gains[offset + gen_i] = j_limits.gen_accel_limits[gen_i]; diag_gains[offset + gen_i] = 1.0 / (diag_gains[offset + gen_i] * diag_gains[offset + gen_i]);
     ++gen_i;
   };
   
-  template <typename OutSpace>
+  template <typename OutSpace, typename RateLimitMap>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_rate_limited_se2_space<OutSpace>,
@@ -968,42 +956,40 @@ namespace detail {
   void >::type write_one_joint_bound_impl( const OutSpace& space_out,
 					   std::size_t offset,
 					   std::size_t&, std::size_t& f2d_i, std::size_t&,
+					   const RateLimitMap& j_limits,
 				           kte::manip_clik_calculator& ik_calc,
 			                   const shared_ptr< kte::manipulator_kinematics_model >& model,
 				           vect_n<double>& centers, vect_n<double>& diag_gains) {
-    vect<double,2> p_o = get<0>(get<0>(space_out)).origin(); 
-    vect<double,2> p_up = p_o + vect<double,2>(1.0,1.0);
-    vect<double,2> p_lo = p_o - vect<double,2>(1.0,1.0);
-    p_up += get<0>(get<0>(space_out)).get_diff_to_boundary(p_up);
-    p_lo += get<0>(get<0>(space_out)).get_diff_to_boundary(p_lo);
-    ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i] = p_lo[0];
-    ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i + 1] = p_lo[1];
-    ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i] = p_up[0];
-    ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i + 1] = p_up[1];
+    vect<double,2> p_lo = get<0>(get<0>(space_out)).get_lower_bound();
+    vect<double,2> p_up = get<0>(get<0>(space_out)).get_upper_bound();
+    ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i] = j_limits.frame2D_speed_limits[2 * f2d_i] * p_lo[0];
+    ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i + 1] = j_limits.frame2D_speed_limits[2 * f2d_i] * p_lo[1];
+    ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i] = j_limits.frame2D_speed_limits[2 * f2d_i] * p_up[0];
+    ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i + 1] = j_limits.frame2D_speed_limits[2 * f2d_i] * p_up[1];
     
     ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i + 2] = -std::numeric_limits< double >::infinity();
     ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i + 3] = -std::numeric_limits< double >::infinity();
     ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i + 2] = std::numeric_limits< double >::infinity();
     ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i + 3] = std::numeric_limits< double >::infinity();
     
-    ik_calc.lower_bounds[offset + model->Coords().size() + 3 * f2d_i] = -std::numeric_limits< double >::infinity();
-    ik_calc.lower_bounds[offset + model->Coords().size() + 3 * f2d_i + 1] = -std::numeric_limits< double >::infinity();
-    ik_calc.upper_bounds[offset + model->Coords().size() + 3 * f2d_i] = std::numeric_limits< double >::infinity();
-    ik_calc.upper_bounds[offset + model->Coords().size() + 3 * f2d_i + 1] = std::numeric_limits< double >::infinity();
+    ik_calc.lower_bounds[offset + model->Coords().size() + 3 * f2d_i] = -j_limits.frame2D_speed_limits[2 * f2d_i];
+    ik_calc.lower_bounds[offset + model->Coords().size() + 3 * f2d_i + 1] = -j_limits.frame2D_speed_limits[2 * f2d_i];
+    ik_calc.upper_bounds[offset + model->Coords().size() + 3 * f2d_i] = j_limits.frame2D_speed_limits[2 * f2d_i];
+    ik_calc.upper_bounds[offset + model->Coords().size() + 3 * f2d_i + 1] = j_limits.frame2D_speed_limits[2 * f2d_i];
     
-    ik_calc.lower_bounds[offset + model->Coords().size() + 3 * f2d_i + 2] = -std::numeric_limits< double >::infinity();
-    ik_calc.upper_bounds[offset + model->Coords().size() + 3 * f2d_i + 2] = std::numeric_limits< double >::infinity();
+    ik_calc.lower_bounds[offset + model->Coords().size() + 3 * f2d_i + 2] = -j_limits.frame2D_speed_limits[2 * f2d_i + 1];
+    ik_calc.upper_bounds[offset + model->Coords().size() + 3 * f2d_i + 2] = j_limits.frame2D_speed_limits[2 * f2d_i + 1];
     
     centers[offset + model->Coords().size() + 3 * f2d_i] = 0.0;
     centers[offset + model->Coords().size() + 3 * f2d_i + 1] = 0.0;
     
     centers[offset + model->Coords().size() + 3 * f2d_i + 2] = 0.0;
     
-    diag_gains[model->Coords().size() + 4 * f2d_i] = 4.0 / ((p_up[0] - p_lo[0]) * (p_up[0] - p_lo[0])); 
-    diag_gains[model->Coords().size() + 4 * f2d_i + 1] = 4.0 / ((p_up[1] - p_lo[1]) * (p_up[1] - p_lo[1])); 
+    diag_gains[model->Coords().size() + 4 * f2d_i] = 1.0 / (j_limits.frame2D_speed_limits[2 * f2d_i] * j_limits.frame2D_speed_limits[2 * f2d_i]); 
+    diag_gains[model->Coords().size() + 4 * f2d_i + 1] = diag_gains[model->Coords().size() + 4 * f2d_i]; 
     
-    diag_gains[model->Coords().size() + 4 * f2d_i + 2] = 1.0; 
-    diag_gains[model->Coords().size() + 4 * f2d_i + 3] = 1.0; 
+    diag_gains[model->Coords().size() + 4 * f2d_i + 2] = 1.0 / (j_limits.frame2D_speed_limits[2 * f2d_i + 1] * j_limits.frame2D_speed_limits[2 * f2d_i + 1]); 
+    diag_gains[model->Coords().size() + 4 * f2d_i + 3] = 1.0 / (j_limits.frame2D_speed_limits[2 * f2d_i + 1] * j_limits.frame2D_speed_limits[2 * f2d_i + 1]); 
     
     diag_gains[offset + model->Coords().size() + 3 * f2d_i] = 1.0; 
     diag_gains[offset + model->Coords().size() + 3 * f2d_i + 1] = 1.0; 
@@ -1013,7 +999,7 @@ namespace detail {
     ++f2d_i;
   };
   
-  template <typename PointType, typename OutSpace>
+  template <typename OutSpace, typename RateLimitMap>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_rate_limited_se2_space<OutSpace>,
@@ -1025,18 +1011,16 @@ namespace detail {
   void >::type write_one_joint_bound_impl( const OutSpace& space_out,
 					   std::size_t offset,
 					   std::size_t&, std::size_t& f2d_i, std::size_t&,
+					   const RateLimitMap& j_limits,
 				           kte::manip_clik_calculator& ik_calc,
 			                   const shared_ptr< kte::manipulator_kinematics_model >& model,
 				           vect_n<double>& centers, vect_n<double>& diag_gains) {
-    vect<double,2> p_o = get<0>(get<0>(space_out)).origin(); 
-    vect<double,2> p_up = p_o + vect<double,2>(1.0,1.0);
-    vect<double,2> p_lo = p_o - vect<double,2>(1.0,1.0);
-    p_up += get<0>(get<0>(space_out)).get_diff_to_boundary(p_up);
-    p_lo += get<0>(get<0>(space_out)).get_diff_to_boundary(p_lo);
-    ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i] = p_lo[0];
-    ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i + 1] = p_lo[1];
-    ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i] = p_up[0];
-    ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i + 1] = p_up[1];
+    vect<double,2> p_lo = get<0>(get<0>(space_out)).get_lower_bound();
+    vect<double,2> p_up = get<0>(get<0>(space_out)).get_upper_bound();
+    ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i] = j_limits.frame2D_speed_limits[2 * f2d_i] * p_lo[0];
+    ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i + 1] = j_limits.frame2D_speed_limits[2 * f2d_i] * p_lo[1];
+    ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i] = j_limits.frame2D_speed_limits[2 * f2d_i] * p_up[0];
+    ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i + 1] = j_limits.frame2D_speed_limits[2 * f2d_i] * p_up[1];
     
     ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i + 2] = -std::numeric_limits< double >::infinity();
     ik_calc.lower_bounds[model->Coords().size() + 4 * f2d_i + 3] = -std::numeric_limits< double >::infinity();
@@ -1044,35 +1028,35 @@ namespace detail {
     ik_calc.upper_bounds[model->Coords().size() + 4 * f2d_i + 3] = std::numeric_limits< double >::infinity();
     
     vect<double,2> v_o = get<1>(get<0>(space_out)).origin(); 
-    ik_calc.lower_bounds[offset + model->Coords().size() + 3 * f2d_i] = v_o[0] - get<1>(get<0>(space_out)).get_radius();
-    ik_calc.lower_bounds[offset + model->Coords().size() + 3 * f2d_i + 1] = v_o[1] - get<1>(get<0>(space_out)).get_radius();
-    ik_calc.upper_bounds[offset + model->Coords().size() + 3 * f2d_i] = v_o[0] + get<1>(get<0>(space_out)).get_radius();
-    ik_calc.upper_bounds[offset + model->Coords().size() + 3 * f2d_i + 1] = v_o[1] + get<1>(get<0>(space_out)).get_radius();
+    ik_calc.lower_bounds[offset + model->Coords().size() + 3 * f2d_i] = j_limits.frame2D_accel_limits[2 * f2d_i] * (v_o[0] - get<1>(get<0>(space_out)).get_radius());
+    ik_calc.lower_bounds[offset + model->Coords().size() + 3 * f2d_i + 1] = j_limits.frame2D_accel_limits[2 * f2d_i] * (v_o[1] - get<1>(get<0>(space_out)).get_radius());
+    ik_calc.upper_bounds[offset + model->Coords().size() + 3 * f2d_i] = j_limits.frame2D_accel_limits[2 * f2d_i] * (v_o[0] + get<1>(get<0>(space_out)).get_radius());
+    ik_calc.upper_bounds[offset + model->Coords().size() + 3 * f2d_i + 1] = j_limits.frame2D_accel_limits[2 * f2d_i] * (v_o[1] + get<1>(get<0>(space_out)).get_radius());
     
-    ik_calc.lower_bounds[offset + model->Coords().size() + 3 * f2d_i + 2] = get<1>(get<1>(space_out)).origin() - get<1>(get<1>(space_out)).get_radius();
-    ik_calc.upper_bounds[offset + model->Coords().size() + 3 * f2d_i + 2] = get<1>(get<1>(space_out)).origin() + get<1>(get<1>(space_out)).get_radius();
+    ik_calc.lower_bounds[offset + model->Coords().size() + 3 * f2d_i + 2] = j_limits.frame2D_accel_limits[2 * f2d_i + 1] * (get<1>(get<1>(space_out)).origin() - get<1>(get<1>(space_out)).get_radius());
+    ik_calc.upper_bounds[offset + model->Coords().size() + 3 * f2d_i + 2] = j_limits.frame2D_accel_limits[2 * f2d_i + 1] * (get<1>(get<1>(space_out)).origin() + get<1>(get<1>(space_out)).get_radius());
     
-    centers[offset + model->Coords().size() + 3 * f2d_i] = v_o[0];
-    centers[offset + model->Coords().size() + 3 * f2d_i + 1] = v_o[1];
+    centers[offset + model->Coords().size() + 3 * f2d_i] = j_limits.frame2D_accel_limits[2 * f2d_i] * v_o[0];
+    centers[offset + model->Coords().size() + 3 * f2d_i + 1] = j_limits.frame2D_accel_limits[2 * f2d_i] * v_o[1];
     
-    centers[offset + model->Coords().size() + 3 * f2d_i + 2] = get<1>(get<1>(space_out)).origin();
+    centers[offset + model->Coords().size() + 3 * f2d_i + 2] = j_limits.frame2D_accel_limits[2 * f2d_i + 1] * get<1>(get<1>(space_out)).origin();
     
-    diag_gains[model->Coords().size() + 4 * f2d_i] = 4.0 / ((p_up[0] - p_lo[0]) * (p_up[0] - p_lo[0])); 
-    diag_gains[model->Coords().size() + 4 * f2d_i + 1] = 4.0 / ((p_up[1] - p_lo[1]) * (p_up[1] - p_lo[1])); 
+    diag_gains[model->Coords().size() + 4 * f2d_i] = 1.0 / (j_limits.frame2D_speed_limits[2 * f2d_i] * j_limits.frame2D_speed_limits[2 * f2d_i]); 
+    diag_gains[model->Coords().size() + 4 * f2d_i + 1] = diag_gains[model->Coords().size() + 4 * f2d_i]; 
     
-    diag_gains[model->Coords().size() + 4 * f2d_i + 2] = 1.0; 
-    diag_gains[model->Coords().size() + 4 * f2d_i + 3] = 1.0; 
+    diag_gains[model->Coords().size() + 4 * f2d_i + 2] = 1.0 / (j_limits.frame2D_speed_limits[2 * f2d_i + 1] * j_limits.frame2D_speed_limits[2 * f2d_i + 1]); 
+    diag_gains[model->Coords().size() + 4 * f2d_i + 3] = 1.0 / (j_limits.frame2D_speed_limits[2 * f2d_i + 1] * j_limits.frame2D_speed_limits[2 * f2d_i + 1]); 
     
-    diag_gains[offset + model->Coords().size() + 3 * f2d_i] = 1.0 / (get<1>(get<0>(space_out)).get_radius() * get<1>(get<0>(space_out)).get_radius()); 
-    diag_gains[offset + model->Coords().size() + 3 * f2d_i + 1] = 1.0 / (get<1>(get<0>(space_out)).get_radius() * get<1>(get<0>(space_out)).get_radius()); 
+    diag_gains[offset + model->Coords().size() + 3 * f2d_i] = 1.0 / (j_limits.frame2D_accel_limits[2 * f2d_i] * j_limits.frame2D_accel_limits[2 * f2d_i]); 
+    diag_gains[offset + model->Coords().size() + 3 * f2d_i + 1] = diag_gains[offset + model->Coords().size() + 3 * f2d_i]; 
     
-    diag_gains[offset + model->Coords().size() + 3 * f2d_i + 2] = 1.0 / (get<1>(get<1>(space_out)).get_radius() * get<1>(get<1>(space_out)).get_radius()); 
+    diag_gains[offset + model->Coords().size() + 3 * f2d_i + 2] = 1.0 / (j_limits.frame2D_accel_limits[2 * f2d_i + 1] * j_limits.frame2D_accel_limits[2 * f2d_i + 1]); 
     
     ++f2d_i;
   };
   
   
-  template <typename PointType, typename OutSpace>
+  template <typename OutSpace, typename RateLimitMap>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_rate_limited_se3_space<OutSpace>,
@@ -1084,21 +1068,19 @@ namespace detail {
   void >::type write_one_joint_bound_impl( const OutSpace& space_out,
 					   std::size_t offset,
 					   std::size_t&, std::size_t&, std::size_t& f3d_i,
+					   const RateLimitMap& j_limits,
 				           kte::manip_clik_calculator& ik_calc,
 			                   const shared_ptr< kte::manipulator_kinematics_model >& model,
 				           vect_n<double>& centers, vect_n<double>& diag_gains) {
     
-    vect<double,3> p_o = get<0>(get<0>(space_out)).origin(); 
-    vect<double,3> p_up = p_o + vect<double,3>(1.0,1.0,1.0);
-    vect<double,3> p_lo = p_o - vect<double,3>(1.0,1.0,1.0);
-    p_up += get<0>(get<0>(space_out)).get_diff_to_boundary(p_up);
-    p_lo += get<0>(get<0>(space_out)).get_diff_to_boundary(p_lo);
-    ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i] = p_lo[0];
-    ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 1] = p_lo[1];
-    ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 2] = p_lo[2];
-    ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i] = p_up[0];
-    ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i + 1] = p_up[1];
-    ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i + 2] = p_up[2];
+    vect<double,3> p_lo = get<0>(get<0>(space_out)).get_lower_bound();
+    vect<double,3> p_up = get<0>(get<0>(space_out)).get_upper_bound();
+    ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i] = j_limits.frame3D_speed_limits[2 * f3d_i] * p_lo[0];
+    ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 1] = j_limits.frame3D_speed_limits[2 * f3d_i] * p_lo[1];
+    ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 2] = j_limits.frame3D_speed_limits[2 * f3d_i] * p_lo[2];
+    ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i] = j_limits.frame3D_speed_limits[2 * f3d_i] * p_up[0];
+    ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i + 1] = j_limits.frame3D_speed_limits[2 * f3d_i] * p_up[1];
+    ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i + 2] = j_limits.frame3D_speed_limits[2 * f3d_i] * p_up[2];
     
     ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 3] = -std::numeric_limits< double >::infinity();
     ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 4] = -std::numeric_limits< double >::infinity();
@@ -1109,19 +1091,19 @@ namespace detail {
     ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i + 5] = std::numeric_limits< double >::infinity();
     ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i + 6] = std::numeric_limits< double >::infinity();
     
-    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i] = -std::numeric_limits< double >::infinity();
-    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 1] = -std::numeric_limits< double >::infinity();
-    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 2] = -std::numeric_limits< double >::infinity();
-    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i] = std::numeric_limits< double >::infinity();
-    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 1] = std::numeric_limits< double >::infinity();
-    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 2] = std::numeric_limits< double >::infinity();
+    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i] = -j_limits.frame3D_speed_limits[2 * f3d_i];
+    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 1] = -j_limits.frame3D_speed_limits[2 * f3d_i];
+    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 2] = -j_limits.frame3D_speed_limits[2 * f3d_i];
+    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i] = j_limits.frame3D_speed_limits[2 * f3d_i];
+    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 1] = j_limits.frame3D_speed_limits[2 * f3d_i];
+    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 2] = j_limits.frame3D_speed_limits[2 * f3d_i];
     
-    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 3] = -std::numeric_limits< double >::infinity();
-    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 4] = -std::numeric_limits< double >::infinity();
-    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 5] = -std::numeric_limits< double >::infinity();
-    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 3] = std::numeric_limits< double >::infinity();
-    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 4] = std::numeric_limits< double >::infinity();
-    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 5] = std::numeric_limits< double >::infinity();
+    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 3] = -j_limits.frame3D_speed_limits[2 * f3d_i + 1];
+    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 4] = -j_limits.frame3D_speed_limits[2 * f3d_i + 1];
+    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 5] = -j_limits.frame3D_speed_limits[2 * f3d_i + 1];
+    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 3] = j_limits.frame3D_speed_limits[2 * f3d_i + 1];
+    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 4] = j_limits.frame3D_speed_limits[2 * f3d_i + 1];
+    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 5] = j_limits.frame3D_speed_limits[2 * f3d_i + 1];
     
     centers[offset + model->Coords().size() + 6 * f3d_i] = 0.0;
     centers[offset + model->Coords().size() + 6 * f3d_i + 1] = 0.0;
@@ -1131,14 +1113,14 @@ namespace detail {
     centers[offset + model->Coords().size() + 6 * f3d_i + 4] = 0.0;
     centers[offset + model->Coords().size() + 6 * f3d_i + 5] = 0.0;
     
-    diag_gains[model->Coords().size() + 7 * f3d_i] = 4.0 / ((p_up[0] - p_lo[0]) * (p_up[0] - p_lo[0])); 
-    diag_gains[model->Coords().size() + 7 * f3d_i + 1] = 4.0 / ((p_up[1] - p_lo[1]) * (p_up[1] - p_lo[1])); 
-    diag_gains[model->Coords().size() + 7 * f3d_i + 2] = 4.0 / ((p_up[2] - p_lo[2]) * (p_up[2] - p_lo[2])); 
+    diag_gains[model->Coords().size() + 7 * f3d_i] = 1.0 / (j_limits.frame3D_speed_limits[2 * f3d_i] * j_limits.frame3D_speed_limits[2 * f3d_i]); 
+    diag_gains[model->Coords().size() + 7 * f3d_i + 1] = diag_gains[model->Coords().size() + 7 * f3d_i]; 
+    diag_gains[model->Coords().size() + 7 * f3d_i + 2] = diag_gains[model->Coords().size() + 7 * f3d_i]; 
     
-    diag_gains[model->Coords().size() + 7 * f3d_i + 3] = 1.0; 
-    diag_gains[model->Coords().size() + 7 * f3d_i + 4] = 1.0; 
-    diag_gains[model->Coords().size() + 7 * f3d_i + 5] = 1.0; 
-    diag_gains[model->Coords().size() + 7 * f3d_i + 6] = 1.0; 
+    diag_gains[model->Coords().size() + 7 * f3d_i + 3] = 1.0 / (j_limits.frame3D_speed_limits[2 * f3d_i + 1] * j_limits.frame3D_speed_limits[2 * f3d_i + 1]); 
+    diag_gains[model->Coords().size() + 7 * f3d_i + 4] = diag_gains[model->Coords().size() + 7 * f3d_i + 3]; 
+    diag_gains[model->Coords().size() + 7 * f3d_i + 5] = diag_gains[model->Coords().size() + 7 * f3d_i + 3]; 
+    diag_gains[model->Coords().size() + 7 * f3d_i + 6] = diag_gains[model->Coords().size() + 7 * f3d_i + 3]; 
     
     diag_gains[offset + model->Coords().size() + 6 * f3d_i] = 1.0; 
     diag_gains[offset + model->Coords().size() + 6 * f3d_i + 1] = 1.0; 
@@ -1152,7 +1134,7 @@ namespace detail {
     
   };
   
-  template <typename PointType, typename OutSpace>
+  template <typename OutSpace, typename RateLimitMap>
   typename boost::enable_if< 
     boost::mpl::and_<
       is_rate_limited_se3_space<OutSpace>,
@@ -1164,21 +1146,19 @@ namespace detail {
   void >::type write_one_joint_bound_impl( const OutSpace& space_out,
 					   std::size_t offset,
 					   std::size_t&, std::size_t&, std::size_t& f3d_i,
+					   const RateLimitMap& j_limits,
 				           kte::manip_clik_calculator& ik_calc,
 			                   const shared_ptr< kte::manipulator_kinematics_model >& model,
 				           vect_n<double>& centers, vect_n<double>& diag_gains) {
     
-    vect<double,3> p_o = get<0>(get<0>(space_out)).origin(); 
-    vect<double,3> p_up = p_o + vect<double,3>(1.0,1.0,1.0);
-    vect<double,3> p_lo = p_o - vect<double,3>(1.0,1.0,1.0);
-    p_up += get<0>(get<0>(space_out)).get_diff_to_boundary(p_up);
-    p_lo += get<0>(get<0>(space_out)).get_diff_to_boundary(p_lo);
-    ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i] = p_lo[0];
-    ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 1] = p_lo[1];
-    ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 2] = p_lo[2];
-    ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i] = p_up[0];
-    ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i + 1] = p_up[1];
-    ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i + 2] = p_up[2];
+    vect<double,3> p_lo = get<0>(get<0>(space_out)).get_lower_bound();
+    vect<double,3> p_up = get<0>(get<0>(space_out)).get_upper_bound();
+    ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i] = j_limits.frame3D_speed_limits[2 * f3d_i] * p_lo[0];
+    ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 1] = j_limits.frame3D_speed_limits[2 * f3d_i] * p_lo[1];
+    ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 2] = j_limits.frame3D_speed_limits[2 * f3d_i] * p_lo[2];
+    ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i] = j_limits.frame3D_speed_limits[2 * f3d_i] * p_up[0];
+    ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i + 1] = j_limits.frame3D_speed_limits[2 * f3d_i] * p_up[1];
+    ik_calc.upper_bounds[model->Coords().size() + 7 * f3d_i + 2] = j_limits.frame3D_speed_limits[2 * f3d_i] * p_up[2];
     
     ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 3] = -std::numeric_limits< double >::infinity();
     ik_calc.lower_bounds[model->Coords().size() + 7 * f3d_i + 4] = -std::numeric_limits< double >::infinity();
@@ -1191,45 +1171,45 @@ namespace detail {
     
     vect<double,3> v_o = get<1>(get<0>(space_out)).origin(); 
     double v_r = get<1>(get<0>(space_out)).get_radius();
-    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i] = v_o[0] - v_r;
-    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 1] = v_o[1] - v_r;
-    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 2] = v_o[2] - v_r;
-    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i] = v_o[0] + v_r;
-    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 1] = v_o[1] + v_r;
-    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 2] = v_o[2] + v_r;
+    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i] = j_limits.frame3D_accel_limits[2 * f3d_i] * (v_o[0] - v_r);
+    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 1] = j_limits.frame3D_accel_limits[2 * f3d_i] * (v_o[1] - v_r);
+    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 2] = j_limits.frame3D_accel_limits[2 * f3d_i] * (v_o[2] - v_r);
+    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i] = j_limits.frame3D_accel_limits[2 * f3d_i] * (v_o[0] + v_r);
+    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 1] = j_limits.frame3D_accel_limits[2 * f3d_i] * (v_o[1] + v_r);
+    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 2] = j_limits.frame3D_accel_limits[2 * f3d_i] * (v_o[2] + v_r);
     
     vect<double,3> w_o = get<1>(get<1>(space_out)).origin();
     double w_r = get<1>(get<1>(space_out)).get_radius();
-    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 3] = w_o[0] - w_r;
-    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 4] = w_o[1] - w_r;
-    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 5] = w_o[2] - w_r;
-    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 3] = w_o[0] + w_r;
-    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 4] = w_o[1] + w_r;
-    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 5] = w_o[2] + w_r;
+    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 3] = j_limits.frame3D_accel_limits[2 * f3d_i + 1] * (w_o[0] - w_r);
+    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 4] = j_limits.frame3D_accel_limits[2 * f3d_i + 1] * (w_o[1] - w_r);
+    ik_calc.lower_bounds[offset + model->Coords().size() + 6 * f3d_i + 5] = j_limits.frame3D_accel_limits[2 * f3d_i + 1] * (w_o[2] - w_r);
+    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 3] = j_limits.frame3D_accel_limits[2 * f3d_i + 1] * (w_o[0] + w_r);
+    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 4] = j_limits.frame3D_accel_limits[2 * f3d_i + 1] * (w_o[1] + w_r);
+    ik_calc.upper_bounds[offset + model->Coords().size() + 6 * f3d_i + 5] = j_limits.frame3D_accel_limits[2 * f3d_i + 1] * (w_o[2] + w_r);
     
-    centers[offset + model->Coords().size() + 6 * f3d_i] = v_o[0];
-    centers[offset + model->Coords().size() + 6 * f3d_i + 1] = v_o[1];
-    centers[offset + model->Coords().size() + 6 * f3d_i + 2] = v_o[2];
+    centers[offset + model->Coords().size() + 6 * f3d_i] = j_limits.frame3D_accel_limits[2 * f3d_i] * v_o[0];
+    centers[offset + model->Coords().size() + 6 * f3d_i + 1] = j_limits.frame3D_accel_limits[2 * f3d_i] * v_o[1];
+    centers[offset + model->Coords().size() + 6 * f3d_i + 2] = j_limits.frame3D_accel_limits[2 * f3d_i] * v_o[2];
     
-    centers[offset + model->Coords().size() + 6 * f3d_i + 3] = w_o[0];
-    centers[offset + model->Coords().size() + 6 * f3d_i + 4] = w_o[1];
-    centers[offset + model->Coords().size() + 6 * f3d_i + 5] = w_o[2];
+    centers[offset + model->Coords().size() + 6 * f3d_i + 3] = j_limits.frame3D_accel_limits[2 * f3d_i + 1] * w_o[0];
+    centers[offset + model->Coords().size() + 6 * f3d_i + 4] = j_limits.frame3D_accel_limits[2 * f3d_i + 1] * w_o[1];
+    centers[offset + model->Coords().size() + 6 * f3d_i + 5] = j_limits.frame3D_accel_limits[2 * f3d_i + 1] * w_o[2];
     
-    diag_gains[model->Coords().size() + 7 * f3d_i] = 4.0 / ((p_up[0] - p_lo[0]) * (p_up[0] - p_lo[0])); 
-    diag_gains[model->Coords().size() + 7 * f3d_i + 1] = 4.0 / ((p_up[1] - p_lo[1]) * (p_up[1] - p_lo[1])); 
-    diag_gains[model->Coords().size() + 7 * f3d_i + 2] = 4.0 / ((p_up[2] - p_lo[2]) * (p_up[2] - p_lo[2])); 
+    diag_gains[model->Coords().size() + 7 * f3d_i] = 1.0 / (j_limits.frame3D_speed_limits[2 * f3d_i] * j_limits.frame3D_speed_limits[2 * f3d_i]); 
+    diag_gains[model->Coords().size() + 7 * f3d_i + 1] = diag_gains[model->Coords().size() + 7 * f3d_i]; 
+    diag_gains[model->Coords().size() + 7 * f3d_i + 2] = diag_gains[model->Coords().size() + 7 * f3d_i]; 
     
     diag_gains[model->Coords().size() + 7 * f3d_i + 3] = 1.0; 
     diag_gains[model->Coords().size() + 7 * f3d_i + 4] = 1.0; 
     diag_gains[model->Coords().size() + 7 * f3d_i + 5] = 1.0; 
     diag_gains[model->Coords().size() + 7 * f3d_i + 6] = 1.0; 
     
-    v_r = 1.0 / (v_r * v_r);
+    v_r = 1.0 / (j_limits.frame3D_accel_limits[2 * f3d_i] * j_limits.frame3D_accel_limits[2 * f3d_i]);
     diag_gains[offset + model->Coords().size() + 6 * f3d_i] = v_r; 
     diag_gains[offset + model->Coords().size() + 6 * f3d_i + 1] = v_r; 
     diag_gains[offset + model->Coords().size() + 6 * f3d_i + 2] = v_r; 
     
-    w_r = 1.0 / (w_r * w_r);
+    w_r = 1.0 / (j_limits.frame3D_accel_limits[2 * f3d_i + 1] * j_limits.frame3D_accel_limits[2 * f3d_i + 1]);
     diag_gains[offset + model->Coords().size() + 6 * f3d_i + 3] = w_r; 
     diag_gains[offset + model->Coords().size() + 6 * f3d_i + 4] = w_r; 
     diag_gains[offset + model->Coords().size() + 6 * f3d_i + 5] = w_r; 
@@ -1239,8 +1219,25 @@ namespace detail {
   };
   
   
+  template <typename OutSpace, typename RateLimitMap>
+  typename boost::disable_if< 
+    boost::mpl::or_<
+      is_rate_limited_joint_space<OutSpace>,
+      is_rate_limited_se2_space<OutSpace>,
+      is_rate_limited_se3_space<OutSpace>
+    >, 
+  void >::type write_one_joint_bound_impl( const OutSpace& space_out,
+					   std::size_t offset,
+					   std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
+					   const RateLimitMap& j_limits,
+				           kte::manip_clik_calculator& ik_calc,
+			                   const shared_ptr< kte::manipulator_kinematics_model >& model,
+				           vect_n<double>& centers, vect_n<double>& diag_gains) {
+    write_joint_bounds_impl< boost::mpl::prior< arithmetic_tuple_size< OutSpace > > >(space_out, offset, gen_i, f2d_i, f3d_i, j_limits, ik_calc, model, centers, diag_gains);
+  };
   
-  template <typename Idx, typename OutSpaceTuple>
+  
+  template <typename Idx, typename OutSpaceTuple, typename RateLimitMap>
   typename boost::disable_if< 
     boost::mpl::less< 
       Idx, 
@@ -1249,16 +1246,17 @@ namespace detail {
   void >::type write_joint_bounds_impl( const OutSpaceTuple& space_out,
 					std::size_t offset,
 				        std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
+					const RateLimitMap& j_limits,
 					kte::manip_clik_calculator& ik_calc,
 					const shared_ptr< kte::manipulator_kinematics_model >& model,
 					vect_n<double>& centers,
 					vect_n<double>& diag_gains) {
-    write_joint_bounds_impl< boost::mpl::prior<Idx> >(space_out,offset,gen_i,f2d_i,f3d_i,ik_calc,model,centers,diag_gains);
+    write_joint_bounds_impl< boost::mpl::prior<Idx> >(space_out,offset,gen_i,f2d_i,f3d_i,j_limits,ik_calc,model,centers,diag_gains);
     
-    write_one_joint_bound_impl(get<Idx::type::value>(space_out),offset,gen_i,f2d_i,f3d_i,ik_calc,model,centers,diag_gains);
+    write_one_joint_bound_impl(get<Idx::type::value>(space_out),offset,gen_i,f2d_i,f3d_i,j_limits,ik_calc,model,centers,diag_gains);
   };
   
-  template <typename Idx, typename OutSpaceTuple>
+  template <typename Idx, typename OutSpaceTuple, typename RateLimitMap>
   typename boost::enable_if< 
     boost::mpl::less< 
       Idx, 
@@ -1267,15 +1265,17 @@ namespace detail {
   void >::type write_joint_bounds_impl( const OutSpaceTuple& space_out,
 					std::size_t offset,
 				        std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
+					const RateLimitMap& j_limits,
 					kte::manip_clik_calculator& ik_calc,
 					const shared_ptr< kte::manipulator_kinematics_model >& model,
 					vect_n<double>& centers,
 					vect_n<double>& diag_gains) {
-    write_one_joint_bound_impl(get<0>(space_out),offset,gen_i,f2d_i,f3d_i,ik_calc,model,centers,diag_gains);
+    write_one_joint_bound_impl(get<0>(space_out),offset,gen_i,f2d_i,f3d_i,j_limits,ik_calc,model,centers,diag_gains);
   };
   
-  template <typename OutSpaceTuple>
+  template <typename OutSpaceTuple, typename RateLimitMap>
   void write_joint_bounds_impl( const OutSpaceTuple& space_out,
+			        const RateLimitMap& j_limits,
 			        kte::manip_clik_calculator& ik_calc,
 			        const shared_ptr< kte::manipulator_kinematics_model >& model,
 			        vect_n<double>& centers,
@@ -1283,83 +1283,32 @@ namespace detail {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
-    write_joint_bounds_impl< boost::mpl::prior< arithmetic_tuple_size< OutSpaceTuple > > >(space_out,model->getJointPositionsCount(),gen_i,f2d_i,f3d_i,ik_calc,model,centers,diag_gains);
+    write_joint_bounds_impl< boost::mpl::prior< arithmetic_tuple_size< OutSpaceTuple > > >(space_out,model->getJointPositionsCount(),gen_i,f2d_i,f3d_i,j_limits,ik_calc,model,centers,diag_gains);
   };
   
   
   
-  
-  
-  
-  
-  
-  template <typename Idx, typename OutSpace, typename RateLimitMap>
-  typename boost::disable_if< 
-    boost::mpl::less< 
-      Idx, 
-      boost::mpl::size_t<1> 
-    >,
-  void >::type write_joint_bounds_impl( const OutSpace& space_out,
-					std::size_t offset,
-					const RateLimitMap& j_limits,
-				        kte::manip_clik_calculator& ik_calc,
-				        vect_n<double>& centers,
-				        vect_n<double>& diag_gains) {
-    write_joint_bounds_impl< boost::mpl::prior<Idx> >(space_out,offset,j_limits,ik_calc,centers,diag_gains);
-    
-    ik_calc.lower_bounds[Idx::type::value] = j_limits.speed_limits[Idx::type::value] * (get<0>(get<Idx::type::value>(space_out)).origin() - get<0>(get<Idx::type::value>(space_out)).get_radius());
-    ik_calc.upper_bounds[Idx::type::value] = j_limits.speed_limits[Idx::type::value] * (get<0>(get<Idx::type::value>(space_out)).origin() + get<0>(get<Idx::type::value>(space_out)).get_radius());
-    ik_calc.lower_bounds[offset + Idx::type::value] = j_limits.accel_limits[Idx::type::value] * (get<1>(get<Idx::type::value>(space_out)).origin() - get<1>(get<Idx::type::value>(space_out)).get_radius());
-    ik_calc.upper_bounds[offset + Idx::type::value] = j_limits.accel_limits[Idx::type::value] * (get<1>(get<Idx::type::value>(space_out)).origin() + get<1>(get<Idx::type::value>(space_out)).get_radius());
-    
-    centers[offset + Idx::type::value] = j_limits.accel_limits[Idx::type::value] * get<1>(get<Idx::type::value>(space_out)).origin();
-    diag_gains[Idx::type::value] = j_limits.speed_limits[Idx::type::value]; diag_gains[Idx::type::value] = 1.0 / (diag_gains[Idx::type::value] * diag_gains[Idx::type::value]);
-    diag_gains[offset + Idx::type::value] = j_limits.accel_limits[Idx::type::value]; diag_gains[offset + Idx::type::value] = 1.0 / (diag_gains[offset + Idx::type::value] * diag_gains[offset + Idx::type::value]);
-  };
-  
-  template <typename Idx, typename OutSpace, typename RateLimitMap>
-  typename boost::enable_if< 
-    boost::mpl::less< 
-      Idx, 
-      boost::mpl::size_t<1> 
-    >,
-  void >::type write_joint_bounds_impl( const OutSpace& space_out,
-					std::size_t offset,
-					const RateLimitMap& j_limits,
-				        kte::manip_clik_calculator& ik_calc,
-				        vect_n<double>& centers,
-				        vect_n<double>& diag_gains) {
-    ik_calc.lower_bounds[0] = j_limits.speed_limits[0] * (get<0>(get<0>(space_out)).origin() - get<0>(get<0>(space_out)).get_radius());
-    ik_calc.upper_bounds[0] = j_limits.speed_limits[0] * (get<0>(get<0>(space_out)).origin() + get<0>(get<0>(space_out)).get_radius());
-    ik_calc.lower_bounds[offset] = j_limits.accel_limits[0] * (get<1>(get<0>(space_out)).origin() - get<1>(get<0>(space_out)).get_radius());
-    ik_calc.upper_bounds[offset] = j_limits.accel_limits[0] * (get<1>(get<0>(space_out)).origin() + get<1>(get<0>(space_out)).get_radius());
-    
-    centers[offset] = j_limits.accel_limits[0] * get<1>(get<0>(space_out)).origin();
-    diag_gains[0] = j_limits.speed_limits[0]; diag_gains[0] = 1.0 / (diag_gains[0] * diag_gains[0]);
-    diag_gains[offset] = j_limits.accel_limits[0]; diag_gains[offset] = 1.0 / (diag_gains[offset] * diag_gains[offset]);
-  };
   
   
   template <typename InSpace, typename OutSpace, typename RateLimitMap>
-  void compute_IK_3dEE_impl( typename topology_traits<OutSpace>::point_type& result,
-			     const typename topology_traits<InSpace>::point_type& pt,
-			     const InSpace& space_in,
-			     const OutSpace& space_out,
-			     const RateLimitMap& j_limits,
-			     const shared_ptr< kte::manipulator_kinematics_model >& model,
-                             const vect_n<double>& preferred_posture) {
+  void compute_serial_IK_impl( typename topology_traits<OutSpace>::point_type& result,
+			       const typename topology_traits<InSpace>::point_type& pt,
+			       const InSpace& space_in,
+			       const OutSpace& space_out,
+			       const RateLimitMap& j_limits,
+			       const shared_ptr< kte::manipulator_kinematics_model >& model,
+                               const vect_n<double>& preferred_posture) {
     
-    *(model->DependentFrames3D()[0]->mFrame) = get_frame_3D(pt);
+    write_dependent_coordinates_impl(pt,space_in,model);
     
     kte::manip_clik_calculator ik_calc = kte::manip_clik_calculator(model.get());
     
-    vect_n<double> centers(2 * arithmetic_tuple_size< OutSpace >::type::value);
-    vect_n<double> diag_gains(2 * arithmetic_tuple_size< OutSpace >::type::value);
+    vect_n<double> centers(model->getJointPositionsCount() + model->getJointVelocitiesCount());
+    vect_n<double> diag_gains(model->getJointPositionsCount() + model->getJointVelocitiesCount());
     std::copy(preferred_posture.begin(), preferred_posture.end(), centers.begin());
     
     write_joint_bounds_impl< boost::mpl::prior< arithmetic_tuple_size< OutSpace > > >(
       space_out, 
-      arithmetic_tuple_size< OutSpace >::type::value,
       j_limits,
       ik_calc,
       centers,
@@ -1378,172 +1327,82 @@ namespace detail {
   };
   
   
-  template <typename OutSpaceTuple, typename DistanceMetric, typename RateLimitMap>
-  void compute_kinematics_impl(
-    typename topology_traits<
-      OutSpaceTuple
-    >::point_type& result,
-    const typename topology_traits< 
-      metric_space_tuple< arithmetic_tuple<
-        differentiable_space< 
-          time_topology, 
-	  arithmetic_tuple< hyperbox_topology< vect<double,3> > >, 
-	  DistanceMetric 
-        >,
-        differentiable_space< 
-          time_topology, 
-	  arithmetic_tuple< quaternion_topology<double> >, 
-	  DistanceMetric 
-        > >,
-        DistanceMetric 
-      >
-    >::point_type& pt,
-    const metric_space_tuple< arithmetic_tuple<
-            differentiable_space< 
-              time_topology, 
-	      arithmetic_tuple< hyperbox_topology< vect<double,3> > >, 
-	      DistanceMetric 
-            >,
-            differentiable_space< 
-              time_topology, 
-	      arithmetic_tuple< quaternion_topology<double> >, 
-	      DistanceMetric 
-            > >,
-            DistanceMetric 
-          >& space_in,
-    const OutSpaceTuple& space_out,
-    const RateLimitMap& j_limits,
-    const shared_ptr< kte::manipulator_kinematics_model >& model,
-    const vect_n<double>& preferred_posture) {
-    compute_IK_3dEE_impl(result, pt, space_in, space_out, j_limits, model, preferred_posture);
-  };
-  
-  template <typename OutSpaceTuple, typename DistanceMetric, typename RateLimitMap>
-  void compute_kinematics_impl(
-    typename topology_traits<
-      OutSpaceTuple
-    >::point_type& result,
-    const typename topology_traits< 
-      metric_space_tuple< arithmetic_tuple<
-        differentiable_space< 
-          time_topology, 
-	  arithmetic_tuple< 
-	    hyperbox_topology< vect<double,3> >,
-	    hyperball_topology< vect<double,3> > 
-	  >, 
-	  DistanceMetric 
-        >,
-        differentiable_space< 
-          time_topology, 
-	  arithmetic_tuple< 
-	    quaternion_topology<double>,
-	    ang_velocity_3D_topology<double>
-	  >, 
-	  DistanceMetric 
-        > >,
-        DistanceMetric 
-      >
-    >::point_type & pt,
-    const metric_space_tuple< arithmetic_tuple<
-            differentiable_space< 
-              time_topology, 
-	      arithmetic_tuple< 
-	        hyperbox_topology< vect<double,3> >,
-	        hyperball_topology< vect<double,3> > 
-	      >, 
-	      DistanceMetric 
-            >,
-            differentiable_space< 
-              time_topology, 
-	      arithmetic_tuple< 
-	        quaternion_topology<double>,
-	        ang_velocity_3D_topology<double>
-	      >, 
-	      DistanceMetric 
-            > >,
-            DistanceMetric 
-          >& space_in,
-    const OutSpaceTuple& space_out,
-    const RateLimitMap& j_limits,
-    const shared_ptr< kte::manipulator_kinematics_model >& model,
-    const vect_n<double>& preferred_posture) {
-    compute_IK_3dEE_impl(result, pt, space_in, space_out, j_limits, model, preferred_posture);
-  };
-  
-  template <typename OutSpaceTuple, typename DistanceMetric, typename RateLimitMap>
-  void compute_kinematics_impl(
-    typename topology_traits<
-      OutSpaceTuple
-    >::point_type& result,
-    const typename topology_traits< 
-      metric_space_tuple< arithmetic_tuple<
-        differentiable_space< 
-          time_topology, 
-	  arithmetic_tuple< 
-	    hyperbox_topology< vect<double,3> >,
-	    hyperball_topology< vect<double,3> >,
-	    hyperball_topology< vect<double,3> > 
-	  >, 
-	  DistanceMetric 
-        >,
-        differentiable_space< 
-          time_topology, 
-	  arithmetic_tuple< 
-	    quaternion_topology<double>,
-            ang_velocity_3D_topology<double>,
-	    ang_accel_3D_topology<double>
-	  >, 
-	  DistanceMetric 
-        > >,
-        DistanceMetric 
-      >
-    >::point_type& pt,
-    const metric_space_tuple< arithmetic_tuple<
-            differentiable_space< 
-              time_topology, 
-	      arithmetic_tuple< 
-	        hyperbox_topology< vect<double,3> >,
-	        hyperball_topology< vect<double,3> >,
-	        hyperball_topology< vect<double,3> > 
-	      >, 
-	      DistanceMetric 
-            >,
-            differentiable_space< 
-              time_topology, 
-	      arithmetic_tuple< 
-	        quaternion_topology<double>,
-	        ang_velocity_3D_topology<double>,
-	        ang_accel_3D_topology<double>
-	      >, 
-	      DistanceMetric 
-            > >,
-            DistanceMetric 
-          >& space_in,
-    const OutSpaceTuple& space_out,
-    const RateLimitMap& j_limits,
-    const shared_ptr< kte::manipulator_kinematics_model >& model,
-    const vect_n<double>& preferred_posture) {
-    compute_IK_3dEE_impl(result, pt, space_in, space_out, j_limits, model, preferred_posture);
-  };
-  
-  
-  
-  
   
   
 };
 
 
 
+
+
 /**
- * This class implements the kinematics mappings associated to a given manipulator kinematics model.
- * This class assumes that the manipulator model has a number of generalized coordinates as the joint 
- * coordinates, and that it has one dependent coordinate frame (2D or 3D) as an end-effector frame.
- * This class can perform both forward and inverse kinematics mappings depending on the types of the 
- * given I/O topologies of the mapping (i.e. if the output topology is a SE(3) or SE(2) topology, it 
- * will do forward kinematics, otherwise it solves the inverse kinematics problem).
+ * This class implements the forward kinematics mappings associated to a given manipulator kinematics 
+ * model. This class assumes that the manipulator model has a number of joint coordinates (both 
+ * generalized and frames), and that it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  */
-class single_EE_manip_kinematic_map {
+class manip_direct_kinematics_map {
+  public:
+    
+    /** This data member points to a manipulator kinematics model to use for the mappings performed. */
+    shared_ptr< kte::manipulator_kinematics_model > model; 
+    
+    /**
+     * This function template performs a forward kinematics calculation on the 
+     * manipulator model.
+     */
+    template <typename PointType, typename InSpace, typename OutSpace>
+    typename topology_traits< OutSpace >::point_type
+    map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
+      typename topology_traits< OutSpace >::point_type result;
+      
+      detail::compute_serial_DK_impl(result, pt, space_in, space_out, model);
+      
+      return result;
+    };
+    
+};
+
+
+
+/**
+ * This class implements the forward kinematics mappings associated to a given manipulator kinematics 
+ * model. This class assumes that the manipulator model has a number of rate-limited joint coordinates 
+ * (both generalized and frames), and that it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
+ * \tparam RateLimitMap The type of the mapping between rate-limited joint-spaces and normal joint-spaces.
+ */
+template <typename RateLimitMap>
+class manip_rl_direct_kinematics_map {
+  public:
+    
+    /** This data member points to a manipulator kinematics model to use for the mappings performed. */
+    shared_ptr< kte::manipulator_kinematics_model > model; 
+    /** This data member holds a mapping between the rate-limited joint space and the normal joint-space. */
+    shared_ptr< RateLimitMap > joint_limits_map;
+    
+    /**
+     * This function template performs a forward kinematics calculation on the 
+     * manipulator model.
+     */
+    template <typename PointType, typename InSpace, typename OutSpace>
+    typename topology_traits< OutSpace >::point_type
+    map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
+      typename topology_traits< OutSpace >::point_type result;
+      
+      detail::compute_serial_DK_impl(result, pt, space_in, space_out, *joint_limits_map, model);
+      
+      return result;
+    };
+    
+};
+
+
+
+/**
+ * This class implements the inverse kinematics mappings associated to a given manipulator kinematics 
+ * model. This class assumes that the manipulator model has a number of joint coordinates, and that 
+ * it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
+ */
+class manip_inverse_kinematics_map {
   public:
     
     /** This data member points to a manipulator kinematics model to use for the mappings performed. */
@@ -1564,30 +1423,22 @@ class single_EE_manip_kinematic_map {
     map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
       typename topology_traits< OutSpace >::point_type result;
       
-      detail::compute_kinematics_impl(result, pt, space_in, space_out, model, preferred_posture);
+      detail::compute_serial_IK_impl(result, pt, space_in, space_out, model, preferred_posture);
       
+      return result;
     };
     
 };
 
 
 /**
- * This class template is essentially a combination of a mapping between a rate-limited joint-space 
- * (e.g. a tuple of rl_joint_space_1st_order or rl_joint_space_2nd_order) and a normal joint-space 
- * representation, and of a manipulator kinematics mapping (single_EE_rl_manip_kinematic_map). The 
- * motivation for this combination is that it by-passes the intermediate topology (the normal joint-space),
- * and, more importantly, can employ the rate-limits as scaling factors in the quadratic cost function
- * used to formulate the inverse kinematics problem.
- * This class implements the kinematics mappings associated to a given manipulator kinematics model.
- * This class assumes that the manipulator model has a number of generalized coordinates as the joint 
- * coordinates, and that it has one dependent coordinate frame (2D or 3D) as an end-effector frame.
- * This class can perform both forward and inverse kinematics mappings depending on the types of the 
- * given I/O topologies of the mapping (i.e. if the output topology is a SE(3) or SE(2) topology, it 
- * will do forward kinematics, otherwise it solves the inverse kinematics problem).
+ * This class implements the inverse kinematics mappings associated to a given manipulator kinematics 
+ * model. This class assumes that the manipulator model has a number of rate-limited joint coordinates, 
+ * and that it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  * \tparam RateLimitMap The type of the mapping between rate-limited joint-spaces and normal joint-spaces.
  */
 template <typename RateLimitMap>
-class single_EE_rl_manip_kinematic_map {
+class manip_rl_inverse_kinematics_map {
   public:
     
     /** This data member points to a manipulator kinematics model to use for the mappings performed. */
@@ -1600,7 +1451,7 @@ class single_EE_rl_manip_kinematic_map {
      * it has no effect. */
     vect_n<double> preferred_posture;
     /** This data member holds a mapping between the rate-limited joint space and the normal joint-space. */
-    RateLimitMap joint_limits_map;
+    shared_ptr< RateLimitMap > joint_limits_map;
     
     /**
      * This function template performs a forward kinematics calculation on the manipulator model.
@@ -1610,8 +1461,9 @@ class single_EE_rl_manip_kinematic_map {
     map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
       typename topology_traits< OutSpace >::point_type result;
       
-      detail::compute_kinematics_impl(result, pt, space_in, space_out, joint_limits_map, model, preferred_posture);
+      detail::compute_serial_IK_impl(result, pt, space_in, space_out, *joint_limits_map, model, preferred_posture);
       
+      return result;
     };
     
 };
