@@ -1354,6 +1354,13 @@ class manip_direct_kin_map : public shared_object {
     /**
      * This function template performs a forward kinematics calculation on the 
      * manipulator model.
+     * \tparam PointType The point-type of the input space.
+     * \tparam InSpace The type of the input space (joint-space).
+     * \tparam OutSpace The type of the output space (end-effector space).
+     * \param pt The point in the input space, i.e. the joint coordinates.
+     * \param space_in The input space, i.e. the joint-space.
+     * \param space_out The output space, i.e. the end-effector space.
+     * \return A point in the output space, i.e. the end-effector coordinates.
      */
     template <typename PointType, typename InSpace, typename OutSpace>
     typename topology_traits< OutSpace >::point_type
@@ -1411,6 +1418,13 @@ class manip_rl_direct_kin_map : public shared_object {
     /**
      * This function template performs a forward kinematics calculation on the 
      * manipulator model.
+     * \tparam PointType The point-type of the input space.
+     * \tparam InSpace The type of the input space (rate-limited joint-space).
+     * \tparam OutSpace The type of the output space (end-effector space).
+     * \param pt The point in the input space, i.e. the rate-limited joint coordinates.
+     * \param space_in The input space, i.e. the rate-limited joint-space.
+     * \param space_out The output space, i.e. the end-effector space.
+     * \return A point in the output space, i.e. the end-effector coordinates.
      */
     template <typename PointType, typename InSpace, typename OutSpace>
     typename topology_traits< OutSpace >::point_type
@@ -1471,7 +1485,15 @@ class manip_inverse_kin_map : public shared_object {
                           preferred_posture(aPreferredPosture) { };
     
     /**
-     * This function template performs a forward or inverse kinematics calculation on the manipulator model.
+     * This function template performs a inverse kinematics calculation on the 
+     * manipulator model.
+     * \tparam PointType The point-type of the input space.
+     * \tparam InSpace The type of the input space (end-effector space).
+     * \tparam OutSpace The type of the output space (joint-space).
+     * \param pt The point in the input space, i.e. the end-effector coordinates.
+     * \param space_in The input space, i.e. the end-effector space.
+     * \param space_out The output space, i.e. the joint-space.
+     * \return A point in the output space, i.e. the joint coordinates.
      */
     template <typename PointType, typename InSpace, typename OutSpace>
     typename topology_traits< OutSpace >::point_type
@@ -1536,7 +1558,15 @@ class manip_rl_inverse_kin_map : public shared_object {
                              joint_limits_map(aJointLimitMap) { };
     
     /**
-     * This function template performs a forward kinematics calculation on the manipulator model.
+     * This function template performs a inverse kinematics calculation on the 
+     * manipulator model.
+     * \tparam PointType The point-type of the input space.
+     * \tparam InSpace The type of the input space (end-effector space).
+     * \tparam OutSpace The type of the output space (rate-limited joint-space).
+     * \param pt The point in the input space, i.e. the end-effector coordinates.
+     * \param space_in The input space, i.e. the end-effector space.
+     * \param space_out The output space, i.e. the rate-limited joint-space.
+     * \return A point in the output space, i.e. the rate-limited joint coordinates.
      */
     template <typename PointType, typename InSpace, typename OutSpace>
     typename topology_traits< OutSpace >::point_type

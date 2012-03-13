@@ -1723,26 +1723,50 @@ namespace detail {
 
 
 
-
+/**
+ * This class template stores a set of vectors to represent the rate-limits on the joints 
+ * of a manipulator. Basically, this class is just a POD class, but it also provides functions
+ * to construct a rate-limited joint-space from a normal joint-space, or vice-versa. Also, 
+ * it can act as a mapping between rate-limited joint coordinates and normal joint coordinates.
+ * \tparam T The value type of the underlying joint-space.
+ */
 template <typename T>
 struct joint_limits_collection : public named_object {
+  /** Holds the speed limit for all generalized coordinates. */
   vect_n<T> gen_speed_limits;
+  /** Holds the acceleration limit for all generalized coordinates. */
   vect_n<T> gen_accel_limits;
+  /** Holds the jerk limit for all generalized coordinates. */
   vect_n<T> gen_jerk_limits;
+  /** Holds the speed limit for all 2D frames (alternating velocity limit and angular velocity limit). */
   vect_n<T> frame2D_speed_limits;
+  /** Holds the acceleration limit for all 2D frames (alternating acceleration limit and angular acceleration limit). */
   vect_n<T> frame2D_accel_limits;
+  /** Holds the jerk limit for all 2D frames (alternating jerk limit and angular jerk limit). */
   vect_n<T> frame2D_jerk_limits;
+  /** Holds the speed limit for all 3D frames (alternating velocity limit and angular velocity limit). */
   vect_n<T> frame3D_speed_limits;
+  /** Holds the acceleration limit for all 3D frames (alternating acceleration limit and angular acceleration limit). */
   vect_n<T> frame3D_accel_limits;
+  /** Holds the jerk limit for all 3D frames (alternating jerk limit and angular jerk limit). */
   vect_n<T> frame3D_jerk_limits;
   
   typedef T value_type;
   typedef joint_limits_collection<T> self;
   
+  /**
+   * Default constructor.
+   */
   joint_limits_collection(const std::string& aName = "") : named_object() {
     this->setName(aName);
   };
   
+  /**
+   * This function constructs a rate-limited joint-space out of the given normal joint-space.
+   * \tparam NormalSpaceType The topology type of the joint-space.
+   * \param j_space The normal joint-space.
+   * \return A rate-limited joint-space corresponding to given joint-space and the stored limit values.
+   */
   template <typename NormalSpaceType>
   typename get_rate_limited_space< NormalSpaceType >::type make_rl_joint_space(const NormalSpaceType& j_space) const {
     typename get_rate_limited_space< NormalSpaceType >::type result;
@@ -1750,6 +1774,12 @@ struct joint_limits_collection : public named_object {
     return result;
   };
   
+  /**
+   * This function constructs a normal joint-space out of the given rate-limited joint-space.
+   * \tparam RateLimitedSpaceType The topology type of the rate-limited joint-space.
+   * \param j_space The rate-limited joint-space.
+   * \return A normal joint-space corresponding to given rate-limited joint-space and the stored limit values.
+   */
   template <typename RateLimitedSpaceType>
   typename get_rate_illimited_space< RateLimitedSpaceType >::type make_normal_joint_space(const RateLimitedSpaceType& j_space) const {
     typename get_rate_illimited_space< RateLimitedSpaceType >::type result;
@@ -1757,6 +1787,14 @@ struct joint_limits_collection : public named_object {
     return result;
   };
   
+  /**
+   * This function maps a set of normal joint coordinates into a set of rate-limited joint coordinates.
+   * \tparam NormalSpaceType The topology type of the joint-space.
+   * \param pt A point in the normal joint-space.
+   * \param j_space The normal joint-space.
+   * \param rl_j_space The rate-limited joint-space (in which the output lies).
+   * \return A set of rate-limited joint coordinates corresponding to given normal joint coordinates and the stored limit values.
+   */
   template <typename NormalSpaceType>
   typename topology_traits< typename get_rate_limited_space< NormalSpaceType >::type >::point_type map_to_space(
       const typename topology_traits< NormalSpaceType >::point_type& pt,
@@ -1767,6 +1805,14 @@ struct joint_limits_collection : public named_object {
   };
   
   
+  /**
+   * This function maps a set of rate-limited joint coordinates into a set of normal joint coordinates.
+   * \tparam RateLimitedSpaceType The topology type of the rate-limited joint-space.
+   * \param pt A point in the rate-limited joint-space.
+   * \param j_space The rate-limited joint-space.
+   * \param rl_j_space The normal joint-space (in which the output lies).
+   * \return A set of normal joint coordinates corresponding to given rate-limited joint coordinates and the stored limit values.
+   */
   template <typename RateLimitedSpaceType>
   typename topology_traits< typename get_rate_illimited_space< RateLimitedSpaceType >::type >::point_type map_to_space(
       const typename topology_traits< RateLimitedSpaceType >::point_type& pt,
