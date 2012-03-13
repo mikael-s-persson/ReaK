@@ -24,6 +24,8 @@
 #ifndef REAK_PPTESTER_IMPL_H
 #define REAK_PPTESTER_IMPL_H
 
+#include "base/thread_incl.hpp"
+
 #include "ui_pptester.h"
 #include "ui_ppresultview.h"
 #include "ui_rrtproperties.h"
@@ -33,7 +35,6 @@
 
 #include <QGraphicsPixmapItem>
 #include "graph_alg/rrt_test_world.hpp"
-#include <boost/thread/thread.hpp>
 
 class PPTestWindow : public QMainWindow, private Ui::PPTestWindow {
     Q_OBJECT
@@ -71,7 +72,7 @@ class PPTestWindow : public QMainWindow, private Ui::PPTestWindow {
     
     std::list<rrt_test_world::pixel_coord> best_path;
     bool robot_running;
-    boost::thread* robot_exec_thread;
+    ReaKaux::thread* robot_exec_thread;
     
     void updateWorldMap(const cv::Mat& aImage, unsigned int aProgress);
     

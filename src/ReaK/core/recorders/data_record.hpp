@@ -35,8 +35,8 @@
 
 #include "base/defs.hpp"
 
-#include <boost/thread/thread.hpp>
-#include <boost/thread/mutex.hpp>
+#include "base/thread_incl.hpp"
+
 
 
 #include <string>
@@ -118,8 +118,8 @@ class data_recorder : public shared_object {
     std::vector<std::string> names; ///< Holds the list of column names.
     std::queue<double> values_rm; ///< Holds the data buffer.
 
-    boost::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
-    ReaK::shared_ptr<boost::thread> writing_thread; ///< Holds the instance of the data writing thread.
+    ReaKaux::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
+    ReaK::shared_ptr<ReaKaux::thread> writing_thread; ///< Holds the instance of the data writing thread.
 
     /**
      * This class is used as a callable function-object for data writing thread.
@@ -199,7 +199,7 @@ class data_recorder : public shared_object {
 	& RK_SERIAL_SAVE_WITH_NAME(names);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
-      boost::unique_lock< boost::mutex > lock_here(access_mutex);
+      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
       colCount = 0;
       if(writing_thread) {
         lock_here.unlock();
@@ -218,7 +218,7 @@ class data_recorder : public shared_object {
       values_rm = std::queue<double>();
       lock_here.unlock();
       setFileName(fileName);
-      writing_thread = ReaK::shared_ptr<boost::thread>(new boost::thread(record_process(*this)));
+      writing_thread = ReaK::shared_ptr<ReaKaux::thread>(new ReaKaux::thread(record_process(*this)));
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(data_recorder,0x81100001,1,"data_recorder",shared_object)
@@ -242,8 +242,8 @@ class data_extractor : public shared_object {
     std::vector<std::string> names; ///< Holds the list of column names.
     std::queue<double> values_rm; ///< Holds the data buffer.
 
-    boost::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
-    ReaK::shared_ptr<boost::thread> reading_thread; ///< Holds the instance of the data writing thread.
+    ReaKaux::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
+    ReaK::shared_ptr<ReaKaux::thread> reading_thread; ///< Holds the instance of the data writing thread.
 
     /**
      * This class is used as a callable function-object for data writing thread.
@@ -326,7 +326,7 @@ class data_extractor : public shared_object {
 	& RK_SERIAL_SAVE_WITH_NAME(names);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      boost::unique_lock< boost::mutex > lock_here(access_mutex);
+      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
       colCount = 0;
       if(reading_thread) {
         lock_here.unlock();
@@ -346,7 +346,7 @@ class data_extractor : public shared_object {
       lock_here.unlock();
       setFileName(fileName);
       
-      reading_thread = ReaK::shared_ptr<boost::thread>(new boost::thread(extract_process(*this)));
+      reading_thread = ReaK::shared_ptr<ReaKaux::thread>(new ReaKaux::thread(extract_process(*this)));
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(data_extractor,0x81200001,1,"data_extractor",shared_object)

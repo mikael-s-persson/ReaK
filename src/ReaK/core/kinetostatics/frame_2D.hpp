@@ -167,7 +167,7 @@ class frame_2D : public pose_2D<T> {
           return (~(p->getGlobalFrame())) * (*this);
         else
           return (~(self(*F).getGlobalFrame())) * (*this);
-      } else if(isParentPose(F)) { //If F is somewhere down "this"'s chain
+      } else if(this->isParentPose(F)) { //If F is somewhere down "this"'s chain
         if(this->Parent.lock() == F)
           return *this;
         else {

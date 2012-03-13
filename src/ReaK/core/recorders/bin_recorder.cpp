@@ -50,7 +50,7 @@ void bin_recorder::setFileName(const std::string& aFileName) {
   if(colCount != 0) {
     *this << close;
 
-    boost::unique_lock< boost::mutex > lock_here(access_mutex);
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     if(output_file.is_open())
       output_file.close();
     output_file.open(aFileName.c_str(),std::ios_base::out | std::ios_base::binary);
@@ -60,7 +60,7 @@ void bin_recorder::setFileName(const std::string& aFileName) {
       writeNames();
     };
   } else {
-    boost::unique_lock< boost::mutex > lock_here(access_mutex);
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     if(output_file.is_open())
       output_file.close();
     output_file.open(aFileName.c_str(),std::ios_base::out | std::ios_base::binary);
@@ -101,13 +101,13 @@ bool bin_extractor::loadFile(const std::string& aFileName) {
   if(colCount != 0) {
     *this >> close;
 
-    boost::unique_lock< boost::mutex > lock_here(access_mutex);
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     if(input_file.is_open())
       input_file.close();
     input_file.open(aFileName.c_str(),std::ios_base::in | std::ios_base::binary);
     fileName = aFileName;
   } else {
-    boost::unique_lock< boost::mutex > lock_here(access_mutex);
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     if(input_file.is_open())
       input_file.close();
     input_file.open(aFileName.c_str(),std::ios_base::in | std::ios_base::binary);

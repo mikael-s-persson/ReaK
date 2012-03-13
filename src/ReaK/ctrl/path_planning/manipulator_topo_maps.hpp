@@ -1340,11 +1340,16 @@ namespace detail {
  * model. This class assumes that the manipulator model has a number of joint coordinates (both 
  * generalized and frames), and that it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  */
-class manip_direct_kinematics_map {
+class manip_direct_kin_map : public shared_object {
   public:
+    
+    typedef manip_direct_kin_map self;
     
     /** This data member points to a manipulator kinematics model to use for the mappings performed. */
     shared_ptr< kte::manipulator_kinematics_model > model; 
+    
+    manip_direct_kin_map(const shared_ptr< kte::manipulator_kinematics_model >& aModel) :
+                         model(aModel) { };
     
     /**
      * This function template performs a forward kinematics calculation on the 
@@ -1360,6 +1365,23 @@ class manip_direct_kinematics_map {
       return result;
     };
     
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(model);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(model);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400012,1,"manip_direct_kin_map",shared_object)
+    
+    
 };
 
 
@@ -1371,13 +1393,20 @@ class manip_direct_kinematics_map {
  * \tparam RateLimitMap The type of the mapping between rate-limited joint-spaces and normal joint-spaces.
  */
 template <typename RateLimitMap>
-class manip_rl_direct_kinematics_map {
+class manip_rl_direct_kin_map : public shared_object {
   public:
+    
+    typedef manip_rl_direct_kin_map<RateLimitMap> self;
     
     /** This data member points to a manipulator kinematics model to use for the mappings performed. */
     shared_ptr< kte::manipulator_kinematics_model > model; 
     /** This data member holds a mapping between the rate-limited joint space and the normal joint-space. */
     shared_ptr< RateLimitMap > joint_limits_map;
+    
+    manip_rl_direct_kin_map(const shared_ptr< kte::manipulator_kinematics_model >& aModel,
+			    const shared_ptr< RateLimitMap >& aJointLimitMap) : 
+                            model(aModel),
+                            joint_limits_map(aJointLimitMap) { };
     
     /**
      * This function template performs a forward kinematics calculation on the 
@@ -1393,6 +1422,25 @@ class manip_rl_direct_kinematics_map {
       return result;
     };
     
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(model)
+        & RK_SERIAL_SAVE_WITH_NAME(joint_limits_map);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(model)
+        & RK_SERIAL_LOAD_WITH_NAME(joint_limits_map);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400013,1,"manip_rl_direct_kin_map",shared_object)
+    
+    
 };
 
 
@@ -1402,8 +1450,10 @@ class manip_rl_direct_kinematics_map {
  * model. This class assumes that the manipulator model has a number of joint coordinates, and that 
  * it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  */
-class manip_inverse_kinematics_map {
+class manip_inverse_kin_map : public shared_object {
   public:
+    
+    typedef manip_inverse_kin_map self;
     
     /** This data member points to a manipulator kinematics model to use for the mappings performed. */
     shared_ptr< kte::manipulator_kinematics_model > model; 
@@ -1414,6 +1464,11 @@ class manip_inverse_kinematics_map {
      * is any freedom in the matter (if the manipulator has some redundancy to exploit) otherwise 
      * it has no effect. */
     vect_n<double> preferred_posture;
+    
+    manip_inverse_kin_map(const shared_ptr< kte::manipulator_kinematics_model >& aModel,
+                          const vect_n<double>& aPreferredPosture = vect_n<double>()) :
+                          model(aModel),
+                          preferred_posture(aPreferredPosture) { };
     
     /**
      * This function template performs a forward or inverse kinematics calculation on the manipulator model.
@@ -1428,6 +1483,24 @@ class manip_inverse_kinematics_map {
       return result;
     };
     
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(model)
+        & RK_SERIAL_SAVE_WITH_NAME(preferred_posture);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(model)
+        & RK_SERIAL_LOAD_WITH_NAME(preferred_posture);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400014,1,"manip_inverse_kin_map",shared_object)
+    
 };
 
 
@@ -1438,8 +1511,10 @@ class manip_inverse_kinematics_map {
  * \tparam RateLimitMap The type of the mapping between rate-limited joint-spaces and normal joint-spaces.
  */
 template <typename RateLimitMap>
-class manip_rl_inverse_kinematics_map {
+class manip_rl_inverse_kin_map : public shared_object {
   public:
+    
+    typedef manip_rl_inverse_kin_map<RateLimitMap> self;
     
     /** This data member points to a manipulator kinematics model to use for the mappings performed. */
     shared_ptr< kte::manipulator_kinematics_model > model;
@@ -1453,6 +1528,13 @@ class manip_rl_inverse_kinematics_map {
     /** This data member holds a mapping between the rate-limited joint space and the normal joint-space. */
     shared_ptr< RateLimitMap > joint_limits_map;
     
+    manip_rl_inverse_kin_map(const shared_ptr< kte::manipulator_kinematics_model >& aModel,
+			     const shared_ptr< RateLimitMap >& aJointLimitMap,
+                             const vect_n<double>& aPreferredPosture = vect_n<double>()) :
+                             model(aModel),
+                             preferred_posture(aPreferredPosture),
+                             joint_limits_map(aJointLimitMap) { };
+    
     /**
      * This function template performs a forward kinematics calculation on the manipulator model.
      */
@@ -1465,6 +1547,27 @@ class manip_rl_inverse_kinematics_map {
       
       return result;
     };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(model)
+        & RK_SERIAL_SAVE_WITH_NAME(preferred_posture)
+        & RK_SERIAL_SAVE_WITH_NAME(joint_limits_map);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(model)
+        & RK_SERIAL_LOAD_WITH_NAME(preferred_posture)
+        & RK_SERIAL_LOAD_WITH_NAME(joint_limits_map);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400015,1,"manip_rl_inverse_kin_map",shared_object)
+    
     
 };
 

@@ -37,7 +37,7 @@ void data_recorder::record_process::operator()() {
   boost::posix_time::ptime last_time = boost::posix_time::microsec_clock::local_time();
   while(parent.colCount != 0) {
     {
-      boost::unique_lock< boost::mutex > lock_here(parent.access_mutex);
+      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(parent.access_mutex);
       if((parent.rowCount > parent.maxBufferSize) || (currentIter % iterStep == 0))
 	parent.writeRow();
     };
@@ -50,17 +50,17 @@ void data_recorder::record_process::operator()() {
       currentIter = 0;
     };
     ++currentIter;
-    boost::this_thread::yield();
+    ReaKaux::this_thread::yield();
   };
 };
 
 
 data_recorder::~data_recorder() {
-  boost::unique_lock< boost::mutex > lock_here(access_mutex);
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   colCount = 0;
   if((writing_thread) && (writing_thread->joinable())) {
     lock_here.unlock();
-    if(writing_thread->get_id() != boost::this_thread::get_id())
+    if(writing_thread->get_id() != ReaKaux::this_thread::get_id())
       writing_thread->join();
     lock_here.lock();
     writing_thread.reset();
@@ -69,7 +69,7 @@ data_recorder::~data_recorder() {
 
 
 data_recorder& data_recorder::operator <<(double value) {
-  boost::unique_lock< boost::mutex > lock_here(access_mutex);
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(colCount != 0) {
     if(currentColumn < colCount) {
       values_rm.push(value);
@@ -81,7 +81,7 @@ data_recorder& data_recorder::operator <<(double value) {
 };
 
 data_recorder& data_recorder::operator <<(const std::string& name) {
-  boost::unique_lock< boost::mutex > lock_here(access_mutex);
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(colCount == 0) {
     names.push_back(name);
   };
@@ -89,7 +89,7 @@ data_recorder& data_recorder::operator <<(const std::string& name) {
 };
 
 data_recorder& data_recorder::operator <<(flag some_flag) {
-  boost::unique_lock< boost::mutex > lock_here(access_mutex);
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(some_flag == end_name_row) {
     if(colCount != 0)
       throw improper_flag();
@@ -97,7 +97,7 @@ data_recorder& data_recorder::operator <<(flag some_flag) {
     writeNames();
     currentColumn = 0;
     rowCount = 0;
-    writing_thread = ReaK::shared_ptr<boost::thread>(new boost::thread(record_process(*this)));
+    writing_thread = ReaK::shared_ptr<ReaKaux::thread>(new ReaKaux::thread(record_process(*this)));
   } else if(some_flag == end_value_row) {
     if(colCount == 0)
       throw improper_flag();
@@ -144,7 +144,7 @@ void data_extractor::extract_process::operator()() {
   boost::posix_time::ptime last_time = boost::posix_time::microsec_clock::local_time();
   while(parent.colCount != 0) {
     {
-      boost::unique_lock< boost::mutex > lock_here(parent.access_mutex);
+      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(parent.access_mutex);
       if((parent.values_rm.size() < parent.minBufferSize * parent.colCount) || 
 	 (currentIter % iterStep == 0))
 	if(!parent.readRow())
@@ -159,17 +159,17 @@ void data_extractor::extract_process::operator()() {
       currentIter = 0;
     };
     ++currentIter;
-    boost::this_thread::yield();
+    ReaKaux::this_thread::yield();
   };
 };
 
 
 data_extractor::~data_extractor() {
-  boost::unique_lock< boost::mutex > lock_here(access_mutex);
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   colCount = 0;
   if((reading_thread) && (reading_thread->joinable())) {
     lock_here.unlock();
-    if(reading_thread->get_id() != boost::this_thread::get_id())
+    if(reading_thread->get_id() != ReaKaux::this_thread::get_id())
       reading_thread->join();
     lock_here.lock();
     reading_thread.reset();
@@ -178,7 +178,7 @@ data_extractor::~data_extractor() {
 
 
 data_extractor& data_extractor::operator >>(double& value) {
-  boost::unique_lock< boost::mutex > lock_here(access_mutex);
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(colCount != 0) {
     if(currentColumn < colCount) {
       if(values_rm.empty()) {
@@ -196,7 +196,7 @@ data_extractor& data_extractor::operator >>(double& value) {
 };
 
 data_extractor& data_extractor::operator >>(std::string& name) {
-  boost::unique_lock< boost::mutex > lock_here(access_mutex);
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(currentNameCol < colCount) {
     name = names[currentNameCol++];
   } else
@@ -205,7 +205,7 @@ data_extractor& data_extractor::operator >>(std::string& name) {
 };
 
 data_extractor& data_extractor::operator >>(flag some_flag) {
-  boost::unique_lock< boost::mutex > lock_here(access_mutex);
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(some_flag == end_value_row) {
     if(colCount == 0)
       throw improper_flag();
@@ -240,7 +240,7 @@ void data_extractor::setFileName(const std::string& aFileName) {
   if((loadFile(aFileName)) && (readNames())) {
     fileName = aFileName;
     currentColumn = 0;
-    reading_thread = ReaK::shared_ptr<boost::thread>(new boost::thread(extract_process(*this)));
+    reading_thread = ReaK::shared_ptr<ReaKaux::thread>(new ReaKaux::thread(extract_process(*this)));
   };
 };
 

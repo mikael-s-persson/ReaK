@@ -440,6 +440,18 @@ class mat_sub_block {
       swap(lhs.colCount,rhs.colCount);
       return;
     };
+    
+    /**
+     * Standard assignment operator.
+     */
+    self& operator=(const self& rhs) {
+      if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != colCount))
+	throw std::range_error("Matrix dimensions mismatch.");
+      for(size_type j=0;j<colCount;++j)
+        for(size_type i=0;i<rowCount;++i)
+	  (*m)(rowOffset + i,colOffset + j) = rhs(i,j);
+      return *this;
+    };
         
     /**
      * Standard assignment operator.
@@ -1286,6 +1298,18 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
     /**
      * Standard assignment operator.
      */
+    self& operator=(const self& rhs) {
+      if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != rowCount))
+	throw std::range_error("Matrix dimensions mismatch.");
+      for(size_type j=0;j<rowCount;++j)
+        for(size_type i=j;i<rowCount;++i)
+	  (*m)(offset + i,offset + j) = (rhs(i,j) + rhs(j,i)) * value_type(0.5);
+      return *this;
+    };
+    
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix2>
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
@@ -1974,6 +1998,18 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     /**
      * Standard assignment operator.
      */
+    self& operator=(const self& rhs) {
+      if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != rowCount))
+	throw std::range_error("Matrix dimensions mismatch.");
+      for(size_type j=1;j<rowCount;++j)
+        for(size_type i=0;i<j;++i)
+	  (*m)(offset + i,offset + j) = (rhs(i,j) - rhs(j,i)) * value_type(0.5);
+      return *this;
+    };
+    
+    /**
+     * Standard assignment operator.
+     */
     template <typename Matrix2>
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
@@ -2639,6 +2675,17 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
       swap(lhs.offset,rhs.offset);
       swap(lhs.rowCount,rhs.rowCount);
       return;
+    };
+    
+    /**
+     * Standard assignment operator.
+     */
+    self& operator=(const self& rhs) {
+      if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != rowCount))
+	throw std::range_error("Matrix dimensions mismatch.");
+      for(size_type i=0;i<rowCount;++i)
+        (*m)(offset + i,offset + i) = rhs(i,i);
+      return *this;
     };
     
     /**

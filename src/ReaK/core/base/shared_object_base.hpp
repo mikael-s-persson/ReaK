@@ -39,18 +39,6 @@
 
 #include "defs.hpp"
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
-
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
-
-#else
-
-#include <memory>
-
-#endif
-
-
 namespace ReaK {
 
 /** 
@@ -77,13 +65,8 @@ struct null_deleter
  */
 class shared_object_base {
   protected:
-#ifndef RK_ENABLE_CXX0X_FEATURES
-    typedef boost::shared_ptr<shared_object_base> shared_this_pointer;
-    typedef boost::weak_ptr<shared_object_base> weak_this_pointer;
-#else
-    typedef std::shared_ptr<shared_object_base> shared_this_pointer;
-    typedef std::weak_ptr<shared_object_base> weak_this_pointer;
-#endif
+    typedef shared_ptr<shared_object_base> shared_this_pointer;
+    typedef weak_ptr<shared_object_base> weak_this_pointer;
     shared_this_pointer mThis;
     
   public:

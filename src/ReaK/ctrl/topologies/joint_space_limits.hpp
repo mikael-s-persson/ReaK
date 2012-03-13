@@ -36,6 +36,8 @@
 
 #include "base/defs.hpp"
 
+#include "base/named_object.hpp"
+
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
 #include "joint_space_topologies.hpp"
@@ -1723,7 +1725,7 @@ namespace detail {
 
 
 template <typename T>
-struct joint_limits_collection {
+struct joint_limits_collection : public named_object {
   vect_n<T> gen_speed_limits;
   vect_n<T> gen_accel_limits;
   vect_n<T> gen_jerk_limits;
@@ -1735,6 +1737,11 @@ struct joint_limits_collection {
   vect_n<T> frame3D_jerk_limits;
   
   typedef T value_type;
+  typedef joint_limits_collection<T> self;
+  
+  joint_limits_collection(const std::string& aName = "") : named_object() {
+    this->setName(aName);
+  };
   
   template <typename NormalSpaceType>
   typename get_rate_limited_space< NormalSpaceType >::type make_rl_joint_space(const NormalSpaceType& j_space) const {
@@ -1769,138 +1776,42 @@ struct joint_limits_collection {
     return result;
   };
   
-};
+  
+  
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
 
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(gen_speed_limits)
+        & RK_SERIAL_SAVE_WITH_NAME(gen_accel_limits)
+        & RK_SERIAL_SAVE_WITH_NAME(gen_jerk_limits)
+        & RK_SERIAL_SAVE_WITH_NAME(frame2D_speed_limits)
+        & RK_SERIAL_SAVE_WITH_NAME(frame2D_accel_limits)
+        & RK_SERIAL_SAVE_WITH_NAME(frame2D_jerk_limits)
+        & RK_SERIAL_SAVE_WITH_NAME(frame3D_speed_limits)
+        & RK_SERIAL_SAVE_WITH_NAME(frame3D_accel_limits)
+        & RK_SERIAL_SAVE_WITH_NAME(frame3D_jerk_limits);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(gen_speed_limits)
+        & RK_SERIAL_LOAD_WITH_NAME(gen_accel_limits)
+        & RK_SERIAL_LOAD_WITH_NAME(gen_jerk_limits)
+        & RK_SERIAL_LOAD_WITH_NAME(frame2D_speed_limits)
+        & RK_SERIAL_LOAD_WITH_NAME(frame2D_accel_limits)
+        & RK_SERIAL_LOAD_WITH_NAME(frame2D_jerk_limits)
+        & RK_SERIAL_LOAD_WITH_NAME(frame3D_speed_limits)
+        & RK_SERIAL_LOAD_WITH_NAME(frame3D_accel_limits)
+        & RK_SERIAL_LOAD_WITH_NAME(frame3D_jerk_limits);
+    };
 
-
-template <typename T, std::size_t N, typename DistanceMetric = inf_norm_tuple_distance>
-struct joint_limits_1st_order {
-  vect<T, N> speed_limits;
-  
-  typedef typename metric_space_array< rl_joint_space_0th_order<T>::type, N, DistanceMetric >::type rate_limited_space_type;
-  typedef typename metric_space_array< joint_space_0th_order<T>::type, N, DistanceMetric >::type normal_space_type;
-  typedef T value_type;
-  
-  joint_limits_1st_order(const vect<T,N>& aSpeedLimits) : speed_limits(aSpeedLimits) { };
-  
-  rate_limited_space_type make_rl_joint_space(const normal_space_type& j_space) {
-    rate_limited_space_type result;
-    detail::create_0th_rl_joint_space_impl<boost::mpl::size_t<N-1>, T, N, DistanceMetric >(result, j_space, speed_limits);
-    return result;
-  };
-  
-  
-  typename topology_traits< rate_limited_space_type >::point_type map_to_space(
-      const typename topology_traits< normal_space_type >::point_type& pt,
-      const normal_space_type& , const rate_limited_space_type& ) {
-    typename topology_traits< rate_limited_space_type >::point_type result;
-    detail::create_0th_rl_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits);
-    return result;
-  };
-  
-  
-  typename topology_traits< normal_space_type >::point_type map_to_space(
-      const typename topology_traits< rate_limited_space_type >::point_type& pt,
-      const rate_limited_space_type& , const normal_space_type& ) {
-    typename topology_traits< normal_space_type >::point_type result;
-    detail::create_0th_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits);
-    return result;
-  };
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400011,1,"joint_limits_collection",named_object)
+    
   
 };
 
-
-
-
-template <typename T, std::size_t N, typename DistanceMetric = inf_norm_tuple_distance>
-struct joint_limits_2nd_order {
-  vect<T, N> speed_limits;
-  vect<T, N> accel_limits;
-  
-  typedef typename metric_space_array< rl_joint_space_1st_order<T>::type, N, DistanceMetric >::type rate_limited_space_type;
-  typedef typename metric_space_array< joint_space_1st_order<T>::type, N, DistanceMetric >::type normal_space_type;
-  
-  
-  joint_limits_2nd_order(const vect<T,N>& aSpeedLimits, 
-                         const vect<T,N>& aAccelLimits) : 
-                         speed_limits(aSpeedLimits), 
-                         accel_limits(aAccelLimits) { };
-  
-  rate_limited_space_type make_rl_joint_space(const normal_space_type& j_space) {
-    rate_limited_space_type result;
-    detail::create_1st_rl_joint_space_impl<boost::mpl::size_t<N-1>, T, N, DistanceMetric >(result, j_space, speed_limits);
-    return result;
-  };
-  
-  
-  
-  typename topology_traits< rate_limited_space_type >::point_type map_to_space(
-      const typename topology_traits< normal_space_type >::point_type& pt,
-      const normal_space_type& , const rate_limited_space_type& ) {
-    typename topology_traits< rate_limited_space_type >::point_type result;
-    detail::create_1st_rl_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits, accel_limits);
-    return result;
-  };
-  
-  
-  typename topology_traits< normal_space_type >::point_type map_to_space(
-      const typename topology_traits< rate_limited_space_type >::point_type& pt,
-      const rate_limited_space_type& , const normal_space_type& ) {
-    typename topology_traits< normal_space_type >::point_type result;
-    detail::create_1st_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits, accel_limits);
-    return result;
-  };
-  
-};
-
-
-
-
-
-
-
-template <typename T, std::size_t N, typename DistanceMetric = inf_norm_tuple_distance>
-struct joint_limits_3rd_order {
-  vect<T, N> speed_limits;
-  vect<T, N> accel_limits;
-  vect<T, N> jerk_limits;
-  
-  typedef typename metric_space_array< rl_joint_space_2nd_order<T>::type, N, DistanceMetric >::type rate_limited_space_type;
-  typedef typename metric_space_array< joint_space_2nd_order<T>::type, N, DistanceMetric >::type normal_space_type;
-  
-  
-  joint_limits_3rd_order(const vect<T,N>& aSpeedLimits, 
-                         const vect<T,N>& aAccelLimits, 
-                         const vect<T,N>& aJerkLimits) : 
-                         speed_limits(aSpeedLimits), 
-                         accel_limits(aAccelLimits), 
-                         jerk_limits(aJerkLimits) { };
-  
-  rate_limited_space_type make_rl_joint_space(const normal_space_type& j_space) {
-    rate_limited_space_type result;
-    detail::create_2nd_rl_joint_space_impl<boost::mpl::size_t<N-1>, T, N, DistanceMetric >(result, j_space, speed_limits);
-    return result;
-  };
-  
-  
-  typename topology_traits< rate_limited_space_type >::point_type map_to_space(
-      const typename topology_traits< normal_space_type >::point_type& pt,
-      const normal_space_type& , const rate_limited_space_type& ) {
-    typename topology_traits< rate_limited_space_type >::point_type result;
-    detail::create_2nd_rl_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits, accel_limits, jerk_limits);
-    return result;
-  };
-  
-  
-  typename topology_traits< normal_space_type >::point_type map_to_space(
-      const typename topology_traits< rate_limited_space_type >::point_type& pt,
-      const rate_limited_space_type& , const normal_space_type& ) {
-    typename topology_traits< normal_space_type >::point_type result;
-    detail::create_2nd_joint_vector_impl< boost::mpl::size_t<N-1> >(result, pt, speed_limits, accel_limits, jerk_limits);
-    return result;
-  };
-  
-};
 
 
 

@@ -32,6 +32,9 @@
 #ifndef REAK_DEFS_HPP
 #define REAK_DEFS_HPP
 
+#include <string>
+#include <iostream>
+
 #ifdef WIN32
 #if defined(_M_X64) || defined(__x86_64__)
 #define RK_CALL
@@ -44,34 +47,31 @@
 #else
 #define RK_CALL __attribute__((__stdcall__))
 #endif
-#endif
+#endif // WIN32
 #define RK_EXTERN extern "C"
 
 #ifndef RK_VERBOSITY
 #define RK_VERBOSITY 5
 #endif
 
+
+#ifdef __GNUC__
+
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
 #define RK_ENABLE_CXX0X_FEATURES
+#define RK_ENABLE_CXX11_FEATURES
+#endif // __GXX_EXPERIMENTAL_CXX0X__
+ 
+#endif // __GNUC__
 
-#include <memory>
-
-#else
-
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
-
-#endif
 
 #ifdef _MSC_VER
 #if (_MSC_VER >= 1600)
 //Cannot do this for now because MSVC doesn't support C++0x threads (why not is a mistery).
 //#define RK_ENABLE_CXXOX_FEATURES 
 #endif
-#endif
+#endif // _MSC_VER
 
-#include <string>
-#include <iostream>
 
 /**
  * This function will convert an absolute path that goes through a folder named "ReaK" and
@@ -116,47 +116,37 @@ inline std::string RK_RELATIVE_PATH(const std::string& S) {
  */
 #define RK_UNUSED(X) { (void)X; }
 
-/** Main namespace for ReaK */
+  
+  
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+
+#include <memory>
+
+namespace ReaK {
+
+  using std::shared_ptr;
+  using std::weak_ptr;
+  using std::unique_ptr;
+  
+};
+
+#else
+
+#include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
+
 namespace ReaK {
   
+  using boost::shared_ptr;
+  using boost::weak_ptr;
   
-#if 0
-/**
- * This class template alias can be used to specify a shared-pointer type in a C++0x vs. Boost 
- * agnostic way (i.e. under C++0x, type evaluates to std::shared_ptr, otherwise, it gives boost::shared_ptr).
- */
-template <typename T>
-struct shared_pointer {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-  typedef typename std::shared_ptr<T> type;
-#else
-  typedef typename boost::shared_ptr<T> type;
-#endif
 };
 
-/**
- * This class template alias can be used to specify a weak-pointer type in a C++0x vs. Boost 
- * agnostic way (i.e. under C++0x, type evaluates to std::weak_ptr, otherwise, it gives boost::weak_ptr).
- */
-template <typename T>
-struct weak_pointer {
-#ifdef RK_ENABLE_CXX0X_FEATURES
-  typedef typename std::weak_ptr<T> type;
-#else
-  typedef typename boost::weak_ptr<T> type;
-#endif
-};
+#endif // RK_ENABLE_CXX0X_FEATURES
 
-#endif
-
-#ifdef RK_ENABLE_CXX0X_FEATURES
-using std::shared_ptr;
-using std::weak_ptr;
-#else
-using boost::shared_ptr;
-using boost::weak_ptr;
-#endif
-
+/** Main namespace for ReaK */
+namespace ReaK {
 
 template<bool> struct CompileTimeChecker
 {

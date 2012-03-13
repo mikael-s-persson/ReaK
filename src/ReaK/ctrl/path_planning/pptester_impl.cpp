@@ -177,7 +177,7 @@ void PPTestWindow::startRobot() {
     delete robot_exec_thread;
     robot_exec_thread = NULL;
   };
-  robot_exec_thread = new boost::thread(boost::bind(&PPTestWindow::executePath,this));
+  robot_exec_thread = new ReaKaux::thread(boost::bind(&PPTestWindow::executePath,this));
 };
 
 void PPTestWindow::stopRobot() {
