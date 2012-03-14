@@ -496,7 +496,7 @@ struct arithmetic_tuple_size :
  */
 template <typename... T>
 class arithmetic_tuple : public std::tuple< T... > {
-  private:
+  public:
     typedef std::tuple< T... > arithmetic_tuple_base_class;
   public:
     
@@ -553,7 +553,7 @@ arithmetic_tuple< T... > make_arithmetic_tuple(T&&... t) {
 template <typename T1, typename T2 = void, typename T3 = void, typename T4 = void, typename T5 = void, 
           typename T6 = void, typename T7 = void, typename T8 = void, typename T9 = void, typename T10 = void>
 class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > {
-  private:
+  public:
     typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > arithmetic_tuple_base_class;
   public:
     
@@ -585,7 +585,7 @@ struct arithmetic_tuple_size< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, 
 template <typename T1, typename T2, typename T3, typename T4, typename T5, 
           typename T6, typename T7, typename T8, typename T9>
 class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9 > {
-  private:
+  public:
     typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9 > arithmetic_tuple_base_class;
   public:
     
@@ -603,7 +603,7 @@ class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7
 template <typename T1, typename T2, typename T3, typename T4, typename T5, 
           typename T6, typename T7, typename T8>
 class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8 > {
-  private:
+  public:
     typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8 > arithmetic_tuple_base_class;
   public:
     
@@ -621,7 +621,7 @@ class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7
 template <typename T1, typename T2, typename T3, typename T4, typename T5, 
           typename T6, typename T7>
 class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7 > {
-  private:
+  public:
     typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7 > arithmetic_tuple_base_class;
   public:
     
@@ -639,7 +639,7 @@ class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7
 template <typename T1, typename T2, typename T3, typename T4, typename T5, 
           typename T6>
 class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6 > {
-  private:
+  public:
     typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6 > arithmetic_tuple_base_class;
   public:
     
@@ -655,7 +655,7 @@ class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6 > {
 /* Specialization, see general template docs. */
 template <typename T1, typename T2, typename T3, typename T4, typename T5>
 class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5 > {
-  private:
+  public:
     typedef boost::tuples::tuple< T1, T2, T3, T4, T5 > arithmetic_tuple_base_class;
   public:
     
@@ -671,7 +671,7 @@ class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5 > {
 /* Specialization, see general template docs. */
 template <typename T1, typename T2, typename T3, typename T4>
 class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4 > {
-  private:
+  public:
     typedef boost::tuples::tuple< T1, T2, T3, T4 > arithmetic_tuple_base_class;
   public:
     
@@ -687,7 +687,7 @@ class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4 > {
 /* Specialization, see general template docs. */
 template <typename T1, typename T2, typename T3>
 class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3 > {
-  private:
+  public:
     typedef boost::tuples::tuple< T1, T2, T3 > arithmetic_tuple_base_class;
   public:
     
@@ -702,7 +702,7 @@ class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3 > {
 /* Specialization, see general template docs. */
 template <typename T1, typename T2>
 class arithmetic_tuple : public boost::tuples::tuple< T1, T2 > {
-  private:
+  public:
     typedef boost::tuples::tuple< T1, T2 > arithmetic_tuple_base_class;
   public:
     
@@ -717,7 +717,7 @@ class arithmetic_tuple : public boost::tuples::tuple< T1, T2 > {
 /* Specialization, see general template docs. */
 template <typename T1>
 class arithmetic_tuple : public boost::tuples::tuple< T1 > {
-  private:
+  public:
     typedef boost::tuples::tuple< T1 > arithmetic_tuple_base_class;
   public:
     

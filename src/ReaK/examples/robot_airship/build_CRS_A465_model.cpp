@@ -19,7 +19,8 @@ int main() {
   
   builder.create_from_preset();
   
-  builder.save_to_file("models/CRS_A465_raw_components.xml");
+  builder.save_kte_to_file("models/CRS_A465_raw_components.xml");
+  builder.save_limits_to_file("models/CRS_A465_limits.xml");
   
   return 0;
 };

@@ -621,13 +621,13 @@ struct get_rate_limited_space< differentiable_space<IndependentSpace,SpaceTuple,
 
 template <typename SpaceTuple, typename TupleDistanceMetric>
 struct get_rate_illimited_space< metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
-  typedef differentiable_space< typename detail::get_rate_illimited_space_tuple<SpaceTuple>::type, TupleDistanceMetric> type;
+  typedef metric_space_tuple< typename detail::get_rate_illimited_space_tuple<SpaceTuple>::type, TupleDistanceMetric> type;
 };
 
 
 template <typename SpaceTuple, typename TupleDistanceMetric>
 struct get_rate_limited_space< metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
-  typedef reach_time_diff_space< typename detail::get_rate_limited_space_tuple<SpaceTuple>::type, TupleDistanceMetric> type;
+  typedef metric_space_tuple< typename detail::get_rate_limited_space_tuple<SpaceTuple>::type, TupleDistanceMetric> type;
 };
 
 

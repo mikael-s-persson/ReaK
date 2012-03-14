@@ -36,7 +36,7 @@ namespace ReaK {
 namespace robot_airship {
 
 
-void CRS_A465_model_builder::load_from_file(const std::string& aFileName) {
+void CRS_A465_model_builder::load_kte_from_file(const std::string& aFileName) {
   
   serialization::xml_iarchive complete_model_input(aFileName);
   serialization::iarchive& input_ref = complete_model_input;
@@ -125,6 +125,17 @@ void CRS_A465_model_builder::load_from_file(const std::string& aFileName) {
              & RK_SERIAL_LOAD_WITH_NAME(link_5_inertia)
              & RK_SERIAL_LOAD_WITH_NAME(link_6_inertia);
 	     
+};
+
+
+void CRS_A465_model_builder::load_limits_to_file(const std::string& aFileName) {
+  serialization::xml_iarchive complete_model_input(aFileName);
+  serialization::iarchive& input_ref = complete_model_input;
+  
+  input_ref & RK_SERIAL_LOAD_WITH_NAME(joint_lower_bounds)
+            & RK_SERIAL_LOAD_WITH_NAME(joint_upper_bounds)
+            & RK_SERIAL_LOAD_WITH_NAME(joint_rate_limits)
+            & RK_SERIAL_LOAD_WITH_NAME(preferred_posture);
 };
     
 void CRS_A465_model_builder::create_from_preset() {
@@ -507,9 +518,70 @@ void CRS_A465_model_builder::create_from_preset() {
                                                   scoped_deleter());
   
   
+  joint_lower_bounds.resize(7);
+  joint_lower_bounds[0] = 0.0;
+  joint_lower_bounds[1] = -3.05432619099;
+  joint_lower_bounds[2] = -1.57079632679;
+  joint_lower_bounds[3] = -1.91986217719;
+  joint_lower_bounds[4] = -3.14159265359;
+  joint_lower_bounds[5] = -1.83259571459;
+  joint_lower_bounds[6] = -3.14159265359;
+  
+  joint_upper_bounds.resize(7);
+  joint_upper_bounds[0] = 3.0;
+  joint_upper_bounds[1] = 3.05432619099;
+  joint_upper_bounds[2] = 1.57079632679;
+  joint_upper_bounds[3] = 1.91986217719;
+  joint_upper_bounds[4] = 33.14159265359;
+  joint_upper_bounds[5] = 1.83259571459;
+  joint_upper_bounds[6] = 3.14159265359;
+
+  joint_rate_limits.gen_speed_limits.resize(7);
+  joint_rate_limits.gen_speed_limits[0] = 0.8;
+  joint_rate_limits.gen_speed_limits[1] = 3.14159265359;
+  joint_rate_limits.gen_speed_limits[2] = 3.14159265359;
+  joint_rate_limits.gen_speed_limits[3] = 3.14159265359;
+  joint_rate_limits.gen_speed_limits[4] = 2.98451302091;
+  joint_rate_limits.gen_speed_limits[5] = 3.01941960595;
+  joint_rate_limits.gen_speed_limits[6] = 2.98451302091;
+  
+  joint_rate_limits.gen_accel_limits.resize(7);
+  joint_rate_limits.gen_accel_limits[0] = 3.0;
+  joint_rate_limits.gen_accel_limits[1] = 12.5663706144;
+  joint_rate_limits.gen_accel_limits[2] = 12.5663706144;
+  joint_rate_limits.gen_accel_limits[3] = 12.5663706144;
+  joint_rate_limits.gen_accel_limits[4] = 24.9582083035;
+  joint_rate_limits.gen_accel_limits[5] = 24.9582083035;
+  joint_rate_limits.gen_accel_limits[6] = 24.9582083035;
+  
+  joint_rate_limits.gen_jerk_limits.resize(7);
+  joint_rate_limits.gen_jerk_limits[0] = 12.0;
+  joint_rate_limits.gen_jerk_limits[1] = 125.663706144;
+  joint_rate_limits.gen_jerk_limits[2] = 125.663706144;
+  joint_rate_limits.gen_jerk_limits[3] = 125.663706144;
+  joint_rate_limits.gen_jerk_limits[4] = 249.582083035;
+  joint_rate_limits.gen_jerk_limits[5] = 249.582083035;
+  joint_rate_limits.gen_jerk_limits[6] = 249.582083035;
+  
+  joint_rate_limits.frame2D_speed_limits.resize(0);
+  joint_rate_limits.frame2D_accel_limits.resize(0);
+  joint_rate_limits.frame2D_jerk_limits.resize(0);
+  joint_rate_limits.frame3D_speed_limits.resize(0);
+  joint_rate_limits.frame3D_accel_limits.resize(0);
+  joint_rate_limits.frame3D_jerk_limits.resize(0);
+  
+  preferred_posture.resize(7);
+  preferred_posture[0] = 1.5;
+  preferred_posture[1] = 0.0;
+  preferred_posture[2] = 0.0;
+  preferred_posture[3] = 1.57079632679;
+  preferred_posture[4] = 0.0;
+  preferred_posture[5] = 0.0;
+  preferred_posture[6] = 0.0;
+  
 };
     
-void CRS_A465_model_builder::save_to_file(const std::string& aFileName) const {
+void CRS_A465_model_builder::save_kte_to_file(const std::string& aFileName) const {
   serialization::xml_oarchive complete_model_output(aFileName);
   serialization::oarchive& output_ref = complete_model_output;
   
@@ -597,6 +669,16 @@ void CRS_A465_model_builder::save_to_file(const std::string& aFileName) const {
              & RK_SERIAL_SAVE_WITH_NAME(link_5_inertia)
              & RK_SERIAL_SAVE_WITH_NAME(link_6_inertia);
   
+};
+
+void CRS_A465_model_builder::save_limits_to_file(const std::string& aFileName) const {
+  serialization::xml_oarchive complete_model_output(aFileName);
+  serialization::oarchive& output_ref = complete_model_output;
+  
+  output_ref & RK_SERIAL_SAVE_WITH_NAME(joint_lower_bounds)
+             & RK_SERIAL_SAVE_WITH_NAME(joint_upper_bounds)
+             & RK_SERIAL_SAVE_WITH_NAME(joint_rate_limits)
+             & RK_SERIAL_SAVE_WITH_NAME(preferred_posture);
 };
 
 
@@ -776,6 +858,128 @@ shared_ptr< kte::manipulator_dynamics_model > CRS_A465_model_builder::get_manipu
   return CRS_A465_dyn_manip;
 };
     
+
+
+
+
+CRS_A465_model_builder::rate_limited_joint_space_type CRS_A465_model_builder::get_rl_joint_space() const {
+  return joint_rate_limits.make_rl_joint_space(get_joint_space());
+};
+
+CRS_A465_model_builder::joint_space_type CRS_A465_model_builder::get_joint_space() const {
+  typedef pp::joint_space_2nd_order<double>::type SingleJointSpace;
+  typedef pp::line_segment_topology<double> LinSeg;
+  return joint_space_type( arithmetic_tuple< 
+                             SingleJointSpace,
+                             SingleJointSpace,
+                             SingleJointSpace,
+                             SingleJointSpace,
+                             SingleJointSpace,
+                             SingleJointSpace,
+                             SingleJointSpace
+                           >(
+                             SingleJointSpace(
+	                       arithmetic_tuple<
+	                         LinSeg,LinSeg,LinSeg
+	                       >(
+				 LinSeg("track_pos_space",joint_lower_bounds[0],joint_upper_bounds[0]),
+				 LinSeg("track_vel_space",-joint_rate_limits.gen_speed_limits[0],joint_rate_limits.gen_speed_limits[0]),
+				 LinSeg("track_acc_space",-joint_rate_limits.gen_accel_limits[0],joint_rate_limits.gen_accel_limits[0])
+			       )
+	                     ),
+	                     SingleJointSpace(
+	                       arithmetic_tuple<
+	                         LinSeg,LinSeg,LinSeg
+	                       >(
+				 LinSeg("arm_joint_1_pos_space",joint_lower_bounds[1],joint_upper_bounds[1]),
+				 LinSeg("arm_joint_1_vel_space",-joint_rate_limits.gen_speed_limits[1],joint_rate_limits.gen_speed_limits[1]),
+				 LinSeg("arm_joint_1_acc_space",-joint_rate_limits.gen_accel_limits[1],joint_rate_limits.gen_accel_limits[1])
+			       )
+	                     ),
+	                     SingleJointSpace(
+	                       arithmetic_tuple<
+	                         LinSeg,LinSeg,LinSeg
+	                       >(
+				 LinSeg("arm_joint_2_pos_space",joint_lower_bounds[2],joint_upper_bounds[2]),
+				 LinSeg("arm_joint_2_vel_space",-joint_rate_limits.gen_speed_limits[2],joint_rate_limits.gen_speed_limits[2]),
+				 LinSeg("arm_joint_2_acc_space",-joint_rate_limits.gen_accel_limits[2],joint_rate_limits.gen_accel_limits[2])
+			       )
+	                     ),
+	                     SingleJointSpace(
+	                       arithmetic_tuple<
+	                         LinSeg,LinSeg,LinSeg
+	                       >(
+				 LinSeg("arm_joint_3_pos_space",joint_lower_bounds[3],joint_upper_bounds[3]),
+				 LinSeg("arm_joint_3_vel_space",-joint_rate_limits.gen_speed_limits[3],joint_rate_limits.gen_speed_limits[3]),
+				 LinSeg("arm_joint_3_acc_space",-joint_rate_limits.gen_accel_limits[3],joint_rate_limits.gen_accel_limits[3])
+			       )
+	                     ),
+	                     SingleJointSpace(
+	                       arithmetic_tuple<
+	                         LinSeg,LinSeg,LinSeg
+	                       >(
+				 LinSeg("arm_joint_4_pos_space",joint_lower_bounds[4],joint_upper_bounds[4]),
+				 LinSeg("arm_joint_4_vel_space",-joint_rate_limits.gen_speed_limits[4],joint_rate_limits.gen_speed_limits[4]),
+				 LinSeg("arm_joint_4_acc_space",-joint_rate_limits.gen_accel_limits[4],joint_rate_limits.gen_accel_limits[4])
+			       )
+	                     ),
+	                     SingleJointSpace(
+	                       arithmetic_tuple<
+	                         LinSeg,LinSeg,LinSeg
+	                       >(
+				 LinSeg("arm_joint_5_pos_space",joint_lower_bounds[5],joint_upper_bounds[5]),
+				 LinSeg("arm_joint_5_vel_space",-joint_rate_limits.gen_speed_limits[5],joint_rate_limits.gen_speed_limits[5]),
+				 LinSeg("arm_joint_5_acc_space",-joint_rate_limits.gen_accel_limits[5],joint_rate_limits.gen_accel_limits[5])
+			       )
+	                     ),
+	                     SingleJointSpace(
+	                       arithmetic_tuple<
+	                         LinSeg,LinSeg,LinSeg
+	                       >(
+				 LinSeg("arm_joint_6_pos_space",joint_lower_bounds[6],joint_upper_bounds[6]),
+				 LinSeg("arm_joint_6_vel_space",-joint_rate_limits.gen_speed_limits[6],joint_rate_limits.gen_speed_limits[6]),
+				 LinSeg("arm_joint_6_acc_space",-joint_rate_limits.gen_accel_limits[6],joint_rate_limits.gen_accel_limits[6])
+			       )
+	                     )
+			   )
+	                 );
+};
+
+CRS_A465_model_builder::end_effector_space_type CRS_A465_model_builder::get_end_effector_space() const {
+  
+  typedef arithmetic_tuple< pp::hyperbox_topology< vect<double,3> >, 
+                            pp::hyperball_topology< vect<double,3> >,
+			    pp::hyperball_topology< vect<double,3> >
+			  > TranslationTuple;
+  typedef arithmetic_tuple< pp::quaternion_topology<double>, 
+                            pp::ang_velocity_3D_topology<double>,
+			    pp::ang_accel_3D_topology<double>
+			  > RotationTuple;
+  
+  typedef arithmetic_tuple_element<0, end_effector_space_type>::type TranslationDiffSpace;
+  typedef arithmetic_tuple_element<1, end_effector_space_type>::type RotationDiffSpace;
+  
+  typedef arithmetic_tuple<TranslationDiffSpace, RotationDiffSpace> EESpaceTuple;
+  
+  return end_effector_space_type(
+    EESpaceTuple(
+      TranslationDiffSpace(
+	TranslationTuple(
+	  pp::hyperbox_topology< vect<double,3> >("EE_pos_space",vect<double,3>(-1.1,-1.1,0.0),vect<double,3>(4.5,1.1,1.5)),
+	  pp::hyperball_topology< vect<double,3> >("EE_vel_space",vect<double,3>(0.0,0.0,0.0),5.0),
+	  pp::hyperball_topology< vect<double,3> >("EE_acc_space",vect<double,3>(0.0,0.0,0.0),25.0)
+	)
+      ),
+      RotationDiffSpace(
+	RotationTuple(
+	  pp::quaternion_topology<double>("EE_rotation_space"),
+	  pp::ang_velocity_3D_topology<double>("EE_ang_vel_space",10.0),
+	  pp::ang_accel_3D_topology<double>("EE_ang_acc_space",100.0)
+	)
+      )
+    )
+  );
+};
 
 
 
