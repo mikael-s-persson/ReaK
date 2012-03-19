@@ -94,7 +94,7 @@ namespace detail {
     };
   };
   
-  
+  inline
   std::vector<int>::reverse_iterator get_fibonacci_iter_for_tolerance(double low_bound, double up_bound, double tol) {
     using std::fabs;
     static int first_fib[2] = {0,1};

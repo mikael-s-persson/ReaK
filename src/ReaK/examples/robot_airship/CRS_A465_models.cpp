@@ -128,7 +128,7 @@ void CRS_A465_model_builder::load_kte_from_file(const std::string& aFileName) {
 };
 
 
-void CRS_A465_model_builder::load_limits_to_file(const std::string& aFileName) {
+void CRS_A465_model_builder::load_limits_from_file(const std::string& aFileName) {
   serialization::xml_iarchive complete_model_input(aFileName);
   serialization::iarchive& input_ref = complete_model_input;
   

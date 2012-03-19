@@ -1,9 +1,9 @@
 /**
- * \file CRS_A465_models.hpp
+ * \file CRS_A465_2D_analog.hpp
  *
- * This library has constructs of the KTE-based kinematics models for the CRS A465 manipulator.
- * The inertial information is phony and is only there for completeness of the model but do 
- * not reflect the actual inertial information of the CRS A465.
+ * This library has constructs of the KTE-based kinematics models for a 2D analog of the 
+ * CRS A465 manipulator. This is a fictional robot which has similar characteristics to 
+ * the CRS A465 robot, but in a planar world.
  *
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date March 2012
@@ -33,8 +33,8 @@
  */
 
 
-#ifndef RK_CRS_A465_MODELS_HPP
-#define RK_CRS_A465_MODELS_HPP
+#ifndef RK_CRS_A465_2D_ANALOG_HPP
+#define RK_CRS_A465_2D_ANALOG_HPP
 
 
 #include "mbd_kte/inertia.hpp"
@@ -55,7 +55,7 @@
 #include "mbd_kte/manipulator_model.hpp"
 
 #include "topologies/joint_space_topologies.hpp"
-#include "topologies/se3_topologies.hpp"
+#include "topologies/se2_topologies.hpp"
 #include "topologies/joint_space_limits.hpp"
 
 
@@ -71,112 +71,82 @@ namespace robot_airship {
  * models (kinematics and dynamics) as well as joint or end-effector spaces which can be used 
  * as tangent-bundle topologies in path-planning code available in ReaK.
  */
-class CRS_A465_model_builder {
+class CRS_A465_2D_model_builder {
   public:
     
     //declare all the intermediate frames.
-    shared_ptr< frame_3D<double> > robot_base;
-    shared_ptr< frame_3D<double> > track_joint_end;
-    shared_ptr< frame_3D<double> > arm_joint_1_base;
-    shared_ptr< frame_3D<double> > arm_joint_1_end;
-    shared_ptr< frame_3D<double> > arm_joint_2_base;
-    shared_ptr< frame_3D<double> > arm_joint_2_end;
-    shared_ptr< frame_3D<double> > arm_joint_3_base;
-    shared_ptr< frame_3D<double> > arm_joint_3_end;
-    shared_ptr< frame_3D<double> > arm_joint_4_base;
-    shared_ptr< frame_3D<double> > arm_joint_4_end;
-    shared_ptr< frame_3D<double> > arm_joint_5_base;
-    shared_ptr< frame_3D<double> > arm_joint_5_end;
-    shared_ptr< frame_3D<double> > arm_joint_6_base;
-    shared_ptr< frame_3D<double> > arm_joint_6_end;
-    shared_ptr< frame_3D<double> > arm_EE;
+    shared_ptr< frame_2D<double> > robot_base;
+    shared_ptr< frame_2D<double> > track_joint_end;
+    shared_ptr< frame_2D<double> > arm_joint_1_base;
+    shared_ptr< frame_2D<double> > arm_joint_1_end;
+    shared_ptr< frame_2D<double> > arm_joint_2_base;
+    shared_ptr< frame_2D<double> > arm_joint_2_end;
+    shared_ptr< frame_2D<double> > arm_joint_3_base;
+    shared_ptr< frame_2D<double> > arm_joint_3_end;
+    shared_ptr< frame_2D<double> > arm_EE;
 
     //declare all the joint coordinates.
     shared_ptr< gen_coord<double> > track_joint_coord;
     shared_ptr< gen_coord<double> > arm_joint_1_coord;
     shared_ptr< gen_coord<double> > arm_joint_2_coord;
     shared_ptr< gen_coord<double> > arm_joint_3_coord;
-    shared_ptr< gen_coord<double> > arm_joint_4_coord; 
-    shared_ptr< gen_coord<double> > arm_joint_5_coord; 
-    shared_ptr< gen_coord<double> > arm_joint_6_coord; 
-  
+    
     //declare all the joint jacobians.
-    shared_ptr< jacobian_gen_3D<double> > track_joint_jacobian;
-    shared_ptr< jacobian_gen_3D<double> > arm_joint_1_jacobian;
-    shared_ptr< jacobian_gen_3D<double> > arm_joint_2_jacobian;
-    shared_ptr< jacobian_gen_3D<double> > arm_joint_3_jacobian;
-    shared_ptr< jacobian_gen_3D<double> > arm_joint_4_jacobian;
-    shared_ptr< jacobian_gen_3D<double> > arm_joint_5_jacobian;
-    shared_ptr< jacobian_gen_3D<double> > arm_joint_6_jacobian;
+    shared_ptr< jacobian_gen_2D<double> > track_joint_jacobian;
+    shared_ptr< jacobian_gen_2D<double> > arm_joint_1_jacobian;
+    shared_ptr< jacobian_gen_2D<double> > arm_joint_2_jacobian;
+    shared_ptr< jacobian_gen_2D<double> > arm_joint_3_jacobian;
     
     //declare all the joints.
-    shared_ptr< kte::prismatic_joint_3D > track_joint;
-    shared_ptr< kte::revolute_joint_3D > arm_joint_1;
-    shared_ptr< kte::revolute_joint_3D > arm_joint_2;
-    shared_ptr< kte::revolute_joint_3D > arm_joint_3;
-    shared_ptr< kte::revolute_joint_3D > arm_joint_4;
-    shared_ptr< kte::revolute_joint_3D > arm_joint_5;
-    shared_ptr< kte::revolute_joint_3D > arm_joint_6;
+    shared_ptr< kte::prismatic_joint_2D > track_joint;
+    shared_ptr< kte::revolute_joint_2D > arm_joint_1;
+    shared_ptr< kte::revolute_joint_2D > arm_joint_2;
+    shared_ptr< kte::revolute_joint_2D > arm_joint_3;
     
     //declare all motor inertias
     shared_ptr< kte::inertia_gen > track_joint_inertia;
     shared_ptr< kte::inertia_gen > arm_joint_1_inertia;
     shared_ptr< kte::inertia_gen > arm_joint_2_inertia;
     shared_ptr< kte::inertia_gen > arm_joint_3_inertia;
-    shared_ptr< kte::inertia_gen > arm_joint_4_inertia;
-    shared_ptr< kte::inertia_gen > arm_joint_5_inertia;
-    shared_ptr< kte::inertia_gen > arm_joint_6_inertia;
-  
+    
     //declare all force actuators
     shared_ptr< kte::driving_actuator_gen > track_actuator;
     shared_ptr< kte::driving_actuator_gen > arm_joint_1_actuator;
     shared_ptr< kte::driving_actuator_gen > arm_joint_2_actuator;
     shared_ptr< kte::driving_actuator_gen > arm_joint_3_actuator;
-    shared_ptr< kte::driving_actuator_gen > arm_joint_4_actuator;
-    shared_ptr< kte::driving_actuator_gen > arm_joint_5_actuator;
-    shared_ptr< kte::driving_actuator_gen > arm_joint_6_actuator;
-  
+    
     //declare all links
-    shared_ptr< kte::rigid_link_3D > link_0;
-    shared_ptr< kte::rigid_link_3D > link_1;
-    shared_ptr< kte::rigid_link_3D > link_2;
-    shared_ptr< kte::rigid_link_3D > link_3;
-    shared_ptr< kte::rigid_link_3D > link_4;
-    shared_ptr< kte::rigid_link_3D > link_5;
-    shared_ptr< kte::rigid_link_3D > link_6;
-  
+    shared_ptr< kte::rigid_link_2D > link_0;
+    shared_ptr< kte::rigid_link_2D > link_1;
+    shared_ptr< kte::rigid_link_2D > link_2;
+    shared_ptr< kte::rigid_link_2D > link_3;
+    
     //declare all link-dependent frames
-    shared_ptr< kte::joint_dependent_frame_3D > link_0_dep_frame;
-    shared_ptr< kte::joint_dependent_frame_3D > link_1_dep_frame;
-    shared_ptr< kte::joint_dependent_frame_3D > link_2_dep_frame;
-    shared_ptr< kte::joint_dependent_frame_3D > link_3_dep_frame;
-    shared_ptr< kte::joint_dependent_frame_3D > link_4_dep_frame;
-    shared_ptr< kte::joint_dependent_frame_3D > link_5_dep_frame;
-    shared_ptr< kte::joint_dependent_frame_3D > link_6_dep_frame;
-
+    shared_ptr< kte::joint_dependent_frame_2D > link_0_dep_frame;
+    shared_ptr< kte::joint_dependent_frame_2D > link_1_dep_frame;
+    shared_ptr< kte::joint_dependent_frame_2D > link_2_dep_frame;
+    shared_ptr< kte::joint_dependent_frame_2D > link_3_dep_frame;
+    
     //declare all link inertias
-    shared_ptr< kte::inertia_3D > link_0_inertia;
-    shared_ptr< kte::inertia_3D > link_1_inertia;
-    shared_ptr< kte::inertia_3D > link_2_inertia;
-    shared_ptr< kte::inertia_3D > link_3_inertia;
-    shared_ptr< kte::inertia_3D > link_4_inertia;
-    shared_ptr< kte::inertia_3D > link_5_inertia;
-    shared_ptr< kte::inertia_3D > link_6_inertia;
-
+    shared_ptr< kte::inertia_2D > link_0_inertia;
+    shared_ptr< kte::inertia_2D > link_1_inertia;
+    shared_ptr< kte::inertia_2D > link_2_inertia;
+    shared_ptr< kte::inertia_2D > link_3_inertia;
+    
     vect_n<double> joint_lower_bounds;
     vect_n<double> joint_upper_bounds;
     pp::joint_limits_collection<double> joint_rate_limits;
     vect_n<double> preferred_posture;
     
-    typedef pp::metric_space_array< pp::rl_joint_space_2nd_order<double>::type, 7>::type rate_limited_joint_space_type;
-    typedef pp::metric_space_array< pp::joint_space_2nd_order<double>::type, 7>::type joint_space_type;
-    typedef pp::se3_2nd_order_topology<double>::type end_effector_space_type;
+    typedef pp::metric_space_array< pp::rl_joint_space_2nd_order<double>::type, 4>::type rate_limited_joint_space_type;
+    typedef pp::metric_space_array< pp::joint_space_2nd_order<double>::type, 4>::type joint_space_type;
+    typedef pp::se2_2nd_order_topology<double>::type end_effector_space_type;
     
     
     /**
      * Default constructor.
      */
-    CRS_A465_model_builder() { };
+    CRS_A465_2D_model_builder() { };
     
     /**
      * This function will load all the KTE model data from the given file.

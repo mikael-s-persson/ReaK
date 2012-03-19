@@ -764,6 +764,8 @@ class unit_quat : public quat<T> {
       };
     };
     
+    explicit unit_quat(const quaternion< value_type >& aQ) : quat<T>(aQ[0],aQ[1],aQ[2],aQ[3]) { };
+    
     //Copy-constructor is default.
     //Assignment operator is default.
     

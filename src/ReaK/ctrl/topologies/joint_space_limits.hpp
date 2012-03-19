@@ -631,7 +631,13 @@ namespace detail {
   };
   
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
-  void create_rl_joint_spaces_impl(OutSpace& space_out,
+  typename boost::disable_if< 
+    boost::mpl::or_<
+      is_rate_limited_joint_space< OutSpace >,
+      is_rate_limited_se2_space< OutSpace >,
+      is_rate_limited_se3_space< OutSpace >
+    >,
+  void >::type create_rl_joint_spaces_impl(OutSpace& space_out,
 				   const InSpace& space_in,
 				   const RateLimitMap& j_limits) {
     std::size_t gen_i = 0;
@@ -640,6 +646,24 @@ namespace detail {
     create_rl_joint_spaces_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutSpace > >::type >(space_out, 
 											  space_in,
 											  j_limits, gen_i, f2d_i, f3d_i);
+    
+  };
+  
+  template <typename OutSpace, typename InSpace, typename RateLimitMap>
+  typename boost::enable_if< 
+    boost::mpl::or_<
+      is_rate_limited_joint_space< OutSpace >,
+      is_rate_limited_se2_space< OutSpace >,
+      is_rate_limited_se3_space< OutSpace >
+    >,
+  void >::type create_rl_joint_spaces_impl(OutSpace& space_out,
+				   const InSpace& space_in,
+				   const RateLimitMap& j_limits) {
+    std::size_t gen_i = 0;
+    std::size_t f2d_i = 0;
+    std::size_t f3d_i = 0;
+    create_rl_joint_space_impl(space_out, space_in,
+		               j_limits, gen_i, f2d_i, f3d_i);
     
   };
   
@@ -1170,7 +1194,13 @@ namespace detail {
   };
   
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
-  void create_normal_joint_spaces_impl(OutSpace& space_out,
+  typename boost::disable_if< 
+    boost::mpl::or_<
+      is_rate_limited_joint_space< InSpace >,
+      is_rate_limited_se2_space< InSpace >,
+      is_rate_limited_se3_space< InSpace >
+    >,
+  void >::type create_normal_joint_spaces_impl(OutSpace& space_out,
 				       const InSpace& space_in,
 				       const RateLimitMap& j_limits) {
     std::size_t gen_i = 0;
@@ -1182,7 +1212,21 @@ namespace detail {
     
   };
   
-  
+  template <typename OutSpace, typename InSpace, typename RateLimitMap>
+  typename boost::enable_if< 
+    boost::mpl::or_<
+      is_rate_limited_joint_space< InSpace >,
+      is_rate_limited_se2_space< InSpace >,
+      is_rate_limited_se3_space< InSpace >
+    >,
+  void >::type create_normal_joint_spaces_impl(OutSpace& space_out,
+				       const InSpace& space_in,
+				       const RateLimitMap& j_limits) {
+    std::size_t gen_i = 0;
+    std::size_t f2d_i = 0;
+    std::size_t f3d_i = 0;
+    create_normal_joint_space_impl(space_out, space_in, j_limits, gen_i, f2d_i, f3d_i);
+  };
   
   
   
