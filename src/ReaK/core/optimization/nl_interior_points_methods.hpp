@@ -240,10 +240,9 @@ namespace detail {
 	abs_tol_mu = abs_tol;
       
       radius = 0.5 * max_radius;
-      ValueType rho = 1.0 - mu;
+      ValueType rho = (1.0 - abs_tol_mu) * 0.99;
       
       while((++k <= max_iter) && (Err_value > abs_tol_mu)) {
-        //RK_NOTICE(1," reached");
         solve_step(c,Jac_aug,v,norm_v,ValueType(0.8) * radius, abs_tol_mu); //RK_NOTICE(1," reached");
 	for(SizeType i = 0; i < K; ++i)
 	  if( v[N + i] < -0.5 * tau )
@@ -280,6 +279,9 @@ namespace detail {
 	  p_s[i] = s[i] * p[i+N];
 	};
 	impose_limits(x,p_x);
+	
+	RK_NOTICE(1,"Err_value = " << Err_value << " mu = " << mu << " abs_tol_mu = " << abs_tol_mu << " norm_p = " << norm_p);
+        
         
         ValueType pHp = p * (H_aug * p);
 	ValueType dm_p = c_norm_star - norm_2(c + Jac_aug * p);
@@ -349,7 +351,7 @@ namespace detail {
             Err_value = gt_norm;
           if(Err_value < ht_norm)
             Err_value = ht_norm;
-	  //RK_NOTICE(1," Err_value = " << Err_value << " c_norm_star = " << c_norm_star << " s = " << s << " z = " << z << " y = " << y);
+	 // RK_NOTICE(1," Err_value = " << Err_value << "\n c_norm_star = " << c_norm_star << "\n s = " << s << "\n z = " << z << "\n y = " << y << "\n g = " << gt_value);
         } else {
 	  if(radius < abs_tol_mu)
 	    break;
@@ -367,7 +369,7 @@ namespace detail {
         ValueType zeta(1.0);
         ValueType sz_k = s * z / ValueType(K);
         for(SizeType i = 0; i < K; ++i)
-	  if( SES(i,i) < zeta * sz_k )
+	  if( SES(i,i) / sz_k < zeta )
 	    zeta = SES(i,i) / sz_k;
         if(zeta < 0.5)  //this is just for numerical stability (takes the denominator where it will equalize the quantities involved).
 	  sigma = (ValueType(1.0) - zeta) / (ValueType(20.0) * zeta);
@@ -376,7 +378,8 @@ namespace detail {
         if(sigma > ValueType(2.0))
 	  sigma = ValueType(2.0);
         sigma *= sigma * sigma * ValueType(0.1);
-        mu = sigma * sz_k;
+        //mu = sigma * sz_k;
+	mu *= 0.1;
         //RK_NOTICE(1," inter-step: s = " << s << " z = " << z << " sz_k = " << sz_k << " zeta = " << zeta << " sigma = " << sigma << " mu = " << mu);
       } else {
 	mu *= 0.1;
@@ -392,7 +395,7 @@ namespace detail {
       for(SizeType i = 0; i < K; ++i)
         SES(i,i) = z[i] * s[i];
       
-      tau = 1.0 - mu;
+      tau = 1.0 - 10.0 * mu;
       
       //compute error without mu.
       Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) );
@@ -402,7 +405,7 @@ namespace detail {
         Err_value = gt_norm;
       if(Err_value < ht_norm)
         Err_value = ht_norm;
-      //RK_NOTICE(1,"Err_value = " << Err_value);
+      RK_NOTICE(1,"Err_value = " << Err_value << " mu = " << mu);
     } while(Err_value > abs_tol);
   };
   

@@ -921,6 +921,13 @@ class manip_clik_calculator {
 					  eq_jac_filler,
 					  ineq_function,
 					  ineq_jac_filler> optim_factory_type;
+//     typedef optim::nlip_quasi_newton_tr_factory<manip_clik_cost_function,
+//                                                 manip_clik_cost_grad,
+// 						double,
+// 						eq_function,
+// 						eq_jac_filler,
+// 						ineq_function,
+// 						ineq_jac_filler> optim_factory_type;
     
     optim_factory_type optimizer;
 

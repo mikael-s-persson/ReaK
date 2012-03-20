@@ -380,7 +380,7 @@ frame_2D<T> get_frame_2D(
                           arithmetic_tuple< T, T, T > >& pt) {
   return frame_2D<T>(weak_ptr< pose_2D<T> >(),
                      get<0>(get<0>(pt)), 
-		     get<0>(get<1>(pt)), 
+		     rot_mat_2D<T>(get<0>(get<1>(pt))), 
 		     get<1>(get<0>(pt)), 
 		     get<1>(get<1>(pt)), 
 		     get<2>(get<0>(pt)), 

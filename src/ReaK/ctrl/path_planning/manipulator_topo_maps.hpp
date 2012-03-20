@@ -1101,11 +1101,20 @@ namespace detail {
     
     write_dependent_coordinates_impl(pt,space_in,model);
     
-    kte::manip_clik_calculator ik_calc = kte::manip_clik_calculator(model.get());
-    
     vect_n<double> centers(model->getJointPositionsCount() + model->getJointVelocitiesCount());
     vect_n<double> diag_gains(model->getJointPositionsCount() + model->getJointVelocitiesCount());
     std::copy(preferred_posture.begin(), preferred_posture.end(), centers.begin());
+    
+    kte::manip_clik_calculator ik_calc = kte::manip_clik_calculator(
+      model.get(),
+      NULL,
+      centers.size(), //double aMaxRadius = 1.0, 
+      0.1, //double aMu = 0.1, 
+      200, //double aMaxIter = 300, 
+      1e-4, //double aTol = 1e-6, 
+      1e-1, //double aEta = 1e-3, 
+      0.9 //double aTau = 0.99
+    );
     
     write_joint_bounds_impl(
       space_out, 
