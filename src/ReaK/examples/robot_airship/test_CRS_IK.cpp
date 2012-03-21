@@ -49,6 +49,11 @@ int main() {
   
   try {
     j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
+    ReaK::frame_3D<double> f_x = get_frame_3D(dk_map.map_to_space(j_x, j_space, ee_space));
+    std::cout << f_x.Position << std::endl
+              << f_x.Quat << std::endl
+              << f_x.Velocity << std::endl
+              << f_x.AngVelocity << std::endl;
   } catch(std::exception& e) {
     std::cout << "ERROR: An exception occurred during 3D IK problem: " << e.what() << std::endl;
   };
@@ -88,6 +93,11 @@ int main() {
   
   try {
     j_x_2D = ik_map_2D.map_to_space(ee_x_2D, ee_space2D, j_space2D);
+    ReaK::frame_2D<double> f_x_2D = get_frame_2D(dk_map_2D.map_to_space(j_x_2D, j_space2D, ee_space2D));
+    std::cout << f_x_2D.Position << std::endl
+              << f_x_2D.Rotation.getAngle() << std::endl
+              << f_x_2D.Velocity << std::endl
+              << f_x_2D.AngVelocity << std::endl;
   } catch(std::exception& e) {
     std::cout << "ERROR: An exception occurred during 2D IK problem: " << e.what() << std::endl;
   };

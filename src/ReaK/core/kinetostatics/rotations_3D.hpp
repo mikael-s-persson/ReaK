@@ -1612,12 +1612,13 @@ class axis_angle : public serialization::serializable {
     explicit axis_angle(const quaternion<value_type>& Q) {
       using std::sqrt;
       using std::acos;
-      value_type tmp(sqrt(Q.q[1]*Q.q[1] + Q.q[2]*Q.q[2] + Q.q[3]*Q.q[3]));
+      vect<value_type, 4> v(Q.q[0],Q.q[1],Q.q[2],Q.q[3]); v = unit(v);
+      value_type tmp(sqrt(v[1]*v[1] + v[2]*v[2] + v[3]*v[3]));
       if(tmp > value_type(0.0000001)) {
-	mAxis.q[0] = Q.q[1] / tmp;
-	mAxis.q[1] = Q.q[2] / tmp;
-	mAxis.q[2] = Q.q[3] / tmp;
-	mAngle = value_type(2.0) * acos(Q.q[0]);
+	mAxis.q[0] = v[1] / tmp;
+	mAxis.q[1] = v[2] / tmp;
+	mAxis.q[2] = v[3] / tmp;
+	mAngle = value_type(2.0) * acos(v[0]);
       } else {
 	mAxis.q[0] = value_type(1.0);
 	mAxis.q[1] = value_type(0.0);

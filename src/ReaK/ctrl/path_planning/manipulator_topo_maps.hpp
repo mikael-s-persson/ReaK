@@ -215,7 +215,7 @@ namespace detail {
 					  const InSpace&,
 					  std::size_t&, std::size_t& f2d_i, std::size_t&,
 				          const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    set_frame_3D(pt,*(model->Frames2D()[f2d_i++]));
+    set_frame_2D(pt,*(model->Frames2D()[f2d_i++]));
   };
   
   template <typename PointType, typename InSpace>
@@ -486,7 +486,7 @@ namespace detail {
 					      const InSpace&,
 					      std::size_t&, std::size_t& f2d_i, std::size_t&,
 				              const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    set_frame_3D(pt,*(model->DependentFrames2D()[f2d_i++]->mFrame));
+    set_frame_2D(pt,*(model->DependentFrames2D()[f2d_i++]->mFrame));
   };
   
   template <typename PointType, typename InSpace>
@@ -575,7 +575,7 @@ namespace detail {
       is_se2_space<InSpaceTuple>,
       is_se3_space<InSpaceTuple>
     >,  
-  void >::type read_dependent_coordinates_impl( const PointType& pt,
+  void >::type read_dependent_coordinates_impl( PointType& pt,
 				        const InSpaceTuple& space_in,
 				        const shared_ptr< kte::manipulator_kinematics_model >& model) {
     std::size_t gen_i = 0;
@@ -591,7 +591,7 @@ namespace detail {
       is_se2_space<InSpaceTuple>,
       is_se3_space<InSpaceTuple>
     >,  
-  void >::type read_dependent_coordinates_impl( const PointType& pt,
+  void >::type read_dependent_coordinates_impl( PointType& pt,
 				        const InSpaceTuple& space_in,
 				        const shared_ptr< kte::manipulator_kinematics_model >& model) {
     std::size_t gen_i = 0;
@@ -1109,7 +1109,7 @@ namespace detail {
       model.get(),
       NULL,
       centers.size(), //double aMaxRadius = 1.0, 
-      0.1, //double aMu = 0.1, 
+      0.2, //double aMu = 0.1, 
       200, //double aMaxIter = 300, 
       1e-4, //double aTol = 1e-6, 
       1e-1, //double aEta = 1e-3, 

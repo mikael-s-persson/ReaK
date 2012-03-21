@@ -97,7 +97,7 @@ namespace detail {
     min_s *= ValueType(-0.1);
     
     while(min_s > abs_tol) {
-      RK_NOTICE(1," s = " << s << " x = " << x << " h = " << ht_value << " Jac = " << Jac_h);
+      //RK_NOTICE(1," s = " << s << " x = " << x << " h = " << ht_value << " Jac = " << Jac_h);
       Vector e_s(s);
       for(SizeType i = 0; i < K; ++i)
 	e_s[i] = min_s;
@@ -105,7 +105,7 @@ namespace detail {
       Vector dx = x;
       mat_vect_adaptor<Vector> dx_mat(dx);
       minnorm_QR(Jac_h,dx_mat,mat_vect_adaptor<Vector>(e_s),abs_tol);
-      RK_NOTICE(1," e_s = " << e_s << " dx = " << dx);
+      //RK_NOTICE(1," e_s = " << e_s << " dx = " << dx);
       x += dx;
       ht_value = h(x);
       fill_h_jac(Jac_h,x,ht_value);
@@ -117,7 +117,7 @@ namespace detail {
       min_s *= ValueType(-0.1);
     };
     if(min_s > ValueType(0.0))
-      s += vect_scalar<double>(K,ValueType(1000.0) * abs_tol);
+      s += vect_scalar<double>(K,ValueType(100.0) * abs_tol);
     
     Vector gt_value = g(x);
     SizeType M = gt_value.size();
@@ -147,8 +147,8 @@ namespace detail {
     mS = mat<ValueType,mat_structure::diagonal>(-s);
     c[range(M,M+K-1)] = ht_value - s;
     
-    ValueType gt_norm = norm_2(c[range(0,M-1)]);
-    ValueType ht_norm = norm_2(c[range(M,M+K-1)]);
+    ValueType gt_norm = norm_2(c[range(0,M-1)]) / sqrt(ValueType(M));
+    ValueType ht_norm = norm_2(c[range(M,M+K-1)]) / sqrt(ValueType(K));
     
     ValueType radius = ValueType(0.5) * max_radius;
     ValueType x_value = f(x);
@@ -183,21 +183,20 @@ namespace detail {
     Vector yz; yz.resize(M+K);
     mat_vect_adaptor<Vector> yz_mat(yz);
     vect_ref_view< Vector > y(yz[range(0,M-1)]);
-    vect_ref_view< Vector > z(yz[range(M,M+K-1)]); //RK_NOTICE(1," reached");
+    vect_ref_view< Vector > z(yz[range(M,M+K-1)]);
     try {
       linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
-      //RK_NOTICE(1," reached");
     } catch(singularity_error&) {
       SVD_linlsqsolver()(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
     };
     for(SizeType i = 0; i < K; ++i)
-      if(z[i] < abs_tol)
-	z[i] = abs_tol;
+      if(z[i] < ValueType(0.0))
+	z[i] = mu;
     
     ValueType norm_star = norm_2(x_grad) + norm_2(y * Jac_g) + norm_2(z * Jac_h);
     Vector l(x_grad - y * Jac_g - z * Jac_h);
     Vector lt = l;
-    norm_star = norm_2(l);
+    norm_star = norm_2(l) / sqrt(N);
     
     mat<ValueType,mat_structure::diagonal> SES(K);
     for(SizeType i = 0; i < K; ++i)
@@ -214,7 +213,7 @@ namespace detail {
       mat_const_ref_horiz_cat< mat<ValueType, mat_structure::nil>, mat<ValueType, mat_structure::diagonal> >
     > H_aug(H_upper,H_lower);
     
-    ValueType Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) );
+    ValueType Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) ) / sqrt(ValueType(K));
     if(Err_value < norm_star)
       Err_value = norm_star;
     if(Err_value < gt_norm)
@@ -227,7 +226,7 @@ namespace detail {
     do {
       
       //compute error with mu.
-      Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) + p_grad[range(N,N+K-1)] );
+      Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) + p_grad[range(N,N+K-1)] ) / sqrt(ValueType(K));
       if(Err_value < norm_star)
         Err_value = norm_star;
       if(Err_value < gt_norm)
@@ -249,7 +248,7 @@ namespace detail {
 	    v[N + i] = -0.5 * tau;
 	r = c + Jac_aug * v;
 	
-	try {//RK_NOTICE(1," reached");
+	try {
 	  null_space_QP_method(Jac_aug, r - c, H_aug, p_grad, p, abs_tol, radius);//RK_NOTICE(1," reached");
 	} catch(singularity_error&) {
 	  try {
@@ -261,7 +260,6 @@ namespace detail {
         norm_p = norm_2(p);
 	if(norm_p < abs_tol_mu) {
 	  if(abs_tol_mu <= abs_tol) {
-	    //RK_NOTICE(1," Terminating due to small increment!");
 	    return;
 	  };
 	  break;
@@ -280,7 +278,7 @@ namespace detail {
 	};
 	impose_limits(x,p_x);
 	
-	RK_NOTICE(1,"Err_value = " << Err_value << " mu = " << mu << " abs_tol_mu = " << abs_tol_mu << " norm_p = " << norm_p);
+	//RK_NOTICE(1,"Err_value = " << Err_value << " mu = " << mu << " abs_tol_mu = " << abs_tol_mu << " norm_p = " << norm_p);
         
         
         ValueType pHp = p * (H_aug * p);
@@ -294,7 +292,6 @@ namespace detail {
         if(nu < nu_t)
 	  nu = nu_t + abs_tol;
 	ValueType pred = nu * dm_p - dq_p;
-	//RK_NOTICE(1,"   NU = " << nu);
 	
         xt = x; xt += p_x;
 	st = s; st += p_s;
@@ -306,16 +303,18 @@ namespace detail {
           log_st += log(st[i]);
 	ValueType ct_norm_star = sqrt(norm_2_sqr(gt_value) + norm_2_sqr(ht_value));
 	
+	//RK_NOTICE(1," gt_value = " << gt_value);
 	//RK_NOTICE(1," x = " << x << " s = " << s << " x_value = " << x_value << " log_s = " << log_s << " c_norm_star = " << c_norm_star << " mu = " << mu);
         //RK_NOTICE(1," xt = " << xt << " st = " << st << " xt_value = " << xt_value << " log_st = " << log_st << " ct_norm_star = " << ct_norm_star);
         
         ValueType ared = x_value - xt_value - mu * (log_s - log_st) 
 	                + nu * (c_norm_star - ct_norm_star);
 	
+	//RK_NOTICE(1," x_value = " << x_value << " xt_value = " << xt_value << " nu = " << nu << " log_s = " << log_s << " log_st = " << log_st << " c_norm_star = " << c_norm_star << " ct_norm_star = " << ct_norm_star);
 	//RK_NOTICE(1," x = " << x << " ared = " << ared << " pred = " << pred << " norm_p = " << norm_2(p_x));
         
         if(ared >= kappa * pred) {
-	  //step is accepted. NOTE TODO A lot of shit to update here.
+	  //step is accepted. 
 	  x += p_x;
 	  x_value = xt_value;
 	  x_grad = df(x);
@@ -323,8 +322,8 @@ namespace detail {
 	  s += p_s;
 	  mS = mat<ValueType,mat_structure::diagonal>(-s);
 	  log_s = log_st;
-          c[range(0,M-1)] = gt_value;   gt_norm = norm_2(gt_value);
-          c[range(M,M+K-1)] = ht_value; ht_norm = norm_2(ht_value);
+          c[range(0,M-1)] = gt_value;   gt_norm = norm_2(gt_value) / sqrt(ValueType(M));
+          c[range(M,M+K-1)] = ht_value; ht_norm = norm_2(ht_value) / sqrt(ValueType(K));
 	  c_norm_star = ct_norm_star;
 	  fill_g_jac(Jac_g,x,gt_value);      
 	  fill_h_jac(Jac_h,x,ht_value + st);
@@ -332,19 +331,19 @@ namespace detail {
             radius *= ValueType(2.0);
             if(radius > max_radius)
               radius = max_radius;
-          };//RK_NOTICE(1," reached");
+          };
           linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);//RK_NOTICE(1," reached");
 	  for(SizeType i = 0; i < K; ++i)
-            if(z[i] < abs_tol)
-              z[i] = abs_tol;
+            if(z[i] < ValueType(0.0))
+              z[i] = mu;
 	  lt = x_grad - y * Jac_g - z * Jac_h;
-	  norm_star = norm_2(lt);
+	  norm_star = norm_2(lt) / sqrt(N);
           fill_hessian(H,x,x_value,x_grad,p_x,lt - l);
 	  l = lt;
 	  for(SizeType i = 0; i < K; ++i)
             SES(i,i) = z[i] * s[i];
           //compute new error with mu.
-	  Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) + p_grad[range(N,N+K-1)] );
+	  Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) + p_grad[range(N,N+K-1)] ) / sqrt(ValueType(K));
           if(Err_value < norm_star)
             Err_value = norm_star;
           if(Err_value < gt_norm)
@@ -360,8 +359,6 @@ namespace detail {
       };
       if(k > max_iter)
 	throw maximum_iteration(max_iter);
-      //if(radius < abs_tol)
-	//return;
       
       //decrease mu;
       if( K > 1 ) {
@@ -388,24 +385,24 @@ namespace detail {
       p_grad[range(N,N+K-1)] = vect_scalar<ValueType>(K,-mu);
       linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
       for(SizeType i = 0; i < K; ++i)
-        if(z[i] < abs_tol)
-          z[i] = abs_tol;
+        if(z[i] < ValueType(0.0))
+          z[i] = mu;
       l = x_grad - y * Jac_g - z * Jac_h;
-      norm_star = norm_2(l);
+      norm_star = norm_2(l) / sqrt(ValueType(N));
       for(SizeType i = 0; i < K; ++i)
         SES(i,i) = z[i] * s[i];
       
       tau = 1.0 - 10.0 * mu;
       
       //compute error without mu.
-      Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) );
+      Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) ) / sqrt(ValueType(K));
       if(Err_value < norm_star)
         Err_value = norm_star;
       if(Err_value < gt_norm)
         Err_value = gt_norm;
       if(Err_value < ht_norm)
         Err_value = ht_norm;
-      RK_NOTICE(1,"Err_value = " << Err_value << " mu = " << mu);
+      //RK_NOTICE(1,"Err_value = " << Err_value << " mu = " << mu);
     } while(Err_value > abs_tol);
   };
   
