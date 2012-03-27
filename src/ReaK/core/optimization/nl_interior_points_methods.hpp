@@ -278,7 +278,7 @@ namespace detail {
 	};
 	impose_limits(x,p_x);
 	
-	//RK_NOTICE(1,"Err_value = " << Err_value << " mu = " << mu << " abs_tol_mu = " << abs_tol_mu << " norm_p = " << norm_p);
+	RK_NOTICE(1,"Err_value = " << Err_value << " mu = " << mu << " abs_tol_mu = " << abs_tol_mu << " norm_p = " << norm_p);
         
         
         ValueType pHp = p * (H_aug * p);
@@ -350,7 +350,7 @@ namespace detail {
             Err_value = gt_norm;
           if(Err_value < ht_norm)
             Err_value = ht_norm;
-	 // RK_NOTICE(1," Err_value = " << Err_value << "\n c_norm_star = " << c_norm_star << "\n s = " << s << "\n z = " << z << "\n y = " << y << "\n g = " << gt_value);
+	  //RK_NOTICE(1," Err_value = " << Err_value << "\n c_norm_star = " << c_norm_star << "\n s = " << s << "\n z = " << z << "\n y = " << y << "\n g = " << gt_value);
         } else {
 	  if(radius < abs_tol_mu)
 	    break;

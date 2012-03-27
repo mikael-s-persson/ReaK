@@ -41,6 +41,7 @@
 #include "manipulator_model.hpp"
 
 #include "optimization/nl_interior_points_methods.hpp"
+#include "optimization/function_types.hpp"
 
 namespace ReaK {
 
@@ -576,76 +577,6 @@ class manip_kin_mdl_jac_calculator {
 
 
 
-class manip_clik_cost_evaluator {
-  public:
-    
-    virtual double compute_cost(const vect_n<double>& x) const = 0;
-    virtual vect_n<double> compute_cost_grad(const vect_n<double>& x) const = 0;
-    virtual void compute_cost_hessian(mat<double,mat_structure::symmetric>& H, const vect_n<double>& x, double f, const vect_n<double>& x_grad) const = 0;
-    
-    virtual ~manip_clik_cost_evaluator() { };
-};
-
-
-
-
-class quadratic_cost_evaluator : public manip_clik_cost_evaluator {
-  public:
-    vect_n<double> c;
-    mat<double,mat_structure::symmetric> Q;
-    
-    quadratic_cost_evaluator(const vect_n<double>& aC, const mat<double,mat_structure::symmetric> aQ) : c(aC), Q(aQ) { };
-    
-    virtual double compute_cost(const vect_n<double>& x) const {
-      vect_n<double> tmp = x; tmp -= c;
-      return 0.5 * (tmp * (Q * tmp));
-    };
-    
-    virtual vect_n<double> compute_cost_grad(const vect_n<double>& x) const {
-      return Q * (x - c);
-    };
-    
-    virtual void compute_cost_hessian(mat<double,mat_structure::symmetric>& H, const vect_n<double>&, double, const vect_n<double>&) const {
-      H = Q;
-    };
-    
-};
-
-
-    
-struct manip_clik_cost_function {
-  const manip_clik_cost_evaluator* parent;
-      
-  manip_clik_cost_function(const manip_clik_cost_evaluator* aParent) : parent(aParent) { };
-      
-  double operator()(const vect_n<double>& x) const {
-    return parent->compute_cost(x);
-  };
-};
-    
-struct manip_clik_cost_grad {
-  const manip_clik_cost_evaluator* parent;
-      
-  manip_clik_cost_grad(const manip_clik_cost_evaluator* aParent) : parent(aParent) { };
-      
-  vect_n<double> operator()(const vect_n<double>& x) const {
-    return parent->compute_cost_grad(x);
-  };
-};
-    
-struct manip_clik_cost_hess {
-  const manip_clik_cost_evaluator* parent;
-      
-  manip_clik_cost_hess(const manip_clik_cost_evaluator* aParent) : parent(aParent) { };
-      
-  void operator()(mat<double,mat_structure::symmetric>& H, const vect_n<double>& x, double f, const vect_n<double>& x_grad) const {
-    return parent->compute_cost_hessian(H,x,f,x_grad);
-  };
-};
-
-
-
-
 /**
  * This class is a helper of the manipulator_kinematics_model class which is used to perform 
  * a closed-loop inverse kinematics (CLIK) calculation to compute the joint positions and 
@@ -665,7 +596,7 @@ class manip_clik_calculator {
     
   public:
     
-    const manip_clik_cost_evaluator* cost_evaluator;
+    shared_ptr<const optim::cost_evaluator> cost_eval;
     
     vect_n<double> lower_bounds;
     vect_n<double> upper_bounds;
@@ -906,16 +837,15 @@ class manip_clik_calculator {
 	  
 	};
 	
-	
       };
       
     };
     
     
     
-    typedef optim::nlip_newton_tr_factory<manip_clik_cost_function,
-                                          manip_clik_cost_grad,
-					  manip_clik_cost_hess,
+    typedef optim::nlip_newton_tr_factory<optim::oop_cost_function,
+                                          optim::oop_cost_grad,
+					  optim::oop_cost_hess,
 					  double,
 					  eq_function,
 					  eq_jac_filler,
@@ -943,7 +873,7 @@ class manip_clik_calculator {
      * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint (barrier).
      */
     manip_clik_calculator(manipulator_kinematics_model* aModel, 
-			  const manip_clik_cost_evaluator* aCostEvaluator = NULL,
+			  const shared_ptr<const optim::cost_evaluator>& aCostEvaluator = shared_ptr<const optim::cost_evaluator>(),
 			  double aMaxRadius = 1.0, 
 			  double aMu = 0.1, 
 			  double aMaxIter = 300, 
@@ -951,11 +881,11 @@ class manip_clik_calculator {
 			  double aEta = 1e-3, 
 			  double aTau = 0.99) : 
 			  model(aModel), 
-			  cost_evaluator(aCostEvaluator),
+			  cost_eval(aCostEvaluator),
 			  optimizer(
-			    manip_clik_cost_function(aCostEvaluator),
-			    manip_clik_cost_grad(aCostEvaluator),
-			    manip_clik_cost_hess(aCostEvaluator),
+			    optim::oop_cost_function(aCostEvaluator),
+			    optim::oop_cost_grad(aCostEvaluator),
+			    optim::oop_cost_hess(aCostEvaluator),
 			    aMaxRadius, aMu, aMaxIter,
 	                    eq_function(this), eq_jac_filler(this),
 			    ineq_function(this), ineq_jac_filler(this),
@@ -971,19 +901,9 @@ class manip_clik_calculator {
 	upper_bounds[i] =  std::numeric_limits<double>::infinity();
       };
       
-      desired_gen_coords.resize( model->DependentCoords().size() );
-      for(std::size_t i = 0; i < desired_gen_coords.size(); ++i)
-	desired_gen_coords[i] = *(model->DependentCoords()[i]->mFrame);
-      
-      desired_frame_2D.resize( model->DependentFrames2D().size() );
-      for(std::size_t i = 0; i < desired_frame_2D.size(); ++i)
-	desired_frame_2D[i] = *(model->DependentFrames2D()[i]->mFrame);
-      
-      desired_frame_3D.resize( model->DependentFrames3D().size() );
-      for(std::size_t i = 0; i < desired_frame_3D.size(); ++i)
-	desired_frame_3D[i] = *(model->DependentFrames3D()[i]->mFrame);
       
     };
+    
     
     /**
      * Default destructor.
@@ -1002,28 +922,48 @@ class manip_clik_calculator {
      */
     void solveInverseKinematics() {
       
+      desired_gen_coords.resize( model->DependentCoords().size() );
+      for(std::size_t i = 0; i < desired_gen_coords.size(); ++i)
+	desired_gen_coords[i] = *(model->DependentCoords()[i]->mFrame);
+      
+      desired_frame_2D.resize( model->DependentFrames2D().size() );
+      for(std::size_t i = 0; i < desired_frame_2D.size(); ++i)
+	desired_frame_2D[i] = *(model->DependentFrames2D()[i]->mFrame);
+      
+      desired_frame_3D.resize( model->DependentFrames3D().size() );
+      for(std::size_t i = 0; i < desired_frame_3D.size(); ++i)
+	desired_frame_3D[i] = *(model->DependentFrames3D()[i]->mFrame);
+      
       vect_n<double> x(model->getJointPositionsCount() + model->getJointVelocitiesCount());
       
       vect_ref_view< vect_n<double> > pos_x = x[range(0,model->getJointPositionsCount()-1)];
       manip_kin_mdl_joint_io(model).getJointPositions(pos_x);
-  
+      
       vect_ref_view< vect_n<double> > vel_x = x[range(model->getJointPositionsCount(),model->getJointPositionsCount() + model->getJointVelocitiesCount() - 1)];
       manip_kin_mdl_joint_io(model).getJointVelocities(vel_x);
       
-      const manip_clik_cost_evaluator* tmp_cost_eval = NULL;
-      if(!cost_evaluator) {
-	tmp_cost_eval = new quadratic_cost_evaluator(vect_n<double>(x.size(), double(0.0)),
-	                                             mat<double,mat_structure::symmetric>(
-						       ( mat<double,mat_structure::nil>(model->getJointPositionsCount(), model->getJointPositionsCount() + model->getJointVelocitiesCount()) |
-						       ( mat<double,mat_structure::nil>(model->getJointVelocitiesCount(), model->getJointPositionsCount()) & mat<double,mat_structure::identity>(model->getJointVelocitiesCount()) ) )
-						     ) );
+      shared_ptr<const optim::cost_evaluator> tmp_cost_eval;
+      if(!cost_eval) {
+	tmp_cost_eval = shared_ptr<const optim::cost_evaluator>(
+	  new optim::quadratic_cost_evaluator(
+	    vect_n<double>(x.size(), double(0.0)),
+	    mat<double,mat_structure::symmetric>(
+              ( mat<double,mat_structure::nil>(model->getJointPositionsCount(), model->getJointPositionsCount() + model->getJointVelocitiesCount()) |
+	      ( mat<double,mat_structure::nil>(model->getJointVelocitiesCount(), model->getJointPositionsCount()) & mat<double,mat_structure::identity>(model->getJointVelocitiesCount()) ) )
+	    ) 
+	  )
+	);
       };
       
       if(tmp_cost_eval)
-	cost_evaluator = tmp_cost_eval;
-      optimizer.f = manip_clik_cost_function(cost_evaluator);
-      optimizer.df = manip_clik_cost_grad(cost_evaluator);
-      optimizer.fill_hessian = manip_clik_cost_hess(cost_evaluator);
+	cost_eval = tmp_cost_eval;
+      optimizer.f = optim::oop_cost_function(cost_eval);
+      optimizer.df = optim::oop_cost_grad(cost_eval);
+      optimizer.fill_hessian = optim::oop_cost_hess(cost_eval);
+      optimizer.g = eq_function(this);
+      optimizer.fill_g_jac = eq_jac_filler(this);
+      optimizer.h = ineq_function(this);
+      optimizer.fill_h_jac = ineq_jac_filler(this);
       
       optimizer( x );
       
@@ -1031,8 +971,7 @@ class manip_clik_calculator {
       manip_kin_mdl_joint_io(model).setJointVelocities(x[range(model->getJointPositionsCount(),model->getJointPositionsCount() + model->getJointVelocitiesCount() - 1)]);
       
       if(tmp_cost_eval) {
-	cost_evaluator = NULL;
-        delete tmp_cost_eval;
+	cost_eval = shared_ptr<const optim::cost_evaluator>();
       };
     };
     
