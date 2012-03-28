@@ -2273,6 +2273,134 @@ class clik_quad_cost_factory : public shared_object {
 
 
 /**
+ * This cost evaluator attempts to keep two joints from being too straight, i.e., tries 
+ * to keep them at a +/- 90 degrees angle. The cost function itself is a sin-squared 
+ * function applied on each joint in its internal list.
+ */
+class clik_bent_joints_cost_eval : public ReaK::optim::cost_evaluator {
+  public:
+    std::vector<int> joint_ids; ///< Holds the indices of the joints to keep bent.
+    
+    /**
+     * Parametrized Constructor.
+     * \param aJointIDs The indices of the joints to keep bent.
+     */
+    clik_bent_joints_cost_eval(const std::vector<int>& aJointIDs) : joint_ids(aJointIDs) { };
+    
+    virtual double compute_cost(const vect_n<double>& x) const {
+      double sum = 0.0;
+      for(std::size_t i = 0; i < joint_ids.size(); ++i) {
+	double s = std::sin( x[joint_ids[i]] );
+	sum += s * s;
+      };
+      return sum;
+    };
+    
+    virtual vect_n<double> compute_cost_grad(const vect_n<double>& x) const {
+      vect_n<double> result(x.size(),0.0);
+      for(std::size_t i = 0; i < joint_ids.size(); ++i) {
+	result[ joint_ids[i] ] = 2.0 * std::sin( x[joint_ids[i]] ) * std::cos( x[joint_ids[i]] );
+      };
+      return result;
+    };
+    
+    virtual void compute_cost_hessian(mat<double,mat_structure::symmetric>& H, const vect_n<double>& x, double, const vect_n<double>&) const {
+      H.set_row_count(x.size());
+      for(std::size_t i = 0; i < joint_ids.size(); ++i) {
+	double s = std::sin( x[joint_ids[i]] ); s *= s;
+	double c = std::cos( x[joint_ids[i]] ); c *= c;
+	H(joint_ids[i], joint_ids[i]) = 2.0 * (c - s);
+      };
+    };
+  
+};
+
+
+
+
+/**
+ * This class is a factory class for creating quadratic cost evaluators for the cost 
+ * associated to a joint-state of the manipulator.
+ */
+class clik_bent_joints_cost_factory : public shared_object {
+  public:
+    typedef clik_bent_joints_cost_factory self;
+    
+    /** Holds the indices of the joints to keep bent. */
+    std::vector<int> joint_ids;
+    
+    /**
+     * Parametrized constructor.
+     * \param aJointIDs The indices of the joints to keep bent.
+     */
+    clik_bent_joints_cost_factory(const std::vector<int>& aJointIDs) : joint_ids(aJointIDs) { };
+    
+    clik_bent_joints_cost_factory(int J1 = -1, int J2 = -1, int J3 = -1, int J4 = -1) {
+      if(J1 >= 0)
+	joint_ids.push_back(J1);
+      if(J2 >= 0)
+	joint_ids.push_back(J2);
+      if(J3 >= 0)
+	joint_ids.push_back(J3);
+      if(J4 >= 0)
+	joint_ids.push_back(J4);
+    };
+    
+    /**
+     * This function creates a quadratic cost evaluator for a manipulator model and 
+     * joint space.
+     * \param aJSpace The joint space associated to the joints of the manipulator.
+     * \param aModel The kinematics model of the manipulator.
+     * \return The quadratic cost evaluator for the manipulator model.
+     */
+    template <typename JointSpace>
+    shared_ptr< clik_bent_joints_cost_eval > create_evaluator(
+      const JointSpace&,
+      const shared_ptr< kte::manipulator_kinematics_model >&
+    ) const {
+      return shared_ptr< clik_bent_joints_cost_eval >( 
+        new clik_bent_joints_cost_eval(joint_ids));
+    };
+    
+    /**
+     * This function creates a quadratic cost evaluator for a manipulator model and 
+     * joint space.
+     * \param aJSpace The joint space associated to the joints of the manipulator.
+     * \param aJLimits The joint space rate-limits associated to the joints of the manipulator.
+     * \param aModel The kinematics model of the manipulator.
+     * \return The quadratic cost evaluator for the manipulator model.
+     */
+    template <typename JointSpace, typename RateLimitMap>
+    shared_ptr< clik_bent_joints_cost_eval > create_evaluator(
+      const JointSpace& ,
+      const RateLimitMap& ,
+      const shared_ptr< kte::manipulator_kinematics_model >& 
+    ) const {
+      return shared_ptr< clik_bent_joints_cost_eval >( 
+        new clik_bent_joints_cost_eval(joint_ids));
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(joint_ids);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(joint_ids);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400019,1,"clik_bent_joints_cost_factory",shared_object)
+    
+};
+
+
+
+
+/**
  * This class is a factory class for creating mixed cost evaluators for the cost 
  * associated to a joint-state of the manipulator. The costs will be calculated as 
  * an addition of a quadratic function for the velocities and a user-given cost 

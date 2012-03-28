@@ -33,14 +33,20 @@ int main() {
   ReaK::pp::manip_inverse_kin_map<
     ReaK::pp::manip_clik_calc_factory<
       JointSpaceType,
-      ReaK::pp::clik_quad_cost_factory
+      ReaK::pp::clik_mixed_cost_factory<
+        ReaK::pp::clik_bent_joints_cost_factory
+      >
     >
   > ik_map(model,
 	   ReaK::pp::manip_clik_calc_factory<
              JointSpaceType,
-             ReaK::pp::clik_quad_cost_factory
+             ReaK::pp::clik_mixed_cost_factory<
+               ReaK::pp::clik_bent_joints_cost_factory
+             >
            >( ReaK::shared_ptr< JointSpaceType >(&j_space, ReaK::null_deleter()),
-	      ReaK::pp::clik_quad_cost_factory(builder.preferred_posture)));
+	      ReaK::pp::clik_mixed_cost_factory<
+                ReaK::pp::clik_bent_joints_cost_factory
+              >(ReaK::pp::clik_bent_joints_cost_factory(3,5))));
   ReaK::pp::manip_direct_kin_map dk_map(model);
   
   typedef ReaK::pp::topology_traits< EESpaceType >::point_type EEPointType;
@@ -77,7 +83,7 @@ int main() {
   get<1>(get<6>(j_zero)) = 0.0;
   
   
-#if 1
+#if 0
   ee_f = ReaK::frame_3D<double>(
     ReaK::weak_ptr< ReaK::pose_3D<double> >(),
     ReaK::vect<double,3>(2.0, 0.5, 0.5),
@@ -124,12 +130,13 @@ int main() {
 	    rec << ee_f.Position[0] << ee_f.Position[1] << ee_f.Position[2]
 	        << (l * 2.0 * M_PI / 10.0) << (m * 2.0 * M_PI / 10.0);
 	    try {
-	      ee_x = dk_map.map_to_space(j_zero, j_space, ee_space);
+	      //ee_x = dk_map.map_to_space(j_zero, j_space, ee_space);
 	      set_frame_3D(ee_x, ee_f);
 	      j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
 	      rec << 1.0;
 	    } catch(ReaK::singularity_error& e) {
 	      rec << 0.5;
+	      ee_x = dk_map.map_to_space(j_zero, j_space, ee_space);
 	    } catch(ReaK::maximum_iteration& e) {
 	      rec << 0.0;
 	    };

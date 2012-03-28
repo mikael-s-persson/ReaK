@@ -278,7 +278,7 @@ namespace detail {
 	};
 	impose_limits(x,p_x);
 	
-	RK_NOTICE(1,"Err_value = " << Err_value << " mu = " << mu << " abs_tol_mu = " << abs_tol_mu << " norm_p = " << norm_p);
+	//RK_NOTICE(1,"Err_value = " << Err_value << " mu = " << mu << " abs_tol_mu = " << abs_tol_mu << " norm_p = " << norm_p);
         
         
         ValueType pHp = p * (H_aug * p);

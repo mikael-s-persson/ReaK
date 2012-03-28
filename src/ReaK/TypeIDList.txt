@@ -258,6 +258,8 @@ manip_rl_inverse_kin_map<R> 0xC2400015   bin: 1100 0010 0100 0000 0000 0000 0001
 manip_clik_calc_factory     0xC2400016   bin: 1100 0010 0100 0000 0000 0000 0001 0110  D-R
 clik_quad_cost_factory      0xC2400017   bin: 1100 0010 0100 0000 0000 0000 0001 0111  D-R
 clik_mixed_cost_factory     0xC2400018   bin: 1100 0010 0100 0000 0000 0000 0001 1000  D-R
+clik_bent_joints_cost_factory 0xC2400019 bin: 1100 0010 0100 0000 0000 0000 0001 1001  D-R
+
 
 
 //Distance metrics:         0xC241****
