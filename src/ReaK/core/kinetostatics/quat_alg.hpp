@@ -888,7 +888,11 @@ class unit_quat : public quat<T> {
       value_type st = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(st < std::numeric_limits<value_type>::epsilon())
 	return vector_type(value_type(0.0),value_type(0.0),value_type(0.0));
-      value_type fact = atan2(st,x.q[0]) / st;
+      value_type fact;
+      if( x.q[0] < 0.0 )
+	fact = -atan2(st,-x.q[0]) / st;
+      else
+        fact = atan2(st,x.q[0]) / st;
       return vector_type(fact * x.q[1], fact * x.q[2], fact * x.q[3]);
     };
     

@@ -15,6 +15,8 @@
 
 #include "recorders/tsv_recorder.hpp"
 
+#include <iomanip>
+
 int main() {
   
   ReaK::robot_airship::CRS_A465_model_builder builder;
