@@ -2291,7 +2291,7 @@ class clik_bent_joints_cost_eval : public ReaK::optim::cost_evaluator {
       double sum = 0.0;
       for(std::size_t i = 0; i < joint_ids.size(); ++i) {
 	double s = std::sin( x[joint_ids[i]] );
-	sum += s * s;
+	sum += 1.0 - s * s;
       };
       return sum;
     };
@@ -2299,7 +2299,7 @@ class clik_bent_joints_cost_eval : public ReaK::optim::cost_evaluator {
     virtual vect_n<double> compute_cost_grad(const vect_n<double>& x) const {
       vect_n<double> result(x.size(),0.0);
       for(std::size_t i = 0; i < joint_ids.size(); ++i) {
-	result[ joint_ids[i] ] = 2.0 * std::sin( x[joint_ids[i]] ) * std::cos( x[joint_ids[i]] );
+	result[ joint_ids[i] ] = -2.0 * std::sin( x[joint_ids[i]] ) * std::cos( x[joint_ids[i]] );
       };
       return result;
     };
@@ -2309,7 +2309,7 @@ class clik_bent_joints_cost_eval : public ReaK::optim::cost_evaluator {
       for(std::size_t i = 0; i < joint_ids.size(); ++i) {
 	double s = std::sin( x[joint_ids[i]] ); s *= s;
 	double c = std::cos( x[joint_ids[i]] ); c *= c;
-	H(joint_ids[i], joint_ids[i]) = 2.0 * (c - s);
+	H(joint_ids[i], joint_ids[i]) = 2.0 * (s - c);
       };
     };
   
@@ -2534,12 +2534,12 @@ class manip_clik_calc_factory : public shared_object {
     manip_clik_calc_factory(
       const shared_ptr< JointSpace >& aJSpace = shared_ptr< JointSpace >(),
       const CostEvalFactory& aCostEvalFactory = CostEvalFactory(),
-      double aRadius = 14.0,
-      double aMu = 0.2,
+      double aRadius = 5.0,
+      double aMu = 0.1,
       double aMaxIter = 200,
-      double aTol = 1e-4,
-      double aEta = 1e-1,
-      double aTau = 0.9) : 
+      double aTol = 8e-4,
+      double aEta = 1e-2,
+      double aTau = 0.95) : 
       j_space(aJSpace), cost_eval_factory(aCostEvalFactory),
       radius(aRadius), mu(aMu), max_iter(aMaxIter), tol(aTol), eta(aEta), tau(aTau), cost_eval() { };
     

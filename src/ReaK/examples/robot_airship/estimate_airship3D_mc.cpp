@@ -334,7 +334,7 @@ int main(int argc, char** argv) {
       ctrl::airship3D_inv_dt_system mdl_inv_dt("airship3D_invariant_discrete",mass,inertia_tensor,time_step * j);
       ctrl::airship3D_inv_mom_dt_system mdl_inv_mom_dt("airship3D_invariant_momentum_discrete",mass,inertia_tensor,time_step * j);
       ctrl::airship3D_inv_mid_dt_system mdl_inv_mid_dt("airship3D_invariant_midpoint_discrete",mass,inertia_tensor,time_step * j);
-
+      
       
       //std::cout << "Running Extended Kalman Filter..." << std::endl;
       {
@@ -342,7 +342,7 @@ int main(int argc, char** argv) {
         ctrl::covariance_matrix< vect_n<double> > Qcov;
 	Qcov = Qu_avg;
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											             ctrl::covariance_matrix< vect_n<double> >(Qu));
+											             Qcov);
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
 											             Rcov);
         
@@ -386,7 +386,7 @@ int main(int argc, char** argv) {
         ctrl::covariance_matrix< vect_n<double> > Qcov;
 	Qcov = Qu_avg;
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											             ctrl::covariance_matrix< vect_n<double> >(Qu));
+											             Qcov);
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
 											             Rcovinv);
         
@@ -430,7 +430,7 @@ int main(int argc, char** argv) {
         ctrl::covariance_matrix< vect_n<double> > Qcov;
 	Qcov = Qu_avg;
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											             ctrl::covariance_matrix< vect_n<double> >(Qu));
+											             Qcov);
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
 											             Rcovinv);
         
@@ -474,7 +474,7 @@ int main(int argc, char** argv) {
         ctrl::covariance_matrix< vect_n<double> > Qcov;
 	Qcov = Qu_avg;
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											             ctrl::covariance_matrix< vect_n<double> >(Qu));
+											             Qcov);
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
 											             Rcovinv);
         
