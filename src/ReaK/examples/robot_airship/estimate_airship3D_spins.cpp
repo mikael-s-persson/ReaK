@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
   
   RK_NOTICE(1," reached!");
   recorder::ssv_recorder results(result_filename + "_stddevs.ssv");
-  results << "time_step" << "w_avg" 
+  results << "time_step" << "w_avg" << "std_p" << "std_q"
           << "EKF_p" << "EKF_q" << "EKF_w"
           << "IEKF_p" << "IEKF_q" << "IEKF_w"
           << "IMKF_p" << "IMKF_q" << "IMKF_w"
@@ -214,6 +214,31 @@ int main(int argc, char** argv) {
     
     for(unsigned int j = 1; j <= 10; ++j) {
       
+      results << (time_step * j) << w_avg;
+      
+      {
+	vect<double,2> std_dev = vect<double,2>(0.0,0.0); int k = 0;
+        std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
+        for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end();) {
+          
+	  quaternion<double> q_mean(vect<double,4>(it->second[3],it->second[4],it->second[5],it->second[6]));
+          quaternion<double> q_true(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
+	  axis_angle<double> aa_diff( invert(q_true) * q_mean );
+     
+          std_dev[0] = ( k * std_dev[0] + ( (it->second[0] - it_orig->second[4]) * (it->second[0] - it_orig->second[4])
+                                          + (it->second[1] - it_orig->second[5]) * (it->second[1] - it_orig->second[5])
+                                          + (it->second[2] - it_orig->second[6]) * (it->second[2] - it_orig->second[6]) ) ) / (k + 1);
+	  std_dev[1] = ( k * std_dev[1] + aa_diff.angle() * aa_diff.angle() ) / (k + 1);
+	  ++k;
+
+          for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
+      
+        };
+        std_dev[0] = std::sqrt(std_dev[0]);
+        std_dev[1] = std::sqrt(std_dev[1]);
+        results << std_dev[0] << std_dev[1];
+      };
+      
       std::cout << "\r" << std::setw(3) << j; std::cout.flush();
       
       Qu_avg = (1.0 / double(j)) * Qu;
@@ -223,8 +248,6 @@ int main(int argc, char** argv) {
       ctrl::airship3D_inv_mom_dt_system mdl_inv_mom_dt("airship3D_invariant_momentum_discrete",mass,inertia_tensor,time_step * j);
       ctrl::airship3D_inv_mid_dt_system mdl_inv_mid_dt("airship3D_invariant_midpoint_discrete",mass,inertia_tensor,time_step * j);
       pp::vector_topology< vect_n<double> > mdl_state_space;
-      
-      results << (time_step * j) << w_avg;
       
       //std::cout << "Running Extended Kalman Filter..." << std::endl;
       {
