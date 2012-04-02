@@ -2536,7 +2536,7 @@ class manip_clik_calc_factory : public shared_object {
       const CostEvalFactory& aCostEvalFactory = CostEvalFactory(),
       double aRadius = 5.0,
       double aMu = 0.1,
-      double aMaxIter = 200,
+      double aMaxIter = 100,
       double aTol = 8e-4,
       double aEta = 1e-2,
       double aTau = 0.95) : 

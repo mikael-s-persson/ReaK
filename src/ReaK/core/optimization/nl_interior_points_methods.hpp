@@ -189,9 +189,12 @@ namespace detail {
     } catch(singularity_error&) {
       SVD_linlsqsolver()(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
     };
+//    for(SizeType i = 0; i < K; ++i)
+//      if(z[i] < ValueType(0.0))
+//	z[i] = mu;
     for(SizeType i = 0; i < K; ++i)
       if(z[i] < ValueType(0.0))
-	z[i] = mu;
+        z[i] = mu / s[i];
     
     ValueType norm_star = norm_2(x_grad) + norm_2(y * Jac_g) + norm_2(z * Jac_h);
     Vector l(x_grad - y * Jac_g - z * Jac_h);
@@ -239,21 +242,21 @@ namespace detail {
 	abs_tol_mu = abs_tol;
       
       radius = 0.5 * max_radius;
-      ValueType rho = (1.0 - abs_tol_mu) * 0.99;
+      ValueType rho = (1.0 - mu) * 0.99;
       
       while((++k <= max_iter) && (Err_value > abs_tol_mu)) {
-        solve_step(c,Jac_aug,v,norm_v,ValueType(0.8) * radius, abs_tol_mu); //RK_NOTICE(1," reached");
-	for(SizeType i = 0; i < K; ++i)
+        solve_step(c,Jac_aug,v,norm_v,ValueType(0.9) * radius, abs_tol); //RK_NOTICE(1," reached");
+        for(SizeType i = 0; i < K; ++i)
 	  if( v[N + i] < -0.5 * tau )
 	    v[N + i] = -0.5 * tau;
-	r = c + Jac_aug * v;
+	r = Jac_aug * v;
 	
 	try {
-	  null_space_QP_method(Jac_aug, r - c, H_aug, p_grad, p, abs_tol, radius);//RK_NOTICE(1," reached");
+	  null_space_QP_method(Jac_aug, r, H_aug, p_grad, p, abs_tol, radius);//RK_NOTICE(1," reached");
 	} catch(singularity_error&) {
 	  try {
 	    //RK_NOTICE(4," falling back to PCG method...");
-            projected_CG_method(Jac_aug, r - c, H_aug, p_grad, p, max_iter, abs_tol_mu);//RK_NOTICE(1," reached");
+            projected_CG_method(Jac_aug, r, H_aug, p_grad, p, max_iter, abs_tol_mu);//RK_NOTICE(1," reached");
 	  } catch(maximum_iteration&) { };
 	};
 	
@@ -279,7 +282,7 @@ namespace detail {
 	impose_limits(x,p_x);
 	
 	//RK_NOTICE(1,"Err_value = " << Err_value << " mu = " << mu << " abs_tol_mu = " << abs_tol_mu << " norm_p = " << norm_p);
-        
+        //RK_NOTICE(1," c = " << c << "\n J v = " << (Jac_aug * v));
         
         ValueType pHp = p * (H_aug * p);
 	ValueType dm_p = c_norm_star - norm_2(c + Jac_aug * p);
@@ -291,6 +294,8 @@ namespace detail {
 	  nu_t = (p_grad * p) / ((ValueType(1.0) - rho) * norm_1(c));
         if(nu < nu_t)
 	  nu = nu_t + abs_tol;
+	//else if(nu_t > abs_tol)
+	  //nu = (nu + nu_t) * ValueType(0.5);
 	ValueType pred = nu * dm_p - dq_p;
 	
         xt = x; xt += p_x;
@@ -311,9 +316,10 @@ namespace detail {
 	                + nu * (c_norm_star - ct_norm_star);
 	
 	//RK_NOTICE(1," x_value = " << x_value << " xt_value = " << xt_value << " nu = " << nu << " log_s = " << log_s << " log_st = " << log_st << " c_norm_star = " << c_norm_star << " ct_norm_star = " << ct_norm_star);
-	//RK_NOTICE(1," x = " << x << " ared = " << ared << " pred = " << pred << " norm_p = " << norm_2(p_x));
+	//RK_NOTICE(1," ared = " << ared << " pred = " << pred << " norm_p = " << norm_2(p_x));
         
-        if(ared >= kappa * pred) {
+	if((pred > ValueType(0.0)) && (ared >= kappa * pred)) {
+        //if(ared >= kappa * pred) {
 	  //step is accepted. 
 	  x += p_x;
 	  x_value = xt_value;
@@ -327,16 +333,21 @@ namespace detail {
 	  c_norm_star = ct_norm_star;
 	  fill_g_jac(Jac_g,x,gt_value);      
 	  fill_h_jac(Jac_h,x,ht_value + st);
-	  if((ared >= ValueType(0.8) * pred) && (norm_p > ValueType(0.8) * radius)) {
-            radius *= ValueType(2.0);
+	  if((ared >= ValueType(0.5) * pred) && (norm_p > ValueType(0.5) * radius)) {
+            radius *= ValueType(1.5);
             if(radius > max_radius)
               radius = max_radius;
           };
+	  p_grad[range(N,N+K-1)] = vect_scalar<ValueType>(K,-mu);
           linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);//RK_NOTICE(1," reached");
-	  for(SizeType i = 0; i < K; ++i)
+//	  for(SizeType i = 0; i < K; ++i)
+//            if(z[i] < ValueType(0.0))
+//              z[i] = mu;
+          for(SizeType i = 0; i < K; ++i)
             if(z[i] < ValueType(0.0))
-              z[i] = mu;
+              z[i] = mu / s[i];
 	  lt = x_grad - y * Jac_g - z * Jac_h;
+	  //p_grad[range(0,N-1)] = x_grad + y * Jac_g + z * Jac_h;  // NOTE this is not part of original.
 	  norm_star = norm_2(lt) / sqrt(N);
           fill_hessian(H,x,x_value,x_grad,p_x,lt - l);
 	  l = lt;
@@ -350,21 +361,26 @@ namespace detail {
             Err_value = gt_norm;
           if(Err_value < ht_norm)
             Err_value = ht_norm;
-	  //RK_NOTICE(1," Err_value = " << Err_value << "\n c_norm_star = " << c_norm_star << "\n s = " << s << "\n z = " << z << "\n y = " << y << "\n g = " << gt_value);
+	  //RK_NOTICE(1," Err_value = " << Err_value << " c_norm_star = " << c_norm_star << "\n y = " << y << "\n g = " << gt_value);
         } else {
 	  if(radius < abs_tol_mu)
 	    break;
           radius = ValueType(0.7) * norm_p;
         };
+	
+	if( norm_2(r) < abs_tol * sqrt(ValueType(M+K)) ) {
+	  //RK_NOTICE(1," Cannot solve constraints by themselves, trying to get QP to do it..");
+          throw infeasible_problem("Cannot improve on the constraint satisfaction!");
+	};
       };
       if(k > max_iter)
 	throw maximum_iteration(max_iter);
       
       //decrease mu;
       if( K > 1 ) {
-        ValueType sigma(2.0);
-        ValueType zeta(1.0);
         ValueType sz_k = s * z / ValueType(K);
+        /*ValueType sigma(2.0);
+        ValueType zeta(1.0);
         for(SizeType i = 0; i < K; ++i)
 	  if( SES(i,i) / sz_k < zeta )
 	    zeta = SES(i,i) / sz_k;
@@ -375,8 +391,9 @@ namespace detail {
         if(sigma > ValueType(2.0))
 	  sigma = ValueType(2.0);
         sigma *= sigma * sigma * ValueType(0.1);
-        //mu = sigma * sz_k;
-	mu *= 0.1;
+        mu = sigma * sz_k;*/
+	mu = sz_k * ValueType(0.1);
+	//mu *= 0.1;
         //RK_NOTICE(1," inter-step: s = " << s << " z = " << z << " sz_k = " << sz_k << " zeta = " << zeta << " sigma = " << sigma << " mu = " << mu);
       } else {
 	mu *= 0.1;
@@ -384,15 +401,19 @@ namespace detail {
       
       p_grad[range(N,N+K-1)] = vect_scalar<ValueType>(K,-mu);
       linlsq_QR(transpose_view(Jac_aug),yz_mat,mat_vect_adaptor<Vector>(p_grad), abs_tol);
+//      for(SizeType i = 0; i < K; ++i)
+//        if(z[i] < ValueType(0.0))
+//          z[i] = mu;
       for(SizeType i = 0; i < K; ++i)
         if(z[i] < ValueType(0.0))
-          z[i] = mu;
+          z[i] = mu / s[i];
       l = x_grad - y * Jac_g - z * Jac_h;
       norm_star = norm_2(l) / sqrt(ValueType(N));
       for(SizeType i = 0; i < K; ++i)
         SES(i,i) = z[i] * s[i];
       
-      tau = 1.0 - 10.0 * mu;
+      tau = 1.0 - mu;
+      //tau = 1.0 - 10.0 * mu;
       
       //compute error without mu.
       Err_value = norm_2( SES * vect_scalar<ValueType>(K,1.0) ) / sqrt(ValueType(K));

@@ -789,7 +789,7 @@ class manip_clik_calculator {
 	std::size_t l = h.size() - 1;
 	
 	for(std::size_t i = 0; i < parent->model->Frames3D().size(); ++i) {
-	  mat<double, mat_structure::rectangular> H_inv(3,4);
+	  mat<double, mat_structure::rectangular> H_inv(3,4);  // NOTE : Check this again, shouldn't there be a factor of 2 or 0.5 ???
 	  H_inv(0,0) = -x[j - 2]; H_inv(1,0) = -x[j - 1]; H_inv(2,0) = -x[j];
 	  H_inv(0,1) =  x[j - 3]; H_inv(1,1) = -x[j]; H_inv(2,1) = x[j - 1];
 	  H_inv(0,2) =  x[j]; H_inv(1,2) =  x[j - 3]; H_inv(2,2) = -x[j - 2];
@@ -851,8 +851,8 @@ class manip_clik_calculator {
 					  eq_jac_filler,
 					  ineq_function,
 					  ineq_jac_filler> optim_factory_type;
-//     typedef optim::nlip_quasi_newton_tr_factory<manip_clik_cost_function,
-//                                                 manip_clik_cost_grad,
+//     typedef optim::nlip_quasi_newton_tr_factory<optim::oop_cost_function,
+//                                                 optim::oop_cost_grad,
 // 						double,
 // 						eq_function,
 // 						eq_jac_filler,
@@ -965,7 +965,11 @@ class manip_clik_calculator {
       optimizer.h = ineq_function(this);
       optimizer.fill_h_jac = ineq_jac_filler(this);
       
-      optimizer( x );
+      try {
+        optimizer( x );
+      } catch( ReaK::optim::infeasible_problem& e) { 
+      } catch( ReaK::maximum_iteration& e) {
+      };
       
       manip_kin_mdl_joint_io(model).setJointPositions(x[range(0,model->getJointPositionsCount()-1)]);
       manip_kin_mdl_joint_io(model).setJointVelocities(x[range(model->getJointPositionsCount(),model->getJointPositionsCount() + model->getJointVelocitiesCount() - 1)]);

@@ -15,6 +15,8 @@
 
 #include "recorders/tsv_recorder.hpp"
 
+#include <iomanip>
+
 int main() {
   
   ReaK::robot_airship::CRS_A465_model_builder builder;
@@ -46,7 +48,14 @@ int main() {
            >( ReaK::shared_ptr< JointSpaceType >(&j_space, ReaK::null_deleter()),
 	      ReaK::pp::clik_mixed_cost_factory<
                 ReaK::pp::clik_bent_joints_cost_factory
-              >(ReaK::pp::clik_bent_joints_cost_factory(3,5))));
+              >(ReaK::pp::clik_bent_joints_cost_factory(3,5)),
+	      10.0, // aRadius
+              0.1, // aMu
+              200, // aMaxIter
+              1e-4, // aTol
+              5e-2, // aEta
+              0.95  // aTau
+	    ));
   ReaK::pp::manip_direct_kin_map dk_map(model);
   
   typedef ReaK::pp::topology_traits< EESpaceType >::point_type EEPointType;
@@ -83,8 +92,10 @@ int main() {
   get<1>(get<6>(j_zero)) = 0.0;
   
   
-#if 0
-  ee_f = ReaK::frame_3D<double>(
+#if 1
+  ReaK::frame_3D<double> ee_fs[10];
+  
+  ee_fs[0] = ReaK::frame_3D<double>(
     ReaK::weak_ptr< ReaK::pose_3D<double> >(),
     ReaK::vect<double,3>(2.0, 0.5, 0.5),
     ReaK::axis_angle<double>(0.5 * M_PI,ReaK::vect<double,3>(0.0, 0.0, 1.0)).getQuaternion(),
@@ -94,20 +105,129 @@ int main() {
     ReaK::vect<double,3>(0.0, 0.0, 0.0),
     ReaK::vect<double,3>(0.0, 0.0, 0.0),
     ReaK::vect<double,3>(0.0, 0.0, 0.0));
+    
+  ee_fs[1] = ReaK::frame_3D<double>(
+    ReaK::weak_ptr< ReaK::pose_3D<double> >(),
+    ReaK::vect<double,3>(0.5053, 0.2, 0.6667),
+    ReaK::axis_angle<double>(0.0,ReaK::vect<double,3>(1.0, 0.0, 0.0)).getQuaternion(),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0));
+    
+  ee_fs[2] = ReaK::frame_3D<double>(
+    ReaK::weak_ptr< ReaK::pose_3D<double> >(),
+    ReaK::vect<double,3>(1.8316, -0.3333, 0.5333),
+    ReaK::axis_angle<double>(0.0,ReaK::vect<double,3>(1.0, 0.0, 0.0)).getQuaternion(),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0));
+    
+  ee_fs[3] = ReaK::frame_3D<double>(
+    ReaK::weak_ptr< ReaK::pose_3D<double> >(),
+    ReaK::vect<double,3>(1.8316, 0.3333, 0.5333),
+    ReaK::axis_angle<double>(0.0,ReaK::vect<double,3>(1.0, 0.0, 0.0)).getQuaternion(),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0));
+    
+  ee_fs[4] = ReaK::frame_3D<double>(
+    ReaK::weak_ptr< ReaK::pose_3D<double> >(),
+    ReaK::vect<double,3>(1.8316, 0.06667, 0.4),
+    ReaK::axis_angle<double>(0.0,ReaK::vect<double,3>(1.0, 0.0, 0.0)).getQuaternion(),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0));
+    
+  ee_fs[5] = ReaK::frame_3D<double>(
+    ReaK::weak_ptr< ReaK::pose_3D<double> >(),
+    ReaK::vect<double,3>(2.7158, 0.2, 0.4),
+    ReaK::axis_angle<double>(0.0,ReaK::vect<double,3>(1.0, 0.0, 0.0)).getQuaternion(),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0));
+    
+  ee_fs[6] = ReaK::frame_3D<double>(
+    ReaK::weak_ptr< ReaK::pose_3D<double> >(),
+    ReaK::vect<double,3>(2.7158, -0.2, 0.4),
+    ReaK::axis_angle<double>(0.0,ReaK::vect<double,3>(1.0, 0.0, 0.0)).getQuaternion(),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0));
+    
+  ee_fs[7] = ReaK::frame_3D<double>(
+    ReaK::weak_ptr< ReaK::pose_3D<double> >(),
+    ReaK::vect<double,3>(2.667, -0.0667, 0.5684),
+    ReaK::axis_angle<double>(0.0,ReaK::vect<double,3>(1.0, 0.0, 0.0)).getQuaternion(),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0));
+    
+  ee_fs[8] = ReaK::frame_3D<double>(
+    ReaK::weak_ptr< ReaK::pose_3D<double> >(),
+    ReaK::vect<double,3>(0.8, -0.0667, 0.3789),
+    ReaK::axis_angle<double>(0.0,ReaK::vect<double,3>(1.0, 0.0, 0.0)).getQuaternion(),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0));
+    
+  ee_fs[9] = ReaK::frame_3D<double>(
+    ReaK::weak_ptr< ReaK::pose_3D<double> >(),
+    ReaK::vect<double,3>(3.133, -0.0667, 0.6316),
+    ReaK::axis_angle<double>(0.0,ReaK::vect<double,3>(1.0, 0.0, 0.0)).getQuaternion(),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0),
+    ReaK::vect<double,3>(0.0, 0.0, 0.0));
   
-  try {
-    ee_x = dk_map.map_to_space(j_zero, j_space, ee_space);
-    set_frame_3D(ee_x, ee_f);
-    j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
-    ReaK::frame_3D<double> f_x = get_frame_3D(dk_map.map_to_space(j_x, j_space, ee_space));
-    std::cout << f_x.Position << std::endl
-              << f_x.Quat << std::endl
-              << f_x.Velocity << std::endl
-              << f_x.AngVelocity << std::endl;
-  } catch(ReaK::singularity_error& e) {
-    std::cout << "ERROR: Singularity Detected!" << std::endl;
-  } catch(ReaK::maximum_iteration& e) {
-    std::cout << "ERROR: Maximum Iterations reached!" << std::endl;
+  for(std::size_t i = 0; i < 10; ++i) {
+  
+    std::cout << "\n\n Testing with EE-frame: " << std::endl;
+    std::cout << ee_fs[i].Position << std::endl
+              << ee_fs[i].Quat << std::endl
+              << ee_fs[i].Velocity << std::endl
+              << ee_fs[i].AngVelocity << std::endl;
+    
+    try {
+      ee_x = dk_map.map_to_space(j_zero, j_space, ee_space);
+      set_frame_3D(ee_x, ee_fs[i]);
+      j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
+      ReaK::frame_3D<double> f_x = get_frame_3D(dk_map.map_to_space(j_x, j_space, ee_space));
+      std::cout << f_x.Position << std::endl
+                << f_x.Quat << std::endl
+                << f_x.Velocity << std::endl
+                << f_x.AngVelocity << std::endl;
+    } catch(ReaK::singularity_error& e) {
+      std::cout << "ERROR: Singularity Detected!" << std::endl;
+    } catch(ReaK::maximum_iteration& e) {
+      std::cout << "ERROR: Maximum Iterations reached!" << std::endl;
+    };
+    
   };
   
 #else
@@ -130,15 +250,19 @@ int main() {
 	    rec << ee_f.Position[0] << ee_f.Position[1] << ee_f.Position[2]
 	        << (l * 2.0 * M_PI / 10.0) << (m * 2.0 * M_PI / 10.0);
 	    try {
-	      //ee_x = dk_map.map_to_space(j_zero, j_space, ee_space);
+	      ee_x = dk_map.map_to_space(j_zero, j_space, ee_space);
 	      set_frame_3D(ee_x, ee_f);
 	      j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
-	      rec << 1.0;
+	      ee_x = dk_map.map_to_space(j_x, j_space, ee_space);
+	      ReaK::frame_3D<double> ee_fx = get_frame_3D(ee_x);
+	      ReaK::frame_3D<double> ee_err = ee_fx.getFrameRelativeTo( ReaK::shared_ptr< const ReaK::frame_3D<double> >(&ee_f, ReaK::null_deleter()));
+	      if( ( norm_2( ee_err.Position ) < 0.01 ) &&
+		  ( ReaK::axis_angle<double>(ee_err.Quat).angle() < 0.02 ) ) 
+	        rec << 1.0;
+	      else
+		rec << 0.0;
 	    } catch(ReaK::singularity_error& e) {
 	      rec << 0.5;
-	      ee_x = dk_map.map_to_space(j_zero, j_space, ee_space);
-	    } catch(ReaK::maximum_iteration& e) {
-	      rec << 0.0;
 	    };
 	    rec << ReaK::recorder::data_recorder::end_value_row;
 	    ee_f.Quat *= ReaK::axis_angle<double>(2.0 * M_PI / 10.0, ReaK::vect<double,3>(0.0,1.0,0.0)).getQuaternion();
