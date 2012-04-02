@@ -45,6 +45,8 @@
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 
+#include <iomanip>
+
 int main(int argc, char** argv) {
   using namespace ReaK;
   
@@ -69,12 +71,16 @@ int main(int argc, char** argv) {
   
   double time_step = 0.01;
   
+  RK_NOTICE(1," reached!");
+  
   std::string Qu_filename(argv[4]);
   std::string R_filename(argv[5]);
   std::string R_added_filename(argv[6]);
   
   std::size_t test_count = 0;
   std::stringstream(argv[7]) >> test_count;
+  
+  RK_NOTICE(1," reached!");
   
   double mass;
   mat<double,mat_structure::symmetric> inertia_tensor;
@@ -87,6 +93,8 @@ int main(int argc, char** argv) {
     return 6;
   };
   
+  RK_NOTICE(1," reached!");
+  
   /* input disturbance */
   mat<double,mat_structure::diagonal> Qu;
   try {
@@ -96,6 +104,8 @@ int main(int argc, char** argv) {
     RK_ERROR("An exception occurred during the loading of the input disturbance covariance matrix!");
     return 2;
   };
+  
+  RK_NOTICE(1," reached!");
   
   /* measurement noise */
   mat<double,mat_structure::diagonal> R;
@@ -107,6 +117,8 @@ int main(int argc, char** argv) {
     return 3;
   };
   
+  RK_NOTICE(1," reached!");
+  
   mat<double,mat_structure::diagonal> R_added;
   try {
     serialization::xml_iarchive in(R_added_filename);
@@ -116,9 +128,13 @@ int main(int argc, char** argv) {
     return 7;
   };
   
+  RK_NOTICE(1," reached!");
+  
   R += R_added;
   
   mat<double,mat_structure::diagonal> Qu_avg = Qu;
+  
+  RK_NOTICE(1," reached!");
   
   vect_n<double> x_init(13);
   x_init[0] = 0.0; x_init[1] = 0.0; x_init[2] = 0.0; 
@@ -128,10 +144,10 @@ int main(int argc, char** argv) {
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
     b_init(x_init,
            ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(13,10.0))));
-  
+  RK_NOTICE(1," reached!");
   ctrl::covariance_matrix< vect_n<double> > Rcov = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R));
   
-  
+  RK_NOTICE(1," reached!");
   recorder::ssv_recorder results(result_filename + "_stddevs.ssv");
   results << "time_step" << "w_avg" 
           << "EKF_p" << "EKF_q" << "EKF_w"
@@ -139,27 +155,32 @@ int main(int argc, char** argv) {
           << "IMKF_p" << "IMKF_q" << "IMKF_w"
           << "IMKFv2_p" << "IMKFv2_q" << "IMKFv2_w"
 	  << recorder::data_recorder::end_name_row;
-	  
+  
+  std::cout << "Starting estimation..." << std::endl;
   
   for(std::size_t test_num = 0; test_num < test_count; ++test_num) {
-  
+    
+    std::cout << "\nTest " << std::setw(5) << test_num; std::cout.flush();
+    
     std::list< std::pair< double, vect_n<double> > > measurements;
     std::list< std::pair< double, vect_n<double> > > measurements_noisy;
     double w_avg = 0.0;
     {
-      std::string meas_filename_complete = meas_filename;
-      std::stringstream ss_tmp(meas_filename_complete);
+      std::stringstream ss_tmp;
       ss_tmp << test_num << ".ssv";
-      recorder::ssv_extractor meas_file(ss_tmp.str());
+      recorder::ssv_extractor meas_file(meas_filename + ss_tmp.str());
+      //std::cout << " loading file: '" << ss_tmp.str() << "'" << std::endl;
       try {
         while(true) {
 	  double t;
 	  meas_file >> t;
+	  //std::cout << " time: " << t << std::endl;
           std::vector<double> meas;
 	  try {
 	    while(true) {
 	      double dummy;
 	      meas_file >> dummy;
+	      //std::cout << " value: " << dummy << std::endl;
 	      meas.push_back(dummy);
 	    };
 	  } catch(recorder::out_of_bounds&) { };
@@ -169,17 +190,18 @@ int main(int argc, char** argv) {
           };
 	  meas_file >> recorder::data_extractor::end_value_row;
 	  w_avg *= measurements.size();
-	  measurements.push_back(std::make_pair(t,meas));
+	  measurements.push_back(std::make_pair(t,vect_n<double>(meas.begin(),meas.end())));
 	  w_avg += std::sqrt( meas[7] * meas[7] + meas[8] * meas[8] + meas[9] * meas[9] );
 	  w_avg /= measurements.size();
-	  vect_n<double> meas_v(meas);
-	  meas_v[0] = meas[4] + var_rnd() * sqrt(R_added(0,0));
-	  meas_v[1] = meas[5] + var_rnd() * sqrt(R_added(1,1));
-	  meas_v[2] = meas[6] + var_rnd() * sqrt(R_added(2,2));
-	  meas_v[3] = meas[0] + var_rnd() * sqrt(R_added(3,3));
-	  meas_v[4] = meas[1] + var_rnd() * sqrt(R_added(4,4));
-	  meas_v[5] = meas[2] + var_rnd() * sqrt(R_added(5,5));
-	  meas_v[6] = meas[3] + var_rnd() * sqrt(R_added(6,6));
+	  //std::cout << " size: " << measurements.size() << std::endl;
+	  vect_n<double> meas_v(7);
+	  meas_v[0] = meas[4] + var_rnd() * std::sqrt(R_added(0,0));
+	  meas_v[1] = meas[5] + var_rnd() * std::sqrt(R_added(1,1));
+	  meas_v[2] = meas[6] + var_rnd() * std::sqrt(R_added(2,2));
+	  meas_v[3] = meas[0] + var_rnd() * std::sqrt(R_added(3,3));
+	  meas_v[4] = meas[1] + var_rnd() * std::sqrt(R_added(4,4));
+	  meas_v[5] = meas[2] + var_rnd() * std::sqrt(R_added(5,5));
+	  meas_v[6] = meas[3] + var_rnd() * std::sqrt(R_added(6,6));
 	  measurements_noisy.push_back(std::make_pair(t,meas_v));
         };
       } catch(recorder::out_of_bounds&) {
@@ -188,8 +210,11 @@ int main(int argc, char** argv) {
       } catch(recorder::end_of_record&) { };
     };
     
+    std::cout << " data acquired " << std::endl;
     
     for(unsigned int j = 1; j <= 10; ++j) {
+      
+      std::cout << "\r" << std::setw(3) << j; std::cout.flush();
       
       Qu_avg = (1.0 / double(j)) * Qu;
 
@@ -204,8 +229,10 @@ int main(int argc, char** argv) {
       //std::cout << "Running Extended Kalman Filter..." << std::endl;
       {
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
+        ctrl::covariance_matrix< vect_n<double> > Qcov;
+	Qcov = Qu_avg;
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											           ctrl::covariance_matrix< vect_n<double> >(Qu_avg));
+											           Qcov);
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
 											           Rcov);
         vect<double,3> std_dev = vect<double,3>(0.0,0.0,0.0); int k = 0;
@@ -221,17 +248,19 @@ int main(int argc, char** argv) {
           b.set_mean_state(b_mean);
       
           const vect_n<double>& x_mean = b.get_mean_state();
+	  
+	  quaternion<double> q_true(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
+	  axis_angle<double> aa_diff( invert(q_true) * q_mean );
      
           std_dev[0] = ( k * std_dev[0] + ( (x_mean[0] - it_orig->second[4]) * (x_mean[0] - it_orig->second[4])
                                           + (x_mean[1] - it_orig->second[5]) * (x_mean[1] - it_orig->second[5])
                                           + (x_mean[2] - it_orig->second[6]) * (x_mean[2] - it_orig->second[6]) ) ) / (k + 1);
-          std_dev[1] = ( k * std_dev[1] + ( (x_mean[3] - it_orig->second[0]) * (x_mean[3] - it_orig->second[0])
-                                          + (x_mean[4] - it_orig->second[1]) * (x_mean[4] - it_orig->second[1])
-                                          + (x_mean[5] - it_orig->second[2]) * (x_mean[5] - it_orig->second[2])
-                                          + (x_mean[6] - it_orig->second[3]) * (x_mean[6] - it_orig->second[3]) ) ) / (k + 1);
-          std_dev[2] = ( k * std_dev[2] + ( (x_mean[10] - it_orig->second[7]) * (x_mean[10] - it_orig->second[7])
-                                          + (x_mean[11] - it_orig->second[8]) * (x_mean[11] - it_orig->second[8])
-                                          + (x_mean[12] - it_orig->second[9]) * (x_mean[12] - it_orig->second[9]) ) ) / (k + 1);
+	  std_dev[1] = ( k * std_dev[1] + aa_diff.angle() * aa_diff.angle() ) / (k + 1);
+	  vect<double,3> w_true(it_orig->second[7],it_orig->second[8],it_orig->second[9]);
+	  w_true = invert(q_true) * w_true;
+          std_dev[2] = ( k * std_dev[2] + ( (x_mean[10] - w_true[0]) * (x_mean[10] - w_true[0])
+                                          + (x_mean[11] - w_true[1]) * (x_mean[11] - w_true[1])
+                                          + (x_mean[12] - w_true[2]) * (x_mean[12] - w_true[2]) ) ) / (k + 1);
           ++k;
 
           for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
@@ -242,6 +271,7 @@ int main(int argc, char** argv) {
         std_dev[2] = std::sqrt(std_dev[2]);
         results << std_dev[0] << std_dev[1] << std_dev[2];
       };
+      std::cout << " EKF "; std::cout.flush();
   
       //std::cout << "Running Invariant Extended Kalman Filter..." << std::endl;
       {
@@ -273,17 +303,19 @@ int main(int argc, char** argv) {
           b.set_mean_state(b_mean);
     
           const vect_n<double>& x_mean = b.get_mean_state();
-      
+	  
+	  quaternion<double> q_true(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
+	  axis_angle<double> aa_diff( invert(q_true) * q_mean );
+     
           std_dev[0] = ( k * std_dev[0] + ( (x_mean[0] - it_orig->second[4]) * (x_mean[0] - it_orig->second[4])
                                           + (x_mean[1] - it_orig->second[5]) * (x_mean[1] - it_orig->second[5])
                                           + (x_mean[2] - it_orig->second[6]) * (x_mean[2] - it_orig->second[6]) ) ) / (k + 1);
-          std_dev[1] = ( k * std_dev[1] + ( (x_mean[3] - it_orig->second[0]) * (x_mean[3] - it_orig->second[0])
-                                          + (x_mean[4] - it_orig->second[1]) * (x_mean[4] - it_orig->second[1])
-                                          + (x_mean[5] - it_orig->second[2]) * (x_mean[5] - it_orig->second[2])
-                                          + (x_mean[6] - it_orig->second[3]) * (x_mean[6] - it_orig->second[3]) ) ) / (k + 1);
-          std_dev[2] = ( k * std_dev[2] + ( (x_mean[10] - it_orig->second[7]) * (x_mean[10] - it_orig->second[7])
-                                          + (x_mean[11] - it_orig->second[8]) * (x_mean[11] - it_orig->second[8])
-                                          + (x_mean[12] - it_orig->second[9]) * (x_mean[12] - it_orig->second[9]) ) ) / (k + 1);
+	  std_dev[1] = ( k * std_dev[1] + aa_diff.angle() * aa_diff.angle() ) / (k + 1);
+	  vect<double,3> w_true(it_orig->second[7],it_orig->second[8],it_orig->second[9]);
+	  w_true = invert(q_true) * w_true;
+          std_dev[2] = ( k * std_dev[2] + ( (x_mean[10] - w_true[0]) * (x_mean[10] - w_true[0])
+                                          + (x_mean[11] - w_true[1]) * (x_mean[11] - w_true[1])
+                                          + (x_mean[12] - w_true[2]) * (x_mean[12] - w_true[2]) ) ) / (k + 1);
           ++k;
 
           for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
@@ -294,6 +326,7 @@ int main(int argc, char** argv) {
         std_dev[2] = std::sqrt(std_dev[2]);
         results << std_dev[0] << std_dev[1] << std_dev[2];
       };
+      std::cout << " IEKF "; std::cout.flush();
   
     //std::cout << "Running Invariant-Momentum Kalman Filter..." << std::endl;
       {
@@ -325,17 +358,19 @@ int main(int argc, char** argv) {
           b.set_mean_state(b_mean);
     
           const vect_n<double>& x_mean = b.get_mean_state();
-      
+	  
+	  quaternion<double> q_true(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
+	  axis_angle<double> aa_diff( invert(q_true) * q_mean );
+     
           std_dev[0] = ( k * std_dev[0] + ( (x_mean[0] - it_orig->second[4]) * (x_mean[0] - it_orig->second[4])
                                           + (x_mean[1] - it_orig->second[5]) * (x_mean[1] - it_orig->second[5])
                                           + (x_mean[2] - it_orig->second[6]) * (x_mean[2] - it_orig->second[6]) ) ) / (k + 1);
-          std_dev[1] = ( k * std_dev[1] + ( (x_mean[3] - it_orig->second[0]) * (x_mean[3] - it_orig->second[0])
-                                          + (x_mean[4] - it_orig->second[1]) * (x_mean[4] - it_orig->second[1])
-                                          + (x_mean[5] - it_orig->second[2]) * (x_mean[5] - it_orig->second[2])
-                                          + (x_mean[6] - it_orig->second[3]) * (x_mean[6] - it_orig->second[3]) ) ) / (k + 1);
-          std_dev[2] = ( k * std_dev[2] + ( (x_mean[10] - it_orig->second[7]) * (x_mean[10] - it_orig->second[7])
-                                          + (x_mean[11] - it_orig->second[8]) * (x_mean[11] - it_orig->second[8])
-                                          + (x_mean[12] - it_orig->second[9]) * (x_mean[12] - it_orig->second[9]) ) ) / (k + 1);
+	  std_dev[1] = ( k * std_dev[1] + aa_diff.angle() * aa_diff.angle() ) / (k + 1);
+	  vect<double,3> w_true(it_orig->second[7],it_orig->second[8],it_orig->second[9]);
+	  w_true = invert(q_true) * w_true;
+          std_dev[2] = ( k * std_dev[2] + ( (x_mean[10] - w_true[0]) * (x_mean[10] - w_true[0])
+                                          + (x_mean[11] - w_true[1]) * (x_mean[11] - w_true[1])
+                                          + (x_mean[12] - w_true[2]) * (x_mean[12] - w_true[2]) ) ) / (k + 1);
           ++k;
 
           for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
@@ -346,6 +381,7 @@ int main(int argc, char** argv) {
         std_dev[2] = std::sqrt(std_dev[2]);
         results << std_dev[0] << std_dev[1] << std_dev[2];
       };
+      std::cout << " IMKF "; std::cout.flush();
   
       //std::cout << "Running Invariant-Midpoint Kalman Filter..." << std::endl;
       {
@@ -378,17 +414,19 @@ int main(int argc, char** argv) {
           b.set_mean_state(b_mean);
           
           const vect_n<double>& x_mean = b.get_mean_state();
-          
+	  
+	  quaternion<double> q_true(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
+	  axis_angle<double> aa_diff( invert(q_true) * q_mean );
+     
           std_dev[0] = ( k * std_dev[0] + ( (x_mean[0] - it_orig->second[4]) * (x_mean[0] - it_orig->second[4])
                                           + (x_mean[1] - it_orig->second[5]) * (x_mean[1] - it_orig->second[5])
                                           + (x_mean[2] - it_orig->second[6]) * (x_mean[2] - it_orig->second[6]) ) ) / (k + 1);
-          std_dev[1] = ( k * std_dev[1] + ( (x_mean[3] - it_orig->second[0]) * (x_mean[3] - it_orig->second[0])
-                                          + (x_mean[4] - it_orig->second[1]) * (x_mean[4] - it_orig->second[1])
-                                          + (x_mean[5] - it_orig->second[2]) * (x_mean[5] - it_orig->second[2])
-                                          + (x_mean[6] - it_orig->second[3]) * (x_mean[6] - it_orig->second[3]) ) ) / (k + 1);
-          std_dev[2] = ( k * std_dev[2] + ( (x_mean[10] - it_orig->second[7]) * (x_mean[10] - it_orig->second[7])
-                                          + (x_mean[11] - it_orig->second[8]) * (x_mean[11] - it_orig->second[8])
-                                          + (x_mean[12] - it_orig->second[9]) * (x_mean[12] - it_orig->second[9]) ) ) / (k + 1);
+	  std_dev[1] = ( k * std_dev[1] + aa_diff.angle() * aa_diff.angle() ) / (k + 1);
+	  vect<double,3> w_true(it_orig->second[7],it_orig->second[8],it_orig->second[9]);
+	  w_true = invert(q_true) * w_true;
+          std_dev[2] = ( k * std_dev[2] + ( (x_mean[10] - w_true[0]) * (x_mean[10] - w_true[0])
+                                          + (x_mean[11] - w_true[1]) * (x_mean[11] - w_true[1])
+                                          + (x_mean[12] - w_true[2]) * (x_mean[12] - w_true[2]) ) ) / (k + 1);
           ++k;
           
           for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
@@ -399,6 +437,7 @@ int main(int argc, char** argv) {
         std_dev[2] = std::sqrt(std_dev[2]);
         results << std_dev[0] << std_dev[1] << std_dev[2];
       };
+      std::cout << " IMKFv2 "; std::cout.flush();
       
       results << recorder::data_recorder::end_value_row;
     };

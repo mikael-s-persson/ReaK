@@ -1618,7 +1618,11 @@ class axis_angle : public serialization::serializable {
 	mAxis.q[0] = v[1] / tmp;
 	mAxis.q[1] = v[2] / tmp;
 	mAxis.q[2] = v[3] / tmp;
-	mAngle = value_type(2.0) * acos(v[0]);
+	if( v[0] < value_type(0.0) ) {
+	  mAngle = value_type(2.0) * acos(-v[0]);
+	  mAxis = -mAxis;
+	} else
+	  mAngle = value_type(2.0) * acos(v[0]);
       } else {
 	mAxis.q[0] = value_type(1.0);
 	mAxis.q[1] = value_type(0.0);

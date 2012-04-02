@@ -191,7 +191,8 @@ data_extractor& data_extractor::operator >>(double& value) {
       ++currentColumn;
     } else
       throw out_of_bounds();
-  };
+  } else
+    throw end_of_record();
   return *this;
 };
 
