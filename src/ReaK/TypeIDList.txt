@@ -224,12 +224,18 @@ airship3D_inv_dt_system     0xC2310008   bin: 1100 0010 0011 0001 0000 0000 0000
 airship3D_inv_mom_dt_system 0xC2310009   bin: 1100 0010 0011 0001 0000 0000 0000 1001  D-R
 airship3D_inv_mid_dt_system 0xC231000C   bin: 1100 0010 0011 0001 0000 0000 0000 1100  
 
-satellite2D_imdt_sys        0xC231000A   bin: 1100 0010 0011 0001 0000 0000 0000 1010  D-R
-satellite3D_imdt_sys        0xC231000B   bin: 1100 0010 0011 0001 0000 0000 0000 1011  D-R
-satellite3D_IMU_imdt_sys    0xC231000C   bin: 1100 0010 0011 0001 0000 0000 0000 1100  D-R
-
 rigid_body2D_state          0xC2310010   bin: 1100 0010 0011 0001 0000 0000 0001 0000  D-R
 rigid_body3D_state          0xC2310011   bin: 1100 0010 0011 0001 0000 0000 0001 0001  D-R
+
+satellite2D_imdt_sys        0xC2310012   bin: 1100 0010 0011 0001 0000 0000 0001 0010  D-R
+satellite3D_lin_dt_system   0xC2310013   bin: 1100 0010 0011 0001 0000 0000 0001 0011  D-R
+satellite3D_inv_dt_system   0xC2310014   bin: 1100 0010 0011 0001 0000 0000 0001 0100  D-R
+satellite3D_imdt_sys        0xC2310015   bin: 1100 0010 0011 0001 0000 0000 0001 0101  D-R
+satellite3D_gyro_imdt_sys   0xC2310016   bin: 1100 0010 0011 0001 0000 0000 0001 0110  D-R
+satellite3D_IMU_imdt_sys    0xC2310017   bin: 1100 0010 0011 0001 0000 0000 0001 0111  D-R
+satellite3D_gyro_lin_dt_system 0xC2310018 bin:1100 0010 0011 0001 0000 0000 0001 1000  D-R
+satellite3D_gyro_inv_dt_system 0xC2310019 bin:1100 0010 0011 0001 0000 0000 0001 1001  D-R
+
 
 
 

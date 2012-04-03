@@ -39,6 +39,7 @@
 
 #include "base/defs.hpp"
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
+#include <boost/static_assert.hpp>
 
 #include "time_topology.hpp"
 #include "path_planning/metric_space_concept.hpp"

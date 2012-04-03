@@ -1,17 +1,20 @@
 
 set(ROBOTAIRSHIP_SOURCES 
-  "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_A465_models.cpp"
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_A465_2D_analog.cpp"
+  "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_A465_models.cpp"
+  "${SRCROOT}${RKROBOTAIRSHIPDIR}/satellite_basic_models.cpp"
+  "${SRCROOT}${RKROBOTAIRSHIPDIR}/satellite_invar_models.cpp"
 )
 
 
 set(ROBOTAIRSHIP_HEADERS 
   "${RKROBOTAIRSHIPDIR}/airship2D_lin_model.hpp"
   "${RKROBOTAIRSHIPDIR}/airship3D_lin_model.hpp"
-  "${RKROBOTAIRSHIPDIR}/rigid_body_states.hpp"
-  "${RKROBOTAIRSHIPDIR}/satellite_invar_models.hpp"
-  "${RKROBOTAIRSHIPDIR}/CRS_A465_models.hpp"
   "${RKROBOTAIRSHIPDIR}/CRS_A465_2D_analog.hpp"
+  "${RKROBOTAIRSHIPDIR}/CRS_A465_models.hpp"
+  "${RKROBOTAIRSHIPDIR}/rigid_body_states.hpp"
+  "${RKROBOTAIRSHIPDIR}/satellite_basic_models.hpp"
+  "${RKROBOTAIRSHIPDIR}/satellite_invar_models.hpp"
 )
 
 add_library(reak_robot_airship STATIC ${ROBOTAIRSHIP_SOURCES})

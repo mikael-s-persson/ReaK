@@ -159,14 +159,14 @@ class pose_3D : public shared_object {
      * Returns the free vector V (expressed in the parent coordinate system) expressed in this coordinate system.
      */
     vector_type rotateFromParent(const vector_type& V) const {
-      return Quat.invert() * V;
+      return invert(Quat) * V;
     };
 
     /**
      * Returns the free vector V (expressed in the global coordinate system) expressed in this coordinate system.
      */
     vector_type rotateFromGlobal(const vector_type& V) const {
-      return getGlobalPose().Quat.invert() * V;
+      return invert(getGlobalPose().Quat) * V;
     };
 
     /**
@@ -187,7 +187,7 @@ class pose_3D : public shared_object {
      * Returns the position vector V (expressed in the parent coordinate system) expressed in this coordinate system.
      */
     position_type transformFromParent(const position_type& V) const {
-      return Quat.invert() * (V - Position);
+      return invert(Quat) * (V - Position);
     };
 
     /**
