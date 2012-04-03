@@ -226,6 +226,7 @@ airship3D_inv_mid_dt_system 0xC231000C   bin: 1100 0010 0011 0001 0000 0000 0000
 
 satellite2D_imdt_sys        0xC231000A   bin: 1100 0010 0011 0001 0000 0000 0000 1010  D-R
 satellite3D_imdt_sys        0xC231000B   bin: 1100 0010 0011 0001 0000 0000 0000 1011  D-R
+satellite3D_IMU_imdt_sys    0xC231000C   bin: 1100 0010 0011 0001 0000 0000 0000 1100  D-R
 
 rigid_body2D_state          0xC2310010   bin: 1100 0010 0011 0001 0000 0000 0001 0000  D-R
 rigid_body3D_state          0xC2310011   bin: 1100 0010 0011 0001 0000 0000 0001 0001  D-R

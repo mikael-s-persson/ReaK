@@ -298,13 +298,6 @@ class satellite3D_imdt_sys : public named_object {
 		                     w0));
     };
     
-    output_type get_output(const state_space_type&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
-      const vect<double,3>& pos = get_position(x);
-      const unit_quat<double>& q = get_quaternion(x);
-      return output_type(pos[0], pos[1], pos[2], q[0], q[1], q[2], q[3]);
-    };
-    
-    
     void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const state_space_type&, 
 				     const time_type&, const time_type&,
 				     const point_type& p_0, const point_type& p_1,
@@ -331,7 +324,14 @@ class satellite3D_imdt_sys : public named_object {
       
     };
     
-    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const state_space_type&, 
+    
+    virtual output_type get_output(const state_space_type&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
+      const vect<double,3>& pos = get_position(x);
+      const unit_quat<double>& q = get_quaternion(x);
+      return output_type(pos[0], pos[1], pos[2], q[0], q[1], q[2], q[3]);
+    };
+    
+    virtual void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const state_space_type&, 
 				    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(6,12);
       set_block(C,mat<double,mat_structure::identity>(6),0,0);
@@ -339,7 +339,7 @@ class satellite3D_imdt_sys : public named_object {
       D = mat<double,mat_structure::nil>(6,6);
     };
         
-    invariant_error_type get_invariant_error(const state_space_type&, const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
+    virtual invariant_error_type get_invariant_error(const state_space_type&, const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
       unit_quat<double> q_diff = invert(get_quaternion(x)) * unit_quat<double>(y[3],y[4],y[5],y[6]);
       vect<double,3> a = log(q_diff);
       const vect<double,3>& pos = get_position(x);
@@ -350,6 +350,7 @@ class satellite3D_imdt_sys : public named_object {
 	                          2.0 * a[1],
 	                          2.0 * a[2]); 
     };
+    
     
     point_type apply_correction(const state_space_type&, const point_type& x, const invariant_correction_type& c, const input_type&, const time_type&) const {
       unit_quat<double> q_diff = exp( 0.5 * vect<double,3>(c[3],c[4],c[5]) );
@@ -407,6 +408,260 @@ class satellite3D_imdt_sys : public named_object {
     RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_imdt_sys,0xC231000B,1,"satellite3D_imdt_sys",named_object)
     
 };
+
+
+
+
+
+
+
+class satellite3D_gyro_imdt_sys : public satellite3D_imdt_sys {
+  public:
+    
+    typedef satellite3D_imdt_sys::state_space_type state_space_type;
+    
+    typedef satellite3D_imdt_sys::point_type point_type;
+    typedef satellite3D_imdt_sys::point_difference_type point_difference_type;
+  
+    typedef satellite3D_imdt_sys::time_type time_type;
+    typedef satellite3D_imdt_sys::time_difference_type time_difference_type;
+  
+    typedef satellite3D_imdt_sys::input_type input_type;
+    typedef vect_n<double> output_type;
+  
+    typedef vect_n<double> invariant_error_type;
+    typedef vect_n<double> invariant_correction_type;
+    typedef mat<double,mat_structure::square> invariant_frame_type;
+  
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
+    BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
+    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 14);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 12);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 12);
+    
+    typedef mat<double,mat_structure::square> matrixA_type;
+    typedef mat<double,mat_structure::rectangular> matrixB_type;
+    typedef mat<double,mat_structure::rectangular> matrixC_type;
+    typedef mat<double,mat_structure::nil> matrixD_type;
+    
+    typedef satellite3D_imdt_sys::zero_input_trajectory zero_input_trajectory;
+    
+  public:  
+    satellite3D_gyro_imdt_sys(const std::string& aName = "", 
+			      double aMass = 1.0, 
+			      const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			      double aDt = 0.001) :
+			      satellite3D_imdt_sys(aName, aMass, aInertiaMoment, aDt) { }; 
+  
+    virtual ~satellite3D_gyro_imdt_sys() { };
+    
+    output_type get_output(const state_space_type&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
+      const vect<double,3>& pos = get_position(x);
+      const unit_quat<double>& q = get_quaternion(x);
+      const vect<double,3>& w = get_ang_velocity(x);
+      return output_type(pos[0], pos[1], pos[2], q[0], q[1], q[2], q[3], q[0], q[1], q[2], q[3], w[0], w[1], w[2]);
+    };
+    
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const state_space_type&, 
+				    const time_type&, const point_type&, const input_type&) const {
+      C = mat<double,mat_structure::nil>(12,12);
+      set_block(C,mat<double,mat_structure::identity>(6),0,0);
+      set_block(C,mat<double,mat_structure::identity>(3),6,3);
+      set_block(C,mInertiaMomentInv,9,9);
+      
+      D = mat<double,mat_structure::nil>(12,6);
+    };
+        
+    invariant_error_type get_invariant_error(const state_space_type&, const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
+      unit_quat<double> q_diff = invert(get_quaternion(x)) * unit_quat<double>(y[3],y[4],y[5],y[6]);
+      vect<double,3> a = log(q_diff);
+      unit_quat<double> q_diff_IMU = invert(get_quaternion(x)) * unit_quat<double>(y[7],y[8],y[9],y[10]);
+      vect<double,3> a_IMU = log(q_diff_IMU);
+      const vect<double,3>& pos = get_position(x);
+      vect<double,3> dw_IMU = q_diff_IMU.as_rotation() * vect<double,3>(y[11],y[12],y[13]) - get_ang_velocity(x);
+      return invariant_error_type(y[0] - pos[0],
+			          y[1] - pos[1],
+			          y[2] - pos[2],
+	                          2.0 * a[0],
+	                          2.0 * a[1],
+	                          2.0 * a[2],
+	                          2.0 * a_IMU[0],
+	                          2.0 * a_IMU[1],
+	                          2.0 * a_IMU[2],
+	                          dw_IMU[0],
+	                          dw_IMU[1],
+	                          dw_IMU[2]); 
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      satellite3D_imdt_sys::save(A,satellite3D_imdt_sys::getStaticObjectType()->TypeVersion());
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      satellite3D_imdt_sys::load(A,satellite3D_imdt_sys::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_gyro_imdt_sys,0xC231000C,1,"satellite3D_gyro_imdt_sys",satellite3D_imdt_sys)
+    
+};
+
+
+
+
+
+
+
+
+class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
+  public:
+    
+    typedef satellite3D_imdt_sys::state_space_type state_space_type;
+    
+    typedef satellite3D_imdt_sys::point_type point_type;
+    typedef satellite3D_imdt_sys::point_difference_type point_difference_type;
+  
+    typedef satellite3D_imdt_sys::time_type time_type;
+    typedef satellite3D_imdt_sys::time_difference_type time_difference_type;
+  
+    typedef satellite3D_imdt_sys::input_type input_type;
+    typedef vect_n<double> output_type;
+  
+    typedef vect_n<double> invariant_error_type;
+    typedef vect_n<double> invariant_correction_type;
+    typedef mat<double,mat_structure::square> invariant_frame_type;
+  
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
+    BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
+    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 20);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 12);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 12);
+    
+    typedef mat<double,mat_structure::square> matrixA_type;
+    typedef mat<double,mat_structure::rectangular> matrixB_type;
+    typedef mat<double,mat_structure::rectangular> matrixC_type;
+    typedef mat<double,mat_structure::nil> matrixD_type;
+    
+    typedef satellite3D_imdt_sys::zero_input_trajectory zero_input_trajectory;
+    
+  private:
+    
+    unit_quat<double> IMU_orientation;
+    vect<double,3> IMU_location;
+    unit_quat<double> room_orientation;
+    vect<double,3> mag_field_vector;
+    
+  public:  
+    satellite3D_IMU_imdt_sys(const std::string& aName = "", 
+			     double aMass = 1.0, 
+			     const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			     double aDt = 0.001,
+			     const unit_quat<double>& aIMUOrientation = unit_quat<double>(),
+			     const vect<double,3>& aIMULocation = vect<double,3>(),
+			     const unit_quat<double>& aRoomOrientation = unit_quat<double>(),
+			     const vect<double,3>& aMagFieldVector = vect<double,3>(1.0,0.0,0.0)) :
+			     satellite3D_imdt_sys(aName, aMass, aInertiaMoment, aDt),
+			     IMU_orientation(aIMUOrientation),
+			     IMU_location(aIMULocation), 
+			     room_orientation(aRoomOrientation), 
+			     mag_field_vector(aMagFieldVector) { }; 
+  
+    virtual ~satellite3D_IMU_imdt_sys() { };
+    
+    output_type get_output(const state_space_type&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
+      frame_3D<double> earth(shared_ptr< pose_3D<double> >(), 
+	                     vect<double,3>(0.0,0.0,0.0),
+			     room_orientation.as_rotation()
+			     vect<double,3>(0.0,0.0,0.0),vect<double,3>(0.0,0.0,0.0),
+			     vect<double,3>(0.0,0.0,9.81),vect<double,3>(0.0,0.0,0.0),
+			     vect<double,3>(0.0,0.0,0.0),vect<double,3>(0.0,0.0,0.0));
+      shared_ptr< frame_3D<double> > earth_ptr(&earth, null_deleter());
+      
+      frame_3D<double> sat = get_frame_3D(x);
+      sat.Parent = earth_ptr;
+      shared_ptr< frame_3D<double> > sat_ptr(&sat, null_deleter());
+      sat.Acceleration = vect<double,3>(u[0],u[1],u[2]) * (1.0 / mMass);
+      sat.AngAcceleration = mInertiaMomentInv * vect<double,3>(u[3],u[4],u[5])
+                            - sat.AngVelocity % (mInertiaMoment * sat.AngVelocity);
+      
+      frame_3D<double> IMU( sat_ptr, 
+			    IMU_location,
+			    IMU_orientation.as_rotation(),
+			    vect<double,3>(0.0,0.0,0.0),vect<double,3>(0.0,0.0,0.0),
+			    vect<double,3>(0.0,0.0,0.0),vect<double,3>(0.0,0.0,0.0),
+			    vect<double,3>(0.0,0.0,0.0),vect<double,3>(0.0,0.0,0.0));
+      frame_3D<double> IMU_gbl = IMU.GetGlobalFrame();
+      
+      vect<double,3> a_IMU = IMU_gbl.rotateFromParent(IMU_gbl.Acceleration);
+      vect<double,3> m_IMU = IMU_gbl.rotateFromParent(mag_field_vector);
+      
+      return output_type(sat.Position[0], sat.Position[1], sat.Position[2], 
+			 sat.Quat[0], sat.Quat[1], sat.Quat[2], sat.Quat[3], 
+			 IMU_gbl.Quat[0], IMU_gbl.Quat[1], IMU_gbl.Quat[2], IMU_gbl.Quat[3], 
+			 IMU_gbl.AngVelocity[0], IMU_gbl.AngVelocity[1], IMU_gbl.AngVelocity[2],
+			 a_IMU[0], a_IMU[1], a_IMU[2],
+			 m_IMU[0], m_IMU[1], m_IMU[2]);
+    };
+    
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const state_space_type&, 
+				    const time_type&, const point_type&, const input_type&) const {
+      C = mat<double,mat_structure::nil>(18,12);
+      set_block(C,mat<double,mat_structure::identity>(6),0,0);
+      set_block(C,mat<double,mat_structure::identity>(3),6,3);
+      set_block(C,mInertiaMomentInv,9,9); //TODO
+      
+      D = mat<double,mat_structure::nil>(18,6); //TODO
+    };
+        
+    invariant_error_type get_invariant_error(const state_space_type&, const point_type& x, const input_type& u, const output_type& y, const time_type& t) const {
+      unit_quat<double> q_diff = invert(get_quaternion(x)) * unit_quat<double>(y[3],y[4],y[5],y[6]);
+      vect<double,3> a = log(q_diff);
+      unit_quat<double> q_diff_IMU = invert(get_quaternion(x)) * unit_quat<double>(y[7],y[8],y[9],y[10]);
+      vect<double,3> a_IMU = log(q_diff_IMU);
+      const vect<double,3>& pos = get_position(x);
+      vect<double,3> dw_IMU = q_diff_IMU.as_rotation() * vect<double,3>(y[11],y[12],y[13]) - get_ang_velocity(x);
+      return invariant_error_type(y[0] - pos[0],
+			          y[1] - pos[1],
+			          y[2] - pos[2],
+	                          2.0 * a[0],
+	                          2.0 * a[1],
+	                          2.0 * a[2],
+	                          2.0 * a_IMU[0],
+	                          2.0 * a_IMU[1],
+	                          2.0 * a_IMU[2],
+	                          dw_IMU[0],
+	                          dw_IMU[1],
+	                          dw_IMU[2]);  //TODO
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      satellite3D_imdt_sys::save(A,satellite3D_imdt_sys::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(IMU_orientation)
+        & RK_SERIAL_SAVE_WITH_NAME(IMU_location)
+	& RK_SERIAL_SAVE_WITH_NAME(room_orientation)
+	& RK_SERIAL_SAVE_WITH_NAME(mag_field_vector);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      satellite3D_imdt_sys::load(A,satellite3D_imdt_sys::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(IMU_orientation)
+        & RK_SERIAL_LOAD_WITH_NAME(IMU_location)
+	& RK_SERIAL_LOAD_WITH_NAME(room_orientation)
+	& RK_SERIAL_LOAD_WITH_NAME(mag_field_vector);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_IMU_imdt_sys,0xC231000D,1,"satellite3D_IMU_imdt_sys",satellite3D_imdt_sys)
+    
+};
+
+
+
+
 
 
 
