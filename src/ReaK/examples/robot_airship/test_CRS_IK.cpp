@@ -92,7 +92,7 @@ int main() {
   get<1>(get<6>(j_zero)) = 0.0;
   
   
-#if 1
+#if 0
   ReaK::frame_3D<double> ee_fs[10];
   
   ee_fs[0] = ReaK::frame_3D<double>(
@@ -212,20 +212,26 @@ int main() {
               << ee_fs[i].Quat << std::endl
               << ee_fs[i].Velocity << std::endl
               << ee_fs[i].AngVelocity << std::endl;
-    
-    try {
-      ee_x = dk_map.map_to_space(j_zero, j_space, ee_space);
-      set_frame_3D(ee_x, ee_fs[i]);
-      j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
-      ReaK::frame_3D<double> f_x = get_frame_3D(dk_map.map_to_space(j_x, j_space, ee_space));
-      std::cout << f_x.Position << std::endl
-                << f_x.Quat << std::endl
-                << f_x.Velocity << std::endl
-                << f_x.AngVelocity << std::endl;
-    } catch(ReaK::singularity_error& e) {
-      std::cout << "ERROR: Singularity Detected!" << std::endl;
-    } catch(ReaK::maximum_iteration& e) {
-      std::cout << "ERROR: Maximum Iterations reached!" << std::endl;
+    for(std::size_t j = 0; j < 10; ++j) {
+      try {
+        ee_x = dk_map.map_to_space(j_space.random_point(), j_space, ee_space);
+        set_frame_3D(ee_x, ee_fs[i]);
+        j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
+        ReaK::frame_3D<double> f_x = get_frame_3D(dk_map.map_to_space(j_x, j_space, ee_space));
+        ReaK::frame_3D<double> ee_err = f_x.getFrameRelativeTo( ReaK::shared_ptr< const ReaK::frame_3D<double> >(&ee_fs[i], ReaK::null_deleter()));
+        if( ( norm_2( ee_err.Position ) < 0.01 ) &&
+	    ( ReaK::axis_angle<double>(ee_err.Quat).angle() < 0.02 ) ) {
+          std::cout << f_x.Position << std::endl
+                    << f_x.Quat << std::endl
+                    << f_x.Velocity << std::endl
+                    << f_x.AngVelocity << std::endl;
+	  break;
+        };
+      } catch(ReaK::singularity_error& e) {
+        std::cout << "ERROR: Singularity Detected!" << std::endl;
+      } catch(ReaK::maximum_iteration& e) {
+        std::cout << "ERROR: Maximum Iterations reached!" << std::endl;
+      };
     };
     
   };
@@ -249,21 +255,26 @@ int main() {
 	                      << std::setw(4) << m; std::cout.flush();
 	    rec << ee_f.Position[0] << ee_f.Position[1] << ee_f.Position[2]
 	        << (l * 2.0 * M_PI / 10.0) << (m * 2.0 * M_PI / 10.0);
-	    try {
-	      ee_x = dk_map.map_to_space(j_zero, j_space, ee_space);
-	      set_frame_3D(ee_x, ee_f);
-	      j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
-	      ee_x = dk_map.map_to_space(j_x, j_space, ee_space);
-	      ReaK::frame_3D<double> ee_fx = get_frame_3D(ee_x);
-	      ReaK::frame_3D<double> ee_err = ee_fx.getFrameRelativeTo( ReaK::shared_ptr< const ReaK::frame_3D<double> >(&ee_f, ReaK::null_deleter()));
-	      if( ( norm_2( ee_err.Position ) < 0.01 ) &&
-		  ( ReaK::axis_angle<double>(ee_err.Quat).angle() < 0.02 ) ) 
-	        rec << 1.0;
-	      else
-		rec << 0.0;
-	    } catch(ReaK::singularity_error& e) {
-	      rec << 0.5;
+	    bool did_succeed = false;
+	    for(std::size_t n = 0; n < 10; ++n) {
+	      try {
+	        ee_x = dk_map.map_to_space(j_space.random_point(), j_space, ee_space);
+	        set_frame_3D(ee_x, ee_f);
+	        j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
+	        ee_x = dk_map.map_to_space(j_x, j_space, ee_space);
+	        ReaK::frame_3D<double> ee_fx = get_frame_3D(ee_x);
+	        ReaK::frame_3D<double> ee_err = ee_fx.getFrameRelativeTo( ReaK::shared_ptr< const ReaK::frame_3D<double> >(&ee_f, ReaK::null_deleter()));
+	        if( ( norm_2( ee_err.Position ) < 0.01 ) &&
+		    ( ReaK::axis_angle<double>(ee_err.Quat).angle() < 0.02 ) ) {
+	          did_succeed = true;
+		  break;
+		};
+	      } catch(ReaK::singularity_error& e) { };
 	    };
+	    if(did_succeed)
+	      rec << 1.0;
+	    else
+	      rec << 0.0;
 	    rec << ReaK::recorder::data_recorder::end_value_row;
 	    ee_f.Quat *= ReaK::axis_angle<double>(2.0 * M_PI / 10.0, ReaK::vect<double,3>(0.0,1.0,0.0)).getQuaternion();
 	  };
