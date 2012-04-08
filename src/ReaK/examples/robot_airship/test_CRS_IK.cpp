@@ -244,7 +244,7 @@ int main() {
   for(std::size_t i = 0; i < 20; ++i) {
     ee_f.Position[1] = -0.6;
     for(std::size_t j = 0; j < 10; ++j) {
-      ee_f.Position[2] = 0.0;
+      ee_f.Position[2] = 0.6;
       for(std::size_t k = 0; k < 10; ++k) {
 	for(std::size_t l = 0; l < 10; ++l) {
 	  for(std::size_t m = 0; m < 10; ++m) {
@@ -280,11 +280,11 @@ int main() {
 	  };
 	  ee_f.Quat *= ReaK::axis_angle<double>(2.0 * M_PI / 10.0, ReaK::vect<double,3>(0.0,0.0,1.0)).getQuaternion();
 	};
-	ee_f.Position[2] += 1.2 / 9.0;
+	ee_f.Position[2] += 0.6 / 9.0;
       };
-      ee_f.Position[1] += 1.2 / 9.0;
+      ee_f.Position[1] += 0.6 / 9.0;
     };
-    ee_f.Position[0] += 4.2 / 19.0;
+    ee_f.Position[0] += 2.1 / 19.0;
   };
   rec << ReaK::recorder::data_recorder::flush;
   
