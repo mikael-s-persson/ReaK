@@ -266,6 +266,12 @@ manip_clik_calc_factory     0xC2400016   bin: 1100 0010 0100 0000 0000 0000 0001
 clik_quad_cost_factory      0xC2400017   bin: 1100 0010 0100 0000 0000 0000 0001 0111  D-R
 clik_mixed_cost_factory     0xC2400018   bin: 1100 0010 0100 0000 0000 0000 0001 1000  D-R
 clik_bent_joints_cost_factory 0xC2400019 bin: 1100 0010 0100 0000 0000 0000 0001 1001  D-R
+manip_ik_fixed_ip_map       0xC240001A   bin: 1100 0010 0100 0000 0000 0000 0001 1010  D-R
+manip_rl_ik_fixed_ip_map<R> 0xC240001B   bin: 1100 0010 0100 0000 0000 0000 0001 1011  D-R
+manip_ik_rnd_restart_map    0xC240001C   bin: 1100 0010 0100 0000 0000 0000 0001 1100  D-R
+manip_rl_ik_rnd_restart_map<R> 0xC240001D bin:1100 0010 0100 0000 0000 0000 0001 1101  D-R
+manip_ik_knn_starts_map     0xC240001E   bin: 1100 0010 0100 0000 0000 0000 0001 1110  D-R
+manip_rl_ik_knn_starts_map<R> 0xC240001F bin: 1100 0010 0100 0000 0000 0000 0001 1111  D-R
 
 
 

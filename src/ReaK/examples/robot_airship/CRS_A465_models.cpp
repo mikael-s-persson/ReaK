@@ -966,8 +966,8 @@ CRS_A465_model_builder::end_effector_space_type CRS_A465_model_builder::get_end_
       TranslationDiffSpace(
 	TranslationTuple(
 	  pp::hyperbox_topology< vect<double,3> >("EE_pos_space",vect<double,3>(-1.1,-1.1,0.0),vect<double,3>(4.5,1.1,1.5)),
-	  pp::hyperball_topology< vect<double,3> >("EE_vel_space",vect<double,3>(0.0,0.0,0.0),5.0),
-	  pp::hyperball_topology< vect<double,3> >("EE_acc_space",vect<double,3>(0.0,0.0,0.0),25.0)
+	  pp::hyperball_topology< vect<double,3> >("EE_vel_space",vect<double,3>(0.0,0.0,0.0),5.0,mat<double,mat_structure::identity>(3)),
+	  pp::hyperball_topology< vect<double,3> >("EE_acc_space",vect<double,3>(0.0,0.0,0.0),25.0,mat<double,mat_structure::identity>(3))
 	)
       ),
       RotationDiffSpace(

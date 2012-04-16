@@ -873,24 +873,24 @@ class manip_clik_calculator {
      * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint (barrier).
      */
     manip_clik_calculator(manipulator_kinematics_model* aModel, 
-			  const shared_ptr<const optim::cost_evaluator>& aCostEvaluator = shared_ptr<const optim::cost_evaluator>(),
-			  double aMaxRadius = 1.0, 
-			  double aMu = 0.1, 
-			  double aMaxIter = 300, 
-			  double aTol = 1e-6, 
-			  double aEta = 1e-3, 
-			  double aTau = 0.99) : 
-			  model(aModel), 
-			  cost_eval(aCostEvaluator),
-			  optimizer(
-			    optim::oop_cost_function(aCostEvaluator),
-			    optim::oop_cost_grad(aCostEvaluator),
-			    optim::oop_cost_hess(aCostEvaluator),
-			    aMaxRadius, aMu, aMaxIter,
-	                    eq_function(this), eq_jac_filler(this),
-			    ineq_function(this), ineq_jac_filler(this),
-			    aTol, aEta, aTau
-			  ) { 
+		          const shared_ptr<const optim::cost_evaluator>& aCostEvaluator = shared_ptr<const optim::cost_evaluator>(),
+		          double aMaxRadius = 1.0, 
+		          double aMu = 0.1, 
+		          double aMaxIter = 300, 
+		          double aTol = 1e-6, 
+		          double aEta = 1e-3, 
+		          double aTau = 0.99) : 
+		          model(aModel), 
+		          cost_eval(aCostEvaluator),
+		          optimizer(
+		            optim::oop_cost_function(aCostEvaluator),
+		            optim::oop_cost_grad(aCostEvaluator),
+		            optim::oop_cost_hess(aCostEvaluator),
+		            aMaxRadius, aMu, aMaxIter,
+		            eq_function(this), eq_jac_filler(this),
+		            ineq_function(this), ineq_jac_filler(this),
+		            aTol, aEta, aTau
+		          ) { 
       if(!model)
 	throw optim::improper_problem("CLIK error: The model pointer cannot be null!");
       
@@ -910,17 +910,7 @@ class manip_clik_calculator {
      */
     ~manip_clik_calculator() { };
     
-    /**
-     * This function takes its given desired 'end-effector' states and solves the inverse 
-     * kinematics problem to find the corresponding joint states. 
-     * \pre The joint states at which the manipulator model is before the function call 
-     *      will act as the initial guess for the inverse kinematics solution.
-     *      Before calling this function, it is assumed that all the parameters of the 
-     *      optimization have been properly set.
-     * \post The joint states which solve the inverse kinematics problem will be set in 
-     *       the manipulator model.
-     */
-    void solveInverseKinematics() {
+    void readDesiredFromModel() {
       
       desired_gen_coords.resize( model->DependentCoords().size() );
       for(std::size_t i = 0; i < desired_gen_coords.size(); ++i)
@@ -934,6 +924,10 @@ class manip_clik_calculator {
       for(std::size_t i = 0; i < desired_frame_3D.size(); ++i)
 	desired_frame_3D[i] = *(model->DependentFrames3D()[i]->mFrame);
       
+    };
+    
+    
+    vect_n<double> readJointStatesFromModel() {
       vect_n<double> x(model->getJointPositionsCount() + model->getJointVelocitiesCount());
       
       vect_ref_view< vect_n<double> > pos_x = x[range(0,model->getJointPositionsCount()-1)];
@@ -942,7 +936,16 @@ class manip_clik_calculator {
       vect_ref_view< vect_n<double> > vel_x = x[range(model->getJointPositionsCount(),model->getJointPositionsCount() + model->getJointVelocitiesCount() - 1)];
       manip_kin_mdl_joint_io(model).getJointVelocities(vel_x);
       
-      shared_ptr<const optim::cost_evaluator> tmp_cost_eval;
+      return x;
+    };
+    
+    void writeJointStatesToModel(const vect_n<double>& x) const {
+      manip_kin_mdl_joint_io(model).setJointPositions(x[range(0,model->getJointPositionsCount()-1)]);
+      manip_kin_mdl_joint_io(model).setJointVelocities(x[range(model->getJointPositionsCount(),model->getJointPositionsCount() + model->getJointVelocitiesCount() - 1)]);
+    };
+    
+    void runOptimizer( vect_n<double>& x ) {
+      shared_ptr<const optim::cost_evaluator> tmp_cost_eval = cost_eval;
       if(!cost_eval) {
 	tmp_cost_eval = shared_ptr<const optim::cost_evaluator>(
 	  new optim::quadratic_cost_evaluator(
@@ -955,28 +958,36 @@ class manip_clik_calculator {
 	);
       };
       
-      if(tmp_cost_eval)
-	cost_eval = tmp_cost_eval;
-      optimizer.f = optim::oop_cost_function(cost_eval);
-      optimizer.df = optim::oop_cost_grad(cost_eval);
-      optimizer.fill_hessian = optim::oop_cost_hess(cost_eval);
+      optimizer.f = optim::oop_cost_function(tmp_cost_eval);
+      optimizer.df = optim::oop_cost_grad(tmp_cost_eval);
+      optimizer.fill_hessian = optim::oop_cost_hess(tmp_cost_eval);
       optimizer.g = eq_function(this);
       optimizer.fill_g_jac = eq_jac_filler(this);
       optimizer.h = ineq_function(this);
       optimizer.fill_h_jac = ineq_jac_filler(this);
       
-      try {
-        optimizer( x );
-      } catch( ReaK::optim::infeasible_problem& e) { 
-      } catch( ReaK::maximum_iteration& e) {
-      };
+      optimizer( x );
+    };
+    
+    /**
+     * This function takes its given desired 'end-effector' states and solves the inverse 
+     * kinematics problem to find the corresponding joint states. 
+     * \pre The joint states at which the manipulator model is before the function call 
+     *      will act as the initial guess for the inverse kinematics solution.
+     *      Before calling this function, it is assumed that all the parameters of the 
+     *      optimization have been properly set.
+     * \post The joint states which solve the inverse kinematics problem will be set in 
+     *       the manipulator model.
+     */
+    void solveInverseKinematics() {
       
-      manip_kin_mdl_joint_io(model).setJointPositions(x[range(0,model->getJointPositionsCount()-1)]);
-      manip_kin_mdl_joint_io(model).setJointVelocities(x[range(model->getJointPositionsCount(),model->getJointPositionsCount() + model->getJointVelocitiesCount() - 1)]);
+      readDesiredFromModel();
       
-      if(tmp_cost_eval) {
-	cost_eval = shared_ptr<const optim::cost_evaluator>();
-      };
+      vect_n<double> x = readJointStatesFromModel();
+      
+      runOptimizer(x);
+      
+      writeJointStatesToModel(x);
     };
     
     

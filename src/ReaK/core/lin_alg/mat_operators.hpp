@@ -974,6 +974,7 @@ vect_copy< Vector > >::type::type operator *(const Vector& V,const Matrix& M) {
   };
 
   
+#if 0
 /**
  * Multiplication by a column-vector (fixed-size).
  * \param M the matrix (square)
@@ -996,7 +997,6 @@ vect<T,Size> operator *(const mat<T,Structure,Alignment,Allocator>& M,const vect
   return result;
 };
 
-
 /**
  * Multiplication by a row-vector (fixed-size).
  * \param M the matrix (square)
@@ -1018,6 +1018,7 @@ vect<T,Size> operator *(const vect<T,Size>& V,const mat<T,Structure,Alignment,Al
   };
   return result;
 };
+#endif
   
 
 

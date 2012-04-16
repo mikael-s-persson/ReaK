@@ -56,6 +56,37 @@ int main() {
               5e-2, // aEta
               0.95  // aTau
 	    ));
+  ReaK::pp::manip_ik_knn_starts_map<
+    ReaK::pp::manip_clik_calc_factory<
+      JointSpaceType,
+      ReaK::pp::clik_mixed_cost_factory<
+        ReaK::pp::clik_bent_joints_cost_factory
+      >
+    >,
+    JointSpaceType,
+    EESpaceType
+  > ik_knn_map(
+           model,
+	   ReaK::pp::manip_clik_calc_factory<
+             JointSpaceType,
+             ReaK::pp::clik_mixed_cost_factory<
+               ReaK::pp::clik_bent_joints_cost_factory
+             >
+           >( ReaK::shared_ptr< JointSpaceType >(&j_space, ReaK::null_deleter()),
+	      ReaK::pp::clik_mixed_cost_factory<
+                ReaK::pp::clik_bent_joints_cost_factory
+              >(ReaK::pp::clik_bent_joints_cost_factory(3,5)),
+	      10.0, // aRadius
+              0.1, // aMu
+              200, // aMaxIter
+              1e-4, // aTol
+              5e-2, // aEta
+              0.95  // aTau
+	    ),
+	   ReaK::shared_ptr< JointSpaceType >(&j_space, ReaK::null_deleter()),
+	   ReaK::shared_ptr< EESpaceType >(&ee_space, ReaK::null_deleter()),
+	   1000, 10
+	 );
   ReaK::pp::manip_direct_kin_map dk_map(model);
   
   typedef ReaK::pp::topology_traits< EESpaceType >::point_type EEPointType;
@@ -244,7 +275,7 @@ int main() {
   for(std::size_t i = 0; i < 20; ++i) {
     ee_f.Position[1] = -0.6;
     for(std::size_t j = 0; j < 10; ++j) {
-      ee_f.Position[2] = 0.6;
+      ee_f.Position[2] = 0.0;
       for(std::size_t k = 0; k < 10; ++k) {
 	for(std::size_t l = 0; l < 10; ++l) {
 	  for(std::size_t m = 0; m < 10; ++m) {
@@ -255,6 +286,15 @@ int main() {
 	                      << std::setw(4) << m; std::cout.flush();
 	    rec << ee_f.Position[0] << ee_f.Position[1] << ee_f.Position[2]
 	        << (l * 2.0 * M_PI / 10.0) << (m * 2.0 * M_PI / 10.0);
+	    
+	    try {
+	      set_frame_3D(ee_x, ee_f);
+	      j_x = ik_knn_map.map_to_space(ee_x, ee_space, j_space);
+	      rec << 1.0;
+	    } catch(ReaK::optim::infeasible_problem& e) {
+	      rec << 0.0;
+	    };
+	    /*
 	    bool did_succeed = false;
 	    for(std::size_t n = 0; n < 10; ++n) {
 	      try {
@@ -275,16 +315,17 @@ int main() {
 	      rec << 1.0;
 	    else
 	      rec << 0.0;
+	    */
 	    rec << ReaK::recorder::data_recorder::end_value_row;
 	    ee_f.Quat *= ReaK::axis_angle<double>(2.0 * M_PI / 10.0, ReaK::vect<double,3>(0.0,1.0,0.0)).getQuaternion();
 	  };
 	  ee_f.Quat *= ReaK::axis_angle<double>(2.0 * M_PI / 10.0, ReaK::vect<double,3>(0.0,0.0,1.0)).getQuaternion();
 	};
-	ee_f.Position[2] += 0.6 / 9.0;
+	ee_f.Position[2] += 1.2 / 9.0;
       };
-      ee_f.Position[1] += 0.6 / 9.0;
+      ee_f.Position[1] += 1.2 / 9.0;
     };
-    ee_f.Position[0] += 2.1 / 19.0;
+    ee_f.Position[0] += 4.2 / 19.0;
   };
   rec << ReaK::recorder::data_recorder::flush;
   

@@ -112,7 +112,8 @@ class hyperball_topology : public vector_topology<Vector>
      */
     double norm(const point_difference_type& delta) const {
       using std::sqrt;
-      return sqrt(delta * (scaling_mat * delta));
+      double result = sqrt(delta * (scaling_mat * delta));
+      return result;
     }
     
    /*************************************************************************
