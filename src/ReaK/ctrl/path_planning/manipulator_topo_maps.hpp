@@ -3121,7 +3121,7 @@ class manip_ik_rnd_restart_map : public shared_object {
 	} catch(optim::infeasible_problem& e) {
 	};
 	
-	if( norm_2(x) < ik_calc->optimizer.tol * 10.0 ) {
+	if( norm_2( kte::manip_clik_calculator::eq_function(ik_calc.get())(x) ) < ik_calc->optimizer.tol * 10.0 ) {
 	  ik_calc->writeJointStatesToModel(x);
 	  break;
 	} else if( i == restart_count - 1 )
@@ -3237,7 +3237,7 @@ class manip_rl_ik_rnd_restart_map : public shared_object {
 	} catch(optim::infeasible_problem& e) {
 	};
 	
-	if( norm_2(x) < ik_calc->optimizer.tol * 10.0 ) {
+	if( norm_2( kte::manip_clik_calculator::eq_function(ik_calc.get())(x) ) < ik_calc->optimizer.tol * 10.0 ) {
 	  ik_calc->writeJointStatesToModel(x);
 	  break;
 	} else if( i == restart_count - 1 )
@@ -3411,7 +3411,7 @@ class manip_ik_knn_starts_map : public shared_object {
 	} catch(optim::infeasible_problem& e) {
 	};
 	
-	if( norm_2(x) < ik_calc->optimizer.tol * 10.0 ) {
+	if( norm_2( kte::manip_clik_calculator::eq_function(ik_calc.get())(x) ) < ik_calc->optimizer.tol * 10.0 ) {
 	  ik_calc->writeJointStatesToModel(x);
 	  break;
 	} else if( i == neighbors.size() - 1 )
@@ -3591,7 +3591,7 @@ class manip_rl_ik_knn_starts_map : public shared_object {
 	} catch(optim::infeasible_problem& e) {
 	};
 	
-	if( norm_2(x) < ik_calc->optimizer.tol * 10.0 ) {
+	if( norm_2( kte::manip_clik_calculator::eq_function(ik_calc.get())(x) ) < ik_calc->optimizer.tol * 10.0 ) {
 	  ik_calc->writeJointStatesToModel(x);
 	  break;
 	} else if( i == neighbors.size() - 1 )
