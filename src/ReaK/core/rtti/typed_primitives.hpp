@@ -73,12 +73,32 @@ struct get_type_id<unsigned int> {
 
 template <>
 struct get_type_id<long unsigned int> {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000000F);
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000030);
   static std::string type_name() { return "long unsigned int"; };
   static construct_ptr CreatePtr() { return NULL; };
   
   typedef const long unsigned int& save_type;
   typedef long unsigned int& load_type;
+};
+
+template <>
+struct get_type_id<char> {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000031);
+  static std::string type_name() { return "char"; };
+  static construct_ptr CreatePtr() { return NULL; };
+  
+  typedef char save_type;
+  typedef char& load_type;
+};
+
+template <>
+struct get_type_id<unsigned char> {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000032);
+  static std::string type_name() { return "unsigned char"; };
+  static construct_ptr CreatePtr() { return NULL; };
+  
+  typedef unsigned char save_type;
+  typedef unsigned char& load_type;
 };
 
 template <>

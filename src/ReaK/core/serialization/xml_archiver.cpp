@@ -280,6 +280,44 @@ iarchive& RK_CALL xml_iarchive::load_serializable(const std::pair<std::string, s
   return *this;
 };
 
+iarchive& RK_CALL xml_iarchive::load_char(char& i) {
+  return xml_iarchive::load_char(std::pair<std::string, char& >("char",i));
+};
+
+iarchive& RK_CALL xml_iarchive::load_char(const std::pair<std::string, char& >& i) {
+  std::string value_str;
+  if(readNamedValue(i.first,value_str)) {
+    if(value_str.empty())
+      i.second = 0;
+    else {
+      int temp;
+      std::stringstream(value_str) >> temp;
+      i.second = char(temp);
+    };
+  } else
+    i.second = 0;
+  return *this;
+};
+
+iarchive& RK_CALL xml_iarchive::load_unsigned_char(unsigned char& u) {
+  return xml_iarchive::load_unsigned_char(std::pair<std::string, unsigned char& >("unsigned char",u));
+};
+
+iarchive& RK_CALL xml_iarchive::load_unsigned_char(const std::pair<std::string, unsigned char& >& u) {
+  std::string value_str;
+  if(readNamedValue(u.first,value_str)) {
+    if(value_str.empty())
+      u.second = 0;
+    else {
+      unsigned int temp;
+      std::stringstream(value_str) >> temp;
+      u.second = char(temp);
+    };
+  } else
+    u.second = 0;
+  return *this;
+};
+
 iarchive& RK_CALL xml_iarchive::load_int(int& i) {
   return xml_iarchive::load_int(std::pair<std::string, int& >("int",i));
 };
@@ -549,6 +587,26 @@ oarchive& RK_CALL xml_oarchive::save_serializable(const std::pair<std::string, c
   return *this;
 };
 
+
+oarchive& RK_CALL xml_oarchive::save_char(char i) {
+  return xml_oarchive::save_char(std::pair<std::string, char >("char",i));
+};
+
+oarchive& RK_CALL xml_oarchive::save_char(const std::pair<std::string, char >& i) {
+  addTabulations();
+  file_stream << "<" << i.first << ">\"" << static_cast<int>(i.second) << "\"</" << i.first << ">" << std::endl;
+  return *this;
+};
+
+oarchive& RK_CALL xml_oarchive::save_unsigned_char(unsigned char u) {
+  return xml_oarchive::save_unsigned_char(std::pair<std::string, unsigned char >("unsigned char",u));
+};
+
+oarchive& RK_CALL xml_oarchive::save_unsigned_char(const std::pair<std::string, unsigned char >& u) {
+  addTabulations();
+  file_stream << "<" << u.first << ">\"" << static_cast<unsigned int>(u.second) << "\"</" << u.first << ">" << std::endl;
+  return *this;
+};
 
 oarchive& RK_CALL xml_oarchive::save_int(int i) {
   return xml_oarchive::save_int(std::pair<std::string, int >("int",i));

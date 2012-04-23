@@ -48,6 +48,7 @@
 #define RK_CALL __attribute__((__stdcall__))
 #endif
 #endif // WIN32
+
 #define RK_EXTERN extern "C"
 
 #ifndef RK_VERBOSITY
@@ -55,13 +56,25 @@
 #endif
 
 
+#define RK_ORDER_LITTLE_ENDIAN 1
+#define RK_ORDER_BIG_ENDIAN 2
+#define RK_ORDER_PDP_ENDIAN 3
+
 #ifdef __GNUC__
 
 #ifdef __GXX_EXPERIMENTAL_CXX0X__
 #define RK_ENABLE_CXX0X_FEATURES
 #define RK_ENABLE_CXX11_FEATURES
 #endif // __GXX_EXPERIMENTAL_CXX0X__
- 
+
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define RK_BYTE_ORDER RK_ORDER_LITTLE_ENDIAN
+#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#define RK_BYTE_ORDER RK_ORDER_BIG_ENDIAN
+#else
+#define RK_BYTE_ORDER RK_ORDER_PDP_ENDIAN
+#endif
+
 #endif // __GNUC__
 
 
@@ -70,6 +83,10 @@
 //Cannot do this for now because MSVC doesn't support C++0x threads (why not is a mistery).
 //#define RK_ENABLE_CXXOX_FEATURES 
 #endif
+
+// All windows platforms are little-endian:
+#define RK_BYTE_ORDER RK_ORDER_LITTLE_ENDIAN
+
 #endif // _MSC_VER
 
 

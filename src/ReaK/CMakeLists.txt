@@ -13,8 +13,9 @@ set(RKCOREOLDDIR "${REAKDIR}/core_old")
 set(RKCTRLOLDDIR "${REAKDIR}/ctrl_old")
 set(RKRENDERERDIR "${REAKDIR}/renderer")
 set(RKAIDIR "${REAKDIR}/ai")
+set(RKGEOMETRYDIR "${REAKDIR}/geometry")
 
-set(RKSUBDIRS ${RKCOREDIR} ${RKCTRLDIR} ${RKEXAMPLESDIR})
+set(RKSUBDIRS ${RKCOREDIR} ${RKCTRLDIR} ${RKEXAMPLESDIR} ${RKGEOMETRYDIR})
 #set(RKSUBDIRS ${RKSUBDIRS} ${RKCOREOLDDIR} ${RKCTRLOLDDIR})
 
 configure_doxyfile(ReaK "\"ReaK Library - All libraries\"" "\"A complete library for robotics modeling, control and path-planning.\"" "${DOXTOSRCDIR}${RKCOREDIR} ${DOXTOSRCDIR}${RKCTRLDIR} ${DOXTOSRCDIR}${RKEXAMPLESDIR}")

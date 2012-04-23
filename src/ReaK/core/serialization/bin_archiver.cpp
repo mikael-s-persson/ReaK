@@ -158,6 +158,24 @@ iarchive& RK_CALL bin_iarchive::load_serializable(const std::pair<std::string, s
   return bin_iarchive::load_serializable(Item.second);
 };
 
+iarchive& RK_CALL bin_iarchive::load_char(char& i) {
+  file_stream.read(reinterpret_cast<char*>(&i),1);
+  return *this;
+};
+
+iarchive& RK_CALL bin_iarchive::load_char(const std::pair<std::string, char& >& i) {
+  return bin_iarchive::load_char(i.second);
+};
+
+iarchive& RK_CALL bin_iarchive::load_unsigned_char(unsigned char& u) {
+  file_stream.read(reinterpret_cast<char*>(&u),1);
+  return *this;
+};
+
+iarchive& RK_CALL bin_iarchive::load_unsigned_char(const std::pair<std::string, unsigned char& >& u) {
+  return bin_iarchive::load_unsigned_char(u.second);
+};
+
 iarchive& RK_CALL bin_iarchive::load_int(int& i) {
   file_stream.read(reinterpret_cast<char*>(&i),sizeof(int));
   return *this;
@@ -401,6 +419,24 @@ oarchive& RK_CALL bin_oarchive::save_serializable(const serializable& Item) {
 
 oarchive& RK_CALL bin_oarchive::save_serializable(const std::pair<std::string, const serializable& >& Item) {
   return bin_oarchive::save_serializable(Item.second);
+};
+
+oarchive& RK_CALL bin_oarchive::save_char(char i) {
+  file_stream.write(reinterpret_cast<char*>(&i),1);
+  return *this;
+};
+
+oarchive& RK_CALL bin_oarchive::save_char(const std::pair<std::string, char >& i) {
+  return bin_oarchive::save_char(i.second);
+};
+
+oarchive& RK_CALL bin_oarchive::save_unsigned_char(unsigned char u) {
+  file_stream.write(reinterpret_cast<char*>(&u),1);
+  return *this;
+};
+
+oarchive& RK_CALL bin_oarchive::save_unsigned_char(const std::pair<std::string, unsigned char >& u) {
+  return bin_oarchive::save_unsigned_char(u.second);
 };
 
 oarchive& RK_CALL bin_oarchive::save_int(int i) {

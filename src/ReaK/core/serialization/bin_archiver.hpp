@@ -60,6 +60,14 @@ class bin_iarchive : public iarchive {
 
     virtual iarchive& RK_CALL load_serializable(const std::pair<std::string, serializable& >& Item);
 
+    virtual iarchive& RK_CALL load_char(char& i);
+
+    virtual iarchive& RK_CALL load_char(const std::pair<std::string, char& >& i);
+
+    virtual iarchive& RK_CALL load_unsigned_char(unsigned char& u);
+
+    virtual iarchive& RK_CALL load_unsigned_char(const std::pair<std::string, unsigned char& >& u);
+
     virtual iarchive& RK_CALL load_int(int& i);
 
     virtual iarchive& RK_CALL load_int(const std::pair<std::string, int& >& i);
@@ -111,6 +119,14 @@ class bin_oarchive : public oarchive {
     virtual oarchive& RK_CALL save_serializable(const serializable& Item);
 
     virtual oarchive& RK_CALL save_serializable(const std::pair<std::string, const serializable& >& Item);
+
+    virtual oarchive& RK_CALL save_char(char i);
+
+    virtual oarchive& RK_CALL save_char(const std::pair<std::string, char >& i);
+
+    virtual oarchive& RK_CALL save_unsigned_char(unsigned char u);
+
+    virtual oarchive& RK_CALL save_unsigned_char(const std::pair<std::string, unsigned char >& u);
 
     virtual oarchive& RK_CALL save_int(int i);
 

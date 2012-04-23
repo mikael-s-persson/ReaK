@@ -144,6 +144,18 @@ class iarchive : public archive {
     /// Loading a serializable object by reference with a name.
     virtual iarchive& RK_CALL load_serializable(const std::pair<std::string, serializable& >& Item) = 0;
 
+    /// Loading a char value.
+    virtual iarchive& RK_CALL load_char(char& i) = 0;
+
+    /// Loading a char value with a name.
+    virtual iarchive& RK_CALL load_char(const std::pair<std::string, char& >& i) = 0;
+
+    /// Loading an unsigned char value.
+    virtual iarchive& RK_CALL load_unsigned_char(unsigned char& u) = 0;
+
+    /// Loading an unsigned char value with a name.
+    virtual iarchive& RK_CALL load_unsigned_char(const std::pair<std::string, unsigned char& >& u) = 0;
+
     /// Loading an integer value.
     virtual iarchive& RK_CALL load_int(int& i) = 0;
 
@@ -204,6 +216,26 @@ class iarchive : public archive {
       return in.load_serializable(Item);
     };
 
+    /// Loading a char value.
+    friend iarchive& RK_CALL operator >>(iarchive& in, char& i) {
+      return in.load_char(i);
+    };
+
+    /// Loading a char value with a name.
+    friend iarchive& RK_CALL operator &(iarchive& in, const std::pair<std::string, char& >& i) {
+      return in.load_char(i);
+    };
+
+    /// Loading an unsigned char value.
+    friend iarchive& RK_CALL operator >>(iarchive& in, unsigned char& u) {
+      return in.load_unsigned_char(u);
+    };
+
+    /// Loading an unsigned char value with a name.
+    friend iarchive& RK_CALL operator &(iarchive& in, const std::pair<std::string, unsigned char& >& u) {
+      return in.load_unsigned_char(u);
+    };
+    
     /// Loading an integer value.
     friend iarchive& RK_CALL operator >>(iarchive& in, int& i) {
       return in.load_int(i);
@@ -613,6 +645,18 @@ class oarchive : public archive {
     /// Saving a serializable object by reference with a name.
     virtual oarchive& RK_CALL save_serializable(const std::pair<std::string, const serializable& >& Item) = 0;
 
+    /// Saving a char value.
+    virtual oarchive& RK_CALL save_char(char i) = 0;
+
+    /// Saving a char value with a name.
+    virtual oarchive& RK_CALL save_char(const std::pair<std::string, char >& i) = 0;
+
+    /// Saving an unsigned char value.
+    virtual oarchive& RK_CALL save_unsigned_char(unsigned char u) = 0;
+
+    /// Saving an unsigned char value with a name.
+    virtual oarchive& RK_CALL save_unsigned_char(const std::pair<std::string, unsigned char >& u) = 0;
+
     /// Saving an integer value.
     virtual oarchive& RK_CALL save_int(int i) = 0;
 
@@ -683,6 +727,26 @@ class oarchive : public archive {
     /// Saving a serializable object by reference with a name.
     friend oarchive& RK_CALL operator &(oarchive& out, const std::pair<std::string, const serializable& >& Item) {
       return out.save_serializable(Item);
+    };
+
+    /// Saving an char value.
+    friend oarchive& RK_CALL operator <<(oarchive& out, char i) {
+      return out.save_char(i);
+    };
+
+    /// Saving an char value with a name.
+    friend oarchive& RK_CALL operator &(oarchive& out, const std::pair<std::string, char >& i) {
+      return out.save_char(i);
+    };
+
+    /// Saving an unsigned char value.
+    friend oarchive& RK_CALL operator <<(oarchive& out, unsigned char u) {
+      return out.save_unsigned_char(u);
+    };
+
+    /// Saving an unsigned char value with a name.
+    friend oarchive& RK_CALL operator &(oarchive& out, const std::pair<std::string, unsigned char >& u) {
+      return out.save_unsigned_char(u);
     };
 
     /// Saving an integer value.
