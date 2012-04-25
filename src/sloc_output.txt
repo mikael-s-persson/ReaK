@@ -1,11 +1,11 @@
 Have a non-directory at the top, so creating directory top_dir
 Adding /media/S_M_P_2/ReaK_github/src/ReaK/CMakeLists.txt to top_dir
-Adding /media/S_M_P_2/ReaK_github/src/ReaK/CMakeLists.txt~ to top_dir
 Adding /media/S_M_P_2/ReaK_github/src/ReaK/README to top_dir
 Adding /media/S_M_P_2/ReaK_github/src/ReaK/TypeIDList.txt to top_dir
 Creating filelist for core
 Creating filelist for ctrl
 Creating filelist for examples
+Creating filelist for geometry
 Categorizing files.
 Finding a working MD5 command....
 Found a working MD5 command.
@@ -13,25 +13,26 @@ Computing results.
 
 
 SLOC	Directory	SLOC-by-Language (Sorted)
-39497   core            cpp=39497
-28594   ctrl            cpp=28594
-3809    examples        cpp=3809
+39775   core            cpp=39775
+30088   ctrl            cpp=30088
+6312    examples        cpp=6312
+2082    geometry        cpp=2082
 0       top_dir         (none)
 
 
 Totals grouped by language (dominant language first):
-cpp:          71900 (100.00%)
+cpp:          78257 (100.00%)
 
 
 
 
-Total Physical Source Lines of Code (SLOC)                = 71,900
-Development Effort Estimate, Person-Years (Person-Months) = 17.81 (213.69)
+Total Physical Source Lines of Code (SLOC)                = 78,257
+Development Effort Estimate, Person-Years (Person-Months) = 19.46 (233.57)
  (Basic COCOMO model, Person-Months = 2.4 * (KSLOC**1.05))
-Schedule Estimate, Years (Months)                         = 1.60 (19.20)
+Schedule Estimate, Years (Months)                         = 1.65 (19.86)
  (Basic COCOMO model, Months = 2.5 * (person-months**0.38))
-Estimated Average Number of Developers (Effort/Schedule)  = 11.13
-Total Estimated Cost to Develop                           = $ 2,405,509
+Estimated Average Number of Developers (Effort/Schedule)  = 11.76
+Total Estimated Cost to Develop                           = $ 2,629,305
  (average salary = $56,286/year, overhead = 2.40).
 SLOCCount, Copyright (C) 2001-2004 David A. Wheeler
 SLOCCount is Open Source Software/Free Software, licensed under the GNU GPL.

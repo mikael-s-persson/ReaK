@@ -1,12 +1,13 @@
 # These are the main sub-directories
 set(RKSHAPESDIR "${RKGEOMETRYDIR}/shapes")
+set(RKPROXIMITYDIR "${RKGEOMETRYDIR}/proximity")
 
-set(RKGEOMETRYSUBDIRS ${RKSHAPESDIR})
+set(RKGEOMETRYSUBDIRS ${RKSHAPESDIR} ${RKPROXIMITYDIR})
 
 configure_doxyfile(ReaKgeom 
                    "\"ReaK Library - Geometry library\"" 
-                   "\"A tool-set for geometric representations, collision calculations and rendering for 2D and 3D objects.\"" 
-                   "${DOXTOSRCDIR}${RKSHAPESDIR}")
+                   "\"A tool-set for geometric representations, proximity queries and rendering for 2D and 3D objects.\"" 
+                   "${DOXTOSRCDIR}${RKSHAPESDIR} ${DOXTOSRCDIR}${RKPROXIMITYDIR}")
 add_doxygen_target(ReaKgeom)
 
 

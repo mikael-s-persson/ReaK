@@ -43,7 +43,7 @@ namespace ReaK {
 namespace geom {
 
 
-/** This class represents a cylinder aligned along the x-axis of its center pose. */
+/** This class represents a cylinder aligned along the z-axis of its center pose. */
 class cylinder : public shape_3D {
   protected:
     
