@@ -31,23 +31,19 @@ namespace geom {
 rectangle::rectangle(const std::string& aName,
 		     const shared_ptr< pose_2D<double> >& aAnchor,
 		     const pose_2D<double>& aPose,
-		     const vect<double,2>& aDimensions,
-		     const RGBA_color& aColor) :
+		     const vect<double,2>& aDimensions) :
 		     shape_2D(aName,aAnchor,aPose),
-		     mDimensions(aDimensions),
-		     mColor(aColor) { };
+		     mDimensions(aDimensions) { };
     
     
 void RK_CALL rectangle::save(ReaK::serialization::oarchive& A, unsigned int) const {
   shape_2D::save(A,shape_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mDimensions)
-    & RK_SERIAL_SAVE_WITH_NAME(mColor);
+  A & RK_SERIAL_SAVE_WITH_NAME(mDimensions);
 };
 
 void RK_CALL rectangle::load(ReaK::serialization::iarchive& A, unsigned int) {
   shape_2D::load(A,shape_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mDimensions)
-    & RK_SERIAL_LOAD_WITH_NAME(mColor);
+  A & RK_SERIAL_LOAD_WITH_NAME(mDimensions);
 };
 
 

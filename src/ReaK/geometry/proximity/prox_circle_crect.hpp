@@ -1,7 +1,7 @@
 /**
- * \file box.hpp
+ * \file prox_circle_crect.hpp
  *
- * This library declares a class to represent boxes.
+ * This library declares a class for proximity queries between a circle and a capped rectangle.
  *
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date April 2012
@@ -29,10 +29,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_BOX_HPP
-#define REAK_BOX_HPP
+#ifndef REAK_PROX_CIRCLE_CRECT_HPP
+#define REAK_PROX_CIRCLE_CRECT_HPP
 
-#include "shape_3D.hpp"
+#include "proximity_finder_2D.hpp"
+
+#include "shapes/circle.hpp"
+#include "shapes/capped_rectangle.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -41,43 +44,35 @@ namespace ReaK {
 namespace geom {
 
 
-/** This class represents a box aligned along its center pose. */
-class box : public shape_3D {
+/**
+ * This class is for proximity queries between a circle and a capped rectangle.
+ */
+class prox_circle_crect : public proximity_finder_2D {
   protected:
     
-    vect<double,3> mDimensions;
+    shared_ptr< circle > mCircle;
+    shared_ptr< capped_rectangle > mCRect;
     
   public:
     
-    /**
-     * This function returns the dimensions of the box.
-     * \return The dimensions of the box.
-     */
-    const vect<double,3>& getDimensions() const { return mDimensions; };
-    /**
-     * This function sets the dimensions of the box.
-     * \param aDimensions The new dimensions of the box.
-     */
-    void setDimensions(const vect<double,3>& aDimensions) { mDimensions = aDimensions; };
+    /** Returns the first shape involved in the proximity query. */
+    virtual shared_ptr< shape_2D > getShape1() const;
+    /** Returns the second shape involved in the proximity query. */
+    virtual shared_ptr< shape_2D > getShape2() const;
     
-    virtual void render() const;
+    /** This function performs the proximity query on its associated shapes. */
+    virtual void computeProximity();
     
-    /**
+    /** 
      * Default constructor.
-     * \param aName The name of the object.
-     * \param aAnchor The anchor object for the geometry.
-     * \param aPose The pose of the geometry (relative to the anchor).
-     * \param aDimensions The dimensions of the box.
+     * \param aCircle The circle involved in the proximity query.
+     * \param aCRect The capped rectangle involved in the proximity query.
      */
-    box(const std::string& aName = "",
-        const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-	const pose_3D<double>& aPose = pose_3D<double>(),
-	const vect<double,3>& aDimensions = vect<double,3>(1.0,1.0,1.0));
+    prox_circle_crect(const shared_ptr< circle >& aCircle = shared_ptr< circle >(),
+                      const shared_ptr< capped_rectangle >& aCRect = shared_ptr< capped_rectangle >());
     
-    /**
-     * Default destructor.
-     */
-    virtual ~box() { };
+    /** Destructor. */
+    virtual ~prox_circle_crect() { };
     
     
 /*******************************************************************************
@@ -85,11 +80,11 @@ class box : public shape_3D {
 *******************************************************************************/
     
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
-
+    
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
-
-    RK_RTTI_MAKE_CONCRETE_1BASE(box,0xC3100013,1,"box",shape_3D)
-
+    
+    RK_RTTI_MAKE_ABSTRACT_1BASE(prox_circle_crect,0xC3200006,1,"prox_circle_crect",proximity_finder_2D)
+    
 };
 
 

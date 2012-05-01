@@ -32,26 +32,22 @@ grid_3D::grid_3D(const std::string& aName,
 		 const shared_ptr< pose_3D<double> >& aAnchor,
 		 const pose_3D<double>& aPose,
 		 const vect<double,3>& aDimensions,
-		 const vect<std::size_t,3>& aSquareCounts,
-		 const RGBA_color& aColor) :
+		 const vect<std::size_t,3>& aSquareCounts) :
 		 geometry_3D(aName,aAnchor,aPose),
 		 mDimensions(aDimensions),
-		 mSquareCounts(aSquareCounts),
-		 mColor(aColor) { };
+		 mSquareCounts(aSquareCounts) { };
     
     
 void RK_CALL grid_3D::save(ReaK::serialization::oarchive& A, unsigned int) const {
   geometry_3D::save(A,geometry_3D::getStaticObjectType()->TypeVersion());
   A & RK_SERIAL_SAVE_WITH_NAME(mDimensions)
-    & RK_SERIAL_SAVE_WITH_NAME(mSquareCounts)
-    & RK_SERIAL_SAVE_WITH_NAME(mColor);
+    & RK_SERIAL_SAVE_WITH_NAME(mSquareCounts);
 };
 
 void RK_CALL grid_3D::load(ReaK::serialization::iarchive& A, unsigned int) {
   geometry_3D::load(A,geometry_3D::getStaticObjectType()->TypeVersion());
   A & RK_SERIAL_LOAD_WITH_NAME(mDimensions)
-    & RK_SERIAL_LOAD_WITH_NAME(mSquareCounts)
-    & RK_SERIAL_LOAD_WITH_NAME(mColor);
+    & RK_SERIAL_LOAD_WITH_NAME(mSquareCounts);
 };
 
 

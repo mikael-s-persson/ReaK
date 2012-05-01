@@ -31,22 +31,18 @@ namespace geom {
 circle::circle(const std::string& aName,
 	       const shared_ptr< pose_2D<double> >& aAnchor,
 	       const pose_2D<double>& aPose,
-	       double aRadius,
-	       const RGBA_color& aColor) :
+	       double aRadius) :
 	       shape_2D(aName, aAnchor, aPose),
-	       mRadius(aRadius), 
-	       mColor(aColor) { };
+	       mRadius(aRadius) { };
     
 void RK_CALL circle::save(ReaK::serialization::oarchive& A, unsigned int) const {
   shape_2D::save(A,shape_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mRadius)
-    & RK_SERIAL_SAVE_WITH_NAME(mColor);
+  A & RK_SERIAL_SAVE_WITH_NAME(mRadius);
 };
 
 void RK_CALL circle::load(ReaK::serialization::iarchive& A, unsigned int) {
   shape_2D::load(A,shape_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mRadius)
-    & RK_SERIAL_LOAD_WITH_NAME(mColor);
+  A & RK_SERIAL_LOAD_WITH_NAME(mRadius);
 };
 
 

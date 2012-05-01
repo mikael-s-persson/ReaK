@@ -34,8 +34,6 @@
 
 #include "geometry_2D.hpp"
 
-#include "color.hpp"
-
 /** Main namespace for ReaK */
 namespace ReaK {
 
@@ -49,8 +47,6 @@ class grid_2D : public geometry_2D {
     
     vect<double,2> mDimensions;
     vect<std::size_t,2> mSquareCounts;
-    
-    RGBA_color mColor;
     
   public:
     
@@ -76,17 +72,6 @@ class grid_2D : public geometry_2D {
      */
     void setSquareCounts(const vect<std::size_t,2>& aSquareCounts) { mSquareCounts = aSquareCounts; };
     
-    /** 
-     * This function returns the color of the grid.
-     * \return The color.
-     */
-    const RGBA_color& getColor() const { return mColor; };
-    /** 
-     * This function sets the color of the grid.
-     * \param aColor The new color.
-     */
-    void setColor(const RGBA_color& aColor) { mColor = aColor; };
-    
     virtual void render() const;
     
     /**
@@ -96,14 +81,12 @@ class grid_2D : public geometry_2D {
      * \param aPose The pose of the geometry (relative to the anchor).
      * \param aDimensions The dimensions.
      * \param aSquareCounts The square-counts.
-     * \param aColor The color of the line-segment.
      */
     grid_2D(const std::string& aName = "",
 	    const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
 	    const pose_2D<double>& aPose = pose_2D<double>(),
 	    const vect<double,2>& aDimensions = vect<double,2>(),
-	    const vect<std::size_t,2>& aSquareCounts = vect<std::size_t,2>(10,10),
-	    const RGBA_color& aColor = RGBA_color(255,255,255,255));
+	    const vect<std::size_t,2>& aSquareCounts = vect<std::size_t,2>(10,10));
     
     /**
      * Default destructor.

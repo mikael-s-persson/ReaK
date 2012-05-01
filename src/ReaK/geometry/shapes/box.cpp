@@ -31,22 +31,18 @@ namespace geom {
 box::box(const std::string& aName,
          const shared_ptr< pose_3D<double> >& aAnchor,
 	 const pose_3D<double>& aPose,
-	 const vect<double,3>& aDimensions,
-	 const RGBA_color& aColor) :
+	 const vect<double,3>& aDimensions) :
 	 shape_3D(aName,aAnchor,aPose),
-	 mDimensions(aDimensions),
-	 mColor(aColor) { };
+	 mDimensions(aDimensions) { };
     
 void RK_CALL box::save(ReaK::serialization::oarchive& A, unsigned int) const {
   shape_3D::save(A,shape_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mDimensions)
-    & RK_SERIAL_SAVE_WITH_NAME(mColor);
+  A & RK_SERIAL_SAVE_WITH_NAME(mDimensions);
 };
 
 void RK_CALL box::load(ReaK::serialization::iarchive& A, unsigned int) {
   shape_3D::load(A,shape_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mDimensions)
-    & RK_SERIAL_LOAD_WITH_NAME(mColor);
+  A & RK_SERIAL_LOAD_WITH_NAME(mDimensions);
 };
 
 

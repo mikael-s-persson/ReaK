@@ -1,7 +1,7 @@
 /**
- * \file ellipse.hpp
+ * \file capped_rectangle.hpp
  *
- * This library declares a class to represent ellipses.
+ * This library declares a class to represent a capped rectangle in 2D.
  *
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date April 2012
@@ -29,12 +29,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_ELLIPSE_HPP
-#define REAK_ELLIPSE_HPP
+#ifndef REAK_CAPPED_RECTANGLE_HPP
+#define REAK_CAPPED_RECTANGLE_HPP
 
 #include "shape_2D.hpp"
-
-#include "color.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -43,37 +41,24 @@ namespace ReaK {
 namespace geom {
 
 
-/** This class represents an ellipse. */
-class ellipse : public shape_2D {
+/** This class represents a capped rectangle in 2D (aligned about its center pose, with x-axis ends capped with circles). */
+class capped_rectangle : public shape_2D {
   protected:
     
-    vect<double,2> mRadii;
-    
-    RGBA_color mColor;
+    vect<double,2> mDimensions;
     
   public:
     
-    /**
-     * This function returns the radii of the ellipse (x and y radius, or principle axes).
-     * \return The radii of the ellipse (x and y radius, or principle axes).
-     */
-    const vect<double,2>& getRadii() const { return mRadii; };
-    /**
-     * This function sets the radii of the ellipse (x and y radius, or principle axes).
-     * \param aRadii The new radii of the ellipse (x and y radius, or principle axes).
-     */
-    void setRadii(const vect<double,2>& aRadii) { mRadii = aRadii; };
-    
     /** 
-     * This function returns the color of the ellipse.
-     * \return The color.
+     * This function returns the dimensions of the capped rectangle.
+     * \return The dimensions of the capped rectangle.
      */
-    const RGBA_color& getColor() const { return mColor; };
+    const vect<double,2>& getDimensions() const { return mDimensions; };
     /** 
-     * This function sets the color of the ellipse.
-     * \param aColor The new color.
+     * This function sets the new dimensions of the capped rectangle.
+     * \param aDimensions The new dimensions of the capped rectangle.
      */
-    void setColor(const RGBA_color& aColor) { mColor = aColor; };
+    void setDimensions(const vect<double,2>& aDimensions) { mDimensions = aDimensions; };
     
     virtual void render() const;
     
@@ -82,18 +67,17 @@ class ellipse : public shape_2D {
      * \param aName The name of the object.
      * \param aAnchor The anchor object for the geometry.
      * \param aPose The pose of the geometry (relative to the anchor).
-     * \param aRadii The radii of the ellipse (x and y radius, or principle axes).
+     * \param aDimensions The dimensions.
      */
-    ellipse(const std::string& aName = "",
-            const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
-	    const pose_2D<double>& aPose = pose_2D<double>(),
-	    const vect<double,2>& aRadii = vect<double,2>(1.0,1.0),
-	    const RGBA_color& aColor = RGBA_color(255,255,255,255));
+    capped_rectangle(const std::string& aName = "",
+	             const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
+	             const pose_2D<double>& aPose = pose_2D<double>(),
+	             const vect<double,2>& aDimensions = vect<double,2>());
     
     /**
      * Default destructor.
      */
-    virtual ~ellipse() { };
+    virtual ~capped_rectangle() { };
     
     
 /*******************************************************************************
@@ -104,8 +88,8 @@ class ellipse : public shape_2D {
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(ellipse,0xC310000D,1,"ellipse",shape_2D)
-
+    RK_RTTI_MAKE_CONCRETE_1BASE(capped_rectangle,0xC310000D,1,"capped_rectangle",shape_2D)
+    
 };
 
 

@@ -1,7 +1,7 @@
 /**
- * \file ellipsoid.hpp
+ * \file capped_cylinder.hpp
  *
- * This library declares a class to represent ellipsoids (3D ellipse).
+ * This library declares a class to represent capped cylinders.
  *
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date April 2012
@@ -29,12 +29,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_ELLIPSOID_HPP
-#define REAK_ELLIPSOID_HPP
+#ifndef REAK_CAPPED_CYLINDER_HPP
+#define REAK_CAPPED_CYLINDER_HPP
 
 #include "shape_3D.hpp"
-
-#include "color.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -43,37 +41,36 @@ namespace ReaK {
 namespace geom {
 
 
-/** This class represents an ellipsoids (3D ellipse). */
-class ellipsoid : public shape_3D {
+/** This class represents a cylinder aligned along the z-axis of its center pose. */
+class capped_cylinder : public shape_3D {
   protected:
     
-    vect<double,3> mRadii;
-    
-    RGBA_color mColor;
+    double mLength;
+    double mRadius;
     
   public:
     
     /**
-     * This function returns the radii of the ellipsoid (x, y and z radius, or principle axes).
-     * \return The radii of the ellipsoid (x, y and z radius, or principle axes).
+     * This function returns the length of the cylinder.
+     * \return The length of the cylinder.
      */
-    const vect<double,3>& getRadii() const { return mRadii; };
+    double getLength() const { return mLength; };
     /**
-     * This function sets the radii of the ellipsoid (x, y and z radius, or principle axes).
-     * \param aRadii The new radii of the ellipsoid (x, y and z radius, or principle axes).
+     * This function sets the length of the cylinder.
+     * \param aLength The new length of the cylinder.
      */
-    void setRadii(const vect<double,3>& aRadii) { mRadii = aRadii; };
+    void setLength(double aLength) { mLength = aLength; };
     
-    /** 
-     * This function returns the color of the ellipsoid.
-     * \return The color.
+    /**
+     * This function returns the radius of the cylinder.
+     * \return The radius of the cylinder.
      */
-    const RGBA_color& getColor() const { return mColor; };
-    /** 
-     * This function sets the color of the ellipsoid.
-     * \param aColor The new color.
+    double getRadius() const { return mRadius; };
+    /**
+     * This function sets the radius of the cylinder.
+     * \param aRadius The new radius of the cylinder.
      */
-    void setColor(const RGBA_color& aColor) { mColor = aColor; };
+    void setRadius(double aRadius) { mRadius = aRadius; };
     
     virtual void render() const;
     
@@ -82,18 +79,19 @@ class ellipsoid : public shape_3D {
      * \param aName The name of the object.
      * \param aAnchor The anchor object for the geometry.
      * \param aPose The pose of the geometry (relative to the anchor).
-     * \param aRadii The radii of the ellipsoid (x, y and z radius, or principle axes).
+     * \param aLength The length of the cylinder.
+     * \param aRadius The radius of the cylinder.
      */
-    ellipsoid(const std::string& aName = "",
-              const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-	      const pose_3D<double>& aPose = pose_3D<double>(),
-	      const vect<double,3>& aRadii = vect<double,3>(1.0,1.0,1.0),
-	      const RGBA_color& aColor = RGBA_color(255,255,255,255));
+    capped_cylinder(const std::string& aName = "",
+	            const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
+	            const pose_3D<double>& aPose = pose_3D<double>(),
+	            double aLength = 1.0,
+	            double aRadius = 1.0);
     
     /**
      * Default destructor.
      */
-    virtual ~ellipsoid() { };
+    virtual ~capped_cylinder() { };
     
     
 /*******************************************************************************
@@ -104,7 +102,7 @@ class ellipsoid : public shape_3D {
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(ellipsoid,0xC3100011,1,"ellipsoid",shape_3D)
+    RK_RTTI_MAKE_CONCRETE_1BASE(capped_cylinder,0xC3100011,1,"capped_cylinder",shape_3D)
 
 };
 

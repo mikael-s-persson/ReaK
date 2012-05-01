@@ -34,8 +34,6 @@
 
 #include "geometry_2D.hpp"
 
-#include "color.hpp"
-
 /** Main namespace for ReaK */
 namespace ReaK {
 
@@ -48,8 +46,6 @@ class line_seg_2D : public geometry_2D {
   protected:
     vect<double,2> mStart;
     vect<double,2> mEnd;
-    
-    RGBA_color mColor;
     
   public:
     
@@ -75,17 +71,6 @@ class line_seg_2D : public geometry_2D {
      */
     void setEnd(const vect<double,2>& aEnd) { mEnd = aEnd; };
     
-    /** 
-     * This function returns the color of the line-segment.
-     * \return The color.
-     */
-    const RGBA_color& getColor() const { return mColor; };
-    /** 
-     * This function sets the color of the line-segment.
-     * \param aColor The new color.
-     */
-    void setColor(const RGBA_color& aColor) { mColor = aColor; };
-    
     virtual void render() const;
     
     /**
@@ -95,14 +80,12 @@ class line_seg_2D : public geometry_2D {
      * \param aPose The pose of the geometry (relative to the anchor).
      * \param aStart The start point of the line-segment.
      * \param aEnd The end point of the line-segment.
-     * \param aColor The color of the line-segment.
      */
     line_seg_2D(const std::string& aName = "",
                 const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
 		const pose_2D<double>& aPose = pose_2D<double>(),
 		const vect<double,2>& aStart = vect<double,2>(),
-		const vect<double,2>& aEnd = vect<double,2>(),
-		const RGBA_color& aColor = RGBA_color(255,255,255,255));
+		const vect<double,2>& aEnd = vect<double,2>());
     
     /**
      * Default destructor.
