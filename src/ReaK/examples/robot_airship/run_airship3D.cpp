@@ -58,6 +58,7 @@ int main(int argc, char** argv) {
 	      << "\t\t inertia_data.xml:\t The filename for the airship's inertial data.\n"
 	      << "\t\t result_filename.ssv:\t The filename where to record the results as a space-separated values file.\n"
 	      << "\t\t time_step:\t\t The time_step of the output points.\n"
+	      << "\t\t end_time:\t\t The end-time of the simulation.\n"
 	      << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
 	      << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix." << std::endl;
     return 0;
@@ -173,10 +174,11 @@ int main(int argc, char** argv) {
   
   recorder::ssv_recorder results(results_filename);
   
-  results << "time" << "pos_x" << "pos_y" << "pos_y"
-                    << "q0" << "q1" << "q2" << "q3" 
-		    << "meas_x" << "meas_y" << "meas_y"
-		    << "meas_q0" << "meas_q1" << "meas_q2" << "meas_q3" << recorder::data_recorder::end_name_row;
+  results << "time" << "meas_q0" << "meas_q1" << "meas_q2" << "meas_q3"
+		    << "meas_x" << "meas_y" << "meas_z"
+		    << "q0" << "q1" << "q2" << "q3" 
+		    << "pos_x" << "pos_y" << "pos_z"
+                    << recorder::data_recorder::end_name_row;
   
   recorder::ssv_recorder results_dt(results_filename + ".dt.ssv");
   
@@ -221,15 +223,17 @@ int main(int argc, char** argv) {
     
     std::cout << "\r" << std::setw(20) << t; std::cout.flush();
     
-    results << t << y[0] << y[1] << y[2] 
-            << y[3] << y[4] << y[5] << y[6] 
-            << (y[0] + var_rnd() * sqrt(R(0,0))) 
-	    << (y[1] + var_rnd() * sqrt(R(1,1)))
-	    << (y[2] + var_rnd() * sqrt(R(2,2)))
-	    << (y[3] + var_rnd() * sqrt(R(3,3)))
+    results << t 
+            << (y[3] + var_rnd() * sqrt(R(3,3)))
 	    << (y[4] + var_rnd() * sqrt(R(4,4)))
 	    << (y[5] + var_rnd() * sqrt(R(5,5)))
-	    << (y[6] + var_rnd() * sqrt(R(6,6))) << recorder::data_recorder::end_value_row;
+	    << (y[6] + var_rnd() * sqrt(R(6,6))) 
+	    << (y[0] + var_rnd() * sqrt(R(0,0))) 
+	    << (y[1] + var_rnd() * sqrt(R(1,1)))
+	    << (y[2] + var_rnd() * sqrt(R(2,2)))
+	    << y[3] << y[4] << y[5] << y[6] 
+            << y[0] << y[1] << y[2] 
+            << recorder::data_recorder::end_value_row;
     
     results_dt << t << y_dt[0] << y_dt[1] << y_dt[2]
                << y_dt[3] << y_dt[4] << y_dt[5] << y_dt[6] << recorder::data_recorder::end_value_row;

@@ -115,13 +115,9 @@ int main(int argc, char** argv) {
   mat<double,mat_structure::diagonal> R_added(7,0.0);
   try {
     if(argc >= 9) {
-      std::cout << "address 1" << std::endl;
       std::string R_added_filename(argv[8]);
-      std::cout << "address 2" << std::endl;
       serialization::xml_iarchive in(R_added_filename);
-      std::cout << "address 3" << std::endl;
       in & RK_SERIAL_LOAD_WITH_ALIAS("artificial_noise",R_added);
-      std::cout << "address 4" << std::endl;
     };
   } catch(...) {
     RK_ERROR("An exception occurred during the loading of the artificial measurement noise covariance matrix!");
@@ -130,6 +126,7 @@ int main(int argc, char** argv) {
   
   
   std::list< std::pair< double, vect_n<double> > > measurements;
+  std::list< std::pair< double, vect_n<double> > > measurements_noisy;
   {
     recorder::ssv_extractor meas_file(meas_filename);
     try {
@@ -151,15 +148,16 @@ int main(int argc, char** argv) {
         };
 	meas_file >> recorder::data_extractor::end_value_row;
 	if(j == 0) {
-	  vect_n<double> meas_v(meas.end() - 7,meas.end());
-	  meas_v[0] += var_rnd() * sqrt(R_added(0,0));
-	  meas_v[1] += var_rnd() * sqrt(R_added(1,1));
-	  meas_v[2] += var_rnd() * sqrt(R_added(2,2));
-	  meas_v[3] += var_rnd() * sqrt(R_added(3,3));
-	  meas_v[4] += var_rnd() * sqrt(R_added(4,4));
-	  meas_v[5] += var_rnd() * sqrt(R_added(5,5));
-	  meas_v[6] += var_rnd() * sqrt(R_added(6,6));
-	  measurements.push_back(std::make_pair(t,meas_v));
+	  measurements.push_back(std::make_pair(t,vect_n<double>(meas.begin(),meas.end())));
+	  vect_n<double> meas_v(7);
+	  meas_v[0] = meas[4] + var_rnd() * sqrt(R_added(0,0));
+	  meas_v[1] = meas[5] += var_rnd() * sqrt(R_added(1,1));
+	  meas_v[2] = meas[6] += var_rnd() * sqrt(R_added(2,2));
+	  meas_v[3] = meas[0] += var_rnd() * sqrt(R_added(3,3));
+	  meas_v[4] = meas[1] += var_rnd() * sqrt(R_added(4,4));
+	  meas_v[5] = meas[2] += var_rnd() * sqrt(R_added(5,5));
+	  meas_v[6] = meas[3] += var_rnd() * sqrt(R_added(6,6));
+	  measurements_noisy.push_back(std::make_pair(t,meas_v));
 	};
 	j = (j+1) % skips;
       };
@@ -171,16 +169,15 @@ int main(int argc, char** argv) {
   
   R += R_added;
   
-  ctrl::airship3D_lin_system mdl_lin("airship3D_linear",mass,inertia_tensor);
-  ctrl::airship3D_inv_system mdl_inv("airship3D_invariant",mass,inertia_tensor);
   ctrl::airship3D_lin_dt_system mdl_lin_dt("airship3D_linear_discrete",mass,inertia_tensor,time_step);
   ctrl::airship3D_inv_dt_system mdl_inv_dt("airship3D_invariant_discrete",mass,inertia_tensor,time_step);
   ctrl::airship3D_inv_mom_dt_system mdl_inv_mom_dt("airship3D_invariant_momentum_discrete",mass,inertia_tensor,time_step);
-  
+  ctrl::airship3D_inv_mid_dt_system mdl_inv_mid_dt("airship3D_invariant_midpoint_discrete",mass,inertia_tensor,time_step);
+ 
   pp::vector_topology< vect_n<double> > mdl_state_space;
   
   boost::posix_time::ptime t1;
-  boost::posix_time::time_duration dt[6];
+  boost::posix_time::time_duration dt[4];
   
   vect_n<double> x_init(13);
   x_init[0] = 0.0; x_init[1] = 0.0; x_init[2] = 0.0; 
@@ -195,6 +192,271 @@ int main(int argc, char** argv) {
     
   euler_integrator<double> integ;
   integ.setStepSize(0.001 * time_step);
+  
+  
+  
+  
+  std::cout << "Running Extended Kalman Filter..." << std::endl;
+  {
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
+											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
+											       Rcov);
+  recorder::ssv_recorder results(result_filename + "_ekf.ssv");
+  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
+                    << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
+		    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
+  t1 = boost::posix_time::microsec_clock::local_time();
+  std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
+  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
+     
+    b_z.set_mean_state(it->second);
+    ctrl::kalman_filter_step(mdl_lin_dt,mdl_state_space,b,b_u,b_z,it->first);
+    
+    vect_n<double> b_mean = b.get_mean_state();
+    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
+    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
+    b.set_mean_state(b_mean);
+    
+    quaternion<double> q_orig(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
+    axis_angle<double> aa_diff = axis_angle<double>(invert(q_mean) * q_orig);
+    
+    const vect_n<double>& x_mean = b.get_mean_state();
+    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
+                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6]
+                         << (x_mean[0] - it_orig->second[4])
+                         << (x_mean[1] - it_orig->second[5])
+                         << (x_mean[2] - it_orig->second[6])
+                         << (aa_diff.angle() * aa_diff.axis()[0])
+                         << (aa_diff.angle() * aa_diff.axis()[1])
+                         << (aa_diff.angle() * aa_diff.axis()[2])
+			 << b.get_covariance().get_matrix()(0,0)
+			 << b.get_covariance().get_matrix()(1,1)
+			 << b.get_covariance().get_matrix()(2,2)
+			 << 4 * b.get_covariance().get_matrix()(4,4)
+			 << 4 * b.get_covariance().get_matrix()(5,5)
+			 << 4 * b.get_covariance().get_matrix()(6,6)
+			 << recorder::data_recorder::end_value_row;
+    
+  };
+  results << recorder::data_recorder::flush;
+  dt[0] = boost::posix_time::microsec_clock::local_time() - t1;
+  };
+  std::cout << "Done." << std::endl;
+
+  
+  
+
+  
+  std::cout << "Running Invariant Extended Kalman Filter..." << std::endl;
+  {
+    
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
+    b(b_init.get_mean_state(),
+      ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
+  
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
+											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+  
+  mat<double,mat_structure::diagonal> R_inv(6);
+  R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
+  R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
+  ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
+  
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
+											       Rcovinv);
+  
+  recorder::ssv_recorder results(result_filename + "_iekf.ssv");
+  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
+                    << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
+		    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
+  t1 = boost::posix_time::microsec_clock::local_time();
+  std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
+  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
+    
+    b_z.set_mean_state(it->second);
+    ctrl::invariant_kalman_filter_step(mdl_inv_dt,mdl_state_space,b,b_u,b_z,it->first);
+    
+    vect_n<double> b_mean = b.get_mean_state();
+    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
+    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
+    b.set_mean_state(b_mean);
+    
+    quaternion<double> q_orig(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
+    axis_angle<double> aa_diff = axis_angle<double>(invert(q_mean) * q_orig);
+    
+    const vect_n<double>& x_mean = b.get_mean_state();
+    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
+                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6]
+                         << (x_mean[0] - it_orig->second[4])
+                         << (x_mean[1] - it_orig->second[5])
+                         << (x_mean[2] - it_orig->second[6])
+                         << (aa_diff.angle() * aa_diff.axis()[0])
+                         << (aa_diff.angle() * aa_diff.axis()[1])
+                         << (aa_diff.angle() * aa_diff.axis()[2])
+			 << b.get_covariance().get_matrix()(0,0)
+			 << b.get_covariance().get_matrix()(1,1)
+			 << b.get_covariance().get_matrix()(2,2)
+			 << b.get_covariance().get_matrix()(3,3)
+			 << b.get_covariance().get_matrix()(4,4)
+			 << b.get_covariance().get_matrix()(5,5)
+			 << recorder::data_recorder::end_value_row;
+    
+  };
+  results << recorder::data_recorder::flush;
+  dt[1] = boost::posix_time::microsec_clock::local_time() - t1;
+  };
+  std::cout << "Done." << std::endl;
+
+  
+  
+  
+
+  
+  std::cout << "Running Invariant-Momentum Kalman Filter..." << std::endl;
+  {
+    
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
+    b(b_init.get_mean_state(),
+      ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
+  
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
+											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+  
+  mat<double,mat_structure::diagonal> R_inv(6);
+  R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
+  R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
+  ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
+  
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
+											       Rcovinv);
+  
+  recorder::ssv_recorder results(result_filename + "_imkf.ssv");
+  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
+                    << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
+		    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
+  t1 = boost::posix_time::microsec_clock::local_time();
+  std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
+  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
+    
+    b_z.set_mean_state(it->second);
+    ctrl::invariant_kalman_filter_step(mdl_inv_mom_dt,mdl_state_space,b,b_u,b_z,it->first);
+    
+    vect_n<double> b_mean = b.get_mean_state();
+    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
+    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
+    b.set_mean_state(b_mean);
+    
+    quaternion<double> q_orig(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
+    axis_angle<double> aa_diff = axis_angle<double>(invert(q_mean) * q_orig);
+    
+    const vect_n<double>& x_mean = b.get_mean_state();
+    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
+                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6] 
+                         << (x_mean[0] - it_orig->second[4])
+                         << (x_mean[1] - it_orig->second[5])
+                         << (x_mean[2] - it_orig->second[6])
+                         << (aa_diff.angle() * aa_diff.axis()[0])
+                         << (aa_diff.angle() * aa_diff.axis()[1])
+                         << (aa_diff.angle() * aa_diff.axis()[2])
+			 << b.get_covariance().get_matrix()(0,0)
+			 << b.get_covariance().get_matrix()(1,1)
+			 << b.get_covariance().get_matrix()(2,2)
+			 << b.get_covariance().get_matrix()(3,3)
+			 << b.get_covariance().get_matrix()(4,4)
+			 << b.get_covariance().get_matrix()(5,5)
+			 << recorder::data_recorder::end_value_row;
+    
+  };
+  results << recorder::data_recorder::flush;
+  dt[2] = boost::posix_time::microsec_clock::local_time() - t1;
+  };
+  std::cout << "Done." << std::endl;
+  
+  
+  
+  
+
+  
+  std::cout << "Running Invariant-Midpoint Kalman Filter..." << std::endl;
+  {
+    
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
+    b(b_init.get_mean_state(),
+      ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
+  
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
+											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+  
+  mat<double,mat_structure::diagonal> R_inv(6);
+  R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
+  R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
+  ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
+  
+  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
+											       Rcovinv);
+  
+  recorder::ssv_recorder results(result_filename + "_imkfv2.ssv");
+  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
+                    << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
+		    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
+  t1 = boost::posix_time::microsec_clock::local_time();
+  std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
+  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
+    
+    b_z.set_mean_state(it->second);
+    ctrl::invariant_kalman_filter_step(mdl_inv_mid_dt,mdl_state_space,b,b_u,b_z,it->first);
+    
+    vect_n<double> b_mean = b.get_mean_state();
+    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
+    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
+    b.set_mean_state(b_mean);
+    
+    quaternion<double> q_orig(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
+    axis_angle<double> aa_diff = axis_angle<double>(invert(q_mean) * q_orig);
+    
+    const vect_n<double>& x_mean = b.get_mean_state();
+    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
+                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6] 
+                         << (x_mean[0] - it_orig->second[4])
+                         << (x_mean[1] - it_orig->second[5])
+                         << (x_mean[2] - it_orig->second[6])
+                         << (aa_diff.angle() * aa_diff.axis()[0])
+                         << (aa_diff.angle() * aa_diff.axis()[1])
+                         << (aa_diff.angle() * aa_diff.axis()[2])
+			 << b.get_covariance().get_matrix()(0,0)
+			 << b.get_covariance().get_matrix()(1,1)
+			 << b.get_covariance().get_matrix()(2,2)
+			 << b.get_covariance().get_matrix()(3,3)
+			 << b.get_covariance().get_matrix()(4,4)
+			 << b.get_covariance().get_matrix()(5,5)
+			 << recorder::data_recorder::end_value_row;
+    
+  };
+  results << recorder::data_recorder::flush;
+  dt[3] = boost::posix_time::microsec_clock::local_time() - t1;
+  };
+  std::cout << "Done." << std::endl;
+  
+  
+  
+  {
+  recorder::ssv_recorder results(result_filename + "_times.ssv");
+  results << "step_count" << "ekf(ms)" << "iekf(ms)" << "imkfv1(ms)" << "imkfv2(ms)" << recorder::data_recorder::end_name_row;
+  results << double(measurements_noisy.size()) << double(dt[0].total_milliseconds())
+                                               << double(dt[1].total_milliseconds())
+				               << double(dt[2].total_milliseconds())
+				               << double(dt[3].total_milliseconds())
+				               << recorder::data_recorder::end_value_row << recorder::data_recorder::flush;
+  };
+  
+  
+};
+
+
+
+
 
 #if 0
   std::cout << "Running Kalman-Bucy Filter..." << std::endl;
@@ -263,38 +525,6 @@ int main(int argc, char** argv) {
   std::cout << "Done." << std::endl;
 #endif
   
-#if 1
-  std::cout << "Running Extended Kalman Filter..." << std::endl;
-  {
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											       ctrl::covariance_matrix< vect_n<double> >(Qu));
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											       Rcov);
-  recorder::ssv_recorder results(result_filename + "_ekf.ssv");
-  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" << recorder::data_recorder::end_name_row;
-  t1 = boost::posix_time::microsec_clock::local_time();
-  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
-     
-    b_z.set_mean_state(it->second);
-    ctrl::kalman_filter_step(mdl_lin_dt,mdl_state_space,b,b_u,b_z,it->first);
-    
-    vect_n<double> b_mean = b.get_mean_state();
-    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
-    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
-    b.set_mean_state(b_mean);
-    
-    const vect_n<double>& x_mean = b.get_mean_state();
-    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
-                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6] << recorder::data_recorder::end_value_row;
-    
-  };
-  results << recorder::data_recorder::flush;
-  dt[2] = boost::posix_time::microsec_clock::local_time() - t1;
-  };
-  std::cout << "Done." << std::endl;
-#endif
-  
 #if 0
   std::cout << "Running Unscented Kalman Filter..." << std::endl;
   {
@@ -335,108 +565,6 @@ int main(int argc, char** argv) {
   };
   std::cout << "Done." << std::endl;
 #endif
-  
-#if 1
-  std::cout << "Running Invariant Extended Kalman Filter..." << std::endl;
-  {
-    
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
-    b(b_init.get_mean_state(),
-      ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
-  
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											       ctrl::covariance_matrix< vect_n<double> >(Qu));
-  
-  mat<double,mat_structure::diagonal> R_inv(6);
-  R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
-  R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
-  ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
-  
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											       Rcovinv);
-  
-  recorder::ssv_recorder results(result_filename + "_iekf.ssv");
-  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" << recorder::data_recorder::end_name_row;
-  t1 = boost::posix_time::microsec_clock::local_time();
-  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
-    
-    b_z.set_mean_state(it->second);
-    ctrl::invariant_kalman_filter_step(mdl_inv_dt,mdl_state_space,b,b_u,b_z,it->first);
-    
-    vect_n<double> b_mean = b.get_mean_state();
-    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
-    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
-    b.set_mean_state(b_mean);
-    
-    const vect_n<double>& x_mean = b.get_mean_state();
-    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
-                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6] << recorder::data_recorder::end_value_row;
-    
-  };
-  results << recorder::data_recorder::flush;
-  dt[4] = boost::posix_time::microsec_clock::local_time() - t1;
-  };
-  std::cout << "Done." << std::endl;
-#endif
-  
-#if 1
-  std::cout << "Running Invariant-Momentum Kalman Filter..." << std::endl;
-  {
-    
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
-    b(b_init.get_mean_state(),
-      ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
-  
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											       ctrl::covariance_matrix< vect_n<double> >(Qu));
-  
-  mat<double,mat_structure::diagonal> R_inv(6);
-  R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
-  R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
-  ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
-  
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											       Rcovinv);
-  
-  recorder::ssv_recorder results(result_filename + "_imkf.ssv");
-  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" << recorder::data_recorder::end_name_row;
-  t1 = boost::posix_time::microsec_clock::local_time();
-  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
-    
-    b_z.set_mean_state(it->second);
-    ctrl::invariant_kalman_filter_step(mdl_inv_mom_dt,mdl_state_space,b,b_u,b_z,it->first);
-    
-    vect_n<double> b_mean = b.get_mean_state();
-    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
-    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
-    b.set_mean_state(b_mean);
-    
-    const vect_n<double>& x_mean = b.get_mean_state();
-    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
-                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6] << recorder::data_recorder::end_value_row;
-    
-  };
-  results << recorder::data_recorder::flush;
-  dt[5] = boost::posix_time::microsec_clock::local_time() - t1;
-  };
-  std::cout << "Done." << std::endl;
-#endif
-  
-  {
-  recorder::ssv_recorder results(result_filename + "_times.ssv");
-  results << "step_count" << "kbf(ms)" << "ikbf(ms)" << "ekf(ms)" << "ukf(ms)" << "iekf(ms)" << "imkf(ms)" << recorder::data_recorder::end_name_row;
-  results << double(measurements.size()) << double(dt[0].total_milliseconds())
-                                         << double(dt[1].total_milliseconds())
-					 << double(dt[2].total_milliseconds())
-					 << double(dt[3].total_milliseconds())
-					 << double(dt[4].total_milliseconds())
-					 << double(dt[5].total_milliseconds()) 
-					 << recorder::data_recorder::end_value_row << recorder::data_recorder::flush;
-  };
-  
-  
-};
-
 
 
 
