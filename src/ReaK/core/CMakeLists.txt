@@ -8,6 +8,7 @@ set(RKSERIALIZATIONDIR "${RKCOREDIR}/serialization")
 set(RKRECORDERSDIR "${RKCOREDIR}/recorders")
 set(RKINTEGRATORSDIR "${RKCOREDIR}/integrators")
 set(RKROOTFINDERSDIR "${RKCOREDIR}/root_finders")
+set(RKTENSORSDIR "${RKCOREDIR}/tensors")
 
 set(RKCORESUBDIRS 
   ${RKBASEDIR} 
@@ -19,12 +20,13 @@ set(RKCORESUBDIRS
   ${RKINTEGRATORSDIR} 
   ${RKOPTIMDIR}
   ${RKROOTFINDERSDIR}
+  ${RKTENSORSDIR}
 )
 
 configure_doxyfile(ReaKallcore 
                    "\"ReaK Library - All core libraries\"" 
                    "\"Core libraries for software architectural elements and advanced numerical analysis software.\"" 
-                   "${DOXTOSRCDIR}${RKBASEDIR} ${DOXTOSRCDIR}${RKLINALGDIR} ${DOXTOSRCDIR}${RKKINETOSTATICSDIR} ${DOXTOSRCDIR}${RKRTTIDIR} ${DOXTOSRCDIR}${RKSERIALIZATIONDIR} ${DOXTOSRCDIR}${RKRECORDERSDIR} ${DOXTOSRCDIR}${RKINTEGRATORSDIR} ${DOXTOSRCDIR}${RKROOTFINDERSDIR} ${DOXTOSRCDIR}${RKOPTIMDIR}")
+                   "${DOXTOSRCDIR}${RKBASEDIR} ${DOXTOSRCDIR}${RKLINALGDIR} ${DOXTOSRCDIR}${RKKINETOSTATICSDIR} ${DOXTOSRCDIR}${RKRTTIDIR} ${DOXTOSRCDIR}${RKSERIALIZATIONDIR} ${DOXTOSRCDIR}${RKRECORDERSDIR} ${DOXTOSRCDIR}${RKINTEGRATORSDIR} ${DOXTOSRCDIR}${RKROOTFINDERSDIR} ${DOXTOSRCDIR}${RKOPTIMDIR} ${DOXTOSRCDIR}${RKTENSORSDIR}")
 add_doxygen_target(ReaKallcore)
 
 configure_doxyfile(ReaKcore 
@@ -36,7 +38,7 @@ add_doxygen_target(ReaKcore)
 configure_doxyfile(ReaKmath 
                    "\"ReaK Library - Math libraries\"" 
                    "\"An advanced numerical analysis tool-set for linear algebra, matrix numerical methods, kinetostatics, and numerical integration.\"" 
-                   "${DOXTOSRCDIR}${RKBASEDIR} ${DOXTOSRCDIR}${RKLINALGDIR} ${DOXTOSRCDIR}${RKKINETOSTATICSDIR} ${DOXTOSRCDIR}${RKINTEGRATORSDIR} ${DOXTOSRCDIR}${RKROOTFINDERSDIR} ${DOXTOSRCDIR}${RKOPTIMDIR}")
+                   "${DOXTOSRCDIR}${RKBASEDIR} ${DOXTOSRCDIR}${RKLINALGDIR} ${DOXTOSRCDIR}${RKKINETOSTATICSDIR} ${DOXTOSRCDIR}${RKINTEGRATORSDIR} ${DOXTOSRCDIR}${RKROOTFINDERSDIR} ${DOXTOSRCDIR}${RKOPTIMDIR} ${DOXTOSRCDIR}${RKTENSORSDIR}")
 add_doxygen_target(ReaKmath)
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
