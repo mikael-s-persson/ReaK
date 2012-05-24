@@ -73,11 +73,11 @@ namespace tensor_structure {
   enum tag {
     rectangular = 1,
     square = 2,
-    diagonal = 3,
+    diagonal = 3, // ?
     nil = 4,
-    identity = 5,
-    scalar = 6,
-    permutation = 7
+    identity = 5, // ?
+    scalar = 6, // ?
+    permutation = 7 // ?
   };
 };
   

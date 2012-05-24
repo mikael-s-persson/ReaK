@@ -138,7 +138,46 @@ idem for vectors  --------------------------------------------------------------
 idem for rotation  --------------------------------------------------------------X
 idem for kinetostatics  ---------------------------------------------------------X
 
-make tensor library with compliance to generic concepts of matrix and vectors
+write a tensor library (3-4 order)
+  define tensor concepts  -------------------------------------------------------X
+  define tensor traits  ---------------------------------------------------------X
+  write adaptor for vectors to act as tensors  ----------------------------------X
+    allow all vector views / matrix slices to act as tensors
+  write adaptor for matrices to act as tensors  ---------------------------------X
+    allow all matrix views to act as tensors
+  write third-order tensor classes  ---------------------------------------------X
+    write third-order rectangular tensor  ---------------------------------------X
+    write third-order square tensor  --------------------------------------------X
+    write third-order nil tensor  -----------------------------------------------X
+  write fourth-order tensor classes  --------------------------------------------X
+    write fourth-order rectangular tensor  --------------------------------------X
+    write fourth-order square tensor  -------------------------------------------X
+    write fourth-order nil tensor  ----------------------------------------------X
+  write order-augmentation views  
+    vector to tensor-3  
+    vector to tensor-4  
+    matrix to tensor-3  
+    matrix to tensor-4  
+    tensor-3 to tensor-4  
+  create ESN indices  
+  define ESN expression concepts  
+  define ESN expression traits  
+  write terminal ESN expressions  
+    for vectors
+    for matrices
+    for tensors-3  
+    for tensors-4  
+  write constant ESN expression wrappers  
+  write arithmetic ESN operations  
+    range-summation (basis for mult and div)  
+    multiplication  
+    division  
+    addition  
+    subtraction  
+  write elem-wise ESN functions (exp, log, sin, ...)  
+  write ESN expression evaluator  
+
+
 
 
 ///----------------OPTIMIZATION--------------
@@ -208,7 +247,7 @@ Non-Linear Optimization problems
 
 ///----------------INTEGRATORS---------------
 
-port integrators to generic continuous SSS concepts  --- made an adaptor instead.
+port integrators to generic continuous SSS concepts -- made an adaptor instead --X
 
 
 ///----------------SIGNALS AND SYSTEMS-------
