@@ -86,6 +86,8 @@ namespace graph {
    * vis.vertex_added(u, g);  This function is called whenever a new vertex (u) has been added to the graph (g), but not yet connected.
    * 
    * vis.edge_added(e, g);  This function is called whenever a new edge (e) has been created between the last created vertex and its nearest neighbor in the graph (g).
+   *
+   * tie(p,b) = vis.steer_towards_position(p,u,g);  This function is called to attempt to steer from vertex u to position p, it returns a std::pair with the position that could be reached and a boolean value to indicate whether any significant motion occurred (collision-free).
    * 
    * bool b = vis.is_position_free(p);  This function is called to query whether a particular configuration (position, p) is free.
    * 
@@ -111,6 +113,7 @@ namespace graph {
     BOOST_CONCEPT_USAGE(RRTVisitorConcept) {
       vis.vertex_added(u, g); 
       vis.edge_added(e, g); 
+      boost::tie(p,b) = vis.steer_towards_position(p,u,g);
       b = vis.is_position_free(p);
       vis.joining_vertex_found(u, g); 
       b = vis.keep_going(); 
@@ -126,6 +129,8 @@ namespace graph {
     void vertex_added(Vertex,Graph&) { };
     template <typename Edge, typename Graph>
     void edge_added(Edge,Graph&) { };
+    template <typename PositionValue, typename Vertex, typename Graph>
+    std::pair<PositionValue,bool> steer_towards_position(const PositionValue& p,Vertex,Graph&) { return std::make_pair(p,true); };
     template <typename PositionValue>
     bool is_position_free(const PositionValue&) { return true; };
     template <typename Vertex, typename Graph>
@@ -141,21 +146,24 @@ namespace graph {
    */
   template <typename VertexAddedCallback,
             typename EdgeAddedCallback,
+	    typename SteerFunction,
 	    typename IsFreeQuery,
 	    typename JoiningVertexFoundCallback,
 	    typename KeepGoingQuery>
   struct composite_rrt_visitor {
     VertexAddedCallback vertex_added;
     EdgeAddedCallback edge_added;
+    SteerFunction steer_towards_position;
     IsFreeQuery is_position_free;
     JoiningVertexFoundCallback joining_vertex_found;
     KeepGoingQuery keep_going;
     composite_rrt_visitor(VertexAddedCallback aVertexAdded,
                           EdgeAddedCallback aEdgeAdded,
+			  SteerFunction aSteerTowardsPosition,
                           IsFreeQuery aIsFree,
                           JoiningVertexFoundCallback aJoiningVertexFound,
                           KeepGoingQuery aKeepGoing) :
-                          vertex_added(aVertexAdded), edge_added(aEdgeAdded), is_position_free(aIsFree), joining_vertex_found(aJoiningVertexFound), keep_going(aKeepGoing) { };
+                          vertex_added(aVertexAdded), edge_added(aEdgeAdded), steer_towards_position(aSteerTowardsPosition), is_position_free(aIsFree), joining_vertex_found(aJoiningVertexFound), keep_going(aKeepGoing) { };
   };
 
   /**
@@ -165,16 +173,18 @@ namespace graph {
    */
   template <typename VertexAddedCallback,
             typename EdgeAddedCallback,
+	    typename SteerFunction,
 	    typename IsFreeQuery,
 	    typename JoiningVertexFoundCallback,
 	    typename KeepGoingQuery>
-  inline composite_rrt_visitor<VertexAddedCallback, EdgeAddedCallback, IsFreeQuery, JoiningVertexFoundCallback, KeepGoingQuery>
+  inline composite_rrt_visitor<VertexAddedCallback, EdgeAddedCallback, SteerFunction, IsFreeQuery, JoiningVertexFoundCallback, KeepGoingQuery>
     make_composite_rrt_visitor(VertexAddedCallback aVertexAdded,
                                EdgeAddedCallback aEdgeAdded,
+			       SteerFunction aSteerTowardsPosition,
                                IsFreeQuery aIsFree,
                                JoiningVertexFoundCallback aJoiningVertexFound,
                                KeepGoingQuery aKeepGoing) {
-    return composite_rrt_visitor<VertexAddedCallback,EdgeAddedCallback,IsFreeQuery, JoiningVertexFoundCallback, KeepGoingQuery>(aVertexAdded,aEdgeAdded,aIsFree,aJoiningVertexFound,aKeepGoing);
+    return composite_rrt_visitor<VertexAddedCallback, EdgeAddedCallback, SteerFunction, IsFreeQuery, JoiningVertexFoundCallback, KeepGoingQuery>(aVertexAdded,aEdgeAdded,aSteerTowardsPosition,aIsFree,aJoiningVertexFound,aKeepGoing);
   };
 
 
@@ -189,54 +199,24 @@ namespace detail {
   inline std::pair< typename boost::graph_traits<Graph>::vertex_descriptor, bool>
     expand_rrt_vertex(Graph& g, const Topology& space, RRTVisitor vis, PositionMap position,
                       typename boost::graph_traits<Graph>::vertex_descriptor u,
-                      const typename boost::property_traits<PositionMap>::value_type& p_target,
-                      double max_edge_distance, double min_edge_distance) {
+                      const typename boost::property_traits<PositionMap>::value_type& p_target) {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-    typedef typename ReaK::pp::metric_space_traits< Topology >::distance_metric_type DistanceMetric;
-    DistanceMetric distance = get(ReaK::pp::distance_metric, space);
     
-    PositionValue p_u = get(position,u);
-    double dist = distance(p_target,p_u,space);
-    bool reached_target = false;
-    while(dist > min_edge_distance) {
-      double f_max = std::min(max_edge_distance / dist,1.0);
-      double f_min = min_edge_distance / dist;
-      dist = 0.0;
-      PositionValue p_v = p_u;
-      bool collision_detected = false;
-      while(dist < f_max) {
-	dist += f_min;
-        p_v = space.move_position_toward(p_u, dist, p_target);
-        if(!vis.is_position_free(p_v)) {
-	  dist *= 0.5;
-	  collision_detected = true;
-	  break;
-	};
-      };
-      if(dist < f_min) {
-        break;
-      } else {
-        p_v = space.move_position_toward(p_u, dist, p_target);
-        Vertex v = add_vertex(g);
-        put(position, v, p_v);
-        vis.vertex_added(v,g);
-        std::pair<Edge, bool> ep = add_edge(u,v,g);
-        if(ep.second)
-	  vis.edge_added(ep.first, g);
-        u = v;
-        if(collision_detected)
-          break;
-        p_u = p_v;
-        dist = distance(p_target,p_u,space);
-        if(dist <= min_edge_distance) {
-          reached_target = true;
-          break;
-        };
-      };
+    bool reached_new = false;
+    PositionValue p_v;
+    boost::tie(p_v, reached_new) = vis.steer_towards_position(p_target,u,g);
+    if(reached_new) {  // i.e., a new position was reached, collision-free.
+      Vertex v = add_vertex(g);
+      put(position, v, p_v);
+      vis.vertex_added(v,g);
+      std::pair<Edge, bool> ep = add_edge(u,v,g);
+      if(ep.second)
+        vis.edge_added(ep.first, g);
+      u = v;
     };
-    return std::make_pair(u,reached_target);
+    return make_pair(u,reached_new);
   };
   
 }; //namespace detail
@@ -283,8 +263,7 @@ namespace detail {
 			   RRTVisitor vis,
 			   PositionMap position,
 			   NNFinder find_nearest_neighbor,
-			   unsigned int max_vertex_count,
-			   double max_edge_distance, double min_edge_distance) {
+			   unsigned int max_vertex_count) {
     BOOST_CONCEPT_ASSERT((RRTVisitorConcept<RRTVisitor,Graph,PositionMap>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::LieGroupConcept<Topology>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>));
@@ -305,8 +284,7 @@ namespace detail {
     while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
       PositionValue p_rnd = get(ReaK::pp::random_sampler, space)(space);
       Vertex u = find_nearest_neighbor(p_rnd,g,space,position);
-      detail::expand_rrt_vertex(g,space,vis,position,
-                                u,p_rnd,max_edge_distance,min_edge_distance);
+      detail::expand_rrt_vertex(g, space, vis, position, u, p_rnd);
     };
 
   };
