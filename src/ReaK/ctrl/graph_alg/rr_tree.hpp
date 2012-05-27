@@ -229,6 +229,7 @@ namespace detail {
    * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist, should model BGL's Topology concept
    * \tparam RRTVisitor An RRT visitor type that implements the customizations to this RRT algorithm, should model the RRTVisitorConcept.
    * \tparam PositionMap A property-map type that can store the configurations (or positions) of the vertices.
+   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
    * \tparam NNFinder A functor type which can perform a nearest-neighbor search of a point to a graph in the topology (see topological_search.hpp).
    * \param g A mutable graph that should initially store the starting 
    *        vertex (if not it will be randomly generated) and will store 
@@ -242,6 +243,7 @@ namespace detail {
    * \param position A mapping that implements the MutablePropertyMap Concept. Also,
    *        the value_type of this map should be the same type as the topology's 
    *        value_type.
+   * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
    * \param find_nearest_neighbor A callable object (functor) which can perform a 
    *        nearest neighbor search of a point to a graph in the topology. (see topological_search.hpp)
    * \param max_vertex_count The maximum number of vertices beyond which the algorithm 
@@ -257,16 +259,17 @@ namespace detail {
 	    typename Topology,
 	    typename RRTVisitor,
 	    typename PositionMap,
+	    typename RandomSampler,
 	    typename NNFinder>
   inline void generate_rrt(Graph& g,
 			   const Topology& space,
 			   RRTVisitor vis,
 			   PositionMap position,
+			   RandomSampler get_sample,
 			   NNFinder find_nearest_neighbor,
 			   unsigned int max_vertex_count) {
     BOOST_CONCEPT_ASSERT((RRTVisitorConcept<RRTVisitor,Graph,PositionMap>));
-    BOOST_CONCEPT_ASSERT((ReaK::pp::LieGroupConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
     
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
@@ -274,15 +277,15 @@ namespace detail {
 
     if(num_vertices(g) == 0) {
       Vertex u = add_vertex(g);
-      PositionValue p = get(ReaK::pp::random_sampler, space)(space);
+      PositionValue p = get_sample(space);
       while(!vis.is_position_free(p))
-	p = get(ReaK::pp::random_sampler, space)(space);
+	p = gget_sample(space);
       put(position, u, p);
       vis.vertex_added(u, g);
     };
 
     while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
-      PositionValue p_rnd = get(ReaK::pp::random_sampler, space)(space);
+      PositionValue p_rnd = get_sample(space);
       Vertex u = find_nearest_neighbor(p_rnd,g,space,position);
       detail::expand_rrt_vertex(g, space, vis, position, u, p_rnd);
     };
@@ -296,6 +299,7 @@ namespace detail {
    * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist, should model BGL's Topology concept
    * \tparam RRTVisitor An RRT visitor type that implements the customizations to this RRT algorithm, should model the RRTVisitorConcept.
    * \tparam PositionMap A property-map type that can store the configurations (or positions) of the vertices.
+   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
    * \tparam NNFinder A functor type which can perform a nearest-neighbor search of a point to a graph in the topology (see topological_search.hpp).
    * \param g1 A mutable graph that should initially store the starting 
    *        vertex (if not it will be randomly generated) and will store 
@@ -315,6 +319,7 @@ namespace detail {
    * \param position2 A mapping for the second graph that implements the MutablePropertyMap Concept. 
    *        Also, the value_type of this map should be the same type as the topology's 
    *        value_type.
+   * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
    * \param find_nearest_neighbor A callable object (functor) which can perform a 
    *        nearest neighbor search of a point to a graph in the 
    *        topology. (see topological_search.hpp)
@@ -331,15 +336,18 @@ namespace detail {
 	    typename Topology,
 	    typename RRTVisitor,
 	    typename PositionMap,
+	    typename RandomSampler,
 	    typename NNFinder>
   inline void generate_bidirectional_rrt(Graph& g1, Graph& g2,
 			                 const Topology& space,
                                          RRTVisitor vis,
 			                 PositionMap position1, PositionMap position2,
+			                 RandomSampler get_sample,
 			                 NNFinder find_nearest_neighbor,
 			                 unsigned int max_vertex_count,
 			                 double max_edge_distance, double min_edge_distance) {
     BOOST_CONCEPT_ASSERT((RRTVisitorConcept<RRTVisitor,Graph,PositionMap>));
+    BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
     
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
@@ -350,9 +358,9 @@ namespace detail {
 
     if(num_vertices(g1) == 0) {
       Vertex u = add_vertex(g1);
-      PositionValue p = get(ReaK::pp::random_sampler, space)(space);
+      PositionValue p = get_sample(space);
       while(!vis.is_position_free(p))
-	p = get(ReaK::pp::random_sampler, space)(space);
+	p = get_sample(space);
       put(position1, u, p);
       p_target2 = p;
       v_target2.first = u; v_target2.second = true;
@@ -365,9 +373,9 @@ namespace detail {
 
     if(num_vertices(g2) == 0) {
       Vertex u = add_vertex(g2);
-      PositionValue p = get(ReaK::pp::random_sampler, space)(space);
+      PositionValue p = get_sample(space);
       while(!vis.is_position_free(p))
-	p = get(ReaK::pp::random_sampler, space)(space);
+	p = get_sample(space);
       put(position2, u, p);
       p_target1 = p;
       v_target1.first = u; v_target1.second = true;
@@ -388,11 +396,11 @@ namespace detail {
         //joining vertex has been reached!
         vis.joining_vertex_found(v1.first, g1);
         vis.joining_vertex_found(v_target1.first, g2);
-        p_target2 = get(ReaK::pp::random_sampler, space)(space);
+        p_target2 = get_sample(space);
         v_target2.second = false;
       } else {
         if(v1.first == u1) { //we didn't move at all! Unsuccessful expansion.
-          p_target2 = get(ReaK::pp::random_sampler, space)(space);
+          p_target2 = get_sample(space);
           v_target2.second = false;
         } else {
           p_target2 = get(position1, v1.first);
@@ -409,11 +417,11 @@ namespace detail {
         //joining vertex has been reached!
         vis.joining_vertex_found(v2.first, g2);
         vis.joining_vertex_found(v_target2.first, g1);
-        p_target1 = get(ReaK::pp::random_sampler, space)(space);
+        p_target1 = get_sample(space);
         v_target1.second = false;
       } else {
         if(v2.first == u2) { //we didn't move at all! Unsuccessful expansion.
-          p_target1 = get(ReaK::pp::random_sampler, space)(space);
+          p_target1 = get_sample(space);
           v_target1.second = false;
         } else {
           p_target1 = get(position2, v2.first);

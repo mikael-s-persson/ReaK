@@ -170,6 +170,47 @@ namespace graph {
   };
 
 
+namespace detail {
+  
+  
+  
+  template <typename PositionValue,
+	    typename Graph,
+	    typename RRGVisitor>
+  inline bool expand_to_nearest(
+      typename boost::graph_traits<Graph>::vertex_descriptor& x_near,
+      PositionValue& p_new,
+      const std::vector< typename boost::graph_traits<Graph>::vertex_descriptor >& Nc,
+      Graph& g,
+      RRGVisitor vis) {
+    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge; 
+    using std::back_inserter;
+
+    if(Nc.empty())
+      return false;
+    
+    PositionValue p_tmp; bool expand_succeeded = false;
+    std::vector<Vertex>::iterator it = Nc.begin();
+    while((!expand_succeeded) && (it != Nc.end())) {
+      boost::tie(p_tmp, expand_succeeded) = vis.steer_towards_position(p_new, *it, g);
+      ++it;
+    };
+    
+    if(!expand_succeeded)
+      return false;
+    
+    x_near = *(--it);
+    p_new = p_tmp;
+    return true;
+  };
+  
+  
+  
+  
+};
+  
+  
 
 
 
@@ -177,20 +218,22 @@ namespace graph {
    * This function template is the unidirectional version of the RRT algorithm (refer to rr_tree.hpp dox).
    * \tparam Graph A mutable graph type that will represent the generated tree, should model boost::VertexListGraphConcept and boost::MutableGraphConcept
    * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist, should model BGL's Topology concept
-   * \tparam RRTVisitor An RRT visitor type that implements the customizations to this RRT algorithm, should model the RRTVisitorConcept.
+   * \tparam RRGVisitor An RRG visitor type that implements the customizations to this RRG algorithm, should model the RRGVisitorConcept.
    * \tparam PositionMap A property-map type that can store the configurations (or positions) of the vertices.
+   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
    * \tparam NcSelector A functor type which can perform a neighborhood search of a point to a graph in the topology (see topological_search.hpp).
    * \param g A mutable graph that should initially store the starting and goal 
    *        vertex and will store the generated graph once the algorithm has finished.
    * \param space A topology (as defined by the Boost Graph Library). Note 
    *        that it is not required to generate only random points in 
    *        the free-space.
-   * \param vis A RRT visitor implementing the RRTVisitorConcept. This is the 
+   * \param vis A RRG visitor implementing the RRGVisitorConcept. This is the 
    *        main point of customization and recording of results that the 
    *        user can implement.
    * \param position A mapping that implements the MutablePropertyMap Concept. Also,
    *        the value_type of this map should be the same type as the topology's 
    *        value_type.
+   * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
    * \param select_neighborhood A callable object (functor) which can perform a 
    *        nearest neighbor search of a point to a graph in the topology. (see star_neighborhood)
    * \param max_vertex_count The maximum number of vertices beyond which the algorithm 
@@ -199,18 +242,19 @@ namespace graph {
    */
   template <typename Graph,
 	    typename Topology,
-	    typename RRTVisitor,
+	    typename RRGVisitor,
 	    typename PositionMap,
+	    typename RandomSampler,
 	    typename NcSelector>
   inline void generate_rrg(Graph& g,
 			   const Topology& space,
-			   RRTVisitor vis,
+			   RRGVisitor vis,
 			   PositionMap position,
+			   RandomSampler get_sample,
 			   const NcSelector& select_neighborhood,
 			   unsigned int max_vertex_count) {
-    BOOST_CONCEPT_ASSERT((RRTVisitorConcept<RRTVisitor,Graph,PositionMap>));
-    BOOST_CONCEPT_ASSERT((ReaK::pp::LieGroupConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((RRGVisitorConcept<RRGVisitor,Graph,PositionMap>));
+    BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
     
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
@@ -219,31 +263,26 @@ namespace graph {
 
     if(num_vertices(g) == 0) {
       Vertex u = add_vertex(g);
-      PositionValue p = get(ReaK::pp::random_sampler, space)(space);
+      PositionValue p = get_sample(space);
       while(!vis.is_position_free(p))
-	p = get(ReaK::pp::random_sampler, space)(space);
+	p = get_sample(space);
       put(position, u, p);
       vis.vertex_added(u, g);
     };
 
     while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
-      PositionValue p_rnd = get(ReaK::pp::random_sampler, space)(space);
+      
+      PositionValue p_new = get_sample(space);
+      
       std::vector<Vertex> Nc; 
-      select_neighborhood(p_rnd, back_inserter(Nc), g, free_space, position);
-      if(Nc.empty())
+      select_neighborhood(p_new, back_inserter(Nc), g, space, position);
+      
+      Vertex x_near;
+      if( ! detail::expand_to_nearest(x_near, p_new, Nc, g, vis) )
 	continue;
-      PositionValue p_new; bool expand_succeeded = false;
-      std::vector<Vertex>::iterator it = Nc.begin();
-      while((!expand_succeeded) && (it != Nc.end())) {
-        boost::tie(p_new, expand_succeeded) = detail::expand_rrt_vertex(g, space, vis, position, *it, p_rnd);
-	++it;
-      };
-      if(it == Nc.end())
-	continue;
-      Vertex x_near = *it;
       
       Nc.clear();
-      select_neighborhood(p_new, back_inserter(Nc), g, free_space, position);
+      select_neighborhood(p_new, back_inserter(Nc), g, space, position);
       
       Vertex x_new = add_vertex(g);
       put(position, x_new, p_new);
