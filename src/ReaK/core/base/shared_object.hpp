@@ -68,6 +68,28 @@ class shared_object : public shared_object_base, public serialization::serializa
 
 class empty_base_object { };
 
+#ifndef RK_ENABLE_CXX0X_FEATURES
+
+template <typename T>
+ReaK::shared_ptr<T> rk_create() {
+  return ReaK::shared_ptr<T>(new T(), ReaK::scoped_deleter());
+};
+
+#else
+
+template <typename T, typename... Args>
+ReaK::shared_ptr<T> rk_create(Args&&... args) {
+  return ReaK::shared_ptr<T>(new T(std::forward<Args>(args)...), ReaK::scoped_deleter());
+};
+
+#endif
+
+template <typename T>
+ReaK::shared_ptr<T> rk_share(T& t) {
+  return ReaK::shared_ptr<T>(&t, ReaK::null_deleter());
+};
+
+
 namespace rtti {
 
 #ifndef RK_ENABLE_CXX0X_FEATURES

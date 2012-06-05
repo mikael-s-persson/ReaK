@@ -313,6 +313,11 @@ class pose_3D : public shared_object {
 };
 
 
+template <typename T>
+std::ostream& operator <<(std::ostream& out, const pose_3D<T>& g) {
+  out << "(Position = " << g.Position << "; Quaternion = " << g.Quat << ")";
+  return out;
+};
 
 
 };

@@ -418,6 +418,19 @@ class frame_3D : public pose_3D<T> {
 };
 
 
+template <typename T>
+std::ostream& operator <<(std::ostream& out, const frame_3D<T>& g) {
+  out << "(Position = " << g.Position 
+     << "; Quaternion = " << g.Quat 
+     << "; Velocity = " << g.Velocity 
+     << "; AngVelocity = " << g.AngVelocity 
+     << "; Acceleration = " << g.Acceleration 
+     << "; AngAcceleration = " << g.AngAcceleration 
+     << "; Force = " << g.Force 
+     << "; Torque = " << g.Torque 
+     << ")";
+  return out;
+};
 
 
 };

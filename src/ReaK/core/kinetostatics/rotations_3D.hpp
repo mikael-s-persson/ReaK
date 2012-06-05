@@ -782,7 +782,12 @@ class quaternion : public serialization::serializable {
      */
     template <typename Matrix>
     friend
-    typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
+    typename boost::enable_if< 
+      boost::mpl::and_<
+        is_readable_matrix<Matrix>,
+	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+      >,
     Matrix >::type operator *(const self& Q, const Matrix& M) {
       return Q.getRotMat() * M;
     };
@@ -793,7 +798,12 @@ class quaternion : public serialization::serializable {
      */
     template <typename Matrix>
     friend
-    typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
+    typename boost::enable_if< 
+      boost::mpl::and_<
+        is_readable_matrix<Matrix>,
+	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+      >,
     Matrix >::type operator *(const Matrix& M, const self& Q) {
       return M * Q.getRotMat();
     };
@@ -1372,7 +1382,12 @@ class euler_angles_TB : public serialization::serializable {
      */
     template <typename Matrix>
     friend
-    typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
+    typename boost::enable_if< 
+      boost::mpl::and_<
+        is_readable_matrix<Matrix>,
+	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+      >,
     Matrix >::type operator *(const self& E, const Matrix& M) {
       return E.getRotMat() * M;
     };
@@ -1383,7 +1398,12 @@ class euler_angles_TB : public serialization::serializable {
      */
     template <typename Matrix>
     friend
-    typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
+    typename boost::enable_if< 
+      boost::mpl::and_<
+        is_readable_matrix<Matrix>,
+	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+      >,
     Matrix >::type operator *(const Matrix& M, const self& E) {
       return M * E.getRotMat();
     };
@@ -1917,7 +1937,12 @@ class axis_angle : public serialization::serializable {
      */
     template <typename Matrix>
     friend
-    typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
+    typename boost::enable_if< 
+      boost::mpl::and_<
+        is_readable_matrix<Matrix>,
+	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+      >,
     Matrix >::type operator *(const self& A, const Matrix& M) {
       return A.getRotMat() * M;
     };
@@ -1928,7 +1953,12 @@ class axis_angle : public serialization::serializable {
      */
     template <typename Matrix>
     friend
-    typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
+    typename boost::enable_if< 
+      boost::mpl::and_<
+        is_readable_matrix<Matrix>,
+	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+      >,
     Matrix >::type operator *(const Matrix& M, const self& A) {
       return M * A.getRotMat();
     };
@@ -2488,9 +2518,12 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     template <typename Matrix>
-    typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
-                                 !boost::is_same<Matrix,self>::value &&
-                                 !boost::is_same<Matrix,rot_mat_3D<value_type> >::value, 
+    typename boost::enable_if< 
+      boost::mpl::and_<
+        is_readable_matrix<Matrix>,
+	boost::mpl::not_< boost::is_same< Matrix, self > >,
+	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+      >, 
     self& >::type operator =(const Matrix& M) {
       if((M.get_row_count() != 4) || (M.get_col_count() != 4)) 
 	throw std::range_error("Matrix for creating the 3D transformation matrix is not of correct dimensions!");
@@ -2683,9 +2716,12 @@ class trans_mat_3D : public serialization::serializable {
      */
     template <typename Matrix>
     friend
-    typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
-                                 !boost::is_same<Matrix,self>::value &&
-                                 !boost::is_same<Matrix,rot_mat_3D<value_type> >::value,
+    typename boost::enable_if< 
+      boost::mpl::and_<
+        is_readable_matrix<Matrix>,
+	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+      >,
     Matrix >::type operator *(const self& M1, const Matrix& M2) {
       return Matrix(M1.getMat() * M2);
     };
@@ -2696,9 +2732,12 @@ class trans_mat_3D : public serialization::serializable {
      */
     template <typename Matrix>
     friend
-    typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
-                                 !boost::is_same<Matrix,self>::value &&
-                                 !boost::is_same<Matrix,rot_mat_3D<value_type> >::value,
+    typename boost::enable_if< 
+      boost::mpl::and_<
+        is_readable_matrix<Matrix>,
+	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+      >,
     Matrix >::type operator *(const Matrix& M1, const self& M2) {
       return Matrix(M1 * M2.getMat());
     };
@@ -2921,37 +2960,37 @@ struct is_readable_matrix< trans_mat_3D<T> > {
  * Multiplication with a quaternion representation.
  * \test PASSED
  */
-// template <typename T>
-// rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const quaternion<T>& Q) {
-//   return R * Q.getRotMat();
-// };
+template <typename T>
+rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const quaternion<T>& Q) {
+  return R * Q.getRotMat();
+};
 
 /**
  * Multiplication by a rotation matrix.
  * \test PASSED
  */
-// template <typename T>
-// rot_mat_3D<T> operator *(const quaternion<T>& Q, const rot_mat_3D<T>& R) {
-//   return Q.getRotMat() * R;
-// };
+template <typename T>
+rot_mat_3D<T> operator *(const quaternion<T>& Q, const rot_mat_3D<T>& R) {
+  return Q.getRotMat() * R;
+};
 
 /**
  * Multiplication with a euler angles TB representation.
  * \test PASSED
  */
-// template <typename T>
-// rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const euler_angles_TB<T>& E) {
-//   return R * E.getRotMat();
-// };
+template <typename T>
+rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const euler_angles_TB<T>& E) {
+  return R * E.getRotMat();
+};
 
 /**
  * Multiply by a rotation matrix representation.
  * \test PASSED
  */
-// template <typename T>
-// rot_mat_3D<T> operator *(const euler_angles_TB<T>& E, const rot_mat_3D<T>& R) {
-//   return E.getRotMat() * R;
-// };
+template <typename T>
+rot_mat_3D<T> operator *(const euler_angles_TB<T>& E, const rot_mat_3D<T>& R) {
+  return E.getRotMat() * R;
+};
 
 /**
  * Multiplication by a euler angles TB representation.
@@ -2975,19 +3014,19 @@ quaternion<T> operator *(const euler_angles_TB<T>& E, const quaternion<T>& Q) {
  * Multiplication with an axis / angle representation.
  * \test PASSED
  */
-// template <typename T>
-// rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const axis_angle<T>& A) {
-//   return R * A.getRotMat();
-// };
+ template <typename T>
+rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const axis_angle<T>& A) {
+  return R * A.getRotMat();
+};
 
 /**
  * Multiplication with a rotation matrix.
  * \test PASSED
  */
-// template <typename T>
-// rot_mat_3D<T> operator *(const axis_angle<T>& A, const rot_mat_3D<T>& R) {
-//   return A.getRotMat() * R;
-// };
+template <typename T>
+rot_mat_3D<T> operator *(const axis_angle<T>& A, const rot_mat_3D<T>& R) {
+  return A.getRotMat() * R;
+};
 
 /**
  * Multiplication by an axis / angle representation.

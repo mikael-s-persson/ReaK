@@ -198,6 +198,12 @@ gen_coord<T> gen_coord_force(const T& value) {
 };
 
 
+template <typename T>
+std::ostream& operator <<(std::ostream& out, const gen_coord<T>& g) {
+  out << "(q = " << g.q << "; q_dot = " << g.q_dot << "; q_ddot = " << g.q_ddot << "; f = " << g.f << ")";
+  return out;
+};
+
 
 
 };
