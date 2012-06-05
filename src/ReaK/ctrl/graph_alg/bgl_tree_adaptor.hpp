@@ -54,7 +54,7 @@ struct tree_storage {
                                  VertexProperty,
 	  	                 EdgeProperty,
 		                 boost::vecS> type;
-};  
+};
 
 };
 
