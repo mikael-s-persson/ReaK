@@ -755,6 +755,32 @@ struct tree_storage<VertexDescriptor, EdgeDescriptor, d_ary_cob_tree_storage<Ari
 
 
 
+
+template <std::size_t Arity, std::size_t CuttingDepth>
+struct tree_storage_traits< d_ary_cob_tree_storage<Arity, CuttingDepth> > {
+  typedef boost::mpl::true_ is_rand_access;
+  typedef boost::mpl::true_ is_bidir;
+  typedef boost::mpl::true_ is_directed;
+  
+  typedef typename boost::mpl::if_< is_bidir,
+    boost::bidirectional_tag,
+    typename boost::mpl::if_< is_directed,
+      directed_tag, undirected_tag
+    >::type
+  >::type directed_category;
+  
+  typedef disallow_parallel_edge_tag edge_parallel_category;
+  
+  typedef std::size_t vertices_size_type;
+  typedef void* vertex_ptr;
+  typedef typename d_ary_cob_tree_storage<int,Arity,boost::no_property,CuttingDepth>::vertex_descriptor vertex_descriptor;  // the value-type doesn't affect the vertex_descriptor type (int is a dummy type here).
+  typedef typename d_ary_cob_tree_storage<int,Arity,boost::no_property,CuttingDepth>::edge_descriptor edge_descriptor;  // the value-type doesn't affect the edge_descriptor type (int is a dummy type here).
+  typedef std::size_t edges_size_type;
+  
+};
+
+
+
 /***********************************************************************************************
  *                             IncidenceGraphConcept
  * ********************************************************************************************/

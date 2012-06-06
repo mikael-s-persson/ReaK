@@ -52,9 +52,13 @@ template <typename VertexProperty,
 struct tree_storage {
   typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
                                  VertexProperty,
-	  	                 EdgeProperty,
+		                 EdgeProperty,
 		                 boost::vecS> type;
 };
+
+template <typename TreeStorage = bgl_tree_storage>
+struct tree_storage_traits :
+  boost::adjacency_list_traits< boost::vecS, boost::listS, boost::bidirectionalS, boost::vecS > { };
 
 };
 

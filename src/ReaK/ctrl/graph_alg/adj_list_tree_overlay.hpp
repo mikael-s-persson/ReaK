@@ -1,5 +1,5 @@
 /**
- * \file dvp_adjacency_list.hpp
+ * \file adj_list_tree_overlay.hpp
  * 
  * This library provides a class 
  * 
@@ -29,8 +29,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_DVP_ADJACENCY_LIST_HPP
-#define REAK_DVP_ADJACENCY_LIST_HPP
+#ifndef REAK_ADJ_LIST_OVERLAY_HPP
+#define REAK_ADJ_LIST_OVERLAY_HPP
 
 #include <boost/bind.hpp>
 #include <boost/lambda/lambda.hpp>
@@ -44,7 +44,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "path_planning/metric_space_search.hpp"
+#include "d_ary_bf_tree.hpp"
+
+#include <boost/graph/adjacency_list.hpp>
 
 
 
@@ -55,38 +57,32 @@ namespace graph {
 
 /**
  * This class template implements an adjacency-list (in BGL-style) that over-shadows (i.e., a multi-graph)
- * a DVP-tree (Dynamic Vantage-Point tree) to store the underlying vertices according to the layout that 
- * the DVP-tree uses. An additional benefit of this class template is that the DVP-tree can act without 
- * being indirect, and the two graphs are always kept consistent, which would be difficult to do externally.
+ * a tree to store the underlying vertices according to the layout that the tree uses (e.g., B-tree (BFL), 
+ * or COB-tree). An additional benefit of this class template is that the B-tree can act without being an 
+ * indirect to a graph, and the two graphs are always kept consistent, which would be difficult to do externally.
  */
-template <typename Topology,
-          typename OutEdgeListS = boost::vecS,
+template <typename OutEdgeListS = boost::vecS,
 	  typename DirectedS = boost::directedS,
 	  typename VertexProperty = boost::no_property,
-	  typename EdgeProperty = boost::no_property,
-	  unsigned int Arity = 2,
-	  typename DistanceMetric = typename metric_space_traits<Topology>::distance_metric_type, // NOTE other metrics are not supported for the moment.
-	  typename VPChooser = random_vp_chooser,
-	  typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<Arity>,
-	  typename PositionCachingPolicy = no_position_caching_policy>
-class dvp_adjacency_list
+	  typename AdjEdgeProperty = boost::no_property,
+	  typename TreeEdgeProperty = boost::no_property,
+	  typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<2> >
+class adj_list_tree_overlay
 {
   public:
     
-    typedef double distance_type;
+    struct vertex_properties; // forward-declaration.
     
-    struct vertex_descriptor; // forward-declaration.
     
-    struct edge_properties {
-      vertex_descriptor* src;
-      vertex_descriptor* dst;
-      EdgeProperty data;
-      distance_type vp_distance;
+    
+    struct adj_edge_properties {
+      vertex_descriptor src;
+      vertex_descriptor dst;
+      AdjEdgeProperty data;
     };
     
-    typedef typename pp::topology_traits<Topology>::point_type position_type;
-    typedef typename boost::container_gen< OutEdgeListS, edge_descriptor>::type out_edge_container;
-    typedef std::map< vertex_descriptor*, typename out_edge_container::iterator > in_edge_map;
+    typedef typename boost::container_gen< OutEdgeListS, adj_edge_properties>::type out_edge_container;
+    typedef std::map< vertex_descriptor, typename out_edge_container::iterator > in_edge_map;
     
     struct vertex_properties {
       position_type position;
@@ -107,6 +103,8 @@ class dvp_adjacency_list
 #endif
     };
     
+    
+    typedef typename ReaK::graph::tree_storage< vertex_properties, TreeEdgeProperty, TreeStorageTag>::type tree_indexer;
     
     typedef pp::dvp_tree<vertex_descriptor, Topology, 
                          boost::vertex_position_t, Arity,
