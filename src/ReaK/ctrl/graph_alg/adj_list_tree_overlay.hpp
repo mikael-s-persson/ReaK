@@ -65,24 +65,55 @@ template <typename OutEdgeListS = boost::vecS,
 	  typename DirectedS = boost::directedS,
 	  typename VertexProperty = boost::no_property,
 	  typename AdjEdgeProperty = boost::no_property,
+	  typename AdjEdgeListS = boost::vecS,
 	  typename TreeEdgeProperty = boost::no_property,
 	  typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<2> >
 class adj_list_tree_overlay
 {
   public:
     
-    struct vertex_properties; // forward-declaration.
-    
-    
+    typedef typename tree_storage_traits< TreeStorageTag >::vertex_descriptor vertex_descriptor;
+    typedef typename tree_storage_traits< TreeStorageTag >::edge_descriptor tree_edge_descriptor;
     
     struct adj_edge_properties {
-      vertex_descriptor src;
-      vertex_descriptor dst;
-      AdjEdgeProperty data;
+      vertex_descriptor source_vertex;
+      vertex_descriptor target_vertex;
+      AdjEdgeProperty user_data;
+      
+      adj_edge_properties(vertex_descriptor aSource, vertex_descriptor aTarget, 
+	                  const AdjEdgeProperty& aUserData) :
+	                  source_vertex(aSource), target_vertex(aTarget), 
+	                  user_data(aUserData) { };
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      adj_edge_properties(vertex_descriptor aSource, vertex_descriptor aTarget, 
+	                  AdjEdgeProperty&& aUserData) :
+	                  source_vertex(aSource), target_vertex(aTarget), 
+	                  user_data(std::move(aUserData)) { };
+#endif 
     };
     
-    typedef typename boost::container_gen< OutEdgeListS, adj_edge_properties>::type out_edge_container;
-    typedef std::map< vertex_descriptor, typename out_edge_container::iterator > in_edge_map;
+    typedef typename boost::container_gen< AdjEdgeListS, adj_edge_properties>::type adj_edge_container;
+    typedef typename boost::mpl::if_< typename boost::detail::is_random_access< AdjEdgeListS >::type,
+      typename adj_edge_container::size_type,
+      adj_edge_properties* >::type adj_edge_descriptor;
+    typedef typename adj_edge_container::iterator adj_edge_iterator;
+    
+  private:
+    
+    struct in_edge_descriptor_bidir {
+      
+    };
+    
+  public:
+    
+    // This type is the container for out-going edges, each vertex would have such a container.
+    typedef typename boost::container_gen< OutEdgeListS, adj_edge_descriptor>::type out_edge_container;
+    
+    typedef typename boost::mpl::if_< typename boost::detail::is_random_access< OutEdgeListS >::type,
+      std::pair< vertex_descriptor, typename out_edge_container::size_type >, 
+      adj_edge_descriptor* >::type out_edge_descriptor;
+    
+    typedef std::map< vertex_descriptor, out_edge_descriptor > in_edge_map;
     
     struct vertex_properties {
       position_type position;
