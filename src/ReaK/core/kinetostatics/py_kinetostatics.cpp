@@ -39,6 +39,7 @@
 #include "frame_3D.hpp"
 #include "rotations.hpp"
 #include "quat_alg.hpp"
+#include "motion_jacobians.hpp"
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -83,6 +84,43 @@ double determinant(const axis_angle<double>&);
 trans_mat_3D<double> invert(const trans_mat_3D<double>&);
 double trace(const trans_mat_3D<double>&);
 double determinant(const trans_mat_3D<double>&);
+
+
+quat<double> conj(const quat<double>& x);
+double norm_2_sqr(const quat<double>& v);
+double norm_2(const quat<double>& v);
+quat<double> unit(const quat<double>& v);
+bool colinear(const quat<double>& v1, const quat<double>& v2);
+quat<double> exp(const quat<double>& x);
+quat<double> log(const quat<double>& x);
+quat<double> pow(const quat<double>& base, const quat<double>& exponent);
+quat<double> sqrt(const quat<double>& x);
+quat<double> invert(const quat<double>& x);
+quat<double> ceil(const quat<double>& x);
+double fabs(const quat<double>& x);
+quat<double> floor(const quat<double>& x);
+quat<double> cos(const quat<double>& x);
+quat<double> sin(const quat<double>& x);
+quat<double> tan(const quat<double>& x);
+quat<double> acos(const quat<double>& x);
+quat<double> asin(const quat<double>& x);
+quat<double> atan(const quat<double>& x);
+quat<double> atan2(const quat<double>& y, const quat<double>& x);
+quat<double> cosh(const quat<double>& x);
+quat<double> sinh(const quat<double>& x);
+quat<double> tanh(const quat<double>& x);
+
+unit_quat<double> conj(const unit_quat<double>& x);
+double norm_2_sqr(const unit_quat<double>& v);
+double norm_2(const quat<double>& v);
+unit_quat<double> unit(const unit_quat<double>& v);
+unit_quat<double> exp(const vect<double,3>& x);
+vect<double,3> log(const unit_quat<double>& x);
+unit_quat<double> pow(const unit_quat<double>& base, const double& exponent);
+unit_quat<double> sqrt(const unit_quat<double>& x);
+unit_quat<double> invert(const unit_quat<double>& x);
+double fabs(const unit_quat<double>& x);
+  
   
 };
 
@@ -236,8 +274,8 @@ void export_kinetostatics() {
     .def("__str__",obj_to_string< ReaK::pose_2D<double> >);
     
   class_< ReaK::weak_ptr< ReaK::pose_2D<double> > >("WeakPtrPose2D");
-  implicitly_convertible< std::shared_ptr< ReaK::pose_2D<double> >, 
-                          std::weak_ptr< ReaK::pose_2D<double> > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::pose_2D<double> >, 
+                          ReaK::weak_ptr< ReaK::pose_2D<double> > >();
   
   def("create_pose_2d",ReaK::rk_create< ReaK::pose_2D<double> >);
   def("create_pose_2d",ReaK::rk_create< ReaK::pose_2D<double>, const ReaK::shared_ptr< ReaK::pose_2D<double> >&, const ReaK::vect<double,2>&, const ReaK::rot_mat_2D<double>& >);
@@ -271,8 +309,8 @@ void export_kinetostatics() {
     .def("__str__",obj_to_string< ReaK::frame_2D<double> >);
     
   class_< ReaK::weak_ptr< ReaK::frame_2D<double> > >("WeakPtrFrame2D");
-  implicitly_convertible< std::shared_ptr< ReaK::frame_2D<double> >, 
-                          std::weak_ptr< ReaK::frame_2D<double> > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::frame_2D<double> >, 
+                          ReaK::weak_ptr< ReaK::frame_2D<double> > >();
   
   def("create_frame_2d",ReaK::rk_create< ReaK::frame_2D<double> >);
   def("create_frame_2d",ReaK::rk_create< ReaK::frame_2D<double>, 
@@ -457,8 +495,8 @@ void export_kinetostatics() {
     .def("__str__",obj_to_string< ReaK::pose_3D<double> >);
     
   class_< ReaK::weak_ptr< ReaK::pose_3D<double> > >("WeakPtrPose3D");
-  implicitly_convertible< std::shared_ptr< ReaK::pose_3D<double> >, 
-                          std::weak_ptr< ReaK::pose_3D<double> > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::pose_3D<double> >, 
+                          ReaK::weak_ptr< ReaK::pose_3D<double> > >();
   
   def("create_pose_3d",ReaK::rk_create< ReaK::pose_3D<double> >);
   def("create_pose_3d",ReaK::rk_create< ReaK::pose_3D<double>, 
@@ -496,8 +534,8 @@ void export_kinetostatics() {
     .def("__str__",obj_to_string< ReaK::frame_3D<double> >);
     
   class_< ReaK::weak_ptr< ReaK::frame_3D<double> > >("WeakPtrFrame3D");
-  implicitly_convertible< std::shared_ptr< ReaK::frame_3D<double> >, 
-                          std::weak_ptr< ReaK::frame_3D<double> > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::frame_3D<double> >, 
+                          ReaK::weak_ptr< ReaK::frame_3D<double> > >();
   
   def("create_frame_3d",ReaK::rk_create< ReaK::frame_3D<double> >);
   def("create_frame_3d",ReaK::rk_create< ReaK::frame_3D<double>, 
@@ -509,17 +547,251 @@ void export_kinetostatics() {
   
   
   
+  
+  
+  /********************************************************************************
+   *        Motion Jacobians (motion_jacobians.hpp)
+   * *****************************************************************************/
+  
+  
+  class_< ReaK::jacobian_gen_gen<double>,
+          bases< ReaK::shared_object >,
+	  ReaK::shared_ptr< ReaK::jacobian_gen_gen<double> >
+        >("JacobianGenGen")
+    .def("get_relative_to",&ReaK::jacobian_gen_gen<double>::get_jac_relative_to);
+    
+  class_< ReaK::weak_ptr< ReaK::jacobian_gen_gen<double> > >("WeakPtrJacobianGenGen");
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_gen_gen<double> >, 
+                          ReaK::weak_ptr< ReaK::jacobian_gen_gen<double> > >();
+  
+  def("create_jacobian_gen_gen",ReaK::rk_create< ReaK::jacobian_gen_gen<double> >);
+  
+  
+  class_< ReaK::jacobian_gen_2D<double>,
+          bases< ReaK::shared_object >,
+	  ReaK::shared_ptr< ReaK::jacobian_gen_2D<double> >
+        >("JacobianGen2D")
+    .def("get_relative_to",&ReaK::jacobian_gen_2D<double>::get_jac_relative_to);
+    
+  class_< ReaK::weak_ptr< ReaK::jacobian_gen_2D<double> > >("WeakPtrJacobianGen2D");
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_gen_2D<double> >, 
+                          ReaK::weak_ptr< ReaK::jacobian_gen_2D<double> > >();
+  
+  def("create_jacobian_gen_2D",ReaK::rk_create< ReaK::jacobian_gen_2D<double> >);
+  
+  
+  class_< ReaK::jacobian_gen_3D<double>,
+          bases< ReaK::shared_object >,
+	  ReaK::shared_ptr< ReaK::jacobian_gen_3D<double> >
+        >("JacobianGen3D")
+    .def("get_relative_to",&ReaK::jacobian_gen_3D<double>::get_jac_relative_to);
+    
+  class_< ReaK::weak_ptr< ReaK::jacobian_gen_3D<double> > >("WeakPtrJacobianGen3D");
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_gen_3D<double> >, 
+                          ReaK::weak_ptr< ReaK::jacobian_gen_3D<double> > >();
+  
+  def("create_jacobian_gen_3D",ReaK::rk_create< ReaK::jacobian_gen_3D<double> >);
+  
+  
+  class_< ReaK::jacobian_2D_gen<double>,
+          bases< ReaK::shared_object >,
+	  ReaK::shared_ptr< ReaK::jacobian_2D_gen<double> >
+        >("Jacobian2DGen")
+    .def("get_relative_to",&ReaK::jacobian_2D_gen<double>::get_jac_relative_to);
+    
+  class_< ReaK::weak_ptr< ReaK::jacobian_2D_gen<double> > >("WeakPtrJacobian2DGen");
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_2D_gen<double> >, 
+                          ReaK::weak_ptr< ReaK::jacobian_2D_gen<double> > >();
+  
+  def("create_jacobian_2D_gen",ReaK::rk_create< ReaK::jacobian_2D_gen<double> >);
+  
+  
+  class_< ReaK::jacobian_2D_2D<double>,
+          bases< ReaK::shared_object >,
+	  ReaK::shared_ptr< ReaK::jacobian_2D_2D<double> >
+        >("Jacobian2D2D")
+    .def("get_relative_to",&ReaK::jacobian_2D_2D<double>::get_jac_relative_to);
+    
+  class_< ReaK::weak_ptr< ReaK::jacobian_2D_2D<double> > >("WeakPtrJacobian2D2D");
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_2D_2D<double> >, 
+                          ReaK::weak_ptr< ReaK::jacobian_2D_2D<double> > >();
+  
+  def("create_jacobian_2D_2D",ReaK::rk_create< ReaK::jacobian_2D_2D<double> >);
+  
+  
+  class_< ReaK::jacobian_2D_3D<double>,
+          bases< ReaK::shared_object >,
+	  ReaK::shared_ptr< ReaK::jacobian_2D_3D<double> >
+        >("Jacobian2D3D")
+    .def("get_relative_to",&ReaK::jacobian_2D_3D<double>::get_jac_relative_to);
+    
+  class_< ReaK::weak_ptr< ReaK::jacobian_2D_3D<double> > >("WeakPtrJacobian2D3D");
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_2D_3D<double> >, 
+                          ReaK::weak_ptr< ReaK::jacobian_2D_3D<double> > >();
+  
+  def("create_jacobian_2D_3D",ReaK::rk_create< ReaK::jacobian_2D_3D<double> >);
+  
+  
+  class_< ReaK::jacobian_3D_gen<double>,
+          bases< ReaK::shared_object >,
+	  ReaK::shared_ptr< ReaK::jacobian_3D_gen<double> >
+        >("Jacobian3DGen")
+    .def("get_relative_to",&ReaK::jacobian_3D_gen<double>::get_jac_relative_to);
+    
+  class_< ReaK::weak_ptr< ReaK::jacobian_3D_gen<double> > >("WeakPtrJacobian3DGen");
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_3D_gen<double> >, 
+                          ReaK::weak_ptr< ReaK::jacobian_3D_gen<double> > >();
+  
+  def("create_jacobian_3D_gen",ReaK::rk_create< ReaK::jacobian_3D_gen<double> >);
+  
+  
+  class_< ReaK::jacobian_3D_2D<double>,
+          bases< ReaK::shared_object >,
+	  ReaK::shared_ptr< ReaK::jacobian_3D_2D<double> >
+        >("Jacobian3D2D")
+    .def("get_relative_to",&ReaK::jacobian_3D_2D<double>::get_jac_relative_to);
+    
+  class_< ReaK::weak_ptr< ReaK::jacobian_3D_2D<double> > >("WeakPtrJacobian3D2D");
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_3D_2D<double> >, 
+                          ReaK::weak_ptr< ReaK::jacobian_3D_2D<double> > >();
+  
+  def("create_jacobian_3D_2D",ReaK::rk_create< ReaK::jacobian_3D_2D<double> >);
+  
+  
+  class_< ReaK::jacobian_3D_3D<double>,
+          bases< ReaK::shared_object >,
+	  ReaK::shared_ptr< ReaK::jacobian_3D_3D<double> >
+        >("Jacobian3D3D")
+    .def("get_relative_to",&ReaK::jacobian_3D_3D<double>::get_jac_relative_to);
+    
+  class_< ReaK::weak_ptr< ReaK::jacobian_3D_3D<double> > >("WeakPtrJacobian3D3D");
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_3D_3D<double> >, 
+                          ReaK::weak_ptr< ReaK::jacobian_3D_3D<double> > >();
+  
+  def("create_jacobian_3D_3D",ReaK::rk_create< ReaK::jacobian_3D_3D<double> >);
+  
+  
+  
+  
+  /********************************************************************************
+   *        Quaternionic Algebra (quat_alg.hpp)
+   * *****************************************************************************/
+  
+  
+  class_< ReaK::quat<double> >("Quat")
+    .def(init< double >())
+    .def(init< double, ReaK::vect<double,3> >())
+    .def(init< ReaK::vect<double,3> >())
+    .def(init< ReaK::vect<double,4> >())
+    .def(init< double, double, double, double >())
+    .def("__getitem__",vect_getitem< ReaK::quat<double> >)
+    .def("__setitem__",vect_setitem< ReaK::quat<double> >)
+    .def("__len__",&ReaK::quat<double>::size)
+    .def(self += self)
+    .def(self += double())
+    .def(self += other< ReaK::vect<double,3> >())
+    .def(self -= self)
+    .def(self -= double())
+    .def(self -= other< ReaK::vect<double,3> >())
+    .def(self *= self)
+    .def(self *= double())
+    .def(self + self)
+    .def(self + double())
+    .def(double() + self)
+    .def(self + self)
+    .def(self + self)
+    .def(-self)
+    .def(self - self)
+    .def(self - double())
+    .def(double() - self)
+    .def(self - other< ReaK::vect<double,3> >())
+    .def(other< ReaK::vect<double,3> >() - self)
+    .def(self * self)
+    .def(self * double())
+    .def(double() * self)
+    .def(self * other< ReaK::vect<double,3> >())
+    .def(other< ReaK::vect<double,3> >() * self)
+    .def("__pow__",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&, const ReaK::quat<double>&) >(&ReaK::pow));
+  
+  def("conj",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::conj));
+  def("norm_2_sqr",static_cast< double(*)(const ReaK::quat<double>&) >(&ReaK::norm_2_sqr));
+  def("norm_2",static_cast< double(*)(const ReaK::quat<double>&) >(&ReaK::norm_2));
+  def("unit",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::unit));
+  def("colinear",static_cast< bool(*)(const ReaK::quat<double>&, const ReaK::quat<double>&) >(&ReaK::colinear));
+  def("exp",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::exp));
+  def("log",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::log));
+  def("sqrt",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::sqrt));
+  def("invert",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::invert));
+  def("ceil",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::ceil));
+  def("fabs",static_cast< double(*)(const ReaK::quat<double>&) >(&ReaK::fabs));
+  def("floor",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::floor));
+  def("cos",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::cos));
+  def("sin",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::sin));
+  def("tan",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::tan));
+  def("acos",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::acos));
+  def("asin",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::asin));
+  def("atan",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::atan));
+  def("atan2",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&, const ReaK::quat<double>&) >(&ReaK::atan2));
+  def("cosh",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::cosh));
+  def("sinh",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::sinh));
+  def("tanh",static_cast< ReaK::quat<double>(*)(const ReaK::quat<double>&) >(&ReaK::tanh));
+  
+  
+  
+  class_< ReaK::unit_quat<double>,
+          bases< ReaK::quat<double> > >("UnitQuat")
+    .def(init< ReaK::quat<double> >())
+    .def(init< ReaK::vect<double,4> >())
+    .def(init< double, double, double, double >())
+    .def("__getitem__",vect_getitem< ReaK::unit_quat<double> >)
+    .def("__len__",&ReaK::unit_quat<double>::size)
+    .def("as_rotation",&ReaK::unit_quat<double>::as_rotation)
+    .def(self *= self)
+    .def(-self)
+    .def(self * self)
+    .def("__pow__",static_cast< ReaK::unit_quat<double>(*)(const ReaK::unit_quat<double>&, const double&) >(&ReaK::pow));
+  
+  def("conj",static_cast< ReaK::unit_quat<double>(*)(const ReaK::unit_quat<double>&) >(&ReaK::conj));
+  def("norm_2_sqr",static_cast< double(*)(const ReaK::unit_quat<double>&) >(&ReaK::norm_2_sqr));
+  def("norm_2",static_cast< double(*)(const ReaK::unit_quat<double>&) >(&ReaK::norm_2));
+  def("unit",static_cast< ReaK::unit_quat<double>(*)(const ReaK::unit_quat<double>&) >(&ReaK::unit));
+  def("exp",static_cast< ReaK::unit_quat<double>(*)(const ReaK::vect<double,3>&) >(&ReaK::exp));
+  def("log",static_cast< ReaK::vect<double,3>(*)(const ReaK::unit_quat<double>&) >(&ReaK::log));
+  def("sqrt",static_cast< ReaK::unit_quat<double>(*)(const ReaK::unit_quat<double>&) >(&ReaK::sqrt));
+  def("invert",static_cast< ReaK::unit_quat<double>(*)(const ReaK::unit_quat<double>&) >(&ReaK::invert));
+  def("fabs",static_cast< double(*)(const ReaK::unit_quat<double>&) >(&ReaK::fabs));
+  
+  
 #ifdef RK_ENABLE_CXX0X_FEATURES
-  implicitly_convertible< std::shared_ptr< ReaK::gen_coord<double> >, 
-                          std::shared_ptr< ReaK::shared_object > >();
-  implicitly_convertible< std::shared_ptr< ReaK::pose_2D<double> >, 
-                          std::shared_ptr< ReaK::shared_object > >();
-  implicitly_convertible< std::shared_ptr< ReaK::frame_2D<double> >, 
-                          std::shared_ptr< ReaK::pose_2D<double> > >();
-  implicitly_convertible< std::shared_ptr< ReaK::pose_3D<double> >, 
-                          std::shared_ptr< ReaK::shared_object > >();
-  implicitly_convertible< std::shared_ptr< ReaK::frame_3D<double> >, 
-                          std::shared_ptr< ReaK::pose_3D<double> > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::gen_coord<double> >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::pose_2D<double> >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::frame_2D<double> >, 
+                          ReaK::shared_ptr< ReaK::pose_2D<double> > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::pose_3D<double> >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::frame_3D<double> >, 
+                          ReaK::shared_ptr< ReaK::pose_3D<double> > >();
+  
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_gen_gen<double> >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_gen_2D<double> >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_gen_3D<double> >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_2D_gen<double> >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_2D_2D<double> >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_2D_3D<double> >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_3D_gen<double> >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_3D_2D<double> >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::jacobian_3D_3D<double> >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
 #endif
   
 };
