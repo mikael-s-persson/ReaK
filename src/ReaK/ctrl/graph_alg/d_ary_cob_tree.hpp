@@ -515,6 +515,10 @@ class d_ary_cob_tree
     
   public:
     
+    static vertex_descriptor null_vertex() { 
+      return vertex_descriptor(reinterpret_cast<std::size_t>(-1));
+    };
+    
     /**
      * Construct the D-ary BF-tree with a given reserved depth.
      * \param aDepth The depth of the graph to reserve space for.
@@ -668,7 +672,9 @@ class d_ary_cob_tree
 	return 1;
     };
     
-    std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v) {
+    std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
+							     const vertex_property_type& vp = vertex_property_type(), 
+							     const edge_property_type& ep = edge_property_type()) {
       if( (v.vertex_id >= vertex_index_type(m_vertices[v.block_id].size())) || ((m_vertices[v.block_id][v.vertex_id].out_degree) < 0) )
 	throw std::range_error("Cannot add child-node to an empty node!");
       int new_edge = 0;
@@ -683,11 +689,40 @@ class d_ary_cob_tree
       if( result.vertex_id >= vertex_index_type(m_vertices[result.block_id].size()) )
 	m_vertices[result.block_id].resize(result.vertex_id + 1);
       m_vertices[result.block_id][result.vertex_id].out_degree = 0;
+      m_vertices[result.block_id][result.vertex_id].v = vp;
+      m_vertices[v.block_id][v.vertex_id].e[new_edge] = ep;
       if( new_edge == m_vertices[v.block_id][v.vertex_id].out_degree )
         ++(m_vertices[v.block_id][v.vertex_id].out_degree);
       ++m_vertex_count;
       return std::make_pair(result, edge_descriptor(v, new_edge));
     };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
+							     vertex_property_type&& vp, 
+							     edge_property_type&& ep = edge_property_type()) {
+      if( (v.vertex_id >= vertex_index_type(m_vertices[v.block_id].size())) || ((m_vertices[v.block_id][v.vertex_id].out_degree) < 0) )
+	throw std::range_error("Cannot add child-node to an empty node!");
+      int new_edge = 0;
+      for(; new_edge < m_vertices[v.block_id][v.vertex_id].out_degree; ++new_edge) {
+	vertex_descriptor v_c = v.get_child(new_edge);
+	if( (m_vertices[v_c.block_id][v_c.vertex_id].out_degree) < 0 )
+	  break;
+      };
+      if( new_edge == Arity ) 
+	throw std::range_error("Cannot add child-node to a full node!");
+      vertex_descriptor result = v.get_child(new_edge);
+      if( result.vertex_id >= vertex_index_type(m_vertices[result.block_id].size()) )
+	m_vertices[result.block_id].resize(result.vertex_id + 1);
+      m_vertices[result.block_id][result.vertex_id].out_degree = 0;
+      m_vertices[result.block_id][result.vertex_id].v = std::move(vp);
+      m_vertices[v.block_id][v.vertex_id].e[new_edge] = std::move(ep);
+      if( new_edge == m_vertices[v.block_id][v.vertex_id].out_degree )
+        ++(m_vertices[v.block_id][v.vertex_id].out_degree);
+      ++m_vertex_count;
+      return std::make_pair(result, edge_descriptor(v, new_edge));
+    };
+#endif
     
     void update_out_degree(const vertex_descriptor& v) {
       if( !is_valid(v) )
@@ -725,19 +760,63 @@ class d_ary_cob_tree
       };
     };
     
+    
+    template <typename OutputIter>
+    void remove_branch(vertex_descriptor v, OutputIter it_out) {
+      if( !is_valid(v) )
+	return;  // vertex is already deleted.
+      --m_vertex_count; 
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      *(it_out++) = std::move(m_vertices[v.block_id][v.vertex_id].v);
+#else
+      *(it_out++) = m_vertices[v.block_id][v.vertex_id].v;
+#endif
+      // this traversal order is intentional (traverse pre-order depth-first, and 
+      // delay removal of empty tail elements as much as possible, such that it is only required once).
+      int max_child = m_vertices[v.block_id][v.vertex_id].out_degree;
+      for( int i = 0; i < max_child; ++i)
+	remove_branch(v.get_child(i),it_out);
+      m_vertices[v.block_id][v.vertex_id].out_degree = -1;
+      if( v != vertex_descriptor(0,0) )  // if the node is not the root one, then update the out-degree of the parent node:
+	update_out_degree( v.get_parent() );
+      // remove empty vertices from the end of the container:
+      if( v.vertex_id == vertex_index_type(m_vertices[v.block_id].size()) - 1 ) {
+	vertex_iterator v_it(v);
+        while( (v_it->vertex_id > 0) && ( (m_vertices[v_it->block_id][v_it->vertex_id].out_degree) < 0 ) )
+	  --v_it;
+	//if( (m_vertices[v_it->block_id][v_it->vertex_id].out_degree) >= 0 )
+	  ++v_it;
+        m_vertices[v_it->block_id].erase(m_vertices[v_it->block_id].begin() + v_it->vertex_id, m_vertices[v_it->block_id].end());
+      };
+    };
+    
     vertex_descriptor get_root_vertex() const {
       return vertex_descriptor(0,0); 
     };
     
-    vertex_descriptor create_root_vertex() {
+    vertex_descriptor create_root_vertex(const vertex_property_type& vp = vertex_property_type()) {
       if(m_vertices[0].size() == 0)
 	m_vertices[0].resize(1);
       if(m_vertices[0][0].out_degree >= 0)
 	remove_branch(vertex_descriptor(0,0));
       m_vertices[0][0].out_degree = 0;
+      m_vertices[0][0].v = vp;
       ++m_vertex_count;
       return vertex_descriptor(0,0);
     };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    vertex_descriptor create_root_vertex(vertex_property_type&& vp) {
+      if(m_vertices[0].size() == 0)
+	m_vertices[0].resize(1);
+      if(m_vertices[0][0].out_degree >= 0)
+	remove_branch(vertex_descriptor(0,0));
+      m_vertices[0][0].out_degree = 0;
+      m_vertices[0][0].v = std::move(vp);
+      ++m_vertex_count;
+      return vertex_descriptor(0,0);
+    };
+#endif
     
     
 };
@@ -972,7 +1051,7 @@ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edg
 
 
 /***********************************************************************************************
- *                             MutableTreeConcept
+ *                             TreeConcept
  * ********************************************************************************************/
 
 
@@ -985,6 +1064,26 @@ typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::ver
   get_root_vertex( const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.get_root_vertex();
 };
+
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties,
+	  std::size_t CuttingDepth >
+inline
+std::pair< 
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator,
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator >
+  child_vertices( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+                  const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
+  typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator VIter;
+  return std::make_pair(VIter(Arity * v + 1),VIter(Arity * (v + 1)));
+};
+
+
+/***********************************************************************************************
+ *                             MutableTreeConcept
+ * ********************************************************************************************/
+
 
 template <typename VertexProperties,
           std::size_t Arity,
@@ -1020,20 +1119,107 @@ void remove_branch( const typename d_ary_cob_tree<VertexProperties,Arity,EdgePro
 };
 
 
+
+/***********************************************************************************************
+ *                             MutablePropertyTreeConcept
+ * ********************************************************************************************/
+
+
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties,
+	  std::size_t CuttingDepth >
+inline
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor
+  create_root( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_property_type& vp, 
+	       d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
+  return g.create_root_vertex(vp);
+};
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties,
+	  std::size_t CuttingDepth >
+inline
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor
+  create_root( typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_property_type&& vp, 
+	       d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
+  return g.create_root_vertex(std::move(vp));
+};
+#endif
+
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties,
 	  std::size_t CuttingDepth >
 inline
 std::pair< 
-typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator,
-typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator >
-  child_vertices( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
-                  const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
-  typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator VIter;
-  return std::make_pair(VIter(v.get_child(0)),VIter(v.get_child(Arity)));
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor,
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor >
+  add_child_vertex( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+		    const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_property_type& vp,
+                    d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
+  return g.add_child(v,vp);
 };
 
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties,
+	  std::size_t CuttingDepth >
+inline
+std::pair< 
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor,
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor >
+  add_child_vertex( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+		    const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_property_type& vp,
+		    const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_property_type& ep,
+                    d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
+  return g.add_child(v,vp,ep);
+};
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties,
+	  std::size_t CuttingDepth >
+inline
+std::pair< 
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor,
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor >
+  add_child_vertex( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+		    typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_property_type&& vp,
+                    d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
+  return g.add_child(v,std::move(vp));
+};
+
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties,
+	  std::size_t CuttingDepth >
+inline
+std::pair< 
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor,
+typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor >
+  add_child_vertex( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+		    typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_property_type&& vp,
+		    typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_property_type&& ep,
+                    d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
+  return g.add_child(v,std::move(vp),std::move(ep));
+};
+#endif
+
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties,
+	  std::size_t CuttingDepth,
+	  typename OutputIter>
+inline
+void remove_branch( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+		    OutputIter it_out,
+                    d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
+  return g.remove_branch(v,it_out);
+};
 
 
 /***********************************************************************************************

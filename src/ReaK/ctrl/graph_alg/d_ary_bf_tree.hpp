@@ -399,6 +399,11 @@ class d_ary_bf_tree
     
   public:
     
+    
+    static vertex_descriptor null_vertex() { 
+      return reinterpret_cast<vertex_descriptor>(-1);
+    };
+    
     /**
      * Construct the D-ary BF-tree with a given reserved depth.
      * \param aDepth The depth of the graph to reserve space for.
@@ -526,7 +531,9 @@ class d_ary_bf_tree
 	return 1;
     };
     
-    std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v) {
+    std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
+							     const vertex_property_type& vp = vertex_property_type(), 
+							     const edge_property_type& ep = edge_property_type()) {
       if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) ) 
 	throw std::range_error("Cannot add child-node to an empty node!");
       int new_edge = 0;
@@ -539,11 +546,38 @@ class d_ary_bf_tree
       if( result >= vertex_descriptor(m_vertices.size()) )
 	m_vertices.resize(result + 1);
       m_vertices[result].out_degree = 0;
+      m_vertices[result].v = vp;
+      m_vertices[v].e[new_edge] = ep;
       if( new_edge == m_vertices[v].out_degree )
         ++(m_vertices[v].out_degree);
       ++m_vertex_count;
       return std::make_pair(result, edge_descriptor(v, new_edge));
     };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
+							     vertex_property_type&& vp, 
+							     edge_property_type&& ep = edge_property_type()) {
+      if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) ) 
+	throw std::range_error("Cannot add child-node to an empty node!");
+      int new_edge = 0;
+      for(; new_edge < m_vertices[v].out_degree; ++new_edge)
+	if( m_vertices[Arity * v + 1 + new_edge].out_degree < 0 )
+	  break;
+      if( new_edge == Arity ) 
+	throw std::range_error("Cannot add child-node to a full node!");
+      vertex_descriptor result = Arity * v + 1 + new_edge;
+      if( result >= vertex_descriptor(m_vertices.size()) )
+	m_vertices.resize(result + 1);
+      m_vertices[result].out_degree = 0;
+      m_vertices[result].v = std::move(vp);
+      m_vertices[v].e[new_edge] = std::move(ep);
+      if( new_edge == m_vertices[v].out_degree )
+        ++(m_vertices[v].out_degree);
+      ++m_vertex_count;
+      return std::make_pair(result, edge_descriptor(v, new_edge));
+    };
+#endif
     
     void update_out_degree(vertex_descriptor v) {
       if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) )
@@ -580,17 +614,57 @@ class d_ary_bf_tree
       };
     };
     
+    template <typename OutputIter>
+    void remove_branch(vertex_descriptor v, OutputIter it_out) {
+      if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) )
+	return;  // vertex is already deleted.
+      --m_vertex_count;
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      *(it_out++) = std::move(m_vertices[v].v);
+#else
+      *(it_out++) = m_vertices[v].v;
+#endif
+      // this traversal order is intentional (traverse pre-order depth-first, and 
+      // delay removal of empty tail elements as much as possible, such that it is only required once).
+      int max_child = m_vertices[v].out_degree;
+      for( int i = 0; i < max_child; ++i)
+	remove_branch(Arity * v + 1 + i, it_out);
+      m_vertices[v].out_degree = -1;
+      if( v != 0 )  // if the node is not the root one, then update the out-degree of the parent node:
+	update_out_degree( (v - 1) / Arity );
+      // remove empty vertices from the end of the container:
+      if( v == vertex_descriptor(m_vertices.size() - 1) ) {
+	while( (v > 0) && ( m_vertices[v].out_degree < 0 ) )
+	  --v;
+	++v;
+	m_vertices.erase(m_vertices.begin() + v, m_vertices.end());
+      };
+    };
+    
     vertex_descriptor get_root_vertex() const {
       return 0; 
     };
     
-    vertex_descriptor create_root_vertex() {
+    vertex_descriptor create_root_vertex(const vertex_property_type& vp = vertex_property_type()) {
       if(m_vertices[0].out_degree >= 0)
 	remove_branch(0);
       m_vertices[0].out_degree = 0;
+      m_vertices[0].v = vp;
       ++m_vertex_count;
       return 0;
     };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    vertex_descriptor create_root_vertex(vertex_property_type&& vp) {
+      if(m_vertices[0].out_degree >= 0)
+	remove_branch(0);
+      m_vertices[0].out_degree = 0;
+      m_vertices[0].v = std::move(vp);
+      ++m_vertex_count;
+      return 0;
+    };
+#endif
+    
     
     
 };
@@ -810,7 +884,7 @@ typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor
 
 
 /***********************************************************************************************
- *                             MutableTreeConcept
+ *                             TreeConcept
  * ********************************************************************************************/
 
 
@@ -822,6 +896,25 @@ typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
   get_root_vertex( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
   return g.get_root_vertex();
 };
+
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties >
+inline
+std::pair< 
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator,
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator >
+  child_vertices( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
+                  const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
+  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator VIter;
+  return std::make_pair(VIter(Arity * v + 1),VIter(Arity * (v + 1)));
+};
+
+
+/***********************************************************************************************
+ *                             MutableTreeConcept
+ * ********************************************************************************************/
+
 
 template <typename VertexProperties,
           std::size_t Arity,
@@ -854,17 +947,99 @@ void remove_branch( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProp
 };
 
 
+
+/***********************************************************************************************
+ *                             MutablePropertyTreeConcept
+ * ********************************************************************************************/
+
+
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties >
+inline
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
+  create_root( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_property_type& vp, 
+	       d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  return g.create_root_vertex(vp);
+};
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties >
+inline
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
+  create_root( typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_property_type&& vp, 
+	       d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  return g.create_root_vertex(std::move(vp));
+};
+#endif
+
 template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties >
 inline
 std::pair< 
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator,
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator >
-  child_vertices( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-                  const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator VIter;
-  return std::make_pair(VIter(Arity * v + 1),VIter(Arity * (v + 1)));
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
+  add_child_vertex( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
+		    const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_property_type& vp,
+                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  return g.add_child(v,vp);
+};
+
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties >
+inline
+std::pair< 
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
+  add_child_vertex( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
+		    const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_property_type& vp,
+		    const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_property_type& ep,
+                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  return g.add_child(v,vp,ep);
+};
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties >
+inline
+std::pair< 
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
+  add_child_vertex( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
+		    typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_property_type&& vp,
+                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  return g.add_child(v,std::move(vp));
+};
+
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties >
+inline
+std::pair< 
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
+typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
+  add_child_vertex( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
+		    typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_property_type&& vp,
+		    typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_property_type&& ep,
+                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  return g.add_child(v,std::move(vp),std::move(ep));
+};
+#endif
+
+template <typename VertexProperties,
+          std::size_t Arity,
+          typename EdgeProperties,
+	  typename OutputIter>
+inline
+void remove_branch( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
+		    OutputIter it_out,
+                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  return g.remove_branch(v,it_out);
 };
 
 
