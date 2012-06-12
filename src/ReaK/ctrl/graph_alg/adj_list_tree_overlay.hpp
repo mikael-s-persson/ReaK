@@ -297,16 +297,25 @@ class alt_tree_view {
     };
     
     
-    // MutableTreeConcept
+    // TreeConcept
     
     vertex_descriptor get_root_vertex() const {
       return get_root_vertex(m_alt->m_tree);
     };
     
+    std::pair< vertex_iterator, 
+               vertex_iterator > 
+      child_vertices(vertex_descriptor v) const {
+      return child_vertices(v,m_alt->m_tree);
+    };
+    
+    
+    // MutableTreeConcept
+    
     vertex_descriptor create_root() const {
       //return create_root(m_alt->m_tree);
     };
-
+    
     std::pair< vertex_descriptor, edge_descriptor> 
       add_child_vertex(vertex_descriptor v) const {
       //return add_child_vertex(v,m_alt->m_tree);
@@ -316,11 +325,33 @@ class alt_tree_view {
       //return remove_branch(v,m_alt->m_tree);
     };
     
-    std::pair< vertex_iterator, 
-               vertex_iterator > 
-      child_vertices(vertex_descriptor v) const {
-      return child_vertices(v,m_alt->m_tree);
+    
+    // MutablePropertyTreeConcept
+    
+    vertex_descriptor create_root(const vertex_property_type& vp) const {
+      //return create_root(vp, m_alt->m_tree);
     };
+    
+    std::pair< vertex_descriptor, edge_descriptor> 
+      add_child_vertex(vertex_descriptor v, const vertex_property_type& vp) const {
+      //return add_child_vertex(v, vp, m_alt->m_tree);
+    };
+    
+    template <typename OutputIter>
+    void remove_branch(vertex_descriptor v, OutputIter it_out) const {
+      //return remove_branch(v,m_alt->m_tree);
+    };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    vertex_descriptor create_root(vertex_property_type&& vp) const {
+      //return create_root(std::move(vp), m_alt->m_tree);
+    };
+    
+    std::pair< vertex_descriptor, edge_descriptor> 
+      add_child_vertex(vertex_descriptor v, vertex_property_type&& vp) const {
+      //return add_child_vertex(v, std::move(vp), m_alt->m_tree);
+    };
+#endif
     
     // NonCompactGraphConcept
     
@@ -369,6 +400,10 @@ class alt_graph_view {
     
     // AdjacencyGraph traits:
     typedef typename boost::graph_traits< graph_type >::adjacency_iterator adjacency_iterator;
+    
+    // PropertyGraph traits:
+    typedef typename graph_type::edge_property_type edge_property_type;
+    typedef typename graph_type::vertex_property_type vertex_property_type;
     
     friend class alt_tree_view<AdjListOnTreeType>;
     
@@ -435,6 +470,71 @@ class alt_graph_view {
       return edge(u,v,m_alt->m_adj_list);
     };
     
+    // MutableGraph concept
+    
+    vertex_descriptor add_vertex() {
+      
+    };
+    
+    void clear_vertex(vertex_descriptor v) {
+      
+    };
+    
+    void remove_vertex(vertex_descriptor v) {
+      
+    };
+    
+    std::pair<edge_descriptor, bool> add_edge(vertex_descriptor u, vertex_descriptor v) {
+      
+    };
+    
+    void remove_edge(vertex_descriptor u, vertex_descriptor v) {
+      
+    };
+    
+    void remove_edge(edge_descriptor e) {
+      
+    };
+    
+    void remove_edge(edge_iterator e_iter) {
+      
+    };
+
+    // MutablePropertyGraph concept
+    
+    vertex_descriptor add_vertex(const vertex_property_type& vp) {
+      
+    };
+    
+    void remove_vertex(vertex_descriptor v, vertex_property_type& vp) {
+      
+    };
+    
+    std::pair<edge_descriptor, bool> add_edge(vertex_descriptor u, vertex_descriptor v, const edge_property_type& ep) {
+      
+    };
+    
+    void remove_edge(vertex_descriptor u, vertex_descriptor v, edge_property_type& ep) {
+      
+    };
+    
+    void remove_edge(edge_descriptor e, edge_property_type& ep) {
+      
+    };
+    
+    void remove_edge(edge_iterator e_iter, edge_property_type& ep) {
+      
+    };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    vertex_descriptor add_vertex(vertex_property_type&& vp) {
+      
+    };
+    
+    std::pair<edge_descriptor, bool> add_edge(vertex_descriptor u, vertex_descriptor v, edge_property_type&& ep) {
+      
+    };
+#endif
     
 };
 
@@ -788,21 +888,118 @@ std::pair<typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edg
 /*******************************************************************************************
  *                  MutableGraph concept
  ******************************************************************************************/
-
-v_desc add_vertex(g);
-void clear_vertex(v, g);
-void remove_vertex(v, g);
-std::pair<e_desc, bool> add_edge(u, v, g);
-void remove_edge(u, v, g);
-void remove_edge(e, g);
-void remove_edge(e_iter, g);
+    
+template <typename AdjListOnTreeType>
+typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor 
+  add_vertex(alt_graph_view<AdjListOnTreeType>& g) {
+  return g.add_vertex();
+};
+    
+template <typename AdjListOnTreeType>
+void clear_vertex(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
+                  alt_graph_view<AdjListOnTreeType>& g) {
+  g.clear_vertex(v);
+};
+    
+template <typename AdjListOnTreeType>
+void remove_vertex(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
+                   alt_graph_view<AdjListOnTreeType>& g) {
+  g.remove_vertex(v);
+};
+    
+template <typename AdjListOnTreeType>
+std::pair<typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor, bool> 
+  add_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u, 
+	   typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
+	   alt_graph_view<AdjListOnTreeType>& g) {
+  return g.add_edge(u,v);
+};
+    
+template <typename AdjListOnTreeType>
+void remove_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u, 
+		 typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
+		 alt_graph_view<AdjListOnTreeType>& g) {
+  g.remove_edge(u,v);
+};
+    
+template <typename AdjListOnTreeType>
+void remove_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor e,
+                 alt_graph_view<AdjListOnTreeType>& g) {
+  g.remove_edge(e);
+};
+    
+template <typename AdjListOnTreeType>
+void remove_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_iterator e_iter,
+                 alt_graph_view<AdjListOnTreeType>& g) {
+  g.remove_edge(e_iter);
+};
 
 /*******************************************************************************************
  *                  MutablePropertyGraph concept
  ******************************************************************************************/
 
-v_desc add_vertex(vp, g)
-std::pair<e_desc, bool> add_edge(u, v, ep, g)
+template <typename AdjListOnTreeType>
+typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor 
+  add_vertex(const typename alt_graph_view<AdjListOnTreeType>::vertex_property_type& vp,
+             alt_graph_view<AdjListOnTreeType>& g) {
+  return g.add_vertex(vp);
+};
+    
+template <typename AdjListOnTreeType>
+void remove_vertex(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v, 
+		   typename alt_graph_view<AdjListOnTreeType>::vertex_property_type& vp,
+		   alt_graph_view<AdjListOnTreeType>& g) {
+  g.remove_vertex(v,vp);
+};
+    
+template <typename AdjListOnTreeType>
+std::pair<typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor, bool> 
+  add_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u, 
+	   typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v, 
+	   const typename alt_graph_view<AdjListOnTreeType>::edge_property_type& ep,
+	   alt_graph_view<AdjListOnTreeType>& g) {
+  return g.add_edge(u,v,ep);
+};
+    
+template <typename AdjListOnTreeType>
+void remove_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u, 
+		 typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v, 
+		 typename alt_graph_view<AdjListOnTreeType>::edge_property_type& ep,
+		 alt_graph_view<AdjListOnTreeType>& g) {
+  g.remove_edge(u,v,ep);
+};
+    
+template <typename AdjListOnTreeType>
+void remove_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor e, 
+		 typename alt_graph_view<AdjListOnTreeType>::edge_property_type& ep,
+		 alt_graph_view<AdjListOnTreeType>& g) {
+  g.remove_edge(e,ep);
+};
+    
+template <typename AdjListOnTreeType>
+void remove_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_iterator e_iter, 
+		 typename alt_graph_view<AdjListOnTreeType>::edge_property_type& ep,
+		 alt_graph_view<AdjListOnTreeType>& g) {
+  g.remove_edge(e_iter,ep);
+};
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+template <typename AdjListOnTreeType>
+typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor 
+  add_vertex(typename alt_graph_view<AdjListOnTreeType>::vertex_property_type&& vp,
+             alt_graph_view<AdjListOnTreeType>& g) {
+  return g.add_vertex(std::move(vp));
+};
+    
+template <typename AdjListOnTreeType>
+std::pair<typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor, bool> 
+  add_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u, 
+	   typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v, 
+	   typename alt_graph_view<AdjListOnTreeType>::edge_property_type&& ep,
+	   alt_graph_view<AdjListOnTreeType>& g) {
+  return g.add_edge(u,v,std::move(ep));
+};
+#endif
 
 /*******************************************************************************************
  *                  PropertyGraph concept
