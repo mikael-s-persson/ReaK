@@ -497,6 +497,7 @@ class d_ary_cob_tree
     };
     
     typedef vertex_iterator adjacency_iterator;
+    typedef vertex_iterator child_vertex_iterator;
     
     typedef boost::directed_tag directed_category;
     typedef boost::disallow_parallel_edge_tag edge_parallel_category;

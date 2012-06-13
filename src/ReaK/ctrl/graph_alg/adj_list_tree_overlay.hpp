@@ -237,6 +237,7 @@ class alt_tree_view {
     
     // AdjacencyGraph traits:
     typedef typename boost::graph_traits< tree_type >::adjacency_iterator adjacency_iterator;
+    typedef typename tree_traits< tree_type >::child_vertex_iterator child_vertex_iterator;
     
     // PropertyGraph traits:
     typedef typename tree_type::edge_property_type edge_property_type;
@@ -744,8 +745,8 @@ typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descrip
 };
 
 template <typename AdjListOnTreeType>
-std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_iterator, 
-           typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_iterator > 
+std::pair< typename tree_traits< alt_tree_view<AdjListOnTreeType> >::child_vertex_iterator, 
+           typename tree_traits< alt_tree_view<AdjListOnTreeType> >::child_vertex_iterator > 
   child_vertices(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
 		 const alt_tree_view<AdjListOnTreeType>& g) {
   return child_vertices(v,g.get_tree());
@@ -785,7 +786,7 @@ void remove_branch(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor 
   create_root(const typename alt_tree_view<AdjListOnTreeType>::vertex_property_type& vp,
-	      alt_tree_view<AdjListOnTreeType>& g) const {
+	      alt_tree_view<AdjListOnTreeType>& g) {
   return g.create_root(vp);
 };
     
@@ -794,7 +795,7 @@ std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::ver
            typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::edge_descriptor> 
   add_child_vertex(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v, 
 		   const typename alt_tree_view<AdjListOnTreeType>::vertex_property_type& vp, 
-		   alt_tree_view<AdjListOnTreeType>& g) const {
+		   alt_tree_view<AdjListOnTreeType>& g) {
   return g.add_child_vertex(v, vp);
 };
     
@@ -804,14 +805,14 @@ std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::ver
   add_child_vertex(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v, 
 		   const typename alt_tree_view<AdjListOnTreeType>::vertex_property_type& vp, 
 		   const typename alt_tree_view<AdjListOnTreeType>::edge_property_type& ep,
-		   alt_tree_view<AdjListOnTreeType>& g) const {
+		   alt_tree_view<AdjListOnTreeType>& g) {
   return g.add_child_vertex(v, vp, ep);
 };
 
 template <typename AdjListOnTreeType, typename OutputIter>
 void remove_branch(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v, 
 		   OutputIter it_out,
-		   alt_tree_view<AdjListOnTreeType>& g) const {
+		   alt_tree_view<AdjListOnTreeType>& g) {
   g.remove_branch(v,it_out);
 };
     
@@ -819,7 +820,7 @@ void remove_branch(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor 
   create_root(typename alt_tree_view<AdjListOnTreeType>::vertex_property_type&& vp,
-	      alt_tree_view<AdjListOnTreeType>& g) const {
+	      alt_tree_view<AdjListOnTreeType>& g) {
   return g.create_root(std::move(vp));
 };
     
@@ -828,7 +829,7 @@ std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::ver
            typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::edge_descriptor> 
   add_child_vertex(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v, 
 		   typename alt_tree_view<AdjListOnTreeType>::vertex_property_type&& vp,
-		   alt_tree_view<AdjListOnTreeType>& g) const {
+		   alt_tree_view<AdjListOnTreeType>& g) {
   return g.add_child_vertex(v, std::move(vp));
 };
     
@@ -838,7 +839,7 @@ std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::ver
   add_child_vertex(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v, 
 		   typename alt_tree_view<AdjListOnTreeType>::vertex_property_type&& vp, 
 		   typename alt_tree_view<AdjListOnTreeType>::edge_property_type&& ep,
-		   alt_tree_view<AdjListOnTreeType>& g) const {
+		   alt_tree_view<AdjListOnTreeType>& g) {
   return g.add_child_vertex(v, std::move(vp), std::move(ep));
 };
 #endif
