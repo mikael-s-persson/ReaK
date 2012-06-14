@@ -32,19 +32,16 @@
 #ifndef REAK_ADJ_LIST_OVERLAY_HPP
 #define REAK_ADJ_LIST_OVERLAY_HPP
 
-#include <boost/bind.hpp>
-#include <boost/lambda/lambda.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
-#include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
-#include "bgl_more_property_tags.hpp"
 
-#include <map>
-#include <unordered_map>
 #include <vector>
 #include <queue>
+#include <algorithm>
+#include <functional>
 
+#include "bgl_tree_adaptor.hpp"
 #include "d_ary_bf_tree.hpp"
 
 #include <boost/graph/adjacency_list.hpp>
@@ -325,14 +322,18 @@ class alt_tree_view {
     // MutablePropertyTreeConcept
     
     vertex_descriptor create_root(const vertex_property_type& vp) {
-      return create_root(vp, m_alt->m_tree);
+      vertex_descriptor v_root = create_root(vp, m_alt->m_tree);
+      m_alt->m_adj_list[ m_alt->m_tree[v_root].partner_node ].tree_vertex = v_root;
+      return v_root;
     };
     
     std::pair< vertex_descriptor, edge_descriptor> 
       add_child_vertex(vertex_descriptor v, 
 		       const vertex_property_type& vp, 
 		       const edge_property_type& ep = edge_property_type()) {
-      return add_child_vertex(v, vp, ep, m_alt->m_tree);
+      std::pair< vertex_descriptor, edge_descriptor> result = add_child_vertex(v, vp, ep, m_alt->m_tree);
+      m_alt->m_adj_list[ m_alt->m_tree[result.first].partner_node ].tree_vertex = result.first;
+      return result;
     };
     
     template <typename OutputIter>
@@ -342,17 +343,23 @@ class alt_tree_view {
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
     vertex_descriptor create_root(vertex_property_type&& vp) {
-      return create_root(std::move(vp), m_alt->m_tree);
+      vertex_descriptor v_root = create_root(std::move(vp), m_alt->m_tree);
+      m_alt->m_adj_list[ m_alt->m_tree[v_root].partner_node ].tree_vertex = v_root;
+      return v_root;
     };
     
     std::pair< vertex_descriptor, edge_descriptor> 
       add_child_vertex(vertex_descriptor v, vertex_property_type&& vp) {
-      return add_child_vertex(v, std::move(vp), m_alt->m_tree);
+      std::pair< vertex_descriptor, edge_descriptor> result = add_child_vertex(v, std::move(vp), m_alt->m_tree);
+      m_alt->m_adj_list[ m_alt->m_tree[result.first].partner_node ].tree_vertex = result.first;
+      return result;
     };
     
     std::pair< vertex_descriptor, edge_descriptor> 
       add_child_vertex(vertex_descriptor v, vertex_property_type&& vp, edge_property_type&& ep) {
-      return add_child_vertex(v, std::move(vp), std::move(ep), m_alt->m_tree);
+      std::pair< vertex_descriptor, edge_descriptor> result = add_child_vertex(v, std::move(vp), std::move(ep), m_alt->m_tree);
+      m_alt->m_adj_list[ m_alt->m_tree[result.first].partner_node ].tree_vertex = result.first;
+      return result;
     };
 #endif
     
@@ -369,6 +376,7 @@ class alt_graph_view {
     typedef alt_graph_view< AdjListOnTreeType, GraphMutationVisitor > self;
     
     typedef typename AdjListOnTreeType::adj_list_type graph_type;
+    typedef typename AdjListOnTreeType::tree_type tree_type;
     
     // Graph traits:
     typedef typename boost::graph_traits< graph_type >::vertex_descriptor vertex_descriptor;
@@ -398,8 +406,8 @@ class alt_graph_view {
     typedef typename boost::graph_traits< graph_type >::adjacency_iterator adjacency_iterator;
     
     // PropertyGraph traits:
-    typedef typename graph_type::edge_property_type edge_property_type;
-    typedef typename graph_type::vertex_property_type vertex_property_type;
+    typedef typename AdjListOnTreeType::adj_edge_bundled edge_property_type;
+    typedef typename AdjListOnTreeType::adj_vertex_bundled vertex_property_type;
     
     typedef typename AdjListOnTreeType::adj_vertex_bundled vertex_bundled;
     typedef typename AdjListOnTreeType::adj_edge_bundled edge_bundled;
@@ -521,68 +529,148 @@ class alt_graph_view {
     // MutableGraph concept
     
     vertex_descriptor add_vertex() {
-      
+      char this_function_is_disabled_for_this_type[0];
     };
     
     void clear_vertex(vertex_descriptor v) {
-      
+      clear_vertex(v, m_alt->m_adj_list);
     };
     
     void remove_vertex(vertex_descriptor v) {
-      
+      m_vis.remove_vertex(m_alt->m_adj_list[v].tree_vertex, alt_tree_view< AdjListOnTreeType >(*this));
+      m_alt->m_adj_list[v].tree_vertex = m_alt->m_tree.null_vertex();       // invalidate the graph-vertex,
+      clear_vertex(v, m_alt->m_adj_list);                                   // clear its edges, and
+      m_alt->m_available_pnodes.push(v);                                    // add it to the graveyard.
     };
     
     std::pair<edge_descriptor, bool> add_edge(vertex_descriptor u, vertex_descriptor v) {
-      
+      return add_edge(u, v, m_alt->m_adj_list);
     };
     
     void remove_edge(vertex_descriptor u, vertex_descriptor v) {
-      
+      remove_edge(u, v, m_alt->m_adj_list);
     };
     
     void remove_edge(edge_descriptor e) {
-      
+      remove_edge(e, m_alt->m_adj_list);
     };
     
     void remove_edge(edge_iterator e_iter) {
-      
+      remove_edge(e_iter, m_alt->m_adj_list);
     };
 
     // MutablePropertyGraph concept
     
     vertex_descriptor add_vertex(const vertex_property_type& vp) {
-      
+      vertex_descriptor v;
+      if( m_alt->m_available_pnodes.empty() ) {
+	// add a new node in the graph (this is safe, it will not invalidate vertex descriptors).
+	v = add_vertex(m_alt->m_adj_list);
+      } else {
+	// resurrect a node from the graveyard.
+	v = m_alt->m_available_pnodes.top();
+	m_alt->m_available_pnodes.pop();
+      };
+      typename tree_type::vertex_property_type tree_vp;
+      tree_vp.partner_node = v;
+      tree_vp.user_data = vp;
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      m_alt->m_adj_list[v].tree_vertex = m_vis.add_vertex(std::move(tree_vp), alt_tree_view< AdjListOnTreeType >(*this));
+#else
+      m_alt->m_adj_list[v].tree_vertex = m_vis.add_vertex(tree_vp, alt_tree_view< AdjListOnTreeType >(*this));
+#endif
+      return v;
     };
     
     void remove_vertex(vertex_descriptor v, vertex_property_type& vp) {
-      
+      vp = m_alt->m_tree[ m_alt->m_adj_list[v].tree_vertex ].user_data;
+      remove_vertex(v);
     };
     
     std::pair<edge_descriptor, bool> add_edge(vertex_descriptor u, vertex_descriptor v, const edge_property_type& ep) {
-      
+      return add_edge(u, v, ep, m_alt->m_adj_list);
     };
     
     void remove_edge(vertex_descriptor u, vertex_descriptor v, edge_property_type& ep) {
-      
+      remove_edge(u, v, ep, m_alt->m_adj_list);
     };
     
     void remove_edge(edge_descriptor e, edge_property_type& ep) {
-      
+      remove_edge(e, ep, m_alt->m_adj_list);
     };
     
     void remove_edge(edge_iterator e_iter, edge_property_type& ep) {
-      
+      remove_edge(e_iter, ep, m_alt->m_adj_list);
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
     vertex_descriptor add_vertex(vertex_property_type&& vp) {
-      
+      vertex_descriptor v;
+      if( m_alt->m_available_pnodes.empty() ) {
+	// add a new node in the graph (this is safe, it will not invalidate vertex descriptors).
+	v = add_vertex(m_alt->m_adj_list);
+      } else {
+	// resurrect a node from the graveyard.
+	v = m_alt->m_available_pnodes.top();
+	m_alt->m_available_pnodes.pop();
+      };
+      typename tree_type::vertex_property_type tree_vp;
+      tree_vp.partner_node = v;
+      tree_vp.user_data = std::move(vp);
+      m_alt->m_adj_list[v].tree_vertex = m_vis.add_vertex(std::move(tree_vp), alt_tree_view< AdjListOnTreeType >(*this));
+      return v;
     };
     
     std::pair<edge_descriptor, bool> add_edge(vertex_descriptor u, vertex_descriptor v, edge_property_type&& ep) {
-      
+      return add_edge(u, v, std::move(ep), m_alt->m_adj_list);
     };
 #endif
+    
+    // NonCompactGraphConcept
+
+    bool is_vertex_valid(vertex_descriptor u) const {
+      if( ( u != null_vertex() ) &&
+	  ( m_alt->m_adj_list[v_i].tree_vertex != m_alt->m_tree.null_vertex() ) &&
+	  is_vertex_valid(m_alt->m_adj_list[v_i].tree_vertex) )
+	return true;
+      else
+	return false;
+    };
+    
+    bool is_edge_valid(edge_descriptor e) const {
+      return true;
+    };
+    
+    
+    // Other useful / unclassified functions:
+    
+    void update_vertex(vertex_descriptor v) {
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      typename tree_type::vertex_property_type tree_vp = std::move(m_alt->m_tree[ m_alt->m_adj_list[v].tree_vertex ]);
+      m_vis.remove_vertex(m_alt->m_adj_list[v].tree_vertex, alt_tree_view< AdjListOnTreeType >(*this));
+      m_alt->m_adj_list[v].tree_vertex = m_vis.add_vertex(std::move(tree_vp), alt_tree_view< AdjListOnTreeType >(*this));
+#else
+      typename tree_type::vertex_property_type tree_vp = m_alt->m_tree[ m_alt->m_adj_list[v].tree_vertex ];
+      m_vis.remove_vertex(m_alt->m_adj_list[v].tree_vertex, alt_tree_view< AdjListOnTreeType >(*this));
+      m_alt->m_adj_list[v].tree_vertex = m_vis.add_vertex(tree_vp, alt_tree_view< AdjListOnTreeType >(*this));
+#endif
+    };
+    
+    // this could go into NonCompactGraphConcept
+    void repack_graph() {
+      if(m_alt->m_available_pnodes.empty())
+	return;
+      // here, the idea is to essentially empty out the graveyard, 
+      while(!m_alt->m_available_pnodes.empty()) {
+	clear_vertex(m_alt->m_available_pnodes.top(), m_alt->m_adj_list);
+	remove_vertex(m_alt->m_available_pnodes.top(), m_alt->m_adj_list);
+	m_alt->m_available_pnodes.pop();
+      };
+      // re-updating all partner-vertex descriptors in the tree.
+      vertex_iterator vi, vi_end;
+      for(boost::tie(vi,vi_end) = vertices(m_alt->m_adj_list); vi != vi_end; ++vi)
+        m_alt->m_tree[ m_alt->m_adj_list[ *vi ].tree_vertex ].partner_node = *vi;
+    };
     
 };
 
@@ -1111,6 +1199,21 @@ std::pair<typename boost::graph_traits< alt_graph_view<AdjListOnTreeType,GraphMu
 };
 #endif
 
+/***********************************************************************************************
+ *                             NonCompactGraphConcept
+ * ********************************************************************************************/
+
+template <typename AdjListOnTreeType, typename GraphMutationVisitor>
+bool is_vertex_valid(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType,GraphMutationVisitor> >::vertex_descriptor u,
+		     const alt_graph_view<AdjListOnTreeType,GraphMutationVisitor>& g) {
+  return g.is_vertex_valid(u);
+};
+
+template <typename AdjListOnTreeType, typename GraphMutationVisitor>
+bool is_edge_valid(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType,GraphMutationVisitor> >::edge_descriptor e,
+		   const alt_graph_view<AdjListOnTreeType,GraphMutationVisitor>& g) {
+  return g.is_edge_valid(e);
+};
 
 
 
