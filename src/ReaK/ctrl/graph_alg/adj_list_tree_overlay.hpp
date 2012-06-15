@@ -43,6 +43,7 @@
 
 #include "bgl_tree_adaptor.hpp"
 #include "d_ary_bf_tree.hpp"
+#include "tree_organizer_concept.hpp"
 
 #include <boost/graph/adjacency_list.hpp>
 
@@ -156,7 +157,7 @@ struct adj_list_on_tree_tag {
     
   typedef AdjEdgeProperty adj_edge_properties;
     
-  typedef boost::adjacency_list< OutEdgeListS, boost::vecS, DirectedS, 
+  typedef boost::adjacency_list< OutEdgeListS, boost::listS, DirectedS, 
                                  adj_vertex_properties, adj_edge_properties,
 				 boost::no_property, AdjEdgeListS > adj_list_type;
   
@@ -377,6 +378,8 @@ class alt_graph_view {
     
     typedef typename AdjListOnTreeType::adj_list_type graph_type;
     typedef typename AdjListOnTreeType::tree_type tree_type;
+    
+    BOOST_CONCEPT_ASSERT((TreeOrganizerVisitorConcept<GraphMutationVisitor, tree_type>));
     
     // Graph traits:
     typedef typename boost::graph_traits< graph_type >::vertex_descriptor vertex_descriptor;
@@ -661,15 +664,57 @@ class alt_graph_view {
       if(m_alt->m_available_pnodes.empty())
 	return;
       // here, the idea is to essentially empty out the graveyard, 
-      while(!m_alt->m_available_pnodes.empty()) {
-	clear_vertex(m_alt->m_available_pnodes.top(), m_alt->m_adj_list);
-	remove_vertex(m_alt->m_available_pnodes.top(), m_alt->m_adj_list);
-	m_alt->m_available_pnodes.pop();
+      if( boost::mpl::is_same< vertices_size_type, vertex_descriptor >::type::value ) {
+	// if vertex descriptors are into a random-access container, then a simple remove loop won't cut it.
+	// the idea here is to achieve a behavior similar to the std::remove function, but by taking 
+	// elements from the back of the vertex list and swapping them with the ones in the graveyard.
+	using std::swap;
+	vertex_descriptor v_end = reinterpret_cast<vertex_descriptor>(num_vertices(m_alt->m_adj_list));
+	while(!m_alt->m_available_pnodes.empty()) {
+	  vertex_descriptor v = m_alt->m_available_pnodes.top();
+	  while( ( v_end > v ) && ( !is_vertex_valid(--v_end) ) ) 
+	    /* nothing */;
+	  if(v > v_end) {
+	    ++v_end;
+	    break;
+	  };
+	  swap(m_alt->m_adj_list[v], m_alt->m_adj_list[v_end]);
+	  out_edge_iterator ei, ei_end;
+	  for(boost::tie(ei,ei_end) = out_edges(v_end, m_alt->m_adj_list); ei != ei_end; ++ei) {
+	    std::pair<edge_descriptor, bool> e = add_edge(v, target(*ei, m_alt->m_adj_list), m_alt->m_adj_list);
+	    swap(m_alt->m_adj_list[e], m_alt->m_adj_list[*ei]);
+	  };
+	  if( boost::mpl::is_same< directed_category, boost::directed_tag >::type::value ) {
+	    in_edge_iterator in_ei, in_ei_end;
+	    for(boost::tie(in_ei, in_ei_end) = in_edges(v_end, m_alt->m_adj_list); in_ei != in_ei_end; ++in_ei) {
+	      std::pair<edge_descriptor, bool> e = add_edge(source(*in_ei, m_alt->m_adj_list), v, m_alt->m_adj_list);
+	      swap(m_alt->m_adj_list[e], m_alt->m_adj_list[*in_ei]);
+	    };
+	  };
+	  clear_vertex(v_end, m_alt->m_adj_list);
+	  m_alt->m_available_pnodes.pop();
+	};
+	while(!m_alt->m_available_pnodes.empty())
+	  m_alt->m_available_pnodes.pop();
+	// at this point v_end is the first invalid vertex remaining.
+	vertex_descriptor v_rm = reinterpret_cast<vertex_descriptor>(num_vertices(m_alt->m_adj_list));
+	while(v_rm > v_end)
+	  remove_vertex(--v_rm, m_alt->m_adj_list);
+	
+      } else {
+	// if vertex descriptors are not random-access, they should not get invalidated by removal of other vertices.
+        while(!m_alt->m_available_pnodes.empty()) {
+	  clear_vertex(m_alt->m_available_pnodes.top(), m_alt->m_adj_list);
+	  remove_vertex(m_alt->m_available_pnodes.top(), m_alt->m_adj_list);
+	  m_alt->m_available_pnodes.pop();
+        };
       };
       // re-updating all partner-vertex descriptors in the tree.
+      {
       vertex_iterator vi, vi_end;
       for(boost::tie(vi,vi_end) = vertices(m_alt->m_adj_list); vi != vi_end; ++vi)
         m_alt->m_tree[ m_alt->m_adj_list[ *vi ].tree_vertex ].partner_node = *vi;
+      };
     };
     
 };
