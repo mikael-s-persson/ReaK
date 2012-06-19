@@ -302,7 +302,7 @@ void remove_branch( const typename graph_traits<Graph>::vertex_descriptor& u,
     v_list.push_back(target(*ei,g));
   *(it_out++) = g[u];
   for( typename std::vector<Vertex>::iterator it = v_list.begin(); it != v_list.end(); ++it)
-    remove_branch(*it, g);
+    remove_branch(*it, it_out, g);
   clear_vertex(u, g);
   remove_vertex(u, g);
 };
