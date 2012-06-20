@@ -608,6 +608,23 @@ class d_ary_cob_tree
       return m_vertices[e_i.source_vertex.block_id][e_i.source_vertex.vertex_id].e[e_i.edge_index];
     };
     
+    friend
+    vertex_property_type& get_property(const vertex_descriptor& v_i, self& g) {
+      return g[v_i];
+    };
+    friend
+    const vertex_property_type& get_property( const vertex_descriptor& v_i, const self& g) {
+      return g[v_i];
+    };
+    friend
+    edge_property_type& get_property(const edge_descriptor& e_i, self& g) {
+      return g[e_i];
+    };
+    friend
+    const edge_property_type& get_property( const edge_descriptor& e_i, const self& g) {
+      return g[e_i];
+    };
+    
     friend const vertex_property_type& get( const self& g, const vertex_descriptor& v_i) {
       return g[v_i];
     };

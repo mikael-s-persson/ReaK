@@ -267,6 +267,25 @@ class alt_tree_view {
       return m_alt->m_tree[e_i];
     };
     
+    
+    friend
+    vertex_property_type& get_property(const vertex_descriptor& v_i, self& g) {
+      return g.m_alt->m_tree[v_i];
+    };
+    friend
+    const vertex_property_type& get_property( const vertex_descriptor& v_i, const self& g) {
+      return g.m_alt->m_tree[v_i];
+    };
+    friend
+    edge_property_type& get_property(const edge_descriptor& e_i, self& g) {
+      return g.m_alt->m_tree[e_i];
+    };
+    friend
+    const edge_property_type& get_property( const edge_descriptor& e_i, const self& g) {
+      return g.m_alt->m_tree[e_i];
+    };
+    
+    
     friend const vertex_bundled& get( const self& g, const vertex_descriptor& v_i) {
       return g[v_i];
     };

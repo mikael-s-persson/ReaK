@@ -39,6 +39,109 @@
 namespace boost {
 
 
+template <typename T, typename PropertyType>
+class data_member_property_map {
+  public:
+    typedef T PropertyType::* member_ptr_type;
+    typedef data_member_property_map<T,PropertyType> self;
+  private:
+    member_ptr_type mem_ptr;
+  public:
+    typedef T value_type;
+    typedef T& reference;
+    typedef const T& const_reference;
+    typedef PropertyType key_type;
+    typedef lvalue_property_map_tag category;
+    
+    data_member_property_map(member_ptr_type aMemPtr) : mem_ptr(aMemPtr) { };
+    
+    const_reference operator[](const key_type& p) const {
+      return p.*mem_ptr;
+    };
+    
+    reference operator[](key_type& p) const {
+      return p.*mem_ptr;
+    };
+    
+    friend
+    const_reference get(const self& m, const key_type& p) {
+      return p.*(m.mem_ptr);
+    };
+    
+    friend
+    reference get(const self& m, key_type& p) {
+      return p.*(m.mem_ptr);
+    };
+    
+    friend
+    void put(const self& m, key_type& p, const_reference value) {
+      p.*(m.mem_ptr) = value;
+    };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    friend
+    void put(const self& m, key_type& p, value_type&& value) {
+      p.*(m.mem_ptr) = std::move(value);
+    };
+#endif
+  
+  
+};
+
+
+template <typename OutputMap, typename InputMap>
+class composite_property_map {
+  public:
+    typedef composite_property_map<OutputMap,InputMap> self;
+    
+  private:
+    OutputMap prop_out;
+    InputMap prop_in;
+  public:
+    typedef typename property_traits< OutputMap >::value_type value_type;
+    typedef typename property_traits< InputMap >::key_type key_type;
+    typedef typename property_traits< OutputMap >::category category;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
+    
+    composite_property_map(OutputMap aPropOut, InnerMap aPropIn) : prop_out(aPropOut), prop_in(aPropIn) { };
+    
+    reference operator[](const key_type& k) {
+      return prop_out[ get(prop_in, k) ];
+    };
+    
+    reference operator[](key_type& k) {
+      return prop_out[ get(prop_in, k) ];
+    };
+    
+    friend
+    const_reference get(self& m, const key_type& p) {
+      return get(prop_out, get(prop_in, p));
+    };
+    
+    friend
+    void put(self& m, const key_type& p, const_reference value) {
+      put(prop_out, get(prop_in, p), value);
+    };
+    
+    friend
+    void put(self& m, key_type& p, const_reference value) {
+      put(prop_out, get(prop_in, p), value);
+    };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    friend
+    void put(self& m, const key_type& p, value_type&& value) {
+      put(prop_out, get(prop_in, p), std::move(value));
+    };
+    
+    friend
+    void put(self& m, key_type& p, value_type&& value) {
+      put(prop_out, get(prop_in, p), std::move(value));
+    };
+#endif
+};
+
 
 
 
