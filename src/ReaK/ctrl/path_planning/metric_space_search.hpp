@@ -78,16 +78,18 @@ class random_best_vp_chooser {
     /**
      * This call-operator will choose a vantage-point from within the given range.
      * \tparam RandomAccessIter A random-access iterator type that can describe the point-range.
-     * \tparam Topology The topology type on which the points can reside, should model the MetricSpaceConcept.
+     * \tparam Topology The topology type on which the points can reside.
+     * \tparam DistanceMetric The distance-metric type over the topology type.
      * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the iterators) to a point (position).
      * \param aBegin The start of the range of vertices.
      * \param aEnd The end of the range of vertices (one element past the end).
      * \param aSpace The topology on which the points reside.
+     * \param aDistance The distance-metric over the given topology.
      * \param aPosition The property-map used to obtain the positions from the vertices.
      * \return A random-access iterator to the chosen vantage-point.
      */
-    template <typename RandomAccessIter, typename Topology, typename PositionMap>
-    RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, const Topology& aSpace, PositionMap aPosition) {
+    template <typename RandomAccessIter, typename Topology, typename DistanceMetric, typename PositionMap>
+    RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, const Topology& aSpace, DistanceMetric aDistance, PositionMap aPosition) {
       BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
       typedef typename topology_traits<Topology>::point_type Point;
       RandomAccessIter best_pt = aEnd;
@@ -98,7 +100,7 @@ class random_best_vp_chooser {
 	double current_dev = 0.0;
 	Point current_vp = get(aPosition, *current_pt);
 	for(unsigned int j=0; aBegin + j != aEnd; ++j) {
-	  double dist = get(distance_metric, aSpace)(current_vp, get(aPosition, *(aBegin + j)), aSpace);
+	  double dist = aDistance(current_vp, get(aPosition, *(aBegin + j)), aSpace);
 	  current_mean = (current_mean * j + dist) / (j + 1);
 	  current_dev = (current_dev * j + dist * dist) / (j + 1);
 	};
@@ -132,15 +134,17 @@ class random_vp_chooser {
      * This call-operator will choose a vantage-point from within the given range.
      * \tparam RandomAccessIter A random-access iterator type that can describe the point-range.
      * \tparam Topology The topology type on which the points can reside, should model the MetricSpaceConcept.
+     * \tparam DistanceMetric The distance-metric type over the topology type.
      * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the iterators) to a point (position).
      * \param aBegin The start of the range of vertices.
      * \param aEnd The end of the range of vertices (one element past the end).
      * \param aSpace The topology on which the points reside.
+     * \param aDistance The distance-metric over the given topology.
      * \param aPosition The property-map used to obtain the positions from the vertices.
      * \return A random-access iterator to the chosen vantage-point.
      */
-    template <typename RandomAccessIter, typename Topology, typename PositionMap>
-    RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, const Topology& aSpace, PositionMap aPosition) {
+    template <typename RandomAccessIter, typename Topology, typename DistanceMetric, typename PositionMap>
+    RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, const Topology& aSpace, DistanceMetric aDistance, PositionMap aPosition) {
       return aBegin + (get_global_rng()() % (aEnd - aBegin));
     };
 };

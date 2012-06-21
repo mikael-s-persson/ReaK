@@ -1,10 +1,10 @@
 /**
  * \file dvp_tree_detail.hpp
  * 
- * This library provides a class that implements a Dynamic Vantage-Point Tree (DVP-Tree) that
- * allows for O(logN) time nearest-neighbor queries in a metric-space. A DVP-tree is essentially
- * a generalization of a search tree which only requires the space to have a metric which 
- * respects the triangular inequality. 
+ * This library implements the details of a Dynamic Vantage-Point Tree (DVP-Tree) that
+ * allows for O(logN) time nearest-neighbor queries in a metric-space, with amortized O(logN) 
+ * insertion-deletion. A DVP-tree is essentially a generalization of a search tree which only 
+ * requires the space to have a metric which respects the triangular inequality.
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date June 2012
@@ -36,18 +36,16 @@
 #define REAK_DVP_TREE_DETAIL_HPP
 
 #include <boost/bind.hpp>
-#include <boost/lambda/lambda.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
-#include <boost/graph/topology.hpp>
-#include <boost/graph/properties.hpp>
 
-#include <map>
 #include <unordered_map>
 #include <vector>
-#include "metric_space_concept.hpp"
 
-#include "graph_alg/d_ary_bf_tree.hpp"
+#include "graph_alg/tree_concepts.hpp"
+#include "graph_alg/bgl_tree_adaptor.hpp"
+
+#include "metric_space_concept.hpp"
 #include "topological_search.hpp"
 
 
@@ -59,12 +57,15 @@ namespace pp {
 
 /**
  * This class implements a Dynamic Vantage-Point Tree (DVP-Tree) that
- * allows for O(logN) time nearest-neighbor queries in a metric-space. A DVP-tree is essentially
- * a generalization of a search tree which only requires the space to have a metric which 
- * respects the triangular inequality. 
- * \tparam Key The key type for the tree, essentially the key value is the vertex descriptor type.
- * \tparam Topology The topology type on which the points can reside, should model the MetricSpaceConcept.
- * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the iterators) to a point (position).
+ * allows for O(logN) time nearest-neighbor queries in a metric-space, with amortized O(logN) 
+ * insertion-deletion. A DVP-tree is essentially a generalization of a search tree which only 
+ * requires the space to have a metric which respects the triangular inequality.
+ * \tparam TreeType The tree type to be used to store the entries of this DVP search tree.
+ * \tparam Topology The topology type on which the points associated to each entry resides.
+ * \tparam DistanceMetric The distance-metric type that can compute the distance between two points, should model DistanceMetricConcept over the given Topology. 
+ * \tparam VertexKeyMap The property-map type that can map vertex properties of the tree to key-values (that identify the entries).
+ * \tparam DistanceMap The property-map type that can map an edge property to its associated distance value (used internally).
+ * \tparam PositionMap The property-map type that can map vertex properties of the tree to associated position values (positions in the topology).
  * \tparam Arity The arity of the tree, e.g., 2 means a binary-tree.
  * \tparam VPChooser The functor type to use to choose the vantage-point out of a set of vertices.
  */
@@ -80,14 +81,21 @@ class dvp_tree_impl
 {
   public:
     
+    /** Type of the points in the topology. */ 
     typedef typename topology_traits<Topology>::point_type point_type;
+    /** Type of the point-differences in the topology. */ 
     typedef typename topology_traits<Topology>::point_difference_type point_difference_type;
+    /** Type of the distance values. */ 
     typedef double distance_type;
+    /** Type of the distance metric. */ 
     typedef DistanceMetric distance_metric;
     
+    /** Type of the key-values that identify entries of the DVP tree. */ 
     typedef boost::property_traits< VertexKeyMap >::value_type key_type;
     
     typedef dvp_tree_impl<TreeType, Topology, DistanceMetric, VertexKeyMap, DistanceMap, PositionMap, Arity, VPChooser> self;
+    
+    BOOST_CONCEPT_ASSERT((DistanceMetricConcept<distance_metric, Topology>));
     
   private:
     
@@ -116,32 +124,36 @@ class dvp_tree_impl
     typedef detail::compare_pair_first< distance_type, vertex_type, std::less< distance_type > > priority_compare_type;
     typedef std::vector< std::pair< distance_type, vertex_type > > priority_queue_type;
     
-    tree_indexer m_tree;   // Tree storage.
-    vertex_type m_root;    // Root node of the tree.
+    tree_indexer m_tree;   ///< Tree storage.
+    vertex_type m_root;    ///< Root node of the tree.
     
-    VertexKeyMap m_key;      // a map from a vertex_property to a key_type value.
-    DistanceMap m_mu;        // a map from an edge-property to a distance value.
-    PositionMap m_position;  // a map from a vertex_property to a position value (should be Read-Write).
+    VertexKeyMap m_key;      ///< A map from a vertex_property to a key_type value.
+    DistanceMap m_mu;        ///< A map from an edge-property to a distance value.
+    PositionMap m_position;  ///< A map from a vertex_property to a position value (should be Read-Write).
     
-    ReaK::shared_ptr<const Topology> m_space;
-    distance_metric m_distance;
+    ReaK::shared_ptr<const Topology> m_space;  ///< The pointer to the topology.
+    distance_metric m_distance;  ///< The distance-metric functor.
     
-    VPChooser m_vp_chooser;
+    VPChooser m_vp_chooser;  ///< The vantage-point chooser (functor).
     
     //non-copyable.
     dvp_tree_impl(const self&);
     self& operator=(const self&); 
     
+    /* Simple comparison function to sort by pre-computed distance values. */
     static bool closer(std::unordered_map<key_type,distance_type>* m, VertexKeyMap key, const vertex_property& k1, const vertex_property& k2) {
       return (*m)[get(key,k1)] < (*m)[get(key,k2)];
     };
     
+    /* Simple predicate function to filter out invalid vertices (invalid key-value). */
     static bool is_vertex_prop_valid(VertexKeyMap key, const vertex_property& k1) {
       return (get(key,k1) != reinterpret_cast<key_type>(-1));
     };
     
     /* NOTE Invalidates vertices */
     /* Does not require persistent vertices */
+    /* This is the main tree construction function. It takes the vertices in the iterator range and organizes them 
+     * as a sub-tree below the aParentNode node (and aEdgeDist is the minimum distance to the parent of any node in the range). */
     void construct_node(vertex_type aParentNode, 
 			double aEdgeDist,
 			typename std::vector<vertex_property>::iterator aBegin, 
@@ -199,6 +211,9 @@ class dvp_tree_impl
     
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
+    /* This is the main nearest-neighbor query function. This takes a query point, a maximum 
+     * neighborhood radius (aSigma), aNode to start recursing from, the current max-heap of neighbors,
+     * and the maximum number of neighbors. This function can be used for any kind of NN query (single, kNN, or ranged). */
     void find_nearest_impl(const point_type& aPoint, distance_type& aSigma, vertex_type aNode, 
 			   priority_queue_type& aList, std::size_t K) const {
       distance_type current_dist = m_distance(aPoint, get(m_position, get_property(aNode,m_tree)), *m_space);
@@ -278,6 +293,8 @@ class dvp_tree_impl
     
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
+    /* This function does a single nearest-neighbor query to find the tree-leaf that is closest to 
+     * the given point (starts to recurse from aNode). */
     vertex_type get_leaf(const point_type& aPoint, vertex_type aNode) const {
       distance_type current_dist = m_distance(aPoint, get(m_position, get_property(aNode,m_tree)), *m_space);
       //first, locate the partition in which aPoint is:
@@ -295,8 +312,9 @@ class dvp_tree_impl
     
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
-    vertex_type get_key(key_type aVertex, const point_type& aPoint, vertex_type aNode) const {
-      if(get(m_key, get_property(aNode,m_tree)) == aVertex) 
+    /* This function finds the tree-vertex with the given key-value and position. */
+    vertex_type get_vertex(key_type aKey, const point_type& aPoint, vertex_type aNode) const {
+      if(get(m_key, get_property(aNode,m_tree)) == aKey) 
 	return aNode;
       distance_type current_dist = m_distance(aPoint, get(m_position, get_property(aNode,m_tree)), *m_space);
       //first, locate the partition in which aPoint is:
@@ -309,11 +327,12 @@ class dvp_tree_impl
 	if(current_dist < get(m_mu, get_property(*ei,m_tree))) 
 	  break;
       };
-      return get_key(aVertex,aPoint,result);
+      return get_vertex(aKey,aPoint,result);
     };
     
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
+    /* This function updates the edge distance values as a consequence of a new point being added. */
     void update_mu_upwards(const point_type& aPoint, vertex_type aNode) {
       if(aNode == m_root) return;
       vertex_type parent = source(*(in_edges(aNode,m_tree).first), m_tree);
@@ -325,6 +344,7 @@ class dvp_tree_impl
     
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
+    /* This function determines if a given node has no children or if all its children have no children. */
     bool is_leaf_node(vertex_type aNode) const {
       if(out_degree(aNode,m_tree) == 0) return true;
       out_edge_iter ei,ei_end;
@@ -337,6 +357,7 @@ class dvp_tree_impl
     
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
+    /* This function determines if a given node is the root of a balanced (and full) sub-tree. */
     bool is_node_full(vertex_type aNode, int& depth_limit) const {
       if(depth_limit < 0)
 	return false;
@@ -362,16 +383,9 @@ class dvp_tree_impl
       return true;
     };
     
-    // TODO
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
-    void collect_vertex_properties(std::vector<vertex_property>& aList, vertex_type aNode) const {
-      aList.push_back(get(m_key, aNode));
-      out_edge_iter ei,ei_end;
-      for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei)
-	collect_keys(aList,target(*ei,m_tree));
-    };
-    
+    /* This function collects the list of vertices that are in the sub-tree rooted at the given node (exclusively). */
     void collect_vertices(std::vector<vertex_type>& aList, vertex_type aNode) const {
       out_edge_iter ei,ei_end;
       for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
@@ -380,22 +394,10 @@ class dvp_tree_impl
       };
     };
     
-    // TODO
-    /* NOTE Invalidates vertices */
-    /* NOTE Requires persistent vertices */
-    void clear_node(vertex_type aNode) {
-      if(out_degree(aNode,m_tree) == 0) return;
-      std::vector<vertex_type> children;
-      children.reserve(out_degree(aNode,m_tree));
-      out_edge_iter ei,ei_end;
-      for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei)
-	children.push_back(target(*ei,m_tree));
-      for(typename std::vector<vertex_type>::iterator it = children.begin(); it != children.end(); ++it)
-	remove_branch(*it,m_tree);
-    };
-    
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
+    /* This function computes the maximum depth of the tree rooted at the given node (note: this is an 
+     * expensive operation, but is useful when debugging and testing). */
     std::size_t get_depth(vertex_type aNode) const {
       std::size_t max_depth = 0;
       out_edge_iter ei,ei_end;
@@ -410,11 +412,16 @@ class dvp_tree_impl
   public:
     
     /**
-     * Construct the DVP-tree from a graph, topology and property-map.
+     * Construct the DVP-tree from a graph, position-map, topology, etc..
      * \tparam Graph The graph type on which the vertices are taken from, should model the boost::VertexListGraphConcept.
+     * \tparam GraphPositionMap The property-map that associates position values to nodes of the graph.
      * \param g The graph from which to take the vertices.
+     * \param aGraphPosition The property-map that takes a node of the graph and produces (or looks up) a position value.
      * \param aSpace The topology on which the positions of the vertices reside.
-     * \param aPosition The property-map that can be used to obtain the positions of the vertices.
+     * \param aDistance The distance metric to use to compute distances between points of the topology.
+     * \param aKey The key-map to use to obtain and store the key values for a given vertex-property object.
+     * \param aMu The property-map which associates a distance-value to each edge of the tree.
+     * \param aPosition The property-map that can be used to obtain and store the positions of the vertices (vertex-property objects).
      * \param aVPChooser The vantage-point chooser functor (policy class).
      */
     template <typename Graph, typename GraphPositionMap>
@@ -453,13 +460,19 @@ class dvp_tree_impl
 		     v_bin.begin(), v_bin.end(), dist_map);
     };
     
+    
     /**
-     * Construct the DVP-tree from a range, topology and property-map.
+     * Construct the DVP-tree from a range, position-map, topology, etc..
      * \tparam ForwardIterator The forward-iterator type from which the vertices can be obtained.
+     * \tparam ElemPositionMap The property-map that associates position values to vertices in the given range.
      * \param aBegin The start of the range from which to take the vertices.
      * \param aEnd The end of the range from which to take the vertices (one-past-last).
+     * \param aElemPosition The property-map that takes a node in the given range and produces (or looks up) a position value.
      * \param aSpace The topology on which the positions of the vertices reside.
-     * \param aPosition The property-map that can be used to obtain the positions of the vertices.
+     * \param aDistance The distance metric to use to compute distances between points of the topology.
+     * \param aKey The key-map to use to obtain and store the key values for a given vertex-property object.
+     * \param aMu The property-map which associates a distance-value to each edge of the tree.
+     * \param aPosition The property-map that can be used to obtain and store the positions of the vertices (vertex-property objects).
      * \param aVPChooser The vantage-point chooser functor (policy class).
      */
     template <typename ForwardIterator, typename ElemPositionMap>
@@ -495,7 +508,15 @@ class dvp_tree_impl
 		     v_bin.begin(), v_bin.end(), dist_map);
     };
     
-    
+    /**
+     * Construct an empty DVP-tree from a topology, etc..
+     * \param aSpace The topology on which the positions of the vertices reside.
+     * \param aDistance The distance metric to use to compute distances between points of the topology.
+     * \param aKey The key-map to use to obtain and store the key values for a given vertex-property object.
+     * \param aMu The property-map which associates a distance-value to each edge of the tree.
+     * \param aPosition The property-map that can be used to obtain and store the positions of the vertices (vertex-property objects).
+     * \param aVPChooser The vantage-point chooser functor (policy class).
+     */
     dvp_tree_impl(const ReaK::shared_ptr<const Topology>& aSpace, 
 		  distance_metric aDistance,
 		  VertexKeyMap aKey,
@@ -521,8 +542,8 @@ class dvp_tree_impl
     std::size_t depth() const { return get_depth(m_root); };
     
     /**
-     * Inserts a key-value (vertex).
-     * \param u The vertex to be added to the DVP-tree.
+     * Inserts a vertex into the tree.
+     * \param up The vertex-property to be added to the DVP-tree.
      */
 #ifdef RK_ENABLE_CXX0X_FEATURES
     void insert(vertex_property up) {
@@ -624,7 +645,7 @@ class dvp_tree_impl
       };
     };
     /**
-     * Inserts a range of key-values (vertices).
+     * Inserts a range of vertices.
      * \tparam ForwardIterator A forward-iterator type that can be used to obtain the vertices.
      * \param aBegin The start of the range from which to take the vertices.
      * \param aEnd The end of the range from which to take the vertices (one-past-last).
@@ -638,7 +659,7 @@ class dvp_tree_impl
     
     /**
      * Erases the given vertex from the DVP-tree.
-     * \param u The vertex to be removed from the DVP-tree.
+     * \param u_node The vertex to be removed from the DVP-tree.
      */
     void erase(vertex_type u_node) { 
       if(num_vertices(m_tree) == 0) 
@@ -668,6 +689,12 @@ class dvp_tree_impl
       construct_node(u_parent, e_dist, prop_list.begin() + 1 /* skip first node (u_node) */, prop_list.end(), dist_map);
     };
     
+    /**
+     * Erases the given key-value and position from the DVP-tree.
+     * Note that this function is not recommended if the vertex descriptor is known, as it will require a key-lookup.
+     * \param u_key The key-value to be removed from the DVP-tree.
+     * \param u_pt The position-value corresponding to the key-value.
+     */
     void erase(key_type u_key, const point_type& u_pt) {
       vertex_type u_node;
       try {
@@ -680,10 +707,9 @@ class dvp_tree_impl
     
     /**
      * Erases the given vertex-range from the DVP-tree.
-     * \tparam ForwardIterator A forward-iterator type that can be used to obtain the vertices.
+     * \tparam ForwardIterator A forward-iterator type that can be used to obtain the vertices (by tree vertex descriptors).
      * \param aBegin The start of the range from which to take the vertices to be erased.
      * \param aEnd The end of the range from which to take the vertices to be erased (one-past-last).
-     * TODO
      */
     template <typename ForwardIterator>
     void erase(ForwardIterator aBegin, ForwardIterator aEnd) { 
@@ -747,71 +773,7 @@ class dvp_tree_impl
 	prop_list.erase( remove_if(prop_list.begin(), prop_list.end(), boost::bind(is_vertex_prop_valid, m_key, _1)), prop_list.end());
         std::unordered_map<key_type,distance_type> dist_map;
         construct_node(u_parent, e_dist, prop_list.begin(), prop_list.end(), dist_map);
-      };
-      
-      /* This was the old implementation, prior to remodeling the class.
-      for(ForwardIterator first = aBegin; first != aEnd; ++first) {
-	// check if the key is already in the key-listings.
-	bool already_collected = false;
-	for(typename key_listing::iterator it = key_lists.begin(); it != key_lists.end(); ++it) {
-	  typename std::vector<Key>::iterator it_key = std::binary_search(it->second.begin(), it->second.end(), *first);
-	  if( it_key != it->second.end() ) {
-	    // the key was found in this key-listing.
-	    it->second.erase(it_key);
-	    already_collected = true;
-	    break;
-	  };
-	};
-	if(already_collected) continue;
-	vertex_type u_node;
-	try {
-	  u_node = get_key(*first, get(m_position, *first), m_root);
-	} catch (int err) {
-	  continue;
-	};
-	
-	key_lists.push_back( std::make_pair(std::make_pair(*first, *first), std::vector<Key>()) );
-	out_edge_iter ei,ei_end;
-	if(out_degree(u_node, m_tree) == 0) {
-	  if( u_node == m_root ) {
-	    clear();
-	    return;
-	  };
-	  vertex_type u_child = u_node;
-	  u_node = source(*(in_edges(u_node,m_tree).first), m_tree);
-	  for(boost::tie(ei,ei_end) = out_edges(u_node,m_tree); ei != ei_end; ++ei) {
-	    if( target(*ei, m_tree) != u_child )
-	      collect_keys(key_lists.back().second,target(*ei, m_tree));
-	  };
-	  key_lists.back().first.second = get(m_key, u_node, m_tree);
-	} else {
-	  for(boost::tie(ei,ei_end) = out_edges(u_node, m_tree); ei != ei_end; ++ei)
-	    collect_keys(key_lists.back().second, target(*ei,m_tree));
-	};
-	std::sort(key_lists.back().second.begin(), key_lists.back().second.end());
-      };
-      
-      for(typename key_listing::iterator it = key_lists.begin(); it != key_lists.end(); ++it) {
-	typename key_listing::iterator it2 = it; ++it2;
-	for(; it2 != key_lists.end(); ++it2) {
-	  typename std::vector<Key>::iterator it_key = std::binary_search(it2->second.begin(), it2->second.end(), it->first.first);
-	  if( it_key != it2->second.end() ) {
-	    // the key was found in this key-listing.
-	    it2->second.erase(it_key);
-	    key_lists.erase(it--);
-	    break;
-	  };
-	};
-      };
-      
-      for(typename key_listing::iterator it = key_lists.begin(); it != key_lists.end(); ++it) {
-	try {
-	  vertex_type u_node = get_key(it->first.second, get(m_position, it->first.second), m_root);
-	  clear_node(u_node);
-	  std::unordered_map<Key,distance_type> dist_map;
-	  construct_node(u_node,it->second.begin(),it->second.end(),dist_map);
-	} catch (int err) { };
-      };*/
+      };      
     };
     
     /**

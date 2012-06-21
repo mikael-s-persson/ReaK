@@ -336,25 +336,25 @@ bool is_edge_valid( typename graph_traits<Graph>::edge_descriptor, const Graph&)
 
 template <typename Graph>
 inline
-typename graph_traits<Graph>::vertex_property_type& get_property(typename graph_traits<Graph>::vertex_descriptor v_i, Graph& g) {
+typename vertex_bundle_type<Graph>::type& get_property(typename graph_traits<Graph>::vertex_descriptor v_i, Graph& g) {
   return g[v_i];
 };
 
 template <typename Graph>
 inline
-const typename graph_traits<Graph>::vertex_property_type& get_property(typename graph_traits<Graph>::vertex_descriptor v_i, const Graph& g) {
+const typename vertex_bundle_type<Graph>::type& get_property(typename graph_traits<Graph>::vertex_descriptor v_i, const Graph& g) {
   return g[v_i];
 };
 
 template <typename Graph>
 inline
-typename graph_traits<Graph>::edge_property_type& get_property(typename graph_traits<Graph>::edge_descriptor e_i, Graph& g) {
+typename edge_bundle_type<Graph>::type& get_property(typename graph_traits<Graph>::edge_descriptor e_i, Graph& g) {
   return g[e_i];
 };
 
 template <typename Graph>
 inline
-const typename graph_traits<Graph>::edge_property_type& get_property(typename graph_traits<Graph>::edge_descriptor e_i, const Graph& g) {
+const typename edge_bundle_type<Graph>::type& get_property(typename graph_traits<Graph>::edge_descriptor e_i, const Graph& g) {
   return g[e_i];
 };
 
