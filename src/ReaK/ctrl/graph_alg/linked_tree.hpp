@@ -311,6 +311,8 @@ class linked_tree
       static vertex_iterator_with_index end(vertex_container& c) { return vertex_iterator_with_index(c.size()); };
     };
     
+    typedef typename linked_tree_traits<OutEdgeListS, VertexListS>::is_rand_access vertex_rand_access;
+    
     typedef typename boost::mpl::if_<
       typename linked_tree_traits<OutEdgeListS, VertexListS>::is_rand_access,
       vertex_iterator_with_index,
@@ -374,11 +376,53 @@ class linked_tree
     vertices_size_type m_vertex_count;
     vertex_descriptor m_root;
     
+    
+    
+    template <typename IsRandAccess>
+    typename boost::enable_if< IsRandAccess,
+    vertex_value_type& >::type get_vertex_value(vertex_descriptor v) {
+      return m_vertices[v];
+    };
+    
+    template <typename IsRandAccess>
+    typename boost::disable_if< IsRandAccess,
+    vertex_value_type& >::type get_vertex_value(vertex_descriptor v) {
+      return *static_cast<vertex_value_type*>(v);
+    };
+    
+    template <typename IsRandAccess>
+    typename boost::enable_if< IsRandAccess,
+    const vertex_value_type& >::type get_vertex_value(vertex_descriptor v) const {
+      return m_vertices[v];
+    };
+    
+    template <typename IsRandAccess>
+    typename boost::disable_if< IsRandAccess,
+    const vertex_value_type& >::type get_vertex_value(vertex_descriptor v) const {
+      return *static_cast<const vertex_value_type*>(v);
+    };
+    
+    /* Does not invalidate vertices */
+    /* Does not require persistent vertices */
+    std::size_t get_depth(const vertex_value_type& aNode) const {
+      std::size_t max_depth = 0;
+      typedef typename out_edge_container::const_iterator EdgeIter;
+      for(EdgeIter ei = aNode.out_edges.begin(); ei != aNode.out_edges.end(); ++ei) {
+	std::size_t temp = get_depth(get_vertex_value<vertex_rand_access>(ei->target));
+	if(temp > max_depth)
+	  max_depth = temp;
+      };
+      return max_depth + 1;
+    };
+    
   public:
     
     
-    static vertex_descriptor null_vertex() { 
-      return reinterpret_cast<vertex_descriptor>(-1);
+    static vertex_descriptor null_vertex() {
+      if(vertex_rand_access::type::value)
+        return reinterpret_cast<vertex_descriptor>(-1);
+      else
+	return reinterpret_cast<vertex_descriptor>(NULL);
     };
     
     static edge_descriptor null_edge() { 
@@ -405,15 +449,10 @@ class linked_tree
     
     std::size_t capacity() const { return m_vertices.capacity(); };
     
-    std::size_t depth() const { // TODO
-      vertices_size_type vert_count = 1;
-      vertices_size_type accum = 1;
-      vertices_size_type depth_count = 0;
-      for(; vert_count < m_vertices.size(); ++depth_count) {
-	accum *= Arity;
-	vert_count += accum;
-      };
-      return depth_count; 
+    std::size_t depth() const { 
+      if(m_root != null_vertex())
+        return get_depth(get_vertex_value<vertex_rand_access>(m_root))
+      return 0;
     };
     
     void swap(self& rhs) {
@@ -425,22 +464,21 @@ class linked_tree
     
     void clear() { 
       m_vertices.clear();
-      m_vertices.resize(1);
       m_vertex_count = 0;
       m_root = null_vertex();
     };
     
     vertex_property_type& operator[]( const vertex_descriptor& v_i) {
-      return m_vertices[v_i].v;
+      return get_vertex_value<vertex_rand_access>(v_i).v;
     };
     const vertex_property_type& operator[]( const vertex_descriptor& v_i) const {
-      return m_vertices[v_i].v;
+      return get_vertex_value<vertex_rand_access>(v_i).v;
     };
     edge_property_type& operator[]( const edge_descriptor& e_i) {
-      return m_vertices[e_i.source_vertex].e[e_i.edge_index];
+      return static_cast<edge_value_type*>(e_i.edge_id)->data;
     };
     const edge_property_type& operator[]( const edge_descriptor& e_i) const {
-      return m_vertices[e_i.source_vertex].e[e_i.edge_index];
+      return static_cast<edge_value_type*>(e_i.edge_id)->data;
     };
     
     friend
@@ -492,42 +530,32 @@ class linked_tree
     
     
     bool is_valid(const vertex_descriptor& v_i) const {
-      return (v_i < m_vertices.size()) && ( m_vertices[v_i].out_degree >= 0 );
+      return (v_i != null_vertex());
     };
     
     edges_size_type get_raw_out_degree( const vertex_descriptor& v_i) const {
-      if( m_vertices[v_i].out_degree < 0 )
-	return 0;
-      else 
-	return m_vertices[v_i].out_degree;
+      if(v_i != null_vertex())
+        return get_vertex_value<vertex_rand_access>(v_i).out_edges.size();
+      return 0;
     };
     
     edges_size_type get_out_degree( const vertex_descriptor& v_i) const {
-      if( m_vertices[v_i].out_degree < 0 )
-	return 0;
-      else {
-	edges_size_type result = 0;
-	for( edges_size_type i = 0; i < edges_size_type(m_vertices[v_i].out_degree); ++i) {
-	  if( ( v_i * Arity + i + 1 < m_vertices.size() ) &&
-	      ( m_vertices[v_i * Arity + i + 1].out_degree >= 0 ) )
-	    ++result;
-	};
-	return result;
-      };
+      return get_raw_out_degree(v_i);
     };
     
     edges_size_type get_in_degree( const vertex_descriptor& v_i) const {
-      if(( v_i == 0 ) || ( m_vertices[v_i].out_degree < 0 ))
-	return 0;
-      else
-	return 1;
+      if((v_i != null_vertex()) && (v_i != m_root))
+        return 1;
+      return 0;
     };
     
+    // TODO
     std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
 							     const vertex_property_type& vp = vertex_property_type(), 
 							     const edge_property_type& ep = edge_property_type()) {
-      if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) ) 
+      if(v_i == null_vertex())
 	throw std::range_error("Cannot add child-node to an empty node!");
+      
       int new_edge = 0;
       for(; new_edge < m_vertices[v].out_degree; ++new_edge)
 	if( m_vertices[Arity * v + 1 + new_edge].out_degree < 0 )
@@ -547,6 +575,7 @@ class linked_tree
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    // TODO
     std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
 							     vertex_property_type&& vp, 
 							     edge_property_type&& ep = edge_property_type()) {
@@ -571,6 +600,7 @@ class linked_tree
     };
 #endif
     
+    // TODO
     void update_out_degree(vertex_descriptor v) {
       if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) )
 	return;  // vertex is already updated.
@@ -585,6 +615,7 @@ class linked_tree
       m_vertices[v].out_degree = 0;
     };
     
+    // TODO
     void remove_branch(vertex_descriptor v) {
       if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) )
 	return;  // vertex is already deleted.
@@ -606,6 +637,7 @@ class linked_tree
       };
     };
     
+    // TODO
     template <typename OutputIter>
     void remove_branch(vertex_descriptor v, OutputIter it_out) {
       if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) )
@@ -634,22 +666,25 @@ class linked_tree
     };
     
     vertex_descriptor get_root_vertex() const {
-      return 0; 
+      return m_root; 
     };
     
+    // TODO
     vertex_descriptor create_root_vertex(const vertex_property_type& vp = vertex_property_type()) {
-      if(m_vertices[0].out_degree >= 0)
-	remove_branch(0);
-      m_vertices[0].out_degree = 0;
-      m_vertices[0].v = vp;
+      if(m_vertex_count)
+	clear();
+      //TODO
+      
       ++m_vertex_count;
       return 0;
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    // TODO
     vertex_descriptor create_root_vertex(vertex_property_type&& vp) {
-      if(m_vertices[0].out_degree >= 0)
-	remove_branch(0);
+      if(m_vertex_count)
+	clear();
+      //TODO
       m_vertices[0].out_degree = 0;
       m_vertices[0].v = std::move(vp);
       ++m_vertex_count;
