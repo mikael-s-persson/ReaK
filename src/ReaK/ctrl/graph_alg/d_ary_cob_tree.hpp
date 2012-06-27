@@ -544,19 +544,27 @@ class d_ary_cob_tree
     };
     
     /**
-     * Checks if the DVP-tree is empty.
-     * \return True if the DVP-tree is empty.
+     * Checks if the tree is empty.
+     * \return True if the tree is empty.
      */
     bool empty() const { return m_vertex_count == 0; };
     
     /**
-     * Returns the size of the DVP-tree (the number of vertices it contains.
-     * \return The size of the DVP-tree (the number of vertices it contains.
+     * Returns the size of the tree (the number of vertices it contains).
+     * \return The size of the tree (the number of vertices it contains).
      */
     std::size_t size() const { return m_vertex_count; };
     
+    /**
+     * Returns the maximum vertex capacity of the tree (the number of vertices it can contain).
+     * \return The maximum vertex capacity of the tree (the number of vertices it can contain).
+     */
     std::size_t capacity() const { return m_vertices.size() * BlockVertexCount; };
     
+    /**
+     * Returns the depth of the tree.
+     * \return The depth of the tree.
+     */
     std::size_t depth() const { 
       vertices_size_type block_level = 0;
       vertices_size_type accum = 1;
@@ -583,60 +591,135 @@ class d_ary_cob_tree
       return depth_count; 
     };
     
-    void swap(self& rhs) {
+    /**
+     * Standard swap function.
+     */
+    friend
+    void swap(self& lhs, self& rhs) {
       using std::swap;
-      m_vertices.swap(rhs.m_vertices);
-      swap(m_vertex_count, rhs.m_vertex_count);
+      lhs.m_vertices.swap(rhs.m_vertices);
+      swap(lhs.m_vertex_count, rhs.m_vertex_count);
     };
     
+    /**
+     * Clears the tree of all vertices and edges.
+     */
     void clear() { 
       m_vertices.clear();
       m_vertices[0].resize(1);
       m_vertex_count = 0;
     };
     
+    /**
+     * Indexing operator. Returns a reference to the vertex-property associated to the given vertex descriptor.
+     * \param v_i The vertex descriptor of the sought-after vertex-property.
+     * \return The vertex-property, by reference, associated to the given vertex descriptor.
+     */
     vertex_property_type& operator[]( const vertex_descriptor& v_i) {
       return m_vertices[v_i.block_id][v_i.vertex_id].v;
     };
+    /**
+     * Indexing operator. Returns a const-reference to the vertex-property associated to the given vertex descriptor.
+     * \param v_i The vertex descriptor of the sought-after vertex-property.
+     * \return The vertex-property, by const-reference, associated to the given vertex descriptor.
+     */
     const vertex_property_type& operator[]( const vertex_descriptor& v_i) const {
       return m_vertices[v_i.block_id][v_i.vertex_id].v;
     };
+    /**
+     * Indexing operator. Returns a reference to the edge-property associated to the given edge descriptor.
+     * \param e_i The edge descriptor of the sought-after edge-property.
+     * \return The edge-property, by reference, associated to the given edge descriptor.
+     */
     edge_property_type& operator[]( const edge_descriptor& e_i) {
       return m_vertices[e_i.source_vertex.block_id][e_i.source_vertex.vertex_id].e[e_i.edge_index];
     };
+    /**
+     * Indexing operator. Returns a const-reference to the edge-property associated to the given edge descriptor.
+     * \param e_i The edge descriptor of the sought-after edge-property.
+     * \return The edge-property, by const-reference, associated to the given edge descriptor.
+     */
     const edge_property_type& operator[]( const edge_descriptor& e_i) const {
       return m_vertices[e_i.source_vertex.block_id][e_i.source_vertex.vertex_id].e[e_i.edge_index];
     };
     
+    /**
+     * Indexing function. Returns a reference to the vertex-property associated to the given vertex descriptor.
+     * \param v_i The vertex descriptor of the sought-after vertex-property.
+     * \param g The tree from which to draw the vertex.
+     * \return The vertex-property, by reference, associated to the given vertex descriptor.
+     */
     friend
     vertex_property_type& get_property(const vertex_descriptor& v_i, self& g) {
       return g[v_i];
     };
+    /**
+     * Indexing function. Returns a const-reference to the vertex-property associated to the given vertex descriptor.
+     * \param v_i The vertex descriptor of the sought-after vertex-property.
+     * \param g The tree from which to draw the vertex.
+     * \return The vertex-property, by const-reference, associated to the given vertex descriptor.
+     */
     friend
     const vertex_property_type& get_property( const vertex_descriptor& v_i, const self& g) {
       return g[v_i];
     };
+    /**
+     * Indexing function. Returns a reference to the edge-property associated to the given edge descriptor.
+     * \param e_i The edge descriptor of the sought-after edge-property.
+     * \param g The tree from which to draw the edge.
+     * \return The edge-property, by reference, associated to the given edge descriptor.
+     */
     friend
     edge_property_type& get_property(const edge_descriptor& e_i, self& g) {
       return g[e_i];
     };
+    /**
+     * Indexing function. Returns a const-reference to the edge-property associated to the given edge descriptor.
+     * \param e_i The edge descriptor of the sought-after edge-property.
+     * \param g The tree from which to draw the edge.
+     * \return The edge-property, by const-reference, associated to the given edge descriptor.
+     */
     friend
     const edge_property_type& get_property( const edge_descriptor& e_i, const self& g) {
       return g[e_i];
     };
     
+    /**
+     * Get function. Returns a const-reference to the vertex-property associated to the given vertex descriptor.
+     * \param g The tree from which to draw the vertex.
+     * \param v_i The vertex descriptor of the sought-after vertex-property.
+     * \return The vertex-property, by const-reference, associated to the given vertex descriptor.
+     */
     friend const vertex_property_type& get( const self& g, const vertex_descriptor& v_i) {
       return g[v_i];
     };
     
+    /**
+     * Put function. Sets the vertex-property associated to the given vertex descriptor to the given value.
+     * \param g The tree from which to draw the vertex.
+     * \param v_i The vertex descriptor of the sought-after vertex-property.
+     * \param value The vertex-property value to assign to the given vertex.
+     */
     friend void put( self& g, const vertex_descriptor& v_i, const vertex_property_type& value) {
       g[v_i] = value;
     };
     
+    /**
+     * Get function. Returns a const-reference to the edge-property associated to the given edge descriptor.
+     * \param g The tree from which to draw the edge.
+     * \param e_i The edge descriptor of the sought-after edge-property.
+     * \return The edge-property, by const-reference, associated to the given edge descriptor.
+     */
     friend const edge_property_type& get( const self& g, const edge_descriptor& e_i) {
       return g[e_i];
     };
     
+    /**
+     * Put function. Sets the edge-property associated to the given edge descriptor to the given value.
+     * \param g The tree from which to draw the edge.
+     * \param e_i The edge descriptor of the sought-after edge-property.
+     * \param value The edge-property value to assign to the given edge.
+     */
     friend void put( self& g, const edge_descriptor& e_i, const edge_property_type& value) {
       g[e_i] = value;
     };
@@ -656,11 +739,21 @@ class d_ary_cob_tree
     };
     
     
+    /**
+     * Checks if a given vertex descriptor leads to a valid vertex of the tree.
+     * \param v_i The vertex descriptor to test for validity.
+     * \return True if the given vertex is valid.
+     */
     bool is_valid(const vertex_descriptor& v_i) const {
       return (v_i.vertex_id < vertex_index_type( m_vertices[v_i.block_id].size() )) && 
              (m_vertices[v_i.block_id][v_i.vertex_id].out_degree >= 0);
     };
     
+    /**
+     * Returns the out-degree of a given vertex descriptor in the tree.
+     * \param v_i The vertex descriptor.
+     * \return The out-degree of the given vertex descriptor.
+     */
     edges_size_type get_out_degree( const vertex_descriptor& v_i) const {
       if( (v_i.vertex_id >= vertex_index_type(m_vertices[v_i.block_id].size())) || ((m_vertices[v_i.block_id][v_i.vertex_id].out_degree) < 0) )
 	return 0;
@@ -675,6 +768,11 @@ class d_ary_cob_tree
       };
     };
     
+    /**
+     * Returns the raw out-degree of a given vertex descriptor in the tree.
+     * \param v_i The vertex descriptor.
+     * \return The out-degree of the given vertex descriptor.
+     */
     edges_size_type get_raw_out_degree( const vertex_descriptor& v_i) const {
       if( (v_i.vertex_id >= vertex_index_type(m_vertices[v_i.block_id].size())) || ((m_vertices[v_i.block_id][v_i.vertex_id].out_degree) < 0) )
 	return 0;
@@ -682,6 +780,11 @@ class d_ary_cob_tree
 	return m_vertices[v_i.block_id][v_i.vertex_id].out_degree;
     };
     
+    /**
+     * Returns the in-degree of a given vertex descriptor in the tree.
+     * \param v_i The vertex descriptor.
+     * \return The in-degree of the given vertex descriptor (will be 1 or 0 (root or invalid vertex)).
+     */
     edges_size_type get_in_degree( const vertex_descriptor& v_i) const {
       if(( ( v_i.block_id == 0 ) && ( v_i.vertex_id == 0 ) ) || 
 	 ( !is_valid(v_i) ))
@@ -690,6 +793,14 @@ class d_ary_cob_tree
 	return 1;
     };
     
+    /**
+     * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
+     * vertex and edge to the given property values.
+     * \param v The parent vertex to which a child will be added.
+     * \param vp The property value for the newly created vertex.
+     * \param ep The property value for the newly created edge.
+     * \return A pair consisting of the newly created vertex and edge (descriptors).
+     */
     std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
 							     const vertex_property_type& vp = vertex_property_type(), 
 							     const edge_property_type& ep = edge_property_type()) {
@@ -716,6 +827,14 @@ class d_ary_cob_tree
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
+     * vertex and edge to the given property values, by move-semantics (C++11).
+     * \param v The parent vertex to which a child will be added.
+     * \param vp The property value to be moved into the newly created vertex.
+     * \param ep The property value to be moved into the newly created edge.
+     * \return A pair consisting of the newly created vertex and edge (descriptors).
+     */
     std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
 							     vertex_property_type&& vp, 
 							     edge_property_type&& ep = edge_property_type()) {
@@ -755,6 +874,10 @@ class d_ary_cob_tree
       m_vertices[v.block_id][v.vertex_id].out_degree = 0;
     };
     
+    /**
+     * Removes a branch (sub-tree) starting from and including the given vertex.
+     * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
+     */
     void remove_branch(const vertex_descriptor& v) {
       if( !is_valid(v) )
 	return;  // vertex is already deleted.
@@ -779,8 +902,16 @@ class d_ary_cob_tree
     };
     
     
+    /**
+     * Removes a branch (sub-tree) starting from and including the given vertex, while 
+     * recording the vertex-properties of all the removed vertices into an output-iterator.
+     * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
+     * \param it_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+     * \return The output-iterator after the collection of all the removed vertices.
+     * \note The first vertex-property to figure in the output range is that of the vertex v.
+     */
     template <typename OutputIter>
-    void remove_branch(vertex_descriptor v, OutputIter it_out) {
+    OutputIter remove_branch(vertex_descriptor v, OutputIter it_out) {
       if( !is_valid(v) )
 	return;  // vertex is already deleted.
       --m_vertex_count; 
@@ -793,7 +924,7 @@ class d_ary_cob_tree
       // delay removal of empty tail elements as much as possible, such that it is only required once).
       int max_child = m_vertices[v.block_id][v.vertex_id].out_degree;
       for( int i = 0; i < max_child; ++i)
-	remove_branch(v.get_child(i),it_out);
+	it_out = remove_branch(v.get_child(i),it_out);
       m_vertices[v.block_id][v.vertex_id].out_degree = -1;
       if( v != vertex_descriptor(0,0) )  // if the node is not the root one, then update the out-degree of the parent node:
 	update_out_degree( v.get_parent() );
@@ -806,12 +937,22 @@ class d_ary_cob_tree
 	  ++v_it;
         m_vertices[v_it->block_id].erase(m_vertices[v_it->block_id].begin() + v_it->vertex_id, m_vertices[v_it->block_id].end());
       };
+      return it_out;
     };
     
+    /**
+     * Returns the vertex-descriptor of the root of the tree.
+     * \return The vertex-descriptor of the root of the tree.
+     */
     vertex_descriptor get_root_vertex() const {
       return vertex_descriptor(0,0); 
     };
     
+    /**
+     * Creates a root for the tree (clears it if not empty), and assigns the given vertex-property to it.
+     * \param vp The vertex-property to assign to the newly created root vertex.
+     * \return The vertex-descriptor of the root of the tree.
+     */
     vertex_descriptor create_root_vertex(const vertex_property_type& vp = vertex_property_type()) {
       if(m_vertices[0].size() == 0)
 	m_vertices[0].resize(1);
@@ -824,6 +965,11 @@ class d_ary_cob_tree
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Creates a root for the tree (clears it if not empty), and moves the given vertex-property into it.
+     * \param vp The vertex-property to move into the newly created root vertex.
+     * \return The vertex-descriptor of the root of the tree.
+     */
     vertex_descriptor create_root_vertex(vertex_property_type&& vp) {
       if(m_vertices[0].size() == 0)
 	m_vertices[0].resize(1);
@@ -841,6 +987,9 @@ class d_ary_cob_tree
 
 
 
+/**
+ * This is the tree-storage specifier for a D-ary COB-tree of a given Arity and CuttingDepth.
+ */
 template <std::size_t Arity = 2, std::size_t CuttingDepth = 8>
 struct d_ary_cob_tree_storage { };
 
@@ -1233,7 +1382,7 @@ template <typename VertexProperties,
 	  std::size_t CuttingDepth,
 	  typename OutputIter>
 inline
-void remove_branch( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
+OutputIter remove_branch( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
 		    OutputIter it_out,
                     d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   return g.remove_branch(v,it_out);

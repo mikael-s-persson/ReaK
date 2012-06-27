@@ -292,7 +292,7 @@ typename graph_traits<Graph>::edge_descriptor >
 template <typename Graph,
           typename OutputIter>
 inline
-void remove_branch( const typename graph_traits<Graph>::vertex_descriptor& u,
+OutputIter remove_branch( const typename graph_traits<Graph>::vertex_descriptor& u,
 		    OutputIter it_out, Graph& g) {
   typedef typename graph_traits<Graph>::out_edge_iterator EdgeIter;
   typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
@@ -302,9 +302,10 @@ void remove_branch( const typename graph_traits<Graph>::vertex_descriptor& u,
     v_list.push_back(target(*ei,g));
   *(it_out++) = g[u];
   for( typename std::vector<Vertex>::iterator it = v_list.begin(); it != v_list.end(); ++it)
-    remove_branch(*it, it_out, g);
+    it_out = remove_branch(*it, it_out, g);
   clear_vertex(u, g);
   remove_vertex(u, g);
+  return it_out;
 };
 
 

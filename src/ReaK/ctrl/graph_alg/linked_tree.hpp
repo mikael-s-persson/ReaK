@@ -30,48 +30,64 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_D_ARY_BF_TREE_HPP
-#define REAK_D_ARY_BF_TREE_HPP
+#ifndef REAK_LINKED_TREE_HPP
+#define REAK_LINKED_TREE_HPP
 
-#include <boost/graph/properties.hpp>
 
 #include <vector>
 #include <stdexcept>
-#include <map>
+#include <utility>
 #include <iterator>
+#include <algorithm>
+#include <functional>
 
 #include "bgl_tree_adaptor.hpp"
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/properties.hpp>
 
 namespace ReaK {
 
 namespace graph {
   
 
-
+/**
+ * This traits class template is used to obtain the types (and meta-values) that describe 
+ * the basic types used in a linked-tree with the given out-edge-list and vertex-list storage 
+ * policies. This traits class is useful to obtain type-erased (or type-agnostic) vertex and edge
+ * descriptors. Note, this traits class is essentially the linked-tree equivalent of the BGL adjacency_list_traits class.
+ */
 template <typename OutEdgeListS = boost::vecS, 
           typename VertexListS = boost::vecS>
 struct linked_tree_traits {
+  /** This meta-value tells if the vertex storage is random-access, or not. */
   typedef typename boost::detail::is_random_access<VertexListS>::type is_rand_access;
+  /** This meta-value tells if the edges are bidirectional, or not. */
   typedef boost::mpl::true_ is_bidir;
+  /** This meta-value tells if the edges are directional, or not. */
   typedef boost::mpl::true_ is_directed;
   
+  /** This tag gives the edges' directional categorization. */
   typedef boost::bidirectional_tag directed_category;
   
+  /** This meta-value tells if the parallel edges are allowed, or not. */
   typedef boost::disallow_parallel_edge_tag edge_parallel_category;
   
+  /** This type is used to describe the number of vertices. */
   typedef std::size_t vertices_size_type;
   typedef void* vertex_ptr;
+  /** This type is used to describe a vertex in the tree. */
   typedef typename boost::mpl::if_< is_rand_access,
     vertices_size_type, vertex_ptr>::type vertex_descriptor;
   
+  /** This type is used to describe an edge in the tree. */
   struct edge_descriptor {
     vertex_descriptor source;
     void* edge_id;
     
     edge_descriptor(vertex_descriptor aSrc, void* aEdgeId) : source(aSrc), edge_id(aEdgeId) { };
   };
+  /** This type is used to describe the number of edges. */
   typedef std::size_t edges_size_type;
   
 };
@@ -120,6 +136,11 @@ class linked_tree
     struct edge_value_type {
       vertex_descriptor target;
       edge_property_type data;
+      
+      edge_value_type(vertex_descriptor aTarget, const edge_property_type& aData) : target(aTarget), data(aData) { };
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      edge_value_type(vertex_descriptor aTarget, edge_property_type&& aData) : target(aTarget), data(std::move(aData)) { };
+#endif
     };
     typedef typename boost::container_gen<OutEdgeListS, edge_value_type>::type out_edge_container;
     
@@ -127,6 +148,11 @@ class linked_tree
       vertex_property_type data;
       out_edge_container out_edges;
       edge_descriptor in_edge;
+      
+      vertex_value_type(const vertex_property_type& aData) : data(aData), out_edges(), in_edge(NULL) { };
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      vertex_value_type(vertex_property_type&& aData) : data(std::move(aData)), out_edges(), in_edge(NULL) { };
+#endif
     };
     typedef typename boost::container_gen<VertexListS, vertex_value_type>::type vertex_container;
     
@@ -373,10 +399,13 @@ class linked_tree
   private:
     
     container_type m_vertices;
-    vertices_size_type m_vertex_count;
     vertex_descriptor m_root;
     
+    typedef typename boost::mpl::if_< vertex_rand_access,
+      std::vector< vertex_descriptor >,
+      int >::type avail_node_queue;
     
+    avail_node_queue m_avail_nodes;
     
     template <typename IsRandAccess>
     typename boost::enable_if< IsRandAccess,
@@ -402,6 +431,261 @@ class linked_tree
       return *static_cast<const vertex_value_type*>(v);
     };
     
+    template <typename IsRandAccess>
+    typename boost::enable_if< IsRandAccess,
+    vertex_descriptor >::type add_new_vertex(const vertex_property_type& vp) {
+      if(m_avail_nodes.empty()) {
+        m_vertices.push_back(vertex_value_type(vp));
+        return m_vertices.size() - 1;
+      } else {
+	vertex_descriptor result = m_avail_nodes.front();
+	m_vertices[result] = vertex_value_type(vp);
+	std::pop_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
+	m_avail_nodes.pop_back();
+	return result;
+      };
+    };
+    
+    template <typename IsRandAccess>
+    typename boost::disable_if< IsRandAccess,
+    vertex_descriptor >::type add_new_vertex(const vertex_property_type& vp) {
+      m_vertices.push_back(vertex_value_type(vp));
+      return &m_vertices.back();
+    };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    template <typename IsRandAccess>
+    typename boost::enable_if< IsRandAccess,
+    vertex_descriptor >::type add_new_vertex(vertex_property_type&& vp) {
+      if(m_avail_nodes.empty()) {
+        m_vertices.push_back(vertex_value_type(std::move(vp)));
+        return m_vertices.size() - 1;
+      } else {
+	vertex_descriptor result = m_avail_nodes.front();
+	m_vertices[result] = vertex_value_type(std::move(vp));
+	std::pop_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
+	m_avail_nodes.pop_back();
+	return result;
+      };
+    };
+    
+    template <typename IsRandAccess>
+    typename boost::disable_if< IsRandAccess,
+    vertex_descriptor >::type add_new_vertex(vertex_property_type&& vp) {
+      m_vertices.push_back(vertex_value_type(std::move(vp)));
+      return &m_vertices.back();
+    };
+#endif
+    
+    
+    
+    template <typename IsRandAccess>
+    typename boost::enable_if< IsRandAccess,
+    void >::type add_root_vertex(const vertex_property_type& vp) {
+      if(m_avail_nodes.empty()) {
+        m_vertices.push_back(vertex_value_type(vp));
+	m_root = m_vertices.size() - 1;
+      } else {
+	m_root = m_avail_nodes.front();
+	m_vertices[result] = vertex_value_type(vp);
+	std::pop_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
+	m_avail_nodes.pop_back();
+      };
+    };
+    
+    template <typename IsRandAccess>
+    typename boost::disable_if< IsRandAccess,
+    void >::type add_root_vertex(const vertex_property_type& vp) {
+      m_vertices.push_back(vertex_value_type(vp));
+      m_root = &m_vertices.back();
+    };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    template <typename IsRandAccess>
+    typename boost::enable_if< IsRandAccess,
+    void >::type add_root_vertex(vertex_property_type&& vp) {
+      if(m_avail_nodes.empty()) {
+        m_vertices.push_back(vertex_value_type(std::move(vp)));
+        m_root = m_vertices.size() - 1;
+      } else {
+	m_root = m_avail_nodes.front();
+	m_vertices[result] = vertex_value_type(std::move(vp));
+	std::pop_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
+	m_avail_nodes.pop_back();
+      };
+    };
+    
+    template <typename IsRandAccess>
+    typename boost::disable_if< IsRandAccess,
+    void >::type add_root_vertex(vertex_property_type&& vp) {
+      m_vertices.push_back(vertex_value_type(std::move(vp)));
+      m_root = &m_vertices.back();
+    };
+#endif
+    
+    
+    // Random-access version of the remove function.
+    template <typename IsRandAccess>
+    typename boost::enable_if< IsRandAccess,
+    void >::type remove_branch_recursion(vertex_descriptor v) {
+      // this traversal order is intentional (traverse pre-order depth-first, and 
+      // delay removal of empty tail elements as much as possible, such that it is only required once).
+      for(typename out_edge_container::iterator ei = m_vertices[v].out_edges.begin(); 
+	  ei != m_vertices[v].out_edges.end(); ++ei)
+	remove_branch_recursion<IsRandAccess>(ei->target);
+      m_vertices[v].in_edge = null_edge();
+      m_vertices[v].out_edges.clear();
+      m_avail_nodes.push_back(v);
+      std::push_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
+    };
+    
+    template <typename IsRandAccess>
+    typename boost::enable_if< IsRandAccess,
+    void >::type remove_branch_impl(vertex_descriptor v) {
+      if(v == m_root) {
+	//remove_branch_recursion<IsRandAccess>(v);
+        m_vertices.clear();
+        m_root = null_vertex();
+        m_avail_nodes.clear();
+	return;
+      };
+      vertex_descriptor parent = m_vertices[v].in_edge.source;
+      remove_branch_recursion<IsRandAccess>(v);
+      // find the edge to be removed:
+      typename out_edge_container::iterator ei = m_vertices[parent].out_edges.begin();
+      while( (ei != m_vertices[parent].out_edges.end()) && (ei->target != v) )
+	++ei;
+      m_vertices[parent].out_edges.erase(ei); // remove the edge.
+      // update the edge-descriptors in the children nodes.
+      for(ei = m_vertices[parent].out_edges.begin(); ei != m_vertices[parent].out_edges.end(); ++ei)
+	m_vertices[ei->target].in_edge.edge_id = &(*ei);
+    };
+    
+    // Non-random-access version of the remove function.
+    template <typename IsRandAccess>
+    typename boost::disable_if< IsRandAccess,
+    void >::type remove_branch_recursion(vertex_descriptor v) {
+      vertex_value_type* v_ptr = static_cast<vertex_value_type*>(v);
+      // this traversal order is intentional (traverse pre-order depth-first, and 
+      // delay removal of empty tail elements as much as possible, such that it is only required once).
+      for(typename out_edge_container::iterator ei = v_ptr->out_edges.begin(); 
+	  ei != v_ptr->out_edges.end(); ++ei)
+	remove_branch_recursion<IsRandAccess>(ei->target);
+      v_ptr->in_edge = null_edge();
+      v_ptr->out_edges.clear();
+    };
+    
+    template <typename IsRandAccess>
+    typename boost::disable_if< IsRandAccess,
+    void >::type remove_branch_impl(vertex_descriptor v) {
+      if(v == m_root) {
+	//remove_branch_recursion<IsRandAccess>(v);
+        m_vertices.clear();
+        m_root = null_vertex();
+        m_avail_nodes.clear();
+	return;
+      };
+      vertex_value_type* parent = static_cast<vertex_value_type*>((static_cast<vertex_value_type*>(v))->in_edge.source);
+      remove_branch_recursion<IsRandAccess>(v);
+      // find the edge to be removed:
+      typename out_edge_container::iterator ei = parent->out_edges.begin();
+      while( (ei != parent->out_edges.end()) && (ei->target != v) )
+	++ei;
+      parent->out_edges.erase(ei); // remove the edge.
+      // update the edge-descriptors in the children nodes.
+      for(ei = parent->out_edges.begin(); ei != parent->out_edges.end(); ++ei)
+	(static_cast<vertex_value_type*>(ei->target))->in_edge.edge_id = &(*ei);
+    };
+    
+    
+    
+    
+    // Random-access version of the remove function.
+    template <typename IsRandAccess, typename OutputIter>
+    typename boost::enable_if< IsRandAccess,
+    void >::type remove_branch_recursion(vertex_descriptor v, OutputIter it_out) {
+      // this traversal order is intentional (traverse pre-order depth-first, and 
+      // delay removal of empty tail elements as much as possible, such that it is only required once).
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      *(it_out++) = std::move(m_vertices[v].data);
+#else
+      *(it_out++) = m_vertices[v].data;
+#endif
+      for(typename out_edge_container::iterator ei = m_vertices[v].out_edges.begin(); 
+	  ei != m_vertices[v].out_edges.end(); ++ei)
+	it_out = remove_branch_recursion<IsRandAccess>(ei->target,it_out);
+      m_vertices[v].in_edge = null_edge();
+      m_vertices[v].out_edges.clear();
+      m_avail_nodes.push_back(v);
+      std::push_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
+    };
+    
+    template <typename IsRandAccess, typename OutputIter>
+    typename boost::enable_if< IsRandAccess,
+    void >::type remove_branch_impl(vertex_descriptor v, OutputIter it_out) {
+      if(v == m_root) {
+	it_out = remove_branch_recursion<IsRandAccess>(v,it_out);
+        m_vertices.clear();
+        m_root = null_vertex();
+        m_avail_nodes.clear();
+	return;
+      };
+      vertex_descriptor parent = m_vertices[v].in_edge.source;
+      it_out = remove_branch_recursion<IsRandAccess>(v,it_out);
+      // find the edge to be removed:
+      typename out_edge_container::iterator ei = m_vertices[parent].out_edges.begin();
+      while( (ei != m_vertices[parent].out_edges.end()) && (ei->target != v) )
+	++ei;
+      m_vertices[parent].out_edges.erase(ei); // remove the edge.
+      // update the edge-descriptors in the children nodes.
+      for(ei = m_vertices[parent].out_edges.begin(); ei != m_vertices[parent].out_edges.end(); ++ei)
+	m_vertices[ei->target].in_edge.edge_id = &(*ei);
+    };
+    
+    // Non-random-access version of the remove function.
+    template <typename IsRandAccess, typename OutputIter>
+    typename boost::disable_if< IsRandAccess,
+    void >::type remove_branch_recursion(vertex_descriptor v, OutputIter it_out) {
+      vertex_value_type* v_ptr = static_cast<vertex_value_type*>(v);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      *(it_out++) = std::move(v_ptr->data);
+#else
+      *(it_out++) = v_ptr->data;
+#endif
+      // this traversal order is intentional (traverse pre-order depth-first, and 
+      // delay removal of empty tail elements as much as possible, such that it is only required once).
+      for(typename out_edge_container::iterator ei = v_ptr->out_edges.begin(); 
+	  ei != v_ptr->out_edges.end(); ++ei)
+	it_out = remove_branch_recursion<IsRandAccess>(ei->target,it_out);
+      v_ptr->in_edge = null_edge();
+      v_ptr->out_edges.clear();
+    };
+    
+    template <typename IsRandAccess, typename OutputIter>
+    typename boost::disable_if< IsRandAccess,
+    OutputIter >::type remove_branch_impl(vertex_descriptor v, OutputIter it_out) {
+      if(v == m_root) {
+	it_out = remove_branch_recursion<IsRandAccess>(v,it_out); 
+        m_vertices.clear();
+        m_root = null_vertex();
+        m_avail_nodes.clear();
+	return it_out;
+      };
+      vertex_value_type* parent = static_cast<vertex_value_type*>((static_cast<vertex_value_type*>(v))->in_edge.source);
+      it_out = remove_branch_recursion<IsRandAccess>(v,it_out);
+      // find the edge to be removed:
+      typename out_edge_container::iterator ei = parent->out_edges.begin();
+      while( (ei != parent->out_edges.end()) && (ei->target != v) )
+	++ei;
+      parent->out_edges.erase(ei); // remove the edge.
+      // update the edge-descriptors in the children nodes.
+      for(ei = parent->out_edges.begin(); ei != parent->out_edges.end(); ++ei)
+	(static_cast<vertex_value_type*>(ei->target))->in_edge.edge_id = &(*ei);
+    };
+    
+    
+    
+    
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
     std::size_t get_depth(const vertex_value_type& aNode) const {
@@ -417,7 +701,10 @@ class linked_tree
     
   public:
     
-    
+    /**
+     * This static member function outputs the null-vertex (invalid vertex descriptor).
+     * \return A null-vertex descriptor (invalid vertex descriptor).
+     */
     static vertex_descriptor null_vertex() {
       if(vertex_rand_access::type::value)
         return reinterpret_cast<vertex_descriptor>(-1);
@@ -425,91 +712,180 @@ class linked_tree
 	return reinterpret_cast<vertex_descriptor>(NULL);
     };
     
+    /**
+     * This static member function outputs the null-edge (invalid edge descriptor).
+     * \return A null-edge descriptor (invalid edge descriptor).
+     */
     static edge_descriptor null_edge() { 
       return edge_descriptor(reinterpret_cast<vertex_descriptor>(-1), NULL);
     };
     
     /**
-     * Construct the D-ary BF-tree with a given reserved depth.
-     * \param aDepth The depth of the graph to reserve space for.
+     * Constructs an empty linked-tree.
      */
-    linked_tree() : m_vertex_count(0), m_root(null_vertex()) { };
+    linked_tree() : m_vertices(), m_root(null_vertex()) { };
     
     /**
-     * Checks if the DVP-tree is empty.
-     * \return True if the DVP-tree is empty.
+     * Checks if the tree is empty.
+     * \return True if the tree is empty.
      */
-    bool empty() const { return m_vertex_count == 0; };
+    bool empty() const { return m_vertices.empty(); };
     
     /**
-     * Returns the size of the DVP-tree (the number of vertices it contains.
-     * \return The size of the DVP-tree (the number of vertices it contains.
+     * Returns the size of the tree (the number of vertices it contains).
+     * \return The size of the tree (the number of vertices it contains).
      */
-    std::size_t size() const { return m_vertex_count; };
+    std::size_t size() const { return m_vertices.size(); };
     
+    /**
+     * Returns the maximum vertex capacity of the tree (the number of vertices it can contain).
+     * \return The maximum vertex capacity of the tree (the number of vertices it can contain).
+     */
     std::size_t capacity() const { return m_vertices.capacity(); };
     
+    /**
+     * Returns the depth of the tree.
+     * \note This operation must recurse through all the branches of the tree (depth-first), and is 
+     * thus an expensive operation (linear-time w.r.t. the number of vertices, and linear-memory (stack) 
+     * w.r.t. the depth of tree).
+     * \return The depth of the tree.
+     */
     std::size_t depth() const { 
       if(m_root != null_vertex())
         return get_depth(get_vertex_value<vertex_rand_access>(m_root))
       return 0;
     };
     
-    void swap(self& rhs) {
+    /**
+     * Standard swap function.
+     */
+    friend
+    void swap(self& lhs, self& rhs) {
       using std::swap;
-      m_vertices.swap(rhs.m_vertices);
-      swap(m_vertex_count, rhs.m_vertex_count);
-      swap(m_root, rhs.m_root);
+      lhs.m_vertices.swap(rhs.m_vertices);
+      swap(lhs.m_root, rhs.m_root);
+      lhs.m_avail_nodes.swap(rhs.m_avail_nodes);
     };
     
+    /**
+     * Clears the tree of all vertices and edges.
+     */
     void clear() { 
       m_vertices.clear();
-      m_vertex_count = 0;
       m_root = null_vertex();
+      m_avail_nodes.clear();
     };
     
+    /**
+     * Indexing operator. Returns a reference to the vertex-property associated to the given vertex descriptor.
+     * \param v_i The vertex descriptor of the sought-after vertex-property.
+     * \return The vertex-property, by reference, associated to the given vertex descriptor.
+     */
     vertex_property_type& operator[]( const vertex_descriptor& v_i) {
-      return get_vertex_value<vertex_rand_access>(v_i).v;
+      return get_vertex_value<vertex_rand_access>(v_i).data;
     };
+    /**
+     * Indexing operator. Returns a const-reference to the vertex-property associated to the given vertex descriptor.
+     * \param v_i The vertex descriptor of the sought-after vertex-property.
+     * \return The vertex-property, by const-reference, associated to the given vertex descriptor.
+     */
     const vertex_property_type& operator[]( const vertex_descriptor& v_i) const {
-      return get_vertex_value<vertex_rand_access>(v_i).v;
+      return get_vertex_value<vertex_rand_access>(v_i).data;
     };
+    /**
+     * Indexing operator. Returns a reference to the edge-property associated to the given edge descriptor.
+     * \param e_i The edge descriptor of the sought-after edge-property.
+     * \return The edge-property, by reference, associated to the given edge descriptor.
+     */
     edge_property_type& operator[]( const edge_descriptor& e_i) {
       return static_cast<edge_value_type*>(e_i.edge_id)->data;
     };
+    /**
+     * Indexing operator. Returns a const-reference to the edge-property associated to the given edge descriptor.
+     * \param e_i The edge descriptor of the sought-after edge-property.
+     * \return The edge-property, by const-reference, associated to the given edge descriptor.
+     */
     const edge_property_type& operator[]( const edge_descriptor& e_i) const {
       return static_cast<edge_value_type*>(e_i.edge_id)->data;
     };
     
+    /**
+     * Indexing function. Returns a reference to the vertex-property associated to the given vertex descriptor.
+     * \param v_i The vertex descriptor of the sought-after vertex-property.
+     * \param g The tree from which to draw the vertex.
+     * \return The vertex-property, by reference, associated to the given vertex descriptor.
+     */
     friend
     vertex_property_type& get_property(const vertex_descriptor& v_i, self& g) {
       return g[v_i];
     };
+    /**
+     * Indexing function. Returns a const-reference to the vertex-property associated to the given vertex descriptor.
+     * \param v_i The vertex descriptor of the sought-after vertex-property.
+     * \param g The tree from which to draw the vertex.
+     * \return The vertex-property, by const-reference, associated to the given vertex descriptor.
+     */
     friend
     const vertex_property_type& get_property( const vertex_descriptor& v_i, const self& g) {
       return g[v_i];
     };
+    /**
+     * Indexing function. Returns a reference to the edge-property associated to the given edge descriptor.
+     * \param e_i The edge descriptor of the sought-after edge-property.
+     * \param g The tree from which to draw the edge.
+     * \return The edge-property, by reference, associated to the given edge descriptor.
+     */
     friend
     edge_property_type& get_property(const edge_descriptor& e_i, self& g) {
       return g[e_i];
     };
+    /**
+     * Indexing function. Returns a const-reference to the edge-property associated to the given edge descriptor.
+     * \param e_i The edge descriptor of the sought-after edge-property.
+     * \param g The tree from which to draw the edge.
+     * \return The edge-property, by const-reference, associated to the given edge descriptor.
+     */
     friend
     const edge_property_type& get_property( const edge_descriptor& e_i, const self& g) {
       return g[e_i];
     };
     
+    /**
+     * Get function. Returns a const-reference to the vertex-property associated to the given vertex descriptor.
+     * \param g The tree from which to draw the vertex.
+     * \param v_i The vertex descriptor of the sought-after vertex-property.
+     * \return The vertex-property, by const-reference, associated to the given vertex descriptor.
+     */
     friend const vertex_property_type& get( const self& g, const vertex_descriptor& v_i) {
       return g[v_i];
     };
     
+    /**
+     * Put function. Sets the vertex-property associated to the given vertex descriptor to the given value.
+     * \param g The tree from which to draw the vertex.
+     * \param v_i The vertex descriptor of the sought-after vertex-property.
+     * \param value The vertex-property value to assign to the given vertex.
+     */
     friend void put( self& g, const vertex_descriptor& v_i, const vertex_property_type& value) {
       g[v_i] = value;
     };
     
+    /**
+     * Get function. Returns a const-reference to the edge-property associated to the given edge descriptor.
+     * \param g The tree from which to draw the edge.
+     * \param e_i The edge descriptor of the sought-after edge-property.
+     * \return The edge-property, by const-reference, associated to the given edge descriptor.
+     */
     friend const edge_property_type& get( const self& g, const edge_descriptor& e_i) {
       return g[e_i];
     };
     
+    /**
+     * Put function. Sets the edge-property associated to the given edge descriptor to the given value.
+     * \param g The tree from which to draw the edge.
+     * \param e_i The edge descriptor of the sought-after edge-property.
+     * \param value The edge-property value to assign to the given edge.
+     */
     friend void put( self& g, const edge_descriptor& e_i, const edge_property_type& value) {
       g[e_i] = value;
     };
@@ -528,167 +904,198 @@ class linked_tree
       return typename boost::property_map< self, T Bundle::* >::const_type(&g, p);
     };
     
-    
+    /**
+     * Checks if a given vertex descriptor leads to a valid vertex of the tree.
+     * \param v_i The vertex descriptor to test for validity.
+     * \return True if the given vertex is valid.
+     */
     bool is_valid(const vertex_descriptor& v_i) const {
-      return (v_i != null_vertex());
+      return (v_i != null_vertex()) && !((v_i != m_root) && (get_vertex_value<vertex_rand_access>(v_i).in_edge == null_edge())) ;
     };
     
+    /**
+     * Returns the out-degree of a given vertex descriptor in the tree.
+     * \param v_i The vertex descriptor.
+     * \return The out-degree of the given vertex descriptor.
+     */
     edges_size_type get_raw_out_degree( const vertex_descriptor& v_i) const {
-      if(v_i != null_vertex())
+      if(is_valid(v_i))
         return get_vertex_value<vertex_rand_access>(v_i).out_edges.size();
       return 0;
     };
     
+    /**
+     * Returns the out-degree of a given vertex descriptor in the tree.
+     * \param v_i The vertex descriptor.
+     * \return The out-degree of the given vertex descriptor.
+     */
     edges_size_type get_out_degree( const vertex_descriptor& v_i) const {
       return get_raw_out_degree(v_i);
     };
     
+    /**
+     * Returns the in-degree of a given vertex descriptor in the tree.
+     * \param v_i The vertex descriptor.
+     * \return The in-degree of the given vertex descriptor (will be 1 or 0 (root or invalid vertex)).
+     */
     edges_size_type get_in_degree( const vertex_descriptor& v_i) const {
-      if((v_i != null_vertex()) && (v_i != m_root))
+      if(is_valid(v_i) && (v_i != m_root))
         return 1;
       return 0;
     };
     
-    // TODO
+    /**
+     * Returns the edge iterator range for the out-edges of a given vertex descriptor in the tree.
+     * \param v The vertex descriptor.
+     * \return The edge iterator range for the out-edges of a given vertex descriptor.
+     */
+    std::pair< out_edge_iterator, out_edge_iterator > out_edges(vertex_descriptor v) {
+      return std::make_pair(out_edge_iterator(v,get_vertex_value<vertex_rand_access>(v).out_edges.begin()),
+			    out_edge_iterator(v,get_vertex_value<vertex_rand_access>(v).out_edges.end()));
+    };
+    
+    /**
+     * Returns the edge iterator range for the in-edges of a given vertex descriptor in the tree.
+     * \param v The vertex descriptor.
+     * \return The edge iterator range for the in-edges of a given vertex descriptor.
+     */
+    std::pair< in_edge_iterator, in_edge_iterator > in_edges( vertex_descriptor v) {
+      return std::make_pair(&(get_vertex_value<vertex_rand_access>(v).in_edge),
+			    &(get_vertex_value<vertex_rand_access>(v).in_edge) + 1);
+    };
+    
+    /**
+     * Returns the vertex iterator range for all the vertices of the tree.
+     * \return The vertex iterator range for all the vertices of the tree.
+     */
+    std::pair< vertex_iterator, vertex_iterator > vertices() {
+      return std::make_pair(vertex_iterator::begin(m_vertices),
+			    vertex_iterator::end(m_vertices));
+    };
+    
+    /**
+     * Returns the edge descriptor for the edge between two given vertex descriptors.
+     * \param u The vertex descriptor of the source vertex.
+     * \param v The vertex descriptor of the target vertex.
+     * \return The edge descriptor for the given vertex descriptor pair.
+     */
+    edge_descriptor get_edge( vertex_descriptor u, vertex_descriptor v) const {
+      typename out_edge_container::const_iterator ei = get_vertex_value<vertex_rand_access>(u).out_edges.begin();
+      while( (ei != get_vertex_value<vertex_rand_access>(u).out_edges.end()) && (ei->target != v) )
+	++ei;
+      return edge_descriptor(u, &(*ei));
+    };
+    
+    /**
+     * Returns the vertex iterator range for all the child-vertices of a given vertex of the tree.
+     * \param v The vertex descriptor whose children are sought.
+     * \return The vertex iterator range for all the child-vertices of a given vertex of the tree.
+     */
+    std::pair< child_vertex_iterator, child_vertex_iterator > child_vertices(vertex_descriptor v) {
+      return std::make_pair(child_vertex_iterator(get_vertex_value<vertex_rand_access>(v).out_edges.begin()),
+			    child_vertex_iterator(get_vertex_value<vertex_rand_access>(v).out_edges.end()));
+    };
+    
+    /**
+     * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
+     * vertex and edge to the given property values.
+     * \param v The parent vertex to which a child will be added.
+     * \param vp The property value for the newly created vertex.
+     * \param ep The property value for the newly created edge.
+     * \return A pair consisting of the newly created vertex and edge (descriptors).
+     */
     std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
 							     const vertex_property_type& vp = vertex_property_type(), 
 							     const edge_property_type& ep = edge_property_type()) {
-      if(v_i == null_vertex())
+      if(is_valid(v))
 	throw std::range_error("Cannot add child-node to an empty node!");
-      
-      int new_edge = 0;
-      for(; new_edge < m_vertices[v].out_degree; ++new_edge)
-	if( m_vertices[Arity * v + 1 + new_edge].out_degree < 0 )
-	  break;
-      if( new_edge == Arity ) 
-	throw std::range_error("Cannot add child-node to a full node!");
-      vertex_descriptor result = Arity * v + 1 + new_edge;
-      if( result >= vertex_descriptor(m_vertices.size()) )
-	m_vertices.resize(result + 1);
-      m_vertices[result].out_degree = 0;
-      m_vertices[result].v = vp;
-      m_vertices[v].e[new_edge] = ep;
-      if( new_edge == m_vertices[v].out_degree )
-        ++(m_vertices[v].out_degree);
-      ++m_vertex_count;
-      return std::make_pair(result, edge_descriptor(v, new_edge));
+      // create a new node.
+      vertex_descriptor new_node = add_new_vertex<vertex_rand_access>(vp);
+      // create a new edge.
+      (*this)[v].out_edges.push_back(edge_value_type(new_node,ep));
+      (*this)[new_node].in_edge = edge_descriptor(v,&((*this)[v].out_edges.back()));
+      return std::make_pair(new_node, (*this)[new_node].in_edge);
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
-    // TODO
+    /**
+     * Adds a child vertex to the given parent vertex, and initializes the properties of the newly created 
+     * vertex and edge to the given property values, by move-semantics (C++11).
+     * \param v The parent vertex to which a child will be added.
+     * \param vp The property value to be moved into the newly created vertex.
+     * \param ep The property value to be moved into the newly created edge.
+     * \return A pair consisting of the newly created vertex and edge (descriptors).
+     */
     std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
 							     vertex_property_type&& vp, 
 							     edge_property_type&& ep = edge_property_type()) {
-      if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) ) 
+      if(is_valid(v))
 	throw std::range_error("Cannot add child-node to an empty node!");
-      int new_edge = 0;
-      for(; new_edge < m_vertices[v].out_degree; ++new_edge)
-	if( m_vertices[Arity * v + 1 + new_edge].out_degree < 0 )
-	  break;
-      if( new_edge == Arity ) 
-	throw std::range_error("Cannot add child-node to a full node!");
-      vertex_descriptor result = Arity * v + 1 + new_edge;
-      if( result >= vertex_descriptor(m_vertices.size()) )
-	m_vertices.resize(result + 1);
-      m_vertices[result].out_degree = 0;
-      m_vertices[result].v = std::move(vp);
-      m_vertices[v].e[new_edge] = std::move(ep);
-      if( new_edge == m_vertices[v].out_degree )
-        ++(m_vertices[v].out_degree);
-      ++m_vertex_count;
-      return std::make_pair(result, edge_descriptor(v, new_edge));
+      // create a new node.
+      vertex_descriptor new_node = add_new_vertex<vertex_rand_access>(std::move(vp));
+      // create a new edge.
+      (*this)[v].out_edges.push_back(edge_value_type(new_node,std::move(ep)));
+      (*this)[new_node].in_edge = edge_descriptor(v,&((*this)[v].out_edges.back()));
+      return std::make_pair(new_node, (*this)[new_node].in_edge);
     };
 #endif
     
-    // TODO
-    void update_out_degree(vertex_descriptor v) {
-      if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) )
-	return;  // vertex is already updated.
-      for( int i = Arity; i > 0; --i) {
-	vertex_descriptor u = Arity * v + i;
-	if( ( u < vertex_descriptor(m_vertices.size()) ) &&
-	    ( m_vertices[u].out_degree >= 0 ) ) {
-	  m_vertices[v].out_degree = i;
-	  return;
-	};
-      };
-      m_vertices[v].out_degree = 0;
-    };
-    
-    // TODO
+    /**
+     * Removes a branch (sub-tree) starting from and including the given vertex.
+     * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
+     */
     void remove_branch(vertex_descriptor v) {
-      if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) )
+      if(is_valid(v))
 	return;  // vertex is already deleted.
-      --m_vertex_count;
-      // this traversal order is intentional (traverse pre-order depth-first, and 
-      // delay removal of empty tail elements as much as possible, such that it is only required once).
-      int max_child = m_vertices[v].out_degree;
-      for( int i = 0; i < max_child; ++i)
-	remove_branch(Arity * v + 1 + i);
-      m_vertices[v].out_degree = -1;
-      if( v != 0 )  // if the node is not the root one, then update the out-degree of the parent node:
-	update_out_degree( (v - 1) / Arity );
-      // remove empty vertices from the end of the container:
-      if( v == vertex_descriptor(m_vertices.size() - 1) ) {
-	while( (v > 0) && ( m_vertices[v].out_degree < 0 ) )
-	  --v;
-	++v;
-	m_vertices.erase(m_vertices.begin() + v, m_vertices.end());
-      };
+      remove_branch_impl<vertex_rand_access>(v);
     };
     
-    // TODO
+    /**
+     * Removes a branch (sub-tree) starting from and including the given vertex, while 
+     * recording the vertex-properties of all the removed vertices into an output-iterator.
+     * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
+     * \param it_out An output iterator (with vertex-properties as value-type) that can store the removed vertices.
+     * \return The output-iterator after the collection of all the removed vertices.
+     * \note The first vertex-property to figure in the output range is that of the vertex v.
+     */
     template <typename OutputIter>
-    void remove_branch(vertex_descriptor v, OutputIter it_out) {
-      if( (v >= vertex_descriptor(m_vertices.size())) || (m_vertices[v].out_degree < 0) )
-	return;  // vertex is already deleted.
-      --m_vertex_count;
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      *(it_out++) = std::move(m_vertices[v].v);
-#else
-      *(it_out++) = m_vertices[v].v;
-#endif
-      // this traversal order is intentional (traverse pre-order depth-first, and 
-      // delay removal of empty tail elements as much as possible, such that it is only required once).
-      int max_child = m_vertices[v].out_degree;
-      for( int i = 0; i < max_child; ++i)
-	remove_branch(Arity * v + 1 + i, it_out);
-      m_vertices[v].out_degree = -1;
-      if( v != 0 )  // if the node is not the root one, then update the out-degree of the parent node:
-	update_out_degree( (v - 1) / Arity );
-      // remove empty vertices from the end of the container:
-      if( v == vertex_descriptor(m_vertices.size() - 1) ) {
-	while( (v > 0) && ( m_vertices[v].out_degree < 0 ) )
-	  --v;
-	++v;
-	m_vertices.erase(m_vertices.begin() + v, m_vertices.end());
-      };
+    OutputIter remove_branch(vertex_descriptor v, OutputIter it_out) {
+      if(is_valid(v))
+	return it_out;  // vertex is already deleted.
+      return remove_branch_impl<vertex_rand_access>(v,i_out);
     };
     
+    /**
+     * Returns the vertex-descriptor of the root of the tree.
+     * \return The vertex-descriptor of the root of the tree.
+     */
     vertex_descriptor get_root_vertex() const {
       return m_root; 
     };
     
-    // TODO
+    /**
+     * Creates a root for the tree (clears it if not empty), and assigns the given vertex-property to it.
+     * \param vp The vertex-property to assign to the newly created root vertex.
+     * \return The vertex-descriptor of the root of the tree.
+     */
     vertex_descriptor create_root_vertex(const vertex_property_type& vp = vertex_property_type()) {
       if(m_vertex_count)
 	clear();
-      //TODO
-      
-      ++m_vertex_count;
-      return 0;
+      add_root_vertex<vertex_rand_access>(vp);
+      return m_root;
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
-    // TODO
+    /**
+     * Creates a root for the tree (clears it if not empty), and moves the given vertex-property into it.
+     * \param vp The vertex-property to move into the newly created root vertex.
+     * \return The vertex-descriptor of the root of the tree.
+     */
     vertex_descriptor create_root_vertex(vertex_property_type&& vp) {
       if(m_vertex_count)
 	clear();
-      //TODO
-      m_vertices[0].out_degree = 0;
-      m_vertices[0].v = std::move(vp);
-      ++m_vertex_count;
-      return 0;
+      add_root_vertex<vertex_rand_access>(std::move(vp));
+      return m_root;
     };
 #endif
     
@@ -697,40 +1104,23 @@ class linked_tree
 };
 
 
-template <std::size_t Arity = 2>
-struct d_ary_bf_tree_storage { };
+/**
+ * This is the tree-storage specifier for a linked-tree of the given edge and vertex storage policies.
+ */
+template <typename OutEdgeListS, typename VertexListS>
+struct linked_tree_storage { };
 
 
-template <typename VertexDescriptor, typename EdgeDescriptor, std::size_t Arity>
-struct tree_storage<VertexDescriptor, EdgeDescriptor, d_ary_bf_tree_storage<Arity> > {
-  typedef d_ary_bf_tree<VertexDescriptor, Arity, EdgeDescriptor> type;
+template <typename VertexDescriptor, typename EdgeDescriptor, typename OutEdgeListS, typename VertexListS>
+struct tree_storage<VertexDescriptor, EdgeDescriptor, linked_tree_storage<OutEdgeListS, VertexListS> > {
+  typedef linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor> type;
 };
 
 
-template <std::size_t Arity>
-struct tree_storage_traits< d_ary_bf_tree_storage<Arity> > {
-  typedef boost::mpl::true_ is_rand_access;
-  typedef boost::mpl::true_ is_bidir;
-  typedef boost::mpl::true_ is_directed;
-  
-  typedef typename boost::mpl::if_< is_bidir,
-    boost::bidirectional_tag,
-    typename boost::mpl::if_< is_directed,
-      directed_tag, undirected_tag
-    >::type
-  >::type directed_category;
-  
-  typedef disallow_parallel_edge_tag edge_parallel_category;
-  
-  typedef std::size_t vertices_size_type;
-  typedef void* vertex_ptr;
-  typedef typename d_ary_bf_tree<int,Arity>::vertex_descriptor vertex_descriptor;  // the value-type doesn't affect the vertex_descriptor type (int is a dummy type here).
-  typedef typename d_ary_bf_tree<int,Arity>::edge_descriptor edge_descriptor;  // the value-type doesn't affect the edge_descriptor type (int is a dummy type here).
-  typedef std::size_t edges_size_type;
-  
-};
+template <typename OutEdgeListS, typename VertexListS>
+struct tree_storage_traits< linked_tree_storage<OutEdgeListS, VertexListS> > :
+  linked_tree_traits<OutEdgeListS, VertexListS> { };
 
-};
 
 
 
@@ -739,46 +1129,42 @@ struct tree_storage_traits< d_ary_bf_tree_storage<Arity> > {
  *                             IncidenceGraphConcept
  * ********************************************************************************************/
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
-  source( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor& e,
-	  const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
-  return e.source_vertex;
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor
+  source( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_descriptor& e,
+	  const linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>&) {
+  return e.source;
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
-  target( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor& e,
-	  const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
-  return Arity * e.source_vertex + 1 + e.edge_index;
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor
+  target( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_descriptor& e,
+	  const linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>&) {
+  typedef typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_value_type ValueType;
+  return (static_cast<ValueType*>(e.edge_id))->target;
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
 std::pair<
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::out_edge_iterator,
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::out_edge_iterator >
-  out_edges( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-	     const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::out_edge_iterator OutIter;
-  return std::make_pair(OutIter(v,0),OutIter(v,g.get_raw_out_degree(v)));
+ typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::out_edge_iterator,
+ typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::out_edge_iterator >
+  out_edges( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+	     linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
+  return g.out_edges(v);
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
 std::size_t
-  out_degree( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-	      const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  out_degree( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+	      const linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.get_out_degree(v);
 };
 
@@ -786,110 +1172,57 @@ std::size_t
  *                             BidirectionalGraphConcept
  * ********************************************************************************************/
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
 std::pair<
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::in_edge_iterator,
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::in_edge_iterator >
-  in_edges( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-	    const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::in_edge_iterator InIter;
-  return std::make_pair(InIter(v),InIter());
+ typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::in_edge_iterator,
+ typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::in_edge_iterator >
+  in_edges( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+	    linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
+  return g.in_edges(v);
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
 std::size_t
-  in_degree( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-             const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  in_degree( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+             const linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.get_in_degree(v);
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
 std::size_t
-  degree( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-          const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+  degree( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+          const linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.get_in_degree(v) + g.get_out_degree(v);
 };
 
-
-/***********************************************************************************************
- *                             AdjacencyGraphConcept
- * ********************************************************************************************/
-
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
-inline
-std::pair<
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::adjacency_iterator,
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::adjacency_iterator >
-  adjacent_vertices( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-	             const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::adjacency_iterator AdjIter;
-  return std::make_pair(AdjIter(((v - 1) / Arity) * Arity + 1),
-			AdjIter(((v - 1) / Arity + 1) * Arity));
-};
 
 
 /***********************************************************************************************
  *                             VertexListGraphConcept
  * ********************************************************************************************/
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
 std::pair<
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator,
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator >
-  vertices( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator VIter;
-  return std::make_pair(VIter(0),
-			VIter(g.capacity()));
+ typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_iterator,
+ typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_iterator >
+  vertices( linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
+  return g.vertices();
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertices_size_type
-  num_vertices( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertices_size_type
+  num_vertices( const linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.size();
-};
-
-
-/***********************************************************************************************
- *                             EdgeListGraphConcept
- * ********************************************************************************************/
-
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
-inline
-std::pair<
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_iterator,
- typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_iterator >
-  edges( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_iterator EIter;
-  return std::make_pair(EIter(0,0),
-			EIter(g.capacity(),Arity));
-};
-
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
-inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertices_size_type
-  num_edges( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  return g.size() - 1;
 };
 
 
@@ -897,16 +1230,14 @@ typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertices_size_typ
  *                             AdjacencyMatrixConcept
  * ********************************************************************************************/
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor
-  edge( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor&,
-	const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-        const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor Edge;
-  return Edge((v - 1) / Arity, (v - 1) % Arity);
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_descriptor
+  edge( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& u,
+	const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+        const linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
+  return g.get_edge(u,v);
 };
 
 
@@ -915,26 +1246,23 @@ typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor
  * ********************************************************************************************/
 
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
-  get_root_vertex( const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor
+  get_root_vertex( const linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.get_root_vertex();
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
 std::pair< 
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator,
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator >
-  child_vertices( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-                  const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
-  typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator VIter;
-  return std::make_pair(VIter(Arity * v + 1),VIter(Arity * (v + 1)));
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_iterator,
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_iterator >
+  child_vertices( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+                  linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
+  return g.child_vertices(v);
 };
 
 
@@ -943,33 +1271,30 @@ typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator >
  * ********************************************************************************************/
 
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
-  create_root( d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor
+  create_root( linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.create_root_vertex();
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
 std::pair< 
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
-  add_child_vertex( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor,
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_descriptor >
+  add_child_vertex( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+                    linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.add_child(v);
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
-void remove_branch( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+void remove_branch( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+                    linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.remove_branch(v);
 };
 
@@ -980,92 +1305,85 @@ void remove_branch( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProp
  * ********************************************************************************************/
 
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
-  create_root( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_property_type& vp, 
-	       d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor
+  create_root( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_property_type& vp, 
+	       linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.create_root_vertex(vp);
 };
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor
-  create_root( typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_property_type&& vp, 
-	       d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor
+  create_root( typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_property_type&& vp, 
+	       linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.create_root_vertex(std::move(vp));
 };
 #endif
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
 std::pair< 
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
-  add_child_vertex( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-		    const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_property_type& vp,
-                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor,
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_descriptor >
+  add_child_vertex( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+		    const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_property_type& vp,
+                    linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.add_child(v,vp);
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
 std::pair< 
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
-  add_child_vertex( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-		    const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_property_type& vp,
-		    const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_property_type& ep,
-                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor,
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_descriptor >
+  add_child_vertex( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+		    const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_property_type& vp,
+		    const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_property_type& ep,
+                    linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.add_child(v,vp,ep);
 };
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
 std::pair< 
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
-  add_child_vertex( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-		    typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_property_type&& vp,
-                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor,
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_descriptor >
+  add_child_vertex( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+		    typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_property_type&& vp,
+                    linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.add_child(v,std::move(vp));
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
 std::pair< 
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor,
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor >
-  add_child_vertex( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
-		    typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_property_type&& vp,
-		    typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_property_type&& ep,
-                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor,
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_descriptor >
+  add_child_vertex( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
+		    typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_property_type&& vp,
+		    typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_property_type&& ep,
+                    linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.add_child(v,std::move(vp),std::move(ep));
 };
 #endif
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties,
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS,
 	  typename OutputIter>
 inline
-void remove_branch( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
+OutputIter remove_branch( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
 		    OutputIter it_out,
-                    d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+                    linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.remove_branch(v,it_out);
 };
 
@@ -1076,22 +1394,20 @@ void remove_branch( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProp
  * ********************************************************************************************/
 
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
-bool is_vertex_valid( typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor u,
-                      const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
+bool is_vertex_valid( typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor u,
+                      const linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.is_valid(u);
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename VertexDescriptor, typename EdgeDescriptor, 
+          typename OutEdgeListS, typename VertexListS>
 inline
-bool is_edge_valid( typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor e,
-                    const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>& g) {
-  return g.is_valid(target(e,g));
+bool is_edge_valid( typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_descriptor e,
+                    const linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
+  return g.is_valid(e.source) && g.is_valid(target(e,g));
 };
 
 
