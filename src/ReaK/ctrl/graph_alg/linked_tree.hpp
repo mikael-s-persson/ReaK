@@ -85,7 +85,27 @@ struct linked_tree_traits {
     vertex_descriptor source;
     void* edge_id;
     
-    edge_descriptor(vertex_descriptor aSrc, void* aEdgeId) : source(aSrc), edge_id(aEdgeId) { };
+    edge_descriptor(vertex_descriptor aSrc = reinterpret_cast<vertex_descriptor>(reinterpret_cast<void*>(-1)), 
+		    void* aEdgeId = NULL) : source(aSrc), edge_id(aEdgeId) { };
+    
+    friend bool operator==( const edge_descriptor& lhs, const edge_descriptor& rhs) { return (lhs.source == rhs.source) && (lhs.edge_id == rhs.edge_id); };
+    friend bool operator!=( const edge_descriptor& lhs, const edge_descriptor& rhs) { return (lhs.source != rhs.source) || (lhs.edge_id != rhs.edge_id); };
+    friend bool operator >( const edge_descriptor& lhs, const edge_descriptor& rhs) { 
+      return (lhs.source > rhs.source) ||
+            ((lhs.source == rhs.source) && (lhs.edge_id > rhs.edge_id)); 
+    };
+    friend bool operator >=(const edge_descriptor& lhs, const edge_descriptor& rhs) { 
+      return (lhs.source > rhs.source) ||
+            ((lhs.source == rhs.source) && (lhs.edge_id >= rhs.edge_id)); 
+    };
+    friend bool operator <( const edge_descriptor& lhs, const edge_descriptor& rhs) { 
+      return (lhs.source < rhs.source) ||
+            ((lhs.source == rhs.source) && (lhs.edge_id < rhs.edge_id)); 
+    };
+    friend bool operator <=(const edge_descriptor& lhs, const edge_descriptor& rhs) { 
+      return (lhs.source < rhs.source) ||
+            ((lhs.source == rhs.source) && (lhs.edge_id <= rhs.edge_id)); 
+    };    
   };
   /** This type is used to describe the number of edges. */
   typedef std::size_t edges_size_type;
@@ -133,6 +153,8 @@ class linked_tree
     typedef typename linked_tree_traits<OutEdgeListS, VertexListS>::edges_size_type edges_size_type;
     typedef edges_size_type degree_size_type;
     
+    typedef void adjacency_iterator;
+    
     struct edge_value_type {
       vertex_descriptor target;
       edge_property_type data;
@@ -149,14 +171,12 @@ class linked_tree
       out_edge_container out_edges;
       edge_descriptor in_edge;
       
-      vertex_value_type(const vertex_property_type& aData) : data(aData), out_edges(), in_edge(NULL) { };
+      vertex_value_type(const vertex_property_type& aData) : data(aData), out_edges(), in_edge() { };
 #ifdef RK_ENABLE_CXX0X_FEATURES
-      vertex_value_type(vertex_property_type&& aData) : data(std::move(aData)), out_edges(), in_edge(NULL) { };
+      vertex_value_type(vertex_property_type&& aData) : data(std::move(aData)), out_edges(), in_edge() { };
 #endif
     };
     typedef typename boost::container_gen<VertexListS, vertex_value_type>::type vertex_container;
-    
-    typedef typename container_type::difference_type vertex_descriptor;
     
     
     struct out_edge_iterator {
@@ -169,7 +189,8 @@ class linked_tree
       
       vertex_descriptor source;
       edge_iter_impl edge_it;
-      out_edge_iterator(vertex_descriptor aSrc, edge_iter_impl aEdgeIt) : source(aSrc), edge_it(aEdgeIt) { };
+      out_edge_iterator(vertex_descriptor aSrc = vertex_descriptor(), 
+			edge_iter_impl aEdgeIt = edge_iter_impl()) : source(aSrc), edge_it(aEdgeIt) { };
       
       friend bool operator==( const out_edge_iterator& lhs, const out_edge_iterator& rhs) { return (lhs.source == rhs.source) && (lhs.edge_it == rhs.edge_it); };
       friend bool operator!=( const out_edge_iterator& lhs, const out_edge_iterator& rhs) { return (lhs.source != rhs.source) || (lhs.edge_it != rhs.edge_it); };
@@ -207,7 +228,7 @@ class linked_tree
       friend difference_type operator-(const out_edge_iterator& lhs, const out_edge_iterator& rhs) {
         if(lhs.source == rhs.source)
 	  return std::distance(rhs.edge_it, lhs.edge_it);
-	throw invalid_argument("Attempted to compute the difference between out-edge iterators from different vertices!");
+	throw std::invalid_argument("Attempted to compute the difference between out-edge iterators from different vertices!");
       };
       
       out_edge_iterator& operator +=(difference_type i) { edge_it = std::advance(edge_it,i); return *this; };
@@ -230,7 +251,7 @@ class linked_tree
       
       vertex_iter_impl v_it;
       
-      explicit vertex_iterator_with_iter(vertex_iter_impl aVIt) : v_it(aVIt) { };
+      explicit vertex_iterator_with_iter(vertex_iter_impl aVIt = vertex_iter_impl()) : v_it(aVIt) { };
       
       friend bool operator==( const vertex_iterator_with_iter& lhs, const vertex_iterator_with_iter& rhs) { return (lhs.v_it == rhs.v_it); };
       friend bool operator!=( const vertex_iterator_with_iter& lhs, const vertex_iterator_with_iter& rhs) { return (lhs.v_it != rhs.v_it); };
@@ -253,13 +274,13 @@ class linked_tree
       vertex_iterator_with_iter operator--(int) { vertex_iterator_with_iter result(*this); --v_it; return result; };
       
       friend vertex_iterator_with_iter operator+(const vertex_iterator_with_iter& lhs, difference_type i) {
-	return vertex_iterator_with_iter(*v_list, std::advance(lhs.v_it,i));
+	return vertex_iterator_with_iter(std::advance(lhs.v_it,i));
       };
       friend vertex_iterator_with_iter operator+(difference_type i, const vertex_iterator_with_iter& rhs) {
-	return vertex_iterator_with_iter(*v_list, std::advance(rhs.v_it,i));
+	return vertex_iterator_with_iter(std::advance(rhs.v_it,i));
       };
       friend vertex_iterator_with_iter operator-(const vertex_iterator_with_iter& lhs, difference_type i) {
-	return vertex_iterator_with_iter(*v_list, std::advance(lhs.v_it,-i));
+	return vertex_iterator_with_iter(std::advance(lhs.v_it,-i));
       };
       friend difference_type operator-(const vertex_iterator_with_iter& lhs, const vertex_iterator_with_iter& rhs) {
         return std::distance(rhs.v_it, lhs.v_it);
@@ -288,7 +309,7 @@ class linked_tree
       
       std::size_t v_it;
       
-      explicit vertex_iterator_with_index(std::size_t aVIt) : v_it(aVIt) { };
+      explicit vertex_iterator_with_index(std::size_t aVIt = 0) : v_it(aVIt) { };
       
       friend bool operator==( const vertex_iterator_with_index& lhs, const vertex_iterator_with_index& rhs) { return (lhs.v_it == rhs.v_it); };
       friend bool operator!=( const vertex_iterator_with_index& lhs, const vertex_iterator_with_index& rhs) { return (lhs.v_it != rhs.v_it); };
@@ -354,7 +375,7 @@ class linked_tree
       
       edge_iter_impl base;
       
-      explicit child_vertex_iterator(edge_iter_impl aEdgeIt) : base(aEdgeIt) { };
+      explicit child_vertex_iterator(edge_iter_impl aEdgeIt = edge_iter_impl()) : base(aEdgeIt) { };
       
       friend bool operator==( const child_vertex_iterator& lhs, const child_vertex_iterator& rhs) { return (lhs.base == rhs.base); };
       friend bool operator!=( const child_vertex_iterator& lhs, const child_vertex_iterator& rhs) { return (lhs.base != rhs.base); };
@@ -392,20 +413,21 @@ class linked_tree
       child_vertex_iterator& operator +=(difference_type i) { base = std::advance(base,i); return *this; };
       child_vertex_iterator& operator -=(difference_type i) { base = std::advance(base,-i); return *this; };
       
-      value_type operator[](difference_type i) const { return (*std::advance(base,i))->target; };
-      reference operator*() { return (*base)->target; };
+      value_type operator[](difference_type i) const { return (*std::advance(base,i)).target; };
+      reference operator*() { return (*base).target; };
     };
     
   private:
     
-    container_type m_vertices;
+    vertex_container m_vertices;
     vertex_descriptor m_root;
     
     typedef typename boost::mpl::if_< vertex_rand_access,
       std::vector< vertex_descriptor >,
-      int >::type avail_node_queue;
+      std::vector< vertex_descriptor > >::type avail_node_queue;
     
     avail_node_queue m_avail_nodes;
+    
     
     template <typename IsRandAccess>
     typename boost::enable_if< IsRandAccess,
@@ -449,8 +471,16 @@ class linked_tree
     template <typename IsRandAccess>
     typename boost::disable_if< IsRandAccess,
     vertex_descriptor >::type add_new_vertex(const vertex_property_type& vp) {
-      m_vertices.push_back(vertex_value_type(vp));
-      return &m_vertices.back();
+      if(m_avail_nodes.empty()) {
+        m_vertices.push_back(vertex_value_type(vp));
+        return &m_vertices.back();
+      } else {
+	vertex_descriptor result = m_avail_nodes.front();
+	*static_cast<vertex_value_type*>(result) = vertex_value_type(vp);
+	std::pop_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
+	m_avail_nodes.pop_back();
+	return result;
+      };
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -472,8 +502,16 @@ class linked_tree
     template <typename IsRandAccess>
     typename boost::disable_if< IsRandAccess,
     vertex_descriptor >::type add_new_vertex(vertex_property_type&& vp) {
-      m_vertices.push_back(vertex_value_type(std::move(vp)));
-      return &m_vertices.back();
+      if(m_avail_nodes.empty()) {
+        m_vertices.push_back(vertex_value_type(std::move(vp)));
+        return &m_vertices.back();
+      } else {
+	vertex_descriptor result = m_avail_nodes.front();
+	*static_cast<vertex_value_type*>(result) = vertex_value_type(std::move(vp));
+	std::pop_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
+	m_avail_nodes.pop_back();
+	return result;
+      };
     };
 #endif
     
@@ -487,7 +525,7 @@ class linked_tree
 	m_root = m_vertices.size() - 1;
       } else {
 	m_root = m_avail_nodes.front();
-	m_vertices[result] = vertex_value_type(vp);
+	m_vertices[m_root] = vertex_value_type(vp);
 	std::pop_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
 	m_avail_nodes.pop_back();
       };
@@ -496,8 +534,15 @@ class linked_tree
     template <typename IsRandAccess>
     typename boost::disable_if< IsRandAccess,
     void >::type add_root_vertex(const vertex_property_type& vp) {
-      m_vertices.push_back(vertex_value_type(vp));
-      m_root = &m_vertices.back();
+      if(m_avail_nodes.empty()) {
+        m_vertices.push_back(vertex_value_type(vp));
+	m_root = &m_vertices.back();
+      } else {
+	m_root = m_avail_nodes.front();
+	*static_cast<vertex_value_type*>(m_root) = vertex_value_type(vp);
+	std::pop_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
+	m_avail_nodes.pop_back();
+      };
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -509,7 +554,7 @@ class linked_tree
         m_root = m_vertices.size() - 1;
       } else {
 	m_root = m_avail_nodes.front();
-	m_vertices[result] = vertex_value_type(std::move(vp));
+	m_vertices[m_root] = vertex_value_type(std::move(vp));
 	std::pop_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
 	m_avail_nodes.pop_back();
       };
@@ -518,8 +563,15 @@ class linked_tree
     template <typename IsRandAccess>
     typename boost::disable_if< IsRandAccess,
     void >::type add_root_vertex(vertex_property_type&& vp) {
-      m_vertices.push_back(vertex_value_type(std::move(vp)));
-      m_root = &m_vertices.back();
+      if(m_avail_nodes.empty()) {
+        m_vertices.push_back(vertex_value_type(std::move(vp)));
+        m_root = &m_vertices.back();
+      } else {
+	m_root = m_avail_nodes.front();
+	*static_cast<vertex_value_type*>(m_root) = vertex_value_type(std::move(vp));
+	std::pop_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
+	m_avail_nodes.pop_back();
+      };
     };
 #endif
     
@@ -573,6 +625,8 @@ class linked_tree
 	remove_branch_recursion<IsRandAccess>(ei->target);
       v_ptr->in_edge = null_edge();
       v_ptr->out_edges.clear();
+      m_avail_nodes.push_back(v);
+      std::push_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
     };
     
     template <typename IsRandAccess>
@@ -603,7 +657,7 @@ class linked_tree
     // Random-access version of the remove function.
     template <typename IsRandAccess, typename OutputIter>
     typename boost::enable_if< IsRandAccess,
-    void >::type remove_branch_recursion(vertex_descriptor v, OutputIter it_out) {
+    OutputIter >::type remove_branch_recursion(vertex_descriptor v, OutputIter it_out) {
       // this traversal order is intentional (traverse pre-order depth-first, and 
       // delay removal of empty tail elements as much as possible, such that it is only required once).
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -618,17 +672,18 @@ class linked_tree
       m_vertices[v].out_edges.clear();
       m_avail_nodes.push_back(v);
       std::push_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
+      return it_out;
     };
     
     template <typename IsRandAccess, typename OutputIter>
     typename boost::enable_if< IsRandAccess,
-    void >::type remove_branch_impl(vertex_descriptor v, OutputIter it_out) {
+    OutputIter >::type remove_branch_impl(vertex_descriptor v, OutputIter it_out) {
       if(v == m_root) {
 	it_out = remove_branch_recursion<IsRandAccess>(v,it_out);
         m_vertices.clear();
         m_root = null_vertex();
         m_avail_nodes.clear();
-	return;
+	return it_out;
       };
       vertex_descriptor parent = m_vertices[v].in_edge.source;
       it_out = remove_branch_recursion<IsRandAccess>(v,it_out);
@@ -640,12 +695,13 @@ class linked_tree
       // update the edge-descriptors in the children nodes.
       for(ei = m_vertices[parent].out_edges.begin(); ei != m_vertices[parent].out_edges.end(); ++ei)
 	m_vertices[ei->target].in_edge.edge_id = &(*ei);
+      return it_out;
     };
     
     // Non-random-access version of the remove function.
     template <typename IsRandAccess, typename OutputIter>
     typename boost::disable_if< IsRandAccess,
-    void >::type remove_branch_recursion(vertex_descriptor v, OutputIter it_out) {
+    OutputIter >::type remove_branch_recursion(vertex_descriptor v, OutputIter it_out) {
       vertex_value_type* v_ptr = static_cast<vertex_value_type*>(v);
 #ifdef RK_ENABLE_CXX0X_FEATURES
       *(it_out++) = std::move(v_ptr->data);
@@ -659,6 +715,9 @@ class linked_tree
 	it_out = remove_branch_recursion<IsRandAccess>(ei->target,it_out);
       v_ptr->in_edge = null_edge();
       v_ptr->out_edges.clear();
+      m_avail_nodes.push_back(v);
+      std::push_heap(m_avail_nodes.begin(),m_avail_nodes.end(),std::greater<vertex_descriptor>());
+      return it_out;
     };
     
     template <typename IsRandAccess, typename OutputIter>
@@ -681,6 +740,7 @@ class linked_tree
       // update the edge-descriptors in the children nodes.
       for(ei = parent->out_edges.begin(); ei != parent->out_edges.end(); ++ei)
 	(static_cast<vertex_value_type*>(ei->target))->in_edge.edge_id = &(*ei);
+      return it_out;
     };
     
     
@@ -707,9 +767,9 @@ class linked_tree
      */
     static vertex_descriptor null_vertex() {
       if(vertex_rand_access::type::value)
-        return reinterpret_cast<vertex_descriptor>(-1);
+        return reinterpret_cast<vertex_descriptor>(reinterpret_cast<void*>(-1));
       else
-	return reinterpret_cast<vertex_descriptor>(NULL);
+	return reinterpret_cast<vertex_descriptor>(reinterpret_cast<void*>(NULL));
     };
     
     /**
@@ -717,7 +777,7 @@ class linked_tree
      * \return A null-edge descriptor (invalid edge descriptor).
      */
     static edge_descriptor null_edge() { 
-      return edge_descriptor(reinterpret_cast<vertex_descriptor>(-1), NULL);
+      return edge_descriptor(reinterpret_cast<vertex_descriptor>(reinterpret_cast<void*>(-1)), NULL);
     };
     
     /**
@@ -726,16 +786,16 @@ class linked_tree
     linked_tree() : m_vertices(), m_root(null_vertex()) { };
     
     /**
-     * Checks if the tree is empty.
-     * \return True if the tree is empty.
-     */
-    bool empty() const { return m_vertices.empty(); };
-    
-    /**
      * Returns the size of the tree (the number of vertices it contains).
      * \return The size of the tree (the number of vertices it contains).
      */
-    std::size_t size() const { return m_vertices.size(); };
+    std::size_t size() const { return m_vertices.size() - m_avail_nodes.size(); };
+    
+    /**
+     * Checks if the tree is empty.
+     * \return True if the tree is empty.
+     */
+    bool empty() const { return size() == 0; };
     
     /**
      * Returns the maximum vertex capacity of the tree (the number of vertices it can contain).
@@ -752,7 +812,7 @@ class linked_tree
      */
     std::size_t depth() const { 
       if(m_root != null_vertex())
-        return get_depth(get_vertex_value<vertex_rand_access>(m_root))
+        return get_depth(get_vertex_value<vertex_rand_access>(m_root));
       return 0;
     };
     
@@ -979,11 +1039,14 @@ class linked_tree
      * \param v The vertex descriptor of the target vertex.
      * \return The edge descriptor for the given vertex descriptor pair.
      */
-    edge_descriptor get_edge( vertex_descriptor u, vertex_descriptor v) const {
-      typename out_edge_container::const_iterator ei = get_vertex_value<vertex_rand_access>(u).out_edges.begin();
-      while( (ei != get_vertex_value<vertex_rand_access>(u).out_edges.end()) && (ei->target != v) )
-	++ei;
-      return edge_descriptor(u, &(*ei));
+    std::pair<edge_descriptor,bool> get_edge( vertex_descriptor u, vertex_descriptor v) {
+      
+      for(typename out_edge_container::iterator ei = get_vertex_value<vertex_rand_access>(u).out_edges.begin(); 
+	  ei != get_vertex_value<vertex_rand_access>(u).out_edges.end(); ++ei ) {
+	if(ei->target == v)
+	  return std::make_pair(edge_descriptor(u, &(*ei)),true);
+      };
+      return std::make_pair(edge_descriptor(),false);
     };
     
     /**
@@ -1007,14 +1070,17 @@ class linked_tree
     std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
 							     const vertex_property_type& vp = vertex_property_type(), 
 							     const edge_property_type& ep = edge_property_type()) {
-      if(is_valid(v))
+      if(!is_valid(v))
 	throw std::range_error("Cannot add child-node to an empty node!");
       // create a new node.
       vertex_descriptor new_node = add_new_vertex<vertex_rand_access>(vp);
       // create a new edge.
-      (*this)[v].out_edges.push_back(edge_value_type(new_node,ep));
-      (*this)[new_node].in_edge = edge_descriptor(v,&((*this)[v].out_edges.back()));
-      return std::make_pair(new_node, (*this)[new_node].in_edge);
+      get_vertex_value<vertex_rand_access>(v).out_edges.push_back(edge_value_type(new_node,ep));
+      // update the edge-descriptors in the children nodes.
+      for(typename out_edge_container::iterator ei = get_vertex_value<vertex_rand_access>(v).out_edges.begin(); 
+	  ei != get_vertex_value<vertex_rand_access>(v).out_edges.end(); ++ei)
+	get_vertex_value<vertex_rand_access>(ei->target).in_edge = edge_descriptor(v,&(*ei));
+      return std::make_pair(new_node, get_vertex_value<vertex_rand_access>(new_node).in_edge);
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -1029,14 +1095,17 @@ class linked_tree
     std::pair< vertex_descriptor, edge_descriptor> add_child(const vertex_descriptor& v, 
 							     vertex_property_type&& vp, 
 							     edge_property_type&& ep = edge_property_type()) {
-      if(is_valid(v))
+      if(!is_valid(v))
 	throw std::range_error("Cannot add child-node to an empty node!");
       // create a new node.
       vertex_descriptor new_node = add_new_vertex<vertex_rand_access>(std::move(vp));
       // create a new edge.
-      (*this)[v].out_edges.push_back(edge_value_type(new_node,std::move(ep)));
-      (*this)[new_node].in_edge = edge_descriptor(v,&((*this)[v].out_edges.back()));
-      return std::make_pair(new_node, (*this)[new_node].in_edge);
+      get_vertex_value<vertex_rand_access>(v).out_edges.push_back(edge_value_type(new_node,std::move(ep)));
+      // update the edge-descriptors in the children nodes.
+      for(typename out_edge_container::iterator ei = get_vertex_value<vertex_rand_access>(v).out_edges.begin(); 
+	  ei != get_vertex_value<vertex_rand_access>(v).out_edges.end(); ++ei)
+	get_vertex_value<vertex_rand_access>(ei->target).in_edge = edge_descriptor(v,&(*ei));
+      return std::make_pair(new_node, get_vertex_value<vertex_rand_access>(new_node).in_edge);
     };
 #endif
     
@@ -1045,7 +1114,7 @@ class linked_tree
      * \param v The vertex to remove, along with the sub-tree rooted at that vertex.
      */
     void remove_branch(vertex_descriptor v) {
-      if(is_valid(v))
+      if(!is_valid(v))
 	return;  // vertex is already deleted.
       remove_branch_impl<vertex_rand_access>(v);
     };
@@ -1060,9 +1129,9 @@ class linked_tree
      */
     template <typename OutputIter>
     OutputIter remove_branch(vertex_descriptor v, OutputIter it_out) {
-      if(is_valid(v))
+      if(!is_valid(v))
 	return it_out;  // vertex is already deleted.
-      return remove_branch_impl<vertex_rand_access>(v,i_out);
+      return remove_branch_impl<vertex_rand_access>(v,it_out);
     };
     
     /**
@@ -1079,7 +1148,7 @@ class linked_tree
      * \return The vertex-descriptor of the root of the tree.
      */
     vertex_descriptor create_root_vertex(const vertex_property_type& vp = vertex_property_type()) {
-      if(m_vertex_count)
+      if(m_vertices.size())
 	clear();
       add_root_vertex<vertex_rand_access>(vp);
       return m_root;
@@ -1092,7 +1161,7 @@ class linked_tree
      * \return The vertex-descriptor of the root of the tree.
      */
     vertex_descriptor create_root_vertex(vertex_property_type&& vp) {
-      if(m_vertex_count)
+      if(m_vertices.size())
 	clear();
       add_root_vertex<vertex_rand_access>(std::move(vp));
       return m_root;
@@ -1233,10 +1302,12 @@ typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor
 template <typename VertexDescriptor, typename EdgeDescriptor, 
           typename OutEdgeListS, typename VertexListS>
 inline
-typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_descriptor
+std::pair<
+  typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::edge_descriptor,
+  bool >
   edge( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& u,
 	const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
-        const linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
+        linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.get_edge(u,v);
 };
 
@@ -1258,8 +1329,8 @@ template <typename VertexDescriptor, typename EdgeDescriptor,
           typename OutEdgeListS, typename VertexListS>
 inline
 std::pair< 
-typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_iterator,
-typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_iterator >
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::child_vertex_iterator,
+typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::child_vertex_iterator >
   child_vertices( const typename linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>::vertex_descriptor& v,
                   linked_tree<OutEdgeListS, VertexListS, VertexDescriptor, EdgeDescriptor>& g) {
   return g.child_vertices(v);

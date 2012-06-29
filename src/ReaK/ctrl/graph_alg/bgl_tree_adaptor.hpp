@@ -39,6 +39,8 @@
 
 #include <vector>
 
+#include "tree_concepts.hpp"
+
 
 namespace ReaK {
 
@@ -73,6 +75,7 @@ struct tree_traits< boost::adjacency_list< boost::vecS, boost::listS, boost::bid
       graph_type const * g;
     public:
       
+      child_vertex_iterator() : ei(), g(NULL) { };
       child_vertex_iterator(const out_edge_iter& aEi, graph_type const * aG) : ei(aEi), g(aG) { };
       
       typedef child_vertex_iterator self;
@@ -96,24 +99,24 @@ struct tree_traits< boost::adjacency_list< boost::vecS, boost::listS, boost::bid
       self operator--(int) { self result(*this); --ei; return result; };
       
       friend self operator+(const self& lhs, difference_type i) {
-	return self(lhs.ei + i, g);
+	return self(lhs.ei + i, lhs.g);
       };
       friend self operator+(difference_type i, const self& rhs) {
-	return self(rhs.ei + i, g);
+	return self(rhs.ei + i, rhs.g);
       };
       friend self operator-(const self& lhs, difference_type i) {
-	return self(lhs.ei - i, g);
+	return self(lhs.ei - i, lhs.g);
       };
       friend difference_type operator-(const self& lhs, const self& rhs) {
         return difference_type(lhs.ei - rhs.ei);
       };
       
-      self& operator +=(difference_type i) { base.ei += i; return *this; };
-      self& operator -=(difference_type i) { base.ei -= i; return *this; };
+      self& operator +=(difference_type i) { ei += i; return *this; };
+      self& operator -=(difference_type i) { ei -= i; return *this; };
       
       value_type operator[](difference_type i) const { return target(*(ei + i), *g); };
-      reference operator*() { return target(*ei, *g); };
-      pointer operator->() { return target(*ei, *g); };
+      value_type operator*() { return target(*ei, *g); };
+      pointer operator->() { return &target(*ei, *g); };
       
   };
 };
@@ -201,23 +204,19 @@ void remove_branch( const typename graph_traits<Graph>::vertex_descriptor& u,
  * ********************************************************************************************/
 
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename Graph>
 inline
-typename graph_traits<Graph>::vertex_descriptor create_root(const typename Graph::vertex_property_type& vp, Graph& g) {
+typename graph_traits<Graph>::vertex_descriptor create_root(const typename Graph::vertex_bundled& vp, Graph& g) {
   typename graph_traits<Graph>::vertex_descriptor v = create_root(g);
   g[v] = vp;
   return v;
 };
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename Graph>
 inline
 typename graph_traits<Graph>::vertex_descriptor
-  create_root( typename Graph::vertex_property_type&& vp, 
+  create_root( typename Graph::vertex_bundled&& vp, 
 	       Graph& g) {
   typename graph_traits<Graph>::vertex_descriptor v = create_root(g);
   g[v] = std::move(vp);
@@ -225,31 +224,27 @@ typename graph_traits<Graph>::vertex_descriptor
 };
 #endif
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename Graph>
 inline
 std::pair< 
 typename graph_traits<Graph>::vertex_descriptor,
 typename graph_traits<Graph>::edge_descriptor >
   add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& v,
-		    const typename Graph::vertex_property_type& vp, Graph& g) {
+		    const typename Graph::vertex_bundled& vp, Graph& g) {
   std::pair< typename graph_traits<Graph>::vertex_descriptor, 
              typename graph_traits<Graph>::edge_descriptor > result = add_child_vertex(v, g);
   g[result.first] = vp;
   return result;
 };
 
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename Graph>
 inline
 std::pair< 
 typename graph_traits<Graph>::vertex_descriptor,
 typename graph_traits<Graph>::edge_descriptor >
   add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& v,
-		    const typename Graph::vertex_property_type& vp,
-		    const typename Graph::edge_property_type& ep, Graph& g) {
+		    const typename Graph::vertex_bundled& vp,
+		    const typename Graph::edge_bundled& ep, Graph& g) {
   std::pair< typename graph_traits<Graph>::vertex_descriptor, 
              typename graph_traits<Graph>::edge_descriptor > result = add_child_vertex(v, g);
   g[result.first] = vp;
@@ -258,15 +253,13 @@ typename graph_traits<Graph>::edge_descriptor >
 };
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
-template <typename VertexProperties,
-          std::size_t Arity,
-          typename EdgeProperties >
+template <typename Graph>
 inline
 std::pair< 
 typename graph_traits<Graph>::vertex_descriptor,
 typename graph_traits<Graph>::edge_descriptor >
   add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& v,
-		    typename Graph::vertex_property_type&& vp, Graph& g) {
+		    typename Graph::vertex_bundled&& vp, Graph& g) {
   std::pair< typename graph_traits<Graph>::vertex_descriptor, 
              typename graph_traits<Graph>::edge_descriptor > result = add_child_vertex(v, g);
   g[result.first] = std::move(vp);
@@ -279,7 +272,7 @@ std::pair<
 typename graph_traits<Graph>::vertex_descriptor,
 typename graph_traits<Graph>::edge_descriptor >
   add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& v,
-		    typename Graph::vertex_property_type&& vp,
+		    typename Graph::vertex_bundled&& vp,
 		    typename Graph::edge_property_type&& ep, Graph& g) {
   std::pair< typename graph_traits<Graph>::vertex_descriptor, 
              typename graph_traits<Graph>::edge_descriptor > result = add_child_vertex(v, g);

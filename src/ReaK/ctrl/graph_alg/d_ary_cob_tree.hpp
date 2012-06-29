@@ -293,10 +293,10 @@ class d_ary_cob_tree
       friend bool operator <( const in_edge_iterator& lhs, const in_edge_iterator& rhs) { return (rhs.base.edge_index < 0) && (lhs.base.edge_index >= 0); };
       friend bool operator <=(const in_edge_iterator& lhs, const in_edge_iterator& rhs) { return (rhs.base.edge_index < 0); };
       
-      in_edge_iterator& operator++() { base.edge_index = -1; return *this; };
-      in_edge_iterator operator++(int) { in_edge_iterator result(*this); base.edge_index = -1; return result; };
-      in_edge_iterator& operator--() { base.edge_index = -1; return *this; };
-      in_edge_iterator operator--(int) { in_edge_iterator result(*this); base.edge_index = -1; return result; };
+      in_edge_iterator& operator++() { base = edge_descriptor(vertex_descriptor(), -1); return *this; };
+      in_edge_iterator operator++(int) { in_edge_iterator result(*this); base = edge_descriptor(vertex_descriptor(), -1); return result; };
+      in_edge_iterator& operator--() { base = edge_descriptor(vertex_descriptor(), -1); return *this; };
+      in_edge_iterator operator--(int) { in_edge_iterator result(*this); base = edge_descriptor(vertex_descriptor(), -1); return result; };
       
       friend in_edge_iterator operator+(const in_edge_iterator& lhs, difference_type i) {
 	if( i != 0 )
@@ -327,12 +327,12 @@ class d_ary_cob_tree
       
       in_edge_iterator& operator +=(difference_type i) { 
 	if( i != 0 )
-	  base.edge_index = -1; 
+	  base = edge_descriptor(vertex_descriptor(), -1);
 	return *this; 
       };
       in_edge_iterator& operator -=(difference_type i) { 
 	if( i != 0 )
-	  base.edge_index = -1;
+	  base = edge_descriptor(vertex_descriptor(), -1);
 	return *this; 
       };
       
@@ -913,7 +913,7 @@ class d_ary_cob_tree
     template <typename OutputIter>
     OutputIter remove_branch(vertex_descriptor v, OutputIter it_out) {
       if( !is_valid(v) )
-	return;  // vertex is already deleted.
+	return it_out;  // vertex is already deleted.
       --m_vertex_count; 
 #ifdef RK_ENABLE_CXX0X_FEATURES
       *(it_out++) = std::move(m_vertices[v.block_id][v.vertex_id].v);
@@ -1011,16 +1011,16 @@ struct tree_storage_traits< d_ary_cob_tree_storage<Arity, CuttingDepth> > {
   typedef typename boost::mpl::if_< is_bidir,
     boost::bidirectional_tag,
     typename boost::mpl::if_< is_directed,
-      directed_tag, undirected_tag
+      boost::directed_tag, boost::undirected_tag
     >::type
   >::type directed_category;
   
-  typedef disallow_parallel_edge_tag edge_parallel_category;
+  typedef boost::disallow_parallel_edge_tag edge_parallel_category;
   
   typedef std::size_t vertices_size_type;
   typedef void* vertex_ptr;
-  typedef typename d_ary_cob_tree_storage<int,Arity,boost::no_property,CuttingDepth>::vertex_descriptor vertex_descriptor;  // the value-type doesn't affect the vertex_descriptor type (int is a dummy type here).
-  typedef typename d_ary_cob_tree_storage<int,Arity,boost::no_property,CuttingDepth>::edge_descriptor edge_descriptor;  // the value-type doesn't affect the edge_descriptor type (int is a dummy type here).
+  typedef typename d_ary_cob_tree<int,Arity,boost::no_property,CuttingDepth>::vertex_descriptor vertex_descriptor;  // the value-type doesn't affect the vertex_descriptor type (int is a dummy type here).
+  typedef typename d_ary_cob_tree<int,Arity,boost::no_property,CuttingDepth>::edge_descriptor edge_descriptor;  // the value-type doesn't affect the edge_descriptor type (int is a dummy type here).
   typedef std::size_t edges_size_type;
   
 };
@@ -1208,12 +1208,14 @@ template <typename VertexProperties,
           typename EdgeProperties,
 	  std::size_t CuttingDepth >
 inline
-typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor
+std::pair<
+  typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor,
+  bool >
   edge( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor&,
 	const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
         const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
   typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::edge_descriptor Edge;
-  return Edge(v.get_parent(), v.get_in_edge());
+  return std::make_pair(Edge(v.get_parent(), v.get_in_edge()),true);
 };
 
 
@@ -1241,9 +1243,9 @@ std::pair<
 typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator,
 typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator >
   child_vertices( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
-                  const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
+                  const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator VIter;
-  return std::make_pair(VIter(Arity * v + 1),VIter(Arity * (v + 1)));
+  return std::make_pair(VIter(v.get_child(0)),VIter(v.get_child(Arity)));
 };
 
 

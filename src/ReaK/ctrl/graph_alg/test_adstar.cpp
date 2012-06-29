@@ -46,13 +46,6 @@
 
 using namespace boost;
 
-namespace boost {
-
-enum vertex_position_t { vertex_position };
-
-BOOST_INSTALL_PROPERTY(vertex,position);
-
-};
 
 
 

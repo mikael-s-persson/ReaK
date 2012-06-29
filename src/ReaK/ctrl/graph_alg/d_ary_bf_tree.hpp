@@ -199,10 +199,10 @@ class d_ary_bf_tree
       friend bool operator <( const in_edge_iterator& lhs, const in_edge_iterator& rhs) { return (rhs.base.edge_index < 0) && (lhs.base.edge_index >= 0); };
       friend bool operator <=(const in_edge_iterator& lhs, const in_edge_iterator& rhs) { return (rhs.base.edge_index < 0); };
       
-      in_edge_iterator& operator++() { base.edge_index = -1; return *this; };
-      in_edge_iterator operator++(int) { in_edge_iterator result(*this); base.edge_index = -1; return result; };
-      in_edge_iterator& operator--() { base.edge_index = -1; return *this; };
-      in_edge_iterator operator--(int) { in_edge_iterator result(*this); base.edge_index = -1; return result; };
+      in_edge_iterator& operator++() { base.source_vertex = -1; base.edge_index = -1; return *this; };
+      in_edge_iterator operator++(int) { in_edge_iterator result(*this); base.source_vertex = -1; base.edge_index = -1; return result; };
+      in_edge_iterator& operator--() { base.source_vertex = -1; base.edge_index = -1; return *this; };
+      in_edge_iterator operator--(int) { in_edge_iterator result(*this); base.source_vertex = -1; base.edge_index = -1; return result; };
       
       friend in_edge_iterator operator+(const in_edge_iterator& lhs, difference_type i) {
 	if( i != 0 )
@@ -232,13 +232,17 @@ class d_ary_bf_tree
       };
       
       in_edge_iterator& operator +=(difference_type i) { 
-	if( i != 0 )
-	  base.edge_index = -1; 
+	if( i != 0 ) {
+	  base.source_vertex = -1;
+	  base.edge_index = -1;
+	};
 	return *this; 
       };
       in_edge_iterator& operator -=(difference_type i) { 
-	if( i != 0 )
+	if( i != 0 ) {
+	  base.source_vertex = -1;
 	  base.edge_index = -1;
+	};
 	return *this; 
       };
       
@@ -609,7 +613,7 @@ class d_ary_bf_tree
      * \return True if the given vertex is valid.
      */
     bool is_valid(const vertex_descriptor& v_i) const {
-      return (v_i < m_vertices.size()) && ( m_vertices[v_i].out_degree >= 0 );
+      return (std::size_t(v_i) < m_vertices.size()) && ( m_vertices[v_i].out_degree >= 0 );
     };
     
     /**
@@ -859,11 +863,11 @@ struct tree_storage_traits< d_ary_bf_tree_storage<Arity> > {
   typedef typename boost::mpl::if_< is_bidir,
     boost::bidirectional_tag,
     typename boost::mpl::if_< is_directed,
-      directed_tag, undirected_tag
+      boost::directed_tag, boost::undirected_tag
     >::type
   >::type directed_category;
   
-  typedef disallow_parallel_edge_tag edge_parallel_category;
+  typedef boost::disallow_parallel_edge_tag edge_parallel_category;
   
   typedef std::size_t vertices_size_type;
   typedef void* vertex_ptr;
@@ -1043,12 +1047,14 @@ template <typename VertexProperties,
           std::size_t Arity,
           typename EdgeProperties >
 inline
-typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor
+std::pair<
+  typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor,
+  bool >
   edge( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor&,
 	const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
         const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
   typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::edge_descriptor Edge;
-  return Edge((v - 1) / Arity, (v - 1) % Arity);
+  return std::make_pair(Edge((v - 1) / Arity, (v - 1) % Arity),true);
 };
 
 
@@ -1076,7 +1082,7 @@ typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator >
   child_vertices( const typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_descriptor& v,
                   const d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>&) {
   typedef typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties>::vertex_iterator VIter;
-  return std::make_pair(VIter(Arity * v + 1),VIter(Arity * (v + 1)));
+  return std::make_pair(VIter(Arity * v + 1),VIter(Arity * (v + 1) + 1));
 };
 
 

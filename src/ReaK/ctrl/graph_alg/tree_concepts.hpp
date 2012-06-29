@@ -47,7 +47,6 @@
 #include <boost/graph/properties.hpp>
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
-#include <boost/tuple.hpp>
 
 namespace ReaK {
 
@@ -185,16 +184,16 @@ struct MutablePropertyTreeConcept {
   
   BOOST_CONCEPT_USAGE(MutablePropertyTreeConcept) 
   {
-    v = create_root(vp, g);
-    boost::tie(v,e) = add_child_vertex(u, vp, g);
-    boost::tie(v,e) = add_child_vertex(u, vp, ep, g);
-    std::vector< vertex_property_type > vp_vect;
-    remove_branch(v, back_inserter(vp_vect), g);
+    v = create_root(vp, tree);
+    boost::tie(v,e) = add_child_vertex(u, vp, tree);
+    boost::tie(v,e) = add_child_vertex(u, vp, ep, tree);
+    std::vector< typename TreeType::vertex_property_type > vp_vect;
+    remove_branch(v, back_inserter(vp_vect), tree);
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
-    v = create_root(std::move(vp), g);
-    boost::tie(v,e) = add_child_vertex(u, std::move(vp), g);
-    boost::tie(v,e) = add_child_vertex(u, std::move(vp), std::move(ep), g);
+    v = create_root(std::move(vp), tree);
+    boost::tie(v,e) = add_child_vertex(u, std::move(vp), tree);
+    boost::tie(v,e) = add_child_vertex(u, std::move(vp), std::move(ep), tree);
 #endif
   };
   

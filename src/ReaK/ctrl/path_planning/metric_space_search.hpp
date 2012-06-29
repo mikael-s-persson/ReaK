@@ -279,7 +279,7 @@ class dvp_tree
 			std::unordered_map<Key,distance_type>& aDistMap) {
       typedef typename std::vector<Key>::iterator KeyIter;
       using std::swap;
-      KeyIter vp_ind = m_vp_chooser(aBegin, aEnd, m_space, m_position);
+      KeyIter vp_ind = m_vp_chooser(aBegin, aEnd, m_space, m_distance, m_position);
       point_type vp_pt = get(m_position, *vp_ind);
       for(KeyIter it = aBegin; it != aEnd; ++it)
 	aDistMap[*it] = m_distance(vp_pt, get(m_position, *it), m_space);
