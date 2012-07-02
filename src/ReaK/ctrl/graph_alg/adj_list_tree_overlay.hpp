@@ -269,19 +269,19 @@ class alt_tree_view {
     
     
     friend
-    vertex_property_type& get_property(const vertex_descriptor& v_i, self& g) {
+    vertex_property_type& get(boost::vertex_raw_property_t, self& g, const vertex_descriptor& v_i) {
       return g.m_alt->m_tree[v_i];
     };
     friend
-    const vertex_property_type& get_property( const vertex_descriptor& v_i, const self& g) {
+    const vertex_property_type& get(boost::vertex_raw_property_t, const self& g, const vertex_descriptor& v_i) {
       return g.m_alt->m_tree[v_i];
     };
     friend
-    edge_property_type& get_property(const edge_descriptor& e_i, self& g) {
+    edge_property_type& get(boost::edge_raw_property_t, self& g, const edge_descriptor& e_i) {
       return g.m_alt->m_tree[e_i];
     };
     friend
-    const edge_property_type& get_property( const edge_descriptor& e_i, const self& g) {
+    const edge_property_type& get(boost::edge_raw_property_t, const self& g, const edge_descriptor& e_i) {
       return g.m_alt->m_tree[e_i];
     };
     
@@ -385,6 +385,103 @@ class alt_tree_view {
     
     
 };
+
+
+
+template <typename AdjListOnTreeType>
+struct property_map<alt_tree_view<AdjListOnTreeType>, vertex_raw_property_t> {
+  typedef boost::propgraph_property_map< 
+    typename alt_tree_view<AdjListOnTreeType>::vertex_property_type, 
+    alt_tree_view<AdjListOnTreeType>,
+    vertex_raw_property_t > type;
+  typedef boost::propgraph_property_map< 
+    const typename alt_tree_view<AdjListOnTreeType>::vertex_property_type, 
+    const alt_tree_view<AdjListOnTreeType>,
+    vertex_raw_property_t > const_type;
+};
+
+template <typename AdjListOnTreeType>
+struct property_map<alt_tree_view<AdjListOnTreeType>, edge_raw_property_t> {
+  typedef boost::propgraph_property_map< 
+    typename alt_tree_view<AdjListOnTreeType>::edge_property_type, 
+    alt_tree_view<AdjListOnTreeType>,
+    edge_raw_property_t > type;
+  typedef boost::propgraph_property_map< 
+    const typename alt_tree_view<AdjListOnTreeType>::edge_property_type, 
+    const alt_tree_view<AdjListOnTreeType>,
+    edge_raw_property_t > const_type;
+};
+
+template <typename AdjListOnTreeType>
+struct property_map<alt_tree_view<AdjListOnTreeType>, vertex_raw_prop_to_bundle_t> {
+  typedef data_member_property_map< 
+    typename alt_tree_view<AdjListOnTreeType>::vertex_bundled, 
+    typename alt_tree_view<AdjListOnTreeType>::vertex_property_type > type;
+  typedef data_member_property_map< 
+    const typename alt_tree_view<AdjListOnTreeType>::vertex_bundled,
+    const typename alt_tree_view<AdjListOnTreeType>::vertex_property_type > const_type;
+};
+
+/* General template is OK for the edge_raw_prop_to_bundle_t tag.
+template <typename Graph>
+struct property_map<Graph, edge_raw_prop_to_bundle_t> {  
+  typedef self_property_map< typename Graph::edge_bundled > type;
+  typedef self_property_map< const typename Graph::edge_bundled > const_type;
+};*/
+
+
+
+template <typename AdjListOnTreeType>
+typename property_map<alt_tree_view<AdjListOnTreeType>, vertex_raw_property_t>::type get(vertex_raw_property_t tag, Graph& g) {
+  typedef typename property_map<alt_tree_view<AdjListOnTreeType>, vertex_raw_property_t>::type result_type;
+  return result_type(&g,tag);
+};
+
+template <typename AdjListOnTreeType>
+typename property_map<alt_tree_view<AdjListOnTreeType>, vertex_raw_property_t>::const_type get(vertex_raw_property_t tag, const Graph& g) {
+  typedef typename property_map<alt_tree_view<AdjListOnTreeType>, vertex_raw_property_t>::const_type result_type;
+  return result_type(&g,tag);
+};
+
+template <typename AdjListOnTreeType>
+typename property_map<alt_tree_view<AdjListOnTreeType>, edge_raw_property_t>::type get(edge_raw_property_t tag, Graph& g) {
+  typedef typename property_map<alt_tree_view<AdjListOnTreeType>, edge_raw_property_t>::type result_type;
+  return result_type(&g,tag);
+};
+
+template <typename AdjListOnTreeType>
+typename property_map<alt_tree_view<AdjListOnTreeType>, edge_raw_property_t>::const_type get(edge_raw_property_t tag, const Graph& g) {
+  typedef typename property_map<alt_tree_view<AdjListOnTreeType>, edge_raw_property_t>::const_type result_type;
+  return result_type(&g,tag);
+};
+
+
+template <typename AdjListOnTreeType>
+typename property_map<alt_tree_view<AdjListOnTreeType>, vertex_raw_prop_to_bundle>::type 
+  get(vertex_raw_prop_to_bundle_t, alt_tree_view<AdjListOnTreeType>& g) {
+  typedef typename property_map<alt_tree_view<AdjListOnTreeType>, vertex_raw_prop_to_bundle_t>::type result_type;
+  typedef typename alt_tree_view<AdjListOnTreeType>::vertex_property_type VProp;
+  return result_type(&VProp::tree_data);
+};
+
+template <typename AdjListOnTreeType>
+typename property_map<alt_tree_view<AdjListOnTreeType>, vertex_raw_prop_to_bundle>::const_type 
+  get(vertex_raw_prop_to_bundle_t, const alt_tree_view<AdjListOnTreeType>& g) {
+  typedef typename property_map<alt_tree_view<AdjListOnTreeType>, vertex_raw_prop_to_bundle_t>::const_type result_type;
+  typedef const typename alt_tree_view<AdjListOnTreeType>::vertex_property_type VProp;
+  return result_type(&VProp::tree_data);
+};
+
+
+
+
+
+
+
+
+
+
+
 
 template <typename AdjListOnTreeType, typename GraphMutationVisitor>
 class alt_graph_view {

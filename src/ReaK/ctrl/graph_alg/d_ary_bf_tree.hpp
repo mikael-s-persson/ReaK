@@ -409,7 +409,7 @@ class d_ary_bf_tree
      * \return A null-vertex descriptor (invalid vertex descriptor).
      */
     static vertex_descriptor null_vertex() { 
-      return reinterpret_cast<vertex_descriptor>(-1);
+      return reinterpret_cast<vertex_descriptor>(reinterpret_cast<void*>(-1));
     };
     
     /**

@@ -34,13 +34,126 @@
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
+#include <boost/property_map/property_map.hpp>
+
+#include "bgl_more_property_tags.hpp"
 
     
 namespace boost {
+  
+
+
+template <typename Reference, typename LvaluePropertyMap>
+struct subobject_put_get_helper { };
+
+template <typename PropertyMap, typename Reference, typename K>
+inline 
+const typename property_traits<PropertyMap>::value_type& get(const subobject_put_get_helper<Reference, PropertyMap>& pa, const K& k) {
+  return static_cast<const PropertyMap&>(pa)[k];
+};
+
+template <typename PropertyMap, typename Reference, typename K>
+inline 
+Reference get(const subobject_put_get_helper<Reference, PropertyMap>& pa, K& k) {
+  return static_cast<const PropertyMap&>(pa)[k];
+};
+
+#ifndef RK_ENABLE_CXX0X_FEATURES
+
+template <typename PropertyMap, typename Reference, typename K, typename V>
+inline 
+void put(const subobject_put_get_helper<Reference, PropertyMap>& pa, K& k, const V& v) {
+  static_cast<const PropertyMap&>(pa)[k] = v;
+};
+
+#else
+
+template <typename PropertyMap, typename Reference, typename K, typename V>
+inline 
+void put(const subobject_put_get_helper<Reference, PropertyMap>& pa, K& k, V&& v) {
+  static_cast<const PropertyMap&>(pa)[k] = std::forward<V>(v);
+};
+
+#endif
+
+
+template <typename Graph, typename PropertyMapTag>
+struct whole_bundle_property_map :
+    public put_get_helper< 
+      typename mpl::if_< is_same< PropertyMapTag, vertex_bundle_t>,
+        typename Graph::vertex_bundled,
+	typename Graph::edge_bundled >::type&,
+      whole_bundle_property_map<Graph,PropertyMapTag> > {
+  private:
+    Graph* pg;
+  public:
+    typedef is_same< PropertyMapTag, vertex_bundle_t> is_vertex_bundle;
+    typedef is_const< Graph > is_const_graph;
+    typedef typename mpl::if_< is_vertex_bundle,
+      typename Graph::vertex_bundled,
+      typename Graph::edge_bundled >::type value_type;
+    typedef typename mpl::if_< is_const_graph,
+      const value_type&,
+      value_type& >::type reference;
+    typedef typename mpl::if_< is_vertex_bundle,
+      typename graph_traits<Graph>::vertex_descriptor,
+      typename graph_traits<Graph>::edge_descriptor >::type key_type;
+    typedef typename mpl::if_< is_const_graph,
+      readable_property_map_tag,
+      lvalue_property_map_tag >::type category;
+    
+    whole_bundle_property_map(Graph* aPG) : pg(aPG) { };
+    reference operator[](key_type k) const { return (*pg)[k]; };
+  
+};
+      
+
+template <typename T, typename Graph, typename PropertyMapTag>
+struct propgraph_property_map :
+    public put_get_helper< T&, propgraph_property_map<T, Graph, PropertyMapTag> > {
+  private:
+    Graph* pg;
+    PropertyMapTag tag;
+  public:
+    typedef is_same< typename property_kind<PropertyMapTag>::type, vertex_property_tag> is_vertex_prop;
+    typedef is_const< Graph > is_const_graph;
+    typedef T value_type;
+    typedef T& reference;
+    typedef typename mpl::if_< is_vertex_prop,
+      typename graph_traits<Graph>::vertex_descriptor,
+      typename graph_traits<Graph>::edge_descriptor >::type key_type;
+    typedef typename mpl::if_< is_const< T >,
+      readable_property_map_tag,
+      lvalue_property_map_tag >::type category;
+    
+    propgraph_property_map(Graph* aPG, PropertyMapTag aTag) : pg(aPG), tag(aTag) { };
+    reference operator[](key_type k) const { return get(tag,*pg,k); };
+  
+};
+
+
+template <typename T>
+struct self_property_map : 
+    public subobject_put_get_helper<T&, self_property_map<T> > {
+  typedef self_property_map self;
+  
+  typedef T value_type;
+  typedef T& reference;
+  typedef const T& const_reference;
+  typedef T key_type;
+  typedef typename mpl::if_< is_const<T>,
+    readable_property_map_tag,
+    lvalue_property_map_tag >::type category;
+  
+  self_property_map() { };
+  reference operator[](reference p) const { return p; };
+  const_reference operator[](const_reference p) const { return p; };
+};
 
 
 template <typename T, typename PropertyType>
-class data_member_property_map {
+class data_member_property_map : 
+    public subobject_put_get_helper<T&, data_member_property_map<T, PropertyType> > {
   public:
     typedef T PropertyType::* member_ptr_type;
     typedef data_member_property_map<T,PropertyType> self;
@@ -51,41 +164,13 @@ class data_member_property_map {
     typedef T& reference;
     typedef const T& const_reference;
     typedef PropertyType key_type;
-    typedef lvalue_property_map_tag category;
+    typedef typename mpl::if_< is_const<T>,
+      readable_property_map_tag,
+      lvalue_property_map_tag >::type category;
     
     data_member_property_map(member_ptr_type aMemPtr) : mem_ptr(aMemPtr) { };
-    
-    const_reference operator[](const key_type& p) const {
-      return p.*mem_ptr;
-    };
-    
-    reference operator[](key_type& p) const {
-      return p.*mem_ptr;
-    };
-    
-    friend
-    const_reference get(const self& m, const key_type& p) {
-      return p.*(m.mem_ptr);
-    };
-    
-    friend
-    reference get(const self& m, key_type& p) {
-      return p.*(m.mem_ptr);
-    };
-    
-    friend
-    void put(const self& m, key_type& p, const_reference value) {
-      p.*(m.mem_ptr) = value;
-    };
-    
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    friend
-    void put(const self& m, key_type& p, value_type&& value) {
-      p.*(m.mem_ptr) = std::move(value);
-    };
-#endif
-  
-  
+    reference operator[](key_type& p) const { return p.*mem_ptr; };
+    const_reference operator[](const key_type& p) const { return p.*mem_ptr; };
 };
 
 
@@ -101,43 +186,49 @@ class composite_property_map {
     typedef typename property_traits< OutputMap >::value_type value_type;
     typedef typename property_traits< InputMap >::key_type key_type;
     typedef typename property_traits< OutputMap >::category category;
-    typedef value_type& reference;
-    typedef const value_type& const_reference;
+    typedef typename property_traits< OutputMap >::reference reference;
+    typedef const reference const_reference;
     
-    composite_property_map(OutputMap aPropOut, InnerMap aPropIn) : prop_out(aPropOut), prop_in(aPropIn) { };
+    composite_property_map(OutputMap aPropOut, InputMap aPropIn) : prop_out(aPropOut), prop_in(aPropIn) { };
     
-    reference operator[](const key_type& k) {
-      return prop_out[ get(prop_in, k) ];
+    reference operator[](const key_type& k) const {
+      return prop_out[ prop_in[k] ];
     };
     
-    reference operator[](key_type& k) {
-      return prop_out[ get(prop_in, k) ];
-    };
-    
-    friend
-    const_reference get(self& m, const key_type& p) {
-      return get(prop_out, get(prop_in, p));
+    reference operator[](key_type& k) const {
+      return prop_out[ prop_in[k] ];
     };
     
     friend
-    void put(self& m, const key_type& p, const_reference value) {
-      put(prop_out, get(prop_in, p), value);
+    value_type get(const self& m, const key_type& p) {
+      return m.prop_out[m.prop_in[p]];
     };
     
+#ifndef RK_ENABLE_CXX0X_FEATURES
+    template <typename V>
     friend
-    void put(self& m, key_type& p, const_reference value) {
-      put(prop_out, get(prop_in, p), value);
+    void put(const self& m, const key_type& p, const V& value) {
+      put(m.prop_out, m.prop_in[p], value);
     };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+    template <typename V>
     friend
-    void put(self& m, const key_type& p, value_type&& value) {
-      put(prop_out, get(prop_in, p), std::move(value));
+    void put(const self& m, key_type& p, const V& value) {
+      put(m.prop_out, m.prop_in[p], value);
     };
     
+#else
+    
+    template <typename V>
     friend
-    void put(self& m, key_type& p, value_type&& value) {
-      put(prop_out, get(prop_in, p), std::move(value));
+    void put(const self& m, const key_type& p, V&& value) {
+      put(m.prop_out, m.prop_in[p], std::forward<V>(value));
+    };
+    
+    template <typename V>
+    friend
+    void put(const self& m, key_type& p, V&& value) {
+      put(m.prop_out, m.prop_in[p], std::forward<V>(value));
     };
 #endif
 };

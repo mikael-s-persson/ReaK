@@ -517,7 +517,7 @@ class d_ary_cob_tree
   public:
     
     static vertex_descriptor null_vertex() { 
-      return vertex_descriptor(reinterpret_cast<std::size_t>(-1));
+      return vertex_descriptor(reinterpret_cast<std::size_t>(reinterpret_cast<void*>(-1)));
     };
     
     /**

@@ -3338,7 +3338,7 @@ class manip_ik_knn_starts_map : public shared_object {
         sample_tree = shared_ptr< ee_bsp_tree_type >(new ee_bsp_tree_type(
 	  indices.begin(),
 	  indices.end(),
-	  *ee_space, 
+	  ee_space, 
 	  sample_points));
       } else
 	sample_tree = shared_ptr< ee_bsp_tree_type >();
