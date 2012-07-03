@@ -41,11 +41,13 @@ namespace boost {
   enum vertex_rhs_t { vertex_rhs };
   enum vertex_key_t { vertex_key };
   enum vertex_position_t { vertex_position };
+  enum vertex_second_bundle_t { vertex_second_bundle };
   
   BOOST_INSTALL_PROPERTY(vertex, heuristic);
   BOOST_INSTALL_PROPERTY(vertex, rhs);
   BOOST_INSTALL_PROPERTY(vertex, key);
   BOOST_INSTALL_PROPERTY(vertex, position);
+  BOOST_INSTALL_PROPERTY(vertex, second_bundle);
 
 };
 

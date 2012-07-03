@@ -52,19 +52,28 @@ namespace pp {
  * allows for O(logN) time nearest-neighbor queries in a metric-space. A DVP-tree is essentially
  * a generalization of a search tree which only requires the space to have a metric which 
  * respects the triangular inequality. 
- * \tparam Key The key type for the tree, essentially the key value is the vertex descriptor type.
+ * \tparam VertexProperty The bundled vertex properties for the adjacency-list.
+ * \tparam EdgeProperty The bundled edge properties for the adjacency-list.
  * \tparam Topology The topology type on which the points can reside, should model the MetricSpaceConcept.
- * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the iterators) to a point (position).
+ * \tparam PositionMap The property-map type that can map the bundled vertex property to a position in the topology.
  * \tparam Arity The arity of the tree, e.g., 2 means a binary-tree.
  * \tparam VPChooser The functor type to use to choose the vantage-point out of a set of vertices.
+ * \tparam TreeStorageTag A tree-storage tag which specifies the kind of tree structure to use for the DVP tree.
+ * \tparam OutEdgeListS The out-edge list container specifier for the adjacency-list (same as OutEdgeListS in boost::adjacency_list).
+ * \tparam DirectedS The edge's directional specifier for the adjacency-list (same as DirectedS in boost::adjacency_list).
+ * \tparam EdgeListS The edge list container specifier for the adjacency-list (same as EdgeListS in boost::adjacency_list).
  */
-template <typename Key,
-          typename Topology,
+template <typename VertexProperty,
+	  typename EdgeProperty,
+	  typename Topology,
           typename PositionMap,
 	  unsigned int Arity = 2,
 	  typename VPChooser = random_vp_chooser,
-	  typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<Arity> >
-class dvp_tree
+	  typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<Arity>,
+	  typename OutEdgeListS = boost::vecS,
+	  typename DirectedS = boost::directedS,
+	  typename EdgeListS = boost::vecS >
+class dvp_adjacency_list
 {
   public:
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));

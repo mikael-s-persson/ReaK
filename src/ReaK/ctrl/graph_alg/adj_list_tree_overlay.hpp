@@ -47,6 +47,10 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
+#include "bgl_mode_property_tags.hpp"
+#include "bgl_mode_property_maps.hpp"
+
+
 
 
 namespace ReaK {
@@ -63,7 +67,49 @@ class alt_graph_view;  // forward-declaration.
 
   
 namespace detail {
+
+
+template <typename AdjVertexDesc, typename TreeVertexProperty, typename AdjVertexProperty>
+struct tree_vertex_properties_impl {
+  typedef tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty> self;
+  AdjVertexDesc partner_node;
+  TreeVertexProperty tree_data;
+  AdjVertexProperty user_data;
+      
+  friend bool operator <(const self& lhs, const self& rhs) {
+     return lhs.partner_node < rhs.partner_node;
+  };
+  friend bool operator <=(const self& lhs, const self& rhs) {
+    return lhs.partner_node <= rhs.partner_node;
+  };
+  friend bool operator >(const self& lhs, const self& rhs) {
+    return lhs.partner_node > rhs.partner_node;
+  };
+  friend bool operator >=(const self& lhs, const self& rhs) {
+    return lhs.partner_node >= rhs.partner_node;
+  };
+  friend bool operator ==(const self& lhs, const self& rhs) {
+    return lhs.partner_node == rhs.partner_node;
+  };
+  friend bool operator !=(const self& lhs, const self& rhs) {
+    return lhs.partner_node != rhs.partner_node;
+  };
   
+  friend 
+  boost::data_member_property_map<const AdjVertexDesc, const self> 
+    get(boost::vertex_key_t, const self&) {
+    return boost::data_member_property_map<const AdjVertexDesc, const self>(&self::partner_node);
+  };
+  
+  friend 
+  boost::data_member_property_map<AdjVertexProperty, self> 
+    get(boost::vertex_second_bundle_t, const self&) {
+    return boost::data_member_property_map<AdjVertexProperty, self>(&self::user_data);
+  };
+};
+
+ 
+
 /*
  * This class template implements an adjacency-list (in BGL-style) that over-shadows (i.e., a multi-graph)
  * a tree to store the underlying vertices according to the layout that the tree uses (e.g., B-tree (BFL), 
@@ -83,30 +129,8 @@ class adj_list_on_tree {
     
     typedef typename boost::graph_traits< adj_list_type >::vertex_descriptor adj_vertex_descriptor;
     
-    struct tree_vertex_properties {
-      adj_vertex_descriptor partner_node;
-      TreeVertexProperty tree_data;
-      VertexProperty user_data;
-      
-      friend bool operator <(const tree_vertex_properties& lhs, const tree_vertex_properties& rhs) {
-	return lhs.partner_node < rhs.partner_node;
-      };
-      friend bool operator <=(const tree_vertex_properties& lhs, const tree_vertex_properties& rhs) {
-	return lhs.partner_node <= rhs.partner_node;
-      };
-      friend bool operator >(const tree_vertex_properties& lhs, const tree_vertex_properties& rhs) {
-	return lhs.partner_node > rhs.partner_node;
-      };
-      friend bool operator >=(const tree_vertex_properties& lhs, const tree_vertex_properties& rhs) {
-	return lhs.partner_node >= rhs.partner_node;
-      };
-      friend bool operator ==(const tree_vertex_properties& lhs, const tree_vertex_properties& rhs) {
-	return lhs.partner_node == rhs.partner_node;
-      };
-      friend bool operator !=(const tree_vertex_properties& lhs, const tree_vertex_properties& rhs) {
-	return lhs.partner_node != rhs.partner_node;
-      };
-    };
+    typedef tree_vertex_properties_impl<adj_vertex_descriptor, TreeVertexProperty, VertexProperty> tree_vertex_properties;
+    
     typedef TreeEdgeProperty tree_edge_properties;
     
     typedef typename tree_storage< tree_vertex_properties, tree_edge_properties, TreeStorageTag>::type tree_type;
@@ -1427,6 +1451,17 @@ bool is_edge_valid(typename boost::graph_traits< alt_graph_view<AdjListOnTreeTyp
 
 };
 
+
+
+namespace boost {
+/*
+template <typename AdjVertexDesc, typename TreeVertexProperty, typename AdjVertexProperty>
+struct property_map< 
+struct tree_vertex_properties_impl
+
+  adj_list_on_tree
+*/
+};
 
 
 #endif
