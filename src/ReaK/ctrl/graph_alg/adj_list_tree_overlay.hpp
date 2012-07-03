@@ -485,10 +485,6 @@ typename property_map<alt_tree_view<AdjListOnTreeType>, vertex_raw_prop_to_bundl
 
 template <typename AdjListOnTreeType, typename GraphMutationVisitor>
 class alt_graph_view {
-  private:
-    ReaK::shared_ptr< AdjListOnTreeType > m_alt;
-    GraphMutationVisitor m_vis;
-    
   public:
     typedef alt_graph_view< AdjListOnTreeType, GraphMutationVisitor > self;
     
@@ -531,11 +527,57 @@ class alt_graph_view {
     typedef typename AdjListOnTreeType::adj_vertex_bundled vertex_bundled;
     typedef typename AdjListOnTreeType::adj_edge_bundled edge_bundled;
     
+  private:
+    
+    typedef typename boost::graph_traits< tree_type >::vertex_descriptor tree_vertex_desc;
+    typedef typename tree_type::vertex_property_type tree_vertex_prop;
+    
+    struct mutation_visitor_base {
+      
+      mutation_visitor_base() { };
+      virtual ~mutation_visitor_base() { };
+      
+      virtual void remove_vertex(tree_vertex_desc, alt_tree_view< AdjListOnTreeType >&) const = 0;
+      virtual void add_vertex(const tree_vertex_prop&, alt_tree_view< AdjListOnTreeType >&) const = 0;
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      virtual void add_vertex(tree_vertex_prop&&, alt_tree_view< AdjListOnTreeType >&) const = 0;
+#endif
+    };
+    
+    template <typename GraphMutationVisitor>
+    struct mutation_visitor {
+      GraphMutationVisitor m_vis;
+      
+      mutation_visitor(GraphMutationVisitor aVis) : m_vis(aVis) { };
+      virtual ~mutation_visitor() { };
+      
+      virtual void remove_vertex(tree_vertex_desc tv, alt_tree_view< AdjListOnTreeType >& t) const {
+	m_vis.remove_vertex(tv, t);
+      };
+      virtual void add_vertex(const tree_vertex_prop& tvp, alt_tree_view< AdjListOnTreeType >& t) const {
+	m_vis.add_vertex(tvp, t);
+      };
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      virtual void add_vertex(tree_vertex_prop&& tvp, alt_tree_view< AdjListOnTreeType >& t) const {
+	m_vis.add_vertex(std::move(tvp), t);
+      };
+#endif
+    };
+    
+    ReaK::shared_ptr< AdjListOnTreeType > m_alt;
+    ReaK::shared_ptr< mutation_visitor_base > m_vis;
+    
+  public:
+    
     friend class alt_tree_view<AdjListOnTreeType>;
     
-    alt_graph_view() : m_alt(new AdjListOnTreeType()), m_vis() { };
+    template <typename GraphMutationVisitor>
+    explicit alt_graph_view(GraphMutationVisitor aVis) : 
+                            m_alt(new AdjListOnTreeType()), 
+                            m_vis(new mutation_visitor<GraphMutationVisitor>(aVis)) { };
     
-    explicit alt_graph_view(const alt_tree_view< AdjListOnTreeType >& t, GraphMutationVisitor aVis);
+    template <typename GraphMutationVisitor>
+    alt_graph_view(const alt_tree_view< AdjListOnTreeType >& t, GraphMutationVisitor aVis);
     
     
     
@@ -656,7 +698,7 @@ class alt_graph_view {
     };
     
     void remove_vertex(vertex_descriptor v) {
-      m_vis.remove_vertex(m_alt->m_adj_list[v].tree_vertex, alt_tree_view< AdjListOnTreeType >(*this));
+      m_vis->remove_vertex(m_alt->m_adj_list[v].tree_vertex, alt_tree_view< AdjListOnTreeType >(*this));
       m_alt->m_adj_list[v].tree_vertex = m_alt->m_tree.null_vertex();       // invalidate the graph-vertex,
       clear_vertex(v, m_alt->m_adj_list);                                   // clear its edges, and
       m_alt->m_available_pnodes.push(v);                                    // add it to the graveyard.
@@ -694,9 +736,9 @@ class alt_graph_view {
       tree_vp.partner_node = v;
       tree_vp.user_data = vp;
 #ifdef RK_ENABLE_CXX0X_FEATURES
-      m_alt->m_adj_list[v].tree_vertex = m_vis.add_vertex(std::move(tree_vp), alt_tree_view< AdjListOnTreeType >(*this));
+      m_vis->add_vertex(std::move(tree_vp), alt_tree_view< AdjListOnTreeType >(*this));
 #else
-      m_alt->m_adj_list[v].tree_vertex = m_vis.add_vertex(tree_vp, alt_tree_view< AdjListOnTreeType >(*this));
+      m_vis->add_vertex(tree_vp, alt_tree_view< AdjListOnTreeType >(*this));
 #endif
       return v;
     };
@@ -736,7 +778,7 @@ class alt_graph_view {
       typename tree_type::vertex_property_type tree_vp;
       tree_vp.partner_node = v;
       tree_vp.user_data = std::move(vp);
-      m_alt->m_adj_list[v].tree_vertex = m_vis.add_vertex(std::move(tree_vp), alt_tree_view< AdjListOnTreeType >(*this));
+      m_vis->add_vertex(std::move(tree_vp), alt_tree_view< AdjListOnTreeType >(*this));
       return v;
     };
     
@@ -766,12 +808,12 @@ class alt_graph_view {
     void update_vertex(vertex_descriptor v) {
 #ifdef RK_ENABLE_CXX0X_FEATURES
       typename tree_type::vertex_property_type tree_vp = std::move(m_alt->m_tree[ m_alt->m_adj_list[v].tree_vertex ]);
-      m_vis.remove_vertex(m_alt->m_adj_list[v].tree_vertex, alt_tree_view< AdjListOnTreeType >(*this));
-      m_alt->m_adj_list[v].tree_vertex = m_vis.add_vertex(std::move(tree_vp), alt_tree_view< AdjListOnTreeType >(*this));
+      m_vis->remove_vertex(m_alt->m_adj_list[v].tree_vertex, alt_tree_view< AdjListOnTreeType >(*this));
+      m_vis->add_vertex(std::move(tree_vp), alt_tree_view< AdjListOnTreeType >(*this));
 #else
       typename tree_type::vertex_property_type tree_vp = m_alt->m_tree[ m_alt->m_adj_list[v].tree_vertex ];
-      m_vis.remove_vertex(m_alt->m_adj_list[v].tree_vertex, alt_tree_view< AdjListOnTreeType >(*this));
-      m_alt->m_adj_list[v].tree_vertex = m_vis.add_vertex(tree_vp, alt_tree_view< AdjListOnTreeType >(*this));
+      m_vis->remove_vertex(m_alt->m_adj_list[v].tree_vertex, alt_tree_view< AdjListOnTreeType >(*this));
+      m_vis->add_vertex(tree_vp, alt_tree_view< AdjListOnTreeType >(*this));
 #endif
     };
     
@@ -839,13 +881,16 @@ template <typename AdjListOnTreeType>
 alt_tree_view<AdjListOnTreeType>::alt_tree_view(const alt_graph_view< AdjListOnTreeType >& g) : m_alt(g.m_alt) { };
 
 template <typename AdjListOnTreeType, typename GraphMutationVisitor>
-alt_graph_view<AdjListOnTreeType,GraphMutationVisitor>::alt_graph_view(const alt_tree_view< AdjListOnTreeType >& t, GraphMutationVisitor aVis ) : m_alt(t.m_alt), m_vis(aVis) { };
+alt_graph_view<AdjListOnTreeType>::alt_graph_view(const alt_tree_view< AdjListOnTreeType >& t, 
+						  GraphMutationVisitor aVis ) : 
+						  m_alt(t.m_alt), 
+						  m_vis(new alt_graph_view<AdjListOnTreeType>::template mutation_visitor<GraphMutationVisitor>(aVis))) { };
 
 
 
 template <typename AdjListOnTreeType, typename GraphMutationVisitor>
-alt_graph_view<AdjListOnTreeType,GraphMutationVisitor> make_graph_view(const alt_tree_view< AdjListOnTreeType >& t, GraphMutationVisitor aVis) {
-  return alt_graph_view<AdjListOnTreeType,GraphMutationVisitor>(t,aVis);
+alt_graph_view<AdjListOnTreeType> make_graph_view(const alt_tree_view< AdjListOnTreeType >& t, GraphMutationVisitor aVis) {
+  return alt_graph_view<AdjListOnTreeType>(t,aVis);
 };
 
 

@@ -864,6 +864,27 @@ class dvp_tree_impl
     };
     
     
+    
+    struct mutation_visitor {
+      self* m_parent;
+      
+      mutation_visitor(self* aParent) : m_parent(aParent) { };
+      
+      void remove_vertex(vertex_type v, tree_indexer&) const {
+	m_parent->erase(v);
+      };
+      
+      void add_vertex(const vertex_property& vp, tree_indexer&) const {
+	m_parent->insert(vp);
+      };
+      
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      void add_vertex(vertex_property&& vp, tree_indexer&) const {
+	m_parent->insert(std::move(vp));
+      };
+#endif
+    };
+    
 };
 
 
