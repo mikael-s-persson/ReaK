@@ -173,6 +173,28 @@ class data_member_property_map :
     const_reference operator[](const key_type& p) const { return p.*mem_ptr; };
 };
 
+template <typename T, typename PropertyType>
+class data_member_property_map< const T, const PropertyType> : 
+    public subobject_put_get_helper<const T&, data_member_property_map<const T, const PropertyType> > {
+  public:
+    typedef T value_type;
+    typedef const T& reference;
+    typedef const T& const_reference;
+    typedef const PropertyType key_type;
+    
+    typedef T key_type::* member_ptr_type;
+    typedef data_member_property_map<const T, const PropertyType> self;
+  private:
+    member_ptr_type mem_ptr;
+  public:
+    typedef typename mpl::if_< is_const<T>,
+      readable_property_map_tag,
+      lvalue_property_map_tag >::type category;
+    
+    data_member_property_map(member_ptr_type aMemPtr) : mem_ptr(aMemPtr) { };
+    reference operator[](key_type& p) const { return p.*mem_ptr; };
+};
+
 
 template <typename OutputMap, typename InputMap>
 class composite_property_map {

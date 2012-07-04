@@ -34,10 +34,10 @@
 #define REAK_TREE_ORGANIZER_CONCEPT_HPP
 
 #include <boost/graph/graph_concepts.hpp>
-#include <boost/graph/properties.hpp>
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
-#include <boost/tuple.hpp>
+
+#include "tree_concepts.hpp"
 
 namespace ReaK {
 
@@ -71,12 +71,12 @@ struct TreeOrganizerVisitorConcept {
   
   BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<TreeType>));
   
-  BOOST_CONCEPT_USAGE(TreeConcept) 
+  BOOST_CONCEPT_USAGE(TreeOrganizerVisitorConcept) 
   {
     vis.remove_vertex(v, tree);
-    v = vis.add_vertex(vp, tree);
+    vis.add_vertex(vp, tree);
 #ifdef RK_ENABLE_CXX0X_FEATURES
-    v = vis.add_vertex(std::move(vp), tree);
+    vis.add_vertex(std::move(vp), tree);
 #endif
   };
   

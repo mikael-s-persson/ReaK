@@ -391,11 +391,11 @@ class d_ary_bf_tree
     typedef boost::disallow_parallel_edge_tag edge_parallel_category;
     
     struct traversal_category : 
-      public boost::incidence_graph_tag,
-      public boost::adjacency_graph_tag,
-      public boost::bidirectional_graph_tag,
-      public boost::vertex_list_graph_tag,
-      public boost::edge_list_graph_tag { };
+      virtual public boost::incidence_graph_tag,
+      virtual public boost::adjacency_graph_tag,
+      virtual public boost::bidirectional_graph_tag,
+      virtual public boost::vertex_list_graph_tag,
+      virtual public boost::edge_list_graph_tag { };
     
   private:
     

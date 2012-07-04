@@ -669,7 +669,9 @@ class dvp_tree_impl
       if(num_vertices(m_tree) == 0) 
 	return;
       if( (u_node == m_root) && (num_vertices(m_tree) == 1) ) {
-	clear();
+        std::vector<vertex_property> prop_list;
+	remove_branch(m_root, back_inserter(prop_list), m_tree);
+	m_root = boost::graph_traits<tree_indexer>::null_vertex();
 	return;
       };
       distance_type e_dist = 0.0;
