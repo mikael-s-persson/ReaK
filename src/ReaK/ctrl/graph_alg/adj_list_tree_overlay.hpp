@@ -722,7 +722,8 @@ class alt_graph_view {
     };
     
     void remove_vertex_impl(vertex_descriptor v) {
-      m_vis->remove_vertex(m_alt->m_adj_list[v].tree_vertex, alt_tree_view< AdjListOnTreeType >(*this));
+      alt_tree_view< AdjListOnTreeType > tree_view(*this);
+      m_vis->remove_vertex(m_alt->m_adj_list[v].tree_vertex, tree_view);
       m_alt->m_adj_list[v].tree_vertex = m_alt->m_tree.null_vertex();       // invalidate the graph-vertex,
       clear_vertex(v, m_alt->m_adj_list);                                   // clear its edges, and
       m_alt->m_available_pnodes.push(v);                                    // add it to the graveyard.
@@ -803,7 +804,8 @@ class alt_graph_view {
       typename tree_type::vertex_property_type tree_vp;
       tree_vp.partner_node = v;
       tree_vp.user_data = std::move(vp);
-      m_vis->add_vertex(std::move(tree_vp), alt_tree_view< AdjListOnTreeType >(*this));
+      alt_tree_view< AdjListOnTreeType > tree_view(*this);
+      m_vis->add_vertex(std::move(tree_vp), tree_view);
       return v;
     };
     
@@ -831,14 +833,15 @@ class alt_graph_view {
     // Other useful / unclassified functions:
     
     void update_vertex(vertex_descriptor v) {
+      alt_tree_view< AdjListOnTreeType > tree_view(*this);
 #ifdef RK_ENABLE_CXX0X_FEATURES
       typename tree_type::vertex_property_type tree_vp = std::move(m_alt->m_tree[ m_alt->m_adj_list[v].tree_vertex ]);
-      m_vis->remove_vertex(m_alt->m_adj_list[v].tree_vertex, alt_tree_view< AdjListOnTreeType >(*this));
-      m_vis->add_vertex(std::move(tree_vp), alt_tree_view< AdjListOnTreeType >(*this));
+      m_vis->remove_vertex(m_alt->m_adj_list[v].tree_vertex, tree_view);
+      m_vis->add_vertex(std::move(tree_vp), tree_view);
 #else
       typename tree_type::vertex_property_type tree_vp = m_alt->m_tree[ m_alt->m_adj_list[v].tree_vertex ];
-      m_vis->remove_vertex(m_alt->m_adj_list[v].tree_vertex, alt_tree_view< AdjListOnTreeType >(*this));
-      m_vis->add_vertex(tree_vp, alt_tree_view< AdjListOnTreeType >(*this));
+      m_vis->remove_vertex(m_alt->m_adj_list[v].tree_vertex, tree_view);
+      m_vis->add_vertex(tree_vp, tree_view);
 #endif
     };
     

@@ -683,12 +683,16 @@ class dvp_tree_impl
       
       out_edge_iter ei, ei_end;
       std::vector<vertex_property> prop_list;
-      if( out_degree(u_node, m_tree) > 0 ) {
+      if( (out_degree(u_node, m_tree) > 0) ||
+	  (u_parent == boost::graph_traits<tree_indexer>::null_vertex()) ) {
 	remove_branch(u_node, back_inserter(prop_list), m_tree);
       } else {
 	remove_branch(u_node, back_inserter(prop_list), m_tree);
 	u_node = u_parent;
-	u_parent = source(*(in_edges(u_node,m_tree).first), m_tree);
+	if(u_parent == m_root)
+	  u_parent = boost::graph_traits<tree_indexer>::null_vertex();
+	else
+	  u_parent = source(*(in_edges(u_node,m_tree).first), m_tree);
 	remove_branch(u_node, back_inserter(prop_list), m_tree);
       };
       std::unordered_map<key_type,distance_type> dist_map;
