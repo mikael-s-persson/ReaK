@@ -54,6 +54,7 @@
 #include <boost/mpl/equal_to.hpp>
 #include <boost/mpl/not_equal_to.hpp>
 
+#include <iomanip>
 
 namespace ReaK {
 
@@ -68,16 +69,18 @@ namespace ReaK {
 template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value, 
 std::ostream& >::type operator <<(std::ostream& out_stream,const Matrix& M) {
-  out_stream << "(";
+  out_stream << "(\n";
   if((M.get_row_count() != 0) && (M.get_col_count() != 0)) {
     for(unsigned int i=0;i<M.get_row_count();++i) {
-      out_stream << "(" << M(i,0);
+      out_stream << "(" << std::setw(16) << M(i,0);
       for(unsigned int j=1;j<M.get_col_count();++j) {
-        out_stream << "; " << M(i,j);
+        out_stream << "; " << std::setw(16) << M(i,j);
       };
       out_stream << ")";
       if(i != M.get_row_count()-1)
-        out_stream << "; ";
+        out_stream << ";\n";
+      else
+        out_stream << "\n";
     };
   };
   return (out_stream << ")");

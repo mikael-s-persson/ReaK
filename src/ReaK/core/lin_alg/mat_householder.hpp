@@ -90,18 +90,6 @@ class householder_matrix {
 	return;
       
       using std::sqrt;
-      /*
-      value_type alpha = value_type(0.0);
-      for(size_type i=0;i<v.size();++i)
-	alpha += v[i] * v[i];
-      alpha = sqrt(alpha);
-      if(v[0] > 0)
-	alpha = -alpha;
-      
-      value_type rsq = alpha * alpha - alpha * v[0];
-      beta = 2.0 / rsq;
-      v[0] -= alpha;
-      */
       
       value_type sigma = value_type(0.0);
       for(size_type i=1;i<v.size();++i)
@@ -119,6 +107,29 @@ class householder_matrix {
       };
       beta = 2.0 / (sigma + v[0]*v[0]);
     };
+    
+    void calculate_inv_hhv(const value_type& NumTol) {      
+      if(v.size() == 0)
+        return;
+      
+      using std::sqrt;
+      
+      value_type sigma = value_type(0.0);
+      for(size_type i=0;i<v.size()-1;++i)
+        sigma += v[i] * v[i];
+      if(sigma < NumTol) {
+        v[v.size()-1] = value_type(1.0);
+        beta = value_type(0.0);
+        return;
+      };
+      value_type mu = sqrt(sigma + v[v.size()-1]*v[v.size()-1]);
+      if(v[v.size()-1] < NumTol) {
+        v[v.size()-1] -= mu;
+      } else {
+        v[v.size()-1] = -sigma / (v[v.size()-1] + mu);
+      };
+      beta = 2.0 / (sigma + v[v.size()-1]*v[v.size()-1]);
+    };
   public:
     /**
      * Set the Householder reflection by providing a column-vector u such that the 
@@ -133,6 +144,21 @@ class householder_matrix {
       beta = value_type(0.0);
       v = aE;
       calculate_hhv(NumTol);
+    };
+    /**
+     * Set the Householder reflection by providing a column-vector u such that the 
+     * resulting Householder reflection H has the effect of zero-ing the first element: H * u = (0, a).
+     * \note This constructs an "opposite" Householder reflection (can be useful for row elimintations).
+     * \tparam Vector2 A readable vector type.
+     * \param aE The vector from which to calculate the Householder reflection (vector u).
+     * \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
+     */
+    template <typename Vector2>
+    typename boost::enable_if_c< is_readable_vector<Vector2>::value, 
+    void >::type set_inv(const Vector2& aE, const value_type& NumTol = value_type(1E-8)) {
+      beta = value_type(0.0);
+      v = aE;
+      calculate_inv_hhv(NumTol);
     };
     /**
      * Default constructor.

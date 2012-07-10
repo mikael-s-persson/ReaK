@@ -330,7 +330,7 @@ template <typename Matrix, typename Vector>
 typename boost::enable_if_c< is_fully_writable_matrix<Matrix>::value,
 Matrix >::type operator *(const Matrix& A, const givens_rot_matrix<Vector>& G) {
   Matrix result(A);
-  givens_rot_matrix(result,G);
+  givens_rot_prod(result,G);
   return result;
 };
 
@@ -338,7 +338,7 @@ template <typename Matrix, typename Vector>
 typename boost::enable_if_c< is_fully_writable_matrix<Matrix>::value,
 Matrix >::type operator *(const givens_rot_matrix<Vector>& G, const Matrix& A) {
   Matrix result(A);
-  givens_rot_matrix(G,result);
+  givens_rot_prod(G,result);
   return result;
 };
 

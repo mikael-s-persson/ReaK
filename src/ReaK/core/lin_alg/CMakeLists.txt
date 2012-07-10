@@ -74,6 +74,10 @@ add_executable(test_mat_num_perf "${SRCROOT}${RKLINALGDIR}/test_mat_num_perf.cpp
 setup_custom_target(test_mat_num_perf "${SRCROOT}${RKLINALGDIR}")
 target_link_libraries(test_mat_num_perf reak_rtti)
 
+add_executable(test_mat_are "${SRCROOT}${RKLINALGDIR}/test_mat_are.cpp")
+setup_custom_target(test_mat_are "${SRCROOT}${RKLINALGDIR}")
+target_link_libraries(test_mat_are reak_rtti)
+
 add_executable(test_mat_views "${SRCROOT}${RKLINALGDIR}/test_views.cpp")
 setup_custom_target(test_mat_views "${SRCROOT}${RKLINALGDIR}")
 target_link_libraries(test_mat_views reak_rtti)

@@ -170,6 +170,140 @@ void schur_decomp_impl(Matrix1& T, Matrix2* Q, typename mat_traits<Matrix1>::val
 
 
 
+/*
+ * This function deflates the shifted diagonal element (q,p) down to the lower right corner
+ * of the upper-triangular matrix B while zeroing the lower right sub-diagonal element of the 
+ * upper-Hessenberg matrix A.
+ * \param A The upper-Hessenberg matrix of the GEP (lhs), resulting in an upper-Hessenberg matrix 
+ *          with a zero at the lower right sub-diagonal term.
+ * \param B The upper-triangular matrix of the GEP (rhs) with a zero value at the entry (q,p), 
+ *          resulting in an upper-triangular matrix with a zero at the lower right diagonal term.
+ * \param Q Pointer to the matrix in which to accumulate the orthogonal pre-multiplied transformations.
+ * \param Z Pointer to the matrix in which to accumulate the orthogonal post-multiplied transformations.
+ * \param p The column-index of the diagonal element of B to be chased down to the lower-right corner.
+ * \param q The row-index of the diagonal element of B to be chased down to the lower-right corner. Note
+ *          that the reason for this parameter is that this function can be applied to the case where 
+ *          A and B include the upper-right part of a larger matrix and thus, the "diagonal" is actually
+ *          shifted down. This was done because this deflation algorithm is called by other decomposition
+ *          algorithms (e.g. QZ-algorithm) which operate on the sub-range of the diagonal but still want 
+ *          the orthogonal transformations to be applied to all the affected elements (upper-right part).
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
+void deflate_hess_elem_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
+		            typename mat_traits<Matrix1>::size_type p, 
+		            typename mat_traits<Matrix1>::size_type q)
+{
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  SizeType N = A.get_row_count();
+  
+  givens_rot_matrix<ValueType> G;
+  
+  //SizeType t = N-2;
+  
+  for(; q < N - 1; ++p, ++q) {
+    G.set(B(q,p+1),B(q+1,p+1));
+    
+    mat_sub_block<Matrix1> subA1(A, 2, (p == 0 ? A.get_col_count() : A.get_col_count()-p+1), q, (p == 0 ? p : p-1));
+    givens_rot_prod(G,subA1); // G * A
+    
+    mat_sub_block<Matrix2> subB1(B, 2, B.get_col_count()-p-1, q, p+1);
+    givens_rot_prod(G,subB1); // G * B
+    
+    if(Q) {
+      mat_sub_block<Matrix3> subQ(*Q, Q->get_row_count(), 2, 0, p);
+      givens_rot_prod(subQ,transpose(G)); // Q_prev * G^T
+    };
+    
+    if(p == 0)
+      continue;
+    
+    G.set(-A(q+1,p), A(q+1,p-1));
+    G = transpose(G);
+    
+    mat_sub_block<Matrix2> subB2(B, q, 2, 0, p-1);
+    givens_rot_prod(subB2,G); // B * G^T
+    
+    mat_sub_block<Matrix1> subA2(A, q+2, 2, 0, p-1);
+    givens_rot_prod(subA2,G); // A * G^T
+    
+    if(Z) {
+      mat_sub_block<Matrix4> subZ(*Z, Z->get_row_count(), 2, 0, p-1);
+      givens_rot_prod(subZ,G); // Q_prev * G^T
+    };
+  };
+  
+  G.set(-A(N-1,p), A(N-1,p-1));
+  G = transpose(G);
+    
+  mat_sub_block<Matrix2> subB3(B, N-1, 2, 0, p-1);
+  givens_rot_prod(subB3,G); // B * G^T
+    
+  mat_sub_block<Matrix1> subA3(A, N, 2, 0, p-1);
+  givens_rot_prod(subA3,G); // A * G^T
+    
+  if(Z) {
+    mat_sub_block<Matrix4> subZ(*Z, Z->get_row_count(), 2, 0, p-1);
+    givens_rot_prod(subZ,G); // Q_prev * G^T
+  };
+  
+};
+
+
+template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
+bool deflate_hess_all_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
+		           typename mat_traits<Matrix1>::size_type row_offset,
+		           typename mat_traits<Matrix1>::value_type NumTol)
+{
+  using std::fabs;
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  SizeType N = A.get_row_count();
+  SizeType M = N - row_offset;
+  
+  ValueType avg_values = ValueType(0.0);
+  for(SizeType i = 0; i < M; ++i)
+    avg_values += fabs(B(row_offset + i, i));
+  avg_values /= ValueType(M);
+  
+  bool deflated_prev_time = true;
+  for(SizeType j = 0; j < M && deflated_prev_time; ++j) {
+    deflated_prev_time = false;
+    for(SizeType i = M; i > 0; --i) {
+      if(fabs(B(row_offset + i - 1, i - 1)) < NumTol * avg_values) {
+	mat_sub_block<Matrix1> subA(A, N-j, A.get_col_count(), 0, 0);
+	mat_sub_block<Matrix2> subB(B, N-j, A.get_col_count(), 0, 0);
+	if(Q) {
+	  mat_sub_block<Matrix3> subQ(*Q, Q->get_row_count(), N-j, 0, 0);
+	  if(Z) {
+	    mat_sub_block<Matrix4> subZ(*Z, Z->get_row_count(), N-j, 0, 0);
+	    deflate_hess_elem_impl(subA, subB, &subQ, &subZ, i - 1, row_offset + i - 1);
+	  } else {
+	    deflate_hess_elem_impl(subA, subB, &subQ, static_cast<Matrix4*>(NULL), i - 1, row_offset + i - 1);
+	  };
+	} else {
+	  if(Z) {
+	    mat_sub_block<Matrix4> subZ(*Z, Z->get_row_count(), N-j, 0, 0);
+	    deflate_hess_elem_impl(subA, subB, static_cast<Matrix3*>(NULL), &subZ, i - 1, row_offset + i - 1);
+	  } else {
+	    deflate_hess_elem_impl(subA, subB, static_cast<Matrix3*>(NULL), static_cast<Matrix4*>(NULL), i - 1, row_offset + i - 1);
+	  };
+	};
+	deflated_prev_time = true;
+	break;
+      };
+    };
+    if(j == 0 && !deflated_prev_time)
+      return false;
+  };
+  return true;
+};
+
+
+
+
+
+
 
 template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
 void francis_QZ_step(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typename mat_traits<Matrix1>::size_type Offset, typename mat_traits<Matrix1>::value_type NumTol) {
@@ -180,17 +314,19 @@ void francis_QZ_step(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typename ma
   
   SizeType N = A.get_row_count() - Offset;
   
-  mat<ValueType, mat_structure::square> M(N);
-  M = sub(A)(range(Offset,A.get_row_count()-1),range(0,N-1));
+  vect<ValueType,3> v;
   
-  backsub_R_impl(sub(B)(range(Offset,A.get_row_count()-1),range(0,N-1)),M,NumTol);
+  v[0] = ((A(Offset + N-2,N-2) / B(Offset + N-2,N-2) - A(Offset,0) / B(Offset,0)) * (A(Offset + N-1,N-1) / B(Offset + N-1,N-1) - A(Offset,0) / B(Offset,0))
+         - (A(Offset + N-2,N-1) / B(Offset + N-1,N-1)) * (A(Offset + N-1,N-2) / B(Offset + N-2,N-2))
+         + (A(Offset + N-1,N-2) / B(Offset + N-2,N-2)) * (B(Offset + N-2,N-1) / B(Offset + N-1,N-1)) * (A(Offset,0) / B(Offset,0))) * (B(Offset,0) / A(Offset + 1,0))
+       + A(Offset,1) / B(Offset + 1,1) - (A(Offset,0) / B(Offset,0)) * (B(Offset,1) / B(Offset + 1,1));
+  v[1] = (A(Offset + 1,1) / B(Offset + 1,1) - A(Offset,0) / B(Offset,0)) 
+       - (A(Offset + 1,0) / B(Offset,0)) * (B(Offset,1) / B(Offset + 1,1))
+       - (A(Offset + N-2,N-2) / B(Offset + N-2,N-2) - A(Offset,0) / B(Offset,0))
+       - (A(Offset + N-1,N-1) / B(Offset + N-1,N-1) - A(Offset,0) / B(Offset,0))
+       + (A(Offset + N-1,N-2) / B(Offset + N-2,N-2)) * (B(Offset + N-2,N-1) / B(Offset + N-1,N-1));
+  v[2] = A(Offset + 2,1) / B(Offset + 1,1);
   
-  ValueType s = M(N-2,N-2) + M(N-1,N-1);
-  ValueType t = M(N-2,N-2) * M(N-1,N-1) 
-              - M(N-2,N-1) * M(N-1,N-2);
-  vect<ValueType,3> v(M(0,0) * M(0,0) + M(0,1) * M(1,0) - s*M(0,0) + t, 
-		      M(1,0) * (M(0,0) + M(1,1) - s),
-		      M(1,0) * M(2,1));
   for(SizeType k=0;k<N-2;++k) {
     hhm.set(v,NumTol);
     
@@ -205,11 +341,13 @@ void francis_QZ_step(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typename ma
       householder_prod(subQ,hhm); // Q * Q_k ^T
     };
     
+//     std::cout << "After QZ-step 1: A = " << A << std::endl;
+//     std::cout << "After QZ-step 1: B = " << B << std::endl;
     
-    vect<ValueType,3> v2(B(Offset + k + 2, k + 2),
-			 B(Offset + k + 2, k + 1),
-			 B(Offset + k + 2, k));
-    hhm.set(v2,NumTol);
+    vect<ValueType,3> v2(B(Offset + k + 2, k),
+                         B(Offset + k + 2, k + 1),
+                         B(Offset + k + 2, k + 2));
+    hhm.set_inv(v2,NumTol);
     
     mat_sub_block< Matrix1 > subA2(A,A.get_row_count(),3,0,k);
     householder_prod(subA2,hhm);
@@ -222,10 +360,13 @@ void francis_QZ_step(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typename ma
       householder_prod(subZ,hhm); // Q_prev * P
     };
     
+//     std::cout << "After QZ-step 2: A = " << A << std::endl;
+//     std::cout << "After QZ-step 2: B = " << B << std::endl;
+    
     
     householder_matrix< vect<ValueType,2> > hhm2;
-    hhm2.set( vect<ValueType,2>(B(Offset + k + 1, k + 1),
-				B(Offset + k + 1, k)), NumTol );
+    hhm2.set_inv( vect<ValueType,2>(B(Offset + k + 1, k),
+                                    B(Offset + k + 1, k + 1)), NumTol );
     
     mat_sub_block< Matrix1 > subA3(A,A.get_row_count(),2,0,k);
     householder_prod(subA3,hhm2);
@@ -237,6 +378,9 @@ void francis_QZ_step(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typename ma
       mat_sub_block<Matrix4> subZ(*Z,Z->get_row_count(),2,0,k);
       householder_prod(subZ,hhm2); // Q_prev * P
     };
+    
+//     std::cout << "After QZ-step 3: A = " << A << std::endl;
+//     std::cout << "After QZ-step 3: B = " << B << std::endl;
     
     v[0] = A(Offset + k + 1, k);
     v[1] = A(Offset + k + 2, k);
@@ -257,9 +401,12 @@ void francis_QZ_step(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typename ma
     householder_prod(subQ,hhm3); // Q * Q_k ^T
   };
   
+//   std::cout << "After QZ-step final 1: A = " << A << std::endl;
+//   std::cout << "After QZ-step final 1: B = " << B << std::endl;
   
-  hhm3.set( vect<ValueType,2>(B(Offset + N - 1, N - 1),
-			      B(Offset + N - 1, N - 2)), NumTol );
+  
+  hhm3.set_inv( vect<ValueType,2>(B(Offset + N - 1, N - 2),
+			      B(Offset + N - 1, N - 1)), NumTol );
     
   mat_sub_block< Matrix1 > subA5(A,A.get_row_count(),2,0,N-2);
   householder_prod(subA5,hhm3);
@@ -271,6 +418,9 @@ void francis_QZ_step(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typename ma
     mat_sub_block<Matrix4> subZ(*Z,Z->get_row_count(),2,0,N-2);
     householder_prod(subZ,hhm3); // Q_prev * P
   };
+  
+//   std::cout << "After QZ-step final 2: A = " << A << std::endl;
+//   std::cout << "After QZ-step final 2: B = " << B << std::endl;
   
   return;
 };
@@ -284,14 +434,24 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typen
    // throw std::range_error("A matrix must be square for its eigen problem to be solved!");
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
-  using std::fabs;
+  using std::fabs; using std::sqrt;
   
   SizeType N = A.get_row_count();
     
   detail::reduce_HessTri_impl(A,B,Q,Z,NumTol);
   
+//   std::cout << "After Hess-Tri: A = " << A << std::endl;
+//   std::cout << "After Hess-Tri: B = " << B << std::endl;
+  
+  deflate_hess_all_impl(A,B,Q,Z,0,NumTol);
+  
+//   std::cout << "After Initial Deflation: A = " << A << std::endl;
+//   std::cout << "After Initial Deflation: B = " << B << std::endl;
+  
   SizeType q = N;
   SizeType p = N;
+  
+//   SizeType iter_count = 0;
   
   while(q > 0) {
     bool last_off_diag_was_nil = true;
@@ -312,7 +472,8 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typen
       break;
     
     //find the middle, biggest unreduced upper-Hessenberg matrix
-    for(i = q; i > 0; --i) {
+    p = 0; // in case the below loop never gets to the condition.
+    for(i = q-1; i > 0; --i) {
       if(fabs(A(i,i-1)) < NumTol * (fabs(A(i,i)) + fabs(A(i-1,i-1)))) {
 	A(i,i-1) = ValueType(0.0);
 	p = i;
@@ -324,29 +485,92 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typen
     for(i = p; i > 0; --i)
       if(fabs(A(i,i-1)) < NumTol * (fabs(A(i,i)) + fabs(A(i-1,i-1))))
 	A(i,i-1) = ValueType(0.0);
-    
-    for(i = p; i < q; ++i)
-      if(fabs(B(i,i)) < NumTol)
-	throw singularity_error("B"); //TODO: Change this to a zeroing method (zero-chasing)
       
+//     std::cout << "After Examination: p = " << p << " q = " << q << std::endl;
+//     std::cout << "After Examination: A = " << A << std::endl;
+//     std::cout << "After Examination: B = " << B << std::endl;
     
     mat_sub_block<Matrix1> subA(A,q,N-p,0,p); //the QZ step will affect the entire upper corner block (1:q,p:N)
     mat_sub_block<Matrix2> subB(B,q,N-p,0,p);
+    
     if(Q) {
       mat_sub_block<Matrix3> subQ(*Q, Q->get_row_count(), Q->get_col_count() - p, 0, p); //Q_new will only change in the columns after p.
       if(Z) {
         mat_sub_block<Matrix3> subZ(*Z, Z->get_row_count(), Z->get_col_count() - p, 0, p); //Z_new will only change in the columns after p.
-        francis_QZ_step(subA,subB,&subQ,&subZ,p,NumTol);
+	if(!deflate_hess_all_impl(subA,subB,&subQ,&subZ,p,NumTol))
+          francis_QZ_step(subA,subB,&subQ,&subZ,p,NumTol);
       } else {
-        francis_QZ_step(subA,subB,&subQ,static_cast<Matrix4*>(NULL),p,NumTol);
+        if(!deflate_hess_all_impl(subA,subB,&subQ,static_cast<Matrix4*>(NULL),p,NumTol))
+          francis_QZ_step(subA,subB,&subQ,static_cast<Matrix4*>(NULL),p,NumTol);
       };
     } else {
       if(Z) {
         mat_sub_block<Matrix3> subZ(*Z, Z->get_row_count(), Z->get_col_count() - p, 0, p);
-        francis_QZ_step(subA,subB,static_cast<Matrix3*>(NULL),&subZ,p,NumTol);
+        if(!deflate_hess_all_impl(subA,subB,static_cast<Matrix3*>(NULL),&subZ,p,NumTol))
+          francis_QZ_step(subA,subB,static_cast<Matrix3*>(NULL),&subZ,p,NumTol);
       } else {
-        francis_QZ_step(subA,subB,static_cast<Matrix3*>(NULL),static_cast<Matrix4*>(NULL),p,NumTol);
+        if(!deflate_hess_all_impl(subA,subB,static_cast<Matrix3*>(NULL),static_cast<Matrix4*>(NULL),p,NumTol))
+          francis_QZ_step(subA,subB,static_cast<Matrix3*>(NULL),static_cast<Matrix4*>(NULL),p,NumTol);
       };
+    };
+    
+//     std::cout << "After QZ-step: A = " << A << std::endl;
+//     std::cout << "After QZ-step: B = " << B << std::endl;
+    
+//     if(++iter_count == 4) {
+//       break;
+//     };
+  };
+  
+  // third step is to deal with the 2-2 blocks remaining and see if they can be reduced 
+  //  to 2 1-1 blocks (eigenvalues are real).
+  // NOTE Not sure this is needed.
+  for(q = 1; q < N; ++q) {
+    if(fabs(A(q,q-1)) < NumTol * (fabs(A(q,q)) + fabs(A(q-1,q-1))))
+      continue;
+    
+    ValueType mu = A(q-1,q-1) / B(q-1,q-1);
+    ValueType a_12 = A(q-1,q) - mu * B(q-1,q);
+    ValueType a_22 = A(q,q) - mu * B(q,q);
+    ValueType p_val = ValueType(0.5) * ( a_22 / B(q,q) - (B(q-1,q) * A(q,q-1)) / (B(q-1,q-1) * B(q,q)));
+    ValueType q_val = (A(q,q-1) * a_12) / (B(q-1,q-1) * B(q,q));
+    ValueType r = p_val * p_val + q_val;
+    if(r < ValueType(0.0))
+      continue;
+    
+    ValueType l = mu + p_val + (p_val > 0 ? sqrt(r) : -sqrt(r));
+    
+    givens_rot_matrix<ValueType> G;
+    
+    {
+    G.set(l * B(q,q) - A(q,q), A(q,q-1));
+    G = transpose(G);
+    
+    mat_sub_block<Matrix2> subB(B, q + 1, 2, 0, q-1);
+    givens_rot_prod(subB,G); // B * G^T
+    
+    mat_sub_block<Matrix1> subA(A, q + 2, 2, 0, q-1);
+    givens_rot_prod(subA,G); // A * G^T
+    
+    if(Z) {
+      mat_sub_block<Matrix4> subZ(*Z, Z->get_row_count(), 2, 0, q-1);
+      givens_rot_prod(subZ,G); // Q_prev * G^T
+    };
+    };
+    
+    {
+    G.set(B(q-1,q-1),B(q,q-1));
+    
+    mat_sub_block<Matrix1> subA2(A, 2, N-q+1, q-1, q-1);
+    givens_rot_prod(G,subA2); // G * A
+    
+    mat_sub_block<Matrix2> subB2(B, 2, N-q+1, q-1, q-1);
+    givens_rot_prod(G,subB2); // G * B
+    
+    if(Q) {
+      mat_sub_block<Matrix3> subQ(*Q, Q->get_row_count(), 2, 0, q-1);
+      givens_rot_prod(subQ,transpose(G)); // Q_prev * G^T
+    };
     };
     
   };
@@ -504,7 +728,7 @@ void >::type decompose_GenRealSchur(const Matrix1& A, const Matrix2& B, Matrix3&
 
 
 
-
+#endif
 
 
 

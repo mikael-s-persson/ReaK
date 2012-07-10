@@ -95,15 +95,15 @@ void decompose_Hess_impl(Matrix1& H, Matrix2* Q, typename mat_traits<Matrix1>::v
 
 
 template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
-void reduce_HessTri_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix3* Z, typename mat_traits<Matrix1>::value_type NumTol)
+void reduce_HessTri_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typename mat_traits<Matrix1>::value_type NumTol)
 {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
-  SizeType N = H.get_row_count();
+  SizeType N = A.get_row_count();
   
   givens_rot_matrix<ValueType> G;
   
-  mat<ValueType,mat_structure::square> Q_init(mat<ValueType,mat_structure::identity>(N));
+  mat<ValueType,mat_structure::square> Q_init = mat<ValueType,mat_structure::square>(mat<ValueType,mat_structure::identity>(N));
   decompose_QR_impl(B,&Q_init,NumTol);
   
   if(Q)
@@ -313,14 +313,14 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
 void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B, 
 			    Matrix3& H, Matrix4& R, Matrix5& Q, Matrix6& Z,
 			    typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  if((A.get_row_count() != A.get_col_count()) !! (B.get_row_count() != B.get_col_count()))
+  if((A.get_row_count() != A.get_col_count()) || (B.get_row_count() != B.get_col_count()))
     throw std::range_error("Hessenberg-Triangular reduction is only possible on square matrices!");
 
   H = A;
   R = B;
   Q = mat< typename mat_traits<Matrix5>::value_type, mat_structure::identity>(A.get_row_count());
   Z = mat< typename mat_traits<Matrix6>::value_type, mat_structure::identity>(A.get_row_count());
-  detail::decompose_Hess_impl(H,R,&Q,&Z,NumTol);
+  detail::reduce_HessTri_impl(H,R,&Q,&Z,NumTol);
 };
 
 
@@ -364,14 +364,14 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
 void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B, 
 			    Matrix3& H, Matrix4& R, Matrix5& Q, Matrix6& Z,
 			    typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  if((A.get_row_count() != A.get_col_count()) !! (B.get_row_count() != B.get_col_count()))
+  if((A.get_row_count() != A.get_col_count()) || (B.get_row_count() != B.get_col_count()))
     throw std::range_error("Hessenberg-Triangular reduction is only possible on square matrices!");
 
   mat<typename mat_traits<Matrix3>::value_type,mat_structure::square> Htmp(A);
   mat<typename mat_traits<Matrix4>::value_type,mat_structure::square> Rtmp(B);
   mat<typename mat_traits<Matrix5>::value_type,mat_structure::square> Qtmp(mat< typename mat_traits<Matrix5>::value_type, mat_structure::identity>(A.get_row_count()));
   mat<typename mat_traits<Matrix6>::value_type,mat_structure::square> Ztmp(mat< typename mat_traits<Matrix6>::value_type, mat_structure::identity>(A.get_row_count()));
-  detail::decompose_Hess_impl(Htmp,Rtmp,&Qtmp,&Ztmp,NumTol);
+  detail::reduce_HessTri_impl(Htmp,Rtmp,&Qtmp,&Ztmp,NumTol);
   H = Htmp;
   R = Rtmp;
   Q = Qtmp;
@@ -408,12 +408,12 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix4>::value, 
 void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B, 
 			    Matrix3& H, Matrix4& R, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  if((A.get_row_count() != A.get_col_count()) !! (B.get_row_count() != B.get_col_count()))
+  if((A.get_row_count() != A.get_col_count()) || (B.get_row_count() != B.get_col_count()))
     throw std::range_error("Hessenberg-Triangular reduction is only possible on square matrices!");
 
   H = A;
   R = B;
-  detail::decompose_Hess_impl(H,R,static_cast<Matrix3*>(NULL),static_cast<Matrix4*>(NULL),NumTol);
+  detail::reduce_HessTri_impl(H,R,static_cast<Matrix3*>(NULL),static_cast<Matrix4*>(NULL),NumTol);
 };
 
 
@@ -447,12 +447,12 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              !is_fully_writable_matrix<Matrix4>::value, 
 void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B, 
 			    Matrix3& H, Matrix4& R, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  if((A.get_row_count() != A.get_col_count()) !! (B.get_row_count() != B.get_col_count()))
+  if((A.get_row_count() != A.get_col_count()) || (B.get_row_count() != B.get_col_count()))
     throw std::range_error("Hessenberg-Triangular reduction is only possible on square matrices!");
 
   mat<typename mat_traits<Matrix3>::value_type,mat_structure::square> Htmp(A);
   mat<typename mat_traits<Matrix4>::value_type,mat_structure::square> Rtmp(B);
-  detail::decompose_Hess_impl(Htmp,Rtmp,static_cast<Matrix3*>(NULL),static_cast<Matrix4*>(NULL),H,NumTol);
+  detail::reduce_HessTri_impl(Htmp,Rtmp,static_cast<Matrix3*>(NULL),static_cast<Matrix4*>(NULL),H,NumTol);
   H = Htmp;
   R = Rtmp;
 };
