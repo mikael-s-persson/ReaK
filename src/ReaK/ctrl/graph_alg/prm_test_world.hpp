@@ -69,21 +69,9 @@
 
 namespace boost {
 
-  enum vertex_position_t { vertex_position };
   enum vertex_density_t { vertex_density };
 
-  BOOST_INSTALL_PROPERTY(vertex, position);  
   BOOST_INSTALL_PROPERTY(vertex, density);
-
-};
-
-namespace boost {
-
-  enum vertex_heuristic_t { vertex_heuristic };
-  enum vertex_rhs_t { vertex_rhs };
-
-  BOOST_INSTALL_PROPERTY(vertex, heuristic);
-  BOOST_INSTALL_PROPERTY(vertex, rhs);
 
 };
 
@@ -455,7 +443,7 @@ class prm_test_world {
                    m_pred(get(boost::vertex_predecessor, grid)),
                    m_density(get(boost::vertex_density, grid)),
                    m_weight(get(boost::edge_weight, grid)),
-                   space_part(grid,m_space,m_position),
+                   space_part(grid,ReaK::shared_ptr<const space_type>(&m_space,ReaK::null_deleter()),m_position),
                    progress_call_back(aProgressCallback), path_found_call_back(aPathFoundCallback)
     {
       

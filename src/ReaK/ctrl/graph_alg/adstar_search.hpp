@@ -57,18 +57,8 @@
 #include <boost/graph/detail/d_ary_heap.hpp>
 #include <boost/property_map/property_map.hpp>
 
+#include "bgl_more_property_tags.hpp"
 
-namespace boost {
-
-  enum vertex_heuristic_t { vertex_heuristic };
-  enum vertex_rhs_t { vertex_rhs };
-  enum vertex_key_t { vertex_key };
-
-  BOOST_INSTALL_PROPERTY(vertex, heuristic);
-  BOOST_INSTALL_PROPERTY(vertex, rhs);
-  BOOST_INSTALL_PROPERTY(vertex, key);
-
-};
 
 namespace ReaK {
   

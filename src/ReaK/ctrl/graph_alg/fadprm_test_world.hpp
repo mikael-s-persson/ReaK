@@ -63,10 +63,8 @@
 
 namespace boost {
 
-enum vertex_position_t { vertex_position };
 enum vertex_density_t { vertex_density };
 
-BOOST_INSTALL_PROPERTY(vertex,position);
 BOOST_INSTALL_PROPERTY(vertex,density);
 
 };

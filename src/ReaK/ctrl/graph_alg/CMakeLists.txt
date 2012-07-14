@@ -43,6 +43,15 @@ if(NOT WIN32)
   endif()
 endif()
 
+add_executable(test_trees "${SRCROOT}${RKGRAPHALGDIR}/test_trees.cpp")
+setup_custom_target(test_trees "${SRCROOT}${RKGRAPHALGDIR}")
+target_link_libraries(test_trees reak_core)
+
+add_executable(test_graphs "${SRCROOT}${RKGRAPHALGDIR}/test_graphs.cpp")
+setup_custom_target(test_graphs "${SRCROOT}${RKGRAPHALGDIR}")
+target_link_libraries(test_graphs reak_core)
+
+
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")

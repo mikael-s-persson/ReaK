@@ -36,14 +36,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 
-namespace boost {
-
-  enum vertex_position_t { vertex_position };
-
-  BOOST_INSTALL_PROPERTY(vertex, position);
-
-};
-
 int main() {
   typedef ReaK::pp::hyperbox_topology< ReaK::vect<double,6> > TopologyType;
   
@@ -94,7 +86,7 @@ int main() {
     std::cout << "N = " << grid_sizes[i] << std::endl;
     
     {
-    WorldPartition2 part2_fresh(grid,m_space,m_position);
+    WorldPartition2 part2_fresh(grid,ReaK::shared_ptr<const TopologyType>(&m_space,ReaK::null_deleter()),m_position);
     
     ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition2> nn_finder2_fresh;
     nn_finder2_fresh.graph_tree_map[&grid] = &part2_fresh;
@@ -108,7 +100,7 @@ int main() {
     };
     
     {
-    WorldPartition4 part4_fresh(grid,m_space,m_position);
+    WorldPartition4 part4_fresh(grid,ReaK::shared_ptr<const TopologyType>(&m_space,ReaK::null_deleter()),m_position);
     
     ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition4> nn_finder4_fresh;
     nn_finder4_fresh.graph_tree_map[&grid] = &part4_fresh;
