@@ -94,7 +94,7 @@ class householder_matrix {
       value_type sigma = value_type(0.0);
       for(size_type i=1;i<v.size();++i)
 	sigma += v[i] * v[i];
-      if(sigma < NumTol) {
+      if(sigma < NumTol * NumTol) {
 	v[0] = value_type(1.0);
 	beta = value_type(0.0);
 	return;
@@ -117,7 +117,7 @@ class householder_matrix {
       value_type sigma = value_type(0.0);
       for(size_type i=0;i<v.size()-1;++i)
         sigma += v[i] * v[i];
-      if(sigma < NumTol) {
+      if(sigma < NumTol * NumTol) {
         v[v.size()-1] = value_type(1.0);
         beta = value_type(0.0);
         return;
@@ -236,7 +236,7 @@ class householder_matrix {
      * \return the element at the given position.
      * \test PASSED
      */
-    value_type operator()(size_type i,size_type j) { return (i == j ? value_type(1.0) : value_type(0.0)) - beta * v[i] * v[j]; };
+    value_type operator()(size_type i,size_type j) const { return (i == j ? value_type(1.0) : value_type(0.0)) - beta * v[i] * v[j]; };
     
     /**
      * Transposes the matrix M.

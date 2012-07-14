@@ -172,7 +172,7 @@ class givens_rot_matrix {
      * \return the element at the given position.
      * \test PASSED
      */
-    value_type operator()(size_type i,size_type j) { return (i == j ? c : (i - j) * s); };
+    value_type operator()(size_type i,size_type j) const { return (i == j ? c : (i < j ? -s : s)); };
     
     /**
      * Transposes the matrix M.

@@ -62,7 +62,7 @@ namespace detail {
 
 
 template <typename Matrix1, typename Matrix2>
-void decompose_Hess_impl(Matrix1& H, Matrix2* Q, typename mat_traits<Matrix1>::value_type NumTol)
+void decompose_Hess_impl(Matrix1& H, Matrix2* Q, typename mat_traits<Matrix1>::value_type absNumTol)
 {
   
   typedef typename mat_traits<Matrix1>::value_type ValueType;
@@ -74,7 +74,7 @@ void decompose_Hess_impl(Matrix1& H, Matrix2* Q, typename mat_traits<Matrix1>::v
 
   for(SizeType i=0;i<t;++i) {
     
-    hhm.set(mat_row_slice<Matrix1>(H,i,i+1,N - i - 1),NumTol);
+    hhm.set(mat_row_slice<Matrix1>(H,i,i+1,N - i - 1),absNumTol);
     
     mat_sub_block<Matrix1> subH1(H,N - i - 1,N - i,i+1,i);
     householder_prod(hhm,subH1); // P * H
@@ -93,56 +93,92 @@ void decompose_Hess_impl(Matrix1& H, Matrix2* Q, typename mat_traits<Matrix1>::v
   
 
 
-
 template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
-void reduce_HessTri_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typename mat_traits<Matrix1>::value_type NumTol)
+void reduce_HessTri_offset_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, 
+                                typename mat_traits<Matrix1>::size_type row_offset,
+                                typename mat_traits<Matrix1>::value_type absNumTol)
 {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
-  SizeType N = A.get_row_count();
+  SizeType N = A.get_row_count() - row_offset;
   
   givens_rot_matrix<ValueType> G;
   
-  mat<ValueType,mat_structure::square> Q_init = mat<ValueType,mat_structure::square>(mat<ValueType,mat_structure::identity>(N));
-  decompose_QR_impl(B,&Q_init,NumTol);
+//   std::cout << "Hess-Tri: Before QR: A = " << A << std::endl;
+//   std::cout << "Hess-Tri: Before QR: B = " << B << std::endl;
   
-  if(Q)
-    *Q *= Q_init;
-  A = transpose(Q_init) * A;
+  householder_matrix< vect_n<ValueType> > hhm;
   
-  SizeType t = N-2;
-
-  for(SizeType j=0;j<t;++j) {
-    for(SizeType i = N-1; i>j+1; --i) {
-      G.set(A(i-1,j),A(i,j));
+  for(SizeType i = 0; i < N-1; ++i) {
     
-      mat_sub_block<Matrix1> subA1(A,2,N - j,i-1,j);
-      givens_rot_prod(G,subA1); // G * A
+    hhm.set(mat_row_slice<Matrix2>(B, i, row_offset + i, N - i), absNumTol);
     
-      mat_sub_block<Matrix2> subB1(B,2,N - i + 1,i-1,i-1);
-      givens_rot_prod(G,subB1); // G * B
+    mat_sub_block<Matrix2> subB(B, N - i, B.get_col_count() - i, row_offset + i, i);
+    householder_prod(hhm,subB); // P * R
     
-      if(Q) {
-        mat_sub_block<Matrix3> subQ(*Q,N,2,0,i-1);
-        givens_rot_prod(subQ,transpose(G)); // Q_prev * G^T
-      };
-      
-      G.set(-B(i,i),B(i,i-1));
-      G = transpose(G);
+    mat_sub_block<Matrix1> subA(A, N - i, A.get_col_count(), row_offset + i, 0);
+    householder_prod(hhm,subA); // P * R
     
-      mat_sub_block<Matrix2> subB2(B,i+1,2,0,i-1);
-      givens_rot_prod(subB2,G); // B * G^T
-    
-      mat_sub_block<Matrix1> subA2(A,N,2,0,i-1);
-      givens_rot_prod(subA2,G); // A * G^T
-    
-      if(Z) {
-        mat_sub_block<Matrix4> subZ(*Z,N,2,0,i-1);
-        givens_rot_prod(subZ,G); // Q_prev * G^T
-      };
+    if(Q) {
+      mat_sub_block<Matrix3> subQ(*Q,Q->get_row_count(),N - i,0,i);
+      householder_prod(subQ,hhm); // Q_prev * P
     };
   };
   
+//   std::cout << "Hess-Tri: After QR: A = " << A << std::endl;
+//   std::cout << "Hess-Tri: After QR: B = " << B << std::endl;
+  
+  SizeType t = N-2;
+
+  for(SizeType j = 0; j < t; ++j) {
+    for(SizeType i = N-1; i > j+1; --i) {
+      if(fabs(A(i,j)) < absNumTol)
+        continue;
+      
+      G.set(A(row_offset + i-1,j),A(row_offset + i,j));
+    
+      mat_sub_block<Matrix1> subA1(A, 2, A.get_col_count() - j, row_offset + i-1, j);
+      givens_rot_prod(G,subA1); // G * A
+    
+      mat_sub_block<Matrix2> subB1(B, 2, B.get_col_count() - i + 1, row_offset + i-1, i-1);
+      givens_rot_prod(G,subB1); // G * B
+    
+      if(Q) {
+        mat_sub_block<Matrix3> subQ(*Q,Q->get_row_count(),2,0,i-1);
+        givens_rot_prod(subQ,transpose(G)); // Q_prev * G^T
+      };
+      
+      
+//       std::cout << "Hess-Tri: Step 1: A = " << A << std::endl;
+//       std::cout << "Hess-Tri: Step 1: B = " << B << std::endl;
+      
+      
+      G.set(-B(row_offset + i,i),B(row_offset + i,i-1));
+      G = transpose(G);
+    
+      mat_sub_block<Matrix2> subB2(B,i+1,2,row_offset,i-1);
+      givens_rot_prod(subB2,G); // B * G^T
+    
+      mat_sub_block<Matrix1> subA2(A,N,2,row_offset,i-1);
+      givens_rot_prod(subA2,G); // A * G^T
+    
+      if(Z) {
+        mat_sub_block<Matrix4> subZ(*Z,Z->get_row_count(),2,0,i-1);
+        givens_rot_prod(subZ,G); // Q_prev * G^T
+      };
+      
+//       std::cout << "Hess-Tri: Step 2: A = " << A << std::endl;
+//       std::cout << "Hess-Tri: Step 2: B = " << B << std::endl;
+      
+    };
+  };
+  
+};
+
+template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
+void reduce_HessTri_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typename mat_traits<Matrix1>::value_type absNumTol)
+{
+  reduce_HessTri_offset_impl(A,B,Q,Z,0,absNumTol);
 };
 
 
@@ -320,7 +356,7 @@ void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B,
   R = B;
   Q = mat< typename mat_traits<Matrix5>::value_type, mat_structure::identity>(A.get_row_count());
   Z = mat< typename mat_traits<Matrix6>::value_type, mat_structure::identity>(A.get_row_count());
-  detail::reduce_HessTri_impl(H,R,&Q,&Z,NumTol);
+  detail::reduce_HessTri_offset_impl(H,R,&Q,&Z,0,NumTol);
 };
 
 
@@ -371,7 +407,7 @@ void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B,
   mat<typename mat_traits<Matrix4>::value_type,mat_structure::square> Rtmp(B);
   mat<typename mat_traits<Matrix5>::value_type,mat_structure::square> Qtmp(mat< typename mat_traits<Matrix5>::value_type, mat_structure::identity>(A.get_row_count()));
   mat<typename mat_traits<Matrix6>::value_type,mat_structure::square> Ztmp(mat< typename mat_traits<Matrix6>::value_type, mat_structure::identity>(A.get_row_count()));
-  detail::reduce_HessTri_impl(Htmp,Rtmp,&Qtmp,&Ztmp,NumTol);
+  detail::reduce_HessTri_offset_impl(Htmp,Rtmp,&Qtmp,&Ztmp,0,NumTol);
   H = Htmp;
   R = Rtmp;
   Q = Qtmp;
@@ -413,7 +449,7 @@ void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B,
 
   H = A;
   R = B;
-  detail::reduce_HessTri_impl(H,R,static_cast<Matrix3*>(NULL),static_cast<Matrix4*>(NULL),NumTol);
+  detail::reduce_HessTri_offset_impl(H,R,static_cast<Matrix3*>(NULL),static_cast<Matrix4*>(NULL),0,NumTol);
 };
 
 
@@ -452,7 +488,7 @@ void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B,
 
   mat<typename mat_traits<Matrix3>::value_type,mat_structure::square> Htmp(A);
   mat<typename mat_traits<Matrix4>::value_type,mat_structure::square> Rtmp(B);
-  detail::reduce_HessTri_impl(Htmp,Rtmp,static_cast<Matrix3*>(NULL),static_cast<Matrix4*>(NULL),H,NumTol);
+  detail::reduce_HessTri_offset_impl(Htmp,Rtmp,static_cast<Matrix3*>(NULL),static_cast<Matrix4*>(NULL),0,NumTol);
   H = Htmp;
   R = Rtmp;
 };

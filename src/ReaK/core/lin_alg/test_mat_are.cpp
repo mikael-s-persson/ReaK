@@ -30,132 +30,461 @@
 
 #include "mat_are_solver.hpp"
 
+#include "mat_norms.hpp"
+
 int main() {
 
   using namespace ReaK;
-
-  unsigned int passed = 0;
-
-#if 0
-  try {
- 
-    if(true){
-      RK_NOTICE(2,"/*********************************************/");
-      RK_NOTICE(2,"/********* MATRIX NUM-METHODS TESTS **********/");
-      RK_NOTICE(2,"/*********************************************/");
-
-      mat<double,mat_structure::symmetric> m_gauss(2.0,-1.0,0.0,2.0,-1.0,2.0);
-      RK_NOTICE(2,"Testing the following matrix: " << m_gauss);
-    
-      mat<double,mat_structure::square> m_gauss_inv(3);
-      invert_gaussian(m_gauss,m_gauss_inv,double(1E-15));
-      RK_NOTICE(2,"The inverse was found with Gaussian: " << m_gauss_inv);
-      RK_NOTICE(2,"The inverse * the matrix = " << (m_gauss * m_gauss_inv));
-
-      mat<double,mat_structure::square> m_plu_inv(mat<double,mat_structure::identity>(3));
-      invert_PLU(m_gauss,m_plu_inv,double(1E-15));
-      RK_NOTICE(2,"The inverse was found with PLU: " << m_plu_inv);
-      RK_NOTICE(2,"The inverse * the matrix = " << (m_gauss * m_plu_inv));
-    
-      mat<double,mat_structure::symmetric> m_gauss2_inv(3);
-      invert_gaussian(m_gauss,m_gauss2_inv,double(1E-15));
-      RK_NOTICE(2,"The inverse was found with Gaussian Symmetric: " << m_gauss2_inv);
-      RK_NOTICE(2,"The inverse * the matrix = " << (m_gauss * m_gauss2_inv));
-
-      mat<double,mat_structure::symmetric> m_plu2_inv(mat<double,mat_structure::identity>(3));
-      invert_PLU(m_gauss,m_plu2_inv,double(1E-15));
-      RK_NOTICE(2,"The inverse was found with PLU Symmetric: " << m_plu2_inv);
-      RK_NOTICE(2,"The inverse * the matrix = " << (m_gauss * m_plu2_inv));
-
-      mat<double,mat_structure::symmetric> m_cholesky_inv(mat<double,mat_structure::identity>(3));
-      invert_Cholesky(m_gauss,m_cholesky_inv,double(1E-15));
-      RK_NOTICE(2,"The inverse was found with Cholesky: " << m_cholesky_inv);
-      RK_NOTICE(2,"The inverse * the matrix = " << (m_gauss * m_cholesky_inv));
-    
-      mat<double,mat_structure::square> m_cholesky2_inv(mat<double,mat_structure::identity>(3));
-      invert_Cholesky(m_gauss,m_cholesky2_inv,double(1E-15));
-      RK_NOTICE(2,"The inverse was found with Cholesky Square: " << m_cholesky2_inv);
-      RK_NOTICE(2,"The inverse * the matrix = " << (m_gauss * m_cholesky2_inv));
-     
-      mat<double,mat_structure::diagonal> m_gauss_diag(vect<double,3>(2,1,0.5));
-      RK_NOTICE(2,"Testing the following matrix: " << m_gauss_diag);
-    
-      mat<double,mat_structure::square> m_cholesky3_inv(mat<double,mat_structure::identity>(3));
-      invert_Cholesky(m_gauss_diag,m_cholesky3_inv,double(1E-15));
-      RK_NOTICE(2,"The inverse was found with Diag Cholesky Square: " << m_cholesky3_inv);
-      RK_NOTICE(2,"The inverse * the matrix = " << (m_gauss_diag * m_cholesky3_inv));
-    
-      mat<double,mat_structure::diagonal> m_cholesky4_inv(mat<double,mat_structure::identity>(3));
-      invert_Cholesky(m_gauss_diag,m_cholesky4_inv,double(1E-15));
-      RK_NOTICE(2,"The inverse was found with Diag Cholesky Square: " << m_cholesky4_inv);
-      RK_NOTICE(2,"The inverse * the matrix = " << (m_gauss_diag * m_cholesky4_inv));
-     
-      mat<double,mat_structure::symmetric> m_jacobi_pinv(3);
-      pseudoinvert_Jacobi(m_gauss,m_jacobi_pinv,double(1E-15));
-      RK_NOTICE(2,"The inverse was found with Jacobi: " << m_jacobi_pinv);
-      RK_NOTICE(2,"The inverse * the matrix = " << (m_gauss * m_jacobi_pinv));
-   
-      mat<double,mat_structure::square> m_qr_inv(3);
-      pseudoinvert_QR(m_gauss,m_qr_inv,double(1E-15));
-      RK_NOTICE(2,"The inverse was found with QR: " << m_qr_inv);
-      RK_NOTICE(2,"The inverse * the matrix = " << (m_gauss * m_qr_inv));
-
-      mat<double,mat_structure::square> m_svd_inv(3);
-      pseudoinvert_SVD(m_gauss,m_svd_inv,double(1E-15));
-      RK_NOTICE(2,"The inverse was found with SVD: " << m_svd_inv);
-      RK_NOTICE(2,"The inverse * the matrix = " << (m_gauss * m_svd_inv));
-
-      mat<double,mat_structure::diagonal> m_jacobi_E(3);
-      mat<double,mat_structure::square> m_jacobi_Q(3);
-      eigensolve_Jacobi(m_gauss,m_jacobi_E,m_jacobi_Q,double(1E-15));
-      RK_NOTICE(2,"The eigenvalues were found with Jacobi.");
-      RK_NOTICE(2,"The eigenvalues are = " << m_jacobi_E);
-      RK_NOTICE(2,"The eigenvectors are = " << m_jacobi_Q);
-      RK_NOTICE(2,"Q * E * Qt = " << m_jacobi_Q * m_jacobi_E * transpose(m_jacobi_Q));
-
-      mat<double,mat_structure::diagonal> m_qr_E(3,true);
-      mat<double,mat_structure::square> m_qr_Q(3);
-      //eigensolve_QR(m_gauss,m_qr_E,m_qr_Q,50,double(1E-6));
-      RK_NOTICE(2,"The eigenvalues were found with QR.");
-      RK_NOTICE(2,"The eigenvalues are = " << m_qr_E);
-      RK_NOTICE(2,"The eigenvectors are = " << m_qr_Q);
-      RK_NOTICE(2,"Q * E * Qt = " << m_qr_Q * m_qr_E * transpose(m_qr_Q));
-
-      mat<double,mat_structure::diagonal> m_svd_E(3);
-      mat<double,mat_structure::square> m_svd_U(3);
-      mat<double,mat_structure::square> m_svd_V(3);
-      decompose_SVD(m_gauss,m_svd_U,m_svd_E,m_svd_V,double(1E-15));
-      RK_NOTICE(2,"The eigenvalues were found with SVD.");
-      RK_NOTICE(2,"The eigenvalues are = " << m_svd_E);
-      RK_NOTICE(2,"V = " << m_svd_V);
-      RK_NOTICE(2,"U = " << m_svd_U);
-      RK_NOTICE(2,"Q * E * Qt = " << m_svd_U * m_svd_E * transpose(m_svd_V));
-    
-    };
   
-  } catch(std::exception& e) {
-    RK_ERROR("An exception has occurred during the math_gen test: '" << e.what() << "'");
-  } catch(...) {
-    RK_ERROR("An unexpected and unidentified exception has occurred during the math_gen test.");
+  
+  {
+  std::cout << "****** Problem 1 ****** " << std::endl;
+  mat<double,mat_structure::rectangular> F(2,2);
+  mat<double,mat_structure::rectangular> G(2,1);
+  F(0,0) = 2.0; F(0,1) = -1.0; 
+  F(1,0) = 1.0; F(1,1) = 0.0; 
+  
+  G(0,0) = 1.0; 
+  G(1,0) = 0.0; 
+  
+  mat<double,mat_structure::rectangular> R(1,1);
+  R(0,0) = 0.0;
+  mat<double,mat_structure::rectangular> Q(2,2);
+  Q(0,0) = 0.0; Q(0,1) = 0.0;
+  Q(1,0) = 0.0; Q(1,1) = 1.0;
+  
+  mat<double,mat_structure::rectangular> P(2,2);
+  solve_dare_problem(F,G,Q,R,P);
+  std::cout << "P = " << P << std::endl;
+  
+  
+  mat<double,mat_structure::rectangular> M_tmp(1,1);
+  M_tmp = ( R + transpose_view(G) * P * G );
+  mat<double,mat_structure::rectangular> M2_tmp(1,2);
+  M2_tmp = transpose_view(G) * P * F;
+  mat<double,mat_structure::rectangular> Msol_tmp(1,2);
+  linlsq_QR(M_tmp,Msol_tmp,M2_tmp);
+  std::cout << "F' P F - F' P G ( R + G' P G )^-1 G' P F + Q = " 
+            << (transpose_view(F) * P * F - transpose_view(F) * P * G * Msol_tmp + Q) << std::endl;
+  
   };
   
-  RK_NOTICE(2,"There were " << passed << " successful tests passed on the math_gen library, out of 45 possible successes.");
+  {
   
+  std::cout << "****** Problem 2 ****** " << std::endl;
+  mat<double,mat_structure::rectangular> F(2,2);
+  mat<double,mat_structure::rectangular> G(2,1);
+  F(0,0) = 1.0; F(0,1) = 0.2; 
+  F(1,0) = 0.0; F(1,1) = 1.0; 
+  
+  G(0,0) = 0.0; 
+  G(1,0) = 1.0; 
+  
+  mat<double,mat_structure::rectangular> R(1,1);
+  R(0,0) = 1.0;
+  mat<double,mat_structure::rectangular> Q(2,2);
+  Q(0,0) = 1.0; Q(0,1) = 0.0;
+  Q(1,0) = 0.0; Q(1,1) = 1.0;
+  
+  mat<double,mat_structure::rectangular> P(2,2);
+  solve_dare_problem(F,G,Q,R,P,1e-4);
+  std::cout << "P = " << P << std::endl;
+  
+  
+  mat<double,mat_structure::rectangular> M_tmp(1,1);
+  M_tmp = ( R + transpose_view(G) * P * G );
+  mat<double,mat_structure::rectangular> M2_tmp(1,2);
+  M2_tmp = transpose_view(G) * P * F;
+  mat<double,mat_structure::rectangular> Msol_tmp(1,2);
+  linlsq_QR(M_tmp,Msol_tmp,M2_tmp);
+  std::cout << "F' P F - F' P G ( R + G' P G )^-1 G' P F + Q = " 
+            << (transpose_view(F) * P * F - transpose_view(F) * P * G * Msol_tmp + Q) << std::endl;
+  };
+  
+  
+  
+  std::size_t passed = 0;
+  std::size_t possible_passes = 17;
+  
+  {
+  std::vector< mat<double, mat_structure::rectangular> > F_list(9);
+  std::vector< mat<double, mat_structure::rectangular> > G_list(9);
+  std::vector< mat<double, mat_structure::rectangular> > Q_list(9);
+  std::vector< mat<double, mat_structure::rectangular> > R_list(9);
+  
+  F_list[0] = mat<double,mat_structure::rectangular>(2,2);
+  F_list[0](0,0) =  4.0; F_list[0](0,1) = 3.0; 
+  F_list[0](1,0) = -4.5; F_list[0](1,1) = -3.5; 
+  
+  G_list[0] = mat<double,mat_structure::rectangular>(2,1);
+  G_list[0](0,0) =  1.0; 
+  G_list[0](1,0) = -1.0; 
+  
+  R_list[0] = mat<double,mat_structure::rectangular>(1,1);
+  R_list[0](0,0) = 1.0; 
+  
+  Q_list[0] = mat<double,mat_structure::rectangular>(2,2);
+  Q_list[0](0,0) = 9.0; Q_list[0](0,1) = 6.0; 
+  Q_list[0](1,0) = 6.0; Q_list[0](1,1) = 4.0; 
+  
+  
+  F_list[1] = mat<double,mat_structure::rectangular>(2,2);
+  F_list[1](0,0) = 0.9512; F_list[1](0,1) = 0.0; 
+  F_list[1](1,0) = 0.0; F_list[1](1,1) = 0.9048; 
+  
+  G_list[1] = mat<double,mat_structure::rectangular>(2,2);
+  G_list[1](0,0) = 4.877; G_list[1](0,1) = 4.877; 
+  G_list[1](1,0) = -1.1895; G_list[1](1,1) = 3.569; 
+  
+  R_list[1] = mat<double,mat_structure::rectangular>(2,2);
+  R_list[1](0,0) = 1.0 / 3.0; R_list[1](0,1) = 0.0; 
+  R_list[1](1,0) = 0.0; R_list[1](1,1) = 3.0; 
+  
+  Q_list[1] = mat<double,mat_structure::rectangular>(2,2);
+  Q_list[1](0,0) = 0.005; Q_list[1](0,1) = 0.0; 
+  Q_list[1](1,0) = 0.0; Q_list[1](1,1) = 0.02; 
+  
+  
+  F_list[2] = mat<double,mat_structure::rectangular>(2,2);
+  F_list[2](0,0) = 2.0; F_list[2](0,1) = -1.0; 
+  F_list[2](1,0) = 1.0; F_list[2](1,1) = 0.0; 
+  
+  G_list[2] = mat<double,mat_structure::rectangular>(2,1);
+  G_list[2](0,0) = 1.0; 
+  G_list[2](1,0) = 0.0; 
+  
+  R_list[2] = mat<double,mat_structure::rectangular>(1,1);
+  R_list[2](0,0) = 0.0; 
+  
+  Q_list[2] = mat<double,mat_structure::rectangular>(2,2);
+  Q_list[2](0,0) = 0.0; Q_list[2](0,1) = 0.0; 
+  Q_list[2](1,0) = 0.0; Q_list[2](1,1) = 1.0; 
+  
+  
+  F_list[3] = mat<double,mat_structure::rectangular>(2,2);
+  F_list[3](0,0) = 0.0; F_list[3](0,1) =  1.0; 
+  F_list[3](1,0) = 0.0; F_list[3](1,1) = -1.0; 
+  
+  G_list[3] = mat<double,mat_structure::rectangular>(2,2);
+  G_list[3](0,0) = 1.0; G_list[3](0,1) = 0.0; 
+  G_list[3](1,0) = 2.0; G_list[3](1,1) = 1.0; 
+  
+  R_list[3] = mat<double,mat_structure::rectangular>(2,2);
+  R_list[3](0,0) = 9.0; R_list[3](0,1) = 3.0; 
+  R_list[3](1,0) = 3.0; R_list[3](1,1) = 1.0; 
+  
+  Q_list[3] = mat<double,mat_structure::rectangular>(2,2);
+  Q_list[3](0,0) = -4.0/11.0; Q_list[3](0,1) = -4.0/11.0; 
+  Q_list[3](1,0) = -4.0/11.0; Q_list[3](1,1) =  7.0/11.0; 
+  
+  
+  F_list[4] = mat<double,mat_structure::rectangular>(2,2);
+  F_list[4](0,0) = 1.0; F_list[4](0,1) = 0.2; 
+  F_list[4](1,0) = 0.0; F_list[4](1,1) = 1.0; 
+  
+  G_list[4] = mat<double,mat_structure::rectangular>(2,1);
+  G_list[4](0,0) = 0.0; 
+  G_list[4](1,0) = 1.0; 
+  
+  R_list[4] = mat<double,mat_structure::rectangular>(1,1);
+  R_list[4](0,0) = 1.0; 
+  
+  Q_list[4] = mat<double,mat_structure::rectangular>(2,2);
+  Q_list[4](0,0) = 1.0; Q_list[4](0,1) = 0.0; 
+  Q_list[4](1,0) = 0.0; Q_list[4](1,1) = 1.0; 
+  
+  
+  F_list[5] = mat<double,mat_structure::rectangular>(2,2);
+  F_list[5](0,0) = 0.0; F_list[5](0,1) = 1.0; 
+  F_list[5](1,0) = 0.0; F_list[5](1,1) = 0.0; 
+  
+  G_list[5] = mat<double,mat_structure::rectangular>(2,1);
+  G_list[5](0,0) = 0.0; 
+  G_list[5](1,0) = 1.0; 
+  
+  R_list[5] = mat<double,mat_structure::rectangular>(1,1);
+  R_list[5](0,0) = 1.0; 
+  
+  Q_list[5] = mat<double,mat_structure::rectangular>(2,2);
+  Q_list[5](0,0) = 1.0; Q_list[5](0,1) = 2.0; 
+  Q_list[5](1,0) = 2.0; Q_list[5](1,1) = 4.0; 
+  
+  
+  F_list[6] = mat<double,mat_structure::rectangular>(4,4);
+  F_list[6](0,0) =  0.998; F_list[6](0,1) = 0.067; F_list[6](0,2) = 0.0; F_list[6](0,3) = 0.0; 
+  F_list[6](1,0) = -0.067; F_list[6](1,1) = 0.998; F_list[6](1,2) = 0.0; F_list[6](1,3) = 0.0;
+  F_list[6](2,0) = 0.0; F_list[6](2,1) = 0.0; F_list[6](2,2) =  0.998; F_list[6](2,3) = 0.153; 
+  F_list[6](3,0) = 0.0; F_list[6](3,1) = 0.0; F_list[6](3,2) = -0.153; F_list[6](3,3) = 0.998; 
+  
+  G_list[6] = mat<double,mat_structure::rectangular>(4,2);
+  G_list[6](0,0) = 0.0033; G_list[6](0,1) = 0.02; 
+  G_list[6](1,0) = 0.1; G_list[6](1,1) = -0.0007; 
+  G_list[6](2,0) = 0.04; G_list[6](2,1) = 0.0073; 
+  G_list[6](3,0) = -0.0028; G_list[6](3,1) = 0.1; 
+  
+  R_list[6] = mat<double,mat_structure::rectangular>(2,2);
+  R_list[6](0,0) = 1.0; R_list[6](0,1) = 0.0; 
+  R_list[6](1,0) = 0.0; R_list[6](1,1) = 1.0; 
+  
+  Q_list[6] = mat<double,mat_structure::rectangular>(4,4);
+  Q_list[6](0,0) = 1.87; Q_list[6](0,1) = 0.0; Q_list[6](0,2) = 0.0; Q_list[6](0,3) = -0.244; 
+  Q_list[6](1,0) = 0.0; Q_list[6](1,1) = 0.744; Q_list[6](1,2) = 0.205; Q_list[6](1,3) = 0.0; 
+  Q_list[6](2,0) = 0.0; Q_list[6](2,1) = 0.205; Q_list[6](2,2) = 0.589; Q_list[6](2,3) = 0.0; 
+  Q_list[6](3,0) = -0.244; Q_list[6](3,1) = 0.0; Q_list[6](3,2) = 0.0; Q_list[6](3,3) = 1.048; 
+  
+  
+  F_list[7] = mat<double,mat_structure::rectangular>(4,4);
+  F_list[7](0,0) =  0.98475; F_list[7](0,1) = -0.079903; F_list[7](0,2) = 0.0009054; F_list[7](0,3) = -0.0010765; 
+  F_list[7](1,0) = 0.041588; F_list[7](1,1) = 0.99899; F_list[7](1,2) = -0.035855; F_list[7](1,3) = 0.012684;
+  F_list[7](2,0) = -0.54662; F_list[7](2,1) = 0.044916; F_list[7](2,2) =  -0.32991; F_list[7](2,3) = 0.19318; 
+  F_list[7](3,0) = 2.6624; F_list[7](3,1) = -0.10045; F_list[7](3,2) = -0.92455; F_list[7](3,3) = -0.26325; 
+  
+  G_list[7] = mat<double,mat_structure::rectangular>(4,2);
+  G_list[7](0,0) = 0.0037112; G_list[7](0,1) = 0.0007361; 
+  G_list[7](1,0) = -0.087051; G_list[7](1,1) = 9.3411e-6; 
+  G_list[7](2,0) = -1.19844; G_list[7](2,1) = -4.1378e-4; 
+  G_list[7](3,0) = -3.1927; G_list[7](3,1) = 9.2535e-4; 
+  
+  R_list[7] = mat<double,mat_structure::rectangular>(2,2);
+  R_list[7](0,0) = 1.0; R_list[7](0,1) = 0.0; 
+  R_list[7](1,0) = 0.0; R_list[7](1,1) = 1.0; 
+  
+  Q_list[7] = mat<double,mat_structure::rectangular>(4,4);
+  Q_list[7](0,0) = 0.01; Q_list[7](0,1) = 0.0; Q_list[7](0,2) = 0.0; Q_list[7](0,3) = 0.0; 
+  Q_list[7](1,0) = 0.0; Q_list[7](1,1) = 0.01; Q_list[7](1,2) = 0.0; Q_list[7](1,3) = 0.0; 
+  Q_list[7](2,0) = 0.0; Q_list[7](2,1) = 0.0; Q_list[7](2,2) = 0.01; Q_list[7](2,3) = 0.0; 
+  Q_list[7](3,0) = 0.0; Q_list[7](3,1) = 0.0; Q_list[7](3,2) = 0.0; Q_list[7](3,3) = 0.01; 
+  
+  
+  F_list[8] = mat<double,mat_structure::rectangular>(5,5);
+  F_list[8](0,0) =  95.407; F_list[8](0,1) = 1.9643; F_list[8](0,2) = 0.3597; F_list[8](0,3) = 0.0673; F_list[8](0,4) = 0.019;
+  F_list[8](1,0) = 40.849; F_list[8](1,1) = 41.317; F_list[8](1,2) = 16.084; F_list[8](1,3) = 4.4679; F_list[8](1,4) = 1.1971;
+  F_list[8](2,0) = 12.217; F_list[8](2,1) = 26.326; F_list[8](2,2) =  36.149; F_list[8](2,3) = 15.93; F_list[8](2,4) = 12.383;
+  F_list[8](3,0) = 4.1118; F_list[8](3,1) = 12.858; F_list[8](3,2) = 27.209; F_list[8](3,3) = 21.442; F_list[8](3,4) = 40.976;
+  F_list[8](4,0) = 0.1305; F_list[8](4,1) = 0.5808; F_list[8](4,2) = 1.875; F_list[8](4,3) = 3.6162; F_list[8](4,4) = 94.28;
+  F_list[8] *= 0.01;
+  
+  G_list[8] = mat<double,mat_structure::rectangular>(5,2);
+  G_list[8](0,0) = 0.0434; G_list[8](0,1) = -0.0122; 
+  G_list[8](1,0) = 2.6606; G_list[8](1,1) = -1.0453; 
+  G_list[8](2,0) = 3.753; G_list[8](2,1) = -5.51; 
+  G_list[8](3,0) = 3.6076; G_list[8](3,1) = -6.6; 
+  G_list[8](4,0) = 0.4617; G_list[8](4,1) = -0.9148; 
+  G_list[8] *= 0.01;
+  
+  R_list[8] = mat<double,mat_structure::rectangular>(2,2);
+  R_list[8](0,0) = 1.0; R_list[8](0,1) = 0.0; 
+  R_list[8](1,0) = 0.0; R_list[8](1,1) = 1.0; 
+  
+  Q_list[8] = mat<double,mat_structure::rectangular>(5,5);
+  Q_list[8](0,0) = 1.0; Q_list[8](0,1) = 0.0; Q_list[8](0,2) = 0.0; Q_list[8](0,3) = 0.0; Q_list[8](0,4) = 0.0;
+  Q_list[8](1,0) = 0.0; Q_list[8](1,1) = 1.0; Q_list[8](1,2) = 0.0; Q_list[8](1,3) = 0.0; Q_list[8](1,4) = 0.0;
+  Q_list[8](2,0) = 0.0; Q_list[8](2,1) = 0.0; Q_list[8](2,2) = 1.0; Q_list[8](2,3) = 0.0; Q_list[8](2,4) = 0.0;
+  Q_list[8](3,0) = 0.0; Q_list[8](3,1) = 0.0; Q_list[8](3,2) = 0.0; Q_list[8](3,3) = 1.0; Q_list[8](3,4) = 0.0; 
+  Q_list[8](4,0) = 0.0; Q_list[8](4,1) = 0.0; Q_list[8](4,2) = 0.0; Q_list[8](4,3) = 0.0; Q_list[8](4,4) = 1.0; 
+  
+  
+  for(std::size_t i = 0; i < F_list.size(); ++i) {
+    
+    std::cout << "****** Problem " << i << " ****** " << std::endl;
+    
+    mat<double,mat_structure::rectangular> P(F_list[i].get_row_count(),F_list[i].get_col_count());
+    solve_dare_problem(F_list[i], G_list[i], Q_list[i], R_list[i], P, 1e-6);
+    std::cout << "P = " << P << std::endl;
+    
+    mat<double,mat_structure::rectangular> M_tmp = R_list[i];
+    M_tmp += transpose_view(G_list[i]) * P * G_list[i];
+    mat<double,mat_structure::rectangular> M2_tmp(G_list[i].get_col_count(),F_list[i].get_col_count());
+    M2_tmp = transpose_view(G_list[i]) * P * F_list[i];
+    mat<double,mat_structure::rectangular> Msol_tmp;
+    linlsq_QR(M_tmp,Msol_tmp,M2_tmp);
+    mat<double,mat_structure::rectangular> X = 
+      (transpose_view(F_list[i]) * P * F_list[i] 
+     - transpose_view(F_list[i]) * P * G_list[i] * Msol_tmp + Q_list[i]);
+    std::cout << "F' P F - F' P G ( R + G' P G )^-1 G' P F + Q = " 
+              << X << std::endl;
+    std::cout << "P_err = " 
+              << (X - P) << std::endl;
+    
+    if(norm_1( X - P ) < 1e-5 * norm_1(P)) 
+      ++passed;
+    else
+      RK_WARNING("DARE problem #" << i << " suffered a loss of precision!");
+    if(norm_1( X - P ) < 1e-3 * norm_1(P)) 
+      ++passed;
+    else
+      RK_ERROR("DARE problem #" << i << " did not pass!");
+  };
+  };
+  
+#if 0
+  // These are the benchmark tests for the Continuous-time Algebraic Riccatic Equations (CARE)
+  // NOTE So, far it seems that these are not working. Needs investigation.
+  //      It is a bit weird that it wouldn't work since DARE is exactly the same algorithm
+  {
+  std::vector< mat<double, mat_structure::rectangular> > A_list(3);
+  std::vector< mat<double, mat_structure::rectangular> > B_list(3);
+  std::vector< mat<double, mat_structure::rectangular> > Q_list(3);
+  std::vector< mat<double, mat_structure::rectangular> > R_list(3);
+  
+  A_list[0] = mat<double,mat_structure::rectangular>(2,2);
+  A_list[0](0,0) = 0.0; A_list[0](0,1) = 1.0; 
+  A_list[0](1,0) = 0.0; A_list[0](1,1) = 1.0; 
+  
+  B_list[0] = mat<double,mat_structure::rectangular>(2,1);
+  B_list[0](0,0) = 0.0; 
+  B_list[0](1,0) = 1.0; 
+  
+  R_list[0] = mat<double,mat_structure::rectangular>(1,1);
+  R_list[0](0,0) = 1.0; 
+  
+  Q_list[0] = mat<double,mat_structure::rectangular>(2,2);
+  Q_list[0](0,0) = 1.0; Q_list[0](0,1) = 0.0; 
+  Q_list[0](1,0) = 0.0; Q_list[0](1,1) = 2.0; 
+  
+  
+  
+  A_list[1] = mat<double,mat_structure::rectangular>(2,2);
+  A_list[1](0,0) = 4.0; A_list[1](0,1) = 3.0; 
+  A_list[1](1,0) = -4.5; A_list[1](1,1) = -3.5; 
+  
+  B_list[1] = mat<double,mat_structure::rectangular>(2,1);
+  B_list[1](0,0) = 1.0;  
+  B_list[1](1,0) = -1.0; 
+  
+  R_list[1] = mat<double,mat_structure::rectangular>(1,1);
+  R_list[1](0,0) = 1.0;
+  
+  Q_list[1] = mat<double,mat_structure::rectangular>(2,2);
+  Q_list[1](0,0) = 9.0; Q_list[1](0,1) = 6.0; 
+  Q_list[1](1,0) = 6.0; Q_list[1](1,1) = 4.0; 
+  
+  A = [4 3; -4.5 -3.5];
+  G = [1 -1; -1 1];
+  Q = [9 6; 6 4];
+  X = (1+sqrt(2))*[9 6; 6 4];
+  parout = [2, 1, 2];
+  if nargout > 5
+    B = [1; -1];  R = 1;  C = eye(2);  Q0 = Q;
+  
+  
+  A_list[2] = mat<double,mat_structure::rectangular>(4,4);
+  A_list[2](0,0) = 0.0; A_list[2](0,1) = 1.0; A_list[2](0,2) = 0.0; A_list[2](0,3) = 0.0; 
+  A_list[2](1,0) = 0.0; A_list[2](1,1) = -1.89; A_list[2](1,2) = 0.39; A_list[2](1,3) = -5.53; 
+  A_list[2](2,0) = 0.0; A_list[2](2,1) = -0.034; A_list[2](2,2) = -2.98; A_list[2](2,3) = 2.43; 
+  A_list[2](3,0) = 0.034; A_list[2](3,1) = -0.0011; A_list[2](3,2) = -0.99; A_list[2](3,3) = -0.21; 
+  
+  B_list[2] = mat<double,mat_structure::rectangular>(4,2);
+  B_list[2](0,0) = 0.0; B_list[2](0,1) = 0.0; 
+  B_list[2](1,0) = 0.36; B_list[2](1,1) = -1.6; 
+  B_list[2](2,0) = -0.95; B_list[2](2,1) = -0.032; 
+  B_list[2](3,0) = 0.03; B_list[2](3,1) = 0.0; 
+  
+  R_list[2] = mat<double,mat_structure::rectangular>(2,2);
+  R_list[2](0,0) = 1.0; R_list[2](0,1) = 0.0; 
+  R_list[2](1,0) = 0.0; R_list[2](1,1) = 1.0; 
+  
+  Q_list[2] = mat<double,mat_structure::rectangular>(4,4);
+  Q_list[2](0,0) = 2.313; Q_list[2](0,1) = 2.727; Q_list[2](0,2) = 0.688; Q_list[2](0,3) = 0.023; 
+  Q_list[2](1,0) = 2.727; Q_list[2](1,1) = 4.271; Q_list[2](1,2) = 1.148; Q_list[2](1,3) = 0.323; 
+  Q_list[2](2,0) = 0.688; Q_list[2](2,1) = 1.148; Q_list[2](2,2) = 0.313; Q_list[2](2,3) = 0.102; 
+  Q_list[2](3,0) = 0.023; Q_list[2](3,1) = 0.323; Q_list[2](3,2) = 0.102; Q_list[2](3,3) = 0.083; 
+  
+  /*
+  A_list[3] = mat<double,mat_structure::rectangular>(2,2);
+  A_list[3](0,0) = 0.0; A_list[3](0,1) =  1.0; 
+  A_list[3](1,0) = 0.0; A_list[3](1,1) = -1.0; 
+  
+  B_list[3] = mat<double,mat_structure::rectangular>(2,2);
+  B_list[3](0,0) = 1.0; B_list[3](0,1) = 0.0; 
+  B_list[3](1,0) = 2.0; B_list[3](1,1) = 1.0; 
+  
+  R_list[3] = mat<double,mat_structure::rectangular>(2,2);
+  R_list[3](0,0) = 9.0; R_list[3](0,1) = 3.0; 
+  R_list[3](1,0) = 3.0; R_list[3](1,1) = 1.0; 
+  
+  Q_list[3] = mat<double,mat_structure::rectangular>(2,2);
+  Q_list[3](0,0) = -4.0/11.0; Q_list[3](0,1) = -4.0/11.0; 
+  Q_list[3](1,0) = -4.0/11.0; Q_list[3](1,1) =  7.0/11.0; 
+  
+  
+  A_list[4] = mat<double,mat_structure::rectangular>(2,2);
+  A_list[4](0,0) = 1.0; A_list[4](0,1) = 0.2; 
+  A_list[4](1,0) = 0.0; A_list[4](1,1) = 1.0; 
+  
+  B_list[4] = mat<double,mat_structure::rectangular>(2,1);
+  B_list[4](0,0) = 0.0; 
+  B_list[4](1,0) = 1.0; 
+  
+  R_list[4] = mat<double,mat_structure::rectangular>(1,1);
+  R_list[4](0,0) = 1.0; 
+  
+  Q_list[4] = mat<double,mat_structure::rectangular>(2,2);
+  Q_list[4](0,0) = 1.0; Q_list[4](0,1) = 0.0; 
+  Q_list[4](1,0) = 0.0; Q_list[4](1,1) = 1.0; 
+  
+  
+  A_list[5] = mat<double,mat_structure::rectangular>(2,2);
+  A_list[5](0,0) = 0.0; A_list[5](0,1) = 1.0; 
+  A_list[5](1,0) = 0.0; A_list[5](1,1) = 0.0; 
+  
+  B_list[5] = mat<double,mat_structure::rectangular>(2,1);
+  B_list[5](0,0) = 0.0; 
+  B_list[5](1,0) = 1.0; 
+  
+  R_list[5] = mat<double,mat_structure::rectangular>(1,1);
+  R_list[5](0,0) = 1.0; 
+  
+  Q_list[5] = mat<double,mat_structure::rectangular>(2,2);
+  Q_list[5](0,0) = 1.0; Q_list[5](0,1) = 2.0; 
+  Q_list[5](1,0) = 2.0; Q_list[5](1,1) = 4.0; 
+  */
+  
+  for(std::size_t i = 0; i < A_list.size(); ++i) {
+    
+    std::cout << "****** Problem " << i << " ****** " << std::endl;
+    
+    mat<double,mat_structure::rectangular> P(A_list[i].get_row_count(),A_list[i].get_col_count());
+    solve_care_problem(A_list[i], B_list[i], Q_list[i], R_list[i], P, 1e-6);
+    std::cout << "P = " << P << std::endl;
+    
+    mat<double,mat_structure::rectangular> M_tmp = R_list[i];
+    mat<double,mat_structure::rectangular> M2_tmp(B_list[i].get_col_count(),A_list[i].get_col_count());
+    M2_tmp = transpose_view(B_list[i]) * P;
+    mat<double,mat_structure::rectangular> Msol_tmp;
+    linlsq_QR(M_tmp,Msol_tmp,M2_tmp);
+    mat<double,mat_structure::rectangular> X = 
+      (transpose_view(A_list[i]) * P + P * A_list[i] 
+     - P * B_list[i] * Msol_tmp + Q_list[i]);
+    std::cout << "Q + A^T P + P A - P B R^{-1} B^T P = " 
+              << X << std::endl;
+    
+    if(norm_1( X ) < 1e-6 * norm_1(P)) 
+      ++passed;
+    else
+      RK_WARNING("CARE problem #" << i << " suffered a loss of precision!");
+    if(norm_1( X ) < 1e-3 * norm_1(P)) 
+      ++passed;
+    else
+      RK_ERROR("CARE problem #" << i << " did not pass!");
+  };
+  };
 #endif
   
   
-  mat<double,mat_structure::rectangular> m_test(2,3);
-  m_test(0,0) = 1.0; m_test(0,1) = 2.0; m_test(0,2) = 3.0; 
-  m_test(1,0) = 4.0; m_test(1,1) = 5.0; m_test(1,2) = 6.0; 
   
-  std::cout << m_test << std::endl;
-  mat<double,mat_structure::rectangular> m_test_R(2,3);
-  mat<double,mat_structure::square> m_test_Q(mat<double,mat_structure::identity>(2));
-  detail::decompose_QR_impl< mat<double,mat_structure::rectangular>, mat<double,mat_structure::square> >(m_test,&m_test_Q,1e-6);
-  std::cout << m_test_Q << std::endl;
-  std::cout << m_test << std::endl;
-  std::cout << (m_test_Q * m_test) << std::endl;
+  std::cout << "Algebraic Riccati Equation Tests results: " << passed << " out of " << possible_passes << std::endl;
   
+  if(passed == possible_passes) {
+    return 0;
+  } else
+    return 1;
+};
+
+
+
+// These were just some tests for debugging the Schur decomposition code.
+#if 0
   {
   mat<double,mat_structure::rectangular> A(6,6);
   mat<double,mat_structure::rectangular> B(6,6);
@@ -238,9 +567,11 @@ int main() {
   std::cout << "QRZ' = " << (Q * R * transpose_view(Z)) << std::endl;
   
   };
-  
-  return 0;
-};
+#endif
+
+
+
+
 
 
 
