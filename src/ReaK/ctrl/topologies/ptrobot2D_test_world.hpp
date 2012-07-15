@@ -43,13 +43,13 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 
-#include "random_sampler_concept.hpp"
-#include "metric_space_concept.hpp"
+#include "path_planning/random_sampler_concept.hpp"
+#include "path_planning/metric_space_concept.hpp"
 
-#include "topologies/basic_distance_metrics.hpp"
-#include "topologies/default_random_sampler.hpp"
+#include "basic_distance_metrics.hpp"
+#include "default_random_sampler.hpp"
 
-#include "topologies/hyperbox_topology.hpp"
+#include "hyperbox_topology.hpp"
 #include "lin_alg/vect_alg.hpp"
 
 namespace ReaK {
@@ -66,9 +66,11 @@ namespace pp {
  */
 class ptrobot2D_test_world {
   public:
-    typedef hyperbox_topology< ReaK::vect<int,2> > space_type;
-    typedef topology_traits< space_type >::point_type point_type;
-    typedef topology_traits< space_type >::point_difference_type point_difference_type;
+    typedef hyperbox_topology< ReaK::vect<int,2> > super_space_type;
+    typedef topology_traits< super_space_type >::point_type point_type;
+    typedef topology_traits< super_space_type >::point_difference_type point_difference_type;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology_traits< super_space_type >::dimensions);
     
     typedef default_distance_metric distance_metric_type;
     typedef default_random_sampler random_sampler_type;
@@ -84,12 +86,16 @@ class ptrobot2D_test_world {
     point_type goal_pos;
     double max_edge_length;
     
-    space_type m_space;
-    typename metric_space_traits<space_type>::distance_metric_type m_distance;
-    typename point_distribution_traits<space_type>::random_sampler_type m_rand_sampler;
+    super_space_type m_space;
+    typename metric_space_traits<super_space_type>::distance_metric_type m_distance;
+    typename point_distribution_traits<super_space_type>::random_sampler_type m_rand_sampler;
     
 
   public:
+    
+    super_space_type& get_super_space() { return m_space; };
+    const super_space_type& get_super_space() const { return m_space; };
+    
     
     bool is_free(const point_type& p) const {
       if((p[0] < 0) || (p[0] >= grid_width) || (p[1] < 0) || (p[1] >= grid_height)) 

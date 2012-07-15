@@ -318,11 +318,20 @@ quintic_hermite_interp_traj 0xC2440005   bin: 1100 0010 0100 0100 0000 0000 0000
 svp_interp_traj             0xC2440006   bin: 1100 0010 0100 0100 0000 0000 0000 0110  D-R
 sap_interp_traj             0xC2440007   bin: 1100 0010 0100 0100 0000 0000 0000 0111  D-R
 transformed_trajectory      0xC2440008   bin: 1100 0010 0100 0100 0000 0000 0000 1000  D-R
+trajectory_base             0xC2440009   bin: 1100 0010 0100 0100 0000 0000 0000 1001  D-R
+trajectory_wrapper          0xC244000A   bin: 1100 0010 0100 0100 0000 0000 0000 1010  D-R
 
 //Random-Samplers:          0xC245****   
 default_random_sampler      0xC2450000   bin: 1100 0010 0100 0101 0000 0000 0000 0000  D-R
 svp_rate_limited_sampler    0xC2450001   bin: 1100 0010 0100 0001 0000 0000 0000 0001  D-R
 sap_rate_limited_sampler    0xC2450002   bin: 1100 0010 0100 0001 0000 0000 0000 0010  D-R
+
+//Motion-Planners:          0xC246****
+motion_planner_base         0xC2460000   bin: 1100 0010 0100 0110 0000 0000 0000 0000  D-R
+sample_based_planner        0xC2460001   bin: 1100 0010 0100 0110 0000 0000 0000 0001  D-R
+
+
+
 
 
 
