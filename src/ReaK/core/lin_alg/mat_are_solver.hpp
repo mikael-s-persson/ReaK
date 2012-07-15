@@ -40,6 +40,9 @@
 #include "mat_hess_decomp.hpp"
 #include "mat_schur_decomp.hpp"
 
+#include "mat_norms.hpp"
+#include "mat_balance.hpp"
+
 namespace ReaK {
   
 
@@ -49,7 +52,7 @@ namespace detail {
 
 template <typename Matrix1, typename Matrix2>
 typename mat_traits<Matrix1>::value_type
-  get_norm_of_eigens_impl(const Matrix1& A, const Matrix2& B) {
+  get_norm_gen_eigens_impl(const Matrix1& A, const Matrix2& B) {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   using std::fabs;
@@ -75,7 +78,7 @@ typename mat_traits<Matrix1>::value_type
 
 template <typename Matrix1, typename Matrix2>
 typename mat_traits<Matrix1>::value_type
-  get_real_val_of_eigens_impl(const Matrix1& A, const Matrix2& B) {
+  get_real_val_gen_eigens_impl(const Matrix1& A, const Matrix2& B) {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   using std::fabs;
@@ -112,8 +115,8 @@ struct lesser_norm_eigen_first {
   int operator()(const Matrix1& A1, const Matrix2& B1, 
                  const Matrix3& A2, const Matrix4& B2) {
     typedef typename mat_traits<Matrix1>::value_type ValueType;
-    ValueType l1 = get_norm_of_eigens_impl(A1,B1);
-    ValueType l2 = get_norm_of_eigens_impl(A2,B2);
+    ValueType l1 = get_norm_gen_eigens_impl(A1,B1);
+    ValueType l2 = get_norm_gen_eigens_impl(A2,B2);
     if( l1 < l2 )
       return 1;
     else if( l1 == l2 )
@@ -131,8 +134,8 @@ struct greater_norm_eigen_first {
   int operator()(const Matrix1& A1, const Matrix2& B1, 
                  const Matrix3& A2, const Matrix4& B2) {
     typedef typename mat_traits<Matrix1>::value_type ValueType;
-    ValueType l1 = get_norm_of_eigens_impl(A1,B1);
-    ValueType l2 = get_norm_of_eigens_impl(A2,B2);
+    ValueType l1 = get_norm_gen_eigens_impl(A1,B1);
+    ValueType l2 = get_norm_gen_eigens_impl(A2,B2);
     if( l1 > l2 )
       return 1;
     else if( l1 == l2 )
@@ -151,8 +154,8 @@ struct lesser_real_val_eigen_first {
   int operator()(const Matrix1& A1, const Matrix2& B1, 
                  const Matrix3& A2, const Matrix4& B2) {
     typedef typename mat_traits<Matrix1>::value_type ValueType;
-    ValueType l1 = get_real_val_of_eigens_impl(A1,B1);
-    ValueType l2 = get_real_val_of_eigens_impl(A2,B2);
+    ValueType l1 = get_real_val_gen_eigens_impl(A1,B1);
+    ValueType l2 = get_real_val_gen_eigens_impl(A2,B2);
     if( l1 < l2 )
       return 1;
     else if( l1 == l2 )
@@ -170,8 +173,8 @@ struct greater_real_val_eigen_first {
   int operator()(const Matrix1& A1, const Matrix2& B1, 
                  const Matrix3& A2, const Matrix4& B2) {
     typedef typename mat_traits<Matrix1>::value_type ValueType;
-    ValueType l1 = get_real_val_of_eigens_impl(A1,B1);
-    ValueType l2 = get_real_val_of_eigens_impl(A2,B2);
+    ValueType l1 = get_real_val_gen_eigens_impl(A1,B1);
+    ValueType l2 = get_real_val_gen_eigens_impl(A2,B2);
     if( l1 > l2 )
       return 1;
     else if( l1 == l2 )
@@ -182,16 +185,54 @@ struct greater_real_val_eigen_first {
   
 };
 
-
-struct stable_eigen_first {
+struct neg_real_val_eigen_first {
   
   template <typename Matrix1, typename Matrix2, 
             typename Matrix3, typename Matrix4>
   int operator()(const Matrix1& A1, const Matrix2& B1, 
                  const Matrix3& A2, const Matrix4& B2) {
     typedef typename mat_traits<Matrix1>::value_type ValueType;
-    ValueType l1 = get_norm_of_eigens_impl(A1,B1);
-    ValueType l2 = get_norm_of_eigens_impl(A2,B2);
+    ValueType l1 = get_real_val_gen_eigens_impl(A1,B1);
+    ValueType l2 = get_real_val_gen_eigens_impl(A2,B2);
+    if( l1 < ValueType(0.0) && l2 >= ValueType(0.0) )
+      return 1;
+    else if( l2 < ValueType(0.0) && l1 >= ValueType(0.0) )
+      return -1;
+    else
+      return 0;
+  };
+  
+};
+
+struct pos_real_val_eigen_first {
+  
+  template <typename Matrix1, typename Matrix2, 
+            typename Matrix3, typename Matrix4>
+  int operator()(const Matrix1& A1, const Matrix2& B1, 
+                 const Matrix3& A2, const Matrix4& B2) {
+    typedef typename mat_traits<Matrix1>::value_type ValueType;
+    ValueType l1 = get_real_val_gen_eigens_impl(A1,B1);
+    ValueType l2 = get_real_val_gen_eigens_impl(A2,B2);
+    if( l1 > ValueType(0.0) && l2 <= ValueType(0.0) )
+      return 1;
+    else if( l2 > ValueType(0.0) && l1 <= ValueType(0.0) )
+      return -1;
+    else
+      return 0;
+  };
+  
+};
+
+
+struct in_unit_circle_eigen_first {
+  
+  template <typename Matrix1, typename Matrix2, 
+            typename Matrix3, typename Matrix4>
+  int operator()(const Matrix1& A1, const Matrix2& B1, 
+                 const Matrix3& A2, const Matrix4& B2) {
+    typedef typename mat_traits<Matrix1>::value_type ValueType;
+    ValueType l1 = get_norm_gen_eigens_impl(A1,B1);
+    ValueType l2 = get_norm_gen_eigens_impl(A2,B2);
     if( l1 < ValueType(1.0) && l2 >= ValueType(1.0) )
       return 1;
     else if( l2 < ValueType(1.0) && l1 >= ValueType(1.0) )
@@ -202,15 +243,15 @@ struct stable_eigen_first {
   
 };
 
-struct unstable_eigen_first {
+struct out_unit_circle_eigen_first {
   
   template <typename Matrix1, typename Matrix2, 
             typename Matrix3, typename Matrix4>
   int operator()(const Matrix1& A1, const Matrix2& B1, 
                  const Matrix3& A2, const Matrix4& B2) {
     typedef typename mat_traits<Matrix1>::value_type ValueType;
-    ValueType l1 = get_norm_of_eigens_impl(A1,B1);
-    ValueType l2 = get_norm_of_eigens_impl(A2,B2);
+    ValueType l1 = get_norm_gen_eigens_impl(A1,B1);
+    ValueType l2 = get_norm_gen_eigens_impl(A2,B2);
     if( l1 < ValueType(1.0) && l2 >= ValueType(1.0) )
       return -1;
     else if( l2 < ValueType(1.0) && l1 >= ValueType(1.0) )
@@ -543,10 +584,8 @@ void swap_schur_blocks12_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
  * This function performs the swapping of two schur blocks in the real schur pencil (A,B).
  * This is the Case II in Van Dooren (1981), where the two blocks to be swapped both have 
  * dimension 2 and 2, in that order.
- * NOTE TODO This function does not seem to work at all. It follows the paper's description
- * to the letter, but it just never results in a swapping of the 2x2 blocks, it always leaves
- * them unchanged (with additional round-off error). This makes the ARE solvers work only for 
- * problems that don't require a 2x2 swap.
+ * NOTE This function uses the "direct swapping" method based on Kressner's work.
+ * NOTE The implicit QZ-step method from Van Dooren does not seem to work at all.
  */
 template <typename Matrix1, typename Matrix2, 
           typename Matrix3, typename Matrix4>
@@ -558,9 +597,151 @@ void swap_schur_blocks22_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   using std::fabs;
   
+  SizeType q = row_offset + p;
+  
+  
+  mat<ValueType, mat_structure::rectangular> X(8,1);
+  {
+  mat<ValueType, mat_structure::square> E(8, ValueType(0.0));
+  sub(E)(range(0,1),range(0,1)) = sub(A)(range(q,q+1),range(p,p+1));
+  sub(E)(range(2,3),range(2,3)) = sub(A)(range(q,q+1),range(p,p+1));
+  sub(E)(range(4,5),range(0,1)) = sub(B)(range(q,q+1),range(p,p+1));
+  sub(E)(range(6,7),range(2,3)) = sub(B)(range(q,q+1),range(p,p+1));
+  E(0,4) = -A(q+2,p+2); E(0,6) = -A(q+3,p+2); 
+  E(1,5) = -A(q+2,p+2); E(1,7) = -A(q+3,p+2); 
+  E(2,4) = -A(q+2,p+3); E(2,6) = -A(q+3,p+3); 
+  E(3,5) = -A(q+2,p+3); E(3,7) = -A(q+3,p+3); 
+  E(4,4) = -B(q+2,p+2); E(4,6) = -B(q+3,p+2); 
+  E(5,5) = -B(q+2,p+2); E(5,7) = -B(q+3,p+2); 
+  E(6,4) = -B(q+2,p+3); E(6,6) = -B(q+3,p+3); 
+  E(7,5) = -B(q+2,p+3); E(7,7) = -B(q+3,p+3); 
+  
+  mat<ValueType, mat_structure::rectangular> F(8,1);
+  F(0,0) = A(q,  p+2);
+  F(1,0) = A(q+1,p+2);
+  F(2,0) = A(q,  p+3);
+  F(3,0) = A(q+1,p+3);
+  F(4,0) = B(q,  p+2);
+  F(5,0) = B(q+1,p+2);
+  F(6,0) = B(q,  p+3);
+  F(7,0) = B(q+1,p+3);
+  
+//   std::cout << " 2x2 Swap: E = " << E << std::endl;
+//   std::cout << " 2x2 Swap: F = " << F << std::endl;
+  
+  linlsq_QR_impl(E, X, F, absNumTol);
+  
+//   std::cout << " 2x2 Swap: X = " << X << std::endl;
+  };
+  
+  mat<ValueType, mat_structure::rectangular> Y_lhs(4,2);
+  Y_lhs(0,0) = -X(4,0);
+  Y_lhs(1,0) = -X(5,0);
+  Y_lhs(0,1) = -X(6,0);
+  Y_lhs(1,1) = -X(7,0);
+  sub(Y_lhs)(range(2,3),range(0,1)) = mat<ValueType, mat_structure::identity>(2);
+  //sub(Y_lhs)(range(2,3),range(0,1)) *= ValueType(0.1);
+  
+//   std::cout << " 2x2 Swap: Y_lhs = " << Y_lhs << std::endl;
+  
+  mat<ValueType, mat_structure::square> V = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(4));
+  decompose_QR_impl(Y_lhs,&V,absNumTol);
+  
+//   std::cout << " 2x2 Swap: Yr_lhs = " << Y_lhs << std::endl;
+//   std::cout << " 2x2 Swap: V = " << V << std::endl;
+//   std::cout << " 2x2 Swap: V * Yr_lhs = " << V * Y_lhs << std::endl;
+  
+  mat<ValueType, mat_structure::rectangular> X_lhs(2,4);
+  X_lhs(0,2) = X(0,0);
+  X_lhs(1,2) = X(1,0);
+  X_lhs(0,3) = X(2,0);
+  X_lhs(1,3) = X(3,0);
+  sub(X_lhs)(range(0,1),range(0,1)) = mat<ValueType, mat_structure::identity>(2);
+  //sub(X_lhs)(range(0,1),range(0,1)) *= ValueType(0.1);
+  
+//   std::cout << " 2x2 Swap: X_lhs = " << X_lhs << std::endl;
+  
+  mat<ValueType, mat_structure::square> W = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(4));
+  decompose_RQ_impl(X_lhs,&W,absNumTol);
+  
+//   std::cout << " 2x2 Swap: Xr_lhs = " << X_lhs << std::endl;
+//   std::cout << " 2x2 Swap: W = " << W << std::endl;
+//   std::cout << " 2x2 Swap: Xr_lhs * W' = " << X_lhs * transpose_view(W) << std::endl;
+  
+  
+//   std::cout << " 2x2 Swap: 1: A = " << A << std::endl;
+//   std::cout << " 2x2 Swap: 1: B = " << B << std::endl;
+  
+  // Now, multiply V^T on (A,B,[Q])
+  sub(A)(range(q,q+3),range(p,A.get_col_count()-1)) = transpose_view(V) * sub(A)(range(q,q+3),range(p,A.get_col_count()-1));
+  sub(B)(range(q,q+3),range(p,B.get_col_count()-1)) = transpose_view(V) * sub(B)(range(q,q+3),range(p,B.get_col_count()-1));
+  
+  if(Q) {
+    sub(*Q)(range(0,Q->get_row_count()-1), range(q - row_offset, q - row_offset + 3)) *= V;
+  };
+  
+//   std::cout << " 2x2 Swap: 2: A = " << A << std::endl;
+//   std::cout << " 2x2 Swap: 2: B = " << B << std::endl;
+  
+  // Now, multiply W on (A,B,[Z])
+  sub(A)(range(0,q+3), range(p,p+3)) *= W;
+  sub(B)(range(0,q+3), range(p,p+3)) *= W;
+  
+  if(Z) {
+    sub(*Z)(range(0,Z->get_row_count()-1), range(p, p+3)) *= W;
+  };
+  
+//   std::cout << " 2x2 Swap: 3: A = " << A << std::endl;
+//   std::cout << " 2x2 Swap: 3: B = " << B << std::endl;
+  
+  //Finally, reduce B back to triangular form (which may have been lost on the swap.
+  
   givens_rot_matrix<ValueType> G;
   
-  SizeType q = row_offset + p;
+  // Z34
+  {
+  G.set(-B(q+3,p+3),B(q+3,p+2));
+  G = transpose(G);
+  
+  mat_sub_block<Matrix2> subB(B, q + 4, 2, 0, p+2);
+  givens_rot_prod(subB,G); // B * G^T
+  
+  mat_sub_block<Matrix1> subA(A, q + 4, 2, 0, p+2);
+  givens_rot_prod(subA,G); // A * G^T
+  
+  if(Z) {
+    mat_sub_block<Matrix4> subZ(*Z, Z->get_row_count(), 2, 0, p+2);
+    givens_rot_prod(subZ,G); // Q_prev * G^T
+  };
+  };
+  
+//   std::cout << " 2x2 Swap: 4: A = " << A << std::endl;
+//   std::cout << " 2x2 Swap: 4: B = " << B << std::endl;
+  
+  // Z12
+  {
+  G.set(-B(q+1,p+1),B(q+1,p));
+  G = transpose(G);
+  
+  mat_sub_block<Matrix2> subB(B, q + 2, 2, 0, p);
+  givens_rot_prod(subB,G); // B * G^T
+  
+  mat_sub_block<Matrix1> subA(A, q + 2, 2, 0, p);
+  givens_rot_prod(subA,G); // A * G^T
+  
+  if(Z) {
+    mat_sub_block<Matrix4> subZ(*Z, Z->get_row_count(), 2, 0, p);
+    givens_rot_prod(subZ,G); // Q_prev * G^T
+  };
+  };
+  
+//   std::cout << " 2x2 Swap: 5: A = " << A << std::endl;
+//   std::cout << " 2x2 Swap: 5: B = " << B << std::endl;
+  
+  // Below is the implicit QZ-step swapping method (Van Dooren), however, it doesn't seem to work.
+#if 0
+  
+  givens_rot_matrix<ValueType> G;
   
   // before anything else, record the elements that determine lamba-1
   ValueType b_mm = B(q,p);
@@ -590,7 +771,7 @@ void swap_schur_blocks22_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
   givens_rot_prod(G,subB); // G * B
   
   if(Q) {
-    mat_sub_block<Matrix3> subQ(*Q, Q->get_row_count(), 2, 0, q+1);
+    mat_sub_block<Matrix3> subQ(*Q, Q->get_row_count(), 2, 0, q+1 - row_offset);
     givens_rot_prod(subQ,transpose(G)); // Q_prev * G^T
   };
   };
@@ -1066,9 +1247,11 @@ void swap_schur_blocks22_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
   
 #endif
   
+  
   std::cout << " 2x2 Swap: final: A = " << A << std::endl;
   std::cout << " 2x2 Swap: final: B = " << B << std::endl;
   
+#endif
   
 };
 
@@ -1093,10 +1276,12 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
   //  a mix of 1-1 and 2-2 blocks to be swapped along the diagonal to sort the eigen-values.
   SizeType q = 0;
   while(q < N-1) {
+    SizeType p = ++q;
+    if((q < N-1) && (fabs(A(q+1,q)) > absNumTol))
+      ++q;
     bool is_next_block_by2 = false;
-    if((++q < N-1) && (fabs(A(q+1,q)) > absNumTol))
+    if((p < N-1) && (fabs(A(p+1,p)) > absNumTol))
       is_next_block_by2 = true;
-    SizeType p = q;
     while(true) {
       bool is_prev_block_by2 = false;
       if((p > 1) && (fabs(A(p-1,p-2)) > absNumTol))
@@ -1203,8 +1388,6 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
       if(!swap_needed || p == 0)
         break;
     };
-    if(is_next_block_by2)
-      ++q;
   };
 };
 
@@ -1236,7 +1419,7 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
  * \tparam Matrix2 A readable matrix type.
  * \tparam Matrix3 A readable matrix type.
  * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
+ * \tparam Matrix5 A fully-writable (square) matrix type.
  * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
  * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
  * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
@@ -1244,6 +1427,7 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
  * \param P holds as output, the nonnegative definite solution to Q + A^T P + P A - P B R^-1 B^T P = 0.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
+ * \param UseBalancing whether balancing is done or not prior to solving the problem.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
  *
@@ -1257,7 +1441,8 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix5>::value, 
 void >::type solve_care_problem(const Matrix1& A, const Matrix2& B, 
                                 const Matrix3& Q, const Matrix4& R, 
-                                Matrix5& P, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                                Matrix5& P, typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                                bool UseBalancing = false) {
   if((A.get_row_count() != A.get_col_count()) || 
      (B.get_row_count() != A.get_row_count()) || 
      (Q.get_row_count() != Q.get_col_count()) || 
@@ -1277,8 +1462,14 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
   sub(Q_tmp)(range(0, 2 * N - 1), range(M, M + 2 * N - 1)) = mat<ValueType, mat_structure::identity>(2 * N);
   sub(Q_tmp)(range(2 * N, 2 * N + M - 1), range(0, M - 1)) = mat<ValueType, mat_structure::identity>(M);
   
+//   std::cout << "CARE: (R; B; 0) = " << R_tmp << std::endl;
+//   std::cout << "CARE: Q = " << Q_tmp << std::endl;
+  
   detail::decompose_QR_impl(R_tmp, &Q_tmp, NumTol);
   Q_tmp = transpose(Q_tmp);
+  
+//   std::cout << "CARE: Q' (R; B; 0) = " << R_tmp << std::endl;
+//   std::cout << "CARE: Q' = " << Q_tmp << std::endl;
   
   mat<ValueType, mat_structure::rectangular> B_aug(2 * N, 2 * N);
   B_aug = sub(Q_tmp)(range(M,M + 2*N - 1), range(0,2*N - 1));
@@ -1299,14 +1490,35 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
 //   std::cout << "CARE: (Before Schur) Q_aug = " << Q_aug << std::endl;
 //   std::cout << "CARE: (Before Schur) Z_aug = " << Z_aug << std::endl;
   
-  detail::gen_schur_decomp_impl(B_aug,A_aug,&Q_aug,&Z_aug,NumTol);
+  bool should_interchange = false;
+  std::cout << "CARE: norm_A = " << norm_1(A_aug) << " norm_B = " << norm_1(B_aug) << std::endl;
+  if(norm_1(A_aug) > norm_1(B_aug))
+    should_interchange = true;
+  
+  
+//   std::cout << "CARE: (Before Balancing) A_aug = " << A_aug << std::endl;
+//   std::cout << "CARE: (Before Balancing) B_aug = " << B_aug << std::endl;
+  mat<ValueType, mat_structure::diagonal> Dl_aug(2*N);
+  mat<ValueType, mat_structure::diagonal> Dr_aug(2*N);
+  if(UseBalancing)
+    balance_pencil(A_aug,B_aug,Dl_aug,Dr_aug);
+//   std::cout << "CARE: (After Balancing) A_aug = " << A_aug << std::endl;
+//   std::cout << "CARE: (After Balancing) B_aug = " << B_aug << std::endl;
+  
+  if(should_interchange)
+    detail::gen_schur_decomp_impl(B_aug,A_aug,&Q_aug,&Z_aug,NumTol);
+  else
+    detail::gen_schur_decomp_impl(A_aug,B_aug,&Q_aug,&Z_aug,NumTol);
   
 //   std::cout << "CARE: (After Schur) A_aug = " << A_aug << std::endl;
 //   std::cout << "CARE: (After Schur) B_aug = " << B_aug << std::endl;
 //   std::cout << "CARE: (After Schur) Q_aug = " << Q_aug << std::endl;
 //   std::cout << "CARE: (After Schur) Z_aug = " << Z_aug << std::endl;
   
-  detail::partition_schur_pencil_impl(B_aug,A_aug,&Q_aug,&Z_aug,detail::unstable_eigen_first(),NumTol);
+  if(should_interchange)
+    detail::partition_schur_pencil_impl(B_aug,A_aug,&Q_aug,&Z_aug,detail::neg_real_val_eigen_first(),NumTol);
+  else
+    detail::partition_schur_pencil_impl(A_aug,B_aug,&Q_aug,&Z_aug,detail::neg_real_val_eigen_first(),NumTol);
   
 //   std::cout << "CARE: (After Part) A_aug = " << A_aug << std::endl;
 //   std::cout << "CARE: (After Part) B_aug = " << B_aug << std::endl;
@@ -1320,8 +1532,223 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ11(Z_aug, N, N, 0, 0);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ21(Z_aug, N, N, N, 0);
   linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
-  P = transpose(P);
+  
+  if(UseBalancing) {
+    for(SizeType i = 0; i < N; ++i)
+      for(SizeType j = 0; j < N; ++j)
+        P(i,j) = (P(i,j) / Dr_aug(i,i)) * Dr_aug(N+j,N+j);
+  };
+  
+  P += transpose(P);
+  P *= ValueType(0.5);
 };
+
+
+
+/**
+ * Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem.
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_care_problem.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A fully-writable matrix type.
+ * \tparam Matrix6 A fully-writable (square) matrix type.
+ * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+ * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3, 
+          typename Matrix4, typename Matrix5, typename Matrix6>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_fully_writable_matrix<Matrix5>::value && 
+                             is_fully_writable_matrix<Matrix6>::value, 
+void >::type solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, 
+                            const Matrix3& Q, const Matrix4& R, 
+                            Matrix5& K, Matrix6& P, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  solve_care_problem(A,B,Q,R,P,NumTol);
+  
+  mat<double,mat_structure::rectangular> M_tmp(B.get_col_count(),A.get_col_count());
+  M_tmp = transpose_view(B) * P;
+  linlsq_QR(R,K,M_tmp);
+};
+
+
+/**
+ * Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem.
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_care_problem.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A fully-writable matrix type.
+ * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+ * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3, 
+          typename Matrix4, typename Matrix5>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_fully_writable_matrix<Matrix5>::value, 
+void >::type solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, 
+                            const Matrix3& Q, const Matrix4& R, 
+                            Matrix5& K, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(A.get_row_count());
+  solve_IHCT_LQR(A,B,Q,R,K,P,NumTol);
+};
+
+
+
+/**
+ * Solves the Infinite-horizon Continuous-time Linear Quadratic Gaussian control (LQG) problem.
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_dare_problem.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A readable matrix type.
+ * \tparam Matrix7 A readable matrix type.
+ * \tparam Matrix8 A fully-writable matrix type.
+ * \tparam Matrix9 A fully-writable (square) matrix type.
+ * \tparam Matrix10 A fully-writable matrix type.
+ * \tparam Matrix11 A fully-writable (square) matrix type.
+ * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+ * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+ * \param C rectangular (l x n) matrix which represents state-to-output linear map.
+ * \param V square (n x n) positive-semi-definite matrix which represents the covariance of the state disturbances.
+ * \param W square (l x l) positive-definite matrix which represents the covariance of the measurement noise (additive).
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (nxl) Kalman gain matrix for x_posterior = x_prior + K * (y - x_prior).
+ * \param P holds as output, the (nxn) nonnegative definite solution to P = F P F^T - F P H^T ( W + H P H^T )^{-1} H P F^T + V.
+ * \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param S holds as output, the (nxn) nonnegative definite solution to S = F^T S F - F^T S G ( R + G^T S G )^{-1} G^T S F + Q.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3, 
+          typename Matrix4, typename Matrix5, typename Matrix6, 
+          typename Matrix7, typename Matrix8, typename Matrix9, 
+          typename Matrix10, typename Matrix11>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_readable_matrix<Matrix5>::value && 
+                             is_readable_matrix<Matrix6>::value && 
+                             is_readable_matrix<Matrix7>::value && 
+                             is_fully_writable_matrix<Matrix8>::value && 
+                             is_fully_writable_matrix<Matrix9>::value &&
+                             is_fully_writable_matrix<Matrix10>::value && 
+                             is_fully_writable_matrix<Matrix11>::value, 
+void >::type solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C,
+                            const Matrix4& V, const Matrix5& W, const Matrix6& Q, const Matrix7& R, 
+                            Matrix8& K, Matrix9& P, Matrix10& L, Matrix11& S, 
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  solve_care_problem(transpose_view(A),transpose_view(C),V,W,P,NumTol);
+  
+  mat<double,mat_structure::rectangular> M1_tmp(C.get_row_count(),A.get_col_count());
+  M1_tmp = B * P;
+  mat<double,mat_structure::rectangular> Msol_tmp;
+  linlsq_QR(W,Msol_tmp,M1_tmp);
+  K = transpose_view(Msol_tmp);
+  
+  solve_care_problem(A,B,Q,R,S,NumTol);
+  
+  mat<double,mat_structure::rectangular> M2_tmp(B.get_col_count(),A.get_col_count());
+  M2_tmp = transpose_view(B) * S;
+  linlsq_QR(R,L,M2_tmp);
+};
+
+
+/**
+ * Solves the Infinite-horizon Continuous-time Linear Quadratic Gaussian control (LQG) problem.
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_dare_problem.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A readable matrix type.
+ * \tparam Matrix7 A readable matrix type.
+ * \tparam Matrix8 A fully-writable matrix type.
+ * \tparam Matrix9 A fully-writable matrix type.
+ * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+ * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+ * \param C rectangular (l x n) matrix which represents state-to-output linear map.
+ * \param V square (n x n) positive-semi-definite matrix which represents the covariance of the state disturbances.
+ * \param W square (l x l) positive-definite matrix which represents the covariance of the measurement noise (additive).
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (nxl) Kalman gain matrix for x_posterior = x_prior + K * (y - x_prior).
+ * \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3, 
+          typename Matrix4, typename Matrix5, typename Matrix6, 
+          typename Matrix7, typename Matrix8, typename Matrix9>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_readable_matrix<Matrix5>::value && 
+                             is_readable_matrix<Matrix6>::value && 
+                             is_readable_matrix<Matrix7>::value && 
+                             is_fully_writable_matrix<Matrix8>::value && 
+                             is_fully_writable_matrix<Matrix9>::value, 
+void >::type solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C,
+                            const Matrix4& V, const Matrix5& W, const Matrix6& Q, const Matrix7& R, 
+                            Matrix8& K, Matrix9& L, 
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(A.get_row_count());
+  mat<ValueType, mat_structure::square> S = mat<ValueType, mat_structure::square>(A.get_row_count());
+  solve_IHCT_LQG(A,B,C,V,W,Q,R,K,P,L,S,NumTol);
+};
+
+
+
+
 
 
 
@@ -1345,7 +1772,7 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
  * \tparam Matrix2 A readable matrix type.
  * \tparam Matrix3 A readable matrix type.
  * \tparam Matrix4 A readable matrix type.
- * \tparam Matrix5 A fully-writable matrix type.
+ * \tparam Matrix5 A fully-writable (square) matrix type.
  * \param F square (n x n) matrix which represents state-to-next-state linear map.
  * \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
  * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
@@ -1353,6 +1780,7 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
  * \param P holds as output, the nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
+ * \param UseBalancing whether balancing is done or not prior to solving the problem.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
  *
@@ -1366,7 +1794,8 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix5>::value, 
 void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G, 
                                 const Matrix3& Q, const Matrix4& R, 
-                                Matrix5& P, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                                Matrix5& P, typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                                bool UseBalancing = false) {
   if((F.get_row_count() != F.get_col_count()) || 
      (G.get_row_count() != F.get_row_count()) || 
      (Q.get_row_count() != Q.get_col_count()) || 
@@ -1415,14 +1844,38 @@ void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G,
 //   std::cout << "DARE: (Before Schur) Q_aug = " << Q_aug << std::endl;
 //   std::cout << "DARE: (Before Schur) Z_aug = " << Z_aug << std::endl;
   
-  detail::gen_schur_decomp_impl(B_aug,A_aug,&Q_aug,&Z_aug,NumTol);
+  bool should_interchange = false;
+  std::cout << "DARE: norm_A = " << norm_1(A_aug) << " norm_B = " << norm_1(B_aug) << std::endl;
+  if(norm_1(A_aug) > norm_1(B_aug))
+    should_interchange = true;
+  
+//   if(N < 4) {
+//     std::cout << "DARE: (Before Balancing) A_aug = " << A_aug << std::endl;
+//     std::cout << "DARE: (Before Balancing) B_aug = " << B_aug << std::endl;
+//   };
+  mat<ValueType, mat_structure::diagonal> Dl_aug(2*N);
+  mat<ValueType, mat_structure::diagonal> Dr_aug(2*N);
+  if(UseBalancing)
+    balance_pencil(A_aug,B_aug,Dl_aug,Dr_aug);
+//   if(N < 4) {
+//     std::cout << "DARE: (After Balancing) A_aug = " << A_aug << std::endl;
+//     std::cout << "DARE: (After Balancing) B_aug = " << B_aug << std::endl;
+//   };
+  
+  if(should_interchange)
+    detail::gen_schur_decomp_impl(B_aug,A_aug,&Q_aug,&Z_aug,NumTol);
+  else
+    detail::gen_schur_decomp_impl(A_aug,B_aug,&Q_aug,&Z_aug,NumTol);
   
 //   std::cout << "DARE: (After Schur) A_aug = " << A_aug << std::endl;
 //   std::cout << "DARE: (After Schur) B_aug = " << B_aug << std::endl;
 //   std::cout << "DARE: (After Schur) Q_aug = " << Q_aug << std::endl;
 //   std::cout << "DARE: (After Schur) Z_aug = " << Z_aug << std::endl;
   
-  detail::partition_schur_pencil_impl(B_aug,A_aug,&Q_aug,&Z_aug,detail::unstable_eigen_first(),NumTol);
+  if(should_interchange)
+    detail::partition_schur_pencil_impl(B_aug,A_aug,&Q_aug,&Z_aug,detail::out_unit_circle_eigen_first(),NumTol);
+  else
+    detail::partition_schur_pencil_impl(A_aug,B_aug,&Q_aug,&Z_aug,detail::in_unit_circle_eigen_first(),NumTol);
   
 //   std::cout << "DARE: (After Part) A_aug = " << A_aug << std::endl;
 //   std::cout << "DARE: (After Part) B_aug = " << B_aug << std::endl;
@@ -1436,8 +1889,222 @@ void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G,
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ11(Z_aug, N, N, 0, 0);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ21(Z_aug, N, N, N, 0);
   linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
-  P = transpose(P);
+  
+  if(UseBalancing) {
+    for(SizeType i = 0; i < N; ++i)
+      for(SizeType j = 0; j < N; ++j)
+        P(i,j) = (P(i,j) / Dr_aug(i,i)) * Dr_aug(N+j,N+j);
+  };
+  
+  P += transpose(P);
+  P *= ValueType(0.5);
 };
+
+/**
+ * Solves the Infinite-horizon Discrete-time Linear Quadratic Regulator (LQR) problem.
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_dare_problem.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A fully-writable matrix type.
+ * \tparam Matrix6 A fully-writable (square) matrix type.
+ * \param F square (n x n) matrix which represents state-to-next-state linear map.
+ * \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3, 
+          typename Matrix4, typename Matrix5, typename Matrix6>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_fully_writable_matrix<Matrix5>::value && 
+                             is_fully_writable_matrix<Matrix6>::value, 
+void >::type solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, 
+                            const Matrix3& Q, const Matrix4& R, 
+                            Matrix5& K, Matrix6& P, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  solve_dare_problem(F,G,Q,R,P,NumTol);
+  
+  mat<double,mat_structure::rectangular> M_tmp = R;
+  M_tmp += transpose_view(G) * P * G;
+  mat<double,mat_structure::rectangular> M2_tmp(G.get_col_count(),F.get_col_count());
+  M2_tmp = transpose_view(G) * P * F;
+  linlsq_QR(M_tmp,K,M2_tmp);
+  
+};
+
+/**
+ * Solves the Infinite-horizon Discrete-time Linear Quadratic Regulator (LQR) problem.
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_dare_problem.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A fully-writable matrix type.
+ * \param F square (n x n) matrix which represents state-to-next-state linear map.
+ * \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3, 
+          typename Matrix4, typename Matrix5>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_fully_writable_matrix<Matrix5>::value, 
+void >::type solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, 
+                            const Matrix3& Q, const Matrix4& R, 
+                            Matrix5& K, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(F.get_row_count());
+  solve_ihdt_lqr(F,G,Q,R,K,P,NumTol);
+};
+
+
+/**
+ * Solves the Infinite-horizon Discrete-time Linear Quadratic Gaussian control (LQG) problem.
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_dare_problem.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A readable matrix type.
+ * \tparam Matrix7 A readable matrix type.
+ * \tparam Matrix8 A fully-writable matrix type.
+ * \tparam Matrix9 A fully-writable (square) matrix type.
+ * \tparam Matrix10 A fully-writable matrix type.
+ * \tparam Matrix11 A fully-writable (square) matrix type.
+ * \param F square (n x n) matrix which represents state-to-next-state linear map.
+ * \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
+ * \param H rectangular (l x n) matrix which represents state-to-output linear map.
+ * \param V square (n x n) positive-semi-definite matrix which represents the covariance of the state disturbances.
+ * \param W square (l x l) positive-semi-definite matrix which represents the covariance of the measurement noise (additive).
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (nxl) Kalman gain matrix for x_posterior = x_prior + K * (y - x_prior).
+ * \param P holds as output, the (nxn) nonnegative definite solution to P = F P F^T - F P H^T ( W + H P H^T )^{-1} H P F^T + V.
+ * \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param S holds as output, the (nxn) nonnegative definite solution to S = F^T S F - F^T S G ( R + G^T S G )^{-1} G^T S F + Q.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3, 
+          typename Matrix4, typename Matrix5, typename Matrix6, 
+          typename Matrix7, typename Matrix8, typename Matrix9, 
+          typename Matrix10, typename Matrix11>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_readable_matrix<Matrix5>::value && 
+                             is_readable_matrix<Matrix6>::value && 
+                             is_readable_matrix<Matrix7>::value && 
+                             is_fully_writable_matrix<Matrix8>::value && 
+                             is_fully_writable_matrix<Matrix9>::value &&
+                             is_fully_writable_matrix<Matrix10>::value && 
+                             is_fully_writable_matrix<Matrix11>::value, 
+void >::type solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
+                            const Matrix4& V, const Matrix5& W, const Matrix6& Q, const Matrix7& R, 
+                            Matrix8& K, Matrix9& P, Matrix10& L, Matrix11& S, 
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  solve_dare_problem(transpose_view(F),transpose_view(H),V,W,P,NumTol);
+  
+  mat<double,mat_structure::rectangular> M_tmp = W;
+  M_tmp += H * P * transpose_view(H);
+  mat<double,mat_structure::rectangular> M2_tmp(H.get_row_count(),F.get_col_count());
+  M2_tmp = H * P * transpose_view(F);
+  mat<double,mat_structure::rectangular> Msol_tmp;
+  linlsq_QR(M_tmp,Msol_tmp,M2_tmp);
+  K = transpose_view(Msol_tmp);
+  
+  solve_dare_problem(F,G,Q,R,S,NumTol);
+  
+  mat<double,mat_structure::rectangular> M3_tmp = R;
+  M3_tmp += transpose_view(G) * S * G;
+  mat<double,mat_structure::rectangular> M4_tmp(G.get_col_count(),F.get_col_count());
+  M4_tmp = transpose_view(G) * S * F;
+  linlsq_QR(M3_tmp,L,M4_tmp);
+};
+
+
+/**
+ * Solves the Infinite-horizon Discrete-time Linear Quadratic Gaussian control (LQG) problem.
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_dare_problem.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A readable matrix type.
+ * \tparam Matrix7 A readable matrix type.
+ * \tparam Matrix8 A fully-writable matrix type.
+ * \tparam Matrix9 A fully-writable matrix type.
+ * \param F square (n x n) matrix which represents state-to-next-state linear map.
+ * \param G rectangular (n x m) matrix which represents input-to-next-state linear map.
+ * \param H rectangular (l x n) matrix which represents state-to-output linear map.
+ * \param V square (n x n) positive-semi-definite matrix which represents the covariance of the state disturbances.
+ * \param W square (l x l) positive-semi-definite matrix which represents the covariance of the measurement noise (additive).
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-semi-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (nxl) Kalman gain matrix for x_posterior = x_prior + K * (y - x_prior).
+ * \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3, 
+          typename Matrix4, typename Matrix5, typename Matrix6, 
+          typename Matrix7, typename Matrix8, typename Matrix9>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_readable_matrix<Matrix5>::value && 
+                             is_readable_matrix<Matrix6>::value && 
+                             is_readable_matrix<Matrix7>::value && 
+                             is_fully_writable_matrix<Matrix8>::value && 
+                             is_fully_writable_matrix<Matrix9>::value, 
+void >::type solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
+                            const Matrix4& V, const Matrix5& W, const Matrix6& Q, const Matrix7& R, 
+                            Matrix8& K, Matrix9& L, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(F.get_row_count());
+  mat<ValueType, mat_structure::square> S = mat<ValueType, mat_structure::square>(F.get_row_count());
+  solve_IHDT_LQG(F,G,H,V,W,Q,R,K,P,L,S,NumTol);
+};
+
 
 
 
@@ -1472,6 +2139,7 @@ void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G,
  * \param P holds as output, the nonnegative definite solution.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
+ * \param UseBalancing whether balancing is done or not prior to solving the problem.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
  *
@@ -1486,7 +2154,8 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix5>::value, 
 void >::type solve_ctsf_problem(const Matrix1& A, const Matrix2& B, 
                                 const Matrix3& C, const Matrix4& D, 
-                                Matrix5& P, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                                Matrix5& P, typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                                bool UseBalancing = false) {
   if((A.get_row_count() != A.get_col_count()) || 
      (B.get_row_count() != A.get_row_count()) || 
      (C.get_col_count() != A.get_col_count()) || 
@@ -1525,16 +2194,29 @@ void >::type solve_ctsf_problem(const Matrix1& A, const Matrix2& B,
   mat<ValueType, mat_structure::square> Q_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   mat<ValueType, mat_structure::square> Z_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   
+  mat<ValueType, mat_structure::diagonal> Dl_aug(2*N);
+  mat<ValueType, mat_structure::diagonal> Dr_aug(2*N);
+  if(UseBalancing)
+    balance_pencil(A_aug,B_aug,Dl_aug,Dr_aug);
+  
   detail::gen_schur_decomp_impl(B_aug,A_aug,&Q_aug,&Z_aug,NumTol);
   
-  detail::partition_schur_pencil_impl(B_aug,A_aug,&Q_aug,&Z_aug,detail::unstable_eigen_first(),NumTol);
+  detail::partition_schur_pencil_impl(B_aug,A_aug,&Q_aug,&Z_aug,detail::neg_real_val_eigen_first(),NumTol);
   
   P.set_row_count(N);
   P.set_col_count(N);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ11(Z_aug, N, N, 0, 0);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ21(Z_aug, N, N, N, 0);
   linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
-  P = transpose(P);
+  
+  if(UseBalancing) {
+    for(SizeType i = 0; i < N; ++i)
+      for(SizeType j = 0; j < N; ++j)
+        P(i,j) = (P(i,j) / Dr_aug(i,i)) * Dr_aug(N+j,N+j);
+  };
+  
+  P += transpose(P);
+  P *= ValueType(0.5);
 };
 
 
@@ -1568,6 +2250,7 @@ void >::type solve_ctsf_problem(const Matrix1& A, const Matrix2& B,
  * \param P holds as output, the nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
+ * \param UseBalancing whether balancing is done or not prior to solving the problem.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
  *
@@ -1581,7 +2264,8 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix5>::value, 
 void >::type solve_dtsf_problem(const Matrix1& F, const Matrix2& G, 
                                 const Matrix3& H, const Matrix4& J, 
-                                Matrix5& P, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                                Matrix5& P, typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                                bool UseBalancing = false) {
   if((F.get_row_count() != F.get_col_count()) || 
      (G.get_row_count() != F.get_row_count()) || 
      (H.get_col_count() != F.get_col_count()) || 
@@ -1621,16 +2305,29 @@ void >::type solve_dtsf_problem(const Matrix1& F, const Matrix2& G,
   mat<ValueType, mat_structure::square> Q_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   mat<ValueType, mat_structure::square> Z_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   
+  mat<ValueType, mat_structure::diagonal> Dl_aug(2*N);
+  mat<ValueType, mat_structure::diagonal> Dr_aug(2*N);
+  if(UseBalancing)
+    balance_pencil(A_aug,B_aug,Dl_aug,Dr_aug);
+  
   detail::gen_schur_decomp_impl(B_aug,A_aug,&Q_aug,&Z_aug,NumTol);
   
-  detail::partition_schur_pencil_impl(B_aug,A_aug,&Q_aug,&Z_aug,detail::unstable_eigen_first(),NumTol);
+  detail::partition_schur_pencil_impl(B_aug,A_aug,&Q_aug,&Z_aug,detail::out_unit_circle_eigen_first(),NumTol);
   
   P.set_row_count(N);
   P.set_col_count(N);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ11(Z_aug, N, N, 0, 0);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ21(Z_aug, N, N, N, 0);
   linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
-  P = transpose(P);
+  
+  if(UseBalancing) {
+    for(SizeType i = 0; i < N; ++i)
+      for(SizeType j = 0; j < N; ++j)
+        P(i,j) = (P(i,j) / Dr_aug(i,i)) * Dr_aug(N+j,N+j);
+  };
+  
+  P += transpose(P);
+  P *= ValueType(0.5);
 };
 
 

@@ -613,11 +613,21 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      */
     friend value_type trace(const self& M) {
       value_type sum = value_type(0);
-      for(size_type i = 0; i < M.q.rowCount; ++i)
+      for(size_type i = 0; i < M.rowCount; ++i)
 	sum += M.q[i];
       return sum;
     };
     
+    /**
+     * Inverts the matrix M.
+     * \param M The diagonal matrix to be inverted.
+     * \return The inverse of M.
+     */
+    friend self invert(self M) {
+      for(size_type i = 0; i < M.rowCount; ++i)
+        M.q[i] = value_type(1.0) / M.q[i];
+      return M;
+    };
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces

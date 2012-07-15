@@ -297,18 +297,3 @@ elseif index == 15,
 else
   error('This example is not available!');
 end  
-
-if (S == [] & nargout > 4),
-  S = zeros(parout(1),parout(2));
-end
-
-if nargout > 6,
-  parout(4) = cond(A);
-  if (size(X,1) == parout(1)),
-    ev = eig(A - B/(R + B'*X*B)*(B'*X*A + S'));
-    parout(5:7) = [max(abs(ev)), norm(X), cond(X)];
-    if rank(R) == parout(2),
-      parout(8) = darecond(X, A-B/R*S', B, Q-S/R*S', R);
-    end
-  end
-end

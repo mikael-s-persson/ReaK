@@ -149,7 +149,7 @@ void decompose_QR_impl(Matrix1& A, Matrix2* Q, typename mat_traits<Matrix1>::val
   
   SizeType t = (N-1 > M ? M : N-1);
 
-  for(SizeType i=0;i<t;++i) {
+  for(SizeType i = 0; i < t; ++i) {
     
     hhm.set(mat_row_slice<Matrix1>(A,i,i,N - i),NumTol);
     
@@ -164,6 +164,33 @@ void decompose_QR_impl(Matrix1& A, Matrix2* Q, typename mat_traits<Matrix1>::val
   
 };
 
+
+
+template <typename Matrix1, typename Matrix2>
+void decompose_RQ_impl(Matrix1& A, Matrix2* Q, typename mat_traits<Matrix1>::value_type NumTol)
+{
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  SizeType N = A.get_row_count();
+  SizeType M = A.get_col_count();
+  householder_matrix< vect_n<ValueType> > hhm;
+  
+  SizeType t = (N > M-1 ? M-1 : N);
+
+  for(SizeType i = 0; i < t; ++i) {
+    
+    hhm.set_inv(mat_col_slice< Matrix1 >(A, N-i-1, 0, M-i), NumTol);
+    
+    mat_sub_block<Matrix1> subA(A,N - i,M - i,0,0);
+    householder_prod(subA,hhm); // P * R
+    
+    if(Q) {
+      mat_sub_block<Matrix2> subQ(*Q,Q->get_row_count(),M - i,0,0);
+      householder_prod(subQ,hhm); // Q_prev * P
+    };
+  };
+  
+};
 
 
 

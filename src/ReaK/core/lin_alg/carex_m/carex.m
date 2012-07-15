@@ -470,18 +470,4 @@ else
   error('This example is not available!');
 end  
 
-if nargout > 4,
-  H = [A -G; -Q -A'];
-  parout(4) = norm(H);
-  parout(5) = cond(H);
-  if size(X,1) == parout(1),
-    parout(6) = norm(X);
-    parout(7) = cond(X);
-    if (index ~= 11) | (index == 11 & d ~= 0.0),
-      [ku,kl]   = carecond(A,G,Q,X);
-      parout(8) = ku;
-      parout(9) = kl;
-    end
-  end 
-end
 
