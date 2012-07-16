@@ -310,6 +310,27 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
       return get_point_at_time_impl(t,wpb_p);
     };
     
+    /**
+     * Returns the starting time of the trajectory.
+     * \return The starting time of the trajectory.
+     */
+    double get_start_time() const {
+      if(this->waypoints.empty())
+        return 0.0;
+      else
+        return this->waypoints.begin()->time;
+    };
+    
+    /**
+     * Returns the end time of the trajectory.
+     * \return The end time of the trajectory.
+     */
+    double get_end_time() const {
+      if(this->waypoints.empty())
+        return 0.0;
+      else
+        return this->waypoints.rbegin()->time;
+    };
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces

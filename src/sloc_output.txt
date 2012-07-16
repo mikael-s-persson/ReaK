@@ -1,7 +1,7 @@
 Have a non-directory at the top, so creating directory top_dir
-Adding /media/S_M_P_3/ReaK_github/src/ReaK//CMakeLists.txt to top_dir
-Adding /media/S_M_P_3/ReaK_github/src/ReaK//README to top_dir
-Adding /media/S_M_P_3/ReaK_github/src/ReaK//TypeIDList.txt to top_dir
+Adding /media/S_M_P_2/ReaK_github/src/ReaK/CMakeLists.txt to top_dir
+Adding /media/S_M_P_2/ReaK_github/src/ReaK/README to top_dir
+Adding /media/S_M_P_2/ReaK_github/src/ReaK/TypeIDList.txt to top_dir
 Creating filelist for core
 Creating filelist for ctrl
 Creating filelist for examples
@@ -13,26 +13,26 @@ Computing results.
 
 
 SLOC	Directory	SLOC-by-Language (Sorted)
-42476   core            cpp=42476
-30088   ctrl            cpp=30088
+44577   core            cpp=44577
+34936   ctrl            cpp=34936
 6408    examples        cpp=6408
 3231    geometry        cpp=3231
 0       top_dir         (none)
 
 
 Totals grouped by language (dominant language first):
-cpp:          82203 (100.00%)
+cpp:          89152 (100.00%)
 
 
 
 
-Total Physical Source Lines of Code (SLOC)                = 82,203
-Development Effort Estimate, Person-Years (Person-Months) = 20.50 (245.95)
+Total Physical Source Lines of Code (SLOC)                = 89,152
+Development Effort Estimate, Person-Years (Person-Months) = 22.32 (267.82)
  (Basic COCOMO model, Person-Months = 2.4 * (KSLOC**1.05))
-Schedule Estimate, Years (Months)                         = 1.69 (20.25)
+Schedule Estimate, Years (Months)                         = 1.74 (20.92)
  (Basic COCOMO model, Months = 2.5 * (person-months**0.38))
-Estimated Average Number of Developers (Effort/Schedule)  = 12.14
-Total Estimated Cost to Develop                           = $ 2,768,686
+Estimated Average Number of Developers (Effort/Schedule)  = 12.80
+Total Estimated Cost to Develop                           = $ 3,014,944
  (average salary = $56,286/year, overhead = 2.40).
 SLOCCount, Copyright (C) 2001-2004 David A. Wheeler
 SLOCCount is Open Source Software/Free Software, licensed under the GNU GPL.

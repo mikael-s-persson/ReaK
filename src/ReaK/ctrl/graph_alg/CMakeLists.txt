@@ -3,13 +3,23 @@ set(GRAPH_ALG_SOURCES
 )
 
 set(GRAPH_ALG_HEADERS 
+  "${RKGRAPHALGDIR}/adj_list_tree_overlay.hpp"
   "${RKGRAPHALGDIR}/adstar_search.hpp"
-  "${RKGRAPHALGDIR}/rr_tree.hpp"
-  "${RKGRAPHALGDIR}/fadprm.hpp"
-  "${RKGRAPHALGDIR}/probabilistic_roadmap.hpp"
+  "${RKGRAPHALGDIR}/bgl_more_property_maps.hpp"
+  "${RKGRAPHALGDIR}/bgl_more_property_tags.hpp"
+  "${RKGRAPHALGDIR}/bgl_raw_property_graph.hpp"
+  "${RKGRAPHALGDIR}/bgl_tree_adaptor.hpp"
   "${RKGRAPHALGDIR}/d_ary_bf_tree.hpp"
   "${RKGRAPHALGDIR}/d_ary_cob_tree.hpp"
-  "${RKGRAPHALGDIR}/bgl_tree_adaptor.hpp"
+  "${RKGRAPHALGDIR}/fadprm.hpp"
+  "${RKGRAPHALGDIR}/linked_tree.hpp"
+  "${RKGRAPHALGDIR}/neighborhood_functors.hpp"
+  "${RKGRAPHALGDIR}/probabilistic_roadmap.hpp"
+  "${RKGRAPHALGDIR}/rr_graph.hpp"
+  "${RKGRAPHALGDIR}/rr_tree.hpp"
+  "${RKGRAPHALGDIR}/rrt_star.hpp"
+  "${RKGRAPHALGDIR}/tree_concepts.hpp"
+  "${RKGRAPHALGDIR}/tree_organizer_concept.hpp"
 )
 
 #add_library(reak_graph_alg STATIC ${GRAPH_ALG_SOURCES})

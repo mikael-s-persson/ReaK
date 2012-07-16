@@ -101,6 +101,18 @@ class trajectory_base : public named_object {
      */
     virtual point_type get_point_at_time(double t) const = 0;
     
+    /**
+     * Returns the starting time of the trajectory.
+     * \return The starting time of the trajectory.
+     */
+    virtual double get_start_time() const = 0;
+    
+    /**
+     * Returns the end time of the trajectory.
+     * \return The end time of the trajectory.
+     */
+    virtual double get_end_time() const = 0;
+    
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
@@ -224,6 +236,22 @@ class trajectory_wrapper : public trajectory_base< typename spatial_trajectory_t
      */
     waypoint_pair get_waypoint_at_time(double t) const {
       return (m_last_waypoint = m_traj.get_waypoint_at_time(t));
+    };
+    
+    /**
+     * Returns the starting time of the trajectory.
+     * \return The starting time of the trajectory.
+     */
+    virtual double get_start_time() const {
+      return m_traj.get_start_time();
+    };
+    
+    /**
+     * Returns the end time of the trajectory.
+     * \return The end time of the trajectory.
+     */
+    virtual double get_end_time() const {
+      return m_traj.get_end_time();
     };
     
 /*******************************************************************************

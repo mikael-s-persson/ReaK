@@ -104,6 +104,10 @@ struct spatial_trajectory_traits {
  * 
  * w_p = p.get_waypoint_at_time(t);  The waypoint, along the trajectory (p), at a given time (t) can be obtained.
  * 
+ * t = p.get_start_time();  The start time of the trajectory can be obtained.
+ * 
+ * t = p.get_end_time();  The end time of the trajectory can be obtained.
+ * 
  * const topology& space = p.get_temporal_space();  The temporal space on which the trajectory lies can be obtained.
  * 
  * \tparam SpatialTrajectory The trajectory type for which this concept is checked.
@@ -131,6 +135,9 @@ struct SpatialTrajectoryConcept {
     w_p = p.move_time_diff_from(w_p, dt);
     d = p.travel_distance(w_p, w_p);
     w_p = p.get_waypoint_at_time(t);
+    
+    t = p.get_start_time();
+    t = p.get_end_time();
     
     const typename spatial_trajectory_traits<SpatialTrajectory>::topology& space = p.get_temporal_space(); RK_UNUSED(space);
   };

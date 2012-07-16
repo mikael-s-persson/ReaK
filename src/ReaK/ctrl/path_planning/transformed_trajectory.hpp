@@ -169,6 +169,21 @@ class transformed_trajectory : public shared_object {
      */
     const topology& get_temporal_space() const throw() { return *space; };
     
+    /**
+     * Returns the starting time of the trajectory.
+     * \return The starting time of the trajectory.
+     */
+    double get_start_time() const {
+      return traject->get_start_time();
+    };
+    
+    /**
+     * Returns the end time of the trajectory.
+     * \return The end time of the trajectory.
+     */
+    double get_end_time() const {
+      return traject->get_end_time();
+    };
     
     
 /*******************************************************************************

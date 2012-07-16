@@ -1,0 +1,152 @@
+/**
+ * \file basic_sbmp_reporters.hpp
+ * 
+ * This library defines simple sampling-based motion planning reporters. 
+ * 
+ * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
+ * \date July 2012
+ */
+
+/*
+ *    Copyright 2012 Sven Mikael Persson
+ *
+ *    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
+ *
+ *    This file is part of ReaK.
+ *
+ *    ReaK is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    ReaK is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with ReaK (as LICENSE in the root folder).  
+ *    If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef REAK_SIMPLE_SBMP_REPORTERS_HPP
+#define REAK_SIMPLE_SBMP_REPORTERS_HPP
+
+#include "base/defs.hpp"
+
+#include <boost/config.hpp>
+#include <boost/concept_check.hpp>
+
+#include "trajectory_base.hpp"
+#include <boost/graph/graph_concepts.hpp>
+
+/** Main namespace for ReaK */
+namespace ReaK {
+
+/** Main namespace for ReaK.Path-Planning */
+namespace pp {
+
+
+/**
+ * This class can be used as a SBMP Reporter (SBMPReporterConcept) and uses the underlying
+ * C-free (free_space) to draw individual edges of the motion graph or solution trajectory.
+ * The underlying space should have the functions:
+ * 
+ * void reset_output() const;
+ * 
+ * void draw_edge(const point_type& a, const point_type& b, bool is_solution_path) const;
+ */
+struct differ_sbmp_report_to_space {
+  /// Holds the time-interval between output points of the solution trajectory.
+  double time_interval;
+  
+  explicit differ_sbmp_report_to_space(double aTimeInterval = 0.1) : time_interval(aTimeInterval) { };
+  
+  /**
+   * Draws the entire motion-graph.
+   * \tparam FreeSpaceType The C-free topology type.
+   * \tparam MotionGraph The graph structure type representing the motion-graph.
+   * \tparam PositionMap The property-map type that can map motion-graph vertex descriptors into point values.
+   * \param free_space The C-free topology.
+   * \param g The motion-graph.
+   * \param pos The position-map to obtain positions of the motion-graph vertices.
+   */
+  template <typename FreeSpaceType,
+            typename MotionGraph,
+            typename PositionMap>
+  void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
+    typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
+    typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
+    
+    free_space.reset_output();
+    
+    VIter vi, vi_end;
+    for(boost::tie(vi,vi_end) = vertices(g); vi != vi_end; ++vi) {
+      EIter ei, ei_end;
+      for(boost::tie(ei,ei_end) = out_edges(*vi,g); ei != ei_end; ++ei)
+        free_space.draw_edge(get(pos, *vi), get(pos, target(*ei, g)), false);
+    };
+    
+  };
+  
+  /**
+   * Draws the solution trajectory.
+   * \tparam FreeSpaceType The C-free topology type.
+   * \param free_space The C-free topology.
+   * \param traj The solution trajectory.
+   */
+  template <typename FreeSpaceType>
+  void draw_solution(const FreeSpaceType& free_space, 
+                     const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
+    typedef typename topology_traits<FreeSpaceType>::point_type PointType;
+    
+    free_space.reset_output();
+    
+    double t = traj->get_start_time();
+    PointType u_pt = traj->get_point_at_time(t);
+    PointType v_pt;
+    while(t < traj->get_end_time()) {
+      t += time_interval;
+      v_pt = traj->get_point_at_time(t);
+      free_space.draw_edge(u_pt, v_pt, true);
+      u_pt = v_pt;
+    };
+  };
+};
+
+
+/**
+ * This class can be used as a SBMP Reporter (SBMPReporterConcept) and reports nothing.
+ */
+struct no_sbmp_report {
+  /**
+   * Draws the entire motion-graph.
+   * \tparam FreeSpaceType The C-free topology type.
+   * \tparam MotionGraph The graph structure type representing the motion-graph.
+   * \tparam PositionMap The property-map type that can map motion-graph vertex descriptors into point values.
+   */
+  template <typename FreeSpaceType,
+            typename MotionGraph,
+            typename PositionMap>
+  void draw_motion_graph(const FreeSpaceType&, const MotionGraph&, PositionMap) const { };
+  
+  /**
+   * Draws the solution trajectory.
+   * \tparam FreeSpaceType The C-free topology type.
+   */
+  template <typename FreeSpaceType>
+  void draw_solution(const FreeSpaceType&, 
+                     const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >&) const { };
+};
+
+
+
+
+};
+
+};
+
+
+#endif
+
+
