@@ -41,6 +41,7 @@
 #include <boost/concept_check.hpp>
 
 #include "trajectory_base.hpp"
+#include "path_base.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -48,11 +49,62 @@ namespace ReaK {
 /** Main namespace for ReaK.Path-Planning */
 namespace pp {
 
+  
+  
+
+/**
+ * This concept defines the requirements to fulfill in order to model 
+ * a Sampling-based Path-planner (SBPP) reporter as used in ReaK::pp.
+ * 
+ * Valid expressions:
+ * 
+ * where:
+ * 
+ * SBPPReporter reporter;
+ * 
+ * FreeSpaceType free_space;
+ * 
+ * MotionGraph g;
+ * 
+ * PositionMap pos_map;
+ * 
+ * shared_ptr< path_base< super_space_type > > path;
+ * 
+ * 
+ * reporter.draw_motion_graph(free_space, g, pos_map);  The reporter can be asked to draw the current motion-graph.
+ * 
+ * reporter.draw_solution(free_space, path);  The reporter can be asked to draw a solution path.
+ * 
+ * \tparam SBMPReporter The reporter type to be checked for this concept.
+ * \tparam FreeSpaceType The topology type that represents the C-free sub-space, should model SubSpaceConcept.
+ * \tparam MotionGraph The motion-graph type that represents the motion samples.
+ * \tparam PositionMap The property-map type to fetch positions associated to vertices of the motion graph.
+ */
+template <typename SBMPReporter, 
+          typename FreeSpaceType, 
+          typename MotionGraph, 
+          typename PositionMap>
+struct SBPPReporterConcept {
+  SBMPReporter reporter;
+  FreeSpaceType free_space;
+  MotionGraph g;
+  PositionMap pos_map;
+  shared_ptr< path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > path;
+  
+  BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
+  
+  BOOST_CONCEPT_USAGE(SBPPReporterConcept) 
+  {
+    reporter.draw_motion_graph(free_space, g, pos_map);
+    reporter.draw_solution(free_space, path);
+  };
+  
+};
 
 
 /**
- * This concept defines the requirements to fulfill in order to model a SBMP reporter 
- * as used in ReaK::pp.
+ * This concept defines the requirements to fulfill in order to model 
+ * a Sampling-based Motion-planner (SBMP) reporter as used in ReaK::pp.
  * 
  * Valid expressions:
  * 

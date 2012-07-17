@@ -298,8 +298,33 @@ namespace pp {
 				        DistanceValue radius = std::numeric_limits<DistanceValue>::infinity()) {
     return min_dist_linear_search(first,last,output_first,distance,std::less<DistanceValue>(),max_neighbors,radius);
   };
-
-
+  
+  
+  /**
+   * This class is a no-op synchronization class. Some nearest-neighbor methods 
+   * might require a call-back whenever a vertex has been added or when it is about
+   * to be removed in order to update the data-structure maintained to perform the 
+   * NN queries. This class can be used when no such synchronization is needed.
+   */
+  struct no_NNfinder_synchro {
+    
+    /**
+     * This is a call-back for when a vertex has been added.
+     */
+    template <typename Vertex, typename Graph>
+    void added_vertex(Vertex, const Graph&) const { };
+    
+    /**
+     * This is a call-back for when a vertex is about to be removed.
+     */
+    template <typename Vertex, typename Graph>
+    void removed_vertex(Vertex, const Graph&) const { };
+    
+  };
+  
+  
+  
+  
   /**
    * This functor template performs a linear nearest-neighbor search through a graph by invoquing 
    * the distance function of an underlying topology. The call operator will return the vertex

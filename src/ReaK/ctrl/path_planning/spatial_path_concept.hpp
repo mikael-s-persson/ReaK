@@ -98,6 +98,14 @@ struct spatial_path_traits {
  * 
  * d = p.travel_distance(w_p,w_p);  The travel distance, along the path (p), between two waypoints (w_p,w_p), can be obtained.
  * 
+ * pt = p.get_start_point();  The starting point of the path can be obtained.
+ * 
+ * w_p = p.get_start_waypoint();  The starting waypoint-pair of the path can be obtained.
+ * 
+ * pt = p.get_end_point();  The end point of the path can be obtained.
+ * 
+ * w_p = p.get_end_waypoint();  The end waypoint-pair of the path can be obtained.
+ * 
  * \tparam SpatialPath The type to be checked for the requirements of this concept.
  * \tparam Topology The topology in which the spatial-path should reside.
  */
@@ -117,6 +125,11 @@ struct SpatialPathConcept {
     d   = p.travel_distance(pt, pt);
     w_p = p.move_away_from(w_p, d);
     d   = p.travel_distance(w_p,w_p);
+    
+    pt = p.get_start_point();
+    w_p = p.get_start_waypoint();
+    pt = p.get_end_point();
+    w_p = p.get_end_waypoint();
   };
   
 };

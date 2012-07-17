@@ -63,7 +63,7 @@ class ptrobot2D_test_world_impl; // forward-declaration, a faint cat.
  * a blue and green (pure blue, pure green) pixel which each represent the starting location and goal location in 
  * a path-planning problem, respectively.
  */
-class ptrobot2D_test_world {
+class ptrobot2D_test_world : public named_object {
   public:
     typedef hyperbox_topology< ReaK::vect<int,2> > super_space_type;
     typedef topology_traits< super_space_type >::point_type point_type;
@@ -76,12 +76,15 @@ class ptrobot2D_test_world {
     
   private:
     ptrobot2D_test_world_impl* pimpl;
+    std::string world_map_file_name;
+    double robot_radius;
     double max_edge_length;
     
     super_space_type m_space;
     typename metric_space_traits<super_space_type>::distance_metric_type m_distance;
     typename point_distribution_traits<super_space_type>::random_sampler_type m_rand_sampler;
     
+    ptrobot2D_test_world();
 
   public:
     
@@ -202,7 +205,19 @@ class ptrobot2D_test_world {
     ptrobot2D_test_world& operator=(const ptrobot2D_test_world& rhs);
     
     ~ptrobot2D_test_world();
-
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const;
+    
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int);
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(ptrobot2D_test_world,0xC2400020,1,"ptrobot2D_test_world",named_object)
+    
+    
 };
 
 

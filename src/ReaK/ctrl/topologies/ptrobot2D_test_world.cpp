@@ -246,30 +246,54 @@ void ptrobot2D_test_world::set_goal_pos(const ptrobot2D_test_world::point_type& 
   pimpl->goal_pos = aGoal;
 };
 
+
+ptrobot2D_test_world::ptrobot2D_test_world() :
+                                           pimpl(NULL),
+                                           world_map_file_name(""),
+                                           robot_radius(0.0),
+                                           max_edge_length(0.0), 
+                                           m_space("ptrobot2D_space", 
+                                                   ptrobot2D_test_world::point_type(0,0), 
+                                                   ptrobot2D_test_world::point_type(0,0)),
+                                           m_distance(get(distance_metric, m_space)),
+                                           m_rand_sampler(get(random_sampler, m_space)) {
+  setName("ptrobot2D_space_with_obstacles");
+};
+
 ptrobot2D_test_world::ptrobot2D_test_world(const std::string& aWorldMapImage, 
                                            double aMaxEdgeLength, 
                                            double aRobotRadius) :
                                            pimpl(new ptrobot2D_test_world_impl(aWorldMapImage, aRobotRadius)),
+                                           world_map_file_name(aWorldMapImage),
+                                           robot_radius(aRobotRadius),
                                            max_edge_length(aMaxEdgeLength), 
                                            m_space("ptrobot2D_space", 
                                                    ptrobot2D_test_world::point_type(0,0), 
                                                    ptrobot2D_test_world::point_type(pimpl->grid_width,pimpl->grid_height)),
                                            m_distance(get(distance_metric, m_space)),
-                                           m_rand_sampler(get(random_sampler, m_space)) { };
+                                           m_rand_sampler(get(random_sampler, m_space)) { 
+  setName("ptrobot2D_space_with_obstacles");
+};
 
 ptrobot2D_test_world::ptrobot2D_test_world(const ptrobot2D_test_world& rhs) :
                                            pimpl(new ptrobot2D_test_world_impl(*rhs.pimpl)),
+                                           world_map_file_name(rhs.world_map_file_name),
+                                           robot_radius(rhs.robot_radius),
                                            max_edge_length(rhs.max_edge_length), 
                                            m_space("ptrobot2D_space", 
                                                    ptrobot2D_test_world::point_type(0,0), 
                                                    ptrobot2D_test_world::point_type(pimpl->grid_width,pimpl->grid_height)),
                                            m_distance(get(distance_metric, m_space)),
-                                           m_rand_sampler(get(random_sampler, m_space)) { };
+                                           m_rand_sampler(get(random_sampler, m_space)) { 
+  setName("ptrobot2D_space_with_obstacles");
+};
 
 ptrobot2D_test_world& ptrobot2D_test_world::operator=(const ptrobot2D_test_world& rhs) {
   if(&rhs != this) {
     delete pimpl;
     pimpl = new ptrobot2D_test_world_impl(*rhs.pimpl);
+    world_map_file_name = rhs.world_map_file_name;
+    robot_radius = rhs.robot_radius;
     max_edge_length = rhs.max_edge_length;
     m_space = ptrobot2D_test_world::super_space_type("ptrobot2D_space", 
                                                      ptrobot2D_test_world::point_type(0,0), 
@@ -284,7 +308,27 @@ ptrobot2D_test_world::~ptrobot2D_test_world() {
   delete pimpl;
 };
 
-
+void RK_CALL ptrobot2D_test_world::save(serialization::oarchive& A, unsigned int) const {
+  ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+  A & RK_SERIAL_SAVE_WITH_NAME(world_map_file_name)
+    & RK_SERIAL_SAVE_WITH_NAME(robot_radius)
+    & RK_SERIAL_SAVE_WITH_NAME(max_edge_length)
+    & RK_SERIAL_SAVE_WITH_NAME(m_space)
+    & RK_SERIAL_SAVE_WITH_NAME(m_distance)
+    & RK_SERIAL_SAVE_WITH_NAME(m_rand_sampler);
+};
+    
+void RK_CALL ptrobot2D_test_world::load(serialization::iarchive& A, unsigned int) {
+  ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+  A & RK_SERIAL_LOAD_WITH_NAME(world_map_file_name)
+    & RK_SERIAL_LOAD_WITH_NAME(robot_radius)
+    & RK_SERIAL_LOAD_WITH_NAME(max_edge_length)
+    & RK_SERIAL_LOAD_WITH_NAME(m_space)
+    & RK_SERIAL_LOAD_WITH_NAME(m_distance)
+    & RK_SERIAL_LOAD_WITH_NAME(m_rand_sampler);
+  delete pimpl;
+  pimpl = new ptrobot2D_test_world_impl(world_map_file_name, robot_radius);
+};
 
 };
 

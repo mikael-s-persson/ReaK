@@ -281,58 +281,49 @@ class rrt_test_world {
       };
     };
 
-    void joining_vertex_found(VertexType u, WorldGridType& g) {
-      if((solutions.size() == 0) || (solutions.back().get<0>() > 0.0)) {
-        if(&g == &grid)
-          solutions.push_back(boost::tuples::make_tuple(-get(m_distance,u),u,goal_node));
-        else
-          solutions.push_back(boost::tuples::make_tuple(-get(m_distance_goal,u),start_node,u));
-      } else {
-        if(&g == &grid) {
-          solutions.back().get<0>() = get(m_distance,u) - solutions.back().get<0>();
-          solutions.back().get<1>() = u;
-        } else {
-          solutions.back().get<0>() = get(m_distance_goal,u) - solutions.back().get<0>();
-          solutions.back().get<2>() = u;
+    void joining_vertex_found(VertexType u1, VertexType u2, WorldGridType& g1, WorldGridType& g2) {
+      if(&g1 == &grid_goal)
+        return joining_vertex_found(u2, u1, g2, g1);
+      
+      solutions.push_back(boost::tuples::make_tuple(get(m_distance,u1) + get(m_distance_goal,u2), u1, u2));
+      
+      if(solutions.back().get<0>() < goal_distance) {
+        goal_distance = solutions.back().get<0>();
+        best_solution = solutions.size() - 1;
+          
+        //Draw the edges of the current best solution:
+        VertexType v = solutions.back().get<1>();
+        while(in_degree(v, grid)) {
+	  u = source(*(in_edges(v,grid).first),grid);
+	  draw_edge(get(m_position,u), get(m_position,v), true);
+	  v = u;
         };
-        if(solutions.back().get<0>() < goal_distance) {
-          goal_distance = solutions.back().get<0>();
-          best_solution = solutions.size() - 1;
+        v = solutions.back().get<2>();
+        while(in_degree(v, grid_goal)) {
+          u = source(*(in_edges(v,grid_goal).first),grid_goal);
+          draw_edge(get(m_position_goal,u),get(m_position_goal,v),true);
+          v = u;
+        };
 
-          //Draw the edges of the current best solution:
-          VertexType v = solutions.back().get<1>();
-          while(in_degree(v, grid)) {
-	    u = source(*(in_edges(v,grid).first),grid);
-	    draw_edge(get(m_position,u), get(m_position,v), true);
-	    v = u;
-          };
-          v = solutions.back().get<2>();
-          while(in_degree(v, grid_goal)) {
-            u = source(*(in_edges(v,grid_goal).first),grid_goal);
-            draw_edge(get(m_position_goal,u),get(m_position_goal,v),true);
-            v = u;
-          };
-
-	  if(path_found_call_back) {
-	    path_found_call_back(world_map_output, num_vertices(grid) + num_vertices(grid_goal), best_solution, goal_distance);
-  	    //std::stringstream ss;
-            //ss << "test_rrt_results/" << "result_" << max_edge_length << "_" << best_solution << "_" << num_vertices(grid) + num_vertices(grid_goal) << "_" << goal_distance << ".bmp";
-            //cv::imwrite(ss.str(),world_map_output);
-	  };
+	if(path_found_call_back) {
+	  path_found_call_back(world_map_output, num_vertices(grid) + num_vertices(grid_goal), best_solution, goal_distance);
+  	  //std::stringstream ss;
+          //ss << "test_rrt_results/" << "result_" << max_edge_length << "_" << best_solution << "_" << num_vertices(grid) + num_vertices(grid_goal) << "_" << goal_distance << ".bmp";
+          //cv::imwrite(ss.str(),world_map_output);
+	};
 	  
-          //Redraw the edges of the current best solution as orange:
-          v = solutions.back().get<1>();
-          while(in_degree(v, grid)) {
-	    u = source(*(in_edges(v,grid).first),grid);
-	    draw_edge(get(m_position,u), get(m_position,v));
-	    v = u;
-          };
-          v = solutions.back().get<2>();
-          while(in_degree(v, grid_goal)) {
-            u = source(*(in_edges(v,grid_goal).first),grid_goal);
-            draw_edge(get(m_position_goal,u),get(m_position_goal,v));
-            v = u;
-          };
+        //Redraw the edges of the current best solution as orange:
+        v = solutions.back().get<1>();
+        while(in_degree(v, grid)) {
+	  u = source(*(in_edges(v,grid).first),grid);
+	  draw_edge(get(m_position,u), get(m_position,v));
+	  v = u;
+        };
+        v = solutions.back().get<2>();
+        while(in_degree(v, grid_goal)) {
+          u = source(*(in_edges(v,grid_goal).first),grid_goal);
+          draw_edge(get(m_position_goal,u),get(m_position_goal,v));
+          v = u;
         };
       };
     };
@@ -464,9 +455,8 @@ class rrt_test_world {
 	        boost::bind(&rrt_test_world::is_free,this,_1),
                 boost::bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
                 boost::bind(&rrt_test_world::keep_going,this)),
-	      m_position,
- 	      ReaK::pp::linear_neighbor_search<>(),
-              m, max_edge_length, 1.0);
+	      m_position, get(ReaK::pp::random_sampler, m_space),
+ 	      ReaK::pp::linear_neighbor_search<>(), m);
 	  } else if(nn_search_divider == 1) { //calls the unidirectional RRT, with dvp_tree as nearest-neighbor finder.
 	    ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition> nn_finder;
 	    nn_finder.graph_tree_map[&grid] = &space_part;
@@ -479,9 +469,8 @@ class rrt_test_world {
 	        boost::bind(&rrt_test_world::is_free,this,_1),
                 boost::bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
                 boost::bind(&rrt_test_world::keep_going,this)),
-              m_position,
-	      nn_finder,
-	      m, max_edge_length, 1.0);
+              m_position, get(ReaK::pp::random_sampler, m_space),
+	      nn_finder, m);
 	  } else {                      //calls the unidirectional RRT, with the best_only_neighbor_search
 	    ReaK::graph::generate_rrt(
 	      grid, 
@@ -492,9 +481,8 @@ class rrt_test_world {
 	        boost::bind(&rrt_test_world::is_free,this,_1),
                 boost::bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
                 boost::bind(&rrt_test_world::keep_going,this)),
-	      m_position,
- 	      ReaK::pp::best_only_neighbor_search<>(nn_search_divider),
-              m, max_edge_length, 1.0);
+	      m_position, get(ReaK::pp::random_sampler, m_space),
+ 	      ReaK::pp::best_only_neighbor_search<>(nn_search_divider), m);
 	  };
 	} else {
 	  if(nn_search_divider == 0) {    //calls the bidirectional RRT, with the linear_neighbor_search
@@ -507,9 +495,8 @@ class rrt_test_world {
 	        boost::bind(&rrt_test_world::is_free,this,_1),
                 boost::bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
                 boost::bind(&rrt_test_world::keep_going,this)),
-	      m_position, m_position_goal,
- 	      ReaK::pp::linear_neighbor_search<>(),
-              m, max_edge_length, 1.0);
+	      m_position, m_position_goal, get(ReaK::pp::random_sampler, m_space),
+ 	      ReaK::pp::linear_neighbor_search<>(), m);
 	  } else if(nn_search_divider == 1) {
 	    ReaK::pp::multi_dvp_tree_search<WorldGridType,WorldPartition> nn_finder;
 	    nn_finder.graph_tree_map[&grid] = &space_part;
@@ -523,9 +510,8 @@ class rrt_test_world {
 	        boost::bind(&rrt_test_world::is_free,this,_1),
                 boost::bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
                 boost::bind(&rrt_test_world::keep_going,this)),
-	      m_position, m_position_goal,
- 	      nn_finder,
-              m, max_edge_length, 1.0);
+	      m_position, m_position_goal, get(ReaK::pp::random_sampler, m_space),
+ 	      nn_finder, m);
 	  } else {                         //calls the bidirectional RRT, with the best_only_neighbor_search
             ReaK::graph::generate_bidirectional_rrt(
 	      grid, grid_goal,
@@ -536,9 +522,8 @@ class rrt_test_world {
 	        boost::bind(&rrt_test_world::is_free,this,_1),
                 boost::bind(&rrt_test_world::joining_vertex_found,this,_1,_2),
                 boost::bind(&rrt_test_world::keep_going,this)),
-	      m_position, m_position_goal,
- 	      ReaK::pp::best_only_neighbor_search<>(nn_search_divider),
-              m, max_edge_length, 1.0);
+	      m_position, m_position_goal, get(ReaK::pp::random_sampler, m_space),
+ 	      ReaK::pp::best_only_neighbor_search<>(nn_search_divider), m);
 	  };
 	};
 	m += max_vertex_count;

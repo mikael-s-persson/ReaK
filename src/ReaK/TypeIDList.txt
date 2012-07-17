@@ -275,6 +275,7 @@ manip_ik_rnd_restart_map    0xC240001C   bin: 1100 0010 0100 0000 0000 0000 0001
 manip_rl_ik_rnd_restart_map<R> 0xC240001D bin:1100 0010 0100 0000 0000 0000 0001 1101  D-R
 manip_ik_knn_starts_map     0xC240001E   bin: 1100 0010 0100 0000 0000 0000 0001 1110  D-R
 manip_rl_ik_knn_starts_map<R> 0xC240001F bin: 1100 0010 0100 0000 0000 0000 0001 1111  D-R
+ptrobot2D_test_world        0xC2400020   bin: 1100 0010 0100 0000 0000 0000 0010 0000  D-R
 
 
 
@@ -306,7 +307,7 @@ linear_interpolator_factory 0xC2430001   bin: 1100 0010 0100 0011 0000 0000 0000
 cubic_hermite_interp_factory 0xC2430002  bin: 1100 0010 0100 0011 0000 0000 0000 0010  D-R
 quintic_hermite_interp_factory 0xC2430003 bin:1100 0010 0100 0011 0000 0000 0000 0011  D-R
 svp_interpolator_factory    0xC2430004   bin: 1100 0010 0100 0011 0000 0000 0000 0100  D-R
-sap_interpolator_factory    0xC2430005   bin: 1100 0010 0100 0011 0000 0000 0000 0101  
+sap_interpolator_factory    0xC2430005   bin: 1100 0010 0100 0011 0000 0000 0000 0101  D-R
 
 //Trajectories:             0xC244****
 waypoint_container_base     0xC2440000   bin: 1100 0010 0100 0100 0000 0000 0000 0000  D-R
@@ -320,15 +321,23 @@ sap_interp_traj             0xC2440007   bin: 1100 0010 0100 0100 0000 0000 0000
 transformed_trajectory      0xC2440008   bin: 1100 0010 0100 0100 0000 0000 0000 1000  D-R
 trajectory_base             0xC2440009   bin: 1100 0010 0100 0100 0000 0000 0000 1001  D-R
 trajectory_wrapper          0xC244000A   bin: 1100 0010 0100 0100 0000 0000 0000 1010  D-R
+point_to_point_path         0xC244000B   bin: 1100 0010 0100 0100 0000 0000 0000 1011  D-R
+path_base                   0xC244000C   bin: 1100 0010 0100 0100 0000 0000 0000 1100  D-R
+path_wrapper                0xC244000D   bin: 1100 0010 0100 0100 0000 0000 0000 1101  D-R
 
 //Random-Samplers:          0xC245****   
 default_random_sampler      0xC2450000   bin: 1100 0010 0100 0101 0000 0000 0000 0000  D-R
-svp_rate_limited_sampler    0xC2450001   bin: 1100 0010 0100 0001 0000 0000 0000 0001  D-R
-sap_rate_limited_sampler    0xC2450002   bin: 1100 0010 0100 0001 0000 0000 0000 0010  D-R
+svp_rate_limited_sampler    0xC2450001   bin: 1100 0010 0100 0101 0000 0000 0000 0001  D-R
+sap_rate_limited_sampler    0xC2450002   bin: 1100 0010 0100 0101 0000 0000 0000 0010  D-R
 
 //Motion-Planners:          0xC246****
 motion_planner_base         0xC2460000   bin: 1100 0010 0100 0110 0000 0000 0000 0000  D-R
-sample_based_planner        0xC2460001   bin: 1100 0010 0100 0110 0000 0000 0000 0001  D-R
+path_planner_base           0xC2460001   bin: 1100 0010 0100 0110 0000 0000 0000 0001  D-R
+sample_based_planner        0xC2460002   bin: 1100 0010 0100 0110 0000 0000 0000 0010  D-R
+no_sbmp_report              0xC2460003   bin: 1100 0010 0100 0110 0000 0000 0000 0011  D-R
+differ_sbmp_report_to_space 0xC2460004   bin: 1100 0010 0100 0110 0000 0000 0000 0100  D-R
+timing_sbmp_report          0xC2460005   bin: 1100 0010 0100 0110 0000 0000 0000 0101  D-R
+print_sbmp_progress         0xC2460006   bin: 1100 0010 0100 0110 0000 0000 0000 0110  D-R
 
 
 

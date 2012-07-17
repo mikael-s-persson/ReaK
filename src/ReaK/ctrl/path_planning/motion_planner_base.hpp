@@ -107,12 +107,75 @@ class motion_planner_base : public named_object {
 
 
 /**
- * This class is the basic OOP interface for a sampling-based motion planner.
+ * This class is the basic OOP interface for a path planner.
  */
 template <typename FreeSpaceType>
-class sample_based_planner : public motion_planner_base<FreeSpaceType> {
+class path_planner_base : public named_object {
+  public:
+    typedef path_planner_base<FreeSpaceType> self;
+    typedef FreeSpaceType space_type;
+    typedef subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    
+    BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
+    
+    typedef topology_traits< super_space_type >::point_type point_type;
+    typedef topology_traits< super_space_type >::point_difference_type point_difference_type;
+    
+
   protected:
-    typedef motion_planner_base<FreeSpaceType> base_type;
+    
+    shared_ptr< space_type > m_space;
+    
+  public:
+    
+    /**
+     * This function computes a valid path in the C-free. If it cannot 
+     * achieve a valid path, an exception will be thrown. This algorithmic
+     * path solver class is such that any settings that ought to be set for the 
+     * path planning algorithm should be set before calling this function, otherwise
+     * the function is likely to fail.
+     * \return The path object that can be used to map out the path.
+     */
+    virtual shared_ptr< path_base< super_space_type > > solve_path() = 0;
+    
+    /**
+     * Parametrized constructor.
+     * \param aName The name for this object.
+     * \param aWorld A topology which represents the C-free (obstacle-free configuration space).
+     */
+    path_planner_base(const std::string& aName,
+                        const shared_ptr< space_type >& aWorld) :
+                        named_object()
+                        m_space(aWorld) { setName(aName); };
+    
+    virtual ~path_planner_base() { };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(m_space);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(m_space);
+    };
+
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460001,1,"path_planner_base",named_object)
+};
+
+
+/**
+ * This class is the basic OOP interface for a sampling-based motion planner.
+ */
+template <typename BaseType>
+class sample_based_planner : public BaseType {
+  protected:
+    typedef BaseType base_type;
     
     std::size_t m_max_vertex_count;
     std::size_t m_progress_interval;
@@ -182,7 +245,7 @@ class sample_based_planner : public motion_planner_base<FreeSpaceType> {
         & RK_SERIAL_LOAD_WITH_NAME(m_progress_interval);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460001,1,"sample_based_planner",base_type)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460002,1,"sample_based_planner",base_type)
 };
 
 };
