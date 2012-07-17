@@ -77,7 +77,7 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
     typedef typename base_class_type::const_waypoint_bounds const_waypoint_bounds;
     typedef typename base_class_type::point_type point_type;
     typedef typename base_class_type::topology topology;
-    typedef typename base_class_type::distance_metric_type distance_metric_type;
+    typedef typename base_class_type::distance_metric distance_metric;
     
     typedef std::pair<const_waypoint_descriptor, point_type> waypoint_pair;
     
@@ -145,7 +145,7 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
      * \param aDist The distance metric functor that the path should use.
      */
     explicit point_to_point_path(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), 
-                                 const distance_metric_type& aDist = distance_metric_type()) : 
+                                 const distance_metric& aDist = distance_metric()) : 
                                  base_class_type(aSpace, aDist) { };
     
     /**
@@ -158,7 +158,7 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
     point_to_point_path(const shared_ptr<topology>& aSpace, 
                         const point_type& aStart, 
                         const point_type& aEnd, 
-                        const distance_metric_type& aDist = distance_metric_type()) :
+                        const distance_metric& aDist = distance_metric()) :
                         base_class_type(aSpace, aStart, aEnd, aDist) { };
     
     /**
@@ -172,7 +172,7 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
     template <typename ForwardIter>
     point_to_point_path(ForwardIter aBegin, ForwardIter aEnd, 
                         const shared_ptr<topology>& aSpace, 
-                        const distance_metric_type& aDist = distance_metric_type()) : 
+                        const distance_metric& aDist = distance_metric()) : 
                         base_class_type(aBegin, aEnd, aSpace, aDist) { };
     
     /**
@@ -284,7 +284,7 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
      * Returns the end point of the path.
      * \return The end point of the path.
      */
-    point_type get_start_point() const {
+    point_type get_end_point() const {
       const_waypoint_descriptor end = this->waypoints.end(); --end;
       return *end;
     };
@@ -293,7 +293,7 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
      * Returns the end waypoint-point-pair of the path.
      * \return The end waypoint-point-pair of the path.
      */
-    waypoint_pair get_start_waypoint() const {
+    waypoint_pair get_end_waypoint() const {
       const_waypoint_descriptor end = this->waypoints.end(); --end;
       return waypoint_pair(end,*end);
     };

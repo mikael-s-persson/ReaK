@@ -43,6 +43,10 @@ add_executable(test_dvp_adj_list "${SRCROOT}${RKPATHPLANNINGDIR}/test_dvp_adj_li
 setup_custom_target(test_dvp_adj_list "${SRCROOT}${RKPATHPLANNINGDIR}")
 target_link_libraries(test_dvp_adj_list reak_core)
 
+add_executable(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}/test_planners.cpp")
+setup_custom_target(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
+target_link_libraries(test_planners reak_topologies reak_core)
+
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")

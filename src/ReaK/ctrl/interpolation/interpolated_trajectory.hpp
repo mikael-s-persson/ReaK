@@ -82,7 +82,7 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
     typedef typename base_class_type::const_waypoint_bounds const_waypoint_bounds;
     typedef typename base_class_type::point_type point_type;
     typedef typename base_class_type::topology topology;
-    typedef typename base_class_type::distance_metric_type distance_metric_type;
+    typedef typename base_class_type::distance_metric distance_metric;
     
     typedef std::pair<const_waypoint_descriptor, point_type> waypoint_pair;
     
@@ -193,7 +193,7 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
      * \param aDist The distance metric functor that the trajectory should use.
      * \param aInterp The interpolator functor that the trajectory should use.
      */
-    explicit interpolated_trajectory(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric_type& aDist = distance_metric_type(), const interpolator_factory_type& aInterpFactory = interpolator_factory_type()) : 
+    explicit interpolated_trajectory(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric& aDist = distance_metric(), const interpolator_factory_type& aInterpFactory = interpolator_factory_type()) : 
                                      base_class_type(aSpace, aDist), interp_fact(aInterpFactory), interp_segments() { 
       interp_fact.set_temporal_space(this->space);
     };
@@ -206,7 +206,7 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
      * \param aDist The distance metric functor that the trajectory should use.
      * \param aInterp The interpolator functor that the trajectory should use.
      */
-    interpolated_trajectory(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type(), const interpolator_factory_type& aInterpFactory = interpolator_factory_type()) :
+    interpolated_trajectory(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric(), const interpolator_factory_type& aInterpFactory = interpolator_factory_type()) :
                             base_class_type(aSpace, aStart, aEnd, aDist), interp_fact(aInterpFactory), interp_segments() { 
       interp_fact.set_temporal_space(this->space);
     };
@@ -221,7 +221,7 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
      * \param aInterp The interpolator functor that the trajectory should use.
      */
     template <typename ForwardIter>
-    interpolated_trajectory(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric_type& aDist = distance_metric_type(), const interpolator_factory_type& aInterpFactory = interpolator_factory_type()) : 
+    interpolated_trajectory(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric& aDist = distance_metric(), const interpolator_factory_type& aInterpFactory = interpolator_factory_type()) : 
                             base_class_type(aBegin, aEnd, aSpace, aDist), interp_fact(aInterpFactory), interp_segments() { 
       interp_fact.set_temporal_space(this->space);
     };

@@ -118,7 +118,7 @@ class path_base : public named_object {
       named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC244000C,1,"path_base",named_object)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC244000C,1,"path_base",named_object)
 };
 
 
@@ -142,7 +142,6 @@ class path_wrapper : public path_base< typename spatial_path_traits<SpatialPath>
     
     typedef typename spatial_path_traits<SpatialPath>::waypoint_descriptor waypoint_descriptor;
     typedef typename spatial_path_traits<SpatialPath>::const_waypoint_descriptor const_waypoint_descriptor;
-    typedef typename spatial_path_traits<SpatialPath>::const_waypoint_bounds const_waypoint_bounds;
     typedef typename spatial_path_traits<SpatialPath>::distance_metric distance_metric;
     
     typedef std::pair< const_waypoint_descriptor, point_type> waypoint_pair;
@@ -188,7 +187,7 @@ class path_wrapper : public path_base< typename spatial_path_traits<SpatialPath>
      */
     double travel_distance(waypoint_pair& a, waypoint_pair& b) const {
       m_last_waypoint = a;
-      return m_traj.travel_distance(m_last_waypoint, next_waypoint);
+      return m_traj.travel_distance(m_last_waypoint, b);
     };
     
     /**

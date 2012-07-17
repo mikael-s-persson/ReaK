@@ -114,7 +114,7 @@ struct no_sbmp_report : public shared_object {
  * void save_output(const std::string& filename) const;
  */
 template <typename NextReporter = no_sbmp_report>
-struct differ_sbmp_report_to_space {
+struct differ_sbmp_report_to_space : public shared_object {
   typedef differ_sbmp_report_to_space<NextReporter> self;
   
   NextReporter next_reporter;
@@ -124,10 +124,10 @@ struct differ_sbmp_report_to_space {
   std::string file_path;
   
   explicit differ_sbmp_report_to_space(const std::string& aFilePath = "", 
-                                       double aTimeInterval = 0.1,
+                                       double aIntervalSize = 0.1,
                                        NextReporter aNextReporter = NextReporter()) : 
                                        next_reporter(aNextReporter),
-                                       time_interval(aTimeInterval),
+                                       interval_size(aIntervalSize),
                                        file_path(aFilePath) { };
   
   /**
@@ -251,7 +251,7 @@ struct differ_sbmp_report_to_space {
  * and simply times the progress of the planner, which it outputs to a given output stream.
  */
 template <typename NextReporter = no_sbmp_report>
-struct timing_sbmp_report {
+struct timing_sbmp_report : public shared_object {
   typedef timing_sbmp_report<NextReporter> self;
   
   NextReporter next_reporter;
@@ -338,7 +338,7 @@ struct timing_sbmp_report {
  * and simply prints the progress of the planner.
  */
 template <typename NextReporter = no_sbmp_report>
-struct print_sbmp_progress {
+struct print_sbmp_progress : public shared_object {
   typedef print_sbmp_progress<NextReporter> self;
   
   NextReporter next_reporter;

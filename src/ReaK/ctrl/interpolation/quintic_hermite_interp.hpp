@@ -525,7 +525,7 @@ class quintic_hermite_interp_traj : public interpolated_trajectory<Topology,quin
     typedef interpolated_trajectory<Topology,quintic_hermite_interp_factory<Topology>,DistanceMetric> base_class_type;
     
     typedef typename base_class_type::topology topology;
-    typedef typename base_class_type::distance_metric_type distance_metric_type;
+    typedef typename base_class_type::distance_metric distance_metric;
     typedef typename base_class_type::point_type point_type;
     
   public:
@@ -535,7 +535,7 @@ class quintic_hermite_interp_traj : public interpolated_trajectory<Topology,quin
      * \param aSpace The space on which the path is.
      * \param aDist The distance metric functor that the path should use.
      */
-    explicit quintic_hermite_interp_traj(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
+    explicit quintic_hermite_interp_traj(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric& aDist = distance_metric()) : 
                                          base_class_type(aSpace, aDist, quintic_hermite_interp_factory<Topology>(aSpace)) { };
     
     /**
@@ -545,7 +545,7 @@ class quintic_hermite_interp_traj : public interpolated_trajectory<Topology,quin
      * \param aEnd The end-point of the path.
      * \param aDist The distance metric functor that the path should use.
      */
-    quintic_hermite_interp_traj(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
+    quintic_hermite_interp_traj(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
                                 base_class_type(aSpace, aStart, aEnd, aDist, quintic_hermite_interp_factory<Topology>(aSpace)) { };
 			
     /**
@@ -557,7 +557,7 @@ class quintic_hermite_interp_traj : public interpolated_trajectory<Topology,quin
      * \param aDist The distance metric functor that the path should use.
      */
     template <typename ForwardIter>
-    quintic_hermite_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
+    quintic_hermite_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric& aDist = distance_metric()) : 
                                 base_class_type(aBegin, aEnd, aSpace, aDist, quintic_hermite_interp_factory<Topology>(aSpace)) { };
     
     

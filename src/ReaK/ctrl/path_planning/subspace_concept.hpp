@@ -78,7 +78,7 @@ struct SubSpaceConcept {
   
   BOOST_CONCEPT_USAGE(SubSpaceConcept) 
   {
-    const typename subspace_traits<Topology>::super_space_type& super_space = space.get_super_space();
+    const typename subspace_traits<Topology>::super_space_type& super_space = space.get_super_space(); RK_UNUSED(super_space);
   };
   
 };

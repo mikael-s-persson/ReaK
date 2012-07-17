@@ -69,6 +69,9 @@
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/random_sampler_concept.hpp"
 
+#include "graph_alg/bgl_tree_adaptor.hpp"
+#include "graph_alg/bgl_more_property_maps.hpp"
+
 
 namespace ReaK {
   
@@ -143,7 +146,6 @@ namespace graph {
             typename EdgeAddedCallback,
 	    typename SteerFunction,
 	    typename IsFreeQuery,
-	    typename JoiningVertexFoundCallback,
 	    typename KeepGoingQuery>
   struct composite_rrt_visitor {
     VertexAddedCallback vertex_added;
@@ -156,7 +158,7 @@ namespace graph {
 			  SteerFunction aSteerTowardsPosition,
                           IsFreeQuery aIsFree,
                           KeepGoingQuery aKeepGoing) :
-                          vertex_added(aVertexAdded), edge_added(aEdgeAdded), steer_towards_position(aSteerTowardsPosition), is_position_free(aIsFree), joining_vertex_found(aJoiningVertexFound), keep_going(aKeepGoing) { };
+                          vertex_added(aVertexAdded), edge_added(aEdgeAdded), steer_towards_position(aSteerTowardsPosition), is_position_free(aIsFree), keep_going(aKeepGoing) { };
   };
 
   /**
@@ -215,7 +217,7 @@ namespace graph {
     
     BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
     
-    BOOST_CONCEPT_USAGE(RRTVisitorConcept) {
+    BOOST_CONCEPT_USAGE(BiRRTVisitorConcept) {
       vis.vertex_added(u, g, g); 
       vis.edge_added(e, g, g); 
       boost::tie(p,b) = vis.steer_towards_position(p,u,g);
@@ -306,21 +308,27 @@ namespace detail {
                       const typename boost::property_traits<PositionMap>::value_type& p_target) {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    typedef typename Graph::vertex_bundled VertexProp;
+    typedef typename Graph::edge_bundled EdgeProp;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
     
     bool reached_new = false;
     PositionValue p_v;
     boost::tie(p_v, reached_new) = vis.steer_towards_position(p_target,u,g);
     if(reached_new) {  // i.e., a new position was reached, collision-free.
-      Vertex v = add_vertex(g);
-      put(position, v, p_v);
+      VertexProp vp; 
+      put(position, vp, p_v);
+      Vertex v; Edge e;
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      boost::tie(v,e) = add_child_vertex(u, std::move(vp), EdgeProp(), g);
+#else
+      boost::tie(v,e) = add_child_vertex(u, vp, EdgeProp(), g);
+#endif
       vis.vertex_added(v,g);
-      std::pair<Edge, bool> ep = add_edge(u,v,g);
-      if(ep.second)
-        vis.edge_added(ep.first, g);
+      vis.edge_added(e, g);
       u = v;
     };
-    return make_pair(u,reached_new);
+    return std::make_pair(u,reached_new);
   };
   
   template <typename Graph,
@@ -334,21 +342,27 @@ namespace detail {
                         const typename boost::property_traits<PositionMap>::value_type& p_target) {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    typedef typename Graph::vertex_bundled VertexProp;
+    typedef typename Graph::edge_bundled EdgeProp;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
     
     bool reached_new = false;
     PositionValue p_v;
     boost::tie(p_v, reached_new) = vis.steer_towards_position(p_target,u,g1);
     if(reached_new) {  // i.e., a new position was reached, collision-free.
-      Vertex v = add_vertex(g1);
-      put(position, v, p_v);
-      vis.vertex_added(v,g1,g2);
-      std::pair<Edge, bool> ep = add_edge(u,v,g);
-      if(ep.second)
-        vis.edge_added(ep.first, g1, g2);
+      VertexProp vp; 
+      put(position, vp, p_v);
+      Vertex v; Edge e;
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      boost::tie(v,e) = add_child_vertex(u, std::move(vp), EdgeProp(), g1);
+#else
+      boost::tie(v,e) = add_child_vertex(u, vp, EdgeProp(), g1);
+#endif
+      vis.vertex_added(v, g1, g2);
+      vis.edge_added(e, g1, g2);
       u = v;
     };
-    return make_pair(u,reached_new);
+    return std::make_pair(u,reached_new);
   };
   
 }; //namespace detail
@@ -374,7 +388,8 @@ namespace detail {
    *        user can implement.
    * \param position A mapping that implements the MutablePropertyMap Concept. Also,
    *        the value_type of this map should be the same type as the topology's 
-   *        value_type.
+   *        value_type. This map should allow read-write access to the position associated 
+   *        to a vertex's property (Graph::vertex_property_type).
    * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
    * \param find_nearest_neighbor A callable object (functor) which can perform a 
    *        nearest neighbor search of a point to a graph in the topology. (see topological_search.hpp)
@@ -406,20 +421,30 @@ namespace detail {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+    typedef typename Graph::vertex_bundled VertexProp;
+    
+    typedef boost::composite_property_map< 
+      PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
+    GraphPositionMap g_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
 
     if(num_vertices(g) == 0) {
-      Vertex u = add_vertex(g);
       PositionValue p = get_sample(space);
       while(!vis.is_position_free(p))
 	p = get_sample(space);
-      put(position, u, p);
+      VertexProp up;
+      put(position, up, p);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      Vertex u = create_root(std::move(up),g);
+#else
+      Vertex u = create_root(up,g);
+#endif
       vis.vertex_added(u, g);
     };
 
     while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
       PositionValue p_rnd = get_sample(space);
-      Vertex u = find_nearest_neighbor(p_rnd,g,space,position);
-      detail::expand_rrt_vertex(g, space, vis, position, u, p_rnd, max_edge_distance, min_edge_distance);
+      Vertex u = find_nearest_neighbor(p_rnd, g, space, g_position);
+      detail::expand_rrt_vertex(g, space, vis, position, u, p_rnd);
     };
 
   };
@@ -464,12 +489,10 @@ namespace detail {
    * \param vis A RRT visitor implementing the RRTVisitorConcept. This is the 
    *        main point of customization and recording of results that the 
    *        user can implement.
-   * \param position1 A mapping for the first graph that implements the MutablePropertyMap Concept. 
+   * \param position A mapping for the graph vertex properties that implements the MutablePropertyMap Concept. 
    *        Also, the value_type of this map should be the same type as the topology's 
-   *        value_type.
-   * \param position2 A mapping for the second graph that implements the MutablePropertyMap Concept. 
-   *        Also, the value_type of this map should be the same type as the topology's 
-   *        value_type.
+   *        value_type. This map should allow read-write access to the position associated 
+   *        to a vertex's property (Graph::vertex_property_type).
    * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
    * \param find_nearest_neighbor A callable object (functor) which can perform a 
    *        nearest neighbor search of a point to a graph in the 
@@ -486,8 +509,8 @@ namespace detail {
 	    typename NNFinder>
   inline void generate_bidirectional_rrt(Graph& g1, Graph& g2,
 			                 const Topology& space,
-                                         RRTVisitor vis,
-			                 PositionMap position1, PositionMap position2,
+                                         BiRRTVisitor vis,
+			                 PositionMap position,
 			                 RandomSampler get_sample,
 			                 NNFinder find_nearest_neighbor,
 			                 unsigned int max_vertex_count) {
@@ -497,45 +520,62 @@ namespace detail {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-
+    typedef typename Graph::vertex_bundled VertexProp;
+    
+    typedef boost::composite_property_map< 
+      PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
+    GraphPositionMap g1_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g1));
+    GraphPositionMap g2_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g2));
+    
+    
     PositionValue p_target1; std::pair<Vertex,bool> v_target1;
     PositionValue p_target2; std::pair<Vertex,bool> v_target2;
 
     if(num_vertices(g1) == 0) {
-      Vertex u = add_vertex(g1);
       PositionValue p = get_sample(space);
       while(!vis.is_position_free(p))
 	p = get_sample(space);
-      put(position1, u, p);
+      VertexProp up;
+      put(position, up, p);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      Vertex u = create_root(std::move(up), g1);
+#else
+      Vertex u = create_root(up, g1);
+#endif
       p_target2 = p;
       v_target2.first = u; v_target2.second = true;
       vis.vertex_added(u, g1, g2);
     } else {
-      Vertex u = vertex(0,g1);
-      p_target2 = get(position1, u);
+      Vertex u = get_root_vertex(g1);
+      p_target2 = get(position, g1[u]);
       v_target2.first = u; v_target2.second = true;
     };
 
     if(num_vertices(g2) == 0) {
-      Vertex u = add_vertex(g2);
       PositionValue p = get_sample(space);
       while(!vis.is_position_free(p))
 	p = get_sample(space);
-      put(position2, u, p);
+      VertexProp up;
+      put(position, up, p);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      Vertex u = create_root(std::move(up), g2);
+#else
+      Vertex u = create_root(up, g2);
+#endif
       p_target1 = p;
       v_target1.first = u; v_target1.second = true;
       vis.vertex_added(u, g2, g1);
     } else {
-      Vertex u = vertex(0,g2);
-      p_target1 = get(position2, u);
+      Vertex u = get_root_vertex(g2);
+      p_target1 = get(position, g2[u]);
       v_target1.first = u; v_target1.second = true;
     };
 
     while((num_vertices(g1) + num_vertices(g2) < max_vertex_count) && (vis.keep_going())) {
       //first, expand the first graph towards its target:
-      Vertex u1 = find_nearest_neighbor(p_target1,g1,space,position1);
+      Vertex u1 = find_nearest_neighbor(p_target1, g1, space, g1_position);
       std::pair< Vertex, bool> v1 =
-        detail::expand_birrt_vertex(g1,g2,space,vis,position1,u1,p_target1);
+        detail::expand_birrt_vertex(g1,g2,space,vis,position,u1,p_target1);
       if((v1.second) && (v_target1.second)) {
         //joining vertex has been reached!
         vis.joining_vertex_found(v1.first, v_target1.first, g1, g2);
@@ -546,15 +586,15 @@ namespace detail {
           p_target2 = get_sample(space);
           v_target2.second = false;
         } else {
-          p_target2 = get(position1, v1.first);
+          p_target2 = get(position, g1[v1.first]);
           v_target2.first = v1.first; v_target2.second = true;
         };
       };
 
       //then, expand the second graph towards its target:
-      Vertex u2 = find_nearest_neighbor(p_target2,g2,space,position2);
+      Vertex u2 = find_nearest_neighbor(p_target2, g2, space, g2_position);
       std::pair< Vertex, bool> v2 =
-        detail::expand_birrt_vertex(g2,g1,space,vis,position2,u2,p_target2);
+        detail::expand_birrt_vertex(g2,g1,space,vis,position,u2,p_target2);
       if((v2.second) && (v_target2.second)) {
         //joining vertex has been reached!
         vis.joining_vertex_found(v_target2.first, v2.first, g1, g2);
@@ -565,7 +605,7 @@ namespace detail {
           p_target1 = get_sample(space);
           v_target1.second = false;
         } else {
-          p_target1 = get(position2, v2.first);
+          p_target1 = get(position, g2[v2.first]);
           v_target1.first = v2.first; v_target1.second = true;
         };
       };
@@ -582,12 +622,12 @@ namespace detail {
               typename NNFinder>
     void operator()(Graph& g1, Graph& g2,
                     const Topology& space,
-                    RRTVisitor vis,
-                    PositionMap position1, PositionMap position2,
+                    BiRRTVisitor vis,
+                    PositionMap position,
                     RandomSampler get_sample,
                     NNFinder find_nearest_neighbor,
                     unsigned int max_vertex_count) {
-      generate_bidirectional_rrt(g1,g2,space,vis,position1,position2,get_sample,find_nearest_neighbor,max_vertex_count);
+      generate_bidirectional_rrt(g1,g2,space,vis,position,get_sample,find_nearest_neighbor,max_vertex_count);
     };
   };
 

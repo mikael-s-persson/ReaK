@@ -193,7 +193,7 @@ class trajectory_wrapper : public trajectory_base< typename spatial_trajectory_t
      */
     double travel_distance(waypoint_pair& a, waypoint_pair& b) const {
       m_last_waypoint = a;
-      return m_traj.travel_distance(m_last_waypoint, next_waypoint);
+      return m_traj.travel_distance(m_last_waypoint, b);
     };
     
     /**

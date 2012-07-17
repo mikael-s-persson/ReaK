@@ -39,6 +39,9 @@
 #include "random_sampler_concept.hpp"
 #include "subspace_concept.hpp"
 
+#include "trajectory_base.hpp"
+#include "path_base.hpp"
+
 namespace ReaK {
   
 namespace pp {
@@ -51,12 +54,12 @@ class motion_planner_base : public named_object {
   public:
     typedef motion_planner_base<FreeSpaceType> self;
     typedef FreeSpaceType space_type;
-    typedef subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
     
     BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
     
-    typedef topology_traits< super_space_type >::point_type point_type;
-    typedef topology_traits< super_space_type >::point_difference_type point_difference_type;
+    typedef typename topology_traits< super_space_type >::point_type point_type;
+    typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
     
 
   protected:
@@ -82,7 +85,7 @@ class motion_planner_base : public named_object {
      */
     motion_planner_base(const std::string& aName,
                         const shared_ptr< space_type >& aWorld) :
-                        named_object()
+                        named_object(),
                         m_space(aWorld) { setName(aName); };
     
     virtual ~motion_planner_base() { };
@@ -114,12 +117,12 @@ class path_planner_base : public named_object {
   public:
     typedef path_planner_base<FreeSpaceType> self;
     typedef FreeSpaceType space_type;
-    typedef subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
     
     BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
     
-    typedef topology_traits< super_space_type >::point_type point_type;
-    typedef topology_traits< super_space_type >::point_difference_type point_difference_type;
+    typedef typename topology_traits< super_space_type >::point_type point_type;
+    typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
     
 
   protected:
@@ -145,7 +148,7 @@ class path_planner_base : public named_object {
      */
     path_planner_base(const std::string& aName,
                         const shared_ptr< space_type >& aWorld) :
-                        named_object()
+                        named_object(),
                         m_space(aWorld) { setName(aName); };
     
     virtual ~path_planner_base() { };
@@ -176,6 +179,7 @@ template <typename BaseType>
 class sample_based_planner : public BaseType {
   protected:
     typedef BaseType base_type;
+    typedef sample_based_planner<BaseType> self;
     
     std::size_t m_max_vertex_count;
     std::size_t m_progress_interval;
@@ -220,7 +224,7 @@ class sample_based_planner : public BaseType {
      * \param aProgressInterval The number of new samples between each "progress report".
      */
     sample_based_planner(const std::string& aName,
-                         const shared_ptr< space_type >& aWorld, 
+                         const shared_ptr< typename base_type::space_type >& aWorld, 
                          std::size_t aMaxVertexCount = 0, 
                          std::size_t aProgressInterval = 0) :
                          base_type(aName,aWorld), 

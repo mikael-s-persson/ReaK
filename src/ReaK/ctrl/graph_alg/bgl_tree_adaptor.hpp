@@ -207,9 +207,9 @@ void remove_branch( const typename graph_traits<Graph>::vertex_descriptor& u,
 template <typename Graph>
 inline
 typename graph_traits<Graph>::vertex_descriptor create_root(const typename Graph::vertex_bundled& vp, Graph& g) {
-  typename graph_traits<Graph>::vertex_descriptor v = create_root(g);
-  g[v] = vp;
-  return v;
+  if(num_vertices(g) > 0)
+    remove_branch(get_root_vertex(g), g);
+  return add_vertex(vp,g);
 };
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -218,9 +218,9 @@ inline
 typename graph_traits<Graph>::vertex_descriptor
   create_root( typename Graph::vertex_bundled&& vp, 
 	       Graph& g) {
-  typename graph_traits<Graph>::vertex_descriptor v = create_root(g);
-  g[v] = std::move(vp);
-  return v;
+  if(num_vertices(g) > 0)
+    remove_branch(get_root_vertex(g), g);
+  return add_vertex(std::move(vp),g);
 };
 #endif
 
@@ -229,12 +229,11 @@ inline
 std::pair< 
 typename graph_traits<Graph>::vertex_descriptor,
 typename graph_traits<Graph>::edge_descriptor >
-  add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& v,
+  add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& u,
 		    const typename Graph::vertex_bundled& vp, Graph& g) {
-  std::pair< typename graph_traits<Graph>::vertex_descriptor, 
-             typename graph_traits<Graph>::edge_descriptor > result = add_child_vertex(v, g);
-  g[result.first] = vp;
-  return result;
+  typename graph_traits<Graph>::vertex_descriptor v = add_vertex(vp, g);
+  typename graph_traits<Graph>::edge_descriptor e = add_edge(u, v, g).first;
+  return std::make_pair(v,e);
 };
 
 template <typename Graph>
@@ -242,14 +241,12 @@ inline
 std::pair< 
 typename graph_traits<Graph>::vertex_descriptor,
 typename graph_traits<Graph>::edge_descriptor >
-  add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& v,
+  add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& u,
 		    const typename Graph::vertex_bundled& vp,
 		    const typename Graph::edge_bundled& ep, Graph& g) {
-  std::pair< typename graph_traits<Graph>::vertex_descriptor, 
-             typename graph_traits<Graph>::edge_descriptor > result = add_child_vertex(v, g);
-  g[result.first] = vp;
-  g[result.second] = ep;
-  return result;
+  typename graph_traits<Graph>::vertex_descriptor v = add_vertex(vp, g);
+  typename graph_traits<Graph>::edge_descriptor e = add_edge(u, v, ep, g).first;
+  return std::make_pair(v,e);
 };
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -258,12 +255,11 @@ inline
 std::pair< 
 typename graph_traits<Graph>::vertex_descriptor,
 typename graph_traits<Graph>::edge_descriptor >
-  add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& v,
+  add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& u,
 		    typename Graph::vertex_bundled&& vp, Graph& g) {
-  std::pair< typename graph_traits<Graph>::vertex_descriptor, 
-             typename graph_traits<Graph>::edge_descriptor > result = add_child_vertex(v, g);
-  g[result.first] = std::move(vp);
-  return result;
+  typename graph_traits<Graph>::vertex_descriptor v = add_vertex(std::move(vp), g);
+  typename graph_traits<Graph>::edge_descriptor e = add_edge(u, v, g).first;
+  return std::make_pair(v,e);
 };
 
 template <typename Graph>
@@ -271,14 +267,12 @@ inline
 std::pair< 
 typename graph_traits<Graph>::vertex_descriptor,
 typename graph_traits<Graph>::edge_descriptor >
-  add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& v,
+  add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& u,
 		    typename Graph::vertex_bundled&& vp,
-		    typename Graph::edge_property_type&& ep, Graph& g) {
-  std::pair< typename graph_traits<Graph>::vertex_descriptor, 
-             typename graph_traits<Graph>::edge_descriptor > result = add_child_vertex(v, g);
-  g[result.first] = std::move(vp);
-  g[result.second] = std::move(ep);
-  return result;
+		    typename Graph::edge_bundled&& ep, Graph& g) {
+  typename graph_traits<Graph>::vertex_descriptor v = add_vertex(std::move(vp), g);
+  typename graph_traits<Graph>::edge_descriptor e = add_edge(u, v, std::move(ep), g).first;
+  return std::make_pair(v,e);
 };
 #endif
 

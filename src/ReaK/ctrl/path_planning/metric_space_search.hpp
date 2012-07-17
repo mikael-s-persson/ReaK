@@ -600,7 +600,7 @@ struct multi_dvp_tree_search {
   /**
    * This is a call-back for when a vertex is about to be removed.
    */
-  template <typename Vertex, typename Graph>
+  template <typename Vertex>
   void removed_vertex(Vertex v, Graph& g) const { 
     typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
     if((it != graph_tree_map.end()) && (it->second))

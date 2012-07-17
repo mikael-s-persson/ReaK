@@ -73,6 +73,74 @@ namespace detail {
     char cannot_instantiate_this_specialization[0];
   };
   
+  template <std::size_t Arity, std::size_t BlockFanout, std::size_t BlockVertexCount> 
+  struct cob_tree_vertex_descriptor {
+      
+    std::size_t block_id;
+    std::ptrdiff_t vertex_id;
+      
+    cob_tree_vertex_descriptor(std::size_t aBlockID = 0, 
+			       std::ptrdiff_t aVertexID = 0) : 
+			       block_id(aBlockID), vertex_id(aVertexID) { };
+      
+    friend bool operator==( const cob_tree_vertex_descriptor& lhs, const cob_tree_vertex_descriptor& rhs) { 
+      return ((lhs.block_id == rhs.block_id) && (lhs.vertex_id == rhs.vertex_id)); 
+    };
+    friend bool operator!=( const cob_tree_vertex_descriptor& lhs, const cob_tree_vertex_descriptor& rhs) { 
+      return ((lhs.block_id != rhs.block_id) || (lhs.vertex_id != rhs.vertex_id)); 
+    };
+    friend bool operator <( const cob_tree_vertex_descriptor& lhs, const cob_tree_vertex_descriptor& rhs) {
+      if( lhs.block_id == rhs.block_id )
+	return ( lhs.vertex_id < rhs.vertex_id );
+      else 
+	return ( lhs.block_id < rhs.block_id );
+    };
+    friend bool operator<=( const cob_tree_vertex_descriptor& lhs, const cob_tree_vertex_descriptor& rhs) {
+      if( lhs.block_id == rhs.block_id )
+	return ( lhs.vertex_id <= rhs.vertex_id );
+      else 
+	return ( lhs.block_id < rhs.block_id );
+    };
+    friend bool operator >( const cob_tree_vertex_descriptor& lhs, const cob_tree_vertex_descriptor& rhs) {
+      if( lhs.block_id == rhs.block_id )
+	return ( lhs.vertex_id > rhs.vertex_id );
+      else 
+	return ( lhs.block_id > rhs.block_id );
+    };
+    friend bool operator>=( const cob_tree_vertex_descriptor& lhs, const cob_tree_vertex_descriptor& rhs) {
+      if( lhs.block_id == rhs.block_id )
+	return ( lhs.vertex_id >= rhs.vertex_id );
+      else 
+	return ( lhs.block_id > rhs.block_id );
+    };
+      
+    bool is_root() const { 
+      return ((block_id == 0) && (vertex_id == 0));
+    };
+      
+    cob_tree_vertex_descriptor get_child(std::size_t i) const {
+      std::ptrdiff_t result = Arity * vertex_id + 1 + i;
+      if( result >= std::ptrdiff_t(BlockVertexCount) ) {
+	result -= BlockVertexCount;
+	return cob_tree_vertex_descriptor(BlockFanout * block_id + 1 + result, 0);
+      };
+      return cob_tree_vertex_descriptor(block_id, result);
+    };
+      
+    cob_tree_vertex_descriptor get_parent() const {
+      if(vertex_id == 0)
+	return cob_tree_vertex_descriptor((block_id - 1) / BlockFanout, ( ( (block_id - 1) % BlockFanout ) / Arity + BlockVertexCount ) - BlockFanout / Arity);
+      return cob_tree_vertex_descriptor(block_id, (vertex_id - 1) / Arity);
+    };
+      
+    std::ptrdiff_t get_in_edge() const {
+      if(vertex_id == 0)
+	return ( (block_id - 1) % BlockFanout ) % Arity;
+      return (vertex_id - 1) % Arity;
+    };
+      
+  };
+  
   
 };
 
@@ -123,72 +191,7 @@ class d_ary_cob_tree
     typedef vertices_size_type edges_size_type;
     typedef vertices_size_type degree_size_type;
     
-    struct vertex_descriptor {
-      
-      std::size_t block_id;
-      vertex_index_type vertex_id;
-      
-      vertex_descriptor(std::size_t aBlockID = 0, 
-			vertex_index_type aVertexID = 0) : 
-			block_id(aBlockID), vertex_id(aVertexID) { };
-      
-      friend bool operator==( const vertex_descriptor& lhs, const vertex_descriptor& rhs) { 
-	return ((lhs.block_id == rhs.block_id) && (lhs.vertex_id == rhs.vertex_id)); 
-      };
-      friend bool operator!=( const vertex_descriptor& lhs, const vertex_descriptor& rhs) { 
-	return ((lhs.block_id != rhs.block_id) || (lhs.vertex_id != rhs.vertex_id)); 
-      };
-      friend bool operator <( const vertex_descriptor& lhs, const vertex_descriptor& rhs) {
-	if( lhs.block_id == rhs.block_id )
-	  return ( lhs.vertex_id < rhs.vertex_id );
-	else 
-	  return ( lhs.block_id < rhs.block_id );
-      };
-      friend bool operator<=( const vertex_descriptor& lhs, const vertex_descriptor& rhs) {
-	if( lhs.block_id == rhs.block_id )
-	  return ( lhs.vertex_id <= rhs.vertex_id );
-	else 
-	  return ( lhs.block_id < rhs.block_id );
-      };
-      friend bool operator >( const vertex_descriptor& lhs, const vertex_descriptor& rhs) {
-	if( lhs.block_id == rhs.block_id )
-	  return ( lhs.vertex_id > rhs.vertex_id );
-	else 
-	  return ( lhs.block_id > rhs.block_id );
-      };
-      friend bool operator>=( const vertex_descriptor& lhs, const vertex_descriptor& rhs) {
-	if( lhs.block_id == rhs.block_id )
-	  return ( lhs.vertex_id >= rhs.vertex_id );
-	else 
-	  return ( lhs.block_id > rhs.block_id );
-      };
-      
-      bool is_root() const { 
-	return ((block_id == 0) && (vertex_id == 0));
-      };
-      
-      vertex_descriptor get_child(std::size_t i) const {
-	vertex_index_type result = Arity * vertex_id + 1 + i;
-	if( result >= vertex_index_type(BlockVertexCount) ) {
-	  result -= BlockVertexCount;
-	  return vertex_descriptor(BlockFanout * block_id + 1 + result, 0);
-	};
-	return vertex_descriptor(block_id, result);
-      };
-      
-      vertex_descriptor get_parent() const {
-	if(vertex_id == 0)
-	  return vertex_descriptor((block_id - 1) / BlockFanout, ( ( (block_id - 1) % BlockFanout ) / Arity + BlockVertexCount ) - BlockFanout / Arity);
-	return vertex_descriptor(block_id, (vertex_id - 1) / Arity);
-      };
-      
-      std::ptrdiff_t get_in_edge() const {
-	if(vertex_id == 0)
-	  return ( (block_id - 1) % BlockFanout ) % Arity;
-	return (vertex_id - 1) % Arity;
-      };
-      
-    };
+    typedef detail::cob_tree_vertex_descriptor<Arity,BlockFanout,BlockVertexCount> vertex_descriptor;
     
     struct edge_descriptor {
       vertex_descriptor source_vertex;
@@ -503,11 +506,11 @@ class d_ary_cob_tree
     typedef boost::disallow_parallel_edge_tag edge_parallel_category;
     
     struct traversal_category : 
-      public boost::incidence_graph_tag,
-      public boost::adjacency_graph_tag,
-      public boost::bidirectional_graph_tag,
-      public boost::vertex_list_graph_tag,
-      public boost::edge_list_graph_tag { };
+      virtual public boost::incidence_graph_tag,
+      virtual public boost::adjacency_graph_tag,
+      virtual public boost::bidirectional_graph_tag,
+      virtual public boost::vertex_list_graph_tag,
+      virtual public boost::edge_list_graph_tag { };
     
   private:
     

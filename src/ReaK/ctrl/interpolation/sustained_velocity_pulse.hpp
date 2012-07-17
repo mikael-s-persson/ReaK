@@ -483,7 +483,7 @@ class svp_interp_traj : public interpolated_trajectory<Topology,svp_interpolator
     
     typedef typename base_class_type::point_type point_type;
     typedef typename base_class_type::topology topology;
-    typedef typename base_class_type::distance_metric_type distance_metric_type;
+    typedef typename base_class_type::distance_metric distance_metric;
     
   public:
     /**
@@ -492,7 +492,7 @@ class svp_interp_traj : public interpolated_trajectory<Topology,svp_interpolator
      * \param aSpace The space on which the path is.
      * \param aDist The distance metric functor that the path should use.
      */
-    explicit svp_interp_traj(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
+    explicit svp_interp_traj(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric& aDist = distance_metric()) : 
                              base_class_type(aSpace, aDist, svp_interpolator_factory<Topology>(aSpace)) { };
     
     /**
@@ -502,7 +502,7 @@ class svp_interp_traj : public interpolated_trajectory<Topology,svp_interpolator
      * \param aEnd The end-point of the path.
      * \param aDist The distance metric functor that the path should use.
      */
-    svp_interp_traj(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
+    svp_interp_traj(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
                     base_class_type(aSpace, aStart, aEnd, aDist, svp_interpolator_factory<Topology>(aSpace)) { };
 			
     /**
@@ -514,7 +514,7 @@ class svp_interp_traj : public interpolated_trajectory<Topology,svp_interpolator
      * \param aDist The distance metric functor that the path should use.
      */
     template <typename ForwardIter>
-    svp_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
+    svp_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric& aDist = distance_metric()) : 
                     base_class_type(aBegin, aEnd, aSpace, aDist, svp_interpolator_factory<Topology>(aSpace)) { };
     
     
