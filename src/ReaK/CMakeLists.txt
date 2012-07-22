@@ -22,7 +22,7 @@ configure_doxyfile(ReaK "\"ReaK Library - All libraries\"" "\"A complete library
 add_doxygen_target(ReaK)
 
 if( NOT WIN32 )
-  find_package(OpenCV)
+  find_package(OpenCV REQUIRED core highgui imgproc)
 
   if(OpenCV_FOUND)
     message(STATUS "OpenCV library components were found: '${OpenCV_LIBS}'")
