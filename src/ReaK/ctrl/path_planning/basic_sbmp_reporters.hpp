@@ -123,12 +123,15 @@ struct differ_sbmp_report_to_space : public shared_object {
   /// Holds the file-path where to output the reports.
   std::string file_path;
   
+  mutable std::size_t solution_count;
+  
   explicit differ_sbmp_report_to_space(const std::string& aFilePath = "", 
                                        double aIntervalSize = 0.1,
                                        NextReporter aNextReporter = NextReporter()) : 
                                        next_reporter(aNextReporter),
                                        interval_size(aIntervalSize),
-                                       file_path(aFilePath) { };
+                                       file_path(aFilePath),
+                                       solution_count(0) { };
   
   /**
    * Draws the entire motion-graph.
@@ -186,7 +189,7 @@ struct differ_sbmp_report_to_space : public shared_object {
     };
     
     std::stringstream ss;
-    ss << (traj->get_end_time() - traj->get_start_time());
+    ss << (solution_count++) << "_" << (traj->get_end_time() - traj->get_start_time());
     free_space.save_output(file_path + "solution_" + ss.str());
     
     next_reporter.draw_solution(free_space, traj);
@@ -216,7 +219,7 @@ struct differ_sbmp_report_to_space : public shared_object {
     };
     
     std::stringstream ss;
-    ss << total_dist;
+    ss << (solution_count++) << "_" << total_dist;
     free_space.save_output(file_path + "solution_" + ss.str());
     
     next_reporter.draw_solution(free_space, p);
@@ -280,8 +283,7 @@ struct timing_sbmp_report : public shared_object {
   void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
     
     boost::posix_time::time_duration dt = boost::posix_time::microsec_clock::local_time() - last_time;
-    (*p_out) << num_vertices(g) << " " << dt.total_microseconds();
-    p_out->flush();
+    (*p_out) << num_vertices(g) << " " << dt.total_microseconds() << std::endl;
     
     next_reporter.draw_motion_graph(free_space, g, pos);
     

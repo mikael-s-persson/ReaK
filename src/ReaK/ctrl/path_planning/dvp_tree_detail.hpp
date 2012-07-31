@@ -150,54 +150,77 @@ class dvp_tree_impl
 			typename std::vector<vertex_property>::iterator aBegin, 
 			typename std::vector<vertex_property>::iterator aEnd, 
 			std::unordered_map<key_type,distance_type>& aDistMap) {
+//       std::cout << "\rReached: " << std::setw(5) << 0 << std::flush;
       typedef typename std::vector<vertex_property>::iterator PropIter;
       using std::swap;
+//       std::cout << "\rReached: " << std::setw(5) << 1 << std::flush;
       PropIter vp_ind = m_vp_chooser(aBegin, aEnd, *m_space, m_distance, m_position);
+      if(vp_ind == aEnd)
+        return;
       point_type vp_pt = get(m_position, *vp_ind);
+//       std::cout << "\rReached: " << std::setw(5) << 2 << std::flush;
       for(PropIter it = aBegin; it != aEnd; ++it)
 	aDistMap[get(m_key,*it)] = m_distance(vp_pt, get(m_position, *it), *m_space);
       swap(*vp_ind, *aBegin);
+//       std::cout << "\rReached: " << std::setw(5) << 3 << std::flush;
       
       vertex_type current_node;
+      key_type k_tmp = get(m_key,*aBegin); 
       if( aParentNode != boost::graph_traits<tree_indexer>::null_vertex() ) {
+//         std::cout << "\rReached: " << std::setw(5) << 4 << std::flush;
         edge_property ep;
         put(m_mu, ep, aEdgeDist);
-	edge_type e;
+// 	std::cout << "\rReached: " << std::setw(5) << 5 << std::flush;
+        edge_type e;
 #ifdef RK_ENABLE_CXX0X_FEATURES
 	boost::tie(current_node,e) = add_child_vertex(aParentNode, std::move(*aBegin), std::move(ep), m_tree);
 #else
 	boost::tie(current_node,e) = add_child_vertex(aParentNode, *aBegin, ep, m_tree);
 #endif
+//         std::cout << "\rReached: " << std::setw(5) << 6 << std::flush;
       } else {
+//         std::cout << "\rReached: " << std::setw(5) << 7 << std::flush;
 #ifdef RK_ENABLE_CXX0X_FEATURES
 	current_node = create_root(std::move(*aBegin), m_tree);
 #else
 	current_node = create_root(*aBegin, m_tree);
 #endif
 	m_root = current_node;
+//         std::cout << "\rReached: " << std::setw(5) << 8 << std::flush;
       };
-      aDistMap.erase(get(m_key,*aBegin));
+//       std::cout << "\rReached: " << std::setw(5) << 9 << std::flush;
+      aDistMap.erase(k_tmp);
       aBegin++;
+//       std::cout << "\rReached: " << std::setw(5) << 10 << std::flush;
       if((aEnd - aBegin) < static_cast<int>(Arity)) {
+//         std::cout << "\rReached: " << std::setw(5) << 11 << std::flush;
 	std::sort(aBegin, aEnd, boost::bind(closer,&aDistMap,m_key,_1,_2));
 	for(PropIter it = aBegin; it != aEnd; ++it) {
 	  edge_property ep;
-	  put(m_mu, ep, aDistMap[get(m_key,*it)]); 
+//           std::cout << "\rReached: " << std::setw(5) << 12 << std::flush;
+          put(m_mu, ep, aDistMap[get(m_key,*it)]);
+//           std::cout << "\rReached: " << std::setw(5) << 13 << std::flush;
 #ifdef RK_ENABLE_CXX0X_FEATURES
 	  add_child_vertex(current_node, std::move(*it), std::move(ep), m_tree);
 #else
 	  add_child_vertex(current_node, *it, ep, m_tree);
 #endif
+//           std::cout << "\rReached: " << std::setw(5) << 14 << std::flush;
 	};
+//         std::cout << "\rReached: " << std::setw(5) << 15 << std::flush;
       } else {
+//         std::cout << "\rReached: " << std::setw(5) << 16 << std::flush;
 	for(unsigned int i = Arity; i >= 1; --i) {
+//           std::cout << "\rReached: " << std::setw(5) << 17 << std::flush;
 	  int num_children = (aEnd - aBegin) / i;
 	  std::nth_element(aBegin, aBegin + (num_children-1), aEnd, boost::bind(closer,&aDistMap,m_key,_1,_2));
 	  PropIter temp = aBegin; aBegin += num_children;
-	  construct_node(current_node, aDistMap[get(m_key,*(aBegin + (num_children-1)))], 
-			 temp, aBegin, aDistMap);
+          construct_node(current_node, aDistMap[get(m_key,*(temp + (num_children-1)))], 
+	                 temp, aBegin, aDistMap);
+//           std::cout << "\rReached: " << std::setw(5) << 18 << std::flush;
 	};
       };
+//       std::cout << "\rReached: " << std::setw(5) << 19 << std::flush;
     };
     
     /* Does not invalidate vertices */
@@ -554,6 +577,7 @@ class dvp_tree_impl
 #else
     void insert(const vertex_property& up) {
 #endif
+//       std::cout << "\rReached: " << std::setw(5) << -15 << std::flush;
       if(num_vertices(m_tree) == 0) {
 #ifdef RK_ENABLE_CXX0X_FEATURES
 	m_root = create_root(std::move(up), m_tree); 
@@ -562,8 +586,10 @@ class dvp_tree_impl
 #endif
 	return;
       };
+//       std::cout << "\rReached: " << std::setw(5) << -14 << std::flush;
       point_type u_pt = get(m_position, up); 
       vertex_type u_realleaf = get_leaf(u_pt,m_root);
+//       std::cout << "\rReached: " << std::setw(5) << -13 << std::flush;
       if(u_realleaf == m_root) { //if the root is the leaf, it requires special attention since no parent exists.
         std::vector<vertex_property> prop_list;
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -571,9 +597,11 @@ class dvp_tree_impl
 #else
 	prop_list.push_back(up);
 #endif
+//         std::cout << "\rReached: " << std::setw(5) << -12 << std::flush;
 	remove_branch(u_realleaf, back_inserter(prop_list), m_tree);
 	m_root = boost::graph_traits<tree_indexer>::null_vertex();
 	u_realleaf = m_root;
+//         std::cout << "\rReached: " << std::setw(5) << -11 << std::flush;
 	std::unordered_map<key_type, distance_type> dist_map;
 	construct_node(u_realleaf, 0.0, prop_list.begin(), prop_list.end(), dist_map); 
 	return;
@@ -585,12 +613,14 @@ class dvp_tree_impl
 	//OR 
 	// if leaf is not really a leaf, then it means that this sub-tree is definitely not balanced and not full either,
 	//  then all the Keys ought to be collected and u_leaf ought to be reconstructed.
+// 	std::cout << "\rReached: " << std::setw(5) << -10 << std::flush;
 	update_mu_upwards(u_pt,u_leaf);
-	distance_type e_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*(in_edges(u_leaf,m_tree).first)));
+	distance_type e_dist = 0.0;
 	vertex_type u_leaf_parent;
-	if(u_leaf != m_root)
+	if(u_leaf != m_root) {
+          e_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*(in_edges(u_leaf,m_tree).first)));
 	  u_leaf_parent = source(*(in_edges(u_leaf,m_tree).first),m_tree);
-	else
+        } else 
 	  u_leaf_parent = boost::graph_traits<tree_indexer>::null_vertex();
 	std::vector<vertex_property> prop_list;
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -598,12 +628,15 @@ class dvp_tree_impl
 #else
 	prop_list.push_back(up);
 #endif
+//         std::cout << "\rReached: " << std::setw(5) << -8 << std::flush;
 	remove_branch(u_leaf, back_inserter(prop_list), m_tree);
+//         std::cout << "\rReached: " << std::setw(5) << -7 << std::flush;
 	std::unordered_map<key_type,distance_type> dist_map; 
 	construct_node(u_leaf_parent, e_dist, prop_list.begin(), prop_list.end(), dist_map); 
       } else {
 	//if it is a full-leaf, then this is a leaf node, and it is balanced but full, 
 	// we should then find a non-full parent.
+// 	std::cout << "\rReached: " << std::setw(5) << -6 << std::flush;
 	vertex_type p = u_leaf;   
 	int actual_depth_limit = 1;
 	int last_depth_limit = actual_depth_limit;
@@ -614,16 +647,20 @@ class dvp_tree_impl
 	bool is_p_full = false; 
 	if(p == m_root)
 	  is_p_full = is_node_full(p,last_depth_limit);
+//         std::cout << "\rReached: " << std::setw(5) << -5 << std::flush;
 	if((!is_p_full) && (last_depth_limit >= 0)) {
+//           std::cout << "\rReached: " << std::setw(5) << -55 << std::flush;
 	  //this means that we can add our key to the sub-tree of p and reconstruct from there.
 	  update_mu_upwards(u_pt,p);
-	  distance_type e_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*(in_edges(p,m_tree).first)));
+	  distance_type e_dist = 0.0;
 	  vertex_type p_parent;
-          if(p != m_root)
+          if(p != m_root) {
+            e_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*(in_edges(p,m_tree).first)));
 	    p_parent = source(*(in_edges(p,m_tree).first),m_tree);
-	  else
+          } else {
 	    p_parent = boost::graph_traits<tree_indexer>::null_vertex();
-	  
+          };
+// 	  std::cout << "\rReached: " << std::setw(5) << -4 << std::flush;
 	  std::vector<vertex_property> prop_list;
 #ifdef RK_ENABLE_CXX0X_FEATURES
 	  prop_list.push_back(std::move(up));
@@ -631,11 +668,13 @@ class dvp_tree_impl
 	  prop_list.push_back(up);
 #endif
 	  remove_branch(p, back_inserter(prop_list), m_tree);
+//           std::cout << "\rReached: " << std::setw(5) << -3 << std::flush;
 	  std::unordered_map<key_type,distance_type> dist_map;
 	  construct_node(p_parent, e_dist, prop_list.begin(), prop_list.end(), dist_map);
 	} else {
 	  //this means that either the root node is full or there are branches of the tree that are deeper than u_realleaf, 
 	  // and thus, in either case, u_realleaf should be expanded.
+// 	  std::cout << "\rReached: " << std::setw(5) << -2 << std::flush;
 	  edge_type l_p;
 	  edge_property ep;
 	  put(m_mu, ep, m_distance(u_pt, get(m_position, get(boost::vertex_raw_property,m_tree,u_realleaf)), *m_space));
@@ -645,6 +684,7 @@ class dvp_tree_impl
 	  boost::tie(p, l_p) = add_child_vertex(u_realleaf, up, ep, m_tree);
 #endif
 	  update_mu_upwards(u_pt,u_realleaf);
+//           std::cout << "\rReached: " << std::setw(5) << -1 << std::flush;
 	};
       };
     };

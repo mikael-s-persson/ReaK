@@ -184,7 +184,7 @@ struct adj_list_on_tree_tag {
     
   typedef AdjEdgeProperty adj_edge_properties;
     
-  typedef boost::adjacency_list< OutEdgeListS, boost::listS, DirectedS, 
+  typedef boost::adjacency_list< OutEdgeListS, boost::vecS, DirectedS, 
                                  adj_vertex_properties, adj_edge_properties,
 				 boost::no_property, AdjEdgeListS > adj_list_type;
   

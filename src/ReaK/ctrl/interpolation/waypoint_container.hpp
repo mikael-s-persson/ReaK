@@ -127,7 +127,6 @@ class waypoint_container_base : public shared_object {
                                      space(aSpace), 
                                      dist(aDist),
                                      waypoints() { 
-      waypoints.push_back(space->origin());
     };
     
     /**
@@ -267,7 +266,6 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
                                      space(aSpace), 
                                      dist(aDist),
                                      waypoints() { 
-      waypoints.insert(space->origin());
     };
     
     /**

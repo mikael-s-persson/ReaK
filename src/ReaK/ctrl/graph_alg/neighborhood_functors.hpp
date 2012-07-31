@@ -68,12 +68,12 @@ namespace graph {
      *                    A conservative estimate of the bound is 3 * L_c, where L_c is the characteristic length of the configuration 
      *                    space (with respect to the metric used for distances in the NN search, of course).
      */
-    prm_star_neighborhood(NNFinder aFindNeighbors, 
-			  double aCSpaceDimensions, 
-			  double aGammaValue) : 
-			  find_neighbors(aFindNeighbors), 
-			  c_space_dimensions(aCSpaceDimensions),
-			  gamma_value(aGammaValue) { };
+    star_neighborhood(NNFinder aFindNeighbors, 
+		      double aCSpaceDimensions, 
+		      double aGammaValue) : 
+		      find_neighbors(aFindNeighbors), 
+		      c_space_dimensions(aCSpaceDimensions),
+		      gamma_value(aGammaValue) { };
     
     /**
      * This function fills the output iterator (like a back-inserter) with the neighborhood of the given
@@ -94,10 +94,10 @@ namespace graph {
 	      typename PositionMap>
     void operator()(const typename boost::property_traits<PositionMap>::value_type& p,
 		    OutputIterator output_first,
-		    Graph& g, const Topology& free_space, PositionMap position) {
+		    Graph& g, const Topology& free_space, PositionMap position) const {
       using std::pow; using std::log2;
       std::size_t N = num_vertices(g);
-      std::size_t log_N = highest_set_bit(N);
+      std::size_t log_N = math::highest_set_bit(N);
       find_neighbors(p, output_first, g, free_space, position, 4 * log_N, gamma_value * pow(log_N / double(N), 1.0 / c_space_dimensions));
     };
     
@@ -125,10 +125,10 @@ namespace graph {
 	      typename PositionMap>
     void operator()(const typename boost::property_traits<PositionMap>::value_type& p,
 		    PredIterator pred_first, SuccIterator succ_first,
-		    Graph& g, const Topology& free_space, PositionMap position) {
+		    Graph& g, const Topology& free_space, PositionMap position) const {
       using std::pow; using std::log2;
       std::size_t N = num_vertices(g);
-      std::size_t log_N = highest_set_bit(N);
+      std::size_t log_N = math::highest_set_bit(N);
       find_neighbors(p, pred_first, succ_first, g, free_space, position, 4 * log_N, gamma_value * pow(log_N / double(N), 1.0 / c_space_dimensions));
     };
   };
@@ -173,7 +173,7 @@ namespace graph {
 	      typename PositionMap>
     void operator()(const typename boost::property_traits<PositionMap>::value_type& p,
 		    OutputIterator output_first,
-		    Graph& g, const Topology& free_space, PositionMap position) {
+		    Graph& g, const Topology& free_space, PositionMap position) const {
       find_neighbors(p, output_first, g, free_space, position, 1, std::numeric_limits< double >::infinity());
     };
     
@@ -201,10 +201,10 @@ namespace graph {
 	      typename PositionMap>
     void operator()(const typename boost::property_traits<PositionMap>::value_type& p,
 		    PredIterator pred_first, SuccIterator succ_first,
-		    Graph& g, const Topology& free_space, PositionMap position) {
+		    Graph& g, const Topology& free_space, PositionMap position) const {
       using std::pow; using std::log2;
       std::size_t N = num_vertices(g);
-      std::size_t log_N = highest_set_bit(N);
+      std::size_t log_N = math::highest_set_bit(N);
       find_neighbors(p, pred_first, succ_first, g, free_space, position, 1, std::numeric_limits< double >::infinity());
     };
   };

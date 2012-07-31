@@ -173,6 +173,8 @@ class path_wrapper : public path_base< typename spatial_path_traits<SpatialPath>
      * \return The travel distance between two points if traveling along the path.
      */
     virtual double travel_distance(const point_type& a, const point_type& b) const {
+      if(m_last_waypoint.first == const_waypoint_descriptor())
+        m_last_waypoint = m_traj.get_start_waypoint();
       waypoint_pair next_waypoint = m_last_waypoint;
       m_last_waypoint.second = a;
       next_waypoint.second = b;
@@ -197,6 +199,8 @@ class path_wrapper : public path_base< typename spatial_path_traits<SpatialPath>
      * \return The point that is a distance away from the given point.
      */
     virtual point_type move_away_from(const point_type& a, double d) const {
+      if(m_last_waypoint.first == const_waypoint_descriptor())
+        m_last_waypoint = m_traj.get_start_waypoint();
       m_last_waypoint.second = a;
       m_last_waypoint = m_traj.move_away_from(m_last_waypoint, d);
       return m_last_waypoint.second;

@@ -65,7 +65,7 @@ class ptrobot2D_test_world_impl; // forward-declaration, a faint cat.
  */
 class ptrobot2D_test_world : public named_object {
   public:
-    typedef hyperbox_topology< ReaK::vect<int,2> > super_space_type;
+    typedef hyperbox_topology< ReaK::vect<double,2> > super_space_type;
     typedef topology_traits< super_space_type >::point_type point_type;
     typedef topology_traits< super_space_type >::point_difference_type point_difference_type;
     
@@ -174,7 +174,7 @@ class ptrobot2D_test_world : public named_object {
     /**
      * Returns a random point fairly near to the given point.
      */
-    point_type random_walk(const point_type& p_u) const;
+    std::pair<point_type, bool> random_walk(const point_type& p_u) const;
     
     double bird_fly_to_goal(const point_type& p_u) const;
     

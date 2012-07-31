@@ -76,13 +76,13 @@ class ptrobot2D_test_world_impl {
         };
       };
       
-      int iRobotRadius = int(std::fabs(aRobotRadius));
-      if(iRobotRadius > 0) {
-        cv::GaussianBlur(world_map_output,world_map_image,
-                         cv::Size(iRobotRadius * 2 + 1, iRobotRadius * 2 + 1),
-                         aRobotRadius
-                        );
-      };
+//       int iRobotRadius = int(std::fabs(aRobotRadius));
+//       if(iRobotRadius > 0) {
+//         cv::GaussianBlur(world_map_output,world_map_image,
+//                          cv::Size(iRobotRadius * 2 + 1, iRobotRadius * 2 + 1),
+//                          aRobotRadius
+//                         );
+//       };
     };
     
     ptrobot2D_test_world_impl(const ptrobot2D_test_world_impl& rhs) :
@@ -96,8 +96,8 @@ class ptrobot2D_test_world_impl {
         return false;
       const uchar* color_bits = world_map_image.ptr(int(p[1]));
       color_bits += bpp * int(p[0]);
-      if( (color_bits[0] == color_bits[1]) &&
-          (color_bits[0] == color_bits[2]) &&
+      if( (color_bits[1] < 250) &&
+          (color_bits[2] < 250) &&
           (color_bits[0] < 250) ) {
         return false;
       } else {
@@ -141,7 +141,7 @@ void ptrobot2D_test_world::reset_output() const {
 };
     
 void ptrobot2D_test_world::save_output(const std::string& aFilename) const {
-  pimpl->save_output(aFilename + ".png");
+  pimpl->save_output(aFilename + ".bmp");
 };
 
 void ptrobot2D_test_world::draw_edge(const ptrobot2D_test_world::point_type& p_u, const ptrobot2D_test_world::point_type& p_v, bool goal_path) const {
@@ -189,7 +189,6 @@ ptrobot2D_test_world::point_type ptrobot2D_test_world::adjust(const ptrobot2D_te
 };
     
 ptrobot2D_test_world::point_type ptrobot2D_test_world::move_position_toward(const ptrobot2D_test_world::point_type& p1, double fraction, const ptrobot2D_test_world::point_type& p2) const {
-  point_difference_type diff = m_space.difference(p2,p1);
   double dist = m_distance(p1, p2, m_space);
   double d = 1.0;
   while(d < dist * fraction) {
@@ -205,8 +204,8 @@ ptrobot2D_test_world::point_type ptrobot2D_test_world::move_position_toward(cons
   else 
     return m_space.move_position_toward(p1, fraction, p2);
 };
-    
-ptrobot2D_test_world::point_type ptrobot2D_test_world::random_walk(const ptrobot2D_test_world::point_type& p_u) const {
+
+std::pair<ptrobot2D_test_world::point_type, bool> ptrobot2D_test_world::random_walk(const ptrobot2D_test_world::point_type& p_u) const {
   ptrobot2D_test_world::point_type p_rnd, p_v;
   unsigned int i = 0;
   do {
@@ -217,9 +216,9 @@ ptrobot2D_test_world::point_type ptrobot2D_test_world::random_walk(const ptrobot
   } while((m_distance(p_u, p_v, m_space) < 1.0) && (i <= 10));
   if(i > 10) {
     //could not expand vertex u, then just generate a random C-free point.
-    p_v = random_point();
+    return std::make_pair(p_v, false);
   };
-  return p_v;
+  return std::make_pair(p_v, true);
 };
     
 double ptrobot2D_test_world::bird_fly_to_goal(const ptrobot2D_test_world::point_type& p_u) const {

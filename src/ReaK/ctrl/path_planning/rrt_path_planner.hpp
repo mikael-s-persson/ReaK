@@ -124,7 +124,7 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
 //         return;
       
       shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
-      shared_ptr< path_wrapper< point_to_point_path<super_space_type> > > new_sol(new path_wrapper< point_to_point_path<super_space_type> >("birrt_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
+      shared_ptr< path_wrapper< point_to_point_path<super_space_type> > > new_sol(new path_wrapper< point_to_point_path<super_space_type> >("rrt_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
       point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
       
       waypoints.push_front(m_goal_pos);
@@ -396,7 +396,7 @@ shared_ptr< path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>::su
     
     if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {
       
-      typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS,
+      typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
                              rrt_vertex_data<FreeSpaceType>,
                              rrt_edge_data<FreeSpaceType>,
                              boost::vecS> MotionGraphType;
@@ -612,7 +612,7 @@ shared_ptr< path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>::su
     
     if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {
       
-      typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS,
+      typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
                              rrt_vertex_data<FreeSpaceType>,
                              rrt_edge_data<FreeSpaceType>,
                              boost::vecS> MotionGraphType;

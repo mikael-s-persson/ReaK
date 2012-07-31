@@ -264,7 +264,9 @@ namespace pp {
       };
     };
     std::sort_heap(output_queue.begin(), output_queue.end(), p_compare);
-    return detail::copy_neighbors_from_queue<ForwardIterator, DistanceValue>(output_queue, output_first);
+    for(typename std::vector< std::pair<DistanceValue, ForwardIterator> >::const_iterator it = output_queue.begin(); it != output_queue.end(); ++it)
+      *(output_first++) = *(it->second);
+    return output_first;
   };
   
   /**
@@ -664,7 +666,9 @@ namespace pp {
         search(p,v,output,p_compare,d_v,g,space,position,max_neighbors,radius);
       };
       std::sort_heap(output.begin(), output.end(), p_compare);
-      return detail::copy_neighbors_from_queue<Vertex, double>(output, output_first);
+      for(typename std::vector< std::pair<double, Vertex> >::const_iterator it = output.begin(); it != output.end(); ++it)
+        *(output_first++) = it->second;
+      return output_first;
     };
   };
 
