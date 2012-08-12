@@ -114,32 +114,32 @@ namespace graph {
    */
   template <typename VertexAddedCallback,
             typename EdgeAddedCallback,
-	    typename SteerFunction,
-	    typename IsFreeQuery,
-	    typename JoiningVertexFoundCallback,
-	    typename KeepGoingQuery,
-	    typename CanConnectQuery>
-  struct composite_rrt_star_visitor : composite_rrt_visitor<VertexAddedCallback, 
+            typename SteerFunction,
+            typename IsFreeQuery,
+            typename KeepGoingQuery,
+            typename CanConnectQuery>
+  struct composite_rrt_star_visitor : composite_rrg_visitor<VertexAddedCallback, 
                                                             EdgeAddedCallback, 
-						            SteerFunction,
-						            IsFreeQuery,
-						            JoiningVertexFoundCallback,
-						            KeepGoingQuery> {
+                                                            SteerFunction,
+                                                            IsFreeQuery,
+                                                            KeepGoingQuery,
+                                                            CanConnectQuery> {
     CanConnectQuery can_be_connected;
     composite_rrt_star_visitor(VertexAddedCallback aVertexAdded,
                                EdgeAddedCallback aEdgeAdded,
-			       SteerFunction aSteerTowardsPosition,
+                               SteerFunction aSteerTowardsPosition,
                                IsFreeQuery aIsFree,
-                               JoiningVertexFoundCallback aJoiningVertexFound,
                                KeepGoingQuery aKeepGoing,
                                CanConnectQuery aCanBeConnected) :
-                               vertex_added(aVertexAdded), 
-                               edge_added(aEdgeAdded), 
-                               steer_towards_position(aSteerTowardsPosition), 
-                               is_position_free(aIsFree), 
-                               joining_vertex_found(aJoiningVertexFound), 
-                               keep_going(aKeepGoing),
-                               can_be_connected(aCanBeConnected) { };
+                               composite_rrg_visitor<
+                                 VertexAddedCallback, 
+                                 EdgeAddedCallback, 
+                                 SteerFunction,
+                                 IsFreeQuery,
+                                 KeepGoingQuery,
+                                 CanConnectQuery>(aVertexAdded, aEdgeAdded, 
+                                                  aSteerTowardsPosition, aIsFree, 
+                                                  aKeepGoing, aCanBeConnected) { };
   };
 
   /**
@@ -149,38 +149,33 @@ namespace graph {
    */
   template <typename VertexAddedCallback,
             typename EdgeAddedCallback,
-	    typename SteerFunction,
-	    typename IsFreeQuery,
-	    typename JoiningVertexFoundCallback,
-	    typename KeepGoingQuery,
-	    typename CanConnectQuery>
+            typename SteerFunction,
+            typename IsFreeQuery,
+            typename KeepGoingQuery,
+            typename CanConnectQuery>
   inline composite_rrt_star_visitor<VertexAddedCallback, 
                                     EdgeAddedCallback, 
-			            SteerFunction, 
-			            IsFreeQuery, 
-			            JoiningVertexFoundCallback, 
-			            KeepGoingQuery,
-			            CanConnectQuery>
+                                    SteerFunction, 
+                                    IsFreeQuery, 
+                                    KeepGoingQuery,
+                                    CanConnectQuery>
     make_composite_rrt_star_visitor(VertexAddedCallback aVertexAdded,
                                     EdgeAddedCallback aEdgeAdded,
-			            SteerFunction aSteerTowardsPosition,
+                                    SteerFunction aSteerTowardsPosition,
                                     IsFreeQuery aIsFree,
-                                    JoiningVertexFoundCallback aJoiningVertexFound,
                                     KeepGoingQuery aKeepGoing,
                                     CanConnectQuery aCanBeConnected) {
     return composite_rrt_star_visitor<VertexAddedCallback, 
                                       EdgeAddedCallback, 
-				      SteerFunction, 
-				      IsFreeQuery, 
-				      JoiningVertexFoundCallback, 
-				      KeepGoingQuery,
-			              CanConnectQuery>(aVertexAdded,
-						       aEdgeAdded,
-			                               aSteerTowardsPosition,
-			                               aIsFree,
-			                               aJoiningVertexFound,
-			                               aKeepGoing,
-			                               aCanBeConnected);
+                                      SteerFunction, 
+                                      IsFreeQuery, 
+                                      KeepGoingQuery,
+                                      CanConnectQuery>(aVertexAdded,
+                                                       aEdgeAdded,
+                                                       aSteerTowardsPosition,
+                                                       aIsFree,
+                                                       aKeepGoing,
+                                                       aCanBeConnected);
   };
 
 
@@ -188,12 +183,12 @@ namespace graph {
 namespace detail {
   
   template <typename Graph,
-	    typename Topology,
-	    typename RRTStarVisitor,
-	    typename PositionMap,
-	    typename CostMap,
-	    typename WeightMap,
-	    typename DistanceMetric>
+            typename Topology,
+            typename RRTStarVisitor,
+            typename PositionMap,
+            typename CostMap,
+            typename WeightMap,
+            typename DistanceMetric>
   inline void rewire_tree_neighborhood(
       typename boost::graph_traits<Graph>::vertex_descriptor x_new,
       const std::vector< typename boost::graph_traits<Graph>::vertex_descriptor >& Nc,
@@ -218,29 +213,29 @@ namespace detail {
     for(NcIter it = Nc.begin(); it != Nc.end(); ++it) {
       double c_temp, d_temp;
       if((vis.can_be_connected(x_new, *it, g)) &&
-	 ((c_temp = c_near + (d_temp = distance(p_new, get(position, *it), space))) < get(cost, *it))) {
-	put(cost, *it, c_temp);
-	clear_in_edges(*it, g);
-	std::pair<Edge,bool> ep = add_edge(x_new, *it, g);
-	if(ep.second) {
-	  put(weight, ep.first, d_temp);
-	  vis.edge_added(ep.first, g);
-	} else 
-	  put(cost, *it, std::numeric_limits<double>::infinity());
-	OutEdgeIter ei, ei_end;
-	for(boost::tie(ei, ei_end) = out_edges(*it,g); ei != ei_end; ++ei)
-	  incons_set.push(target(*ei,g));
+         ((c_temp = c_near + (d_temp = distance(p_new, get(position, *it), space))) < get(cost, *it))) {
+        put(cost, *it, c_temp);
+        clear_in_edges(*it, g);
+        std::pair<Edge,bool> ep = add_edge(x_new, *it, g);
+        if(ep.second) {
+          put(weight, ep.first, d_temp);
+          vis.edge_added(ep.first, g);
+        } else 
+          put(cost, *it, std::numeric_limits<double>::infinity());
+        OutEdgeIter ei, ei_end;
+        for(boost::tie(ei, ei_end) = out_edges(*it,g); ei != ei_end; ++ei)
+          incons_set.push(target(*ei,g));
       };
     };
       
     while(!incons_set.empty()) {
       while(in_degree(incons_set.front(), g) == 0)
-	incons_set.pop();
+        incons_set.pop();
       Edge e = *(in_edges(incons_set.front(), g).first);
       if(get(cost, source(e,g)) + get(weight, e) < get(cost, incons_set.front())) {
-	put(cost, incons_set.front(), get(cost, source(e,g)) + get(weight, e));
-	for(boost::tie(ei, ei_end) = out_edges(incons_set.front(),g); ei != ei_end; ++ei)
-	  incons_set.push(target(*ei,g));
+        put(cost, incons_set.front(), get(cost, source(e,g)) + get(weight, e));
+        for(boost::tie(ei, ei_end) = out_edges(incons_set.front(),g); ei != ei_end; ++ei)
+          incons_set.push(target(*ei,g));
       };
       incons_set.pop();
     };
@@ -284,25 +279,25 @@ namespace detail {
    * 
    */
   template <typename Graph,
-	    typename Topology,
-	    typename RRTStarVisitor,
-	    typename PositionMap,
-	    typename CostMap,
-	    typename WeightMap,
-	    typename RandomSampler,
-	    typename DistanceMetric,
-	    typename NcSelector>
+            typename Topology,
+            typename RRTStarVisitor,
+            typename PositionMap,
+            typename CostMap,
+            typename WeightMap,
+            typename RandomSampler,
+            typename DistanceMetric,
+            typename NcSelector>
   inline typename boost::enable_if< boost::is_undirected_graph<Graph> >::type
     generate_rrt_star(Graph& g,
-				const Topology& space,
-				RRTStarVisitor vis,
-				PositionMap position,
-				CostMap cost,
-				WeightMap weight,
-				RandomSampler get_sample,
-				DistanceMetric distance,
-				const NcSelector& select_neighborhood,
-				unsigned int max_vertex_count) {
+                      const Topology& space,
+                      RRTStarVisitor vis,
+                      PositionMap position,
+                      CostMap cost,
+                      WeightMap weight,
+                      RandomSampler get_sample,
+                      DistanceMetric distance,
+                      NcSelector select_neighborhood,
+                      unsigned int max_vertex_count) {
     BOOST_CONCEPT_ASSERT((RRTStarVisitorConcept<RRTStarVisitor,Graph,PositionMap>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::DistanceMetricConcept<DistanceMetric,Topology>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
@@ -316,7 +311,7 @@ namespace detail {
       Vertex u = add_vertex(g);
       PositionValue p = get_sample(space);
       while(!vis.is_position_free(p))
-	p = get_sample(space);
+        p = get_sample(space);
       put(position, u, p);
       vis.vertex_added(u, g);
     };
@@ -330,7 +325,7 @@ namespace detail {
       
       Vertex x_near;
       if( ! detail::expand_to_nearest(x_near, p_new, Nc, g, vis) )
-	continue;
+        continue;
       
       Nc.clear();
       select_neighborhood(p_new, back_inserter(Nc), g, free_space, position);
@@ -343,18 +338,18 @@ namespace detail {
       double d_near = distance(get(position, x_near), p_new, space);
       double c_near = get(cost, x_near) + d_near;
       for(it = Nc.begin(); it != Nc.end(); ++it) {
-	double c_temp, d_temp;
-	if((*it != x_near) && 
-	   (vis.can_be_connected(*it, x_new, g)) &&
-	   ((c_temp = get(cost, *it) + (d_temp = distance(get(position, *it), p_new, space))) < c_near)) {
-	  x_near = *it;
-	  c_near = c_temp;
-	  d_near = d_temp;
+        double c_temp, d_temp;
+        if((*it != x_near) && 
+           (vis.can_be_connected(*it, x_new, g)) &&
+           ((c_temp = get(cost, *it) + (d_temp = distance(get(position, *it), p_new, space))) < c_near)) {
+          x_near = *it;
+          c_near = c_temp;
+          d_near = d_temp;
         };
       };
       std::pair<Edge, bool> ep = add_edge(x_near, x_new, g);
       if(!ep.second)
-	continue;
+        continue;
       put(cost, x_new, c_near);
       put(weight, ep.first, d_near);
       vis.edge_added(ep.first, g);
@@ -402,25 +397,25 @@ namespace detail {
    * 
    */
   template <typename Graph,
-	    typename Topology,
-	    typename RRTStarVisitor,
-	    typename PositionMap,
-	    typename CostMap,
-	    typename WeightMap,
-	    typename RandomSampler,
-	    typename DistanceMetric,
-	    typename NcSelector>
+            typename Topology,
+            typename RRTStarVisitor,
+            typename PositionMap,
+            typename CostMap,
+            typename WeightMap,
+            typename RandomSampler,
+            typename DistanceMetric,
+            typename NcSelector>
   inline typename boost::enable_if< boost::is_directed_graph<Graph> >::type
     generate_rrt_star(Graph& g,
-				const Topology& space,
-				RRTStarVisitor vis,
-				PositionMap position,
-				CostMap cost,
-				WeightMap weight,
-				RandomSampler get_sample,
-				DistanceMetric distance,
-				const NcSelector& select_neighborhood,
-				unsigned int max_vertex_count) {
+                      const Topology& space,
+                      RRTStarVisitor vis,
+                      PositionMap position,
+                      CostMap cost,
+                      WeightMap weight,
+                      RandomSampler get_sample,
+                      DistanceMetric distance,
+                      const NcSelector& select_neighborhood,
+                      unsigned int max_vertex_count) {
     BOOST_CONCEPT_ASSERT((RRTStarVisitorConcept<RRTStarVisitor,Graph,PositionMap>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::DistanceMetricConcept<DistanceMetric,Topology>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
@@ -448,7 +443,7 @@ namespace detail {
       
       Vertex x_near;
       if( ! detail::expand_to_nearest(x_near, p_new, Pred, g, vis) )
-	continue;
+        continue;
       
       Pred.clear(); Succ.clear();
       select_neighborhood(p_new, back_inserter(Pred), back_inserter(Succ), g, free_space, position);
@@ -461,18 +456,18 @@ namespace detail {
       double d_near = distance(get(position, x_near), p_new, space);
       double c_near = get(cost, x_near) + d_near;
       for(it = Pred.begin(); it != Pred.end(); ++it) {
-	double c_temp, d_temp;
-	if((*it != x_near) && 
-	   (vis.can_be_connected(*it, x_new, g)) &&
-	   ((c_temp = get(cost, *it) + (d_temp = distance(get(position, *it), p_new, space))) < c_near)) {
-	  x_near = *it;
-	  c_near = c_temp;
-	  d_near = d_temp;
+        double c_temp, d_temp;
+        if((*it != x_near) && 
+           (vis.can_be_connected(*it, x_new, g)) &&
+           ((c_temp = get(cost, *it) + (d_temp = distance(get(position, *it), p_new, space))) < c_near)) {
+          x_near = *it;
+          c_near = c_temp;
+          d_near = d_temp;
         };
       };
       std::pair<Edge, bool> ep = add_edge(x_near, x_new, g);
       if(!ep.second)
-	continue;
+        continue;
       put(cost, x_new, c_near);
       put(weight, ep.first, d_near);
       vis.edge_added(ep.first, g);

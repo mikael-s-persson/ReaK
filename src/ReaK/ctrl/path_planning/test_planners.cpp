@@ -69,7 +69,8 @@ int main(int argc, char** argv) {
 // 	     ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt/adstar_test_world_", 5),
 // 	     50);
   
-  std::ofstream timing_output("pp_results/rrt/" + world_file_name_only + "_times.txt");
+  
+  std::ofstream timing_output("pp_results/" + world_file_name_only + "_times.txt");
   
   
   std::cout << "Running RRT with Uni-dir, adj-list, dvp-bf2..." << std::endl;
@@ -767,7 +768,8 @@ int main(int argc, char** argv) {
                100,
                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_BF2_TREE_KNN,
-               ReaK::pp::timing_sbmp_report<>(ss));
+               ReaK::pp::timing_sbmp_report<>(ss),
+               1);
     
     prm_plan.solve_path();
     
@@ -802,7 +804,8 @@ int main(int argc, char** argv) {
                100,
                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_BF4_TREE_KNN,
-               ReaK::pp::timing_sbmp_report<>(ss));
+               ReaK::pp::timing_sbmp_report<>(ss),
+               1);
     
     prm_plan.solve_path();
     
@@ -837,7 +840,8 @@ int main(int argc, char** argv) {
                100,
                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_COB2_TREE_KNN,
-               ReaK::pp::timing_sbmp_report<>(ss));
+               ReaK::pp::timing_sbmp_report<>(ss),
+               1);
     
     prm_plan.solve_path();
     
@@ -872,7 +876,8 @@ int main(int argc, char** argv) {
                100,
                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_COB4_TREE_KNN,
-               ReaK::pp::timing_sbmp_report<>(ss));
+               ReaK::pp::timing_sbmp_report<>(ss),
+               1);
     
     prm_plan.solve_path();
     
@@ -907,7 +912,8 @@ int main(int argc, char** argv) {
                100,
                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::LINEAR_SEARCH_KNN,
-               ReaK::pp::timing_sbmp_report<>(ss));
+               ReaK::pp::timing_sbmp_report<>(ss),
+               1);
     
     prm_plan.solve_path();
     
@@ -944,7 +950,8 @@ int main(int argc, char** argv) {
                100,
                ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_ALT_BF2_KNN,
-               ReaK::pp::timing_sbmp_report<>(ss));
+               ReaK::pp::timing_sbmp_report<>(ss),
+               1);
     
     prm_plan.solve_path();
     
@@ -979,7 +986,8 @@ int main(int argc, char** argv) {
                100,
                ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_ALT_BF4_KNN,
-               ReaK::pp::timing_sbmp_report<>(ss));
+               ReaK::pp::timing_sbmp_report<>(ss),
+               1);
     
     prm_plan.solve_path();
     
@@ -1014,7 +1022,8 @@ int main(int argc, char** argv) {
                100,
                ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_ALT_COB2_KNN,
-               ReaK::pp::timing_sbmp_report<>(ss));
+               ReaK::pp::timing_sbmp_report<>(ss),
+               1);
     
     prm_plan.solve_path();
     
@@ -1049,7 +1058,8 @@ int main(int argc, char** argv) {
                100,
                ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_ALT_COB4_KNN,
-               ReaK::pp::timing_sbmp_report<>(ss));
+               ReaK::pp::timing_sbmp_report<>(ss),
+               1);
     
     prm_plan.solve_path();
     
@@ -1065,6 +1075,26 @@ int main(int argc, char** argv) {
     if(avg_times[i].first)
       timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
   };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Outputting PRM with dvp-adj-list-cob4..." << std::endl;
+  {
+    
+    ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
+      prm_plan(world_map, 
+               world_map->get_start_pos(), 
+               world_map->get_goal_pos(),
+               max_vertices, 
+               100,
+               ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+               ReaK::pp::DVP_ALT_COB4_KNN,
+               ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/prm/" + world_file_name_only + "_", 5),
+               10);
+    
+    prm_plan.solve_path();
+    
   };
   std::cout << "Done!" << std::endl;
   
