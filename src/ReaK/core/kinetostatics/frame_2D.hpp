@@ -387,6 +387,19 @@ class frame_2D : public pose_2D<T> {
 };
 
 
+template <typename T>
+std::ostream& operator <<(std::ostream& out, const frame_2D<T>& g) {
+  out << "(Position = " << g.Position 
+     << "; Rotation = " << g.Rotation 
+     << "; Velocity = " << g.Velocity 
+     << "; AngVelocity = " << g.AngVelocity 
+     << "; Acceleration = " << g.Acceleration 
+     << "; AngAcceleration = " << g.AngAcceleration 
+     << "; Force = " << g.Force 
+     << "; Torque = " << g.Torque 
+     << ")";
+  return out;
+};
 
 
 

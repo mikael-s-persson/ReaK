@@ -68,7 +68,7 @@ if (NOT WIN32)
 
 endif()
 
-find_package(Boost 1.42 COMPONENTS thread date_time REQUIRED)
+find_package(Boost 1.42 COMPONENTS thread date_time python REQUIRED)
 if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIR})
   add_definitions( "-DHAS_BOOST" )
@@ -131,4 +131,5 @@ foreach(CURRENT_RKSUBDIR ${RKSUBDIRS})
 add_subdirectory("${SRCROOT}${CURRENT_RKSUBDIR}")
 endforeach(CURRENT_RKSUBDIR)
 
+INCLUDE(PyReaK.cmake)
 

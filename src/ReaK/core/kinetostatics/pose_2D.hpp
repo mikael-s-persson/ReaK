@@ -304,6 +304,11 @@ class pose_2D : public shared_object {
 
 };
 
+template <typename T>
+std::ostream& operator <<(std::ostream& out, const pose_2D<T>& g) {
+  out << "(Position = " << g.Position << "; Rotation = " << g.Rotation << ")";
+  return out;
+};
 
 
 

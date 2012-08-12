@@ -630,7 +630,7 @@ class quat {
 
     /** Compute arc tangent with two parameters (function), for a quaternion value.*/
     friend self atan2(const self& y, const self& x) {
-      return atan(y / x);
+      return atan(y * invert(x));
     };  
 
 //Hyperbolic functions:
@@ -845,11 +845,12 @@ class unit_quat : public quat<T> {
     
   
     /** Quaternionic conjugate for a quaternion value. */
-    friend self conj(self x) {
-      x.q[1] = -x.q[1];
-      x.q[2] = -x.q[2];
-      x.q[3] = -x.q[3];
-      return x;
+    friend self conj(const self& x) {
+      self result(x);
+      result.q[1] = -x.q[1];
+      result.q[2] = -x.q[2];
+      result.q[3] = -x.q[3];
+      return result;
     };
     
     /**
