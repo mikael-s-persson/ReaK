@@ -428,7 +428,7 @@ int main(int argc, char** argv) {
                ReaK::pp::UNIDIRECTIONAL_RRT,
                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_BF2_TREE_KNN,
-               ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt_star/" + world_file_name_only + "_", 5),
+               ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt/" + world_file_name_only + "_", 5),
                10);
     
     rrt_plan.solve_path();
@@ -805,7 +805,7 @@ int main(int argc, char** argv) {
                ReaK::pp::BIDIRECTIONAL_RRT,
                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_BF2_TREE_KNN,
-               ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt_star/" + world_file_name_only + "_", 5),
+               ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/birrt/" + world_file_name_only + "_", 5),
                10);
     
     rrt_plan.solve_path();
