@@ -235,26 +235,36 @@ namespace detail {
           Vertex x_pred = get(pred, g[*it]);
           put(pred, g[*it], x_new);
           vis.edge_added(ep.first, g);
-          if(get(pred, g[x_pred]) != *it)
+          if((x_pred != *it) && 
+             (x_pred != boost::graph_traits<Graph>::null_vertex()) && 
+             (get(pred, g[x_pred]) != *it))
             remove_edge(x_pred, *it, g);
         };
         
         OutEdgeIter ei, ei_end;
-        for(boost::tie(ei, ei_end) = out_edges(*it,g); ei != ei_end; ++ei)
-          incons_set.push(target(*ei,g));
+        for(boost::tie(ei, ei_end) = out_edges(*it,g); ei != ei_end; ++ei) {
+          Vertex x_next = target(*ei,g);
+          if(x_next != x_new)
+            incons_set.push(x_next);
+        };
       };
     };
-      
+    
     while(!incons_set.empty()) {
       while(in_degree(incons_set.front(), g) == 0)
         incons_set.pop();
       Vertex x_pred = get(pred, g[incons_set.front()]);
-      Edge e = edge(x_pred, incons_set.front(), g);
-      if(get(cost, g[x_pred]) + get(weight, g[e]) < get(cost, g[incons_set.front()])) {
+      Edge e; bool e_exists;
+      boost::tie(e,e_exists) = edge(x_pred, incons_set.front(), g);
+      if((e_exists) &&
+         (get(cost, g[x_pred]) + get(weight, g[e]) < get(cost, g[incons_set.front()]))) {
         put(cost, g[incons_set.front()], get(cost, g[x_pred]) + get(weight, g[e]));
         OutEdgeIter ei, ei_end;
-        for(boost::tie(ei, ei_end) = out_edges(incons_set.front(),g); ei != ei_end; ++ei)
-          incons_set.push(target(*ei,g));
+        for(boost::tie(ei, ei_end) = out_edges(incons_set.front(),g); ei != ei_end; ++ei) {
+          Vertex x_next = target(*ei,g);
+          if(x_next != x_pred)
+            incons_set.push(x_next);
+        };
       };
       incons_set.pop();
     };
@@ -285,6 +295,7 @@ namespace detail {
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge; 
     typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter; 
+    typedef typename boost::graph_traits<Graph>::in_edge_iterator InEdgeIter; 
     typedef typename std::vector< Vertex >::const_iterator NcIter;
     typedef typename Graph::edge_bundled EdgeProp;
     using std::back_inserter;
@@ -297,7 +308,6 @@ namespace detail {
       if((vis.can_be_connected(x_new, *it, g)) &&
          ((c_temp = c_near + (d_temp = distance(p_new, get(position, g[*it]), space))) < get(cost, g[*it]))) {
         
-        Edge prev_in_e = *(in_edges(*it,g).first);
         EdgeProp eprop;
         put(weight, eprop, d_temp);
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -308,7 +318,13 @@ namespace detail {
         if(ep.second) {
           put(cost, g[*it], c_temp);
           vis.edge_added(ep.first, g);
-          remove_edge(prev_in_e, g);
+          InEdgeIter iei, iei_end;
+          for(boost::tie(iei, iei_end) = in_edges(*it,g); iei != iei_end; ++iei) {
+            if(*iei != ep.first) {
+              remove_edge(*iei, g);
+              boost::tie(iei, iei_end) = in_edges(*it,g);
+            };
+          };
         };
         
         OutEdgeIter ei, ei_end;
@@ -316,7 +332,7 @@ namespace detail {
           incons_set.push(target(*ei,g));
       };
     };
-      
+    
     while(!incons_set.empty()) {
       while(in_degree(incons_set.front(), g) == 0)
         incons_set.pop();
@@ -415,12 +431,12 @@ namespace detail {
       VertexProp up;
       put(position, up, p);
       put(cost, up, 0.0);
+      put(pred, up, boost::graph_traits<Graph>::null_vertex());
 #ifdef RK_ENABLE_CXX0X_FEATURES
       Vertex u = add_vertex(std::move(up),g);
 #else
       Vertex u = add_vertex(up,g);
 #endif
-      put(pred, g[u], u);
       vis.vertex_added(u, g);
     };
 
@@ -430,10 +446,11 @@ namespace detail {
       
       std::vector<Vertex> Nc; 
       select_neighborhood(p_new, back_inserter(Nc), g, space, g_position);
-      
-      Vertex x_near;
+      //std::cout << "Trying to expand a vertex... " << Nc.size() << std::endl;
+      Vertex x_near = boost::graph_traits<Graph>::null_vertex();
       if( ! detail::expand_to_nearest(x_near, p_new, Nc, g, vis) )
         continue;
+      //std::cout << "Expanded a vertex." << std::endl;
       
       Nc.clear();
       select_neighborhood(p_new, back_inserter(Nc), g, space, g_position);
@@ -441,14 +458,18 @@ namespace detail {
       VertexProp xp;
       put(position, xp, p_new);
       put(cost, xp, std::numeric_limits<double>::infinity());
-      Vertex x_new = add_vertex(g);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      Vertex x_new = add_vertex(std::move(xp),g);
+#else
+      Vertex x_new = add_vertex(xp,g);
+#endif
       put(pred, g[x_new], x_new);
       vis.vertex_added(x_new,g);
       
       // Choose Parent:
       double d_near = distance(get(position, g[x_near]), p_new, space);
       double c_near = get(cost, g[x_near]) + d_near;
-      for(it = Nc.begin(); it != Nc.end(); ++it) {
+      for(typename std::vector<Vertex>::const_iterator it = Nc.begin(); it != Nc.end(); ++it) {
         double c_temp, d_temp;
         if((*it != x_near) && 
            (vis.can_be_connected(*it, x_new, g)) &&
@@ -591,7 +612,7 @@ namespace detail {
       // Choose Parent
       double d_near = distance(get(position, g[x_near]), p_new, space);
       double c_near = get(cost, g[x_near]) + d_near;
-      for(it = Pred.begin(); it != Pred.end(); ++it) {
+      for(typename std::vector<Vertex>::const_iterator it = Pred.begin(); it != Pred.end(); ++it) {
         double c_temp, d_temp;
         if((*it != x_near) && 
            (vis.can_be_connected(*it, x_new, g)) &&

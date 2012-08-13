@@ -31,6 +31,7 @@
 #include "topologies/ptrobot2D_test_world.hpp"
 #include "rrt_path_planner.hpp"
 #include "prm_path_planner.hpp"
+#include "rrtstar_path_planner.hpp"
 
 #include "basic_sbmp_reporters.hpp"
 
@@ -72,6 +73,14 @@ int main(int argc, char** argv) {
   
   std::ofstream timing_output("pp_results/" + world_file_name_only + "_times.txt");
   
+  
+  /**********************************************************************************
+   * 
+   * 
+   *     Unidirectional Rapidly-exploring Random Tree Path-Planners
+   * 
+   * 
+   * *******************************************************************************/
   
   std::cout << "Running RRT with Uni-dir, adj-list, dvp-bf2..." << std::endl;
   timing_output << "RRT, Uni-dir, adj-list, dvp-bf2" << std::endl;
@@ -407,6 +416,37 @@ int main(int argc, char** argv) {
   std::cout << "Done!" << std::endl;
   
   
+  std::cout << "Outputting RRT with Uni-dir, adj-list, dvp-bf2..." << std::endl;
+  {
+    
+    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
+      rrt_plan(world_map, 
+               world_map->get_start_pos(), 
+               world_map->get_goal_pos(),
+               max_vertices, 
+               100,
+               ReaK::pp::UNIDIRECTIONAL_RRT,
+               ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+               ReaK::pp::DVP_BF2_TREE_KNN,
+               ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt_star/" + world_file_name_only + "_", 5),
+               10);
+    
+    rrt_plan.solve_path();
+    
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  
+  
+  
+  /**********************************************************************************
+   * 
+   * 
+   *     Bidirectional Rapidly-exploring Random Tree Path-Planners
+   * 
+   * 
+   * *******************************************************************************/
   
   
   std::cout << "Running RRT with Bi-dir, adj-list, dvp-bf2..." << std::endl;
@@ -751,6 +791,41 @@ int main(int argc, char** argv) {
   std::cout << "Done!" << std::endl;
   
   
+    
+  
+  std::cout << "Outputting RRT with Bi-dir, adj-list, dvp-bf2..." << std::endl;
+  {
+    
+    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
+      rrt_plan(world_map, 
+               world_map->get_start_pos(), 
+               world_map->get_goal_pos(),
+               max_vertices, 
+               100,
+               ReaK::pp::BIDIRECTIONAL_RRT,
+               ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+               ReaK::pp::DVP_BF2_TREE_KNN,
+               ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt_star/" + world_file_name_only + "_", 5),
+               10);
+    
+    rrt_plan.solve_path();
+    
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  
+  
+  
+  
+  
+  /**********************************************************************************
+   * 
+   * 
+   *     Probabilistic Roadmap Path-Planners
+   * 
+   * 
+   * *******************************************************************************/
   
   
   std::cout << "Running PRM with adj-list, dvp-bf2..." << std::endl;
@@ -1094,6 +1169,375 @@ int main(int argc, char** argv) {
                10);
     
     prm_plan.solve_path();
+    
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  
+  
+  
+  
+  /**********************************************************************************
+   * 
+   * 
+   *     Unidirectional Rapidly-exploring Random Tree Star Path-Planners
+   * 
+   * 
+   * *******************************************************************************/
+  
+  
+  std::cout << "Running RRT* with Uni-dir, adj-list, dvp-bf2..." << std::endl;
+  timing_output << "RRT*, Uni-dir, adj-list, dvp-bf2" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      rrtstar_plan(world_map, 
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   max_vertices, 
+                   100,
+                   ReaK::pp::UNIDIRECTIONAL_RRT,
+                   ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                   ReaK::pp::DVP_BF2_TREE_KNN,
+                   ReaK::pp::timing_sbmp_report<>(ss),
+                   1);
+    
+    rrtstar_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running RRT* with Uni-dir, adj-list, dvp-bf4..." << std::endl;
+  timing_output << "RRT*, Uni-dir, adj-list, dvp-bf4" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      rrtstar_plan(world_map, 
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   max_vertices, 
+                   100,
+                   ReaK::pp::UNIDIRECTIONAL_RRT,
+                   ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                   ReaK::pp::DVP_BF4_TREE_KNN,
+                   ReaK::pp::timing_sbmp_report<>(ss),
+                   1);
+    
+    rrtstar_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running RRT* with Uni-dir, adj-list, dvp-cob2..." << std::endl;
+  timing_output << "RRT*, Uni-dir, adj-list, dvp-cob2" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      rrtstar_plan(world_map, 
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   max_vertices, 
+                   100,
+                   ReaK::pp::UNIDIRECTIONAL_RRT,
+                   ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                   ReaK::pp::DVP_COB2_TREE_KNN,
+                   ReaK::pp::timing_sbmp_report<>(ss),
+                   1);
+    
+    rrtstar_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running RRT* with Uni-dir, adj-list, dvp-cob4..." << std::endl;
+  timing_output << "RRT*, Uni-dir, adj-list, dvp-cob4" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      rrtstar_plan(world_map, 
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   max_vertices, 
+                   100,
+                   ReaK::pp::UNIDIRECTIONAL_RRT,
+                   ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                   ReaK::pp::DVP_COB4_TREE_KNN,
+                   ReaK::pp::timing_sbmp_report<>(ss),
+                   1);
+    
+    rrtstar_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running RRT* with Uni-dir, adj-list, linear-search..." << std::endl;
+  timing_output << "RRT*, Uni-dir, adj-list, linear-search" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      rrtstar_plan(world_map, 
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   max_vertices, 
+                   100,
+                   ReaK::pp::UNIDIRECTIONAL_RRT,
+                   ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                   ReaK::pp::LINEAR_SEARCH_KNN,
+                   ReaK::pp::timing_sbmp_report<>(ss),
+                   1);
+    
+    rrtstar_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  
+  std::cout << "Running RRT* with Uni-dir, dvp-adj-list-bf2..." << std::endl;
+  timing_output << "RRT*, Uni-dir, dvp-adj-list-bf2" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      rrtstar_plan(world_map, 
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   max_vertices, 
+                   100,
+                   ReaK::pp::UNIDIRECTIONAL_RRT,
+                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                   ReaK::pp::DVP_ALT_BF2_KNN,
+                   ReaK::pp::timing_sbmp_report<>(ss),
+                   1);
+    
+    rrtstar_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running RRT* with Uni-dir, dvp-adj-list-bf4..." << std::endl;
+  timing_output << "RRT*, Uni-dir, dvp-adj-list-bf4" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      rrtstar_plan(world_map, 
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   max_vertices, 
+                   100,
+                   ReaK::pp::UNIDIRECTIONAL_RRT,
+                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                   ReaK::pp::DVP_ALT_BF4_KNN,
+                   ReaK::pp::timing_sbmp_report<>(ss),
+                   1);
+    
+    rrtstar_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running RRT* with Uni-dir, dvp-adj-list-cob2..." << std::endl;
+  timing_output << "RRT*, Uni-dir, dvp-adj-list-cob2" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      rrtstar_plan(world_map, 
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   max_vertices, 
+                   100,
+                   ReaK::pp::UNIDIRECTIONAL_RRT,
+                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                   ReaK::pp::DVP_ALT_COB2_KNN,
+                   ReaK::pp::timing_sbmp_report<>(ss),
+                   1);
+    
+    rrtstar_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running RRT* with Uni-dir, dvp-adj-list-cob4..." << std::endl;
+  timing_output << "RRT*, Uni-dir, dvp-adj-list-cob4" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      rrtstar_plan(world_map, 
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   max_vertices, 
+                   100,
+                   ReaK::pp::UNIDIRECTIONAL_RRT,
+                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                   ReaK::pp::DVP_ALT_COB4_KNN,
+                   ReaK::pp::timing_sbmp_report<>(ss),
+                   1);
+    
+    rrtstar_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  
+  std::cout << "Outputting RRT* with Uni-dir, adj-list, dvp-bf4..." << std::endl;
+  {
+    
+    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
+      rrtstar_plan(world_map, 
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   max_vertices, 
+                   100,
+                   ReaK::pp::UNIDIRECTIONAL_RRT,
+                   ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                   ReaK::pp::DVP_BF4_TREE_KNN,
+                   ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt_star/" + world_file_name_only + "_", 5),
+                   10);
+    
+    rrtstar_plan.solve_path();
     
   };
   std::cout << "Done!" << std::endl;

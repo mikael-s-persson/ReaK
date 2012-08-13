@@ -73,6 +73,23 @@ struct temporal_point : public serialization::serializable {
 	         const SpacePoint& aPt) : 
 	         time(aTime), pt(aPt) { };
 		 
+  temporal_point(const self& rhs) : time(rhs.time), pt(rhs.pt) { };
+  
+  self& operator=(const self& rhs) {
+    time = rhs.time;
+    pt = rhs.pt;
+    return *this;
+  };
+  
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  temporal_point(self&& rhs) : time(std::move(rhs.time)), pt(std::move(rhs.pt)) { };
+  
+  self& operator=(self&& rhs) {
+    time = std::move(rhs.time);
+    pt = std::move(rhs.pt);
+    return *this;
+  };
+#endif
   
   
 /*******************************************************************************
@@ -114,6 +131,24 @@ struct temporal_point_difference : public serialization::serializable {
   temporal_point_difference(const TimeDiff& aTime,
 	                    const SpaceDiff& aPt) : 
 	                    time(aTime), pt(aPt) { };
+  
+  temporal_point_difference(const self& rhs) : time(rhs.time), pt(rhs.pt) { };
+  
+  self& operator=(const self& rhs) {
+    time = rhs.time;
+    pt = rhs.pt;
+    return *this;
+  };
+  
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  temporal_point_difference(self&& rhs) : time(std::move(rhs.time)), pt(std::move(rhs.pt)) { };
+  
+  self& operator=(self&& rhs) {
+    time = std::move(rhs.time);
+    pt = std::move(rhs.pt);
+    return *this;
+  };
+#endif
 
   self operator-() const {
     return self(-time,-pt);

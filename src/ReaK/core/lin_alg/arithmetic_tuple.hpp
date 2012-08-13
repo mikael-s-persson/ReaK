@@ -511,6 +511,9 @@ class arithmetic_tuple : public std::tuple< T... > {
     arithmetic_tuple(const arithmetic_tuple< T... >&) = default;
     arithmetic_tuple(arithmetic_tuple< T... >&&) = default;
     
+    arithmetic_tuple< T... >& operator=(const arithmetic_tuple< T... >&) = default;
+    arithmetic_tuple< T... >& operator=(arithmetic_tuple< T... >&&) = default;
+    
     //TODO: missing other standard-specified constructors (with other tuple types, and std::pair).
     
 #else
@@ -536,8 +539,8 @@ struct arithmetic_tuple_size< arithmetic_tuple< T... > > :
  */
 template <typename... T>
 inline 
-arithmetic_tuple< T... > make_arithmetic_tuple(T&&... t) {
-  return arithmetic_tuple< T... >(std::forward<T>(t)...);
+arithmetic_tuple< typename std::remove_reference<T>::type... > make_arithmetic_tuple(T&&... t) {
+  return arithmetic_tuple< typename std::remove_reference<T>::type... >(std::forward<T>(t)...);
 };
 
 #else

@@ -97,7 +97,7 @@ namespace graph {
 		    Graph& g, const Topology& free_space, PositionMap position) const {
       using std::pow; using std::log2;
       std::size_t N = num_vertices(g);
-      std::size_t log_N = math::highest_set_bit(N);
+      std::size_t log_N = math::highest_set_bit(N) + 1;
       find_neighbors(p, output_first, g, free_space, position, 4 * log_N, gamma_value * pow(log_N / double(N), 1.0 / c_space_dimensions));
     };
     
@@ -128,7 +128,7 @@ namespace graph {
 		    Graph& g, const Topology& free_space, PositionMap position) const {
       using std::pow; using std::log2;
       std::size_t N = num_vertices(g);
-      std::size_t log_N = math::highest_set_bit(N);
+      std::size_t log_N = math::highest_set_bit(N) + 1;
       find_neighbors(p, pred_first, succ_first, g, free_space, position, 4 * log_N, gamma_value * pow(log_N / double(N), 1.0 / c_space_dimensions));
     };
   };
@@ -204,7 +204,7 @@ namespace graph {
 		    Graph& g, const Topology& free_space, PositionMap position) const {
       using std::pow; using std::log2;
       std::size_t N = num_vertices(g);
-      std::size_t log_N = math::highest_set_bit(N);
+      std::size_t log_N = math::highest_set_bit(N) + 1;
       find_neighbors(p, pred_first, succ_first, g, free_space, position, 1, std::numeric_limits< double >::infinity());
     };
   };

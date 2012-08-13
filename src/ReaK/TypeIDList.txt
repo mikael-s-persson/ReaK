@@ -340,6 +340,7 @@ timing_sbmp_report          0xC2460005   bin: 1100 0010 0100 0110 0000 0000 0000
 print_sbmp_progress         0xC2460006   bin: 1100 0010 0100 0110 0000 0000 0000 0110  D-R
 rrt_path_planner            0xC2460007   bin: 1100 0010 0100 0110 0000 0000 0000 0111  D-R
 prm_path_planner            0xC2460008   bin: 1100 0010 0100 0110 0000 0000 0000 1000  D-R
+rrtstar_path_planner        0xC2460009   bin: 1100 0010 0100 0110 0000 0000 0000 1001  D-R
 
 
 

@@ -79,7 +79,7 @@ namespace graph {
   template <typename Visitor, typename Graph, typename PositionMap>
   struct RRGVisitorConcept : RRTVisitorConcept<Visitor,Graph,PositionMap> {
     BOOST_CONCEPT_USAGE(RRGVisitorConcept) {
-      this->b = vis.can_be_connected(this->u,this->u,this->g);
+      this->b = this->vis.can_be_connected(this->u,this->u,this->g);
     };
   };
 
@@ -187,7 +187,7 @@ namespace detail {
       return false;
     
     PositionValue p_tmp; bool expand_succeeded = false;
-    std::vector<Vertex>::iterator it = Nc.begin();
+    typename std::vector<Vertex>::const_iterator it = Nc.begin();
     while((!expand_succeeded) && (it != Nc.end())) {
       boost::tie(p_tmp, expand_succeeded) = vis.steer_towards_position(p_new, *it, g);
       ++it;
@@ -302,7 +302,7 @@ namespace detail {
 #endif
       vis.vertex_added(x_new,g);
       
-      for(it = Nc.begin(); it != Nc.end(); ++it) {
+      for(typename std::vector<Vertex>::const_iterator it = Nc.begin(); it != Nc.end(); ++it) {
         if((*it == x_near) || (vis.can_be_connected(*it, x_new, g))) {
           std::pair<Edge, bool> ep = add_edge(*it, x_new, g);
           if(ep.second)
