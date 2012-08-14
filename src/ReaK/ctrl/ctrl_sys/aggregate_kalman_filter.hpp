@@ -195,6 +195,7 @@ void >::type aggregate_kalman_update(const LinearSystem& sys,
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
 
   typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
+  typedef typename discrete_sss_traits<LinearSystem>::point_difference_type StateDiffType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
@@ -210,6 +211,7 @@ void >::type aggregate_kalman_update(const LinearSystem& sys,
   typedef typename hamiltonian_mat< ValueType >::lower_right HamilMatLR;
   
   using std::swap;
+  using ReaK::to_vect; using ReaK::from_vect;
   
   typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
   typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
@@ -225,7 +227,7 @@ void >::type aggregate_kalman_update(const LinearSystem& sys,
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K( transpose_view(CP) );
    
-  b_x.set_mean_state( state_space.adjust( x, K * y ) );
+  b_x.set_mean_state( state_space.adjust( x, from_vect<StateDiffType>( K * to_vect<ValueType>(y) ) ) );
   b_x.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
 
   HamilMat Sm_tmp(HamilMatUp(HamilMatUL(mat<ValueType,mat_structure::identity>(N)),HamilMatUR(mat<ValueType,mat_structure::nil>(N))),HamilMatLo(HamilMatLL( transpose_view(C) * b_z.get_covariance().get_inverse_matrix() * C ),HamilMatLR(mat<ValueType,mat_structure::identity>(N))));
@@ -291,6 +293,7 @@ void >::type aggregate_kalman_filter_step(const LinearSystem& sys,
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
   
   typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
+  typedef typename discrete_sss_traits<LinearSystem>::point_difference_type StateDiffType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
@@ -306,6 +309,7 @@ void >::type aggregate_kalman_filter_step(const LinearSystem& sys,
   typedef typename hamiltonian_mat< ValueType >::lower_right HamilMatLR;
   
   using std::swap;
+  using ReaK::to_vect; using ReaK::from_vect;
   
   typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A;
   typename discrete_linear_sss_traits<LinearSystem>::matrixB_type B;
@@ -331,7 +335,7 @@ void >::type aggregate_kalman_filter_step(const LinearSystem& sys,
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K( transpose_view(CP) );
    
-  b_x.set_mean_state( state_space.adjust(x_prior, K * y) );
+  b_x.set_mean_state( state_space.adjust(x_prior, from_vect<StateDiffType>( K * to_vect<ValueType>(y) ) ) );
   b_x.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
 
   HamilMat Sm_tmp(HamilMatUp(HamilMatUL(mat<ValueType,mat_structure::identity>(N)),HamilMatUR(mat<ValueType,mat_structure::nil>(N))),HamilMatLo(HamilMatLL( transpose_view(C) * b_z.get_covariance().get_inverse_matrix() * C ),HamilMatLR(mat<ValueType,mat_structure::identity>(N))));

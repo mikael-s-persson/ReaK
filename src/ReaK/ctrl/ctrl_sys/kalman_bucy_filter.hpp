@@ -92,19 +92,19 @@ namespace detail {
     };
     
     virtual void RK_CALL computeStateRate(double aTime,const ReaK::vect_n<value_type>& aState, ReaK::vect_n<value_type>& aStateRate) {
-      state_type x;
+      vect_n<value_type> x;
       x.resize(Q.get_row_count());
       for(size_type i = 0; i < x.size(); ++i) 
 	x[i] = aState[i];
       
-      sys.get_linear_blocks(A, B, C, D, state_space, aTime, x, u);
+      sys.get_linear_blocks(A, B, C, D, state_space, aTime, from_vect<state_type>(x), u);
       
       for(size_type j = 0; j < x.size(); ++j)
 	for(size_type i = 0; i < x.size(); ++i)
 	  P(i,j) = aState[x.size() * (j + 1) + i];
       
       Kt = R_inv * C * P;
-      x = A * x + B * u + (z - C * x - D * u) * Kt;
+      x = A * x + B * to_vect<value_type>(u) + (to_vect<value_type>(z) - C * x - D * to_vect<value_type>(u)) * Kt;
       P = A * P + B * Q + Q * transpose_view(B) + P * (transpose_view(A) - transpose_view(C) * Kt);
       
       for(size_type i = 0; i < x.size(); ++i) 
@@ -158,7 +158,7 @@ void >::type kalman_bucy_filter_step(const LinearSystem& sys,
   
   integ.setTime(t);
   integ.clearStateVector();
-  StateType x = b_x.get_mean_state();
+  vect_n<ValueType> x = to_vect<ValueType>(b_x.get_mean_state());
   integ.addStateElements(x);
   mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(b_x.get_covariance().get_matrix());
   
@@ -190,7 +190,7 @@ void >::type kalman_bucy_filter_step(const LinearSystem& sys,
     for(SizeType i = 0; i < P.get_row_count(); ++i, ++it)
       P(i,j) = *it;
   
-  b_x.set_mean_state(x);
+  b_x.set_mean_state( from_vect<StateType>(x) );
   b_x.set_covariance( CovType( MatType(P) ) );
   
   integ.setStateRateFunc( boost::shared_ptr< state_rate_function<ValueType> >() );

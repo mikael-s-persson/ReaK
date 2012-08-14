@@ -218,7 +218,8 @@ class discretized_lti_sys : public named_object {
      */
     template <typename StateSpaceType>
     point_type get_next_state(const StateSpaceType&, const point_type& p, const input_type& u, const time_type& t = 0) const { RK_UNUSED(t);
-      return Ad * p + Bd * u;
+      using ReaK::to_vect; using ReaK::from_vect;
+      return from_vect<point_type>(Ad * to_vect<value_type>(p) + Bd * to_vect<value_type>(u));
     };
     
     /**
@@ -230,7 +231,7 @@ class discretized_lti_sys : public named_object {
      */
     template <typename StateSpaceType>
     output_type get_output(const StateSpaceType&, const point_type& p, const input_type& u, const time_type& t = 0) const { RK_UNUSED(t);
-      return Cd * p + Dd * u;
+      return from_vect<output_type>(Cd * to_vect<value_type>(p) + Dd * to_vect<value_type>(u));
     };
     
     

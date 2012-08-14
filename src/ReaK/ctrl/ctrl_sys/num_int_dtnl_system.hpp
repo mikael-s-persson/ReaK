@@ -39,6 +39,7 @@
 #include "integrators/fixed_step_integrators.hpp"
 
 #include "base/named_object.hpp"
+#include <lin_alg/arithmetic_tuple.hpp>
 
 namespace ReaK {
 
@@ -92,8 +93,9 @@ class num_int_dtnl_sys : public named_object {
 	
     
         virtual void RK_CALL computeStateRate(double aTime,const ReaK::vect_n<value_type>& aState, ReaK::vect_n<value_type>& aStateRate) {
-          point_type p = point_type(aState);
-          aStateRate = ReaK::vect_n<value_type>(sys->get_state_derivative(state_space, p, current_u, aTime));
+          using ReaK::from_vect; using ReaK::to_vect;
+          point_type p = from_vect<point_type>(aState);
+          aStateRate = to_vect<value_type>(sys->get_state_derivative(state_space, p, current_u, aTime));
         };
     };
     
@@ -140,16 +142,16 @@ class num_int_dtnl_sys : public named_object {
     point_type get_next_state(const StateSpaceType& state_space, const point_type& p, const input_type& u, const time_type& t = 0) { 
       integ.setTime(t);
       integ.clearStateVector();
-      integ.addStateElements(p);
+      vect_n<value_type> result = to_vect<value_type>(p); 
+      integ.addStateElements(result);
       shared_ptr< state_rate_function<value_type> > temp(new rate_function_impl<StateSpaceType>(state_space, sys, u));
       integ.setStateRateFunc(temp);
       integ.integrate(t + dt);
-      point_type result = point_type(p); 
       size_type i = 0;
       for(typename std::vector<value_type>::const_iterator it = integ.getStateBegin(); it != integ.getStateEnd(); ++it, ++i)
 	result[i] = *it;
       integ.setStateRateFunc(shared_ptr< state_rate_function<value_type> >());
-      return result;
+      return from_vect<point_type>(result);
     };
     
     /**
@@ -267,11 +269,16 @@ class num_int_dtnl_sys< state_rate_function_with_io<T>, NumIntegrator<T> > : pub
 	return p;
       integ.setTime(t);
       integ.clearStateVector();
+      vect_n<value_type> result = to_vect<value_type>(p); 
       integ.addStateElements(p);
       sys->setInput(u);
       integ.setStateRateFunc(sys);
       integ.integrate(t + dt);
-      return point_type(integ.getStateBegin(),integ.getStateEnd());
+      size_type i = 0;
+      for(typename std::vector<value_type>::const_iterator it = integ.getStateBegin(); it != integ.getStateEnd(); ++it, ++i)
+        result[i] = *it;
+      integ.setStateRateFunc(shared_ptr< state_rate_function_with_io<value_type> >());
+      return from_vect<point_type>(result);
     };
     
     /**

@@ -42,6 +42,7 @@
 #include <boost/concept_check.hpp>
 
 #include "state_space_sys_concept.hpp"
+#include <lin_alg/arithmetic_tuple.hpp>
 
 namespace ReaK {
 
@@ -151,9 +152,15 @@ struct LinearSSSystemConcept : SSSystemConcept<LinearSSSystem,StateSpaceType> {
   
   BOOST_CONCEPT_USAGE(LinearSSSystemConcept)
   {
+    using ReaK::to_vect; using ReaK::from_vect;
+    typedef typename ss_system_traits<LinearSSSystem>::point_type StateType;
+    typedef typename ss_system_traits<LinearSSSystem>::point_derivative_type StateDerivType;
+    typedef typename ss_system_traits<LinearSSSystem>::output_type OutputType;
+    typedef typename mat_traits<typename linear_ss_system_traits<LinearSSSystem>::matrixA_type>::value_type ValueType;
+    
     sys_type.constraints(this->sys, this->state_space, this->p, this->u, this->t, A, B, C, D);
-    this->dp_dt = A * this->p + B * this->u;
-    this->y     = C * this->p + D * this->u;
+    this->dp_dt = from_vect<StateDerivType>(A * to_vect<ValueType>(this->p) + B * to_vect<ValueType>(this->u));
+    this->y     = from_vect<OutputType>(C * to_vect<ValueType>(this->p) + D * to_vect<ValueType>(this->u));
   };
   
 };

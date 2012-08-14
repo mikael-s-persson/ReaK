@@ -121,8 +121,12 @@ struct InvariantDiscreteSystemConcept : DiscreteLinearSSSConcept<InvariantDiscre
   
   BOOST_CONCEPT_USAGE(InvariantDiscreteSystemConcept)
   {
+    using ReaK::to_vect; using ReaK::from_vect;
+    typedef typename invariant_system_traits<InvariantDiscreteSystem>::invariant_correction_type InvCorr;
+    typedef typename mat_traits<typename invariant_system_traits<InvariantDiscreteSystem>::invariant_frame_type>::value_type ValueType;
+    
     this->e = this->sys.get_invariant_error(this->state_space,this->p,this->u,this->y,this->t);
-    this->c = transpose_view(this->C) * this->e;
+    this->c = from_vect<InvCorr>(transpose_view(this->C) * to_vect<ValueType>(this->e));
     this->p = this->sys.apply_correction(this->state_space,this->p,this->c,this->u,this->t);
     this->W = this->sys.get_invariant_prior_frame(this->state_space,this->p,this->p,this->u,this->t);
     this->W = this->sys.get_invariant_posterior_frame(this->state_space,this->p,this->p,this->u,this->t);
@@ -159,8 +163,12 @@ struct InvariantContinuousSystemConcept : LinearSSSystemConcept<InvariantContinu
   
   BOOST_CONCEPT_USAGE(InvariantContinuousSystemConcept)
   {
+    using ReaK::to_vect; using ReaK::from_vect;
+    typedef typename invariant_system_traits<InvariantContinuousSystem>::invariant_correction_type InvCorr;
+    typedef typename mat_traits<typename invariant_system_traits<InvariantContinuousSystem>::invariant_frame_type>::value_type ValueType;
+    
     this->e     = this->sys.get_invariant_error(this->state_space,this->p,this->u,this->y,this->t);
-    this->c     = transpose_view(this->C) * this->e;
+    this->c     = from_vect<InvCorr>(transpose_view(this->C) * to_vect<ValueType>(this->e));
     this->dp_dt = this->sys.apply_correction(this->state_space,this->p,this->dp_dt,this->c,this->u,this->t);
   };
   

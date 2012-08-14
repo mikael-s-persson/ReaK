@@ -156,6 +156,7 @@ void >::type kalman_update(const LinearSystem& sys,
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
   
   typedef typename pp::topology_traits<StateSpaceType>::point_type StateType;
+  typedef typename pp::topology_traits<StateSpaceType>::point_type StateDiffType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
@@ -167,13 +168,13 @@ void >::type kalman_update(const LinearSystem& sys,
   const MatType& P = b_x.get_covariance().get_matrix();
   sys.get_output_function_blocks(C, D, state_space, t, x, b_u.get_mean_state());
   
-  OutputType y = b_z.get_mean_state() - sys.get_output(state_space, x, b_u.get_mean_state(), t);
+  vect_n<ValueType> y = to_vect<ValueType>(b_z.get_mean_state() - sys.get_output(state_space, x, b_u.get_mean_state(), t));
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
   mat< ValueType, mat_structure::symmetric > S( CP * transpose_view(C) + b_z.get_covariance().get_matrix() );
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K( transpose_view(CP) );
    
-  b_x.set_mean_state( state_space.adjust(x, K * y) );
+  b_x.set_mean_state( state_space.adjust(x, from_vect<StateDiffType>(K * y) ) );
   b_x.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
 };
 
@@ -226,6 +227,7 @@ void >::type kalman_filter_step(const LinearSystem& sys,
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
   
   typedef typename pp::topology_traits<StateSpaceType>::point_type StateType;
+  typedef typename pp::topology_traits<StateSpaceType>::point_type StateDiffType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
@@ -243,13 +245,13 @@ void >::type kalman_filter_step(const LinearSystem& sys,
   P = ( A * P * transpose_view(A)) + B * b_u.get_covariance().get_matrix() * transpose_view(B);
   
   sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x, b_u.get_mean_state());
-  OutputType y = b_z.get_mean_state() - sys.get_output(state_space, x, b_u.get_mean_state(), t + sys.get_time_step());
+  vect_n<ValueType> y = to_vect<ValueType>(b_z.get_mean_state() - sys.get_output(state_space, x, b_u.get_mean_state(), t + sys.get_time_step()));
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
   mat< ValueType, mat_structure::symmetric > S(CP * transpose_view(C) + b_z.get_covariance().get_matrix());  
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K( transpose_view(CP) );
    
-  b_x.set_mean_state( state_space.adjust( x, K * y ) );
+  b_x.set_mean_state( state_space.adjust( x, from_vect<StateDiffType>(K * y) ) );
   b_x.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
 };
 

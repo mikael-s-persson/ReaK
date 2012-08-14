@@ -45,6 +45,8 @@
 #include <boost/concept_check.hpp>
 #include <path_planning/metric_space_concept.hpp>
 
+#include "lin_alg/arithmetic_tuple.hpp"
+
 namespace ReaK {
 
 namespace ctrl {
@@ -139,10 +141,12 @@ struct CovarianceMatrixConcept {
   
   BOOST_CONCEPT_USAGE(CovarianceMatrixConcept)
   {
+    typedef typename covariance_mat_traits<CovarianceMatrix>::value_type ValueType;
+    using ReaK::to_vect;
     m = c.get_matrix();
     m = c.get_inverse_matrix();
     
-    s = dp * m * dp;
+    s = to_vect<ValueType>(dp) * m * to_vect<ValueType>(dp);
     sz = c.size();
   };
   

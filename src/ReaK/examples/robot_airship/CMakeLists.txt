@@ -84,11 +84,11 @@ setup_custom_target(estimate_airship3D_spins "${SRCROOT}${RKROBOTAIRSHIPDIR}")
 target_link_libraries(estimate_airship3D_spins ${Boost_LIBRARIES})
 target_link_libraries(estimate_airship3D_spins reak_core)
 
-# add_executable(estimate_satellite3D_spins "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_satellite3D_spins.cpp")
-# setup_custom_target(estimate_satellite3D_spins "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-# 
-# target_link_libraries(estimate_satellite3D_spins ${Boost_LIBRARIES})
-# target_link_libraries(estimate_satellite3D_spins reak_robot_airship reak_core)
+add_executable(estimate_satellite3D_spins "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_satellite3D_spins.cpp")
+setup_custom_target(estimate_satellite3D_spins "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+
+target_link_libraries(estimate_satellite3D_spins ${Boost_LIBRARIES})
+target_link_libraries(estimate_satellite3D_spins reak_robot_airship reak_core)
 
 add_executable(estimate_airship3D_mc "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_airship3D_mc.cpp")
 setup_custom_target(estimate_airship3D_mc "${SRCROOT}${RKROBOTAIRSHIPDIR}")

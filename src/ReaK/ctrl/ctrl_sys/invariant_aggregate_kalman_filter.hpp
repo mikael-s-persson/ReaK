@@ -53,10 +53,8 @@ typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type invariant_aggregate_kf_step(const InvariantSystem& sys,
 				         BeliefState& b,
-					 const discrete_sss_traits<InvariantSystem>::input_type& u,
-					 const discrete_sss_traits<InvariantSystem>::output_type& z,
-					 const SystemNoiseCovariance& Q,
-					 const MeasurementNoiseCovariance& R,
+					 const discrete_sss_traits<InvariantSystem>::input_type& b_u,
+					 const discrete_sss_traits<InvariantSystem>::output_type& b_z,
 					 typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& ScSm,
 					 typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& Sc,
 					 typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
@@ -91,34 +89,35 @@ void >::type invariant_aggregate_kf_step(const InvariantSystem& sys,
   
   typedef typename invariant_system_traits<InvariantSystem>::invariant_frame_type InvFrameType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type InvErrorType;
+  typedef typename invariant_system_traits<InvariantDiscreteSystem>::invariant_correction_type InvCorrType;
   
   StateType x = b.get_mean_state();
   MatType P = b.get_covariance().get_matrix();
-  sys.get_linear_blocks(A, B, C, D, t, x, u);
+  sys.get_linear_blocks(A, B, C, D, t, x, b_u.get_mean_state());
   SizeType N = A.get_col_count();
   
   x = sys.get_next_state(x,u,t);
-  P = ( A * P * transpose(A)) + Q.get_matrix();
+  P = ( A * P * transpose_view(A)) + b_u.get_covariance().get_matrix();
   
-  InvErrorType e = sys.get_output_error(x, u, z, t + sys.get_time_step());
-  InvFrameType W = sys.get_invariant_prior_frame(b.get_mean_state(), x, u, t + sys.get_time_step());
+  InvErrorType e = sys.get_output_error(x, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step());
+  InvFrameType W = sys.get_invariant_prior_frame(b.get_mean_state(), x, b_u.get_mean_state(), t + sys.get_time_step());
   
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S = CP * transpose(C) + R.get_matrix();
+  mat< ValueType, mat_structure::symmetric > S = CP * transpose_view(C) + b_z.get_covariance().get_matrix();
   linsolve_Cholesky(S,CP);
-  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_move(CP);
-   
-  b.set_mean_state( sys.apply_correction(x, W * K * e, u, t + sys.get_time_step()) );
-  W = sys.get_invariant_posterior_frame(x_prior, b.get_mean_state(), u, t + sys.get_time_step()) * W;
-  InvFrameType Wt = transpose(W);
-  b.set_covariance( CovType( MatType( W * (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P * Wt ) ) );
+  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_view(CP);
+  
+  b.set_mean_state( sys.apply_correction(x, from_vect<InvCorrType>(W * K * e), b_u.get_mean_state(), t + sys.get_time_step()) );
+  W = sys.get_invariant_posterior_frame(x_prior, b.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step()) * W;
+  InvFrameType Wt = InvFrameType(transpose_view(W));
+  b.set_covariance( CovType( MatType( W * (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P * transpose_view(W) ) ) );
   
   //TODO Apply the W transform somehow.
   
-  HamilMat Sc_tmp(HamilMatUp(HamilMatUL(A),HamilMatUR(Q.get_matrix())),HamilMatLo(HamilMatLL(mat<ValueType,mat_structure::nil>(N)),HamilMatLR(transpose_move(A))));
+  HamilMat Sc_tmp(HamilMatUp(HamilMatUL(A),HamilMatUR(b_u.get_covariance().get_matrix())),HamilMatLo(HamilMatLL(mat<ValueType,mat_structure::nil>(N)),HamilMatLR(transpose_view(A))));
   
   swap(Sc,Sc_tmp);
-  HamilMat ScSm_tmp(star_product(Sc,HamilMatUp(HamilMatUL(mat<ValueType,mat_structure::identity>(N)),HamilMatUR(mat<ValueType,mat_structure::nil>(N))),HamilMatLo(HamilMatLL( transpose(C) * R.get_inverse_matrix() * C ),HamilMatLR(mat<ValueType,mat_structure::identity>(N)))));
+  HamilMat ScSm_tmp(star_product(Sc,HamilMatUp(HamilMatUL(mat<ValueType,mat_structure::identity>(N)),HamilMatUR(mat<ValueType,mat_structure::nil>(N))),HamilMatLo(HamilMatLL( transpose_view(C) * b_z.get_covariance().get_inverse_matrix() * C ),HamilMatLR(mat<ValueType,mat_structure::identity>(N)))));
   swap(ScSm,ScSm_tmp);
 };
 

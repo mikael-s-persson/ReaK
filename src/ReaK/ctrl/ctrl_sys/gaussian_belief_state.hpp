@@ -127,6 +127,7 @@ struct gaussian_pdf {
   scalar_type operator()(const state_type& v, const Topology& space) const {
     using std::sqrt;
     using std::exp;
+    using ReaK::to_vect;
     typedef typename pp::topology_traits<Topology>::point_difference_type state_difference_type;
     BOOST_CONCEPT_ASSERT((ReadableVectorConcept<state_difference_type>));
     BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type, state_difference_type>));
@@ -134,7 +135,7 @@ struct gaussian_pdf {
     if(factor <= scalar_type(0))
       return scalar_type(0);
       
-    state_difference_type d = space.difference(v, mean_state);
+    vect_n<scalar_type> d = to_vect<scalar_type>(space.difference(v, mean_state));
     mat< typename mat_traits<matrix_type>::value_type, mat_structure::rectangular> b(d.size(),1);
     for(size_type i = 0; i < d.size(); ++i) 
       b(i,0) = d[i];
@@ -231,6 +232,7 @@ struct gaussian_pdf<BeliefState, covariance_storage::information> {
     using std::sqrt;
     using std::exp;
     using std::fabs;
+    using ReaK::to_vect;
     typedef typename pp::topology_traits<Topology>::point_difference_type state_difference_type;
     BOOST_CONCEPT_ASSERT((ReadableVectorConcept<state_difference_type>));
     BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type,state_difference_type>));
@@ -238,7 +240,7 @@ struct gaussian_pdf<BeliefState, covariance_storage::information> {
     if(factor <= scalar_type(0)) 
       return scalar_type(0);
     
-    state_difference_type d = space.difference(v, mean_state);
+    vect_n<scalar_type> d = to_vect<scalar_type>(space.difference(v, mean_state));
     return exp(scalar_type(-0.5) * (d * (E_inv * d))) / sqrt(factor);
   };
   
@@ -333,15 +335,16 @@ struct gaussian_pdf<BeliefState, covariance_storage::decomposed> {
   scalar_type operator()(const state_type& v, const Topology& space) const {
     using std::sqrt;
     using std::exp;
+    using ReaK::to_vect;
     typedef typename pp::topology_traits<Topology>::point_difference_type state_difference_type;
     BOOST_CONCEPT_ASSERT((WritableVectorConcept<state_difference_type>));
     BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type,state_difference_type>));
     
     if(factor <= scalar_type(0))
       return scalar_type(0);
-      
-    state_difference_type d = space.difference(v, mean_state);
-    state_difference_type d_tmp = d * QX;  //QX^T d
+    
+    vect_n<scalar_type> d = to_vect<scalar_type>(space.difference(v, mean_state));
+    vect_n<scalar_type> d_tmp = d * QX;  //QX^T d
     mat_vect_adaptor<state_difference_type> d_m(d_tmp);
     backsub_R(RX,d_m);
     return exp( scalar_type(-0.5) * ( d * ( QY * (RY * d_tmp) ) ) ) / sqrt(factor);
@@ -467,17 +470,20 @@ struct gaussian_sampler {
    */
   template <typename Topology>
   state_type operator()(const Topology& space) const {
+    using ReaK::to_vect;
+    using ReaK::from_vect;
+    
     boost::variate_generator< pp::global_rng_type&, boost::normal_distribution<scalar_type> > var_rnd(pp::get_global_rng(), boost::normal_distribution<scalar_type>());
     
     typedef typename pp::topology_traits<Topology>::point_difference_type state_difference_type;
     BOOST_CONCEPT_ASSERT((WritableVectorConcept<state_difference_type>));
     BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type,state_difference_type>));
     
-    state_difference_type z = space.difference(mean_state, mean_state);
+    vect_n<scalar_type> z = to_vect<scalar_type>(space.difference(mean_state, mean_state));
     for(size_type i = 0; i < z.size(); ++i)
       z[i] = var_rnd();
     
-    return space.adjust(mean_state, state_difference_type(L * z));
+    return space.adjust(mean_state, from_vect<state_difference_type>(L * z));
   };
   
 };
