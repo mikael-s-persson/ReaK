@@ -64,6 +64,18 @@ struct discrete_linear_sss_traits {
   
 };
 
+
+/**
+ * This concept class defines no requirements for a system to be able to provide 
+ * linear(ized) system matrices.
+ */
+struct DiscreteNonLinearSystemType {
+  template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
+            typename A_t, typename B_t, typename C_t, typename D_t>
+  void constraints(const System&, const StateSpaceType&, const Point&, const Input&, const Time&, 
+		   A_t&, B_t&, C_t&, D_t&) { };
+};
+
 /**
  * This concept class defines the requirement for a system to be able to provide 
  * linear system matrices for an LTI system, that is, the matrices are independent 
