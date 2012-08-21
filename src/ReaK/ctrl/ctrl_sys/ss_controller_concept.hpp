@@ -75,6 +75,7 @@ namespace ctrl {
 template <typename StateSpaceType>
 struct Stateful {
   StateSpaceType state_space;
+  
   typename pp::topology_traits<StateSpaceType>::point_type p;
   
   BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateSpaceType>));

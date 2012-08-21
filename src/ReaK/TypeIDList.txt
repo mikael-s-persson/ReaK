@@ -312,6 +312,18 @@ quintic_hermite_interp_factory 0xC2430003 bin:1100 0010 0100 0011 0000 0000 0000
 svp_interpolator_factory    0xC2430004   bin: 1100 0010 0100 0011 0000 0000 0000 0100  D-R
 sap_interpolator_factory    0xC2430005   bin: 1100 0010 0100 0011 0000 0000 0000 0101  D-R
 
+euler_integrator_factory    0xC2431001   bin: 1100 0010 0100 0011 0001 0000 0000 0001  D-R
+midpoint_integrator_factory 0xC2431002   bin: 1100 0010 0100 0011 0001 0000 0000 0010  D-R
+runge_kutta4_integ._factory 0xC2431003   bin: 1100 0010 0100 0011 0001 0000 0000 0011  D-R
+runge_kutta5_integ._factory 0xC2431004   bin: 1100 0010 0100 0011 0001 0000 0000 0100  D-R
+fehlberg45_integ._factory   0xC2431005   bin: 1100 0010 0100 0011 0001 0000 0000 0101  D-R
+dormand_prince45_integ._f.  0xC2431006   bin: 1100 0010 0100 0011 0001 0000 0000 0110  D-R
+adams_BM3_integ._factory    0xC2431007   bin: 1100 0010 0100 0011 0001 0000 0000 0111  D-R
+adams_BM5_integ._factory    0xC2431008   bin: 1100 0010 0100 0011 0001 0000 0000 1000  D-R
+hamming_mod_integ._factory  0xC2431009   bin: 1100 0010 0100 0011 0001 0000 0000 1001  D-R
+hamming_iter_mod_integ._f.  0xC243100A   bin: 1100 0010 0100 0011 0001 0000 0000 1010  D-R
+
+
 //Trajectories:             0xC244****
 waypoint_container_base     0xC2440000   bin: 1100 0010 0100 0100 0000 0000 0000 0000  D-R
 waypoint_container          0xC2440001   bin: 1100 0010 0100 0100 0000 0000 0000 0001  D-R

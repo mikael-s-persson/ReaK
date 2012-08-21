@@ -1,9 +1,12 @@
 /**
  * \file hamming_iter_mod_integrator_sys.hpp
  * 
- * 
- * 
- * 
+ * This library implements the Iterated Modified Hamming Method for the numerical integration of a 
+ * state-space continuous-time system. Hamming methods are a type of multi-step predictor-corrector 
+ * algorithm for numerical integration in which the prediction step is implicitly merged with the 
+ * correction step (except for the first steps). These methods show good stability margins even for 
+ * high-order stiff problems. These methods are 3rd order method, but show stability for up to 5th or 6th 
+ * order systems (and errors are also of that order, roughly speaking).
  * 
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date August 2012
@@ -181,6 +184,17 @@ namespace detail {
 };
 
 
+/**
+ * This class is a factory for integrators that use the Iterated Modified Hamming Method. Hamming 
+ * methods are a type of multi-step predictor-corrector algorithm for numerical integration in which 
+ * the prediction step is implicitly merged with the correction step (except for the first steps). 
+ * These methods show good stability margins even for high-order stiff problems. These methods are 
+ * 3rd order method, but show stability for up to 5th or 6th order systems (and errors are also of 
+ * that order, roughly speaking).
+ * \tparam TemporalSpace The temporal space type (space-time topology) on which the computed trajectories lay.
+ * \tparam StateSpaceSystem The continuous-time state-space system type to integrate (governing equations), see SSSystemConcept.
+ * \tparam InputTrajectory The trajectory type which can deliver input vectors at given times, see pp::SpatialTrajectoryConcept.
+ */
 template <typename TemporalSpace, 
           typename StateSpaceSystem,
           typename InputTrajectory>
@@ -206,6 +220,9 @@ class hamming_iter_mod_integrator_factory : public named_object {
     
   public:
     
+    /** 
+     * This class represents an integration task, from a starting temporal point.
+     */
     class extrapolator_type {
       private:
         const self* m_parent;
@@ -216,12 +233,25 @@ class hamming_iter_mod_integrator_factory : public named_object {
                           const point_type* aStartPoint) :
                           m_parent(aParent), m_start_point(aStartPoint) { };
         
+        /**
+         * Sets the starting point (by a raw-pointer) of the interpolation.
+         * \param aStartPoint A raw-pointer to the starting point of the interpolation.
+         */ 
         void set_start_point(const point_type* aStartPoint) {
           m_start_point = aStartPoint;
         };
         
+        /**
+         * Returns the pointer to the starting point of the interpolation.
+         * \return The pointer to the starting point of the interpolation.
+         */
         const point_type* get_start_point() const { return m_start_point; };
         
+        /**
+         * Returns the point integrated up to the given time (within the time-step precision).
+         * \param end_time The end of the integration period.
+         * \return The point resulting from integration from the starting point up to the given end-time.
+         */
         point_type get_point_at_time(double end_time) const {
           point_type end_point;
           end_point.time = end_time;
@@ -242,6 +272,16 @@ class hamming_iter_mod_integrator_factory : public named_object {
         
     };
     
+    /**
+     * Parametrized Constructor.
+     * \param aName The name of the integrator factory object.
+     * \param aTSpace A pointer to the temporal space to use.
+     * \param aSystem A pointer to the state-space system to be integrated.
+     * \param aInputTraj A pointer to the trajectory object which can deliver input vectors at any given time point.
+     * \param aTimeStep The integration time-step to use.
+     * \param aTolerance The tolerance on the norm of the prediction-correction error to stop the iterations.
+     * \param aMaxIter The maximum number of correction iterations.
+     */
     hamming_iter_mod_integrator_factory(
       const std::string& aName = "", 
       const shared_ptr< const TemporalSpace >& aTSpace = shared_ptr< const TemporalSpace >(),
@@ -258,24 +298,81 @@ class hamming_iter_mod_integrator_factory : public named_object {
       m_tolerance(aTolerance),
       m_max_iter(aMaxIter) { };
     
+    /**
+     * Sets the pointer to the temporal space used by this integrator factory.
+     * \param aTSpace A pointer to the temporal space used by this integrator factory.
+     */
     void set_temporal_space(const shared_ptr< const TemporalSpace >& aTSpace) {
       m_t_space = aTSpace;
     };
+    /**
+     * Returns a pointer to the temporal space used by this integrator factory.
+     * \return A pointer to the temporal space used by this integrator factory.
+     */
     const shared_ptr< const TemporalSpace >& get_temporal_space() const { return m_t_space; };
     
+    /**
+     * Sets the pointer to the state-space system used by this integrator factory.
+     * \param aSystem A pointer to the state-space system used by this integrator factory.
+     */
     void set_system(const shared_ptr< const StateSpaceSystem >& aSystem) {
       m_sys = aSystem;
     };
+    /**
+     * Returns a pointer to the state-space system used by this integrator factory.
+     * \return A pointer to the state-space system used by this integrator factory.
+     */
     const shared_ptr< const StateSpaceSystem >& get_system() const { return m_sys; };
     
+    /**
+     * Sets the pointer to the input-vector trajectory used by this integrator factory.
+     * \param aInputTraj A pointer to the input-vector trajectory used by this integrator factory.
+     */
     void set_input_trajectory(const shared_ptr< const InputTrajectory >& aInputTraj) {
       m_input_traj = aInputTraj;
     };
+    /**
+     * Returns a pointer to the input-vector trajectory used by this integrator factory.
+     * \return A pointer to the input-vector trajectory used by this integrator factory.
+     */
     const shared_ptr< const InputTrajectory >& get_input_trajectory() const { return m_input_traj; };
     
+    /**
+     * Creates an "extrapolator" from a given starting point (by pointer). This creates 
+     * an IVP integrator (which is a special kind of extrapolator).
+     * \param aStartPoint A raw-pointer to a starting point (raw pointers are used as starting points are usually stored in a waypoint trajectory).
+     * \return An IVP integrator from the given starting point.
+     */
     extrapolator_type create_extrapolator(const point_type* aStartPoint) const {
       return extrapolator_type(this, aStartPoint);
     };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(m_t_space)
+        & RK_SERIAL_SAVE_WITH_NAME(m_sys)
+        & RK_SERIAL_SAVE_WITH_NAME(m_input_traj)
+        & RK_SERIAL_SAVE_WITH_NAME(m_time_step)
+        & RK_SERIAL_SAVE_WITH_NAME(m_tolerance)
+        & RK_SERIAL_SAVE_WITH_NAME(m_max_iter);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
+      ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(m_t_space)
+        & RK_SERIAL_LOAD_WITH_NAME(m_sys)
+        & RK_SERIAL_LOAD_WITH_NAME(m_input_traj)
+        & RK_SERIAL_LOAD_WITH_NAME(m_time_step)
+        & RK_SERIAL_LOAD_WITH_NAME(m_tolerance)
+        & RK_SERIAL_LOAD_WITH_NAME(m_max_iter);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC243100A,1,"hamming_iter_mod_integrator_factory",named_object)
     
 };
 

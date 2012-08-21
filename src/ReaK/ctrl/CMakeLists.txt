@@ -4,15 +4,16 @@ set(RKPATHPLANNINGDIR "${RKCTRLDIR}/path_planning")
 set(RKCTRLSYSDIR "${RKCTRLDIR}/ctrl_sys")
 set(RKMBDKTEDIR "${RKCTRLDIR}/mbd_kte")
 set(RKINTERPOLATIONDIR "${RKCTRLDIR}/interpolation")
+set(RKSYSINTEGRATORSDIR "${RKCTRLDIR}/sys_integrators")
 set(RKTOPOLOGIESDIR "${RKCTRLDIR}/topologies")
 set(RKHEURISTICSDIR "${RKCTRLDIR}/heuristics")
 
-set(RKCTRLSUBDIRS ${RKMBDKTEDIR} ${RKGRAPHALGDIR} ${RKPATHPLANNINGDIR} ${RKCTRLSYSDIR} ${RKINTERPOLATIONDIR} ${RKTOPOLOGIESDIR} ${RKHEURISTICSDIR})
+set(RKCTRLSUBDIRS ${RKMBDKTEDIR} ${RKGRAPHALGDIR} ${RKPATHPLANNINGDIR} ${RKCTRLSYSDIR} ${RKINTERPOLATIONDIR} ${RKTOPOLOGIESDIR} ${RKHEURISTICSDIR} ${RKSYSINTEGRATORSDIR})
 
 configure_doxyfile(ReaKctrl_sys 
                    "\"ReaK Library - Control and Estimation libraries\"" 
                    "\"Numerical library for control and estimation on dynamic systems.\"" 
-                   "${DOXTOSRCDIR}${RKCTRLSYSDIR}")
+                   "${DOXTOSRCDIR}${RKCTRLSYSDIR} ${DOXTOSRCDIR}${RKSYSINTEGRATORSDIR}")
 add_doxygen_target(ReaKctrl_sys)
 
 configure_doxyfile(ReaKpp 
