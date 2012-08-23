@@ -101,6 +101,98 @@ default_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
 };
 
 
+
+
+/**
+ * This class is the default distance metric functor which models the DistanceMetricConcept.
+ * This class will simply rely on the distance and norm functions included in the 
+ * given topology (assuming it models the MetricSpaceConcept).
+ * \note Do not use this distance metric to define a topology, because it will be cyclic (infinite recursion).
+ */
+template <typename DistanceMetric>
+struct symmetrized_metric : public serialization::serializable {
+  typedef symmetrized_metric<DistanceMetric> self;
+  
+  DistanceMetric unsym_distance;
+  
+  symmetrized_metric(DistanceMetric aUnsymDistance = DistanceMetric()) : unsym_distance(aUnsymDistance) { };
+  
+  /** 
+   * This function returns the distance between two points on a topology.
+   * \tparam Point The point-type.
+   * \tparam Topology The topology.
+   * \param a The first point.
+   * \param b The second point.
+   * \param s The topology or space on which the points lie.
+   * \return The distance between two points on a topology.
+   */
+  template <typename Point, typename Topology>
+  double operator()(const Point& a, const Point& b, const Topology& s) const {
+    double d_left = unsym_distance(a, b, s);
+    double d_right = unsym_distance(b, a, s);
+    return (d_left < d_right ? d_left : d_right);
+  };
+  /** 
+   * This function returns the norm of a difference between two points on a topology.
+   * \tparam PointDiff The point-difference-type.
+   * \tparam Topology The topology.
+   * \param a The point-difference.
+   * \param s The topology or space on which the points lie.
+   * \return The norm of the difference between two points on a topology.
+   */
+  template <typename PointDiff, typename Topology>
+  double operator()(const PointDiff& a, const Topology& s) const {
+    return unsym_distance(a, s);
+  };
+  
+      
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+    A & RK_SERIAL_SAVE_WITH_NAME(unsym_distance);
+  };
+
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+    A & RK_SERIAL_LOAD_WITH_NAME(unsym_distance);
+  };
+
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC241000B,1,"symmetrized_metric",serialization::serializable)
+};
+
+
+enum unsymmetrized_metric_t { unsymmetrized_metric };
+
+
+template <typename DistanceMetric>
+struct unsymmetrize {
+  typedef DistanceMetric type;
+};
+
+template <typename DistanceMetric>
+struct unsymmetrize< symmetrized_metric<DistanceMetric> > {
+  typedef DistanceMetric type;
+};
+
+
+template <typename DistanceMetric>
+const DistanceMetric& get(unsymmetrized_metric_t, const DistanceMetric& d) {
+  return d;
+};
+
+template <typename DistanceMetric>
+DistanceMetric get(unsymmetrized_metric_t, const symmetrized_metric< DistanceMetric >& d) {
+  return d.unsym_distance;
+};
+
+
+
+
+
+
+
+
 };
 
 };

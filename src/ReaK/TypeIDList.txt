@@ -294,6 +294,7 @@ inf_norm_tuple_distance     0xC2410007   bin: 1100 0010 0100 0001 0000 0000 0000
 p_norm_tuple_distance       0xC2410008   bin: 1100 0010 0100 0001 0000 0000 0000 1000  D-R
 svp_reach_time_metric       0xC2410009   bin: 1100 0010 0100 0001 0000 0000 0000 1001  D-R
 sap_reach_time_metric       0xC241000A   bin: 1100 0010 0100 0001 0000 0000 0000 1010  D-R
+symmetrized_metric          0xC241000B   bin: 1100 0010 0100 0001 0000 0000 0000 1011  D-R
 
 space_only_temporal_dist    0xC2410010   bin: 1100 0010 0100 0001 0000 0000 0001 0000  D-R
 time_only_temporal_dist     0xC2410011   bin: 1100 0010 0100 0001 0000 0000 0001 0001  D-R
