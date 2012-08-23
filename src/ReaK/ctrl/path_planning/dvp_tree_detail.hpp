@@ -41,6 +41,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <stack>
 
 #include "graph_alg/tree_concepts.hpp"
 #include "graph_alg/bgl_tree_adaptor.hpp"
@@ -233,10 +234,13 @@ class dvp_tree_impl
     
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
+    /* NOTE This is a recursive version, this was kept, for now, because the non-recursive version is very tricky. */
     /* This is the main nearest-neighbor query function. This takes a query point, a maximum 
      * neighborhood radius (aSigma), aNode to start recursing from, the current max-heap of neighbors,
      * and the maximum number of neighbors. This function can be used for any kind of NN query (single, kNN, or ranged). */
-    void find_nearest_impl(const point_type& aPoint, distance_type& aSigma, vertex_type aNode, 
+    /*
+    void find_nearest_impl(const point_type& aPoint, distance_type& aSigma, 
+                           vertex_type aNode, 
                            priority_queue_type& aList, std::size_t K) const {
       distance_type current_dist = m_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,aNode)), *m_space);
       if(current_dist < aSigma) { //is the vantage point within current search bound? Yes...
@@ -312,6 +316,136 @@ class dvp_tree_impl
         right_stopped = (ei_right == ei_end);
       };
     };
+    */
+    
+    
+    
+    
+    
+    
+    /* Does not invalidate vertices */
+    /* Does not require persistent vertices */
+    /* NOTE This is a non-recursive version. */
+    /* This is the main nearest-neighbor query function. This takes a query point, a maximum 
+     * neighborhood radius (aSigma), aNode to start recursing from, the current max-heap of neighbors,
+     * and the maximum number of neighbors. This function can be used for any kind of NN query (single, kNN, or ranged). */
+    void find_nearest_impl(
+        const point_type& aPoint, 
+        distance_type aSigma, 
+        priority_queue_type& aList, 
+        std::size_t K) const {
+      
+      std::stack< std::pair<vertex_type, distance_type> > tasks;
+      tasks.push(std::pair<vertex_type, distance_type>(m_root,0.0));
+      
+      while(!tasks.empty()) {
+        std::pair<vertex_type, distance_type> cur_node = tasks.top(); tasks.pop();
+        
+        if( cur_node.second > aSigma )
+          continue;
+        
+        distance_type current_dist = m_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,cur_node.first)), *m_space);
+        if(current_dist < aSigma) { //is the vantage point within current search bound? Yes...
+          //then add the vantage point to the NN list.
+          aList.push_back(std::pair<distance_type, vertex_type>(current_dist, cur_node.first));
+          std::push_heap(aList.begin(), aList.end(), priority_compare_type());
+          if(aList.size() > K) { //are there too many nearest neighbors? Yes... 
+            std::pop_heap(aList.begin(), aList.end(), priority_compare_type());
+            aList.pop_back(); //delete last element to keep aList with K elements
+            aSigma = aList.front().first; //distance of the last element is now the search bound aSigma.
+          };
+        };
+        out_edge_iter ei,ei_end;
+        //first, locate the partition in which aPoint is:
+        if(out_degree(cur_node.first,m_tree) == 0)
+          continue;
+        for(boost::tie(ei,ei_end) = out_edges(cur_node.first,m_tree); ei != ei_end; ++ei) {
+          if(current_dist < get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
+            break;
+        };
+        if(ei == ei_end) 
+          --ei; //back-track if the end was reached.
+        
+        std::stack< std::pair<vertex_type, distance_type> > temp_invtasks;
+        //search in the most likely node.
+        temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei,m_tree),0.0));
+        //find_nearest_impl(aPoint,aSigma,target(*ei,m_tree),aList,K); 
+        
+        out_edge_iter ei_left = ei;
+        out_edge_iter ei_right = ei; ++ei_right;
+        boost::tie(ei,ei_end) = out_edges(cur_node.first,m_tree); //find the bounds again (start and end).
+        bool left_stopped  = (ei_left == ei);
+        bool right_stopped = (ei_right == ei_end);
+        while(true) {
+          if(left_stopped) {
+            out_edge_iter ei_rightleft = ei_right; --ei_rightleft;
+            distance_type temp_dist = 0.0;
+            while((ei_right != ei_end) && 
+                  ((temp_dist = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_rightleft)) - current_dist) < aSigma)) {
+              temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), temp_dist));
+              //find_nearest_impl(aPoint,aSigma,target(*ei_right,m_tree),aList,K);
+              ++ei_rightleft; ++ei_right;
+            };
+            break;
+          } else if(right_stopped) {
+            out_edge_iter ei_leftleft = ei_left;
+            distance_type temp_dist = 0.0;
+            while((ei_left != ei) && 
+                  ((temp_dist = current_dist - get(m_mu,get(boost::edge_raw_property,m_tree,*(--ei_leftleft)))) < aSigma)) {
+              temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), temp_dist));
+              //find_nearest_impl(aPoint,aSigma,target(*ei_leftleft,m_tree),aList,K);
+              --ei_left;
+            };
+            break;
+          } else {
+            out_edge_iter ei_leftleft = ei_left; --ei_leftleft;
+            distance_type d1 = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_leftleft)); //greater than 0 if ei_leftleft should be searched.
+            out_edge_iter ei_rightleft = ei_right; --ei_rightleft;
+            distance_type d2 = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_rightleft)); //less than 0 if ei_right should be searched.
+            if(d1 + d2 > 2.0 * current_dist) { //this means that ei_leftleft's boundary is closer to aPoint.
+              if(d1 + aSigma - current_dist > 0) {
+                temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), current_dist - d1));
+                //find_nearest_impl(aPoint,aSigma,target(*ei_leftleft,m_tree),aList,K);
+                ei_left = ei_leftleft;
+                if(d2 - aSigma - current_dist < 0) {
+                  temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), d2 - current_dist));
+                  //find_nearest_impl(aPoint,aSigma,target(*ei_right,m_tree),aList,K);
+                  ++ei_right;
+                } else
+                  right_stopped = true;
+              } else
+                break;
+            } else {
+              if(d2 - aSigma - current_dist < 0) {
+                temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), d2 - current_dist));
+                //find_nearest_impl(aPoint,aSigma,target(*ei_right,m_tree),aList,K);
+                ++ei_right;
+                if(d1 + aSigma - current_dist > 0) {
+                  temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), current_dist - d1));
+                  //find_nearest_impl(aPoint,aSigma,target(*ei_leftleft,m_tree),aList,K);
+                  ei_left = ei_leftleft;
+                } else 
+                  left_stopped = true;
+              } else
+                break;
+            };
+          };
+          left_stopped  = (ei_left == ei);
+          right_stopped = (ei_right == ei_end);
+        };
+        
+        // reverse the temporary stack into the main stack.
+        while(!temp_invtasks.empty()) {
+          tasks.push(temp_invtasks.top());
+          temp_invtasks.pop();
+        };
+      };
+    };
+    
+    
+    
+    
+    
     
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
@@ -405,7 +539,7 @@ class dvp_tree_impl
         
         if(((out_degree(cur_task.first, m_tree) != 0) && (cur_task.second < 0)) || 
            (out_degree(cur_task.first, m_tree) < Arity) ||
-           ((cur_task.second > 0) && (is_leaf_node(cur_task.first)))) ) {
+           ((cur_task.second > 0) && (is_leaf_node(cur_task.first))) ) {
           depth_limit = cur_task.second;
           return false;
         };
@@ -864,7 +998,7 @@ class dvp_tree_impl
         return boost::graph_traits<tree_indexer>::null_vertex();
       priority_queue_type Q;
       distance_type sig = std::numeric_limits<distance_type>::infinity();
-      find_nearest_impl(aPoint,sig,m_root,Q,1);
+      find_nearest_impl(aPoint,sig,Q,1);
       return Q.front().second;
     };
     
@@ -884,7 +1018,7 @@ class dvp_tree_impl
       if(num_vertices(m_tree) == 0) 
         return aOutputBegin;
       priority_queue_type Q;
-      find_nearest_impl(aPoint,R,m_root,Q,K);
+      find_nearest_impl(aPoint,R,Q,K);
       std::sort_heap(Q.begin(), Q.end(), priority_compare_type());
       for(typename priority_queue_type::const_iterator it = Q.begin(); it != Q.end(); ++it)
         *(aOutputBegin++) = it->second;
@@ -906,7 +1040,7 @@ class dvp_tree_impl
       if(num_vertices(m_tree) == 0) 
         return aOutputBegin;
       priority_queue_type Q;
-      find_nearest_impl(aPoint,R,m_root,Q,num_vertices(m_tree));
+      find_nearest_impl(aPoint,R,Q,num_vertices(m_tree));
       std::sort_heap(Q.begin(), Q.end(), priority_compare_type());
       for(typename priority_queue_type::const_iterator it = Q.begin(); it != Q.end(); ++it)
         *(aOutputBegin++) = it->second;
