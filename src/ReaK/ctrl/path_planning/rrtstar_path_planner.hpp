@@ -54,6 +54,7 @@
 #include "topological_search.hpp"
 #include "path_planner_options.hpp"
 #include "rrt_path_planner.hpp"
+#include "lin_alg/arithmetic_tuple.hpp"
 
 namespace ReaK {
   
@@ -390,6 +391,7 @@ template <typename FreeSpaceType,
           typename SBPPReporter>
 shared_ptr< path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPReporter>::super_space_type > > 
   rrtstar_path_planner<FreeSpaceType,SBPPReporter>::solve_path() {
+  using ReaK::to_vect;
   
   typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpace;
   typedef typename topology_traits<SuperSpace>::point_type PointType;
@@ -402,8 +404,7 @@ shared_ptr< path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPReporter>
   typedef boost::data_member_property_map<double, rrtstar_edge_data<FreeSpaceType> > WeightMap;
   WeightMap weight_map = WeightMap(&rrtstar_edge_data<FreeSpaceType>::weight);
   
-  
-  double space_dim = double(this->m_start_pos.size());
+  double space_dim = double((to_vect<double>(this->m_space->get_super_space().difference(this->m_goal_pos,this->m_start_pos))).size()); 
   double space_Lc = get(distance_metric,this->m_space->get_super_space())(this->m_start_pos, this->m_goal_pos, this->m_space->get_super_space());
   
   

@@ -54,6 +54,7 @@
 #include "topological_search.hpp"
 #include "path_planner_options.hpp"
 #include "graph_alg/neighborhood_functors.hpp"
+#include "lin_alg/arithmetic_tuple.hpp"
 
 #include <boost/graph/astar_search.hpp>
 
@@ -445,6 +446,7 @@ template <typename FreeSpaceType,
           typename SBPPReporter>
 shared_ptr< path_base< typename prm_path_planner<FreeSpaceType,SBPPReporter>::super_space_type > > 
   prm_path_planner<FreeSpaceType,SBPPReporter>::solve_path() {
+  using ReaK::to_vect;
   
   this->has_reached_max_vertices = false;
   this->m_start_goal_connected = false;
@@ -460,8 +462,7 @@ shared_ptr< path_base< typename prm_path_planner<FreeSpaceType,SBPPReporter>::su
   typedef boost::data_member_property_map<double, prm_vertex_data<FreeSpaceType> > DensityMap;
   DensityMap dens_map = DensityMap(&prm_vertex_data<FreeSpaceType>::density);
   
-  
-  double space_dim = double(this->m_start_pos.size());
+  double space_dim = double((to_vect<double>(this->m_space->get_super_space().difference(this->m_goal_pos,this->m_start_pos))).size()); 
   double space_Lc = get(distance_metric,this->m_space->get_super_space())(this->m_start_pos, this->m_goal_pos, this->m_space->get_super_space());
   
   if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {
