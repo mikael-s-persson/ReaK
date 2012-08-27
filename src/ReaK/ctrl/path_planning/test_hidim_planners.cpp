@@ -52,7 +52,6 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
             << "*            Running tests on '" << world_map->getName() << "'" << std::endl
             << "*****************************************************************" << std::endl;
   
-#if 0
             
   /**********************************************************************************
    * 
@@ -414,6 +413,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
   std::cout << "Done!" << std::endl;
   
   
+#if 0
   
   /**********************************************************************************
    * 
@@ -1138,7 +1138,6 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
   };
   std::cout << "Done!" << std::endl;
   
-#endif
   
   
   
@@ -1502,6 +1501,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
   };
   std::cout << "Done!" << std::endl;
   
+#endif
   
   
   
