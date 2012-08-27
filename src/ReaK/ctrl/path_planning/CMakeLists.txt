@@ -14,9 +14,12 @@ set(PATH_PLANNING_HEADERS
   "${RKPATHPLANNINGDIR}/motion_planner_base.hpp"
   "${RKPATHPLANNINGDIR}/predicted_trajectory_concept.hpp"
   "${RKPATHPLANNINGDIR}/prob_distribution_concept.hpp"
+  "${RKPATHPLANNINGDIR}/prm_path_planner.hpp"
   "${RKPATHPLANNINGDIR}/random_sampler_concept.hpp"
   "${RKPATHPLANNINGDIR}/reachability_sort.hpp"
   "${RKPATHPLANNINGDIR}/reachability_space_concept.hpp"
+  "${RKPATHPLANNINGDIR}/rrt_path_planner.hpp"
+  "${RKPATHPLANNINGDIR}/rrtstar_path_planner.hpp"
   "${RKPATHPLANNINGDIR}/sbmp_reporter_concept.hpp"
   "${RKPATHPLANNINGDIR}/spatial_path_concept.hpp"
   "${RKPATHPLANNINGDIR}/spatial_trajectory_concept.hpp"
@@ -46,6 +49,10 @@ target_link_libraries(test_dvp_adj_list reak_core)
 add_executable(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}/test_planners.cpp")
 setup_custom_target(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
 target_link_libraries(test_planners reak_topologies reak_core)
+
+add_executable(test_hidim_planners "${SRCROOT}${RKPATHPLANNINGDIR}/test_hidim_planners.cpp")
+setup_custom_target(test_hidim_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
+target_link_libraries(test_hidim_planners reak_core)
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")

@@ -406,7 +406,7 @@ namespace graph {
       };
     };
 
-    while(num_vertices(g) < max_vertex_count) {
+    while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
       //Graph Construction phase:
       unsigned int i = 0;
       while((i < num_constructed_vertices) && (num_vertices(g) < max_vertex_count) && (vis.keep_going())) {

@@ -212,6 +212,9 @@ decomp_covariance_matrix<T> 0xC230000A   bin: 1100 0010 0011 0000 0000 0000 0000
 gaussian_belief_state<Cov>  0xC2300010   bin: 1100 0010 0011 0000 0000 0000 0001 0000  D-R
 gaussian_belief_space<S,C>  0xC2300011   bin: 1100 0010 0011 0000 0000 0000 0001 0001  D-R
 
+dt_ih_lqr_controller        0xC2300012   bin: 1100 0010 0011 0000 0000 0000 0001 0010  D-R
+ct_ih_lqr_controller        0xC2300013   bin: 1100 0010 0011 0000 0000 0000 0001 0011  D-R
+
 
 
 
@@ -276,6 +279,7 @@ manip_rl_ik_rnd_restart_map<R> 0xC240001D bin:1100 0010 0100 0000 0000 0000 0001
 manip_ik_knn_starts_map     0xC240001E   bin: 1100 0010 0100 0000 0000 0000 0001 1110  D-R
 manip_rl_ik_knn_starts_map<R> 0xC240001F bin: 1100 0010 0100 0000 0000 0000 0001 1111  D-R
 ptrobot2D_test_world        0xC2400020   bin: 1100 0010 0100 0000 0000 0000 0010 0000  D-R
+no_obstacle_space<T,D,R>    0xC2400021   bin: 1100 0010 0100 0000 0000 0000 0010 0001  D-R
 
 
 
@@ -291,6 +295,7 @@ inf_norm_tuple_distance     0xC2410007   bin: 1100 0010 0100 0001 0000 0000 0000
 p_norm_tuple_distance       0xC2410008   bin: 1100 0010 0100 0001 0000 0000 0000 1000  D-R
 svp_reach_time_metric       0xC2410009   bin: 1100 0010 0100 0001 0000 0000 0000 1001  D-R
 sap_reach_time_metric       0xC241000A   bin: 1100 0010 0100 0001 0000 0000 0000 1010  D-R
+symmetrized_metric          0xC241000B   bin: 1100 0010 0100 0001 0000 0000 0000 1011  D-R
 
 space_only_temporal_dist    0xC2410010   bin: 1100 0010 0100 0001 0000 0000 0001 0000  D-R
 time_only_temporal_dist     0xC2410011   bin: 1100 0010 0100 0001 0000 0000 0001 0001  D-R
@@ -308,6 +313,18 @@ cubic_hermite_interp_factory 0xC2430002  bin: 1100 0010 0100 0011 0000 0000 0000
 quintic_hermite_interp_factory 0xC2430003 bin:1100 0010 0100 0011 0000 0000 0000 0011  D-R
 svp_interpolator_factory    0xC2430004   bin: 1100 0010 0100 0011 0000 0000 0000 0100  D-R
 sap_interpolator_factory    0xC2430005   bin: 1100 0010 0100 0011 0000 0000 0000 0101  D-R
+
+euler_integrator_factory    0xC2431001   bin: 1100 0010 0100 0011 0001 0000 0000 0001  D-R
+midpoint_integrator_factory 0xC2431002   bin: 1100 0010 0100 0011 0001 0000 0000 0010  D-R
+runge_kutta4_integ._factory 0xC2431003   bin: 1100 0010 0100 0011 0001 0000 0000 0011  D-R
+runge_kutta5_integ._factory 0xC2431004   bin: 1100 0010 0100 0011 0001 0000 0000 0100  D-R
+fehlberg45_integ._factory   0xC2431005   bin: 1100 0010 0100 0011 0001 0000 0000 0101  D-R
+dormand_prince45_integ._f.  0xC2431006   bin: 1100 0010 0100 0011 0001 0000 0000 0110  D-R
+adams_BM3_integ._factory    0xC2431007   bin: 1100 0010 0100 0011 0001 0000 0000 0111  D-R
+adams_BM5_integ._factory    0xC2431008   bin: 1100 0010 0100 0011 0001 0000 0000 1000  D-R
+hamming_mod_integ._factory  0xC2431009   bin: 1100 0010 0100 0011 0001 0000 0000 1001  D-R
+hamming_iter_mod_integ._f.  0xC243100A   bin: 1100 0010 0100 0011 0001 0000 0000 1010  D-R
+
 
 //Trajectories:             0xC244****
 waypoint_container_base     0xC2440000   bin: 1100 0010 0100 0100 0000 0000 0000 0000  D-R
@@ -340,6 +357,7 @@ timing_sbmp_report          0xC2460005   bin: 1100 0010 0100 0110 0000 0000 0000
 print_sbmp_progress         0xC2460006   bin: 1100 0010 0100 0110 0000 0000 0000 0110  D-R
 rrt_path_planner            0xC2460007   bin: 1100 0010 0100 0110 0000 0000 0000 0111  D-R
 prm_path_planner            0xC2460008   bin: 1100 0010 0100 0110 0000 0000 0000 1000  D-R
+rrtstar_path_planner        0xC2460009   bin: 1100 0010 0100 0110 0000 0000 0000 1001  D-R
 
 
 

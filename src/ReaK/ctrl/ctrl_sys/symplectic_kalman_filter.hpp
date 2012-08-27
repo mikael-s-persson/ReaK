@@ -195,6 +195,7 @@ void >::type symplectic_kalman_update(const LinearSystem& sys,
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
   
   typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
+  typedef typename discrete_sss_traits<LinearSystem>::point_difference_type StateDiffType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   
@@ -210,6 +211,8 @@ void >::type symplectic_kalman_update(const LinearSystem& sys,
   typedef typename mat_traits<MatType>::value_type ValueType;
   typedef typename mat_traits<MatType>::size_type SizeType;
   
+  using ReaK::to_vect; using ReaK::from_vect;
+  
   typename discrete_linear_sss_traits<LinearSystem>::matrixC_type C;
   typename discrete_linear_sss_traits<LinearSystem>::matrixD_type D;
   
@@ -218,7 +221,7 @@ void >::type symplectic_kalman_update(const LinearSystem& sys,
   const MatType& Y = b_x.get_covariance().get_informing_inv_block(); 
   sys.get_output_function_blocks(C, D, state_space, t, x, b_u.get_mean_state());
   
-  OutputType y = b_z.get_mean_state() - sys.get_output(state_space, x, b_u.get_mean_state(), t);
+  vect_n<ValueType> y = to_vect<ValueType>(b_z.get_mean_state() - sys.get_output(state_space, x, b_u.get_mean_state(), t));
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > YC(transpose_view(C));
   mat< ValueType, mat_structure::symmetric > M = YC * b_z.get_covariance().get_inverse_matrix() * C;
   linsolve_QR(Y,YC);
@@ -227,7 +230,7 @@ void >::type symplectic_kalman_update(const LinearSystem& sys,
   linsolve_Cholesky(S,YC);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K(transpose_view(YC));
    
-  b_x.set_mean_state( x + K * y );
+  b_x.set_mean_state( state_space.adjust(x, from_vect<StateDiffType>(K * y) ) );
   b_x.set_covariance( CovType( X, MatType( Y + M * X ) ) );
   
   SizeType N = X.get_row_count();
@@ -291,6 +294,7 @@ void >::type symplectic_kalman_filter_step(const LinearSystem& sys,
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
   
   typedef typename discrete_sss_traits<LinearSystem>::point_type StateType;
+  typedef typename discrete_sss_traits<LinearSystem>::point_difference_type StateDiffType;
   typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   
@@ -305,6 +309,8 @@ void >::type symplectic_kalman_filter_step(const LinearSystem& sys,
   typedef typename decomp_covariance_mat_traits< CovType >::matrix_block_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
   typedef typename mat_traits<MatType>::size_type SizeType;
+  
+  using ReaK::to_vect; using ReaK::from_vect;
   
   typename discrete_linear_sss_traits<LinearSystem>::matrixA_type A;
   typename discrete_linear_sss_traits<LinearSystem>::matrixB_type B;
@@ -337,7 +343,7 @@ void >::type symplectic_kalman_filter_step(const LinearSystem& sys,
   t += sys.get_time_step();
   
   sys.get_output_function_blocks(C, D, state_space, t, x, b_u.get_mean_state());
-  OutputType y = b_z.get_mean_state() - sys.get_output(state_space, x, b_u.get_mean_state(), t);
+  vect_n<ValueType> y = to_vect<ValueType>(b_z.get_mean_state() - sys.get_output(state_space, x, b_u.get_mean_state(), t));
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > YC(transpose_view(C));
   mat< ValueType, mat_structure::symmetric > M = YC * b_z.get_covariance().get_inverse_matrix() * C;
   linsolve_QR(Y,YC);
@@ -346,7 +352,7 @@ void >::type symplectic_kalman_filter_step(const LinearSystem& sys,
   linsolve_Cholesky(S,YC);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K(transpose_view(YC));
    
-  b_x.set_mean_state( state_space.adjust(x, K * y) );
+  b_x.set_mean_state( state_space.adjust(x, from_vect<StateDiffType>(K * y) ) );
   
   set_block(T, M * A, N, 0);
   T_lr += M * T_ur;

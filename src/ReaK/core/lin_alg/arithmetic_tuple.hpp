@@ -47,6 +47,8 @@
 
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/size_t.hpp>
+#include <boost/mpl/and.hpp>
+#include <boost/mpl/or.hpp>
 #include <boost/mpl/less.hpp>
 #include <boost/mpl/greater.hpp>
 #include <boost/mpl/equal_to.hpp>
@@ -56,6 +58,9 @@
 #include "rtti/so_register_type.hpp"
 #include "rtti/typed_primitives.hpp"
 
+#include "vect_concepts.hpp"
+#include "vect_alg.hpp"
+
 namespace ReaK {
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -63,14 +68,524 @@ namespace ReaK {
 #else
   using boost::tuples::get;
 #endif
+
+
+
+
+/**
+ * This meta-function computes a bool integral constant if the given type is an arithmetic-tuple.
+ * \tparam Tuple The type to be tested as being an arithmetic-tuple or not.
+ */
+template <typename Tuple>
+struct is_arithmetic_tuple : 
+  boost::mpl::false_ { };
+
+/**
+ * This meta-function computes an integral constant describing the size (or length) of an arithmetic-tuple.
+ * \tparam Tuple The arithmetic-tuple type.
+ */
+template <typename Tuple>
+struct arithmetic_tuple_size : 
+  boost::mpl::size_t< 0 > { };
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+
+/**
+ * This class template is a simple wrapper of a tuple with the addition of arithmetic operators. 
+ * This class is basically just a wrapper of the std::tuple class, and it provides 
+ * a meta-programming interface that is equivalent to std::tuple and with the addition 
+ * of the support for all the basic arithmetic operators, requiring, of course, that these 
+ * arithmetic operators are also available on all the types contained in the tuple.
+ * \tparam T The types contained in the arithmetic-tuple.
+ */
+template <typename... T>
+class arithmetic_tuple : public std::tuple< T... > {
+  public:
+    typedef std::tuple< T... > arithmetic_tuple_base_class;
+  public:
+    
+#if 1
+    constexpr arithmetic_tuple() : arithmetic_tuple_base_class() { };
+    
+    explicit arithmetic_tuple(const T&... t) : arithmetic_tuple_base_class(t...) { };
+    
+    template <typename... U>
+    explicit arithmetic_tuple(U&&... u) noexcept : arithmetic_tuple_base_class(std::forward<U>(u)...) { };
+    
+    arithmetic_tuple(const arithmetic_tuple< T... >&) = default;
+    arithmetic_tuple(arithmetic_tuple< T... >&&) = default;
+    
+    arithmetic_tuple< T... >& operator=(const arithmetic_tuple< T... >&) = default;
+    arithmetic_tuple< T... >& operator=(arithmetic_tuple< T... >&&) = default;
+    
+    //TODO: missing other standard-specified constructors (with other tuple types, and std::pair).
+    
+#else
+    using arithmetic_tuple_base_class::arithmetic_tuple_base_class;
+#endif
+};
+
+/* Specialization, see general template docs. */
+template <typename... T>
+struct is_arithmetic_tuple< arithmetic_tuple< T... > > : 
+  boost::mpl::true_ { };
+
+/* Specialization, see general template docs. */
+template <typename... T>
+struct arithmetic_tuple_size< arithmetic_tuple< T... > > : 
+  boost::mpl::size_t< sizeof... (T) > { };
   
+/**
+ * This function template can be used to create an arithmetic-tuple.
+ * \tparam T The types contained in the arithmetic-tuple.
+ * \param t The values that make up the arithmetic-tuple.
+ * \return An arithmetic-tuple.
+ */
+template <typename... T>
+inline 
+arithmetic_tuple< typename std::remove_reference<T>::type... > make_arithmetic_tuple(T&&... t) {
+  return arithmetic_tuple< typename std::remove_reference<T>::type... >(std::forward<T>(t)...);
+};
+
+#else
+
+/**
+ * This class template is a simple wrapper of a tuple with the addition of arithmetic operators.
+ * This class is basically just a wrapper of the boost::tuples::tuple class, and it provides 
+ * a meta-programming interface that is equivalent to boost::tuples::tuple and with the addition 
+ * of the support for all the basic arithmetic operators, requiring, of course, that these 
+ * arithmetic operators are also available on all the types contained in the tuple.
+ * \tparam Tn The types contained in the arithmetic-tuple.
+ */
+template <typename T1, typename T2 = void, typename T3 = void, typename T4 = void, typename T5 = void, 
+          typename T6 = void, typename T7 = void, typename T8 = void, typename T9 = void, typename T10 = void>
+class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > {
+  public:
+    typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > arithmetic_tuple_base_class;
+  public:
+    
+    
+    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
+                     const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
+		     const T7& t7 = T7(), const T8& t8 = T8(), const T9& t9 = T9(), 
+		     const T10& t10 = T10()) : arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10) { };
+    
+    
+    
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4 , typename T5, 
+          typename T6, typename T7, typename T8, typename T9, typename T10>
+struct is_arithmetic_tuple< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > > : 
+  boost::mpl::true_ { };
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4 , typename T5, 
+          typename T6, typename T7, typename T8, typename T9, typename T10>
+struct arithmetic_tuple_size< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > > : 
+  boost::mpl::size_t< boost::tuples::length<arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >::arithmetic_tuple_base_class>::value > { };
+  
+
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+          typename T6, typename T7, typename T8, typename T9>
+class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9 > {
+  public:
+    typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9 > arithmetic_tuple_base_class;
+  public:
+    
+    
+    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
+			      const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
+			      const T7& t7 = T7(), const T8& t8 = T8(), const T9& t9 = T9()) : 
+			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8,t9) { };
+    
+    
+    
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+          typename T6, typename T7, typename T8>
+class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8 > {
+  public:
+    typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8 > arithmetic_tuple_base_class;
+  public:
+    
+    
+    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
+			      const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
+			      const T7& t7 = T7(), const T8& t8 = T8()) : 
+			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8) { };
+    
+    
+    
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+          typename T6, typename T7>
+class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7 > {
+  public:
+    typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7 > arithmetic_tuple_base_class;
+  public:
+    
+    
+    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
+			      const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
+			      const T7& t7 = T7()) : 
+			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7) { };
+    
+    
+    
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4, typename T5, 
+          typename T6>
+class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6 > {
+  public:
+    typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6 > arithmetic_tuple_base_class;
+  public:
+    
+    
+    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
+			      const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6()) : 
+			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6) { };
+    
+    
+    
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4, typename T5>
+class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5 > {
+  public:
+    typedef boost::tuples::tuple< T1, T2, T3, T4, T5 > arithmetic_tuple_base_class;
+  public:
+    
+    
+    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
+			      const T4& t4 = T4(), const T5& t5 = T5()) : 
+			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5) { };
+    
+    
+    
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4>
+class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4 > {
+  public:
+    typedef boost::tuples::tuple< T1, T2, T3, T4 > arithmetic_tuple_base_class;
+  public:
+    
+    
+    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
+			      const T4& t4 = T4()) : 
+			      arithmetic_tuple_base_class(t1,t2,t3,t4) { };
+    
+    
+    
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3>
+class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3 > {
+  public:
+    typedef boost::tuples::tuple< T1, T2, T3 > arithmetic_tuple_base_class;
+  public:
+    
+    
+    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3()) : 
+                              arithmetic_tuple_base_class(t1,t2,t3) { };
+    
+    
+    
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2>
+class arithmetic_tuple : public boost::tuples::tuple< T1, T2 > {
+  public:
+    typedef boost::tuples::tuple< T1, T2 > arithmetic_tuple_base_class;
+  public:
+    
+    
+    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2()) : 
+		              arithmetic_tuple_base_class(t1,t2) { };
+    
+    
+    
+};
+
+/* Specialization, see general template docs. */
+template <typename T1>
+class arithmetic_tuple : public boost::tuples::tuple< T1 > {
+  public:
+    typedef boost::tuples::tuple< T1 > arithmetic_tuple_base_class;
+  public:
+    
+    
+    explicit arithmetic_tuple(const T1& t1 = T1()) : 
+		              arithmetic_tuple_base_class(t1) { };
+    
+    
+    
+};
+
+
+
+/* Specialization, see general template docs. */
+template <typename T1>
+inline 
+arithmetic_tuple< T1 > make_arithmetic_tuple(const T1& t1) {
+  return arithmetic_tuple< T1 >(t1);
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2>
+inline 
+arithmetic_tuple< T1, T2 > make_arithmetic_tuple(const T1& t1, const T2& t2) {
+  return arithmetic_tuple< T1, T2 >(t1,t2);
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3>
+inline 
+arithmetic_tuple< T1, T2, T3 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3) {
+  return arithmetic_tuple< T1, T2, T3 >(t1,t2,t3);
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4>
+inline 
+arithmetic_tuple< T1, T2, T3, T4 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
+							 const T4& t4) {
+  return arithmetic_tuple< T1, T2, T3, T4 >(t1,t2,t3,t4);
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4, typename T5>
+inline 
+arithmetic_tuple< T1, T2, T3, T4, T5 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
+							     const T4& t4, const T5& t5) {
+  return arithmetic_tuple< T1, T2, T3, T4, T5 >(t1,t2,t3,t4,t5);
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6>
+inline 
+arithmetic_tuple< T1, T2, T3, T4, T5, T6 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
+							         const T4& t4, const T5& t5, const T6& t6) {
+  return arithmetic_tuple< T1, T2, T3, T4, T5, T6 >(t1,t2,t3,t4,t5,t6);
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6, typename T7>
+inline 
+arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
+								     const T4& t4, const T5& t5, const T6& t6,
+								     const T7& t7) {
+  return arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7 >(t1,t2,t3,t4,t5,t6,t7);
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6, typename T7, typename T8>
+inline 
+arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
+									 const T4& t4, const T5& t5, const T6& t6,
+									 const T7& t7, const T8& t8) {
+  return arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8 >(t1,t2,t3,t4,t5,t6,t7,t8);
+};
+
+/* Specialization, see general template docs. */
+template <typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6, typename T7, typename T8, typename T9>
+inline 
+arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
+									     const T4& t4, const T5& t5, const T6& t6,
+									     const T7& t7, const T8& t8, const T9& t9) {
+  return arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9 >(t1,t2,t3,t4,t5,t6,t7,t8,t9);
+};
+
+/**
+ * This function template can be used to create an arithmetic-tuple.
+ * \tparam Tn The types contained in the arithmetic-tuple.
+ * \param tn The values that make up the arithmetic-tuple.
+ * \return An arithmetic-tuple.
+ */
+template <typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6, typename T7, typename T8, typename T9, typename T10>
+inline 
+arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
+										  const T4& t4, const T5& t5, const T6& t6,
+										  const T7& t7, const T8& t8, const T9& t9, const T10& t10) {
+  return arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10);
+};
+
+
+
+
+#endif
+
+
 namespace detail {
   
 /*****************************************************************************************
                              Implementation details
 *****************************************************************************************/
-
-
+  
+  
+  template <typename Idx, typename Vector, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_to_vect_impl( Vector&, const Tuple&); // forward-declare
+  
+  template <typename Idx, typename Vector, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::greater< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_to_vect_impl( Vector& lhs, const Tuple& rhs); // forward-declare
+  
+  template <typename Vector, typename Tuple>
+  inline 
+  typename boost::enable_if<
+    is_arithmetic_tuple< Tuple >,
+  void >::type to_vect_impl( Vector& lhs, const Tuple& rhs) {
+    tuple_to_vect_impl< arithmetic_tuple_size<Tuple>, Vector, Tuple >(lhs, rhs);
+  };
+  
+  template <typename Vector1, typename Vector2>
+  inline 
+  typename boost::enable_if<
+    is_readable_vector< Vector2 >,
+  void >::type to_vect_impl( Vector1& lhs, const Vector2& rhs) {
+    for(std::size_t j = 0; j < rhs.size(); ++j) {
+      lhs.resize( lhs.size() + 1 );
+      lhs[lhs.size()-1] = rhs[j];
+    };
+  };
+  
+  template <typename Vector, typename Scalar>
+  inline 
+  typename boost::disable_if<
+    boost::mpl::or_<
+      is_readable_vector< Scalar >,
+      is_arithmetic_tuple< Scalar >
+    >,
+  void >::type to_vect_impl( Vector& lhs, const Scalar& rhs) {
+    lhs.resize( lhs.size() + 1 );
+    lhs[lhs.size()-1] = rhs;
+  };
+  
+  template <typename Idx, typename Vector, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_to_vect_impl( Vector&, const Tuple&) { };
+  
+  template <typename Idx, typename Vector, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::greater< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_to_vect_impl( Vector& lhs, const Tuple& rhs) {
+    tuple_to_vect_impl< typename boost::mpl::prior<Idx>::type, Vector, Tuple >(lhs,rhs);
+    to_vect_impl(lhs, get<boost::mpl::prior<Idx>::type::value>(rhs));
+  };
+  
+  
+  
+  template <typename Idx, typename Tuple, typename Vector>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_from_vect_impl( Tuple&, const Vector&, std::size_t& i); // forward delcare
+  
+  template <typename Idx, typename Tuple, typename Vector>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::greater< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_from_vect_impl( Tuple& lhs, const Vector& rhs, std::size_t& i); // forward delcare
+  
+  template <typename Tuple, typename Vector>
+  inline 
+  typename boost::enable_if<
+    is_arithmetic_tuple< Tuple >,
+  void >::type from_vect_impl( Tuple& lhs, const Vector& rhs, std::size_t& i) {
+    tuple_from_vect_impl< arithmetic_tuple_size<Tuple>, Tuple, Vector >(lhs, rhs, i);
+  };
+  
+  template <typename Vector1, typename Vector2>
+  inline 
+  typename boost::enable_if<
+    is_readable_vector< Vector1 >,
+  void >::type from_vect_impl( Vector1& lhs, const Vector2& rhs, std::size_t& i) {
+    for(std::size_t j = 0; j < rhs.size(); ++j, ++i)
+      lhs[j] = rhs[i];
+  };
+  
+  template <typename Scalar, typename Vector>
+  inline 
+  typename boost::disable_if<
+    boost::mpl::or_<
+      is_readable_vector< Scalar >,
+      is_arithmetic_tuple< Scalar >
+    >,
+  void >::type from_vect_impl( Scalar& lhs, const Vector& rhs, std::size_t& i) {
+    lhs = rhs[i++];
+  };
+  
+  template <typename Idx, typename Tuple, typename Vector>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_from_vect_impl( Tuple&, const Vector&, std::size_t& i) { };
+  
+  template <typename Idx, typename Tuple, typename Vector>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::greater< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_from_vect_impl( Tuple& lhs, const Vector& rhs, std::size_t& i) {
+    tuple_from_vect_impl< typename boost::mpl::prior<Idx>::type, Vector, Tuple >(lhs, rhs, i);
+    from_vect_impl(get<boost::mpl::prior<Idx>::type::value>(lhs), rhs, i);
+  };
+  
+  
+  
+  
+  
+  
   template <typename Idx, typename Tuple>
   inline 
   typename boost::enable_if< 
@@ -463,371 +978,61 @@ namespace detail {
 /*****************************************************************************************
                            END OF Implementation details
 *****************************************************************************************/
-
-};
-
-
-
-/**
- * This meta-function computes a bool integral constant if the given type is an arithmetic-tuple.
- * \tparam Tuple The type to be tested as being an arithmetic-tuple or not.
- */
-template <typename Tuple>
-struct is_arithmetic_tuple : 
-  boost::mpl::false_ { };
-
-/**
- * This meta-function computes an integral constant describing the size (or length) of an arithmetic-tuple.
- * \tparam Tuple The arithmetic-tuple type.
- */
-template <typename Tuple>
-struct arithmetic_tuple_size : 
-  boost::mpl::size_t< 0 > { };
-
-#ifdef RK_ENABLE_CXX0X_FEATURES
-
-/**
- * This class template is a simple wrapper of a tuple with the addition of arithmetic operators. 
- * This class is basically just a wrapper of the std::tuple class, and it provides 
- * a meta-programming interface that is equivalent to std::tuple and with the addition 
- * of the support for all the basic arithmetic operators, requiring, of course, that these 
- * arithmetic operators are also available on all the types contained in the tuple.
- * \tparam T The types contained in the arithmetic-tuple.
- */
-template <typename... T>
-class arithmetic_tuple : public std::tuple< T... > {
-  public:
-    typedef std::tuple< T... > arithmetic_tuple_base_class;
-  public:
-    
-#if 1
-    constexpr arithmetic_tuple() : arithmetic_tuple_base_class() { };
-    
-    explicit arithmetic_tuple(const T&... t) : arithmetic_tuple_base_class(t...) { };
-    
-    template <typename... U>
-    explicit arithmetic_tuple(U&&... u) noexcept : arithmetic_tuple_base_class(std::forward<U>(u)...) { };
-    
-    arithmetic_tuple(const arithmetic_tuple< T... >&) = default;
-    arithmetic_tuple(arithmetic_tuple< T... >&&) = default;
-    
-    //TODO: missing other standard-specified constructors (with other tuple types, and std::pair).
-    
-#else
-    using arithmetic_tuple_base_class::arithmetic_tuple_base_class;
-#endif
-};
-
-/* Specialization, see general template docs. */
-template <typename... T>
-struct is_arithmetic_tuple< arithmetic_tuple< T... > > : 
-  boost::mpl::true_ { };
-
-/* Specialization, see general template docs. */
-template <typename... T>
-struct arithmetic_tuple_size< arithmetic_tuple< T... > > : 
-  boost::mpl::size_t< sizeof... (T) > { };
   
-/**
- * This function template can be used to create an arithmetic-tuple.
- * \tparam T The types contained in the arithmetic-tuple.
- * \param t The values that make up the arithmetic-tuple.
- * \return An arithmetic-tuple.
- */
-template <typename... T>
-inline 
-arithmetic_tuple< T... > make_arithmetic_tuple(T&&... t) {
-  return arithmetic_tuple< T... >(std::forward<T>(t)...);
-};
-
-#else
-
-/**
- * This class template is a simple wrapper of a tuple with the addition of arithmetic operators.
- * This class is basically just a wrapper of the boost::tuples::tuple class, and it provides 
- * a meta-programming interface that is equivalent to boost::tuples::tuple and with the addition 
- * of the support for all the basic arithmetic operators, requiring, of course, that these 
- * arithmetic operators are also available on all the types contained in the tuple.
- * \tparam Tn The types contained in the arithmetic-tuple.
- */
-template <typename T1, typename T2 = void, typename T3 = void, typename T4 = void, typename T5 = void, 
-          typename T6 = void, typename T7 = void, typename T8 = void, typename T9 = void, typename T10 = void>
-class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > {
-  public:
-    typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > arithmetic_tuple_base_class;
-  public:
-    
-    
-    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-                     const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
-		     const T7& t7 = T7(), const T8& t8 = T8(), const T9& t9 = T9(), 
-		     const T10& t10 = T10()) : arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10) { };
-    
-    
-    
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4 , typename T5, 
-          typename T6, typename T7, typename T8, typename T9, typename T10>
-struct is_arithmetic_tuple< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > > : 
-  boost::mpl::true_ { };
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4 , typename T5, 
-          typename T6, typename T7, typename T8, typename T9, typename T10>
-struct arithmetic_tuple_size< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > > : 
-  boost::mpl::size_t< boost::tuples::length<arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >::arithmetic_tuple_base_class>::value > { };
   
-
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4, typename T5, 
-          typename T6, typename T7, typename T8, typename T9>
-class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9 > {
-  public:
-    typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9 > arithmetic_tuple_base_class;
-  public:
-    
-    
-    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-			      const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
-			      const T7& t7 = T7(), const T8& t8 = T8(), const T9& t9 = T9()) : 
-			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8,t9) { };
-    
-    
-    
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4, typename T5, 
-          typename T6, typename T7, typename T8>
-class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8 > {
-  public:
-    typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8 > arithmetic_tuple_base_class;
-  public:
-    
-    
-    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-			      const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
-			      const T7& t7 = T7(), const T8& t8 = T8()) : 
-			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8) { };
-    
-    
-    
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4, typename T5, 
-          typename T6, typename T7>
-class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7 > {
-  public:
-    typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7 > arithmetic_tuple_base_class;
-  public:
-    
-    
-    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-			      const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
-			      const T7& t7 = T7()) : 
-			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7) { };
-    
-    
-    
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4, typename T5, 
-          typename T6>
-class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6 > {
-  public:
-    typedef boost::tuples::tuple< T1, T2, T3, T4, T5, T6 > arithmetic_tuple_base_class;
-  public:
-    
-    
-    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-			      const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6()) : 
-			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6) { };
-    
-    
-    
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4, typename T5>
-class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5 > {
-  public:
-    typedef boost::tuples::tuple< T1, T2, T3, T4, T5 > arithmetic_tuple_base_class;
-  public:
-    
-    
-    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-			      const T4& t4 = T4(), const T5& t5 = T5()) : 
-			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5) { };
-    
-    
-    
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4>
-class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4 > {
-  public:
-    typedef boost::tuples::tuple< T1, T2, T3, T4 > arithmetic_tuple_base_class;
-  public:
-    
-    
-    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-			      const T4& t4 = T4()) : 
-			      arithmetic_tuple_base_class(t1,t2,t3,t4) { };
-    
-    
-    
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3>
-class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3 > {
-  public:
-    typedef boost::tuples::tuple< T1, T2, T3 > arithmetic_tuple_base_class;
-  public:
-    
-    
-    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3()) : 
-                              arithmetic_tuple_base_class(t1,t2,t3) { };
-    
-    
-    
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2>
-class arithmetic_tuple : public boost::tuples::tuple< T1, T2 > {
-  public:
-    typedef boost::tuples::tuple< T1, T2 > arithmetic_tuple_base_class;
-  public:
-    
-    
-    explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2()) : 
-		              arithmetic_tuple_base_class(t1,t2) { };
-    
-    
-    
-};
-
-/* Specialization, see general template docs. */
-template <typename T1>
-class arithmetic_tuple : public boost::tuples::tuple< T1 > {
-  public:
-    typedef boost::tuples::tuple< T1 > arithmetic_tuple_base_class;
-  public:
-    
-    
-    explicit arithmetic_tuple(const T1& t1 = T1()) : 
-		              arithmetic_tuple_base_class(t1) { };
-    
-    
-    
 };
 
 
-
-/* Specialization, see general template docs. */
-template <typename T1>
-inline 
-arithmetic_tuple< T1 > make_arithmetic_tuple(const T1& t1) {
-  return arithmetic_tuple< T1 >(t1);
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2>
-inline 
-arithmetic_tuple< T1, T2 > make_arithmetic_tuple(const T1& t1, const T2& t2) {
-  return arithmetic_tuple< T1, T2 >(t1,t2);
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3>
-inline 
-arithmetic_tuple< T1, T2, T3 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3) {
-  return arithmetic_tuple< T1, T2, T3 >(t1,t2,t3);
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4>
-inline 
-arithmetic_tuple< T1, T2, T3, T4 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-							 const T4& t4) {
-  return arithmetic_tuple< T1, T2, T3, T4 >(t1,t2,t3,t4);
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4, typename T5>
-inline 
-arithmetic_tuple< T1, T2, T3, T4, T5 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-							     const T4& t4, const T5& t5) {
-  return arithmetic_tuple< T1, T2, T3, T4, T5 >(t1,t2,t3,t4,t5);
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4, typename T5,
-          typename T6>
-inline 
-arithmetic_tuple< T1, T2, T3, T4, T5, T6 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-							         const T4& t4, const T5& t5, const T6& t6) {
-  return arithmetic_tuple< T1, T2, T3, T4, T5, T6 >(t1,t2,t3,t4,t5,t6);
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4, typename T5,
-          typename T6, typename T7>
-inline 
-arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-								     const T4& t4, const T5& t5, const T6& t6,
-								     const T7& t7) {
-  return arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7 >(t1,t2,t3,t4,t5,t6,t7);
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4, typename T5,
-          typename T6, typename T7, typename T8>
-inline 
-arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-									 const T4& t4, const T5& t5, const T6& t6,
-									 const T7& t7, const T8& t8) {
-  return arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8 >(t1,t2,t3,t4,t5,t6,t7,t8);
-};
-
-/* Specialization, see general template docs. */
-template <typename T1, typename T2, typename T3, typename T4, typename T5,
-          typename T6, typename T7, typename T8, typename T9>
-inline 
-arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-									     const T4& t4, const T5& t5, const T6& t6,
-									     const T7& t7, const T8& t8, const T9& t9) {
-  return arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9 >(t1,t2,t3,t4,t5,t6,t7,t8,t9);
-};
 
 /**
- * This function template can be used to create an arithmetic-tuple.
- * \tparam Tn The types contained in the arithmetic-tuple.
- * \param tn The values that make up the arithmetic-tuple.
- * \return An arithmetic-tuple.
+ * This function template converts anything to a vector, as long as the fundamental
+ * value-type is compatible with the given output type.
+ * \param VectorType Something that can be converted to a vector.
+ * \return A vector with the flattened content of the input.
  */
-template <typename T1, typename T2, typename T3, typename T4, typename T5,
-          typename T6, typename T7, typename T8, typename T9, typename T10>
-inline 
-arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-										  const T4& t4, const T5& t5, const T6& t6,
-										  const T7& t7, const T8& t8, const T9& t9, const T10& t10) {
-  return arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10);
+template <typename ValueType, typename VectorType>
+typename boost::disable_if<
+  is_readable_vector< VectorType >,
+vect_n<ValueType> >::type to_vect(const VectorType& v) {
+  vect_n<ValueType> result_v;
+  detail::to_vect_impl(result_v, v);
+  return result_v;
+};
+
+template <typename ValueType, typename VectorType>
+typename boost::enable_if<
+  is_readable_vector< VectorType >,
+const VectorType& >::type to_vect(const VectorType& v) {
+  return v;
+};
+
+
+/**
+ * This function template converts a vector into anything, as long as the fundamental
+ * value-type is compatible with the vector type.
+ * \tparam VectorType A vector type.
+ * \param v A vector.
+ * \return A vector with the flattened content of the input.
+ */
+template <typename OutputType, typename VectorType>
+typename boost::disable_if<
+  is_writable_vector< OutputType >,
+OutputType >::type from_vect(const VectorType& v) {
+  OutputType result_v;
+  std::size_t i = 0;
+  detail::from_vect_impl(result_v, v, i);
+  return result_v;
+};
+
+template <typename OutputType, typename VectorType>
+typename boost::enable_if<
+  is_writable_vector< OutputType >,
+OutputType >::type from_vect(const VectorType& v) {
+  return OutputType(v);
 };
 
 
 
-
-#endif
-
-  
 /**
  * This function template is an overload of the addition operator on arithmetic-tuples. 
  * This function performs the addition of each element of the tuple, will only compile if 
@@ -844,7 +1049,7 @@ Tuple >::type operator +(const Tuple& lhs, const Tuple& rhs) {
   detail::tuple_add_impl<arithmetic_tuple_size<Tuple>,Tuple>(result, lhs, rhs);
   return result;
 };
-    
+
 /**
  * This function template is an overload of the subtraction operator on arithmetic-tuples. 
  * This function performs the subtraction of each element of the tuple, will only compile if 

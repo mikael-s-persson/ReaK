@@ -144,9 +144,9 @@ namespace graph {
    */
   template <typename VertexAddedCallback,
             typename EdgeAddedCallback,
-	    typename SteerFunction,
-	    typename IsFreeQuery,
-	    typename KeepGoingQuery>
+            typename SteerFunction,
+            typename IsFreeQuery,
+            typename KeepGoingQuery>
   struct composite_rrt_visitor {
     VertexAddedCallback vertex_added;
     EdgeAddedCallback edge_added;
@@ -155,7 +155,7 @@ namespace graph {
     KeepGoingQuery keep_going;
     composite_rrt_visitor(VertexAddedCallback aVertexAdded,
                           EdgeAddedCallback aEdgeAdded,
-			  SteerFunction aSteerTowardsPosition,
+                          SteerFunction aSteerTowardsPosition,
                           IsFreeQuery aIsFree,
                           KeepGoingQuery aKeepGoing) :
                           vertex_added(aVertexAdded), edge_added(aEdgeAdded), steer_towards_position(aSteerTowardsPosition), is_position_free(aIsFree), keep_going(aKeepGoing) { };
@@ -168,13 +168,13 @@ namespace graph {
    */
   template <typename VertexAddedCallback,
             typename EdgeAddedCallback,
-	    typename SteerFunction,
-	    typename IsFreeQuery,
-	    typename KeepGoingQuery>
+            typename SteerFunction,
+            typename IsFreeQuery,
+            typename KeepGoingQuery>
   inline composite_rrt_visitor<VertexAddedCallback, EdgeAddedCallback, SteerFunction, IsFreeQuery, KeepGoingQuery>
     make_composite_rrt_visitor(VertexAddedCallback aVertexAdded,
                                EdgeAddedCallback aEdgeAdded,
-			       SteerFunction aSteerTowardsPosition,
+                               SteerFunction aSteerTowardsPosition,
                                IsFreeQuery aIsFree,
                                KeepGoingQuery aKeepGoing) {
     return composite_rrt_visitor<VertexAddedCallback, EdgeAddedCallback, SteerFunction, IsFreeQuery, KeepGoingQuery>(aVertexAdded,aEdgeAdded,aSteerTowardsPosition,aIsFree,aKeepGoing);
@@ -299,9 +299,9 @@ namespace graph {
 namespace detail {
 
   template <typename Graph,
-	    typename Topology,
-	    typename RRTVisitor,
-	    typename PositionMap>
+            typename Topology,
+            typename RRTVisitor,
+            typename PositionMap>
   inline std::pair< typename boost::graph_traits<Graph>::vertex_descriptor, bool>
     expand_rrt_vertex(Graph& g, const Topology& space, RRTVisitor vis, PositionMap position,
                       typename boost::graph_traits<Graph>::vertex_descriptor u,
@@ -403,18 +403,18 @@ namespace detail {
    * 
    */
   template <typename Graph,
-	    typename Topology,
-	    typename RRTVisitor,
-	    typename PositionMap,
-	    typename RandomSampler,
-	    typename NNFinder>
+            typename Topology,
+            typename RRTVisitor,
+            typename PositionMap,
+            typename RandomSampler,
+            typename NNFinder>
   inline void generate_rrt(Graph& g,
-			   const Topology& space,
-			   RRTVisitor vis,
-			   PositionMap position,
-			   RandomSampler get_sample,
-			   NNFinder find_nearest_neighbor,
-			   unsigned int max_vertex_count) {
+                           const Topology& space,
+                           RRTVisitor vis,
+                           PositionMap position,
+                           RandomSampler get_sample,
+                           NNFinder find_nearest_neighbor,
+                           unsigned int max_vertex_count) {
     BOOST_CONCEPT_ASSERT((RRTVisitorConcept<RRTVisitor,Graph,PositionMap>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
     
@@ -430,7 +430,7 @@ namespace detail {
     if(num_vertices(g) == 0) {
       PositionValue p = get_sample(space);
       while(!vis.is_position_free(p))
-	p = get_sample(space);
+        p = get_sample(space);
       VertexProp up;
       put(position, up, p);
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -502,18 +502,18 @@ namespace detail {
    * 
    */
   template <typename Graph,
-	    typename Topology,
-	    typename BiRRTVisitor,
-	    typename PositionMap,
-	    typename RandomSampler,
-	    typename NNFinder>
+            typename Topology,
+            typename BiRRTVisitor,
+            typename PositionMap,
+            typename RandomSampler,
+            typename NNFinder>
   inline void generate_bidirectional_rrt(Graph& g1, Graph& g2,
-			                 const Topology& space,
+                                         const Topology& space,
                                          BiRRTVisitor vis,
-			                 PositionMap position,
-			                 RandomSampler get_sample,
-			                 NNFinder find_nearest_neighbor,
-			                 unsigned int max_vertex_count) {
+                                         PositionMap position,
+                                         RandomSampler get_sample,
+                                         NNFinder find_nearest_neighbor,
+                                         unsigned int max_vertex_count) {
     BOOST_CONCEPT_ASSERT((BiRRTVisitorConcept<BiRRTVisitor,Graph,PositionMap>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
     
@@ -534,7 +534,7 @@ namespace detail {
     if(num_vertices(g1) == 0) {
       PositionValue p = get_sample(space);
       while(!vis.is_position_free(p))
-	p = get_sample(space);
+        p = get_sample(space);
       VertexProp up;
       put(position, up, p);
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -554,7 +554,7 @@ namespace detail {
     if(num_vertices(g2) == 0) {
       PositionValue p = get_sample(space);
       while(!vis.is_position_free(p))
-	p = get_sample(space);
+        p = get_sample(space);
       VertexProp up;
       put(position, up, p);
 #ifdef RK_ENABLE_CXX0X_FEATURES

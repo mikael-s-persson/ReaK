@@ -232,6 +232,7 @@ void >::type invariant_symplectic_kf_update(const InvariantSystem& sys,
   typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type ErrorType;
+  typedef typename invariant_system_traits<InvariantSystem>::invariant_correction_type CorrType;
   
   BOOST_CONCEPT_ASSERT((pp::TopologyConcept< StateSpaceType >));
   BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem, StateSpaceType>));
@@ -258,7 +259,7 @@ void >::type invariant_symplectic_kf_update(const InvariantSystem& sys,
   Tm.set_col_count(2 * N);
   
   sys.get_output_function_blocks(C, D, state_space, t, x, b_u.get_mean_state());
-  ErrorType e = sys.get_output_error(state_space, x, b_u.get_mean_state(), b_z.get_mean_state(), t);
+  vect_n<ValueType> e = to_vect<ValueType>(sys.get_output_error(state_space, x, b_u.get_mean_state(), b_z.get_mean_state(), t));
   
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > Ct(transpose_view(C));
   mat< ValueType, mat_structure::symmetric > M = Ct * b_z.get_covariance().get_inverse_matrix() * C;
@@ -269,7 +270,7 @@ void >::type invariant_symplectic_kf_update(const InvariantSystem& sys,
   linsolve_Cholesky(S,YC);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K = transpose_view(YC);
    
-  b_x.set_mean_state( sys.apply_correction(state_space, x, K * e, b_u.get_mean_state(), t) );
+  b_x.set_mean_state( sys.apply_correction(state_space, x, from_vect<CorrType>(K * e), b_u.get_mean_state(), t) );
   Wu = sys.get_invariant_posterior_frame(state_space, x, b_x.get_mean_state(), b_u.get_mean_state(), t);
   
   set_block(Tm, M, N, 0);
@@ -347,6 +348,7 @@ void >::type invariant_symplectic_kf_step(const InvariantSystem& sys,
   typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type ErrorType;
+  typedef typename invariant_system_traits<InvariantSystem>::invariant_correction_type CorrType;
   
   BOOST_CONCEPT_ASSERT((pp::TopologyConcept< StateSpaceType >));
   BOOST_CONCEPT_ASSERT((InvariantDiscreteSystemConcept<InvariantSystem, StateSpaceType>));
@@ -391,7 +393,7 @@ void >::type invariant_symplectic_kf_step(const InvariantSystem& sys,
   Y = T_lr * Y;
   
   sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x, b_u.get_mean_state());
-  ErrorType e = sys.get_output_error(state_space, x, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step());
+  vect_n<ValueType> e = to_vect<ValueType>(sys.get_output_error(state_space, x, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step()));
   
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > Ct(transpose_view(C));
   mat< ValueType, mat_structure::symmetric > M = Ct * b_z.get_covariance().get_inverse_matrix() * C;
@@ -402,7 +404,7 @@ void >::type invariant_symplectic_kf_step(const InvariantSystem& sys,
   linsolve_Cholesky(S,YC);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K(transpose_view(YC));
    
-  b_x.set_mean_state( sys.apply_correction(state_space, x, W * K * e, b_u.get_mean_state(), t + sys.get_time_step()) );
+  b_x.set_mean_state( sys.apply_correction(state_space, x, from_vect<CorrType>(W * K * e), b_u.get_mean_state(), t + sys.get_time_step()) );
   W = sys.get_invariant_posterior_frame(state_space, x, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step()) * W;
   
   set_block(T, M * A, N, 0);

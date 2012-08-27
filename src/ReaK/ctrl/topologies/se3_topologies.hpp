@@ -82,6 +82,104 @@ struct se3_0th_order_topology {
     > type;
 };
 
+
+
+
+template <typename T>
+typename se3_0th_order_topology<T>::type make_se3_space(
+  const std::string& aName,
+  const vect<T,3>& aMinCorner,
+  const vect<T,3>& aMaxCorner) {
+  
+  return 
+    metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+        euclidean_tuple_distance 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< quaternion_topology<T> >, 
+        euclidean_tuple_distance 
+      > >,
+      euclidean_tuple_distance 
+    >(arithmetic_tuple<
+        differentiable_space< 
+          time_topology, 
+          arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+          euclidean_tuple_distance 
+        >,
+        differentiable_space< 
+          time_topology, 
+          arithmetic_tuple< quaternion_topology<T> >, 
+          euclidean_tuple_distance 
+        > 
+      >(
+        differentiable_space< 
+          time_topology, 
+          arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+          euclidean_tuple_distance 
+        >(arithmetic_tuple< hyperbox_topology< vect<T,3> > >(hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner, aMaxCorner))),
+        differentiable_space< 
+          time_topology, 
+          arithmetic_tuple< quaternion_topology<T> >, 
+          euclidean_tuple_distance 
+        >(arithmetic_tuple< quaternion_topology<T> >(quaternion_topology<T>(aName + "_quat")))
+      )
+    );
+  
+};
+
+
+template <typename TupleDistanceMetric, typename T>
+typename se3_0th_order_topology<T,TupleDistanceMetric>::type make_se3_space(
+  const std::string& aName,
+  const vect<T,3>& aMinCorner,
+  const vect<T,3>& aMaxCorner) {
+  
+  return 
+    metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+        TupleDistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< quaternion_topology<T> >, 
+        TupleDistanceMetric 
+      > >,
+      TupleDistanceMetric 
+    >(arithmetic_tuple<
+        differentiable_space< 
+          time_topology, 
+          arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+          TupleDistanceMetric 
+        >,
+        differentiable_space< 
+          time_topology, 
+          arithmetic_tuple< quaternion_topology<T> >, 
+          TupleDistanceMetric 
+        > 
+      >(
+        differentiable_space< 
+          time_topology, 
+          arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+          TupleDistanceMetric 
+        >(arithmetic_tuple< hyperbox_topology< vect<T,3> > >(hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner, aMaxCorner))),
+        differentiable_space< 
+          time_topology, 
+          arithmetic_tuple< quaternion_topology<T> >, 
+          TupleDistanceMetric 
+        >(arithmetic_tuple< quaternion_topology<T> >(quaternion_topology<T>(aName + "_quat")))
+      )
+    );
+  
+};
+
+
+
 /**
  * This meta-function defines the type for a 1st order SE(3) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
@@ -110,6 +208,175 @@ struct se3_1st_order_topology {
       DistanceMetric 
     > type;
 };
+
+
+
+
+template <typename T>
+typename se3_1st_order_topology<T>::type make_se3_space(
+  const std::string& aName,
+  const vect<T,3>& aMinCorner,
+  const vect<T,3>& aMaxCorner,
+  const T& aMaxSpeed,
+  const T& aMaxAngularSpeed) {
+  
+  return 
+    metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        euclidean_tuple_distance 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          quaternion_topology<T>,
+          ang_velocity_3D_topology<T>
+        >, 
+        euclidean_tuple_distance 
+      > >,
+      euclidean_tuple_distance 
+    >(arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        euclidean_tuple_distance 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          quaternion_topology<T>,
+          ang_velocity_3D_topology<T>
+        >, 
+        euclidean_tuple_distance 
+      > >(
+          differentiable_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >
+            >, 
+            euclidean_tuple_distance 
+          >(
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> > 
+            >(
+              hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner, aMaxCorner),
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed, mat< T, mat_structure::identity >(3))
+            )
+          ),
+          differentiable_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              quaternion_topology<T>,
+              ang_velocity_3D_topology<T>
+            >, 
+            euclidean_tuple_distance 
+          >(
+            arithmetic_tuple< 
+              quaternion_topology<T>,
+              ang_velocity_3D_topology<T>
+            >(
+              quaternion_topology<T>(aName + "_quat"),
+              ang_velocity_3D_topology<T>(aName + "_ang_vel", aMaxAngularSpeed)
+            )
+          )
+        )
+    );
+  
+};
+
+
+
+template <typename TupleDistanceMetric, typename T>
+typename se3_1st_order_topology<T,TupleDistanceMetric>::type make_se3_space(
+  const std::string& aName,
+  const vect<T,3>& aMinCorner,
+  const vect<T,3>& aMaxCorner,
+  const T& aMaxSpeed,
+  const T& aMaxAngularSpeed) {
+  
+  return 
+    metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        TupleDistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          quaternion_topology<T>,
+          ang_velocity_3D_topology<T>
+        >, 
+        TupleDistanceMetric 
+      > >,
+      TupleDistanceMetric 
+    >(arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        TupleDistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          quaternion_topology<T>,
+          ang_velocity_3D_topology<T>
+        >, 
+        TupleDistanceMetric 
+      > >(
+          differentiable_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >
+            >, 
+            TupleDistanceMetric 
+          >(
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> > 
+            >(
+              hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner, aMaxCorner),
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed, mat< T, mat_structure::identity >(3))
+            )
+          ),
+          differentiable_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              quaternion_topology<T>,
+              ang_velocity_3D_topology<T>
+            >, 
+            TupleDistanceMetric 
+          >(
+            arithmetic_tuple< 
+              quaternion_topology<T>,
+              ang_velocity_3D_topology<T>
+            >(
+              quaternion_topology<T>(aName + "_quat"),
+              ang_velocity_3D_topology<T>(aName + "_ang_vel", aMaxAngularSpeed)
+            )
+          )
+        )
+    );
+  
+};
+
+
 
 /**
  * This meta-function defines the type for a 2nd order SE(3) topology (a zero-differentiable space).
@@ -140,6 +407,196 @@ struct se3_2nd_order_topology {
       > >,
       DistanceMetric 
     > type; 
+};
+
+
+
+
+template <typename T>
+typename se3_2nd_order_topology<T>::type make_se3_space(
+  const std::string& aName,
+  const vect<T,3>& aMinCorner,
+  const vect<T,3>& aMaxCorner,
+  const T& aMaxSpeed,
+  const T& aMaxAngularSpeed,
+  const T& aMaxAcceleration,
+  const T& aMaxAngularAccel) {
+  
+  return 
+    metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        euclidean_tuple_distance 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          quaternion_topology<T>,
+          ang_velocity_3D_topology<T>,
+          ang_accel_3D_topology<T>
+        >, 
+        euclidean_tuple_distance 
+      > >,
+      euclidean_tuple_distance 
+    >(arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        euclidean_tuple_distance 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          quaternion_topology<T>,
+          ang_velocity_3D_topology<T>,
+          ang_accel_3D_topology<T>
+        >, 
+        euclidean_tuple_distance 
+      > >(
+          differentiable_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >
+            >, 
+            euclidean_tuple_distance 
+          >(
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >  
+            >(
+              hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner, aMaxCorner),
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed, mat< T, mat_structure::identity >(3)),
+              hyperball_topology< vect<T,3> >(aName + "_acc", vect<T,3>(0.0,0.0,0.0), aMaxAcceleration, mat< T, mat_structure::identity >(3))
+            )
+          ),
+          differentiable_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              quaternion_topology<T>,
+              ang_velocity_3D_topology<T>,
+              ang_accel_3D_topology<T>
+            >, 
+            euclidean_tuple_distance
+          >(
+            arithmetic_tuple< 
+              quaternion_topology<T>,
+              ang_velocity_3D_topology<T>,
+              ang_accel_3D_topology<T>
+            >(
+              quaternion_topology<T>(aName + "_quat"),
+              ang_velocity_3D_topology<T>(aName + "_ang_vel", aMaxAngularSpeed),
+              ang_accel_3D_topology<T>(aName + "_ang_acc", aMaxAngularAccel)
+            )
+          )
+        )
+    );
+  
+};
+
+
+template <typename TupleDistanceMetric, typename T>
+typename se3_2nd_order_topology<T,TupleDistanceMetric>::type make_se3_space(
+  const std::string& aName,
+  const vect<T,3>& aMinCorner,
+  const vect<T,3>& aMaxCorner,
+  const T& aMaxSpeed,
+  const T& aMaxAngularSpeed,
+  const T& aMaxAcceleration,
+  const T& aMaxAngularAccel) {
+  
+  return 
+    metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        TupleDistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          quaternion_topology<T>,
+          ang_velocity_3D_topology<T>,
+          ang_accel_3D_topology<T>
+        >, 
+        TupleDistanceMetric 
+      > >,
+      TupleDistanceMetric 
+    >(arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        TupleDistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          quaternion_topology<T>,
+          ang_velocity_3D_topology<T>,
+          ang_accel_3D_topology<T>
+        >, 
+        TupleDistanceMetric 
+      > >(
+          differentiable_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >
+            >, 
+            TupleDistanceMetric 
+          >(
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >  
+            >(
+              hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner, aMaxCorner),
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed, mat< T, mat_structure::identity >(3)),
+              hyperball_topology< vect<T,3> >(aName + "_acc", vect<T,3>(0.0,0.0,0.0), aMaxAcceleration, mat< T, mat_structure::identity >(3))
+            )
+          ),
+          differentiable_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              quaternion_topology<T>,
+              ang_velocity_3D_topology<T>,
+              ang_accel_3D_topology<T>
+            >, 
+            TupleDistanceMetric
+          >(
+            arithmetic_tuple< 
+              quaternion_topology<T>,
+              ang_velocity_3D_topology<T>,
+              ang_accel_3D_topology<T>
+            >(
+              quaternion_topology<T>(aName + "_quat"),
+              ang_velocity_3D_topology<T>(aName + "_ang_vel", aMaxAngularSpeed),
+              ang_accel_3D_topology<T>(aName + "_ang_acc", aMaxAngularAccel)
+            )
+          )
+        )
+    );
+  
 };
 
 
@@ -239,6 +696,105 @@ struct rl_se3_0th_order_topology {
     > type;
 };
 
+template <typename T>
+typename rl_se3_0th_order_topology<T>::type make_rl_se3_space(
+  const std::string& aName,
+  const vect<T,3>& aMinCorner,
+  const vect<T,3>& aMaxCorner,
+  const T& aMaxSpeed,
+  const T& aMaxAngularSpeed) {
+  
+  return 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+        euclidean_tuple_distance 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< rate_limited_quat_space<T> >, 
+        euclidean_tuple_distance 
+      > >,
+      euclidean_tuple_distance 
+    >(arithmetic_tuple<
+        reach_time_diff_space< 
+          time_topology, 
+          arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+          euclidean_tuple_distance 
+        >,
+        reach_time_diff_space< 
+          time_topology, 
+          arithmetic_tuple< rate_limited_quat_space<T> >, 
+          euclidean_tuple_distance 
+        > 
+      >(
+        reach_time_diff_space< 
+          time_topology, 
+          arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+          euclidean_tuple_distance 
+        >(arithmetic_tuple< hyperbox_topology< vect<T,3> > >(hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner * (1.0 / aMaxSpeed), aMaxCorner * (1.0 / aMaxSpeed)))),
+        reach_time_diff_space< 
+          time_topology, 
+          arithmetic_tuple< rate_limited_quat_space<T> >, 
+          euclidean_tuple_distance 
+        >(arithmetic_tuple< rate_limited_quat_space<T> >(rate_limited_quat_space<T>(aName + "_quat", aMaxAngularSpeed)))
+      )
+    );
+  
+};
+
+
+template <typename TupleDistanceMetric, typename T>
+typename rl_se3_0th_order_topology<T,TupleDistanceMetric>::type make_rl_se3_space(
+  const std::string& aName,
+  const vect<T,3>& aMinCorner,
+  const vect<T,3>& aMaxCorner,
+  const T& aMaxSpeed,
+  const T& aMaxAngularSpeed) {
+  
+  return 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+        TupleDistanceMetric
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< rate_limited_quat_space<T> >, 
+        TupleDistanceMetric
+      > >,
+      TupleDistanceMetric
+    >(arithmetic_tuple<
+        reach_time_diff_space< 
+          time_topology, 
+          arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+          TupleDistanceMetric
+        >,
+        reach_time_diff_space< 
+          time_topology, 
+          arithmetic_tuple< rate_limited_quat_space<T> >, 
+          TupleDistanceMetric
+        > 
+      >(
+        reach_time_diff_space< 
+          time_topology, 
+          arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+          TupleDistanceMetric
+        >(arithmetic_tuple< hyperbox_topology< vect<T,3> > >(hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner * (1.0 / aMaxSpeed), aMaxCorner * (1.0 / aMaxSpeed)))),
+        reach_time_diff_space< 
+          time_topology, 
+          arithmetic_tuple< rate_limited_quat_space<T> >, 
+          TupleDistanceMetric
+        >(arithmetic_tuple< rate_limited_quat_space<T> >(rate_limited_quat_space<T>(aName + "_quat", aMaxAngularSpeed)))
+      )
+    );
+  
+};
+
+
+
 /**
  * This meta-function defines the type for a 1st order SE(3) topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
@@ -267,6 +823,185 @@ struct rl_se3_1st_order_topology {
       DistanceMetric 
     > type;
 };
+
+
+
+template <typename T>
+typename rl_se3_1st_order_topology<T>::type make_rl_se3_space(
+  const std::string& aName,
+  const vect<T,3>& aMinCorner,
+  const vect<T,3>& aMaxCorner,
+  const T& aMaxSpeed,
+  const T& aMaxAngularSpeed,
+  const T& aMaxAcceleration,
+  const T& aMaxAngularAccel) {
+  
+  return 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        euclidean_tuple_distance 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          rate_limited_quat_space<T>,
+          ang_velocity_3D_topology<T>
+        >, 
+        euclidean_tuple_distance 
+      > >,
+      euclidean_tuple_distance 
+    >(arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        euclidean_tuple_distance 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          rate_limited_quat_space<T>,
+          ang_velocity_3D_topology<T>
+        >, 
+        euclidean_tuple_distance 
+      > >(
+          reach_time_diff_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >
+            >, 
+            euclidean_tuple_distance 
+          >(
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> > 
+            >(
+              hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner * (1.0 / aMaxSpeed), aMaxCorner * (1.0 / aMaxSpeed)),
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed / aMaxAcceleration, mat< T, mat_structure::identity >(3))
+            ),
+            euclidean_tuple_distance(),
+            arithmetic_tuple<reach_time_differentiation>(reach_time_differentiation(aMaxSpeed / aMaxAcceleration))
+          ),
+          reach_time_diff_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              rate_limited_quat_space<T>,
+              ang_velocity_3D_topology<T>
+            >, 
+            euclidean_tuple_distance 
+          >(
+            arithmetic_tuple< 
+              rate_limited_quat_space<T>,
+              ang_velocity_3D_topology<T>
+            >(
+              rate_limited_quat_space<T>(aName + "_quat", aMaxAngularSpeed),
+              ang_velocity_3D_topology<T>(aName + "_ang_vel", aMaxAngularSpeed / aMaxAngularAccel)
+            ),
+            euclidean_tuple_distance(),
+            arithmetic_tuple<reach_time_differentiation>(reach_time_differentiation(aMaxAngularSpeed / aMaxAngularAccel))
+          )
+        )
+    );
+  
+};
+
+
+
+template <typename TupleDistanceMetric, typename T>
+typename rl_se3_1st_order_topology<T,TupleDistanceMetric>::type make_rl_se3_space(
+  const std::string& aName,
+  const vect<T,3>& aMinCorner,
+  const vect<T,3>& aMaxCorner,
+  const T& aMaxSpeed,
+  const T& aMaxAngularSpeed,
+  const T& aMaxAcceleration,
+  const T& aMaxAngularAccel) {
+  
+  return 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        TupleDistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          rate_limited_quat_space<T>,
+          ang_velocity_3D_topology<T>
+        >, 
+        TupleDistanceMetric 
+      > >,
+      TupleDistanceMetric 
+    >(arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        TupleDistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          rate_limited_quat_space<T>,
+          ang_velocity_3D_topology<T>
+        >, 
+        TupleDistanceMetric 
+      > >(
+          reach_time_diff_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >
+            >, 
+            TupleDistanceMetric 
+          >(
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> > 
+            >(
+              hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner * (1.0 / aMaxSpeed), aMaxCorner * (1.0 / aMaxSpeed)),
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed / aMaxAcceleration, mat< T, mat_structure::identity >(3))
+            ),
+            TupleDistanceMetric(),
+            arithmetic_tuple<reach_time_differentiation>(reach_time_differentiation(aMaxSpeed / aMaxAcceleration))
+          ),
+          reach_time_diff_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              rate_limited_quat_space<T>,
+              ang_velocity_3D_topology<T>
+            >, 
+            TupleDistanceMetric 
+          >(
+            arithmetic_tuple< 
+              rate_limited_quat_space<T>,
+              ang_velocity_3D_topology<T>
+            >(
+              rate_limited_quat_space<T>(aName + "_quat", aMaxAngularSpeed),
+              ang_velocity_3D_topology<T>(aName + "_ang_vel", aMaxAngularSpeed / aMaxAngularAccel)
+            ),
+            TupleDistanceMetric(),
+            arithmetic_tuple<reach_time_differentiation>(reach_time_differentiation(aMaxAngularSpeed / aMaxAngularAccel))
+          )
+        )
+    );
+  
+};
+
 
 /**
  * This meta-function defines the type for a 2nd order SE(3) topology (a zero-differentiable space).
@@ -297,6 +1032,219 @@ struct rl_se3_2nd_order_topology {
       > >,
       DistanceMetric 
     > type; 
+};
+
+
+
+template <typename T>
+typename rl_se3_2nd_order_topology<T>::type make_rl_se3_space(
+  const std::string& aName,
+  const vect<T,3>& aMinCorner,
+  const vect<T,3>& aMaxCorner,
+  const T& aMaxSpeed,
+  const T& aMaxAngularSpeed,
+  const T& aMaxAcceleration,
+  const T& aMaxAngularAccel,
+  const T& aMaxJerk,
+  const T& aMaxAngularJerk) {
+  
+  return 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        euclidean_tuple_distance 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          rate_limited_quat_space<T>,
+          ang_velocity_3D_topology<T>,
+          ang_accel_3D_topology<T>
+        >, 
+        euclidean_tuple_distance 
+      > >,
+      euclidean_tuple_distance 
+    >(arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        euclidean_tuple_distance 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          rate_limited_quat_space<T>,
+          ang_velocity_3D_topology<T>,
+          ang_accel_3D_topology<T>
+        >, 
+        euclidean_tuple_distance 
+      > >(
+          reach_time_diff_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >
+            >, 
+            euclidean_tuple_distance 
+          >(
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >  
+            >(
+              hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner * (1.0 / aMaxSpeed), aMaxCorner * (1.0 / aMaxSpeed)),
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed / aMaxAcceleration, mat< T, mat_structure::identity >(3)),
+              hyperball_topology< vect<T,3> >(aName + "_acc", vect<T,3>(0.0,0.0,0.0), aMaxAcceleration / aMaxJerk, mat< T, mat_structure::identity >(3))
+            ),
+            euclidean_tuple_distance(),
+            arithmetic_tuple<reach_time_differentiation,reach_time_differentiation>(
+              reach_time_differentiation(aMaxSpeed / aMaxAcceleration),
+              reach_time_differentiation(aMaxAcceleration / aMaxJerk)
+            )
+          ),
+          reach_time_diff_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              rate_limited_quat_space<T>,
+              ang_velocity_3D_topology<T>,
+              ang_accel_3D_topology<T>
+            >, 
+            euclidean_tuple_distance
+          >(
+            arithmetic_tuple< 
+              rate_limited_quat_space<T>,
+              ang_velocity_3D_topology<T>,
+              ang_accel_3D_topology<T>
+            >(
+              rate_limited_quat_space<T>(aName + "_quat", aMaxAngularSpeed),
+              ang_velocity_3D_topology<T>(aName + "_ang_vel", aMaxAngularSpeed / aMaxAngularAccel),
+              ang_accel_3D_topology<T>(aName + "_ang_acc", aMaxAngularAccel / aMaxAngularJerk)
+            ),
+            euclidean_tuple_distance(),
+            arithmetic_tuple<reach_time_differentiation,reach_time_differentiation>(
+              reach_time_differentiation(aMaxAngularSpeed / aMaxAngularAccel),
+              reach_time_differentiation(aMaxAngularAccel / aMaxAngularJerk)
+            )
+          )
+        )
+    );
+  
+};
+
+
+template <typename TupleDistanceMetric, typename T>
+typename rl_se3_2nd_order_topology<T,TupleDistanceMetric>::type make_rl_se3_space(
+  const std::string& aName,
+  const vect<T,3>& aMinCorner,
+  const vect<T,3>& aMaxCorner,
+  const T& aMaxSpeed,
+  const T& aMaxAngularSpeed,
+  const T& aMaxAcceleration,
+  const T& aMaxAngularAccel,
+  const T& aMaxJerk,
+  const T& aMaxAngularJerk) {
+  
+  return 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        TupleDistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          rate_limited_quat_space<T>,
+          ang_velocity_3D_topology<T>,
+          ang_accel_3D_topology<T>
+        >, 
+        TupleDistanceMetric 
+      > >,
+      TupleDistanceMetric 
+    >(arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        TupleDistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          rate_limited_quat_space<T>,
+          ang_velocity_3D_topology<T>,
+          ang_accel_3D_topology<T>
+        >, 
+        TupleDistanceMetric
+      > >(
+          reach_time_diff_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >
+            >, 
+            TupleDistanceMetric 
+          >(
+            arithmetic_tuple< 
+              hyperbox_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >,
+              hyperball_topology< vect<T,3> >  
+            >(
+              hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner * (1.0 / aMaxSpeed), aMaxCorner * (1.0 / aMaxSpeed)),
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed / aMaxAcceleration, mat< T, mat_structure::identity >(3)),
+              hyperball_topology< vect<T,3> >(aName + "_acc", vect<T,3>(0.0,0.0,0.0), aMaxAcceleration / aMaxJerk, mat< T, mat_structure::identity >(3))
+            ),
+            TupleDistanceMetric(),
+            arithmetic_tuple<reach_time_differentiation,reach_time_differentiation>(
+              reach_time_differentiation(aMaxSpeed / aMaxAcceleration),
+              reach_time_differentiation(aMaxAcceleration / aMaxJerk)
+            )
+          ),
+          reach_time_diff_space< 
+            time_topology, 
+            arithmetic_tuple< 
+              rate_limited_quat_space<T>,
+              ang_velocity_3D_topology<T>,
+              ang_accel_3D_topology<T>
+            >, 
+            TupleDistanceMetric
+          >(
+            arithmetic_tuple< 
+              rate_limited_quat_space<T>,
+              ang_velocity_3D_topology<T>,
+              ang_accel_3D_topology<T>
+            >(
+              rate_limited_quat_space<T>(aName + "_quat", aMaxAngularSpeed),
+              ang_velocity_3D_topology<T>(aName + "_ang_vel", aMaxAngularSpeed / aMaxAngularAccel),
+              ang_accel_3D_topology<T>(aName + "_ang_acc", aMaxAngularAccel / aMaxAngularJerk)
+            ),
+            TupleDistanceMetric(),
+            arithmetic_tuple<reach_time_differentiation,reach_time_differentiation>(
+              reach_time_differentiation(aMaxAngularSpeed / aMaxAngularAccel),
+              reach_time_differentiation(aMaxAngularAccel / aMaxAngularJerk)
+            )
+          )
+        )
+    );
+  
 };
 
 

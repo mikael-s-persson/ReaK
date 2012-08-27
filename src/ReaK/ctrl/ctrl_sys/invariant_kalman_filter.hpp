@@ -179,6 +179,8 @@ void >::type invariant_kalman_update(const InvariantSystem& sys,
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_frame_type InvarFrame;
+  typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type InvarErr;
+  typedef typename invariant_system_traits<InvariantSystem>::invariant_correction_type InvarCorr;
   
   typename discrete_linear_sss_traits<InvariantSystem>::matrixC_type C;
   typename discrete_linear_sss_traits<InvariantSystem>::matrixD_type D;
@@ -187,15 +189,15 @@ void >::type invariant_kalman_update(const InvariantSystem& sys,
   MatType P = b_x.get_covariance().get_matrix();
   sys.get_output_function_blocks(C, D, state_space, t, x, b_u.get_mean_state());
   
-  typename invariant_system_traits<InvariantSystem>::invariant_error_type e = 
-    sys.get_invariant_error(state_space, x, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step());
+  vect_n<ValueType> e = 
+    to_vect<ValueType>(sys.get_invariant_error(state_space, x, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step()));
   
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
   mat< ValueType, mat_structure::symmetric > S(CP * transpose_view(C) + b_z.get_covariance().get_matrix());
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K(transpose_view(CP));
    
-  b_x.set_mean_state( sys.apply_correction(state_space, x, K * e, b_u.get_mean_state(), t + sys.get_time_step()) );
+  b_x.set_mean_state( sys.apply_correction(state_space, x, from_vect<InvarCorr>(K * e), b_u.get_mean_state(), t + sys.get_time_step()) );
   InvarFrame W = sys.get_invariant_posterior_frame(state_space, x, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step());
   b_x.set_covariance( CovType( MatType( W * ((mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P) * transpose_view(W) ) ) );
 };
@@ -256,13 +258,13 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_frame_type InvarFrame;
+  typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type InvarErr;
+  typedef typename invariant_system_traits<InvariantSystem>::invariant_correction_type InvarCorr;
   
   typename discrete_linear_sss_traits<InvariantSystem>::matrixA_type A;
   typename discrete_linear_sss_traits<InvariantSystem>::matrixB_type B;
   typename discrete_linear_sss_traits<InvariantSystem>::matrixC_type C;
   typename discrete_linear_sss_traits<InvariantSystem>::matrixD_type D;
-  
-  typename invariant_system_traits<InvariantSystem>::invariant_error_type e;
   
   StateType x = b_x.get_mean_state();
   MatType P = b_x.get_covariance().get_matrix();
@@ -273,14 +275,14 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   P = W * (( A * P * transpose_view(A)) + B * b_u.get_covariance().get_matrix() * transpose_view(B)) * transpose_view(W);
   
   sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x_prior, b_u.get_mean_state());
-  e = sys.get_invariant_error(state_space, x_prior, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step());
+  vect_n<ValueType> e = to_vect<ValueType>(sys.get_invariant_error(state_space, x_prior, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step()));
   
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
   mat< ValueType, mat_structure::symmetric > S(CP * transpose_view(C) + b_z.get_covariance().get_matrix());
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K(transpose_view(CP));
    
-  b_x.set_mean_state( sys.apply_correction(state_space, x_prior, K * e, b_u.get_mean_state(), t + sys.get_time_step()) );
+  b_x.set_mean_state( sys.apply_correction(state_space, x_prior, from_vect<InvarCorr>(K * e), b_u.get_mean_state(), t + sys.get_time_step()) );
   W = sys.get_invariant_posterior_frame(state_space, x_prior, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step());
   b_x.set_covariance( CovType( MatType( W * ((mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P) * transpose_view(W) ) ) );
 };

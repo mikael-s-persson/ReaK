@@ -67,6 +67,7 @@ namespace detail {
     typedef typename linear_ss_system_traits<InvariantSystem>::matrixD_type matrixD_type;
     
     typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type invariant_error_type;
+    typedef typename invariant_system_traits<InvariantSystem>::invariant_correction_type invariant_correction_type;
     
     BOOST_CONCEPT_ASSERT((InvariantContinuousSystemConcept< InvariantSystem, StateSpaceType >));
     BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<SystemNoiseCovariance,input_type>));
@@ -98,13 +99,16 @@ namespace detail {
     };
     
     virtual void RK_CALL computeStateRate(double aTime,const ReaK::vect_n<value_type>& aState, ReaK::vect_n<value_type>& aStateRate) {
-      state_type x;
+      using ReaK::from_vect; using ReaK::to_vect;
+      
+      ReaK::vect_n<value_type> x;
       x.resize(aState.size() - Q.get_row_count() * Q.get_row_count());
       for(size_type i = 0; i < x.size(); ++i) 
 	x[i] = aState[i];
       
-      sys.get_linear_blocks(A, B, C, D, state_space, aTime, x, u);
-      invariant_error_type e = sys.get_invariant_error(state_space, x, u, z, aTime);
+      state_type x_state = from_vect<state_type>(x);
+      sys.get_linear_blocks(A, B, C, D, state_space, aTime, x_state, u);
+      invariant_error_type e = sys.get_invariant_error(state_space, x_state, u, z, aTime);
       
       for(size_type j = 0; j < Q.get_row_count(); ++j)
 	for(size_type i = 0; i < Q.get_row_count(); ++i)
@@ -112,15 +116,15 @@ namespace detail {
       
       K = P * transpose_view(C) * R_inv;
       
-      state_deriv_type xd = sys.apply_correction(state_space, x, sys.get_state_derivative(state_space, x, u, aTime), K * e, u, aTime);
+      vect_n<value_type> xd = to_vect<value_type>(sys.apply_correction(state_space, x_state, sys.get_state_derivative(state_space, x_state, u, aTime), from_vect<invariant_correction_type>(K * e), u, aTime));
       P = (A  - K * C) * P + B * Q + Q * transpose_view(B) + P * transpose_view(A);
       
-      for(size_type i = 0; i < x.size(); ++i) 
-	aStateRate[i] = x[i];
+      for(size_type i = 0; i < xd.size(); ++i) 
+	aStateRate[i] = xd[i];
 
       for(size_type j = 0; j < Q.get_row_count(); ++j)
 	for(size_type i = 0; i < Q.get_row_count(); ++i)
-	  aStateRate[x.size() + Q.get_row_count() * j + i] = 0.5 * (P(i,j) + P(j,i));
+	  aStateRate[xd.size() + Q.get_row_count() * j + i] = 0.5 * (P(i,j) + P(j,i));
     };
   };
   
@@ -164,9 +168,11 @@ void >::type invariant_kalman_bucy_filter_step(const InvariantSystem& sys,
   typedef typename continuous_belief_state_traits<InputBelief>::covariance_type InputCovType;
   typedef typename continuous_belief_state_traits<MeasurementBelief>::covariance_type OutputCovType;
   
+  using ReaK::to_vect; using ReaK::from_vect;
+  
   integ.setTime(t);
   integ.clearStateVector();
-  StateType x = b_x.get_mean_state();
+  vect_n<ValueType> x = to_vect<ValueType>(b_x.get_mean_state());
   integ.addStateElements(x);
   mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(b_x.get_covariance().get_matrix());
   
@@ -198,7 +204,7 @@ void >::type invariant_kalman_bucy_filter_step(const InvariantSystem& sys,
     for(SizeType i = 0; i < P.get_row_count(); ++i, ++it)
       P(i,j) = *it;
   
-  b_x.set_mean_state(x);
+  b_x.set_mean_state( from_vect<StateType>(x) );
   b_x.set_covariance( CovType( MatType(P) ) );
   
   integ.setStateRateFunc(shared_ptr< state_rate_function<ValueType> >());

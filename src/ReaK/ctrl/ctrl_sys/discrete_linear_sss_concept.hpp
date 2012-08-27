@@ -43,6 +43,7 @@
 
 #include "discrete_sss_concept.hpp"
 #include "linear_ss_system_concept.hpp"
+#include <lin_alg/arithmetic_tuple.hpp>
 
 namespace ReaK {
 
@@ -61,6 +62,18 @@ struct discrete_linear_sss_traits {
   typedef typename DiscreteSystem::matrixC_type matrixC_type;
   typedef typename DiscreteSystem::matrixD_type matrixD_type;
   
+};
+
+
+/**
+ * This concept class defines no requirements for a system to be able to provide 
+ * linear(ized) system matrices.
+ */
+struct DiscreteNonLinearSystemType {
+  template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
+            typename A_t, typename B_t, typename C_t, typename D_t>
+  void constraints(const System&, const StateSpaceType&, const Point&, const Input&, const Time&, 
+		   A_t&, B_t&, C_t&, D_t&) { };
 };
 
 /**
@@ -162,9 +175,15 @@ struct DiscreteLinearSSSConcept : DiscreteSSSConcept<DiscreteSystem,StateSpaceTy
   
   BOOST_CONCEPT_USAGE(DiscreteLinearSSSConcept)
   {
+    using ReaK::to_vect;
+    using ReaK::from_vect;
+    typedef typename discrete_sss_traits<DiscreteSystem>::point_type StateType;
+    typedef typename discrete_sss_traits<DiscreteSystem>::output_type OutputType;
+    typedef typename mat_traits<typename discrete_linear_sss_traits<DiscreteSystem>::matrixA_type>::value_type ValueType;
+    
     sys_type.constraints(this->sys, this->state_space, this->p, this->u, this->t, A, B, C, D);
-    this->p = A * this->p + B * this->u;
-    this->y = C * this->p + D * this->u;
+    this->p = from_vect<StateType>(A * to_vect<ValueType>(this->p) + B * to_vect<ValueType>(this->u));
+    this->y = from_vect<OutputType>(C * to_vect<ValueType>(this->p) + D * to_vect<ValueType>(this->u));
   };
   
 };

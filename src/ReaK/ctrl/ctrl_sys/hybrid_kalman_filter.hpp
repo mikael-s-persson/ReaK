@@ -138,6 +138,7 @@ void >::type hybrid_kalman_filter_step(const LinearSystem& sys,
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
   
   typedef typename ss_system_traits<LinearSystem>::point_type StateType;
+  typedef typename ss_system_traits<LinearSystem>::point_difference_type StateDiffType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits< MatType >::value_type ValueType;
@@ -146,9 +147,11 @@ void >::type hybrid_kalman_filter_step(const LinearSystem& sys,
   typedef typename continuous_belief_state_traits<InputBelief>::covariance_type InputCovType;
   typedef typename continuous_belief_state_traits<MeasurementBelief>::covariance_type OutputCovType;
   
+  using ReaK::to_vect; using ReaK::from_vect;
+  
   integ.setTime(t);
   integ.clearStateVector();
-  StateType x = b_x.get_mean_state();
+  ReaK::vect_n<ValueType> x = to_vect<ValueType>(b_x.get_mean_state());
   integ.addStateElements(x);
   mat<ValueType, mat_structure::square> P = b_x.get_covariance().get_matrix();
   
@@ -163,8 +166,8 @@ void >::type hybrid_kalman_filter_step(const LinearSystem& sys,
 				     StateSpaceType,
 				     InputCovType, 
 				     OutputCovType>( sys, state_space, 
-						     b_u.get_mean_state(), 
-						     b_z.get_mean_state(), 
+						     to_vect<ValueType>(b_u.get_mean_state()), 
+						     to_vect<ValueType>(b_z.get_mean_state()), 
 						     b_u.get_covariance(), 
 						     b_z.get_covariance() ) ));
   
@@ -183,15 +186,15 @@ void >::type hybrid_kalman_filter_step(const LinearSystem& sys,
   typename linear_ss_system_traits<LinearSystem>::matrixC_type C;
   typename linear_ss_system_traits<LinearSystem>::matrixD_type D;
   
-  sys.get_linear_blocks(A, B, C, D, state_space, t, x, u);
+  sys.get_linear_blocks(A, B, C, D, state_space, t, from_vect<StateType>(x), b_u.get_mean_state());
   
-  OutputType y = b_z.get_mean_state() - C * x - D * b_u.get_mean_state();
+  vect_n<ValueType> y = to_vect<ValueType>(b_z.get_mean_state()) - C * x - D * to_vect<ValueType>(b_u.get_mean_state());
   mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
   mat< ValueType, mat_structure::symmetric > S = CP * transpose_view(C) + b_z.get_covariance().get_matrix();
   linsolve_Cholesky(S,CP);
   mat< ValueType, mat_structure::rectangular > K = transpose_view(CP);
    
-  b_x.set_mean_state( state_space.adjust(x, K * y) );
+  b_x.set_mean_state( state_space.adjust(from_vect<StateType>(x), from_vect<StateDiffType>(K * y) ) );
   b_x.set_covariance( CovType( MatType( (mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P ) ) );
   
   integ.setStateRateFunc(shared_ptr< state_rate_function<ValueType> >());

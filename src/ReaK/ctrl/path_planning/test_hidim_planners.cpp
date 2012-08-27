@@ -28,7 +28,10 @@
 #include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 
-#include "topologies/ptrobot2D_test_world.hpp"
+#include "topologies/hyperbox_topology.hpp"
+#include "topologies/se3_topologies.hpp"
+#include "topologies/no_obstacle_space.hpp"
+#include "interpolation/sustained_velocity_pulse.hpp"
 #include "rrt_path_planner.hpp"
 #include "prm_path_planner.hpp"
 #include "rrtstar_path_planner.hpp"
@@ -36,44 +39,20 @@
 #include "basic_sbmp_reporters.hpp"
 
 
-int main(int argc, char** argv) {
+
+
+template <typename SpaceType>
+void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, 
+                            std::ostream& timing_output,
+                            std::size_t run_count, std::size_t max_vertices) {
   
-  if(argc < 4) {
-    std::cout << "Usage: ./test_planners [world_map.bmp] [number_of_runs] [max_vertices]" << std::endl
-    << "\tworld_map.bmp:\t Image representing the pt-robot world." << std::endl
-    << "\tnumber_of_runs:\t The number of runs to average out." << std::endl
-    << "\tmax_vertices:\t The vertex limit count on the planner." << std::endl;
-    return 0;
-  };
-  
-  std::string world_file_name = argv[1];
-  std::string world_file_name_only(std::find(world_file_name.rbegin(),world_file_name.rend(),'/').base(), std::find(world_file_name.rbegin(),world_file_name.rend(),'.').base()-1);
-  
-  std::size_t run_count = 0;
-  std::stringstream(argv[2]) >> run_count;
-  std::size_t max_vertices = 0;
-  std::stringstream(argv[3]) >> max_vertices;
   std::size_t max_vertices_100 = max_vertices / 100;
   
-  ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world > world_map =
-    ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world >(new ReaK::pp::ptrobot2D_test_world(world_file_name, 10, 1.0));
+  std::cout << "*****************************************************************" << std::endl
+            << "*            Running tests on '" << world_map->getName() << "'" << std::endl
+            << "*****************************************************************" << std::endl;
   
-//   ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
-//     rrt_plan(world_map, 
-// 	     world_map->get_start_pos(), 
-// 	     world_map->get_goal_pos(),
-// 	     10000, 
-// 	     100,
-// 	     ReaK::pp::BIDIRECTIONAL_RRT,
-// 	     ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-// 	     ReaK::pp::DVP_BF2_TREE_KNN,
-// 	     ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt/adstar_test_world_", 5),
-// 	     50);
-  
-  
-  std::ofstream timing_output("pp_results/" + world_file_name_only + "_times.txt");
-  
-  
+            
   /**********************************************************************************
    * 
    * 
@@ -88,8 +67,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -125,8 +106,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -162,8 +145,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -199,8 +184,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -236,8 +223,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -274,8 +263,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -311,8 +302,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -348,8 +341,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -385,8 +380,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -416,29 +413,7 @@ int main(int argc, char** argv) {
   std::cout << "Done!" << std::endl;
   
   
-  std::cout << "Outputting RRT with Uni-dir, adj-list, dvp-bf2..." << std::endl;
-  {
-    
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
-      rrt_plan(world_map, 
-               world_map->get_start_pos(), 
-               world_map->get_goal_pos(),
-               max_vertices, 
-               100,
-               ReaK::pp::UNIDIRECTIONAL_RRT,
-               ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-               ReaK::pp::DVP_BF2_TREE_KNN,
-               ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt/" + world_file_name_only + "_", 5),
-               10);
-    
-    rrt_plan.solve_path();
-    
-  };
-  std::cout << "Done!" << std::endl;
-  
-  
-  
-  
+#if 0
   
   /**********************************************************************************
    * 
@@ -455,8 +430,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -493,8 +470,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -531,8 +510,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -568,8 +549,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -606,8 +589,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -645,8 +630,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -683,8 +670,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -721,8 +710,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -759,8 +750,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrt_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrt_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -791,32 +784,6 @@ int main(int argc, char** argv) {
   std::cout << "Done!" << std::endl;
   
   
-    
-  
-  std::cout << "Outputting RRT with Bi-dir, adj-list, dvp-bf2..." << std::endl;
-  {
-    
-    ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
-      rrt_plan(world_map, 
-               world_map->get_start_pos(), 
-               world_map->get_goal_pos(),
-               max_vertices, 
-               100,
-               ReaK::pp::BIDIRECTIONAL_RRT,
-               ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-               ReaK::pp::DVP_BF2_TREE_KNN,
-               ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/birrt/" + world_file_name_only + "_", 5),
-               10);
-    
-    rrt_plan.solve_path();
-    
-  };
-  std::cout << "Done!" << std::endl;
-  
-  
-  
-  
-  
   
   
   /**********************************************************************************
@@ -834,8 +801,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::prm_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       prm_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -870,8 +839,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::prm_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       prm_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -906,8 +877,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::prm_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       prm_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -942,8 +915,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::prm_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       prm_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -978,8 +953,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::prm_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       prm_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -1016,8 +993,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::prm_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       prm_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -1052,8 +1031,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::prm_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       prm_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -1088,8 +1069,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::prm_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       prm_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -1124,8 +1107,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::prm_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       prm_plan(world_map, 
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
@@ -1154,28 +1139,6 @@ int main(int argc, char** argv) {
   std::cout << "Done!" << std::endl;
   
   
-  std::cout << "Outputting PRM with dvp-adj-list-cob4..." << std::endl;
-  {
-    
-    ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
-      prm_plan(world_map, 
-               world_map->get_start_pos(), 
-               world_map->get_goal_pos(),
-               max_vertices, 
-               100,
-               ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-               ReaK::pp::DVP_ALT_COB4_KNN,
-               ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/prm/" + world_file_name_only + "_", 5),
-               10);
-    
-    prm_plan.solve_path();
-    
-  };
-  std::cout << "Done!" << std::endl;
-  
-  
-  
-  
   
   
   /**********************************************************************************
@@ -1193,8 +1156,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrtstar_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrtstar_plan(world_map, 
                    world_map->get_start_pos(), 
                    world_map->get_goal_pos(),
@@ -1230,8 +1195,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrtstar_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrtstar_plan(world_map, 
                    world_map->get_start_pos(), 
                    world_map->get_goal_pos(),
@@ -1267,8 +1234,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrtstar_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrtstar_plan(world_map, 
                    world_map->get_start_pos(), 
                    world_map->get_goal_pos(),
@@ -1304,8 +1273,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrtstar_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrtstar_plan(world_map, 
                    world_map->get_start_pos(), 
                    world_map->get_goal_pos(),
@@ -1341,8 +1312,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrtstar_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrtstar_plan(world_map, 
                    world_map->get_start_pos(), 
                    world_map->get_goal_pos(),
@@ -1379,8 +1352,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrtstar_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrtstar_plan(world_map, 
                    world_map->get_start_pos(), 
                    world_map->get_goal_pos(),
@@ -1416,8 +1391,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrtstar_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrtstar_plan(world_map, 
                    world_map->get_start_pos(), 
                    world_map->get_goal_pos(),
@@ -1453,8 +1430,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrtstar_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrtstar_plan(world_map, 
                    world_map->get_start_pos(), 
                    world_map->get_goal_pos(),
@@ -1490,8 +1469,10 @@ int main(int argc, char** argv) {
   std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
   for(std::size_t i = 0; i < run_count; ++i) {
     std::stringstream ss;
+    world_map->set_start_pos(world_map->random_point());
+    world_map->set_goal_pos(world_map->random_point());
     
-    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+    ReaK::pp::rrtstar_path_planner< SpaceType, ReaK::pp::timing_sbmp_report<> > 
       rrtstar_plan(world_map, 
                    world_map->get_start_pos(), 
                    world_map->get_goal_pos(),
@@ -1520,27 +1501,88 @@ int main(int argc, char** argv) {
   };
   std::cout << "Done!" << std::endl;
   
+#endif
   
   
-  std::cout << "Outputting RRT* with Uni-dir, adj-list, dvp-bf4..." << std::endl;
-  {
-    
-    ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
-      rrtstar_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   max_vertices, 
-                   100,
-                   ReaK::pp::UNIDIRECTIONAL_RRT,
-                   ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                   ReaK::pp::DVP_BF4_TREE_KNN,
-                   ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt_star/" + world_file_name_only + "_", 5),
-                   10);
-    
-    rrtstar_plan.solve_path();
-    
+  
+  
+};
+
+
+
+
+
+
+
+
+
+
+int main(int argc, char** argv) {
+  
+  if(argc < 3) {
+    std::cout << "Usage: ./test_hidim_planners [number_of_runs] [max_vertices]" << std::endl
+    << "\tnumber_of_runs:\t The number of runs to average out." << std::endl
+    << "\tmax_vertices:\t The vertex limit count on the planner." << std::endl;
+    return 0;
   };
-  std::cout << "Done!" << std::endl;
+  
+  std::size_t run_count = 0;
+  std::stringstream(argv[1]) >> run_count;
+  std::size_t max_vertices = 0;
+  std::stringstream(argv[2]) >> max_vertices;
+  
+  
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 6> > > World6DType;
+  ReaK::shared_ptr< World6DType > world_6D =
+    ReaK::shared_ptr< World6DType >(
+      new World6DType(
+        "world_6D_no_obstacles",
+        ReaK::pp::hyperbox_topology< ReaK::vect<double, 6> >("world_6D",
+                                                             ReaK::vect<double,6>(0.0,0.0,0.0,0.0,0.0,0.0),
+                                                             ReaK::vect<double,6>(1.0,1.0,1.0,1.0,1.0,1.0)),
+        0.1));
+  
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 12> > > World12DType;
+  ReaK::shared_ptr< World12DType > world_12D =
+    ReaK::shared_ptr< World12DType >(
+      new World12DType(
+        "world_12D_no_obstacles",
+        ReaK::pp::hyperbox_topology< ReaK::vect<double, 12> >("world_12D",
+                                                              ReaK::vect<double,12>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                              ReaK::vect<double,12>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+        0.5));
+  
+  typedef ReaK::pp::no_obstacle_space< typename ReaK::pp::rl_se3_1st_order_topology<double>::type > WorldRLSE3Type;
+  ReaK::shared_ptr< WorldRLSE3Type > world_RLSE3 =
+    ReaK::shared_ptr< WorldRLSE3Type >(
+      new WorldRLSE3Type(
+        "world_RLSE3_no_obstacles",
+        ReaK::pp::make_rl_se3_space("world_RLSE3", 
+                                    ReaK::vect<double,3>(-10.0, -10.0, -10.0),
+                                    ReaK::vect<double,3>( 10.0,  10.0,  10.0),
+                                    2.0,
+                                    1.5,
+                                    0.2,
+                                    0.1),
+        0.5));
+          
+  {
+    std::ofstream timing_output("pp_results/" + world_6D->getName() + "_times.txt");
+    
+    test_planners_on_space(world_6D, timing_output, run_count, max_vertices);
+  };
+  
+  {
+    std::ofstream timing_output("pp_results/" + world_12D->getName() + "_times.txt");
+    
+    test_planners_on_space(world_12D, timing_output, run_count, max_vertices);
+  };
+  
+  {
+    std::ofstream timing_output("pp_results/" + world_RLSE3->getName() + "_times.txt");
+    
+    test_planners_on_space(world_RLSE3, timing_output, run_count, max_vertices);
+  };
   
   
   

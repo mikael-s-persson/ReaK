@@ -2,13 +2,14 @@
 
 ReaK
 
-Version: 0.2.0.0
+Version: 0.2.5.0
 
-Brief description: Software platform and algorithms for multi-body dynamics simulation, control, estimation, and path-planning. Intended for robotics software development and testing.
+Brief description: Software platform and algorithms for multi-body dynamics simulation, 
+control, estimation, and path-planning. Intended for robotics software development and testing.
 
 
 
-Copyright 2011 Sven Mikael Persson
+    Copyright 2011 Sven Mikael Persson
 
     THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
 
@@ -33,13 +34,79 @@ Main contributor and founder: Sven Mikael Persson, M.Sc.(Tech.) <mikael.s.persso
 
 Detailed description: 
 
-ReaK (pronounced as the 'reac' in 'reaction' or 'reactor') is a software platform which is the result of many years of accumulation of C++ code used by the original author (Sven Mikael Persson) for various project in the fields of multibody dynamics and control. At the core of the ReaK platform are several general-purpose utilities which facilitate serialization / deserialization of objects, memory sharing between distributed software modules, run-time type identification, and data input / output. 
+ReaK (pronounced as the 'reac' in 'reaction' or 'reactor') is a software platform 
+which is the result of many years of accumulation of C++ code used by the original 
+author (Sven Mikael Persson) for various project in the fields of multibody dynamics 
+and control. At the core of the ReaK platform are several general-purpose utilities 
+which facilitate serialization / deserialization of objects, memory sharing between 
+distributed software modules, run-time type identification, and data input / output. 
 
-The core math libraries included in ReaK handle basic linear algebra methods (fixed and variable size vectors, variable size matrices of various structures and alignments, and matrix composition, views and slices), 2D and 3D geometric calculations (rotations and kinetostatic frame transformations), matrix numerical methods (LU, Cholesky, QR, Jacobi, SVD, PadeSAS matrix exponentials, Redheffer star-product, and matrix norms), numerical integration methods (fixed-step, variable-step, and multi-step predictor-correctors, both closed-form and iterative), and a set of optimization routines (although out-dated and seldom used). Performance optimization of these libraries is limited to good coding style, but do not expect these math libraries to be the fastest available, they were designed to be easy to use and interoperable, not for performance-critical applications.
+The core math libraries included in ReaK handle basic linear algebra methods (fixed 
+and variable size vectors, variable size matrices of various structures and alignments, 
+and matrix composition, views and slices), 2D and 3D geometric calculations (rotations 
+and kinetostatic frame transformations), matrix numerical methods (LU, Cholesky, QR, 
+Jacobi, SVD, PadeSAS matrix exponentials, Redheffer star-product, and matrix norms), 
+numerical integration methods (fixed-step, variable-step, and multi-step 
+predictor-correctors, both closed-form and iterative), and a set of optimization 
+routines (although out-dated and seldom used). Performance optimization of these 
+libraries is limited to good coding style, but do not expect these math libraries 
+to be the fastest available, they were designed to be easy to use and interoperable, 
+not for performance-critical applications.
 
-The multibody dynamics elements of this library were developed according to the Kinetostatic Transmission Elements (KTEs) framework, as originally developed by Prof. Andres Kesckemethy at Graz University (now at the University of Duisburg-Essen), this is not, however, developed from other existing code that use KTEs, this is an original implementation which was done during the course of a Master's degree, by the original author, in Space Robotics and Automation at Aalto University, School of Science and Technology in Helsinki, Finland. This framework allows serial kinematic chains to be modeled in a modular and flexible fashion, to be used for model-based control of a robotic system and high-fidelity dynamics simulations [1]. The construction of a dynamics model is done via a serial chain of KTEs which model simple (or complex) transmission of motion and forces (hence the 'kineto' and 'static' in Kinetostatic Transmission Elements). Available KTEs include, but not limited to, the following: inertial elements, (torsional) springs, (torsional) dampers, revolute joints, prismatic joints, free joints, rigid links, flexible Euler-Bernoulli beams, force actuators, driving actuators, geometric constraints (point-on-line and point-on-plane), dry and viscous friction, virtual-to-real model interfaces (for Virtual Model Control (VMC)), and state measurements and direct controls (no motor/controller model). Additionally, some utility classes are available, which are not KTEs but work in parallel to KTEs to extract higher-level information about the KTE chain. The main utility class is the mass_matrix_calc class which can, once given a list of degrees-of-freedom, joint motion jacobians and inertial elements, be used to compute the system's mass-matrix as well as its composing elements (twist-shaping matrix and aggregate, constant mass matrix), and their derivatives (and thus, also the time-derivative of the system mass matrix, which is useful in model-based control and estimation).
+The multibody dynamics elements of this library were developed according to the 
+Kinetostatic Transmission Elements (KTEs) framework, as originally developed by 
+Prof. Andres Kesckemethy at Graz University (now at the University of Duisburg-Essen), 
+this is not, however, developed from other existing code that use KTEs, this is an 
+original implementation which was done during the course of a Master's degree, by 
+the original author, in Space Robotics and Automation at Aalto University, School of 
+Science and Technology in Helsinki, Finland. This framework allows serial kinematic 
+chains to be modeled in a modular and flexible fashion, to be used for model-based 
+control of a robotic system and high-fidelity dynamics simulations [1]. The 
+construction of a dynamics model is done via a serial chain of KTEs which model 
+simple (or complex) transmission of motion and forces (hence the 'kineto' and 'static' 
+in Kinetostatic Transmission Elements). Available KTEs include, but not limited to, 
+the following: inertial elements, (torsional) springs, (torsional) dampers, revolute 
+joints, prismatic joints, free joints, rigid links, flexible Euler-Bernoulli beams, 
+force actuators, driving actuators, geometric constraints (point-on-line and point-on-plane), 
+dry and viscous friction, virtual-to-real model interfaces (for Virtual Model Control (VMC)), 
+and state measurements and direct controls (no motor/controller model). Additionally, 
+some utility classes are available, which are not KTEs but work in parallel to KTEs 
+to extract higher-level information about the KTE chain. The main utility class is the 
+mass_matrix_calc class which can, once given a list of degrees-of-freedom, joint motion 
+jacobians and inertial elements, be used to compute the system's mass-matrix as well as 
+its composing elements (twist-shaping matrix and aggregate, constant mass matrix), and 
+their derivatives (and thus, also the time-derivative of the system mass matrix, which 
+is useful in model-based control and estimation).
 
-Finally, for the purpose of estimation and path-planning, the ReaK platform includes several generic algorithms and concepts for state representation and estimation, and probabilistic path-planning methods. Note that this part of ReaK is under active development (as part of the author's Ph.D. research), so it should be considered as very experimental at this stage and incomplete parts are to be expected. First, the state estimation algorithms and concepts include several variations of the Kalman filtering method, including the '(Extended-)Kalman Filter' ([E]KF), the '(Extended-)Kalman-Bucy Filter' ([E]KBF), the 'Hybrid Kalman Filter' (HKF), the 'Unscented Kalman Filter' (UKF), the 'Aggregate Kalman Filter' (AKF), the 'Symplectic Kalman Filter' (SKF), and 'Invariant' versions of most of the filters (IKF, IKBF, IAKF, and ISKF). The implementations are all generic, based on a certain number of concepts (using the 'Boost.Concept-Check' library) that define fundamental constructs such as a continuous-time state-space system, a continuous-time linear state-space system (including linear-time-invariant (LTI), linear-time-varying (LTV), and linearized at the current time, state and input), discrete-time versions of those state-space system concepts, an invariant state-space system, a covariance matrix representation, and a belief-state representation. Additionally, a Gaussian belief-state class is also provided for convenience. Second, the path-planning algorithms include several basic implementations and concepts related to classic probabilistic path-planning methods and other related utilities. Most algorithms build upon the framework of the Boost.Graph library, in the same programming style. Algorithms include the 'Anytime Dynamic A*' (AD*), the 'Rapidly-exploring Random Tree' (RRT), the 'Probabilistic Roadmap' (PRM), and the 'Flexible Anytime Dynamic Probabilistic Roadmap' (FADPRM). Several concepts are defined such as a metric space, a temporal space, a reachability space, as well as spatial paths and trajectories. Additionally, some of the utilities provided include linear-search through topological point-sets (for nearest-neighbor queries, through extensive search), a 'Dynamic Vantage-Point Tree' (DVP-tree) implementation for fast nearest-neighbor queries via the partitioning of a general metric space, and a multi-index sorting of points of a reachability space for fast nearest-reachable-neighbor queries. This part of ReaK will be under heavy development during the summer of 2011, contributers are welcomed!
+Finally, for the purpose of estimation and path-planning, the ReaK platform includes 
+several generic algorithms and concepts for state representation and estimation, and 
+probabilistic path-planning methods. Note that this part of ReaK is under active 
+development (as part of the author's Ph.D. research), so it should be considered as 
+very experimental at this stage and incomplete parts are to be expected. First, the 
+state estimation algorithms and concepts include several variations of the Kalman 
+filtering method, including the '(Extended-)Kalman Filter' ([E]KF), the '(Extended-)Kalman-Bucy 
+Filter' ([E]KBF), the 'Hybrid Kalman Filter' (HKF), the 'Unscented Kalman Filter' (UKF), 
+the 'Aggregate Kalman Filter' (AKF), the 'Symplectic Kalman Filter' (SKF), and 'Invariant' 
+versions of most of the filters (IKF, IKBF, IAKF, and ISKF). The implementations are 
+all generic, based on a certain number of concepts (using the 'Boost.Concept-Check' 
+library) that define fundamental constructs such as a continuous-time state-space system, 
+a continuous-time linear state-space system (including linear-time-invariant (LTI), 
+linear-time-varying (LTV), and linearized at the current time, state and input), 
+discrete-time versions of those state-space system concepts, an invariant state-space 
+system, a covariance matrix representation, and a belief-state representation. Additionally, 
+a Gaussian belief-state class is also provided for convenience. Second, the path-planning 
+algorithms include several basic implementations and concepts related to classic probabilistic 
+path-planning methods and other related utilities. Most algorithms build upon the framework of 
+the Boost.Graph library, in the same programming style. Algorithms include the 'Anytime Dynamic A*' (AD*), 
+the 'Rapidly-exploring Random Tree' (RRT), the 'Probabilistic Roadmap' (PRM), and the 
+'Flexible Anytime Dynamic Probabilistic Roadmap' (FADPRM). Several concepts are defined such 
+as a metric space, a temporal space, a reachability space, as well as spatial paths and 
+trajectories. Additionally, some of the utilities provided include linear-search through 
+topological point-sets (for nearest-neighbor queries, through extensive search), a 'Dynamic 
+Vantage-Point Tree' (DVP-tree) implementation for fast nearest-neighbor queries via the 
+partitioning of a general metric space, and a multi-index sorting of points of a reachability 
+space for fast nearest-reachable-neighbor queries. This part of ReaK will be under heavy 
+development during the summer of 2011, contributers are welcomed!
 
 
 External Dependencies:
@@ -59,7 +126,8 @@ Folder Descriptions:
  - ./src is the top-level folder for all source files and the top-level CMakeLists.txt file.
  - ./bin is the folder in which all compiled, executable binary will be put when built with cmake.
  - ./lib is the folder in which all compiled libraries will be put when built with cmake.
- - ./dox is the folder where the Doxyfile is and is the working directory for generating doxygen documentation for the ReaK platform.
+ - ./dox is the folder where the Doxyfile is and is the working directory for generating doxygen 
+         documentation for the ReaK platform.
  - ./include is the folder where headers for the platform are installed after running "make install"
 
 
@@ -68,6 +136,263 @@ File Descriptions:
  - LICENSE contains the text version of the GNU GPLv3 license agreement.
  - TODO_list.txt is the current list of things to be implemented in the near future.
 
+
+Complete list of algorithms and data-structures in ReaK:
+
+ - ReaK.core:
+  - shared_object: The stem of a class hierarchy enabling safe object sharing between 
+                   modules (executables and DLL/.so files).
+  - RTTI: A complete, template-aware run-time type identification facility with:
+   - generic object factories.
+   - dynamic casting up, down and across class hierarchies.
+   - both intrusive and non-intrusive type-id specifications.
+   - cross-module and persistent sharing of type specifications and factories.
+  - Serialization: A serialization library capable of flattening general object hierarchies:
+   - XML output.
+   - binary output.
+   - both intrusive and non-intrusive interfaces.
+  - 
+  
+ - ReaK.math:
+
+  - lin_alg: Complete set of matrix and vector algebra:
+   - vector classes:
+    - concept-check classes, type-traits and meta-functions for specifying vectors.
+    - fixed-size vectors, see ReaK::vect<T,N>.
+    - variable-size vectors, see ReaK::vect_n<T>.
+    - scalar vector (vector with all elements equal), see ReaK::vect_scalar<T,N>.
+    - vector views, as copies or reference wrappers.
+   - tuple library extensions:
+    - arithmetic_tuple: an extension to standard or boost tuple that allows
+                        vector-space arithmetic operations.
+    - vector-tuple conversions.
+   - matrix class template: (ReaK::mat<T,Struct,Align,Alloc>):
+    - concept-check classes, type-traits and meta-functions for specifying matrices.
+    - supports different (sparse) structures:
+     - rectangular and square (dense matrices).
+     - symmetric and skew-symmetric (stores half the matrix only).
+     - diagonal and scalar (stores diagonal only).
+     - nil and identity (fixed values, no actual storage).
+    - supports different data alignments:
+     - column-major: stores columns contiguously (default).
+     - row-major: stores rows contiguously.
+    - all matrix-matrix operations and matrix-vector operations are 
+      overloaded for each relevant case (special matrix structures).
+   - matrix views and slices:
+    - matrix-vector adaptor (make a vector look like a single-row/column matrix), see mat_vector_adaptor.hpp.
+    - matrix slices (make a row or column of matrix look like a vector), see mat_slices.hpp.
+    - matrix view (make views on sub-matrices of a matrix), see mat_views.hpp.
+    - matrix concatenation (assemble large matrices for sub-matrix blocks), see mat_composite_adaptor.hpp.
+    - matrix transpose views, see mat_transpose_view.hpp.
+  
+  - matrix numerical methods:
+   - Gaussian elimination-based inversion of matrix, see ReaK::invert_gaussian().
+   - PLU Decomposition (square, well-conditioned matrices):
+    - solve linear system with PLU-decomposition, see ReaK::linsolve_PLU().
+    - invert a well-conditioned matrix with PLU-decomposition, see ReaK::invert_PLU().
+   - Cholesky decomposition (symmetric positive-definite matrices):
+    - decomposition of symmetric positive-definite matrix, see ReaK::decompose_Cholesky().
+    - finding the determinant of symmetric matrix through Cholesky decomp., see ReaK::determinant_Cholesky().
+    - solve linear system with Cholesky decomp., see ReaK::linsolve_Cholesky().
+    - invert a positive-definite symmetric matrix through Cholesky decomp., see ReaK::invert_Cholesky().
+   - Givens rotations:
+    - construct stable Givens rotations as 2x2 pseudo-matrices.
+    - perform Givens rotations on matrices (or matrix views).
+   - Householder reflections:
+    - construct stable Householder reflections (and reversed reflections) in any dimensions, as pseudo-matrices.
+    - perform Householder reflection products on matrices (or matrix views).
+   - matrix dampening, see ReaK::mat_damped_matrix<M1,M2>.
+   - matrix balancing:
+    - single matrix, see ReaK::balance().
+    - matrix pencil, see ReaK::balance_pencil().
+   - QR Decomposition (general matrices):
+    - decomposition of a general matrix, see ReaK::decompose_QR().
+    - finding the determinant of a general matrix through QR decomp., see ReaK::determinant_QR().
+    - solve linear least-square with QR decomp., see ReaK::linlsq_QR().
+    - solve linear least-square with Rank-Revealing QR decomp., see ReaK::linlsq_RRQR().
+    - solve minimum-norm problem with a QR decomp., see ReaK::minnorm_QR().
+    - perform a backsubstitution involving a right-triangular matrix, see ReaK::backsub_R().
+    - invert a well-conditioned matrix through a QR decomp., see ReaK::invert_QR().
+    - pseudo-invert a matrix through QR decomp. (left Moore-Penrose pseudo-inverse), see ReaK::pseudoinvert_QR().
+   - Jacobi method (symmetric matrices only):
+    - find the determinant of a symmetric matrix through the Jacobi method, see ReaK::determinant_Jacobi().
+    - solve linear least-square with the Jacobi method, see ReaK::linlsq_Jacobi().
+    - pseudo-invert a matrix through the Jacobi method, see ReaK::pseudoinvert_Jacobi().
+    - solve for eigen-values / -vectors through Jacobi method, see ReaK::eigensolve_Jacobi().
+   - Singular-value decomposition (SVD) (general matrices):
+    - decomposition of a general matrix, see ReaK::decompose_SVD().
+    - obtain the numerical condition number of a set of singular-values, see ReaK::condition_number_SVD().
+    - obtain the numerical rand of a set of singular-values, see ReaK::numrank_SVD().
+    - pseudo-invert a general matrix through SVD, see ReaK::pseudoinvert_SVD().
+   - Hessenberg decomposition:
+    - decomposition of a general matrix into Hessenberg form, see ReaK::decompose_Hess().
+    - reduction of a general matrix pencil into a Hessenberg-Triangular form, see ReaK::reduce_HessTri().
+   - Schur decomposition:
+    - real-Schur decomposition of a general matrix, see ReaK::decompose_RealSchur().
+    - generalized real-Schur decomposition of a general matrix pencil, see ReaK::decompose_GenRealSchur().
+   - matrix exponential through Pade Square-And-Sum algorithm, see ReaK::exp_PadeSAS().
+   - matrix Redheffer star-product of hamiltonian matrices, see ReaK::star_product().
+   - matrix norm calculations (L1, L2, Frobenius, LInf, etc.).
+   - Algebraic Riccati Equation solvers:
+    - solve the continuous-time algebraic Riccati equation (CARE), see ReaK::solve_care_problem().
+    - solve the infinite-horizon, continuous-time LQR problem, see ReaK::solve_IHCT_LQR().
+    - solve the infinite-horizon, continuous-time LQG problem, see ReaK::solve_IHCT_LQG().
+    - solve the discrete-time algebraic Riccati equation (DARE), see ReaK::solve_dare_problem().
+    - solve the infinite-horizon, discrete-time LQR problem, see ReaK::solve_IHDT_LQR().
+    - solve the infinite-horizon, discrete-time LQG problem, see ReaK::solve_IHDT_LQG().
+    - solve the continuous-time spectral factorization (CTSF), see ReaK::solve_ctsf_problem().
+    - solve the discrete-time spectral factorization (DTSF), see ReaK::solve_dtsf_problem().
+
+  - Kinetostatics calculations:
+   - 2D rotations:
+    - 2D rotation matrix representation, see ReaK::rot_mat_2D<T>.
+    - 2D homogeneous transformation matrix, see ReaK::trans_mat_2D<T>.
+   - 3D rotations:
+    - 3D rotation matrix representation, see ReaK::rot_mat_3D<T>.
+    - unit-quaternion representation of 3D rotations, see ReaK::quaternion<T>.
+    - Euler Angles (Tait-Bryant) representation of 3D rotations, see ReaK::euler_angles_TB<T>.
+    - Axis-angle representation of 3D rotations, see ReaK::axis_angle<T>.
+    - 3D homogeneous transformation matrix, see ReaK:trans_mat_3D<T>.
+   - Quaternionic algebra:
+    - quaternion class with complete algebraic operations and functions, see ReaK::quat<T>.
+    - unit-quaternion class with complete algebraic operations and functions, see ReaK::unit_quat<T>.
+    - inter-operability with 3D rotations and 3D vectors (vect<T,3>).
+   - Kinetostatic frames:
+    - 2D/3D pose classes to represent translation and rotation, see ReaK::pose_2D<T> and ReaK::pose_3D<T>.
+    - 2D/3D frame classes to represent full kinematics and statics, see ReaK::frame_2D<T> and ReaK::frame_3D<T>.
+    - hierarchial frame dependencies (relative frames) with kinematic calculations ("rotating frame" formulae).
+    - generalized coordinates to represent full kinematics and statics of single-value coordinates, see ReaK::gen_coord<T>.
+    - complete set of motion-Jacobian representations between any kind of kinetostatic frames (2D, 3D, and generalized).
+  
+  - Root-finding methods:
+   - bisection method (i.e., binary-search for the root), see ReaK::bisection_method().
+   - secant methods:
+    - secant method (basic variant), see ReaK::secant_method().
+    - Illinois method, see ReaK::illinois_method().
+    - Ford-3 method, see ReaK::ford3_method().
+    - Brent method, see ReaK::brent_method().
+    - Ridders method, see ReaK::ridders_method().
+   - Broyden methods, see ReaK::broyden_good_method() and ReaK::broyden_fast_method().
+   - Newton-Raphson method, see ReaK::newton_raphson_method().
+  
+  - Sorting algorithms:
+   - Bubble-sort, see ReaK::sorting::bubble_sort().
+   - Insertion-sort, see ReaK::sorting::insertion_sort().
+   - Selection-sort, see ReaK::sorting::selection_sort().
+   - Comb-sort, see ReaK::sorting::comb_sort().
+   - Heap-sort, see ReaK::sorting::heap_sort().
+   - Merge-sort, see ReaK::sorting::merge_sort().
+   - Shell-sort, see ReaK::sorting::shell_sort().
+   - Quick-sort, see ReaK::sorting::quick_sort():
+    - first element as pivot, see ReaK::sorting::first_pivot.
+    - random element as pivot, see ReaK::sorting::random_pivot.
+    - median-of-3 as pivot, see ReaK::sorting::median_of_3_pivots.
+    - median-of-3-random as pivot, see ReaK::sorting::median_of_3_random_pivots.
+   - Intro-sort, see ReaK::sorting::intro_sort().
+
+  - Optimization algorithms:
+   - Line-search methods (one-dimensional optimization):
+    - Dichotomous search, see ReaK::optim::dichotomous_search().
+    - Golden-section search, see ReaK::optim::golden_section_search()
+    - Fibonacci search, see ReaK::optim::fibonacci_search()
+    - Back-tracking search (used by other general optim. methods), see ReaK::optim::backtracking_search()
+    - Expand-and-zoom search (used by other general optim. methods), see ReaK::optim::expand_and_zoom_search()
+   - Linear Programming (LP):
+    - primal-dual simplex method (note: not working yet, buggy), see ReaK::optim::simplex_method().
+    - Mehrotra's interior-point method (note: not working, unstable), see ReaK::optim::mehrotra_method().
+   - Quadratic Programming (QP):
+    - Equality-constrained:
+     - null-space direct method, see ReaK::optim::null_space_QP_method() and ReaK::optim::null_space_RRQP_method().
+     - projected conjugate gradient method, see ReaK::optim::projected_CG_method().
+     - mehrotra's QP method, see ReaK::optim::mehrotra_QP_method().
+    - Inequality-constrained:
+     - mehrotra's QP method, see ReaK::optim::mehrotra_QP_method().
+   - Non-Linear Least-square   
+    - Unconstrained (aside from limiters)
+     - Gauss-Newton method (performance: reasonable), see ReaK::optim::gauss_newton_nllsq() and see ReaK::optim::limited_gauss_newton_nllsq().
+     - Jacobian-transpose method (performance: shit), see ReaK::optim::jacobian_transpose_nllsq() and see ReaK::optim::limited_jacobian_transpose_nllsq().
+     - Levenberg-Marquardt method (DLS with trust-region) (performance: best), see ReaK::optim::levenberg_marquardt_nllsq() and see ReaK::optim::limited_levenberg_marquardt_nllsq().
+   - Non-Linear Optimization problems
+    - Unconstrained (aside from limiters)
+     - Nelder-Mead method (performance: bad, expected), see ReaK::optim::nelder_mead_method().
+     - Quasi-Newton line-search methods (performance: good, best update is bfgs), see ReaK::optim::quasi_newton_line_search() and ReaK::optim::bfgs_method().
+     - Quasi-Newton trust-region methods (performance: good, best update is sr1), see ReaK::optim::quasi_newton_trust_region() and ReaK::optim::sr1_tr_method().
+     - Conjugate-Gradient method (performance: so so), see ReaK::optim::non_linear_conj_grad_method().
+     - Newton line-search methods (performance: good, but quasi-newton is more stable), .
+     - Newton trust-region methods (performance: good, but quasi-newton is more stable), .
+    - Equality-constrained
+     - Bound-constrained Newton methods (Augmented Lagrangian methods) (performance: bad, expected), see ReaK::optim::eq_cnstr_newton_method_tr() or ReaK::optim::constraint_newton_method_tr().
+     - Byrd-Omojokun SQP method (performance: OK), see ReaK::optim::make_bosqp_newton_tr() or ReaK::optim::make_bosqp_quasi_newton_tr().
+     - Line-search Interior-point method (performance: sucks, must be a bug), see ReaK::optim::make_nlip_newton_ls() or ReaK::optim::make_nlip_quasi_newton_ls().
+     - Trust-region Interior-point method (performance: good), see ReaK::optim::make_nlip_newton_tr() or ReaK::optim::make_nlip_quasi_newton_tr().
+    - Inequality-constrained
+     - Bound-constrained Newton methods (Augmented Lagrangian methods) (performance: bad, expected), see ReaK::optim::eq_cnstr_newton_method_tr() or ReaK::optim::constraint_newton_method_tr().
+     - Byrd-Omojokun SQP method (with non-negative limiters) (performance: OK), see ReaK::optim::make_bosqp_newton_tr() or ReaK::optim::make_bosqp_quasi_newton_tr().
+     - Line-search Interior-point method (performance: sucks, must be a bug), see ReaK::optim::make_nlip_newton_ls() or ReaK::optim::make_nlip_quasi_newton_ls().
+     - Trust-region Interior-point method (performance: good), see ReaK::optim::make_nlip_newton_tr() or ReaK::optim::make_nlip_quasi_newton_tr().
+
+  - Numerical integration methods:
+   - Fixed-step single-step integration methods:
+    - Euler method (forward-euler) (same as matlab ode1), see ReaK::euler_integrator< T >.
+    - Midpoint method, see ReaK::midpoint_integrator< T >.
+    - Runge-Kutta 4 method (same as matlab ode4), see ReaK::runge_kutta4_integrator< T >.
+    - Runge-Kutta 5 method (same as matlab ode5), see ReaK::runge_kutta5_integrator< T >.
+   - Fixed-step predictor-corrector (multi-step) integration methods:
+    - Adams-Bashforth-Moulton method order 3 (same as matlab ode13), see ReaK::adamsBM3_integrator< T >.
+    - Adams-Bashforth-Moulton method order 5 (same as matlab ode15), see ReaK::adamsBM5_integrator< T >.
+    - Hamming's modified method, see ReaK::hamming_mod_integrator< T >.
+    - Hamming's iterated modified method, see ReaK::hamming_iter_mod_integrator< T >
+   - Variable-step single-step integration methods:
+    - Runge-Kutta-Fehlberg method order 4-5, see ReaK::fehlberg45_integrator< T >.
+    - Dormand-Prince method order 4-5 (same as matlab ode45), see ReaK::dormand_prince45_integrator< T >
+
+
+ - ReaK.ctrl:
+ 
+  - State-space system library:
+   - state-space system concepts:
+    - continuous-time state-space system (input-output system):
+     - linear time-invariant (LTI)
+     - linear time-varying (LTV)
+     - linearized
+     - non-linear
+    - discrete-time state-space system (input-output system)
+     - linear time-invariant (LTI)
+     - linear time-varying (LTV)
+     - linearized
+     - non-linear
+    - invariant system concept.
+   - generic state-space systems:
+    - continuous-time LTI state-space system (vector-space).
+    - discrete-time LTI state-space system (vector-space).
+    - discretized LTI state-space system (vector-space).
+    - numerically-integrated non-linear discrete-time system.
+    - KTE-based non-linear system.
+  
+  - State-estimation library:
+   - state estimation concepts:
+    - Gaussian belief-state concepts
+    - covariance matrix concept
+    - state-estimator concept
+   - covariance representations:
+    - covariance matrix
+    - information matrix
+    - decomposed covariance matrix
+    - Gaussian belief-space (topology of Gaussian belief-states).
+   - continuous-time Kalman filters:
+    - (Extended-)Kalman-Bucy Filter (note: not tested).
+    - Invariant (Extended-)Kalman-Bucy Filter (note: not tested).
+    - Hybrid (Extended-)Kalman-Bucy Filter (note: not tested).
+   - discrete-time Kalman filters:
+    - (Extended-)Kalman Filter (EKF).
+    - Aggregate Kalman Filter (or Hamiltonian Kalman Filter).
+    - Symplectic Kalman Filter (based on Symplectic covariance mappings).
+    - Unscented Kalman Filter (note: not tested).
+    - Invariant (Extended-)Kalman Filter (IEKF).
+    - Invariant Symplectic Kalman Filter.
+    - Invariant Aggregate Kalman Filter (note: not useful).
+  
+  
 
 
 

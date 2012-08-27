@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
   std::string meas_filename(argv[3]);
   std::string result_filename(argv[4]);
   
-  double time_step = 0.01;
+  //double time_step = 0.01;
   
   std::string Qu_filename(argv[5]);
   std::string R_filename(argv[6]);
