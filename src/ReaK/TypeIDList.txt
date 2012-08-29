@@ -229,6 +229,7 @@ airship3D_lin_dt_system     0xC2310007   bin: 1100 0010 0011 0001 0000 0000 0000
 airship3D_inv_dt_system     0xC2310008   bin: 1100 0010 0011 0001 0000 0000 0000 1000  D-R
 airship3D_inv_mom_dt_system 0xC2310009   bin: 1100 0010 0011 0001 0000 0000 0000 1001  D-R
 airship3D_inv_mid_dt_system 0xC231000C   bin: 1100 0010 0011 0001 0000 0000 0000 1100  
+airship3D_lin2_dt_system    0xC231000D   bin: 1100 0010 0011 0001 0000 0000 0000 1101  D-R
 
 rigid_body2D_state          0xC2310010   bin: 1100 0010 0011 0001 0000 0000 0001 0000  D-R
 rigid_body3D_state          0xC2310011   bin: 1100 0010 0011 0001 0000 0000 0001 0001  D-R

@@ -392,7 +392,7 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
     void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
 				     const time_type& t_0, const time_type&,
 				     const point_type& p_0, const point_type&,
-				     const input_type&, const input_type&) const {
+				     const input_type& u_0, const input_type&) const {
       vect<double,3> w(-mDt * p_0[10],-mDt * p_0[11],-mDt * p_0[12]);
       
       A = mat<double,mat_structure::identity>(13);
@@ -402,13 +402,17 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       mat<double,mat_structure::square> JinvWJ(mInertiaMomentInv * mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment);
       set_block(A, mat<double,mat_structure::identity>(3) + JinvWJ, 10, 10);
       
+      w *= 0.5;
+      set_block(A, mat_vect_adaptor<vect<double,3>,mat_alignment::row_major>(w), 3, 4);
+      set_block(A, mat<double,mat_structure::identity>(3) + mat<double,mat_structure::skew_symmetric>(w), 4, 4);
+      w *= -1.0;
+      set_block(A, mat_vect_adaptor<vect<double,3>,mat_alignment::column_major>(w), 4, 3);
+      
       w[0] = -0.5 * mDt * p_0[4];
       w[1] = -0.5 * mDt * p_0[5];
       w[2] = -0.5 * mDt * p_0[6];
-      JinvWJ = mat<double,mat_structure::identity>(3) + 0.5 * JinvWJ;
-      vect<double,3> w_JinvWJ = w * JinvWJ;
-      set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w_JinvWJ),3,10);
-      set_block(A, ((0.5 * mDt * p_0[3]) * mat<double,mat_structure::identity>(3) - mat<double,mat_structure::skew_symmetric>(w)) * JinvWJ,4,10);
+      set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w),3,10);
+      set_block(A, (0.5 * mDt * p_0[3]) * mat<double,mat_structure::identity>(3) - mat<double,mat_structure::skew_symmetric>(w),4,10);
       
       B = mat<double,mat_structure::nil>(13,6);
       B(0,0) = 0.5 * mDt * mDt / mMass;
@@ -454,6 +458,103 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
 
 
 
+class airship3D_lin2_dt_system : public airship3D_lin_dt_system {
+  public:
+    
+    typedef vect_n<double> point_type;
+    typedef vect_n<double> point_difference_type;
+  
+    typedef double time_type;
+    typedef double time_difference_type;
+  
+    typedef vect_n<double> input_type;
+    typedef vect_n<double> output_type;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
+    BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
+    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 7);
+    
+    typedef mat<double,mat_structure::square> matrixA_type;
+    typedef mat<double,mat_structure::rectangular> matrixB_type;
+    typedef mat<double,mat_structure::rectangular> matrixC_type;
+    typedef mat<double,mat_structure::nil> matrixD_type;
+    
+    
+    airship3D_lin2_dt_system(const std::string& aName = "", 
+                             double aMass = 1.0, 
+                             const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+                             double aDt = 0.001) :
+                             airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
+  
+    virtual ~airship3D_lin2_dt_system() { };
+    
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
+                                     const time_type& t_0, const time_type&,
+                                     const point_type& p_0, const point_type&,
+                                     const input_type& u_0, const input_type&) const {
+      vect<double,3> w(-mDt * p_0[10],-mDt * p_0[11],-mDt * p_0[12]);
+      
+      A = mat<double,mat_structure::identity>(13);
+      A(0,7) = mDt;
+      A(1,8) = mDt;  
+      A(2,9) = mDt;
+      mat<double,mat_structure::square> JinvWJ(mInertiaMomentInv * mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment);
+      set_block(A, mat<double,mat_structure::identity>(3) + JinvWJ, 10, 10);
+      w -= 0.5 * (mInertiaMomentInv * ( (mDt * mDt) * vect<double,3>(u_0[3], u_0[4], u_0[5]) - w % (mInertiaMoment * w) ) );
+      w *= 0.5;
+      set_block(A, mat_vect_adaptor<vect<double,3>,mat_alignment::row_major>(w), 3, 4);
+      set_block(A, mat<double,mat_structure::identity>(3) + mat<double,mat_structure::skew_symmetric>(w), 4, 4);
+      w *= -1.0;
+      set_block(A, mat_vect_adaptor<vect<double,3>,mat_alignment::column_major>(w), 4, 3);
+      
+      
+      w[0] = -0.5 * mDt * p_0[4];
+      w[1] = -0.5 * mDt * p_0[5];
+      w[2] = -0.5 * mDt * p_0[6];
+      JinvWJ = mat<double,mat_structure::identity>(3) + 0.5 * JinvWJ;
+      vect<double,3> w_JinvWJ = w * JinvWJ;
+      set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w_JinvWJ),3,10);
+      set_block(A, ((0.5 * mDt * p_0[3]) * mat<double,mat_structure::identity>(3) - mat<double,mat_structure::skew_symmetric>(w)) * JinvWJ,4,10);
+      
+      B = mat<double,mat_structure::nil>(13,6);
+      B(0,0) = 0.5 * mDt * mDt / mMass;
+      B(1,1) = 0.5 * mDt * mDt / mMass;
+      B(2,2) = 0.5 * mDt * mDt / mMass;
+
+      w *= mDt * 0.5;
+      vect<double,3> w_Jinv = w * mInertiaMomentInv;
+      set_block(B, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >( w_Jinv ), 3, 3);
+      set_block(B, (0.25 * mDt * mDt * p_0[3]) * mInertiaMomentInv - mat<double,mat_structure::skew_symmetric>(w) * mInertiaMomentInv, 4, 3);
+      
+      B(7,0) = mDt / mMass;
+      B(8,1) = mDt / mMass;
+      B(9,2) = mDt / mMass;
+      set_block(B, mDt * mInertiaMomentInv, 10, 3);
+      
+    };
+    
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, 
+                                    const time_type&, const point_type&, const input_type&) const {
+      C = mat<double,mat_structure::nil>(7,13);
+      set_block(C,mat<double,mat_structure::identity>(7),0,0);
+      
+      D = mat<double,mat_structure::nil>(7,6);
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      airship3D_lin_dt_system::save(A,airship3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      airship3D_lin_dt_system::load(A,airship3D_lin_dt_system::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(airship3D_lin2_dt_system,0xC231000D,1,"airship3D_lin2_dt_system",airship3D_lin_dt_system)
+    
+};
 
 
 class airship3D_inv_dt_system : public airship3D_lin_dt_system {
