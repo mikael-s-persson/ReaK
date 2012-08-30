@@ -239,78 +239,11 @@ int main(int argc, char** argv) {
 		      time_step,
 		      "airship3D_dt_sys");
   
-  std::vector<double> std_devs(2 + 10 * (1 + skips_max - skips_min));
+  std::vector<double> std_devs(12 * (1 + skips_max - skips_min));
   
   pp::vector_topology< vect_n<double> > mdl_state_space;
   
   for(unsigned int i = 0; i < mc_count; ++i) {
-    std::list< std::pair< double, vect_n<double> > > measurements;
-    std::list< std::pair< double, vect_n<double> > > measurements_noisy;
-    typedef std::list< std::pair< double, vect_n<double> > >::const_iterator MeasIter;
-    
-    std::cout << "Starting simulation run... " << i << std::endl;
-    try {
-      sys_type::point_type x = x_0;
-      for(double t = 0.0; t < end_time; t += time_step) {
-    
-        sys_type::input_type u = sys_type::input_type(6);
-        u[0] = var_rnd() * sqrt(Qu(0,0));
-        u[1] = var_rnd() * sqrt(Qu(1,1));
-        u[2] = var_rnd() * sqrt(Qu(2,2));
-        u[3] = var_rnd() * sqrt(Qu(3,3));
-        u[4] = var_rnd() * sqrt(Qu(4,4));
-        u[5] = var_rnd() * sqrt(Qu(5,5));
-    
-        x = airship3D_dt_sys.get_next_state(mdl_state_space,x,u,t);
-        sys_type::output_type y = airship3D_dt_sys.get_output(mdl_state_space,x,u,t);
-    
-        std::cout << "\r" << std::setw(20) << t; std::cout.flush();
-	
-	measurements.push_back( std::make_pair(t, y) );
-	sys_type::output_type y_noisy = y;
-	y_noisy[0] += var_rnd() * sqrt(R(0,0));
-	y_noisy[1] += var_rnd() * sqrt(R(1,1));
-	y_noisy[2] += var_rnd() * sqrt(R(2,2));
-	y_noisy[3] += var_rnd() * sqrt(R(3,3));
-	y_noisy[4] += var_rnd() * sqrt(R(4,4));
-	y_noisy[5] += var_rnd() * sqrt(R(5,5));
-	y_noisy[6] += var_rnd() * sqrt(R(6,6));
-        measurements_noisy.push_back( std::make_pair(t, y_noisy) );
-      };
-  
-    } catch(impossible_integration& e) {
-      std::cout << "Integration was deemed impossible, with message: '" << e.what() << "'" << std::endl;
-      return 3;
-    } catch(untolerable_integration& e) {
-      std::cout << "Integration was deemed untolerable with message: '" << e.what() << "'" << std::endl;
-      return 4;
-    };
-    std::cout << std::endl << "Done." << std::endl;
-    
-    //compute std-dev of the measurements:
-    { 
-      MeasIter it = measurements.begin();
-      MeasIter it_noisy = measurements_noisy.begin();
-      double std_dev_tmp[2] = {0.0,0.0}; unsigned int k = 0;
-      while(it != measurements.end()) {
-        std_dev_tmp[0] = ( k * std_dev_tmp[0] + ( (it_noisy->second[0] - it->second[0]) * (it_noisy->second[0] - it->second[0])
-                                                + (it_noisy->second[1] - it->second[1]) * (it_noisy->second[1] - it->second[1])
-                                                + (it_noisy->second[2] - it->second[2]) * (it_noisy->second[2] - it->second[2]) ) ) / (k + 1);
-        
-        quaternion<double> q_noisy(vect<double,4>(it_noisy->second[3],it_noisy->second[4],it_noisy->second[5],it_noisy->second[6]));
-        quaternion<double> q_true(vect<double,4>(it->second[3],it->second[4],it->second[5],it->second[6]));
-        axis_angle<double> aa_diff( invert(q_true) * q_noisy );
-     
-        std_dev_tmp[1] = ( k * std_dev_tmp[1] + aa_diff.angle() * aa_diff.angle() ) / (k + 1);
-	
-        ++it; ++it_noisy; ++k;
-      };
-      std_devs[0] = (i * std_devs[0] + std::sqrt(std_dev_tmp[0])) / (double(i+1));
-      std_devs[1] = (i * std_devs[1] + std::sqrt(std_dev_tmp[1])) / (double(i+1));
-    };
-    
-    
-    
     
     
     std::cout << std::endl << "Starting Kalman filtering..." << std::endl;
@@ -330,65 +263,90 @@ int main(int argc, char** argv) {
   
     for(unsigned int j = skips_min; j <= skips_max; ++j) {
       
-      Qu_avg = Qu; //   (1.0 / double(j)) * Qu;
+      // Qu_avg = Qu; 
+      Qu_avg = (1.0 / double(j)) * Qu;
+      // Qu_avg = (double(j)) * Qu;
+      
+      
+      std::list< std::pair< double, vect_n<double> > > measurements;
+      std::list< std::pair< double, vect_n<double> > > measurements_noisy;
+      typedef std::list< std::pair< double, vect_n<double> > >::const_iterator MeasIter;
+      
+      std::cout << "Starting simulation run... " << i << std::endl;
+      airship3D_dt_sys.set_time_step(j * time_step);
+      try {
+        sys_type::point_type x = x_0;
+        for(double t = 0.0; t < end_time; t += j * time_step) {
+          
+          sys_type::input_type u = sys_type::input_type(6);
+          u[0] = var_rnd() * sqrt(Qu_avg(0,0));
+          u[1] = var_rnd() * sqrt(Qu_avg(1,1));
+          u[2] = var_rnd() * sqrt(Qu_avg(2,2));
+          u[3] = var_rnd() * sqrt(Qu_avg(3,3));
+          u[4] = var_rnd() * sqrt(Qu_avg(4,4));
+          u[5] = var_rnd() * sqrt(Qu_avg(5,5));
+          
+          x = airship3D_dt_sys.get_next_state(mdl_state_space,x,u,t);
+          sys_type::output_type y = airship3D_dt_sys.get_output(mdl_state_space,x,u,t);
+          
+          std::cout << "\r" << std::setw(20) << t; std::cout.flush();
+          
+          measurements.push_back( std::make_pair(t, y) );
+          sys_type::output_type y_noisy = y;
+          y_noisy[0] += var_rnd() * sqrt(R(0,0));
+          y_noisy[1] += var_rnd() * sqrt(R(1,1));
+          y_noisy[2] += var_rnd() * sqrt(R(2,2));
+          y_noisy[3] += var_rnd() * sqrt(R(3,3));
+          y_noisy[4] += var_rnd() * sqrt(R(4,4));
+          y_noisy[5] += var_rnd() * sqrt(R(5,5));
+          y_noisy[6] += var_rnd() * sqrt(R(6,6));
+          measurements_noisy.push_back( std::make_pair(t, y_noisy) );
+        };
+         
+      } catch(impossible_integration& e) {
+        std::cout << "Integration was deemed impossible, with message: '" << e.what() << "'" << std::endl;
+        return 3;
+      } catch(untolerable_integration& e) {
+        std::cout << "Integration was deemed untolerable with message: '" << e.what() << "'" << std::endl;
+        return 4;
+      };
+      std::cout << std::endl << "Done." << std::endl;
+      
+      //compute std-dev of the measurements:
+      { 
+        MeasIter it = measurements.begin();
+        MeasIter it_noisy = measurements_noisy.begin();
+        double std_dev_tmp[2] = {0.0,0.0}; unsigned int k = 0;
+        while(it != measurements.end()) {
+          std_dev_tmp[0] = ( k * std_dev_tmp[0] + ( (it_noisy->second[0] - it->second[0]) * (it_noisy->second[0] - it->second[0])
+                                                  + (it_noisy->second[1] - it->second[1]) * (it_noisy->second[1] - it->second[1])
+                                                  + (it_noisy->second[2] - it->second[2]) * (it_noisy->second[2] - it->second[2]) ) ) / (k + 1);
+          
+          quaternion<double> q_noisy(vect<double,4>(it_noisy->second[3],it_noisy->second[4],it_noisy->second[5],it_noisy->second[6]));
+          quaternion<double> q_true(vect<double,4>(it->second[3],it->second[4],it->second[5],it->second[6]));
+          axis_angle<double> aa_diff( invert(q_true) * q_noisy );
+          
+          std_dev_tmp[1] = ( k * std_dev_tmp[1] + aa_diff.angle() * aa_diff.angle() ) / (k + 1);
+          
+          ++it; ++it_noisy; ++k;
+        };
+        std_devs[12 * (j - skips_min)]     = (i * std_devs[12 * (j - skips_min)]     + std::sqrt(std_dev_tmp[0])) / (double(i+1));
+        std_devs[12 * (j - skips_min) + 1] = (i * std_devs[12 * (j - skips_min) + 1] + std::sqrt(std_dev_tmp[1])) / (double(i+1));
+      };
+      
+      
+      
       
       std::cout << "\r" << std::setw(20) << j * time_step; std::cout.flush();
 
-      ctrl::airship3D_lin_dt_system mdl_lin_dt("airship3D_linear_discrete",mass,inertia_tensor,time_step * j);
       ctrl::airship3D_lin2_dt_system mdl_lin2_dt("airship3D_linear2_discrete",mass,inertia_tensor,time_step * j);
       ctrl::airship3D_inv_dt_system mdl_inv_dt("airship3D_invariant_discrete",mass,inertia_tensor,time_step * j);
+      ctrl::airship3D_inv2_dt_system mdl_inv2_dt("airship3D_invariant2_discrete",mass,inertia_tensor,time_step * j);
       ctrl::airship3D_inv_mom_dt_system mdl_inv_mom_dt("airship3D_invariant_momentum_discrete",mass,inertia_tensor,time_step * j);
       ctrl::airship3D_inv_mid_dt_system mdl_inv_mid_dt("airship3D_invariant_midpoint_discrete",mass,inertia_tensor,time_step * j);
       
       
-      //std::cout << "Running Extended Kalman Filter..." << std::endl;
-      try {
-        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
-        ctrl::covariance_matrix< vect_n<double> > Qcov;
-	Qcov = Qu_avg;
-        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											             Qcov);
-        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											             Rcov);
-        
-	double std_dev[2] = {0.0,0.0}; int k = 0;
-        std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
-	for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end();) {
-          
-	  b_z.set_mean_state(it->second);
-	  ctrl::kalman_filter_step(mdl_lin_dt,mdl_state_space,b,b_u,b_z,it->first - time_step * j);
-          
-          vect_n<double> b_mean = b.get_mean_state();
-          quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
-          b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
-          b.set_mean_state(b_mean);
-          
-          const vect_n<double>& x_mean = b.get_mean_state();
-          
-          std_dev[0] = ( k * std_dev[0] + ( (x_mean[0] - it_orig->second[0]) * (x_mean[0] - it_orig->second[0])
-                                          + (x_mean[1] - it_orig->second[1]) * (x_mean[1] - it_orig->second[1])
-                                          + (x_mean[2] - it_orig->second[2]) * (x_mean[2] - it_orig->second[2]) ) ) / (k + 1);
-          
-          quaternion<double> q_noisy(vect<double,4>(x_mean[3],x_mean[4],x_mean[5],x_mean[6]));
-          quaternion<double> q_true(vect<double,4>(it_orig->second[3],it_orig->second[4],it_orig->second[5],it_orig->second[6]));
-          axis_angle<double> aa_diff( invert(q_true) * q_noisy );
-          
-          std_dev[1] = ( k * std_dev[1] + aa_diff.angle() * aa_diff.angle() ) / (k + 1);
-          
-          ++k;
-          
-          for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
-          
-        };
-        std_devs[2 + 10 * (j - skips_min)]     = (i * std_devs[2 + 10 * (j - skips_min)]     + std::sqrt(std_dev[0])) / (double(i+1));
-        std_devs[2 + 10 * (j - skips_min) + 1] = (i * std_devs[2 + 10 * (j - skips_min) + 1] + std::sqrt(std_dev[1])) / (double(i+1));
-      } catch(ReaK::singularity_error& e) {
-        std::cout << "The Extended Kalman Filter (v1) has thrown a singularity error!" << std::endl;
-        std_devs[2 + 10 * (j - skips_min)]     = std::numeric_limits<double>::infinity();
-        std_devs[2 + 10 * (j - skips_min) + 1] = std::numeric_limits<double>::infinity();
-      };
-      
-      //std::cout << "Running Extended Kalman Filter version 2..." << std::endl;
+      std::cout << "Running Extended Kalman Filter version 2..." << std::endl;
       try {
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
         ctrl::covariance_matrix< vect_n<double> > Qcov;
@@ -424,18 +382,18 @@ int main(int argc, char** argv) {
           
           ++k;
           
-          for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
-          
+          //for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
+          ++it; ++it_orig;
         };
-        std_devs[2 + 10 * (j - skips_min) + 2] = (i * std_devs[2 + 10 * (j - skips_min) + 2] + std::sqrt(std_dev[0])) / (double(i+1));
-        std_devs[2 + 10 * (j - skips_min) + 3] = (i * std_devs[2 + 10 * (j - skips_min) + 3] + std::sqrt(std_dev[1])) / (double(i+1));
+        std_devs[12 * (j - skips_min) + 2] = (i * std_devs[12 * (j - skips_min) + 2] + std::sqrt(std_dev[0])) / (double(i+1));
+        std_devs[12 * (j - skips_min) + 3] = (i * std_devs[12 * (j - skips_min) + 3] + std::sqrt(std_dev[1])) / (double(i+1));
       } catch(ReaK::singularity_error& e) {
         std::cout << "The Extended Kalman Filter (v2) has thrown a singularity error!" << std::endl;
-        std_devs[2 + 10 * (j - skips_min) + 2] = std::numeric_limits<double>::infinity();
-        std_devs[2 + 10 * (j - skips_min) + 3] = std::numeric_limits<double>::infinity();
+        std_devs[12 * (j - skips_min) + 2] = std::numeric_limits<double>::infinity();
+        std_devs[12 * (j - skips_min) + 3] = std::numeric_limits<double>::infinity();
       };
-  
-      //std::cout << "Running Invariant Extended Kalman Filter..." << std::endl;
+      
+      std::cout << "Running Invariant Extended Kalman Filter..." << std::endl;
       try {
     
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
@@ -479,18 +437,76 @@ int main(int argc, char** argv) {
           
           ++k;
           
-          for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
-          
+          //for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
+          ++it; ++it_orig;
         };
-        std_devs[2 + 10 * (j - skips_min) + 4] = (i * std_devs[2 + 10 * (j - skips_min) + 4] + std::sqrt(std_dev[0])) / (double(i+1));
-        std_devs[2 + 10 * (j - skips_min) + 5] = (i * std_devs[2 + 10 * (j - skips_min) + 5] + std::sqrt(std_dev[1])) / (double(i+1));
+        std_devs[12 * (j - skips_min) + 4] = (i * std_devs[12 * (j - skips_min) + 4] + std::sqrt(std_dev[0])) / (double(i+1));
+        std_devs[12 * (j - skips_min) + 5] = (i * std_devs[12 * (j - skips_min) + 5] + std::sqrt(std_dev[1])) / (double(i+1));
       } catch(ReaK::singularity_error& e) {
         std::cout << "The Invariant Extended Kalman Filter has thrown a singularity error!" << std::endl;
-        std_devs[2 + 10 * (j - skips_min) + 4] = std::numeric_limits<double>::infinity();
-        std_devs[2 + 10 * (j - skips_min) + 5] = std::numeric_limits<double>::infinity();
+        std_devs[12 * (j - skips_min) + 4] = std::numeric_limits<double>::infinity();
+        std_devs[12 * (j - skips_min) + 5] = std::numeric_limits<double>::infinity();
       };
+      
+      
+      std::cout << "Running Invariant Extended Kalman Filter (version 2)..." << std::endl;
+      try {
+    
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
+          b(b_init.get_mean_state(),
+            ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,1000.0))));
   
-      //std::cout << "Running Invariant-Momentum Kalman Filter..." << std::endl;
+        mat<double,mat_structure::diagonal> R_inv(6);
+        R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
+        R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
+        ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
+        ctrl::covariance_matrix< vect_n<double> > Qcov;
+        Qcov = Qu_avg;
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
+                                                                                                     Qcov);
+        ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
+                                                                                                     Rcovinv);
+        
+        double std_dev[2] = {0.0,0.0}; int k = 0;
+        std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
+        for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end();) {
+          
+          b_z.set_mean_state(it->second);
+          ctrl::invariant_kalman_filter_step(mdl_inv2_dt,mdl_state_space,b,b_u,b_z,it->first - time_step * j);
+          
+          vect_n<double> b_mean = b.get_mean_state();
+          quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
+          b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
+          b.set_mean_state(b_mean);
+    
+          const vect_n<double>& x_mean = b.get_mean_state();
+          
+          std_dev[0] = ( k * std_dev[0] + ( (x_mean[0] - it_orig->second[0]) * (x_mean[0] - it_orig->second[0])
+                                          + (x_mean[1] - it_orig->second[1]) * (x_mean[1] - it_orig->second[1])
+                                          + (x_mean[2] - it_orig->second[2]) * (x_mean[2] - it_orig->second[2]) ) ) / (k + 1);
+          
+          quaternion<double> q_noisy(vect<double,4>(x_mean[3],x_mean[4],x_mean[5],x_mean[6]));
+          quaternion<double> q_true(vect<double,4>(it_orig->second[3],it_orig->second[4],it_orig->second[5],it_orig->second[6]));
+          axis_angle<double> aa_diff( invert(q_true) * q_noisy );
+          
+          std_dev[1] = ( k * std_dev[1] + aa_diff.angle() * aa_diff.angle() ) / (k + 1);
+          
+          ++k;
+          
+          //for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
+          ++it; ++it_orig;
+        };
+        std_devs[12 * (j - skips_min) + 6] = (i * std_devs[12 * (j - skips_min) + 6] + std::sqrt(std_dev[0])) / (double(i+1));
+        std_devs[12 * (j - skips_min) + 7] = (i * std_devs[12 * (j - skips_min) + 7] + std::sqrt(std_dev[1])) / (double(i+1));
+      } catch(ReaK::singularity_error& e) {
+        std::cout << "The Invariant Extended Kalman Filter (version 2) has thrown a singularity error!" << std::endl;
+        std_devs[12 * (j - skips_min) + 6] = std::numeric_limits<double>::infinity();
+        std_devs[12 * (j - skips_min) + 7] = std::numeric_limits<double>::infinity();
+      };
+      
+      
+      
+      std::cout << "Running Invariant-Momentum Kalman Filter..." << std::endl;
       try {
     
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
@@ -534,18 +550,18 @@ int main(int argc, char** argv) {
           
           ++k;
           
-          for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
-          
+          //for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
+          ++it; ++it_orig;
         };
-        std_devs[2 + 10 * (j - skips_min) + 6] = (i * std_devs[2 + 10 * (j - skips_min) + 6] + std::sqrt(std_dev[0])) / (double(i+1));
-        std_devs[2 + 10 * (j - skips_min) + 7] = (i * std_devs[2 + 10 * (j - skips_min) + 7] + std::sqrt(std_dev[1])) / (double(i+1));
+        std_devs[12 * (j - skips_min) + 8] = (i * std_devs[12 * (j - skips_min) + 8] + std::sqrt(std_dev[0])) / (double(i+1));
+        std_devs[12 * (j - skips_min) + 9] = (i * std_devs[12 * (j - skips_min) + 9] + std::sqrt(std_dev[1])) / (double(i+1));
       } catch(ReaK::singularity_error& e) {
         std::cout << "The Invariant-Momentum Kalman Filter (v1) has thrown a singularity error!" << std::endl;
-        std_devs[2 + 10 * (j - skips_min) + 6] = std::numeric_limits<double>::infinity();
-        std_devs[2 + 10 * (j - skips_min) + 7] = std::numeric_limits<double>::infinity();
+        std_devs[12 * (j - skips_min) + 8] = std::numeric_limits<double>::infinity();
+        std_devs[12 * (j - skips_min) + 9] = std::numeric_limits<double>::infinity();
       };
   
-      //std::cout << "Running Invariant-Midpoint Kalman Filter..." << std::endl;
+      std::cout << "Running Invariant-Midpoint Kalman Filter..." << std::endl;
       try {
     
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
@@ -589,15 +605,15 @@ int main(int argc, char** argv) {
           
           ++k;
           
-          for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
-          
+          //for(unsigned int i = 0; ((i < j) && (it != measurements_noisy.end())); ++i) { ++it; ++it_orig; };
+          ++it; ++it_orig;
         };
-        std_devs[2 + 10 * (j - skips_min) + 8] = (i * std_devs[2 + 10 * (j - skips_min) + 8] + std::sqrt(std_dev[0])) / (double(i+1));
-        std_devs[2 + 10 * (j - skips_min) + 9] = (i * std_devs[2 + 10 * (j - skips_min) + 9] + std::sqrt(std_dev[1])) / (double(i+1));
+        std_devs[12 * (j - skips_min) + 10] = (i * std_devs[12 * (j - skips_min) + 10] + std::sqrt(std_dev[0])) / (double(i+1));
+        std_devs[12 * (j - skips_min) + 11] = (i * std_devs[12 * (j - skips_min) + 11] + std::sqrt(std_dev[1])) / (double(i+1));
       } catch(ReaK::singularity_error& e) {
         std::cout << "The Invariant-Momentum Kalman Filter (v2) has thrown a singularity error!" << std::endl;
-        std_devs[2 + 10 * (j - skips_min) + 8] = std::numeric_limits<double>::infinity();
-        std_devs[2 + 10 * (j - skips_min) + 9] = std::numeric_limits<double>::infinity();
+        std_devs[12 * (j - skips_min) + 10] = std::numeric_limits<double>::infinity();
+        std_devs[12 * (j - skips_min) + 11] = std::numeric_limits<double>::infinity();
       };
     };
     std::cout << std::endl << "Done." << std::endl;
@@ -611,9 +627,9 @@ int main(int argc, char** argv) {
   
   recorder::ssv_recorder results(result_filename + "_stddevs.ssv");
   results << "time_step" << "meas_p" << "meas_a" 
-                         << "ekf_p" << "ekf_a" 
                          << "ekf2_p" << "ekf2_a" 
                          << "iekf_p" << "iekf_a" 
+                         << "iekf2_p" << "iekf2_a" 
                          << "imkf_q" << "imkf_a" 
                          << "imkf2_p" << "imkf2_a" 
                          << recorder::data_recorder::end_name_row;
@@ -621,18 +637,19 @@ int main(int argc, char** argv) {
   for(unsigned int j = skips_min; j <= skips_max; ++j) {
     
     results << (time_step * j);
-    results << std_devs[0] << std_devs[1];
     
-    results << std_devs[2 + 10 * (j - skips_min)]
-            << std_devs[2 + 10 * (j - skips_min) + 1]
-            << std_devs[2 + 10 * (j - skips_min) + 2]
-            << std_devs[2 + 10 * (j - skips_min) + 3]
-            << std_devs[2 + 10 * (j - skips_min) + 4]
-            << std_devs[2 + 10 * (j - skips_min) + 5]
-            << std_devs[2 + 10 * (j - skips_min) + 6]
-            << std_devs[2 + 10 * (j - skips_min) + 7]
-            << std_devs[2 + 10 * (j - skips_min) + 8]
-            << std_devs[2 + 10 * (j - skips_min) + 9];
+    results << std_devs[12 * (j - skips_min)]
+            << std_devs[12 * (j - skips_min) + 1]
+            << std_devs[12 * (j - skips_min) + 2]
+            << std_devs[12 * (j - skips_min) + 3]
+            << std_devs[12 * (j - skips_min) + 4]
+            << std_devs[12 * (j - skips_min) + 5]
+            << std_devs[12 * (j - skips_min) + 6]
+            << std_devs[12 * (j - skips_min) + 7]
+            << std_devs[12 * (j - skips_min) + 8]
+            << std_devs[12 * (j - skips_min) + 9]
+            << std_devs[12 * (j - skips_min) + 10]
+            << std_devs[12 * (j - skips_min) + 11];
     
     results << recorder::data_recorder::end_value_row;
   };

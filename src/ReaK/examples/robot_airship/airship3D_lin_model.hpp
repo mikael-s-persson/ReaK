@@ -684,6 +684,99 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
 };
 
 
+class airship3D_inv2_dt_system : public airship3D_inv_dt_system {
+  public:
+    
+    typedef vect_n<double> point_type;
+    typedef vect_n<double> point_difference_type;
+  
+    typedef double time_type;
+    typedef double time_difference_type;
+  
+    typedef vect_n<double> input_type;
+    typedef vect_n<double> output_type;
+  
+    typedef vect_n<double> invariant_error_type;
+    typedef vect_n<double> invariant_correction_type;
+    typedef mat<double,mat_structure::identity> invariant_frame_type;
+  
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
+    BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
+    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 7);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 6);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 12);
+    
+    typedef mat<double,mat_structure::square> matrixA_type;
+    typedef mat<double,mat_structure::rectangular> matrixB_type;
+    typedef mat<double,mat_structure::rectangular> matrixC_type;
+    typedef mat<double,mat_structure::nil> matrixD_type;
+    
+    
+    airship3D_inv2_dt_system(const std::string& aName = "", 
+                             double aMass = 1.0, 
+                             const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+                             double aDt = 0.001) :
+                             airship3D_inv_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
+  
+    virtual ~airship3D_inv2_dt_system() { };
+    
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
+                                     const time_type& t_0, const time_type&,
+                                     const point_type& p_0, const point_type&,
+                                     const input_type&, const input_type&) const {
+      vect<double,3> w(0.5 * p_0[10],0.5 * p_0[11],0.5 * p_0[12]);
+      
+      A = mat<double,mat_structure::identity>(12);
+      A(0,6) = mDt;
+      A(1,7) = mDt;  
+      A(2,8) = mDt;
+      
+      mat<double,mat_structure::square> T(mInertiaMomentInv * (mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment
+                                                            - mat<double,mat_structure::skew_symmetric>(mInertiaMoment * w)));
+      
+      set_block(A, mat<double,mat_structure::diagonal>(3,mDt) - (0.5 * mDt * mDt) * T, 3, 9);
+      set_block(A, mat<double,mat_structure::identity>(3) - mDt * T, 9, 9);
+      
+      w *= 2.0 * mDt;
+      set_block(A, mat<double,mat_structure::identity>(3) - mat<double,mat_structure::skew_symmetric>(w), 3, 3);
+            
+      B = mat<double,mat_structure::nil>(12,6);
+      B(0,0) = 0.5 * mDt * mDt / mMass;
+      B(1,1) = 0.5 * mDt * mDt / mMass;
+      B(2,2) = 0.5 * mDt * mDt / mMass;
+      set_block(B, (0.5 * mDt * mDt) * mInertiaMomentInv, 3, 3);
+      B(6,0) = mDt / mMass;
+      B(7,1) = mDt / mMass;
+      B(8,2) = mDt / mMass;
+      set_block(B, mDt * mInertiaMomentInv, 9, 3);
+      
+    };
+    
+    void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, 
+                                    const time_type&, const point_type&, const input_type&) const {
+      C = mat<double,mat_structure::nil>(6,12);
+      set_block(C,mat<double,mat_structure::identity>(6),0,0);
+      
+      D = mat<double,mat_structure::nil>(6,6);
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      airship3D_inv_dt_system::save(A,airship3D_inv_dt_system::getStaticObjectType()->TypeVersion());
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      airship3D_inv_dt_system::load(A,airship3D_inv_dt_system::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(airship3D_inv2_dt_system,0xC231000E,1,"airship3D_inv2_dt_system",airship3D_inv_dt_system)
+    
+};
+
+
+
 
 
 

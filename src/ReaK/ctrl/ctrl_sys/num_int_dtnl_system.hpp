@@ -130,6 +130,12 @@ class num_int_dtnl_sys : public named_object {
     time_difference_type get_time_step() const { return dt; };
     
     /**
+     * Sets the time-step of this discrete-time system.
+     * \param aDt The time-step of this discrete-time system.
+     */
+    void set_time_step(time_difference_type aDt) { dt = aDt; };
+    
+    /**
      * Returns next state of the system given the current state, input and time.
      * \tparam StateSpaceType The state-space topology type on which the underlying system operates.
      * \param state_space The state-space topology on which the underlying system operates.
@@ -254,6 +260,12 @@ class num_int_dtnl_sys< state_rate_function_with_io<T>, NumIntegrator<T> > : pub
      * \return The time-step of this discrete-time system.
      */
     time_difference_type get_time_step() const { return dt; };
+    
+    /**
+     * Sets the time-step of this discrete-time system.
+     * \param aDt The time-step of this discrete-time system.
+     */
+    void set_time_step(time_difference_type aDt) { dt = aDt; };
     
     /**
      * Returns next state of the system given the current state, input and time.
