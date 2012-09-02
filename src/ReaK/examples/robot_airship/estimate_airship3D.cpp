@@ -169,8 +169,8 @@ int main(int argc, char** argv) {
   
   R += R_added;
   
-  ctrl::airship3D_lin_dt_system mdl_lin_dt("airship3D_linear_discrete",mass,inertia_tensor,time_step);
-  ctrl::airship3D_inv_dt_system mdl_inv_dt("airship3D_invariant_discrete",mass,inertia_tensor,time_step);
+  ctrl::airship3D_lin2_dt_system mdl_lin_dt("airship3D_linear_discrete",mass,inertia_tensor,time_step);
+  ctrl::airship3D_inv2_dt_system mdl_inv_dt("airship3D_invariant_discrete",mass,inertia_tensor,time_step);
   ctrl::airship3D_inv_mom_dt_system mdl_inv_mom_dt("airship3D_invariant_momentum_discrete",mass,inertia_tensor,time_step);
   ctrl::airship3D_inv_mid_dt_system mdl_inv_mid_dt("airship3D_invariant_midpoint_discrete",mass,inertia_tensor,time_step);
  

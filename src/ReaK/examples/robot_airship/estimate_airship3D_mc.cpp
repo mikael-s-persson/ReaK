@@ -241,6 +241,22 @@ int main(int argc, char** argv) {
   
   ctrl::airship3D_lin_dt_system airship3D_mdl_dt("airship3D_linear_discrete",mass,inertia_tensor,time_step);
   
+  ctrl::airship3D_lin_system airship3D_mdl("airship3D_linear",mass,inertia_tensor);
+  
+  typedef ctrl::num_int_dtnl_sys< ctrl::airship3D_lin_system, dormand_prince45_integrator<double> > sys2_type;
+  sys2_type 
+    airship3D_dt_sys2(shared_ptr<ctrl::airship3D_lin_system>(&airship3D_mdl, null_deleter()), 
+                      dormand_prince45_integrator<double>("ode45_integrator",
+                                                          ReaK::vect_n<double>(),
+                                                          0.0,
+                                                          time_step * 0.01,
+                                                          weak_ptr< state_rate_function<double> >(),
+                                                          time_step,
+                                                          time_step * 0.00001,
+                                                          1e-2),
+                      time_step,
+                      "airship3D_dt_sys2");
+  
   std::vector<double> std_devs(12 * (1 + skips_max - skips_min));
   
   pp::vector_topology< vect_n<double> > mdl_state_space;
@@ -276,7 +292,8 @@ int main(int argc, char** argv) {
       
       std::cout << "Starting simulation run... " << i << std::endl;
       //airship3D_dt_sys.set_time_step(j * time_step);
-      airship3D_mdl_dt.set_time_step(j * time_step);
+      airship3D_dt_sys2.set_time_step(j * time_step);
+      //airship3D_mdl_dt.set_time_step(j * time_step);
       try {
         sys_type::point_type x = x_0;
         for(double t = 0.0; t < end_time; t += j * time_step) {
@@ -292,8 +309,11 @@ int main(int argc, char** argv) {
           //x = airship3D_dt_sys.get_next_state(mdl_state_space,x,u,t);
           //sys_type::output_type y = airship3D_dt_sys.get_output(mdl_state_space,x,u,t);
           
-          x = airship3D_mdl_dt.get_next_state(mdl_state_space, x, u, t);
-          sys_type::output_type y = airship3D_mdl_dt.get_output(mdl_state_space,x,u,t);
+          x = airship3D_dt_sys2.get_next_state(mdl_state_space,x,u,t);
+          sys_type::output_type y = airship3D_dt_sys2.get_output(mdl_state_space,x,u,t);
+          
+          //x = airship3D_mdl_dt.get_next_state(mdl_state_space, x, u, t);
+          //sys_type::output_type y = airship3D_mdl_dt.get_output(mdl_state_space,x,u,t);
           
           std::cout << "\r" << std::setw(20) << t; std::cout.flush();
           
