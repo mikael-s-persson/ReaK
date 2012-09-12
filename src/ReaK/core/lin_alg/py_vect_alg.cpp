@@ -43,6 +43,8 @@
 
 #include <sstream>
 
+
+
 namespace PyReaK {
   
  
@@ -76,6 +78,7 @@ void export_vect_alg() {
     .def(self - self)
     .def(-self)
     .def(self * self)
+    .def(self % self)
     .def(self += self)
     .def(self -= self)
     .def(self * double())
@@ -88,6 +91,13 @@ void export_vect_alg() {
     .def("__getitem__",vect_getitem< ReaK::vect<double,2> >)
     .def("__setitem__",vect_setitem< ReaK::vect<double,2> >);
   
+  def("norm_2_sqr",static_cast< double(*)(const ReaK::vect<double,2>&) >(&ReaK::norm_2_sqr));
+  def("norm_2",static_cast< double(*)(const ReaK::vect<double,2>&) >(&ReaK::norm_2));
+  def("norm_inf",static_cast< double(*)(const ReaK::vect<double,2>&) >(&ReaK::norm_inf));
+  def("norm_1",static_cast< double(*)(const ReaK::vect<double,2>&) >(&ReaK::norm_1));
+  def("unit",static_cast< ReaK::vect<double,2>(*)(const ReaK::vect<double,2>&) >(&ReaK::unit));
+  def("colinear",static_cast< bool(*)(const ReaK::vect<double,2>&, const ReaK::vect<double,2>&) >(&ReaK::colinear));
+  
   class_< ReaK::vect<double,3>,
           bases< ReaK::serialization::serializable >
         >("Vector3D")
@@ -96,6 +106,7 @@ void export_vect_alg() {
     .def(self - self)
     .def(-self)
     .def(self * self)
+    .def(self % self)
     .def(self += self)
     .def(self -= self)
     .def(self * double())
@@ -107,6 +118,13 @@ void export_vect_alg() {
     .def("__len__",&ReaK::vect<double,3>::size)
     .def("__getitem__",vect_getitem< ReaK::vect<double,3> >)
     .def("__setitem__",vect_setitem< ReaK::vect<double,3> >);
+  
+  def("norm_2_sqr",static_cast< double(*)(const ReaK::vect<double,3>&) >(&ReaK::norm_2_sqr));
+  def("norm_2",static_cast< double(*)(const ReaK::vect<double,3>&) >(&ReaK::norm_2));
+  def("norm_inf",static_cast< double(*)(const ReaK::vect<double,3>&) >(&ReaK::norm_inf));
+  def("norm_1",static_cast< double(*)(const ReaK::vect<double,3>&) >(&ReaK::norm_1));
+  def("unit",static_cast< ReaK::vect<double,3>(*)(const ReaK::vect<double,3>&) >(&ReaK::unit));
+  def("colinear",static_cast< bool(*)(const ReaK::vect<double,3>&, const ReaK::vect<double,3>&) >(&ReaK::colinear));
   
   class_< ReaK::vect<double,4>,
           bases< ReaK::serialization::serializable >
@@ -127,6 +145,13 @@ void export_vect_alg() {
     .def("__len__",&ReaK::vect<double,4>::size)
     .def("__getitem__",vect_getitem< ReaK::vect<double,4> >)
     .def("__setitem__",vect_setitem< ReaK::vect<double,4> >);
+  
+  def("norm_2_sqr",static_cast< double(*)(const ReaK::vect<double,4>&) >(&ReaK::norm_2_sqr));
+  def("norm_2",static_cast< double(*)(const ReaK::vect<double,4>&) >(&ReaK::norm_2));
+  def("norm_inf",static_cast< double(*)(const ReaK::vect<double,4>&) >(&ReaK::norm_inf));
+  def("norm_1",static_cast< double(*)(const ReaK::vect<double,4>&) >(&ReaK::norm_1));
+  def("unit",static_cast< ReaK::vect<double,4>(*)(const ReaK::vect<double,4>&) >(&ReaK::unit));
+  def("colinear",static_cast< bool(*)(const ReaK::vect<double,4>&, const ReaK::vect<double,4>&) >(&ReaK::colinear));
   
   class_< ReaK::vect_n<double, std::allocator<double> >,
           bases< ReaK::serialization::serializable >
@@ -163,6 +188,13 @@ void export_vect_alg() {
     .def("__getitem__",vect_getitem< ReaK::vect_n<double, std::allocator<double> > >)
     .def("__setitem__",vect_setitem< ReaK::vect_n<double, std::allocator<double> > >)
     .def("resize", &ReaK::vect_n<double, std::allocator<double> >::resize);
+  
+  def("norm_2_sqr",static_cast< double(*)(const ReaK::vect_n<double>&) >(&ReaK::norm_2_sqr));
+  def("norm_2",static_cast< double(*)(const ReaK::vect_n<double>&) >(&ReaK::norm_2));
+  def("norm_inf",static_cast< double(*)(const ReaK::vect_n<double>&) >(&ReaK::norm_inf));
+  def("norm_1",static_cast< double(*)(const ReaK::vect_n<double>&) >(&ReaK::norm_1));
+  def("unit",static_cast< ReaK::vect_n<double>(*)(const ReaK::vect_n<double>&) >(&ReaK::unit));
+  def("colinear",static_cast< bool(*)(const ReaK::vect_n<double>&, const ReaK::vect_n<double>&) >(&ReaK::colinear));
   
   
 };
