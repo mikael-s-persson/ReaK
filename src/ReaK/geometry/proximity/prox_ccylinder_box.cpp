@@ -21,6 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "prox_ccylinder_box.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -28,6 +29,63 @@ namespace ReaK {
 /** Main namespace for ReaK.Geometry */
 namespace geom {
 
+
+shared_ptr< shape_2D > prox_ccylinder_box::getShape1() const {
+  return mCCylinder;
+};
+
+shared_ptr< shape_2D > prox_ccylinder_box::getShape2() const {
+  return mBox;
+};
+
+
+
+void prox_ccylinder_box::computeProximity() {
+  if((!mCCylinder) || (!mBox)) {
+    mLastResult.mDistance = std::numeric_limits<double>::infinity();
+    mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
+    mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
+    return;
+  };
+  using std::fabs; using std::sqrt;
+  
+  vect<double,3> cy_c = mCCylinder->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  vect<double,3> cy_t = mCCylinder->getPose().rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
+  vect<double,3> bx_c = mBox->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  
+  proximity_record_3D bxln_result = findProximityBoxToLine(mBox, cy_c, cy_t, 0.5 * mCCylinder->getLength());
+  
+  // add a sphere-sweep around the point-box solution.
+  vect<double,2> diff_v = bxln_result.mPoint1 - bxln_result.mPoint2;
+  double diff_d = norm_2(diff_v);
+  if(bxln_result.mDistance < 0.0)
+    mLastResult.mPoint1 = bxln_result.mPoint2 - (mCCylinder->getRadius() / diff_d) * diff_v;
+  else
+    mLastResult.mPoint1 = bxln_result.mPoint2 + (mCCylinder->getRadius() / diff_d) * diff_v;
+  mLastResult.mPoint2 = bxln_result.mPoint1;
+  mLastResult.mDistance = bxln_result.mDistance - mCCylinder->getRadius();
+  return;
+};
+
+
+prox_ccylinder_box::prox_ccylinder_box(const shared_ptr< capped_cylinder >& aCCylinder,
+                                       const shared_ptr< box >& aBox) :
+                                       proximity_finder_3D(),
+                                       mCCylinder(aCCylinder),
+                                       mBox(aBox) { };
+    
+    
+void RK_CALL prox_ccylinder_box::save(ReaK::serialization::oarchive& A, unsigned int) const {
+  proximity_finder_3D::save(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
+  A & RK_SERIAL_SAVE_WITH_NAME(mCCylinder)
+    & RK_SERIAL_SAVE_WITH_NAME(mBox);
+};
+    
+void RK_CALL prox_ccylinder_box::load(ReaK::serialization::iarchive& A, unsigned int) {
+  proximity_finder_3D::load(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
+  A & RK_SERIAL_LOAD_WITH_NAME(mCCylinder)
+    & RK_SERIAL_LOAD_WITH_NAME(mBox);
+};
 
 
 };

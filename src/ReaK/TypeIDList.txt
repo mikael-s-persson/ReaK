@@ -394,10 +394,10 @@ proximity_record_3D         0xC3200002   bin: 1100 0011 0010 0000 0000 0000 0000
 proximity_finder_2D         0xC3200003   bin: 1100 0011 0010 0000 0000 0000 0000 0011  D-R
 proximity_finder_3D         0xC3200004   bin: 1100 0011 0010 0000 0000 0000 0000 0100  D-R
 prox_circle_circle          0xC3200005   bin: 1100 0011 0010 0000 0000 0000 0000 0101  D-R
-prox_circle_crect           0xC3200006   bin: 1100 0011 0010 0000 0000 0000 0000 0110  
+prox_circle_crect           0xC3200006   bin: 1100 0011 0010 0000 0000 0000 0000 0110  D-R
 prox_circle_rectangle       0xC3200007   bin: 1100 0011 0010 0000 0000 0000 0000 0111  D-R
-prox_crect_crect            0xC3200008   bin: 1100 0011 0010 0000 0000 0000 0000 1000  
-prox_crect_rectangle        0xC3200009   bin: 1100 0011 0010 0000 0000 0000 0000 1001  
+prox_crect_crect            0xC3200008   bin: 1100 0011 0010 0000 0000 0000 0000 1000  D-R
+prox_crect_rectangle        0xC3200009   bin: 1100 0011 0010 0000 0000 0000 0000 1001  D-R
 prox_rectangle_rectangle    0xC320000A   bin: 1100 0011 0010 0000 0000 0000 0000 1010  D-R
 prox_plane_plane            0xC320000B   bin: 1100 0011 0010 0000 0000 0000 0000 1011  D-R
 prox_plane_sphere           0xC320000C   bin: 1100 0011 0010 0000 0000 0000 0000 1100  D-R
@@ -410,7 +410,7 @@ prox_sphere_cylinder        0xC3200012   bin: 1100 0011 0010 0000 0000 0000 0001
 prox_sphere_box             0xC3200013   bin: 1100 0011 0010 0000 0000 0000 0001 0011  D-R
 prox_ccylinder_ccylinder    0xC3200014   bin: 1100 0011 0010 0000 0000 0000 0001 0100  D-R
 prox_ccylinder_cylinder     0xC3200015   bin: 1100 0011 0010 0000 0000 0000 0001 0101  2
-prox_ccylinder_box          0xC3200016   bin: 1100 0011 0010 0000 0000 0000 0001 0110  5
+prox_ccylinder_box          0xC3200016   bin: 1100 0011 0010 0000 0000 0000 0001 0110  D-R
 prox_cylinder_cylinder      0xC3200017   bin: 1100 0011 0010 0000 0000 0000 0001 0111  1
 prox_cylinder_box           0xC3200018   bin: 1100 0011 0010 0000 0000 0000 0001 1000  4
 prox_box_box                0xC3200019   bin: 1100 0011 0010 0000 0000 0000 0001 1001  3
