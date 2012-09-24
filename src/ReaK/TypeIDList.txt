@@ -401,19 +401,19 @@ prox_crect_rectangle        0xC3200009   bin: 1100 0011 0010 0000 0000 0000 0000
 prox_rectangle_rectangle    0xC320000A   bin: 1100 0011 0010 0000 0000 0000 0000 1010  D-R
 prox_plane_plane            0xC320000B   bin: 1100 0011 0010 0000 0000 0000 0000 1011  D-R
 prox_plane_sphere           0xC320000C   bin: 1100 0011 0010 0000 0000 0000 0000 1100  D-R
-prox_plane_ccylinder        0xC320000D   bin: 1100 0011 0010 0000 0000 0000 0000 1101  
-prox_plane_cylinder         0xC320000E   bin: 1100 0011 0010 0000 0000 0000 0000 1110  7
-prox_plane_box              0xC320000F   bin: 1100 0011 0010 0000 0000 0000 0000 1111  5
+prox_plane_ccylinder        0xC320000D   bin: 1100 0011 0010 0000 0000 0000 0000 1101  D-R
+prox_plane_cylinder         0xC320000E   bin: 1100 0011 0010 0000 0000 0000 0000 1110  D-R
+prox_plane_box              0xC320000F   bin: 1100 0011 0010 0000 0000 0000 0000 1111  D-R
 prox_sphere_sphere          0xC3200010   bin: 1100 0011 0010 0000 0000 0000 0001 0000  D-R
-prox_sphere_ccylinder       0xC3200011   bin: 1100 0011 0010 0000 0000 0000 0001 0001  
+prox_sphere_ccylinder       0xC3200011   bin: 1100 0011 0010 0000 0000 0000 0001 0001  D-R
 prox_sphere_cylinder        0xC3200012   bin: 1100 0011 0010 0000 0000 0000 0001 0010  D-R
 prox_sphere_box             0xC3200013   bin: 1100 0011 0010 0000 0000 0000 0001 0011  D-R
-prox_ccylinder_ccylinder    0xC3200014   bin: 1100 0011 0010 0000 0000 0000 0001 0100  
-prox_ccylinder_cylinder     0xC3200015   bin: 1100 0011 0010 0000 0000 0000 0001 0101  
-prox_ccylinder_box          0xC3200016   bin: 1100 0011 0010 0000 0000 0000 0001 0110  
-prox_cylinder_cylinder      0xC3200017   bin: 1100 0011 0010 0000 0000 0000 0001 0111  9
-prox_cylinder_box           0xC3200018   bin: 1100 0011 0010 0000 0000 0000 0001 1000  8
-prox_box_box                0xC3200019   bin: 1100 0011 0010 0000 0000 0000 0001 1001  6
+prox_ccylinder_ccylinder    0xC3200014   bin: 1100 0011 0010 0000 0000 0000 0001 0100  D-R
+prox_ccylinder_cylinder     0xC3200015   bin: 1100 0011 0010 0000 0000 0000 0001 0101  2
+prox_ccylinder_box          0xC3200016   bin: 1100 0011 0010 0000 0000 0000 0001 0110  5
+prox_cylinder_cylinder      0xC3200017   bin: 1100 0011 0010 0000 0000 0000 0001 0111  1
+prox_cylinder_box           0xC3200018   bin: 1100 0011 0010 0000 0000 0000 0001 1000  4
+prox_box_box                0xC3200019   bin: 1100 0011 0010 0000 0000 0000 0001 1001  3
 
 
 

@@ -40,6 +40,8 @@ shared_ptr< shape_3D > prox_plane_sphere::getShape2() const {
   return mSphere;
 };
     
+/*
+// this version assumes a finite plane for proximity purposes.
 void prox_plane_sphere::computeProximity() {
   if((!mSphere) || (!mPlane)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
@@ -99,6 +101,24 @@ void prox_plane_sphere::computeProximity() {
     mLastResult.mPoint2 = sp_c + (mSphere->getRadius() / diff_d) * diff;
     mLastResult.mDistance = diff_d - mSphere->getRadius();
   };
+};*/
+
+void prox_plane_sphere::computeProximity() {
+  if((!mSphere) || (!mPlane)) {
+    mLastResult.mDistance = std::numeric_limits<double>::infinity();
+    mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
+    mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
+    return;
+  };
+  
+  vect<double,3> sp_c = mSphere->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  vect<double,3> pl_c = mPlane->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  
+  vect<double,3> sp_c_rel = mPlane->getPose().transformFromGlobal(sp_c);
+  
+  mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],0.0));
+  mLastResult.mPoint2 = mPlane->getPose().transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],sp_c_rel[2] - mSphere->getRadius()));
+  mLastResult.mDistance = sp_c_rel[2] - mSphere->getRadius();
 };
 
 
