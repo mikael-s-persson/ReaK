@@ -61,8 +61,8 @@ void prox_ccylinder_cylinder::computeProximity() {
     if((cy2_c_rel[2] + 0.5 * mCCylinder->getLength() > -0.5 * mCylinder->getLength()) || 
        (cy2_c_rel[2] - 0.5 * mCCylinder->getLength() <  0.5 * mCylinder->getLength())) {
       // there is an overlap between the capped-cylinder sides.
-      double max_z_rel = ((cy2_c_rel[2] + 0.5 * mCCylinder->getLength() <  0.5 * mCylinder->getLength()) ? (cy2_c_rel[2] + 0.5 * mCCylinder->getLength()) : ( 0.5 * mCCylinder1->getLength()));
-      double min_z_rel = ((cy2_c_rel[2] - 0.5 * mCCylinder->getLength() > -0.5 * mCylinder->getLength()) ? (cy2_c_rel[2] - 0.5 * mCCylinder->getLength()) : (-0.5 * mCCylinder1->getLength()));
+      double max_z_rel = ((cy2_c_rel[2] + 0.5 * mCCylinder->getLength() <  0.5 * mCylinder->getLength()) ? (cy2_c_rel[2] + 0.5 * mCCylinder->getLength()) : ( 0.5 * mCylinder->getLength()));
+      double min_z_rel = ((cy2_c_rel[2] - 0.5 * mCCylinder->getLength() > -0.5 * mCylinder->getLength()) ? (cy2_c_rel[2] - 0.5 * mCCylinder->getLength()) : (-0.5 * mCylinder->getLength()));
       double avg_z_rel = (max_z_rel + min_z_rel) * 0.5;
       vect<double,3> cy2_r_rel = unit(vect<double,3>(cy2_c_rel[0],cy2_c_rel[1],0.0));
       mLastResult.mPoint1 = mCylinder->getPose().transformToGlobal(vect<double,3>(mCylinder->getRadius() * cy2_r_rel[0], mCylinder->getRadius() * cy2_r_rel[1], avg_z_rel));

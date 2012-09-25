@@ -53,12 +53,12 @@ void prox_crect_rectangle::computeProximityOfLine(const shared_ptr< rectangle >&
       // there is an overlap between the rectangle side and the line.
       double max_y_rel = ((ln_c_rel[1] + half_length <  0.5 * aRectangle->getDimensions()[1]) ? (ln_c_rel[1] + half_length) : ( 0.5 * aRectangle->getDimensions()[1]));
       double min_y_rel = ((ln_c_rel[1] - half_length > -0.5 * aRectangle->getDimensions()[1]) ? (ln_c_rel[1] - half_length) : (-0.5 * aRectangle->getDimensions()[1]));
-      double avg_y_rel = (max_x_rel + min_x_rel) * 0.5;
+      double avg_y_rel = (max_y_rel + min_y_rel) * 0.5;
       vect<double,2> ln_r_rel(1.0,0.0);
       if(ln_c_rel[0] < 0.0)
         ln_r_rel[0] = -1.0;
-      result.mPoint1 = aRectangle->getPose().transformToGlobal(vect<double,2>(ln_c_rel[0], avg_x_rel));
-      result.mPoint2 = aRectangle->getPose().transformToGlobal(vect<double,2>(0.5 * aRectangle->getDimensions()[0] * ln_r_rel[0], avg_x_rel));
+      result.mPoint1 = aRectangle->getPose().transformToGlobal(vect<double,2>(ln_c_rel[0], avg_y_rel));
+      result.mPoint2 = aRectangle->getPose().transformToGlobal(vect<double,2>(0.5 * aRectangle->getDimensions()[0] * ln_r_rel[0], avg_y_rel));
       result.mDistance = fabs(ln_c_rel[0]) - 0.5 * aRectangle->getDimensions()[0];
       return;
     };
@@ -80,9 +80,9 @@ void prox_crect_rectangle::computeProximityOfLine(const shared_ptr< rectangle >&
     
     vect<double,2> diff_v_rel = ln_pt_rel - re_pt_rel;
     double dist_v_rel = norm_2(diff_v_rel);
-    mLastResult.mPoint1 = aRectangle->getPose().transformToGlobal(ln_pt_rel);
-    mLastResult.mPoint2 = aRectangle->getPose().transformToGlobal(re_pt_rel);
-    mLastResult.mDistance = dist_v_rel;
+    result.mPoint1 = aRectangle->getPose().transformToGlobal(ln_pt_rel);
+    result.mPoint2 = aRectangle->getPose().transformToGlobal(re_pt_rel);
+    result.mDistance = dist_v_rel;
     return;
   };
   
@@ -120,9 +120,9 @@ void prox_crect_rectangle::computeProximityOfLine(const shared_ptr< rectangle >&
     
     vect<double,2> diff_v_rel = ln_pt_rel - re_pt_rel;
     double dist_v_rel = norm_2(diff_v_rel);
-    mLastResult.mPoint1 = aRectangle->getPose().transformToGlobal(ln_pt_rel);
-    mLastResult.mPoint2 = aRectangle->getPose().transformToGlobal(re_pt_rel);
-    mLastResult.mDistance = dist_v_rel;
+    result.mPoint1 = aRectangle->getPose().transformToGlobal(ln_pt_rel);
+    result.mPoint2 = aRectangle->getPose().transformToGlobal(re_pt_rel);
+    result.mDistance = dist_v_rel;
     return;
   };
   

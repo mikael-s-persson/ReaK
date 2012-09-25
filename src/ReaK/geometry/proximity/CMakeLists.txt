@@ -61,11 +61,9 @@ setup_custom_target(reak_geom_prox "${SRCROOT}${RKPROXIMITYDIR}")
 setup_headers("${PROXIMITY_HEADERS}" "${RKPROXIMITYDIR}")
 target_link_libraries(reak_geom_prox reak_geom reak_core)
 
-#add_executable(test_mbd_basic "${SRCROOT}${RKMBDKTEDIR}/test_bm.cpp")
-#setup_custom_target(test_mbd_basic "${SRCROOT}${RKMBDKTEDIR}")
-
-#target_link_libraries(test_mbd_basic ${Boost_LIBRARIES})
-#target_link_libraries(test_mbd_basic reak_mbd_kte reak_core)
+add_executable(test_nlp_proximity "${SRCROOT}${RKPROXIMITYDIR}/test_nlp_proximity.cpp")
+setup_custom_target(test_nlp_proximity "${SRCROOT}${RKPROXIMITYDIR}")
+target_link_libraries(test_nlp_proximity reak_geom_prox reak_geom reak_core)
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 

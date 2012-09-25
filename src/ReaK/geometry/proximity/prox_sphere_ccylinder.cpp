@@ -53,9 +53,9 @@ void prox_sphere_ccylinder::computeProximity() {
   vect<double,3> cy_c = mCCylinder->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
   
   vect<double,3> sp_c_rel = mCCylinder->getPose().transformFromGlobal(sp_c);
-  double sp_c_rel_rad = sqrt(sp_c_rel[0] * sp_c_rel[0] + sp_c_rel[1] * sp_c_rel[1]);
+  //double sp_c_rel_rad = sqrt(sp_c_rel[0] * sp_c_rel[0] + sp_c_rel[1] * sp_c_rel[1]);
   
-  if(fabs(sp_c_rel[2]) <= 0.5 * mCylinder->getLength()) {
+  if(fabs(sp_c_rel[2]) <= 0.5 * mCCylinder->getLength()) {
     // The sphere is around the round side of the cylinder.
     //  this means the min-dist point is on the round shell of the cylinder in the direction of sphere center.
     vect<double,3> sp_c_proj = vect<double,3>(sp_c_rel[0],sp_c_rel[1],0.0);

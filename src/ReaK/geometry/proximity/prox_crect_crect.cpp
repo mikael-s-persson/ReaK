@@ -65,7 +65,7 @@ void prox_crect_crect::computeProximity() {
       vect<double,2> cr2_r_rel(0.0,1.0);
       if(cr2_c_rel[1] < 0.0)
         cr2_r_rel[1] = -1.0;
-      mLastResult.mPoint1 = mCRect1->getPose().transformToGlobal(vect<double,2>(avg_x_rel, 0.5 * mCRect1->getDimensions()[1] * cy2_r_rel[1]));
+      mLastResult.mPoint1 = mCRect1->getPose().transformToGlobal(vect<double,2>(avg_x_rel, 0.5 * mCRect1->getDimensions()[1] * cr2_r_rel[1]));
       mLastResult.mPoint2 = mCRect1->getPose().transformToGlobal(vect<double,2>(avg_x_rel, cr2_c_rel[1] - 0.5 * mCRect2->getDimensions()[1] * cr2_r_rel[1]));
       mLastResult.mDistance = fabs(cr2_c_rel[1]) - 0.5 * mCRect1->getDimensions()[1] - 0.5 * mCRect2->getDimensions()[1];
       return;
@@ -125,8 +125,8 @@ void prox_crect_crect::computeProximity() {
   
   vect<double,2> diff_v_rel = cr2_ptc - cr1_ptc;
   double dist_v_rel = norm_2(diff_v_rel);
-  mLastResult.mPoint1 = mCRect1->getPose().transformToGlobal(cy1_ptc + (0.5 * mCRect1->getDimensions()[1] / dist_v_rel) * diff_v_rel);
-  mLastResult.mPoint2 = mCRect1->getPose().transformToGlobal(cy2_ptc - (0.5 * mCRect2->getDimensions()[1] / dist_v_rel) * diff_v_rel);
+  mLastResult.mPoint1 = mCRect1->getPose().transformToGlobal(cr1_ptc + (0.5 * mCRect1->getDimensions()[1] / dist_v_rel) * diff_v_rel);
+  mLastResult.mPoint2 = mCRect1->getPose().transformToGlobal(cr2_ptc - (0.5 * mCRect2->getDimensions()[1] / dist_v_rel) * diff_v_rel);
   mLastResult.mDistance = dist_v_rel - 0.5 * mCRect1->getDimensions()[1] - 0.5 * mCRect2->getDimensions()[1];
   
 };

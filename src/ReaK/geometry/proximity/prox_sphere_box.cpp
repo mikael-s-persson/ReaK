@@ -57,7 +57,7 @@ void prox_sphere_box::computeProximity() {
   proximity_record_3D bxpt_result = findProximityBoxToPoint(mBox, sp_c);
   
   // add a sphere-sweep around the point-box solution.
-  vect<double,2> diff_v = bxpt_result.mPoint1 - bxpt_result.mPoint2;
+  vect<double,3> diff_v = bxpt_result.mPoint1 - bxpt_result.mPoint2;
   double diff_d = norm_2(diff_v);
   if(bxpt_result.mDistance < 0.0)
     mLastResult.mPoint1 = bxpt_result.mPoint2 - (mSphere->getRadius() / diff_d) * diff_v;

@@ -55,8 +55,6 @@ void prox_circle_crect::computeProximity() {
   
   bool in_x_range = ((ci_c_rel[0] > -0.5 * mCRect->getDimensions()[0]) &&
                      (ci_c_rel[0] <  0.5 * mCRect->getDimensions()[0]));
-  bool in_y_range = ((ci_c_rel[1] > -0.5 * mCRect->getDimensions()[1]) &&
-                     (ci_c_rel[1] <  0.5 * mCRect->getDimensions()[1]));
   
   if(in_x_range) {
     if(ci_c_rel[1] > 0.0) {

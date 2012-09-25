@@ -23,6 +23,8 @@
 
 #include "prox_ccylinder_box.hpp"
 
+#include "prox_fundamentals_3D.hpp"
+
 /** Main namespace for ReaK */
 namespace ReaK {
 
@@ -30,11 +32,11 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_2D > prox_ccylinder_box::getShape1() const {
+shared_ptr< shape_3D > prox_ccylinder_box::getShape1() const {
   return mCCylinder;
 };
 
-shared_ptr< shape_2D > prox_ccylinder_box::getShape2() const {
+shared_ptr< shape_3D > prox_ccylinder_box::getShape2() const {
   return mBox;
 };
 
@@ -56,7 +58,7 @@ void prox_ccylinder_box::computeProximity() {
   proximity_record_3D bxln_result = findProximityBoxToLine(mBox, cy_c, cy_t, 0.5 * mCCylinder->getLength());
   
   // add a sphere-sweep around the point-box solution.
-  vect<double,2> diff_v = bxln_result.mPoint1 - bxln_result.mPoint2;
+  vect<double,3> diff_v = bxln_result.mPoint1 - bxln_result.mPoint2;
   double diff_d = norm_2(diff_v);
   if(bxln_result.mDistance < 0.0)
     mLastResult.mPoint1 = bxln_result.mPoint2 - (mCCylinder->getRadius() / diff_d) * diff_v;
