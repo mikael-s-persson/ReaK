@@ -63,7 +63,7 @@ target_link_libraries(reak_geom_prox reak_geom reak_core)
 
 add_executable(test_nlp_proximity "${SRCROOT}${RKPROXIMITYDIR}/test_nlp_proximity.cpp")
 setup_custom_target(test_nlp_proximity "${SRCROOT}${RKPROXIMITYDIR}")
-target_link_libraries(test_nlp_proximity reak_geom_prox reak_geom reak_core)
+target_link_libraries(test_nlp_proximity reak_geom_prox reak_geom reak_geom_nr reak_core)
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 

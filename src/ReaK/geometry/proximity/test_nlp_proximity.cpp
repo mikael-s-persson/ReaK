@@ -88,13 +88,19 @@ struct proximity_solver {
         
         std::cout << "Checking proximity between Box '" << bx1->getName() << "' and Box '" << bx2->getName() << "'..." << std::endl;
         
-        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),1.0,0.1,300,1e-6,1e-3,0.99)
+        try {
+        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),2.0 * min_dim,1.0,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
             geom::dual_boundary_func<geom::box_boundary_func, geom::box_boundary_func>(
               geom::box_boundary_func(bx1), geom::box_boundary_func(bx2)),
             geom::dual_boundary_jac<geom::box_boundary_jac, geom::box_boundary_jac>(
               geom::box_boundary_jac(bx1), geom::box_boundary_jac(bx2)))
           (x);
+        } catch(...) { };
+        
+        std::cout << "  -- The raw solution obtained was: " << x << std::endl;
+        std::cout << "  -- The shape1 boundary functions give: " << geom::box_boundary_func(bx1)(x) << std::endl;
+        std::cout << "  -- The shape2 boundary functions give: " << geom::box_boundary_func(bx2)(x) << std::endl;
         
       } else {
         // box-cylinder case.
@@ -108,13 +114,19 @@ struct proximity_solver {
         
         std::cout << "Checking proximity between Box '" << bx1->getName() << "' and Cylinder '" << cy2->getName() << "'..." << std::endl;
         
-        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),1.0,0.1,300,1e-6,1e-3,0.99)
+        try {
+        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),2.0 * min_dim,1.0,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
             geom::dual_boundary_func<geom::box_boundary_func, geom::cylinder_boundary_func>(
               geom::box_boundary_func(bx1), geom::cylinder_boundary_func(cy2)),
             geom::dual_boundary_jac<geom::box_boundary_jac, geom::cylinder_boundary_jac>(
               geom::box_boundary_jac(bx1), geom::cylinder_boundary_jac(cy2)))
           (x);
+        } catch(...) { };
+        
+        std::cout << "  -- The raw solution obtained was: " << x << std::endl;
+        std::cout << "  -- The shape1 boundary functions give: " << geom::box_boundary_func(bx1)(x) << std::endl;
+        std::cout << "  -- The shape2 boundary functions give: " << geom::cylinder_boundary_func(cy2)(x) << std::endl;
         
       };
     } else {
@@ -136,13 +148,19 @@ struct proximity_solver {
         
         std::cout << "Checking proximity between Cylinder '" << cy1->getName() << "' and Box '" << bx2->getName() << "'..." << std::endl;
         
-        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),1.0,0.1,300,1e-6,1e-3,0.99)
+        try {
+        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),2.0 * min_dim,1.0,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
             geom::dual_boundary_func<geom::cylinder_boundary_func, geom::box_boundary_func>(
               geom::cylinder_boundary_func(cy1), geom::box_boundary_func(bx2)),
             geom::dual_boundary_jac<geom::cylinder_boundary_jac, geom::box_boundary_jac>(
               geom::cylinder_boundary_jac(cy1), geom::box_boundary_jac(bx2)))
           (x);
+        } catch(...) { };
+        
+        std::cout << "  -- The raw solution obtained was: " << x << std::endl;
+        std::cout << "  -- The shape1 boundary functions give: " << geom::cylinder_boundary_func(cy1)(x) << std::endl;
+        std::cout << "  -- The shape2 boundary functions give: " << geom::box_boundary_func(bx2)(x) << std::endl;
         
       } else {
         // cylinder-cylinder case.
@@ -156,19 +174,23 @@ struct proximity_solver {
         
         std::cout << "Checking proximity between Cylinder '" << cy1->getName() << "' and Cylinder '" << cy2->getName() << "'..." << std::endl;
         
-        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),1.0,0.1,300,1e-6,1e-3,0.99)
+        try {
+        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),2.0 * min_dim,1.0,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
             geom::dual_boundary_func<geom::cylinder_boundary_func, geom::cylinder_boundary_func>(
               geom::cylinder_boundary_func(cy1), geom::cylinder_boundary_func(cy2)),
             geom::dual_boundary_jac<geom::cylinder_boundary_jac, geom::cylinder_boundary_jac>(
               geom::cylinder_boundary_jac(cy1), geom::cylinder_boundary_jac(cy2)))
           (x);
+        } catch(...) { };
+        
+        std::cout << "  -- The raw solution obtained was: " << x << std::endl;
+        std::cout << "  -- The shape1 boundary functions give: " << geom::cylinder_boundary_func(cy1)(x) << std::endl;
+        std::cout << "  -- The shape2 boundary functions give: " << geom::cylinder_boundary_func(cy2)(x) << std::endl;
         
       };
     };
     
-    
-    std::cout << "  -- The raw solution obtained was: " << x << std::endl;
     vect<double,3> result(x[1],x[2],x[3]);
     vect<double,3> x1_rel = mShape1->getPose().transformFromGlobal(vect<double,3>(x[1],x[2],x[3]));
     vect<double,3> x2_rel = mShape2->getPose().transformFromGlobal(vect<double,3>(x[1],x[2],x[3]));
