@@ -60,8 +60,6 @@ class box : public shape_3D {
      */
     void setDimensions(const vect<double,3>& aDimensions) { mDimensions = aDimensions; };
     
-    virtual void render() const;
-    
     /**
      * Default constructor.
      * \param aName The name of the object.

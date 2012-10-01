@@ -72,8 +72,6 @@ class capped_cylinder : public shape_3D {
      */
     void setRadius(double aRadius) { mRadius = aRadius; };
     
-    virtual void render() const;
-    
     /**
      * Default constructor.
      * \param aName The name of the object.

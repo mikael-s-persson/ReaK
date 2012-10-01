@@ -60,8 +60,6 @@ class composite_shape_3D : public shape_3D {
      */
     std::vector< shared_ptr< shape_3D > >& Shapes() { return mShapes; };
     
-    virtual void render() const;
-    
     /**
      * Default constructor.
      */

@@ -60,8 +60,6 @@ class circle : public shape_2D {
      */
     void setRadius(double aRadius) { mRadius = aRadius; };
     
-    virtual void render() const;
-    
     /**
      * Default constructor.
      * \param aName The name of the object.

@@ -56,13 +56,14 @@ proximity_record_3D findProximityBoxToLine(const shared_ptr< box >& aBox, const 
 
 struct slack_minimize_func {
   double operator()(const vect_n<double>& aX) {
-    return 0.5 * aX[0] * aX[0];
+    return aX[0];
   };
 };
 
 struct slack_minimize_grad {
   vect_n<double> operator()(const vect_n<double>& aX) {
-    return vect_n<double>(aX[0], 0.0, 0.0, 0.0);
+    return vect_n<double>(1.0, 0.0, 0.0, 0.0);
+    //return vect_n<double>(aX[0], 0.0, 0.0, 0.0);
   };
 };
 
@@ -70,7 +71,7 @@ struct slack_minimize_hess {
   template <typename Matrix>
   void operator()(Matrix& H, const vect_n<double>&, double, const vect_n<double>&) const {
     H = mat<double,mat_structure::nil>(4,4);
-    H(0,0) = 1.0;
+    //H(0,0) = 1.0;
   };
 };
 
@@ -84,12 +85,14 @@ struct cylinder_boundary_func {
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   vect_n<double> operator()(const vect_n<double>& aX) {
+    using std::sqrt;
     vect_n<double> result(3);
     vect<double,3> pt(aX[1],aX[2],aX[3]);
     vect<double,3> pt_rel = mCylinder->getPose().transformFromGlobal(pt);
     result[0] = pt_rel[2] + 0.5 * aX[0] * mCylinder->getLength(); // lower-bound.
     result[1] = 0.5 * aX[0] * mCylinder->getLength() - pt_rel[2]; // upper-bound.
-    result[2] = aX[0] * aX[0] * mCylinder->getRadius() * mCylinder->getRadius() - pt_rel[0] * pt_rel[0] - pt_rel[1] * pt_rel[1];
+    result[2] = aX[0] * mCylinder->getRadius() - sqrt(pt_rel[0] * pt_rel[0] + pt_rel[1] * pt_rel[1]);
+    //result[2] = aX[0] * aX[0] * mCylinder->getRadius() * mCylinder->getRadius() - pt_rel[0] * pt_rel[0] - pt_rel[1] * pt_rel[1];
     return result;
   };
 };
@@ -104,6 +107,7 @@ struct cylinder_boundary_jac {
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   template <typename Matrix>
   void operator()(Matrix& aJac, const vect_n<double>& aX, const vect_n<double>& aH) {
+    using std::sqrt;
     vect<double,3> pt(aX[1],aX[2],aX[3]);
     vect<double,3> pt_rel = mCylinder->getPose().transformFromGlobal(pt);
     
@@ -125,10 +129,16 @@ struct cylinder_boundary_jac {
     aJac(1,3) = -z_rel[2];
     
     //result[2] = aX[0] * aX[0] * mCylinder->getRadius() * mCylinder->getRadius() - pt_rel[0] * pt_rel[0] - pt_rel[1] * pt_rel[1];
-    aJac(2,0) = 2.0 * aX[0] * mCylinder->getRadius() * mCylinder->getRadius();
-    aJac(2,1) = -2.0 * (pt_rel[0] * x_rel[0] + pt_rel[1] * x_rel[1]);
-    aJac(2,2) = -2.0 * (pt_rel[0] * y_rel[0] + pt_rel[1] * y_rel[1]);
-    aJac(2,3) = -2.0 * (pt_rel[0] * z_rel[0] + pt_rel[1] * z_rel[1]);
+    aJac(2,0) = mCylinder->getRadius();
+    double tmp = sqrt(pt_rel[0] * pt_rel[0] + pt_rel[1] * pt_rel[1]);
+    tmp = (tmp < 1e-6 ? 1e-6 : tmp);
+    aJac(2,1) = -(pt_rel[0] * x_rel[0] + pt_rel[1] * x_rel[1]) / tmp;
+    aJac(2,2) = -(pt_rel[0] * y_rel[0] + pt_rel[1] * y_rel[1]) / tmp;
+    aJac(2,3) = -(pt_rel[0] * z_rel[0] + pt_rel[1] * z_rel[1]) / tmp;
+    //aJac(2,0) = 2.0 * aX[0] * mCylinder->getRadius() * mCylinder->getRadius();
+    //aJac(2,1) = -2.0 * (pt_rel[0] * x_rel[0] + pt_rel[1] * x_rel[1]);
+    //aJac(2,2) = -2.0 * (pt_rel[0] * y_rel[0] + pt_rel[1] * y_rel[1]);
+    //aJac(2,3) = -2.0 * (pt_rel[0] * z_rel[0] + pt_rel[1] * z_rel[1]);
     
   };
 };
@@ -142,18 +152,19 @@ struct ccylinder_boundary_func {
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   vect_n<double> operator()(const vect_n<double>& aX) {
+    using std::sqrt;
     vect_n<double> result(1);
     vect<double,3> pt(aX[1],aX[2],aX[3]);
     vect<double,3> pt_rel = mCCylinder->getPose().transformFromGlobal(pt);
     
     if(pt_rel[2] > 0.5 * aX[0] * mCCylinder->getLength()) {
       double tmp = pt_rel[2] - 0.5 * aX[0] * mCCylinder->getLength();
-      result[0] = aX[0] * aX[0] * mCCylinder->getRadius() * mCCylinder->getRadius() - pt_rel[0] * pt_rel[0] - pt_rel[1] * pt_rel[1] - tmp * tmp;
+      result[0] = aX[0] * mCCylinder->getRadius() - sqrt(pt_rel[0] * pt_rel[0] + pt_rel[1] * pt_rel[1] + tmp * tmp);
     } else if(pt_rel[2] < -0.5 * aX[0] * mCCylinder->getLength()) {
       double tmp = pt_rel[2] + 0.5 * aX[0] * mCCylinder->getLength();
-      result[0] = aX[0] * aX[0] * mCCylinder->getRadius() * mCCylinder->getRadius() - pt_rel[0] * pt_rel[0] - pt_rel[1] * pt_rel[1] - tmp * tmp;
+      result[0] = aX[0] * mCCylinder->getRadius() - sqrt(pt_rel[0] * pt_rel[0] + pt_rel[1] * pt_rel[1] + tmp * tmp);
     } else {
-      result[0] = aX[0] * aX[0] * mCCylinder->getRadius() * mCCylinder->getRadius() - pt_rel[0] * pt_rel[0] - pt_rel[1] * pt_rel[1]; 
+      result[0] = aX[0] * mCCylinder->getRadius() - sqrt(pt_rel[0] * pt_rel[0] + pt_rel[1] * pt_rel[1]); 
     };
     
     return result;
@@ -170,6 +181,7 @@ struct ccylinder_boundary_jac {
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   template <typename Matrix>
   void operator()(Matrix& aJac, const vect_n<double>& aX, const vect_n<double>& aH) {
+    using std::sqrt;
     vect<double,3> pt(aX[1],aX[2],aX[3]);
     vect<double,3> pt_rel = mCCylinder->getPose().transformFromGlobal(pt);
     
@@ -177,19 +189,27 @@ struct ccylinder_boundary_jac {
     vect<double,3> y_rel = mCCylinder->getPose().rotateFromGlobal(vect<double,3>(0.0,1.0,0.0));
     vect<double,3> z_rel = mCCylinder->getPose().rotateFromGlobal(vect<double,3>(0.0,0.0,1.0));
     //aJac.resize(1,4);
-    aJac(0,0) = 2.0 * aX[0] * mCCylinder->getRadius() * mCCylinder->getRadius();
+    aJac(0,0) = mCCylinder->getRadius();
     
     double tmp = 0.0;
+    double dist = 0.0;
     if(pt_rel[2] > 0.5 * aX[0] * mCCylinder->getLength()) {
       tmp = pt_rel[2] - 0.5 * aX[0] * mCCylinder->getLength();
-      aJac(0,0) -= tmp * mCCylinder->getLength();
+      dist = sqrt(pt_rel[0] * pt_rel[0] + pt_rel[1] * pt_rel[1] + tmp * tmp);
+      dist = (dist < 1e-6 ? 1e-6 : dist);
+      aJac(0,0) -= 0.5 * tmp * mCCylinder->getLength() / dist;
     } else if(pt_rel[2] < -0.5 * aX[0] * mCCylinder->getLength()) {
       tmp = pt_rel[2] + 0.5 * aX[0] * mCCylinder->getLength();
-      aJac(0,0) += tmp * mCCylinder->getLength();
+      dist = sqrt(pt_rel[0] * pt_rel[0] + pt_rel[1] * pt_rel[1] + tmp * tmp);
+      dist = (dist < 1e-6 ? 1e-6 : dist);
+      aJac(0,0) += 0.5 * tmp * mCCylinder->getLength() / dist;
+    } else {
+      dist = sqrt(pt_rel[0] * pt_rel[0] + pt_rel[1] * pt_rel[1]);
+      dist = (dist < 1e-6 ? 1e-6 : dist);
     };
-    aJac(0,1) = -2.0 * (pt_rel[0] * x_rel[0] + pt_rel[1] * x_rel[1] + tmp * x_rel[2]);
-    aJac(0,2) = -2.0 * (pt_rel[0] * y_rel[0] + pt_rel[1] * y_rel[1] + tmp * y_rel[2]);
-    aJac(0,3) = -2.0 * (pt_rel[0] * z_rel[0] + pt_rel[1] * z_rel[1] + tmp * z_rel[2]);
+    aJac(0,1) = -(pt_rel[0] * x_rel[0] + pt_rel[1] * x_rel[1] + tmp * x_rel[2]) / dist;
+    aJac(0,2) = -(pt_rel[0] * y_rel[0] + pt_rel[1] * y_rel[1] + tmp * y_rel[2]) / dist;
+    aJac(0,3) = -(pt_rel[0] * z_rel[0] + pt_rel[1] * z_rel[1] + tmp * z_rel[2]) / dist;
     
   };
 };

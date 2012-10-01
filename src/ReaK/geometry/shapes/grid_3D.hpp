@@ -72,8 +72,6 @@ class grid_3D : public geometry_3D {
      */
     void setSquareCounts(const vect<std::size_t,3>& aSquareCounts) { mSquareCounts = aSquareCounts; };
     
-    virtual void render() const;
-    
     /**
      * Default constructor.
      * \param aName The name of the object.

@@ -28,12 +28,6 @@ namespace ReaK {
 namespace geom {
 
 
-
-void composite_shape_2D::render() const {
-  for(std::vector< shared_ptr< shape_2D > >::const_iterator it = mShapes.begin(); it != mShapes.end(); ++it)
-    (*it)->render();
-};
-    
 composite_shape_2D::composite_shape_2D(const std::string& aName) : shape_2D(aName), mShapes() { };
 
 void RK_CALL composite_shape_2D::save(ReaK::serialization::oarchive& A, unsigned int) const {

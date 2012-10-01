@@ -59,8 +59,6 @@ class coord_arrows_3D : public geometry_3D {
      */
     void setArrowLength(double aArrowLength) { mArrowLength = aArrowLength; };
     
-    virtual void render() const;
-    
     /**
      * Default constructor.
      * \param aName The name of the object.

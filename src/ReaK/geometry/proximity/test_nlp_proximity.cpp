@@ -89,7 +89,7 @@ struct proximity_solver {
         std::cout << "Checking proximity between Box '" << bx1->getName() << "' and Box '" << bx2->getName() << "'..." << std::endl;
         
         try {
-        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),2.0 * min_dim,1.0,300,1e-4,1e-3,0.9)
+        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),min_dim,0.1,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
             geom::dual_boundary_func<geom::box_boundary_func, geom::box_boundary_func>(
               geom::box_boundary_func(bx1), geom::box_boundary_func(bx2)),
@@ -115,7 +115,7 @@ struct proximity_solver {
         std::cout << "Checking proximity between Box '" << bx1->getName() << "' and Cylinder '" << cy2->getName() << "'..." << std::endl;
         
         try {
-        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),2.0 * min_dim,1.0,300,1e-4,1e-3,0.9)
+        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),min_dim,0.1,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
             geom::dual_boundary_func<geom::box_boundary_func, geom::cylinder_boundary_func>(
               geom::box_boundary_func(bx1), geom::cylinder_boundary_func(cy2)),
@@ -149,7 +149,7 @@ struct proximity_solver {
         std::cout << "Checking proximity between Cylinder '" << cy1->getName() << "' and Box '" << bx2->getName() << "'..." << std::endl;
         
         try {
-        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),2.0 * min_dim,1.0,300,1e-4,1e-3,0.9)
+        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),min_dim,0.1,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
             geom::dual_boundary_func<geom::cylinder_boundary_func, geom::box_boundary_func>(
               geom::cylinder_boundary_func(cy1), geom::box_boundary_func(bx2)),
@@ -175,7 +175,7 @@ struct proximity_solver {
         std::cout << "Checking proximity between Cylinder '" << cy1->getName() << "' and Cylinder '" << cy2->getName() << "'..." << std::endl;
         
         try {
-        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),2.0 * min_dim,1.0,300,1e-4,1e-3,0.9)
+        optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),min_dim,0.1,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
             geom::dual_boundary_func<geom::cylinder_boundary_func, geom::cylinder_boundary_func>(
               geom::cylinder_boundary_func(cy1), geom::cylinder_boundary_func(cy2)),

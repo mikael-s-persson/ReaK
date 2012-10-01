@@ -60,8 +60,6 @@ class capped_rectangle : public shape_2D {
      */
     void setDimensions(const vect<double,2>& aDimensions) { mDimensions = aDimensions; };
     
-    virtual void render() const;
-    
     /**
      * Default constructor.
      * \param aName The name of the object.

@@ -44,8 +44,7 @@ geometry_3D::geometry_3D(const std::string& aName,
 			 const pose_3D<double>& aPose) : 
 			 named_object(),
 			 mAnchor(aAnchor),
-			 mPose(aPose),
-			 mRenderPimpl() {
+			 mPose(aPose) {
   mPose.Parent = mAnchor;
   this->setName(aName);
 };
@@ -61,7 +60,6 @@ void RK_CALL geometry_3D::load(ReaK::serialization::iarchive& A, unsigned int) {
   named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
   A & RK_SERIAL_LOAD_WITH_NAME(mAnchor)
     & RK_SERIAL_LOAD_WITH_NAME(mPose);
-  mRenderPimpl = shared_ptr< render_pimpl >();
 };
 
 

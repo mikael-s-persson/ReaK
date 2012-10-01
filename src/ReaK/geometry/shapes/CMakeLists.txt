@@ -52,13 +52,42 @@ setup_custom_target(reak_geom "${SRCROOT}${RKSHAPESDIR}")
 setup_headers("${SHAPES_HEADERS}" "${RKSHAPESDIR}")
 target_link_libraries(reak_geom reak_core)
 
-add_library(reak_geom_nr STATIC "${SRCROOT}${RKSHAPESDIR}/no_render_pimples.cpp")
-setup_custom_target(reak_geom_nr "${SRCROOT}${RKSHAPESDIR}")
-target_link_libraries(reak_geom_nr reak_geom reak_core)
+#add_library(reak_geom_nr STATIC "${SRCROOT}${RKSHAPESDIR}/no_render_pimples.cpp")
+#setup_custom_target(reak_geom_nr "${SRCROOT}${RKSHAPESDIR}")
+#target_link_libraries(reak_geom_nr reak_geom reak_core)
 
 
-#add_executable(test_mbd_basic "${SRCROOT}${RKMBDKTEDIR}/test_bm.cpp")
-#setup_custom_target(test_mbd_basic "${SRCROOT}${RKMBDKTEDIR}")
+
+find_package(Coin3D)
+
+if(COIN3D_FOUND)
+  message(STATUS "Coin3D library components were found: '${COIN3D_LIBRARIES}'")
+else()
+  message(WARNING "Coin3D was not detected on this system, some test programs will not be built!")
+endif()
+
+find_package( Qt4 )
+
+if(COIN3D_FOUND AND QT_FOUND)
+  FIND_LIBRARY(SOQT4_LIBRARIES SoQt4)
+
+  add_library(reak_geom_coin STATIC "${SRCROOT}${RKSHAPESDIR}/oi_scene_graph.cpp")
+  setup_custom_target(reak_geom_coin "${SRCROOT}${RKSHAPESDIR}")
+  target_link_libraries(reak_geom_coin ${COIN3D_LIBRARIES} reak_geom reak_core)
+  
+  include( ${QT_USE_FILE} )
+  
+  add_executable(test_coin3d "${SRCROOT}${RKSHAPESDIR}/test_coin3d.cpp")
+  setup_custom_target(test_coin3d "${SRCROOT}${RKSHAPESDIR}")
+  
+  target_link_libraries(test_coin3d ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
+#  target_link_libraries(test_coin3d reak_mbd_kte reak_core)
+  
+  include_directories(BEFORE ${COIN3D_INCLUDE_DIRS})
+  include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
+endif()
+
+
 
 #target_link_libraries(test_mbd_basic ${Boost_LIBRARIES})
 #target_link_libraries(test_mbd_basic reak_mbd_kte reak_core)

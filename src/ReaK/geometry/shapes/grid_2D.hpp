@@ -72,8 +72,6 @@ class grid_2D : public geometry_2D {
      */
     void setSquareCounts(const vect<std::size_t,2>& aSquareCounts) { mSquareCounts = aSquareCounts; };
     
-    virtual void render() const;
-    
     /**
      * Default constructor.
      * \param aName The name of the object.

@@ -36,7 +36,6 @@
 
 #include "kinetostatics/pose_3D.hpp"
 
-#include "base_render_pimpl.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -50,8 +49,6 @@ class geometry_3D : public named_object {
   protected:
     shared_ptr< pose_3D<double> > mAnchor;
     pose_3D<double> mPose;
-    
-    mutable shared_ptr< render_pimpl > mRenderPimpl;
     
   public:
     
@@ -76,11 +73,6 @@ class geometry_3D : public named_object {
      * \param aPose The new pose object.
      */
     void setPose(const pose_3D<double>& aPose);
-    
-    /**
-     * This virtual function renders the geometry (implementation is defined in derived classes).
-     */
-    virtual void render() const = 0;
     
     /**
      * Default constructor.

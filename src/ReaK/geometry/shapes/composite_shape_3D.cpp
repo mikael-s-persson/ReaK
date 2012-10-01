@@ -29,10 +29,6 @@ namespace geom {
 
 
 
-void composite_shape_3D::render() const {
-  for(std::vector< shared_ptr< shape_3D > >::const_iterator it = mShapes.begin(); it != mShapes.end(); ++it)
-    (*it)->render();
-};
     
 composite_shape_3D::composite_shape_3D(const std::string& aName) : shape_3D(aName), mShapes() { };
 
