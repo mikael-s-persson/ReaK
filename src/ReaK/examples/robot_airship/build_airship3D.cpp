@@ -31,10 +31,14 @@
 
 #include "mbd_kte/kte_map_chain.hpp"
 
+#include "shapes/colored_model.hpp"
+#include "shapes/sphere.hpp"
+#include "shapes/box.hpp"
+
 #include "serialization/xml_archiver.hpp"
 
 
-int main() {
+int main(int argc, char ** argv) {
   using namespace ReaK;
   
   shared_ptr< frame_3D<double> > 
@@ -96,6 +100,19 @@ int main() {
                      << airship3D_joint 
                      << airship3D_inertia;
   
+  geom::colored_model_3D geom_mdl;
+  geom_mdl
+    .addAnchor(airship3D_output_frame)
+    .addElement(geom::color(1,1,1), shared_ptr<geom::sphere>( new geom::sphere("airship3D_hull", airship3D_output_frame, pose_3D<double>(), 0.93)))
+    .addElement(geom::color(0.2,0.2,0.2), shared_ptr<geom::box>( new geom::box("airship3D_grapple", 
+                                                    airship3D_output_frame, 
+                                                    pose_3D<double>(shared_ptr< pose_3D<double> >(),
+                                                                    vect<double,3>(0.97 * std::sin(0.2 / 0.93),0.0,0.97 * std::cos(0.2 / 0.93)),
+                                                                    quaternion<double>(axis_angle<double>(0.2 / 0.93 / 2.0,vect<double,3>(0.0,1.0,0.0)).getQuaternion())),
+                                                    vect<double,3>(0.003,0.08,0.1)
+                                                   )));
+  
+  
   {
     serialization::xml_oarchive out("airship3D_basic.xml");
     out << airship3D_frame
@@ -104,7 +121,8 @@ int main() {
         << airship3D_actuator
         << airship3D_inertia
         << airship3D_model
-        << airship3D_mass_calc;
+        << airship3D_mass_calc
+        << geom_mdl;
   };
   
   {

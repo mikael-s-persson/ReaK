@@ -23,13 +23,13 @@
 #define M_PI 3.14159
 #endif
 
-
+/*
 static void incrementRotation(void *data, SoSensor*) {
   SoRotation* cone_rot = reinterpret_cast<SoRotation*>(data);
   SbRotation current_rot = cone_rot->rotation.getValue();
   current_rot *= SbRotation(SbVec3f(0,0,1), M_PI * 0.01);
   cone_rot->rotation.setValue(current_rot);
-};
+};*/
 
 
 int main(int argc, char ** argv) {

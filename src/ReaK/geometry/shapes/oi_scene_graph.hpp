@@ -36,6 +36,9 @@
 #include "geometry_2D.hpp"
 #include "geometry_3D.hpp"
 
+#include "color.hpp"
+#include "colored_model.hpp"
+
 #include <map>
 
 // forward-declarations of the open-inventory node classes:
@@ -57,6 +60,7 @@ class oi_scene_graph {
   protected:
     SoSeparator* mRoot;
     SoTimerSensor* mTimer;
+    color mCurrentColor;
     
     std::map< shared_ptr< pose_2D<double> >, std::pair<SoSeparator*, SoTransform*> > mAnchor2DMap;
     std::map< shared_ptr< pose_3D<double> >, std::pair<SoSeparator*, SoTransform*> > mAnchor3DMap;
@@ -87,6 +91,9 @@ class oi_scene_graph {
     oi_scene_graph& operator<<(oi_scene_graph& aSG, const shared_ptr< pose_3D<double> >& aAnchor);
     
     friend
+    oi_scene_graph& operator<<(oi_scene_graph& aSG, const color& aColor);
+    
+    friend
     oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D);
     
     friend
@@ -100,8 +107,30 @@ class oi_scene_graph {
       return aSG;
     };
     
+    friend
+    oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_2D& aModel);
+    
+    friend
+    oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_3D& aModel);
     
 };
+
+
+// Re-declaration down in the geom namespace directly as some compilers give trouble with friend functions only declared in the class.
+
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const shared_ptr< pose_2D<double> >& aAnchor);
+    
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const shared_ptr< pose_3D<double> >& aAnchor);
+    
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const color& aColor);
+    
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D);
+    
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D);
+
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_2D& aModel);
+    
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_3D& aModel);
 
 
 };

@@ -40,11 +40,14 @@ setup_custom_target(estimate_airship2D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
 target_link_libraries(estimate_airship2D ${Boost_LIBRARIES})
 target_link_libraries(estimate_airship2D reak_core)
 
+
+  
 add_executable(build_airship3D "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_airship3D.cpp")
 setup_custom_target(build_airship3D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-
+  
 target_link_libraries(build_airship3D ${Boost_LIBRARIES})
-target_link_libraries(build_airship3D reak_mbd_kte reak_core)
+target_link_libraries(build_airship3D reak_mbd_kte reak_geom reak_core)
+  
 
 add_executable(build_airship3D_transforms "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_airship3D_transforms.cpp")
 setup_custom_target(build_airship3D_transforms "${SRCROOT}${RKROBOTAIRSHIPDIR}")
@@ -100,6 +103,7 @@ include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")
+include_directories(AFTER "${SRCROOT}${RKGEOMETRYDIR}")
 
 
 

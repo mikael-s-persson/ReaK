@@ -144,6 +144,11 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const shared_ptr< pose_3D<double
   return aSG;
 };
 
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const color& aColor) {
+  aSG.mCurrentColor = aColor;
+  return aSG;
+};
+
 oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
   
   SoSeparator* sep = new SoSeparator;
@@ -155,6 +160,10 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
   
   if(aGeom2D.getObjectType() == line_seg_2D::getStaticObjectType()) {
     const line_seg_2D& ln_geom = static_cast<const line_seg_2D&>(aGeom2D);
+    
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    sep->addChild(col);
     
     SoCoordinate3* coords = new SoCoordinate3;
     coords->point.set1Value(0, ln_geom.getStart()[0], ln_geom.getStart()[1], 0.0);
@@ -169,6 +178,10 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     const grid_2D& gd_geom = static_cast<const grid_2D&>(aGeom2D);
     double x_step = gd_geom.getDimensions()[0] / double(gd_geom.getSquareCounts()[0]);
     double y_step = gd_geom.getDimensions()[1] / double(gd_geom.getSquareCounts()[1]);
+    
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    sep->addChild(col);
     
     SoCoordinate3* coords = new SoCoordinate3;
     SoLineSet* ln_set = new SoLineSet;
@@ -226,6 +239,10 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
   } else if(aGeom2D.getObjectType() == circle::getStaticObjectType()) {
     const circle& ci_geom = static_cast<const circle&>(aGeom2D);
     
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    sep->addChild(col);
+    
     SoRotation* ci_rot = new SoRotation;
     ci_rot->rotation.setValue(SbVec3f(1.0,0.0,0.0),M_PI / 2.0);
     sep->addChild(ci_rot);
@@ -238,6 +255,10 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
   } else if(aGeom2D.getObjectType() == rectangle::getStaticObjectType()) {
     const rectangle& re_geom = static_cast<const rectangle&>(aGeom2D);
     
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    sep->addChild(col);
+    
     SoCube* re_cube = new SoCube;
     re_cube->width = re_geom.getDimensions()[0];
     re_cube->height = re_geom.getDimensions()[1];
@@ -246,6 +267,10 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     
   } else if(aGeom2D.getObjectType() == capped_rectangle::getStaticObjectType()) {
     const rectangle& re_geom = static_cast<const rectangle&>(aGeom2D);
+    
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    sep->addChild(col);
     
     SoCube* re_cube = new SoCube;
     re_cube->width = re_geom.getDimensions()[0];
@@ -275,6 +300,13 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     re_cyl_left->height = 1e-6;
     sep->addChild(re_cyl_left);
     
+  } else if(aGeom2D.getObjectType() == composite_shape_2D::getStaticObjectType()) {
+    const composite_shape_2D& comp_geom = static_cast<const composite_shape_2D&>(aGeom2D);
+    
+    typedef std::vector< shared_ptr< shape_2D > >::const_iterator Iter;
+    for(Iter it = comp_geom.Shapes().begin(); it != comp_geom.Shapes().end(); ++it)
+      aSG << *(*it);
+    
   };
   
   if(!aGeom2D.getAnchor()) {
@@ -300,6 +332,10 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
   if(aGeom3D.getObjectType() == line_seg_3D::getStaticObjectType()) {
     const line_seg_3D& ln_geom = static_cast<const line_seg_3D&>(aGeom3D);
     
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    sep->addChild(col);
+    
     SoCoordinate3* coords = new SoCoordinate3;
     coords->point.set1Value(0, ln_geom.getStart()[0], ln_geom.getStart()[1], ln_geom.getStart()[2]);
     coords->point.set1Value(1, ln_geom.getEnd()[0], ln_geom.getEnd()[1], ln_geom.getEnd()[2]);
@@ -314,6 +350,10 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     double x_step = gd_geom.getDimensions()[0] / double(gd_geom.getSquareCounts()[0]);
     double y_step = gd_geom.getDimensions()[1] / double(gd_geom.getSquareCounts()[1]);
     double z_step = gd_geom.getDimensions()[2] / double(gd_geom.getSquareCounts()[2]);
+    
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    sep->addChild(col);
     
     SoCoordinate3* coords = new SoCoordinate3;
     SoLineSet* ln_set = new SoLineSet;
@@ -403,6 +443,10 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
   } else if(aGeom3D.getObjectType() == plane::getStaticObjectType()) {
     const plane& pl_geom = static_cast<const plane&>(aGeom3D);
     
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    sep->addChild(col);
+    
     SoCube* pl_cube = new SoCube;
     pl_cube->width = pl_geom.getDimensions()[0];
     pl_cube->height = pl_geom.getDimensions()[1];
@@ -412,12 +456,20 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
   } else if(aGeom3D.getObjectType() == sphere::getStaticObjectType()) {
     const sphere& sp_geom = static_cast<const sphere&>(aGeom3D);
     
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    sep->addChild(col);
+    
     SoSphere* sp_cyl = new SoSphere;
     sp_cyl->radius = sp_geom.getRadius();
     sep->addChild(sp_cyl);
     
   } else if(aGeom3D.getObjectType() == box::getStaticObjectType()) {
     const box& bx_geom = static_cast<const box&>(aGeom3D);
+    
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    sep->addChild(col);
     
     SoCube* bx_cube = new SoCube;
     bx_cube->width = bx_geom.getDimensions()[0];
@@ -427,6 +479,10 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     
   } else if(aGeom3D.getObjectType() == cylinder::getStaticObjectType()) {
     const cylinder& cy_geom = static_cast<const cylinder&>(aGeom3D);
+    
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    sep->addChild(col);
     
     SoRotation* cy_rot = new SoRotation;
     cy_rot->rotation.setValue(SbVec3f(1.0,0.0,0.0),M_PI / 2.0);
@@ -439,6 +495,10 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     
   } else if(aGeom3D.getObjectType() == capped_cylinder::getStaticObjectType()) {
     const capped_cylinder& cy_geom = static_cast<const capped_cylinder&>(aGeom3D);
+    
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    sep->addChild(col);
     
     SoRotation* cy_rot = new SoRotation;
     cy_rot->rotation.setValue(SbVec3f(1.0,0.0,0.0),M_PI / 2.0);
@@ -465,6 +525,13 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     cy_sp_bottom->radius = cy_geom.getRadius();
     sep->addChild(cy_sp_bottom);
     
+  } else if(aGeom3D.getObjectType() == composite_shape_3D::getStaticObjectType()) {
+    const composite_shape_3D& comp_geom = static_cast<const composite_shape_3D&>(aGeom3D);
+    
+    typedef std::vector< shared_ptr< shape_3D > >::const_iterator Iter;
+    for(Iter it = comp_geom.Shapes().begin(); it != comp_geom.Shapes().end(); ++it)
+      aSG << *(*it);
+    
   };
   
   if(!aGeom3D.getAnchor()) {
@@ -474,6 +541,30 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
       aSG << aGeom3D.getAnchor();
     aSG.mAnchor3DMap[aGeom3D.getAnchor()].first->addChild(sep);
   };
+  
+  return aSG;
+};
+
+
+
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_2D& aModel) {
+  
+  for(std::size_t i = 0; i < aModel.mAnchorList.size(); ++i)
+    aSG << aModel.mAnchorList[i];
+  
+  for(std::size_t i = 0; i < aModel.mGeomList.size(); ++i)
+    aSG << aModel.mGeomList[i].mColor << *(aModel.mGeomList[i].mGeom);
+  
+  return aSG;
+};
+    
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_3D& aModel) {
+  
+  for(std::size_t i = 0; i < aModel.mAnchorList.size(); ++i)
+    aSG << aModel.mAnchorList[i];
+  
+  for(std::size_t i = 0; i < aModel.mGeomList.size(); ++i)
+    aSG << aModel.mGeomList[i].mColor << *(aModel.mGeomList[i].mGeom);
   
   return aSG;
 };

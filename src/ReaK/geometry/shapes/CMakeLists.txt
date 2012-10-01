@@ -83,6 +83,13 @@ if(COIN3D_FOUND AND QT_FOUND)
   target_link_libraries(test_coin3d ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
 #  target_link_libraries(test_coin3d reak_mbd_kte reak_core)
   
+  
+  add_executable(test_oisg "${SRCROOT}${RKSHAPESDIR}/test_oisg.cpp")
+  setup_custom_target(test_oisg "${SRCROOT}${RKSHAPESDIR}")
+  
+  target_link_libraries(test_oisg ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
+  target_link_libraries(test_oisg reak_geom_coin reak_geom reak_core)
+  
   include_directories(BEFORE ${COIN3D_INCLUDE_DIRS})
   include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 endif()
