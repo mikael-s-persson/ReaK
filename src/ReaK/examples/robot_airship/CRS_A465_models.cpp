@@ -34,14 +34,11 @@ namespace ReaK {
 
 
 namespace robot_airship {
-
-
-void CRS_A465_model_builder::load_kte_from_file(const std::string& aFileName) {
   
-  serialization::xml_iarchive complete_model_input(aFileName);
-  serialization::iarchive& input_ref = complete_model_input;
   
-  input_ref
+void CRS_A465_model_builder::load_kte_from_archive(serialization::iarchive& aInput) {
+  
+  aInput
    // load the base frame (start of the track.
              & RK_SERIAL_LOAD_WITH_NAME(robot_base)
    // load all the joint coordinates.
@@ -124,7 +121,104 @@ void CRS_A465_model_builder::load_kte_from_file(const std::string& aFileName) {
              & RK_SERIAL_LOAD_WITH_NAME(link_4_inertia)
              & RK_SERIAL_LOAD_WITH_NAME(link_5_inertia)
              & RK_SERIAL_LOAD_WITH_NAME(link_6_inertia);
-	     
+  
+};
+
+
+void CRS_A465_model_builder::save_kte_to_archive(serialization::oarchive& aOutput) const {
+  
+  aOutput
+   // save the base frame (start of the track.
+             & RK_SERIAL_SAVE_WITH_NAME(robot_base)
+   // save all the joint coordinates.
+             & RK_SERIAL_SAVE_WITH_NAME(track_joint_coord)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1_coord)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2_coord)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3_coord)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4_coord)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_coord)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_coord)
+   // save the end-effector frame.
+             & RK_SERIAL_SAVE_WITH_NAME(arm_EE)
+   // save all the intermediate coordinate frames (between links and joints).
+             & RK_SERIAL_SAVE_WITH_NAME(track_joint_end)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1_base)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1_end)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2_base)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2_end)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3_base)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3_end)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4_base)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4_end)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_base)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_end)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_base)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_end)
+   // save all the joint jacobian relationships.
+             & RK_SERIAL_SAVE_WITH_NAME(track_joint_jacobian)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1_jacobian)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2_jacobian)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3_jacobian)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4_jacobian)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_jacobian)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_jacobian)
+   // save all the joints.
+             & RK_SERIAL_SAVE_WITH_NAME(track_joint)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6)
+   // save all the joint-dependency of the link frames.
+             & RK_SERIAL_SAVE_WITH_NAME(link_0_dep_frame)
+             & RK_SERIAL_SAVE_WITH_NAME(link_1_dep_frame)
+             & RK_SERIAL_SAVE_WITH_NAME(link_2_dep_frame)
+             & RK_SERIAL_SAVE_WITH_NAME(link_3_dep_frame)
+             & RK_SERIAL_SAVE_WITH_NAME(link_4_dep_frame)
+             & RK_SERIAL_SAVE_WITH_NAME(link_5_dep_frame)
+             & RK_SERIAL_SAVE_WITH_NAME(link_6_dep_frame)
+   // save all the links (massless).
+             & RK_SERIAL_SAVE_WITH_NAME(link_0)
+             & RK_SERIAL_SAVE_WITH_NAME(link_1)
+             & RK_SERIAL_SAVE_WITH_NAME(link_2)
+             & RK_SERIAL_SAVE_WITH_NAME(link_3)
+             & RK_SERIAL_SAVE_WITH_NAME(link_4)
+             & RK_SERIAL_SAVE_WITH_NAME(link_5)
+             & RK_SERIAL_SAVE_WITH_NAME(link_6)
+   // save all the joint inertias (motor inertia).
+             & RK_SERIAL_SAVE_WITH_NAME(track_joint_inertia)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1_inertia)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2_inertia)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3_inertia)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4_inertia)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_inertia)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_inertia)
+   // save all the joint actuators (which apply a driving force).
+             & RK_SERIAL_SAVE_WITH_NAME(track_actuator)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1_actuator)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2_actuator)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3_actuator)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4_actuator)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_actuator)
+             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_actuator)
+   // save all the link inertias (mass information of the links).
+             & RK_SERIAL_SAVE_WITH_NAME(link_0_inertia)
+             & RK_SERIAL_SAVE_WITH_NAME(link_1_inertia)
+             & RK_SERIAL_SAVE_WITH_NAME(link_2_inertia)
+             & RK_SERIAL_SAVE_WITH_NAME(link_3_inertia)
+             & RK_SERIAL_SAVE_WITH_NAME(link_4_inertia)
+             & RK_SERIAL_SAVE_WITH_NAME(link_5_inertia)
+             & RK_SERIAL_SAVE_WITH_NAME(link_6_inertia);
+  
+};
+
+
+void CRS_A465_model_builder::load_kte_from_file(const std::string& aFileName) {
+  
+  serialization::xml_iarchive complete_model_input(aFileName);
+  load_kte_from_archive(complete_model_input);
+  
 };
 
 
@@ -258,7 +352,7 @@ void CRS_A465_model_builder::create_from_preset() {
                                                                 arm_joint_2_base,
                                                                 pose_3D<double>(weak_ptr<pose_3D<double> >(),
                                                                                 vect<double,3>(0.0,0.0,0.3302),
-                                                                                axis_angle<double>(0.5 * M_PI, vect<double,3>(1.0,0.0,0.0)).getQuaternion())),
+                                                                                quaternion<double>())),
                                              scoped_deleter());
   
   //create link1 inertia 
@@ -275,7 +369,7 @@ void CRS_A465_model_builder::create_from_preset() {
   //create revolute joint
   arm_joint_2 = shared_ptr< kte::revolute_joint_3D >(new kte::revolute_joint_3D("arm_joint_2",
                                                                              arm_joint_2_coord,
-                                                                             vect<double,3>(0.0,0.0,1.0),
+                                                                             vect<double,3>(0.0,-1.0,0.0),
                                                                              arm_joint_2_base,
                                                                              arm_joint_2_end,
                                                                              arm_joint_2_jacobian),
@@ -303,7 +397,7 @@ void CRS_A465_model_builder::create_from_preset() {
                                                                 arm_joint_2_end,
                                                                 arm_joint_3_base,
                                                                 pose_3D<double>(weak_ptr<pose_3D<double> >(),
-                                                                                vect<double,3>(0.3048,0.0,0.0),
+                                                                                vect<double,3>(0.0,0.0,0.3048),
                                                                                 quaternion<double>())),
                                               scoped_deleter());
   
@@ -322,7 +416,7 @@ void CRS_A465_model_builder::create_from_preset() {
   //create revolute joint
   arm_joint_3 = shared_ptr< kte::revolute_joint_3D >(new kte::revolute_joint_3D("arm_joint_3",
                                                                             arm_joint_3_coord,
-                                                                            vect<double,3>(0.0,0.0,1.0),
+                                                                            vect<double,3>(0.0,-1.0,0.0),
                                                                             arm_joint_3_base,
                                                                             arm_joint_3_end,
                                                                             arm_joint_3_jacobian),
@@ -350,8 +444,8 @@ void CRS_A465_model_builder::create_from_preset() {
                                                                arm_joint_3_end,
                                                                arm_joint_4_base,
                                                                pose_3D<double>(weak_ptr<pose_3D<double> >(),
-                                                                               vect<double,3>(0.1500,0.0,0.0),
-                                                                               axis_angle<double>(0.5 * M_PI,vect<double,3>(0.0,1.0,0.0)) * axis_angle<double>(0.5 * M_PI,vect<double,3>(0.0,0.0,1.0)))),
+                                                                               vect<double,3>(0.0,0.0,0.1500),
+                                                                               quaternion<double>())),
                                               scoped_deleter());
   
   //create inertia
@@ -399,7 +493,7 @@ void CRS_A465_model_builder::create_from_preset() {
                                                                arm_joint_5_base,
                                                                pose_3D<double>(weak_ptr<pose_3D<double> >(),
                                                                                vect<double,3>(0.0,0.0,0.1802),
-                                                                               axis_angle<double>(-0.5*M_PI,vect<double,3>(1.0,0.0,0.0)).getQuaternion())),
+                                                                               quaternion<double>())),
                                              scoped_deleter());
   
   //create inertia
@@ -419,7 +513,7 @@ void CRS_A465_model_builder::create_from_preset() {
   //create revolute joint
   arm_joint_5 = shared_ptr< kte::revolute_joint_3D >(new kte::revolute_joint_3D("arm_joint_5",
                                                                             arm_joint_5_coord,
-                                                                            vect<double,3>(0.0,0.0,1.0),
+                                                                            vect<double,3>(0.0,-1.0,0.0),
                                                                             arm_joint_5_base,
                                                                             arm_joint_5_end,
                                                                             arm_joint_5_jacobian),
@@ -447,8 +541,8 @@ void CRS_A465_model_builder::create_from_preset() {
                                                                arm_joint_5_end,
                                                                arm_joint_6_base,
                                                                pose_3D<double>(weak_ptr<pose_3D<double> >(),
-                                                                               vect<double,3>(0.0762,0.0,0.0),
-                                                                               axis_angle<double>(0.5 * M_PI,vect<double,3>(0.0,1.0,0.0)) * axis_angle<double>(0.5 * M_PI,vect<double,3>(0.0,0.0,1.0)))),
+                                                                               vect<double,3>(0.0,0.0,0.0762),
+                                                                               quaternion<double>())),
                                              scoped_deleter());
   
   //create inertia
@@ -582,92 +676,9 @@ void CRS_A465_model_builder::create_from_preset() {
 };
     
 void CRS_A465_model_builder::save_kte_to_file(const std::string& aFileName) const {
-  serialization::xml_oarchive complete_model_output(aFileName);
-  serialization::oarchive& output_ref = complete_model_output;
   
-  output_ref
-   // save the base frame (start of the track.
-             & RK_SERIAL_SAVE_WITH_NAME(robot_base)
-   // save all the joint coordinates.
-             & RK_SERIAL_SAVE_WITH_NAME(track_joint_coord)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1_coord)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2_coord)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3_coord)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4_coord)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_coord)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_coord)
-   // save the end-effector frame.
-             & RK_SERIAL_SAVE_WITH_NAME(arm_EE)
-   // save all the intermediate coordinate frames (between links and joints).
-             & RK_SERIAL_SAVE_WITH_NAME(track_joint_end)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1_base)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1_end)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2_base)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2_end)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3_base)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3_end)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4_base)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4_end)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_base)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_end)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_base)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_end)
-   // save all the joint jacobian relationships.
-             & RK_SERIAL_SAVE_WITH_NAME(track_joint_jacobian)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1_jacobian)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2_jacobian)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3_jacobian)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4_jacobian)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_jacobian)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_jacobian)
-   // save all the joints.
-             & RK_SERIAL_SAVE_WITH_NAME(track_joint)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6)
-   // save all the joint-dependency of the link frames.
-             & RK_SERIAL_SAVE_WITH_NAME(link_0_dep_frame)
-             & RK_SERIAL_SAVE_WITH_NAME(link_1_dep_frame)
-             & RK_SERIAL_SAVE_WITH_NAME(link_2_dep_frame)
-             & RK_SERIAL_SAVE_WITH_NAME(link_3_dep_frame)
-             & RK_SERIAL_SAVE_WITH_NAME(link_4_dep_frame)
-             & RK_SERIAL_SAVE_WITH_NAME(link_5_dep_frame)
-             & RK_SERIAL_SAVE_WITH_NAME(link_6_dep_frame)
-   // save all the links (massless).
-             & RK_SERIAL_SAVE_WITH_NAME(link_0)
-             & RK_SERIAL_SAVE_WITH_NAME(link_1)
-             & RK_SERIAL_SAVE_WITH_NAME(link_2)
-             & RK_SERIAL_SAVE_WITH_NAME(link_3)
-             & RK_SERIAL_SAVE_WITH_NAME(link_4)
-             & RK_SERIAL_SAVE_WITH_NAME(link_5)
-             & RK_SERIAL_SAVE_WITH_NAME(link_6)
-   // save all the joint inertias (motor inertia).
-             & RK_SERIAL_SAVE_WITH_NAME(track_joint_inertia)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1_inertia)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2_inertia)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3_inertia)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4_inertia)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_inertia)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_inertia)
-   // save all the joint actuators (which apply a driving force).
-             & RK_SERIAL_SAVE_WITH_NAME(track_actuator)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_1_actuator)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_2_actuator)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_3_actuator)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_4_actuator)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_5_actuator)
-             & RK_SERIAL_SAVE_WITH_NAME(arm_joint_6_actuator)
-   // save all the link inertias (mass information of the links).
-             & RK_SERIAL_SAVE_WITH_NAME(link_0_inertia)
-             & RK_SERIAL_SAVE_WITH_NAME(link_1_inertia)
-             & RK_SERIAL_SAVE_WITH_NAME(link_2_inertia)
-             & RK_SERIAL_SAVE_WITH_NAME(link_3_inertia)
-             & RK_SERIAL_SAVE_WITH_NAME(link_4_inertia)
-             & RK_SERIAL_SAVE_WITH_NAME(link_5_inertia)
-             & RK_SERIAL_SAVE_WITH_NAME(link_6_inertia);
+  serialization::xml_oarchive complete_model_output(aFileName);
+  save_kte_to_archive(complete_model_output);
   
 };
 

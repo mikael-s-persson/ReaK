@@ -171,7 +171,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     sep->addChild(coords);
     
     SoLineSet* ln_set = new SoLineSet;
-    ln_set->numVertices.set1Value(1, 2);
+    ln_set->numVertices.set1Value(0, 2);
     sep->addChild(ln_set);
     
   } else if(aGeom2D.getObjectType() == grid_2D::getStaticObjectType()) {
@@ -210,31 +210,41 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
   } else if(aGeom2D.getObjectType() == coord_arrows_2D::getStaticObjectType()) {
     const coord_arrows_2D& ca_geom = static_cast<const coord_arrows_2D&>(aGeom2D);
     
+    
+    SoSeparator* sep_x = new SoSeparator;
+    
     SoBaseColor * col_x = new SoBaseColor;
     col_x->rgb = SbColor(1, 0, 0);
-    sep->addChild(col_x);
+    sep_x->addChild(col_x);
     
     SoCoordinate3* coords_x = new SoCoordinate3;
     coords_x->point.set1Value(0, 0.0, 0.0, 0.0);
     coords_x->point.set1Value(1, ca_geom.getArrowLength(), 0.0, 0.0);
-    sep->addChild(coords_x);
+    sep_x->addChild(coords_x);
     
     SoLineSet* ln_set_x = new SoLineSet;
-    ln_set_x->numVertices.set1Value(1, 2);
-    sep->addChild(ln_set_x);
+    ln_set_x->numVertices.set1Value(0, 2);
+    sep_x->addChild(ln_set_x);
+    
+    sep->addChild(sep_x);
+    
+    
+    SoSeparator* sep_y = new SoSeparator;
     
     SoBaseColor * col_y = new SoBaseColor;
     col_y->rgb = SbColor(0, 1, 0);
-    sep->addChild(col_y);
+    sep_y->addChild(col_y);
     
     SoCoordinate3* coords_y = new SoCoordinate3;
     coords_y->point.set1Value(0, 0.0, 0.0, 0.0);
     coords_y->point.set1Value(1, 0.0, ca_geom.getArrowLength(), 0.0);
-    sep->addChild(coords_y);
+    sep_y->addChild(coords_y);
     
     SoLineSet* ln_set_y = new SoLineSet;
-    ln_set_y->numVertices.set1Value(1, 2);
-    sep->addChild(ln_set_y);
+    ln_set_y->numVertices.set1Value(0, 2);
+    sep_y->addChild(ln_set_y);
+    
+    sep->addChild(sep_y);
     
   } else if(aGeom2D.getObjectType() == circle::getStaticObjectType()) {
     const circle& ci_geom = static_cast<const circle&>(aGeom2D);
@@ -342,7 +352,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     sep->addChild(coords);
     
     SoLineSet* ln_set = new SoLineSet;
-    ln_set->numVertices.set1Value(1, 2);
+    ln_set->numVertices.set1Value(0, 2);
     sep->addChild(ln_set);
     
   } else if(aGeom3D.getObjectType() == grid_3D::getStaticObjectType()) {
@@ -401,44 +411,58 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
   } else if(aGeom3D.getObjectType() == coord_arrows_3D::getStaticObjectType()) {
     const coord_arrows_3D& ca_geom = static_cast<const coord_arrows_3D&>(aGeom3D);
     
+    SoSeparator* sep_x = new SoSeparator;
+    
     SoBaseColor * col_x = new SoBaseColor;
     col_x->rgb = SbColor(1, 0, 0);
-    sep->addChild(col_x);
+    sep_x->addChild(col_x);
     
     SoCoordinate3* coords_x = new SoCoordinate3;
     coords_x->point.set1Value(0, 0.0, 0.0, 0.0);
     coords_x->point.set1Value(1, ca_geom.getArrowLength(), 0.0, 0.0);
-    sep->addChild(coords_x);
+    sep_x->addChild(coords_x);
     
     SoLineSet* ln_set_x = new SoLineSet;
-    ln_set_x->numVertices.set1Value(1, 2);
-    sep->addChild(ln_set_x);
+    ln_set_x->numVertices.set1Value(0, 2);
+    sep_x->addChild(ln_set_x);
+    
+    sep->addChild(sep_x);
+    
+    
+    SoSeparator* sep_y = new SoSeparator;
     
     SoBaseColor * col_y = new SoBaseColor;
     col_y->rgb = SbColor(0, 1, 0);
-    sep->addChild(col_y);
+    sep_y->addChild(col_y);
     
     SoCoordinate3* coords_y = new SoCoordinate3;
     coords_y->point.set1Value(0, 0.0, 0.0, 0.0);
     coords_y->point.set1Value(1, 0.0, ca_geom.getArrowLength(), 0.0);
-    sep->addChild(coords_y);
+    sep_y->addChild(coords_y);
     
     SoLineSet* ln_set_y = new SoLineSet;
-    ln_set_y->numVertices.set1Value(1, 2);
-    sep->addChild(ln_set_y);
+    ln_set_y->numVertices.set1Value(0, 2);
+    sep_y->addChild(ln_set_y);
+    
+    sep->addChild(sep_y);
+    
+    
+    SoSeparator* sep_z = new SoSeparator;
     
     SoBaseColor * col_z = new SoBaseColor;
     col_z->rgb = SbColor(0, 0, 1);
-    sep->addChild(col_z);
+    sep_z->addChild(col_z);
     
     SoCoordinate3* coords_z = new SoCoordinate3;
     coords_z->point.set1Value(0, 0.0, 0.0, 0.0);
     coords_z->point.set1Value(1, 0.0, 0.0, ca_geom.getArrowLength());
-    sep->addChild(coords_z);
+    sep_z->addChild(coords_z);
     
     SoLineSet* ln_set_z = new SoLineSet;
-    ln_set_z->numVertices.set1Value(1, 2);
-    sep->addChild(ln_set_z);
+    ln_set_z->numVertices.set1Value(0, 2);
+    sep_z->addChild(ln_set_z);
+    
+    sep->addChild(sep_z);
     
   } else if(aGeom3D.getObjectType() == plane::getStaticObjectType()) {
     const plane& pl_geom = static_cast<const plane&>(aGeom3D);

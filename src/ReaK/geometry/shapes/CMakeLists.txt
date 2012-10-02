@@ -58,18 +58,7 @@ target_link_libraries(reak_geom reak_core)
 
 
 
-find_package(Coin3D)
-
-if(COIN3D_FOUND)
-  message(STATUS "Coin3D library components were found: '${COIN3D_LIBRARIES}'")
-else()
-  message(WARNING "Coin3D was not detected on this system, some test programs will not be built!")
-endif()
-
-find_package( Qt4 )
-
 if(COIN3D_FOUND AND QT_FOUND)
-  FIND_LIBRARY(SOQT4_LIBRARIES SoQt4)
 
   add_library(reak_geom_coin STATIC "${SRCROOT}${RKSHAPESDIR}/oi_scene_graph.cpp")
   setup_custom_target(reak_geom_coin "${SRCROOT}${RKSHAPESDIR}")
@@ -90,8 +79,6 @@ if(COIN3D_FOUND AND QT_FOUND)
   target_link_libraries(test_oisg ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
   target_link_libraries(test_oisg reak_geom_coin reak_geom reak_core)
   
-  include_directories(BEFORE ${COIN3D_INCLUDE_DIRS})
-  include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 endif()
 
 
