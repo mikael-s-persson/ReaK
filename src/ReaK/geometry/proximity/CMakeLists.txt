@@ -25,6 +25,9 @@ set(PROXIMITY_SOURCES
   "${SRCROOT}${RKPROXIMITYDIR}/prox_cylinder_cylinder.cpp"
   "${SRCROOT}${RKPROXIMITYDIR}/prox_cylinder_box.cpp"
   "${SRCROOT}${RKPROXIMITYDIR}/prox_box_box.cpp"
+  "${SRCROOT}${RKPROXIMITYDIR}/prox_fundamentals_2D.cpp"
+  "${SRCROOT}${RKPROXIMITYDIR}/prox_fundamentals_3D.cpp"
+  "${SRCROOT}${RKPROXIMITYDIR}/proxy_query_model.cpp"
 )
 
 
@@ -54,6 +57,9 @@ set(PROXIMITY_HEADERS
   "${RKPROXIMITYDIR}/prox_cylinder_cylinder.hpp"
   "${RKPROXIMITYDIR}/prox_cylinder_box.hpp"
   "${RKPROXIMITYDIR}/prox_box_box.hpp"
+  "${RKPROXIMITYDIR}/prox_fundamentals_2D.hpp"
+  "${RKPROXIMITYDIR}/prox_fundamentals_3D.hpp"
+  "${RKPROXIMITYDIR}/proxy_query_model.hpp"
 )
 
 add_library(reak_geom_prox STATIC ${PROXIMITY_SOURCES})

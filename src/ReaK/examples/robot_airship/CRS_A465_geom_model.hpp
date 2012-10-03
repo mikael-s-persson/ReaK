@@ -43,6 +43,7 @@
 #include "shapes/box.hpp"
 #include "shapes/capped_cylinder.hpp"
 #include "shapes/coord_arrows_3D.hpp"
+#include "proximity/proxy_query_model.hpp"
 
 #include "serialization/archiver.hpp"
 
@@ -65,7 +66,9 @@ class CRS_A465_geom_builder : public CRS_A465_model_builder {
   public:
     
     shared_ptr< geom::colored_model_3D > geom_model;
+    shared_ptr< geom::proxy_query_model_3D > proxy_model;
     
+    shared_ptr< geom::coord_arrows_3D > global_frame_arrows;
     shared_ptr< geom::coord_arrows_3D > robot_base_arrows;
     shared_ptr< geom::coord_arrows_3D > track_joint_arrows;
     shared_ptr< geom::coord_arrows_3D > arm_joint_1_arrows;
@@ -81,6 +84,11 @@ class CRS_A465_geom_builder : public CRS_A465_model_builder {
     shared_ptr< geom::capped_cylinder > link3_cyl;
     shared_ptr< geom::capped_cylinder > link5_cyl;
     shared_ptr< geom::sphere > EE_sphere;
+    
+    shared_ptr< geom::box > EE_bumblebee;
+    shared_ptr< geom::box > EE_bumblebee_support;
+    shared_ptr< geom::box > EE_gripper_box;
+    shared_ptr< geom::box > EE_gripper_fingers;
     
     
     
@@ -109,11 +117,17 @@ class CRS_A465_geom_builder : public CRS_A465_model_builder {
     void save_kte_and_geom(const std::string& aFileName) const;
     
     /**
-     * This function will construct a KTE chain that represents the kinematics of the CRS A465 robot.
-     * \return A KTE chain that represents the kinematics of the CRS A465 robot.
+     * This function returns the geometric model that represents the CRS A465 robot in a rendered scene.
+     * \return The geometric model that represents the CRS A465 robot in a rendered scene.
      */
     shared_ptr< geom::colored_model_3D > get_geometric_model() const;
     
+    /**
+     * This function returns the proximity model that represents the CRS A465 robot geometry for proximity 
+     * query purposes (collision checking).
+     * \return The proximity model that represents the CRS A465 robot geometry for proximity query purposes (collision checking).
+     */
+    shared_ptr< geom::proxy_query_model_3D > get_proximity_model() const;
     
 };
 

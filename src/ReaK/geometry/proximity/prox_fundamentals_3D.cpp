@@ -77,6 +77,7 @@ proximity_record_3D findProximityBoxToPoint(const shared_ptr< box >& aBox, const
   double diff_d = norm_2(corner_pt - pt_rel);
   result.mPoint2 = aPoint;
   result.mDistance = (is_inside ? -diff_d : diff_d);
+  return result;
 };
 
 
@@ -95,7 +96,7 @@ namespace detail {
                          mBox(aBox), mCenter(aCenter), mTangent(aTangent), mResult(&aResult) { };
     
     double operator()(double t) const {
-      (*mResult) = findProximityBoxToPoint(aBox, aCenter + aTangent * t);
+      (*mResult) = findProximityBoxToPoint(mBox, mCenter + mTangent * t);
       return mResult->mDistance;
     };
     
@@ -106,7 +107,7 @@ namespace detail {
 
 proximity_record_3D findProximityBoxToLine(const shared_ptr< box >& aBox, const vect<double,3>& aCenter, const vect<double,3>& aTangent, double aHalfLength) {
   proximity_record_3D result;
-  ProxBoxToLineFunctor fct(aBox, aCenter, aTangent, result);
+  detail::ProxBoxToLineFunctor fct(aBox, aCenter, aTangent, result);
   double lb = -aHalfLength;
   double ub = aHalfLength;
   optim::golden_section_search(fct, lb, ub, 1e-3 * aHalfLength);

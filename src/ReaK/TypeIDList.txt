@@ -417,6 +417,10 @@ prox_ccylinder_box          0xC3200016   bin: 1100 0011 0010 0000 0000 0000 0001
 prox_cylinder_cylinder      0xC3200017   bin: 1100 0011 0010 0000 0000 0000 0001 0111  1
 prox_cylinder_box           0xC3200018   bin: 1100 0011 0010 0000 0000 0000 0001 1000  4
 prox_box_box                0xC3200019   bin: 1100 0011 0010 0000 0000 0000 0001 1001  3
+proxy_query_model_2D        0xC320001A   bin: 1100 0011 0010 0000 0000 0000 0001 1010  D-R
+proxy_query_model_3D        0xC320001B   bin: 1100 0011 0010 0000 0000 0000 0001 1011  D-R
+proxy_query_pair_2D         0xC320001C   bin: 1100 0011 0010 0000 0000 0000 0001 1100  D-R
+proxy_query_pair_3D         0xC320001D   bin: 1100 0011 0010 0000 0000 0000 0001 1101  D-R
 
 
 

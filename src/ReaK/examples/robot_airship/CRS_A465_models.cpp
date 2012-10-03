@@ -271,9 +271,9 @@ void CRS_A465_model_builder::create_from_preset() {
   arm_joint_6_jacobian = shared_ptr< jacobian_gen_3D<double> >(new jacobian_gen_3D<double>(), scoped_deleter());
   
   //set the absolute position of the base and add gravity (z-axis pointing up!) (x-axis pointing forward).
-  //normally this frame is set via the feedback from the leg / lower-body motion control of wopa
-  robot_base->Acceleration = vect<double,3>(0.0,0.0,9.81); //put gravity acceleration on base of torso...
-  robot_base->Position = vect<double,3>(0.0,0.0,0.3); //put the base of the torso somewhere 0.8 m off the ground level.
+  robot_base->Acceleration = vect<double,3>(0.0,0.0,9.81); //put gravity acceleration on base of the robot
+  robot_base->Position = vect<double,3>(0.0,-3.3,0.3); //put the base of the robot at the near end of the track (global frame is at the far end).
+  robot_base->Quat = axis_angle<double>(M_PI * 0.5, vect<double,3>(0.0,0.0,1.0)); // align the x-axis along the track.
   
   //create revolute joint
   track_joint = shared_ptr< kte::prismatic_joint_3D >(new kte::prismatic_joint_3D("track_joint",

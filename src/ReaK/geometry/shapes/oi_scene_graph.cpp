@@ -259,7 +259,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     
     SoCylinder* ci_cyl = new SoCylinder;
     ci_cyl->radius = ci_geom.getRadius();
-    ci_cyl->height = 1e-6;
+    ci_cyl->height = 1e-4;
     sep->addChild(ci_cyl);
     
   } else if(aGeom2D.getObjectType() == rectangle::getStaticObjectType()) {
@@ -272,7 +272,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     SoCube* re_cube = new SoCube;
     re_cube->width = re_geom.getDimensions()[0];
     re_cube->height = re_geom.getDimensions()[1];
-    re_cube->depth = 1e-6;
+    re_cube->depth = 1e-4;
     sep->addChild(re_cube);
     
   } else if(aGeom2D.getObjectType() == capped_rectangle::getStaticObjectType()) {
@@ -285,7 +285,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     SoCube* re_cube = new SoCube;
     re_cube->width = re_geom.getDimensions()[0];
     re_cube->height = re_geom.getDimensions()[1];
-    re_cube->depth = 1e-6;
+    re_cube->depth = 1e-4;
     sep->addChild(re_cube);
     
     SoRotation* re_rot = new SoRotation;
@@ -298,7 +298,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     
     SoCylinder* re_cyl_right = new SoCylinder;
     re_cyl_right->radius = 0.5 * re_geom.getDimensions()[1];
-    re_cyl_right->height = 1e-6;
+    re_cyl_right->height = 1e-4;
     sep->addChild(re_cyl_right);
     
     SoTranslation* re_trans_left = new SoTranslation;
@@ -307,7 +307,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
     
     SoCylinder* re_cyl_left = new SoCylinder;
     re_cyl_left->radius = 0.5 * re_geom.getDimensions()[1];
-    re_cyl_left->height = 1e-6;
+    re_cyl_left->height = 1e-4;
     sep->addChild(re_cyl_left);
     
   } else if(aGeom2D.getObjectType() == composite_shape_2D::getStaticObjectType()) {
@@ -474,7 +474,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
     SoCube* pl_cube = new SoCube;
     pl_cube->width = pl_geom.getDimensions()[0];
     pl_cube->height = pl_geom.getDimensions()[1];
-    pl_cube->depth = 1e-6;
+    pl_cube->depth = 1e-4;
     sep->addChild(pl_cube);
     
   } else if(aGeom3D.getObjectType() == sphere::getStaticObjectType()) {
