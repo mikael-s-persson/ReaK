@@ -47,7 +47,7 @@ add_executable(build_airship3D "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_airship3D.c
 setup_custom_target(build_airship3D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
   
 target_link_libraries(build_airship3D ${Boost_LIBRARIES})
-target_link_libraries(build_airship3D reak_mbd_kte reak_geom reak_core)
+target_link_libraries(build_airship3D reak_mbd_kte reak_geom_prox reak_geom reak_core)
   
 
 add_executable(build_airship3D_transforms "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_airship3D_transforms.cpp")
@@ -56,14 +56,20 @@ setup_custom_target(build_airship3D_transforms "${SRCROOT}${RKROBOTAIRSHIPDIR}")
 target_link_libraries(build_airship3D_transforms ${Boost_LIBRARIES})
 target_link_libraries(build_airship3D_transforms reak_mbd_kte reak_core)
 
+add_executable(build_CRS_A465_model "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_CRS_A465_model.cpp")
+setup_custom_target(build_CRS_A465_model "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+target_link_libraries(build_CRS_A465_model reak_robot_airship reak_mbd_kte reak_geom_prox reak_geom reak_core)
+#target_link_libraries(build_CRS_A465_model ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
+  
+
 if(COIN3D_FOUND AND QT_FOUND)
 
   include( ${QT_USE_FILE} )
   
-  add_executable(build_CRS_A465_model "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_CRS_A465_model.cpp")
-  setup_custom_target(build_CRS_A465_model "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-  target_link_libraries(build_CRS_A465_model reak_geom_coin reak_robot_airship reak_mbd_kte reak_geom_prox reak_geom reak_core)
-  target_link_libraries(build_CRS_A465_model ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
+  add_executable(test_lab_scene "${SRCROOT}${RKROBOTAIRSHIPDIR}/test_lab_scene.cpp")
+  setup_custom_target(test_lab_scene "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+  target_link_libraries(test_lab_scene reak_geom_coin reak_robot_airship reak_mbd_kte reak_geom_prox reak_geom reak_core)
+  target_link_libraries(test_lab_scene ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
   
 endif()
 

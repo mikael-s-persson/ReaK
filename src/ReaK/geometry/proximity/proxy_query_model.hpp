@@ -104,6 +104,7 @@ class proxy_query_pair_2D : public named_object {
     void setModelPair(const shared_ptr< proxy_query_model_2D >& aModel1, const shared_ptr< proxy_query_model_2D >& aModel2) {
       mModel1 = aModel1;
       mModel2 = aModel2;
+      createProxFinderList();
     };
     
     /**
@@ -207,6 +208,7 @@ class proxy_query_pair_3D : public named_object {
     void setModelPair(const shared_ptr< proxy_query_model_3D >& aModel1, const shared_ptr< proxy_query_model_3D >& aModel2) {
       mModel1 = aModel1;
       mModel2 = aModel2;
+      createProxFinderList();
     };
     
     /**
