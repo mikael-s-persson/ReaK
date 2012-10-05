@@ -169,8 +169,15 @@ shared_ptr< proximity_finder_2D > proxy_query_pair_2D::findMinimumDistance() con
   double min_dist = mProxFinders[0]->getLastResult().mDistance;
   
   for(std::size_t i = 1; i < mProxFinders.size(); ++i) {
+    
+    vect<double,2> p1 = mProxFinders[i]->getShape1()->getPose().transformToGlobal(vect<double,2>(0.0,0.0));
+    vect<double,2> p2 = mProxFinders[i]->getShape2()->getPose().transformToGlobal(vect<double,2>(0.0,0.0));
+    if(norm_2(p2 - p1) - mProxFinders[i]->getShape1()->getBoundingRadius() 
+                       - mProxFinders[i]->getShape2()->getBoundingRadius() > min_dist)
+      continue;
+    
     mProxFinders[i]->computeProximity();
-    if(min_dist > mProxFinders[i]->getLastResult().mDistance) {
+    if(mProxFinders[i]->getLastResult().mDistance < min_dist) {
       min_i = i;
       min_dist = mProxFinders[i]->getLastResult().mDistance;
     };
@@ -182,9 +189,14 @@ shared_ptr< proximity_finder_2D > proxy_query_pair_2D::findMinimumDistance() con
 bool proxy_query_pair_2D::gatherCollisionPoints(std::vector< proximity_record_2D >& aOutput) const {
   bool collision_found = false;
   
-  // TODO: Add a circle-circle collision test on each shape-pair before calling "computeProximity".
-  
   for(std::size_t i = 0; i < mProxFinders.size(); ++i) {
+    
+    vect<double,2> p1 = mProxFinders[i]->getShape1()->getPose().transformToGlobal(vect<double,2>(0.0,0.0));
+    vect<double,2> p2 = mProxFinders[i]->getShape2()->getPose().transformToGlobal(vect<double,2>(0.0,0.0));
+    if(norm_2(p2 - p1) - mProxFinders[i]->getShape1()->getBoundingRadius() 
+                       - mProxFinders[i]->getShape2()->getBoundingRadius() > 0.0)
+      continue;
+    
     mProxFinders[i]->computeProximity();
     if(mProxFinders[i]->getLastResult().mDistance < 0.0) {
       aOutput.push_back(mProxFinders[i]->getLastResult());
@@ -369,6 +381,13 @@ shared_ptr< proximity_finder_3D > proxy_query_pair_3D::findMinimumDistance() con
   double min_dist = mProxFinders[0]->getLastResult().mDistance;
   
   for(std::size_t i = 1; i < mProxFinders.size(); ++i) {
+    
+    vect<double,3> p1 = mProxFinders[i]->getShape1()->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+    vect<double,3> p2 = mProxFinders[i]->getShape2()->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+    if(norm_2(p2 - p1) - mProxFinders[i]->getShape1()->getBoundingRadius() 
+                       - mProxFinders[i]->getShape2()->getBoundingRadius() > min_dist)
+      continue;
+    
     mProxFinders[i]->computeProximity();
     if(min_dist > mProxFinders[i]->getLastResult().mDistance) {
       min_i = i;
@@ -382,9 +401,14 @@ shared_ptr< proximity_finder_3D > proxy_query_pair_3D::findMinimumDistance() con
 bool proxy_query_pair_3D::gatherCollisionPoints(std::vector< proximity_record_3D >& aOutput) const {
   bool collision_found = false;
   
-  // TODO: Add a sphere-sphere collision test on each shape-pair before calling "computeProximity".
-  
   for(std::size_t i = 0; i < mProxFinders.size(); ++i) {
+    
+    vect<double,3> p1 = mProxFinders[i]->getShape1()->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+    vect<double,3> p2 = mProxFinders[i]->getShape2()->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+    if(norm_2(p2 - p1) - mProxFinders[i]->getShape1()->getBoundingRadius() 
+                       - mProxFinders[i]->getShape2()->getBoundingRadius() > 0.0)
+      continue;
+    
     mProxFinders[i]->computeProximity();
     if(mProxFinders[i]->getLastResult().mDistance < 0.0) {
       aOutput.push_back(mProxFinders[i]->getLastResult());

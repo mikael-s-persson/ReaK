@@ -28,6 +28,10 @@ namespace ReaK {
 namespace geom {
 
 
+double capped_rectangle::getBoundingRadius() const {
+  return norm_2(mDimensions) * 0.5;
+};
+
 capped_rectangle::capped_rectangle(const std::string& aName,
 		                   const shared_ptr< pose_2D<double> >& aAnchor,
 		                   const pose_2D<double>& aPose,

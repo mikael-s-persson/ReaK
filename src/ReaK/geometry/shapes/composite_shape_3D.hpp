@@ -50,6 +50,12 @@ class composite_shape_3D : public shape_3D {
   public:
     
     /**
+     * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
+     * \return The maximum radius of the shape.
+     */
+    virtual double getBoundingRadius() const;
+    
+    /**
      * This function returns a const-reference to the vector of shapes.
      * \return A const-reference to the vector of shapes.
      */

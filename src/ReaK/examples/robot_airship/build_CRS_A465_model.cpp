@@ -36,8 +36,7 @@ int main(int argc, char ** argv) {
   builder.create_geom_from_preset();
   
   builder.save_kte_to_file("models/CRS_A465_raw_components.xml");
-  builder.save_kte_and_geom("models/CRS_A465_with_render.xml");
-  //builder.save_kte_and_geom("models/CRS_A465_with_proxy.xml");
+  builder.save_kte_and_geom("models/CRS_A465_with_geom.xml");
   builder.save_limits_to_file("models/CRS_A465_limits.xml");
   
   ReaK::robot_airship::CRS_A465_2D_model_builder builder2D;
@@ -89,18 +88,18 @@ int main(int argc, char ** argv) {
      .addElement(geom::color(0.3,0.3,0.3),lab_floor)
      .addElement(geom::color(0.8,0.8,0.8),lab_n_wall)
      .addElement(geom::color(0.8,0.8,0.8),lab_w_wall)
-     .addElement(geom::color(0.35,0.35,0.35),lab_robot_track)
-     .addElement(geom::color(1.0,0.0,0.0),lab_robot_track_left)
-     .addElement(geom::color(1.0,0.0,0.0),lab_robot_track_right);
+     .addElement(geom::color(0.35,0.35,0.35),lab_robot_track);
     
     (*MD148_basic_lab_proxy)
      .addShape(lab_floor)
      .addShape(lab_n_wall)
-     .addShape(lab_w_wall);
+     .addShape(lab_w_wall)
+     .addShape(lab_robot_track_left)
+     .addShape(lab_robot_track_right);
     
-    serialization::xml_oarchive out("models/MD148_lab_render.xml");
+    serialization::xml_oarchive out("models/MD148_lab_model.xml");
     
-    out << MD148_basic_lab;
+    out << MD148_basic_lab << MD148_basic_lab_proxy;
     
   };
   

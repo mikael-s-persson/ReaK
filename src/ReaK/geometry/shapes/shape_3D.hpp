@@ -47,6 +47,11 @@ class shape_3D : public geometry_3D {
     
   public:
     
+    /**
+     * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
+     * \return The maximum radius of the shape.
+     */
+    virtual double getBoundingRadius() const = 0;
     
     /**
      * Default constructor.

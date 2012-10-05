@@ -28,6 +28,11 @@ namespace ReaK {
 namespace geom {
 
 
+double box::getBoundingRadius() const { 
+  return norm_2(mDimensions) * 0.5;
+};
+
+
 box::box(const std::string& aName,
          const shared_ptr< pose_3D<double> >& aAnchor,
 	 const pose_3D<double>& aPose,

@@ -23,10 +23,16 @@
 
 #include "cylinder.hpp"
 
+#include <cmath>
+
 namespace ReaK {
 
 namespace geom {
 
+
+double cylinder::getBoundingRadius() const {
+  return std::sqrt(mRadius * mRadius + 0.25 * mLength * mLength);
+};
 
 
 cylinder::cylinder(const std::string& aName,

@@ -28,6 +28,11 @@ namespace ReaK {
 namespace geom {
 
 
+double composite_shape_2D::getBoundingRadius() const {
+  return 0.0;
+};
+
+
 composite_shape_2D::composite_shape_2D(const std::string& aName) : shape_2D(aName), mShapes() { };
 
 void RK_CALL composite_shape_2D::save(ReaK::serialization::oarchive& A, unsigned int) const {
