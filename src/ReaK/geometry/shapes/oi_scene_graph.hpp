@@ -39,6 +39,8 @@
 #include "color.hpp"
 #include "colored_model.hpp"
 
+#include "mbd_kte/kte_map_chain.hpp"
+
 #include <map>
 
 // forward-declarations of the open-inventory node classes:
@@ -113,6 +115,12 @@ class oi_scene_graph {
     friend
     oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_3D& aModel);
     
+    friend
+    oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel);
+    
+    friend
+    oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map_chain& aModel);
+    
 };
 
 
@@ -132,6 +140,9 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_2D& aModel);
     
 oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_3D& aModel);
 
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel);
+
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map_chain& aModel);
 
 };
 
