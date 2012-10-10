@@ -32,7 +32,7 @@
 #include "composite_shape_2D.hpp"
 
 #include "mbd_kte/inertia.hpp"
-#include "mbd_kte/free_joint.hpp"
+#include "mbd_kte/free_joints.hpp"
 #include "mbd_kte/revolute_joint.hpp"
 #include "mbd_kte/prismatic_joint.hpp"
 #include "mbd_kte/rigid_link.hpp"
@@ -54,6 +54,7 @@
 #include <Inventor/nodes/SoTransform.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/sensors/SoTimerSensor.h>
 
 
@@ -62,241 +63,173 @@ namespace ReaK {
 namespace geom {
 
 
+static const float kte_gray_R = 0.8196;
+static const float kte_gray_G = 0.8549;
+static const float kte_gray_B = 0.8980;
+
 
 oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
   
-  SoSeparator* sep = new SoSeparator;
+  // first check if the model is a kte-chain:
+  const void* p_chain = aModel.castTo(kte::kte_map_chain::getStaticObjectType());
+  if(p_chain)
+    return aSG << static_cast<const kte::kte_map_chain&>(aModel);
   
-  SoTransform* trans = new SoTransform;
-  trans->translation.setValue(aGeom3D.getPose().Position[0], aGeom3D.getPose().Position[1], aGeom3D.getPose().Position[2]);
-  trans->rotation.setValue(aGeom3D.getPose().Quat[1], aGeom3D.getPose().Quat[2], aGeom3D.getPose().Quat[3], aGeom3D.getPose().Quat[0]);
-  sep->addChild(trans);
   
-  if(aGeom3D.getObjectType() == line_seg_3D::getStaticObjectType()) {
-    const line_seg_3D& ln_geom = static_cast<const line_seg_3D&>(aGeom3D);
+  if(aModel.castTo(kte::revolute_joint_3D::getStaticObjectType())) {
+    const kte::revolute_joint_3D& rev_joint = static_cast<const kte::revolute_joint_3D&>(aModel);
+    
+    SoSeparator* sep = new SoSeparator;
+    
+    vect<double,3> x_axis = rev_joint.Axis() % vect<double,3>(0.0,0.0,1.0);
+    double x_axis_mag = norm_2(x_axis);
+    if(x_axis_mag < 1e-5)
+      x_axis = vect<double,3>(rev_joint.Axis()[2],0.0,0.0);
+    else
+      x_axis /= x_axis_mag;
+    vect<double,3> z_axis = x_axis % rev_joint.Axis();
+    SoTransform* trans = new SoTransform;
+    SbMatrix rot_mat(
+      x_axis[0], rev_joint.Axis()[0], z_axis[0], 0.0,
+      x_axis[1], rev_joint.Axis()[1], z_axis[1], 0.0,
+      x_axis[2], rev_joint.Axis()[2], z_axis[2], 0.0,
+      0.0, 0.0, 0.0, 1.0);
+    trans->rotation.setValue(SbRotation(rot_mat));
+    sep->addChild(trans);
     
     SoBaseColor * col = new SoBaseColor;
-    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    col->rgb = SbColor(kte_gray_R, kte_gray_G, kte_gray_B);
     sep->addChild(col);
     
-    SoCoordinate3* coords = new SoCoordinate3;
-    coords->point.set1Value(0, ln_geom.getStart()[0], ln_geom.getStart()[1], ln_geom.getStart()[2]);
-    coords->point.set1Value(1, ln_geom.getEnd()[0], ln_geom.getEnd()[1], ln_geom.getEnd()[2]);
-    sep->addChild(coords);
+    SoCylinder* core_cyl = new SoCylinder;
+    core_cyl->radius = aSG.mCharacteristicLength * 0.0125;  // diameter about 2.5% of char-len
+    core_cyl->height = aSG.mCharacteristicLength * 0.05;    // about 5% of char-len
+    sep->addChild(core_cyl);
     
-    SoLineSet* ln_set = new SoLineSet;
-    ln_set->numVertices.set1Value(0, 2);
-    sep->addChild(ln_set);
+    SoBaseColor * white_col = new SoBaseColor;
+    white_col->rgb = SbColor(1.0, 1.0, 1.0);
+    sep->addChild(white_col);
     
-  } else if(aGeom3D.getObjectType() == grid_3D::getStaticObjectType()) {
-    const grid_3D& gd_geom = static_cast<const grid_3D&>(aGeom3D);
-    double x_step = gd_geom.getDimensions()[0] / double(gd_geom.getSquareCounts()[0]);
-    double y_step = gd_geom.getDimensions()[1] / double(gd_geom.getSquareCounts()[1]);
-    double z_step = gd_geom.getDimensions()[2] / double(gd_geom.getSquareCounts()[2]);
+    SoTexture2* red_arrow = new SoTexture2;
+    red_arrow->filename.setValue("models/textures/red_arrow.tga");
+    sep->addChild(red_arrow);
     
-    SoBaseColor * col = new SoBaseColor;
-    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
-    sep->addChild(col);
+    SoCylinder* arrow_cyl = new SoCylinder;
+    arrow_cyl->parts = SoCylinder::SIDES;
+    arrow_cyl->radius = aSG.mCharacteristicLength * 0.025;
+    arrow_cyl->height = aSG.mCharacteristicLength * 0.025;
+    sep->addChild(arrow_cyl);
     
-    SoCoordinate3* coords = new SoCoordinate3;
-    SoLineSet* ln_set = new SoLineSet;
-    int j = 0;
-    int k = 0;
-    double x_value = -0.5 * gd_geom.getDimensions()[0];
-    double y_value = -0.5 * gd_geom.getDimensions()[1];
-    double z_value = -0.5 * gd_geom.getDimensions()[2];
-    for(std::size_t m = 0; m <= gd_geom.getSquareCounts()[2]; ++m) {
-      // First create the x-axis lines:
-      y_value = -0.5 * gd_geom.getDimensions()[1];
-      for(std::size_t i = 0; i <= gd_geom.getSquareCounts()[1]; ++i) {
-        coords->point.set1Value(j++, -0.5 * gd_geom.getDimensions()[0], y_value, z_value);
-        coords->point.set1Value(j++,  0.5 * gd_geom.getDimensions()[0], y_value, z_value);
-        y_value += y_step;
-        ln_set->numVertices.set1Value(k++, 2);
-      };
-      // Second create the y-axis lines:
-      x_value = -0.5 * gd_geom.getDimensions()[0];
-      for(std::size_t i = 0; i <= gd_geom.getSquareCounts()[0]; ++i) {
-        coords->point.set1Value(j++, x_value, -0.5 * gd_geom.getDimensions()[1], z_value);
-        coords->point.set1Value(j++, x_value,  0.5 * gd_geom.getDimensions()[1], z_value);
-        x_value += x_step;
-        ln_set->numVertices.set1Value(k++, 2);
-      };
-      z_value += z_step;
+    if(!rev_joint.BaseFrame()) {
+      aSG.mRoot->addChild(sep);
+    } else {
+      if(aSG.mAnchor3DMap.find(rev_joint.BaseFrame()) == aSG.mAnchor3DMap.end())
+        aSG << rev_joint.BaseFrame();
+      aSG.mAnchor3DMap[rev_joint.BaseFrame()].first->addChild(sep);
     };
     
-    x_value = -0.5 * gd_geom.getDimensions()[0];
-    for(std::size_t m = 0; m <= gd_geom.getSquareCounts()[0]; ++m) {
-      // First create the x-axis lines:
-      y_value = -0.5 * gd_geom.getDimensions()[1];
-      for(std::size_t i = 0; i <= gd_geom.getSquareCounts()[1]; ++i) {
-        coords->point.set1Value(j++, x_value, y_value, -0.5 * gd_geom.getDimensions()[2]);
-        coords->point.set1Value(j++, x_value, y_value,  0.5 * gd_geom.getDimensions()[2]);
-        y_value += y_step;
-        ln_set->numVertices.set1Value(k++, 2);
-      };
-      x_value += x_step;
+  } else if(aModel.castTo(kte::prismatic_joint_3D::getStaticObjectType())) {
+    const kte::prismatic_joint_3D& pri_joint = static_cast<const kte::prismatic_joint_3D&>(aModel);
+    
+    SoSeparator* sep = new SoSeparator;
+    
+    vect<double,3> x_axis = pri_joint.Axis() % vect<double,3>(0.0,0.0,1.0);
+    double x_axis_mag = norm_2(x_axis);
+    if(x_axis_mag < 1e-5)
+      x_axis = vect<double,3>(pri_joint.Axis()[2],0.0,0.0);
+    else
+      x_axis /= x_axis_mag;
+    vect<double,3> z_axis = x_axis % pri_joint.Axis();
+    SoTransform* trans = new SoTransform;
+    SbMatrix rot_mat(
+      x_axis[0], pri_joint.Axis()[0], z_axis[0], 0.0,
+      x_axis[1], pri_joint.Axis()[1], z_axis[1], 0.0,
+      x_axis[2], pri_joint.Axis()[2], z_axis[2], 0.0,
+      0.0, 0.0, 0.0, 1.0);
+    trans->rotation.setValue(SbRotation(rot_mat));
+    sep->addChild(trans);
+    
+    SoBaseColor * col = new SoBaseColor;
+    col->rgb = SbColor(kte_gray_R, kte_gray_G, kte_gray_B);
+    sep->addChild(col);
+    
+    SoCube* core_cube = new SoCube;
+    core_cube->width = aSG.mCharacteristicLength * 0.0125;  // about 2.5% of char-len
+    core_cube->height = aSG.mCharacteristicLength * 0.05;    // about 5% of char-len
+    core_cube->depth = aSG.mCharacteristicLength * 0.0125;  // about 2.5% of char-len
+    sep->addChild(core_cube);
+    
+    SoBaseColor * white_col = new SoBaseColor;
+    white_col->rgb = SbColor(1.0, 1.0, 1.0);
+    sep->addChild(white_col);
+    
+    SoTexture2* red_arrows = new SoTexture2;
+    red_arrows->filename.setValue("models/textures/red_up_arrows.tga");
+    sep->addChild(red_arrows);
+    
+    SoCylinder* arrow_cyl = new SoCylinder;
+    arrow_cyl->parts = SoCylinder::SIDES;
+    arrow_cyl->radius = aSG.mCharacteristicLength * 0.0125;
+    arrow_cyl->height = aSG.mCharacteristicLength * 0.05;
+    sep->addChild(arrow_cyl);
+    
+    if(!pri_joint.BaseFrame()) {
+      aSG.mRoot->addChild(sep);
+    } else {
+      if(aSG.mAnchor3DMap.find(pri_joint.BaseFrame()) == aSG.mAnchor3DMap.end())
+        aSG << pri_joint.BaseFrame();
+      aSG.mAnchor3DMap[pri_joint.BaseFrame()].first->addChild(sep);
     };
     
-    sep->addChild(coords);
-    sep->addChild(ln_set);
+  } else if(aModel.castTo(kte::rigid_link_3D::getStaticObjectType())) {
+    const kte::rigid_link_3D& lnk_obj = static_cast<const kte::rigid_link_3D&>(aModel);
     
-  } else if(aGeom3D.getObjectType() == coord_arrows_3D::getStaticObjectType()) {
-    const coord_arrows_3D& ca_geom = static_cast<const coord_arrows_3D&>(aGeom3D);
+    vect<double,3> y_axis = lnk_obj.PoseOffset().Position;
+    double y_axis_mag = norm_2(y_axis);
+    if(y_axis_mag < 1e-5)   // nothing to draw... 
+      return aSG;
+    else
+      y_axis /= y_axis_mag;
     
-    SoSeparator* sep_x = new SoSeparator;
+    SoSeparator* sep = new SoSeparator;
     
-    SoBaseColor * col_x = new SoBaseColor;
-    col_x->rgb = SbColor(1, 0, 0);
-    sep_x->addChild(col_x);
-    
-    SoCoordinate3* coords_x = new SoCoordinate3;
-    coords_x->point.set1Value(0, 0.0, 0.0, 0.0);
-    coords_x->point.set1Value(1, ca_geom.getArrowLength(), 0.0, 0.0);
-    sep_x->addChild(coords_x);
-    
-    SoLineSet* ln_set_x = new SoLineSet;
-    ln_set_x->numVertices.set1Value(0, 2);
-    sep_x->addChild(ln_set_x);
-    
-    sep->addChild(sep_x);
-    
-    
-    SoSeparator* sep_y = new SoSeparator;
-    
-    SoBaseColor * col_y = new SoBaseColor;
-    col_y->rgb = SbColor(0, 1, 0);
-    sep_y->addChild(col_y);
-    
-    SoCoordinate3* coords_y = new SoCoordinate3;
-    coords_y->point.set1Value(0, 0.0, 0.0, 0.0);
-    coords_y->point.set1Value(1, 0.0, ca_geom.getArrowLength(), 0.0);
-    sep_y->addChild(coords_y);
-    
-    SoLineSet* ln_set_y = new SoLineSet;
-    ln_set_y->numVertices.set1Value(0, 2);
-    sep_y->addChild(ln_set_y);
-    
-    sep->addChild(sep_y);
-    
-    
-    SoSeparator* sep_z = new SoSeparator;
-    
-    SoBaseColor * col_z = new SoBaseColor;
-    col_z->rgb = SbColor(0, 0, 1);
-    sep_z->addChild(col_z);
-    
-    SoCoordinate3* coords_z = new SoCoordinate3;
-    coords_z->point.set1Value(0, 0.0, 0.0, 0.0);
-    coords_z->point.set1Value(1, 0.0, 0.0, ca_geom.getArrowLength());
-    sep_z->addChild(coords_z);
-    
-    SoLineSet* ln_set_z = new SoLineSet;
-    ln_set_z->numVertices.set1Value(0, 2);
-    sep_z->addChild(ln_set_z);
-    
-    sep->addChild(sep_z);
-    
-  } else if(aGeom3D.getObjectType() == plane::getStaticObjectType()) {
-    const plane& pl_geom = static_cast<const plane&>(aGeom3D);
+    vect<double,3> x_axis = y_axis % vect<double,3>(0.0,0.0,1.0);
+    double x_axis_mag = norm_2(x_axis);
+    if(x_axis_mag < 1e-5)
+      x_axis = vect<double,3>(y_axis[2],0.0,0.0);
+    else
+      x_axis /= x_axis_mag;
+    vect<double,3> z_axis = x_axis % y_axis;
+    SoTransform* trans = new SoTransform;
+    trans->translation.setValue(
+      lnk_obj.PoseOffset().Position[0] * 0.5,
+      lnk_obj.PoseOffset().Position[1] * 0.5,
+      lnk_obj.PoseOffset().Position[2] * 0.5);
+    SbMatrix rot_mat(
+      x_axis[0], y_axis[0], z_axis[0], 0.0,
+      x_axis[1], y_axis[1], z_axis[1], 0.0,
+      x_axis[2], y_axis[2], z_axis[2], 0.0,
+      0.0, 0.0, 0.0, 1.0);
+    trans->rotation.setValue(SbRotation(rot_mat));
+    sep->addChild(trans);
     
     SoBaseColor * col = new SoBaseColor;
-    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
+    col->rgb = SbColor(kte_gray_R, kte_gray_G, kte_gray_B);
     sep->addChild(col);
     
-    SoCube* pl_cube = new SoCube;
-    pl_cube->width = pl_geom.getDimensions()[0];
-    pl_cube->height = pl_geom.getDimensions()[1];
-    pl_cube->depth = 1e-4;
-    sep->addChild(pl_cube);
+    SoCylinder* core_cyl = new SoCylinder;
+    core_cyl->radius = aSG.mCharacteristicLength * 0.005;  // diameter about 1% of char-len (very thin rod).
+    core_cyl->height = y_axis_mag;
+    sep->addChild(core_cyl);
     
-  } else if(aGeom3D.getObjectType() == sphere::getStaticObjectType()) {
-    const sphere& sp_geom = static_cast<const sphere&>(aGeom3D);
+    if(!lnk_obj.BaseFrame()) {
+      aSG.mRoot->addChild(sep);
+    } else {
+      if(aSG.mAnchor3DMap.find(lnk_obj.BaseFrame()) == aSG.mAnchor3DMap.end())
+        aSG << lnk_obj.BaseFrame();
+      aSG.mAnchor3DMap[lnk_obj.BaseFrame()].first->addChild(sep);
+    };
     
-    SoBaseColor * col = new SoBaseColor;
-    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
-    sep->addChild(col);
-    
-    SoSphere* sp_cyl = new SoSphere;
-    sp_cyl->radius = sp_geom.getRadius();
-    sep->addChild(sp_cyl);
-    
-  } else if(aGeom3D.getObjectType() == box::getStaticObjectType()) {
-    const box& bx_geom = static_cast<const box&>(aGeom3D);
-    
-    SoBaseColor * col = new SoBaseColor;
-    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
-    sep->addChild(col);
-    
-    SoCube* bx_cube = new SoCube;
-    bx_cube->width = bx_geom.getDimensions()[0];
-    bx_cube->height = bx_geom.getDimensions()[1];
-    bx_cube->depth = bx_geom.getDimensions()[2];
-    sep->addChild(bx_cube);
-    
-  } else if(aGeom3D.getObjectType() == cylinder::getStaticObjectType()) {
-    const cylinder& cy_geom = static_cast<const cylinder&>(aGeom3D);
-    
-    SoBaseColor * col = new SoBaseColor;
-    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
-    sep->addChild(col);
-    
-    SoRotation* cy_rot = new SoRotation;
-    cy_rot->rotation.setValue(SbVec3f(1.0,0.0,0.0),M_PI / 2.0);
-    sep->addChild(cy_rot);
-    
-    SoCylinder* cy_cyl = new SoCylinder;
-    cy_cyl->radius = cy_geom.getRadius();
-    cy_cyl->height = cy_geom.getLength();
-    sep->addChild(cy_cyl);
-    
-  } else if(aGeom3D.getObjectType() == capped_cylinder::getStaticObjectType()) {
-    const capped_cylinder& cy_geom = static_cast<const capped_cylinder&>(aGeom3D);
-    
-    SoBaseColor * col = new SoBaseColor;
-    col->rgb = SbColor(aSG.mCurrentColor.R, aSG.mCurrentColor.G, aSG.mCurrentColor.B);
-    sep->addChild(col);
-    
-    SoRotation* cy_rot = new SoRotation;
-    cy_rot->rotation.setValue(SbVec3f(1.0,0.0,0.0),M_PI / 2.0);
-    sep->addChild(cy_rot);
-    
-    SoCylinder* cy_cyl = new SoCylinder;
-    cy_cyl->radius = cy_geom.getRadius();
-    cy_cyl->height = cy_geom.getLength();
-    sep->addChild(cy_cyl);
-    
-    SoTranslation* cy_trans_top = new SoTranslation;
-    cy_trans_top->translation.setValue(0.0,0.5 * cy_geom.getLength(),0.0);
-    sep->addChild(cy_trans_top);
-    
-    SoSphere* cy_sp_top = new SoSphere;
-    cy_sp_top->radius = cy_geom.getRadius();
-    sep->addChild(cy_sp_top);
-    
-    SoTranslation* cy_trans_bottom = new SoTranslation;
-    cy_trans_bottom->translation.setValue(0.0,-cy_geom.getLength(),0.0);
-    sep->addChild(cy_trans_bottom);
-    
-    SoSphere* cy_sp_bottom = new SoSphere;
-    cy_sp_bottom->radius = cy_geom.getRadius();
-    sep->addChild(cy_sp_bottom);
-    
-  } else if(aGeom3D.getObjectType() == composite_shape_3D::getStaticObjectType()) {
-    const composite_shape_3D& comp_geom = static_cast<const composite_shape_3D&>(aGeom3D);
-    
-    typedef std::vector< shared_ptr< shape_3D > >::const_iterator Iter;
-    for(Iter it = comp_geom.Shapes().begin(); it != comp_geom.Shapes().end(); ++it)
-      aSG << *(*it);
-    
-  };
-  
-  if(!aGeom3D.getAnchor()) {
-    aSG.mRoot->addChild(sep);
-  } else {
-    if(aSG.mAnchor3DMap.find(aGeom3D.getAnchor()) == aSG.mAnchor3DMap.end())
-      aSG << aGeom3D.getAnchor();
-    aSG.mAnchor3DMap[aGeom3D.getAnchor()].first->addChild(sep);
   };
   
   return aSG;

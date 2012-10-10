@@ -58,11 +58,61 @@ class prismatic_joint_2D : public reacting_kte_gen {
     shared_ptr< jacobian_gen_2D<double> > mJacobian; ///< The Jacobian frame produced by this joint.
 
   public:
+    /**
+     * Returns a reference to the joint's coordinate.
+     * \return A reference to the joint's coordinate.
+     */
+    shared_ptr< gen_coord<double> >& Coord() { return mCoord; };
+    /**
+     * Returns a const-reference to the joint's coordinate.
+     * \return A const-reference to the joint's coordinate.
+     */
+    const shared_ptr< gen_coord<double> >& Coord() const { return mCoord; };
 
-    /** Get read-write access to the joint axis mAxis. */
+    /**
+     * Returns a reference to the joint's axis (relative to base frame).
+     * \return A reference to the joint's axis (relative to base frame).
+     */
     vect<double,2>& Axis() { return mAxis; };
-    /** Get read-only access to the joint axis mAxis. */
+    /**
+     * Returns a const-reference to the joint's axis (relative to base frame).
+     * \return A const-reference to the joint's axis (relative to base frame).
+     */
     const vect<double,2>& Axis() const { return mAxis; };
+    
+    /**
+     * Returns a reference to the joint's base frame.
+     * \return A reference to the joint's base frame.
+     */
+    shared_ptr< frame_2D<double> >& BaseFrame() { return mBase; };
+    /**
+     * Returns a const-reference to the joint's base frame.
+     * \return A const-reference to the joint's base frame.
+     */
+    const shared_ptr< frame_2D<double> >& BaseFrame() const { return mBase; };
+    
+    /**
+     * Returns a reference to the joint's output frame.
+     * \return A reference to the joint's output frame.
+     */
+    shared_ptr< frame_2D<double> >& EndFrame() { return mEnd; };
+    /**
+     * Returns a const-reference to the joint's output frame.
+     * \return A const-reference to the joint's output frame.
+     */
+    const shared_ptr< frame_2D<double> >& EndFrame() const { return mEnd; };
+    
+    /**
+     * Returns a reference to the joint's Jacobian.
+     * \return A reference to the joint's Jacobian.
+     */
+    shared_ptr< jacobian_gen_2D<double> >& Jacobian() { return mJacobian; };
+    /**
+     * Returns a const-reference to the joint's Jacobian.
+     * \return A const-reference to the joint's Jacobian.
+     */
+    const shared_ptr< jacobian_gen_2D<double> >& Jacobian() const { return mJacobian; };
+    
 
     /**
      * Default constructor.
@@ -140,12 +190,62 @@ class prismatic_joint_3D : public reacting_kte_gen {
     shared_ptr< jacobian_gen_3D<double> > mJacobian; ///< The Jacobian frame produced by this joint.
 
   public:
+    
+    /**
+     * Returns a reference to the joint's coordinate.
+     * \return A reference to the joint's coordinate.
+     */
+    shared_ptr< gen_coord<double> >& Coord() { return mCoord; };
+    /**
+     * Returns a const-reference to the joint's coordinate.
+     * \return A const-reference to the joint's coordinate.
+     */
+    const shared_ptr< gen_coord<double> >& Coord() const { return mCoord; };
 
-    /** Get read-write access to the joint axis mAxis. */
+    /**
+     * Returns a reference to the joint's axis (relative to base frame).
+     * \return A reference to the joint's axis (relative to base frame).
+     */
     vect<double,3>& Axis() { return mAxis; };
-    /** Get read-only access to the joint axis mAxis. */
+    /**
+     * Returns a const-reference to the joint's axis (relative to base frame).
+     * \return A const-reference to the joint's axis (relative to base frame).
+     */
     const vect<double,3>& Axis() const { return mAxis; };
-
+    
+    /**
+     * Returns a reference to the joint's base frame.
+     * \return A reference to the joint's base frame.
+     */
+    shared_ptr< frame_3D<double> >& BaseFrame() { return mBase; };
+    /**
+     * Returns a const-reference to the joint's base frame.
+     * \return A const-reference to the joint's base frame.
+     */
+    const shared_ptr< frame_3D<double> >& BaseFrame() const { return mBase; };
+    
+    /**
+     * Returns a reference to the joint's output frame.
+     * \return A reference to the joint's output frame.
+     */
+    shared_ptr< frame_3D<double> >& EndFrame() { return mEnd; };
+    /**
+     * Returns a const-reference to the joint's output frame.
+     * \return A const-reference to the joint's output frame.
+     */
+    const shared_ptr< frame_3D<double> >& EndFrame() const { return mEnd; };
+    
+    /**
+     * Returns a reference to the joint's Jacobian.
+     * \return A reference to the joint's Jacobian.
+     */
+    shared_ptr< jacobian_gen_3D<double> >& Jacobian() { return mJacobian; };
+    /**
+     * Returns a const-reference to the joint's Jacobian.
+     * \return A const-reference to the joint's Jacobian.
+     */
+    const shared_ptr< jacobian_gen_3D<double> >& Jacobian() const { return mJacobian; };
+    
     /**
      * Default constructor.
      */

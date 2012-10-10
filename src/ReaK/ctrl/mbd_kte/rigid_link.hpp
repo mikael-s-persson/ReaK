@@ -54,10 +54,38 @@ class rigid_link_gen : public kte_map {
     double mOffset; ///< Holds the offset of the rigid-link (or length of the link).
 
   public:
-
-    /** Get read-write access to mOffset. */
+    
+    /**
+     * Returns a reference to the link's base frame.
+     * \return A reference to the link's base frame.
+     */
+    shared_ptr< gen_coord<double> >& BaseFrame() { return mBase; };
+    /**
+     * Returns a const-reference to the link's base frame.
+     * \return A const-reference to the link's base frame.
+     */
+    const shared_ptr< gen_coord<double> >& BaseFrame() const { return mBase; };
+    
+    /**
+     * Returns a reference to the link's output frame.
+     * \return A reference to the link's output frame.
+     */
+    shared_ptr< gen_coord<double> >& EndFrame() { return mEnd; };
+    /**
+     * Returns a const-reference to the link's output frame.
+     * \return A const-reference to the link's output frame.
+     */
+    const shared_ptr< gen_coord<double> >& EndFrame() const { return mEnd; };
+    
+    /**
+     * Returns a reference to the link's coordinate offset.
+     * \return A reference to the link's coordinate offset.
+     */
     double& Offset() { return mOffset; };
-    /** Get read-only access to mOffset. */
+    /**
+     * Returns the value of the link's coordinate offset.
+     * \return The value of the link's coordinate offset.
+     */
     double Offset() const { return mOffset; };
 
     /**
@@ -123,10 +151,38 @@ class rigid_link_2D : public kte_map {
     pose_2D<double> mPoseOffset; ///< Holds the pose offset of the rigid-link (length and twist of the link).
 
   public:
-
-    /** Get read-write access to the mPoseOffset. */
+    
+    /**
+     * Returns a reference to the link's base frame.
+     * \return A reference to the link's base frame.
+     */
+    shared_ptr< frame_2D<double> >& BaseFrame() { return mBase; };
+    /**
+     * Returns a const-reference to the link's base frame.
+     * \return A const-reference to the link's base frame.
+     */
+    const shared_ptr< frame_2D<double> >& BaseFrame() const { return mBase; };
+    
+    /**
+     * Returns a reference to the link's output frame.
+     * \return A reference to the link's output frame.
+     */
+    shared_ptr< frame_2D<double> >& EndFrame() { return mEnd; };
+    /**
+     * Returns a const-reference to the link's output frame.
+     * \return A const-reference to the link's output frame.
+     */
+    const shared_ptr< frame_2D<double> >& EndFrame() const { return mEnd; };
+    
+    /**
+     * Returns a reference to the link's pose offset (position vector and rotation).
+     * \return A reference to the link's pose offset (position vector and rotation).
+     */
     pose_2D<double>& PoseOffset() { return mPoseOffset; };
-    /** Get read-only access to the mPoseOffset. */
+    /**
+     * Returns a const-reference to the link's pose offset (position vector and rotation).
+     * \return A const-reference to the link's pose offset (position vector and rotation).
+     */
     const pose_2D<double>& PoseOffset() const { return mPoseOffset; };
 
     /**
@@ -191,10 +247,38 @@ class rigid_link_3D : public kte_map {
     pose_3D<double> mPoseOffset; ///< Holds the pose offset of the rigid-link (length and twist of the link).
 
   public:
-
-    /** Get read-write access to the mPoseOffset. */
+    
+    /**
+     * Returns a reference to the link's base frame.
+     * \return A reference to the link's base frame.
+     */
+    shared_ptr< frame_3D<double> >& BaseFrame() { return mBase; };
+    /**
+     * Returns a const-reference to the link's base frame.
+     * \return A const-reference to the link's base frame.
+     */
+    const shared_ptr< frame_3D<double> >& BaseFrame() const { return mBase; };
+    
+    /**
+     * Returns a reference to the link's output frame.
+     * \return A reference to the link's output frame.
+     */
+    shared_ptr< frame_3D<double> >& EndFrame() { return mEnd; };
+    /**
+     * Returns a const-reference to the link's output frame.
+     * \return A const-reference to the link's output frame.
+     */
+    const shared_ptr< frame_3D<double> >& EndFrame() const { return mEnd; };
+    
+    /**
+     * Returns a reference to the link's pose offset (position vector and rotation).
+     * \return A reference to the link's pose offset (position vector and rotation).
+     */
     pose_3D<double>& PoseOffset() { return mPoseOffset; };
-    /** Get read-only access to the mPoseOffset. */
+    /**
+     * Returns a const-reference to the link's pose offset (position vector and rotation).
+     * \return A const-reference to the link's pose offset (position vector and rotation).
+     */
     const pose_3D<double>& PoseOffset() const { return mPoseOffset; };
 
     /**

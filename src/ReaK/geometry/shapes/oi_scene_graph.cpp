@@ -52,6 +52,8 @@
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/sensors/SoTimerSensor.h>
+#include <Inventor/SbViewportRegion.h>
+#include <Inventor/actions/SoGetBoundingBoxAction.h>
 
 
 namespace ReaK {
@@ -87,6 +89,16 @@ void oi_scene_graph::enableAnchorUpdates() {
 
 void oi_scene_graph::disableAnchorUpdates() {
   mTimer->unschedule();
+};
+
+double oi_scene_graph::computeCharacteristicLength() {
+  using std::sqrt;
+  SbViewportRegion dummy_viewport;
+  SoGetBoundingBoxAction bb_calc(dummy_viewport);
+  bb_calc.apply(mRoot);
+  float x,y,z;
+  bb_calc.getXfBoundingBox().getSize(x,y,z);
+  return mCharacteristicLength = sqrt((x * x + y * y + z * z) / 3.0);
 };
 
 
