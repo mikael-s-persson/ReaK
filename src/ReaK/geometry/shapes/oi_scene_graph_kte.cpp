@@ -67,6 +67,10 @@ static const float kte_gray_R = 0.8196;
 static const float kte_gray_G = 0.8549;
 static const float kte_gray_B = 0.8980;
 
+static const float kte_red_R = 0.9922;
+static const float kte_red_G = 0.0353;
+static const float kte_red_B = 0.1922;
+
 
 oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
   
@@ -102,8 +106,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(col);
     
     SoCylinder* core_cyl = new SoCylinder;
-    core_cyl->radius = aSG.mCharacteristicLength * 0.0125;  // diameter about 2.5% of char-len
-    core_cyl->height = aSG.mCharacteristicLength * 0.05;    // about 5% of char-len
+    core_cyl->radius = aSG.mCharacteristicLength * 0.01;  // diameter about 2% of char-len
+    core_cyl->height = aSG.mCharacteristicLength * 0.04;    // about 4% of char-len
     sep->addChild(core_cyl);
     
     SoBaseColor * white_col = new SoBaseColor;
@@ -111,13 +115,13 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(white_col);
     
     SoTexture2* red_arrow = new SoTexture2;
-    red_arrow->filename.setValue("models/textures/red_arrow.tga");
+    red_arrow->filename.setValue("./models/textures/red_arrow.tga");
     sep->addChild(red_arrow);
     
     SoCylinder* arrow_cyl = new SoCylinder;
     arrow_cyl->parts = SoCylinder::SIDES;
-    arrow_cyl->radius = aSG.mCharacteristicLength * 0.025;
-    arrow_cyl->height = aSG.mCharacteristicLength * 0.025;
+    arrow_cyl->radius = aSG.mCharacteristicLength * 0.015;
+    arrow_cyl->height = aSG.mCharacteristicLength * 0.04;
     sep->addChild(arrow_cyl);
     
     if(!rev_joint.BaseFrame()) {
@@ -154,9 +158,9 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(col);
     
     SoCube* core_cube = new SoCube;
-    core_cube->width = aSG.mCharacteristicLength * 0.0125;  // about 2.5% of char-len
-    core_cube->height = aSG.mCharacteristicLength * 0.05;    // about 5% of char-len
-    core_cube->depth = aSG.mCharacteristicLength * 0.0125;  // about 2.5% of char-len
+    core_cube->width = aSG.mCharacteristicLength * 0.01;  // about 2% of char-len
+    core_cube->height = aSG.mCharacteristicLength * 0.04;    // about 4% of char-len
+    core_cube->depth = aSG.mCharacteristicLength * 0.01;  // about 2% of char-len
     sep->addChild(core_cube);
     
     SoBaseColor * white_col = new SoBaseColor;
@@ -164,13 +168,13 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(white_col);
     
     SoTexture2* red_arrows = new SoTexture2;
-    red_arrows->filename.setValue("models/textures/red_up_arrows.tga");
+    red_arrows->filename.setValue("./models/textures/red_up_arrows.tga");
     sep->addChild(red_arrows);
     
     SoCylinder* arrow_cyl = new SoCylinder;
     arrow_cyl->parts = SoCylinder::SIDES;
-    arrow_cyl->radius = aSG.mCharacteristicLength * 0.0125;
-    arrow_cyl->height = aSG.mCharacteristicLength * 0.05;
+    arrow_cyl->radius = aSG.mCharacteristicLength * 0.01;
+    arrow_cyl->height = aSG.mCharacteristicLength * 0.04;
     sep->addChild(arrow_cyl);
     
     if(!pri_joint.BaseFrame()) {

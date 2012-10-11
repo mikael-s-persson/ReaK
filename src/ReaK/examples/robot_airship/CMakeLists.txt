@@ -68,7 +68,7 @@ if(COIN3D_FOUND AND QT_FOUND)
   
   add_executable(test_lab_scene "${SRCROOT}${RKROBOTAIRSHIPDIR}/test_lab_scene.cpp")
   setup_custom_target(test_lab_scene "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-  target_link_libraries(test_lab_scene reak_geom_coin reak_robot_airship reak_mbd_kte reak_geom_prox reak_geom reak_core)
+  target_link_libraries(test_lab_scene reak_kte_coin reak_geom_coin reak_robot_airship reak_mbd_kte reak_geom_prox reak_geom reak_core)
   target_link_libraries(test_lab_scene ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
   
 endif()

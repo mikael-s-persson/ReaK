@@ -214,7 +214,6 @@ int main(int argc, char ** argv) {
   
   
   {
-    geom::oi_scene_graph sg;
     
     r_info.builder.track_joint_coord->q = 0.2;
     r_info.builder.arm_joint_1_coord->q = M_PI * 0.25;
@@ -229,7 +228,13 @@ int main(int argc, char ** argv) {
     r_info.airship_frame->Quat = axis_angle<double>(M_PI * 0.5, vect<double,3>(1.0,0.0,0.0));
     r_info.airship_chain->doMotion();
     
-    sg << (*r_info.builder.get_geometric_model()) << (*lab_geom_model) << (*airship_geom_model);
+    geom::oi_scene_graph sg_tmp;
+    sg_tmp << (*r_info.builder.get_geometric_model());
+    
+    geom::oi_scene_graph sg;
+    sg.setCharacteristicLength(sg_tmp.computeCharacteristicLength());
+    sg << (*r_info.kin_chain);
+    //sg << (*lab_geom_model) << (*airship_geom_model);
     
     SoSeparator* root = new SoSeparator;
     root->ref();
@@ -261,7 +266,7 @@ int main(int argc, char ** argv) {
     ln_set_lr_pline->numVertices.set1Value(0, 2);
     sep_lr_pline->addChild(ln_set_lr_pline);
     
-    root->addChild(sep_lr_pline);
+    //root->addChild(sep_lr_pline);
     
     
     
@@ -288,7 +293,7 @@ int main(int argc, char ** argv) {
     ln_set_ra_pline->numVertices.set1Value(0, 2);
     sep_ra_pline->addChild(ln_set_ra_pline);
     
-    root->addChild(sep_ra_pline);
+    //root->addChild(sep_ra_pline);
     
     
     
@@ -315,7 +320,7 @@ int main(int argc, char ** argv) {
     ln_set_la_pline->numVertices.set1Value(0, 2);
     sep_la_pline->addChild(ln_set_la_pline);
     
-    root->addChild(sep_la_pline);
+    //root->addChild(sep_la_pline);
     
     
     
