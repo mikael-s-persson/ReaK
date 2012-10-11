@@ -106,7 +106,7 @@ void CRS_A465_geom_builder::create_geom_from_preset() {
   geom_model = shared_ptr< geom::colored_model_3D >(new geom::colored_model_3D("CRS_A465_model_render"));
   
   (*geom_model)
-   .addElement(geom::color(0,0,0),global_frame_arrows)
+   //.addElement(geom::color(0,0,0),global_frame_arrows)
    .addElement(geom::color(0,0,0),robot_base_arrows)
    .addElement(geom::color(0,0,0),track_joint_arrows)
    .addElement(geom::color(0,0,0),arm_joint_1_arrows)

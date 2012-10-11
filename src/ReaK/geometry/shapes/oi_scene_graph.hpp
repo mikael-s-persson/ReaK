@@ -56,6 +56,13 @@
 #include "mbd_kte/kte_map_chain.hpp"
 
 #include <map>
+#include <vector>
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+#include <functional>
+#else
+#include <boost/function.hpp>
+#endif
 
 // forward-declarations of the open-inventory node classes:
 class SoSeparator;
@@ -98,6 +105,12 @@ class oi_scene_graph {
     
     std::map< shared_ptr< pose_2D<double> >, std::pair<SoSeparator*, SoTransform*> > mAnchor2DMap;
     std::map< shared_ptr< pose_3D<double> >, std::pair<SoSeparator*, SoTransform*> > mAnchor3DMap;
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    std::vector< std::function< void() > > mUpdateFuncs;
+#else
+    std::vector< boost::function< void() > > mUpdateFuncs;
+#endif
     
     static void update_anchors(void*, SoSensor*);
     

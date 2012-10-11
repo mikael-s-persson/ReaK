@@ -79,6 +79,9 @@ void oi_scene_graph::update_anchors(void* aData, SoSensor*) {
     it->second.second->rotation.setValue(it->first->Quat[1],it->first->Quat[2],it->first->Quat[3],it->first->Quat[0]);
     it->second.second->translation.setValue(it->first->Position[0],it->first->Position[1],it->first->Position[2]);
   };
+  
+  for(std::size_t i = 0; i < SG->mUpdateFuncs.size(); ++i) 
+    SG->mUpdateFuncs[i]();
 };
 
 
