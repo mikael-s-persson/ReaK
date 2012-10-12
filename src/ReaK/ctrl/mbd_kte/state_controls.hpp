@@ -55,6 +55,18 @@ class position_control_gen : public kte_map, public system_input {
     double mPosDesired;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which position control is exerted.
+     * \return A reference to the frame on which position control is exerted.
+     */
+    shared_ptr< gen_coord<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which position control is exerted.
+     * \return A const-reference to the frame on which position control is exerted.
+     */
+    const shared_ptr< gen_coord<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the desired position, for read-write access.
      * \return the desired position for read-write access.
@@ -130,6 +142,18 @@ class position_control_2D : public kte_map, public system_input {
     vect<double,2> mPosDesired;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which position control is exerted.
+     * \return A reference to the frame on which position control is exerted.
+     */
+    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which position control is exerted.
+     * \return A const-reference to the frame on which position control is exerted.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the desired position, for read-write access.
      * \return the desired position for read-write access.
@@ -215,6 +239,18 @@ class position_control_3D : public kte_map, public system_input {
     vect<double,3> mPosDesired;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which position control is exerted.
+     * \return A reference to the frame on which position control is exerted.
+     */
+    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which position control is exerted.
+     * \return A const-reference to the frame on which position control is exerted.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the desired position, for read-write access.
      * \return the desired position for read-write access.
@@ -300,6 +336,18 @@ class rotation_control_2D : public kte_map, public system_input {
     double mAngleDesired;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which rotation control is exerted.
+     * \return A reference to the frame on which rotation control is exerted.
+     */
+    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which rotation control is exerted.
+     * \return A const-reference to the frame on which rotation control is exerted.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the desired rotation, for read-write access.
      * \return the desired rotation for read-write access.
@@ -335,7 +383,7 @@ class rotation_control_2D : public kte_map, public system_input {
     /**
      * Default destructor.
      */
-    virtual ~rotation_measure_2D() { };
+    virtual ~rotation_control_2D() { };
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
@@ -376,6 +424,18 @@ class rotation_control_3D : public kte_map, public system_input {
     quaternion<double> mQuatDesired;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which rotation control is exerted.
+     * \return A reference to the frame on which rotation control is exerted.
+     */
+    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which rotation control is exerted.
+     * \return A const-reference to the frame on which rotation control is exerted.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the desired rotation, for read-write access.
      * \return the desired rotation for read-write access.
@@ -404,14 +464,14 @@ class rotation_control_3D : public kte_map, public system_input {
     /**
      * Default constructor.
      */
-    rotation_measure_3D(const std::string& aName = "") : kte_map(aName), system_input(aName), mAnchor(), mQuatDesired() { };
+    rotation_control_3D(const std::string& aName = "") : kte_map(aName), system_input(aName), mAnchor(), mQuatDesired() { };
 
     /**
      * Parametrized constructor.
      * \param aName name of the KTE model.
      * \param aAnchor the coordinate from which position is measured.
      */
-    rotation_measure_3D(const std::string& aName,
+    rotation_control_3D(const std::string& aName,
 			const shared_ptr< ReaK::frame_3D<double> >& aAnchor) :
 			kte_map(aName),
 			system_input(aName),
@@ -421,7 +481,7 @@ class rotation_control_3D : public kte_map, public system_input {
     /**
      * Default destructor.
      */
-    virtual ~rotation_measure_3D() { };
+    virtual ~rotation_control_3D() { };
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
@@ -461,6 +521,18 @@ class velocity_control_gen : public kte_map, public system_input {
     double mVelDesired;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which velocity control is exerted.
+     * \return A reference to the frame on which velocity control is exerted.
+     */
+    shared_ptr< gen_coord<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which velocity control is exerted.
+     * \return A const-reference to the frame on which velocity control is exerted.
+     */
+    const shared_ptr< gen_coord<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the desired velocity, for read-write access.
      * \return the desired velocity for read-write access.
@@ -536,6 +608,18 @@ class velocity_control_2D : public kte_map, public system_input {
     vect<double,2> mVelDesired;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which velocity control is exerted.
+     * \return A reference to the frame on which velocity control is exerted.
+     */
+    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which velocity control is exerted.
+     * \return A const-reference to the frame on which velocity control is exerted.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the desired velocity, for read-write access.
      * \return the desired velocity for read-write access.
@@ -621,6 +705,18 @@ class velocity_control_3D : public kte_map, public system_input {
     vect<double,3> mVelDesired;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which velocity control is exerted.
+     * \return A reference to the frame on which velocity control is exerted.
+     */
+    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which velocity control is exerted.
+     * \return A const-reference to the frame on which velocity control is exerted.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the desired velocity, for read-write access.
      * \return the desired velocity for read-write access.
@@ -706,6 +802,18 @@ class ang_velocity_control_2D : public kte_map, public system_input {
     vect<double,2> mAngVelDesired;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which angular velocity control is exerted.
+     * \return A reference to the frame on which angular velocity control is exerted.
+     */
+    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which angular velocity control is exerted.
+     * \return A const-reference to the frame on which angular velocity control is exerted.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the desired angular velocity, for read-write access.
      * \return the desired angular velocity for read-write access.
@@ -791,6 +899,18 @@ class ang_velocity_control_3D : public kte_map, public system_input {
     vect<double,3> mAngVelDesired;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which angular velocity control is exerted.
+     * \return A reference to the frame on which angular velocity control is exerted.
+     */
+    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which angular velocity control is exerted.
+     * \return A const-reference to the frame on which angular velocity control is exerted.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the desired angular velocity, for read-write access.
      * \return the desired angular velocity for read-write access.

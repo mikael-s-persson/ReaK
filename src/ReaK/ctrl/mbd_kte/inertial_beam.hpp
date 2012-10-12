@@ -54,7 +54,29 @@ class inertial_beam_2D : public kte_map {
     double mMass; ///< Holds the total mass of the beam, half of which is lumped at each end.
 
   public:
-
+    
+    /**
+     * Returns a reference to the first end frame of the inertial beam.
+     * \return A reference to the first end frame of the inertial beam.
+     */
+    shared_ptr< frame_2D<double> >& Anchor1() { return mAnchor1; };
+    /**
+     * Returns a const-reference to the first end frame of the inertial beam.
+     * \return A const-reference to the first end frame of the inertial beam.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor1() const { return mAnchor1; };
+    
+    /**
+     * Returns a reference to the second end frame of the inertial beam.
+     * \return A reference to the second end frame of the inertial beam.
+     */
+    shared_ptr< frame_2D<double> >& Anchor2() { return mAnchor2; };
+    /**
+     * Returns a const-reference to the second end frame of the inertial beam.
+     * \return A const-reference to the second end frame of the inertial beam.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor2() const { return mAnchor2; };
+    
     /** Get read-write access to mMass. */
     double& Mass() { return mMass; };
     /** Get read-only access to mMass. */
@@ -125,7 +147,29 @@ class inertial_beam_3D : public kte_map {
     double mMass; ///< Holds the total mass of the beam, half of which is lumped at each end.
 
   public:
-
+    
+    /**
+     * Returns a reference to the first end frame of the inertial beam.
+     * \return A reference to the first end frame of the inertial beam.
+     */
+    shared_ptr< frame_3D<double> >& Anchor1() { return mAnchor1; };
+    /**
+     * Returns a const-reference to the first end frame of the inertial beam.
+     * \return A const-reference to the first end frame of the inertial beam.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor1() const { return mAnchor1; };
+    
+    /**
+     * Returns a reference to the second end frame of the inertial beam.
+     * \return A reference to the second end frame of the inertial beam.
+     */
+    shared_ptr< frame_3D<double> >& Anchor2() { return mAnchor2; };
+    /**
+     * Returns a const-reference to the second end frame of the inertial beam.
+     * \return A const-reference to the second end frame of the inertial beam.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor2() const { return mAnchor2; };
+    
     /** Get read-write access to mMass. */
     double& Mass() { return mMass; };
     /** Get read-only access to mMass. */

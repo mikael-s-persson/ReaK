@@ -54,7 +54,29 @@ class plane_point_mindist_3D : public kte_map {
     double mOrigin; ///< Holds the distance to the origin, i.e., mOrigin * mNormal is the vector from the plane to a plane parallel and intersecting the origin.
 
   public:
-
+    
+    /**
+     * Returns a reference to the base-frame, or kinematic input, or free-point.
+     * \return A reference to the base-frame, or kinematic input, or free-point.
+     */
+    shared_ptr< frame_3D<double> >& Base() { return mBase; };
+    /**
+     * Returns a const-reference to the base-frame, or kinematic input, or free-point.
+     * \return A const-reference to the base-frame, or kinematic input, or free-point.
+     */
+    const shared_ptr< frame_3D<double> >& Base() const { return mBase; };
+    
+    /**
+     * Returns a reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
+     * \return A reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
+     */
+    shared_ptr< frame_3D<double> >& End() { return mEnd; };
+    /**
+     * Returns a const-reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
+     * \return A const-reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
+     */
+    const shared_ptr< frame_3D<double> >& End() const { return mEnd; };
+    
     /** Get read-write access to mNormal. */
     vect<double,3>& Normal() { return mNormal; };
     /** Get read-only access to mNormal. */
