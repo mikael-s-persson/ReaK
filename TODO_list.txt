@@ -10,8 +10,8 @@ finish reachability sorting algorithm
 implement sequential EKF on target trajectory
   define trajectory concept    --------------------------------------------------X
     define way-point based trajectory concept    --------------------------------|
-      implement point-to-point (reachable) trajectories   
-  define motion-prediction concept
+      implement point-to-point (reachable) trajectories   -----------------------X
+  define motion-prediction concept   --------------------------------------------X
     define state-space system concept    ----------------------------------------X
       define linear state-space system concept    -------------------------------X
         define LTI state-sapce system concept    --------------------------------X
@@ -58,7 +58,121 @@ implement Elastic Roadmap
   test it on AD*-like world (2D-particle robot with growing obstables)
 
 
+implement "adjacency-list on dvp-tree" overlay data structure   -----------------X
+  reimplement the DVP-tree to handle more generic storage types   ---------------X
+  reimplement the DVP-tree to de-recursify it   ---------------------------------X
+  implement an adjacency-list that indirects a tree (ALT)   ---------------------X
+    define strict concepts for property-graphs and trees (BGL extensions)   -----X
+    implement additional property-maps   ----------------------------------------X
+      implement a data-member property-map   ------------------------------------X
+      implement a composite property-map   --------------------------------------X
+      implement a raw-property property-map   -----------------------------------X
+      implement a raw-to-bundled property-map   ---------------------------------X
+    define a concept for callbacks to added/removed nodes   ---------------------X
+      implement the DVP-tree callbacks (visitor)   ------------------------------X
+    implement the graph-view on the ALT   ---------------------------------------X
+    implement the tree-view on the ALT   ----------------------------------------X
+  test suite   ------------------------------------------------------------------X
+    test all graphs for BGL concept compliance   --------------------------------X (passed)
+    test all trees for BGL(extended) concept compliance   -----------------------X (passed)
+    test trees and graphs for property-graph concepts   -------------------------X (passed)
+    test the ALT on path planners (RRT, RRT*, PRM, RRG)   -----------------------X (passed, with significant improvements)
+      test on 2D world    -------------------------------------------------------X (passed, with no improvement)
+      test on 6D world    -------------------------------------------------------X (passed, with some improvement)
+      test on 12D world    ------------------------------------------------------X (passed, with significant improvement)
+      test on SE(3) 2nd order world    ------------------------------------------X (passed, with significant improvement)
 
+
+update the DVP-tree implementation to include asymmetric metrics   
+  define concepts related to asymmetric metrics   -------------------------------X
+  implement the tree construction for asym. metrics   ---------------------------X
+  implement the KNN query for asym. metrics   -----------------------------------X
+  test on directed motion graph planners (RRT, RRT*, and PRM)
+
+
+implement "promising trajectory sampling"
+  define a Frenet frame concept for trajectories
+    implement Frenet frame on linear interp
+    implement Frenet frame on cubic interp
+    implement Frenet frame on quintic interp
+    implement Frenet frame on SVP interp
+    implement Frenet frame on SAP interp
+  implement Gaussian sampling in normal hyper-Frenet-plane
+    test on linear interp
+    test on cubic interp
+    test on quintic interp
+    test on SVP interp
+    test on SAP interp
+  implement a mixed pool of promising trajectories
+    test on a few interpolators
+  implement a Bayesian update scheme for the promising trajectories
+    test on random (e.g., Perlin Noise) obstacle world
+  implement a multi-nomial distribution on trajectory (tangential)
+    implement Bayesian update on a per-sample basis
+  integration tests
+    test with basic interpolator + Gaussian sampling + mixed pool
+    test interp. + GS + MP + Bayesian update on blobby obstacle world
+    test interp. + GS + MP + per-sample Bayesian update on blob-world
+    test SVP/SAP interp. + GS + MP + PSBU + Manipulator / Collision world
+    test SVP/SAP interp. + GS + MP + PSBU + Manip. / Col. world + Moving Target
+
+
+
+///----------------GEOMETRY LIBRARY----------
+
+implement a set of basic geometries   -------------------------------------------X
+  define base-classes for geometries (2D & 3D) (anchored, renderable)   ---------X
+  define base-classes for shapes (2D & 3D) (collideable)   ----------------------X
+  in 2D, implement:
+    Coordinate arrows   ---------------------------------------------------------X
+    Grid   ----------------------------------------------------------------------X
+    Line Segment   --------------------------------------------------------------X
+    Composite Shape   -----------------------------------------------------------X
+    Rectangle   -----------------------------------------------------------------X
+    Circle   --------------------------------------------------------------------X
+    Capped Rectangle   ----------------------------------------------------------X
+  in 3D, implement:
+    Coordinate arrows   ---------------------------------------------------------X
+    Grid   ----------------------------------------------------------------------X
+    Line Segment   --------------------------------------------------------------X
+    Plane   ---------------------------------------------------------------------X
+    Composite Shape   -----------------------------------------------------------X
+    Box   -----------------------------------------------------------------------X
+    Sphere   --------------------------------------------------------------------X
+    Cylinder   ------------------------------------------------------------------X
+    Capped Cylinder   -----------------------------------------------------------X
+
+implement export-import facilities for geometries
+  use some external lib for VRML / X3D import-export
+  interface to whatever FreeCAD is using
+
+implement rendering facilities for geometries
+  interface to OpenInventor (Coin3D)
+  create a FreeCAD module
+  use some VRML / X3D renderer
+
+implement proximity-query methods
+  implement closed-form solution when possible:
+    rectangle - rectangle   -----------------------------------------------------X
+    circle - circle   -----------------------------------------------------------X
+    rectange - circle   ---------------------------------------------------------X
+    capped rectangle - rectangle   
+    capped rectangle - circle   
+    capped rectangle - capped rectangle   
+    sphere - sphere   -----------------------------------------------------------X
+    sphere - box   --------------------------------------------------------------X
+    sphere - cylinder   ---------------------------------------------------------X
+    sphere - capped cylinder   
+    plane - plane   -------------------------------------------------------------X
+    plane - sphere   ------------------------------------------------------------X
+    plane - box   
+    plane - cylinder   
+    plane - capped cylinder   
+  implement a support-function for all geometries   
+  implement a proximity-query based on support-function (NLP):
+    cylinder - cylinder
+    
+  implement a composite-shape proximity-query dispatcher   
 
 
 ///----------------TEST SCENARIOS------------
@@ -90,24 +204,10 @@ Kalman filtering tests
 
 ///----------------CORE(2)----------------------
 
-update everything into the new folder core2   -----------------------------------X
-
 ///----------------RTTI-----------------------
-
-implement the repo as a reference ring (circular linked-list)  ------------------X
-
-explore template-based (or tmp) solutions for registering data types   ----------X
-  encode type IDs so that template arguments are scalably embedded in them   ----X
-  provide a more convenient way of registering types and IDs   ------------------X
-  provide trait specializations for primitive types   ---------------------------X
 
 
 ///----------------SERIALIZATION--------------
-
-implement the virtual functions as protected member functions,   ----------------X
-  avoid overload-hiding problem   -----------------------------------------------X
-  PImpl the archiver   ----------------------------------------------------------X
-  make operators friends (no virtual overloads)   -------------------------------X
 
 provide a non-intrusive means to make types serializable (by value-ref)   -------X (sfinae to the rescue, again!)
   (mainly to avoid instantiation of save/load functions in a class template)   --X (sfinae to the rescue, again!)
@@ -121,6 +221,7 @@ implement RPC-based archiver (both XML-RPC and Protobuf-RPC)
 
 define generic matrix concepts   ------------------------------------------------X
   refactor matrix library using generic concepts   ------------------------------X
+  support for nil, identity and scalar matrices   -------------------------------X
   extend support for ortho, lo-tri, hi-tri and tridiag  
   implement vector-to-matrix adaptor   ------------------------------------------X
   implement matrix views   ------------------------------------------------------X

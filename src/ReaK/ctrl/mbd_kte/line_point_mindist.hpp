@@ -56,7 +56,29 @@ class line_point_mindist_2D : public kte_map {
     vect<double,2> mOriginMinDist; ///< Holds the minimum-distance vector from origin to the line, in global coordinates.
 
   public:
-
+    
+    /**
+     * Returns a reference to the base-frame, or kinematic input, or free-point.
+     * \return A reference to the base-frame, or kinematic input, or free-point.
+     */
+    shared_ptr< frame_2D<double> >& Base() { return mBase; };
+    /**
+     * Returns a const-reference to the base-frame, or kinematic input, or free-point.
+     * \return A const-reference to the base-frame, or kinematic input, or free-point.
+     */
+    const shared_ptr< frame_2D<double> >& Base() const { return mBase; };
+    
+    /**
+     * Returns a reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the line.
+     * \return A reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the line.
+     */
+    shared_ptr< frame_2D<double> >& End() { return mEnd; };
+    /**
+     * Returns a const-reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the line.
+     * \return A const-reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the line.
+     */
+    const shared_ptr< frame_2D<double> >& End() const { return mEnd; };
+    
     /** Get read-write access to mTangent. */
     vect<double,2>& Tangent() { return mTangent; };
     /** Get read-only access to mTangent. */
@@ -135,7 +157,29 @@ class line_point_mindist_3D : public kte_map {
     vect<double,3> mOriginMinDist; ///< Holds the minimum-distance vector from origin to the line, in global coordinates.
 
   public:
-
+    
+    /**
+     * Returns a reference to the base-frame, or kinematic input, or free-point.
+     * \return A reference to the base-frame, or kinematic input, or free-point.
+     */
+    shared_ptr< frame_3D<double> >& Base() { return mBase; };
+    /**
+     * Returns a const-reference to the base-frame, or kinematic input, or free-point.
+     * \return A const-reference to the base-frame, or kinematic input, or free-point.
+     */
+    const shared_ptr< frame_3D<double> >& Base() const { return mBase; };
+    
+    /**
+     * Returns a reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the line.
+     * \return A reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the line.
+     */
+    shared_ptr< frame_3D<double> >& End() { return mEnd; };
+    /**
+     * Returns a const-reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the line.
+     * \return A const-reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the line.
+     */
+    const shared_ptr< frame_3D<double> >& End() const { return mEnd; };
+    
     /** Get read-write access to mTangent. */
     vect<double,3>& Tangent() { return mTangent; };
     /** Get read-only access to mTangent. */

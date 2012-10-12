@@ -1,7 +1,7 @@
 /**
- * \file base_render_pimpl.hpp
+ * \file prox_fundamentals_2D.hpp
  *
- * This library declares 
+ * This library declares fundamental proximity query methods for 2D.
  *
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date April 2012
@@ -29,9 +29,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_BASE_RENDER_PIMPL_HPP
-#define REAK_BASE_RENDER_PIMPL_HPP
+#ifndef REAK_PROX_FUNDAMENTALS_2D_HPP
+#define REAK_PROX_FUNDAMENTALS_2D_HPP
 
+#include "proximity_finder_2D.hpp"
+
+#include "shapes/rectangle.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -40,23 +43,6 @@ namespace ReaK {
 namespace geom {
 
 
-/** This class defines a . */
-class render_pimpl {
-  public:
-    
-    virtual void render() const { };
-    
-    /**
-     * Default constructor.
-     */
-    render_pimpl() { };
-    
-    /**
-     * Default destructor.
-     */
-    virtual ~render_pimpl() { };
-    
-};
 
 
 };

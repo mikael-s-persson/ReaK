@@ -59,17 +59,52 @@ class torsion_spring_2D : public kte_map {
     double mSaturation; ///< Holds the saturation torque, or maximum torque the spring can exert, if 0 there is no saturation.
 
   public:
-
-    /** Get read-write access to mStiffness. */
+    
+    /**
+     * Returns a reference to the first anchor frame of the torsion spring.
+     * \return A reference to the first anchor frame of the torsion spring.
+     */
+    shared_ptr< frame_2D<double> >& Anchor1() { return mAnchor1; };
+    /**
+     * Returns a const-reference to the first anchor frame of the torsion spring.
+     * \return A const-reference to the first anchor frame of the torsion spring.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor1() const { return mAnchor1; };
+    
+    /**
+     * Returns a reference to the second anchor frame of the torsion spring.
+     * \return A reference to the second anchor frame of the torsion spring.
+     */
+    shared_ptr< frame_2D<double> >& Anchor2() { return mAnchor2; };
+    /**
+     * Returns a const-reference to the second anchor frame of the torsion spring.
+     * \return A const-reference to the second anchor frame of the torsion spring.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor2() const { return mAnchor2; };
+    
+    
+    /**
+     * Returns a reference to the stiffness value of the torsion spring.
+     * \return A reference to the stiffness value of the torsion spring.
+     */
     double& Stiffness() { return mStiffness; };
-    /** Get read-only access to mStiffness. */
+    /**
+     * Returns the stiffness value of the torsion spring.
+     * \return The stiffness value of the torsion spring.
+     */
     double Stiffness() const { return mStiffness; };
-
-    /** Get read-write access to mSaturation. */
+    
+    /**
+     * Returns a reference to the saturation torque value of the torsion spring (0 implies no saturation at all).
+     * \return A reference to the saturation torque value of the torsion spring (0 implies no saturation at all).
+     */
     double& Saturation() { return mSaturation; };
-    /** Get read-only access to mSaturation. */
+    /**
+     * Returns the value of the saturation torque of the torsion spring (0 implies no saturation at all).
+     * \return The value of the saturation torque of the torsion spring (0 implies no saturation at all).
+     */
     double Saturation() const { return mSaturation; };
-
+    
     /**
      * Default constructor.
      */
@@ -138,17 +173,52 @@ class torsion_spring_3D : public kte_map {
     double mSaturation; ///< Holds the saturation torque, or maximum torque the spring can exert, if 0 there is no saturation.
 
   public:
-
-    /** Get read-write access to mStiffness. */
+    
+    /**
+     * Returns a reference to the first anchor frame of the torsion spring.
+     * \return A reference to the first anchor frame of the torsion spring.
+     */
+    shared_ptr< frame_3D<double> >& Anchor1() { return mAnchor1; };
+    /**
+     * Returns a const-reference to the first anchor frame of the torsion spring.
+     * \return A const-reference to the first anchor frame of the torsion spring.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor1() const { return mAnchor1; };
+    
+    /**
+     * Returns a reference to the second anchor frame of the torsion spring.
+     * \return A reference to the second anchor frame of the torsion spring.
+     */
+    shared_ptr< frame_3D<double> >& Anchor2() { return mAnchor2; };
+    /**
+     * Returns a const-reference to the second anchor frame of the torsion spring.
+     * \return A const-reference to the second anchor frame of the torsion spring.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor2() const { return mAnchor2; };
+    
+    
+    /**
+     * Returns a reference to the stiffness value of the torsion spring.
+     * \return A reference to the stiffness value of the torsion spring.
+     */
     double& Stiffness() { return mStiffness; };
-    /** Get read-only access to mStiffness. */
+    /**
+     * Returns the stiffness value of the torsion spring.
+     * \return The stiffness value of the torsion spring.
+     */
     double Stiffness() const { return mStiffness; };
-
-    /** Get read-write access to mSaturation. */
+    
+    /**
+     * Returns a reference to the saturation torque value of the torsion spring (0 implies no saturation at all).
+     * \return A reference to the saturation torque value of the torsion spring (0 implies no saturation at all).
+     */
     double& Saturation() { return mSaturation; };
-    /** Get read-only access to mSaturation. */
+    /**
+     * Returns the value of the saturation torque of the torsion spring (0 implies no saturation at all).
+     * \return The value of the saturation torque of the torsion spring (0 implies no saturation at all).
+     */
     double Saturation() const { return mSaturation; };
-
+    
     /**
      * Default constructor.
      */

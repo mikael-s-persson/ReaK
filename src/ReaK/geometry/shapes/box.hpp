@@ -50,6 +50,12 @@ class box : public shape_3D {
   public:
     
     /**
+     * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
+     * \return The maximum radius of the shape.
+     */
+    virtual double getBoundingRadius() const;
+    
+    /**
      * This function returns the dimensions of the box.
      * \return The dimensions of the box.
      */
@@ -59,8 +65,6 @@ class box : public shape_3D {
      * \param aDimensions The new dimensions of the box.
      */
     void setDimensions(const vect<double,3>& aDimensions) { mDimensions = aDimensions; };
-    
-    virtual void render() const;
     
     /**
      * Default constructor.

@@ -83,42 +83,23 @@ endif()
 
 
 
-# if(BOOST_THREAD_LIB)
-#   message(STATUS "Boost thread library found: '${BOOST_THREAD_LIB}'")
-# else()
-#   message(WARNING "Boost thread library is missing")
-# endif()
-# 
-# if(BOOST_DATE_TIME_LIB)
-#   message(STATUS "Boost date-time library found: '${BOOST_DATE_TIME_LIB}'")
-# else()
-#   message(FATAL_ERROR "Boost date-time library is missing")
-# endif()
 
-#if(NOT BOOST_SYSTEM_LIB)
-#  message(FATAL_ERROR "Boost system library is missing")
-#endif()
+find_package(Coin3D)
 
-#if(NOT BOOST_SERIALIZATION_LIB)
-#  message(FATAL_ERROR "Boost serialization library is missing")
-#endif()
+if(COIN3D_FOUND)
+  message(STATUS "Coin3D library components were found: '${COIN3D_LIBRARIES}'")
+  include_directories(BEFORE ${COIN3D_INCLUDE_DIRS})
+else()
+  message(WARNING "Coin3D was not detected on this system, some test programs will not be built!")
+endif()
 
-#if(NOT BOOST_REGEX_LIB)
-#  message(FATAL_ERROR "Boost regex library is missing")
-#endif()
+find_package( Qt4 )
 
-#if(NOT BOOST_PROGRAM_OPTIONS_LIB)
-#  message(FATAL_ERROR "Boost program options library is missing")
-#endif()
+if(COIN3D_FOUND AND QT_FOUND)
+  FIND_LIBRARY(SOQT4_LIBRARIES SoQt4)
+endif()
 
 
-#if(NOT BOOST_FILESYSTEM_LIB)
-#  message(FATAL_ERROR "Boost filesystem library is missing")
-#endif()
-
-#if(NOT BOOST_IOSTREAMS_LIB)
-#  message(FATAL_ERROR "Boost iostreams library is missing")
-#endif()
 
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})

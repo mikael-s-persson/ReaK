@@ -28,6 +28,10 @@ namespace ReaK {
 namespace geom {
 
 
+double sphere::getBoundingRadius() const {
+  return mRadius;
+};
+
 
 sphere::sphere(const std::string& aName,
 	       const shared_ptr< pose_3D<double> >& aAnchor,

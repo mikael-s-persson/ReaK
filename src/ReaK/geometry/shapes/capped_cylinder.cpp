@@ -27,7 +27,9 @@ namespace ReaK {
 
 namespace geom {
 
-
+double capped_cylinder::getBoundingRadius() const {
+  return mLength * 0.5 + mRadius;
+};
 
 capped_cylinder::capped_cylinder(const std::string& aName,
                                  const shared_ptr< pose_3D<double> >& aAnchor,

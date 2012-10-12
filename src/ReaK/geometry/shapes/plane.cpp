@@ -28,6 +28,12 @@ namespace ReaK {
 namespace geom {
 
 
+  
+double plane::getBoundingRadius() const {
+  return norm_2(mDimensions) * 0.5;
+};
+
+
 plane::plane(const std::string& aName,
 	     const shared_ptr< pose_3D<double> >& aAnchor,
 	     const pose_3D<double>& aPose,

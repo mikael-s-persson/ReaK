@@ -1,7 +1,7 @@
 /**
- * \file .hpp
+ * \file prox_cylinder_cylinder.hpp
  *
- * This library declares 
+ * This library declares a class for proximity queries between a cylinder and a cylinder.
  *
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date April 2012
@@ -29,9 +29,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK__HPP
-#define REAK__HPP
+#ifndef REAK_PROX_CYLINDER_CYLINDER_HPP
+#define REAK_PROX_CYLINDER_CYLINDER_HPP
 
+#include "proximity_finder_3D.hpp"
+
+#include "shapes/cylinder.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -39,6 +42,49 @@ namespace ReaK {
 /** Main namespace for ReaK.Geometry */
 namespace geom {
 
+
+/**
+ * This class is for proximity queries between a cylinder and a cylinder.
+ */
+class prox_cylinder_cylinder : public proximity_finder_3D {
+  protected:
+    
+    shared_ptr< cylinder > mCylinder1;
+    shared_ptr< cylinder > mCylinder2;
+    
+  public:
+    
+    /** Returns the first shape involved in the proximity query. */
+    virtual shared_ptr< shape_3D > getShape1() const;
+    /** Returns the second shape involved in the proximity query. */
+    virtual shared_ptr< shape_3D > getShape2() const;
+    
+    /** This function performs the proximity query on its associated shapes. */
+    virtual void computeProximity();
+    
+    /** 
+     * Default constructor. 
+     * \param aCylinder1 The capped cylinder involved in the proximity query.
+     * \param aCylinder2 The capped cylinder involved in the proximity query.
+     */
+    prox_cylinder_cylinder(const shared_ptr< cylinder >& aCylinder1 = shared_ptr< cylinder >(),
+                           const shared_ptr< cylinder >& aCylinder2 = shared_ptr< cylinder >());
+    
+    /** Destructor. */
+    virtual ~prox_cylinder_cylinder() { };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
+    
+    RK_RTTI_MAKE_ABSTRACT_1BASE(prox_cylinder_cylinder,0xC3200017,1,"prox_cylinder_cylinder",proximity_finder_3D)
+    
+};
 
 
 };

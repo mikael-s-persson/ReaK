@@ -49,6 +49,12 @@ class capped_rectangle : public shape_2D {
     
   public:
     
+    /**
+     * This function returns the maximum radius of the shape (radius of the circle that bounds the shape).
+     * \return The maximum radius of the shape.
+     */
+    virtual double getBoundingRadius() const;
+    
     /** 
      * This function returns the dimensions of the capped rectangle.
      * \return The dimensions of the capped rectangle.
@@ -59,8 +65,6 @@ class capped_rectangle : public shape_2D {
      * \param aDimensions The new dimensions of the capped rectangle.
      */
     void setDimensions(const vect<double,2>& aDimensions) { mDimensions = aDimensions; };
-    
-    virtual void render() const;
     
     /**
      * Default constructor.

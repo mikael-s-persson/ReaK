@@ -50,6 +50,12 @@ class sphere : public shape_3D {
   public:
     
     /**
+     * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
+     * \return The maximum radius of the shape.
+     */
+    virtual double getBoundingRadius() const;
+    
+    /**
      * This function returns the radius of the sphere.
      * \return The radius of the sphere.
      */
@@ -59,8 +65,6 @@ class sphere : public shape_3D {
      * \param aRadius The new radius of the sphere.
      */
     void setRadius(double aRadius) { mRadius = aRadius; };
-    
-    virtual void render() const;
     
     /**
      * Default constructor.

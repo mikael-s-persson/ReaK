@@ -71,6 +71,7 @@ unit_quat<T>                0x0000002D   bin: 0000 0000 0000 0000 0000 0000 0010
 temporal_point<S,T>         0x0000002E   bin: 0000 0000 0000 0000 0000 0000 0010 1110  D
 temporal_point_difference<S,T>0x0000002F bin: 0000 0000 0000 0000 0000 0000 0010 1111  D
 tensor<T,S,A,A>             0x00000030   bin: 0000 0000 0000 0000 0000 0000 0011 0000  D
+geom::color                 0x00000031   bin: 0000 0000 0000 0000 0000 0000 0011 0001  D
 
 
 
@@ -388,6 +389,8 @@ sphere                      0xC3100010   bin: 1100 0011 0001 0000 0000 0000 0001
 capped_cylinder             0xC3100011   bin: 1100 0011 0001 0000 0000 0000 0001 0001  D-R
 cylinder                    0xC3100012   bin: 1100 0011 0001 0000 0000 0000 0001 0010  D-R
 box                         0xC3100013   bin: 1100 0011 0001 0000 0000 0000 0001 0011  D-R
+colored_model_2D            0xC3100020   bin: 1100 0011 0001 0000 0000 0000 0001 0011  D-R
+colored_model_3D            0xC3100021   bin: 1100 0011 0001 0000 0000 0000 0001 0011  D-R
 
 
 proximity_record_2D         0xC3200001   bin: 1100 0011 0010 0000 0000 0000 0000 0001  D-R
@@ -395,26 +398,30 @@ proximity_record_3D         0xC3200002   bin: 1100 0011 0010 0000 0000 0000 0000
 proximity_finder_2D         0xC3200003   bin: 1100 0011 0010 0000 0000 0000 0000 0011  D-R
 proximity_finder_3D         0xC3200004   bin: 1100 0011 0010 0000 0000 0000 0000 0100  D-R
 prox_circle_circle          0xC3200005   bin: 1100 0011 0010 0000 0000 0000 0000 0101  D-R
-prox_circle_crect           0xC3200006   bin: 1100 0011 0010 0000 0000 0000 0000 0110  
+prox_circle_crect           0xC3200006   bin: 1100 0011 0010 0000 0000 0000 0000 0110  D-R
 prox_circle_rectangle       0xC3200007   bin: 1100 0011 0010 0000 0000 0000 0000 0111  D-R
-prox_crect_crect            0xC3200008   bin: 1100 0011 0010 0000 0000 0000 0000 1000  
-prox_crect_rectangle        0xC3200009   bin: 1100 0011 0010 0000 0000 0000 0000 1001  
+prox_crect_crect            0xC3200008   bin: 1100 0011 0010 0000 0000 0000 0000 1000  D-R
+prox_crect_rectangle        0xC3200009   bin: 1100 0011 0010 0000 0000 0000 0000 1001  D-R
 prox_rectangle_rectangle    0xC320000A   bin: 1100 0011 0010 0000 0000 0000 0000 1010  D-R
 prox_plane_plane            0xC320000B   bin: 1100 0011 0010 0000 0000 0000 0000 1011  D-R
 prox_plane_sphere           0xC320000C   bin: 1100 0011 0010 0000 0000 0000 0000 1100  D-R
-prox_plane_ccylinder        0xC320000D   bin: 1100 0011 0010 0000 0000 0000 0000 1101  
-prox_plane_cylinder         0xC320000E   bin: 1100 0011 0010 0000 0000 0000 0000 1110  7
-prox_plane_box              0xC320000F   bin: 1100 0011 0010 0000 0000 0000 0000 1111  5
+prox_plane_ccylinder        0xC320000D   bin: 1100 0011 0010 0000 0000 0000 0000 1101  D-R
+prox_plane_cylinder         0xC320000E   bin: 1100 0011 0010 0000 0000 0000 0000 1110  D-R
+prox_plane_box              0xC320000F   bin: 1100 0011 0010 0000 0000 0000 0000 1111  D-R
 prox_sphere_sphere          0xC3200010   bin: 1100 0011 0010 0000 0000 0000 0001 0000  D-R
-prox_sphere_ccylinder       0xC3200011   bin: 1100 0011 0010 0000 0000 0000 0001 0001  
+prox_sphere_ccylinder       0xC3200011   bin: 1100 0011 0010 0000 0000 0000 0001 0001  D-R
 prox_sphere_cylinder        0xC3200012   bin: 1100 0011 0010 0000 0000 0000 0001 0010  D-R
 prox_sphere_box             0xC3200013   bin: 1100 0011 0010 0000 0000 0000 0001 0011  D-R
-prox_ccylinder_ccylinder    0xC3200014   bin: 1100 0011 0010 0000 0000 0000 0001 0100  
-prox_ccylinder_cylinder     0xC3200015   bin: 1100 0011 0010 0000 0000 0000 0001 0101  
-prox_ccylinder_box          0xC3200016   bin: 1100 0011 0010 0000 0000 0000 0001 0110  
-prox_cylinder_cylinder      0xC3200017   bin: 1100 0011 0010 0000 0000 0000 0001 0111  9
-prox_cylinder_box           0xC3200018   bin: 1100 0011 0010 0000 0000 0000 0001 1000  8
-prox_box_box                0xC3200019   bin: 1100 0011 0010 0000 0000 0000 0001 1001  6
+prox_ccylinder_ccylinder    0xC3200014   bin: 1100 0011 0010 0000 0000 0000 0001 0100  D-R
+prox_ccylinder_cylinder     0xC3200015   bin: 1100 0011 0010 0000 0000 0000 0001 0101  2
+prox_ccylinder_box          0xC3200016   bin: 1100 0011 0010 0000 0000 0000 0001 0110  D-R
+prox_cylinder_cylinder      0xC3200017   bin: 1100 0011 0010 0000 0000 0000 0001 0111  1
+prox_cylinder_box           0xC3200018   bin: 1100 0011 0010 0000 0000 0000 0001 1000  4
+prox_box_box                0xC3200019   bin: 1100 0011 0010 0000 0000 0000 0001 1001  3
+proxy_query_model_2D        0xC320001A   bin: 1100 0011 0010 0000 0000 0000 0001 1010  D-R
+proxy_query_model_3D        0xC320001B   bin: 1100 0011 0010 0000 0000 0000 0001 1011  D-R
+proxy_query_pair_2D         0xC320001C   bin: 1100 0011 0010 0000 0000 0000 0001 1100  D-R
+proxy_query_pair_3D         0xC320001D   bin: 1100 0011 0010 0000 0000 0000 0001 1101  D-R
 
 
 

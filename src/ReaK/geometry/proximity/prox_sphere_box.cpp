@@ -23,6 +23,8 @@
 
 #include "prox_sphere_box.hpp"
 
+#include "prox_fundamentals_3D.hpp"
+
 #include <cmath>
 
 /** Main namespace for ReaK */
@@ -52,49 +54,18 @@ void prox_sphere_box::computeProximity() {
   vect<double,3> sp_c = mSphere->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
   vect<double,3> bx_c = mBox->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
   
-  vect<double,3> sp_c_rel = mBox->getPose().transformFromGlobal(sp_c);
+  proximity_record_3D bxpt_result = findProximityBoxToPoint(mBox, sp_c);
   
-  bool in_x_range = ((sp_c_rel[0] > -0.5 * mBox->getDimensions()[0]) &&
-                     (sp_c_rel[0] <  0.5 * mBox->getDimensions()[0]));
-  bool in_y_range = ((sp_c_rel[1] > -0.5 * mBox->getDimensions()[1]) &&
-                     (sp_c_rel[1] <  0.5 * mBox->getDimensions()[1]));
-  bool in_z_range = ((sp_c_rel[2] > -0.5 * mBox->getDimensions()[2]) &&
-                     (sp_c_rel[2] <  0.5 * mBox->getDimensions()[2]));
-  
-  if(in_x_range && in_y_range && in_z_range) {
-    // The sphere is inside the box.
-    vect<double,3> bound_dists = vect<double,3>(0.5 * mBox->getDimensions()[0] - fabs(sp_c_rel[0]),
-						0.5 * mBox->getDimensions()[1] - fabs(sp_c_rel[1]),
-						0.5 * mBox->getDimensions()[2] - fabs(sp_c_rel[2]));
-    if((bound_dists[0] <= bound_dists[1]) &&
-       (bound_dists[0] <= bound_dists[2])) {
-      in_x_range = false;
-    } else if((bound_dists[1] <= bound_dists[0]) &&
-              (bound_dists[1] <= bound_dists[2])) {
-      in_y_range = false;
-    } else {
-      in_z_range = false;
-    };
-  }
-  
-  vect<double,3> corner_pt = 0.5 * mBox->getDimensions();
-  if(in_x_range)
-    corner_pt[0] = sp_c_rel[0];
-  else if(sp_c_rel[0] < 0.0)
-    corner_pt[0] = -corner_pt[0];
-  if(in_y_range)
-    corner_pt[1] = sp_c_rel[1];
-  else if(sp_c_rel[1] < 0.0)
-    corner_pt[1] = -corner_pt[1];
-  if(in_z_range)
-    corner_pt[2] = sp_c_rel[2];
-  else if(sp_c_rel[2] < 0.0)
-    corner_pt[2] = -corner_pt[2];
-  mLastResult.mPoint2 = mBox->getPose().transformToGlobal(corner_pt);
-  vect<double,3> diff_v = mLastResult.mPoint2 - sp_c;
+  // add a sphere-sweep around the point-box solution.
+  vect<double,3> diff_v = bxpt_result.mPoint1 - bxpt_result.mPoint2;
   double diff_d = norm_2(diff_v);
-  mLastResult.mPoint1 = sp_c + (mSphere->getRadius() / diff_d) * diff_v;
-  mLastResult.mDistance = diff_d - mSphere->getRadius();
+  if(bxpt_result.mDistance < 0.0)
+    mLastResult.mPoint1 = bxpt_result.mPoint2 - (mSphere->getRadius() / diff_d) * diff_v;
+  else
+    mLastResult.mPoint1 = bxpt_result.mPoint2 + (mSphere->getRadius() / diff_d) * diff_v;
+  mLastResult.mPoint2 = bxpt_result.mPoint1;
+  mLastResult.mDistance = bxpt_result.mDistance - mSphere->getRadius();
+  return;
 };
 
 

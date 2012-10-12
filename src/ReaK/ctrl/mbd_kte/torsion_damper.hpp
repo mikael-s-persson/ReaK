@@ -53,12 +53,40 @@ class torsion_damper_2D : public kte_map {
     double mDamping; ///< The damping coefficient (in Nms/rad).
 
   public:
-
-    /** Get read-write access to mDamping. */
+    
+    /**
+     * Returns a reference to the first anchor frame of the torsion damper.
+     * \return A reference to the first anchor frame of the torsion damper.
+     */
+    shared_ptr< frame_2D<double> >& Anchor1() { return mAnchor1; };
+    /**
+     * Returns a const-reference to the first anchor frame of the torsion damper.
+     * \return A const-reference to the first anchor frame of the torsion damper.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor1() const { return mAnchor1; };
+    
+    /**
+     * Returns a reference to the second anchor frame of the torsion damper.
+     * \return A reference to the second anchor frame of the torsion damper.
+     */
+    shared_ptr< frame_2D<double> >& Anchor2() { return mAnchor2; };
+    /**
+     * Returns a const-reference to the second anchor frame of the torsion damper.
+     * \return A const-reference to the second anchor frame of the torsion damper.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor2() const { return mAnchor2; };
+    
+    /**
+     * Returns a reference to the damping factor of the torsion damper.
+     * \return A reference to the damping factor of the torsion damper.
+     */
     double& Damping() { return mDamping; };
-    /** Get read-only access to mDamping. */
+    /**
+     * Returns the damping factor of the torsion damper.
+     * \return The damping factor of the torsion damper.
+     */
     double Damping() const { return mDamping; };
-
+    
     /**
      * Default constructor.
      */
@@ -117,12 +145,40 @@ class torsion_damper_3D : public kte_map {
     double mDamping; ///< The damping coefficient (in Nms/rad).
 
   public:
-
-    /** Get read-write access to mDamping. */
+    
+    /**
+     * Returns a reference to the first anchor frame of the torsion damper.
+     * \return A reference to the first anchor frame of the torsion damper.
+     */
+    shared_ptr< frame_3D<double> >& Anchor1() { return mAnchor1; };
+    /**
+     * Returns a const-reference to the first anchor frame of the torsion damper.
+     * \return A const-reference to the first anchor frame of the torsion damper.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor1() const { return mAnchor1; };
+    
+    /**
+     * Returns a reference to the second anchor frame of the torsion damper.
+     * \return A reference to the second anchor frame of the torsion damper.
+     */
+    shared_ptr< frame_3D<double> >& Anchor2() { return mAnchor2; };
+    /**
+     * Returns a const-reference to the second anchor frame of the torsion damper.
+     * \return A const-reference to the second anchor frame of the torsion damper.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor2() const { return mAnchor2; };
+    
+    /**
+     * Returns a reference to the damping factor of the torsion damper.
+     * \return A reference to the damping factor of the torsion damper.
+     */
     double& Damping() { return mDamping; };
-    /** Get read-only access to mDamping. */
+    /**
+     * Returns the damping factor of the torsion damper.
+     * \return The damping factor of the torsion damper.
+     */
     double Damping() const { return mDamping; };
-
+    
     /**
      * Default constructor.
      */

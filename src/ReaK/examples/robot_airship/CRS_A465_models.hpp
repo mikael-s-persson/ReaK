@@ -58,6 +58,7 @@
 #include "topologies/se3_topologies.hpp"
 #include "topologies/joint_space_limits.hpp"
 
+#include "serialization/archiver.hpp"
 
 namespace ReaK {
 
@@ -72,6 +73,11 @@ namespace robot_airship {
  * as tangent-bundle topologies in path-planning code available in ReaK.
  */
 class CRS_A465_model_builder {
+  protected:
+    
+    void load_kte_from_archive(serialization::iarchive& aInput);
+    void save_kte_to_archive(serialization::oarchive& aOutput) const;
+    
   public:
     
     //declare all the intermediate frames.

@@ -25,6 +25,9 @@ set(PROXIMITY_SOURCES
   "${SRCROOT}${RKPROXIMITYDIR}/prox_cylinder_cylinder.cpp"
   "${SRCROOT}${RKPROXIMITYDIR}/prox_cylinder_box.cpp"
   "${SRCROOT}${RKPROXIMITYDIR}/prox_box_box.cpp"
+  "${SRCROOT}${RKPROXIMITYDIR}/prox_fundamentals_2D.cpp"
+  "${SRCROOT}${RKPROXIMITYDIR}/prox_fundamentals_3D.cpp"
+  "${SRCROOT}${RKPROXIMITYDIR}/proxy_query_model.cpp"
 )
 
 
@@ -54,6 +57,9 @@ set(PROXIMITY_HEADERS
   "${RKPROXIMITYDIR}/prox_cylinder_cylinder.hpp"
   "${RKPROXIMITYDIR}/prox_cylinder_box.hpp"
   "${RKPROXIMITYDIR}/prox_box_box.hpp"
+  "${RKPROXIMITYDIR}/prox_fundamentals_2D.hpp"
+  "${RKPROXIMITYDIR}/prox_fundamentals_3D.hpp"
+  "${RKPROXIMITYDIR}/proxy_query_model.hpp"
 )
 
 add_library(reak_geom_prox STATIC ${PROXIMITY_SOURCES})
@@ -61,11 +67,9 @@ setup_custom_target(reak_geom_prox "${SRCROOT}${RKPROXIMITYDIR}")
 setup_headers("${PROXIMITY_HEADERS}" "${RKPROXIMITYDIR}")
 target_link_libraries(reak_geom_prox reak_geom reak_core)
 
-#add_executable(test_mbd_basic "${SRCROOT}${RKMBDKTEDIR}/test_bm.cpp")
-#setup_custom_target(test_mbd_basic "${SRCROOT}${RKMBDKTEDIR}")
-
-#target_link_libraries(test_mbd_basic ${Boost_LIBRARIES})
-#target_link_libraries(test_mbd_basic reak_mbd_kte reak_core)
+add_executable(test_nlp_proximity "${SRCROOT}${RKPROXIMITYDIR}/test_nlp_proximity.cpp")
+setup_custom_target(test_nlp_proximity "${SRCROOT}${RKPROXIMITYDIR}")
+target_link_libraries(test_nlp_proximity reak_geom_prox reak_geom reak_core)
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 

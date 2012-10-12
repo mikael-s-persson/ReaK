@@ -45,7 +45,7 @@ namespace kte {
 /**
  * This class declares the interface for a KTE model which receives a reaction force along a generalized coordinate.
  */
-class reacting_kte_gen : virtual public kte_map {
+class reacting_kte_gen : public kte_map {
   public:
     
     /**
@@ -73,7 +73,7 @@ class reacting_kte_gen : virtual public kte_map {
 /**
  * This class declares the interface for a KTE model which receives a reaction force along a 2D frame.
  */
-class reacting_kte_2D : virtual public kte_map {
+class reacting_kte_2D : public kte_map {
   public:
     
     /**
@@ -102,7 +102,7 @@ class reacting_kte_2D : virtual public kte_map {
 /**
  * This class declares the interface for a KTE model which receives a reaction force along a 3D frame.
  */
-class reacting_kte_3D : virtual public kte_map {
+class reacting_kte_3D : public kte_map {
   public:
     
     /**

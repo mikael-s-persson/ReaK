@@ -21,61 +21,19 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "line_seg_2D.hpp"
-#include "line_seg_3D.hpp"
-#include "coord_arrows_2D.hpp"
-#include "coord_arrows_3D.hpp"
-#include "grid_2D.hpp"
-#include "grid_3D.hpp"
-#include "circle.hpp"
-#include "capped_rectangle.hpp"
-#include "rectangle.hpp"
+#include "prox_fundamentals_2D.hpp"
 
-#include "plane.hpp"
-#include "sphere.hpp"
-#include "capped_cylinder.hpp"
-#include "cylinder.hpp"
-#include "box.hpp"
 
+/** Main namespace for ReaK */
 namespace ReaK {
 
+/** Main namespace for ReaK.Geometry */
 namespace geom {
 
-void line_seg_2D::render() const { };
 
-void line_seg_3D::render() const { };
-
-void coord_arrows_2D::render() const { };
-
-void coord_arrows_3D::render() const { };
-
-void grid_2D::render() const { };
-
-void grid_3D::render() const { };
-
-void circle::render() const { };
-
-void capped_rectangle::render() const { };
-
-void rectangle::render() const { };
-
-
-void plane::render() const { };
-
-void sphere::render() const { };
-
-void capped_cylinder::render() const { };
-
-void cylinder::render() const { };
-
-void box::render() const { };
-
-};
 
 
 };
 
-
-
-
+};
 

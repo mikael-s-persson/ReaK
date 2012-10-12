@@ -58,7 +58,51 @@ class free_joint_2D : public reacting_kte_2D {
     shared_ptr< jacobian_2D_2D<double> > mJacobian; ///< The Jacobian frame produced by this joint.
 
   public:
-
+    
+    /**
+     * Returns a reference to the joint's space coordinate.
+     * \return A reference to the joint's space coordinate.
+     */
+    shared_ptr< frame_2D<double> >& Coord() { return mCoord; };
+    /**
+     * Returns a const-reference to the joint's space coordinate.
+     * \return A const-reference to the joint's space coordinate.
+     */
+    const shared_ptr< frame_2D<double> >& Coord() const { return mCoord; };
+    
+    /**
+     * Returns a reference to the joint's base frame.
+     * \return A reference to the joint's base frame.
+     */
+    shared_ptr< frame_2D<double> >& BaseFrame() { return mBase; };
+    /**
+     * Returns a const-reference to the joint's base frame.
+     * \return A const-reference to the joint's base frame.
+     */
+    const shared_ptr< frame_2D<double> >& BaseFrame() const { return mBase; };
+    
+    /**
+     * Returns a reference to the joint's output frame.
+     * \return A reference to the joint's output frame.
+     */
+    shared_ptr< frame_2D<double> >& EndFrame() { return mEnd; };
+    /**
+     * Returns a const-reference to the joint's output frame.
+     * \return A const-reference to the joint's output frame.
+     */
+    const shared_ptr< frame_2D<double> >& EndFrame() const { return mEnd; };
+    
+    /**
+     * Returns a reference to the joint's Jacobian.
+     * \return A reference to the joint's Jacobian.
+     */
+    shared_ptr< jacobian_2D_2D<double> >& Jacobian() { return mJacobian; };
+    /**
+     * Returns a const-reference to the joint's Jacobian.
+     * \return A const-reference to the joint's Jacobian.
+     */
+    const shared_ptr< jacobian_2D_2D<double> >& Jacobian() const { return mJacobian; };
+    
     /**
      * Default constructor.
      */
@@ -129,7 +173,51 @@ class free_joint_3D : public reacting_kte_3D {
     shared_ptr< jacobian_3D_3D<double> > mJacobian; ///< The Jacobian frame produced by this joint.
 
   public:
-
+    
+    /**
+     * Returns a reference to the joint's space coordinate.
+     * \return A reference to the joint's space coordinate.
+     */
+    shared_ptr< frame_3D<double> >& Coord() { return mCoord; };
+    /**
+     * Returns a const-reference to the joint's space coordinate.
+     * \return A const-reference to the joint's space coordinate.
+     */
+    const shared_ptr< frame_3D<double> >& Coord() const { return mCoord; };
+    
+    /**
+     * Returns a reference to the joint's base frame.
+     * \return A reference to the joint's base frame.
+     */
+    shared_ptr< frame_3D<double> >& BaseFrame() { return mBase; };
+    /**
+     * Returns a const-reference to the joint's base frame.
+     * \return A const-reference to the joint's base frame.
+     */
+    const shared_ptr< frame_3D<double> >& BaseFrame() const { return mBase; };
+    
+    /**
+     * Returns a reference to the joint's output frame.
+     * \return A reference to the joint's output frame.
+     */
+    shared_ptr< frame_3D<double> >& EndFrame() { return mEnd; };
+    /**
+     * Returns a const-reference to the joint's output frame.
+     * \return A const-reference to the joint's output frame.
+     */
+    const shared_ptr< frame_3D<double> >& EndFrame() const { return mEnd; };
+    
+    /**
+     * Returns a reference to the joint's Jacobian.
+     * \return A reference to the joint's Jacobian.
+     */
+    shared_ptr< jacobian_3D_3D<double> >& Jacobian() { return mJacobian; };
+    /**
+     * Returns a const-reference to the joint's Jacobian.
+     * \return A const-reference to the joint's Jacobian.
+     */
+    const shared_ptr< jacobian_3D_3D<double> >& Jacobian() const { return mJacobian; };
+    
     /**
      * Default constructor.
      */

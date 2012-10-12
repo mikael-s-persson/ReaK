@@ -51,7 +51,13 @@ class kte_map_chain : public kte_map {
     std::vector< shared_ptr<kte_map> > mKTEs; ///< Stores the list of KTEs
 
   public:
-
+    
+    /**
+     * This function returns the vector of KTEs contained in this chain.
+     * \return A const-reference to the vector of KTEs contained in this chain.
+     */
+    const std::vector< shared_ptr<kte_map> >& getKTEs() const { return mKTEs; };
+    
     /**
      * Default constructor.
      */

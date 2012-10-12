@@ -52,7 +52,29 @@ class virtual_kte_interface_gen : public kte_map {
     shared_ptr< gen_coord<double> > mEnd; ///< Holds the end frame of the interface.
 
   public:
-
+    
+    /**
+     * Returns a reference to the base frame of the interface (input frame).
+     * \return A reference to the base frame of the interface (input frame).
+     */
+    shared_ptr< gen_coord<double> >& Base() { return mBase; };
+    /**
+     * Returns a const-reference to the base frame of the interface (input frame).
+     * \return A const-reference to the base frame of the interface (input frame).
+     */
+    const shared_ptr< gen_coord<double> >& Base() const { return mBase; };
+    
+    /**
+     * Returns a reference to the end frame of the interface (output frame).
+     * \return A reference to the end frame of the interface (output frame).
+     */
+    shared_ptr< gen_coord<double> >& End() { return mEnd; };
+    /**
+     * Returns a const-reference to the end frame of the interface (output frame).
+     * \return A const-reference to the end frame of the interface (output frame).
+     */
+    const shared_ptr< gen_coord<double> >& End() const { return mEnd; };
+    
     /**
      * Default constructor.
      */
@@ -110,7 +132,29 @@ class virtual_kte_interface_2D : public kte_map {
     shared_ptr< frame_2D<double> > mEnd; ///< Holds the end frame of the interface.
 
   public:
-
+    
+    /**
+     * Returns a reference to the base frame of the interface (input frame).
+     * \return A reference to the base frame of the interface (input frame).
+     */
+    shared_ptr< frame_2D<double> >& Base() { return mBase; };
+    /**
+     * Returns a const-reference to the base frame of the interface (input frame).
+     * \return A const-reference to the base frame of the interface (input frame).
+     */
+    const shared_ptr< frame_2D<double> >& Base() const { return mBase; };
+    
+    /**
+     * Returns a reference to the end frame of the interface (output frame).
+     * \return A reference to the end frame of the interface (output frame).
+     */
+    shared_ptr< frame_2D<double> >& End() { return mEnd; };
+    /**
+     * Returns a const-reference to the end frame of the interface (output frame).
+     * \return A const-reference to the end frame of the interface (output frame).
+     */
+    const shared_ptr< frame_2D<double> >& End() const { return mEnd; };
+    
     /**
      * Default constructor.
      */
@@ -168,7 +212,29 @@ class virtual_kte_interface_3D : public kte_map {
     shared_ptr< frame_3D<double> > mEnd; ///< Holds the end frame of the interface.
 
   public:
-
+    
+    /**
+     * Returns a reference to the base frame of the interface (input frame).
+     * \return A reference to the base frame of the interface (input frame).
+     */
+    shared_ptr< frame_3D<double> >& Base() { return mBase; };
+    /**
+     * Returns a const-reference to the base frame of the interface (input frame).
+     * \return A const-reference to the base frame of the interface (input frame).
+     */
+    const shared_ptr< frame_3D<double> >& Base() const { return mBase; };
+    
+    /**
+     * Returns a reference to the end frame of the interface (output frame).
+     * \return A reference to the end frame of the interface (output frame).
+     */
+    shared_ptr< frame_3D<double> >& End() { return mEnd; };
+    /**
+     * Returns a const-reference to the end frame of the interface (output frame).
+     * \return A const-reference to the end frame of the interface (output frame).
+     */
+    const shared_ptr< frame_3D<double> >& End() const { return mEnd; };
+    
     /**
      * Default constructor.
      */

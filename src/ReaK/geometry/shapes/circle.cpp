@@ -28,6 +28,10 @@ namespace ReaK {
 namespace geom {
 
 
+double circle::getBoundingRadius() const {
+  return mRadius;
+};
+
 circle::circle(const std::string& aName,
 	       const shared_ptr< pose_2D<double> >& aAnchor,
 	       const pose_2D<double>& aPose,

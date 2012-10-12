@@ -55,34 +55,32 @@ void prox_circle_crect::computeProximity() {
   
   bool in_x_range = ((ci_c_rel[0] > -0.5 * mCRect->getDimensions()[0]) &&
                      (ci_c_rel[0] <  0.5 * mCRect->getDimensions()[0]));
-  bool in_y_range = ((ci_c_rel[1] > -0.5 * mCRect->getDimensions()[1]) &&
-                     (ci_c_rel[1] <  0.5 * mCRect->getDimensions()[1]));
   
-  if(in_x_range && in_y_range) {
-    // The circle is inside the rectangle.
-    vect<double,2> bound_dists = vect<double,2>(0.5 * mCRect->getDimensions()[0] - fabs(ci_c_rel[0]),
-						0.5 * mCRect->getDimensions()[1] - fabs(ci_c_rel[1]));
-    if(bound_dists[0] <= bound_dists[1]) {
-      in_x_range = false;
+  if(in_x_range) {
+    if(ci_c_rel[1] > 0.0) {
+      mLastResult.mPoint1 = mCRect->getPose().transformToGlobal(vect<double,2>(ci_c_rel[0], ci_c_rel[1] - mCircle->getRadius()));
+      mLastResult.mPoint2 = mCRect->getPose().transformToGlobal(vect<double,2>(ci_c_rel[0], 0.5 * mCRect->getDimensions()[1]));
+      mLastResult.mDistance = ci_c_rel[1] - mCircle->getRadius() - 0.5 * mCRect->getDimensions()[1];
     } else {
-      in_y_range = false;
+      mLastResult.mPoint1 = mCRect->getPose().transformToGlobal(vect<double,2>(ci_c_rel[0], ci_c_rel[1] + mCircle->getRadius()));
+      mLastResult.mPoint2 = mCRect->getPose().transformToGlobal(vect<double,2>(ci_c_rel[0], -0.5 * mCRect->getDimensions()[1]));
+      mLastResult.mDistance = -0.5 * mCRect->getDimensions()[1] - ci_c_rel[1] - mCircle->getRadius();
     };
+    return;
   };
   
-  vect<double,2> corner_pt = 0.5 * mCRect->getDimensions();
-  if(in_x_range)
-    corner_pt[0] = ci_c_rel[0];
-  else if(ci_c_rel[0] < 0.0)
-    corner_pt[0] = -corner_pt[0];
-  if(in_y_range)
-    corner_pt[1] = ci_c_rel[1];
-  else if(ci_c_rel[1] < 0.0)
-    corner_pt[1] = -corner_pt[1];
-  mLastResult.mPoint2 = mCRect->getPose().transformToGlobal(corner_pt);
-  vect<double,2> diff_v = mLastResult.mPoint2 - ci_c;
-  double diff_d = norm_2(diff_v);
-  mLastResult.mPoint1 = ci_c + (mCircle->getRadius() / diff_d) * diff_v;
-  mLastResult.mDistance = diff_d - mCircle->getRadius();
+  // this boils down to a circle-circle test.
+  vect<double,2> re_endc(0.0,0.0);
+  if(ci_c_rel[0] > 0.0)
+    re_endc[0] += 0.5 * mCRect->getDimensions()[0];
+  else
+    re_endc[0] -= 0.5 * mCRect->getDimensions()[0];
+  vect<double,2> diff_v_rel = ci_c_rel - re_endc;
+  double diff_d_rel = norm_2(diff_v_rel);
+  mLastResult.mPoint1 = mCRect->getPose().transformToGlobal(ci_c_rel - (mCircle->getRadius() / diff_d_rel) * diff_v_rel);
+  mLastResult.mPoint2 = mCRect->getPose().transformToGlobal(re_endc + (0.5 * mCRect->getDimensions()[1] / diff_d_rel) * diff_v_rel);
+  mLastResult.mDistance = diff_d_rel - 0.5 * mCRect->getDimensions()[1] - mCircle->getRadius();
+  
 };
 
 

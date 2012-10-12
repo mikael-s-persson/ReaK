@@ -59,20 +59,61 @@ class spring_gen : public kte_map {
     double mSaturation; ///< Holds the saturation force, or maximum force the spring can exert, if 0 there is no saturation.
 
   public:
-
-    /** Get read-write access to mRestLength. */
+    
+    /**
+     * Returns a reference to the first anchor frame of the spring.
+     * \return A reference to the first anchor frame of the spring.
+     */
+    shared_ptr< gen_coord<double> >& Anchor1() { return mAnchor1; };
+    /**
+     * Returns a const-reference to the first anchor frame of the spring.
+     * \return A const-reference to the first anchor frame of the spring.
+     */
+    const shared_ptr< gen_coord<double> >& Anchor1() const { return mAnchor1; };
+    
+    /**
+     * Returns a reference to the second anchor frame of the spring.
+     * \return A reference to the second anchor frame of the spring.
+     */
+    shared_ptr< gen_coord<double> >& Anchor2() { return mAnchor2; };
+    /**
+     * Returns a const-reference to the second anchor frame of the spring.
+     * \return A const-reference to the second anchor frame of the spring.
+     */
+    const shared_ptr< gen_coord<double> >& Anchor2() const { return mAnchor2; };
+    
+    
+    /**
+     * Returns a reference to the rest-length of the spring.
+     * \return A reference to the rest-length of the spring.
+     */
     double& RestLength() { return mRestLength; };
-    /** Get read-only access to mRestLength. */
+    /**
+     * Returns the rest-length of the spring.
+     * \return The rest-length of the spring.
+     */
     double RestLength() const { return mRestLength; };
 
-    /** Get read-write access to mStiffness. */
+    /**
+     * Returns a reference to the stiffness value of the spring.
+     * \return A reference to the stiffness value of the spring.
+     */
     double& Stiffness() { return mStiffness; };
-    /** Get read-only access to mStiffness. */
+    /**
+     * Returns the stiffness value of the spring.
+     * \return The stiffness value of the spring.
+     */
     double Stiffness() const { return mStiffness; };
 
-    /** Get read-write access to mSaturation. */
+    /**
+     * Returns a reference to the saturation force value of the spring (0 implies no saturation at all).
+     * \return A reference to the saturation force value of the spring (0 implies no saturation at all).
+     */
     double& Saturation() { return mSaturation; };
-    /** Get read-only access to mSaturation. */
+    /**
+     * Returns the value of the saturation force of the spring (0 implies no saturation at all).
+     * \return The value of the saturation force of the spring (0 implies no saturation at all).
+     */
     double Saturation() const { return mSaturation; };
 
     /**
@@ -150,20 +191,61 @@ class spring_2D : public kte_map {
     double mSaturation; ///< Holds the saturation force, or maximum force the spring can exert, if 0 there is no saturation.
 
   public:
-
-    /** Get read-write access to mRestLength. */
+    
+    /**
+     * Returns a reference to the first anchor frame of the spring.
+     * \return A reference to the first anchor frame of the spring.
+     */
+    shared_ptr< frame_2D<double> >& Anchor1() { return mAnchor1; };
+    /**
+     * Returns a const-reference to the first anchor frame of the spring.
+     * \return A const-reference to the first anchor frame of the spring.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor1() const { return mAnchor1; };
+    
+    /**
+     * Returns a reference to the second anchor frame of the spring.
+     * \return A reference to the second anchor frame of the spring.
+     */
+    shared_ptr< frame_2D<double> >& Anchor2() { return mAnchor2; };
+    /**
+     * Returns a const-reference to the second anchor frame of the spring.
+     * \return A const-reference to the second anchor frame of the spring.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor2() const { return mAnchor2; };
+    
+    
+    /**
+     * Returns a reference to the rest-length of the spring.
+     * \return A reference to the rest-length of the spring.
+     */
     double& RestLength() { return mRestLength; };
-    /** Get read-only access to mRestLength. */
+    /**
+     * Returns the rest-length of the spring.
+     * \return The rest-length of the spring.
+     */
     double RestLength() const { return mRestLength; };
 
-    /** Get read-write access to mStiffness. */
+    /**
+     * Returns a reference to the stiffness value of the spring.
+     * \return A reference to the stiffness value of the spring.
+     */
     double& Stiffness() { return mStiffness; };
-    /** Get read-only access to mStiffness. */
+    /**
+     * Returns the stiffness value of the spring.
+     * \return The stiffness value of the spring.
+     */
     double Stiffness() const { return mStiffness; };
 
-    /** Get read-write access to mSaturation. */
+    /**
+     * Returns a reference to the saturation force value of the spring (0 implies no saturation at all).
+     * \return A reference to the saturation force value of the spring (0 implies no saturation at all).
+     */
     double& Saturation() { return mSaturation; };
-    /** Get read-only access to mSaturation. */
+    /**
+     * Returns the value of the saturation force of the spring (0 implies no saturation at all).
+     * \return The value of the saturation force of the spring (0 implies no saturation at all).
+     */
     double Saturation() const { return mSaturation; };
 
     /**
@@ -240,22 +322,63 @@ class spring_3D : public kte_map {
     double mSaturation; ///< Holds the saturation force, or maximum force the spring can exert, if 0 there is no saturation.
 
   public:
-
-    /** Get read-write access to mRestLength. */
+    
+    /**
+     * Returns a reference to the first anchor frame of the spring.
+     * \return A reference to the first anchor frame of the spring.
+     */
+    shared_ptr< frame_3D<double> >& Anchor1() { return mAnchor1; };
+    /**
+     * Returns a const-reference to the first anchor frame of the spring.
+     * \return A const-reference to the first anchor frame of the spring.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor1() const { return mAnchor1; };
+    
+    /**
+     * Returns a reference to the second anchor frame of the spring.
+     * \return A reference to the second anchor frame of the spring.
+     */
+    shared_ptr< frame_3D<double> >& Anchor2() { return mAnchor2; };
+    /**
+     * Returns a const-reference to the second anchor frame of the spring.
+     * \return A const-reference to the second anchor frame of the spring.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor2() const { return mAnchor2; };
+    
+    
+    /**
+     * Returns a reference to the rest-length of the spring.
+     * \return A reference to the rest-length of the spring.
+     */
     double& RestLength() { return mRestLength; };
-    /** Get read-only access to mRestLength. */
+    /**
+     * Returns the rest-length of the spring.
+     * \return The rest-length of the spring.
+     */
     double RestLength() const { return mRestLength; };
 
-    /** Get read-write access to mStiffness. */
+    /**
+     * Returns a reference to the stiffness value of the spring.
+     * \return A reference to the stiffness value of the spring.
+     */
     double& Stiffness() { return mStiffness; };
-    /** Get read-only access to mStiffness. */
+    /**
+     * Returns the stiffness value of the spring.
+     * \return The stiffness value of the spring.
+     */
     double Stiffness() const { return mStiffness; };
 
-    /** Get read-write access to mSaturation. */
+    /**
+     * Returns a reference to the saturation force value of the spring (0 implies no saturation at all).
+     * \return A reference to the saturation force value of the spring (0 implies no saturation at all).
+     */
     double& Saturation() { return mSaturation; };
-    /** Get read-only access to mSaturation. */
+    /**
+     * Returns the value of the saturation force of the spring (0 implies no saturation at all).
+     * \return The value of the saturation force of the spring (0 implies no saturation at all).
+     */
     double Saturation() const { return mSaturation; };
-
+    
     /**
      * Default constructor.
      */

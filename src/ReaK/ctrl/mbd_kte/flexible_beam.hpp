@@ -59,7 +59,40 @@ class flexible_beam_2D : public kte_map {
     double mTorsionStiffness; ///< The angular or torsion stiffness of the beam, iso-tropically.
 
   public:
-
+    
+    /**
+     * Returns a reference to the first end frame of the beam.
+     * \return A reference to the first end frame of the beam.
+     */
+    shared_ptr< frame_2D<double> >& Anchor1() { return mAnchor1; };
+    /**
+     * Returns a const-reference to the first end frame of the beam.
+     * \return A const-reference to the first end frame of the beam.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor1() const { return mAnchor1; };
+    
+    /**
+     * Returns a reference to the second end frame of the beam.
+     * \return A reference to the second end frame of the beam.
+     */
+    shared_ptr< frame_2D<double> >& Anchor2() { return mAnchor2; };
+    /**
+     * Returns a const-reference to the second end frame of the beam.
+     * \return A const-reference to the second end frame of the beam.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor2() const { return mAnchor2; };
+    
+    /**
+     * Returns a reference to the center frame of the beam (i.e. its bulk).
+     * \return A reference to the center frame of the beam (i.e. its bulk).
+     */
+    shared_ptr< frame_2D<double> >& CenterFrame() { return mObjectFrame; };
+    /**
+     * Returns a const-reference to the center frame of the beam (i.e. its bulk).
+     * \return A const-reference to the center frame of the beam (i.e. its bulk).
+     */
+    const shared_ptr< frame_2D<double> >& CenterFrame() const { return mObjectFrame; };
+    
     /** Get read-write access to the mRestLength. */
     double& RestLength() { return mRestLength; };
     /** Get read-only access to the mRestLength. */
@@ -165,7 +198,40 @@ class flexible_beam_3D : public kte_map {
     double mTorsionStiffness; ///< The angular or torsion stiffness of the beam, iso-tropically.
 
   public:
-
+    
+    /**
+     * Returns a reference to the first end frame of the beam.
+     * \return A reference to the first end frame of the beam.
+     */
+    shared_ptr< frame_3D<double> >& Anchor1() { return mAnchor1; };
+    /**
+     * Returns a const-reference to the first end frame of the beam.
+     * \return A const-reference to the first end frame of the beam.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor1() const { return mAnchor1; };
+    
+    /**
+     * Returns a reference to the second end frame of the beam.
+     * \return A reference to the second end frame of the beam.
+     */
+    shared_ptr< frame_3D<double> >& Anchor2() { return mAnchor2; };
+    /**
+     * Returns a const-reference to the second end frame of the beam.
+     * \return A const-reference to the second end frame of the beam.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor2() const { return mAnchor2; };
+    
+    /**
+     * Returns a reference to the center frame of the beam (i.e. its bulk).
+     * \return A reference to the center frame of the beam (i.e. its bulk).
+     */
+    shared_ptr< frame_3D<double> >& CenterFrame() { return mObjectFrame; };
+    /**
+     * Returns a const-reference to the center frame of the beam (i.e. its bulk).
+     * \return A const-reference to the center frame of the beam (i.e. its bulk).
+     */
+    const shared_ptr< frame_3D<double> >& CenterFrame() const { return mObjectFrame; };
+    
     /** Get read-write access to the mRestLength. */
     double& RestLength() { return mRestLength; };
     /** Get read-only access to the mRestLength. */

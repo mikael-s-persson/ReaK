@@ -49,6 +49,12 @@ class plane : public shape_3D {
     
   public:
     
+    /**
+     * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
+     * \return The maximum radius of the shape.
+     */
+    virtual double getBoundingRadius() const;
+    
     /** 
      * This function returns the dimensions of the plane.
      * \return The dimensions of the plane.
@@ -59,8 +65,6 @@ class plane : public shape_3D {
      * \param aDimensions The new dimensions of the plane.
      */
     void setDimensions(const vect<double,2>& aDimensions) { mDimensions = aDimensions; };
-    
-    virtual void render() const;
     
     /**
      * Default constructor.

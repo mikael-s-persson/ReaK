@@ -55,6 +55,18 @@ class position_measure_gen : public kte_map, public system_output {
     double mPosMeasure;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which position measure is taken.
+     * \return A reference to the frame on which position measure is taken.
+     */
+    shared_ptr< gen_coord<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which position measure is taken.
+     * \return A const-reference to the frame on which position measure is taken.
+     */
+    const shared_ptr< gen_coord<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the measured position, for read-write access.
      * \return the measured position for read-write access.
@@ -133,6 +145,18 @@ class position_measure_2D : public kte_map, public system_output {
     vect<double,2> mPosMeasure;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which position measure is taken.
+     * \return A reference to the frame on which position measure is taken.
+     */
+    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which position measure is taken.
+     * \return A const-reference to the frame on which position measure is taken.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the measured position, for read-write access.
      * \return the measured position for read-write access.
@@ -216,6 +240,18 @@ class position_measure_3D : public kte_map, public system_output {
     vect<double,3> mPosMeasure;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which position measure is taken.
+     * \return A reference to the frame on which position measure is taken.
+     */
+    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which position measure is taken.
+     * \return A const-reference to the frame on which position measure is taken.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the measured position, for read-write access.
      * \return the measured position for read-write access.
@@ -299,6 +335,18 @@ class rotation_measure_2D : public kte_map, public system_output {
     double mAngleMeasure;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which rotation measure is taken.
+     * \return A reference to the frame on which rotation measure is taken.
+     */
+    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which rotation measure is taken.
+     * \return A const-reference to the frame on which rotation measure is taken.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the measured rotation, for read-write access.
      * \return the measured rotation for read-write access.
@@ -378,6 +426,18 @@ class rotation_measure_3D : public kte_map, public system_output {
     quaternion<double> mQuatMeasure;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which rotation measure is taken.
+     * \return A reference to the frame on which rotation measure is taken.
+     */
+    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which rotation measure is taken.
+     * \return A const-reference to the frame on which rotation measure is taken.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the measured rotation, for read-write access.
      * \return the measured rotation for read-write access.
@@ -461,6 +521,18 @@ class velocity_measure_gen : public kte_map, public system_output {
     double mVelMeasure;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which velocity measure is taken.
+     * \return A reference to the frame on which velocity measure is taken.
+     */
+    shared_ptr< gen_coord<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which velocity measure is taken.
+     * \return A const-reference to the frame on which velocity measure is taken.
+     */
+    const shared_ptr< gen_coord<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the measured velocity, for read-write access.
      * \return the measured velocity for read-write access.
@@ -539,6 +611,18 @@ class velocity_measure_2D : public kte_map, public system_output {
     vect<double,2> mVelMeasure;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which velocity measure is taken.
+     * \return A reference to the frame on which velocity measure is taken.
+     */
+    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which velocity measure is taken.
+     * \return A const-reference to the frame on which velocity measure is taken.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the measured velocity, for read-write access.
      * \return the measured velocity for read-write access.
@@ -622,6 +706,18 @@ class velocity_measure_3D : public kte_map, public system_output {
     vect<double,3> mVelMeasure;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which velocity measure is taken.
+     * \return A reference to the frame on which velocity measure is taken.
+     */
+    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which velocity measure is taken.
+     * \return A const-reference to the frame on which velocity measure is taken.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the measured velocity, for read-write access.
      * \return the measured velocity for read-write access.
@@ -705,6 +801,18 @@ class ang_velocity_measure_2D : public kte_map, public system_output {
     double mAngVelMeasure;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which angular velocity measure is taken.
+     * \return A reference to the frame on which angular velocity measure is taken.
+     */
+    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which angular velocity measure is taken.
+     * \return A const-reference to the frame on which angular velocity measure is taken.
+     */
+    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the measured angular velocity, for read-write access.
      * \return the measured angular velocity for read-write access.
@@ -785,6 +893,18 @@ class ang_velocity_measure_3D : public kte_map, public system_output {
     vect<double,3> mAngVelMeasure;
     
   public:
+    
+    /**
+     * Returns a reference to the frame on which angular velocity measure is taken.
+     * \return A reference to the frame on which angular velocity measure is taken.
+     */
+    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    /**
+     * Returns a const-reference to the frame on which angular velocity measure is taken.
+     * \return A const-reference to the frame on which angular velocity measure is taken.
+     */
+    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    
     /**
      * Returns the measured angular velocity, for read-write access.
      * \return the measured angular velocity for read-write access.

@@ -71,8 +71,6 @@ class line_seg_2D : public geometry_2D {
      */
     void setEnd(const vect<double,2>& aEnd) { mEnd = aEnd; };
     
-    virtual void render() const;
-    
     /**
      * Default constructor.
      * \param aName The name of the object.

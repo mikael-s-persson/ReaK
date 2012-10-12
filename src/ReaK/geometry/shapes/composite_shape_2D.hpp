@@ -50,6 +50,13 @@ class composite_shape_2D : public shape_2D {
   public:
     
     /**
+     * This function returns the maximum radius of the shape (radius of the circle that bounds the shape).
+     * \return The maximum radius of the shape.
+     */
+    virtual double getBoundingRadius() const;
+    
+    
+    /**
      * This function returns a const-reference to the vector of shapes.
      * \return A const-reference to the vector of shapes.
      */
@@ -59,8 +66,6 @@ class composite_shape_2D : public shape_2D {
      * \return A reference to the vector of shapes.
      */
     std::vector< shared_ptr< shape_2D > >& Shapes() { return mShapes; };
-    
-    virtual void render() const;
     
     /**
      * Default constructor.
