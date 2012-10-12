@@ -37,6 +37,10 @@
 #include "mbd_kte/state_measures.hpp"
 #include "mbd_kte/free_joints.hpp"
 
+#include "mbd_kte/spring.hpp"
+#include "mbd_kte/damper.hpp"
+#include "mbd_kte/free_joints.hpp"
+
 #include "mbd_kte/kte_map_chain.hpp"
 
 #include "serialization/xml_archiver.hpp"
@@ -233,7 +237,38 @@ int main(int argc, char ** argv) {
     
     geom::oi_scene_graph sg;
     sg.setCharacteristicLength(sg_tmp.computeCharacteristicLength());
-    sg << (*r_info.kin_chain);
+    
+    shared_ptr< kte::kte_map_chain > d_chain = r_info.builder.get_dynamics_kte_chain();
+    
+    shared_ptr< kte::spring_3D > spr1 = shared_ptr< kte::spring_3D >(new kte::spring_3D(
+      "",
+      r_info.builder.track_joint_end,
+      r_info.builder.arm_EE,
+      1.0,
+      1.0));
+    
+    shared_ptr< kte::damper_3D > dmp1 = shared_ptr< kte::damper_3D >(new kte::damper_3D(
+      "",
+      r_info.builder.arm_joint_2_end,
+      r_info.builder.arm_EE,
+      1.0));
+    
+    shared_ptr< frame_3D<double> > f1 = shared_ptr< frame_3D<double> >(new frame_3D<double>());
+    shared_ptr< frame_3D<double> > f2 = shared_ptr< frame_3D<double> >(new frame_3D<double>());
+    shared_ptr< frame_3D<double> > f3 = shared_ptr< frame_3D<double> >(new frame_3D<double>());
+    
+    shared_ptr< kte::free_joint_3D > fj1 = shared_ptr< kte::free_joint_3D >(new kte::free_joint_3D(
+      "",
+      f1,
+      f2,
+      f3
+    ));
+    
+    (*d_chain) << spr1 << dmp1 << fj1;
+    
+    sg << (*d_chain);
+    
+    //sg << (*r_info.kin_chain);
     //sg << (*lab_geom_model) << (*airship_geom_model);
     
     SoSeparator* root = new SoSeparator;

@@ -140,10 +140,15 @@ struct update_inter_frame_3D {
       x_axis /= x_axis_mag;
     vect<double,3> z_axis = x_axis % dp;
     SbMatrix rot_mat(
-      x_axis[0], dp[0], z_axis[0], 0.0,
-      x_axis[1], dp[1], z_axis[1], 0.0,
-      x_axis[2], dp[2], z_axis[2], 0.0,
+      x_axis[0], x_axis[1], x_axis[2], 0.0,
+      dp[0], dp[1], dp[2], 0.0,
+      z_axis[0], z_axis[1], z_axis[2], 0.0,
       0.0, 0.0, 0.0, 1.0);
+    //SbMatrix rot_mat(
+    //  x_axis[0], dp[0], z_axis[0], 0.0,
+    //  x_axis[1], dp[1], z_axis[1], 0.0,
+    //  x_axis[2], dp[2], z_axis[2], 0.0,
+    //  0.0, 0.0, 0.0, 1.0);
     pTrans->rotation.setValue(SbRotation(rot_mat));
     
     pScale->scaleFactor.setValue(1.0, dp_norm * 0.5, 1.0);
@@ -179,9 +184,9 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     vect<double,3> z_axis = x_axis % rev_joint.Axis();
     SoTransform* trans = new SoTransform;
     SbMatrix rot_mat(
-      x_axis[0], rev_joint.Axis()[0], z_axis[0], 0.0,
-      x_axis[1], rev_joint.Axis()[1], z_axis[1], 0.0,
-      x_axis[2], rev_joint.Axis()[2], z_axis[2], 0.0,
+      x_axis[0], x_axis[1], x_axis[2], 0.0,
+      rev_joint.Axis()[0], rev_joint.Axis()[1], rev_joint.Axis()[2], 0.0,
+      z_axis[0], z_axis[1], z_axis[2], 0.0,
       0.0, 0.0, 0.0, 1.0);
     trans->rotation.setValue(SbRotation(rot_mat));
     sep->addChild(trans);
@@ -270,9 +275,9 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     vect<double,3> z_axis = x_axis % pri_joint.Axis();
     SoTransform* trans = new SoTransform;
     SbMatrix rot_mat(
-      x_axis[0], pri_joint.Axis()[0], z_axis[0], 0.0,
-      x_axis[1], pri_joint.Axis()[1], z_axis[1], 0.0,
-      x_axis[2], pri_joint.Axis()[2], z_axis[2], 0.0,
+      x_axis[0], x_axis[1], x_axis[2], 0.0,
+      pri_joint.Axis()[0], pri_joint.Axis()[1], pri_joint.Axis()[2], 0.0,
+      z_axis[0], z_axis[1], z_axis[2], 0.0,
       0.0, 0.0, 0.0, 1.0);
     trans->rotation.setValue(SbRotation(rot_mat));
     sep->addChild(trans);
@@ -387,31 +392,31 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     SoCoordinate3* rect_coords = new SoCoordinate3;
     SoTextureCoordinate2* rect_texcoords = new SoTextureCoordinate2;
     
-    // positive z face:
-    rect_coords->point.set1Value(0, -aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125, aSG.mCharacteristicLength * 0.0125);
-    rect_coords->point.set1Value(1, -aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125, aSG.mCharacteristicLength * 0.0125);
-    rect_coords->point.set1Value(2,  aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125, aSG.mCharacteristicLength * 0.0125);
-    rect_coords->point.set1Value(3,  aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125, aSG.mCharacteristicLength * 0.0125);
+    // negative z face:
+    rect_coords->point.set1Value(0, -aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125);
+    rect_coords->point.set1Value(1, -aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125);
+    rect_coords->point.set1Value(2,  aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125);
+    rect_coords->point.set1Value(3,  aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125);
     rect_texcoords->point.set1Value(0, 0.0, 0.0);
     rect_texcoords->point.set1Value(1, 0.0, 1.0);
     rect_texcoords->point.set1Value(2, 0.5, 1.0);
     rect_texcoords->point.set1Value(3, 0.5, 0.0);
     
     // positive x face:
-    rect_coords->point.set1Value(4,  aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125);
-    rect_coords->point.set1Value(5,  aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125);
-    rect_coords->point.set1Value(6,  aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125);
-    rect_coords->point.set1Value(7,  aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125);
+    rect_coords->point.set1Value(4, aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125);
+    rect_coords->point.set1Value(5, aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125);
+    rect_coords->point.set1Value(6, aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125);
+    rect_coords->point.set1Value(7, aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125);
     rect_texcoords->point.set1Value(4, 0.0, 0.0);
     rect_texcoords->point.set1Value(5, 0.0, 1.0);
     rect_texcoords->point.set1Value(6, 0.5, 1.0);
     rect_texcoords->point.set1Value(7, 0.5, 0.0);
     
-    // positive y face:
-    rect_coords->point.set1Value(8,  -aSG.mCharacteristicLength * 0.0125, aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125);
-    rect_coords->point.set1Value(9,   aSG.mCharacteristicLength * 0.0125, aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125);
-    rect_coords->point.set1Value(10,  aSG.mCharacteristicLength * 0.0125, aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125);
-    rect_coords->point.set1Value(11, -aSG.mCharacteristicLength * 0.0125, aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125);
+    // negative y face:
+    rect_coords->point.set1Value(8,  -aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125);
+    rect_coords->point.set1Value(9,   aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125,  aSG.mCharacteristicLength * 0.0125);
+    rect_coords->point.set1Value(10,  aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125);
+    rect_coords->point.set1Value(11, -aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125, -aSG.mCharacteristicLength * 0.0125);
     rect_texcoords->point.set1Value(8,  0.0, 0.0);
     rect_texcoords->point.set1Value(9,  0.0, 1.0);
     rect_texcoords->point.set1Value(10, 0.5, 1.0);
@@ -498,9 +503,9 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
       lnk_obj.PoseOffset().Position[1] * 0.5,
       lnk_obj.PoseOffset().Position[2] * 0.5);
     SbMatrix rot_mat(
-      x_axis[0], y_axis[0], z_axis[0], 0.0,
-      x_axis[1], y_axis[1], z_axis[1], 0.0,
-      x_axis[2], y_axis[2], z_axis[2], 0.0,
+      x_axis[0], x_axis[1], x_axis[2], 0.0,
+      y_axis[0], y_axis[1], y_axis[2], 0.0,
+      z_axis[0], z_axis[1], z_axis[2], 0.0,
       0.0, 0.0, 0.0, 1.0);
     trans->rotation.setValue(SbRotation(rot_mat));
     sep->addChild(trans);
@@ -577,6 +582,34 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     aSG.mUpdateFuncs.push_back(detail::update_inter_frame_3D(spr_obj.Anchor1(), spr_obj.Anchor2(), trans, scal));
     aSG.mUpdateFuncs.back()();
     
+    
+    SoBaseColor * red_col = new SoBaseColor;
+    red_col->rgb = SbColor(kte_red_R, kte_red_G, kte_red_B);
+    sep->addChild(red_col);
+    
+    SoCoordinate3* sp_coords = new SoCoordinate3;
+    {
+    int i = 0;
+    sp_coords->point.set1Value(i++, 0.0, -1.0, 0.0);
+    sp_coords->point.set1Value(i++, 0.0, -0.9, 0.0);
+    float h = -0.9;
+    float a = 0.0;
+    float r = aSG.mCharacteristicLength * 0.01;
+    for(int j = 0; j < 181; ++j) {
+      sp_coords->point.set1Value(i++, r * cos(a), h, r * sin(a));
+      h += 0.01;
+      a += 0.314159265359; // PI / 10
+    };
+    sp_coords->point.set1Value(i++, 0.0, 0.9, 0.0);
+    sp_coords->point.set1Value(i++, 0.0, 1.0, 0.0);
+    };
+    sep->addChild(sp_coords);
+    
+    SoLineSet* sp_set = new SoLineSet;
+    sp_set->numVertices.set1Value(0, 185);
+    sep->addChild(sp_set);
+    
+    /*
     SoBaseColor * white_col = new SoBaseColor;
     white_col->rgb = SbColor(1.0, 1.0, 1.0);
     sep->addChild(white_col);
@@ -590,7 +623,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     spr_cyl->radius = aSG.mCharacteristicLength * 0.015;
     spr_cyl->height = 2.0;
     sep->addChild(spr_cyl);
-    
+    */
     aSG.mRoot->addChild(sep); // always at the root because "trans" is a global transformation.
     
   } else if(aModel.castTo(kte::spring_2D::getStaticObjectType())) {
@@ -691,7 +724,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     
     SoCylinder* dmp_out_cyl = new SoCylinder;
     dmp_out_cyl->parts = SoCylinder::SIDES | SoCylinder::TOP;
-    dmp_out_cyl->radius = aSG.mCharacteristicLength * 0.01;
+    dmp_out_cyl->radius = aSG.mCharacteristicLength * 0.0075;
     dmp_out_cyl->height = 0.6;
     sep->addChild(dmp_out_cyl);
     
@@ -701,7 +734,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(dmp_in_pos);
     
     SoCylinder* dmp_in_cyl = new SoCylinder;
-    dmp_in_cyl->radius = aSG.mCharacteristicLength * 0.0075;
+    dmp_in_cyl->radius = aSG.mCharacteristicLength * 0.005;
     dmp_in_cyl->height = 0.6;
     sep->addChild(dmp_in_cyl);
     
