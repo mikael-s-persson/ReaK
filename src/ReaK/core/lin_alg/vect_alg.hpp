@@ -163,13 +163,38 @@ class vect : public serialization::serializable {
 	q[i] = V.q[i];
       return;
     };
+    
+    /**
+     * Standard Copy Constructor with standard semantics.
+     * \test PASSED
+     */
+    vect(self& V) {
+      for(size_type i=0;i < Size;++i)
+        q[i] = V.q[i];
+      return;
+    };
+    
+#ifdef RK_ENABLE_CXX11_FEATURES
+    /**
+     * Standard Move Constructor with standard semantics.
+     * \test PASSED
+     */
+    vect(self&& V) {
+      for(size_type i=0;i < Size;++i)
+        q[i] = V.q[i];
+      return;
+    };
+#endif
 
     /**
      * Destructor.
      * \test PASSED
      */
     ~vect() { };
-
+    
+    
+#ifndef RK_ENABLE_CXX11_FEATURES
+    
     /**
      * Constructor for 1 values.
      * \test PASSED
@@ -630,6 +655,35 @@ class vect : public serialization::serializable {
 	q[i] = value_type();
       return;
     };
+    
+#else
+    
+  private:
+    
+    static void set_value_impl(value_type* pval) { };
+    
+    template <typename... Args>
+    static void set_value_impl(value_type* pval, const value_type& a1, const Args&... tail) {
+      *pval = a1;
+      set_value_impl(++pval, tail...);
+    };
+    
+  public:
+    
+    /**
+     * Constructor for Size values.
+     * \test PASSED
+     */
+    template <typename... Args>
+    vect(const value_type& a1, Args... args) {
+      BOOST_STATIC_ASSERT(Size > sizeof...(Args));
+      set_value_impl(q, a1, args...);
+      for(size_type i = sizeof...(Args); i < Size; ++i)
+        q[i] = value_type();
+      return;
+    };
+    
+#endif
 
 /*******************************************************************************
                          Accessors and Methods
@@ -1022,7 +1076,7 @@ class vect_n : public serialization::serializable {
     /**
      * Reserve a capacity for the vector.
      */
-    void reserve(size_type sz) const { q.reserve(sz); };
+    void reserve(size_type sz) { q.reserve(sz); };
     
     /**
      * Returns an iterator to the first element of the vector.
@@ -2398,6 +2452,285 @@ std::ostream& >::type operator <<(std::ostream& out_stream,const Vector& V) {
   return out_stream << ")";
 };
 
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class vect<double,2>;
+extern template class vect<double,3>;
+extern template class vect<double,4>;
+extern template class vect<double,6>;
+extern template class vect_n<double>;
+
+extern template class vect<float,2>;
+extern template class vect<float,3>;
+extern template class vect<float,4>;
+extern template class vect<float,6>;
+extern template class vect_n<float>;
+
+
+extern template vect<double,2> diff(const vect<double,2>& v1, const vect<double,2>& v2);
+extern template vect<double,3> diff(const vect<double,3>& v1, const vect<double,3>& v2);
+extern template vect<double,4> diff(const vect<double,4>& v1, const vect<double,4>& v2);
+extern template vect<double,6> diff(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template vect_n<double> diff(const vect_n<double>& v1, const vect_n<double>& v2);
+
+extern template vect<double,2> add(const vect<double,2>& v1, const vect<double,2>& v2);
+extern template vect<double,3> add(const vect<double,3>& v1, const vect<double,3>& v2);
+extern template vect<double,4> add(const vect<double,4>& v1, const vect<double,4>& v2);
+extern template vect<double,6> add(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template vect_n<double> add(const vect_n<double>& v1, const vect_n<double>& v2);
+
+extern template double operator %(const vect<double,2>& V1,const vect<double,2>& V2);
+extern template vect<double,2> operator %(const double& S, const vect<double,2>& V);
+extern template vect<double,2> operator %(const vect<double,2>& V,const double& S);
+extern template vect<double,3> operator %(const vect<double,3>& V1 , const vect<double,3>& V2);
+
+
+extern template vect<double,2>& operator +=(vect<double,2>& v1, const vect<double,2>& v2);
+extern template vect<double,3>& operator +=(vect<double,3>& v1, const vect<double,3>& v2);
+extern template vect<double,4>& operator +=(vect<double,4>& v1, const vect<double,4>& v2);
+extern template vect<double,6>& operator +=(vect<double,6>& v1, const vect<double,6>& v2);
+extern template vect_n<double>& operator +=(vect_n<double>& v1, const vect_n<double>& v2);
+
+extern template vect<double,2>& operator -=(vect<double,2>& v1, const vect<double,2>& v2);
+extern template vect<double,3>& operator -=(vect<double,3>& v1, const vect<double,3>& v2);
+extern template vect<double,4>& operator -=(vect<double,4>& v1, const vect<double,4>& v2);
+extern template vect<double,6>& operator -=(vect<double,6>& v1, const vect<double,6>& v2);
+extern template vect_n<double>& operator -=(vect_n<double>& v1, const vect_n<double>& v2);
+
+extern template vect<double,2>& operator *=(vect<double,2>& v1, const double& v2);
+extern template vect<double,3>& operator *=(vect<double,3>& v1, const double& v2);
+extern template vect<double,4>& operator *=(vect<double,4>& v1, const double& v2);
+extern template vect<double,6>& operator *=(vect<double,6>& v1, const double& v2);
+extern template vect_n<double>& operator *=(vect_n<double>& v1, const double& v2);
+
+extern template vect<double,2>& operator /=(vect<double,2>& v1, const double& v2);
+extern template vect<double,3>& operator /=(vect<double,3>& v1, const double& v2);
+extern template vect<double,4>& operator /=(vect<double,4>& v1, const double& v2);
+extern template vect<double,6>& operator /=(vect<double,6>& v1, const double& v2);
+extern template vect_n<double>& operator /=(vect_n<double>& v1, const double& v2);
+
+extern template vect<double,2> operator +(const vect<double,2>& v1, const vect<double,2>& v2);
+extern template vect<double,3> operator +(const vect<double,3>& v1, const vect<double,3>& v2);
+extern template vect<double,4> operator +(const vect<double,4>& v1, const vect<double,4>& v2);
+extern template vect<double,6> operator +(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template vect_n<double> operator +(const vect_n<double>& v1, const vect_n<double>& v2);
+
+extern template vect<double,2> operator -(const vect<double,2>& v1);
+extern template vect<double,3> operator -(const vect<double,3>& v1);
+extern template vect<double,4> operator -(const vect<double,4>& v1);
+extern template vect<double,6> operator -(const vect<double,6>& v1);
+extern template vect_n<double> operator -(const vect_n<double>& v1);
+
+extern template vect<double,2> operator -(const vect<double,2>& v1, const vect<double,2>& v2);
+extern template vect<double,3> operator -(const vect<double,3>& v1, const vect<double,3>& v2);
+extern template vect<double,4> operator -(const vect<double,4>& v1, const vect<double,4>& v2);
+extern template vect<double,6> operator -(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template vect_n<double> operator -(const vect_n<double>& v1, const vect_n<double>& v2);
+
+extern template double operator *(const vect<double,2>& v1, const vect<double,2>& v2);
+extern template double operator *(const vect<double,3>& v1, const vect<double,3>& v2);
+extern template double operator *(const vect<double,4>& v1, const vect<double,4>& v2);
+extern template double operator *(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template double operator *(const vect_n<double>& v1, const vect_n<double>& v2);
+
+extern template vect<double,2> operator *(const vect<double,2>& v1, const double& v2);
+extern template vect<double,3> operator *(const vect<double,3>& v1, const double& v2);
+extern template vect<double,4> operator *(const vect<double,4>& v1, const double& v2);
+extern template vect<double,6> operator *(const vect<double,6>& v1, const double& v2);
+extern template vect_n<double> operator *(const vect_n<double>& v1, const double& v2);
+
+extern template vect<double,2> operator *(const double& v1, const vect<double,2>& v2);
+extern template vect<double,3> operator *(const double& v1, const vect<double,3>& v2);
+extern template vect<double,4> operator *(const double& v1, const vect<double,4>& v2);
+extern template vect<double,6> operator *(const double& v1, const vect<double,6>& v2);
+extern template vect_n<double> operator *(const double& v1, const vect_n<double>& v2);
+
+extern template vect<double,2> operator /(const vect<double,2>& v1, const double& v2);
+extern template vect<double,3> operator /(const vect<double,3>& v1, const double& v2);
+extern template vect<double,4> operator /(const vect<double,4>& v1, const double& v2);
+extern template vect<double,6> operator /(const vect<double,6>& v1, const double& v2);
+extern template vect_n<double> operator /(const vect_n<double>& v1, const double& v2);
+
+
+extern template bool operator ==(const vect<double,2>& v1, const vect<double,2>& v2);
+extern template bool operator ==(const vect<double,3>& v1, const vect<double,3>& v2);
+extern template bool operator ==(const vect<double,4>& v1, const vect<double,4>& v2);
+extern template bool operator ==(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template bool operator ==(const vect_n<double>& v1, const vect_n<double>& v2);
+
+extern template bool operator !=(const vect<double,2>& v1, const vect<double,2>& v2);
+extern template bool operator !=(const vect<double,3>& v1, const vect<double,3>& v2);
+extern template bool operator !=(const vect<double,4>& v1, const vect<double,4>& v2);
+extern template bool operator !=(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template bool operator !=(const vect_n<double>& v1, const vect_n<double>& v2);
+
+extern template bool operator <=(const vect<double,2>& v1, const vect<double,2>& v2);
+extern template bool operator <=(const vect<double,3>& v1, const vect<double,3>& v2);
+extern template bool operator <=(const vect<double,4>& v1, const vect<double,4>& v2);
+extern template bool operator <=(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template bool operator <=(const vect_n<double>& v1, const vect_n<double>& v2);
+
+extern template bool operator >=(const vect<double,2>& v1, const vect<double,2>& v2);
+extern template bool operator >=(const vect<double,3>& v1, const vect<double,3>& v2);
+extern template bool operator >=(const vect<double,4>& v1, const vect<double,4>& v2);
+extern template bool operator >=(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template bool operator >=(const vect_n<double>& v1, const vect_n<double>& v2);
+
+extern template bool operator <(const vect<double,2>& v1, const vect<double,2>& v2);
+extern template bool operator <(const vect<double,3>& v1, const vect<double,3>& v2);
+extern template bool operator <(const vect<double,4>& v1, const vect<double,4>& v2);
+extern template bool operator <(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template bool operator <(const vect_n<double>& v1, const vect_n<double>& v2);
+
+extern template bool operator >(const vect<double,2>& v1, const vect<double,2>& v2);
+extern template bool operator >(const vect<double,3>& v1, const vect<double,3>& v2);
+extern template bool operator >(const vect<double,4>& v1, const vect<double,4>& v2);
+extern template bool operator >(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template bool operator >(const vect_n<double>& v1, const vect_n<double>& v2);
+
+
+extern template std::ostream& operator <<(std::ostream& out_stream, const vect<double,2>& V);
+extern template std::ostream& operator <<(std::ostream& out_stream, const vect<double,3>& V);
+extern template std::ostream& operator <<(std::ostream& out_stream, const vect<double,4>& V);
+extern template std::ostream& operator <<(std::ostream& out_stream, const vect<double,6>& V);
+extern template std::ostream& operator <<(std::ostream& out_stream, const vect_n<double>& V);
+
+
+
+extern template vect<float,2> diff(const vect<float,2>& v1, const vect<float,2>& v2);
+extern template vect<float,3> diff(const vect<float,3>& v1, const vect<float,3>& v2);
+extern template vect<float,4> diff(const vect<float,4>& v1, const vect<float,4>& v2);
+extern template vect<float,6> diff(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template vect_n<float> diff(const vect_n<float>& v1, const vect_n<float>& v2);
+
+extern template vect<float,2> add(const vect<float,2>& v1, const vect<float,2>& v2);
+extern template vect<float,3> add(const vect<float,3>& v1, const vect<float,3>& v2);
+extern template vect<float,4> add(const vect<float,4>& v1, const vect<float,4>& v2);
+extern template vect<float,6> add(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template vect_n<float> add(const vect_n<float>& v1, const vect_n<float>& v2);
+
+extern template float operator %(const vect<float,2>& V1,const vect<float,2>& V2);
+extern template vect<float,2> operator %(const float& S, const vect<float,2>& V);
+extern template vect<float,2> operator %(const vect<float,2>& V,const float& S);
+extern template vect<float,3> operator %(const vect<float,3>& V1 , const vect<float,3>& V2);
+
+
+extern template vect<float,2>& operator +=(vect<float,2>& v1, const vect<float,2>& v2);
+extern template vect<float,3>& operator +=(vect<float,3>& v1, const vect<float,3>& v2);
+extern template vect<float,4>& operator +=(vect<float,4>& v1, const vect<float,4>& v2);
+extern template vect<float,6>& operator +=(vect<float,6>& v1, const vect<float,6>& v2);
+extern template vect_n<float>& operator +=(vect_n<float>& v1, const vect_n<float>& v2);
+
+extern template vect<float,2>& operator -=(vect<float,2>& v1, const vect<float,2>& v2);
+extern template vect<float,3>& operator -=(vect<float,3>& v1, const vect<float,3>& v2);
+extern template vect<float,4>& operator -=(vect<float,4>& v1, const vect<float,4>& v2);
+extern template vect<float,6>& operator -=(vect<float,6>& v1, const vect<float,6>& v2);
+extern template vect_n<float>& operator -=(vect_n<float>& v1, const vect_n<float>& v2);
+
+extern template vect<float,2>& operator *=(vect<float,2>& v1, const float& v2);
+extern template vect<float,3>& operator *=(vect<float,3>& v1, const float& v2);
+extern template vect<float,4>& operator *=(vect<float,4>& v1, const float& v2);
+extern template vect<float,6>& operator *=(vect<float,6>& v1, const float& v2);
+extern template vect_n<float>& operator *=(vect_n<float>& v1, const float& v2);
+
+extern template vect<float,2>& operator /=(vect<float,2>& v1, const float& v2);
+extern template vect<float,3>& operator /=(vect<float,3>& v1, const float& v2);
+extern template vect<float,4>& operator /=(vect<float,4>& v1, const float& v2);
+extern template vect<float,6>& operator /=(vect<float,6>& v1, const float& v2);
+extern template vect_n<float>& operator /=(vect_n<float>& v1, const float& v2);
+
+extern template vect<float,2> operator +(const vect<float,2>& v1, const vect<float,2>& v2);
+extern template vect<float,3> operator +(const vect<float,3>& v1, const vect<float,3>& v2);
+extern template vect<float,4> operator +(const vect<float,4>& v1, const vect<float,4>& v2);
+extern template vect<float,6> operator +(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template vect_n<float> operator +(const vect_n<float>& v1, const vect_n<float>& v2);
+
+extern template vect<float,2> operator -(const vect<float,2>& v1);
+extern template vect<float,3> operator -(const vect<float,3>& v1);
+extern template vect<float,4> operator -(const vect<float,4>& v1);
+extern template vect<float,6> operator -(const vect<float,6>& v1);
+extern template vect_n<float> operator -(const vect_n<float>& v1);
+
+extern template vect<float,2> operator -(const vect<float,2>& v1, const vect<float,2>& v2);
+extern template vect<float,3> operator -(const vect<float,3>& v1, const vect<float,3>& v2);
+extern template vect<float,4> operator -(const vect<float,4>& v1, const vect<float,4>& v2);
+extern template vect<float,6> operator -(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template vect_n<float> operator -(const vect_n<float>& v1, const vect_n<float>& v2);
+
+extern template float operator *(const vect<float,2>& v1, const vect<float,2>& v2);
+extern template float operator *(const vect<float,3>& v1, const vect<float,3>& v2);
+extern template float operator *(const vect<float,4>& v1, const vect<float,4>& v2);
+extern template float operator *(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template float operator *(const vect_n<float>& v1, const vect_n<float>& v2);
+
+extern template vect<float,2> operator *(const vect<float,2>& v1, const float& v2);
+extern template vect<float,3> operator *(const vect<float,3>& v1, const float& v2);
+extern template vect<float,4> operator *(const vect<float,4>& v1, const float& v2);
+extern template vect<float,6> operator *(const vect<float,6>& v1, const float& v2);
+extern template vect_n<float> operator *(const vect_n<float>& v1, const float& v2);
+
+extern template vect<float,2> operator *(const float& v1, const vect<float,2>& v2);
+extern template vect<float,3> operator *(const float& v1, const vect<float,3>& v2);
+extern template vect<float,4> operator *(const float& v1, const vect<float,4>& v2);
+extern template vect<float,6> operator *(const float& v1, const vect<float,6>& v2);
+extern template vect_n<float> operator *(const float& v1, const vect_n<float>& v2);
+
+extern template vect<float,2> operator /(const vect<float,2>& v1, const float& v2);
+extern template vect<float,3> operator /(const vect<float,3>& v1, const float& v2);
+extern template vect<float,4> operator /(const vect<float,4>& v1, const float& v2);
+extern template vect<float,6> operator /(const vect<float,6>& v1, const float& v2);
+extern template vect_n<float> operator /(const vect_n<float>& v1, const float& v2);
+
+
+extern template bool operator ==(const vect<float,2>& v1, const vect<float,2>& v2);
+extern template bool operator ==(const vect<float,3>& v1, const vect<float,3>& v2);
+extern template bool operator ==(const vect<float,4>& v1, const vect<float,4>& v2);
+extern template bool operator ==(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template bool operator ==(const vect_n<float>& v1, const vect_n<float>& v2);
+
+extern template bool operator !=(const vect<float,2>& v1, const vect<float,2>& v2);
+extern template bool operator !=(const vect<float,3>& v1, const vect<float,3>& v2);
+extern template bool operator !=(const vect<float,4>& v1, const vect<float,4>& v2);
+extern template bool operator !=(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template bool operator !=(const vect_n<float>& v1, const vect_n<float>& v2);
+
+extern template bool operator <=(const vect<float,2>& v1, const vect<float,2>& v2);
+extern template bool operator <=(const vect<float,3>& v1, const vect<float,3>& v2);
+extern template bool operator <=(const vect<float,4>& v1, const vect<float,4>& v2);
+extern template bool operator <=(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template bool operator <=(const vect_n<float>& v1, const vect_n<float>& v2);
+
+extern template bool operator >=(const vect<float,2>& v1, const vect<float,2>& v2);
+extern template bool operator >=(const vect<float,3>& v1, const vect<float,3>& v2);
+extern template bool operator >=(const vect<float,4>& v1, const vect<float,4>& v2);
+extern template bool operator >=(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template bool operator >=(const vect_n<float>& v1, const vect_n<float>& v2);
+
+extern template bool operator <(const vect<float,2>& v1, const vect<float,2>& v2);
+extern template bool operator <(const vect<float,3>& v1, const vect<float,3>& v2);
+extern template bool operator <(const vect<float,4>& v1, const vect<float,4>& v2);
+extern template bool operator <(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template bool operator <(const vect_n<float>& v1, const vect_n<float>& v2);
+
+extern template bool operator >(const vect<float,2>& v1, const vect<float,2>& v2);
+extern template bool operator >(const vect<float,3>& v1, const vect<float,3>& v2);
+extern template bool operator >(const vect<float,4>& v1, const vect<float,4>& v2);
+extern template bool operator >(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template bool operator >(const vect_n<float>& v1, const vect_n<float>& v2);
+
+
+extern template std::ostream& operator <<(std::ostream& out_stream, const vect<float,2>& V);
+extern template std::ostream& operator <<(std::ostream& out_stream, const vect<float,3>& V);
+extern template std::ostream& operator <<(std::ostream& out_stream, const vect<float,4>& V);
+extern template std::ostream& operator <<(std::ostream& out_stream, const vect<float,6>& V);
+extern template std::ostream& operator <<(std::ostream& out_stream, const vect_n<float>& V);
+
+
+
+#endif
 
 
 };

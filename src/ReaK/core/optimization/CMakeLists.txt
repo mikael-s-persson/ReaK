@@ -34,14 +34,14 @@ setup_custom_target(test_optim "${SRCROOT}${RKOPTIMDIR}")
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 
-target_link_libraries(test_optim reak_rtti)
+target_link_libraries(test_optim reak_lin_alg reak_rtti)
 target_link_libraries(test_optim ${Boost_LIBRARIES})
 
 
 add_executable(test_optim_nllsq "${SRCROOT}${RKOPTIMDIR}/test_nllsq.cpp")
 setup_custom_target(test_optim_nllsq "${SRCROOT}${RKOPTIMDIR}")
 
-target_link_libraries(test_optim_nllsq reak_rtti)
+target_link_libraries(test_optim_nllsq reak_lin_alg reak_rtti)
 target_link_libraries(test_optim_nllsq ${Boost_LIBRARIES})
 
 
@@ -55,13 +55,13 @@ target_link_libraries(test_optim_lp ${Boost_LIBRARIES})
 add_executable(test_optim_qp "${SRCROOT}${RKOPTIMDIR}/test_qp.cpp")
 setup_custom_target(test_optim_qp "${SRCROOT}${RKOPTIMDIR}")
 
-target_link_libraries(test_optim_qp reak_rtti)
+target_link_libraries(test_optim_qp reak_lin_alg reak_rtti)
 target_link_libraries(test_optim_qp ${Boost_LIBRARIES})
 
 
 add_executable(test_optim_nlp "${SRCROOT}${RKOPTIMDIR}/test_nlp.cpp")
 setup_custom_target(test_optim_nlp "${SRCROOT}${RKOPTIMDIR}")
 
-target_link_libraries(test_optim_nlp reak_rtti)
+target_link_libraries(test_optim_nlp reak_lin_alg reak_rtti)
 target_link_libraries(test_optim_nlp ${Boost_LIBRARIES})
 

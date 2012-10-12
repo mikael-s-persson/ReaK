@@ -3,7 +3,11 @@ project(ReaK)
 # The following definition of RK_VERBOSITY determines the depth-level of the debug option of the programs (usually between 0 (no debug output) and 10 (full debug output)).
 add_definitions(-DRK_VERBOSITY=3)
 
-set(REAK_VERSION_NUMBER "0.20")
+if( ENABLE_EXTERN_TEMPLATES )
+  add_definitions(-DRK_ENABLE_EXTERN_TEMPLATES)
+endif()
+
+set(REAK_VERSION_NUMBER "0.26")
 
 # These are the main sub-directories
 set(RKCOREDIR "${REAKDIR}/core")

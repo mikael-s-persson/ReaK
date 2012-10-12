@@ -22,11 +22,11 @@ setup_headers("${KINETOSTATICS_HEADERS}" "${RKKINETOSTATICSDIR}")
 
 add_executable(test_kin "${SRCROOT}${RKKINETOSTATICSDIR}/test.cpp")
 setup_custom_target(test_kin "${SRCROOT}${RKKINETOSTATICSDIR}")
-target_link_libraries(test_kin reak_rtti)
+target_link_libraries(test_kin reak_lin_alg reak_rtti)
 
 add_executable(test_quat "${SRCROOT}${RKKINETOSTATICSDIR}/test_quat.cpp")
 setup_custom_target(test_quat "${SRCROOT}${RKKINETOSTATICSDIR}")
-target_link_libraries(test_quat reak_rtti)
+target_link_libraries(test_quat reak_lin_alg reak_rtti)
 
 
 

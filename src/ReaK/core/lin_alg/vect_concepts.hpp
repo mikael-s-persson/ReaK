@@ -75,7 +75,7 @@ struct ReadableVectorConcept {
     s = v.size();
     it = v.begin();
     ++it;
-    it != v.end();
+    bool b = (it != v.end()); RK_UNUSED(b);
   };
   
 };
