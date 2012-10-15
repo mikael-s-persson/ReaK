@@ -57,26 +57,26 @@ class position_measure_gen : public kte_map, public system_output {
   public:
     
     /**
-     * Returns a reference to the frame on which position measure is taken.
-     * \return A reference to the frame on which position measure is taken.
+     * Sets the frame on which position measure is taken.
+     * \param aPtr The new frame on which position measure is taken.
      */
-    shared_ptr< gen_coord<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< gen_coord<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which position measure is taken.
-     * \return A const-reference to the frame on which position measure is taken.
+     * Returns the frame on which position measure is taken.
+     * \return The frame on which position measure is taken.
      */
-    const shared_ptr< gen_coord<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< gen_coord<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the measured position, for read-write access.
-     * \return the measured position for read-write access.
+     * Sets the measured position.
+     * \param aValue The new measured position.
      */
-    double& getPosMeasure() { return mPosMeasure; };
+    void setPosMeasure(double aValue) { mPosMeasure = aValue; };
     /**
-     * Returns the measured position, for read-only access.
-     * \return the measured position for read-only access.
+     * Returns the measured position.
+     * \return the measured position.
      */
-    double getPosMeasure() const { return mPosMeasure; };
+    double PosMeasure() const { return mPosMeasure; };
     
     virtual unsigned int getOutputCount() const { return 1; };
     virtual double getOutput(unsigned int) const { return mPosMeasure; };
@@ -147,26 +147,26 @@ class position_measure_2D : public kte_map, public system_output {
   public:
     
     /**
-     * Returns a reference to the frame on which position measure is taken.
-     * \return A reference to the frame on which position measure is taken.
+     * Sets the frame on which position measure is taken.
+     * \param aPtr The new frame on which position measure is taken.
      */
-    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which position measure is taken.
-     * \return A const-reference to the frame on which position measure is taken.
+     * Returns the frame on which position measure is taken.
+     * \return The frame on which position measure is taken.
      */
-    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_2D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the measured position, for read-write access.
-     * \return the measured position for read-write access.
+     * Sets the measured position.
+     * \param aValue The new measured position.
      */
-    vect<double,2>& getPosMeasure() { return mPosMeasure; };
+    void setPosMeasure(const vect<double,2>& aValue) { mPosMeasure = aValue; };
     /**
-     * Returns the measured position, for read-only access.
-     * \return the measured position for read-only access.
+     * Returns the measured position.
+     * \return the measured position.
      */
-    const vect<double,2>& getPosMeasure() const { return mPosMeasure; };
+    vect<double,2> PosMeasure() const { return mPosMeasure; };
     
     virtual unsigned int getOutputCount() const { return 2; };
     virtual double getOutput(unsigned int i) const { 
@@ -242,26 +242,26 @@ class position_measure_3D : public kte_map, public system_output {
   public:
     
     /**
-     * Returns a reference to the frame on which position measure is taken.
-     * \return A reference to the frame on which position measure is taken.
+     * Sets the frame on which position measure is taken.
+     * \param aPtr The new frame on which position measure is taken.
      */
-    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which position measure is taken.
-     * \return A const-reference to the frame on which position measure is taken.
+     * Returns the frame on which position measure is taken.
+     * \return The frame on which position measure is taken.
      */
-    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_3D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the measured position, for read-write access.
-     * \return the measured position for read-write access.
+     * Sets the measured position.
+     * \param aValue The new measured position.
      */
-    vect<double,3>& getPosMeasure() { return mPosMeasure; };
+    void setPosMeasure(const vect<double,3>& aValue) { mPosMeasure = aValue; };
     /**
-     * Returns the measured position, for read-only access.
-     * \return the measured position for read-only access.
+     * Returns the measured position.
+     * \return the measured position.
      */
-    const vect<double,3>& getPosMeasure() const { return mPosMeasure; };
+    vect<double,3> PosMeasure() const { return mPosMeasure; };
     
     virtual unsigned int getOutputCount() const { return 3; };
     virtual double getOutput(unsigned int i) const { 
@@ -337,26 +337,26 @@ class rotation_measure_2D : public kte_map, public system_output {
   public:
     
     /**
-     * Returns a reference to the frame on which rotation measure is taken.
-     * \return A reference to the frame on which rotation measure is taken.
+     * Sets the frame on which rotation measure is taken.
+     * \param aPtr The new frame on which rotation measure is taken.
      */
-    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which rotation measure is taken.
-     * \return A const-reference to the frame on which rotation measure is taken.
+     * Returns the frame on which rotation measure is taken.
+     * \return The frame on which rotation measure is taken.
      */
-    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_2D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the measured rotation, for read-write access.
-     * \return the measured rotation for read-write access.
+     * Sets the measured rotation.
+     * \param aValue The new measured rotation.
      */
-    double& getAngleMeasure() { return mAngleMeasure; };
+    void setAngleMeasure(double aValue) { mAngleMeasure = aValue; };
     /**
-     * Returns the measured rotation, for read-only access.
-     * \return the measured rotation for read-only access.
+     * Returns the measured rotation.
+     * \return the measured rotation.
      */
-    double getAngleMeasure() const { return mAngleMeasure; };
+    double AngleMeasure() const { return mAngleMeasure; };
     
     virtual unsigned int getOutputCount() const { return 1; };
     virtual double getOutput(unsigned int) const { return mAngleMeasure; };
@@ -428,26 +428,26 @@ class rotation_measure_3D : public kte_map, public system_output {
   public:
     
     /**
-     * Returns a reference to the frame on which rotation measure is taken.
-     * \return A reference to the frame on which rotation measure is taken.
+     * Sets the frame on which rotation measure is taken.
+     * \param aPtr The new frame on which rotation measure is taken.
      */
-    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which rotation measure is taken.
-     * \return A const-reference to the frame on which rotation measure is taken.
+     * Returns the frame on which rotation measure is taken.
+     * \return The frame on which rotation measure is taken.
      */
-    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_3D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the measured rotation, for read-write access.
-     * \return the measured rotation for read-write access.
+     * Sets the measured rotation.
+     * \param aValue The new measured rotation.
      */
-    quaternion<double>& getQuatMeasure() { return mQuatMeasure; };
+    void setQuatMeasure(const quaternion<double>& aValue) { mQuatMeasure = aValue; };
     /**
-     * Returns the measured rotation, for read-only access.
-     * \return the measured rotation for read-only access.
+     * Returns the measured rotation.
+     * \return the measured rotation.
      */
-    const quaternion<double>& getQuatMeasure() const { return mQuatMeasure; };
+    quaternion<double> QuatMeasure() const { return mQuatMeasure; };
     
     virtual unsigned int getOutputCount() const { return 4; };
     virtual double getOutput(unsigned int i) const { 
@@ -523,26 +523,26 @@ class velocity_measure_gen : public kte_map, public system_output {
   public:
     
     /**
-     * Returns a reference to the frame on which velocity measure is taken.
-     * \return A reference to the frame on which velocity measure is taken.
+     * Sets the frame on which velocity measure is taken.
+     * \param aPtr The new frame on which velocity measure is taken.
      */
-    shared_ptr< gen_coord<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< gen_coord<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which velocity measure is taken.
-     * \return A const-reference to the frame on which velocity measure is taken.
+     * Returns the frame on which velocity measure is taken.
+     * \return The frame on which velocity measure is taken.
      */
-    const shared_ptr< gen_coord<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< gen_coord<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the measured velocity, for read-write access.
-     * \return the measured velocity for read-write access.
+     * Sets the measured velocity.
+     * \param aValue The new measured velocity.
      */
-    double& getVelMeasure() { return mVelMeasure; };
+    void setVelMeasure(double aValue) { mVelMeasure = aValue; };
     /**
-     * Returns the measured velocity, for read-only access.
-     * \return the measured velocity for read-only access.
+     * Returns the measured velocity.
+     * \return the measured velocity.
      */
-    double getVelMeasure() const { return mVelMeasure; };
+    double VelMeasure() const { return mVelMeasure; };
     
     virtual unsigned int getOutputCount() const { return 1; };
     virtual double getOutput(unsigned int) const { return mVelMeasure; };
@@ -613,26 +613,26 @@ class velocity_measure_2D : public kte_map, public system_output {
   public:
     
     /**
-     * Returns a reference to the frame on which velocity measure is taken.
-     * \return A reference to the frame on which velocity measure is taken.
+     * Sets the frame on which velocity measure is taken.
+     * \param aPtr The new frame on which velocity measure is taken.
      */
-    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which velocity measure is taken.
-     * \return A const-reference to the frame on which velocity measure is taken.
+     * Returns the frame on which velocity measure is taken.
+     * \return The frame on which velocity measure is taken.
      */
-    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_2D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the measured velocity, for read-write access.
-     * \return the measured velocity for read-write access.
+     * Sets the measured velocity.
+     * \param aValue The new measured velocity.
      */
-    vect<double,2>& getVelMeasure() { return mVelMeasure; };
+    void setVelMeasure(const vect<double,2>& aValue) { mVelMeasure = aValue; };
     /**
-     * Returns the measured velocity, for read-only access.
-     * \return the measured velocity for read-only access.
+     * Returns the measured velocity.
+     * \return the measured velocity.
      */
-    const vect<double,2>& getVelMeasure() const { return mVelMeasure; };
+    vect<double,2> VelMeasure() const { return mVelMeasure; };
     
     virtual unsigned int getOutputCount() const { return 2; };
     virtual double getOutput(unsigned int i) const { 
@@ -708,26 +708,26 @@ class velocity_measure_3D : public kte_map, public system_output {
   public:
     
     /**
-     * Returns a reference to the frame on which velocity measure is taken.
-     * \return A reference to the frame on which velocity measure is taken.
+     * Sets the frame on which velocity measure is taken.
+     * \param aPtr The new frame on which velocity measure is taken.
      */
-    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which velocity measure is taken.
-     * \return A const-reference to the frame on which velocity measure is taken.
+     * Returns the frame on which velocity measure is taken.
+     * \return The frame on which velocity measure is taken.
      */
-    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_3D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the measured velocity, for read-write access.
-     * \return the measured velocity for read-write access.
+     * Sets the measured velocity.
+     * \param aValue The new measured velocity.
      */
-    vect<double,3>& getVelMeasure() { return mVelMeasure; };
+    void setVelMeasure(const vect<double,3>& aValue) { mVelMeasure = aValue; };
     /**
-     * Returns the measured velocity, for read-only access.
-     * \return the measured velocity for read-only access.
+     * Returns the measured velocity.
+     * \return the measured velocity.
      */
-    const vect<double,3>& getVelMeasure() const { return mVelMeasure; };
+    vect<double,3> VelMeasure() const { return mVelMeasure; };
     
     virtual unsigned int getOutputCount() const { return 3; };
     virtual double getOutput(unsigned int i) const { 
@@ -803,26 +803,26 @@ class ang_velocity_measure_2D : public kte_map, public system_output {
   public:
     
     /**
-     * Returns a reference to the frame on which angular velocity measure is taken.
-     * \return A reference to the frame on which angular velocity measure is taken.
+     * Sets the frame on which angular velocity measure is taken.
+     * \param aPtr The new frame on which angular velocity measure is taken.
      */
-    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which angular velocity measure is taken.
-     * \return A const-reference to the frame on which angular velocity measure is taken.
+     * Returns the frame on which angular velocity measure is taken.
+     * \return The frame on which angular velocity measure is taken.
      */
-    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_2D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the measured angular velocity, for read-write access.
-     * \return the measured angular velocity for read-write access.
+     * Sets the measured angular velocity.
+     * \param aValue The new measured angular velocity.
      */
-    double& getAngVelMeasure() { return mAngVelMeasure; };
+    void setAngVelMeasure(double aValue) { mAngVelMeasure = aValue; };
     /**
-     * Returns the measured angular velocity, for read-only access.
-     * \return the measured angular velocity for read-only access.
+     * Returns the measured angular velocity.
+     * \return the measured angular velocity.
      */
-    double getAngVelMeasure() const { return mAngVelMeasure; };
+    double AngVelMeasure() const { return mAngVelMeasure; };
     
     virtual unsigned int getOutputCount() const { return 1; };
     virtual double getOutput(unsigned int) const { 
@@ -895,26 +895,26 @@ class ang_velocity_measure_3D : public kte_map, public system_output {
   public:
     
     /**
-     * Returns a reference to the frame on which angular velocity measure is taken.
-     * \return A reference to the frame on which angular velocity measure is taken.
+     * Sets the frame on which angular velocity measure is taken.
+     * \param aPtr The new frame on which angular velocity measure is taken.
      */
-    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which angular velocity measure is taken.
-     * \return A const-reference to the frame on which angular velocity measure is taken.
+     * Returns the frame on which angular velocity measure is taken.
+     * \return The frame on which angular velocity measure is taken.
      */
-    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_3D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the measured angular velocity, for read-write access.
-     * \return the measured angular velocity for read-write access.
+     * Sets the measured angular velocity.
+     * \param aValue The new measured angular velocity.
      */
-    vect<double,3>& getAngVelMeasure() { return mAngVelMeasure; };
+    void setAngVelMeasure(const vect<double,3>& aValue) { mAngVelMeasure = aValue; };
     /**
-     * Returns the measured angular velocity, for read-only access.
-     * \return the measured angular velocity for read-only access.
+     * Returns the measured angular velocity.
+     * \return the measured angular velocity.
      */
-    const vect<double,3>& getAngVelMeasure() const { return mAngVelMeasure; };
+    vect<double,3> AngVelMeasure() const { return mAngVelMeasure; };
     
     virtual unsigned int getOutputCount() const { return 3; };
     virtual double getOutput(unsigned int i) const { 

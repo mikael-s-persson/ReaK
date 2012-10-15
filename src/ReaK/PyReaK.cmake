@@ -9,6 +9,7 @@ set(PYREAK_SOURCES
   "${SRCROOT}${RKCOREDIR}/base/py_base.cpp"
   "${SRCROOT}${RKCOREDIR}/lin_alg/py_vect_alg.cpp"
   "${SRCROOT}${RKCOREDIR}/kinetostatics/py_kinetostatics.cpp"
+  "${SRCROOT}${RKCTRLDIR}/mbd_kte/py_mbd_kte.cpp"
 )
 
 
@@ -16,6 +17,6 @@ include_directories(BEFORE ${PYTHON_INCLUDE_DIRS})
 
 add_library(reak_py SHARED ${PYREAK_SOURCES})
 setup_custom_target(reak_py "${SRCROOT}${RKRECORDERSDIR}")
-target_link_libraries(reak_py ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} reak_core)
+target_link_libraries(reak_py ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} reak_mbd_kte reak_core)
 
 endif()

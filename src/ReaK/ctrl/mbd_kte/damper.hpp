@@ -57,32 +57,32 @@ class damper_gen : public kte_map {
   public:
     
     /**
-     * Returns a reference to the first anchor frame of the damper.
-     * \return A reference to the first anchor frame of the damper.
+     * Sets the first anchor frame of the damper.
+     * \param aPtr A pointer to the new first anchor frame of the damper.
      */
-    shared_ptr< gen_coord<double> >& Anchor1() { return mAnchor1; };
+    void setAnchor1(const shared_ptr< gen_coord<double> >& aPtr) { mAnchor1 = aPtr; };
     /**
      * Returns a const-reference to the first anchor frame of the damper.
      * \return A const-reference to the first anchor frame of the damper.
      */
-    const shared_ptr< gen_coord<double> >& Anchor1() const { return mAnchor1; };
+    shared_ptr< gen_coord<double> > Anchor1() const { return mAnchor1; };
     
     /**
-     * Returns a reference to the second anchor frame of the damper.
-     * \return A reference to the second anchor frame of the damper.
+     * Sets the first anchor frame of the damper.
+     * \param aPtr A pointer to the new first anchor frame of the damper.
      */
-    shared_ptr< gen_coord<double> >& Anchor2() { return mAnchor2; };
+    void setAnchor2(const shared_ptr< gen_coord<double> >& aPtr) { mAnchor2 = aPtr; };
     /**
      * Returns a const-reference to the second anchor frame of the damper.
      * \return A const-reference to the second anchor frame of the damper.
      */
-    const shared_ptr< gen_coord<double> >& Anchor2() const { return mAnchor2; };
+    shared_ptr< gen_coord<double> > Anchor2() const { return mAnchor2; };
     
     /**
-     * Returns a reference to the damping factor of the damper.
-     * \return A reference to the damping factor of the damper.
+     * Sets the damping factor of the damper.
+     * \param aValue The new damping factor of the damper.
      */
-    double& Damping() { return mDamping; };
+    void setDamping(double aValue) { mDamping = aValue; };
     /**
      * Returns the damping factor of the damper.
      * \return The damping factor of the damper.
@@ -150,32 +150,32 @@ class damper_2D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the first anchor frame of the damper.
-     * \return A reference to the first anchor frame of the damper.
+     * Sets the first anchor frame of the damper.
+     * \param aPtr A pointer to the new first anchor frame of the damper.
      */
-    shared_ptr< frame_2D<double> >& Anchor1() { return mAnchor1; };
+    void setAnchor1(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor1 = aPtr; };
     /**
      * Returns a const-reference to the first anchor frame of the damper.
      * \return A const-reference to the first anchor frame of the damper.
      */
-    const shared_ptr< frame_2D<double> >& Anchor1() const { return mAnchor1; };
+    shared_ptr< frame_2D<double> > Anchor1() const { return mAnchor1; };
     
     /**
-     * Returns a reference to the second anchor frame of the damper.
-     * \return A reference to the second anchor frame of the damper.
+     * Sets the first anchor frame of the damper.
+     * \param aPtr A pointer to the new first anchor frame of the damper.
      */
-    shared_ptr< frame_2D<double> >& Anchor2() { return mAnchor2; };
+    void setAnchor2(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor2 = aPtr; };
     /**
      * Returns a const-reference to the second anchor frame of the damper.
      * \return A const-reference to the second anchor frame of the damper.
      */
-    const shared_ptr< frame_2D<double> >& Anchor2() const { return mAnchor2; };
+    shared_ptr< frame_2D<double> > Anchor2() const { return mAnchor2; };
     
     /**
-     * Returns a reference to the damping factor of the damper.
-     * \return A reference to the damping factor of the damper.
+     * Sets the damping factor of the damper.
+     * \param aValue The new damping factor of the damper.
      */
-    double& Damping() { return mDamping; };
+    void setDamping(double aValue) { mDamping = aValue; };
     /**
      * Returns the damping factor of the damper.
      * \return The damping factor of the damper.
@@ -243,32 +243,32 @@ class damper_3D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the first anchor frame of the damper.
-     * \return A reference to the first anchor frame of the damper.
+     * Sets the first anchor frame of the damper.
+     * \param aPtr A pointer to the new first anchor frame of the damper.
      */
-    shared_ptr< frame_3D<double> >& Anchor1() { return mAnchor1; };
+    void setAnchor1(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor1 = aPtr; };
     /**
      * Returns a const-reference to the first anchor frame of the damper.
      * \return A const-reference to the first anchor frame of the damper.
      */
-    const shared_ptr< frame_3D<double> >& Anchor1() const { return mAnchor1; };
+    shared_ptr< frame_3D<double> > Anchor1() const { return mAnchor1; };
     
     /**
-     * Returns a reference to the second anchor frame of the damper.
-     * \return A reference to the second anchor frame of the damper.
+     * Sets the first anchor frame of the damper.
+     * \param aPtr A pointer to the new first anchor frame of the damper.
      */
-    shared_ptr< frame_3D<double> >& Anchor2() { return mAnchor2; };
+    void setAnchor2(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor2 = aPtr; };
     /**
      * Returns a const-reference to the second anchor frame of the damper.
      * \return A const-reference to the second anchor frame of the damper.
      */
-    const shared_ptr< frame_3D<double> >& Anchor2() const { return mAnchor2; };
+    shared_ptr< frame_3D<double> > Anchor2() const { return mAnchor2; };
     
     /**
-     * Returns a reference to the damping factor of the damper.
-     * \return A reference to the damping factor of the damper.
+     * Sets the damping factor of the damper.
+     * \param aValue The new damping factor of the damper.
      */
-    double& Damping() { return mDamping; };
+    void setDamping(double aValue) { mDamping = aValue; };
     /**
      * Returns the damping factor of the damper.
      * \return The damping factor of the damper.

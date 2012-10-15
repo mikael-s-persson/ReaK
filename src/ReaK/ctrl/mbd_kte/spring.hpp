@@ -61,55 +61,55 @@ class spring_gen : public kte_map {
   public:
     
     /**
-     * Returns a reference to the first anchor frame of the spring.
-     * \return A reference to the first anchor frame of the spring.
+     * Sets the first anchor frame of the spring.
+     * \param aPtr The new first anchor frame of the spring.
      */
-    shared_ptr< gen_coord<double> >& Anchor1() { return mAnchor1; };
+    void setAnchor1(const shared_ptr< gen_coord<double> >& aPtr) { mAnchor1 = aPtr; };
     /**
-     * Returns a const-reference to the first anchor frame of the spring.
-     * \return A const-reference to the first anchor frame of the spring.
+     * Returns a pointer to the first anchor frame of the spring.
+     * \return A pointer to the first anchor frame of the spring.
      */
-    const shared_ptr< gen_coord<double> >& Anchor1() const { return mAnchor1; };
+    shared_ptr< gen_coord<double> > Anchor1() const { return mAnchor1; };
     
     /**
-     * Returns a reference to the second anchor frame of the spring.
-     * \return A reference to the second anchor frame of the spring.
+     * Sets the second anchor frame of the spring.
+     * \param aPtr The new second anchor frame of the spring.
      */
-    shared_ptr< gen_coord<double> >& Anchor2() { return mAnchor2; };
+    void setAnchor2(const shared_ptr< gen_coord<double> >& aPtr) { mAnchor2 = aPtr; };
     /**
-     * Returns a const-reference to the second anchor frame of the spring.
-     * \return A const-reference to the second anchor frame of the spring.
+     * Returns a pointer to the second anchor frame of the spring.
+     * \return A pointer to the second anchor frame of the spring.
      */
-    const shared_ptr< gen_coord<double> >& Anchor2() const { return mAnchor2; };
+    shared_ptr< gen_coord<double> > Anchor2() const { return mAnchor2; };
     
     
     /**
-     * Returns a reference to the rest-length of the spring.
-     * \return A reference to the rest-length of the spring.
+     * Sets the rest-length of the spring.
+     * \param aValue The new rest-length of the spring.
      */
-    double& RestLength() { return mRestLength; };
+    void setRestLength(double aValue) { mRestLength = aValue; };
     /**
      * Returns the rest-length of the spring.
      * \return The rest-length of the spring.
      */
     double RestLength() const { return mRestLength; };
-
+    
     /**
-     * Returns a reference to the stiffness value of the spring.
-     * \return A reference to the stiffness value of the spring.
+     * Sets the stiffness value of the spring.
+     * \param aValue The new stiffness value of the spring.
      */
-    double& Stiffness() { return mStiffness; };
+    void setStiffness(double aValue) { mStiffness = aValue; };
     /**
      * Returns the stiffness value of the spring.
      * \return The stiffness value of the spring.
      */
     double Stiffness() const { return mStiffness; };
-
+    
     /**
-     * Returns a reference to the saturation force value of the spring (0 implies no saturation at all).
-     * \return A reference to the saturation force value of the spring (0 implies no saturation at all).
+     * Sets the saturation force of the spring (0 implies no saturation at all).
+     * \param aValue The new saturation force of the spring (0 implies no saturation at all).
      */
-    double& Saturation() { return mSaturation; };
+    void setSaturation(double aValue) { mSaturation = aValue; };
     /**
      * Returns the value of the saturation force of the spring (0 implies no saturation at all).
      * \return The value of the saturation force of the spring (0 implies no saturation at all).
@@ -193,33 +193,33 @@ class spring_2D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the first anchor frame of the spring.
-     * \return A reference to the first anchor frame of the spring.
+     * Sets the first anchor frame of the spring.
+     * \param aPtr The new first anchor frame of the spring.
      */
-    shared_ptr< frame_2D<double> >& Anchor1() { return mAnchor1; };
+    void setAnchor1(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor1 = aPtr; };
     /**
-     * Returns a const-reference to the first anchor frame of the spring.
-     * \return A const-reference to the first anchor frame of the spring.
+     * Returns a pointer to the first anchor frame of the spring.
+     * \return A pointer to the first anchor frame of the spring.
      */
-    const shared_ptr< frame_2D<double> >& Anchor1() const { return mAnchor1; };
+    shared_ptr< frame_2D<double> > Anchor1() const { return mAnchor1; };
     
     /**
-     * Returns a reference to the second anchor frame of the spring.
-     * \return A reference to the second anchor frame of the spring.
+     * Sets the second anchor frame of the spring.
+     * \param aPtr The new second anchor frame of the spring.
      */
-    shared_ptr< frame_2D<double> >& Anchor2() { return mAnchor2; };
+    void setAnchor2(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor2 = aPtr; };
     /**
-     * Returns a const-reference to the second anchor frame of the spring.
-     * \return A const-reference to the second anchor frame of the spring.
+     * Returns a pointer to the second anchor frame of the spring.
+     * \return A pointer to the second anchor frame of the spring.
      */
-    const shared_ptr< frame_2D<double> >& Anchor2() const { return mAnchor2; };
+    shared_ptr< frame_2D<double> > Anchor2() const { return mAnchor2; };
     
     
     /**
-     * Returns a reference to the rest-length of the spring.
-     * \return A reference to the rest-length of the spring.
+     * Sets the rest-length of the spring.
+     * \param aValue The new rest-length of the spring.
      */
-    double& RestLength() { return mRestLength; };
+    void setRestLength(double aValue) { mRestLength = aValue; };
     /**
      * Returns the rest-length of the spring.
      * \return The rest-length of the spring.
@@ -227,10 +227,10 @@ class spring_2D : public kte_map {
     double RestLength() const { return mRestLength; };
 
     /**
-     * Returns a reference to the stiffness value of the spring.
-     * \return A reference to the stiffness value of the spring.
+     * Sets the stiffness value of the spring.
+     * \param aValue The new stiffness value of the spring.
      */
-    double& Stiffness() { return mStiffness; };
+    void setStiffness(double aValue) { mStiffness = aValue; };
     /**
      * Returns the stiffness value of the spring.
      * \return The stiffness value of the spring.
@@ -238,10 +238,10 @@ class spring_2D : public kte_map {
     double Stiffness() const { return mStiffness; };
 
     /**
-     * Returns a reference to the saturation force value of the spring (0 implies no saturation at all).
-     * \return A reference to the saturation force value of the spring (0 implies no saturation at all).
+     * Sets the saturation force of the spring (0 implies no saturation at all).
+     * \param aValue The new saturation force of the spring (0 implies no saturation at all).
      */
-    double& Saturation() { return mSaturation; };
+    void setSaturation(double aValue) { mSaturation = aValue; };
     /**
      * Returns the value of the saturation force of the spring (0 implies no saturation at all).
      * \return The value of the saturation force of the spring (0 implies no saturation at all).
@@ -324,33 +324,33 @@ class spring_3D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the first anchor frame of the spring.
-     * \return A reference to the first anchor frame of the spring.
+     * Sets the first anchor frame of the spring.
+     * \param aPtr The new first anchor frame of the spring.
      */
-    shared_ptr< frame_3D<double> >& Anchor1() { return mAnchor1; };
+    void setAnchor1(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor1 = aPtr; };
     /**
-     * Returns a const-reference to the first anchor frame of the spring.
-     * \return A const-reference to the first anchor frame of the spring.
+     * Returns a pointer to the first anchor frame of the spring.
+     * \return A pointer to the first anchor frame of the spring.
      */
-    const shared_ptr< frame_3D<double> >& Anchor1() const { return mAnchor1; };
+    shared_ptr< frame_3D<double> > Anchor1() const { return mAnchor1; };
     
     /**
-     * Returns a reference to the second anchor frame of the spring.
-     * \return A reference to the second anchor frame of the spring.
+     * Sets the second anchor frame of the spring.
+     * \param aPtr The new second anchor frame of the spring.
      */
-    shared_ptr< frame_3D<double> >& Anchor2() { return mAnchor2; };
+    void setAnchor2(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor2 = aPtr; };
     /**
-     * Returns a const-reference to the second anchor frame of the spring.
-     * \return A const-reference to the second anchor frame of the spring.
+     * Returns a pointer to the second anchor frame of the spring.
+     * \return A pointer to the second anchor frame of the spring.
      */
-    const shared_ptr< frame_3D<double> >& Anchor2() const { return mAnchor2; };
+    shared_ptr< frame_3D<double> > Anchor2() const { return mAnchor2; };
     
     
     /**
-     * Returns a reference to the rest-length of the spring.
-     * \return A reference to the rest-length of the spring.
+     * Sets the rest-length of the spring.
+     * \param aValue The new rest-length of the spring.
      */
-    double& RestLength() { return mRestLength; };
+    void setRestLength(double aValue) { mRestLength = aValue; };
     /**
      * Returns the rest-length of the spring.
      * \return The rest-length of the spring.
@@ -358,10 +358,10 @@ class spring_3D : public kte_map {
     double RestLength() const { return mRestLength; };
 
     /**
-     * Returns a reference to the stiffness value of the spring.
-     * \return A reference to the stiffness value of the spring.
+     * Sets the stiffness value of the spring.
+     * \param aValue The new stiffness value of the spring.
      */
-    double& Stiffness() { return mStiffness; };
+    void setStiffness(double aValue) { mStiffness = aValue; };
     /**
      * Returns the stiffness value of the spring.
      * \return The stiffness value of the spring.
@@ -369,16 +369,16 @@ class spring_3D : public kte_map {
     double Stiffness() const { return mStiffness; };
 
     /**
-     * Returns a reference to the saturation force value of the spring (0 implies no saturation at all).
-     * \return A reference to the saturation force value of the spring (0 implies no saturation at all).
+     * Sets the saturation force of the spring (0 implies no saturation at all).
+     * \param aValue The new saturation force of the spring (0 implies no saturation at all).
      */
-    double& Saturation() { return mSaturation; };
+    void setSaturation(double aValue) { mSaturation = aValue; };
     /**
      * Returns the value of the saturation force of the spring (0 implies no saturation at all).
      * \return The value of the saturation force of the spring (0 implies no saturation at all).
      */
     double Saturation() const { return mSaturation; };
-    
+
     /**
      * Default constructor.
      */

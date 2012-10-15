@@ -1061,6 +1061,16 @@ struct has_allocator_vector< unit_quat<T> > {
 };
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class quat<double>;
+extern template class unit_quat<double>;
+
+
+extern template class quat<float>;
+extern template class unit_quat<float>;
+
+#endif
 
 
 };

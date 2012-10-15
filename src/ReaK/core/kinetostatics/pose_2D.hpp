@@ -314,6 +314,23 @@ std::ostream& operator <<(std::ostream& out, const pose_2D<T>& g) {
 
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class pose_2D<double>;
+
+extern template std::ostream& operator <<(std::ostream& out, const pose_2D<double>& g);
+
+
+extern template class pose_2D<float>;
+
+extern template std::ostream& operator <<(std::ostream& out, const pose_2D<float>& g);
+
+#endif
+
+
+
+
+
 };
 
 

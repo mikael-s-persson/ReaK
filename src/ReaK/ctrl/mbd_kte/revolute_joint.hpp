@@ -59,48 +59,48 @@ class revolute_joint_2D : public reacting_kte_gen {
   public:
     
     /**
-     * Returns a reference to the joint's angular coordinate.
-     * \return A reference to the joint's angular coordinate.
+     * Sets the joint's angular coordinate.
+     * \param aPtr The new joint's angular coordinate.
      */
-    shared_ptr< gen_coord<double> >& Angle() { return mAngle; };
+    void setAngle(const shared_ptr< gen_coord<double> >& aPtr) { mAngle = aPtr; };
     /**
-     * Returns a const-reference to the joint's angular coordinate.
-     * \return A const-reference to the joint's angular coordinate.
+     * Returns the joint's angular coordinate.
+     * \return The joint's angular coordinate.
      */
-    const shared_ptr< gen_coord<double> >& Angle() const { return mAngle; };
+    shared_ptr< gen_coord<double> > Angle() const { return mAngle; };
     
     /**
-     * Returns a reference to the joint's base frame.
-     * \return A reference to the joint's base frame.
+     * Sets the joint's base frame.
+     * \param aPtr The new joint's base frame.
      */
-    shared_ptr< frame_2D<double> >& BaseFrame() { return mBase; };
+    void setBaseFrame(const shared_ptr< frame_2D<double> >& aPtr) { mBase = aPtr; };
     /**
-     * Returns a const-reference to the joint's base frame.
-     * \return A const-reference to the joint's base frame.
+     * Returns the joint's base frame.
+     * \return The joint's base frame.
      */
-    const shared_ptr< frame_2D<double> >& BaseFrame() const { return mBase; };
+    shared_ptr< frame_2D<double> > BaseFrame() const { return mBase; };
     
     /**
-     * Returns a reference to the joint's output frame.
-     * \return A reference to the joint's output frame.
+     * Sets the joint's output frame.
+     * \param aPtr The new joint's output frame.
      */
-    shared_ptr< frame_2D<double> >& EndFrame() { return mEnd; };
+    void setEndFrame(const shared_ptr< frame_2D<double> >& aPtr) { mEnd = aPtr; };
     /**
-     * Returns a const-reference to the joint's output frame.
-     * \return A const-reference to the joint's output frame.
+     * Returns the joint's output frame.
+     * \return The joint's output frame.
      */
-    const shared_ptr< frame_2D<double> >& EndFrame() const { return mEnd; };
+    shared_ptr< frame_2D<double> > EndFrame() const { return mEnd; };
     
     /**
-     * Returns a reference to the joint's Jacobian.
-     * \return A reference to the joint's Jacobian.
+     * Sets the joint's Jacobian.
+     * \param aPtr The new joint's Jacobian.
      */
-    shared_ptr< jacobian_gen_2D<double> >& Jacobian() { return mJacobian; };
+    void setJacobian(const shared_ptr< jacobian_gen_2D<double> >& aPtr) { mJacobian = aPtr; };
     /**
-     * Returns a const-reference to the joint's Jacobian.
-     * \return A const-reference to the joint's Jacobian.
+     * Returns the joint's Jacobian.
+     * \return The joint's Jacobian.
      */
-    const shared_ptr< jacobian_gen_2D<double> >& Jacobian() const { return mJacobian; };
+    shared_ptr< jacobian_gen_2D<double> > Jacobian() const { return mJacobian; };
     
     /**
      * Default constructor.
@@ -176,59 +176,59 @@ class revolute_joint_3D : public reacting_kte_gen {
   public:
     
     /**
-     * Returns a reference to the joint's angular coordinate.
-     * \return A reference to the joint's angular coordinate.
+     * Sets the joint's angular coordinate.
+     * \param aPtr The new joint's angular coordinate.
      */
-    shared_ptr< gen_coord<double> >& Angle() { return mAngle; };
+    void setAngle(const shared_ptr< gen_coord<double> >& aPtr) { mAngle = aPtr; };
     /**
-     * Returns a const-reference to the joint's angular coordinate.
-     * \return A const-reference to the joint's angular coordinate.
+     * Returns the joint's angular coordinate.
+     * \return The joint's angular coordinate.
      */
-    const shared_ptr< gen_coord<double> >& Angle() const { return mAngle; };
+    shared_ptr< gen_coord<double> > Angle() const { return mAngle; };
     
     /**
-     * Returns a reference to the joint's axis vector (relative to base frame).
-     * \return A reference to the joint's axis vector (relative to base frame).
+     * Sets the joint's axis vector (relative to base frame).
+     * \param aValue The new joint's axis vector (relative to base frame).
      */
-    vect<double,3>& Axis() { return mAxis; };
+    void setAxis(const vect<double,3>& aValue) { mAxis = aValue; };
     /**
-     * Returns a const-reference to the joint's axis vector (relative to base frame).
-     * \return A const-reference to the joint's axis vector (relative to base frame).
+     * Returns the joint's axis vector (relative to base frame).
+     * \return The joint's axis vector (relative to base frame).
      */
-    const vect<double,3>& Axis() const { return mAxis; };
+    vect<double,3> Axis() const { return mAxis; };
     
     /**
-     * Returns a reference to the joint's base frame.
-     * \return A reference to the joint's base frame.
+     * Sets the joint's base frame.
+     * \param aPtr The new joint's base frame.
      */
-    shared_ptr< frame_3D<double> >& BaseFrame() { return mBase; };
+    void setBaseFrame(const shared_ptr< frame_3D<double> >& aPtr) { mBase = aPtr; };
     /**
-     * Returns a const-reference to the joint's base frame.
-     * \return A const-reference to the joint's base frame.
+     * Returns the joint's base frame.
+     * \return The joint's base frame.
      */
-    const shared_ptr< frame_3D<double> >& BaseFrame() const { return mBase; };
+    shared_ptr< frame_3D<double> > BaseFrame() const { return mBase; };
     
     /**
-     * Returns a reference to the joint's output frame.
-     * \return A reference to the joint's output frame.
+     * Sets the joint's output frame.
+     * \param aPtr The new joint's output frame.
      */
-    shared_ptr< frame_3D<double> >& EndFrame() { return mEnd; };
+    void setEndFrame(const shared_ptr< frame_3D<double> >& aPtr) { mEnd = aPtr; };
     /**
-     * Returns a const-reference to the joint's output frame.
-     * \return A const-reference to the joint's output frame.
+     * Returns the joint's output frame.
+     * \return The joint's output frame.
      */
-    const shared_ptr< frame_3D<double> >& EndFrame() const { return mEnd; };
+    shared_ptr< frame_3D<double> > EndFrame() const { return mEnd; };
     
     /**
-     * Returns a reference to the joint's Jacobian.
-     * \return A reference to the joint's Jacobian.
+     * Sets the joint's Jacobian.
+     * \param aPtr The new joint's Jacobian.
      */
-    shared_ptr< jacobian_gen_3D<double> >& Jacobian() { return mJacobian; };
+    void setJacobian(const shared_ptr< jacobian_gen_3D<double> >& aPtr) { mJacobian = aPtr; };
     /**
      * Returns a const-reference to the joint's Jacobian.
-     * \return A const-reference to the joint's Jacobian.
+     * \return The joint's Jacobian.
      */
-    const shared_ptr< jacobian_gen_3D<double> >& Jacobian() const { return mJacobian; };
+    shared_ptr< jacobian_gen_3D<double> > Jacobian() const { return mJacobian; };
 
     /**
      * Default constructor.

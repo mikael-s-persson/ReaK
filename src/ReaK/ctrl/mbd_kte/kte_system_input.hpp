@@ -74,7 +74,7 @@ class system_input : public virtual named_object {
      * \param i The index of the input variable.
      * \return The variable at index i.
      */
-    virtual double& getInput(unsigned int i) = 0;
+    virtual void setInput(unsigned int i, double val) = 0;
     /**
      * Returns the input variable at index i, with read-only access.
      * \param i The index of the input variable.

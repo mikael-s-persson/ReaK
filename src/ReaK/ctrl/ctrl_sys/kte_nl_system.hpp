@@ -223,7 +223,7 @@ class kte_nl_system : public named_object {
       i = 0;
       for(size_type j = 0; j < inputs.size(); ++j)
 	for(size_type k = 0; k < inputs[j]->getInputCount(); k++)
-	  inputs[j]->getInput(k) = u[i++];
+	  inputs[j]->setInput(k,u[i++]);
     };
     
     /**

@@ -320,6 +320,23 @@ std::ostream& operator <<(std::ostream& out, const pose_3D<T>& g) {
 };
 
 
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class pose_3D<double>;
+
+extern template std::ostream& operator <<(std::ostream& out, const pose_3D<double>& g);
+
+
+extern template class pose_3D<float>;
+
+extern template std::ostream& operator <<(std::ostream& out, const pose_3D<float>& g);
+
+#endif
+
+
+
+
 };
 
 #endif

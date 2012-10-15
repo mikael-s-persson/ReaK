@@ -56,37 +56,49 @@ class plane_point_mindist_3D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the base-frame, or kinematic input, or free-point.
-     * \return A reference to the base-frame, or kinematic input, or free-point.
+     * Sets the base-frame, or kinematic input, or free-point.
+     * \param aPtr The new base-frame, or kinematic input, or free-point.
      */
-    shared_ptr< frame_3D<double> >& Base() { return mBase; };
+    void setBaseFrame(const shared_ptr< frame_3D<double> >& aPtr) { mBase = aPtr; };
     /**
-     * Returns a const-reference to the base-frame, or kinematic input, or free-point.
-     * \return A const-reference to the base-frame, or kinematic input, or free-point.
+     * Returns the base-frame, or kinematic input, or free-point.
+     * \return The base-frame, or kinematic input, or free-point.
      */
-    const shared_ptr< frame_3D<double> >& Base() const { return mBase; };
+    shared_ptr< frame_3D<double> > BaseFrame() const { return mBase; };
     
     /**
-     * Returns a reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
-     * \return A reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
+     * Sets the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
+     * \param aPtr The new end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
      */
-    shared_ptr< frame_3D<double> >& End() { return mEnd; };
+    void setEndFrame(const shared_ptr< frame_3D<double> >& aPtr) { mEnd = aPtr; };
     /**
-     * Returns a const-reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
-     * \return A const-reference to the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
+     * Returns the end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
+     * \return The end-frame, or kinematic output, or min-dist point to base-frame, on the plane.
      */
-    const shared_ptr< frame_3D<double> >& End() const { return mEnd; };
+    shared_ptr< frame_3D<double> > EndFrame() const { return mEnd; };
     
-    /** Get read-write access to mNormal. */
-    vect<double,3>& Normal() { return mNormal; };
-    /** Get read-only access to mNormal. */
-    const vect<double,3>& Normal() const { return mNormal; };
-
-    /** Get read-write access to mOrigin. */
-    double& Origin() { return mOrigin; };
-    /** Get read-only access to mOrigin. */
+    /**
+     * Sets the normal vector of the plane, in global coordinates.
+     * \param aValue The new normal vector of the plane, in global coordinates.
+     */
+    void setNormal(const vect<double,3>& aValue) { mNormal = aValue; };
+    /**
+     * Returns the normal vector of the plane, in global coordinates.
+     * \return The normal vector of the plane, in global coordinates.
+     */
+    vect<double,3> Normal() const { return mNormal; };
+    
+    /**
+     * Sets the distance to the origin, i.e., aOrigin * aNormal is the vector from the plane to a plane parallel and intersecting the origin.
+     * \param aValue The new distance to the origin, i.e., aOrigin * aNormal is the vector from the plane to a plane parallel and intersecting the origin.
+     */
+    void setOrigin(double& aValue) { mOrigin = aValue; };
+    /**
+     * Returns the distance to the origin, i.e., aOrigin * aNormal is the vector from the plane to a plane parallel and intersecting the origin.
+     * \return The distance to the origin, i.e., aOrigin * aNormal is the vector from the plane to a plane parallel and intersecting the origin.
+     */
     double Origin() const { return mOrigin; };
-
+    
     /**
      * Default constructor.
      */

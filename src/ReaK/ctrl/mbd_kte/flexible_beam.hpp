@@ -61,53 +61,71 @@ class flexible_beam_2D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the first end frame of the beam.
-     * \return A reference to the first end frame of the beam.
+     * Sets the first anchor frame of the beam.
+     * \param aPtr A pointer to the new first anchor frame of the beam.
      */
-    shared_ptr< frame_2D<double> >& Anchor1() { return mAnchor1; };
+    void setAnchor1(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor1 = aPtr; };
     /**
-     * Returns a const-reference to the first end frame of the beam.
-     * \return A const-reference to the first end frame of the beam.
+     * Returns a const-reference to the first anchor frame of the beam.
+     * \return A const-reference to the first anchor frame of the beam.
      */
-    const shared_ptr< frame_2D<double> >& Anchor1() const { return mAnchor1; };
+    shared_ptr< frame_2D<double> > Anchor1() const { return mAnchor1; };
     
     /**
-     * Returns a reference to the second end frame of the beam.
-     * \return A reference to the second end frame of the beam.
+     * Sets the first anchor frame of the beam.
+     * \param aPtr A pointer to the new first anchor frame of the beam.
      */
-    shared_ptr< frame_2D<double> >& Anchor2() { return mAnchor2; };
+    void setAnchor2(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor2 = aPtr; };
     /**
-     * Returns a const-reference to the second end frame of the beam.
-     * \return A const-reference to the second end frame of the beam.
+     * Returns a const-reference to the second anchor frame of the beam.
+     * \return A const-reference to the second anchor frame of the beam.
      */
-    const shared_ptr< frame_2D<double> >& Anchor2() const { return mAnchor2; };
+    shared_ptr< frame_2D<double> > Anchor2() const { return mAnchor2; };
     
     /**
-     * Returns a reference to the center frame of the beam (i.e. its bulk).
-     * \return A reference to the center frame of the beam (i.e. its bulk).
+     * Sets the center frame of the beam (i.e. its bulk).
+     * \param aPtr A pointer to the new center frame of the beam (i.e. its bulk).
      */
-    shared_ptr< frame_2D<double> >& CenterFrame() { return mObjectFrame; };
+    void setCenterFrame(const shared_ptr< frame_2D<double> >& aPtr) { mObjectFrame = aPtr; };
     /**
-     * Returns a const-reference to the center frame of the beam (i.e. its bulk).
-     * \return A const-reference to the center frame of the beam (i.e. its bulk).
+     * Returns the center frame of the beam (i.e. its bulk).
+     * \return The center frame of the beam (i.e. its bulk).
      */
-    const shared_ptr< frame_2D<double> >& CenterFrame() const { return mObjectFrame; };
+    shared_ptr< frame_2D<double> > CenterFrame() const { return mObjectFrame; };
     
-    /** Get read-write access to the mRestLength. */
-    double& RestLength() { return mRestLength; };
-    /** Get read-only access to the mRestLength. */
+    /**
+     * Sets the rest-length of the beam.
+     * \param aValue The new rest-length of the beam.
+     */
+    void setRestLength(double aValue) { mRestLength = aValue; };
+    /**
+     * Returns the rest-length of the beam.
+     * \return The rest-length of the beam.
+     */
     double RestLength() const { return mRestLength; };
-
-    /** Get read-write access to the mStiffness. */
-    double& Stiffness() { return mStiffness; };
-    /** Get read-only access to the mStiffness. */
+    
+    /**
+     * Sets the stiffness value of the beam.
+     * \param aValue The new stiffness value of the beam.
+     */
+    void setStiffness(double aValue) { mStiffness = aValue; };
+    /**
+     * Returns the stiffness value of the beam.
+     * \return The stiffness value of the beam.
+     */
     double Stiffness() const { return mStiffness; };
-
-    /** Get read-write access to the mTorsionStiffness. */
-    double& TorsionStiffness() { return mTorsionStiffness; };
-    /** Get read-only access to the mTorsionStiffness. */
+    
+    /**
+     * Sets the torsion stiffness value of the beam.
+     * \param aValue The new torsion stiffness value of the beam.
+     */
+    void setTorsionStiffness(double aValue) { mTorsionStiffness = aValue; };
+    /**
+     * Returns the torsion stiffness value of the beam.
+     * \return The torsion stiffness value of the beam.
+     */
     double TorsionStiffness() const { return mTorsionStiffness; };
-
+    
 
     /**
      * Default constructor.
@@ -200,53 +218,71 @@ class flexible_beam_3D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the first end frame of the beam.
-     * \return A reference to the first end frame of the beam.
+     * Sets the first anchor frame of the beam.
+     * \param aPtr A pointer to the new first anchor frame of the beam.
      */
-    shared_ptr< frame_3D<double> >& Anchor1() { return mAnchor1; };
+    void setAnchor1(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor1 = aPtr; };
     /**
-     * Returns a const-reference to the first end frame of the beam.
-     * \return A const-reference to the first end frame of the beam.
+     * Returns a const-reference to the first anchor frame of the beam.
+     * \return A const-reference to the first anchor frame of the beam.
      */
-    const shared_ptr< frame_3D<double> >& Anchor1() const { return mAnchor1; };
+    shared_ptr< frame_3D<double> > Anchor1() const { return mAnchor1; };
     
     /**
-     * Returns a reference to the second end frame of the beam.
-     * \return A reference to the second end frame of the beam.
+     * Sets the first anchor frame of the beam.
+     * \param aPtr A pointer to the new first anchor frame of the beam.
      */
-    shared_ptr< frame_3D<double> >& Anchor2() { return mAnchor2; };
+    void setAnchor2(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor2 = aPtr; };
     /**
-     * Returns a const-reference to the second end frame of the beam.
-     * \return A const-reference to the second end frame of the beam.
+     * Returns a const-reference to the second anchor frame of the beam.
+     * \return A const-reference to the second anchor frame of the beam.
      */
-    const shared_ptr< frame_3D<double> >& Anchor2() const { return mAnchor2; };
+    shared_ptr< frame_3D<double> > Anchor2() const { return mAnchor2; };
     
     /**
-     * Returns a reference to the center frame of the beam (i.e. its bulk).
-     * \return A reference to the center frame of the beam (i.e. its bulk).
+     * Sets the center frame of the beam (i.e. its bulk).
+     * \param aPtr A pointer to the new center frame of the beam (i.e. its bulk).
      */
-    shared_ptr< frame_3D<double> >& CenterFrame() { return mObjectFrame; };
+    void setCenterFrame(const shared_ptr< frame_3D<double> >& aPtr) { mObjectFrame = aPtr; };
     /**
-     * Returns a const-reference to the center frame of the beam (i.e. its bulk).
-     * \return A const-reference to the center frame of the beam (i.e. its bulk).
+     * Returns the center frame of the beam (i.e. its bulk).
+     * \return The center frame of the beam (i.e. its bulk).
      */
-    const shared_ptr< frame_3D<double> >& CenterFrame() const { return mObjectFrame; };
+    shared_ptr< frame_3D<double> > CenterFrame() const { return mObjectFrame; };
     
-    /** Get read-write access to the mRestLength. */
-    double& RestLength() { return mRestLength; };
-    /** Get read-only access to the mRestLength. */
+    /**
+     * Sets the rest-length of the beam.
+     * \param aValue The new rest-length of the beam.
+     */
+    void setRestLength(double aValue) { mRestLength = aValue; };
+    /**
+     * Returns the rest-length of the beam.
+     * \return The rest-length of the beam.
+     */
     double RestLength() const { return mRestLength; };
-
-    /** Get read-write access to the mStiffness. */
-    double& Stiffness() { return mStiffness; };
-    /** Get read-only access to the mStiffness. */
+    
+    /**
+     * Sets the stiffness value of the beam.
+     * \param aValue The new stiffness value of the beam.
+     */
+    void setStiffness(double aValue) { mStiffness = aValue; };
+    /**
+     * Returns the stiffness value of the beam.
+     * \return The stiffness value of the beam.
+     */
     double Stiffness() const { return mStiffness; };
-
-    /** Get read-write access to the mTorsionStiffness. */
-    double& TorsionStiffness() { return mTorsionStiffness; };
-    /** Get read-only access to the mTorsionStiffness. */
+    
+    /**
+     * Sets the torsion stiffness value of the beam.
+     * \param aValue The new torsion stiffness value of the beam.
+     */
+    void setTorsionStiffness(double aValue) { mTorsionStiffness = aValue; };
+    /**
+     * Returns the torsion stiffness value of the beam.
+     * \return The torsion stiffness value of the beam.
+     */
     double TorsionStiffness() const { return mTorsionStiffness; };
-
+    
     /**
      * Default constructor.
      */
@@ -269,9 +305,9 @@ class flexible_beam_3D : public kte_map {
      * \param aTorsionStiffness the angular or torsion stiffness of the beam, iso-tropically.
      */
     flexible_beam_3D(const std::string& aName,
-                     shared_ptr< frame_3D<double> >& aAnchor1,
-                     shared_ptr< frame_3D<double> >& aAnchor2,
-                     shared_ptr< frame_3D<double> >& aObjectFrame,
+                     const shared_ptr< frame_3D<double> >& aAnchor1,
+                     const shared_ptr< frame_3D<double> >& aAnchor2,
+                     const shared_ptr< frame_3D<double> >& aObjectFrame,
                      double aRestLength,
                      double aStiffness,
                      double aTorsionStiffness) :

@@ -405,6 +405,21 @@ std::ostream& operator <<(std::ostream& out, const frame_2D<T>& g) {
 
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class frame_2D<double>;
+
+extern template std::ostream& operator <<(std::ostream& out, const frame_2D<double>& g);
+
+
+extern template class frame_2D<float>;
+
+extern template std::ostream& operator <<(std::ostream& out, const frame_2D<float>& g);
+
+#endif
+
+
+
 };
 
 #endif

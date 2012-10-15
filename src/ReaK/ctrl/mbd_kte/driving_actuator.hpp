@@ -59,7 +59,7 @@ class driving_actuator_gen : public force_actuator_gen, public system_input {
 
     virtual unsigned int getInputCount() const { return 1; };
     
-    virtual double& getInput(unsigned int i) { return mDriveForce; };
+    virtual void setInput(unsigned int i, double aDriveForce) { mDriveForce = aDriveForce; };
     virtual double getInput(unsigned int i) const { return mDriveForce; }; 
     
     /**
@@ -123,11 +123,11 @@ class driving_actuator_2D : public force_actuator_2D, public system_input {
     
     virtual unsigned int getInputCount() const { return 3; };
     
-    virtual double& getInput(unsigned int i) { 
+    virtual void setInput(unsigned int i, double aValue) { 
       if(i < 2) 
-	return mDriveForce[i];
+	mDriveForce[i] = aValue;
       else
-	return mDriveTorque;
+	mDriveTorque = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 2)
@@ -198,13 +198,13 @@ class driving_actuator_3D : public force_actuator_3D, public system_input {
 
     virtual unsigned int getInputCount() const { return 6; };
     
-    virtual double& getInput(unsigned int i) { 
+    virtual void setInput(unsigned int i, double aValue) { 
       if(i < 3) 
-	return mDriveForce[i];
+	mDriveForce[i] = aValue;
       else if(i < 6)
-	return mDriveTorque[i-3];
+	mDriveTorque[i-3] = aValue;
       else
-	return mDriveForce[0];
+	mDriveForce[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 3) 

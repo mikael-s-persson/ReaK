@@ -37,6 +37,7 @@ namespace PyReaK {
 void export_base();
 void export_vect_alg();
 void export_kinetostatics();
+void export_mbd_kte();
 
 };
 
@@ -50,6 +51,7 @@ BOOST_PYTHON_MODULE(libreak_py) {
   export_base();
   export_vect_alg();
   export_kinetostatics();
+  export_mbd_kte();
   
 };
 

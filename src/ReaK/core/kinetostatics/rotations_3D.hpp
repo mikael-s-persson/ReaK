@@ -3353,6 +3353,128 @@ bool operator !=(const axis_angle<T>& A, const euler_angles_TB<T>& E) {
 
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class rot_mat_3D<double>;
+extern template class quaternion<double>;
+extern template class euler_angles_TB<double>;
+extern template class axis_angle<double>;
+extern template class trans_mat_3D<double>;
+
+extern template std::ostream& operator <<(std::ostream& out_stream, const rot_mat_3D<double>& R);
+extern template std::ostream& operator <<(std::ostream& out_stream, const quaternion<double>& Q);
+extern template std::ostream& operator <<(std::ostream& out_stream, const euler_angles_TB<double>& E);
+extern template std::ostream& operator <<(std::ostream& out_stream, const axis_angle<double>& A);
+extern template std::ostream& operator <<(std::ostream& out_stream, const trans_mat_3D<double>& M);
+
+
+extern template rot_mat_3D<double> operator *(const rot_mat_3D<double>& R, const quaternion<double>& Q);
+extern template rot_mat_3D<double> operator *(const quaternion<double>& Q, const rot_mat_3D<double>& R);
+extern template rot_mat_3D<double> operator *(const rot_mat_3D<double>& R, const euler_angles_TB<double>& E);
+extern template rot_mat_3D<double> operator *(const euler_angles_TB<double>& E, const rot_mat_3D<double>& R);
+extern template quaternion<double> operator *(const quaternion<double>& Q, const euler_angles_TB<double>& E);
+extern template quaternion<double> operator *(const euler_angles_TB<double>& E, const quaternion<double>& Q);
+extern template rot_mat_3D<double> operator *(const rot_mat_3D<double>& R, const axis_angle<double>& A);
+extern template rot_mat_3D<double> operator *(const axis_angle<double>& A, const rot_mat_3D<double>& R);
+extern template quaternion<double> operator *(const quaternion<double>& Q, const axis_angle<double>& A);
+extern template quaternion<double> operator *(const axis_angle<double>& A, const quaternion<double>& Q);
+extern template rot_mat_3D<double> operator *(const euler_angles_TB<double>& E, const axis_angle<double>& A);
+extern template rot_mat_3D<double> operator *(const axis_angle<double>& A, const euler_angles_TB<double>& E);
+extern template trans_mat_3D<double> operator *(const rot_mat_3D<double>& R, const trans_mat_3D<double>& M);
+extern template trans_mat_3D<double> operator *(const quaternion<double>& Q, const trans_mat_3D<double>& M);
+extern template trans_mat_3D<double> operator *(const trans_mat_3D<double>& M, const quaternion<double>& Q);
+extern template trans_mat_3D<double> operator *(const euler_angles_TB<double>& E, const trans_mat_3D<double>& M);
+extern template trans_mat_3D<double> operator *(const trans_mat_3D<double>& M, const euler_angles_TB<double>& E);
+extern template trans_mat_3D<double> operator *(const axis_angle<double>& A, const trans_mat_3D<double>& M);
+extern template trans_mat_3D<double> operator *(const trans_mat_3D<double>& M, const axis_angle<double>& A);
+
+extern template bool operator ==(const rot_mat_3D<double>& R, const quaternion<double>& Q);
+extern template bool operator !=(const rot_mat_3D<double>& R, const quaternion<double>& Q);
+extern template bool operator ==(const quaternion<double>& Q, const rot_mat_3D<double>& R);
+extern template bool operator !=(const quaternion<double>& Q, const rot_mat_3D<double>& R);
+extern template bool operator ==(const quaternion<double>& Q, const euler_angles_TB<double>& E);
+extern template bool operator !=(const quaternion<double>& Q, const euler_angles_TB<double>& E);
+extern template bool operator ==(const euler_angles_TB<double>& E, const quaternion<double>& Q);
+extern template bool operator !=(const euler_angles_TB<double>& E, const quaternion<double>& Q);
+extern template bool operator ==(const rot_mat_3D<double>& R, const euler_angles_TB<double>& E);
+extern template bool operator !=(const rot_mat_3D<double>& R, const euler_angles_TB<double>& E);
+extern template bool operator ==(const euler_angles_TB<double>& E, const rot_mat_3D<double>& R);
+extern template bool operator !=(const euler_angles_TB<double>& E, const rot_mat_3D<double>& R);
+extern template bool operator ==(const rot_mat_3D<double>& R, const axis_angle<double>& A);
+extern template bool operator !=(const rot_mat_3D<double>& R, const axis_angle<double>& A);
+extern template bool operator ==(const axis_angle<double>& A, const rot_mat_3D<double>& R);
+extern template bool operator !=(const axis_angle<double>& A, const rot_mat_3D<double>& R);
+extern template bool operator ==(const quaternion<double>& Q, const axis_angle<double>& A);
+extern template bool operator !=(const quaternion<double>& Q, const axis_angle<double>& A);
+extern template bool operator ==(const axis_angle<double>& A, const quaternion<double>& Q);
+extern template bool operator !=(const axis_angle<double>& A, const quaternion<double>& Q);
+extern template bool operator ==(const euler_angles_TB<double>& E, const axis_angle<double>& A);
+extern template bool operator !=(const euler_angles_TB<double>& E, const axis_angle<double>& A);
+extern template bool operator ==(const axis_angle<double>& A, const euler_angles_TB<double>& E);
+extern template bool operator !=(const axis_angle<double>& A, const euler_angles_TB<double>& E);
+
+
+
+extern template class rot_mat_3D<float>;
+extern template class quaternion<float>;
+extern template class euler_angles_TB<float>;
+extern template class axis_angle<float>;
+extern template class trans_mat_3D<float>;
+
+extern template std::ostream& operator <<(std::ostream& out_stream, const rot_mat_3D<float>& R);
+extern template std::ostream& operator <<(std::ostream& out_stream, const quaternion<float>& Q);
+extern template std::ostream& operator <<(std::ostream& out_stream, const euler_angles_TB<float>& E);
+extern template std::ostream& operator <<(std::ostream& out_stream, const axis_angle<float>& A);
+extern template std::ostream& operator <<(std::ostream& out_stream, const trans_mat_3D<float>& M);
+
+
+extern template rot_mat_3D<float> operator *(const rot_mat_3D<float>& R, const quaternion<float>& Q);
+extern template rot_mat_3D<float> operator *(const quaternion<float>& Q, const rot_mat_3D<float>& R);
+extern template rot_mat_3D<float> operator *(const rot_mat_3D<float>& R, const euler_angles_TB<float>& E);
+extern template rot_mat_3D<float> operator *(const euler_angles_TB<float>& E, const rot_mat_3D<float>& R);
+extern template quaternion<float> operator *(const quaternion<float>& Q, const euler_angles_TB<float>& E);
+extern template quaternion<float> operator *(const euler_angles_TB<float>& E, const quaternion<float>& Q);
+extern template rot_mat_3D<float> operator *(const rot_mat_3D<float>& R, const axis_angle<float>& A);
+extern template rot_mat_3D<float> operator *(const axis_angle<float>& A, const rot_mat_3D<float>& R);
+extern template quaternion<float> operator *(const quaternion<float>& Q, const axis_angle<float>& A);
+extern template quaternion<float> operator *(const axis_angle<float>& A, const quaternion<float>& Q);
+extern template rot_mat_3D<float> operator *(const euler_angles_TB<float>& E, const axis_angle<float>& A);
+extern template rot_mat_3D<float> operator *(const axis_angle<float>& A, const euler_angles_TB<float>& E);
+extern template trans_mat_3D<float> operator *(const rot_mat_3D<float>& R, const trans_mat_3D<float>& M);
+extern template trans_mat_3D<float> operator *(const quaternion<float>& Q, const trans_mat_3D<float>& M);
+extern template trans_mat_3D<float> operator *(const trans_mat_3D<float>& M, const quaternion<float>& Q);
+extern template trans_mat_3D<float> operator *(const euler_angles_TB<float>& E, const trans_mat_3D<float>& M);
+extern template trans_mat_3D<float> operator *(const trans_mat_3D<float>& M, const euler_angles_TB<float>& E);
+extern template trans_mat_3D<float> operator *(const axis_angle<float>& A, const trans_mat_3D<float>& M);
+extern template trans_mat_3D<float> operator *(const trans_mat_3D<float>& M, const axis_angle<float>& A);
+
+extern template bool operator ==(const rot_mat_3D<float>& R, const quaternion<float>& Q);
+extern template bool operator !=(const rot_mat_3D<float>& R, const quaternion<float>& Q);
+extern template bool operator ==(const quaternion<float>& Q, const rot_mat_3D<float>& R);
+extern template bool operator !=(const quaternion<float>& Q, const rot_mat_3D<float>& R);
+extern template bool operator ==(const quaternion<float>& Q, const euler_angles_TB<float>& E);
+extern template bool operator !=(const quaternion<float>& Q, const euler_angles_TB<float>& E);
+extern template bool operator ==(const euler_angles_TB<float>& E, const quaternion<float>& Q);
+extern template bool operator !=(const euler_angles_TB<float>& E, const quaternion<float>& Q);
+extern template bool operator ==(const rot_mat_3D<float>& R, const euler_angles_TB<float>& E);
+extern template bool operator !=(const rot_mat_3D<float>& R, const euler_angles_TB<float>& E);
+extern template bool operator ==(const euler_angles_TB<float>& E, const rot_mat_3D<float>& R);
+extern template bool operator !=(const euler_angles_TB<float>& E, const rot_mat_3D<float>& R);
+extern template bool operator ==(const rot_mat_3D<float>& R, const axis_angle<float>& A);
+extern template bool operator !=(const rot_mat_3D<float>& R, const axis_angle<float>& A);
+extern template bool operator ==(const axis_angle<float>& A, const rot_mat_3D<float>& R);
+extern template bool operator !=(const axis_angle<float>& A, const rot_mat_3D<float>& R);
+extern template bool operator ==(const quaternion<float>& Q, const axis_angle<float>& A);
+extern template bool operator !=(const quaternion<float>& Q, const axis_angle<float>& A);
+extern template bool operator ==(const axis_angle<float>& A, const quaternion<float>& Q);
+extern template bool operator !=(const axis_angle<float>& A, const quaternion<float>& Q);
+extern template bool operator ==(const euler_angles_TB<float>& E, const axis_angle<float>& A);
+extern template bool operator !=(const euler_angles_TB<float>& E, const axis_angle<float>& A);
+extern template bool operator ==(const axis_angle<float>& A, const euler_angles_TB<float>& E);
+extern template bool operator !=(const axis_angle<float>& A, const euler_angles_TB<float>& E);
+
+
+#endif
 
 
 

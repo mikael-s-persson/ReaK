@@ -55,32 +55,32 @@ class torsion_damper_2D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the first anchor frame of the torsion damper.
-     * \return A reference to the first anchor frame of the torsion damper.
+     * Sets the first anchor frame of the torsion damper.
+     * \param aPtr The new first anchor frame of the torsion damper.
      */
-    shared_ptr< frame_2D<double> >& Anchor1() { return mAnchor1; };
+    void setAnchor1(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor1 = aPtr; };
     /**
-     * Returns a const-reference to the first anchor frame of the torsion damper.
-     * \return A const-reference to the first anchor frame of the torsion damper.
+     * Returns the first anchor frame of the torsion damper.
+     * \return The first anchor frame of the torsion damper.
      */
-    const shared_ptr< frame_2D<double> >& Anchor1() const { return mAnchor1; };
+    shared_ptr< frame_2D<double> > Anchor1() const { return mAnchor1; };
     
     /**
-     * Returns a reference to the second anchor frame of the torsion damper.
-     * \return A reference to the second anchor frame of the torsion damper.
+     * Sets the second anchor frame of the torsion damper.
+     * \param aPtr The new second anchor frame of the torsion damper.
      */
-    shared_ptr< frame_2D<double> >& Anchor2() { return mAnchor2; };
+    void setAnchor2(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor2 = aPtr; };
     /**
-     * Returns a const-reference to the second anchor frame of the torsion damper.
-     * \return A const-reference to the second anchor frame of the torsion damper.
+     * Returns the second anchor frame of the torsion damper.
+     * \return The second anchor frame of the torsion damper.
      */
-    const shared_ptr< frame_2D<double> >& Anchor2() const { return mAnchor2; };
+    shared_ptr< frame_2D<double> > Anchor2() const { return mAnchor2; };
     
     /**
-     * Returns a reference to the damping factor of the torsion damper.
-     * \return A reference to the damping factor of the torsion damper.
+     * Sets the damping factor of the torsion damper.
+     * \param aValue The new damping factor of the torsion damper.
      */
-    double& Damping() { return mDamping; };
+    void setDamping(double aValue) { mDamping = aValue; };
     /**
      * Returns the damping factor of the torsion damper.
      * \return The damping factor of the torsion damper.
@@ -147,32 +147,32 @@ class torsion_damper_3D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the first anchor frame of the torsion damper.
-     * \return A reference to the first anchor frame of the torsion damper.
+     * Sets the first anchor frame of the torsion damper.
+     * \param aPtr The new first anchor frame of the torsion damper.
      */
-    shared_ptr< frame_3D<double> >& Anchor1() { return mAnchor1; };
+    void setAnchor1(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor1 = aPtr; };
     /**
-     * Returns a const-reference to the first anchor frame of the torsion damper.
-     * \return A const-reference to the first anchor frame of the torsion damper.
+     * Returns the first anchor frame of the torsion damper.
+     * \return The first anchor frame of the torsion damper.
      */
-    const shared_ptr< frame_3D<double> >& Anchor1() const { return mAnchor1; };
+    shared_ptr< frame_3D<double> > Anchor1() const { return mAnchor1; };
     
     /**
-     * Returns a reference to the second anchor frame of the torsion damper.
-     * \return A reference to the second anchor frame of the torsion damper.
+     * Sets the second anchor frame of the torsion damper.
+     * \param aPtr The new second anchor frame of the torsion damper.
      */
-    shared_ptr< frame_3D<double> >& Anchor2() { return mAnchor2; };
+    void setAnchor2(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor2 = aPtr; };
     /**
-     * Returns a const-reference to the second anchor frame of the torsion damper.
-     * \return A const-reference to the second anchor frame of the torsion damper.
+     * Returns the second anchor frame of the torsion damper.
+     * \return The second anchor frame of the torsion damper.
      */
-    const shared_ptr< frame_3D<double> >& Anchor2() const { return mAnchor2; };
+    shared_ptr< frame_3D<double> > Anchor2() const { return mAnchor2; };
     
     /**
-     * Returns a reference to the damping factor of the torsion damper.
-     * \return A reference to the damping factor of the torsion damper.
+     * Sets the damping factor of the torsion damper.
+     * \param aValue The new damping factor of the torsion damper.
      */
-    double& Damping() { return mDamping; };
+    void setDamping(double aValue) { mDamping = aValue; };
     /**
      * Returns the damping factor of the torsion damper.
      * \return The damping factor of the torsion damper.

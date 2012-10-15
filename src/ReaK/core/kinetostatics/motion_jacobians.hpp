@@ -1305,6 +1305,37 @@ public:
 
 
 
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class jacobian_gen_gen<double>;
+extern template class jacobian_gen_2D<double>;
+extern template class jacobian_gen_3D<double>;
+extern template class jacobian_2D_gen<double>;
+extern template class jacobian_2D_2D<double>;
+extern template class jacobian_2D_3D<double>;
+extern template class jacobian_3D_gen<double>;
+extern template class jacobian_3D_2D<double>;
+extern template class jacobian_3D_3D<double>;
+
+extern template class jacobian_gen_gen<float>;
+extern template class jacobian_gen_2D<float>;
+extern template class jacobian_gen_3D<float>;
+extern template class jacobian_2D_gen<float>;
+extern template class jacobian_2D_2D<float>;
+extern template class jacobian_2D_3D<float>;
+extern template class jacobian_3D_gen<float>;
+extern template class jacobian_3D_2D<float>;
+extern template class jacobian_3D_3D<float>;
+
+
+#endif
+
+
+
+
+
   
 };
 

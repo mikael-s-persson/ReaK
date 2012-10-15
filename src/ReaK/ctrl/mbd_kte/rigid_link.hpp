@@ -56,38 +56,38 @@ class rigid_link_gen : public kte_map {
   public:
     
     /**
-     * Returns a reference to the link's base frame.
-     * \return A reference to the link's base frame.
+     * Sets the link's base frame.
+     * \param aPtr The new link's base frame.
      */
-    shared_ptr< gen_coord<double> >& BaseFrame() { return mBase; };
+    void setBaseFrame(const shared_ptr< gen_coord<double> >& aPtr) { mBase = aPtr; };
     /**
-     * Returns a const-reference to the link's base frame.
-     * \return A const-reference to the link's base frame.
+     * Returns the link's base frame.
+     * \return The link's base frame.
      */
-    const shared_ptr< gen_coord<double> >& BaseFrame() const { return mBase; };
+    shared_ptr< gen_coord<double> > BaseFrame() const { return mBase; };
     
     /**
-     * Returns a reference to the link's output frame.
-     * \return A reference to the link's output frame.
+     * Sets the link's output frame.
+     * \param aPtr The new link's output frame.
      */
-    shared_ptr< gen_coord<double> >& EndFrame() { return mEnd; };
+    void setEndFrame(const shared_ptr< gen_coord<double> >& aPtr) { mEnd = aPtr; };
     /**
-     * Returns a const-reference to the link's output frame.
-     * \return A const-reference to the link's output frame.
+     * Returns the link's output frame.
+     * \return The link's output frame.
      */
-    const shared_ptr< gen_coord<double> >& EndFrame() const { return mEnd; };
+    shared_ptr< gen_coord<double> > EndFrame() const { return mEnd; };
     
     /**
-     * Returns a reference to the link's coordinate offset.
-     * \return A reference to the link's coordinate offset.
+     * Sets the link's offset.
+     * \param aValue The link's new offset.
      */
-    double& Offset() { return mOffset; };
+    void setOffset(double aValue) { mOffset = aValue; };
     /**
-     * Returns the value of the link's coordinate offset.
-     * \return The value of the link's coordinate offset.
+     * Returns the link's offset.
+     * \return The link's offset.
      */
     double Offset() const { return mOffset; };
-
+    
     /**
      * Default constructor.
      */
@@ -153,38 +153,38 @@ class rigid_link_2D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the link's base frame.
-     * \return A reference to the link's base frame.
+     * Sets the link's base frame.
+     * \param aPtr The new link's base frame.
      */
-    shared_ptr< frame_2D<double> >& BaseFrame() { return mBase; };
+    void setBaseFrame(const shared_ptr< frame_2D<double> >& aPtr) { mBase = aPtr; };
     /**
-     * Returns a const-reference to the link's base frame.
-     * \return A const-reference to the link's base frame.
+     * Returns the link's base frame.
+     * \return The link's base frame.
      */
-    const shared_ptr< frame_2D<double> >& BaseFrame() const { return mBase; };
+    shared_ptr< frame_2D<double> > BaseFrame() const { return mBase; };
     
     /**
-     * Returns a reference to the link's output frame.
-     * \return A reference to the link's output frame.
+     * Sets the link's output frame.
+     * \param aPtr The new link's output frame.
      */
-    shared_ptr< frame_2D<double> >& EndFrame() { return mEnd; };
+    void setEndFrame(const shared_ptr< frame_2D<double> >& aPtr) { mEnd = aPtr; };
     /**
-     * Returns a const-reference to the link's output frame.
-     * \return A const-reference to the link's output frame.
+     * Returns the link's output frame.
+     * \return The link's output frame.
      */
-    const shared_ptr< frame_2D<double> >& EndFrame() const { return mEnd; };
+    shared_ptr< frame_2D<double> > EndFrame() const { return mEnd; };
     
     /**
-     * Returns a reference to the link's pose offset (position vector and rotation).
-     * \return A reference to the link's pose offset (position vector and rotation).
+     * Sets the link's pose offset (position vector and rotation).
+     * \param aValue The link's new pose offset (position vector and rotation).
      */
-    pose_2D<double>& PoseOffset() { return mPoseOffset; };
+    void setPoseOffset(const pose_2D<double>& aValue) { mPoseOffset = aValue; };
     /**
-     * Returns a const-reference to the link's pose offset (position vector and rotation).
-     * \return A const-reference to the link's pose offset (position vector and rotation).
+     * Returns the link's pose offset (position vector and rotation).
+     * \return The link's pose offset (position vector and rotation).
      */
-    const pose_2D<double>& PoseOffset() const { return mPoseOffset; };
-
+    pose_2D<double> PoseOffset() const { return mPoseOffset; };
+    
     /**
      * Default constructor.
      */
@@ -249,38 +249,38 @@ class rigid_link_3D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the link's base frame.
-     * \return A reference to the link's base frame.
+     * Sets the link's base frame.
+     * \param aPtr The new link's base frame.
      */
-    shared_ptr< frame_3D<double> >& BaseFrame() { return mBase; };
+    void setBaseFrame(const shared_ptr< frame_3D<double> >& aPtr) { mBase = aPtr; };
     /**
-     * Returns a const-reference to the link's base frame.
-     * \return A const-reference to the link's base frame.
+     * Returns the link's base frame.
+     * \return The link's base frame.
      */
-    const shared_ptr< frame_3D<double> >& BaseFrame() const { return mBase; };
+    shared_ptr< frame_3D<double> > BaseFrame() const { return mBase; };
     
     /**
-     * Returns a reference to the link's output frame.
-     * \return A reference to the link's output frame.
+     * Sets the link's output frame.
+     * \param aPtr The new link's output frame.
      */
-    shared_ptr< frame_3D<double> >& EndFrame() { return mEnd; };
+    void setEndFrame(const shared_ptr< frame_3D<double> >& aPtr) { mEnd = aPtr; };
     /**
-     * Returns a const-reference to the link's output frame.
-     * \return A const-reference to the link's output frame.
+     * Returns the link's output frame.
+     * \return The link's output frame.
      */
-    const shared_ptr< frame_3D<double> >& EndFrame() const { return mEnd; };
+    shared_ptr< frame_3D<double> > EndFrame() const { return mEnd; };
     
     /**
-     * Returns a reference to the link's pose offset (position vector and rotation).
-     * \return A reference to the link's pose offset (position vector and rotation).
+     * Sets the link's pose offset (position vector and rotation).
+     * \param aValue The link's new pose offset (position vector and rotation).
      */
-    pose_3D<double>& PoseOffset() { return mPoseOffset; };
+    void setPoseOffset(const pose_3D<double>& aValue) { mPoseOffset = aValue; };
     /**
-     * Returns a const-reference to the link's pose offset (position vector and rotation).
-     * \return A const-reference to the link's pose offset (position vector and rotation).
+     * Returns the link's pose offset (position vector and rotation).
+     * \return The link's pose offset (position vector and rotation).
      */
-    const pose_3D<double>& PoseOffset() const { return mPoseOffset; };
-
+    pose_3D<double> PoseOffset() const { return mPoseOffset; };
+    
     /**
      * Default constructor.
      */

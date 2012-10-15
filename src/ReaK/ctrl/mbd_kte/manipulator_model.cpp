@@ -276,7 +276,7 @@ void RK_CALL manipulator_dynamics_model::setInput(const ReaK::vect_n<double>& aI
   unsigned int i = 0;
   for(std::vector< shared_ptr<system_input> >::iterator it = mInputs.begin(); it != mInputs.end(); ++it)
     for(unsigned int k = 0; k < (*it)->getInputCount(); ++k)
-      (*it)->getInput(k) = aInput[i++];
+      (*it)->setInput(k,aInput[i++]);
 };
 
 vect_n<double> manipulator_dynamics_model::getInput() const {

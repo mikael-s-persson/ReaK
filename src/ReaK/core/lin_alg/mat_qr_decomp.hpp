@@ -199,6 +199,7 @@ void backsub_R_impl(const Matrix1& R, Matrix2& b, typename mat_traits<Matrix1>::
 {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::fabs;
   SizeType N = R.get_row_count();
   SizeType M = R.get_col_count();
   N = (N > M ? M : N);
@@ -220,6 +221,7 @@ void backsub_R_impl(const Matrix1& R, Matrix2& b, typename mat_traits<Matrix1>::
 template <typename Matrix1, typename Matrix2>
 void forwardsub_L_impl(const Matrix1& L, Matrix2& B, typename mat_traits<Matrix1>::value_type NumTol) {
   typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::fabs;
   SizeType N = L.get_row_count();
   SizeType M = B.get_col_count();
   for(SizeType j=0;j<M;++j) { //for every column of B
@@ -303,6 +305,7 @@ typename mat_traits<Matrix1>::size_type
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   using std::swap; using std::sqrt;
+  using std::fabs;
   SizeType N = A.get_row_count();
   SizeType M = A.get_col_count();
   P.set_row_count(M);

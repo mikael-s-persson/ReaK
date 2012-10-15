@@ -57,29 +57,29 @@ class position_control_gen : public kte_map, public system_input {
   public:
     
     /**
-     * Returns a reference to the frame on which position control is exerted.
-     * \return A reference to the frame on which position control is exerted.
+     * Sets the frame on which position control is exerted.
+     * \param aPtr The frame on which position control is exerted.
      */
-    shared_ptr< gen_coord<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< gen_coord<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which position control is exerted.
-     * \return A const-reference to the frame on which position control is exerted.
+     * Returns the frame on which position control is exerted.
+     * \return The frame on which position control is exerted.
      */
-    const shared_ptr< gen_coord<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< gen_coord<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the desired position, for read-write access.
-     * \return the desired position for read-write access.
+     * Sets the desired position.
+     * \param aValue The new desired position.
      */
-    double& getPosDesired() { return mPosDesired; };
+    void setPosDesired(double aValue) { mPosDesired = aValue; };
     /**
      * Returns the desired position, for read-only access.
      * \return the desired position for read-only access.
      */
-    double getPosDesired() const { return mPosDesired; };
+    double PosDesired() const { return mPosDesired; };
     
     virtual unsigned int getInputCount() const { return 1; };
-    virtual double& getInput(unsigned int i) { return mPosDesired; };
+    virtual void setInput(unsigned int i, double aValue) { mPosDesired = aValue; };
     virtual double getInput(unsigned int i) const { return mPosDesired; };
     
     /**
@@ -144,33 +144,33 @@ class position_control_2D : public kte_map, public system_input {
   public:
     
     /**
-     * Returns a reference to the frame on which position control is exerted.
-     * \return A reference to the frame on which position control is exerted.
+     * Sets the frame on which position control is exerted.
+     * \param aPtr The frame on which position control is exerted.
      */
-    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which position control is exerted.
-     * \return A const-reference to the frame on which position control is exerted.
+     * Returns the frame on which position control is exerted.
+     * \return The frame on which position control is exerted.
      */
-    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_2D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the desired position, for read-write access.
-     * \return the desired position for read-write access.
+     * Sets the desired position.
+     * \param aValue The new desired position.
      */
-    vect<double,2>& getPosDesired() { return mPosDesired; };
+    void setPosDesired(const vect<double,2>& aValue) { mPosDesired = aValue; };
     /**
-     * Returns the desired position, for read-only access.
-     * \return the desired position for read-only access.
+     * Returns the desired position.
+     * \return the desired position.
      */
-    const vect<double,2>& getPosDesired() const { return mPosDesired; };
+    vect<double,2> PosDesired() const { return mPosDesired; };
     
     virtual unsigned int getInputCount() const { return 2; };
-    virtual double& getInput(unsigned int i) { 
+    virtual void setInput(unsigned int i, double aValue) { 
       if(i < 2)
-        return mPosDesired[i]; 
+        mPosDesired[i] = aValue; 
       else
-	return mPosDesired[0];
+	mPosDesired[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 2)
@@ -241,33 +241,33 @@ class position_control_3D : public kte_map, public system_input {
   public:
     
     /**
-     * Returns a reference to the frame on which position control is exerted.
-     * \return A reference to the frame on which position control is exerted.
+     * Sets the frame on which position control is exerted.
+     * \param aPtr The frame on which position control is exerted.
      */
-    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which position control is exerted.
-     * \return A const-reference to the frame on which position control is exerted.
+     * Returns the frame on which position control is exerted.
+     * \return The frame on which position control is exerted.
      */
-    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_3D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the desired position, for read-write access.
-     * \return the desired position for read-write access.
+     * Sets the desired position.
+     * \param aValue The new desired position.
      */
-    vect<double,3>& getPosDesired() { return mPosDesired; };
+    void setPosDesired(const vect<double,3>& aValue) { mPosDesired = aValue; };
     /**
-     * Returns the desired position, for read-only access.
-     * \return the desired position for read-only access.
+     * Returns the desired position.
+     * \return the desired position.
      */
-    const vect<double,3>& getPosMeasure() const { return mPosDesired; };
+    vect<double,3> PosDesired() const { return mPosDesired; };
     
     virtual unsigned int getInputCount() const { return 3; };
-    virtual double& getInput(unsigned int i) { 
+    virtual void setInput(unsigned int i, double aValue) { 
       if(i < 3)
-        return mPosDesired[i]; 
+        mPosDesired[i] = aValue; 
       else
-	return mPosDesired[0];
+	mPosDesired[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 3)
@@ -338,29 +338,29 @@ class rotation_control_2D : public kte_map, public system_input {
   public:
     
     /**
-     * Returns a reference to the frame on which rotation control is exerted.
-     * \return A reference to the frame on which rotation control is exerted.
+     * Sets the frame on which rotation control is exerted.
+     * \param aPtr The frame on which rotation control is exerted.
      */
-    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which rotation control is exerted.
-     * \return A const-reference to the frame on which rotation control is exerted.
+     * Returns the frame on which rotation control is exerted.
+     * \return The frame on which rotation control is exerted.
      */
-    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_2D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the desired rotation, for read-write access.
-     * \return the desired rotation for read-write access.
+     * Sets the desired rotation.
+     * \param aValue The new desired rotation.
      */
-    double& getAngleDesired() { return mAngleDesired; };
+    void setAngleDesired(double aValue) { mAngleDesired = aValue; };
     /**
-     * Returns the desired rotation, for read-write access.
-     * \return the desired rotation for read-write access.
+     * Returns the desired rotation.
+     * \return the desired rotation.
      */
-    double getAngleDesired() const { return mAngleDesired; };
+    double AngleDesired() const { return mAngleDesired; };
     
     virtual unsigned int getInputCount() const { return 1; };
-    virtual double& getInput(unsigned int) { return mAngleDesired; };
+    virtual void setInput(unsigned int, double aValue) { mAngleDesired = aValue; };
     virtual double getInput(unsigned int) const { return mAngleDesired; };
     
     /**
@@ -387,7 +387,7 @@ class rotation_control_2D : public kte_map, public system_input {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAnchor->Rotation.getAngle() = mAngleDesired;
+	mAnchor->Rotation.setAngle(mAngleDesired);
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -421,38 +421,38 @@ class rotation_control_2D : public kte_map, public system_input {
 class rotation_control_3D : public kte_map, public system_input {
   private:
     shared_ptr< frame_3D<double> > mAnchor; 
-    quaternion<double> mQuatDesired;
+    vect<double,4> mQuatDesired;
     
   public:
     
     /**
-     * Returns a reference to the frame on which rotation control is exerted.
-     * \return A reference to the frame on which rotation control is exerted.
+     * Sets the frame on which rotation control is exerted.
+     * \param aPtr The frame on which rotation control is exerted.
      */
-    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which rotation control is exerted.
-     * \return A const-reference to the frame on which rotation control is exerted.
+     * Returns the frame on which rotation control is exerted.
+     * \return The frame on which rotation control is exerted.
      */
-    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_3D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the desired rotation, for read-write access.
-     * \return the desired rotation for read-write access.
+     * Sets the desired rotation.
+     * \param aValue The new desired rotation.
      */
-    quaternion<double>& getQuatDesired() { return mQuatDesired; };
+    void setQuatDesired(const vect<double,4>& aValue) { mQuatDesired = aValue; };
     /**
-     * Returns the desired rotation, for read-only access.
-     * \return the desired rotation for read-only access.
+     * Returns the desired rotation.
+     * \return the desired rotation.
      */
-    const quaternion<double>& getQuatDesired() const { return mQuatDesired; };
+    vect<double,4> QuatDesired() const { return mQuatDesired; };
     
     virtual unsigned int getInputCount() const { return 4; };
-    virtual double& getInput(unsigned int i) { 
+    virtual void setInput(unsigned int i, double aValue) { 
       if(i < 4)
-        return mQuatDesired[i]; 
+        mQuatDesired[i] = aValue; 
       else
-	return mQuatDesired[0];
+	mQuatDesired[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 4)
@@ -485,7 +485,7 @@ class rotation_control_3D : public kte_map, public system_input {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAnchor->Quat = mQuatDesired;
+	mAnchor->Quat = quaternion<double>(mQuatDesired);
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -523,29 +523,29 @@ class velocity_control_gen : public kte_map, public system_input {
   public:
     
     /**
-     * Returns a reference to the frame on which velocity control is exerted.
-     * \return A reference to the frame on which velocity control is exerted.
+     * Sets the frame on which velocity control is exerted.
+     * \param aPtr The frame on which velocity control is exerted.
      */
-    shared_ptr< gen_coord<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< gen_coord<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which velocity control is exerted.
-     * \return A const-reference to the frame on which velocity control is exerted.
+     * Returns the frame on which velocity control is exerted.
+     * \return The frame on which velocity control is exerted.
      */
-    const shared_ptr< gen_coord<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< gen_coord<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the desired velocity, for read-write access.
-     * \return the desired velocity for read-write access.
+     * Sets the desired velocity.
+     * \param aValue The new desired velocity.
      */
-    double& getVelDesired() { return mVelDesired; };
+    void setVelDesired(double aValue) { mVelDesired = aValue; };
     /**
-     * Returns the desired velocity, for read-only access.
-     * \return the desired velocity for read-only access.
+     * Returns the desired velocity.
+     * \return the desired velocity.
      */
-    double getVelDesired() const { return mVelDesired; };
+    double VelDesired() const { return mVelDesired; };
     
     virtual unsigned int getInputCount() const { return 1; };
-    virtual double& getInput(unsigned int) { return mVelDesired; };
+    virtual void setInput(unsigned int, double aValue) { mVelDesired = aValue; };
     virtual double getInput(unsigned int) const { return mVelDesired; };
     
     /**
@@ -610,33 +610,33 @@ class velocity_control_2D : public kte_map, public system_input {
   public:
     
     /**
-     * Returns a reference to the frame on which velocity control is exerted.
-     * \return A reference to the frame on which velocity control is exerted.
+     * Sets the frame on which velocity control is exerted.
+     * \param aPtr The frame on which velocity control is exerted.
      */
-    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which velocity control is exerted.
-     * \return A const-reference to the frame on which velocity control is exerted.
+     * Returns the frame on which velocity control is exerted.
+     * \return The frame on which velocity control is exerted.
      */
-    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_2D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the desired velocity, for read-write access.
-     * \return the desired velocity for read-write access.
+     * Sets the desired velocity.
+     * \param aValue The new desired velocity.
      */
-    vect<double,2>& getVelDesired() { return mVelDesired; };
+    void setVelDesired(const vect<double,2>& aValue) { mVelDesired = aValue; };
     /**
-     * Returns the desired velocity, for read-only access.
-     * \return the desired velocity for read-only access.
+     * Returns the desired velocity.
+     * \return the desired velocity.
      */
-    const vect<double,2>& getVelDesired() const { return mVelDesired; };
+    vect<double,2> VelDesired() const { return mVelDesired; };
     
     virtual unsigned int getInputCount() const { return 2; };
-    virtual double& getInput(unsigned int i) { 
+    virtual void setInput(unsigned int i, double aValue) { 
       if(i < 2)
-        return mVelDesired[i]; 
+        mVelDesired[i] = aValue; 
       else
-	return mVelDesired[0];
+	mVelDesired[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 2)
@@ -707,33 +707,33 @@ class velocity_control_3D : public kte_map, public system_input {
   public:
     
     /**
-     * Returns a reference to the frame on which velocity control is exerted.
-     * \return A reference to the frame on which velocity control is exerted.
+     * Sets the frame on which velocity control is exerted.
+     * \param aPtr The frame on which velocity control is exerted.
      */
-    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which velocity control is exerted.
-     * \return A const-reference to the frame on which velocity control is exerted.
+     * Returns the frame on which velocity control is exerted.
+     * \return The frame on which velocity control is exerted.
      */
-    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_3D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the desired velocity, for read-write access.
-     * \return the desired velocity for read-write access.
+     * Sets the desired velocity.
+     * \param aValue The new desired velocity.
      */
-    vect<double,3>& getVelDesired() { return mVelDesired; };
+    void setVelDesired(const vect<double,3>& aValue) { mVelDesired = aValue; };
     /**
-     * Returns the desired velocity, for read-only access.
-     * \return the desired velocity for read-only access.
+     * Returns the desired velocity.
+     * \return the desired velocity.
      */
-    const vect<double,3>& getVelDesired() const { return mVelDesired; };
+    vect<double,3> VelDesired() const { return mVelDesired; };
     
     virtual unsigned int getInputCount() const { return 3; };
-    virtual double& getInput(unsigned int i) { 
+    virtual void setInput(unsigned int i, double aValue) { 
       if(i < 3)
-        return mVelDesired[i]; 
+        mVelDesired[i] = aValue; 
       else
-	return mVelDesired[0];
+	mVelDesired[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 3)
@@ -799,44 +799,38 @@ class velocity_control_3D : public kte_map, public system_input {
 class ang_velocity_control_2D : public kte_map, public system_input {
   private:
     shared_ptr< frame_2D<double> > mAnchor; 
-    vect<double,2> mAngVelDesired;
+    double mAngVelDesired;
     
   public:
     
     /**
-     * Returns a reference to the frame on which angular velocity control is exerted.
-     * \return A reference to the frame on which angular velocity control is exerted.
+     * Sets the frame on which angular velocity control is exerted.
+     * \param aPtr The frame on which angular velocity control is exerted.
      */
-    shared_ptr< frame_2D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which angular velocity control is exerted.
-     * \return A const-reference to the frame on which angular velocity control is exerted.
+     * Returns the frame on which angular velocity control is exerted.
+     * \return The frame on which angular velocity control is exerted.
      */
-    const shared_ptr< frame_2D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_2D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the desired angular velocity, for read-write access.
-     * \return the desired angular velocity for read-write access.
+     * Sets the desired angular velocity.
+     * \param aValue The new desired angular velocity.
      */
-    vect<double,2>& getAngVelDesired() { return mAngVelDesired; };
+    void setAngVelDesired(double aValue) { mAngVelDesired = aValue; };
     /**
-     * Returns the desired angular velocity, for read-only access.
-     * \return the desired angular velocity for read-only access.
+     * Returns the desired angular velocity.
+     * \return the desired angular velocity.
      */
-    const vect<double,2>& getAngVelDesired() const { return mAngVelDesired; };
+    double AngVelDesired() const { return mAngVelDesired; };
     
-    virtual unsigned int getInputCount() const { return 2; };
-    virtual double& getInput(unsigned int i) { 
-      if(i < 2)
-        return mAngVelDesired[i]; 
-      else
-	return mAngVelDesired[0];
+    virtual unsigned int getInputCount() const { return 1; };
+    virtual void setInput(unsigned int i, double aValue) { 
+      mAngVelDesired = aValue;
     };
     virtual double getInput(unsigned int i) const { 
-      if(i < 2)
-        return mAngVelDesired[i]; 
-      else
-	return mAngVelDesired[0];
+      return mAngVelDesired;
     };
     
     /**
@@ -901,33 +895,33 @@ class ang_velocity_control_3D : public kte_map, public system_input {
   public:
     
     /**
-     * Returns a reference to the frame on which angular velocity control is exerted.
-     * \return A reference to the frame on which angular velocity control is exerted.
+     * Sets the frame on which angular velocity control is exerted.
+     * \param aPtr The frame on which angular velocity control is exerted.
      */
-    shared_ptr< frame_3D<double> >& Anchor() { return mAnchor; };
+    void setAnchor(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor = aPtr; };
     /**
-     * Returns a const-reference to the frame on which angular velocity control is exerted.
-     * \return A const-reference to the frame on which angular velocity control is exerted.
+     * Returns the frame on which angular velocity control is exerted.
+     * \return The frame on which angular velocity control is exerted.
      */
-    const shared_ptr< frame_3D<double> >& Anchor() const { return mAnchor; };
+    shared_ptr< frame_3D<double> > Anchor() const { return mAnchor; };
     
     /**
-     * Returns the desired angular velocity, for read-write access.
-     * \return the desired angular velocity for read-write access.
+     * Sets the desired angular velocity.
+     * \param aValue The new desired angular velocity.
      */
-    vect<double,3>& getAngVelDesired() { return mAngVelDesired; };
+    void setAngVelDesired(const vect<double,3>& aValue) { mAngVelDesired = aValue; };
     /**
-     * Returns the desired angular velocity, for read-only access.
-     * \return the desired angular velocity for read-only access.
+     * Returns the desired angular velocity.
+     * \return the desired angular velocity.
      */
-    const vect<double,3>& getAngVelDesired() const { return mAngVelDesired; };
+    vect<double,3> AngVelDesired() const { return mAngVelDesired; };
     
     virtual unsigned int getInputCount() const { return 3; };
-    virtual double& getInput(unsigned int i) {
+    virtual void setInput(unsigned int i, double aValue) {
       if(i < 3)
-        return mAngVelDesired[i]; 
+        mAngVelDesired[i] = aValue; 
       else
-	return mAngVelDesired[0];
+	mAngVelDesired[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 3)

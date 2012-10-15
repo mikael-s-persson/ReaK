@@ -61,33 +61,33 @@ class torsion_spring_2D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the first anchor frame of the torsion spring.
-     * \return A reference to the first anchor frame of the torsion spring.
+     * Sets the first anchor frame of the torsion spring.
+     * \param aPtr The new first anchor frame of the torsion spring.
      */
-    shared_ptr< frame_2D<double> >& Anchor1() { return mAnchor1; };
+    void setAnchor1(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor1 = aPtr; };
     /**
-     * Returns a const-reference to the first anchor frame of the torsion spring.
-     * \return A const-reference to the first anchor frame of the torsion spring.
+     * Returns the first anchor frame of the torsion spring.
+     * \return The first anchor frame of the torsion spring.
      */
-    const shared_ptr< frame_2D<double> >& Anchor1() const { return mAnchor1; };
+    shared_ptr< frame_2D<double> > Anchor1() const { return mAnchor1; };
     
     /**
-     * Returns a reference to the second anchor frame of the torsion spring.
-     * \return A reference to the second anchor frame of the torsion spring.
+     * Sets the second anchor frame of the torsion spring.
+     * \param aPtr The new second anchor frame of the torsion spring.
      */
-    shared_ptr< frame_2D<double> >& Anchor2() { return mAnchor2; };
+    void setAnchor2(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor2 = aPtr; };
     /**
-     * Returns a const-reference to the second anchor frame of the torsion spring.
-     * \return A const-reference to the second anchor frame of the torsion spring.
+     * Returns the second anchor frame of the torsion spring.
+     * \return The second anchor frame of the torsion spring.
      */
-    const shared_ptr< frame_2D<double> >& Anchor2() const { return mAnchor2; };
+    shared_ptr< frame_2D<double> > Anchor2() const { return mAnchor2; };
     
     
     /**
-     * Returns a reference to the stiffness value of the torsion spring.
-     * \return A reference to the stiffness value of the torsion spring.
+     * Sets the stiffness value of the torsion spring.
+     * \param aValue The new stiffness value of the torsion spring.
      */
-    double& Stiffness() { return mStiffness; };
+    void setStiffness(double aValue) { mStiffness = aValue; };
     /**
      * Returns the stiffness value of the torsion spring.
      * \return The stiffness value of the torsion spring.
@@ -95,10 +95,10 @@ class torsion_spring_2D : public kte_map {
     double Stiffness() const { return mStiffness; };
     
     /**
-     * Returns a reference to the saturation torque value of the torsion spring (0 implies no saturation at all).
-     * \return A reference to the saturation torque value of the torsion spring (0 implies no saturation at all).
+     * Sets the saturation torque value of the torsion spring (0 implies no saturation at all).
+     * \param aValue The new saturation torque value of the torsion spring (0 implies no saturation at all).
      */
-    double& Saturation() { return mSaturation; };
+    void setSaturation(double aValue) { mSaturation = aValue; };
     /**
      * Returns the value of the saturation torque of the torsion spring (0 implies no saturation at all).
      * \return The value of the saturation torque of the torsion spring (0 implies no saturation at all).
@@ -175,33 +175,33 @@ class torsion_spring_3D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the first anchor frame of the torsion spring.
-     * \return A reference to the first anchor frame of the torsion spring.
+     * Sets the first anchor frame of the torsion spring.
+     * \param aPtr The new first anchor frame of the torsion spring.
      */
-    shared_ptr< frame_3D<double> >& Anchor1() { return mAnchor1; };
+    void setAnchor1(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor1 = aPtr; };
     /**
-     * Returns a const-reference to the first anchor frame of the torsion spring.
-     * \return A const-reference to the first anchor frame of the torsion spring.
+     * Returns the first anchor frame of the torsion spring.
+     * \return The first anchor frame of the torsion spring.
      */
-    const shared_ptr< frame_3D<double> >& Anchor1() const { return mAnchor1; };
+    shared_ptr< frame_3D<double> > Anchor1() const { return mAnchor1; };
     
     /**
-     * Returns a reference to the second anchor frame of the torsion spring.
-     * \return A reference to the second anchor frame of the torsion spring.
+     * Sets the second anchor frame of the torsion spring.
+     * \param aPtr The new second anchor frame of the torsion spring.
      */
-    shared_ptr< frame_3D<double> >& Anchor2() { return mAnchor2; };
+    void setAnchor2(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor2 = aPtr; };
     /**
-     * Returns a const-reference to the second anchor frame of the torsion spring.
-     * \return A const-reference to the second anchor frame of the torsion spring.
+     * Returns the second anchor frame of the torsion spring.
+     * \return The second anchor frame of the torsion spring.
      */
-    const shared_ptr< frame_3D<double> >& Anchor2() const { return mAnchor2; };
+    shared_ptr< frame_3D<double> > Anchor2() const { return mAnchor2; };
     
     
     /**
-     * Returns a reference to the stiffness value of the torsion spring.
-     * \return A reference to the stiffness value of the torsion spring.
+     * Sets the stiffness value of the torsion spring.
+     * \param aValue The new stiffness value of the torsion spring.
      */
-    double& Stiffness() { return mStiffness; };
+    void setStiffness(double aValue) { mStiffness = aValue; };
     /**
      * Returns the stiffness value of the torsion spring.
      * \return The stiffness value of the torsion spring.
@@ -209,10 +209,10 @@ class torsion_spring_3D : public kte_map {
     double Stiffness() const { return mStiffness; };
     
     /**
-     * Returns a reference to the saturation torque value of the torsion spring (0 implies no saturation at all).
-     * \return A reference to the saturation torque value of the torsion spring (0 implies no saturation at all).
+     * Sets the saturation torque value of the torsion spring (0 implies no saturation at all).
+     * \param aValue The new saturation torque value of the torsion spring (0 implies no saturation at all).
      */
-    double& Saturation() { return mSaturation; };
+    void setSaturation(double aValue) { mSaturation = aValue; };
     /**
      * Returns the value of the saturation torque of the torsion spring (0 implies no saturation at all).
      * \return The value of the saturation torque of the torsion spring (0 implies no saturation at all).

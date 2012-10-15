@@ -1,5 +1,7 @@
 
-#set(KINETOSTATICS_SOURCES "${SRCROOT}${RKMATHDIR}/gen_mat_num.cpp")
+set(KINETOSTATICS_SOURCES 
+  "${SRCROOT}${RKKINETOSTATICSDIR}/kinetostatics_externs.cpp"
+)
 
 set(KINETOSTATICS_HEADERS 
   "${RKKINETOSTATICSDIR}/frame_2D.hpp"
@@ -15,18 +17,19 @@ set(KINETOSTATICS_HEADERS
   "${RKKINETOSTATICSDIR}/rotations_3D.hpp"
 )
 
-#add_library(reak_kinetostatics STATIC ${KINETOSTATICS_SOURCES})
-#setup_custom_target(reak_kinetostatics "${SRCROOT}${RKKINETOSTATICSDIR}")
+add_library(reak_kinetostatics STATIC ${KINETOSTATICS_SOURCES})
+setup_custom_target(reak_kinetostatics "${SRCROOT}${RKKINETOSTATICSDIR}")
+target_link_libraries(reak_kinetostatics reak_lin_alg reak_rtti)
 
 setup_headers("${KINETOSTATICS_HEADERS}" "${RKKINETOSTATICSDIR}")
 
 add_executable(test_kin "${SRCROOT}${RKKINETOSTATICSDIR}/test.cpp")
 setup_custom_target(test_kin "${SRCROOT}${RKKINETOSTATICSDIR}")
-target_link_libraries(test_kin reak_lin_alg reak_rtti)
+target_link_libraries(test_kin reak_kinetostatics reak_lin_alg reak_rtti)
 
 add_executable(test_quat "${SRCROOT}${RKKINETOSTATICSDIR}/test_quat.cpp")
 setup_custom_target(test_quat "${SRCROOT}${RKKINETOSTATICSDIR}")
-target_link_libraries(test_quat reak_lin_alg reak_rtti)
+target_link_libraries(test_quat reak_kinetostatics reak_lin_alg reak_rtti)
 
 
 
