@@ -894,6 +894,48 @@ void >::type decompose_GenRealSchur(const Matrix1& A, const Matrix2& B, Matrix3&
 
 
 
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+
+extern template void decompose_RealSchur(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& Q, mat<double,mat_structure::square>& T, double NumTol);
+extern template void decompose_RealSchur(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& Q, mat<double,mat_structure::rectangular>& T, double NumTol);
+
+extern template void decompose_RealSchur(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& T, double NumTol);
+extern template void decompose_RealSchur(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& T, double NumTol);
+
+extern template void decompose_GenRealSchur(const mat<double,mat_structure::square>& A, const mat<double,mat_structure::square>& B, mat<double,mat_structure::square>& Q, mat<double,mat_structure::square>& Z, mat<double,mat_structure::square>& T, mat<double,mat_structure::square>& R, double NumTol);
+extern template void decompose_GenRealSchur(const mat<double,mat_structure::rectangular>& A, const mat<double,mat_structure::rectangular>& B, mat<double,mat_structure::square>& Q, mat<double,mat_structure::square>& Z, mat<double,mat_structure::rectangular>& T, mat<double,mat_structure::rectangular>& R, double NumTol);
+extern template void decompose_GenRealSchur(const mat<double,mat_structure::rectangular>& A, const mat<double,mat_structure::rectangular>& B, mat<double,mat_structure::rectangular>& Q, mat<double,mat_structure::rectangular>& Z, mat<double,mat_structure::rectangular>& T, mat<double,mat_structure::rectangular>& R, double NumTol);
+
+extern template void decompose_GenRealSchur(const mat<double,mat_structure::square>& A, const mat<double,mat_structure::square>& B, mat<double,mat_structure::square>& T, mat<double,mat_structure::square>& R, double NumTol);
+extern template void decompose_GenRealSchur(const mat<double,mat_structure::rectangular>& A, const mat<double,mat_structure::rectangular>& B, mat<double,mat_structure::rectangular>& T, mat<double,mat_structure::rectangular>& R, double NumTol);
+
+
+extern template void decompose_RealSchur(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& Q, mat<float,mat_structure::square>& T, float NumTol);
+extern template void decompose_RealSchur(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& Q, mat<float,mat_structure::rectangular>& T, float NumTol);
+
+extern template void decompose_RealSchur(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& T, float NumTol);
+extern template void decompose_RealSchur(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& T, float NumTol);
+
+extern template void decompose_GenRealSchur(const mat<float,mat_structure::square>& A, const mat<float,mat_structure::square>& B, mat<float,mat_structure::square>& Q, mat<float,mat_structure::square>& Z, mat<float,mat_structure::square>& T, mat<float,mat_structure::square>& R, float NumTol);
+extern template void decompose_GenRealSchur(const mat<float,mat_structure::rectangular>& A, const mat<float,mat_structure::rectangular>& B, mat<float,mat_structure::square>& Q, mat<float,mat_structure::square>& Z, mat<float,mat_structure::rectangular>& T, mat<float,mat_structure::rectangular>& R, float NumTol);
+extern template void decompose_GenRealSchur(const mat<float,mat_structure::rectangular>& A, const mat<float,mat_structure::rectangular>& B, mat<float,mat_structure::rectangular>& Q, mat<float,mat_structure::rectangular>& Z, mat<float,mat_structure::rectangular>& T, mat<float,mat_structure::rectangular>& R, float NumTol);
+
+extern template void decompose_GenRealSchur(const mat<float,mat_structure::square>& A, const mat<float,mat_structure::square>& B, mat<float,mat_structure::square>& T, mat<float,mat_structure::square>& R, float NumTol);
+extern template void decompose_GenRealSchur(const mat<float,mat_structure::rectangular>& A, const mat<float,mat_structure::rectangular>& B, mat<float,mat_structure::rectangular>& T, mat<float,mat_structure::rectangular>& R, float NumTol);
+
+
+
+#endif
+
+
+
+
+
+
 };
 
 

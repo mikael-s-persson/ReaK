@@ -144,6 +144,102 @@ typename Matrix::value_type >::type elem_norm_max(const Matrix& M) {
 
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template double norm_1(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M);
+extern template double norm_1(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M);
+extern template double norm_1(const mat<double,mat_structure::square,mat_alignment::column_major>& M);
+extern template double norm_1(const mat<double,mat_structure::square,mat_alignment::row_major>& M);
+extern template double norm_1(const mat<double,mat_structure::symmetric>& M);
+extern template double norm_1(const mat<double,mat_structure::skew_symmetric>& M);
+extern template double norm_1(const mat<double,mat_structure::diagonal>& M);
+extern template double norm_1(const mat<double,mat_structure::scalar>& M);
+extern template double norm_1(const mat<double,mat_structure::identity>& M);
+extern template double norm_1(const mat<double,mat_structure::nil>& M);
+
+extern template double norm_inf(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M);
+extern template double norm_inf(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M);
+extern template double norm_inf(const mat<double,mat_structure::square,mat_alignment::column_major>& M);
+extern template double norm_inf(const mat<double,mat_structure::square,mat_alignment::row_major>& M);
+extern template double norm_inf(const mat<double,mat_structure::symmetric>& M);
+extern template double norm_inf(const mat<double,mat_structure::skew_symmetric>& M);
+extern template double norm_inf(const mat<double,mat_structure::diagonal>& M);
+extern template double norm_inf(const mat<double,mat_structure::scalar>& M);
+extern template double norm_inf(const mat<double,mat_structure::identity>& M);
+extern template double norm_inf(const mat<double,mat_structure::nil>& M);
+
+extern template double elem_norm_2(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M);
+extern template double elem_norm_2(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M);
+extern template double elem_norm_2(const mat<double,mat_structure::square,mat_alignment::column_major>& M);
+extern template double elem_norm_2(const mat<double,mat_structure::square,mat_alignment::row_major>& M);
+extern template double elem_norm_2(const mat<double,mat_structure::symmetric>& M);
+extern template double elem_norm_2(const mat<double,mat_structure::skew_symmetric>& M);
+extern template double elem_norm_2(const mat<double,mat_structure::diagonal>& M);
+extern template double elem_norm_2(const mat<double,mat_structure::scalar>& M);
+extern template double elem_norm_2(const mat<double,mat_structure::identity>& M);
+extern template double elem_norm_2(const mat<double,mat_structure::nil>& M);
+
+extern template double elem_norm_max(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M);
+extern template double elem_norm_max(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M);
+extern template double elem_norm_max(const mat<double,mat_structure::square,mat_alignment::column_major>& M);
+extern template double elem_norm_max(const mat<double,mat_structure::square,mat_alignment::row_major>& M);
+extern template double elem_norm_max(const mat<double,mat_structure::symmetric>& M);
+extern template double elem_norm_max(const mat<double,mat_structure::skew_symmetric>& M);
+extern template double elem_norm_max(const mat<double,mat_structure::diagonal>& M);
+extern template double elem_norm_max(const mat<double,mat_structure::scalar>& M);
+extern template double elem_norm_max(const mat<double,mat_structure::identity>& M);
+extern template double elem_norm_max(const mat<double,mat_structure::nil>& M);
+
+
+
+extern template float norm_1(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M);
+extern template float norm_1(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M);
+extern template float norm_1(const mat<float,mat_structure::square,mat_alignment::column_major>& M);
+extern template float norm_1(const mat<float,mat_structure::square,mat_alignment::row_major>& M);
+extern template float norm_1(const mat<float,mat_structure::symmetric>& M);
+extern template float norm_1(const mat<float,mat_structure::skew_symmetric>& M);
+extern template float norm_1(const mat<float,mat_structure::diagonal>& M);
+extern template float norm_1(const mat<float,mat_structure::scalar>& M);
+extern template float norm_1(const mat<float,mat_structure::identity>& M);
+extern template float norm_1(const mat<float,mat_structure::nil>& M);
+
+extern template float norm_inf(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M);
+extern template float norm_inf(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M);
+extern template float norm_inf(const mat<float,mat_structure::square,mat_alignment::column_major>& M);
+extern template float norm_inf(const mat<float,mat_structure::square,mat_alignment::row_major>& M);
+extern template float norm_inf(const mat<float,mat_structure::symmetric>& M);
+extern template float norm_inf(const mat<float,mat_structure::skew_symmetric>& M);
+extern template float norm_inf(const mat<float,mat_structure::diagonal>& M);
+extern template float norm_inf(const mat<float,mat_structure::scalar>& M);
+extern template float norm_inf(const mat<float,mat_structure::identity>& M);
+extern template float norm_inf(const mat<float,mat_structure::nil>& M);
+
+extern template float elem_norm_2(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M);
+extern template float elem_norm_2(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M);
+extern template float elem_norm_2(const mat<float,mat_structure::square,mat_alignment::column_major>& M);
+extern template float elem_norm_2(const mat<float,mat_structure::square,mat_alignment::row_major>& M);
+extern template float elem_norm_2(const mat<float,mat_structure::symmetric>& M);
+extern template float elem_norm_2(const mat<float,mat_structure::skew_symmetric>& M);
+extern template float elem_norm_2(const mat<float,mat_structure::diagonal>& M);
+extern template float elem_norm_2(const mat<float,mat_structure::scalar>& M);
+extern template float elem_norm_2(const mat<float,mat_structure::identity>& M);
+extern template float elem_norm_2(const mat<float,mat_structure::nil>& M);
+
+extern template float elem_norm_max(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M);
+extern template float elem_norm_max(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M);
+extern template float elem_norm_max(const mat<float,mat_structure::square,mat_alignment::column_major>& M);
+extern template float elem_norm_max(const mat<float,mat_structure::square,mat_alignment::row_major>& M);
+extern template float elem_norm_max(const mat<float,mat_structure::symmetric>& M);
+extern template float elem_norm_max(const mat<float,mat_structure::skew_symmetric>& M);
+extern template float elem_norm_max(const mat<float,mat_structure::diagonal>& M);
+extern template float elem_norm_max(const mat<float,mat_structure::scalar>& M);
+extern template float elem_norm_max(const mat<float,mat_structure::identity>& M);
+extern template float elem_norm_max(const mat<float,mat_structure::nil>& M);
+
+
+
+#endif
+
 
 };
 

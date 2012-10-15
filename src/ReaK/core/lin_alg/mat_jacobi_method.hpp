@@ -408,6 +408,46 @@ typename mat_traits<Matrix>::value_type >::type determinant_Jacobi(const Matrix&
 
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+
+extern template void eigensolve_Jacobi(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::rectangular>& Q, double NumTol);
+extern template void eigensolve_Jacobi(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::square>& Q, double NumTol);
+
+extern template void eigensolve_Jacobi(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::rectangular>& E, mat<double,mat_structure::rectangular>& Q, double NumTol);
+extern template void eigensolve_Jacobi(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::rectangular>& E, mat<double,mat_structure::square>& Q, double NumTol);
+extern template void eigensolve_Jacobi(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::square>& E, mat<double,mat_structure::rectangular>& Q, double NumTol);
+extern template void eigensolve_Jacobi(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::square>& E, mat<double,mat_structure::square>& Q, double NumTol);
+extern template void eigensolve_Jacobi(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::symmetric>& E, mat<double,mat_structure::square>& Q, double NumTol);
+
+extern template void linlsq_Jacobi(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+extern template void linlsq_Jacobi(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
+
+extern template void pseudoinvert_Jacobi(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::square>& A_inv, double NumTol);
+extern template void pseudoinvert_Jacobi(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::symmetric>& A_inv, double NumTol);
+
+
+extern template void eigensolve_Jacobi(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::diagonal>& E, mat<float,mat_structure::rectangular>& Q, float NumTol);
+extern template void eigensolve_Jacobi(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::diagonal>& E, mat<float,mat_structure::square>& Q, float NumTol);
+
+extern template void eigensolve_Jacobi(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::rectangular>& E, mat<float,mat_structure::rectangular>& Q, float NumTol);
+extern template void eigensolve_Jacobi(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::rectangular>& E, mat<float,mat_structure::square>& Q, float NumTol);
+extern template void eigensolve_Jacobi(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::square>& E, mat<float,mat_structure::rectangular>& Q, float NumTol);
+extern template void eigensolve_Jacobi(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::square>& E, mat<float,mat_structure::square>& Q, float NumTol);
+extern template void eigensolve_Jacobi(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::symmetric>& E, mat<float,mat_structure::square>& Q, float NumTol);
+
+extern template void linlsq_Jacobi(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+extern template void linlsq_Jacobi(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
+
+extern template void pseudoinvert_Jacobi(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::square>& A_inv, float NumTol);
+extern template void pseudoinvert_Jacobi(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::symmetric>& A_inv, float NumTol);
+
+
+#endif
+
+
+
+
 
 };
 

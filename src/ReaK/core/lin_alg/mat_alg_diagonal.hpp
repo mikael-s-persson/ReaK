@@ -649,6 +649,39 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
 
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class mat<double, mat_structure::diagonal>;
+extern template class mat<float, mat_structure::diagonal>;
+
+extern template vect<double,2> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,2> V);
+extern template vect<double,3> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,3> V);
+extern template vect<double,4> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,4> V);
+extern template vect<double,6> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,6> V);
+extern template vect_n<double> operator *(const mat<double,mat_structure::diagonal>& M, const vect_n<double> V);
+
+extern template vect<double,2> operator *(vect<double,2> V,const mat<double,mat_structure::diagonal>& M);
+extern template vect<double,3> operator *(vect<double,3> V,const mat<double,mat_structure::diagonal>& M);
+extern template vect<double,4> operator *(vect<double,4> V,const mat<double,mat_structure::diagonal>& M);
+extern template vect<double,6> operator *(vect<double,6> V,const mat<double,mat_structure::diagonal>& M);
+extern template vect_n<double> operator *(vect_n<double> V,const mat<double,mat_structure::diagonal>& M);
+
+extern template vect<float,2> operator *(const mat<float,mat_structure::diagonal>& M, vect<float,2> V);
+extern template vect<float,3> operator *(const mat<float,mat_structure::diagonal>& M, vect<float,3> V);
+extern template vect<float,4> operator *(const mat<float,mat_structure::diagonal>& M, vect<float,4> V);
+extern template vect<float,6> operator *(const mat<float,mat_structure::diagonal>& M, vect<float,6> V);
+extern template vect_n<float> operator *(const mat<float,mat_structure::diagonal>& M, vect_n<float> V);
+
+extern template vect<float,2> operator *(vect<float,2> V,const mat<float,mat_structure::diagonal>& M);
+extern template vect<float,3> operator *(vect<float,3> V,const mat<float,mat_structure::diagonal>& M);
+extern template vect<float,4> operator *(vect<float,4> V,const mat<float,mat_structure::diagonal>& M);
+extern template vect<float,6> operator *(vect<float,6> V,const mat<float,mat_structure::diagonal>& M);
+extern template vect_n<float> operator *(vect_n<float> V,const mat<float,mat_structure::diagonal>& M);
+
+#endif
+
+
+
 
 
 

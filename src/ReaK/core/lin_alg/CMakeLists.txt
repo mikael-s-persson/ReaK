@@ -1,5 +1,7 @@
 
 set(LINALG_SOURCES 
+  "${SRCROOT}${RKLINALGDIR}/mat_alg_externs.cpp"
+  "${SRCROOT}${RKLINALGDIR}/mat_num_externs.cpp"
   "${SRCROOT}${RKLINALGDIR}/vect_alg_externs.cpp"
 )
 

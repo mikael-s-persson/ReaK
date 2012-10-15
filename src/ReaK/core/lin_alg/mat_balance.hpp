@@ -72,8 +72,6 @@ void >::type balance(Matrix1& A, Matrix2& D)
   bool keep_going = true;
 
   while (keep_going) {
-    size_t i, j;
-    double g, f, s;
 
     keep_going = false;
 
@@ -234,6 +232,25 @@ void >::type balance_pencil(Matrix1& A, Matrix2& B)
   mat<ValueType, mat_structure::diagonal> Dr(A.get_row_count());
   balance_pencil(A,B,Dl,Dr);
 };
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+
+extern template void balance(mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::diagonal>& D);
+extern template void balance(mat<double,mat_structure::square>& A, mat<double,mat_structure::diagonal>& D);
+
+extern template void balance_pencil(mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& B, mat<double,mat_structure::diagonal>& Dl, mat<double,mat_structure::diagonal>& Dr);
+extern template void balance_pencil(mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& B, mat<double,mat_structure::diagonal>& Dl, mat<double,mat_structure::diagonal>& Dr);
+ 
+
+extern template void balance(mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::diagonal>& D);
+extern template void balance(mat<float,mat_structure::square>& A, mat<float,mat_structure::diagonal>& D);
+
+extern template void balance_pencil(mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& B, mat<float,mat_structure::diagonal>& Dl, mat<float,mat_structure::diagonal>& Dr);
+extern template void balance_pencil(mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& B, mat<float,mat_structure::diagonal>& Dl, mat<float,mat_structure::diagonal>& Dr);
+
+#endif
 
 
 

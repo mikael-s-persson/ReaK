@@ -1079,6 +1079,309 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && is_readable_m
 
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+
+
+
+
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<double,mat_structure::square,mat_alignment::column_major>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<double,mat_structure::square,mat_alignment::row_major>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<double,mat_structure::symmetric>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<double,mat_structure::skew_symmetric>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<double,mat_structure::nil>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<double,mat_structure::identity>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<double,mat_structure::scalar>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<double,mat_structure::diagonal>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<double,mat_structure::permutation>& M);
+
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::column_major>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::column_major>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+
+
+//rect and square matrix.
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::column_major>, mat<double,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::column_major>, mat<double,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::square,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::square,mat_alignment::row_major>& M2);
+
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::column_major>, mat<double,mat_structure::symmetric> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::symmetric>& M2);
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::symmetric> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::symmetric>& M2);
+
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::column_major>, mat<double,mat_structure::skew_symmetric> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::skew_symmetric> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
+
+
+//square and rect matrix.
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::column_major>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::square,mat_alignment::column_major>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::column_major>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::square,mat_alignment::column_major>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::row_major>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::square,mat_alignment::row_major>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::row_major>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::square,mat_alignment::row_major>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+
+extern template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+
+extern template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+
+
+//square and square matrix.
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::column_major>, mat<double,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::square,mat_alignment::column_major>& M1, const mat<double,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::column_major>, mat<double,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::square,mat_alignment::column_major>& M1, const mat<double,mat_structure::square,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::row_major>, mat<double,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::square,mat_alignment::row_major>& M1, const mat<double,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::row_major>, mat<double,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::square,mat_alignment::row_major>& M1, const mat<double,mat_structure::square,mat_alignment::row_major>& M2);
+
+extern template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::square,mat_alignment::row_major>& M2);
+
+extern template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::square,mat_alignment::row_major>& M2);
+
+extern template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::skew_symmetric> >::type operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
+extern template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::symmetric> >::type operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::symmetric>& M2);
+
+extern template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::symmetric> >::type operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::symmetric>& M2);
+extern template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::skew_symmetric> >::type operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
+
+
+//dense and diagonal matrix.
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::column_major>, mat<double,mat_structure::diagonal> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::diagonal>& M2);
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::diagonal> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::diagonal>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::column_major>, mat<double,mat_structure::diagonal> >::type operator *(const mat<double,mat_structure::square,mat_alignment::column_major>& M1, const mat<double,mat_structure::diagonal>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::row_major>, mat<double,mat_structure::diagonal> >::type operator *(const mat<double,mat_structure::square,mat_alignment::row_major>& M1, const mat<double,mat_structure::diagonal>& M2);
+extern template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::diagonal> >::type operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::diagonal>& M2);
+extern template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::diagonal> >::type operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::diagonal>& M2);
+
+//diagonal and dense matrix.
+extern template mat_product_result< mat<double,mat_structure::diagonal>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::diagonal>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::diagonal>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::diagonal>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::diagonal>, mat<double,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::diagonal>& M1, const mat<double,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::diagonal>, mat<double,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::diagonal>& M1, const mat<double,mat_structure::square,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::diagonal>, mat<double,mat_structure::symmetric> >::type operator *(const mat<double,mat_structure::diagonal>& M1, const mat<double,mat_structure::symmetric>& M2);
+extern template mat_product_result< mat<double,mat_structure::diagonal>, mat<double,mat_structure::skew_symmetric> >::type operator *(const mat<double,mat_structure::diagonal>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
+
+//diagonal and diagonal matrix.
+extern template mat_product_result< mat<double,mat_structure::diagonal>, mat<double,mat_structure::diagonal> >::type operator *(const mat<double,mat_structure::diagonal>& M1, const mat<double,mat_structure::diagonal>& M2);
+
+
+//dense and nil matrix.
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::column_major>, mat<double,mat_structure::nil> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::nil>& M2);
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::nil> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::nil>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::column_major>, mat<double,mat_structure::nil> >::type operator *(const mat<double,mat_structure::square,mat_alignment::column_major>& M1, const mat<double,mat_structure::nil>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::row_major>, mat<double,mat_structure::nil> >::type operator *(const mat<double,mat_structure::square,mat_alignment::row_major>& M1, const mat<double,mat_structure::nil>& M2);
+extern template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::nil> >::type operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::nil>& M2);
+extern template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::nil> >::type operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::nil>& M2);
+
+//nil and dense matrix.
+extern template mat_product_result< mat<double,mat_structure::nil>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::nil>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::nil>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::nil>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::nil>, mat<double,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::nil>& M1, const mat<double,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::nil>, mat<double,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::nil>& M1, const mat<double,mat_structure::square,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::nil>, mat<double,mat_structure::symmetric> >::type operator *(const mat<double,mat_structure::nil>& M1, const mat<double,mat_structure::symmetric>& M2);
+extern template mat_product_result< mat<double,mat_structure::nil>, mat<double,mat_structure::skew_symmetric> >::type operator *(const mat<double,mat_structure::nil>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
+
+//nil and nil matrix.
+extern template mat_product_result< mat<double,mat_structure::nil>, mat<double,mat_structure::nil> >::type operator *(const mat<double,mat_structure::nil>& M1, const mat<double,mat_structure::nil>& M2);
+
+
+//dense and scalar matrix.
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::column_major>, mat<double,mat_structure::scalar> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::scalar>& M2);
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::scalar> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::scalar>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::column_major>, mat<double,mat_structure::scalar> >::type operator *(const mat<double,mat_structure::square,mat_alignment::column_major>& M1, const mat<double,mat_structure::scalar>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::row_major>, mat<double,mat_structure::scalar> >::type operator *(const mat<double,mat_structure::square,mat_alignment::row_major>& M1, const mat<double,mat_structure::scalar>& M2);
+extern template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::scalar> >::type operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::scalar>& M2);
+extern template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::scalar> >::type operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::scalar>& M2);
+
+//scalar and dense matrix.
+extern template mat_product_result< mat<double,mat_structure::scalar>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::scalar>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::scalar>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::scalar>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::scalar>, mat<double,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::scalar>& M1, const mat<double,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::scalar>, mat<double,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::scalar>& M1, const mat<double,mat_structure::square,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::scalar>, mat<double,mat_structure::symmetric> >::type operator *(const mat<double,mat_structure::scalar>& M1, const mat<double,mat_structure::symmetric>& M2);
+extern template mat_product_result< mat<double,mat_structure::scalar>, mat<double,mat_structure::skew_symmetric> >::type operator *(const mat<double,mat_structure::scalar>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
+
+//scalar and scalar matrix.
+extern template mat_product_result< mat<double,mat_structure::scalar>, mat<double,mat_structure::scalar> >::type operator *(const mat<double,mat_structure::scalar>& M1, const mat<double,mat_structure::scalar>& M2);
+
+
+//dense and identity matrix.
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::column_major>, mat<double,mat_structure::identity> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::identity>& M2);
+extern template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::identity> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::identity>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::column_major>, mat<double,mat_structure::identity> >::type operator *(const mat<double,mat_structure::square,mat_alignment::column_major>& M1, const mat<double,mat_structure::identity>& M2);
+extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::row_major>, mat<double,mat_structure::identity> >::type operator *(const mat<double,mat_structure::square,mat_alignment::row_major>& M1, const mat<double,mat_structure::identity>& M2);
+extern template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::identity> >::type operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::identity>& M2);
+extern template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::identity> >::type operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::identity>& M2);
+
+//identity and dense matrix.
+extern template mat_product_result< mat<double,mat_structure::identity>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::identity>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::identity>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::identity>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::identity>, mat<double,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::identity>& M1, const mat<double,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::identity>, mat<double,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::identity>& M1, const mat<double,mat_structure::square,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<double,mat_structure::identity>, mat<double,mat_structure::symmetric> >::type operator *(const mat<double,mat_structure::identity>& M1, const mat<double,mat_structure::symmetric>& M2);
+extern template mat_product_result< mat<double,mat_structure::identity>, mat<double,mat_structure::skew_symmetric> >::type operator *(const mat<double,mat_structure::identity>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
+
+//identity and identity matrix.
+extern template mat_product_result< mat<double,mat_structure::identity>, mat<double,mat_structure::identity> >::type operator *(const mat<double,mat_structure::identity>& M1, const mat<double,mat_structure::identity>& M2);
+
+
+
+
+
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<float,mat_structure::square,mat_alignment::column_major>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<float,mat_structure::square,mat_alignment::row_major>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<float,mat_structure::symmetric>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<float,mat_structure::skew_symmetric>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<float,mat_structure::nil>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<float,mat_structure::identity>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<float,mat_structure::scalar>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<float,mat_structure::diagonal>& M);
+extern template std::ostream& operator <<(std::ostream& out_stream, const mat<float,mat_structure::permutation>& M);
+
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::column_major>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::column_major>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+
+
+//rect and square matrix.
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::column_major>, mat<float,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::column_major>, mat<float,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::square,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::square,mat_alignment::row_major>& M2);
+
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::column_major>, mat<float,mat_structure::symmetric> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::symmetric>& M2);
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::symmetric> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::symmetric>& M2);
+
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::column_major>, mat<float,mat_structure::skew_symmetric> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::skew_symmetric> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
+
+
+//square and rect matrix.
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::column_major>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::square,mat_alignment::column_major>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::column_major>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::square,mat_alignment::column_major>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::row_major>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::square,mat_alignment::row_major>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::row_major>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::square,mat_alignment::row_major>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+
+extern template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+
+extern template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+
+
+//square and square matrix.
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::column_major>, mat<float,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::square,mat_alignment::column_major>& M1, const mat<float,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::column_major>, mat<float,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::square,mat_alignment::column_major>& M1, const mat<float,mat_structure::square,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::row_major>, mat<float,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::square,mat_alignment::row_major>& M1, const mat<float,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::row_major>, mat<float,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::square,mat_alignment::row_major>& M1, const mat<float,mat_structure::square,mat_alignment::row_major>& M2);
+
+extern template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::square,mat_alignment::row_major>& M2);
+
+extern template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::square,mat_alignment::row_major>& M2);
+
+extern template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::skew_symmetric> >::type operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
+extern template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::symmetric> >::type operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::symmetric>& M2);
+
+extern template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::symmetric> >::type operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::symmetric>& M2);
+extern template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::skew_symmetric> >::type operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
+
+
+//dense and diagonal matrix.
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::column_major>, mat<float,mat_structure::diagonal> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::diagonal>& M2);
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::diagonal> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::diagonal>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::column_major>, mat<float,mat_structure::diagonal> >::type operator *(const mat<float,mat_structure::square,mat_alignment::column_major>& M1, const mat<float,mat_structure::diagonal>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::row_major>, mat<float,mat_structure::diagonal> >::type operator *(const mat<float,mat_structure::square,mat_alignment::row_major>& M1, const mat<float,mat_structure::diagonal>& M2);
+extern template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::diagonal> >::type operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::diagonal>& M2);
+extern template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::diagonal> >::type operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::diagonal>& M2);
+
+//diagonal and dense matrix.
+extern template mat_product_result< mat<float,mat_structure::diagonal>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::diagonal>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::diagonal>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::diagonal>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::diagonal>, mat<float,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::diagonal>& M1, const mat<float,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::diagonal>, mat<float,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::diagonal>& M1, const mat<float,mat_structure::square,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::diagonal>, mat<float,mat_structure::symmetric> >::type operator *(const mat<float,mat_structure::diagonal>& M1, const mat<float,mat_structure::symmetric>& M2);
+extern template mat_product_result< mat<float,mat_structure::diagonal>, mat<float,mat_structure::skew_symmetric> >::type operator *(const mat<float,mat_structure::diagonal>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
+
+//diagonal and diagonal matrix.
+extern template mat_product_result< mat<float,mat_structure::diagonal>, mat<float,mat_structure::diagonal> >::type operator *(const mat<float,mat_structure::diagonal>& M1, const mat<float,mat_structure::diagonal>& M2);
+
+
+//dense and nil matrix.
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::column_major>, mat<float,mat_structure::nil> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::nil>& M2);
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::nil> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::nil>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::column_major>, mat<float,mat_structure::nil> >::type operator *(const mat<float,mat_structure::square,mat_alignment::column_major>& M1, const mat<float,mat_structure::nil>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::row_major>, mat<float,mat_structure::nil> >::type operator *(const mat<float,mat_structure::square,mat_alignment::row_major>& M1, const mat<float,mat_structure::nil>& M2);
+extern template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::nil> >::type operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::nil>& M2);
+extern template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::nil> >::type operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::nil>& M2);
+
+//nil and dense matrix.
+extern template mat_product_result< mat<float,mat_structure::nil>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::nil>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::nil>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::nil>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::nil>, mat<float,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::nil>& M1, const mat<float,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::nil>, mat<float,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::nil>& M1, const mat<float,mat_structure::square,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::nil>, mat<float,mat_structure::symmetric> >::type operator *(const mat<float,mat_structure::nil>& M1, const mat<float,mat_structure::symmetric>& M2);
+extern template mat_product_result< mat<float,mat_structure::nil>, mat<float,mat_structure::skew_symmetric> >::type operator *(const mat<float,mat_structure::nil>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
+
+//nil and nil matrix.
+extern template mat_product_result< mat<float,mat_structure::nil>, mat<float,mat_structure::nil> >::type operator *(const mat<float,mat_structure::nil>& M1, const mat<float,mat_structure::nil>& M2);
+
+
+//dense and scalar matrix.
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::column_major>, mat<float,mat_structure::scalar> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::scalar>& M2);
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::scalar> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::scalar>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::column_major>, mat<float,mat_structure::scalar> >::type operator *(const mat<float,mat_structure::square,mat_alignment::column_major>& M1, const mat<float,mat_structure::scalar>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::row_major>, mat<float,mat_structure::scalar> >::type operator *(const mat<float,mat_structure::square,mat_alignment::row_major>& M1, const mat<float,mat_structure::scalar>& M2);
+extern template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::scalar> >::type operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::scalar>& M2);
+extern template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::scalar> >::type operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::scalar>& M2);
+
+//scalar and dense matrix.
+extern template mat_product_result< mat<float,mat_structure::scalar>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::scalar>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::scalar>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::scalar>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::scalar>, mat<float,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::scalar>& M1, const mat<float,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::scalar>, mat<float,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::scalar>& M1, const mat<float,mat_structure::square,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::scalar>, mat<float,mat_structure::symmetric> >::type operator *(const mat<float,mat_structure::scalar>& M1, const mat<float,mat_structure::symmetric>& M2);
+extern template mat_product_result< mat<float,mat_structure::scalar>, mat<float,mat_structure::skew_symmetric> >::type operator *(const mat<float,mat_structure::scalar>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
+
+//scalar and scalar matrix.
+extern template mat_product_result< mat<float,mat_structure::scalar>, mat<float,mat_structure::scalar> >::type operator *(const mat<float,mat_structure::scalar>& M1, const mat<float,mat_structure::scalar>& M2);
+
+
+//dense and identity matrix.
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::column_major>, mat<float,mat_structure::identity> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::identity>& M2);
+extern template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::identity> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::identity>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::column_major>, mat<float,mat_structure::identity> >::type operator *(const mat<float,mat_structure::square,mat_alignment::column_major>& M1, const mat<float,mat_structure::identity>& M2);
+extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::row_major>, mat<float,mat_structure::identity> >::type operator *(const mat<float,mat_structure::square,mat_alignment::row_major>& M1, const mat<float,mat_structure::identity>& M2);
+extern template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::identity> >::type operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::identity>& M2);
+extern template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::identity> >::type operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::identity>& M2);
+
+//identity and dense matrix.
+extern template mat_product_result< mat<float,mat_structure::identity>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::identity>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::identity>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::identity>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::identity>, mat<float,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::identity>& M1, const mat<float,mat_structure::square,mat_alignment::column_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::identity>, mat<float,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::identity>& M1, const mat<float,mat_structure::square,mat_alignment::row_major>& M2);
+extern template mat_product_result< mat<float,mat_structure::identity>, mat<float,mat_structure::symmetric> >::type operator *(const mat<float,mat_structure::identity>& M1, const mat<float,mat_structure::symmetric>& M2);
+extern template mat_product_result< mat<float,mat_structure::identity>, mat<float,mat_structure::skew_symmetric> >::type operator *(const mat<float,mat_structure::identity>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
+
+//identity and identity matrix.
+extern template mat_product_result< mat<float,mat_structure::identity>, mat<float,mat_structure::identity> >::type operator *(const mat<float,mat_structure::identity>& M1, const mat<float,mat_structure::identity>& M2);
+
+
+
+
+
+#endif
+
+
+
+
 
 
   

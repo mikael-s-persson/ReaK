@@ -496,6 +496,38 @@ struct has_allocator_matrix< mat<T,mat_structure::scalar, Alignment, Allocator> 
 };
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class mat<double, mat_structure::scalar>;
+extern template class mat<float, mat_structure::scalar>;
+
+extern template vect<double,2> operator *(const mat<double,mat_structure::scalar>& M,const vect<double,2>& V);
+extern template vect<double,3> operator *(const mat<double,mat_structure::scalar>& M,const vect<double,3>& V);
+extern template vect<double,4> operator *(const mat<double,mat_structure::scalar>& M,const vect<double,4>& V);
+extern template vect<double,6> operator *(const mat<double,mat_structure::scalar>& M,const vect<double,6>& V);
+extern template vect_n<double> operator *(const mat<double,mat_structure::scalar>& M, const vect_n<double>& V);
+
+extern template vect<double,2> operator *(const vect<double,2>& V,const mat<double,mat_structure::scalar>& M);
+extern template vect<double,3> operator *(const vect<double,3>& V,const mat<double,mat_structure::scalar>& M);
+extern template vect<double,4> operator *(const vect<double,4>& V,const mat<double,mat_structure::scalar>& M);
+extern template vect<double,6> operator *(const vect<double,6>& V,const mat<double,mat_structure::scalar>& M);
+extern template vect_n<double> operator *(const vect_n<double>& V,const mat<double,mat_structure::scalar>& M);
+
+extern template vect<float,2> operator *(const mat<float,mat_structure::scalar>& M,const vect<float,2>& V);
+extern template vect<float,3> operator *(const mat<float,mat_structure::scalar>& M,const vect<float,3>& V);
+extern template vect<float,4> operator *(const mat<float,mat_structure::scalar>& M,const vect<float,4>& V);
+extern template vect<float,6> operator *(const mat<float,mat_structure::scalar>& M,const vect<float,6>& V);
+extern template vect_n<float> operator *(const mat<float,mat_structure::scalar>& M, const vect_n<float>& V);
+
+extern template vect<float,2> operator *(const vect<float,2>& V,const mat<float,mat_structure::scalar>& M);
+extern template vect<float,3> operator *(const vect<float,3>& V,const mat<float,mat_structure::scalar>& M);
+extern template vect<float,4> operator *(const vect<float,4>& V,const mat<float,mat_structure::scalar>& M);
+extern template vect<float,6> operator *(const vect<float,6>& V,const mat<float,mat_structure::scalar>& M);
+extern template vect_n<float> operator *(const vect_n<float>& V,const mat<float,mat_structure::scalar>& M);
+
+#endif
+
+
 
 
 

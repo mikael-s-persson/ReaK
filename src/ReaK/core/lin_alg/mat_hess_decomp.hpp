@@ -495,6 +495,50 @@ void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B,
 
 
 
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template void decompose_Hess(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& Q, mat<double,mat_structure::square>& H, double NumTol);
+extern template void decompose_Hess(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& Q, mat<double,mat_structure::rectangular>& H, double NumTol);
+extern template void decompose_Hess(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& Q, mat<double,mat_structure::rectangular>& H, double NumTol);
+
+extern template void decompose_Hess(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& H, double NumTol);
+extern template void decompose_Hess(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& H, double NumTol);
+extern template void decompose_Hess(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& H, double NumTol);
+
+extern template void reduce_HessTri(const mat<double,mat_structure::square>& A, const mat<double,mat_structure::square>& B, mat<double,mat_structure::square>& H, mat<double,mat_structure::square>& R, mat<double,mat_structure::square>& Q, mat<double,mat_structure::square>& Z, double NumTol);
+extern template void reduce_HessTri(const mat<double,mat_structure::rectangular>& A, const mat<double,mat_structure::rectangular>& B, mat<double,mat_structure::rectangular>& H, mat<double,mat_structure::rectangular>& R, mat<double,mat_structure::square>& Q, mat<double,mat_structure::square>& Z, double NumTol);
+extern template void reduce_HessTri(const mat<double,mat_structure::rectangular>& A, const mat<double,mat_structure::rectangular>& B, mat<double,mat_structure::rectangular>& H, mat<double,mat_structure::rectangular>& R, mat<double,mat_structure::rectangular>& Q, mat<double,mat_structure::rectangular>& Z, double NumTol);
+
+extern template void reduce_HessTri(const mat<double,mat_structure::square>& A, const mat<double,mat_structure::square>& B, mat<double,mat_structure::square>& H, mat<double,mat_structure::square>& R, double NumTol);
+extern template void reduce_HessTri(const mat<double,mat_structure::rectangular>& A, const mat<double,mat_structure::rectangular>& B, mat<double,mat_structure::rectangular>& H, mat<double,mat_structure::rectangular>& R, double NumTol);
+
+
+extern template void decompose_Hess(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& Q, mat<float,mat_structure::square>& H, float NumTol);
+extern template void decompose_Hess(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& Q, mat<float,mat_structure::rectangular>& H, float NumTol);
+extern template void decompose_Hess(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& Q, mat<float,mat_structure::rectangular>& H, float NumTol);
+
+extern template void decompose_Hess(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& H, float NumTol);
+extern template void decompose_Hess(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& H, float NumTol);
+extern template void decompose_Hess(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& H, float NumTol);
+
+extern template void reduce_HessTri(const mat<float,mat_structure::square>& A, const mat<float,mat_structure::square>& B, mat<float,mat_structure::square>& H, mat<float,mat_structure::square>& R, mat<float,mat_structure::square>& Q, mat<float,mat_structure::square>& Z, float NumTol);
+extern template void reduce_HessTri(const mat<float,mat_structure::rectangular>& A, const mat<float,mat_structure::rectangular>& B, mat<float,mat_structure::rectangular>& H, mat<float,mat_structure::rectangular>& R, mat<float,mat_structure::square>& Q, mat<float,mat_structure::square>& Z, float NumTol);
+extern template void reduce_HessTri(const mat<float,mat_structure::rectangular>& A, const mat<float,mat_structure::rectangular>& B, mat<float,mat_structure::rectangular>& H, mat<float,mat_structure::rectangular>& R, mat<float,mat_structure::rectangular>& Q, mat<float,mat_structure::rectangular>& Z, float NumTol);
+
+extern template void reduce_HessTri(const mat<float,mat_structure::square>& A, const mat<float,mat_structure::square>& B, mat<float,mat_structure::square>& H, mat<float,mat_structure::square>& R, float NumTol);
+extern template void reduce_HessTri(const mat<float,mat_structure::rectangular>& A, const mat<float,mat_structure::rectangular>& B, mat<float,mat_structure::rectangular>& H, mat<float,mat_structure::rectangular>& R, float NumTol);
+
+
+#endif
+
+
+
+
+
+
   
 };
 

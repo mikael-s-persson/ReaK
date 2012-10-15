@@ -369,7 +369,8 @@ void >::type linsolve_PLU(Matrix& A, Vector& b, IndexVector& P, typename mat_tra
     throw std::range_error("PLU decomposition impossible! Matrix b must have same row count as A!");
 
   P.resize(A.get_col_count());
-  detail::linsolve_PLU_dispatch(A,mat_vect_adaptor<Vector,mat_alignment::column_major>(b),P,NumTol);
+  mat_vect_adaptor<Vector,mat_alignment::column_major> b_mat(b);
+  detail::linsolve_PLU_dispatch(A,b_mat,P,NumTol);
 };
 
 /**
@@ -440,6 +441,63 @@ void >::type invert_PLU(Matrix1 A,Matrix2& A_inv, typename mat_traits<Matrix1>::
   vect_n<unsigned int> P(A.get_col_count());
   detail::linsolve_PLU_dispatch(A,A_inv,P,NumTol);
 };
+
+
+
+
+
+
+
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template void invert_gaussian(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& A_inv, double NumTol);
+extern template void invert_gaussian(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& A_inv, double NumTol);
+extern template void invert_gaussian(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& A_inv, double NumTol);
+extern template void invert_gaussian(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& A_inv, double NumTol);
+
+extern template void linsolve_PLU(mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& b, vect_n<unsigned int>& P, double NumTol);
+extern template void linsolve_PLU(mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& b, vect_n<unsigned int>& P, double NumTol);
+extern template void linsolve_PLU(mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& b, vect_n<unsigned int>& P, double NumTol);
+extern template void linsolve_PLU(mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& b, vect_n<unsigned int>& P, double NumTol);
+
+extern template void linsolve_PLU(mat<double,mat_structure::rectangular>& A, vect_n<double>& b, vect_n<unsigned int>& P, double NumTol);
+extern template void linsolve_PLU(mat<double,mat_structure::square>& A, vect_n<double>& b, vect_n<unsigned int>& P, double NumTol);
+
+extern template void invert_PLU(mat<double,mat_structure::rectangular> A, mat<double,mat_structure::rectangular>& A_inv, double NumTol);
+extern template void invert_PLU(mat<double,mat_structure::rectangular> A, mat<double,mat_structure::square>& A_inv, double NumTol);
+extern template void invert_PLU(mat<double,mat_structure::square> A, mat<double,mat_structure::rectangular>& A_inv, double NumTol);
+extern template void invert_PLU(mat<double,mat_structure::square> A, mat<double,mat_structure::square>& A_inv, double NumTol);
+
+
+extern template void invert_gaussian(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& A_inv, float NumTol);
+extern template void invert_gaussian(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& A_inv, float NumTol);
+extern template void invert_gaussian(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& A_inv, float NumTol);
+extern template void invert_gaussian(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& A_inv, float NumTol);
+
+extern template void linsolve_PLU(mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& b, vect_n<unsigned int>& P, float NumTol);
+extern template void linsolve_PLU(mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& b, vect_n<unsigned int>& P, float NumTol);
+extern template void linsolve_PLU(mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& b, vect_n<unsigned int>& P, float NumTol);
+extern template void linsolve_PLU(mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& b, vect_n<unsigned int>& P, float NumTol);
+
+extern template void linsolve_PLU(mat<float,mat_structure::rectangular>& A, vect_n<float>& b, vect_n<unsigned int>& P, float NumTol);
+extern template void linsolve_PLU(mat<float,mat_structure::square>& A, vect_n<float>& b, vect_n<unsigned int>& P, float NumTol);
+
+extern template void invert_PLU(mat<float,mat_structure::rectangular> A, mat<float,mat_structure::rectangular>& A_inv, float NumTol);
+extern template void invert_PLU(mat<float,mat_structure::rectangular> A, mat<float,mat_structure::square>& A_inv, float NumTol);
+extern template void invert_PLU(mat<float,mat_structure::square> A, mat<float,mat_structure::rectangular>& A_inv, float NumTol);
+extern template void invert_PLU(mat<float,mat_structure::square> A, mat<float,mat_structure::square>& A_inv, float NumTol);
+
+#endif
+
+
+
+
+
+
+
 
 
 

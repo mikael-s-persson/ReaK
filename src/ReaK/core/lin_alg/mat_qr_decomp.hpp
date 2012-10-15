@@ -1012,6 +1012,79 @@ void >::type eigensolve_QR(const Matrix1& A, Matrix2& E, Matrix3& Q, unsigned in
 #endif
 
 
+
+
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+
+extern template void decompose_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& Q, mat<double,mat_structure::rectangular>& R, double NumTol);
+extern template void decompose_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& Q, mat<double,mat_structure::rectangular>& R, double NumTol);
+extern template void decompose_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& Q, mat<double,mat_structure::square>& R, double NumTol);
+
+extern template double determinant_QR(const mat<double,mat_structure::rectangular>& A, double NumTol);
+extern template double determinant_QR(const mat<double,mat_structure::square>& A, double NumTol);
+
+extern template void linlsq_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+extern template void linlsq_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+extern template void linlsq_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
+
+extern template void linlsq_RRQR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+extern template void linlsq_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+extern template void linlsq_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
+
+extern template void minnorm_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+extern template void minnorm_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+extern template void minnorm_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
+
+extern template void invert_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+extern template void invert_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
+extern template void invert_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+extern template void invert_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
+
+extern template void pseudoinvert_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+extern template void pseudoinvert_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
+extern template void pseudoinvert_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+extern template void pseudoinvert_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
+
+
+extern template void decompose_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& Q, mat<float,mat_structure::rectangular>& R, float NumTol);
+extern template void decompose_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& Q, mat<float,mat_structure::rectangular>& R, float NumTol);
+extern template void decompose_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& Q, mat<float,mat_structure::square>& R, float NumTol);
+
+extern template float determinant_QR(const mat<float,mat_structure::rectangular>& A, float NumTol);
+extern template float determinant_QR(const mat<float,mat_structure::square>& A, float NumTol);
+
+extern template void linlsq_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+extern template void linlsq_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+extern template void linlsq_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
+
+extern template void linlsq_RRQR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+extern template void linlsq_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+extern template void linlsq_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
+
+extern template void minnorm_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+extern template void minnorm_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+extern template void minnorm_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
+
+extern template void invert_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+extern template void invert_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
+extern template void invert_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+extern template void invert_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
+
+extern template void pseudoinvert_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+extern template void pseudoinvert_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
+extern template void pseudoinvert_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+extern template void pseudoinvert_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
+
+
+#endif
+
+
+
+
   
   
 };

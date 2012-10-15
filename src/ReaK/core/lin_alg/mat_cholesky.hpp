@@ -497,6 +497,40 @@ void >::type invert_Cholesky(const Matrix1& A, Matrix2& A_inv, typename mat_trai
 
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template void decompose_Cholesky(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& L, double NumTol);
+extern template void decompose_Cholesky(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::square>& L, double NumTol);
+
+extern template void linsolve_Cholesky(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& b, double NumTol);
+extern template void linsolve_Cholesky(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::square>& b, double NumTol);
+
+extern template void linsolve_Cholesky(const mat<double,mat_structure::square>& A, mat<double,mat_structure::symmetric>& b, double NumTol);
+extern template void linsolve_Cholesky(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::symmetric>& b, double NumTol);
+
+extern template void invert_Cholesky(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& A_inv, double NumTol);
+extern template void invert_Cholesky(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::symmetric>& A_inv, double NumTol);
+
+
+extern template void decompose_Cholesky(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& L, float NumTol);
+extern template void decompose_Cholesky(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::square>& L, float NumTol);
+
+extern template void linsolve_Cholesky(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& b, float NumTol);
+extern template void linsolve_Cholesky(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::square>& b, float NumTol);
+
+extern template void linsolve_Cholesky(const mat<float,mat_structure::square>& A, mat<float,mat_structure::symmetric>& b, float NumTol);
+extern template void linsolve_Cholesky(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::symmetric>& b, float NumTol);
+
+extern template void invert_Cholesky(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& A_inv, float NumTol);
+extern template void invert_Cholesky(const mat<float,mat_structure::symmetric>& A, mat<float,mat_structure::symmetric>& A_inv, float NumTol);
+
+
+#endif
+
+
+
+
+
 };
 
 #endif

@@ -489,6 +489,49 @@ template <typename T, mat_alignment::tag Alignment, typename Allocator, mat_alig
 
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class mat<double, mat_structure::identity>;
+extern template class mat<float, mat_structure::identity>;
+
+extern template mat<double,mat_structure::identity> mat_ident<double>(mat<double,mat_structure::identity>::size_type aRowCount);
+extern template mat<float,mat_structure::identity> mat_ident<float>(mat<float,mat_structure::identity>::size_type aRowCount);
+
+extern template vect<double,2> operator *<double, vect<double,2>, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::identity>& M,const vect<double,2>& V);
+extern template vect<double,3> operator *<double, vect<double,3>, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::identity>& M,const vect<double,3>& V);
+extern template vect<double,4> operator *<double, vect<double,4>, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::identity>& M,const vect<double,4>& V);
+extern template vect<double,6> operator *<double, vect<double,6>, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::identity>& M,const vect<double,6>& V);
+extern template vect_n<double> operator *<double, vect_n<double>, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::identity>& M, const vect_n<double>& V);
+
+extern template vect<double,2> operator *<double, vect<double,2>, mat_alignment::column_major, std::allocator<double> >(const vect<double,2>& V,const mat<double,mat_structure::identity>& M);
+extern template vect<double,3> operator *<double, vect<double,3>, mat_alignment::column_major, std::allocator<double> >(const vect<double,3>& V,const mat<double,mat_structure::identity>& M);
+extern template vect<double,4> operator *<double, vect<double,4>, mat_alignment::column_major, std::allocator<double> >(const vect<double,4>& V,const mat<double,mat_structure::identity>& M);
+extern template vect<double,6> operator *<double, vect<double,6>, mat_alignment::column_major, std::allocator<double> >(const vect<double,6>& V,const mat<double,mat_structure::identity>& M);
+extern template vect_n<double> operator *<double, vect_n<double>, mat_alignment::column_major, std::allocator<double> >(const vect_n<double>& V,const mat<double,mat_structure::identity>& M);
+
+extern template vect<float,2> operator *<float, vect<float,2>, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::identity>& M,const vect<float,2>& V);
+extern template vect<float,3> operator *<float, vect<float,3>, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::identity>& M,const vect<float,3>& V);
+extern template vect<float,4> operator *<float, vect<float,4>, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::identity>& M,const vect<float,4>& V);
+extern template vect<float,6> operator *<float, vect<float,6>, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::identity>& M,const vect<float,6>& V);
+extern template vect_n<float> operator *<float, vect_n<float>, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::identity>& M, const vect_n<float>& V);
+
+extern template vect<float,2> operator *<float, vect<float,2>, mat_alignment::column_major, std::allocator<float> >(const vect<float,2>& V,const mat<float,mat_structure::identity>& M);
+extern template vect<float,3> operator *<float, vect<float,3>, mat_alignment::column_major, std::allocator<float> >(const vect<float,3>& V,const mat<float,mat_structure::identity>& M);
+extern template vect<float,4> operator *<float, vect<float,4>, mat_alignment::column_major, std::allocator<float> >(const vect<float,4>& V,const mat<float,mat_structure::identity>& M);
+extern template vect<float,6> operator *<float, vect<float,6>, mat_alignment::column_major, std::allocator<float> >(const vect<float,6>& V,const mat<float,mat_structure::identity>& M);
+extern template vect_n<float> operator *<float, vect_n<float>, mat_alignment::column_major, std::allocator<float> >(const vect_n<float>& V,const mat<float,mat_structure::identity>& M);
+
+
+extern template mat<double,mat_structure::scalar> operator *(const mat<double,mat_structure::identity>& M, const double& S);
+extern template mat<double,mat_structure::scalar> operator *(const double& S, const mat<double,mat_structure::identity>& M);
+
+extern template mat<float,mat_structure::scalar> operator *(const mat<float,mat_structure::identity>& M, const float& S);
+extern template mat<float,mat_structure::scalar> operator *(const float& S, const mat<float,mat_structure::identity>& M);
+
+
+#endif
+
+
 
 
 

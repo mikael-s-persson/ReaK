@@ -2335,6 +2335,122 @@ void >::type solve_dtsf_problem(const Matrix1& F, const Matrix2& G,
 
 
 
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template void solve_care_problem(const mat<double,mat_structure::square>& A, const mat<double,mat_structure::rectangular>& B, 
+                                        const mat<double,mat_structure::square>& Q, const mat<double,mat_structure::square>& R, 
+                                        mat<double,mat_structure::square>& P, double NumTol, bool UseBalancing);
+extern template void solve_care_problem(const mat<double,mat_structure::square>& A, const mat<double,mat_structure::rectangular>& B, 
+                                        const mat<double,mat_structure::symmetric>& Q, const mat<double,mat_structure::symmetric>& R, 
+                                        mat<double,mat_structure::square>& P, double NumTol, bool UseBalancing);
+extern template void solve_care_problem(const mat<double,mat_structure::square>& A, const mat<double,mat_structure::rectangular>& B, 
+                                        const mat<double,mat_structure::diagonal>& Q, const mat<double,mat_structure::diagonal>& R, 
+                                        mat<double,mat_structure::square>& P, double NumTol, bool UseBalancing);
+extern template void solve_care_problem(const mat<double,mat_structure::rectangular>& A, const mat<double,mat_structure::rectangular>& B, 
+                                        const mat<double,mat_structure::square>& Q, const mat<double,mat_structure::square>& R, 
+                                        mat<double,mat_structure::rectangular>& P, double NumTol, bool UseBalancing);
+extern template void solve_care_problem(const mat<double,mat_structure::rectangular>& A, const mat<double,mat_structure::rectangular>& B, 
+                                        const mat<double,mat_structure::symmetric>& Q, const mat<double,mat_structure::symmetric>& R, 
+                                        mat<double,mat_structure::rectangular>& P, double NumTol, bool UseBalancing);
+extern template void solve_care_problem(const mat<double,mat_structure::rectangular>& A, const mat<double,mat_structure::rectangular>& B, 
+                                        const mat<double,mat_structure::diagonal>& Q, const mat<double,mat_structure::diagonal>& R, 
+                                        mat<double,mat_structure::rectangular>& P, double NumTol, bool UseBalancing);
+
+extern template void solve_dare_problem(const mat<double,mat_structure::square>& F, const mat<double,mat_structure::rectangular>& G, 
+                                        const mat<double,mat_structure::square>& Q, const mat<double,mat_structure::square>& R, 
+                                        mat<double,mat_structure::square>& P, double NumTol, bool UseBalancing);
+extern template void solve_dare_problem(const mat<double,mat_structure::square>& F, const mat<double,mat_structure::rectangular>& G, 
+                                        const mat<double,mat_structure::symmetric>& Q, const mat<double,mat_structure::symmetric>& R, 
+                                        mat<double,mat_structure::square>& P, double NumTol, bool UseBalancing);
+extern template void solve_dare_problem(const mat<double,mat_structure::square>& F, const mat<double,mat_structure::rectangular>& G, 
+                                        const mat<double,mat_structure::diagonal>& Q, const mat<double,mat_structure::diagonal>& R, 
+                                        mat<double,mat_structure::square>& P, double NumTol, bool UseBalancing);
+extern template void solve_dare_problem(const mat<double,mat_structure::rectangular>& F, const mat<double,mat_structure::rectangular>& G, 
+                                        const mat<double,mat_structure::square>& Q, const mat<double,mat_structure::square>& R, 
+                                        mat<double,mat_structure::rectangular>& P, double NumTol, bool UseBalancing);
+extern template void solve_dare_problem(const mat<double,mat_structure::rectangular>& F, const mat<double,mat_structure::rectangular>& G, 
+                                        const mat<double,mat_structure::symmetric>& Q, const mat<double,mat_structure::symmetric>& R, 
+                                        mat<double,mat_structure::rectangular>& P, double NumTol, bool UseBalancing);
+extern template void solve_dare_problem(const mat<double,mat_structure::rectangular>& F, const mat<double,mat_structure::rectangular>& G, 
+                                        const mat<double,mat_structure::diagonal>& Q, const mat<double,mat_structure::diagonal>& R, 
+                                        mat<double,mat_structure::rectangular>& P, double NumTol, bool UseBalancing);
+
+extern template void solve_ctsf_problem(const mat<double,mat_structure::square>& A, const mat<double,mat_structure::rectangular>& B, 
+                                        const mat<double,mat_structure::rectangular>& C, const mat<double,mat_structure::rectangular>& D, 
+                                        mat<double,mat_structure::square>& P, double NumTol, bool UseBalancing);
+extern template void solve_ctsf_problem(const mat<double,mat_structure::rectangular>& A, const mat<double,mat_structure::rectangular>& B, 
+                                        const mat<double,mat_structure::rectangular>& C, const mat<double,mat_structure::rectangular>& D, 
+                                        mat<double,mat_structure::rectangular>& P, double NumTol, bool UseBalancing);
+
+extern template void solve_dtsf_problem(const mat<double,mat_structure::square>& F, const mat<double,mat_structure::rectangular>& G, 
+                                        const mat<double,mat_structure::rectangular>& H, const mat<double,mat_structure::rectangular>& J, 
+                                        mat<double,mat_structure::square>& P, double NumTol, bool UseBalancing);
+extern template void solve_dtsf_problem(const mat<double,mat_structure::rectangular>& F, const mat<double,mat_structure::rectangular>& G, 
+                                        const mat<double,mat_structure::rectangular>& H, const mat<double,mat_structure::rectangular>& J, 
+                                        mat<double,mat_structure::rectangular>& P, double NumTol, bool UseBalancing);
+
+
+extern template void solve_care_problem(const mat<float,mat_structure::square>& A, const mat<float,mat_structure::rectangular>& B, 
+                                        const mat<float,mat_structure::square>& Q, const mat<float,mat_structure::square>& R, 
+                                        mat<float,mat_structure::square>& P, float NumTol, bool UseBalancing);
+extern template void solve_care_problem(const mat<float,mat_structure::square>& A, const mat<float,mat_structure::rectangular>& B, 
+                                        const mat<float,mat_structure::symmetric>& Q, const mat<float,mat_structure::symmetric>& R, 
+                                        mat<float,mat_structure::square>& P, float NumTol, bool UseBalancing);
+extern template void solve_care_problem(const mat<float,mat_structure::square>& A, const mat<float,mat_structure::rectangular>& B, 
+                                        const mat<float,mat_structure::diagonal>& Q, const mat<float,mat_structure::diagonal>& R, 
+                                        mat<float,mat_structure::square>& P, float NumTol, bool UseBalancing);
+extern template void solve_care_problem(const mat<float,mat_structure::rectangular>& A, const mat<float,mat_structure::rectangular>& B, 
+                                        const mat<float,mat_structure::square>& Q, const mat<float,mat_structure::square>& R, 
+                                        mat<float,mat_structure::rectangular>& P, float NumTol, bool UseBalancing);
+extern template void solve_care_problem(const mat<float,mat_structure::rectangular>& A, const mat<float,mat_structure::rectangular>& B, 
+                                        const mat<float,mat_structure::symmetric>& Q, const mat<float,mat_structure::symmetric>& R, 
+                                        mat<float,mat_structure::rectangular>& P, float NumTol, bool UseBalancing);
+extern template void solve_care_problem(const mat<float,mat_structure::rectangular>& A, const mat<float,mat_structure::rectangular>& B, 
+                                        const mat<float,mat_structure::diagonal>& Q, const mat<float,mat_structure::diagonal>& R, 
+                                        mat<float,mat_structure::rectangular>& P, float NumTol, bool UseBalancing);
+
+extern template void solve_dare_problem(const mat<float,mat_structure::square>& F, const mat<float,mat_structure::rectangular>& G, 
+                                        const mat<float,mat_structure::square>& Q, const mat<float,mat_structure::square>& R, 
+                                        mat<float,mat_structure::square>& P, float NumTol, bool UseBalancing);
+extern template void solve_dare_problem(const mat<float,mat_structure::square>& F, const mat<float,mat_structure::rectangular>& G, 
+                                        const mat<float,mat_structure::symmetric>& Q, const mat<float,mat_structure::symmetric>& R, 
+                                        mat<float,mat_structure::square>& P, float NumTol, bool UseBalancing);
+extern template void solve_dare_problem(const mat<float,mat_structure::square>& F, const mat<float,mat_structure::rectangular>& G, 
+                                        const mat<float,mat_structure::diagonal>& Q, const mat<float,mat_structure::diagonal>& R, 
+                                        mat<float,mat_structure::square>& P, float NumTol, bool UseBalancing);
+extern template void solve_dare_problem(const mat<float,mat_structure::rectangular>& F, const mat<float,mat_structure::rectangular>& G, 
+                                        const mat<float,mat_structure::square>& Q, const mat<float,mat_structure::square>& R, 
+                                        mat<float,mat_structure::rectangular>& P, float NumTol, bool UseBalancing);
+extern template void solve_dare_problem(const mat<float,mat_structure::rectangular>& F, const mat<float,mat_structure::rectangular>& G, 
+                                        const mat<float,mat_structure::symmetric>& Q, const mat<float,mat_structure::symmetric>& R, 
+                                        mat<float,mat_structure::rectangular>& P, float NumTol, bool UseBalancing);
+extern template void solve_dare_problem(const mat<float,mat_structure::rectangular>& F, const mat<float,mat_structure::rectangular>& G, 
+                                        const mat<float,mat_structure::diagonal>& Q, const mat<float,mat_structure::diagonal>& R, 
+                                        mat<float,mat_structure::rectangular>& P, float NumTol, bool UseBalancing);
+
+extern template void solve_ctsf_problem(const mat<float,mat_structure::square>& A, const mat<float,mat_structure::rectangular>& B, 
+                                        const mat<float,mat_structure::rectangular>& C, const mat<float,mat_structure::rectangular>& D, 
+                                        mat<float,mat_structure::square>& P, float NumTol, bool UseBalancing);
+extern template void solve_ctsf_problem(const mat<float,mat_structure::rectangular>& A, const mat<float,mat_structure::rectangular>& B, 
+                                        const mat<float,mat_structure::rectangular>& C, const mat<float,mat_structure::rectangular>& D, 
+                                        mat<float,mat_structure::rectangular>& P, float NumTol, bool UseBalancing);
+
+extern template void solve_dtsf_problem(const mat<float,mat_structure::square>& F, const mat<float,mat_structure::rectangular>& G, 
+                                        const mat<float,mat_structure::rectangular>& H, const mat<float,mat_structure::rectangular>& J, 
+                                        mat<float,mat_structure::square>& P, float NumTol, bool UseBalancing);
+extern template void solve_dtsf_problem(const mat<float,mat_structure::rectangular>& F, const mat<float,mat_structure::rectangular>& G, 
+                                        const mat<float,mat_structure::rectangular>& H, const mat<float,mat_structure::rectangular>& J, 
+                                        mat<float,mat_structure::rectangular>& P, float NumTol, bool UseBalancing);
+
+
+
+#endif
+
+
+
+
 };
 
 

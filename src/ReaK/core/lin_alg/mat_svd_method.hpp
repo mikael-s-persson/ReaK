@@ -781,6 +781,51 @@ struct SVD_linlsqsolver {
 };
 
   
+
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template void decompose_SVD(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& U, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::rectangular>& V, double NumTol);
+extern template void decompose_SVD(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& U, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::square>& V, double NumTol);
+extern template void decompose_SVD(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& U, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::square>& V, double NumTol);
+extern template void decompose_SVD(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& U, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::square>& V, double NumTol);
+
+extern template void pseudoinvert_SVD(const mat<double,mat_structure::rectangular>& U, const mat<double,mat_structure::diagonal>& E, const mat<double,mat_structure::rectangular>& V, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+extern template void pseudoinvert_SVD(const mat<double,mat_structure::rectangular>& U, const mat<double,mat_structure::diagonal>& E, const mat<double,mat_structure::square>& V, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+extern template void pseudoinvert_SVD(const mat<double,mat_structure::square>& U, const mat<double,mat_structure::diagonal>& E, const mat<double,mat_structure::square>& V, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+extern template void pseudoinvert_SVD(const mat<double,mat_structure::square>& U, const mat<double,mat_structure::diagonal>& E, const mat<double,mat_structure::square>& V, mat<double,mat_structure::square>& A_pinv, double NumTol);
+
+extern template void pseudoinvert_SVD(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+extern template void pseudoinvert_SVD(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
+extern template void pseudoinvert_SVD(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+extern template void pseudoinvert_SVD(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
+
+
+extern template void decompose_SVD(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& U, mat<float,mat_structure::diagonal>& E, mat<float,mat_structure::rectangular>& V, float NumTol);
+extern template void decompose_SVD(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& U, mat<float,mat_structure::diagonal>& E, mat<float,mat_structure::square>& V, float NumTol);
+extern template void decompose_SVD(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& U, mat<float,mat_structure::diagonal>& E, mat<float,mat_structure::square>& V, float NumTol);
+extern template void decompose_SVD(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& U, mat<float,mat_structure::diagonal>& E, mat<float,mat_structure::square>& V, float NumTol);
+
+extern template void pseudoinvert_SVD(const mat<float,mat_structure::rectangular>& U, const mat<float,mat_structure::diagonal>& E, const mat<float,mat_structure::rectangular>& V, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+extern template void pseudoinvert_SVD(const mat<float,mat_structure::rectangular>& U, const mat<float,mat_structure::diagonal>& E, const mat<float,mat_structure::square>& V, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+extern template void pseudoinvert_SVD(const mat<float,mat_structure::square>& U, const mat<float,mat_structure::diagonal>& E, const mat<float,mat_structure::square>& V, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+extern template void pseudoinvert_SVD(const mat<float,mat_structure::square>& U, const mat<float,mat_structure::diagonal>& E, const mat<float,mat_structure::square>& V, mat<float,mat_structure::square>& A_pinv, float NumTol);
+
+extern template void pseudoinvert_SVD(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+extern template void pseudoinvert_SVD(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
+extern template void pseudoinvert_SVD(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+extern template void pseudoinvert_SVD(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
+ 
+
+
+#endif
+
+
+
+
+
   
 
 };

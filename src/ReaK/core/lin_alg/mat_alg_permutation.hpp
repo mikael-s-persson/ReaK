@@ -380,7 +380,7 @@ vect_copy<Vector> >::type::type operator *(const mat<T,mat_structure::permutatio
 template <typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator>
 typename boost::enable_if< is_readable_vector<Vector>, 
 vect_copy<Vector> >::type::type operator *(const Vector& V,
-					   const mat<T,mat_structure::identity,Alignment,Allocator>& M) {
+					   const mat<T,mat_structure::permutation,Alignment,Allocator>& M) {
   if(V.size() != M.get_row_count())
     throw std::range_error("Matrix dimension mismatch.");
   typedef typename vect_copy<Vector>::type result_type;
@@ -443,7 +443,7 @@ mat<T,mat_structure::square,Alignment,Allocator> >::type
  * \return A permuted matrix.
  * \throw std::range_error if matrices' dimensions are not proper for multiplication.
  */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Matrix>
+template <typename T, mat_alignment::tag Alignment, typename Allocator, typename Matrix>
 typename boost::enable_if< 
   boost::mpl::and_<
     is_readable_matrix<Matrix>,
@@ -471,7 +471,7 @@ mat<T,mat_structure::rectangular,Alignment,Allocator> >::type
  * \return A permuted matrix.
  * \throw std::range_error if matrices' dimensions are not proper for multiplication.
  */
-template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Matrix>
+template <typename T, mat_alignment::tag Alignment, typename Allocator, typename Matrix>
 typename boost::enable_if< 
   boost::mpl::and_<
     is_readable_matrix<Matrix>,
@@ -492,6 +492,60 @@ mat<T,mat_structure::rectangular,Alignment,Allocator> >::type
   return result;
 };
 
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class mat<double, mat_structure::permutation>;
+extern template class mat<float, mat_structure::permutation>;
+
+
+extern template vect<double,2> operator *(const mat<double,mat_structure::permutation>& M, const vect<double,2>& V);
+extern template vect<double,3> operator *(const mat<double,mat_structure::permutation>& M, const vect<double,3>& V);
+extern template vect<double,4> operator *(const mat<double,mat_structure::permutation>& M, const vect<double,4>& V);
+extern template vect<double,6> operator *(const mat<double,mat_structure::permutation>& M, const vect<double,6>& V);
+extern template vect_n<double> operator *(const mat<double,mat_structure::permutation>& M, const vect_n<double>& V);
+
+extern template vect<double,2> operator *(const vect<double,2>& V, const mat<double,mat_structure::permutation>& M);
+extern template vect<double,3> operator *(const vect<double,3>& V, const mat<double,mat_structure::permutation>& M);
+extern template vect<double,4> operator *(const vect<double,4>& V, const mat<double,mat_structure::permutation>& M);
+extern template vect<double,6> operator *(const vect<double,6>& V, const mat<double,mat_structure::permutation>& M);
+extern template vect_n<double> operator *(const vect_n<double>& V, const mat<double,mat_structure::permutation>& M);
+
+extern template mat<double,mat_structure::square> operator *(const mat<double,mat_structure::permutation>& M, const double& S);
+extern template mat<double,mat_structure::square> operator *(const double& S,const mat<double,mat_structure::permutation>& M);
+
+extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular>& M1, const mat<double,mat_structure::permutation>& M2);
+extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::square>& M1, const mat<double,mat_structure::permutation>& M2);
+
+extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::permutation>& M1, const mat<double,mat_structure::rectangular>& M2);
+extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::permutation>& M1, const mat<double,mat_structure::square>& M2);
+
+
+extern template vect<float,2> operator *(const mat<float,mat_structure::permutation>& M, const vect<float,2>& V);
+extern template vect<float,3> operator *(const mat<float,mat_structure::permutation>& M, const vect<float,3>& V);
+extern template vect<float,4> operator *(const mat<float,mat_structure::permutation>& M, const vect<float,4>& V);
+extern template vect<float,6> operator *(const mat<float,mat_structure::permutation>& M, const vect<float,6>& V);
+extern template vect_n<float> operator *(const mat<float,mat_structure::permutation>& M, const vect_n<float>& V);
+
+extern template vect<float,2> operator *(const vect<float,2>& V, const mat<float,mat_structure::permutation>& M);
+extern template vect<float,3> operator *(const vect<float,3>& V, const mat<float,mat_structure::permutation>& M);
+extern template vect<float,4> operator *(const vect<float,4>& V, const mat<float,mat_structure::permutation>& M);
+extern template vect<float,6> operator *(const vect<float,6>& V, const mat<float,mat_structure::permutation>& M);
+extern template vect_n<float> operator *(const vect_n<float>& V, const mat<float,mat_structure::permutation>& M);
+
+extern template mat<float,mat_structure::square> operator *(const mat<float,mat_structure::permutation>& M, const float& S);
+extern template mat<float,mat_structure::square> operator *(const float& S,const mat<float,mat_structure::permutation>& M);
+
+extern template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular>& M1, const mat<float,mat_structure::permutation>& M2);
+extern template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::square>& M1, const mat<float,mat_structure::permutation>& M2);
+
+extern template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::permutation>& M1, const mat<float,mat_structure::rectangular>& M2);
+extern template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::permutation>& M1, const mat<float,mat_structure::square>& M2);
+
+
+#endif
 
 
 

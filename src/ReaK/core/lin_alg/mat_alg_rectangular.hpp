@@ -957,16 +957,16 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
     };
     
     col_iterator first_col() {
-      return col_iterator(q.begin(),rowCount);
+      return col_iterator(q.begin());
     };
     const_col_iterator first_col() const {
-      return const_col_iterator(q.begin(),rowCount);
+      return const_col_iterator(q.begin());
     };
     col_iterator last_col() {
-      return col_iterator(q.begin() + colCount * rowCount,rowCount);
+      return col_iterator(q.begin() + colCount * rowCount);
     };
     const_col_iterator last_col() const {
-      return const_col_iterator(q.begin() + colCount * rowCount,rowCount);
+      return const_col_iterator(q.begin() + colCount * rowCount);
     };
     col_iterator first_col(row_iterator rit) {
       size_type diff = rit.base() - q.begin();
@@ -1254,6 +1254,30 @@ void >::type
 
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class mat<double, mat_structure::rectangular, mat_alignment::column_major>;
+extern template class mat<double, mat_structure::rectangular, mat_alignment::row_major>;
+
+extern template class mat<float, mat_structure::rectangular, mat_alignment::column_major>;
+extern template class mat<float, mat_structure::rectangular, mat_alignment::row_major>;
+
+extern template mat<double, mat_structure::rectangular, mat_alignment::column_major>& mat<double, mat_structure::rectangular, mat_alignment::column_major>::operator +=(const mat<double, mat_structure::rectangular, mat_alignment::column_major>& M);
+extern template mat<double, mat_structure::rectangular, mat_alignment::column_major>& mat<double, mat_structure::rectangular, mat_alignment::column_major>::operator -=(const mat<double, mat_structure::rectangular, mat_alignment::column_major>& M);
+extern template mat<double, mat_structure::rectangular, mat_alignment::column_major>& mat<double, mat_structure::rectangular, mat_alignment::column_major>::operator *=(const mat<double, mat_structure::rectangular, mat_alignment::column_major>& M);
+extern template mat<double, mat_structure::rectangular, mat_alignment::row_major>& mat<double, mat_structure::rectangular, mat_alignment::row_major>::operator +=(const mat<double, mat_structure::rectangular, mat_alignment::row_major>& M);
+extern template mat<double, mat_structure::rectangular, mat_alignment::row_major>& mat<double, mat_structure::rectangular, mat_alignment::row_major>::operator -=(const mat<double, mat_structure::rectangular, mat_alignment::row_major>& M);
+extern template mat<double, mat_structure::rectangular, mat_alignment::row_major>& mat<double, mat_structure::rectangular, mat_alignment::row_major>::operator *=(const mat<double, mat_structure::rectangular, mat_alignment::row_major>& M);
+
+extern template mat<float, mat_structure::rectangular, mat_alignment::column_major>& mat<float, mat_structure::rectangular, mat_alignment::column_major>::operator +=(const mat<float, mat_structure::rectangular, mat_alignment::column_major>& M);
+extern template mat<float, mat_structure::rectangular, mat_alignment::column_major>& mat<float, mat_structure::rectangular, mat_alignment::column_major>::operator -=(const mat<float, mat_structure::rectangular, mat_alignment::column_major>& M);
+extern template mat<float, mat_structure::rectangular, mat_alignment::column_major>& mat<float, mat_structure::rectangular, mat_alignment::column_major>::operator *=(const mat<float, mat_structure::rectangular, mat_alignment::column_major>& M);
+extern template mat<float, mat_structure::rectangular, mat_alignment::row_major>& mat<float, mat_structure::rectangular, mat_alignment::row_major>::operator +=(const mat<float, mat_structure::rectangular, mat_alignment::row_major>& M);
+extern template mat<float, mat_structure::rectangular, mat_alignment::row_major>& mat<float, mat_structure::rectangular, mat_alignment::row_major>::operator -=(const mat<float, mat_structure::rectangular, mat_alignment::row_major>& M);
+extern template mat<float, mat_structure::rectangular, mat_alignment::row_major>& mat<float, mat_structure::rectangular, mat_alignment::row_major>::operator *=(const mat<float, mat_structure::rectangular, mat_alignment::row_major>& M);
+
+
+#endif
 
 
   

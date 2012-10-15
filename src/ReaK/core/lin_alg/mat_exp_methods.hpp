@@ -76,39 +76,40 @@ void >::type exp_PadeSAS(const Matrix1& A, Matrix2& X, LinearEqSolver linsolve, 
   
   SizeType N = A.get_row_count();
   ValueType mu = trace(A) / N;
+  mat<ValueType,mat_structure::identity> eye_N = mat<ValueType,mat_structure::identity>(N);
   
-  mat<ValueType,mat_structure::square> A_tmp = A - (mu * mat<ValueType,mat_structure::identity>(N));
+  mat<ValueType,mat_structure::square> A_tmp = A - (mu * eye_N);
   ValueType n1 = norm_1(A_tmp);
     
   if(n1 <= 1.495585217958292e-2) { //m = 3
     mat<ValueType,mat_structure::square> A2 = A_tmp * A_tmp;
     mat<ValueType,mat_structure::square> U = A_tmp * (A2
-                                                    + 60 * mat<ValueType,mat_structure::identity>(N));
-    mat<ValueType,mat_structure::square> V = 12 * A2
-                                           + 120 * mat<ValueType,mat_structure::identity>(N);
+                                                    + ValueType(60) * eye_N);
+    mat<ValueType,mat_structure::square> V = ValueType(12) * A2
+                                           + ValueType(120) * eye_N;
     linsolve(V - U, X, U + V, NumTol);
   } else if(n1 <= 2.539398330063230e-1) { //m = 5
     mat<ValueType,mat_structure::square> A2 = A_tmp * A_tmp;
     mat<ValueType,mat_structure::square> A4 = A2 * A2;
     mat<ValueType,mat_structure::square> U = A_tmp * (A4
-                                                    + 420 * A2
-                                                    + 15120 * mat<ValueType,mat_structure::identity>(N));
-    mat<ValueType,mat_structure::square> V = 30 * A4
-                                           + 3360 * A2
-                                           + 30240 * mat<ValueType,mat_structure::identity>(N);
+                                                    + ValueType(420) * A2
+                                                    + ValueType(15120) * eye_N);
+    mat<ValueType,mat_structure::square> V = ValueType(30) * A4
+                                           + ValueType(3360) * A2
+                                           + ValueType(30240) * eye_N;
     linsolve(V - U, X, U + V, NumTol);
   } else if(n1 <= 9.504178996162932e-1) { //m = 7
     mat<ValueType,mat_structure::square> A2 = A_tmp * A_tmp;
     mat<ValueType,mat_structure::square> A4 = A2 * A2;
     mat<ValueType,mat_structure::square> A6 = A2 * A4;
     mat<ValueType,mat_structure::square> U = A_tmp * (A6
-                                                    + 1512 * A4
-                                                    + 277200 * A2
-                                                    + 8648640 * mat<ValueType,mat_structure::identity>(N));
-    mat<ValueType,mat_structure::square> V = 56 * A6
-                                           + 25200 * A4
-                                           + 1995840 * A2
-                                           + 17297280 * mat<ValueType,mat_structure::identity>(N);
+                                                    + ValueType(1512) * A4
+                                                    + ValueType(277200) * A2
+                                                    + ValueType(8648640) * eye_N);
+    mat<ValueType,mat_structure::square> V = ValueType(56) * A6
+                                           + ValueType(25200) * A4
+                                           + ValueType(1995840) * A2
+                                           + ValueType(17297280) * eye_N;
     linsolve(V - U, X, U + V, NumTol);
   } else if(n1 <= 2.097847961257068e0) { //m = 9
     mat<ValueType,mat_structure::square> A2 = A_tmp * A_tmp;
@@ -116,34 +117,34 @@ void >::type exp_PadeSAS(const Matrix1& A, Matrix2& X, LinearEqSolver linsolve, 
     mat<ValueType,mat_structure::square> A6 = A2 * A4;
     mat<ValueType,mat_structure::square> A8 = A4 * A4;
     mat<ValueType,mat_structure::square> U = A_tmp * (A8
-                                                    + 3960 * A6
-                                                    + 2162160 * A4
-                                                    + 302702400 * A2
-                                                    + 8821612800 * mat<ValueType,mat_structure::identity>(N));
-    mat<ValueType,mat_structure::square> V = 90 * A8
-                                           + 110880 * A6 
-                                           + 30270240 * A4
-                                           + 2075673600 * A2
-                                           + 17643225600 * mat<ValueType,mat_structure::identity>(N);
+                                                    + ValueType(3960) * A6
+                                                    + ValueType(2162160) * A4
+                                                    + ValueType(302702400) * A2
+                                                    + ValueType(8821612800) * eye_N);
+    mat<ValueType,mat_structure::square> V = ValueType(90) * A8
+                                           + ValueType(110880) * A6 
+                                           + ValueType(30270240) * A4
+                                           + ValueType(2075673600) * A2
+                                           + ValueType(17643225600) * eye_N;
     linsolve(V - U, X, U + V, NumTol);
   } else if(n1 <= 5.371920351148152e0) { //m = 13
     mat<ValueType,mat_structure::square> A2 = A_tmp * A_tmp;
     mat<ValueType,mat_structure::square> A4 = A2 * A2;
     mat<ValueType,mat_structure::square> A6 = A2 * A4;
     mat<ValueType,mat_structure::square> U = A_tmp * ( A6 * (A6
-                                                           + 16380 * A4 
-                                                           + 40840800 * A2) 
-                                                     + 33522128640 * A6
-                                                     + 10559470521600 * A4 
-                                                     + 1187353796428800 * A2 
-                                                     + 32382376266240000 * mat<ValueType,mat_structure::identity>(N));
-    mat<ValueType,mat_structure::square> V = A6 * (182 * A6 
-                                                 + 960960 * A4 
-                                                 + 1323241920 * A2) 
-                                           + 670442572800 * A6 
-                                           + 129060195264000 * A4 
-                                           + 7771770303897600 * A2 
-                                           + 64764752532480000 * mat<ValueType,mat_structure::identity>(N);
+                                                           + ValueType(16380) * A4 
+                                                           + ValueType(40840800) * A2) 
+                                                     + ValueType(33522128640) * A6
+                                                     + ValueType(10559470521600) * A4 
+                                                     + ValueType(1187353796428800) * A2 
+                                                     + ValueType(32382376266240000) * eye_N);
+    mat<ValueType,mat_structure::square> V = A6 * (ValueType(182) * A6 
+                                                 + ValueType(960960) * A4 
+                                                 + ValueType(1323241920) * A2) 
+                                           + ValueType(670442572800) * A6 
+                                           + ValueType(129060195264000) * A4 
+                                           + ValueType(7771770303897600) * A2 
+                                           + ValueType(64764752532480000) * eye_N;
     linsolve(V - U, X, U + V, NumTol);
   } else {
     SizeType s = 1;
@@ -153,19 +154,19 @@ void >::type exp_PadeSAS(const Matrix1& A, Matrix2& X, LinearEqSolver linsolve, 
     mat<ValueType,mat_structure::square> A4 = A2 * A2;
     mat<ValueType,mat_structure::square> A6 = A2 * A4;
     mat<ValueType,mat_structure::square> U = A_tmp * ( A6 * (A6 
-                                                           + 16380 * A4 
-                                                           + 40840800 * A2) 
-                                                     + 33522128640 * A6
-                                                     + 10559470521600 * A4 
-                                                     + 1187353796428800 * A2 
-                                                     + 32382376266240000 * mat<ValueType,mat_structure::identity>(N));
-    mat<ValueType,mat_structure::square> V = A6 * (182 * A6 
-                                                 + 960960 * A4 
-                                                 + 1323241920 * A2) 
-                                           + 670442572800 * A6 
-                                           + 129060195264000 * A4 
-                                           + 7771770303897600 * A2 
-                                           + 64764752532480000 * mat<ValueType,mat_structure::identity>(N);
+                                                           + ValueType(16380) * A4 
+                                                           + ValueType(40840800) * A2) 
+                                                     + ValueType(33522128640) * A6
+                                                     + ValueType(10559470521600) * A4 
+                                                     + ValueType(1187353796428800) * A2 
+                                                     + ValueType(32382376266240000) * eye_N);
+    mat<ValueType,mat_structure::square> V = A6 * (ValueType(182) * A6 
+                                                 + ValueType(960960) * A4 
+                                                 + ValueType(1323241920) * A2) 
+                                           + ValueType(670442572800) * A6 
+                                           + ValueType(129060195264000) * A4 
+                                           + ValueType(7771770303897600) * A2 
+                                           + ValueType(64764752532480000) * eye_N;
     linsolve(V - U, X, U + V, NumTol);
     for(;s != 0; --s)
       X *= X;
@@ -201,6 +202,18 @@ void >::type exp_PadeSAS(const Matrix1& A, Matrix2& X, LinearEqSolver linsolve, 
 
 // b_j = (2*m - j)! / (m - j)! / j!
 
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template void exp_PadeSAS(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& X, QR_linlsqsolver linsolve, double NumTol);
+extern template void exp_PadeSAS(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& X, RRQR_linlsqsolver linsolve, double NumTol);
+
+
+extern template void exp_PadeSAS(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& X, QR_linlsqsolver linsolve, float NumTol);
+extern template void exp_PadeSAS(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& X, RRQR_linlsqsolver linsolve, float NumTol);
+
+#endif
 
 
 

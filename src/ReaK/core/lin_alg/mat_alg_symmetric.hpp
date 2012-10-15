@@ -855,6 +855,63 @@ class mat<T,mat_structure::symmetric,Alignment,Allocator> : public serialization
 
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+extern template class mat<double, mat_structure::symmetric>;
+extern template class mat<float, mat_structure::symmetric>;
+
+
+extern template mat<double,mat_structure::symmetric>& mat<double,mat_structure::symmetric>::operator +=(const mat<double,mat_structure::symmetric>& M);
+extern template mat<double,mat_structure::symmetric>& mat<double,mat_structure::symmetric>::operator +=(const mat<double,mat_structure::diagonal>& M);
+extern template mat<double,mat_structure::symmetric>& mat<double,mat_structure::symmetric>::operator -=(const mat<double,mat_structure::symmetric>& M);
+extern template mat<double,mat_structure::symmetric>& mat<double,mat_structure::symmetric>::operator -=(const mat<double,mat_structure::diagonal>& M);
+
+extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+
+extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::symmetric>& M2);
+extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::symmetric>& M2);
+
+extern template vect<double,2> operator *(const mat<double,mat_structure::symmetric>& M,const vect<double,2>& V);
+extern template vect<double,3> operator *(const mat<double,mat_structure::symmetric>& M,const vect<double,3>& V);
+extern template vect<double,4> operator *(const mat<double,mat_structure::symmetric>& M,const vect<double,4>& V);
+extern template vect<double,6> operator *(const mat<double,mat_structure::symmetric>& M,const vect<double,6>& V);
+
+extern template vect<double,2> operator *(const vect<double,2>& V,const mat<double,mat_structure::symmetric>& M);
+extern template vect<double,3> operator *(const vect<double,3>& V,const mat<double,mat_structure::symmetric>& M);
+extern template vect<double,4> operator *(const vect<double,4>& V,const mat<double,mat_structure::symmetric>& M);
+extern template vect<double,6> operator *(const vect<double,6>& V,const mat<double,mat_structure::symmetric>& M);
+
+extern template vect_n<double> operator *(const mat<double,mat_structure::symmetric>& M,const vect_n<double>& V);
+extern template vect_n<double> operator *(const vect_n<double>& V,const mat<double,mat_structure::symmetric>& M);
+
+
+extern template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator +=(const mat<float,mat_structure::symmetric>& M);
+extern template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator +=(const mat<float,mat_structure::diagonal>& M);
+extern template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator -=(const mat<float,mat_structure::symmetric>& M);
+extern template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator -=(const mat<float,mat_structure::diagonal>& M);
+
+extern template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+extern template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+
+extern template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::symmetric>& M2);
+extern template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::symmetric>& M2);
+
+extern template vect<float,2> operator *(const mat<float,mat_structure::symmetric>& M,const vect<float,2>& V);
+extern template vect<float,3> operator *(const mat<float,mat_structure::symmetric>& M,const vect<float,3>& V);
+extern template vect<float,4> operator *(const mat<float,mat_structure::symmetric>& M,const vect<float,4>& V);
+extern template vect<float,6> operator *(const mat<float,mat_structure::symmetric>& M,const vect<float,6>& V);
+
+extern template vect<float,2> operator *(const vect<float,2>& V,const mat<float,mat_structure::symmetric>& M);
+extern template vect<float,3> operator *(const vect<float,3>& V,const mat<float,mat_structure::symmetric>& M);
+extern template vect<float,4> operator *(const vect<float,4>& V,const mat<float,mat_structure::symmetric>& M);
+extern template vect<float,6> operator *(const vect<float,6>& V,const mat<float,mat_structure::symmetric>& M);
+
+extern template vect_n<float> operator *(const mat<float,mat_structure::symmetric>& M,const vect_n<float>& V);
+extern template vect_n<float> operator *(const vect_n<float>& V,const mat<float,mat_structure::symmetric>& M);
+
+
+#endif
 
 
 
