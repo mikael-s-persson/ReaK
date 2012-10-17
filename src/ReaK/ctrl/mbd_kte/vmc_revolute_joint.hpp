@@ -62,22 +62,40 @@ class vmc_revolute_joint_2D : public revolute_joint_2D {
     double mSlipVelocity; ///< Holds the micro-slip tolerance in joint speed.
 
   public:
-
-    /** Get read-write access to mStictionCoef. */
-    double& StictionCoefficient() { return mStictionCoef; };
-    /** Get read-only access to mStictionCoef. */
+    
+    /**
+     * Sets the stiction coefficient of the vmc-revolute joint.
+     * \param aValue The new stiction coefficient of the vmc-revolute joint.
+     */
+    void setStictionCoefficient(double aValue) { mStictionCoef = aValue; };
+    /**
+     * Returns the stiction coefficient of the vmc-revolute joint.
+     * \return The stiction coefficient of the vmc-revolute joint.
+     */
     double StictionCoefficient() const { return mStictionCoef; };
-
-    /** Get read-write access to mSlipCoef. */
-    double& SlipCoefficient() { return mSlipCoef; };
-    /** Get read-only access to mSlipCoef. */
+    
+    /**
+     * Sets the slip coefficient of the vmc-revolute joint.
+     * \param aValue The new slip coefficient of the vmc-revolute joint.
+     */
+    void setSlipCoefficient(double aValue) { mSlipCoef = aValue; };
+    /**
+     * Returns the slip coefficient of the vmc-revolute joint.
+     * \return The slip coefficient of the vmc-revolute joint.
+     */
     double SlipCoefficient() const { return mSlipCoef; };
-
-    /** Get read-write access to mSlipVelocity. */
-    double& SlipVelocity() { return mSlipVelocity; };
-    /** Get read-only access to mSlipVelocity. */
+    
+    /**
+     * Sets the slip velocity of the vmc-revolute joint.
+     * \param aValue The new slip velocity of the vmc-revolute joint.
+     */
+    void setSlipVelocity(double aValue) { mSlipVelocity = aValue; };
+    /**
+     * Returns the slip velocity of the vmc-revolute joint.
+     * \return The slip velocity of the vmc-revolute joint.
+     */
     double SlipVelocity() const { return mSlipVelocity; };
-
+    
      /**
      * Default constructor.
      */
@@ -143,22 +161,40 @@ class vmc_revolute_joint_3D : public revolute_joint_3D {
     double mSlipVelocity; ///< Holds the micro-slip tolerance in joint speed.
 
   public:
-
-    /** Get read-write access to mStictionCoef. */
-    double& StictionCoefficient() { return mStictionCoef; };
-    /** Get read-only access to mStictionCoef. */
+    
+    /**
+     * Sets the stiction coefficient of the vmc-revolute joint.
+     * \param aValue The new stiction coefficient of the vmc-revolute joint.
+     */
+    void setStictionCoefficient(double aValue) { mStictionCoef = aValue; };
+    /**
+     * Returns the stiction coefficient of the vmc-revolute joint.
+     * \return The stiction coefficient of the vmc-revolute joint.
+     */
     double StictionCoefficient() const { return mStictionCoef; };
-
-    /** Get read-write access to mSlipCoef. */
-    double& SlipCoefficient() { return mSlipCoef; };
-    /** Get read-only access to mSlipCoef. */
+    
+    /**
+     * Sets the slip coefficient of the vmc-revolute joint.
+     * \param aValue The new slip coefficient of the vmc-revolute joint.
+     */
+    void setSlipCoefficient(double aValue) { mSlipCoef = aValue; };
+    /**
+     * Returns the slip coefficient of the vmc-revolute joint.
+     * \return The slip coefficient of the vmc-revolute joint.
+     */
     double SlipCoefficient() const { return mSlipCoef; };
-
-    /** Get read-write access to mSlipVelocity. */
-    double& SlipVelocity() { return mSlipVelocity; };
-    /** Get read-only access to mSlipVelocity. */
+    
+    /**
+     * Sets the slip velocity of the vmc-revolute joint.
+     * \param aValue The new slip velocity of the vmc-revolute joint.
+     */
+    void setSlipVelocity(double aValue) { mSlipVelocity = aValue; };
+    /**
+     * Returns the slip velocity of the vmc-revolute joint.
+     * \return The slip velocity of the vmc-revolute joint.
+     */
     double SlipVelocity() const { return mSlipVelocity; };
-
+    
     /**
      * Default constructor.
      */

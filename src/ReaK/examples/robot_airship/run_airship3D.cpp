@@ -115,8 +115,12 @@ int main(int argc, char** argv) {
   /* inertial data */
   try {
     serialization::xml_iarchive in(inertia_filename);
-    in & RK_SERIAL_LOAD_WITH_ALIAS("mass",airship3D_inertia->Mass())
-       & RK_SERIAL_LOAD_WITH_ALIAS("inertia_tensor",airship3D_inertia->InertiaTensor());
+    double tmp_mass;
+    ReaK::mat<double,ReaK::mat_structure::symmetric> tmp_tensor;
+    in & RK_SERIAL_LOAD_WITH_ALIAS("mass",tmp_mass)
+       & RK_SERIAL_LOAD_WITH_ALIAS("inertia_tensor",tmp_tensor);
+    airship3D_inertia->setMass(tmp_mass);
+    airship3D_inertia->setInertiaTensor(tmp_tensor);
   } catch(...) {
     RK_ERROR("An exception occurred during the loading of the initial conditions!");
     return 2;

@@ -60,26 +60,26 @@ class force_actuator_gen : public kte_map {
   public:
     
     /**
-     * Returns a reference to the frame on which the actuator acts.
-     * \return A reference to the frame on which the actuator acts.
+     * Sets the frame on which the actuator acts.
+     * \param aPtr The new frame on which the actuator acts.
      */
-    shared_ptr< gen_coord<double> >& Frame() { return mFrame; };
+    void setFrame(const shared_ptr< gen_coord<double> >& aPtr) { mFrame = aPtr; };
     /**
-     * Returns a const-reference to the frame on which the actuator acts.
-     * \return A const-reference to the frame on which the actuator acts.
+     * Returns the frame on which the actuator acts.
+     * \return The frame on which the actuator acts.
      */
-    const shared_ptr< gen_coord<double> >& Frame() const { return mFrame; };
+    shared_ptr< gen_coord<double> > Frame() const { return mFrame; };
     
     /**
-     * Returns a reference to the joint which will react to the actuator's force.
-     * \return A reference to the joint which will react to the actuator's force.
+     * Sets the joint which will react to the actuator's force.
+     * \param aPtr The new joint which will react to the actuator's force.
      */
-   shared_ptr< reacting_kte_gen >& Joint() { return mJoint; };
+    void setJoint(const shared_ptr< reacting_kte_gen >& aPtr) { mJoint = aPtr; };
     /**
-     * Returns a const-reference to the joint which will react to the actuator's force.
-     * \return A const-reference to the joint which will react to the actuator's force.
+     * Returns the joint which will react to the actuator's force.
+     * \return The joint which will react to the actuator's force.
      */
-    const shared_ptr< reacting_kte_gen >& Joint() const { return mJoint; };
+    shared_ptr< reacting_kte_gen > Joint() const { return mJoint; };
     
      /**
      * Default constructor.
@@ -142,26 +142,26 @@ class force_actuator_2D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the frame on which the actuator acts.
-     * \return A reference to the frame on which the actuator acts.
+     * Sets the frame on which the actuator acts.
+     * \param aPtr The new frame on which the actuator acts.
      */
-    shared_ptr< frame_2D<double> >& Frame() { return mFrame; };
+    void setFrame(const shared_ptr< frame_2D<double> >& aPtr) { mFrame = aPtr; };
     /**
-     * Returns a const-reference to the frame on which the actuator acts.
-     * \return A const-reference to the frame on which the actuator acts.
+     * Returns the frame on which the actuator acts.
+     * \return The frame on which the actuator acts.
      */
-    const shared_ptr< frame_2D<double> >& Frame() const { return mFrame; };
+    shared_ptr< frame_2D<double> > Frame() const { return mFrame; };
     
     /**
-     * Returns a reference to the joint which will react to the actuator's force.
-     * \return A reference to the joint which will react to the actuator's force.
+     * Sets the joint which will react to the actuator's force.
+     * \param aPtr The new joint which will react to the actuator's force.
      */
-   shared_ptr< reacting_kte_2D >& Joint() { return mJoint; };
+    void setJoint(const shared_ptr< reacting_kte_2D >& aPtr) { mJoint = aPtr; };
     /**
-     * Returns a const-reference to the joint which will react to the actuator's force.
-     * \return A const-reference to the joint which will react to the actuator's force.
+     * Returns the joint which will react to the actuator's force.
+     * \return The joint which will react to the actuator's force.
      */
-    const shared_ptr< reacting_kte_2D >& Joint() const { return mJoint; };
+    shared_ptr< reacting_kte_2D > Joint() const { return mJoint; };
     
      /**
      * Default constructor.
@@ -223,26 +223,26 @@ class force_actuator_3D : public kte_map {
   public:
     
     /**
-     * Returns a reference to the frame on which the actuator acts.
-     * \return A reference to the frame on which the actuator acts.
+     * Sets the frame on which the actuator acts.
+     * \param aPtr The new frame on which the actuator acts.
      */
-    shared_ptr< frame_3D<double> >& Frame() { return mFrame; };
+    void setFrame(const shared_ptr< frame_3D<double> >& aPtr) { mFrame = aPtr; };
     /**
-     * Returns a const-reference to the frame on which the actuator acts.
-     * \return A const-reference to the frame on which the actuator acts.
+     * Returns the frame on which the actuator acts.
+     * \return The frame on which the actuator acts.
      */
-    const shared_ptr< frame_3D<double> >& Frame() const { return mFrame; };
+    shared_ptr< frame_3D<double> > Frame() const { return mFrame; };
     
     /**
-     * Returns a reference to the joint which will react to the actuator's force.
-     * \return A reference to the joint which will react to the actuator's force.
+     * Sets the joint which will react to the actuator's force.
+     * \param aPtr The new joint which will react to the actuator's force.
      */
-   shared_ptr< reacting_kte_3D >& Joint() { return mJoint; };
+    void setJoint(const shared_ptr< reacting_kte_3D >& aPtr) { mJoint = aPtr; };
     /**
-     * Returns a const-reference to the joint which will react to the actuator's force.
-     * \return A const-reference to the joint which will react to the actuator's force.
+     * Returns the joint which will react to the actuator's force.
+     * \return The joint which will react to the actuator's force.
      */
-    const shared_ptr< reacting_kte_3D >& Joint() const { return mJoint; };
+    shared_ptr< reacting_kte_3D > Joint() const { return mJoint; };
     
      /**
      * Default constructor.

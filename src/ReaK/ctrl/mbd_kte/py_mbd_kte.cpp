@@ -39,18 +39,18 @@
 #include "kte_system_input.hpp"       // DONE.
 #include "kte_system_output.hpp"      // DONE.
 #include "damper.hpp"                 // DONE.
-#include "driving_actuator.hpp"
+#include "driving_actuator.hpp"       // DONE.
 #include "dry_revolute_joint.hpp"     // DONE.
 #include "flexible_beam.hpp"          // DONE.
-#include "force_actuator.hpp"
+#include "force_actuator.hpp"         // DONE.
 #include "free_joints.hpp"            // DONE.
-#include "inertia.hpp"
-#include "inertial_beam.hpp"
-#include "jacobian_joint_map.hpp"
-#include "kte_ext_mappings.hpp"
+#include "inertia.hpp"                // DONE.
+#include "inertial_beam.hpp"          // DONE.
+#include "jacobian_joint_map.hpp"     // DONE.
+//#include "kte_ext_mappings.hpp"       // not needed.
 #include "line_point_mindist.hpp"     // DONE.
-#include "manipulator_model.hpp"
-#include "mass_matrix_calculator.hpp"
+#include "manipulator_model.hpp"      // DONE.
+#include "mass_matrix_calculator.hpp" // DONE.
 #include "plane_point_mindist.hpp"    // DONE.
 #include "prismatic_joint.hpp"        // DONE.
 #include "reacting_kte.hpp"           // DONE.
@@ -61,8 +61,8 @@
 #include "state_measures.hpp"         // DONE.
 #include "torsion_damper.hpp"         // DONE.
 #include "torsion_spring.hpp"         // DONE.
-#include "virtual_kte_interface.hpp"
-#include "vmc_revolute_joint.hpp"
+#include "virtual_kte_interface.hpp"  // DONE.
+#include "vmc_revolute_joint.hpp"     // DONE.
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -75,6 +75,77 @@
 
 
 namespace PyReaK {
+  
+  
+template <typename T>
+struct py_jac_joint_map {
+    typedef typename T::key_type K;
+    typedef typename T::mapped_type V;
+    static V get(T const& x, K const& i) {
+      typename T::const_iterator it = x.find(i);
+      if( it != x.end() ) 
+        return it->second;
+      PyErr_SetString(PyExc_KeyError, "Key not found");
+      return V();
+    };
+    static void set(T& x, K const& i, V const& v) {
+      x[i] = v; // use map autocreation feature
+    };
+    static void del(T& x, K const& i) {
+      if( x.find(i) != x.end() ) 
+        x.erase(i);
+      else 
+        PyErr_SetString(PyExc_KeyError, "Key not found");
+    };
+};
+
+template <typename FrameType, const std::vector< ReaK::shared_ptr< FrameType > >& (ReaK::kte::mass_matrix_calc::*MemFuncPtr)() const>
+struct py_mmc_frame_vector {
+  const ReaK::kte::mass_matrix_calc* mmc;
+  
+  py_mmc_frame_vector(const ReaK::kte::mass_matrix_calc* aMMC) : mmc(aMMC) { };
+  
+  static py_mmc_frame_vector create(const ReaK::kte::mass_matrix_calc& x) { return py_mmc_frame_vector(&x); };
+  
+  std::size_t size() const {
+    return (mmc->*MemFuncPtr)().size();
+  };
+  
+  ReaK::shared_ptr< FrameType > get(std::size_t i) const {
+    return (mmc->*MemFuncPtr)()[i];
+  };
+};
+
+
+ReaK::vect_n<double> py_dyn_mdl_compute_output(ReaK::kte::manipulator_dynamics_model& aMdl, double aTime, const ReaK::vect_n<double>& aState) {
+  ReaK::vect_n<double> aOutput;
+  aMdl.computeOutput(aTime, aState, aOutput);
+  return aOutput;
+};
+
+ReaK::vect_n<double> py_dyn_mdl_compute_state_rate(ReaK::kte::manipulator_dynamics_model& aMdl, double aTime, const ReaK::vect_n<double>& aState) {
+  ReaK::vect_n<double> aStateRate;
+  aMdl.computeStateRate(aTime, aState, aStateRate);
+  return aStateRate;
+};
+
+
+template <typename FrameType, const std::vector< ReaK::shared_ptr< FrameType > >& (ReaK::kte::manipulator_kinematics_model::*MemFuncPtr)() const>
+struct py_mdl_frame_vector {
+  const ReaK::kte::manipulator_kinematics_model* kin_mdl;
+  
+  py_mdl_frame_vector(const ReaK::kte::manipulator_kinematics_model* aKinMdl) : kin_mdl(aKinMdl) { };
+  
+  static py_mdl_frame_vector create(const ReaK::kte::manipulator_kinematics_model& x) { return py_mdl_frame_vector(&x); };
+  
+  std::size_t size() const {
+    return (kin_mdl->*MemFuncPtr)().size();
+  };
+  
+  ReaK::shared_ptr< FrameType > get(std::size_t i) const {
+    return (kin_mdl->*MemFuncPtr)()[i];
+  };
+};
 
 
 void export_mbd_kte() {
@@ -995,6 +1066,518 @@ void export_mbd_kte() {
     .add_property("ang_velocity_measure", &ReaK::kte::ang_velocity_measure_3D::AngVelMeasure, &ReaK::kte::ang_velocity_measure_3D::setAngVelMeasure);
   
   
+  class_<ReaK::kte::jacobian_joint_map_gen>("JacJointMapGen")
+    .def("__len__", &ReaK::kte::jacobian_joint_map_gen::size)
+    .def("clear", &ReaK::kte::jacobian_joint_map_gen::clear)
+    .def("__getitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint_map_gen>::get)
+    .def("__setitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint_map_gen>::set,
+          with_custodian_and_ward<1,2>()) // to let container keep value
+    .def("__delitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint_map_gen>::del);
+  
+  class_<ReaK::kte::jacobian_joint_map_2D>("JacJointMap2D")
+    .def("__len__", &ReaK::kte::jacobian_joint_map_2D::size)
+    .def("clear", &ReaK::kte::jacobian_joint_map_2D::clear)
+    .def("__getitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint_map_2D>::get)
+    .def("__setitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint_map_2D>::set,
+          with_custodian_and_ward<1,2>()) // to let container keep value
+    .def("__delitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint_map_2D>::del);
+  
+  class_<ReaK::kte::jacobian_joint_map_3D>("JacJointMap3D")
+    .def("__len__", &ReaK::kte::jacobian_joint_map_3D::size)
+    .def("clear", &ReaK::kte::jacobian_joint_map_3D::clear)
+    .def("__getitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint_map_3D>::get)
+    .def("__setitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint_map_3D>::set,
+          with_custodian_and_ward<1,2>()) // to let container keep value
+    .def("__delitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint_map_3D>::del);
+  
+  class_<ReaK::kte::jacobian_joint2D_map_gen>("JacJoint2DMapGen")
+    .def("__len__", &ReaK::kte::jacobian_joint2D_map_gen::size)
+    .def("clear", &ReaK::kte::jacobian_joint2D_map_gen::clear)
+    .def("__getitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint2D_map_gen>::get)
+    .def("__setitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint2D_map_gen>::set,
+          with_custodian_and_ward<1,2>()) // to let container keep value
+    .def("__delitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint2D_map_gen>::del);
+  
+  class_<ReaK::kte::jacobian_joint2D_map_2D>("JacJoint2DMap2D")
+    .def("__len__", &ReaK::kte::jacobian_joint2D_map_2D::size)
+    .def("clear", &ReaK::kte::jacobian_joint2D_map_2D::clear)
+    .def("__getitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint2D_map_2D>::get)
+    .def("__setitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint2D_map_2D>::set,
+          with_custodian_and_ward<1,2>()) // to let container keep value
+    .def("__delitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint2D_map_2D>::del);
+  
+  class_<ReaK::kte::jacobian_joint2D_map_3D>("JacJoint2DMap3D")
+    .def("__len__", &ReaK::kte::jacobian_joint2D_map_3D::size)
+    .def("clear", &ReaK::kte::jacobian_joint2D_map_3D::clear)
+    .def("__getitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint2D_map_3D>::get)
+    .def("__setitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint2D_map_3D>::set,
+          with_custodian_and_ward<1,2>()) // to let container keep value
+    .def("__delitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint2D_map_3D>::del);
+  
+  class_<ReaK::kte::jacobian_joint3D_map_gen>("JacJoint3DMapGen")
+    .def("__len__", &ReaK::kte::jacobian_joint3D_map_gen::size)
+    .def("clear", &ReaK::kte::jacobian_joint3D_map_gen::clear)
+    .def("__getitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint3D_map_gen>::get)
+    .def("__setitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint3D_map_gen>::set,
+          with_custodian_and_ward<1,2>()) // to let container keep value
+    .def("__delitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint3D_map_gen>::del);
+  
+  class_<ReaK::kte::jacobian_joint3D_map_2D>("JacJoint3DMap2D")
+    .def("__len__", &ReaK::kte::jacobian_joint3D_map_2D::size)
+    .def("clear", &ReaK::kte::jacobian_joint3D_map_2D::clear)
+    .def("__getitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint3D_map_2D>::get)
+    .def("__setitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint3D_map_2D>::set,
+          with_custodian_and_ward<1,2>()) // to let container keep value
+    .def("__delitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint3D_map_2D>::del);
+  
+  class_<ReaK::kte::jacobian_joint3D_map_3D>("JacJoint3DMap3D")
+    .def("__len__", &ReaK::kte::jacobian_joint3D_map_3D::size)
+    .def("clear", &ReaK::kte::jacobian_joint3D_map_3D::clear)
+    .def("__getitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint3D_map_3D>::get)
+    .def("__setitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint3D_map_3D>::set,
+          with_custodian_and_ward<1,2>()) // to let container keep value
+    .def("__delitem__", &py_jac_joint_map<ReaK::kte::jacobian_joint3D_map_3D>::del);
+  
+  class_< ReaK::kte::joint_dependent_gen_coord,
+          bases< ReaK::shared_object >,
+          ReaK::shared_ptr< ReaK::kte::joint_dependent_gen_coord >
+        >("JointDependentGenCoord")
+    .def(init<ReaK::shared_ptr< ReaK::gen_coord<double> >,
+              const ReaK::kte::jacobian_joint_map_gen& >())
+    .def(init<ReaK::shared_ptr< ReaK::gen_coord<double> >,
+              const ReaK::kte::jacobian_joint_map_gen&,
+              const ReaK::kte::jacobian_joint2D_map_gen& >())
+    .def(init<ReaK::shared_ptr< ReaK::gen_coord<double> >,
+              const ReaK::kte::jacobian_joint_map_gen&,
+              const ReaK::kte::jacobian_joint2D_map_gen&,
+              const ReaK::kte::jacobian_joint3D_map_gen& >())
+    .def_readwrite("frame", &ReaK::kte::joint_dependent_gen_coord::mFrame)
+    .def_readwrite("upstream_joints", &ReaK::kte::joint_dependent_gen_coord::mUpStreamJoints)
+    .def_readwrite("upstream_2Djoints", &ReaK::kte::joint_dependent_gen_coord::mUpStream2DJoints)
+    .def_readwrite("upstream_3Djoints", &ReaK::kte::joint_dependent_gen_coord::mUpStream3DJoints)
+    .def("add_joint", static_cast<ReaK::kte::joint_dependent_gen_coord& (ReaK::kte::joint_dependent_gen_coord::*)(const ReaK::shared_ptr< ReaK::gen_coord<double> >&, const ReaK::shared_ptr< ReaK::jacobian_gen_gen<double> >&)>(&ReaK::kte::joint_dependent_gen_coord::add_joint), return_internal_reference<>())
+    .def("add_2Djoint", static_cast<ReaK::kte::joint_dependent_gen_coord& (ReaK::kte::joint_dependent_gen_coord::*)(const ReaK::shared_ptr< ReaK::frame_2D<double> >&, const ReaK::shared_ptr< ReaK::jacobian_2D_gen<double> >&)>(&ReaK::kte::joint_dependent_gen_coord::add_joint), return_internal_reference<>())
+    .def("add_3Djoint", static_cast<ReaK::kte::joint_dependent_gen_coord& (ReaK::kte::joint_dependent_gen_coord::*)(const ReaK::shared_ptr< ReaK::frame_3D<double> >&, const ReaK::shared_ptr< ReaK::jacobian_3D_gen<double> >&)>(&ReaK::kte::joint_dependent_gen_coord::add_joint), return_internal_reference<>())
+    .def("remove_joint", static_cast<ReaK::kte::joint_dependent_gen_coord& (ReaK::kte::joint_dependent_gen_coord::*)(const ReaK::shared_ptr< ReaK::gen_coord<double> >&)>(&ReaK::kte::joint_dependent_gen_coord::remove_joint), return_internal_reference<>())
+    .def("remove_2Djoint", static_cast<ReaK::kte::joint_dependent_gen_coord& (ReaK::kte::joint_dependent_gen_coord::*)(const ReaK::shared_ptr< ReaK::frame_2D<double> >&)>(&ReaK::kte::joint_dependent_gen_coord::remove_joint), return_internal_reference<>())
+    .def("remove_3Djoint", static_cast<ReaK::kte::joint_dependent_gen_coord& (ReaK::kte::joint_dependent_gen_coord::*)(const ReaK::shared_ptr< ReaK::frame_3D<double> >&)>(&ReaK::kte::joint_dependent_gen_coord::remove_joint), return_internal_reference<>())
+    ;
+  
+  class_< ReaK::kte::joint_dependent_frame_2D,
+          bases< ReaK::shared_object >,
+          ReaK::shared_ptr< ReaK::kte::joint_dependent_frame_2D >
+        >("JointDependentFrame2D")
+    .def(init<ReaK::shared_ptr< ReaK::frame_2D<double> >,
+              const ReaK::kte::jacobian_joint_map_2D& >())
+    .def(init<ReaK::shared_ptr< ReaK::frame_2D<double> >,
+              const ReaK::kte::jacobian_joint_map_2D&,
+              const ReaK::kte::jacobian_joint2D_map_2D& >())
+    .def(init<ReaK::shared_ptr< ReaK::frame_2D<double> >,
+              const ReaK::kte::jacobian_joint_map_2D&,
+              const ReaK::kte::jacobian_joint2D_map_2D&,
+              const ReaK::kte::jacobian_joint3D_map_2D& >())
+    .def_readwrite("frame", &ReaK::kte::joint_dependent_frame_2D::mFrame)
+    .def_readwrite("upstream_joints", &ReaK::kte::joint_dependent_frame_2D::mUpStreamJoints)
+    .def_readwrite("upstream_2Djoints", &ReaK::kte::joint_dependent_frame_2D::mUpStream2DJoints)
+    .def_readwrite("upstream_3Djoints", &ReaK::kte::joint_dependent_frame_2D::mUpStream3DJoints)
+    .def("add_joint", static_cast<ReaK::kte::joint_dependent_frame_2D& (ReaK::kte::joint_dependent_frame_2D::*)(const ReaK::shared_ptr< ReaK::gen_coord<double> >&, const ReaK::shared_ptr< ReaK::jacobian_gen_2D<double> >&)>(&ReaK::kte::joint_dependent_frame_2D::add_joint), return_internal_reference<>())
+    .def("add_2Djoint", static_cast<ReaK::kte::joint_dependent_frame_2D& (ReaK::kte::joint_dependent_frame_2D::*)(const ReaK::shared_ptr< ReaK::frame_2D<double> >&, const ReaK::shared_ptr< ReaK::jacobian_2D_2D<double> >&)>(&ReaK::kte::joint_dependent_frame_2D::add_joint), return_internal_reference<>())
+    .def("add_3Djoint", static_cast<ReaK::kte::joint_dependent_frame_2D& (ReaK::kte::joint_dependent_frame_2D::*)(const ReaK::shared_ptr< ReaK::frame_3D<double> >&, const ReaK::shared_ptr< ReaK::jacobian_3D_2D<double> >&)>(&ReaK::kte::joint_dependent_frame_2D::add_joint), return_internal_reference<>())
+    .def("remove_joint", static_cast<ReaK::kte::joint_dependent_frame_2D& (ReaK::kte::joint_dependent_frame_2D::*)(const ReaK::shared_ptr< ReaK::gen_coord<double> >&)>(&ReaK::kte::joint_dependent_frame_2D::remove_joint), return_internal_reference<>())
+    .def("remove_2Djoint", static_cast<ReaK::kte::joint_dependent_frame_2D& (ReaK::kte::joint_dependent_frame_2D::*)(const ReaK::shared_ptr< ReaK::frame_2D<double> >&)>(&ReaK::kte::joint_dependent_frame_2D::remove_joint), return_internal_reference<>())
+    .def("remove_3Djoint", static_cast<ReaK::kte::joint_dependent_frame_2D& (ReaK::kte::joint_dependent_frame_2D::*)(const ReaK::shared_ptr< ReaK::frame_3D<double> >&)>(&ReaK::kte::joint_dependent_frame_2D::remove_joint), return_internal_reference<>())
+    ;
+  
+  class_< ReaK::kte::joint_dependent_frame_3D,
+          bases< ReaK::shared_object >,
+          ReaK::shared_ptr< ReaK::kte::joint_dependent_frame_3D >
+        >("JointDependentFrame3D")
+    .def(init<ReaK::shared_ptr< ReaK::frame_3D<double> >,
+              const ReaK::kte::jacobian_joint_map_3D& >())
+    .def(init<ReaK::shared_ptr< ReaK::frame_3D<double> >,
+              const ReaK::kte::jacobian_joint_map_3D&,
+              const ReaK::kte::jacobian_joint2D_map_3D& >())
+    .def(init<ReaK::shared_ptr< ReaK::frame_3D<double> >,
+              const ReaK::kte::jacobian_joint_map_3D&,
+              const ReaK::kte::jacobian_joint2D_map_3D&,
+              const ReaK::kte::jacobian_joint3D_map_3D& >())
+    .def_readwrite("frame", &ReaK::kte::joint_dependent_frame_3D::mFrame)
+    .def_readwrite("upstream_joints", &ReaK::kte::joint_dependent_frame_3D::mUpStreamJoints)
+    .def_readwrite("upstream_2Djoints", &ReaK::kte::joint_dependent_frame_3D::mUpStream2DJoints)
+    .def_readwrite("upstream_3Djoints", &ReaK::kte::joint_dependent_frame_3D::mUpStream3DJoints)
+    .def("add_joint", static_cast<ReaK::kte::joint_dependent_frame_3D& (ReaK::kte::joint_dependent_frame_3D::*)(const ReaK::shared_ptr< ReaK::gen_coord<double> >&, const ReaK::shared_ptr< ReaK::jacobian_gen_3D<double> >&)>(&ReaK::kte::joint_dependent_frame_3D::add_joint), return_internal_reference<>())
+    .def("add_2Djoint", static_cast<ReaK::kte::joint_dependent_frame_3D& (ReaK::kte::joint_dependent_frame_3D::*)(const ReaK::shared_ptr< ReaK::frame_2D<double> >&, const ReaK::shared_ptr< ReaK::jacobian_2D_3D<double> >&)>(&ReaK::kte::joint_dependent_frame_3D::add_joint), return_internal_reference<>())
+    .def("add_3Djoint", static_cast<ReaK::kte::joint_dependent_frame_3D& (ReaK::kte::joint_dependent_frame_3D::*)(const ReaK::shared_ptr< ReaK::frame_3D<double> >&, const ReaK::shared_ptr< ReaK::jacobian_3D_3D<double> >&)>(&ReaK::kte::joint_dependent_frame_3D::add_joint), return_internal_reference<>())
+    .def("remove_joint", static_cast<ReaK::kte::joint_dependent_frame_3D& (ReaK::kte::joint_dependent_frame_3D::*)(const ReaK::shared_ptr< ReaK::gen_coord<double> >&)>(&ReaK::kte::joint_dependent_frame_3D::remove_joint), return_internal_reference<>())
+    .def("remove_2Djoint", static_cast<ReaK::kte::joint_dependent_frame_3D& (ReaK::kte::joint_dependent_frame_3D::*)(const ReaK::shared_ptr< ReaK::frame_2D<double> >&)>(&ReaK::kte::joint_dependent_frame_3D::remove_joint), return_internal_reference<>())
+    .def("remove_3Djoint", static_cast<ReaK::kte::joint_dependent_frame_3D& (ReaK::kte::joint_dependent_frame_3D::*)(const ReaK::shared_ptr< ReaK::frame_3D<double> >&)>(&ReaK::kte::joint_dependent_frame_3D::remove_joint), return_internal_reference<>())
+    ;
+  
+    
+    
+  class_< ReaK::kte::inertia_gen,
+          boost::noncopyable,
+          bases< ReaK::kte::kte_map >,
+          ReaK::shared_ptr< ReaK::kte::inertia_gen >
+        >("KTEInertiaGen")
+    .def(init<std::string>())
+    .def(init<std::string, ReaK::shared_ptr< ReaK::kte::joint_dependent_gen_coord >, double >())
+    .def("do_motion",   &ReaK::kte::inertia_gen::doMotion)
+    .def("do_force",    &ReaK::kte::inertia_gen::doForce)
+    .def("clear_force", &ReaK::kte::inertia_gen::clearForce)
+    .add_property("mass", &ReaK::kte::inertia_gen::Mass, &ReaK::kte::inertia_gen::setMass)
+    .add_property("center_of_mass", &ReaK::kte::inertia_gen::CenterOfMass, &ReaK::kte::inertia_gen::setCenterOfMass);
+  
+  class_< ReaK::kte::inertia_2D,
+          boost::noncopyable,
+          bases< ReaK::kte::kte_map >,
+          ReaK::shared_ptr< ReaK::kte::inertia_2D >
+        >("KTEInertia2D")
+    .def(init<std::string>())
+    .def(init<std::string, ReaK::shared_ptr< ReaK::kte::joint_dependent_frame_2D >, double, double >())
+    .def("do_motion",   &ReaK::kte::inertia_2D::doMotion)
+    .def("do_force",    &ReaK::kte::inertia_2D::doForce)
+    .def("clear_force", &ReaK::kte::inertia_2D::clearForce)
+    .add_property("mass", &ReaK::kte::inertia_2D::Mass, &ReaK::kte::inertia_2D::setMass)
+    .add_property("moment_of_inertia", &ReaK::kte::inertia_2D::MomentOfInertia, &ReaK::kte::inertia_2D::setMomentOfInertia)
+    .add_property("center_of_mass", &ReaK::kte::inertia_2D::CenterOfMass, &ReaK::kte::inertia_2D::setCenterOfMass);
+  
+  class_< ReaK::kte::inertia_3D,
+          boost::noncopyable,
+          bases< ReaK::kte::kte_map >,
+          ReaK::shared_ptr< ReaK::kte::inertia_3D >
+        >("KTEInertia3D")
+    .def(init<std::string>())
+    .def(init<std::string, ReaK::shared_ptr< ReaK::kte::joint_dependent_frame_3D >, double, const ReaK::mat<double,ReaK::mat_structure::symmetric>& >())
+    .def("do_motion",   &ReaK::kte::inertia_3D::doMotion)
+    .def("do_force",    &ReaK::kte::inertia_3D::doForce)
+    .def("clear_force", &ReaK::kte::inertia_3D::clearForce)
+    .add_property("mass", &ReaK::kte::inertia_3D::Mass, &ReaK::kte::inertia_3D::setMass)
+    .add_property("inertia_tensor", &ReaK::kte::inertia_3D::InertiaTensor, &ReaK::kte::inertia_3D::setInertiaTensor)
+    .add_property("center_of_mass", &ReaK::kte::inertia_3D::CenterOfMass, &ReaK::kte::inertia_3D::setCenterOfMass);
+  
+  
+  class_< ReaK::kte::force_actuator_gen,
+          boost::noncopyable,
+          bases< ReaK::kte::kte_map >,
+          ReaK::shared_ptr< ReaK::kte::force_actuator_gen >
+        >("KTEForceActuatorGen")
+    .def(init<std::string>())
+    .def(init<std::string, ReaK::shared_ptr< ReaK::gen_coord<double> >, ReaK::shared_ptr< ReaK::kte::reacting_kte_gen > >())
+    .def("do_motion",   &ReaK::kte::force_actuator_gen::doMotion)
+    .def("do_force",    &ReaK::kte::force_actuator_gen::doForce)
+    .def("clear_force", &ReaK::kte::force_actuator_gen::clearForce)
+    .add_property("frame", &ReaK::kte::force_actuator_gen::Frame, &ReaK::kte::force_actuator_gen::setFrame)
+    .add_property("joint", &ReaK::kte::force_actuator_gen::Joint, &ReaK::kte::force_actuator_gen::setJoint);
+  
+  class_< ReaK::kte::force_actuator_2D,
+          boost::noncopyable,
+          bases< ReaK::kte::kte_map >,
+          ReaK::shared_ptr< ReaK::kte::force_actuator_2D >
+        >("KTEForceActuator2D")
+    .def(init<std::string>())
+    .def(init<std::string, ReaK::shared_ptr< ReaK::frame_2D<double> >, ReaK::shared_ptr< ReaK::kte::reacting_kte_2D > >())
+    .def("do_motion",   &ReaK::kte::force_actuator_2D::doMotion)
+    .def("do_force",    &ReaK::kte::force_actuator_2D::doForce)
+    .def("clear_force", &ReaK::kte::force_actuator_2D::clearForce)
+    .add_property("frame", &ReaK::kte::force_actuator_2D::Frame, &ReaK::kte::force_actuator_2D::setFrame)
+    .add_property("joint", &ReaK::kte::force_actuator_2D::Joint, &ReaK::kte::force_actuator_2D::setJoint);
+  
+  class_< ReaK::kte::force_actuator_3D,
+          boost::noncopyable,
+          bases< ReaK::kte::kte_map >,
+          ReaK::shared_ptr< ReaK::kte::force_actuator_3D >
+        >("KTEForceActuator3D")
+    .def(init<std::string>())
+    .def(init<std::string, ReaK::shared_ptr< ReaK::frame_3D<double> >, ReaK::shared_ptr< ReaK::kte::reacting_kte_3D > >())
+    .def("do_motion",   &ReaK::kte::force_actuator_3D::doMotion)
+    .def("do_force",    &ReaK::kte::force_actuator_3D::doForce)
+    .def("clear_force", &ReaK::kte::force_actuator_3D::clearForce)
+    .add_property("frame", &ReaK::kte::force_actuator_3D::Frame, &ReaK::kte::force_actuator_3D::setFrame)
+    .add_property("joint", &ReaK::kte::force_actuator_3D::Joint, &ReaK::kte::force_actuator_3D::setJoint);
+  
+  
+  class_< ReaK::kte::driving_actuator_gen,
+          boost::noncopyable,
+          bases< ReaK::kte::force_actuator_gen, ReaK::kte::system_input >,
+          ReaK::shared_ptr< ReaK::kte::driving_actuator_gen >
+        >("KTEDrivingActuatorGen")
+    .def(init<std::string>())
+    .def(init<std::string, ReaK::shared_ptr< ReaK::gen_coord<double> >, ReaK::shared_ptr< ReaK::kte::reacting_kte_gen > >())
+    .def("do_motion",   &ReaK::kte::driving_actuator_gen::doMotion)
+    .def("do_force",    &ReaK::kte::driving_actuator_gen::doForce)
+    .def("clear_force", &ReaK::kte::driving_actuator_gen::clearForce)
+    .def("get_input_count",   &ReaK::kte::driving_actuator_gen::getInputCount)
+    .def("get_input", &ReaK::kte::driving_actuator_gen::getInput)
+    .def("set_input", &ReaK::kte::driving_actuator_gen::setInput)
+    .add_property("drive_force", &ReaK::kte::driving_actuator_gen::DriveForce, &ReaK::kte::driving_actuator_gen::setDriveForce);
+  
+  class_< ReaK::kte::driving_actuator_2D,
+          boost::noncopyable,
+          bases< ReaK::kte::force_actuator_2D, ReaK::kte::system_input >,
+          ReaK::shared_ptr< ReaK::kte::driving_actuator_2D >
+        >("KTEDrivingActuator2D")
+    .def(init<std::string>())
+    .def(init<std::string, ReaK::shared_ptr< ReaK::frame_2D<double> >, ReaK::shared_ptr< ReaK::kte::reacting_kte_2D > >())
+    .def("do_motion",   &ReaK::kte::driving_actuator_2D::doMotion)
+    .def("do_force",    &ReaK::kte::driving_actuator_2D::doForce)
+    .def("clear_force", &ReaK::kte::driving_actuator_2D::clearForce)
+    .def("get_input_count",   &ReaK::kte::driving_actuator_2D::getInputCount)
+    .def("get_input", &ReaK::kte::driving_actuator_2D::getInput)
+    .def("set_input", &ReaK::kte::driving_actuator_2D::setInput)
+    .add_property("drive_force", &ReaK::kte::driving_actuator_2D::DriveForce, &ReaK::kte::driving_actuator_2D::setDriveForce)
+    .add_property("drive_torque", &ReaK::kte::driving_actuator_2D::DriveTorque, &ReaK::kte::driving_actuator_2D::setDriveTorque);
+  
+  class_< ReaK::kte::driving_actuator_3D,
+          boost::noncopyable,
+          bases< ReaK::kte::force_actuator_3D, ReaK::kte::system_input >,
+          ReaK::shared_ptr< ReaK::kte::driving_actuator_3D >
+        >("KTEDrivingActuator3D")
+    .def(init<std::string>())
+    .def(init<std::string, ReaK::shared_ptr< ReaK::frame_3D<double> >, ReaK::shared_ptr< ReaK::kte::reacting_kte_3D > >())
+    .def("do_motion",   &ReaK::kte::driving_actuator_3D::doMotion)
+    .def("do_force",    &ReaK::kte::driving_actuator_3D::doForce)
+    .def("clear_force", &ReaK::kte::driving_actuator_3D::clearForce)
+    .def("get_input_count",   &ReaK::kte::driving_actuator_3D::getInputCount)
+    .def("get_input", &ReaK::kte::driving_actuator_3D::getInput)
+    .def("set_input", &ReaK::kte::driving_actuator_3D::setInput)
+    .add_property("drive_force", &ReaK::kte::driving_actuator_3D::DriveForce, &ReaK::kte::driving_actuator_3D::setDriveForce)
+    .add_property("drive_torque", &ReaK::kte::driving_actuator_3D::DriveTorque, &ReaK::kte::driving_actuator_3D::setDriveTorque);
+  
+  
+    
+  class_< ReaK::kte::inertial_beam_2D,
+          boost::noncopyable,
+          bases< ReaK::kte::kte_map >,
+          ReaK::shared_ptr< ReaK::kte::inertial_beam_2D>
+        >("KTEInertialBeam2D")
+    .def(init<std::string>())
+    .def(init<std::string, 
+              ReaK::shared_ptr< ReaK::frame_2D<double> >, 
+              ReaK::shared_ptr< ReaK::frame_2D<double> >, 
+              double>())
+    .def("do_motion",   &ReaK::kte::inertial_beam_2D::doMotion)
+    .def("do_force",    &ReaK::kte::inertial_beam_2D::doForce)
+    .def("clear_force", &ReaK::kte::inertial_beam_2D::clearForce)
+    .add_property("anchor1", &ReaK::kte::inertial_beam_2D::Anchor1, &ReaK::kte::inertial_beam_2D::setAnchor1)
+    .add_property("anchor2", &ReaK::kte::inertial_beam_2D::Anchor2, &ReaK::kte::inertial_beam_2D::setAnchor2)
+    .add_property("mass", &ReaK::kte::inertial_beam_2D::Mass, &ReaK::kte::inertial_beam_2D::setMass);
+  
+  class_< ReaK::kte::inertial_beam_3D,
+          boost::noncopyable,
+          bases< ReaK::kte::kte_map >,
+          ReaK::shared_ptr< ReaK::kte::inertial_beam_3D >
+        >("KTEInertialBeam3D")
+    .def(init<std::string>())
+    .def(init<std::string,
+              ReaK::shared_ptr< ReaK::frame_3D<double> >, 
+              ReaK::shared_ptr< ReaK::frame_3D<double> >, 
+              double>())
+    .def("do_motion",   &ReaK::kte::inertial_beam_3D::doMotion)
+    .def("do_force",    &ReaK::kte::inertial_beam_3D::doForce)
+    .def("clear_force", &ReaK::kte::inertial_beam_3D::clearForce)
+    .add_property("anchor1", &ReaK::kte::inertial_beam_3D::Anchor1, &ReaK::kte::inertial_beam_3D::setAnchor1)
+    .add_property("anchor2", &ReaK::kte::inertial_beam_3D::Anchor2, &ReaK::kte::inertial_beam_3D::setAnchor2)
+    .add_property("mass", &ReaK::kte::inertial_beam_3D::Mass, &ReaK::kte::inertial_beam_3D::setMass);
+    
+    
+  class_< ReaK::kte::virtual_kte_interface_gen,
+          boost::noncopyable,
+          bases< ReaK::kte::kte_map >,
+          ReaK::shared_ptr< ReaK::kte::virtual_kte_interface_gen>
+        >("KTEVirtualInterfaceGen")
+    .def(init<std::string>())
+    .def(init<std::string,
+              ReaK::shared_ptr< ReaK::gen_coord<double> >,
+              ReaK::shared_ptr< ReaK::gen_coord<double> > >())
+    .def("do_motion",   &ReaK::kte::virtual_kte_interface_gen::doMotion)
+    .def("do_force",    &ReaK::kte::virtual_kte_interface_gen::doForce)
+    .def("clear_force", &ReaK::kte::virtual_kte_interface_gen::clearForce)
+    .add_property("base_frame", &ReaK::kte::virtual_kte_interface_gen::BaseFrame, &ReaK::kte::virtual_kte_interface_gen::setBaseFrame)
+    .add_property("end_frame", &ReaK::kte::virtual_kte_interface_gen::EndFrame, &ReaK::kte::virtual_kte_interface_gen::setEndFrame);
+  
+  class_< ReaK::kte::virtual_kte_interface_2D,
+          boost::noncopyable,
+          bases< ReaK::kte::kte_map >,
+          ReaK::shared_ptr< ReaK::kte::virtual_kte_interface_2D>
+        >("KTEVirtualInterface2D")
+    .def(init<std::string>())
+    .def(init<std::string,
+              ReaK::shared_ptr< ReaK::frame_2D<double> >,
+              ReaK::shared_ptr< ReaK::frame_2D<double> > >())
+    .def("do_motion",   &ReaK::kte::virtual_kte_interface_2D::doMotion)
+    .def("do_force",    &ReaK::kte::virtual_kte_interface_2D::doForce)
+    .def("clear_force", &ReaK::kte::virtual_kte_interface_2D::clearForce)
+    .add_property("base_frame", &ReaK::kte::virtual_kte_interface_2D::BaseFrame, &ReaK::kte::virtual_kte_interface_2D::setBaseFrame)
+    .add_property("end_frame", &ReaK::kte::virtual_kte_interface_2D::EndFrame, &ReaK::kte::virtual_kte_interface_2D::setEndFrame);
+  
+  class_< ReaK::kte::virtual_kte_interface_3D,
+          boost::noncopyable,
+          bases< ReaK::kte::kte_map >,
+          ReaK::shared_ptr< ReaK::kte::virtual_kte_interface_3D >
+        >("KTEVirtualInterface3D")
+    .def(init<std::string>())
+    .def(init<std::string,
+              ReaK::shared_ptr< ReaK::frame_3D<double> >,
+              ReaK::shared_ptr< ReaK::frame_3D<double> > >())
+    .def("do_motion",   &ReaK::kte::virtual_kte_interface_3D::doMotion)
+    .def("do_force",    &ReaK::kte::virtual_kte_interface_3D::doForce)
+    .def("clear_force", &ReaK::kte::virtual_kte_interface_3D::clearForce)
+    .add_property("base_frame", &ReaK::kte::virtual_kte_interface_3D::BaseFrame, &ReaK::kte::virtual_kte_interface_3D::setBaseFrame)
+    .add_property("end_frame", &ReaK::kte::virtual_kte_interface_3D::EndFrame, &ReaK::kte::virtual_kte_interface_3D::setEndFrame);
+    
+    
+  
+  class_< ReaK::kte::vmc_revolute_joint_2D,
+          boost::noncopyable,
+          bases< ReaK::kte::revolute_joint_2D >,
+          ReaK::shared_ptr< ReaK::kte::vmc_revolute_joint_2D>
+        >("KTEVMCRevoluteJoint2D")
+    .def(init<std::string>())
+    .def(init<std::string,
+              ReaK::shared_ptr< ReaK::gen_coord<double> >,
+              ReaK::shared_ptr< ReaK::frame_2D<double> >,
+              ReaK::shared_ptr< ReaK::frame_2D<double> >,
+              ReaK::shared_ptr< ReaK::jacobian_gen_2D<double> >,
+              double, double, double >())
+    .def("do_motion",   &ReaK::kte::vmc_revolute_joint_2D::doMotion)
+    .def("do_force",    &ReaK::kte::vmc_revolute_joint_2D::doForce)
+    .def("clear_force", &ReaK::kte::vmc_revolute_joint_2D::clearForce)
+    .def("apply_reaction_force", &ReaK::kte::vmc_revolute_joint_2D::applyReactionForce)
+    .add_property("stiction_coef", &ReaK::kte::vmc_revolute_joint_2D::StictionCoefficient, &ReaK::kte::vmc_revolute_joint_2D::setStictionCoefficient)
+    .add_property("slip_coef", &ReaK::kte::vmc_revolute_joint_2D::SlipCoefficient, &ReaK::kte::vmc_revolute_joint_2D::setSlipCoefficient)
+    .add_property("slip_velocity", &ReaK::kte::vmc_revolute_joint_2D::SlipVelocity, &ReaK::kte::vmc_revolute_joint_2D::setSlipVelocity);
+  
+  class_< ReaK::kte::vmc_revolute_joint_3D,
+          boost::noncopyable,
+          bases< ReaK::kte::revolute_joint_3D >,
+          ReaK::shared_ptr< ReaK::kte::vmc_revolute_joint_3D >
+        >("KTEVMCRevoluteJoint3D")
+    .def(init<std::string>())
+    .def(init<std::string,
+              ReaK::shared_ptr< ReaK::gen_coord<double> >,
+              ReaK::vect<double,3>,
+              ReaK::shared_ptr< ReaK::frame_3D<double> >,
+              ReaK::shared_ptr< ReaK::frame_3D<double> >,
+              ReaK::shared_ptr< ReaK::jacobian_gen_3D<double> >,
+              double, double, double >())
+    .def("do_motion",   &ReaK::kte::vmc_revolute_joint_3D::doMotion)
+    .def("do_force",    &ReaK::kte::vmc_revolute_joint_3D::doForce)
+    .def("clear_force", &ReaK::kte::vmc_revolute_joint_3D::clearForce)
+    .def("apply_reaction_force", &ReaK::kte::vmc_revolute_joint_3D::applyReactionForce)
+    .add_property("stiction_coef", &ReaK::kte::vmc_revolute_joint_3D::StictionCoefficient, &ReaK::kte::vmc_revolute_joint_3D::setStictionCoefficient)
+    .add_property("slip_coef", &ReaK::kte::vmc_revolute_joint_3D::SlipCoefficient, &ReaK::kte::vmc_revolute_joint_3D::setSlipCoefficient)
+    .add_property("slip_velocity", &ReaK::kte::vmc_revolute_joint_3D::SlipVelocity, &ReaK::kte::vmc_revolute_joint_3D::setSlipVelocity);
+   
+    
+    
+    
+  class_< py_mmc_frame_vector< ReaK::gen_coord<double>, &ReaK::kte::mass_matrix_calc::Coords > >("MMCGenCoordVector", no_init)
+    .def("__len__", &py_mmc_frame_vector< ReaK::gen_coord<double>, &ReaK::kte::mass_matrix_calc::Coords >::size)
+    .def("__getitem__", &py_mmc_frame_vector< ReaK::gen_coord<double>, &ReaK::kte::mass_matrix_calc::Coords >::get);
+  
+  class_< py_mmc_frame_vector< ReaK::frame_2D<double>, &ReaK::kte::mass_matrix_calc::Frames2D > >("MMCFrame2DVector", no_init)
+    .def("__len__", &py_mmc_frame_vector< ReaK::frame_2D<double>, &ReaK::kte::mass_matrix_calc::Frames2D >::size)
+    .def("__getitem__", &py_mmc_frame_vector< ReaK::frame_2D<double>, &ReaK::kte::mass_matrix_calc::Frames2D >::get);
+  
+  class_< py_mmc_frame_vector< ReaK::frame_3D<double>, &ReaK::kte::mass_matrix_calc::Frames3D > >("MMCFrame3DVector", no_init)
+    .def("__len__", &py_mmc_frame_vector< ReaK::frame_3D<double>, &ReaK::kte::mass_matrix_calc::Frames3D >::size)
+    .def("__getitem__", &py_mmc_frame_vector< ReaK::frame_3D<double>, &ReaK::kte::mass_matrix_calc::Frames3D >::get);
+  
+    
+  class_< ReaK::kte::mass_matrix_calc,
+          boost::noncopyable,
+          bases< ReaK::named_object >,
+          ReaK::shared_ptr< ReaK::kte::mass_matrix_calc >
+        >("KTEMassMatrixCalc")
+    .def(init<std::string>())
+    .def("add_inertia_gen", static_cast< ReaK::kte::mass_matrix_calc& (ReaK::kte::mass_matrix_calc::*)(const ReaK::shared_ptr< ReaK::kte::inertia_gen >&) >(&ReaK::kte::mass_matrix_calc::operator<<), return_internal_reference<>())
+    .def("add_inertia_2D",  static_cast< ReaK::kte::mass_matrix_calc& (ReaK::kte::mass_matrix_calc::*)(const ReaK::shared_ptr< ReaK::kte::inertia_2D >&) >(&ReaK::kte::mass_matrix_calc::operator<<), return_internal_reference<>())
+    .def("add_inertia_3D",  static_cast< ReaK::kte::mass_matrix_calc& (ReaK::kte::mass_matrix_calc::*)(const ReaK::shared_ptr< ReaK::kte::inertia_3D >&) >(&ReaK::kte::mass_matrix_calc::operator<<), return_internal_reference<>())
+    .def("add_frame_gen", static_cast< ReaK::kte::mass_matrix_calc& (ReaK::kte::mass_matrix_calc::*)(const ReaK::shared_ptr< ReaK::gen_coord<double> >&) >(&ReaK::kte::mass_matrix_calc::operator<<), return_internal_reference<>())
+    .def("add_frame_2D",  static_cast< ReaK::kte::mass_matrix_calc& (ReaK::kte::mass_matrix_calc::*)(const ReaK::shared_ptr< ReaK::frame_2D<double> >&) >(&ReaK::kte::mass_matrix_calc::operator<<), return_internal_reference<>())
+    .def("add_frame_3D",  static_cast< ReaK::kte::mass_matrix_calc& (ReaK::kte::mass_matrix_calc::*)(const ReaK::shared_ptr< ReaK::frame_3D<double> >&) >(&ReaK::kte::mass_matrix_calc::operator<<), return_internal_reference<>())
+    .def("coords", &py_mmc_frame_vector< ReaK::gen_coord<double>, &ReaK::kte::mass_matrix_calc::Coords >::create)
+    .def("frames_2D", &py_mmc_frame_vector< ReaK::frame_2D<double>, &ReaK::kte::mass_matrix_calc::Frames2D >::create)
+    .def("frames_3D", &py_mmc_frame_vector< ReaK::frame_3D<double>, &ReaK::kte::mass_matrix_calc::Frames3D >::create);
+    
+    
+    
+  class_< py_mdl_frame_vector< ReaK::gen_coord<double>, &ReaK::kte::manipulator_kinematics_model::Coords > >("MDLGenCoordVector", no_init)
+    .def("__len__", &py_mdl_frame_vector< ReaK::gen_coord<double>, &ReaK::kte::manipulator_kinematics_model::Coords >::size)
+    .def("__getitem__", &py_mdl_frame_vector< ReaK::gen_coord<double>, &ReaK::kte::manipulator_kinematics_model::Coords >::get);
+  
+  class_< py_mdl_frame_vector< ReaK::frame_2D<double>, &ReaK::kte::manipulator_kinematics_model::Frames2D > >("MDLFrame2DVector", no_init)
+    .def("__len__", &py_mdl_frame_vector< ReaK::frame_2D<double>, &ReaK::kte::manipulator_kinematics_model::Frames2D >::size)
+    .def("__getitem__", &py_mdl_frame_vector< ReaK::frame_2D<double>, &ReaK::kte::manipulator_kinematics_model::Frames2D >::get);
+  
+  class_< py_mdl_frame_vector< ReaK::frame_3D<double>, &ReaK::kte::manipulator_kinematics_model::Frames3D > >("MDLFrame3DVector", no_init)
+    .def("__len__", &py_mdl_frame_vector< ReaK::frame_3D<double>, &ReaK::kte::manipulator_kinematics_model::Frames3D >::size)
+    .def("__getitem__", &py_mdl_frame_vector< ReaK::frame_3D<double>, &ReaK::kte::manipulator_kinematics_model::Frames3D >::get);
+  
+  class_< py_mdl_frame_vector< ReaK::kte::joint_dependent_gen_coord, &ReaK::kte::manipulator_kinematics_model::DependentCoords > >("MDLDependentGenCoordVector", no_init)
+    .def("__len__", &py_mdl_frame_vector< ReaK::kte::joint_dependent_gen_coord, &ReaK::kte::manipulator_kinematics_model::DependentCoords >::size)
+    .def("__getitem__", &py_mdl_frame_vector< ReaK::kte::joint_dependent_gen_coord, &ReaK::kte::manipulator_kinematics_model::DependentCoords >::get);
+  
+  class_< py_mdl_frame_vector< ReaK::kte::joint_dependent_frame_2D, &ReaK::kte::manipulator_kinematics_model::DependentFrames2D > >("MDLDependentFrame2DVector", no_init)
+    .def("__len__", &py_mdl_frame_vector< ReaK::kte::joint_dependent_frame_2D, &ReaK::kte::manipulator_kinematics_model::DependentFrames2D >::size)
+    .def("__getitem__", &py_mdl_frame_vector< ReaK::kte::joint_dependent_frame_2D, &ReaK::kte::manipulator_kinematics_model::DependentFrames2D >::get);
+  
+  class_< py_mdl_frame_vector< ReaK::kte::joint_dependent_frame_3D, &ReaK::kte::manipulator_kinematics_model::DependentFrames3D > >("MDLDependentFrame3DVector", no_init)
+    .def("__len__", &py_mdl_frame_vector< ReaK::kte::joint_dependent_frame_3D, &ReaK::kte::manipulator_kinematics_model::DependentFrames3D >::size)
+    .def("__getitem__", &py_mdl_frame_vector< ReaK::kte::joint_dependent_frame_3D, &ReaK::kte::manipulator_kinematics_model::DependentFrames3D >::get);
+    
+  class_< ReaK::kte::manipulator_kinematics_model,
+          boost::noncopyable,
+          bases< ReaK::kte::kte_map >,
+          ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model >
+        >("KTEManipKinematics")
+    .def(init<std::string>())
+    .def("add_dependent_gen", static_cast< ReaK::kte::manipulator_kinematics_model& (ReaK::kte::manipulator_kinematics_model::*)(const ReaK::shared_ptr< ReaK::kte::joint_dependent_gen_coord >&) >(&ReaK::kte::manipulator_kinematics_model::operator<<), return_internal_reference<>())
+    .def("add_dependent_2D",  static_cast< ReaK::kte::manipulator_kinematics_model& (ReaK::kte::manipulator_kinematics_model::*)(const ReaK::shared_ptr< ReaK::kte::joint_dependent_frame_2D >&) >(&ReaK::kte::manipulator_kinematics_model::operator<<), return_internal_reference<>())
+    .def("add_dependent_3D",  static_cast< ReaK::kte::manipulator_kinematics_model& (ReaK::kte::manipulator_kinematics_model::*)(const ReaK::shared_ptr< ReaK::kte::joint_dependent_frame_3D >&) >(&ReaK::kte::manipulator_kinematics_model::operator<<), return_internal_reference<>())
+    .def("add_frame_gen", static_cast< ReaK::kte::manipulator_kinematics_model& (ReaK::kte::manipulator_kinematics_model::*)(const ReaK::shared_ptr< ReaK::gen_coord<double> >&) >(&ReaK::kte::manipulator_kinematics_model::operator<<), return_internal_reference<>())
+    .def("add_frame_2D",  static_cast< ReaK::kte::manipulator_kinematics_model& (ReaK::kte::manipulator_kinematics_model::*)(const ReaK::shared_ptr< ReaK::frame_2D<double> >&) >(&ReaK::kte::manipulator_kinematics_model::operator<<), return_internal_reference<>())
+    .def("add_frame_3D",  static_cast< ReaK::kte::manipulator_kinematics_model& (ReaK::kte::manipulator_kinematics_model::*)(const ReaK::shared_ptr< ReaK::frame_3D<double> >&) >(&ReaK::kte::manipulator_kinematics_model::operator<<), return_internal_reference<>())
+    .add_property("kte_model", &ReaK::kte::manipulator_kinematics_model::getModel, &ReaK::kte::manipulator_kinematics_model::setModel)
+    .add_property("joint_positions", &ReaK::kte::manipulator_kinematics_model::getJointPositions, &ReaK::kte::manipulator_kinematics_model::setJointPositions)
+    .add_property("joint_velocities", &ReaK::kte::manipulator_kinematics_model::getJointVelocities, &ReaK::kte::manipulator_kinematics_model::setJointVelocities)
+    .add_property("joint_accelerations", &ReaK::kte::manipulator_kinematics_model::getJointAccelerations, &ReaK::kte::manipulator_kinematics_model::setJointAccelerations)
+    .add_property("dependent_positions", &ReaK::kte::manipulator_kinematics_model::getDependentPositions)
+    .add_property("dependent_velocities", &ReaK::kte::manipulator_kinematics_model::getDependentVelocities)
+    .add_property("dependent_accelerations", &ReaK::kte::manipulator_kinematics_model::getDependentAccelerations)
+    .def("coords", &py_mdl_frame_vector< ReaK::gen_coord<double>, &ReaK::kte::manipulator_kinematics_model::Coords >::create)
+    .def("frames_2D", &py_mdl_frame_vector< ReaK::frame_2D<double>, &ReaK::kte::manipulator_kinematics_model::Frames2D >::create)
+    .def("frames_3D", &py_mdl_frame_vector< ReaK::frame_3D<double>, &ReaK::kte::manipulator_kinematics_model::Frames3D >::create)
+    .def("dependent_coords", &py_mdl_frame_vector< ReaK::kte::joint_dependent_gen_coord, &ReaK::kte::manipulator_kinematics_model::DependentCoords >::create)
+    .def("dependent_frames_2D", &py_mdl_frame_vector< ReaK::kte::joint_dependent_frame_2D, &ReaK::kte::manipulator_kinematics_model::DependentFrames2D >::create)
+    .def("dependent_frames_3D", &py_mdl_frame_vector< ReaK::kte::joint_dependent_frame_3D, &ReaK::kte::manipulator_kinematics_model::DependentFrames3D >::create);
+    
+    
+  class_< ReaK::kte::manipulator_dynamics_model,
+          boost::noncopyable,
+          bases< ReaK::kte::manipulator_kinematics_model >,
+          ReaK::shared_ptr< ReaK::kte::manipulator_dynamics_model >
+        >("KTEManipDynamics")
+    .def(init<std::string>())
+    .def("add_dependent_gen", static_cast< ReaK::kte::manipulator_kinematics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::kte::joint_dependent_gen_coord >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
+    .def("add_dependent_2D",  static_cast< ReaK::kte::manipulator_kinematics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::kte::joint_dependent_frame_2D >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
+    .def("add_dependent_3D",  static_cast< ReaK::kte::manipulator_kinematics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::kte::joint_dependent_frame_3D >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
+    .def("add_frame_gen", static_cast< ReaK::kte::manipulator_kinematics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::gen_coord<double> >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
+    .def("add_frame_2D",  static_cast< ReaK::kte::manipulator_kinematics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::frame_2D<double> >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
+    .def("add_frame_3D",  static_cast< ReaK::kte::manipulator_kinematics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::frame_3D<double> >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
+    .def("add_inertia_gen", static_cast< ReaK::kte::manipulator_dynamics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::kte::inertia_gen >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
+    .def("add_inertia_2D",  static_cast< ReaK::kte::manipulator_dynamics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::kte::inertia_2D >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
+    .def("add_inertia_3D",  static_cast< ReaK::kte::manipulator_dynamics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::kte::inertia_3D >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
+    .def("add_system_input", static_cast< ReaK::kte::manipulator_dynamics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::kte::system_input >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
+    .def("add_system_output",  static_cast< ReaK::kte::manipulator_dynamics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::kte::system_output >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
+    .add_property("inputs", &ReaK::kte::manipulator_dynamics_model::getInput, &ReaK::kte::manipulator_dynamics_model::setInput)
+    .add_property("joint_states", &ReaK::kte::manipulator_dynamics_model::getJointStates, &ReaK::kte::manipulator_dynamics_model::setJointStates)
+    .add_property("dependent_states", &ReaK::kte::manipulator_dynamics_model::getDependentStates)
+    .def("mass_calculator", &ReaK::kte::manipulator_dynamics_model::getMassCalc, return_internal_reference<>())
+    .def("compute_output", &py_dyn_mdl_compute_output)
+    .def("compute_state_rate", &py_dyn_mdl_compute_state_rate);
+    
   
 #ifdef RK_ENABLE_CXX0X_FEATURES
   implicitly_convertible< ReaK::shared_ptr< ReaK::kte::kte_map >, 
@@ -1163,6 +1746,66 @@ void export_mbd_kte() {
                           ReaK::shared_ptr< ReaK::kte::kte_map > >();
   implicitly_convertible< ReaK::shared_ptr< ReaK::kte::ang_velocity_measure_3D >, 
                           ReaK::shared_ptr< ReaK::kte::system_output > >();
+                          
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::joint_dependent_gen_coord >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::joint_dependent_frame_2D >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::joint_dependent_frame_3D >, 
+                          ReaK::shared_ptr< ReaK::shared_object > >();
+                          
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::inertia_gen >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::inertia_2D >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::inertia_3D >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+                          
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::force_actuator_gen >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::force_actuator_2D >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::force_actuator_3D >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+                          
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::driving_actuator_gen >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::driving_actuator_gen >, 
+                          ReaK::shared_ptr< ReaK::kte::system_input > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::driving_actuator_2D >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::driving_actuator_2D >, 
+                          ReaK::shared_ptr< ReaK::kte::system_input > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::driving_actuator_3D >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::driving_actuator_3D >, 
+                          ReaK::shared_ptr< ReaK::kte::system_input > >();
+                          
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::inertial_beam_2D >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::inertial_beam_3D >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+                          
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::virtual_kte_interface_gen >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::virtual_kte_interface_2D >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::virtual_kte_interface_3D >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+                          
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::vmc_revolute_joint_2D >, 
+                          ReaK::shared_ptr< ReaK::kte::revolute_joint_2D > >();
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::vmc_revolute_joint_3D >, 
+                          ReaK::shared_ptr< ReaK::kte::revolute_joint_3D > >();
+                          
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::mass_matrix_calc >, 
+                          ReaK::shared_ptr< ReaK::named_object > >();
+                          
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model >, 
+                          ReaK::shared_ptr< ReaK::kte::kte_map > >();
+                          
+  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::manipulator_dynamics_model >, 
+                          ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model > >();
 #endif
   
 };

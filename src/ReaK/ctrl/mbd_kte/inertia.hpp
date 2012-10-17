@@ -56,17 +56,29 @@ class inertia_gen : public kte_map {
     double mMass; ///< Holds the mass of the inertial element (in kg or kgm2).
 
   public:
-
-    /** Get read-write access to mMass. */
-    double& Mass() { return mMass; };
-    /** Get read-only access to mMass. */
+    
+    /** 
+     * Sets the mass of the inertial element.
+     * \param aValue The new mass of the inertial element.
+     */
+    void setMass(double aValue) { mMass = aValue; };
+    /** 
+     * Returns the mass of the inertial element.
+     * \return The mass of the inertial element.
+     */
     double Mass() const { return mMass; };
     
-    /** Get read-write access to mCenterOfMass. */
-    shared_ptr< joint_dependent_gen_coord >& CenterOfMass() { return mCenterOfMass; };
-    /** Get read-only access to mCenterOfMass. */
+    /** 
+     * Sets the center-of-mass of the inertial element.
+     * \param aPtr The new center-of-mass of the inertial element.
+     */
+    void setCenterOfMass(const shared_ptr< joint_dependent_gen_coord >& aPtr) { mCenterOfMass = aPtr; };
+    /** 
+     * Returns the center-of-mass of the inertial element.
+     * \return The center-of-mass of the inertial element.
+     */
     shared_ptr< joint_dependent_gen_coord > CenterOfMass() const { return mCenterOfMass; };
-
+    
     /**
      * Default constructor.
      */
@@ -126,22 +138,40 @@ class inertia_2D : public kte_map {
     double mMomentOfInertia; ///< Holds the moment of inertia of the inertial element (in kgm2).
 
   public:
-
-    /** Get read-write access to mMass. */
-    double& Mass() { return mMass; };
-    /** Get read-only access to mMass. */
+    
+    /** 
+     * Sets the mass of the inertial element.
+     * \param aValue The new mass of the inertial element.
+     */
+    void setMass(double aValue) { mMass = aValue; };
+    /** 
+     * Returns the mass of the inertial element.
+     * \return The mass of the inertial element.
+     */
     double Mass() const { return mMass; };
-
-    /** Get read-write access to mMomentOfInertia. */
-    double& MomentOfInertia() { return mMomentOfInertia; };
-    /** Get read-only access to mMomentOfInertia. */
+    
+    /** 
+     * Sets the moment of inertia of the inertial element.
+     * \param aValue The new moment of inertia of the inertial element.
+     */
+    void setMomentOfInertia(double aValue) { mMomentOfInertia = aValue; };
+    /** 
+     * Returns the moment of inertia of the inertial element.
+     * \return The moment of inertia of the inertial element.
+     */
     double MomentOfInertia() const { return mMomentOfInertia; };
     
-    /** Get read-write access to mCenterOfMass. */
-    shared_ptr< joint_dependent_frame_2D >& CenterOfMass() { return mCenterOfMass; };
-    /** Get read-only access to mCenterOfMass. */
+    /** 
+     * Sets the center-of-mass of the inertial element.
+     * \param aPtr The new center-of-mass of the inertial element.
+     */
+    void setCenterOfMass(const shared_ptr< joint_dependent_frame_2D >& aPtr) { mCenterOfMass = aPtr; };
+    /** 
+     * Returns the center-of-mass of the inertial element.
+     * \return The center-of-mass of the inertial element.
+     */
     shared_ptr< joint_dependent_frame_2D > CenterOfMass() const { return mCenterOfMass; };
-
+    
     /**
      * Default constructor.
      */
@@ -206,22 +236,40 @@ class inertia_3D : public kte_map {
     mat<double,mat_structure::symmetric> mInertiaTensor; ///< Holds the inertia tensor of the inertial element (in kgm2).
 
   public:
-
-    /** Get read-write access to mMass. */
-    double& Mass() { return mMass; };
-    /** Get read-only access to mMass. */
-    double Mass() const { return mMass; };
-
-    /** Get read-write access to mInertiaTensor. */
-    mat<double,mat_structure::symmetric>& InertiaTensor() { return mInertiaTensor; };
-    /** Get read-only access to mInertiaTensor. */
-    const mat<double,mat_structure::symmetric>& InertiaTensor() const { return mInertiaTensor; };
     
-    /** Get read-write access to mCenterOfMass. */
-    shared_ptr< joint_dependent_frame_3D >& CenterOfMass() { return mCenterOfMass; };
-    /** Get read-only access to mCenterOfMass. */
+    /** 
+     * Sets the mass of the inertial element.
+     * \param aValue The new mass of the inertial element.
+     */
+    void setMass(double aValue) { mMass = aValue; };
+    /** 
+     * Returns the mass of the inertial element.
+     * \return The mass of the inertial element.
+     */
+    double Mass() const { return mMass; };
+    
+    /** 
+     * Sets the inertia tensor of the inertial element.
+     * \param aValue The new inertia tensor of the inertial element.
+     */
+    void setInertiaTensor(const mat<double,mat_structure::symmetric>& aValue) { mInertiaTensor = aValue; };
+    /** 
+     * Returns the inertia tensor of the inertial element.
+     * \return The inertia tensor of the inertial element.
+     */
+    mat<double,mat_structure::symmetric> InertiaTensor() const { return mInertiaTensor; };
+    
+    /** 
+     * Sets the center-of-mass of the inertial element.
+     * \param aPtr The new center-of-mass of the inertial element.
+     */
+    void setCenterOfMass(const shared_ptr< joint_dependent_frame_3D >& aPtr) { mCenterOfMass = aPtr; };
+    /** 
+     * Returns the center-of-mass of the inertial element.
+     * \return The center-of-mass of the inertial element.
+     */
     shared_ptr< joint_dependent_frame_3D > CenterOfMass() const { return mCenterOfMass; };
-
+    
     /**
      * Default constructor.
      */

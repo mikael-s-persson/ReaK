@@ -110,7 +110,7 @@ class manipulator_kinematics_model : public kte_map {
      * Gets the manipulator KTE model used by this object.
      * \return The manipulator KTE model used by this object.
      */
-    const shared_ptr< kte_map_chain >& getModel() const { return mModel; };
+    shared_ptr< kte_map_chain > getModel() const { return mModel; };
 
     /**
      * Add a dependent generalized coordinate to the jacobian calculation.

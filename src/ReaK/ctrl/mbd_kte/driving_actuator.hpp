@@ -52,11 +52,17 @@ class driving_actuator_gen : public force_actuator_gen, public system_input {
     double mDriveForce; ///< Holds the current force applied to the generalized coordinate.
 
   public:
-    /** Get read-only access to the mDriveForce. */
+    /** 
+     * Sets the drive force currently applied by this actuator.
+     * \param aValue The new drive force applied by this actuator.
+     */
+    void setDriveForce(double aValue) { mDriveForce = aValue; };
+    /**
+     * Returns the drive force currently applied by this actuator.
+     * \return The drive force currently applied by this actuator.
+     */
     double DriveForce() const { return mDriveForce; };
-    /** Get read-write access to the mDriveForce. */
-    double& DriveForce() { return mDriveForce; };
-
+    
     virtual unsigned int getInputCount() const { return 1; };
     
     virtual void setInput(unsigned int i, double aDriveForce) { mDriveForce = aDriveForce; };
@@ -111,15 +117,27 @@ class driving_actuator_2D : public force_actuator_2D, public system_input {
     double mDriveTorque; ///< Holds the torque applied to the 2D frame.
 
   public:
-    /** Get read-only access to mDriveForce. */
+    /** 
+     * Sets the drive force currently applied by this actuator.
+     * \param aValue The new drive force applied by this actuator.
+     */
+    void setDriveForce(const vect<double,2>& aValue) { mDriveForce = aValue; };
+    /**
+     * Returns the drive force currently applied by this actuator.
+     * \return The drive force currently applied by this actuator.
+     */
     vect<double,2> DriveForce() const { return mDriveForce; };
-    /** Get read-write access to mDriveForce. */
-    vect<double,2>& DriveForce() { return mDriveForce; };
-
-    /** Get read-only access to mDriveTorque. */
+    
+    /** 
+     * Sets the drive torque currently applied by this actuator.
+     * \param aValue The new drive torque applied by this actuator.
+     */
+    void setDriveTorque(double aValue) { mDriveTorque = aValue; };
+    /**
+     * Returns the drive torque currently applied by this actuator.
+     * \return The drive torque currently applied by this actuator.
+     */
     double DriveTorque() const { return mDriveTorque; };
-    /** Get read-write access to mDriveTorque. */
-    double& DriveTorque() { return mDriveTorque; };
     
     virtual unsigned int getInputCount() const { return 3; };
     
@@ -186,16 +204,28 @@ class driving_actuator_3D : public force_actuator_3D, public system_input {
     vect<double,3> mDriveTorque; ///< Holds the torque vector applied to the 3D frame.
 
   public:
-    /** Get read-only access to mDriveForce. */
+    /** 
+     * Sets the drive force currently applied by this actuator.
+     * \param aValue The new drive force applied by this actuator.
+     */
+    void setDriveForce(const vect<double,3>& aValue) { mDriveForce = aValue; };
+    /**
+     * Returns the drive force currently applied by this actuator.
+     * \return The drive force currently applied by this actuator.
+     */
     vect<double,3> DriveForce() const { return mDriveForce; };
-    /** Get read-write access to mDriveForce. */
-    vect<double,3>& DriveForce() { return mDriveForce; };
-
-    /** Get read-only access to mDriveTorque. */
+    
+    /** 
+     * Sets the drive torque currently applied by this actuator.
+     * \param aValue The new drive torque applied by this actuator.
+     */
+    void setDriveTorque(const vect<double,3>& aValue) { mDriveTorque = aValue; };
+    /**
+     * Returns the drive torque currently applied by this actuator.
+     * \return The drive torque currently applied by this actuator.
+     */
     vect<double,3> DriveTorque() const { return mDriveTorque; };
-    /** Get read-write access to mDriveTorque. */
-    vect<double,3>& DriveTorque() { return mDriveTorque; };
-
+    
     virtual unsigned int getInputCount() const { return 6; };
     
     virtual void setInput(unsigned int i, double aValue) { 
