@@ -282,6 +282,8 @@ manip_ik_knn_starts_map     0xC240001E   bin: 1100 0010 0100 0000 0000 0000 0001
 manip_rl_ik_knn_starts_map<R> 0xC240001F bin: 1100 0010 0100 0000 0000 0000 0001 1111  D-R
 ptrobot2D_test_world        0xC2400020   bin: 1100 0010 0100 0000 0000 0000 0010 0000  D-R
 no_obstacle_space<T,D,R>    0xC2400021   bin: 1100 0010 0100 0000 0000 0000 0010 0001  D-R
+sap_reach_topology<T>       0xC2400022   bin: 1100 0010 0100 0000 0000 0000 0010 0010  D-R
+svp_reach_topology<T>       0xC2400023   bin: 1100 0010 0100 0000 0000 0000 0010 0011  D-R
 
 
 

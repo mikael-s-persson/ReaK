@@ -449,6 +449,7 @@ struct sap_rate_limited_sampler : public serialization::serializable {
     
     while(true) {
       PointType pt = get_sample(s);
+      get<2>(pt) = s2.origin();   // the acceleration value should always be 0 in SAP interpolation end-points.
       
       // Get the descended acceleration to the point of zero velocity (origin).
       PointDiff1 dp1 = s1.difference(s1.origin(), get<1>(pt));
@@ -520,6 +521,162 @@ struct sap_rate_limited_sampler : public serialization::serializable {
 
 
 
+
+/**
+ * This class wraps a reach-time topology with SAP-based distance metric and a sampler.
+ * \tparam BaseTopology The topology underlying this space, should express values as reach-time values and metrics (distance), and should model TopologyConcept, PointDistributionConcept, BoundedSpaceConcept and TangentBundleConcept for time_topology and up to 2nd order (acceleration).
+ */
+template <typename BaseTopology>
+class sap_reach_topology : public BaseTopology
+{
+  public:
+    BOOST_CONCEPT_ASSERT((TopologyConcept<BaseTopology>));
+    BOOST_CONCEPT_ASSERT((PointDistributionConcept<BaseTopology>));
+    BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<BaseTopology>));
+    BOOST_CONCEPT_ASSERT((TangentBundleConcept<BaseTopology, 2, time_topology>));
+    
+    typedef sap_reach_topology<BaseTopology> self;
+    
+    typedef typename topology_traits< BaseTopology >::point_type point_type;
+    typedef typename topology_traits< BaseTopology >::point_difference_type point_difference_type;
+    
+    typedef default_distance_metric distance_metric_type;
+    typedef default_random_sampler random_sampler_type;
+    
+    typedef BaseTopology super_space_type;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology_traits< BaseTopology >::dimensions);
+    
+  protected:
+    
+    shared_ptr<time_topology> t_space;
+    sap_reach_time_metric<time_topology> rt_dist;
+    sap_rate_limited_sampler<time_topology> rl_sampler;
+    
+    
+  public:
+    
+    sap_reach_topology(const BaseTopology& aTopo, 
+                       double aTolerance = 1e-6, 
+                       unsigned int aMaxIter = 60) : 
+                       BaseTopology(aTopo),
+                       t_space(new time_topology),
+                       rt_dist(t_space, aTolerance, aMaxIter), rl_sampler(t_space) { };
+    
+#ifdef RK_ENABLE_CXX11_FEATURES
+    template <typename... Args>
+    sap_reach_topology(Args&&... args) : 
+                       BaseTopology(std::forward<Args>(args)...),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+#else
+    sap_reach_topology() : 
+                       BaseTopology(),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+    
+    template <typename A1>
+    sap_reach_topology(const A1& a1) : 
+                       BaseTopology(a1),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+    
+    template <typename A1, typename A2>
+    sap_reach_topology(const A1& a1, const A2& a2) : 
+                       BaseTopology(a1, a2),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+    
+    template <typename A1, typename A2, typename A3>
+    sap_reach_topology(const A1& a1, const A2& a2, const A3& a3) : 
+                       BaseTopology(a1, a2, a3),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+    
+    template <typename A1>
+    sap_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4) : 
+                       BaseTopology(a1, a2, a3, a4),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+    
+    template <typename A1>
+    sap_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5) : 
+                       BaseTopology(a1, a2, a3, a4, a5),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+#endif
+                       
+   /**
+    * Returns a const-reference to the super-space of this topology.
+    * \note This function returns a const-reference to itself since the super-space is also 
+    *       the base-class of this topology. The base class is not polymorphic, meaning that its
+    *       distance metric and random-sampler are not overridden (non-virtual calls).
+    */
+   const super_space_type& get_super_space() const { return *this; };
+    
+   /*************************************************************************
+    *                             MetricSpaceConcept
+    * **********************************************************************/
+    
+    /**
+     * Returns the distance between two points.
+     */
+    double distance(const point_type& a, const point_type& b) const 
+    {
+      return rt_dist(a, b, static_cast<const BaseTopology&>(*this));
+    }
+    
+    /**
+     * Returns the norm of the difference between two points.
+     */
+    double norm(const point_difference_type& delta) const {
+      return rt_dist(delta, static_cast<const BaseTopology&>(*this));
+    }
+    
+   /*************************************************************************
+    *                         for PointDistributionConcept
+    * **********************************************************************/
+    
+    /**
+     * Generates a random point in the space, uniformly distributed within the reachable space.
+     */
+    point_type random_point() const {
+      return rl_sampler(static_cast<const BaseTopology&>(*this));
+    };
+
+   /*************************************************************************
+    *                             LieGroupConcept
+    * **********************************************************************/
+    
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
+    {
+      detail::generic_interpolator_impl<sap_interpolator,BaseTopology,time_topology> interp;
+      interp.initialize(a, b, 0.0, static_cast<const BaseTopology&>(*this), *t_space, rt_dist);
+      double dt_min = interp.get_minimum_travel_time();
+      double dt = dt_min * fraction;
+      point_type result = a;
+      interp.compute_point(result, a, b, static_cast<const BaseTopology&>(*this), *t_space, dt, dt_min, rt_dist);
+      return result;
+    }
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      BaseTopology::save(A,BaseTopology::getStaticObjectType()->TypeVersion());
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      BaseTopology::load(A,BaseTopology::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400022,1,"sap_reach_topology",BaseTopology)
+    
+};
 
 
 
