@@ -46,7 +46,7 @@
 
 #include "base/shared_object.hpp"
 
-#include "rtti/typed_primitives.hpp"
+#include "rtti/so_type.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {

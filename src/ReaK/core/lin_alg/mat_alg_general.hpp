@@ -314,7 +314,7 @@ struct get_type_info< mat<T,Structure,Alignment,Allocator>, Tail > {
 									   get_type_info< boost::mpl::integral_c<mat_alignment::tag,Alignment>, Tail> > >::type > type;
   static std::string type_name() { return get_type_id< mat<T,Structure,Alignment,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + "," 
                                                                                                                  + get_type_id< boost::mpl::integral_c<mat_structure::tag,Structure> >::type_name() + "," 
-														 + get_type_id< boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name() + ">" + "," + Tail::type_name(); };
+														 + get_type_id< boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <typename T,
@@ -342,7 +342,7 @@ struct get_type_info< mat_fix<T,Structure,RowCount,ColCount,Alignment>, Tail > {
                                                                                                                              + get_type_id< boost::mpl::integral_c<mat_structure::tag,Structure> >::type_name() + "," 
                                                                                                                              + get_type_id< boost::mpl::integral_c<unsigned int,RowCount> >::type_name() + "," 
                                                                                                                              + get_type_id< boost::mpl::integral_c<unsigned int,ColCount> >::type_name() + "," 
-														             + get_type_id< boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name() + ">" + "," + Tail::type_name(); };
+														             + get_type_id< boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 };

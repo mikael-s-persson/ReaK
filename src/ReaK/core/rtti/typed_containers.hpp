@@ -60,7 +60,7 @@ struct get_type_id< std::vector<T,Allocator> > {
 template <typename T, typename Allocator, typename Tail>
 struct get_type_info< std::vector<T,Allocator>, Tail > {
   typedef detail::type_id<  std::vector<T,Allocator> , typename get_type_info<T, Tail>::type> type;
-  static std::string type_name() { return get_type_id< std::vector<T,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< std::vector<T,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 
@@ -77,7 +77,7 @@ struct get_type_id< std::list<T,Allocator> > {
 template <typename T, typename Allocator, typename Tail>
 struct get_type_info< std::list<T,Allocator>, Tail > {
   typedef detail::type_id<  std::list<T,Allocator> , typename get_type_info<T, Tail>::type> type;
-  static std::string type_name() { return get_type_id< std::list<T,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< std::list<T,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 
@@ -94,7 +94,7 @@ struct get_type_id< std::map<Key,T,Compare,Allocator> > {
 template <typename Key, typename T, typename Compare, typename Allocator, typename Tail>
 struct get_type_info< std::map<Key,T,Compare,Allocator>, Tail > {
   typedef detail::type_id< std::map<Key,T,Compare,Allocator> , typename get_type_info<T, Tail>::type> type;
-  static std::string type_name() { return get_type_id< std::map<Key,T,Compare,Allocator> >::type_name() + "<" + get_type_id<Key>::type_name() + "," + get_type_id<T>::type_name() + ">" + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< std::map<Key,T,Compare,Allocator> >::type_name() + "<" + get_type_id<Key>::type_name() + "," + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 
@@ -111,7 +111,7 @@ struct get_type_id< std::set<T,Compare,Allocator> > {
 template <typename T, typename Compare, typename Allocator, typename Tail>
 struct get_type_info< std::set<T,Compare,Allocator>, Tail > {
   typedef detail::type_id< std::set<T,Compare,Allocator> , typename get_type_info<T, Tail>::type> type;
-  static std::string type_name() { return get_type_id< std::set<T,Compare,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< std::set<T,Compare,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 

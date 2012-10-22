@@ -106,7 +106,7 @@ struct get_type_id< boost::mpl::integral_c<tensor_alignment::tag, tensor_alignme
 template <mat_alignment::tag U, typename Tail>
 struct get_type_info< boost::mpl::integral_c<tensor_alignment::tag, U >, Tail > {
   typedef detail::type_id<boost::mpl::integral_c<tensor_alignment::tag, U >, typename Tail::type> type;
-  static std::string type_name() { return get_type_id< boost::mpl::integral_c<tensor_alignment::tag, U > >::type_name() + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< boost::mpl::integral_c<tensor_alignment::tag, U > >::type_name() + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
   
@@ -163,7 +163,7 @@ struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structu
 template <mat_structure::tag U, typename Tail>
 struct get_type_info< boost::mpl::integral_c<tensor_structure::tag, U >, Tail > {
   typedef detail::type_id<boost::mpl::integral_c<tensor_structure::tag, U >, typename Tail::type> type;
-  static std::string type_name() { return get_type_id< boost::mpl::integral_c<tensor_structure::tag, U > >::type_name() + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< boost::mpl::integral_c<tensor_structure::tag, U > >::type_name() + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
   

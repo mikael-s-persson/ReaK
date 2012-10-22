@@ -161,21 +161,18 @@ class protobuf_oarchive : public oarchive {
     
     virtual oarchive& RK_CALL save_string(const std::pair<std::string, const std::string& >& s);
     
-    virtual void RK_CALL start_repeated_field();
+    virtual void RK_CALL start_repeated_field(const std::string& aTypeName);
     
-    virtual void RK_CALL start_repeated_field(const std::string& s);
+    virtual void RK_CALL start_repeated_field(const std::string& aTypeName, const std::string& s);
     
     virtual void RK_CALL finish_repeated_field();
     
-    virtual void RK_CALL finish_repeated_field(const std::string& s);
+    virtual void RK_CALL start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2);
     
-    virtual void RK_CALL start_repeated_pair();
-    
-    virtual void RK_CALL start_repeated_pair(const std::string& s);
+    virtual void RK_CALL start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2, const std::string& s);
     
     virtual void RK_CALL finish_repeated_pair();
     
-    virtual void RK_CALL finish_repeated_pair(const std::string& s);
     
   public:
     
@@ -192,7 +189,6 @@ class protobuf_oarchive : public oarchive {
  */
 class protobuf_schemer : public oarchive {
   private:
-    shared_ptr< std::ostream > global_stream;
     shared_ptr< std::ostream > file_stream;
     std::stack<unsigned int> field_IDs;
     std::stack<unsigned int> repeat_state;
@@ -248,21 +244,17 @@ class protobuf_schemer : public oarchive {
     
     virtual oarchive& RK_CALL save_string(const std::pair<std::string, const std::string& >& s);
     
-    virtual void RK_CALL start_repeated_field();
+    virtual void RK_CALL start_repeated_field(const std::string& aTypeName);
     
-    virtual void RK_CALL start_repeated_field(const std::string& s);
+    virtual void RK_CALL start_repeated_field(const std::string& aTypeName, const std::string& s);
     
     virtual void RK_CALL finish_repeated_field();
     
-    virtual void RK_CALL finish_repeated_field(const std::string& s);
+    virtual void RK_CALL start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2);
     
-    virtual void RK_CALL start_repeated_pair();
-    
-    virtual void RK_CALL start_repeated_pair(const std::string& s);
+    virtual void RK_CALL start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2, const std::string& s);
     
     virtual void RK_CALL finish_repeated_pair();
-    
-    virtual void RK_CALL finish_repeated_pair(const std::string& s);
     
   public:
     

@@ -799,7 +799,7 @@ template <typename T, unsigned int Size, typename Tail>
 struct get_type_info< vect<T,Size>, Tail > {
   typedef detail::type_id< vect<T,Size> , typename get_type_info<T, 
                                                    get_type_info<boost::mpl::integral_c<unsigned int,Size> , Tail> >::type> type;
-  static std::string type_name() { return get_type_id< vect<T,Size> >::type_name() + "<" + get_type_id<T>::type_name() + "," + get_type_id< boost::mpl::integral_c<unsigned int,Size> >::type_name() + ">" + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< vect<T,Size> >::type_name() + "<" + get_type_id<T>::type_name() + "," + get_type_id< boost::mpl::integral_c<unsigned int,Size> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 };
@@ -1646,7 +1646,7 @@ struct get_type_id< vect_n<T,Allocator> > {
 template <typename T, typename Allocator, typename Tail>
 struct get_type_info< vect_n<T,Allocator>, Tail > {
   typedef detail::type_id< vect_n<T,Allocator> , typename get_type_info<T, Tail>::type > type;
-  static std::string type_name() { return get_type_id< vect_n<T,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< vect_n<T,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 };

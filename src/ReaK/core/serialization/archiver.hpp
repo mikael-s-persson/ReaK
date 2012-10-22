@@ -40,6 +40,7 @@
 #include "base/shared_object_base.hpp"
 
 #include "rtti/typed_object.hpp"
+#include "rtti/typed_primitives.hpp"
 
 #include <boost/preprocessor/stringize.hpp>
 
@@ -120,7 +121,9 @@ class archive : public shared_object_base {
   public:
     virtual void RK_CALL destroy() { delete this; };
 
-    archive() : shared_object_base(), mObjRegistry(*(new std::vector< serializable_shared_pointer >())) { };
+    archive() : shared_object_base(), mObjRegistry(*(new std::vector< serializable_shared_pointer >())) {
+      mObjRegistry.push_back(serializable_shared_pointer());
+    };
     
     virtual ~archive() { delete &mObjRegistry; };
 };
@@ -191,30 +194,24 @@ class iarchive : public archive {
 
     /// Loading a string value with a name.
     virtual iarchive& RK_CALL load_string(const std::pair<std::string, std::string& >& s) = 0;
-
-    /// Signifying the start of a repeated field.
-    virtual void RK_CALL start_repeated_field() { };
     
     /// Signifying the start of a repeated field.
-    virtual void RK_CALL start_repeated_field(const std::string& s) { };
+    virtual void RK_CALL start_repeated_field(const std::string& aTypeName) { RK_UNUSED(aTypeName); };
+    
+    /// Signifying the start of a repeated field.
+    virtual void RK_CALL start_repeated_field(const std::string& aTypeName, const std::string& s) { RK_UNUSED(aTypeName); RK_UNUSED(s); };
     
     /// Signifying the finish of a repeated field.
     virtual void RK_CALL finish_repeated_field() { };
     
-    /// Signifying the finish of a repeated field.
-    virtual void RK_CALL finish_repeated_field(const std::string& s) { };
+    /// Signifying the start of a repeated pair.
+    virtual void RK_CALL start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2) { RK_UNUSED(aTypeName1); RK_UNUSED(aTypeName2); };
     
     /// Signifying the start of a repeated pair.
-    virtual void RK_CALL start_repeated_pair() { };
-    
-    /// Signifying the start of a repeated pair.
-    virtual void RK_CALL start_repeated_pair(const std::string& s) { };
+    virtual void RK_CALL start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2, const std::string& s) { RK_UNUSED(aTypeName1); RK_UNUSED(aTypeName2); RK_UNUSED(s); };
     
     /// Signifying the finish of a repeated pair.
     virtual void RK_CALL finish_repeated_pair() { };
-    
-    /// Signifying the finish of a repeated pair.
-    virtual void RK_CALL finish_repeated_pair(const std::string& s) { };
     
   public:
     /// Default constructor.
@@ -536,7 +533,7 @@ class iarchive : public archive {
       unsigned int count;
       in >> count;
       v.resize(count);
-      in.start_repeated_field();
+      in.start_repeated_field(rtti::get_type_info<T>::type_name());
       for(unsigned int i=0;i<count;++i)
 	in >> v[i];
       in.finish_repeated_field();
@@ -549,13 +546,13 @@ class iarchive : public archive {
       unsigned int count;
       in & RK_SERIAL_LOAD_WITH_ALIAS(v.first + "_count", count);
       v.second.resize(count);
-      in.start_repeated_field(v.first);
+      in.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       for(unsigned int i=0;i<count;++i) {
 	std::stringstream s_stream;
 	s_stream << v.first << "_q[" << i << "]";
 	in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), v.second[i]);
       };
-      in.finish_repeated_field(v.first);
+      in.finish_repeated_field();
       return in;
     };
 
@@ -565,7 +562,7 @@ class iarchive : public archive {
       unsigned int count;
       in >> count;
       v.resize(count);
-      in.start_repeated_field();
+      in.start_repeated_field(rtti::get_type_info<T>::type_name());
       typename std::list<T,Allocator>::iterator it = v.begin();
       for(;it!=v.end();++it)
 	in >> (*it);
@@ -579,14 +576,14 @@ class iarchive : public archive {
       unsigned int count;
       in & RK_SERIAL_LOAD_WITH_ALIAS(v.first + "_count", count);
       v.second.resize(count);
-      in.start_repeated_field(v.first);
+      in.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       typename std::list<T,Allocator>::iterator it = v.second.begin();
       for(unsigned int i=0;it!=v.second.end();++it) {
 	std::stringstream s_stream;
 	s_stream << v.first << "_q[" << i++ << "]";
 	in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), (*it));
       };
-      in.finish_repeated_field(v.first);
+      in.finish_repeated_field();
       return in;
     };
 
@@ -595,7 +592,7 @@ class iarchive : public archive {
     friend iarchive& operator >>(iarchive& in, std::map<Key,T,Compare,Allocator>& m) {
       unsigned int count;
       in >> count;
-      in.start_repeated_pair();
+      in.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name());
       for(unsigned int i=0;i<count;++i) {
 	Key value_key;
 	in >> value_key;
@@ -610,7 +607,7 @@ class iarchive : public archive {
     friend iarchive& operator &(iarchive& in, const std::pair<std::string, std::map<Key,T,Compare,Allocator>& >& m) {
       unsigned int count;
       in & RK_SERIAL_LOAD_WITH_ALIAS(m.first + "_count", count);
-      in.start_repeated_pair(m.first);
+      in.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name(),m.first);
       for(unsigned int i=0;i<count;++i) {
 	std::stringstream key_s_stream;
 	key_s_stream << m.first << "_key[" << i << "]";
@@ -620,7 +617,7 @@ class iarchive : public archive {
 	value_s_stream << m.first << "_value[" << i << "]";
 	in & RK_SERIAL_LOAD_WITH_ALIAS(value_s_stream.str(), m.second[value_key]);
       };
-      in.finish_repeated_pair(m.first);
+      in.finish_repeated_pair();
       return in;
     };
     
@@ -629,7 +626,7 @@ class iarchive : public archive {
     friend iarchive& operator >>(iarchive& in, std::set<T,Compare,Allocator>& v) {
       unsigned int count;
       in >> count;
-      in.start_repeated_field();
+      in.start_repeated_field(rtti::get_type_info<T>::type_name());
       for(unsigned int i = 0;i < count;++i) {
 	T temp;
 	in >> temp;
@@ -644,7 +641,7 @@ class iarchive : public archive {
     friend iarchive& operator &(iarchive& in, const std::pair<std::string, std::set<T,Compare,Allocator>& >& v) {
       unsigned int count;
       in & RK_SERIAL_LOAD_WITH_ALIAS(v.first + "_count", count);
-      in.start_repeated_field(v.first);
+      in.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       for(unsigned int i=0; i < count;++i) {
 	std::stringstream s_stream;
 	s_stream << v.first << "_q[" << i++ << "]";
@@ -652,7 +649,7 @@ class iarchive : public archive {
 	in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), temp);
 	v.second.insert(v.second.end(), temp);
       };
-      in.finish_repeated_field(v.first);
+      in.finish_repeated_field();
       return in;
     };
 
@@ -734,32 +731,28 @@ class oarchive : public archive {
     virtual oarchive& RK_CALL save_string(const std::pair<std::string, const std::string& >& s) = 0;
     
     /// Signifying the start of a repeated field.
-    virtual void RK_CALL start_repeated_field() { };
+    virtual void RK_CALL start_repeated_field(const std::string& aTypeName) { RK_UNUSED(aTypeName); };
     
     /// Signifying the start of a repeated field.
-    virtual void RK_CALL start_repeated_field(const std::string& s) { };
+    virtual void RK_CALL start_repeated_field(const std::string& aTypeName, const std::string& s) { RK_UNUSED(aTypeName); RK_UNUSED(s); };
     
     /// Signifying the finish of a repeated field.
     virtual void RK_CALL finish_repeated_field() { };
     
-    /// Signifying the finish of a repeated field.
-    virtual void RK_CALL finish_repeated_field(const std::string& s) { };
+    /// Signifying the start of a repeated pair.
+    virtual void RK_CALL start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2) { RK_UNUSED(aTypeName1); RK_UNUSED(aTypeName2); };
     
     /// Signifying the start of a repeated pair.
-    virtual void RK_CALL start_repeated_pair() { };
-    
-    /// Signifying the start of a repeated pair.
-    virtual void RK_CALL start_repeated_pair(const std::string& s) { };
+    virtual void RK_CALL start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2, const std::string& s) { RK_UNUSED(aTypeName1); RK_UNUSED(aTypeName2); RK_UNUSED(s); };
     
     /// Signifying the finish of a repeated pair.
     virtual void RK_CALL finish_repeated_pair() { };
     
-    /// Signifying the finish of a repeated pair.
-    virtual void RK_CALL finish_repeated_pair(const std::string& s) { };
-    
   public:
     /// Default constructor.
-    oarchive() : archive(), mObjRegMap(*(new std::map< serializable_shared_pointer, unsigned int >())) { };
+    oarchive() : archive(), mObjRegMap(*(new std::map< serializable_shared_pointer, unsigned int >())) { 
+      mObjRegMap[serializable_shared_pointer()] = 0;
+    };
     
     virtual ~oarchive() { delete &mObjRegMap; };
 
@@ -1060,7 +1053,7 @@ class oarchive : public archive {
     friend oarchive& operator <<(oarchive& out, const std::vector<T,Allocator>& v) {
       unsigned int count = v.size();
       out << count;
-      out.start_repeated_field();
+      out.start_repeated_field(rtti::get_type_info<T>::type_name());
       for(unsigned int i=0;i<count;++i)
 	out << v[i];
       out.finish_repeated_field();
@@ -1072,13 +1065,13 @@ class oarchive : public archive {
     friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::vector<T,Allocator>& >& v) {
       unsigned int count = v.second.size();
       out & RK_SERIAL_SAVE_WITH_ALIAS(v.first + "_count", count);
-      out.start_repeated_field(v.first);
+      out.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       for(unsigned int i=0;i<count;++i) {
 	std::stringstream s_stream;
 	s_stream << v.first << "_q[" << i << "]";
 	out & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), v.second[i]);
       };
-      out.finish_repeated_field(v.first);
+      out.finish_repeated_field();
       return out;
     };
 
@@ -1087,7 +1080,7 @@ class oarchive : public archive {
     friend oarchive& operator <<(oarchive& out, const std::list<T,Allocator>& v) {
       unsigned int count = v.size();
       out << count;
-      out.start_repeated_field();
+      out.start_repeated_field(rtti::get_type_info<T>::type_name());
       typename std::list<T,Allocator>::const_iterator it = v.begin();
       for(;it!=v.end();++it)
 	out << (*it);
@@ -1100,14 +1093,14 @@ class oarchive : public archive {
     friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::list<T,Allocator>& >& v) {
       unsigned int count = v.second.size();
       out & RK_SERIAL_SAVE_WITH_ALIAS(v.first + "_count", count);
-      out.start_repeated_field(v.first);
+      out.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       typename std::list<T,Allocator>::const_iterator it = v.second.begin();
       for(unsigned int i=0;it!=v.second.end();++it) {
 	std::stringstream s_stream;
 	s_stream << v.first << "_q[" << i++ << "]";
 	out & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), (*it));
       };
-      out.finish_repeated_field(v.first);
+      out.finish_repeated_field();
       return out;
     };
 
@@ -1116,7 +1109,7 @@ class oarchive : public archive {
     friend oarchive& operator <<(oarchive& out, const std::map<Key,T,Compare,Allocator>& m) {
       unsigned int count = m.size();
       out << count;
-      out.start_repeated_pair();
+      out.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name());
       typename std::map<Key,T,Compare,Allocator>::const_iterator it = m.begin();
       for(;it != m.end();it++)
 	out << it->first << it->second;
@@ -1129,7 +1122,7 @@ class oarchive : public archive {
     friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::map<Key,T,Compare,Allocator>& >& m) {
       unsigned int count = m.second.size();
       out & std::pair<std::string, unsigned int >(m.first + "_count", count);
-      out.start_repeated_pair(m.first);
+      out.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name(),m.first);
       typename std::map<Key,T,Compare,Allocator>::const_iterator it = m.second.begin();
       for(unsigned int i=0;it != m.second.end();it++,++i) {
 	std::stringstream key_s_stream;
@@ -1140,7 +1133,7 @@ class oarchive : public archive {
 	value_s_stream << m.first << "_value[" << i << "]";
 	out & RK_SERIAL_SAVE_WITH_ALIAS(value_s_stream.str(), it->second);
       };
-      out.finish_repeated_pair(m.first);
+      out.finish_repeated_pair();
       return out;
     };
 
@@ -1149,7 +1142,7 @@ class oarchive : public archive {
     friend oarchive& operator <<(oarchive& out, const std::set<T,Compare,Allocator>& v) {
       unsigned int count = v.size();
       out << count;
-      out.start_repeated_field();
+      out.start_repeated_field(rtti::get_type_info<T>::type_name());
       typename std::set<T,Compare,Allocator>::const_iterator it = v.begin();
       for(;it!=v.end();++it)
 	out << (*it);
@@ -1162,14 +1155,14 @@ class oarchive : public archive {
     friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::set<T,Compare,Allocator>& >& v) {
       unsigned int count = v.second.size();
       out & RK_SERIAL_SAVE_WITH_ALIAS(v.first + "_count", count);
-      out.start_repeated_field(v.first);
+      out.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       typename std::set<T,Compare,Allocator>::const_iterator it = v.second.begin();
       for(unsigned int i=0;it!=v.second.end();++it) {
 	std::stringstream s_stream;
 	s_stream << v.first << "_q[" << i++ << "]";
 	out & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), (*it));
       };
-      out.finish_repeated_field(v.first);
+      out.finish_repeated_field();
       return out;
     };
 };

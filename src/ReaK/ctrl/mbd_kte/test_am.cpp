@@ -36,6 +36,8 @@
 #include "recorders/ssv_recorder.hpp"
 
 #include "serialization/xml_archiver.hpp"
+#include "serialization/bin_archiver.hpp"
+#include "serialization/protobuf_archiver.hpp"
 
 
 using namespace ReaK;
@@ -43,6 +45,55 @@ using namespace ReaK;
 using namespace ReaK::kte;
 
 using namespace serialization;
+
+void simulate_system( shared_ptr< gen_coord<double> > joint_coord, kte_map_chain& adv_pendulum) {
+  recorder::ssv_recorder output_rec("adv_pendulum_results.ssvdat");
+  output_rec << "time" 
+             << "q" 
+             << "qd" 
+             << "qdd" 
+             << "f" 
+             << recorder::data_recorder::end_name_row;
+
+  double sim_time = 0.0;
+  double last_sim_time = -0.01;
+  
+  for (;sim_time < 5; sim_time += 0.00001) {
+    
+    joint_coord->q_ddot = 0.0;
+    adv_pendulum.doMotion();
+    adv_pendulum.clearForce();
+    adv_pendulum.doForce();
+    double f_nl = joint_coord->f;
+
+    joint_coord->q_ddot = 1.0;
+    adv_pendulum.doMotion();
+    adv_pendulum.clearForce();
+    adv_pendulum.doForce();
+    double f_nl_1 = joint_coord->f;
+
+    joint_coord->q_ddot = f_nl / (f_nl - f_nl_1);
+
+    if(sim_time >= last_sim_time + 0.01) {
+      last_sim_time = sim_time;
+      std::cout << "\r" << sim_time;
+      std::cout.flush();
+      output_rec << sim_time
+                 << joint_coord->q
+                 << joint_coord->q_dot
+                 << joint_coord->q_ddot
+                 << f_nl
+                 << recorder::data_recorder::end_value_row;
+    };
+    
+    joint_coord->q += joint_coord->q_dot * 0.00001;
+    joint_coord->q_dot += joint_coord->q_ddot * 0.00001;
+
+  };
+
+  output_rec << recorder::data_recorder::close;
+};
+
 
 int main() {
 
@@ -75,22 +126,42 @@ int main() {
   adv_pendulum << motor_inertia << friction << rev_joint << link1 << mass1;
 
   {
-    xml_oarchive adv_pendulum_arc("adv_pendulum.xml");
-    oarchive& arc_ref = adv_pendulum_arc;
-    arc_ref << joint_coord << adv_pendulum << end_frame;
-
+    xml_oarchive adv_pendulum_arc("models/adv_pendulum.rkx");
+    adv_pendulum_arc << joint_coord << adv_pendulum << end_frame;
   };
   
-  kte_map_chain adv_motorized_pendulum("adv_motorized_pendulum");
+  {
+    bin_oarchive adv_pendulum_arc("models/adv_pendulum.rkb");
+    adv_pendulum_arc << joint_coord << adv_pendulum << end_frame;
+  };
+  
+  {
+    protobuf_oarchive adv_pendulum_arc("models/adv_pendulum.rkp");
+    adv_pendulum_arc << joint_coord << adv_pendulum << end_frame;
+  };
+  
+  {
+    protobuf_schemer adv_pendulum_sch;
+    adv_pendulum_sch << joint_coord << adv_pendulum << end_frame;
+    std::ofstream out_file("models/adv_pendulum.proto");
+    adv_pendulum_sch.print_schemes(out_file);
+  };
+  
+  kte_map_chain adv_motorized_pendulum("models/adv_motorized_pendulum");
   
   adv_motorized_pendulum << actuator << motor_inertia << friction << rev_joint << link1 << mass1;
   
   {
-    xml_oarchive adv_motorized_pendulum_arc("adv_motorized_pendulum.xml");
-    oarchive& arc_ref = adv_motorized_pendulum_arc;
-    arc_ref << joint_coord << adv_pendulum << end_frame;
+    xml_oarchive adv_motorized_pendulum_arc("models/adv_motorized_pendulum.rkx");
+    adv_motorized_pendulum_arc << joint_coord << adv_pendulum << end_frame;
   };
-
+  
+  std::cout << "Pendulum model created.. starting simulation!" << std::endl;
+  
+  simulate_system(joint_coord, adv_pendulum);
+  
+  std::cout << "Done!" << std::endl;
+  
 #else
   shared_ptr< gen_coord<double> > joint_coord;
   shared_ptr<frame_2D<double> > end_frame;
@@ -99,70 +170,58 @@ int main() {
   kte_map_chain adv_pendulum;
 
   {
-    xml_iarchive adv_pendulum_arc("adv_pendulum.xml");
-    iarchive& arc_ref = adv_pendulum_arc;
-    arc_ref >> joint_coord >> adv_pendulum >> end_frame;
+    xml_iarchive adv_pendulum_arc("models/adv_pendulum.rkx");
+    adv_pendulum_arc >> joint_coord >> adv_pendulum >> end_frame;
   };
+  
+  std::cout << "Pendulum model loaded from xml file.. starting simulation!" << std::endl;
+  
+  simulate_system(joint_coord, adv_pendulum);
+  
+  std::cout << "Done!" << std::endl;
+  
+  {
+    bin_iarchive adv_pendulum_arc("models/adv_pendulum.rkb");
+    adv_pendulum_arc >> joint_coord >> adv_pendulum >> end_frame;
+  };
+  
+  std::cout << "Pendulum model loaded from binary file.. starting simulation!" << std::endl;
+  
+  simulate_system(joint_coord, adv_pendulum);
+  
+  std::cout << "Done!" << std::endl;
+  
+  {
+    protobuf_iarchive adv_pendulum_arc("models/adv_pendulum.rkp");
+    adv_pendulum_arc >> joint_coord >> adv_pendulum >> end_frame;
+  };
+  
+  std::cout << "Pendulum model loaded from protobuf file.. starting simulation!" << std::endl;
+  
+  simulate_system(joint_coord, adv_pendulum);
+  
+  std::cout << "Done!" << std::endl;
+  
 #else
   kte_map_chain adv_motorized_pendulum;
   
   {
-    xml_iarchive adv_motorized_pendulum_arc("adv_motorized_pendulum.xml");
+    xml_iarchive adv_motorized_pendulum_arc("models/adv_motorized_pendulum.rkx");
     iarchive& arc_ref = adv_motorized_pendulum_arc;
     arc_ref >> joint_coord >> adv_motorized_pendulum >> end_frame;
   };
-#endif
-
-  std::cout << "Pendulum model loaded.. staring simulation!" << std::endl;
-
-#endif
-
-  recorder::ssv_recorder output_rec("adv_pendulum_results.ssvdat");
-  output_rec << "time" 
-             << "q" 
-             << "qd" 
-             << "qdd" 
-             << "f" 
-             << recorder::data_recorder::end_name_row;
-
-  double sim_time = 0.0;
-  double last_sim_time = -0.01;
   
-  for (;sim_time < 20;sim_time += 0.00001) {
-    
-    joint_coord->q_ddot = 0.0;
-    adv_pendulum.doMotion();
-    adv_pendulum.clearForce();
-    adv_pendulum.doForce();
-    double f_nl = joint_coord->f;
-
-    joint_coord->q_ddot = 1.0;
-    adv_pendulum.doMotion();
-    adv_pendulum.clearForce();
-    adv_pendulum.doForce();
-    double f_nl_1 = joint_coord->f;
-
-    joint_coord->q_ddot = f_nl / (f_nl - f_nl_1);
-
-    if(sim_time >= last_sim_time + 0.01) {
-      last_sim_time = sim_time;
-      std::cout << "\r" << sim_time;
-      std::cout.flush();
-      output_rec << sim_time
-                 << joint_coord->q
-  	         << joint_coord->q_dot
-	         << joint_coord->q_ddot
-	         << f_nl
-	         << recorder::data_recorder::end_value_row;
-    };
-    
-    joint_coord->q += joint_coord->q_dot * 0.00001;
-    joint_coord->q_dot += joint_coord->q_ddot * 0.00001;
-
-  };
-
-  output_rec << recorder::data_recorder::close;
-
+  std::cout << "Motorized pendulum model loaded.. starting simulation!" << std::endl;
+  
+  simulate_system(joint_coord, adv_motorized_pendulum);
+  
+  std::cout << "Done!" << std::endl;
+  
+#endif
+  
+#endif
+  
+  return 0;
 };
 
 

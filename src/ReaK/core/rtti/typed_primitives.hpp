@@ -134,11 +134,17 @@ struct get_type_id<bool> {
 template <>
 struct get_type_id<std::string> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000006);
-  static std::string type_name() { return "std::string"; };
+  static std::string type_name() { return "string"; };
   static construct_ptr CreatePtr() { return NULL; };
   
   typedef const std::string& save_type;
   typedef std::string& load_type;
+};
+
+template <typename Tail>
+struct get_type_info< std::string, Tail > {
+  typedef detail::type_id< std::string, typename get_type_info<Tail>::type> type;
+  static std::string type_name() { return get_type_id< std::string >::type_name() + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 #ifndef RK_ENABLE_CXX0X_FEATURES
@@ -146,7 +152,7 @@ struct get_type_id<std::string> {
 template <typename T>
 struct get_type_id< boost::shared_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
-  static std::string type_name() { return "boost::shared_ptr"; };
+  static std::string type_name() { return "shared_ptr"; };
   static construct_ptr CreatePtr() { return NULL; };
   
   typedef const boost::shared_ptr<T>& save_type;
@@ -156,7 +162,7 @@ struct get_type_id< boost::shared_ptr<T> > {
 template <typename T>
 struct get_type_id< boost::weak_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
-  static std::string type_name() { return "boost::weak_ptr"; };
+  static std::string type_name() { return "weak_ptr"; };
   static construct_ptr CreatePtr() { return NULL; };
   
   typedef const boost::weak_ptr<T>& save_type;
@@ -168,7 +174,7 @@ struct get_type_id< boost::weak_ptr<T> > {
 template <typename T>
 struct get_type_id< std::shared_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
-  static std::string type_name() { return "std::shared_ptr"; };
+  static std::string type_name() { return "shared_ptr"; };
   static construct_ptr CreatePtr() { return NULL; };
   
   typedef const std::shared_ptr<T>& save_type;
@@ -178,7 +184,7 @@ struct get_type_id< std::shared_ptr<T> > {
 template <typename T>
 struct get_type_id< std::weak_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
-  static std::string type_name() { return "std::weak_ptr"; };
+  static std::string type_name() { return "weak_ptr"; };
   static construct_ptr CreatePtr() { return NULL; };
   
   typedef const std::weak_ptr<T>& save_type;
@@ -188,7 +194,7 @@ struct get_type_id< std::weak_ptr<T> > {
 template <typename T>
 struct get_type_id< std::unique_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
-  static std::string type_name() { return "std::unique_ptr"; };
+  static std::string type_name() { return "unique_ptr"; };
   static construct_ptr CreatePtr() { return NULL; };
   
   typedef const std::unique_ptr<T>& save_type;

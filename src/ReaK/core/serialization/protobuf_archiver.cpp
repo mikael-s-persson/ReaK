@@ -152,8 +152,14 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
   
   unsigned int chunk_hdr;
   protobuf_iarchive::load_varint(chunk_hdr);
-  if((chunk_hdr & 0x07) != 2)
-    throw std::ios_base::failure("Protobuf archive is inconsistent with requested read operation!");
+  if((chunk_hdr & 0x07) != 2) {
+    std::streampos current_pos = file_stream->tellg();
+    file_stream->seekg(std::ios_base::beg);
+    std::streampos start_pos = file_stream->tellg();
+    std::stringstream ss;
+    ss << "Protobuf archive is inconsistent with requested read operation! Loading serializable object pointer should have wire-type 2. Got chunk-ID: " << std::hex << chunk_hdr << " at offset " << std::dec << (current_pos - start_pos) << ".";
+    throw std::ios_base::failure(ss.str());
+  };
   
   protobuf_iarchive::load_varint(hdr.size);
   std::streampos start_pos = file_stream->tellg();
@@ -167,9 +173,18 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
   
   *this >> hdr.type_version >> hdr.object_ID >> hdr.is_external;
   
+  if(hdr.object_ID == 0) {
+    Item = serializable_shared_pointer();
+    std::streampos end_pos = file_stream->tellg();
+    if (hdr.size + start_pos != end_pos)
+      file_stream->seekg(start_pos + std::streampos(hdr.size));
+    return *this;
+  };
   if((hdr.object_ID < mObjRegistry.size()) && (mObjRegistry[hdr.object_ID])) {
     Item = mObjRegistry[hdr.object_ID];
-    file_stream->ignore(hdr.size);
+    std::streampos end_pos = file_stream->tellg();
+    if (hdr.size + start_pos != end_pos)
+      file_stream->seekg(start_pos + std::streampos(hdr.size));
     return *this;
   };
   
@@ -189,13 +204,17 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
   //Find the class in question in the repository.
   rtti::so_type::weak_pointer p( rtti::so_type_repo::getInstance().findType(&(typeIDvect[0])) );
   if((p.expired()) || (p.lock()->TypeVersion() < hdr.type_version)) {
-    file_stream->ignore(hdr.size);
+    std::streampos end_pos = file_stream->tellg();
+    if (hdr.size + start_pos != end_pos)
+      file_stream->seekg(start_pos + std::streampos(hdr.size));
     Item = serializable_shared_pointer();
     return *this;
   };
   ReaK::shared_ptr<shared_object> po(p.lock()->CreateObject());
   if(!po) {
-    file_stream->ignore(hdr.size);
+    std::streampos end_pos = file_stream->tellg();
+    if (hdr.size + start_pos != end_pos)
+      file_stream->seekg(start_pos + std::streampos(hdr.size));
     Item = serializable_shared_pointer();
     return *this;
   };
@@ -211,8 +230,8 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
   };
   
   Item->load(*this,hdr.type_version);
-  std::streampos end_pos = file_stream->tellg();
   
+  std::streampos end_pos = file_stream->tellg();
   if (hdr.size + start_pos != end_pos)
     file_stream->seekg(start_pos + std::streampos(hdr.size));
   
@@ -228,8 +247,14 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable(serializable& Item) {
   
   unsigned int chunk_hdr;
   protobuf_iarchive::load_varint(chunk_hdr);
-  if((chunk_hdr & 0x07) != 2)
-    throw std::ios_base::failure("Protobuf archive is inconsistent with requested read operation!");
+  if((chunk_hdr & 0x07) != 2) {
+    std::streampos current_pos = file_stream->tellg();
+    file_stream->seekg(std::ios_base::beg);
+    std::streampos start_pos = file_stream->tellg();
+    std::stringstream ss;
+    ss << "Protobuf archive is inconsistent with requested read operation! Loading serializable object should have wire-type 2. Got chunk-ID: " << std::hex << chunk_hdr << " at offset " << std::dec << (current_pos - start_pos) << ".";
+    throw std::ios_base::failure(ss.str());
+  };
   
   protobuf_iarchive::load_varint(hdr.size);
   std::streampos start_pos = file_stream->tellg();
@@ -304,8 +329,15 @@ void protobuf_iarchive::load_varint(unsigned int& u) {
 iarchive& RK_CALL protobuf_iarchive::load_unsigned_int(unsigned int& u) {
   unsigned int chunk_hdr;
   protobuf_iarchive::load_varint(chunk_hdr);
-  if((chunk_hdr & 0x07) != 0)
-    throw std::ios_base::failure("Protobuf archive is inconsistent with requested read operation!");
+  if((chunk_hdr & 0x07) != 0) {
+    std::streampos current_pos = file_stream->tellg();
+    file_stream->seekg(std::ios_base::beg);
+    std::streampos start_pos = file_stream->tellg();
+    std::stringstream ss;
+    ss << "Protobuf archive is inconsistent with requested read operation! Loading varint should have wire-type 0. Got chunk-ID: " << std::hex << chunk_hdr << " at offset " << std::dec << (current_pos - start_pos) << ".";
+    throw std::ios_base::failure(ss.str());
+  };
+  
   protobuf_iarchive::load_varint(u);
   return *this;
 };
@@ -317,8 +349,14 @@ iarchive& RK_CALL protobuf_iarchive::load_unsigned_int(const std::pair<std::stri
 iarchive& RK_CALL protobuf_iarchive::load_float(float& f) {
   unsigned int chunk_hdr;
   protobuf_iarchive::load_varint(chunk_hdr);
-  if((chunk_hdr & 0x07) != 5)
-    throw std::ios_base::failure("Protobuf archive is inconsistent with requested read operation!");
+  if((chunk_hdr & 0x07) != 5) {
+    std::streampos current_pos = file_stream->tellg();
+    file_stream->seekg(std::ios_base::beg);
+    std::streampos start_pos = file_stream->tellg();
+    std::stringstream ss;
+    ss << "Protobuf archive is inconsistent with requested read operation! Loading float should have wire-type 5. Got chunk-ID: " << std::hex << chunk_hdr << " at offset " << std::dec << (current_pos - start_pos) << ".";
+    throw std::ios_base::failure(ss.str());
+  };
   float_to_ulong tmp; 
   file_stream->read(reinterpret_cast<char*>(&tmp),sizeof(float_to_ulong));
   le2h_1ui32(tmp.ui32);
@@ -333,8 +371,14 @@ iarchive& RK_CALL protobuf_iarchive::load_float(const std::pair<std::string, flo
 iarchive& RK_CALL protobuf_iarchive::load_double(double& d) {
   unsigned int chunk_hdr;
   protobuf_iarchive::load_varint(chunk_hdr);
-  if((chunk_hdr & 0x07) != 1)
-    throw std::ios_base::failure("Protobuf archive is inconsistent with requested read operation!");
+  if((chunk_hdr & 0x07) != 1) {
+    std::streampos current_pos = file_stream->tellg();
+    file_stream->seekg(std::ios_base::beg);
+    std::streampos start_pos = file_stream->tellg();
+    std::stringstream ss;
+    ss << "Protobuf archive is inconsistent with requested read operation! Loading double should have wire-type 1. Got chunk-ID: " << std::hex << chunk_hdr << " at offset " << std::dec << (current_pos - start_pos) << ".";
+    throw std::ios_base::failure(ss.str());
+  };
   double_to_ulong tmp; 
   file_stream->read(reinterpret_cast<char*>(&tmp),sizeof(double_to_ulong));
   le2h_2ui32(tmp);
@@ -349,8 +393,14 @@ iarchive& RK_CALL protobuf_iarchive::load_double(const std::pair<std::string, do
 iarchive& RK_CALL protobuf_iarchive::load_bool(bool& b) {
   unsigned int chunk_hdr;
   protobuf_iarchive::load_varint(chunk_hdr);
-  if((chunk_hdr & 0x07) != 0)
-    throw std::ios_base::failure("Protobuf archive is inconsistent with requested read operation!");
+  if((chunk_hdr & 0x07) != 0) {
+    std::streampos current_pos = file_stream->tellg();
+    file_stream->seekg(std::ios_base::beg);
+    std::streampos start_pos = file_stream->tellg();
+    std::stringstream ss;
+    ss << "Protobuf archive is inconsistent with requested read operation! Loading bool should have wire-type 0. Got chunk-ID: " << std::hex << chunk_hdr << " at offset " << std::dec << (current_pos - start_pos) << ".";
+    throw std::ios_base::failure(ss.str());
+  };
   char tmp = 0;
   file_stream->read(&tmp,1);
   b = tmp;
@@ -364,8 +414,14 @@ iarchive& RK_CALL protobuf_iarchive::load_bool(const std::pair<std::string, bool
 iarchive& RK_CALL protobuf_iarchive::load_string(std::string& s) {
   unsigned int chunk_hdr;
   protobuf_iarchive::load_varint(chunk_hdr);
-  if((chunk_hdr & 0x07) != 2)
-    throw std::ios_base::failure("Protobuf archive is inconsistent with requested read operation!");
+  if((chunk_hdr & 0x07) != 2) {
+    std::streampos current_pos = file_stream->tellg();
+    file_stream->seekg(std::ios_base::beg);
+    std::streampos start_pos = file_stream->tellg();
+    std::stringstream ss;
+    ss << "Protobuf archive is inconsistent with requested read operation! Loading string should have wire-type 2. Got chunk-ID: " << std::hex << chunk_hdr << " at offset " << std::dec << (current_pos - start_pos) << ".";
+    throw std::ios_base::failure(ss.str());
+  };
   unsigned int u;
   protobuf_iarchive::load_varint(u);
   s.resize(u);
@@ -459,7 +515,7 @@ oarchive& RK_CALL protobuf_oarchive::saveToNewArchive_impl(const serializable_sh
     already_saved = true;
   };
   
-  protobuf_oarchive::start_repeated_field();
+  protobuf_oarchive::start_repeated_field("unsigned int");
   while((type_ID) && (*type_ID)) {
     protobuf_oarchive::save_unsigned_int(*type_ID);
     ++type_ID;
@@ -543,7 +599,7 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable_ptr(const serializable_sh
     already_saved = true;
   };
   
-  protobuf_oarchive::start_repeated_field();
+  protobuf_oarchive::start_repeated_field("unsigned int");
   while((type_ID) && (*type_ID)) {
     protobuf_oarchive::save_unsigned_int(*type_ID);
     ++type_ID;
@@ -568,7 +624,7 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable_ptr(const serializable_sh
   str_stream->clear();
   
   protobuf_oarchive::save_varint(hdr.size);
-  *file_stream << str_stream->rdbuf();
+  *file_stream << str_stream->str();
   
   if(!repeat_state.top())
     ++(field_IDs.top());  // increment the field ID.
@@ -604,7 +660,7 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable(const serializable& Item)
   hdr.is_external = false;
   hdr.size = 0;
   
-  protobuf_oarchive::start_repeated_field();
+  protobuf_oarchive::start_repeated_field("unsigned int");
   while(*type_ID) {
     protobuf_oarchive::save_unsigned_int(*type_ID);
     ++type_ID;
@@ -625,7 +681,7 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable(const serializable& Item)
   str_stream->clear();
   
   protobuf_oarchive::save_varint(hdr.size);
-  *file_stream << str_stream->rdbuf();
+  *file_stream << str_stream->str();
   
   if(!repeat_state.top())
     ++(field_IDs.top());  // increment the field ID.
@@ -784,11 +840,11 @@ oarchive& RK_CALL protobuf_oarchive::save_string(const std::pair<std::string, co
 
 
 
-void RK_CALL protobuf_oarchive::start_repeated_field() {
+void RK_CALL protobuf_oarchive::start_repeated_field(const std::string&) {
   repeat_state.push(1);
 };
 
-void RK_CALL protobuf_oarchive::start_repeated_field(const std::string& s) {
+void RK_CALL protobuf_oarchive::start_repeated_field(const std::string&, const std::string&) {
   repeat_state.push(1);
 };
 
@@ -797,25 +853,15 @@ void RK_CALL protobuf_oarchive::finish_repeated_field() {
   ++(field_IDs.top());
 };
 
-void RK_CALL protobuf_oarchive::finish_repeated_field(const std::string& s) {
-  repeat_state.pop();
-  ++(field_IDs.top());
-};
-
-void RK_CALL protobuf_oarchive::start_repeated_pair() {
+void RK_CALL protobuf_oarchive::start_repeated_pair(const std::string&, const std::string&) {
   repeat_state.push(3);
 };
 
-void RK_CALL protobuf_oarchive::start_repeated_pair(const std::string& s) {
+void RK_CALL protobuf_oarchive::start_repeated_pair(const std::string&, const std::string&, const std::string&) {
   repeat_state.push(3);
 };
 
 void RK_CALL protobuf_oarchive::finish_repeated_pair() {
-  repeat_state.pop();
-  field_IDs.top() += 2;
-};
-
-void RK_CALL protobuf_oarchive::finish_repeated_pair(const std::string& s) {
   repeat_state.pop();
   field_IDs.top() += 2;
 };
@@ -856,22 +902,10 @@ void protobuf_schemer::print_schemes(std::ostream& aStream) {
 
 
 unsigned int protobuf_schemer::get_chunk_hdr() {
-  unsigned int chunk_hdr = 0;  // wire-type 0: varint.
-  if(repeat_state.top()) {
-    if(repeat_state.top() & 0x08)
-      return ~chunk_hdr;
-    if(repeat_state.top() & 0x02) {
-      if(repeat_state.top() & 0x04) {
-        chunk_hdr = field_IDs.top() + 1;
-        repeat_state.top() ^= 0x08;
-      } else
-        chunk_hdr = field_IDs.top();
-      repeat_state.top() ^= 0x04;
-    } else {
-      chunk_hdr = field_IDs.top();
-      repeat_state.top() ^= 0x08;
-    };
-  } else 
+  unsigned int chunk_hdr = 0;
+  if(repeat_state.top() & 0x08)
+    return ~chunk_hdr;
+  else 
     chunk_hdr = field_IDs.top();
   return chunk_hdr;
 };
@@ -896,13 +930,8 @@ oarchive& RK_CALL protobuf_schemer::save_serializable_ptr(const std::pair<std::s
     return *this;
   
   unsigned int chunk_hdr = get_chunk_hdr(); 
-  if(~chunk_hdr == 0)
-    return *this;
-  if(repeat_state.top())
-    *file_stream << "  repeated ";
-  else
-    *file_stream << "  required ";
   
+  std::string aObjTypeName = rtti::get_type_id<serializable_shared_pointer>::type_name() + "<" + Item.second->getObjectType()->TypeName() + ">";
   std::map< serializable_shared_pointer, unsigned int>::const_iterator it = mObjRegMap.find(Item.second);
   
   if(it == mObjRegMap.end()) {
@@ -913,7 +942,7 @@ oarchive& RK_CALL protobuf_schemer::save_serializable_ptr(const std::pair<std::s
     field_IDs.push(4);
     repeat_state.push(0);
     
-    *file_stream << "message ptr_" << Item.second->getObjectType()->TypeName() << " {" << std::endl
+    *file_stream << "message " << aObjTypeName << " {" << std::endl
                  << "  repeated uint32 type_ID = 0;" << std::endl
                  << "  required uint32 version = 1;" << std::endl
                  << "  required luid32 object_ID = 2;" << std::endl
@@ -923,15 +952,16 @@ oarchive& RK_CALL protobuf_schemer::save_serializable_ptr(const std::pair<std::s
     mObjRegMap[Item.second] = mObjRegistry.size() - 1;
     
     Item.second->save(*this,Item.second->getObjectType()->TypeVersion());
+    *file_stream << "}" << std::endl;
     
     file_stream = tmp_str_ptr;
     field_IDs.pop();
     repeat_state.pop();
     
-    std::map< std::string, std::size_t >::iterator itm = scheme_map.find("ptr_" + Item.second->getObjectType()->TypeName());
+    std::map< std::string, std::size_t >::iterator itm = scheme_map.find(aObjTypeName);
     if(itm == scheme_map.end()) {
       schemes.push_back(str_stream->str());
-      scheme_map["ptr_" + Item.second->getObjectType()->TypeName()] = schemes.size() - 1;
+      scheme_map[aObjTypeName] = schemes.size() - 1;
     } else {
       std::string s_tmp = str_stream->str();
       if(schemes[itm->second].length() < s_tmp.length())
@@ -939,10 +969,12 @@ oarchive& RK_CALL protobuf_schemer::save_serializable_ptr(const std::pair<std::s
     };
   };
   
-  *file_stream << "ptr_" << Item.second->getObjectType()->TypeName() << " " << Item.first << " = " << chunk_hdr << ";" << std::endl;
+  if(~chunk_hdr == 0)
+    return *this;
   
-  if(!repeat_state.top())
-    ++(field_IDs.top());  // increment the field ID.
+  *file_stream << "  required " << aObjTypeName << " " << Item.first << " = " << chunk_hdr << ";" << std::endl;
+  
+  field_IDs.top() += 1;
   
   return *this;
 };
@@ -953,12 +985,6 @@ oarchive& RK_CALL protobuf_schemer::save_serializable(const serializable& Item) 
 
 oarchive& RK_CALL protobuf_schemer::save_serializable(const std::pair<std::string, const serializable& >& Item) {
   unsigned int chunk_hdr = get_chunk_hdr(); 
-  if(~chunk_hdr == 0)
-    return *this;
-  if(repeat_state.top())
-    *file_stream << "  repeated ";
-  else
-    *file_stream << "  required ";
   
   shared_ptr< std::ostream > tmp_str_ptr = file_stream;
   
@@ -989,10 +1015,12 @@ oarchive& RK_CALL protobuf_schemer::save_serializable(const std::pair<std::strin
       schemes[itm->second] = s_tmp;
   };
   
-  *file_stream << Item.second.getObjectType()->TypeName() << " " << Item.first << " = " << chunk_hdr << ";" << std::endl;
+  if(~chunk_hdr == 0)
+    return *this;
   
-  if(!repeat_state.top())
-    ++(field_IDs.top());  // increment the field ID.
+  *file_stream << "  required " << Item.second.getObjectType()->TypeName() << " " << Item.first << " = " << chunk_hdr << ";" << std::endl;
+  
+  field_IDs.top() += 1;
   
   return *this;
 };
@@ -1005,13 +1033,8 @@ oarchive& RK_CALL protobuf_schemer::save_char(const std::pair<std::string, char 
   unsigned int chunk_hdr = get_chunk_hdr(); 
   if(~chunk_hdr == 0)
     return *this;
-  if(repeat_state.top())
-    *file_stream << "  repeated ";
-  else
-    *file_stream << "  required ";
-  *file_stream << "int32 " << i.first << " = " << chunk_hdr << ";" << std::endl;
-  if(!repeat_state.top())
-    ++(field_IDs.top());  // increment the field ID.
+  *file_stream << "  required int32 " << i.first << " = " << chunk_hdr << ";" << std::endl;
+  field_IDs.top() += 1;
   return *this;
 };
 
@@ -1023,13 +1046,8 @@ oarchive& RK_CALL protobuf_schemer::save_unsigned_char(const std::pair<std::stri
   unsigned int chunk_hdr = get_chunk_hdr(); 
   if(~chunk_hdr == 0)
     return *this;
-  if(repeat_state.top())
-    *file_stream << "  repeated ";
-  else
-    *file_stream << "  required ";
-  *file_stream << "uint32 " << u.first << " = " << chunk_hdr << ";" << std::endl;
-  if(!repeat_state.top())
-    ++(field_IDs.top());  // increment the field ID.
+  *file_stream << "  required uint32 " << u.first << " = " << chunk_hdr << ";" << std::endl;
+  field_IDs.top() += 1;
   return *this;
 };
 
@@ -1042,13 +1060,8 @@ oarchive& RK_CALL protobuf_schemer::save_int(const std::pair<std::string, int >&
   unsigned int chunk_hdr = get_chunk_hdr(); 
   if(~chunk_hdr == 0)
     return *this;
-  if(repeat_state.top())
-    *file_stream << "  repeated ";
-  else
-    *file_stream << "  required ";
-  *file_stream << "int32 " << i.first << " = " << chunk_hdr << ";" << std::endl;
-  if(!repeat_state.top())
-    ++(field_IDs.top());  // increment the field ID.
+  *file_stream << "  required int32 " << i.first << " = " << chunk_hdr << ";" << std::endl;
+  field_IDs.top() += 1;
   return *this;
 };
 
@@ -1061,13 +1074,8 @@ oarchive& RK_CALL protobuf_schemer::save_unsigned_int(const std::pair<std::strin
   unsigned int chunk_hdr = get_chunk_hdr(); 
   if(~chunk_hdr == 0)
     return *this;
-  if(repeat_state.top())
-    *file_stream << "  repeated ";
-  else
-    *file_stream << "  required ";
-  *file_stream << "uint32 " << u.first << " = " << chunk_hdr << ";" << std::endl;
-  if(!repeat_state.top())
-    ++(field_IDs.top());  // increment the field ID.
+  *file_stream << "  required uint32 " << u.first << " = " << chunk_hdr << ";" << std::endl;
+  field_IDs.top() += 1;
   return *this;
 };
 
@@ -1081,13 +1089,8 @@ oarchive& RK_CALL protobuf_schemer::save_float(const std::pair<std::string, floa
   unsigned int chunk_hdr = get_chunk_hdr(); 
   if(~chunk_hdr == 0)
     return *this;
-  if(repeat_state.top())
-    *file_stream << "  repeated ";
-  else
-    *file_stream << "  required ";
-  *file_stream << "float " << f.first << " = " << chunk_hdr << ";" << std::endl;
-  if(!repeat_state.top())
-    ++(field_IDs.top());  // increment the field ID.
+  *file_stream << "  required float " << f.first << " = " << chunk_hdr << ";" << std::endl;
+  field_IDs.top() += 1;
   return *this;
 };
 
@@ -1101,13 +1104,8 @@ oarchive& RK_CALL protobuf_schemer::save_double(const std::pair<std::string, dou
   unsigned int chunk_hdr = get_chunk_hdr(); 
   if(~chunk_hdr == 0)
     return *this;
-  if(repeat_state.top())
-    *file_stream << "  repeated ";
-  else
-    *file_stream << "  required ";
-  *file_stream << "double " << d.first << " = " << chunk_hdr << ";" << std::endl;
-  if(!repeat_state.top())
-    ++(field_IDs.top());  // increment the field ID.
+  *file_stream << "  required double " << d.first << " = " << chunk_hdr << ";" << std::endl;
+  field_IDs.top() += 1;
   return *this;
 };
 
@@ -1121,13 +1119,8 @@ oarchive& RK_CALL protobuf_schemer::save_bool(const std::pair<std::string, bool 
   unsigned int chunk_hdr = get_chunk_hdr(); 
   if(~chunk_hdr == 0)
     return *this;
-  if(repeat_state.top())
-    *file_stream << "  repeated ";
-  else
-    *file_stream << "  required ";
-  *file_stream << "bool " << b.first << " = " << chunk_hdr << ";" << std::endl;
-  if(!repeat_state.top())
-    ++(field_IDs.top());  // increment the field ID.
+  *file_stream << "  required bool " << b.first << " = " << chunk_hdr << ";" << std::endl;
+  field_IDs.top() += 1;
   return *this;
 };
 
@@ -1141,50 +1134,41 @@ oarchive& RK_CALL protobuf_schemer::save_string(const std::pair<std::string, con
   unsigned int chunk_hdr = get_chunk_hdr(); 
   if(~chunk_hdr == 0)
     return *this;
-  if(repeat_state.top())
-    *file_stream << "  repeated ";
-  else
-    *file_stream << "  required ";
-  *file_stream << "string " << s.first << " = " << chunk_hdr << ";" << std::endl;
-  if(!repeat_state.top())
-    ++(field_IDs.top());  // increment the field ID.
+  *file_stream << "  required string " << s.first << " = " << chunk_hdr << ";" << std::endl;
+  field_IDs.top() += 1;
   return *this;
 };
 
 
 
-void RK_CALL protobuf_schemer::start_repeated_field() {
-  repeat_state.push(1);
+void RK_CALL protobuf_schemer::start_repeated_field(const std::string& aTypeName) {
+  repeat_state.push(9);
+  *file_stream << "  repeated " << aTypeName << " value = " << field_IDs.top() << ";" << std::endl;
 };
 
-void RK_CALL protobuf_schemer::start_repeated_field(const std::string& s) {
-  repeat_state.push(1);
+void RK_CALL protobuf_schemer::start_repeated_field(const std::string& aTypeName, const std::string& aName) {
+  repeat_state.push(9);
+  *file_stream << "  repeated " << aTypeName << " " << aName << " = " << field_IDs.top() << ";" << std::endl;
 };
 
 void RK_CALL protobuf_schemer::finish_repeated_field() {
   repeat_state.pop();
-  ++(field_IDs.top());
+  field_IDs.top() += 1;
 };
 
-void RK_CALL protobuf_schemer::finish_repeated_field(const std::string& s) {
-  repeat_state.pop();
-  ++(field_IDs.top());
+void RK_CALL protobuf_schemer::start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2) {
+  repeat_state.push(11);
+  *file_stream << "  repeated " << aTypeName1 << " map_key = " << field_IDs.top() << ";" << std::endl
+               << "  repeated " << aTypeName2 << " map_value = " << (field_IDs.top() + 1) << ";" << std::endl;
 };
 
-void RK_CALL protobuf_schemer::start_repeated_pair() {
-  repeat_state.push(3);
-};
-
-void RK_CALL protobuf_schemer::start_repeated_pair(const std::string& s) {
-  repeat_state.push(3);
+void RK_CALL protobuf_schemer::start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2, const std::string& aName) {
+  repeat_state.push(11);
+  *file_stream << "  repeated " << aTypeName1 << " " << aName << "_key = " << field_IDs.top() << ";" << std::endl
+               << "  repeated " << aTypeName2 << " " << aName << "_value = " << (field_IDs.top() + 1) << ";" << std::endl;
 };
 
 void RK_CALL protobuf_schemer::finish_repeated_pair() {
-  repeat_state.pop();
-  field_IDs.top() += 2;
-};
-
-void RK_CALL protobuf_schemer::finish_repeated_pair(const std::string& s) {
   repeat_state.pop();
   field_IDs.top() += 2;
 };

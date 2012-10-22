@@ -1359,7 +1359,7 @@ struct get_type_id< arithmetic_tuple< T... > > {
 template <typename Tail, typename... T>
 struct get_type_info< arithmetic_tuple< T... >, Tail > {
   typedef detail::type_id< arithmetic_tuple< T... > , typename get_type_info_seq< T... >::template with_tail<Tail>::type > type;
-  static std::string type_name() { return get_type_id< arithmetic_tuple< T... > >::type_name() + "<" + get_type_info_seq< T... >::type_name() + ">" + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< arithmetic_tuple< T... > >::type_name() + "<" + get_type_info_seq< T... >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 #else
@@ -1380,7 +1380,7 @@ template <typename T1, typename T2, typename T3, typename T4, typename T5,
 	  typename Tail>
 struct get_type_info< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >, Tail > {
   typedef detail::type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > , typename get_type_info_seq< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >::template with_tail<Tail>::type > type;
-  static std::string type_name() { return get_type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > >::type_name() + "<" + get_type_info_seq< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >::type_name() + ">" + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > >::type_name() + "<" + get_type_info_seq< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 #endif

@@ -194,7 +194,7 @@ struct get_type_info< tensor<T,Order,Structure,Alignment,Allocator>, Tail > {
   static std::string type_name() { return get_type_id< tensor<T,Order,Structure,Alignment,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + "," 
                                                                                                                           + get_type_id< boost::mpl::integral_c<unsigned int,Order> >::type_name() + "," 
                                                                                                                           + get_type_id< boost::mpl::integral_c<tensor_structure::tag,Structure> >::type_name() + "," 
-														          + get_type_id< boost::mpl::integral_c<tensor_alignment::tag,Alignment> >::type_name() + ">" + "," + Tail::type_name(); };
+														          + get_type_id< boost::mpl::integral_c<tensor_alignment::tag,Alignment> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 

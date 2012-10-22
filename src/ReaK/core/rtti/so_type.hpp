@@ -47,6 +47,7 @@
 
 #include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/bool.hpp>
+#include <boost/type_traits.hpp>
 
 
 /** Main namespace for ReaK */
@@ -218,13 +219,13 @@ struct get_type_info_seq<T1,void,void,void,void,void,void,void,void,void> {
 template <typename T, typename Tail = null_type_info>
 struct get_type_info {
   typedef detail::type_id<T, typename Tail::type> type;
-  static std::string type_name() { return get_type_id<T>::type_name() + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id<T>::type_name() + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <template <typename> class U, typename T, typename Tail>
 struct get_type_info< U<T>, Tail > {
   typedef detail::type_id< U<T>, typename get_type_info<T, Tail>::type > type;
-  static std::string type_name() { return get_type_id< U<T> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< U<T> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 
@@ -237,7 +238,7 @@ struct get_type_info< U<T1,
                                            get_type_info<T2, Tail> >::type > type;
   static std::string type_name() { return get_type_id< U<T1,
                                                          T2> >::type_name() + "<" + get_type_id<T1>::type_name() + "," 
-                                                                                  + get_type_id<T2>::type_name() + ">" + "," + Tail::type_name(); };
+                                                                                  + get_type_id<T2>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <template <typename,
@@ -257,7 +258,7 @@ struct get_type_info< U<T1,
                                                          T2,
 							 T3> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
                                                                                   + get_type_id<T2>::type_name() + ","
-                                                                                  + get_type_id<T3>::type_name() + ">" + "," + Tail::type_name(); };
+                                                                                  + get_type_id<T3>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <template <typename,
@@ -284,7 +285,7 @@ struct get_type_info< U<T1,
 							 T4> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
                                                                                   + get_type_id<T2>::type_name() + ","
                                                                                   + get_type_id<T3>::type_name() + ","
-                                                                                  + get_type_id<T4>::type_name() + ">" + "," + Tail::type_name(); };
+                                                                                  + get_type_id<T4>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <template <typename,
@@ -318,7 +319,7 @@ struct get_type_info< U<T1,
                                                                                   + get_type_id<T2>::type_name() + ","
                                                                                   + get_type_id<T3>::type_name() + ","
                                                                                   + get_type_id<T4>::type_name() + ","
-                                                                                  + get_type_id<T5>::type_name() + ">" + "," + Tail::type_name(); };
+                                                                                  + get_type_id<T5>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <template <typename,
@@ -359,7 +360,7 @@ struct get_type_info< U<T1,
                                                                                   + get_type_id<T3>::type_name() + ","
                                                                                   + get_type_id<T4>::type_name() + ","
                                                                                   + get_type_id<T5>::type_name() + ","
-                                                                                  + get_type_id<T6>::type_name() + ">" + "," + Tail::type_name(); };
+                                                                                  + get_type_id<T6>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <template <typename,
@@ -407,7 +408,7 @@ struct get_type_info< U<T1,
                                                                                   + get_type_id<T4>::type_name() + ","
                                                                                   + get_type_id<T5>::type_name() + ","
                                                                                   + get_type_id<T6>::type_name() + ","
-                                                                                  + get_type_id<T7>::type_name() + ">" + "," + Tail::type_name(); };
+                                                                                  + get_type_id<T7>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <template <typename,
@@ -462,7 +463,7 @@ struct get_type_info< U<T1,
                                                                                   + get_type_id<T5>::type_name() + ","
                                                                                   + get_type_id<T6>::type_name() + ","
                                                                                   + get_type_id<T7>::type_name() + ","
-                                                                                  + get_type_id<T8>::type_name() + ">" + "," + Tail::type_name(); };
+                                                                                  + get_type_id<T8>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <template <typename,
@@ -524,7 +525,7 @@ struct get_type_info< U<T1,
                                                                                   + get_type_id<T6>::type_name() + ","
                                                                                   + get_type_id<T7>::type_name() + ","
                                                                                   + get_type_id<T8>::type_name() + ","
-                                                                                  + get_type_id<T9>::type_name() + ">" + "," + Tail::type_name(); };
+                                                                                  + get_type_id<T9>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <template <typename,
@@ -593,32 +594,32 @@ struct get_type_info< U<T1,
                                                                                   + get_type_id<T7>::type_name() + ","
                                                                                   + get_type_id<T8>::type_name() + ","
                                                                                   + get_type_id<T9>::type_name() + ","
-                                                                                  + get_type_id<T10>::type_name() + ">" + "," + Tail::type_name(); };
+                                                                                  + get_type_id<T10>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 
 template <unsigned int U, typename Tail>
 struct get_type_info< boost::mpl::integral_c<unsigned int,U>, Tail > {
   typedef detail::type_id<boost::mpl::integral_c<unsigned int,U>, typename Tail::type> type;
-  static std::string type_name() { return get_type_id< boost::mpl::integral_c<unsigned int,U> >::type_name() + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< boost::mpl::integral_c<unsigned int,U> >::type_name() + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <typename Tail>
 struct get_type_info< boost::mpl::true_, Tail > {
   typedef detail::type_id<boost::mpl::true_, typename Tail::type> type;
-  static std::string type_name() { return get_type_id<boost::mpl::true_>::type_name() + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id<boost::mpl::true_>::type_name() + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <typename Tail>
 struct get_type_info< boost::mpl::false_, Tail > {
   typedef detail::type_id<boost::mpl::false_, typename Tail::type> type;
-  static std::string type_name() { return get_type_id<boost::mpl::false_>::type_name() + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id<boost::mpl::false_>::type_name() + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <int I, typename Tail>
 struct get_type_info< boost::mpl::int_<I>, Tail > {
   typedef detail::type_id<boost::mpl::int_<I>, typename Tail::type> type;
-  static std::string type_name() { return get_type_id< boost::mpl::int_<I> >::type_name() + "," + Tail::type_name(); };
+  static std::string type_name() { return get_type_id< boost::mpl::int_<I> >::type_name() + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 
@@ -830,6 +831,10 @@ namespace detail {
 };
 
 #endif
+
+
+#include "typed_primitives.hpp"
+#include "typed_containers.hpp"
 
 
 

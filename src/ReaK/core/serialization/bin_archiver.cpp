@@ -147,12 +147,19 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointe
   std::vector<unsigned int> typeIDvect;
   unsigned int i;
   do {
-    *this >> i;
+    bin_iarchive::load_unsigned_int(i);
     typeIDvect.push_back(i);
   } while(i != 0);
   
-  *this >> hdr.type_version >> hdr.object_ID >> hdr.is_external >> hdr.size;
-
+  bin_iarchive::load_unsigned_int(hdr.type_version);
+  bin_iarchive::load_unsigned_int(hdr.object_ID);
+  bin_iarchive::load_bool(hdr.is_external);
+  bin_iarchive::load_unsigned_int(hdr.size);
+  
+  if(hdr.object_ID == 0) {
+    Item = serializable_shared_pointer();
+    return *this;
+  };
   if((hdr.object_ID < mObjRegistry.size()) && (mObjRegistry[hdr.object_ID])) {
     Item = mObjRegistry[hdr.object_ID];
     file_stream.ignore(hdr.size);
@@ -172,26 +179,29 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointe
 
     return *this;
   };
-
-  hdr.type_ID = new unsigned int[typeIDvect.size()];
-  std::copy(typeIDvect.begin(),typeIDvect.end(),hdr.type_ID);
+  
   //Find the class in question in the repository.
-  rtti::so_type::weak_pointer p( rtti::so_type_repo::getInstance().findType(hdr.type_ID) );
-  delete[] hdr.type_ID;
+  rtti::so_type::weak_pointer p( rtti::so_type_repo::getInstance().findType(&(typeIDvect[0])) );
   if((p.expired()) || (p.lock()->TypeVersion() < hdr.type_version)) {
     file_stream.ignore(hdr.size);
     Item = serializable_shared_pointer();
+    std::stringstream ss;
+    for(std::size_t i = 0; typeIDvect[i]; ++i)
+      ss << std::hex << typeIDvect[i] << ".";
+    ss << "0";
+    RK_NOTICE(2,"Could not find the object of type " << ss.str() << " in the type repository.");
     return *this;
   };
   ReaK::shared_ptr<shared_object> po(p.lock()->CreateObject());
   if(!po) {
     file_stream.ignore(hdr.size);
     Item = serializable_shared_pointer();
+    RK_NOTICE(2,"Could not create the object of type '" << p.lock()->TypeName() << "' from the factory function.");
     return *this;
   };
 
   Item = po;
-  if(hdr.object_ID < mObjRegistry.size())
+  if(hdr.object_ID < mObjRegistry.size())  // somehow this object-ID was previously skipped over.
     mObjRegistry[hdr.object_ID] = Item;
   else if(hdr.object_ID == mObjRegistry.size())
     mObjRegistry.push_back(Item);                //in theory, only this condition should occur
@@ -339,12 +349,10 @@ iarchive& RK_CALL bin_iarchive::load_string(const std::pair<std::string, std::st
 bin_oarchive::bin_oarchive(const std::string& FileName) {
   file_stream.open(FileName.c_str(),std::ios::binary | std::ios::out);
 
-  char header[] = "reak_serialization::bin_archive";
-  file_stream.write(header,std::strlen(header)+1);
+  *this << std::string("reak_serialization::bin_archive");
   unsigned int version = 2;
-  file_stream.write(reinterpret_cast<char*>(&version),sizeof(unsigned int));
-
-
+  *this << version;
+  
 };
 
 bin_oarchive::~bin_oarchive() {
@@ -397,14 +405,16 @@ oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const serializable_shared_
   } else {
     std::streampos size_pos = file_stream.tellp();
     bin_oarchive::save_unsigned_int(hdr.size);
+    
+    std::streampos start_pos = file_stream.tellp();
     bin_oarchive::save_string(FileName);
     std::streampos end_pos = file_stream.tellp();
     typedef unsigned int tmp_uint;
-    hdr.size = tmp_uint(end_pos - size_pos - sizeof(tmp_uint));
+    hdr.size = tmp_uint(end_pos - start_pos);
     file_stream.seekp(size_pos);
     bin_oarchive::save_unsigned_int(hdr.size);
     file_stream.seekp(end_pos);
-
+    
     bin_oarchive a(FileName);
     a << Item;
   };
@@ -463,11 +473,12 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const serializable_shared_
     std::streampos size_pos = file_stream.tellp();
     bin_oarchive::save_unsigned_int(hdr.size);
 
+    std::streampos start_pos = file_stream.tellp();
     Item->save(*this,hdr.type_version);
-
     std::streampos end_pos = file_stream.tellp();
+
     typedef unsigned int tmp_uint;
-    hdr.size = tmp_uint(end_pos - size_pos - sizeof(tmp_uint));
+    hdr.size = tmp_uint(end_pos - start_pos);
     file_stream.seekp(size_pos);
     bin_oarchive::save_unsigned_int(hdr.size);
     file_stream.seekp(end_pos);
@@ -497,15 +508,16 @@ oarchive& RK_CALL bin_oarchive::save_serializable(const serializable& Item) {
   bin_oarchive::save_unsigned_int(0);
 
   bin_oarchive::save_unsigned_int(hdr.type_version);
-
+  
   std::streampos size_pos = file_stream.tellp();
   bin_oarchive::save_unsigned_int(hdr.size);
-
+  
+  std::streampos start_pos = file_stream.tellp();
   Item.save(*this,hdr.type_version);
-
   std::streampos end_pos = file_stream.tellp();
+
   typedef unsigned int tmp_uint;
-  hdr.size = tmp_uint(end_pos - size_pos - sizeof(tmp_uint));
+  hdr.size = tmp_uint(end_pos - start_pos);
   file_stream.seekp(size_pos);
   bin_oarchive::save_unsigned_int(hdr.size);
   file_stream.seekp(end_pos);
