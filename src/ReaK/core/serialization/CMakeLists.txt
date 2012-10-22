@@ -2,12 +2,14 @@
 set(SERIALIZATION_SOURCES 
   "${SRCROOT}${RKSERIALIZATIONDIR}/xml_archiver.cpp"
   "${SRCROOT}${RKSERIALIZATIONDIR}/bin_archiver.cpp"
+  "${SRCROOT}${RKSERIALIZATIONDIR}/protobuf_archiver.cpp"
 )
 
 set(SERIALIZATION_HEADERS 
   "${RKSERIALIZATIONDIR}/archiver.hpp"
   "${RKSERIALIZATIONDIR}/xml_archiver.hpp"
   "${RKSERIALIZATIONDIR}/bin_archiver.hpp"
+  "${RKSERIALIZATIONDIR}/protobuf_archiver.hpp"
 )
 
 add_library(reak_serialization STATIC ${SERIALIZATION_SOURCES})
