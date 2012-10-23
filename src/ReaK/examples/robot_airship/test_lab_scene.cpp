@@ -172,6 +172,7 @@ int main(int argc, char ** argv) {
   
   all_robot_info r_info;
   
+  //r_info.builder.create_geom_from_preset();
   r_info.builder.load_kte_and_geom("models/CRS_A465_with_geom.xml");
   r_info.builder.load_limits_from_file("models/CRS_A465_limits.xml");
   
@@ -232,10 +233,11 @@ int main(int argc, char ** argv) {
     r_info.airship_frame->Quat = axis_angle<double>(M_PI * 0.5, vect<double,3>(1.0,0.0,0.0));
     r_info.airship_chain->doMotion();
     
+    geom::oi_scene_graph sg;
+#if 0
     geom::oi_scene_graph sg_tmp;
     sg_tmp << (*r_info.builder.get_geometric_model());
     
-    geom::oi_scene_graph sg;
     sg.setCharacteristicLength(sg_tmp.computeCharacteristicLength());
     
     shared_ptr< kte::kte_map_chain > d_chain = r_info.builder.get_dynamics_kte_chain();
@@ -267,9 +269,11 @@ int main(int argc, char ** argv) {
     (*d_chain) << spr1 << dmp1 << fj1;
     
     sg << (*d_chain);
+#else
     
-    //sg << (*r_info.kin_chain);
-    //sg << (*lab_geom_model) << (*airship_geom_model);
+    sg << (*r_info.builder.get_geometric_model());
+    sg << (*lab_geom_model) << (*airship_geom_model);
+#endif
     
     SoSeparator* root = new SoSeparator;
     root->ref();
@@ -301,7 +305,7 @@ int main(int argc, char ** argv) {
     ln_set_lr_pline->numVertices.set1Value(0, 2);
     sep_lr_pline->addChild(ln_set_lr_pline);
     
-    //root->addChild(sep_lr_pline);
+    root->addChild(sep_lr_pline);
     
     
     
@@ -328,7 +332,7 @@ int main(int argc, char ** argv) {
     ln_set_ra_pline->numVertices.set1Value(0, 2);
     sep_ra_pline->addChild(ln_set_ra_pline);
     
-    //root->addChild(sep_ra_pline);
+    root->addChild(sep_ra_pline);
     
     
     
@@ -355,7 +359,7 @@ int main(int argc, char ** argv) {
     ln_set_la_pline->numVertices.set1Value(0, 2);
     sep_la_pline->addChild(ln_set_la_pline);
     
-    //root->addChild(sep_la_pline);
+    root->addChild(sep_la_pline);
     
     
     

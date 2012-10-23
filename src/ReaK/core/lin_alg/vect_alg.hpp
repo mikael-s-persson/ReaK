@@ -660,7 +660,9 @@ class vect : public serialization::serializable {
     
   private:
     
-    static void set_value_impl(value_type* pval) { };
+    static void set_value_impl(value_type* pval, const value_type& a1) {
+      *pval = a1;
+    };
     
     template <typename... Args>
     static void set_value_impl(value_type* pval, const value_type& a1, const Args&... tail) {
@@ -678,7 +680,7 @@ class vect : public serialization::serializable {
     vect(const value_type& a1, Args... args) {
       BOOST_STATIC_ASSERT(Size > sizeof...(Args));
       set_value_impl(q, a1, args...);
-      for(size_type i = sizeof...(Args); i < Size; ++i)
+      for(size_type i = sizeof...(Args) + 1; i < Size; ++i)
         q[i] = value_type();
       return;
     };

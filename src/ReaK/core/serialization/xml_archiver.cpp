@@ -200,7 +200,7 @@ iarchive& RK_CALL xml_iarchive::load_serializable_ptr(const std::pair<std::strin
   Item.second = serializable_shared_pointer();
   
   hdr = readHeader(Item.first);
-  if((hdr.type_ID == NULL) || (hdr.type_version == 0)) {
+  if((hdr.type_ID == NULL) || (hdr.type_version == 0) || (hdr.object_ID == 0)) {
     skipToEndToken(Item.first);
     delete[] hdr.type_ID;
     return *this;

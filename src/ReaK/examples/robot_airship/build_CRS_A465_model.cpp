@@ -26,6 +26,7 @@
 
 int main(int argc, char ** argv) {
   
+  
   ReaK::robot_airship::CRS_A465_geom_builder builder;
   builder.create_geom_from_preset();
   

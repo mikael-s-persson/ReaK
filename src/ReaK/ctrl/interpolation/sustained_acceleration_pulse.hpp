@@ -54,6 +54,7 @@
 #include <limits>
 #include "topologies/basic_distance_metrics.hpp"
 #include "path_planning/bounded_space_concept.hpp"
+#include "topologies/generic_sampler_factory.hpp"
 
 #include "sustained_acceleration_pulse_detail.hpp"
 
@@ -551,7 +552,7 @@ class sap_reach_topology : public BaseTopology
     
     shared_ptr<time_topology> t_space;
     sap_reach_time_metric<time_topology> rt_dist;
-    sap_rate_limited_sampler<time_topology> rl_sampler;
+    generic_sampler<sap_rate_limited_sampler<time_topology>, BaseTopology> rl_sampler;
     
     
   public:
@@ -561,49 +562,49 @@ class sap_reach_topology : public BaseTopology
                        unsigned int aMaxIter = 60) : 
                        BaseTopology(aTopo),
                        t_space(new time_topology),
-                       rt_dist(t_space, aTolerance, aMaxIter), rl_sampler(t_space) { };
+                       rt_dist(t_space, aTolerance, aMaxIter), rl_sampler(sap_rate_limited_sampler<time_topology>(t_space)) { };
     
 #ifdef RK_ENABLE_CXX11_FEATURES
     template <typename... Args>
     sap_reach_topology(Args&&... args) : 
                        BaseTopology(std::forward<Args>(args)...),
                        t_space(new time_topology),
-                       rt_dist(t_space), rl_sampler(t_space) { };
+                       rt_dist(t_space), rl_sampler(sap_rate_limited_sampler<time_topology>(t_space)) { };
 #else
     sap_reach_topology() : 
                        BaseTopology(),
                        t_space(new time_topology),
-                       rt_dist(t_space), rl_sampler(t_space) { };
+                       rt_dist(t_space), rl_sampler(sap_rate_limited_sampler<time_topology>(t_space)) { };
     
     template <typename A1>
     sap_reach_topology(const A1& a1) : 
                        BaseTopology(a1),
                        t_space(new time_topology),
-                       rt_dist(t_space), rl_sampler(t_space) { };
+                       rt_dist(t_space), rl_sampler(sap_rate_limited_sampler<time_topology>(t_space)) { };
     
     template <typename A1, typename A2>
     sap_reach_topology(const A1& a1, const A2& a2) : 
                        BaseTopology(a1, a2),
                        t_space(new time_topology),
-                       rt_dist(t_space), rl_sampler(t_space) { };
+                       rt_dist(t_space), rl_sampler(sap_rate_limited_sampler<time_topology>(t_space)) { };
     
     template <typename A1, typename A2, typename A3>
     sap_reach_topology(const A1& a1, const A2& a2, const A3& a3) : 
                        BaseTopology(a1, a2, a3),
                        t_space(new time_topology),
-                       rt_dist(t_space), rl_sampler(t_space) { };
+                       rt_dist(t_space), rl_sampler(sap_rate_limited_sampler<time_topology>(t_space)) { };
     
     template <typename A1>
     sap_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4) : 
                        BaseTopology(a1, a2, a3, a4),
                        t_space(new time_topology),
-                       rt_dist(t_space), rl_sampler(t_space) { };
+                       rt_dist(t_space), rl_sampler(sap_rate_limited_sampler<time_topology>(t_space)) { };
     
     template <typename A1>
     sap_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5) : 
                        BaseTopology(a1, a2, a3, a4, a5),
                        t_space(new time_topology),
-                       rt_dist(t_space), rl_sampler(t_space) { };
+                       rt_dist(t_space), rl_sampler(sap_rate_limited_sampler<time_topology>(t_space)) { };
 #endif
                        
    /**
