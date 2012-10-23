@@ -461,6 +461,146 @@ struct svp_rate_limited_sampler : public serialization::serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(svp_rate_limited_sampler,0xC2450001,1,"svp_rate_limited_sampler",serialization::serializable)
 };
 
+
+
+
+
+/**
+ * This class wraps a reach-time topology with SVP-based distance metric and a sampler.
+ * \tparam BaseTopology The topology underlying this space, should express values as reach-time values and metrics (distance), and should model TopologyConcept, PointDistributionConcept, BoundedSpaceConcept and TangentBundleConcept for time_topology and up to 2nd order (acceleration).
+ */
+template <typename BaseTopology>
+class svp_reach_topology : public BaseTopology
+{
+  public:
+    BOOST_CONCEPT_ASSERT((TopologyConcept<BaseTopology>));
+    BOOST_CONCEPT_ASSERT((PointDistributionConcept<BaseTopology>));
+    BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<BaseTopology>));
+    BOOST_CONCEPT_ASSERT((TangentBundleConcept<BaseTopology, 2, time_topology>));
+    
+    typedef svp_reach_topology<BaseTopology> self;
+    
+    typedef typename topology_traits< BaseTopology >::point_type point_type;
+    typedef typename topology_traits< BaseTopology >::point_difference_type point_difference_type;
+    
+    typedef default_distance_metric distance_metric_type;
+    typedef default_random_sampler random_sampler_type;
+    
+    typedef BaseTopology super_space_type;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology_traits< BaseTopology >::dimensions);
+    
+  protected:
+    
+    shared_ptr<time_topology> t_space;
+    svp_reach_time_metric<time_topology> rt_dist;
+    svp_rate_limited_sampler<time_topology> rl_sampler;
+    
+    
+  public:
+    
+#ifdef RK_ENABLE_CXX11_FEATURES
+    template <typename... Args>
+    svp_reach_topology(Args&&... args) : 
+                       BaseTopology(std::forward<Args>(args)...),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+#else
+    svp_reach_topology() : 
+                       BaseTopology(),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+    
+    template <typename A1>
+    svp_reach_topology(const A1& a1) : 
+                       BaseTopology(a1),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+    
+    template <typename A1, typename A2>
+    svp_reach_topology(const A1& a1, const A2& a2) : 
+                       BaseTopology(a1, a2),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+    
+    template <typename A1, typename A2, typename A3>
+    svp_reach_topology(const A1& a1, const A2& a2, const A3& a3) : 
+                       BaseTopology(a1, a2, a3),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+    
+    template <typename A1>
+    svp_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4) : 
+                       BaseTopology(a1, a2, a3, a4),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+    
+    template <typename A1>
+    svp_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5) : 
+                       BaseTopology(a1, a2, a3, a4, a5),
+                       t_space(new time_topology),
+                       rt_dist(t_space), rl_sampler(t_space) { };
+#endif
+                       
+   /**
+    * Returns a const-reference to the super-space of this topology.
+    * \note This function returns a const-reference to itself since the super-space is also 
+    *       the base-class of this topology. The base class is not polymorphic, meaning that its
+    *       distance metric and random-sampler are not overridden (non-virtual calls).
+    */
+   const super_space_type& get_super_space() const { return *this; };
+    
+   /*************************************************************************
+    *                             MetricSpaceConcept
+    * **********************************************************************/
+    
+    /**
+     * Returns the distance between two points.
+     */
+    double distance(const point_type& a, const point_type& b) const 
+    {
+      return rt_dist(a, b, static_cast<const BaseTopology&>(*this));
+    }
+    
+    /**
+     * Returns the norm of the difference between two points.
+     */
+    double norm(const point_difference_type& delta) const {
+      return rt_dist(delta, static_cast<const BaseTopology&>(*this));
+    }
+    
+   /*************************************************************************
+    *                         for PointDistributionConcept
+    * **********************************************************************/
+    
+    /**
+     * Generates a random point in the space, uniformly distributed within the reachable space.
+     */
+    point_type random_point() const {
+      return rl_sampler(static_cast<const BaseTopology&>(*this));
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      BaseTopology::save(A,BaseTopology::getStaticObjectType()->TypeVersion());
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      BaseTopology::load(A,BaseTopology::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400023,1,"svp_reach_topology",BaseTopology)
+    
+};
+
+
+
+
+
+
   
 /**
  * This class implements a trajectory in a temporal and once-differentiable topology.
