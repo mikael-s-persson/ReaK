@@ -60,6 +60,11 @@ namespace ReaK {
 
 namespace pp {
 
+/**
+ * Use this tag type for some class templates that are parametrized in terms of the interpolation method used overall.
+ */
+struct svp_interpolation_tag { };
+
 
 /**
  * This function template computes a Sustained Velocity Pulse (SVP) interpolation between two points in a 
@@ -579,6 +584,24 @@ class svp_reach_topology : public BaseTopology
      */
     point_type random_point() const {
       return rl_sampler(static_cast<const BaseTopology&>(*this));
+    };
+
+   /*************************************************************************
+    *                             LieGroupConcept
+    * **********************************************************************/
+    
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
+    {
+      detail::generic_interpolator_impl<svp_interpolator,BaseTopology,time_topology> interp;
+      interp.initialize(a, b, 0.0, static_cast<const BaseTopology&>(*this), *t_space, rt_dist);
+      double dt_min = interp.get_minimum_travel_time();
+      double dt = dt_min * fraction;
+      point_type result = a;
+      interp.compute_point(result, a, b, static_cast<const BaseTopology&>(*this), *t_space, dt, dt_min, rt_dist);
+      return result;
     };
     
 /*******************************************************************************

@@ -56,6 +56,11 @@
 namespace ReaK {
 
 namespace pp {
+
+/**
+ * Use this tag type for some class templates that are parametrized in terms of the interpolation method used overall.
+ */
+struct linear_interpolation_tag { };
   
   
 namespace detail {
@@ -302,7 +307,6 @@ class linear_interpolator_factory : public serialization::serializable {
 
 
 
-
   
 /**
  * This class implements a trajectory in a temporal and zero-differentiable topology.
@@ -323,7 +327,7 @@ class linear_interp_traj : public interpolated_trajectory<Topology,linear_interp
     
     typedef typename base_class_type::point_type point_type;
     typedef typename base_class_type::topology topology;
-    typedef typename base_class_type::distance_metric_type distance_metric_type;
+    typedef typename base_class_type::distance_metric distance_metric;
     
   public:
     /**
@@ -332,7 +336,7 @@ class linear_interp_traj : public interpolated_trajectory<Topology,linear_interp
      * \param aSpace The space on which the path is.
      * \param aDist The distance metric functor that the path should use.
      */
-    explicit linear_interp_traj(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric_type& aDist = distance_metric_type()) : 
+    explicit linear_interp_traj(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric& aDist = distance_metric()) : 
                                 base_class_type(aSpace, aDist, linear_interpolator_factory<Topology>(aSpace)) { };
     
     /**
@@ -342,7 +346,7 @@ class linear_interp_traj : public interpolated_trajectory<Topology,linear_interp
      * \param aEnd The end-point of the path.
      * \param aDist The distance metric functor that the path should use.
      */
-    linear_interp_traj(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric_type& aDist = distance_metric_type()) :
+    linear_interp_traj(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
                        base_class_type(aSpace, aStart, aEnd, aDist, linear_interpolator_factory<Topology>(aSpace)) { };
 			
     /**
@@ -354,7 +358,7 @@ class linear_interp_traj : public interpolated_trajectory<Topology,linear_interp
      * \param aDist The distance metric functor that the path should use.
      */
     template <typename ForwardIter>
-    linear_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric_type& aDist = distance_metric_type()) : 
+    linear_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric& aDist = distance_metric()) : 
                        base_class_type(aBegin, aEnd, aSpace, aDist, linear_interpolator_factory<Topology>(aSpace)) { };
 		       
 		       

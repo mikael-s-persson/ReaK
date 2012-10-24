@@ -62,6 +62,11 @@ namespace ReaK {
 
 namespace pp {
 
+/**
+ * Use this tag type for some class templates that are parametrized in terms of the interpolation method used overall.
+ */
+struct sap_interpolation_tag { };
+
 
 /**
  * This function template computes a Sustained Acceleration Pulse (SAP) interpolation between two points in a 
@@ -661,7 +666,7 @@ class sap_reach_topology : public BaseTopology
       point_type result = a;
       interp.compute_point(result, a, b, static_cast<const BaseTopology&>(*this), *t_space, dt, dt_min, rt_dist);
       return result;
-    }
+    };
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces

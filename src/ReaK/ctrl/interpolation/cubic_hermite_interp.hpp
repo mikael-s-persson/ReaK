@@ -55,6 +55,11 @@
 namespace ReaK {
 
 namespace pp {
+
+/**
+ * Use this tag type for some class templates that are parametrized in terms of the interpolation method used overall.
+ */
+struct cubic_hermite_interpolation_tag { };
   
   
 namespace detail {
@@ -352,7 +357,6 @@ class cubic_hermite_interp_factory : public serialization::serializable {
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430002,1,"cubic_hermite_interp_factory",serialization::serializable)
 };
-
 
 
 

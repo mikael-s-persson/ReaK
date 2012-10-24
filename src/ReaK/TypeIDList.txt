@@ -284,6 +284,11 @@ ptrobot2D_test_world        0xC2400020   bin: 1100 0010 0100 0000 0000 0000 0010
 no_obstacle_space<T,D,R>    0xC2400021   bin: 1100 0010 0100 0000 0000 0000 0010 0001  D-R
 sap_reach_topology<T>       0xC2400022   bin: 1100 0010 0100 0000 0000 0000 0010 0010  D-R
 svp_reach_topology<T>       0xC2400023   bin: 1100 0010 0100 0000 0000 0000 0010 0011  D-R
+linear_interp_topology<T>   0xC2400024   bin: 1100 0010 0100 0000 0000 0000 0010 0100  
+cubic_interp_topology<T>    0xC2400025   bin: 1100 0010 0100 0000 0000 0000 0010 0101  
+quintic_interp_topology<T>  0xC2400026   bin: 1100 0010 0100 0000 0000 0000 0010 0110  
+manip_quasi_static_env<T,t> 0xC2400027   bin: 1100 0010 0100 0000 0000 0000 0010 0111  
+manip_dynamic_env<T,t>      0xC2400028   bin: 1100 0010 0100 0000 0000 0000 0010 1000  
 
 
 
