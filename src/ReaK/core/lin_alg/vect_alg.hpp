@@ -61,6 +61,96 @@
 //#include "rk_math_traits.hpp"
 
 namespace ReaK {
+  
+
+
+/**
+ * This class implements a fixed-index vector component of primitive type.
+ * This class is mainly meant to be used with the "vect" class template.
+ */
+template <typename T, unsigned int Index>
+class vect_component {
+  public:
+    typedef vect_component<T, Index> self;
+    
+    typedef T value_type;
+    typedef T& reference;
+    typedef const T& const_reference;
+    typedef std::size_t size_type;
+    
+    value_type q;
+    
+    explicit vect_component(const_reference Q = 0) : q(Q) { };
+    
+    /**
+     * Array indexing operator, accessor for read only.
+     * \test PASSED
+     */
+    value_type operator [](size_type i) const {
+      return (i == Index ? q : value_type());
+    };
+    
+    /**
+     * Call operator, accessor for read only.
+     * \test PASSED
+     */
+    value_type operator ()(size_type i) const {
+      return (i == Index ? q : value_type());
+    };
+    
+    
+    friend 
+    self operator+(const self& lhs, const self& rhs) {
+      return self(lhs.q + rhs.q);
+    };
+    
+    friend 
+    self operator-(const self& lhs, const self& rhs) {
+      return self(lhs.q - rhs.q);
+    };
+    
+    friend 
+    self operator-(const self& lhs) {
+      return self(-lhs.q);
+    };
+    
+    self& operator+=(const self& rhs) {
+      q += rhs.q;
+      return *this;
+    };
+    
+    self& operator-=(const self& rhs) {
+      q -= rhs.q;
+      return *this;
+    };
+    
+    friend 
+    self operator*(const self& lhs, const_reference rhs) {
+      return self(lhs.q * rhs);
+    };
+    
+    friend 
+    self operator*(const_reference lhs, const self& rhs) {
+      return self(lhs * rhs.q);
+    };
+    
+    self& operator*=(const_reference rhs) {
+      q *= rhs;
+      return *this;
+    };
+    
+    
+};
+
+static const vect_component<double,0> vect_i = vect_component<double,0>(1.0);
+static const vect_component<double,1> vect_j = vect_component<double,1>(1.0);
+static const vect_component<double,2> vect_k = vect_component<double,2>(1.0);
+
+
+
+
+
+
 
 /**
  * This class implements a fixed-size templated vector class which holds components of primitive type.
@@ -185,6 +275,26 @@ class vect : public serialization::serializable {
       return;
     };
 #endif
+    
+    template <typename U, unsigned int OtherSize>
+    explicit vect(const vect<U,OtherSize>& rhs) {
+      BOOST_STATIC_ASSERT(Size >= OtherSize);
+      for(size_type i = 0; i < OtherSize; ++i)
+        q[i] = rhs[i];
+      for(size_type i = OtherSize; i < Size; ++i)
+        q[i] = value_type();
+      return;
+    };
+    
+    template <typename U, unsigned int Index>
+    explicit vect(const vect_component<U,Index>& rhs) {
+      BOOST_STATIC_ASSERT(Size > Index);
+      for(size_type i = 0; i < Size; ++i)
+        q[i] = value_type();
+      q[Index] = rhs.q;
+      return;
+    };
+    
 
     /**
      * Destructor.
@@ -767,6 +877,61 @@ class vect : public serialization::serializable {
 	q[i] = V[i];
       return *this;
     };
+    
+    template <typename U, unsigned int Index>
+    self& operator=(const vect_component<U,Index>& V) {
+      BOOST_STATIC_ASSERT(Size > Index);
+      for(size_type i=0; i < Size; ++i)
+        q[i] = value_type();
+      q[Index] = V.q;
+    };
+    
+    template <typename U, unsigned int Index>
+    friend
+    self operator+(self lhs, const vect_component<U,Index>& rhs) {
+      BOOST_STATIC_ASSERT(Size > Index);
+      lhs.q[Index] += rhs.q;
+      return lhs;
+    };
+    
+    template <typename U, unsigned int Index>
+    self& operator+=(const vect_component<U,Index>& rhs) {
+      BOOST_STATIC_ASSERT(Size > Index);
+      q[Index] += rhs.q;
+      return *this;
+    };
+    
+    template <typename U, unsigned int Index>
+    friend
+    self operator+(const vect_component<U,Index>& lhs, self rhs) {
+      BOOST_STATIC_ASSERT(Size > Index);
+      rhs.q[Index] += lhs.q;
+      return rhs;
+    };
+    
+    template <typename U, unsigned int Index>
+    friend
+    self operator-(self lhs, const vect_component<U,Index>& rhs) {
+      BOOST_STATIC_ASSERT(Size > Index);
+      lhs.q[Index] -= rhs.q;
+      return lhs;
+    };
+    
+    template <typename U, unsigned int Index>
+    self& operator-=(const vect_component<U,Index>& rhs) {
+      BOOST_STATIC_ASSERT(Size > Index);
+      q[Index] -= rhs.q;
+      return *this;
+    };
+    
+    template <typename U, unsigned int Index>
+    friend
+    self operator-(const vect_component<U,Index>& lhs, const self& rhs) {
+      BOOST_STATIC_ASSERT(Size > Index);
+      self result = -rhs;
+      result.q[Index] += lhs.q;
+      return result;
+    };
 
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -986,6 +1151,26 @@ T operator %(const vect<T,2>& V1,const vect<T,2>& V2) {
   return V1[0] * V2[1] - V1[1] * V2[0];
 };
 
+template <class T>
+T operator %(const vect_component<T,0>& V1,const vect_component<T,0>& V2) {
+  return T(0.0);
+};
+
+template <class T>
+T operator %(const vect_component<T,1>& V1,const vect_component<T,1>& V2) {
+  return T(0.0);
+};
+
+template <class T>
+vect_component<T,2> operator %(const vect_component<T,0>& V1,const vect_component<T,1>& V2) {
+  return vect_component<T,2>(V1.q * V2.q);
+};
+
+template <class T>
+vect_component<T,2> operator %(const vect_component<T,1>& V1,const vect_component<T,0>& V2) {
+  return vect_component<T,2>(-V1.q * V2.q);
+};
+
 /**
  * 2D Cross-Product.
  * \test PASSED
@@ -998,6 +1183,16 @@ vect<T,2> operator %(const T& S, const vect<T,2>& V) {
   return result;
 };
 
+template <class T>
+vect_component<T,1> operator %(const T& S,const vect_component<T,0>& V) {
+  return vect_component<T,1>(V.q*S);
+};
+
+template <class T>
+vect_component<T,0> operator %(const T& S,const vect_component<T,1>& V) {
+  return vect_component<T,0>(-V.q*S);
+};
+
 /**
  * 2D Cross-Product.
  * \test PASSED
@@ -1008,6 +1203,16 @@ vect<T,2> operator %(const vect<T,2>& V,const T& S) {
   result[0] =  V[1]*S;
   result[1] = -V[0]*S;
   return result;
+};
+
+template <class T>
+vect_component<T,1> operator %(const vect_component<T,0>& V, const T& S) {
+  return vect_component<T,1>(-V.q*S);
+};
+
+template <class T>
+vect_component<T,0> operator %(const vect_component<T,1>& V, const T& S) {
+  return vect_component<T,0>(V.q*S);
 };
 
 /**
@@ -1023,6 +1228,84 @@ vect<T,3> operator %(const vect<T,3>& V1 , const vect<T,3>& V2) {
   return result;
 };
 
+template <class T>
+vect_component<T,1> operator %(const vect_component<T,0>& V1,const vect_component<T,2>& V2) {
+  return vect_component<T,1>(-V1.q * V2.q);
+};
+
+template <class T>
+vect_component<T,1> operator %(const vect_component<T,2>& V1,const vect_component<T,0>& V2) {
+  return vect_component<T,1>(V1.q * V2.q);
+};
+
+template <class T>
+vect_component<T,0> operator %(const vect_component<T,1>& V1,const vect_component<T,2>& V2) {
+  return vect_component<T,2>(V1.q * V2.q);
+};
+
+template <class T>
+vect_component<T,0> operator %(const vect_component<T,2>& V1,const vect_component<T,1>& V2) {
+  return vect_component<T,2>(-V1.q * V2.q);
+};
+
+template <class T>
+T operator %(const vect_component<T,2>& V1,const vect_component<T,2>& V2) {
+  return T(0.0);
+};
+
+template <class T>
+vect<T,3> operator %(const vect<T,3>& V1,const vect_component<T,0>& V2) {
+  vect<T,3> result;
+  result[0] =  T(0.0);
+  result[1] =  V1[2] * V2.q;
+  result[2] = -V1[1] * V2.q;
+  return result;
+};
+
+template <class T>
+vect<T,3> operator %(const vect<T,3>& V1,const vect_component<T,1>& V2) {
+  vect<T,3> result;
+  result[0] = -V1[2]*V2.q;
+  result[1] =  T(0.0);
+  result[2] =  V1[0]*V2.q;
+  return result;
+};
+
+template <class T>
+vect<T,3> operator %(const vect<T,3>& V1,const vect_component<T,2>& V2) {
+  vect<T,3> result;
+  result[0] =  V1[1] * V2.q;
+  result[1] = -V1[0] * V2.q;
+  result[2] =  T(0.0);
+  return result;
+};
+
+template <class T>
+vect<T,3> operator %(const vect_component<T,0>& V1,const vect<T,3>& V2) {
+  vect<T,3> result;
+  result[0] =  T(0.0);
+  result[1] = -V2[2] * V1.q;
+  result[2] =  V2[1] * V1.q;
+  return result;
+};
+
+template <class T>
+vect<T,3> operator %(const vect_component<T,1>& V1,const vect<T,3>& V2) {
+  vect<T,3> result;
+  result[0] =  V2[2]*V1.q;
+  result[1] =  T(0.0);
+  result[2] = -V2[0]*V1.q;
+  return result;
+};
+
+template <class T>
+vect<T,3> operator %(const vect_component<T,2>& V1,const vect<T,3>& V2) {
+  vect<T,3> result;
+  result[0] = -V2[1] * V1.q;
+  result[1] =  V2[0] * V1.q;
+  result[2] =  T(0.0);
+  return result;
+};
 
 
 

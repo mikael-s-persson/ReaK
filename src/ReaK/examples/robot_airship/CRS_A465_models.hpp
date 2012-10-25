@@ -66,6 +66,31 @@ namespace ReaK {
 namespace robot_airship {
 
 
+
+struct CRS_A465_model_parameters {
+  vect<double,3> global_to_baseplate; // robot_base->Position = vect<double,3>(0.0,-3.3,0.3);
+  double baseplate_to_shoulder_dist;  // "link_1" offset: vect<double,3>(0.0,0.0,0.3302),
+  double shoulder_to_elbow_dist;      // "link_2" offset: vect<double,3>(0.0, 0.0, shoulder_to_elbow_dist),
+  double elbow_to_joint_4_dist;       // "link_3" offset: vect<double,3>(0.0, 0.0, elbow_to_joint_4_dist),
+  double joint_4_to_wrist_dist;       // "link_4" offset: vect<double,3>(0.0, 0.0, joint_4_to_wrist_dist),
+  double wrist_to_flange_dist;        // "link_5" offset: vect<double,3>(0.0, 0.0, wrist_to_flange_dist),
+  
+  CRS_A465_model_parameters(const vect<double,3>& aGlobalToBasePlate = vect<double,3>(0.0,-3.3,0.3),
+                            double aBasePlateToShoulderDist = 0.3302,
+                            double aShoulderToElbowDist = 0.3048,
+                            double aElbowToJoint4Dist = 0.1500,
+                            double aJoint4ToWristDist = 0.1802,
+                            double aWristToFlangeDist = 0.0762) :
+                            global_to_baseplate(aGlobalToBasePlate),
+                            baseplate_to_shoulder_dist(aBasePlateToShoulderDist),
+                            shoulder_to_elbow_dist(aShoulderToElbowDist),
+                            elbow_to_joint_4_dist(aElbowToJoint4Dist),
+                            joint_4_to_wrist_dist(aJoint4ToWristDist),
+                            wrist_to_flange_dist(aWristToFlangeDist) { };
+};
+
+
+
 /**
  * This class serves to store (load / save) the data that models the CRS A465 robot. This class 
  * also provides a number of functions to create KTE chains, mass-matrix calculators, manipulator
@@ -174,6 +199,9 @@ class CRS_A465_model_builder {
     pp::joint_limits_collection<double> joint_rate_limits;
     vect_n<double> preferred_posture;
     
+    // summary of robot parameters:
+    CRS_A465_model_parameters A465_params;
+    
     typedef pp::metric_space_array< pp::rl_joint_space_2nd_order<double>::type, 7>::type rate_limited_joint_space_type;
     typedef pp::metric_space_array< pp::joint_space_2nd_order<double>::type, 7>::type joint_space_type;
     typedef pp::se3_2nd_order_topology<double>::type end_effector_space_type;
@@ -201,7 +229,7 @@ class CRS_A465_model_builder {
      * This function may be useful to either create the preset CRS A465 model or to create a 
      * complete model that can be saved to an xml file and modified subsequently.
      */
-    void create_from_preset();
+    void create_from_preset(const CRS_A465_model_parameters& aParams = CRS_A465_model_parameters());
     
     /**
      * This function will save all the KTE model data to the given file.
@@ -292,6 +320,13 @@ class CRS_A465_model_builder {
     end_effector_space_type get_end_effector_space() const;
     
     
+    pose_3D<double> compute_direct_kinematics(const vect_n<double>& joint_positions) const;
+    
+    frame_3D<double> compute_direct_kinematics_with_vel(const vect_n<double>& joint_states) const;
+    
+    vect_n<double> compute_inverse_kinematics(const pose_3D<double>& EE_pose) const;
+    
+    vect_n<double> compute_inverse_kinematics(const frame_3D<double>& EE_state) const;
     
     
     

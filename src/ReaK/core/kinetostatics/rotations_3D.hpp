@@ -575,6 +575,327 @@ class quaternion : public serialization::serializable {
     friend class axis_angle<value_type>;
     friend class trans_mat_3D<value_type>;
     friend class unit_quat<value_type>;
+    
+    class xrot {
+      private:
+        value_type q0;
+        value_type qx;
+        
+        xrot(const_reference Q0, const_reference QX) : q0(Q0), qx(QX) { };
+      public:
+        friend class quaternion<value_type>; // befriend parent.
+        
+        xrot(const_reference ang = value_type(0.0)) {
+          using std::sin; using std::cos;
+          q0 = cos(ang * 0.5);
+          qx = sin(ang * 0.5);
+        };
+        
+        value_type s() const { return q0; };
+        value_type v() const { return qx; };
+        
+        value_type get_angle() const {
+          using std::atan2;
+          return value_type(2.0) * atan2(qx, q0);
+        };
+        
+        void set_angle(const_reference ang) {
+          using std::sin; using std::cos;
+          q0 = cos(ang * 0.5);
+          qx = sin(ang * 0.5);
+        };
+        
+        vect<value_type,3> get_axis() const {
+          return vect<value_type,3>(value_type(1.0),value_type(0.0),value_type(0.0));
+        };
+        
+        quaternion<value_type> getQuaternion() const {
+          return quaternion<value_type>(q0, qx, value_type(0.0), value_type(0.0));
+        };
+        
+        xrot& operator *=(const xrot& Q2) {
+          value_type tmp = Q2.q0 * q0 - Q2.qx * qx;
+          qx = Q2.q0 * qx + Q2.qx * q0;
+          q0 = tmp;
+          return *this;
+        };
+        
+        friend xrot operator *(const xrot& Q1, const xrot& Q2) {
+          return xrot(Q2.q0 * Q1.q0 - Q2.qx * Q1.qx,
+                      Q2.q0 * Q1.qx + Q2.qx * Q1.q0);
+        };
+        
+        friend
+        vect<value_type,3> operator *(const xrot& Q, const vect<value_type,3>& V) {
+          value_type t0 =   Q.q0 * Q.qx;
+          value_type t3 =  -Q.qx * Q.qx;
+          return vect<value_type,3>( V[0],
+                            value_type(2.0) * ( t3 * V[1] - t0 * V[2] ) + V[1],
+                            value_type(2.0) * ( t0 * V[1] + t3 * V[2] ) + V[2]);
+        };
+        
+    };
+    
+    class yrot {
+      private:
+        value_type q0;
+        value_type qy;
+        
+        yrot(const_reference Q0, const_reference QY) : q0(Q0), qy(QY) { };
+      public:
+        friend class quaternion<value_type>; // befriend parent.
+        
+        yrot(const_reference ang = value_type(0.0)) {
+          using std::sin; using std::cos;
+          q0 = cos(ang * 0.5);
+          qy = sin(ang * 0.5);
+        };
+        
+        value_type s() const { return q0; };
+        value_type v() const { return qy; };
+        
+        value_type get_angle() const {
+          using std::atan2;
+          return value_type(2.0) * atan2(qy, q0);
+        };
+        
+        void set_angle(const_reference ang) {
+          using std::sin; using std::cos;
+          q0 = cos(ang * 0.5);
+          qy = sin(ang * 0.5);
+        };
+        
+        vect<value_type,3> get_axis() const {
+          return vect<value_type,3>(value_type(0.0),value_type(1.0),value_type(0.0));
+        };
+        
+        quaternion<value_type> getQuaternion() const {
+          return quaternion<value_type>(q0, value_type(0.0), qy, value_type(0.0));
+        };
+        
+        yrot& operator *=(const yrot& Q2) {
+          value_type tmp = Q2.q0 * q0 - Q2.qy * qy;
+          qy = Q2.q0 * qy + Q2.qy * q0;
+          q0 = tmp;
+          return *this;
+        };
+        
+        friend yrot operator *(const yrot& Q1, const yrot& Q2) {
+          return yrot(Q2.q0 * Q1.q0 - Q2.qy * Q1.qy,
+                      Q2.q0 * Q1.qy + Q2.qy * Q1.q0);
+        };
+        
+        friend
+        vect<value_type,3> operator *(const yrot& Q, const vect<value_type,3>& V) {
+          value_type t1 =   Q.q0 * Q.qy;
+          value_type t6 =  -Q.qy * Q.qy;
+          return vect<value_type,3>( 
+            value_type(2.0) * (  t6 * V[0] + t1 * V[2] ) + V[0],
+            V[1],
+            value_type(2.0) * ( -t1 * V[0] + t6 * V[2] ) + V[2]);
+        };
+        
+    };
+    
+    class zrot {
+      private:
+        value_type q0;
+        value_type qz;
+        
+        zrot(const_reference Q0, const_reference QZ) : q0(Q0), qz(QZ) { };
+      public:
+        friend class quaternion<value_type>; // befriend parent.
+        
+        zrot(const_reference ang = value_type(0.0)) {
+          using std::sin; using std::cos;
+          q0 = cos(ang * 0.5);
+          qz = sin(ang * 0.5);
+        };
+        
+        value_type s() const { return q0; };
+        value_type v() const { return qz; };
+        
+        value_type get_angle() const {
+          using std::atan2;
+          return value_type(2.0) * atan2(qz, q0);
+        };
+        
+        void set_angle(const_reference ang) {
+          using std::sin; using std::cos;
+          q0 = cos(ang * 0.5);
+          qz = sin(ang * 0.5);
+        };
+        
+        vect<value_type,3> get_axis() const {
+          return vect<value_type,3>(value_type(0.0),value_type(0.0),value_type(1.0));
+        };
+        
+        quaternion<value_type> getQuaternion() const {
+          return quaternion<value_type>(q0, value_type(0.0), value_type(0.0), qz);
+        };
+        
+        zrot& operator *=(const zrot& Q2) {
+          value_type tmp = Q2.q0 * q0 - Q2.qz * qz;
+          qz = Q2.q0 * qz + Q2.qz * q0;
+          q0 = tmp;
+          return *this;
+        };
+        
+        friend zrot operator *(const zrot& Q1, const zrot& Q2) {
+          return zrot(Q2.q0 * Q1.q0 - Q2.qz * Q1.qz,
+                      Q2.q0 * Q1.qz + Q2.qz * Q1.q0);
+        };
+        
+        friend
+        vect<value_type,3> operator *(const zrot& Q, const vect<value_type,3>& V) {
+          value_type t2 =   Q.q0 * Q.qz;
+          value_type t8 =  -Q.qz * Q.qz;
+          return vect<value_type,3>( 
+            value_type(2.0)*( t8 * V[0] - t2 * V[1] ) + V[0],
+            value_type(2.0)*( t2 * V[0] + t8 * V[1] ) + V[1],
+            V[2]);
+        };
+        
+    };
+    
+    friend 
+    self operator*(const xrot& q1, const yrot& q2) {
+      return self(
+        q2.s() * q1.s(),
+        q2.s() * q1.v(),
+        q2.v() * q1.s(),
+        q2.v() * q1.v());
+    };
+    
+    friend 
+    self operator*(const yrot& q1, const xrot& q2) {
+      return self(
+        q2.s() * q1.s(),
+        q2.v() * q1.s(),
+        q2.s() * q1.v(),
+       -q2.v() * q1.v());
+    };
+    
+    friend 
+    self operator*(const zrot& q1, const xrot& q2) {
+      return self(
+        q2.s() * q1.s(),
+        q2.v() * q1.s(),
+        q2.v() * q1.v(),
+        q2.s() * q1.v());
+    };
+    
+    friend 
+    self operator*(const xrot& q1, const zrot& q2) {
+      return self(
+        q2.s() * q1.s(),
+        q2.s() * q1.v(),
+       -q2.v() * q1.v(),
+        q2.v() * q1.s());
+    };
+    
+    friend 
+    self operator*(const yrot& q1, const zrot& q2) {
+      return self(
+        q2.s() * q1.s(),
+        q2.v() * q1.v(),
+        q2.s() * q1.v(),
+        q2.v() * q1.s());
+    };
+    
+    friend 
+    self operator*(const zrot& q1, const yrot& q2) {
+      return self(
+        q2.s() * q1.s(),
+       -q2.v() * q1.v(),
+        q2.v() * q1.s(),
+        q2.s() * q1.v());
+    };
+    
+    friend 
+    self operator*(const self& q1, const xrot& q2) {
+      return self(
+        q2.s() * q1.q[0] - q2.v() * q1.q[1],
+        q2.s() * q1.q[1] + q2.v() * q1.q[0],
+        q2.s() * q1.q[2] + q2.v() * q1.q[3],
+        q2.s() * q1.q[3] - q2.v() * q1.q[2]);
+    };
+    
+    friend 
+    self operator*(const self& q1, const yrot& q2) {
+      return self(
+        q2.s() * q1.q[0] - q2.v() * q1.q[2],
+        q2.s() * q1.q[1] - q2.v() * q1.q[3],
+        q2.s() * q1.q[2] + q2.v() * q1.q[0],
+        q2.s() * q1.q[3] + q2.v() * q1.q[1]);
+    };
+    
+    friend 
+    self operator*(const self& q1, const zrot& q2) {
+      return self(
+        q2.s() * q1.q[0] - q2.v() * q1.q[3],
+        q2.s() * q1.q[1] + q2.v() * q1.q[2],
+        q2.s() * q1.q[2] - q2.v() * q1.q[1],
+        q2.s() * q1.q[3] + q2.v() * q1.q[0]);
+    };
+    
+    self& operator*=(const xrot& q2) {
+      value_type tmp = q2.s() * q[0] - q2.v() * q[1];
+      q[1] = q2.s() * q[1] + q2.v() * q[0];
+      q[0] = tmp;
+      tmp = q2.s() * q[2] + q2.v() * q[3];
+      q[3] = q2.s() * q[3] - q2.v() * q[2];
+      q[2] = tmp;
+      return *this;
+    };
+    
+    self& operator*=(const yrot& q2) {
+      value_type tmp = q2.s() * q[0] - q2.v() * q[2];
+      q[2] = q2.s() * q[2] + q2.v() * q[0];
+      q[0] = tmp;
+      tmp = q2.s() * q[1] - q2.v() * q[3];
+      q[3] = q2.s() * q[3] + q2.v() * q[1];
+      q[1] = tmp;
+      return *this;
+    };
+    
+    self& operator*=(const zrot& q2) {
+      value_type tmp = q2.s() * q[0] - q2.v() * q[3];
+      q[3] = q2.s() * q[3] + q2.v() * q[0];
+      q[0] = tmp;
+      tmp = q2.s() * q[1] + q2.v() * q[2];
+      q[2] = q2.s() * q[2] - q2.v() * q[1];
+      q[1] = tmp;
+      return *this;
+    };
+    
+    friend 
+    self operator*(const xrot& q1, const self& q2) {
+      return self(
+        q2.q[0] * q1.s() - q2.q[1] * q1.v(),
+        q2.q[1] * q1.s() + q2.q[0] * q1.v(),
+        q2.q[2] * q1.s() - q2.q[3] * q1.v(),
+        q2.q[3] * q1.s() + q2.q[2] * q1.v());
+    };
+    
+    friend 
+    self operator*(const yrot& q1, const self& q2) {
+      return self(
+        q2.q[0] * q1.s() - q2.q[2] * q1.v(),
+        q2.q[1] * q1.s() + q2.q[3] * q1.v(),
+        q2.q[2] * q1.s() + q2.q[0] * q1.v(),
+        q2.q[3] * q1.s() - q2.q[1] * q1.v());
+    };
+    
+    friend 
+    self operator*(const zrot& q1, const self& q2) {
+      return self(
+        q2.q[0] * q1.s() - q2.q[3] * q1.v(),
+        q2.q[1] * q1.s() - q2.q[2] * q1.v(),
+        q2.q[2] * q1.s() + q2.q[1] * q1.v(),
+        q2.q[3] * q1.s() + q2.q[0] * q1.v());
+    };
+
 
 /*******************************************************************************
                          Constructors / Destructors
@@ -827,6 +1148,27 @@ class quaternion : public serialization::serializable {
       return vect<T,3>( value_type(2.0)*( (t[6] + t[8])*V[0] + (t[4] - t[2])*V[1] + (t[1] + t[5])*V[2] ) + V[0],
                         value_type(2.0)*( (t[2] + t[4])*V[0] + (t[3] + t[8])*V[1] + (t[7] - t[0])*V[2] ) + V[1],
                         value_type(2.0)*( (t[5] - t[1])*V[0] + (t[0] + t[7])*V[1] + (t[3] + t[6])*V[2] ) + V[2]);
+    };
+    
+    friend
+    vect<value_type,3> operator *(const self& Q, const vect_component<value_type,0>& x_value) {
+      return vect<value_type,3>( x_value.q - 2.0 * (Q.q[2] * Q.q[2] + Q.q[3] * Q.q[3]) * x_value.q,
+                                             2.0 * (Q.q[0] * Q.q[3] + Q.q[1] * Q.q[2]) * x_value.q,
+                                             2.0 * (Q.q[1] * Q.q[3] - Q.q[0] * Q.q[2]) * x_value.q);
+    };
+    
+    friend
+    vect<value_type,3> operator *(const self& Q, const vect_component<value_type,1>& y_value) {
+      return vect<value_type,3>( 2.0 * (Q.q[1] * Q.q[2] - Q.q[0] * Q.q[3]) * y_value.q,
+                     y_value.q - 2.0 * (Q.q[1] * Q.q[1] + Q.q[3] * Q.q[3]) * y_value.q,
+                                 2.0 * (Q.q[0] * Q.q[1] + Q.q[2] * Q.q[3]) * y_value.q);
+    };
+    
+    friend
+    vect<value_type,3> operator *(const self& Q, const vect_component<value_type,2>& z_value) {
+      return vect<value_type,3>( 2.0 * (Q.q[0] * Q.q[2] + Q.q[1] * Q.q[3]) * z_value.q,
+                                 2.0 * (Q.q[2] * Q.q[3] - Q.q[0] * Q.q[1]) * z_value.q,
+                     z_value.q - 2.0 * (Q.q[1] * Q.q[1] + Q.q[2] * Q.q[2]) * z_value.q);
     };
 
 /*******************************************************************************
