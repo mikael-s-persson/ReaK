@@ -29,6 +29,8 @@
 
 #include "rtti/typed_primitives.hpp"
 
+#include "optimization/optim_exceptions.hpp"
+
 
 namespace ReaK {
 
@@ -1087,12 +1089,177 @@ frame_3D<double> CRS_A465_model_builder::compute_direct_kinematics_with_vel(cons
   return flange;
 };
 
+static double clamp_to_pi_range(double a) {
+  return (a > M_PI ? a - 2.0 * M_PI : (a < -M_PI ? a + 2.0 * M_PI : a) );
+};
+
 vect_n<double> CRS_A465_model_builder::compute_inverse_kinematics(const pose_3D<double>& EE_pose) const {
+  using std::sin; using std::cos; using std::fabs; 
+  using std::atan2; using std::sqrt;
   
+  vect<double,3> EE_z_axis = EE_pose.Quat * vect_k;
+  vect<double,3> EE_y_axis = EE_pose.Quat * vect_j;
+  vect<double,3> wrist_pos = EE_pose.Position - A465_params.wrist_to_flange_dist * EE_z_axis;
+  double elbow_to_wrist_dist = A465_params.elbow_to_joint_4_dist + A465_params.joint_4_to_wrist_dist;
+  
+  const double pos_epsilon = 1e-3;
+  vect_n<double> solns[8];
+  for(std::size_t i = 0; i < 8; ++i)
+    solns[i].resize(7,0.0);
+  
+  /* Joint 1 */
+  if( (fabs(wrist_pos[0]) < pos_epsilon) && (fabs(wrist_pos[1]) < pos_epsilon) ) {
+    /* we're in the joint 1 singularity directly above the origin */
+    solns[fun_posture][1] = preferred_posture[1];
+    solns[bun_posture][1] = clamp_to_pi_range(solns[fun_posture][1] + M_PI);
+  } else {
+    solns[fun_posture][1] = atan2(wrist_pos[1], wrist_pos[0]);
+    solns[bun_posture][1] = clamp_to_pi_range(solns[fun_posture][1] + M_PI);
+  };
+  
+  /* reach forward solutions */
+  solns[fuf_posture][1] = solns[fun_posture][1];
+  solns[fdn_posture][1] = solns[fun_posture][1];
+  solns[fdf_posture][1] = solns[fun_posture][1];
+  
+  /* reach backward solutions */
+  solns[buf_posture][1] = solns[bun_posture][1];
+  solns[bdn_posture][1] = solns[bun_posture][1];
+  solns[bdf_posture][1] = solns[bun_posture][1];
+  
+  /* set up some variables for later */
+  
+  double s1_F = sin(solns[fun_posture][1]); /* forward */
+  double c1_F = cos(solns[fun_posture][1]);
+  
+  
+  
+  /* Joint 3 */ 
+  double linkvar1 = A465_params.shoulder_to_elbow_dist * A465_params.shoulder_to_elbow_dist
+                  + elbow_to_wrist_dist * elbow_to_wrist_dist;
+  double linkvar2 = 4.0 * A465_params.shoulder_to_elbow_dist * A465_params.shoulder_to_elbow_dist
+                  * elbow_to_wrist_dist * elbow_to_wrist_dist;
+  
+  double baseplane_dist = c1_F * wrist_pos[0] + s1_F * wrist_pos[1]; /* was f11p  */
+  double threespace_dist_sqr = baseplane_dist * baseplane_dist + wrist_pos[2] * wrist_pos[2];
+  double inv_3space_dist_sqr = 1.0 / threespace_dist_sqr;
+  
+  double j3tmp0 = linkvar1 - threespace_dist_sqr;
+  double j3tmp1 = linkvar2 - j3tmp0 * j3tmp0;
+    
+  /* ensure we're within reach */
+  if( j3tmp1 < 0.0 )
+    throw optim::infeasible_problem("Inverse kinematics problem is infeasible! End-effector pose is out-of-reach!");
+  
+  /* now determine the Joint 3 angle */
+  double j3tmp2 = atan2(-sqrt(j3tmp1), j3tmp0);
+  solns[bun_posture][3] = clamp_to_pi_range(0.5 * M_PI + j3tmp2);
+  solns[fun_posture][3] = clamp_to_pi_range(0.5 * M_PI - j3tmp2);
+  
+  /* backward/up and forward/down solutions */
+  solns[buf_posture][3] = solns[bun_posture][3];
+  solns[fdn_posture][3] = solns[bun_posture][3];
+  solns[fdf_posture][3] = solns[bun_posture][3];
+  
+  /* foward/up and backward/down solutions */
+  solns[fuf_posture][3] = solns[fun_posture][3];
+  solns[bdn_posture][3] = solns[fun_posture][3];
+  solns[bdf_posture][3] = solns[fun_posture][3];
+  
+  /* We have two solutions for each of J1 and J3 (corresponding
+   * to reach forward/back and elbow up/down) so there are now a total of 4
+   * stance configurations that we can attain:  FU, BU, FD, BD.  We must find separate
+   * solutions for each configuration for all the remaining joints.
+   * To simplify this process we will loop through the following calculations 
+   * 4 times, once for each of the configurations.
+   */
+  
+  /* Prepare some variables that are constant throughout the iterations. */
+  double j2tmp0_BUFD = A465_params.shoulder_to_elbow_dist * cos(solns[bun_posture][3]);
+  double j2tmp1      = elbow_to_wrist_dist - A465_params.shoulder_to_elbow_dist * sin(solns[bun_posture][3]);
+  double j4tmp0_F = -s1_F * EE_z_axis[0] + c1_F * EE_z_axis[1];
+  double j4tmp1_F =  c1_F * EE_z_axis[0] + s1_F * EE_z_axis[1];
+  double j6tmp0_F =  c1_F * EE_y_axis[0] + s1_F * EE_y_axis[1];
+  double j6tmp1_F = -s1_F * EE_y_axis[0] + c1_F * EE_y_axis[1];
+  
+  /* Because of the way the solution array is organized, we must
+   * index through with a step size of two to hit each of the FU, BU
+   * FD, and BD solutions.  See A465.h for more info    */
+  for(unsigned int index = fun_posture; index <= 6; index += 2) {
+    double basedist_26, j2tmp0;
+    double j4tmp0, j4tmp1, j6tmp0, j6tmp1;
+    if(index & reach_backward) {
+      j4tmp0 = -j4tmp0_F;
+      j4tmp1 = -j4tmp1_F;
+      j6tmp0 = -j6tmp0_F;
+      j6tmp1 = -j6tmp1_F;
+      basedist_26 = -baseplane_dist;
+      if(index & elbow_down)
+        j2tmp0 =  j2tmp0_BUFD;
+      else
+        j2tmp0 = -j2tmp0_BUFD;
+    } else {
+      j4tmp0 = j4tmp0_F;
+      j4tmp1 = j4tmp1_F;
+      j6tmp0 = j6tmp0_F;
+      j6tmp1 = j6tmp1_F;
+      basedist_26 = baseplane_dist;
+      if(index & elbow_down)
+        j2tmp0 = -j2tmp0_BUFD;
+      else
+        j2tmp0 =  j2tmp0_BUFD;
+    };
+    
+    /* joint 2 */
+    double s23 = (j2tmp0 * wrist_pos[2] - j2tmp1 * basedist_26) * inv_3space_dist_sqr;
+    double c23 = (j2tmp1 * wrist_pos[2] + j2tmp0 * basedist_26) * inv_3space_dist_sqr; 
+    solns[index][2]   = atan2(s23, c23) - solns[index][3]; /* noflip solution */
+    solns[index+1][2] = solns[index][2];                   /* flip solution */
+    
+    /* Joints 4, 5 & 6 */
+    double j4tmp2 =  c23 * j4tmp1 + s23 * EE_z_axis[2];
+    
+    /* first check if we're in the J5 singularity (i.e. J5 ~= 0)  */
+    if( (fabs(j4tmp0) < pos_epsilon) && (fabs(j4tmp2) < pos_epsilon) ) {
+      /* we're in the singularity */
+      solns[index][5]   = 0.0;  /* noflip solution */
+      solns[index+1][5] = 0.0;  /* flip solution */
+      
+      /* set joint 4 to it's preferred value since position is ambiguous. */
+      solns[index][4]   = preferred_posture[4]; /* noflip solution */
+      solns[index+1][4] = preferred_posture[4]; /* flip solution */
+      double s4 = sin(preferred_posture[4]);
+      double c4 = cos(preferred_posture[4]);
+      
+      double s6 = -( c4 * ( c23 * j6tmp0 + s23 * EE_y_axis[2]) + s4 * j6tmp1 );
+      double c6 = -s4 * ( c23 * j6tmp0 + s23 * EE_y_axis[2] ) + c4 * j6tmp1;
+      solns[index][6]   = atan2(s6, c6);   /* wrist not flipped */
+      solns[index+1][6] = solns[index][6]; /* in singularity -- flip solution same as noflip solution */
+    } else {
+      /* we're not singular in jt 5 */
+      solns[index+1][4] = atan2(j4tmp0, j4tmp2);   /* wrist is flipped   */
+      solns[index][4]   = clamp_to_pi_range(solns[index+1][4] + M_PI);   /* wrist is not flipped */
+      double s4 = sin(solns[index][4]);
+      double c4 = cos(solns[index][4]);
+      
+      double s5 = -c4 * j4tmp2 - s4 * j4tmp0;
+      double c5 = -s23 * j4tmp1 + c23 * EE_z_axis[2];
+      solns[index][5]   =  atan2(s5,c5); /* noflip solution */
+      solns[index+1][5] = -solns[index][5]; /* flip solution */
+      
+      double s6 = -c5 * ( c4 * ( c23 * j6tmp0 + s23 * EE_y_axis[2] ) + s4 * j6tmp1 )
+                 + s5 * ( s23 * j6tmp0 - c23 * EE_y_axis[2] );
+      double c6 = -s4 * ( c23 * j6tmp0 + s23 * EE_y_axis[2] ) + c4 * j6tmp1;
+      solns[index][6]   = atan2(s6, c6);   /* wrist not flipped */
+      solns[index+1][6] = clamp_to_pi_range(solns[index][6] + M_PI);  /* wrist flipped */
+    };
+  }; /* end of Joints 2-6 for loop*/
+  
+  return solns[0];
 };
 
 vect_n<double> CRS_A465_model_builder::compute_inverse_kinematics(const frame_3D<double>& EE_state) const {
-  
+  return vect_n<double>();
 };
 
 

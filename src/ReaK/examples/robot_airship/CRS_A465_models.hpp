@@ -207,6 +207,25 @@ class CRS_A465_model_builder {
     typedef pp::se3_2nd_order_topology<double>::type end_effector_space_type;
     
     
+    /*
+    Indicies into joint solution matrix. The internal inverse kinematics
+    routines always return eight different solutions. The "best" solution
+    is then deduced from the old joint angles and desired stance.
+    */
+    enum posture_flags {
+      wrist_flipped = 1,
+      elbow_down = 2,
+      reach_backward = 4
+    };
+    static const int fun_posture = 0;
+    static const int fuf_posture = 1;
+    static const int fdn_posture = 2;
+    static const int fdf_posture = 3;
+    static const int bun_posture = 4;
+    static const int buf_posture = 5;
+    static const int bdn_posture = 6;
+    static const int bdf_posture = 7;
+    
     /**
      * Default constructor.
      */
