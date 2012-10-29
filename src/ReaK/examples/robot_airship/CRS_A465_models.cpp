@@ -30,7 +30,7 @@
 #include "rtti/typed_primitives.hpp"
 
 #include "optimization/optim_exceptions.hpp"
-
+#include "lin_alg/mat_qr_decomp.hpp"
 
 namespace ReaK {
 
@@ -1046,7 +1046,7 @@ pose_3D<double> CRS_A465_model_builder::compute_direct_kinematics(const vect_n<d
   return flange;
 };
 
-frame_3D<double> CRS_A465_model_builder::compute_direct_kinematics_with_vel(const vect_n<double>& joint_states) const {
+frame_3D<double> CRS_A465_model_builder::compute_direct_kinematics_with_vel(const vect_n<double>& joint_states, mat<double,mat_structure::rectangular>* jacobian) const {
   
   frame_3D<double> flange;
   
@@ -1060,34 +1060,181 @@ frame_3D<double> CRS_A465_model_builder::compute_direct_kinematics_with_vel(cons
   quaternion<double>::zrot q6( joint_states[6]);
   
   flange.Position  = robot_base->Position;
-  flange.Position += (flange.Quat  = robot_base->Quat) * (A465_params.baseplate_to_shoulder_dist * vect_k);
-  flange.Position +=  flange.Quat *                      (joint_states[0] * vect_i);
-  flange.Position += (flange.Quat *= q1 * q2) *          (A465_params.shoulder_to_elbow_dist * vect_k);
-  flange.Position += (flange.Quat *= q3) *              ((A465_params.elbow_to_joint_4_dist + A465_params.joint_4_to_wrist_dist) * vect_k);
-  flange.Position += (flange.Quat *= q4 * q5 * q6) *     (A465_params.wrist_to_flange_dist * vect_k);
+  flange.Quat = robot_base->Quat;
+  vect<double,3> e0 = flange.Quat * vect_i;
+  flange.Position += joint_states[0] * e0;
+  vect<double,3> e1 = flange.Quat * vect_k;
+  flange.Position += A465_params.baseplate_to_shoulder_dist * e1;
+  vect<double,3> pb = flange.Position;
+  flange.Quat *= q1;
+  vect<double,3> e2 = -(flange.Quat * vect_j);
+  flange.Quat *= q2;
+  vect<double,3> a2 = A465_params.shoulder_to_elbow_dist * (flange.Quat * vect_k);
+  flange.Position += a2;
+  flange.Quat *= q3;
+  vect<double,3> a3 = (A465_params.elbow_to_joint_4_dist + A465_params.joint_4_to_wrist_dist) * (flange.Quat * vect_k);
+  flange.Position += a3;
+  vect<double,3> e4 =  flange.Quat * vect_k;
+  flange.Quat *= q4;
+  vect<double,3> e5 = -(flange.Quat * vect_j);
+  flange.Quat *= q5;
+  vect<double,3> e6 =  flange.Quat * vect_k;
+  flange.Quat *= q6;
+  vect<double,3> a6 = A465_params.wrist_to_flange_dist * e6; 
+  flange.Position += a6;
   
-  /*
-  robot_base->Acceleration = vect<double,3>(0.0,0.0,9.81); //put gravity acceleration on base of the robot
-  robot_base->Position = A465_params.global_to_baseplate; //put the base of the robot at the near end of the track (global frame is at the far end).
-  robot_base->Quat = axis_angle<double>(M_PI * 0.5, vect<double,3>(0.0,0.0,1.0)); // align the x-axis along the track.
-  "track_joint" axis: vect<double,3>(1.0,0.0,0.0),
-  "link_0" offset: vect<double,3>(0.0,0.0,0.0),
-  "arm_joint_1" axis: vect<double,3>(0.0,0.0,1.0),
-  "link_1" offset: vect<double,3>(0.0,0.0,A465_params.baseplate_to_shoulder_dist),
-  "arm_joint_2" axis: vect<double,3>(0.0,-1.0,0.0),
-  "link_2" offset: vect<double,3>(0.0,0.0,A465_params.shoulder_to_elbow_dist),
-  "arm_joint_3" axis: vect<double,3>(0.0,-1.0,0.0),
-  "link_3" offset: vect<double,3>(0.0,0.0,A465_params.elbow_to_joint_4_dist),
-  "arm_joint_4" axis: vect<double,3>(0.0,0.0,1.0),
-  "link_4" offset: vect<double,3>(0.0,0.0,A465_params.joint_4_to_wrist_dist),
-  "arm_joint_5" axis: vect<double,3>(0.0,-1.0,0.0),
-  "link_5" offset: vect<double,3>(0.0,0.0,A465_params.wrist_to_flange_dist),
-  "arm_joint_6" axis: vect<double,3>(0.0,0.0,1.0),
-  "link_6" offset: vect<double,3>(0.0,0.0,0.0)
-  */
+  vect<double,3> s2f = flange.Position - pb; // shoulder to flange
+  flange.Velocity  = joint_states[7] * e0;
+  vect<double,3> w1 = joint_states[8]  * e1;
+  flange.AngVelocity  = w1;
+  vect<double,3> w2 = joint_states[9]  * e2;
+  flange.AngVelocity += w2;
+  vect<double,3> w3 = joint_states[10] * e2;
+  flange.AngVelocity += w3;
+  flange.Velocity += (w1 + w2 + w3) % s2f;
+  flange.Velocity += -w3 % a2;
+  vect<double,3> w4 = joint_states[11] * e4;
+  flange.AngVelocity += w4;
+  vect<double,3> w5 = joint_states[12] * e5;
+  flange.AngVelocity += w5;
+  flange.Velocity += (w4 + w5) % a6;
+  flange.AngVelocity += joint_states[13] * e6;
+  
+  if(jacobian) {
+    jacobian->resize(std::make_pair(6,7));
+    (*jacobian)(0,0) = e0[0];
+    (*jacobian)(1,0) = e0[1];
+    (*jacobian)(2,0) = e0[2];
+    (*jacobian)(3,0) = 0.0;
+    (*jacobian)(4,0) = 0.0;
+    (*jacobian)(5,0) = 0.0;
+    vect<double,3> v1 = e1 % s2f;
+    (*jacobian)(0,1) = v1[0];
+    (*jacobian)(1,1) = v1[1];
+    (*jacobian)(2,1) = v1[2];
+    (*jacobian)(3,1) = e1[0];
+    (*jacobian)(4,1) = e1[1];
+    (*jacobian)(5,1) = e1[2];
+    vect<double,3> v2 = e2 % s2f;
+    (*jacobian)(0,2) = v2[0];
+    (*jacobian)(1,2) = v2[1];
+    (*jacobian)(2,2) = v2[2];
+    (*jacobian)(3,2) = e2[0];
+    (*jacobian)(4,2) = e2[1];
+    (*jacobian)(5,2) = e2[2];
+    vect<double,3> v3 = e2 % (s2f - a2);
+    (*jacobian)(0,3) = v3[0];
+    (*jacobian)(1,3) = v3[1];
+    (*jacobian)(2,3) = v3[2];
+    (*jacobian)(3,3) = e2[0];
+    (*jacobian)(4,3) = e2[1];
+    (*jacobian)(5,3) = e2[2];
+    vect<double,3> v4 = e4 % a6;
+    (*jacobian)(0,4) = v4[0];
+    (*jacobian)(1,4) = v4[1];
+    (*jacobian)(2,4) = v4[2];
+    (*jacobian)(3,4) = e4[0];
+    (*jacobian)(4,4) = e4[1];
+    (*jacobian)(5,4) = e4[2];
+    vect<double,3> v5 = e5 % a6;
+    (*jacobian)(0,5) = v5[0];
+    (*jacobian)(1,5) = v5[1];
+    (*jacobian)(2,5) = v5[2];
+    (*jacobian)(3,5) = e5[0];
+    (*jacobian)(4,5) = e5[1];
+    (*jacobian)(5,5) = e5[2];
+    (*jacobian)(0,6) = 0.0;
+    (*jacobian)(1,6) = 0.0;
+    (*jacobian)(2,6) = 0.0;
+    (*jacobian)(3,6) = e6[0];
+    (*jacobian)(4,6) = e6[1];
+    (*jacobian)(5,6) = e6[2];
+  };
   
   return flange;
 };
+
+
+void CRS_A465_model_builder::compute_jacobian_matrix(const vect_n<double>& joint_positions, mat<double,mat_structure::rectangular>& jacobian) const {
+  
+  /* calculate individual rotations */
+  quaternion<double>::zrot q1( joint_positions[1]);
+  quaternion<double>::yrot q2(-joint_positions[2]);
+  quaternion<double>::yrot q3(-joint_positions[3]);
+  quaternion<double>::zrot q4( joint_positions[4]);
+  quaternion<double>::yrot q5(-joint_positions[5]);
+  quaternion<double>::zrot q6( joint_positions[6]);
+  
+  quaternion<double> q_accum = robot_base->Quat;
+  vect<double,3> e0 = q_accum * vect_i;
+  vect<double,3> e1 = q_accum * vect_k;
+  vect<double,3> pb = robot_base->Position + joint_positions[0] * e0 + A465_params.baseplate_to_shoulder_dist * e1;
+  q_accum *= q1;
+  vect<double,3> e2 = -(q_accum * vect_j);
+  q_accum *= q2;
+  vect<double,3> a2 = A465_params.shoulder_to_elbow_dist * (q_accum * vect_k);
+  q_accum *= q3;
+  vect<double,3> a3 = (A465_params.elbow_to_joint_4_dist + A465_params.joint_4_to_wrist_dist) * (q_accum * vect_k);
+  vect<double,3> e4 =  q_accum * vect_k;
+  q_accum *= q4;
+  vect<double,3> e5 = -(q_accum * vect_j);
+  q_accum *= q5;
+  vect<double,3> e6 =  q_accum * vect_k;
+  q_accum *= q6;
+  vect<double,3> a6 = A465_params.wrist_to_flange_dist * e6; 
+  
+  vect<double,3> s2f = a2 + a3 + a6; // shoulder to flange
+  
+  jacobian.resize(std::make_pair(6,7));
+  jacobian(0,0) = e0[0];
+  jacobian(1,0) = e0[1];
+  jacobian(2,0) = e0[2];
+  jacobian(3,0) = 0.0;
+  jacobian(4,0) = 0.0;
+  jacobian(5,0) = 0.0;
+  vect<double,3> v1 = e1 % s2f;
+  jacobian(0,1) = v1[0];
+  jacobian(1,1) = v1[1];
+  jacobian(2,1) = v1[2];
+  jacobian(3,1) = e1[0];
+  jacobian(4,1) = e1[1];
+  jacobian(5,1) = e1[2];
+  vect<double,3> v2 = e2 % s2f;
+  jacobian(0,2) = v2[0];
+  jacobian(1,2) = v2[1];
+  jacobian(2,2) = v2[2];
+  jacobian(3,2) = e2[0];
+  jacobian(4,2) = e2[1];
+  jacobian(5,2) = e2[2];
+  vect<double,3> v3 = e2 % (s2f - a2);
+  jacobian(0,3) = v3[0];
+  jacobian(1,3) = v3[1];
+  jacobian(2,3) = v3[2];
+  jacobian(3,3) = e2[0];
+  jacobian(4,3) = e2[1];
+  jacobian(5,3) = e2[2];
+  vect<double,3> v4 = e4 % a6;
+  jacobian(0,4) = v4[0];
+  jacobian(1,4) = v4[1];
+  jacobian(2,4) = v4[2];
+  jacobian(3,4) = e4[0];
+  jacobian(4,4) = e4[1];
+  jacobian(5,4) = e4[2];
+  vect<double,3> v5 = e5 % a6;
+  jacobian(0,5) = v5[0];
+  jacobian(1,5) = v5[1];
+  jacobian(2,5) = v5[2];
+  jacobian(3,5) = e5[0];
+  jacobian(4,5) = e5[1];
+  jacobian(5,5) = e5[2];
+  jacobian(0,6) = 0.0;
+  jacobian(1,6) = 0.0;
+  jacobian(2,6) = 0.0;
+  jacobian(3,6) = e6[0];
+  jacobian(4,6) = e6[1];
+  jacobian(5,6) = e6[2];
+};
+
 
 static double clamp_to_pi_range(double a) {
   return (a > M_PI ? a - 2.0 * M_PI : (a < -M_PI ? a + 2.0 * M_PI : a) );
@@ -1099,7 +1246,7 @@ vect_n<double> CRS_A465_model_builder::compute_inverse_kinematics(const pose_3D<
   using std::atan2; using std::sqrt; using std::pow;
   
   const double pos_epsilon = 1e-3;
-  const double extend_epsilon = .06;
+  const double extend_epsilon = .02;
   
   quaternion<double>::zrot gl_to_track_rot(-0.5 * M_PI);
   vect<double,3> EE_z_axis = gl_to_track_rot * (EE_pose.Quat * vect_k);
@@ -1152,45 +1299,6 @@ vect_n<double> CRS_A465_model_builder::compute_inverse_kinematics(const pose_3D<
   
   /* At this point, the range of joint values for the track is between +- x_max around wrist_pos[0] (to within track-limits). */
   
-#if 0 
-  /* NOTE: MP: This the original code from the A465 code added by Joel Robert. 
-   * However, I am not convinced that this is good or even correct at all.
-   * The difference between forward-reach and backward-reach does not imply
-   * this arrangement of "in front of" end-effector, it simply means that the 
-   * base is flipped around. I believe the best approach is to try and align
-   * most of the robot in the direction it needs to point to (EE_z_axis).
-   */
-  /*Find the best stance possible*/
-  if (*direction==FORWARD) {
-    *ax = x_max;
-    double x_base  = wrist_pos[0] - *ax;
-    printf("CASE 1\n");
-    if (x_base > joint_upper_bounds[0]) {
-      retcode=REACH_TOO_FORWARD;
-      printf("xbase retcode=%d x_base%f\n",retcode,x_base);
-      return(retcode);
-    };
-    if (x_base < joint_lower_bounds[0] && wrist_pos[0] > joint_lower_bounds[0] + 0.01) {
-      *ax= wrist_pos[0] - (joint_lower_bounds[0] + 0.01);
-      printf("CASE 1.1  ax=%f \n",*ax);
-    };
-  } else { // When the direction is backward, the base will be "in front of" the end-effector
-    *ax = -x_max;
-    double x_base  = wrist_pos[0] - *ax;
-    printf("CASE 2 x=%f  x_base=%f\n", wrist_pos[0], x_base);
-    if (x_base < joint_lower_bounds[0]) {
-      retcode=REACH_TOO_BACKWARD;
-      printf("xbase retcode=%d x_base%f\n",retcode,x_base);
-      return(retcode);
-    };
-    if (x_base > joint_upper_bounds[0] && wrist_pos[0] < joint_upper_bounds[0] - 0.01) {
-      *ax=wrist_pos[0] - (joint_upper_bounds[0] - 0.01);
-      printf("CASE 2.1  ax=%f \n",*ax);
-    };
-  };
-#endif
-  
-  
   /* Joint 0 (track) */
   
   // first, check that the limits of the track permit at least some solution:
@@ -1199,9 +1307,24 @@ vect_n<double> CRS_A465_model_builder::compute_inverse_kinematics(const pose_3D<
   if( wrist_pos[0] + x_max < joint_lower_bounds[0] )
     throw optim::infeasible_problem("Inverse kinematics problem is infeasible! End-effector pose is out-of-reach! Desired wrist position is too far behind the track (beyond lower track limit).");
   
+  double x_desired;
+#if 0
+  /* NOTE: MP: This the original code from the A465 code added by Joel Robert. 
+   * However, I am not convinced that this is good or even correct at all.
+   * The difference between forward-reach and backward-reach does not imply
+   * this arrangement of "in front of" end-effector, it simply means that the 
+   * base is flipped around. I believe the best approach is to try and align
+   * most of the robot in the direction it needs to point to (EE_z_axis).
+   */
+  /*Find the best stance possible*/
+  if( EE_z_axis[0] > 0.0 ) {
+    x_desired = wrist_pos[0] - x_max;
+  } else { // When the direction is backward, the base will be "in front of" the end-effector
+    x_desired = wrist_pos[0] + x_max;
+  };
+#else
   /* solving for the best track position based on trying to get a right-angle at the elbow */ 
   double R0_rhs = s2e_dist_sqr + e2w_dist_sqr - wrist_pos[1] * wrist_pos[1] - wrist_pos[2] * wrist_pos[2];
-  double x_desired;
   if(R0_rhs > 0) {
     // this means that it is possible to obtain an exact right angle at the elbow.
     if(EE_z_axis[0] >= 0.0)  // the EE needs to be pointing in the forward x direction:
@@ -1212,6 +1335,8 @@ vect_n<double> CRS_A465_model_builder::compute_inverse_kinematics(const pose_3D<
     // this means that the best we can do is put the robot-base in x-alignment with the wrist position.
     x_desired = wrist_pos[0];
   };
+#endif
+  
   // clamp the x-solution to the track's range:
   if( x_desired < joint_lower_bounds[0] )
     x_desired = joint_lower_bounds[0];
@@ -1248,30 +1373,6 @@ vect_n<double> CRS_A465_model_builder::compute_inverse_kinematics(const pose_3D<
   double s1_F = sin(solns[fun_posture][1]); /* forward */
   double c1_F = cos(solns[fun_posture][1]);
   
-#if 0
-  /* Joint 3 */ 
-  
-  double linkvar1 = A465_params.shoulder_to_elbow_dist * A465_params.shoulder_to_elbow_dist
-                  + elbow_to_wrist_dist * elbow_to_wrist_dist;
-  double linkvar2 = 4.0 * A465_params.shoulder_to_elbow_dist * A465_params.shoulder_to_elbow_dist
-                  * elbow_to_wrist_dist * elbow_to_wrist_dist;
-  
-  double baseplane_dist = c1_F * wrist_pos[0] + s1_F * wrist_pos[1]; /* was f11p  */
-  double wrist_dist_sqr = baseplane_dist * baseplane_dist + wrist_pos[2] * wrist_pos[2];
-  
-  double j3tmp0 = linkvar1 - wrist_dist_sqr;
-  double j3tmp1 = linkvar2 - j3tmp0 * j3tmp0;
-    
-  /* ensure we're within reach */
-  if( j3tmp1 < 0.0 )
-    throw optim::infeasible_problem("Inverse kinematics problem is infeasible! End-effector pose is out-of-reach!");
-  
-  /* now determine the Joint 3 angle */
-  double j3tmp2 = atan2(-sqrt(j3tmp1), j3tmp0);
-  solns[bun_posture][3] = clamp_to_pi_range(0.5 * M_PI + j3tmp2);
-  solns[fun_posture][3] = clamp_to_pi_range(0.5 * M_PI - j3tmp2);
-  
-#else
   /* Joint 3 - modified version (MP: just seems like a more straight forward way to do it) */ 
   
   double baseplane_dist_sqr = wrist_pos[0] * wrist_pos[0] + wrist_pos[1] * wrist_pos[1];
@@ -1286,7 +1387,6 @@ vect_n<double> CRS_A465_model_builder::compute_inverse_kinematics(const pose_3D<
   /* now determine the Joint 3 angle (FUN) */
   solns[fun_posture][3] = -atan2(sqrt(j3tmp1), -j3tmp0);
   solns[bun_posture][3] = -solns[fun_posture][3];
-#endif
   
   double inv_wrist_dist_sqr = 1.0 / wrist_dist_sqr;
   double baseplane_dist = sqrt(baseplane_dist_sqr);
@@ -1294,7 +1394,7 @@ vect_n<double> CRS_A465_model_builder::compute_inverse_kinematics(const pose_3D<
   
   vect<double,2> to_wrist_along_l1(A465_params.shoulder_to_elbow_dist * cos(solns[fun_posture][3]) + elbow_to_wrist_dist, 
                                    s2e_projection);
-  vect<double,2> to_wrist_global(-baseplane_dist, wrist_pos[2]); // reach-forward vector.
+  vect<double,2> to_wrist_global(baseplane_dist, wrist_pos[2]); // reach-forward vector.
   
   
   /* register all solutions for joints 1 and 3 */
@@ -1332,480 +1432,116 @@ vect_n<double> CRS_A465_model_builder::compute_inverse_kinematics(const pose_3D<
                             -s1_F * EE_z_axis[0] + c1_F * EE_z_axis[1]);
   vect<double,2> EE_y_proj_F(c1_F * EE_y_axis[0] + s1_F * EE_y_axis[1], 
                             -s1_F * EE_y_axis[0] + c1_F * EE_y_axis[1]);
-  double j4tmp0_F    = -s1_F * EE_z_axis[0] + c1_F * EE_z_axis[1];
-  double j4tmp1_F    =  c1_F * EE_z_axis[0] + s1_F * EE_z_axis[1];
-  double j6tmp0_F    =  c1_F * EE_y_axis[0] + s1_F * EE_y_axis[1];
-  double j6tmp1_F    = -s1_F * EE_y_axis[0] + c1_F * EE_y_axis[1];
   
-  /* Because of the way the solution array is organized, we must
-   * index through with a step size of two to hit each of the FU, BU
-   * FD, and BD solutions.  See A465.h for more info    */
-  for(unsigned int index = fun_posture; index <= 6; index += 2) {
-    vect<double,3> EE_z_proj(EE_z_proj_F[0], EE_z_proj_F[1], EE_z_axis[2]);
-    vect<double,3> EE_y_proj(EE_y_proj_F[0], EE_y_proj_F[1], EE_y_axis[2]);
-    if(index & reach_backward) {
-      EE_z_proj[0] = -EE_z_proj[0];
-      EE_z_proj[1] = -EE_z_proj[1];
-      EE_y_proj[0] = -EE_y_proj[0];
-      EE_y_proj[1] = -EE_y_proj[1];
-      to_wrist_global[0] = baseplane_dist;
-      if(index & elbow_down)
-        to_wrist_along_l1[1] =  s2e_projection;
-      else
-        to_wrist_along_l1[1] = -s2e_projection;
-    } else {
-      to_wrist_global[0] = -baseplane_dist;
-      if(index & elbow_down)
-        to_wrist_along_l1[1] = -s2e_projection;
-      else
-        to_wrist_along_l1[1] =  s2e_projection;
-    };
+  // solve for both elbow-cases (up or down).
+  for(unsigned int i = 0; i < 2; ++i) {
+    unsigned int e_o = 2 * i;
+    double s2e_projection_i = (i ? -s2e_projection : s2e_projection);
+    double c23 = (to_wrist_along_l1[0] * wrist_pos[2] + s2e_projection_i * baseplane_dist) * inv_wrist_dist_sqr;
+    double s23 = /*reach_sign * */( s2e_projection_i * wrist_pos[2] - to_wrist_along_l1[0] * baseplane_dist) * inv_wrist_dist_sqr;
     
-    /* joint 2 */
-    double c23 = (to_wrist_along_l1 % to_wrist_global) * inv_wrist_dist_sqr;
-    double s23 = (to_wrist_along_l1 * to_wrist_global) * inv_wrist_dist_sqr;
-    solns[index][2]   = atan2(s23, c23) - solns[index][3]; /* noflip solution */
-    solns[index+1][2] = solns[index][2];                   /* flip solution */
+    solns[fuf_posture + e_o][2] = (solns[fun_posture + e_o][2] = atan2(s23, c23) - solns[fun_posture + e_o][3]);
+    solns[buf_posture + e_o][2] = (solns[bun_posture + e_o][2] = atan2(-s23, c23) - solns[bun_posture + e_o][3]);
     
-    double c5 = EE_z_proj[0] * s23 + EE_z_proj[2] * c23;
-    double s5 = EE_z_proj[0] * c23 - EE_z_proj[2] * s23;
-    
-    /* Joints 4, 5 & 6 */
-    //double j4tmp2 =  c23 * j4tmp1 + s23 * EE_z_axis[2];
+    double jt5_i = s23 * EE_z_axis[2] + c23 * EE_z_proj_F[0];
     
     /* first check if we're in the J5 singularity (i.e. J5 ~= 0)  */
-    if( 1.0 - fabs(c5) < pos_epsilon ) {
-      /* we're in the singularity */
-      solns[index][5]   = 0.0;  /* noflip solution */
-      solns[index+1][5] = 0.0;  /* flip solution */
+    if( (fabs(jt5_i) < pos_epsilon) && (fabs(EE_z_proj_F[1]) < pos_epsilon) ) {
+      double c4 = /*reach_sign * */cos(preferred_posture[4]);
+      double s4 = /*reach_sign * */sin(preferred_posture[4]);
+      double a4 = preferred_posture[4];  /* F*N or B*F */
       
-      /* set joint 4 to it's preferred value since position is ambiguous. */
-      solns[index][4]   = preferred_posture[4]; /* noflip solution */
-      solns[index+1][4] = preferred_posture[4]; /* flip solution */
-      double s4 = sin(preferred_posture[4]);
-      double c4 = cos(preferred_posture[4]);
+      solns[buf_posture + e_o][4] = (solns[fun_posture + e_o][4] = a4);
+      solns[bun_posture + e_o][4] = (solns[fuf_posture + e_o][4] = clamp_to_pi_range(a4 + M_PI));
       
-      //double s6 = -( c4 * ( c23 * j6tmp0 + s23 * EE_y_axis[2]) + s4 * j6tmp1 );
-      //double c6 = -s4 * ( c23 * j6tmp0 + s23 * EE_y_axis[2] ) + c4 * j6tmp1;
-      //solns[index][6]   = atan2(s6, c6);   /* wrist not flipped */
-      //solns[index+1][6] = solns[index][6]; /* in singularity -- flip solution same as noflip solution */
+      solns[bun_posture + e_o][5] = (solns[fun_posture + e_o][5] = 0.0);
+      solns[buf_posture + e_o][5] = (solns[fuf_posture + e_o][5] = 0.0);
+      
+      double c6 = -s4 * (c23 * EE_y_proj_F[0] + s23 * EE_y_axis[2]) 
+                 + c4 * EE_y_proj_F[1];
+      double s6 = -s4 * EE_y_proj_F[1] 
+                 - c4 * (EE_y_axis[2] * s23 + EE_y_proj_F[0] * c23);
+      
+      double a6 = atan2(s6, c6);  /* wrist not flipped */
+      solns[bun_posture + e_o][6] = (solns[fun_posture + e_o][6] = a6);
+      solns[buf_posture + e_o][6] = (solns[fuf_posture + e_o][6] = clamp_to_pi_range(a6 + M_PI));
     } else {
       /* we're not singular in jt 5 */
-      //solns[index+1][4] = atan2(j4tmp0, j4tmp2);   /* wrist is flipped   */
-      solns[index][4]   = clamp_to_pi_range(solns[index+1][4] + M_PI);   /* wrist is not flipped */
-      double s4 = sin(solns[index][4]);
-      double c4 = cos(solns[index][4]);
+      double a4 = atan2(EE_z_proj_F[1], jt5_i);  /* F*N or B*F */
+      double s4 = /* reach_sign *  */ sin(a4);
+      double c4 = /* reach_sign *  */ cos(a4);
       
-      solns[index][5]   =  atan2(s5,c5); /* noflip solution */
-      solns[index+1][5] = -solns[index][5]; /* flip solution */
+      solns[buf_posture + e_o][4] = (solns[fun_posture + e_o][4] = a4);
+      solns[bun_posture + e_o][4] = (solns[fuf_posture + e_o][4] = clamp_to_pi_range(a4 + M_PI));
       
-      //double s6 = -c5 * ( c4 * ( c23 * j6tmp0 + s23 * EE_y_axis[2] ) + s4 * j6tmp1 )
-      //           + s5 * ( s23 * j6tmp0 - c23 * EE_y_axis[2] );
-      //double c6 = -s4 * ( c23 * j6tmp0 + s23 * EE_y_axis[2] ) + c4 * j6tmp1;
-      //solns[index][6]   = atan2(s6, c6);   /* wrist not flipped */
-      //solns[index+1][6] = clamp_to_pi_range(solns[index][6] + M_PI);  /* wrist flipped */
+      double c5 =  EE_z_axis[2] * c23 - EE_z_proj_F[0] * s23;
+      double s5 = -c4 * jt5_i - s4 * EE_z_proj_F[1]; 
+      
+      double a5 = atan2(s5, c5);  /* wrist not flipped */
+      solns[bun_posture + e_o][5] = (solns[fun_posture + e_o][5] =  a5);
+      solns[buf_posture + e_o][5] = (solns[fuf_posture + e_o][5] = -a5);
+      
+      double c6 = -s4 * (c23 * EE_y_proj_F[0] + s23 * EE_y_axis[2])
+                 + c4 * EE_y_proj_F[1];
+      double s6 =  s4 * (EE_z_proj_F[1] * (EE_y_axis[2] * c23 - EE_y_proj_F[0] * s23) - c5 * EE_y_proj_F[1])
+                 + c4 * (EE_y_axis[2] * EE_z_proj_F[0] - EE_y_proj_F[0] * EE_z_axis[2]);
+      
+      double a6 = atan2(s6, c6);  /* wrist not flipped */
+      solns[bun_posture + e_o][6] = (solns[fun_posture + e_o][6] = a6);
+      solns[buf_posture + e_o][6] = (solns[fuf_posture + e_o][6] = clamp_to_pi_range(a6 + M_PI));
     };
-  }; /* end of Joints 2-6 for loop*/
+  };
   
-  return solns[0];
+  
+  // Now, we just need to choose a best solution. 
+  // We'll choose it based on the most bounds-centric set of joint coordinates:
+  double       best_cost = 100.0;
+  unsigned int best_soln = 0;
+  for(unsigned int i = 0; i < 8; ++i) {
+    double cost = 0.0;
+    for(unsigned int j = 0; j < 7; ++j) {
+      if( ( solns[i][j] > joint_lower_bounds[j] ) && ( solns[i][j] < joint_upper_bounds[j] ) ) {
+        cost += fabs( 2.0 * solns[i][j] - joint_lower_bounds[j] - joint_upper_bounds[j] ) / (joint_upper_bounds[j] - joint_lower_bounds[j]);
+      } else {
+        cost = 100.0; // effectively makes this one of the worst solutions.
+        break;
+      };
+    };
+    if(cost < best_cost) {
+      best_cost = cost;
+      best_soln = i;
+    };
+  };
+  if(best_cost > 99.0)
+    throw optim::infeasible_problem("Inverse kinematics problem is infeasible! None of the inverse kinematics solutions respect the joint limits.");
+  
+  return solns[best_soln];
 };
 
 vect_n<double> CRS_A465_model_builder::compute_inverse_kinematics(const frame_3D<double>& EE_state) const {
-  return vect_n<double>();
+  
+  // first, solve the IK problem for the zeroth-order terms:
+  vect_n<double> result = compute_inverse_kinematics(static_cast<const pose_3D<double>&>(EE_state));
+  
+  // then, use the solution to compute the jacobian matrix:
+  mat<double,mat_structure::rectangular> jac;
+  compute_jacobian_matrix(result, jac);
+  
+  // finally, use the jacobian to find a minimum-norm solution for the joint velocities:
+  mat<double,mat_structure::rectangular> x(7,1);
+  mat<double,mat_structure::rectangular> b(6,1);
+  b(0,0) = EE_state.Velocity[0]; b(1,0) = EE_state.Velocity[1]; b(2,0) = EE_state.Velocity[2];
+  b(3,0) = EE_state.AngVelocity[0]; b(4,0) = EE_state.AngVelocity[1]; b(5,0) = EE_state.AngVelocity[2];
+  minnorm_QR(jac,x,b,1e-4);
+  result.resize(13);
+  result[7]  = x(0,0); result[8]  = x(1,0); result[9]  = x(2,0);
+  result[10] = x(3,0); result[11] = x(4,0); result[12] = x(5,0);
+  
+  return result;
 };
 
 
 
-
-#if 0
-
-// Below are some code retrieved from the CRS A465 robot software to compute the closed-form inverse kinematics:
-
-
-
-/* A465_inverse_kinematics:     Computes the kinematic joint angles 'jointsoln' from 
- *      the basic arm transform 'transform'.
- *
- *      Note:   'old_joints' is an array representing the robots current kinematic
- *                  joint angles.  It is used when a singularity is encountered in joint
- *          1 (wrist directly above origin) or joint 5 (when J5 is exactly 0).
- *          In each case, we appeal to the previous joint angle for a reasonable
- *          approximation of where the next joint angle should be.  Without an 
- *          approach like this the arm may move erratically and dangerously.
- */
-static int  A465_inverse_kinematics(double transform[XFORM_SIZE], Joint_Solution jointsoln[NUM_SOLN])
-{
-        double old_joints[NUM_AXES]={0,0,0,0,0,0};
-    double linkvar1, linkvar2;
-    double j1soln1, j1soln2;
-    double s1, s1_F, s1_B, c1, c1_F, c1_B;   
-    double j3tmp1, j3tmp2, j3tmp3, j3tmp4;
-    double j3soln1, j3soln2;
-    double s3, c3_BUFD, c3_FUBD;
-    double threespace_dist_sqr;
-    double inv_3space_dist_sqr;
-    double baseplane_dist;
-    double j2tmp1_BUFD, j2tmp1_FUBD;
-    double j2tmp1, j2tmp2;
-    double s23, c23;
-    double basedist_26;
-    double j2soln;
-    double j5_singularity;
-    double s5, c5, s4, c4, s6, c6;
-    double j4tmp1, j4tmp2, j4tmp3;
-    double j4soln1, j4soln2;
-    double j5soln1, j5soln2;
-    double j6tmp1, j6tmp2;
-    double j6soln1, j6soln2;
-    int index;
-
-                                                                                                
-    /* Joint 1 */
-#ifndef TESTING 
-    if( fabs(transform[Px]) < EPSILON && fabs(transform[Py]) < EPSILON )
-    {
-        /* we're in the joint 1 singularity directly above the origin */
-        j1soln1 = old_joints[J1];
-            j1soln2 = j1soln1 + PI;
-    }
-    else
-#endif
-    {
-            j1soln1 = atan2(transform[Py],transform[Px]);
-            j1soln2 = j1soln1 + PI;
-    }
-
-    /* reach forward solutions */
-    jointsoln[FUN].joint[J1] = j1soln1;
-    jointsoln[FUF].joint[J1] = j1soln1;
-    jointsoln[FDN].joint[J1] = j1soln1;
-    jointsoln[FDF].joint[J1] = j1soln1;
-
-    /* reach backward solutions */
-    jointsoln[BUN].joint[J1] = j1soln2;
-    jointsoln[BUF].joint[J1] = j1soln2;
-    jointsoln[BDN].joint[J1] = j1soln2;
-    jointsoln[BDF].joint[J1] = j1soln2;
-
-    /* set up some variables for later */
-
-    s1_F=sin(j1soln1); /* forward */
-    c1_F=cos(j1soln1);
-    s1_B = -s1_F;       /* backward */
-    c1_B = -c1_F;
-
-    
-    
-    /* Joint 3 */
-        
-    linkvar1    = A2*A2+D4*D4;
-    linkvar2    = 4.0*A2*A2*D4*D4;
-
-    baseplane_dist = c1_F*transform[Px] + s1_F*transform[Py]; /* was f11p  */
-    threespace_dist_sqr = baseplane_dist * baseplane_dist + transform[Pz] * transform[Pz];
-    j3tmp1 = linkvar1 - threespace_dist_sqr;
-    j3tmp2 = linkvar2 - j3tmp1*j3tmp1 ;
-    
-    /* ensure we're within reach */
-        if( j3tmp2 < -linkvar2*EPSILON )/* EPSILON defined in header file */
-        {  
-                //printf("INVKIN_OUTOFREACH\n");
-        return( INVKIN_OUTOFREACH );
-        }
-    else if( j3tmp2 < 0.0 )
-                j3tmp2 = 0.0;
-    
-    /* now determine the Joint 3 angle */
-    j3tmp3 = sqrt( j3tmp2 );
-    j3tmp4 = atan2( -j3tmp3,j3tmp1);
-    j3soln1 = PID2 + j3tmp4;
-    j3soln2 = PID2 - j3tmp4;
-
-    /* backward/up and forward/down solutions */
-    jointsoln[BUN].joint[J3] = j3soln1;
-    jointsoln[BUF].joint[J3] = j3soln1;
-    jointsoln[FDN].joint[J3] = j3soln1;
-    jointsoln[FDF].joint[J3] = j3soln1;
-
-    /* foward/up and backward/down solutions */
-    jointsoln[FUN].joint[J3] = j3soln2;
-    jointsoln[FUF].joint[J3] = j3soln2;
-    jointsoln[BDN].joint[J3] = j3soln2;
-    jointsoln[BDF].joint[J3] = j3soln2;
-
-    
-    /* now prepare some variables for further stages. */
-    s3      =sin(j3soln1);  /* was tmp2 */
-    c3_BUFD =cos(j3soln1);  /* was tmp1 */
-    c3_FUBD = -c3_BUFD;     /* same as cos(j3soln2) */
-
-    /* pre-calculating the inverse here saves cpu cycles later on */
-    inv_3space_dist_sqr = 1/threespace_dist_sqr;
-
-
-    /* Joint 2 --> Joint 6 */
-
-    /* set up joint 2 variables */
-    j2tmp1_BUFD = A2*c3_BUFD;
-    j2tmp1_FUBD = A2*c3_FUBD;
-
-    j2tmp2 = D4 - A2*s3;
-
-  
-    /* We have two solutions for each of J1 and J3 (corresponding
-     * to reach forward/back and elbow up/down) so there are now a total of 4
-     * stance configurations that we can attain:  FU, BU, FD, BD.  We must find separate
-     * solutions for each configuration for all the remaining joints.
-     * To simplify this process we will loop through the following calculations 
-     * 4 times, once for each of the configurations.
-    */
-
-
-    /* Because of the way the solution array is organized, we must
-     * index through with a step size of two to hit each of the FU, BU
-     * FD, and BD solutions.  See A465.h for more info    */
-    for (index=FUN;index<=6;index+=2)
-    {
-        switch(index)
-        {
-            case(FUN):
-            {
-                c1          = c1_F;
-                s1          = s1_F;
-                basedist_26 = baseplane_dist;
-                j2tmp1      = j2tmp1_FUBD;
-                break;
-            }
-            case(FDN):
-            {
-                c1          = c1_F;
-                s1          = s1_F;
-                basedist_26 = baseplane_dist;
-                j2tmp1      = j2tmp1_BUFD;  
-                break;
-            }
-            case(BUN):
-            {
-                c1          = c1_B;
-                s1          = s1_B;
-                basedist_26 = -baseplane_dist;
-                j2tmp1      = j2tmp1_BUFD;
-                break;
-            }
-            case(BDN):
-            {
-                c1          = c1_B;
-                s1          = s1_B;
-                basedist_26 = -baseplane_dist;
-                j2tmp1      = j2tmp1_FUBD;
-                break;
-            }
-                        default:
-                                {
-                                //printf("CASE_ERROR\n");
-                return CASE_ERROR;
-                                }
-        }
-        
-        
-        /* joint 2 */
-        
-        s23 = (j2tmp1*transform[Pz] - j2tmp2*basedist_26) * inv_3space_dist_sqr;
-        c23 = ((j2tmp2*transform[Pz]) + (j2tmp1*basedist_26))* inv_3space_dist_sqr; 
-        j2soln = atan2(s23, c23) - jointsoln[index].joint[J3];
-    
-        jointsoln[index].joint[J2]      = j2soln;   /* noflip solution */
-        jointsoln[index+1].joint[J2]    = j2soln;   /* flip solution */
-
-
-        /* Joint 4 */
-
-
-        j4tmp1 = -s1*transform[r13] + c1*transform[r23];
-        j4tmp2 =  c1*transform[r13] + s1*transform[r23];
-        j4tmp3 =  c23*j4tmp2 + s23*transform[r33];
-
-    
-        /* first check if we're in the J5 singularity (i.e. J5 ~= 0)  */        
-#ifndef TESTING
-        if( (fabs(j4tmp1) < EPSILON) && (fabs(j4tmp3) < EPSILON) )
-            {
-            /* we're in the singularity -- set flag and set J5 to exactly 0 */
-            j5_singularity = 1;
-                jointsoln[index].joint[J5]      = 0.0;  /* noflip solution */
-            jointsoln[index+1].joint[J5]    = 0.0;  /* flip solution */
-            
-            s5 = 0.0;
-                c5 = 1.0;
-                
-            /* set joint 4 to it's old value since we have no way of knowing
-                where else it should be (position is ambiguous)  */
-            jointsoln[index].joint[J4] = old_joints[J4];   /* noflip solution */
-            jointsoln[index+1].joint[J4] = old_joints[J4]; /* flip solution */
-            
-            s4 = sin(old_joints[J4]);
-            c4 = cos(old_joints[J4]);
-
-
-        }
-            else
-#endif
-        {
-            /* we're not singular in jt 5 */
-            j5_singularity = 0;
-    
-                j4soln1 = atan2(j4tmp1,j4tmp3);
-            j4soln2 = j4soln1 + PI;
-
-                jointsoln[index+1].joint[J4]    = j4soln1;   /* wrist is flipped   */
-                jointsoln[index].joint[J4]      = j4soln2;   /* wrist is not flipped */
-            
-            s4 = sin(j4soln2);
-            c4 = cos(j4soln2);
-    
-            }
-
-
-        /* Joint 5 */
-
-        /* now, if we're not in a singularity, we must still solve for J5 */
-            if( !j5_singularity )
-        {
-                s5 = -c4*j4tmp3 - s4*j4tmp1;
-                c5 = -s23*j4tmp2 + c23*transform[r33];
-            j5soln1 = atan2(s5,c5);
-            j5soln2 = -j5soln1;
-            jointsoln[index].joint[J5]   = j5soln1; /* noflip solution */
-                jointsoln[index+1].joint[J5] = j5soln2; /* flip solution */
-        }
-
-
-        /* Joint 6 */
-        
-            j6tmp1 = c1*transform[r12] + s1*transform[r22];
-        j6tmp2 = -s1*transform[r12] + c1*transform[r22];
-
-            s6   = -c5*(c4*(c23*j6tmp1+s23*transform[r32]) + s4*j6tmp2)
-                + s5*(s23*j6tmp1-c23*transform[r32]);
-    
-        c6   = -s4*(c23*j6tmp1 + s23*transform[r32]) + c4*j6tmp2;
-
-        j6soln1 = atan2(s6, c6);
-        j6soln2 = j6soln1 + PI;
-    
-        jointsoln[index].joint[J6]   = j6soln1;  /* wrist not flipped */
-
-            if( j5_singularity ) 
-            /* in singularity -- flip solution same as noflip solution */
-            jointsoln[index+1].joint[J6] = j6soln1; 
-        else
-            jointsoln[index+1].joint[J6] = j6soln2;  /* wrist flipped */        
-
-
-
-    } /* end of Joints 2-6 for loop*/
-
-    return(OK);
-
-}   /* end of A465_inverse_kinematics() */
-
-
-
-static int A465_find_initial_base_distance(double *ax, double arm_without_terminal[XFORM_SIZE],int *direction)
-{
-        int retcode=0;
-        double x,y,z,l,x_max,xy_dist,x_base,epsilon=.06;
-        l=A2+D4;
-
-        /*Obtain the transformation of the wrist*/
-        x=arm_without_terminal[Px];
-        y=arm_without_terminal[Py];
-        z=arm_without_terminal[Pz];
-
-        
-        /*
-        find the maximum wrist to base distance, x_max and verifies if the required
-        position of the end-effector is within limits
-        */
-        if (z>D1+(l-epsilon)*cos(A465_posjointlim[J2])) /*Extended arm*/
-        {
-                //printf("Extended Arm\n");
-                if (y*y+(z-D1)*(z-D1)>(l-epsilon)*(l-epsilon))
-                {
-                        retcode=REACH_TOO_FAR;
-                        return(retcode);
-                }
-                x_max=sqrt(l*l-y*y-(z-D1)*(z-D1));
-        }
-        else /*Bent arm*/
-        {
-                //printf("Bent Arm\n");
-                // Verifies that the location can be reached, as far as height (z) is concerned
-                if (z<D1+A2*cos(A465_posjointlim[J2])-(D4-epsilon)*cos(PI-A465_posjointlim[J2]-A465_posjointlim[J3]))
-                {
-                        retcode=REACH_TOO_LOW;
-                        return(retcode);
-                }
-                else
-                {
-                        if (pow(D1+A2*cos(A465_posjointlim[J2])-z,2)+pow(fabs(y)-A2*sin(A465_posjointlim[J2]),2)>(D4-epsilon)*(D4-epsilon))
-                        {
-                                retcode=REACH_TOO_FAR;
-                                return(retcode);
-                        }
-                }
-                xy_dist=A2*sin(A465_posjointlim[J2])+sqrt((D4-epsilon)*(D4-epsilon)-pow(D1+A2*cos(A465_posjointlim[J2])-z,2));
-                x_max=sqrt(xy_dist*xy_dist-y*y);
-        }
-
-        if (x_max < -EPSILON)
-        {
-                retcode=OUT_OF_REACH;
-                return(retcode);
-        }
-        
-        /*Find the best stance possible*/
-        if (*direction==FORWARD){
-                *ax             = x_max;
-                x_base  = x-*ax;
-                printf("CASE 1\n");
-                if (x_base>A465_posjointlim[J7])
-                {
-                        retcode=REACH_TOO_FORWARD;
-                        printf("xbase retcode=%d x_base%f\n",retcode,x_base);
-                        return(retcode);
-                }
-                if (x_base<A465_negjointlim[J7] && x>A465_negjointlim[J7]+0.01)
-                {
-                        *ax=x-(A465_negjointlim[J7]+0.01);
-                        printf("CASE 1.1  ax=%f \n",*ax);
-                }
-        }
-        else  // When the direction is backward, the base will be "in front of" the end-effector
-        {
-                *ax             = -x_max;
-                x_base  = x-*ax;
-                printf("CASE 2 x=%f  x_base=%f\n",x,x_base);
-                if (x_base<A465_negjointlim[J7])
-                {
-                        retcode=REACH_TOO_BACKWARD;
-                        printf("xbase retcode=%d x_base%f\n",retcode,x_base);
-                        return(retcode);
-                }
-                if (x_base>A465_posjointlim[J7] && x<A465_posjointlim[J7]-0.01)
-                {
-                        *ax=x-(A465_posjointlim[J7]-0.01);
-                        printf("CASE 2.1  ax=%f \n",*ax);
-                }
-        }
-        return(OK);
-}
-
-
-
-
-
-#endif
 
 
 

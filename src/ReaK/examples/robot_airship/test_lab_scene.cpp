@@ -44,6 +44,7 @@
 #include "mbd_kte/kte_map_chain.hpp"
 
 #include "serialization/xml_archiver.hpp"
+#include "optimization/optim_exceptions.hpp"
 
 
 struct all_robot_info {
@@ -53,6 +54,7 @@ struct all_robot_info {
   ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > lab_proxy;
   ReaK::geom::proxy_query_pair_3D robot_lab_proxy;
   ReaK::shared_ptr< ReaK::frame_3D<double> > airship_frame;
+  ReaK::pose_3D<double> target_frame;
   ReaK::shared_ptr< ReaK::kte::kte_map_chain > airship_chain;
   ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > airship_proxy;
   ReaK::geom::proxy_query_pair_3D robot_airship_proxy;
@@ -66,6 +68,8 @@ struct all_robot_info {
 void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
   all_robot_info* r_info = reinterpret_cast< all_robot_info* >(userData);
   const SoEvent* event = eventCB->getEvent();
+  
+  static bool IK_enabled = false;
   
   if( SO_KEY_PRESS_EVENT(event, Q) ) {
     r_info->builder.track_joint_coord->q += 0.01;
@@ -141,11 +145,26 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
     r_info->airship_frame->Quat *= ReaK::axis_angle<double>(M_PI * 0.01,ReaK::vect<double,3>(0.0,1.0,0.0));
   } else if( SO_KEY_PRESS_EVENT(event, M) ) {
     r_info->airship_frame->Quat *= ReaK::axis_angle<double>(M_PI * 0.01,ReaK::vect<double,3>(0.0,0.0,1.0));
+  } else if( SO_KEY_PRESS_EVENT(event, P) ) {
+    IK_enabled = !IK_enabled;
   };
   
+  r_info->airship_chain->doMotion();
+  
+  if(IK_enabled) {
+    try {
+      ReaK::vect_n<double> jt_sol = r_info->builder.compute_inverse_kinematics(r_info->target_frame.getGlobalPose());
+      r_info->builder.track_joint_coord->q = jt_sol[0];
+      r_info->builder.arm_joint_1_coord->q = jt_sol[1];
+      r_info->builder.arm_joint_2_coord->q = jt_sol[2];
+      r_info->builder.arm_joint_3_coord->q = jt_sol[3];
+      r_info->builder.arm_joint_4_coord->q = jt_sol[4];
+      r_info->builder.arm_joint_5_coord->q = jt_sol[5];
+      r_info->builder.arm_joint_6_coord->q = jt_sol[6];
+    } catch( ReaK::optim::infeasible_problem& e ) { };
+  };
   
   r_info->kin_chain->doMotion();
-  r_info->airship_chain->doMotion();
   
   ReaK::shared_ptr< ReaK::geom::proximity_finder_3D > lr_pline = r_info->robot_lab_proxy.findMinimumDistance();
   if(lr_pline) {
@@ -210,6 +229,12 @@ int main(int argc, char ** argv) {
        >> r_info.airship_proxy;
   };
   
+  r_info.target_frame = pose_3D<double>(r_info.airship_frame,
+      vect<double,3>(0.97 * std::sin(0.2 / 0.93),0.0,0.97 * std::cos(0.2 / 0.93)),
+      axis_angle<double>(0.2 / 0.93 / 2.0,vect<double,3>(0.0,1.0,0.0)).getQuaternion()
+      * quaternion<double>::yrot(M_PI) * quaternion<double>::zrot(0.5 * M_PI));
+  r_info.target_frame.Position += r_info.target_frame.Quat * (-0.3 * vect_k);
+  
   r_info.robot_lab_proxy.setModelPair(r_info.robot_proxy, r_info.lab_proxy);
   r_info.robot_airship_proxy.setModelPair(r_info.robot_proxy, r_info.airship_proxy);
   r_info.lab_airship_proxy.setModelPair(r_info.lab_proxy, r_info.airship_proxy);
@@ -273,6 +298,7 @@ int main(int argc, char ** argv) {
     
     sg << (*r_info.builder.get_geometric_model());
     sg << (*lab_geom_model) << (*airship_geom_model);
+    sg << geom::coord_arrows_3D("target_arrows",r_info.airship_frame,r_info.target_frame,0.3);
 #endif
     
     SoSeparator* root = new SoSeparator;

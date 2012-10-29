@@ -341,7 +341,9 @@ class CRS_A465_model_builder {
     
     pose_3D<double> compute_direct_kinematics(const vect_n<double>& joint_positions) const;
     
-    frame_3D<double> compute_direct_kinematics_with_vel(const vect_n<double>& joint_states) const;
+    frame_3D<double> compute_direct_kinematics_with_vel(const vect_n<double>& joint_states, mat<double,mat_structure::rectangular>* jacobian = NULL) const;
+    
+    void compute_jacobian_matrix(const vect_n<double>& joint_positions, mat<double,mat_structure::rectangular>& jacobian) const;
     
     vect_n<double> compute_inverse_kinematics(const pose_3D<double>& EE_pose) const;
     
