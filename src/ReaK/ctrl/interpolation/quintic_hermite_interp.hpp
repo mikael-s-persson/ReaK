@@ -511,6 +511,23 @@ class quintic_hermite_interp_factory : public serialization::serializable {
 
 
 
+
+
+template <typename SpaceType, typename TimeTopology>
+struct get_tagged_spatial_interpolator< quintic_hermite_interpolation_tag, SpaceType, TimeTopology> {
+  typedef detail::generic_interpolator_impl<quintic_hermite_interpolator, SpaceType, TimeTopology> type; 
+  typedef void* pseudo_factory_type;
+};
+
+template <typename TemporalSpaceType>
+struct get_tagged_temporal_interpolator<quintic_hermite_interpolation_tag, TemporalSpaceType> {
+  typedef generic_interpolator<quintic_hermite_interp_factory<TemporalSpaceType>, quintic_hermite_interpolator> type; 
+};
+
+
+
+
+
   
 /**
  * This class implements a trajectory in a temporal and twice-differentiable topology.

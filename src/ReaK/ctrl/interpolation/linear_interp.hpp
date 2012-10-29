@@ -307,6 +307,23 @@ class linear_interpolator_factory : public serialization::serializable {
 
 
 
+
+
+
+template <typename SpaceType, typename TimeTopology>
+struct get_tagged_spatial_interpolator< linear_interpolation_tag, SpaceType, TimeTopology> {
+  typedef detail::generic_interpolator_impl<linear_interpolator, SpaceType, TimeTopology> type; 
+  typedef void* pseudo_factory_type;
+};
+
+template <typename TemporalSpaceType>
+struct get_tagged_temporal_interpolator< linear_interpolation_tag, TemporalSpaceType> {
+  typedef generic_interpolator<linear_interpolator_factory<TemporalSpaceType>, linear_interpolator> type; 
+};
+
+
+
+
   
 /**
  * This class implements a trajectory in a temporal and zero-differentiable topology.

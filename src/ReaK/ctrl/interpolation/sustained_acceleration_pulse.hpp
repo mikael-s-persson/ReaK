@@ -562,6 +562,8 @@ class sap_reach_topology : public BaseTopology
     
   public:
     
+    const sap_reach_time_metric<time_topology>& get_pseudo_factory() const { return rt_dist; };
+    
     sap_reach_topology(const BaseTopology& aTopo, 
                        double aTolerance = 1e-6, 
                        unsigned int aMaxIter = 60) : 
@@ -684,6 +686,18 @@ class sap_reach_topology : public BaseTopology
     
 };
 
+
+
+template <typename SpaceType, typename TimeTopology>
+struct get_tagged_spatial_interpolator< sap_interpolation_tag, SpaceType, TimeTopology> {
+  typedef detail::generic_interpolator_impl<sap_interpolator, SpaceType, TimeTopology> type; 
+  typedef sap_reach_time_metric<TimeTopology> pseudo_factory_type;
+};
+
+template <typename TemporalSpaceType>
+struct get_tagged_temporal_interpolator< sap_interpolation_tag, TemporalSpaceType> {
+  typedef generic_interpolator<sap_interpolator_factory<TemporalSpaceType>, sap_interpolator> type; 
+};
 
 
 

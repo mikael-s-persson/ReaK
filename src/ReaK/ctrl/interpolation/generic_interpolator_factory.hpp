@@ -286,6 +286,8 @@ class generic_interpolator_impl< InterpolatorImpl, metric_space_tuple<SpaceTuple
 };
 
 
+
+
 /**
  * This functor class implements a generic interpolation in a temporal topology.
  * \tparam Factory The interpolator factory type which created this generic interpolator.
@@ -391,6 +393,30 @@ class generic_interpolator {
     };
     
 };
+
+
+
+/**
+ * This meta-function is used to obtain the generic interpolator for a spatial interpolation (space and "time" 
+ * topologies are separate), given an interpolator tag type.
+ * \note The general template here is bogus. This class template needs to be specialized for each interpolator tag.
+ */
+template <typename InterpTag, typename SpaceType, typename TimeTopology = time_topology>
+struct get_tagged_spatial_interpolator {
+  typedef void type; // dummy, generalization is not possible.
+  typedef void* pseudo_factory_type;
+};
+
+/**
+ * This meta-function is used to obtain the generic interpolator for a temporal interpolation (space and "time" 
+ * topologies are joined in one "temporal" topology), given an interpolator tag type.
+ * \note The general template here is bogus. This class template needs to be specialized for each interpolator tag.
+ */
+template <typename InterpTag, typename TemporalSpaceType>
+struct get_tagged_temporal_interpolator {
+  typedef void type; // dummy, generalization is not possible.
+};
+
 
 
 

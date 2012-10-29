@@ -505,6 +505,15 @@ class svp_reach_topology : public BaseTopology
     
   public:
     
+    const svp_reach_time_metric<time_topology>& get_pseudo_factory() const { return rt_dist; };
+    
+    svp_reach_topology(const BaseTopology& aTopo, 
+                       double aTolerance = 1e-6, 
+                       unsigned int aMaxIter = 60) : 
+                       BaseTopology(aTopo),
+                       t_space(new time_topology),
+                       rt_dist(t_space, aTolerance, aMaxIter), rl_sampler(svp_rate_limited_sampler<time_topology>(t_space)) { };
+    
 #ifdef RK_ENABLE_CXX11_FEATURES
     template <typename... Args>
     svp_reach_topology(Args&&... args) : 
@@ -621,6 +630,18 @@ class svp_reach_topology : public BaseTopology
 };
 
 
+
+
+template <typename SpaceType, typename TimeTopology>
+struct get_tagged_spatial_interpolator< svp_interpolation_tag, SpaceType, TimeTopology> {
+  typedef detail::generic_interpolator_impl<svp_interpolator, SpaceType, TimeTopology> type; 
+  typedef svp_reach_time_metric<TimeTopology> pseudo_factory_type;
+};
+
+template <typename TemporalSpaceType>
+struct get_tagged_temporal_interpolator< svp_interpolation_tag, TemporalSpaceType> {
+  typedef generic_interpolator<svp_interpolator_factory<TemporalSpaceType>, svp_interpolator> type; 
+};
 
 
 

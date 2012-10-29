@@ -287,9 +287,10 @@ svp_reach_topology<T>       0xC2400023   bin: 1100 0010 0100 0000 0000 0000 0010
 linear_interp_topology<T>   0xC2400024   bin: 1100 0010 0100 0000 0000 0000 0010 0100  
 cubic_interp_topology<T>    0xC2400025   bin: 1100 0010 0100 0000 0000 0000 0010 0101  
 quintic_interp_topology<T>  0xC2400026   bin: 1100 0010 0100 0000 0000 0000 0010 0110  
-manip_quasi_static_env<T,t> 0xC2400027   bin: 1100 0010 0100 0000 0000 0000 0010 0111  
-manip_dynamic_env<T,t>      0xC2400028   bin: 1100 0010 0100 0000 0000 0000 0010 1000  
-
+manip_quasi_static_env<T,t> 0xC2400027   bin: 1100 0010 0100 0000 0000 0000 0010 0111  D-R
+manip_dynamic_env<T,t>      0xC2400028   bin: 1100 0010 0100 0000 0000 0000 0010 1000  D-R
+proxy_model_updater         0xC2400029   bin: 1100 0010 0100 0000 0000 0000 0010 1001  D-R
+manip_dk_traj_updater       0xC240002A   bin: 1100 0010 0100 0000 0000 0000 0010 1010  D-R
 
 
 //Distance metrics:         0xC241****
@@ -308,6 +309,7 @@ symmetrized_metric          0xC241000B   bin: 1100 0010 0100 0001 0000 0000 0000
 
 space_only_temporal_dist    0xC2410010   bin: 1100 0010 0100 0001 0000 0000 0001 0000  D-R
 time_only_temporal_dist     0xC2410011   bin: 1100 0010 0100 0001 0000 0000 0001 0001  D-R
+reach_plus_time_metric      0xC2410012   bin: 1100 0010 0100 0001 0000 0000 0001 0010  D-R
 
 goal_reach_time_heuristic   0xC2410020   bin: 1100 0010 0100 0001 0000 0000 0010 0000  D-R
 distance_to_goal_heuristic  0xC2410021   bin: 1100 0010 0100 0001 0000 0000 0010 0001  D-R
