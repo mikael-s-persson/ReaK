@@ -200,14 +200,14 @@ class gen_sampler_recursion_impl {
     static void generate_sample(Sampler& sampler, PointType& result, const SpaceTuple& space, const Factory& factory) {
       gen_sampler_recursion_impl< Idx-1, SamplerTuple >::generate_sample(sampler, result, space, factory);
       
-      arithmetic_tuple_element<Idx,SpaceTuple>::type::generate_sample(sampler, get<Idx>(result), get<Idx>(space), factory);
+      arithmetic_tuple_element<Idx,SamplerTuple>::type::generate_sample(sampler, get<Idx>(result), get<Idx>(space), factory);
     };
     
     template <typename Sampler, typename PointType, typename SpaceTuple>
     static void generate_sample(Sampler& sampler, PointType& result, const SpaceTuple& space) {
       gen_sampler_recursion_impl< Idx-1, SamplerTuple >::generate_sample(sampler, result, space);
       
-      arithmetic_tuple_element<Idx,SpaceTuple>::type::generate_sample(sampler, get<Idx>(result), get<Idx>(space));
+      arithmetic_tuple_element<Idx,SamplerTuple>::type::generate_sample(sampler, get<Idx>(result), get<Idx>(space));
     };
 };
 
@@ -218,12 +218,12 @@ class gen_sampler_recursion_impl<0, SamplerTuple> {
     
     template <typename Sampler, typename PointType, typename SpaceTuple, typename Factory>
     static void generate_sample(const Sampler& sampler, PointType& result, const SpaceTuple& space, const Factory& factory) {
-      arithmetic_tuple_element<0,SpaceTuple>::type::generate_sample(sampler, get<0>(result), get<0>(space), factory);
+      arithmetic_tuple_element<0,SamplerTuple>::type::generate_sample(sampler, get<0>(result), get<0>(space), factory);
     };
     
     template <typename Sampler, typename PointType, typename SpaceTuple>
     static void generate_sample(const Sampler& sampler, PointType& result, const SpaceTuple& space) {
-      arithmetic_tuple_element<0,SpaceTuple>::type::generate_sample(sampler, get<0>(result), get<0>(space));
+      arithmetic_tuple_element<0,SamplerTuple>::type::generate_sample(sampler, get<0>(result), get<0>(space));
     };
     
 };
@@ -305,7 +305,7 @@ class generic_sampler<Sampler, SpaceType, void> {
     typedef detail::generic_sampler_impl< Sampler, topology> sampler_impl_type;
     
   private:
-    sampler_impl_type sampler;
+    Sampler sampler;
     
   public:
     

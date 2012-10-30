@@ -39,6 +39,9 @@
 #define REAK_SUBSPACE_CONCEPT_HPP
 
 
+#include "base/defs.hpp"
+#include "base/shared_object.hpp"
+
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
@@ -81,6 +84,38 @@ struct SubSpaceConcept {
     const typename subspace_traits<Topology>::super_space_type& super_space = space.get_super_space(); RK_UNUSED(super_space);
   };
   
+};
+
+
+
+struct subspace_map : public shared_object {
+  typedef subspace_map self;
+  
+  subspace_map() { };
+  
+  template <typename PointType, typename SpaceIn>
+  PointType map_to_space(const PointType& p_in, const SpaceIn&, const typename subspace_traits<SpaceIn>::super_space_type&) const {
+    return p_in;
+  };
+  
+  template <typename PointType, typename SpaceOut>
+  PointType map_to_space(const PointType& p_in, const typename subspace_traits<SpaceOut>::super_space_type&, const SpaceOut&) const {
+    return p_in;
+  };
+  
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+  virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+    shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+  };
+  virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+    shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240002C,1,"subspace_map",shared_object)
+    
 };
 
 

@@ -481,8 +481,6 @@ class svp_reach_topology : public BaseTopology
   public:
     BOOST_CONCEPT_ASSERT((TopologyConcept<BaseTopology>));
     BOOST_CONCEPT_ASSERT((PointDistributionConcept<BaseTopology>));
-    BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<BaseTopology>));
-    BOOST_CONCEPT_ASSERT((TangentBundleConcept<BaseTopology, 2, time_topology>));
     
     typedef svp_reach_topology<BaseTopology> self;
     
@@ -625,7 +623,7 @@ class svp_reach_topology : public BaseTopology
       BaseTopology::load(A,BaseTopology::getStaticObjectType()->TypeVersion());
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400023,1,"svp_reach_topology",BaseTopology)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400023,1,"svp_reach_topology",BaseTopology)
     
 };
 
@@ -722,6 +720,20 @@ class svp_interp_traj : public interpolated_trajectory<Topology,svp_interpolator
 
 
 };
+
+
+
+namespace rtti {
+
+template <>
+struct get_type_id< pp::svp_interpolation_tag > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 5);
+  static std::string type_name() { return "svp_interpolation_tag"; };
+  static construct_ptr CreatePtr() { return NULL; };
+};
+
+};
+
 
 };
 

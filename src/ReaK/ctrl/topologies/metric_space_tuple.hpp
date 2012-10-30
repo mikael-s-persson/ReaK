@@ -332,7 +332,7 @@ namespace detail {
       };
       
       static void is_in_bounds(const SpaceTuple& s, bool& br, const point_type& p) {
-	metric_space_tuple_impl<Order-1,SpaceTuple>::get_diff_to_boundary(s,br,p);
+	metric_space_tuple_impl<Order-1,SpaceTuple>::is_in_bounds(s,br,p);
 	br = (br && get<Order>(s).is_in_bounds(get<Order>(p)));
       };
   };

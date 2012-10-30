@@ -34,6 +34,9 @@
 #ifndef REAK_TOPOLOGICAL_MAP_CONCEPTS_HPP
 #define REAK_TOPOLOGICAL_MAP_CONCEPTS_HPP
 
+#include "base/defs.hpp"
+#include "base/shared_object.hpp"
+
 
 #include <boost/config.hpp>
 #include <cmath>
@@ -88,23 +91,44 @@ struct BijectionConcept :
 
 
 template <typename OuterBijection, typename InnerBijection, typename MiddleSpace>
-struct bijection_cascade {
+struct bijection_cascade : public shared_object {
+  typedef bijection_cascade<OuterBijection, InnerBijection, MiddleSpace> self;
+  
   OuterBijection map_outer;
   InnerBijection map_inner;
-  MiddleSpace mid_space;
+  shared_ptr< MiddleSpace > mid_space;
   
   bijection_cascade(const OuterBijection& aMapOuter, 
 		    const InnerBijection& aMapInner, 
-		    const MiddleSpace& aMidSpace) : 
+		    const shared_ptr< MiddleSpace >& aMidSpace) : 
 		    map_outer(aMapOuter), 
 		    map_inner(aMapInner),
 		    mid_space(aMidSpace) { };
   
   template <typename PointType, typename SpaceIn, typename SpaceOut>
   typename topology_traits<SpaceOut>::point_type map_to_space(const PointType& p_in, const SpaceIn& s_in, const SpaceOut& s_out) const {
-    return map_outer.map_to_space( map_inner.map_to_space(p_in, s_in, mid_space), mid_space, s_out);
+    return map_outer.map_to_space( map_inner.map_to_space(p_in, s_in, *mid_space), *mid_space, s_out);
   };
   
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+  virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+    shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+    A & RK_SERIAL_SAVE_WITH_NAME(map_outer)
+      & RK_SERIAL_SAVE_WITH_NAME(map_inner)
+      & RK_SERIAL_SAVE_WITH_NAME(mid_space);
+  };
+  virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+    shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+    A & RK_SERIAL_LOAD_WITH_NAME(map_outer)
+      & RK_SERIAL_LOAD_WITH_NAME(map_inner)
+      & RK_SERIAL_LOAD_WITH_NAME(mid_space);
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240002B,1,"bijection_cascade",shared_object)
+    
 };
 
 

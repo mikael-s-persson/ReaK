@@ -56,18 +56,18 @@ namespace pp {
 template <typename ReachabilityTopology>
 struct reachability_topology_traits {
   /** The point type that described the points of the reachability-space. */
-  typedef ReachabilityTopology::point_type point_type;
+  typedef typename ReachabilityTopology::point_type point_type;
   /** The point-difference type that described the difference between points of the reachability-space. */
-  typedef ReachabilityTopology::point_difference_type point_difference_type;
+  typedef typename ReachabilityTopology::point_difference_type point_difference_type;
  
   /** The temporal-topology type in which the points of the reachability-space lie. */
-  typedef ReachabilityTopology::temporal_space_type temporal_space_type;
+  typedef typename ReachabilityTopology::temporal_space_type temporal_space_type;
   /** The time-topology type in which the time-components of points of the reachability-space lie. */
-  typedef ReachabilityTopology::time_topology time_topology;
+  typedef typename ReachabilityTopology::time_topology time_topology;
   /** The space-topology type in which the space-components of points of the reachability-space lie. */
-  typedef ReachabilityTopology::space_topology space_topology;
+  typedef typename ReachabilityTopology::space_topology space_topology;
   /** The distance-metric type for the reachability-space. */
-  typedef ReachabilityTopology::distance_metric distance_metric;
+  typedef typename ReachabilityTopology::distance_metric distance_metric;
   
   /** This constant defines the temporal dimensions (0 if unknown at compile-time). */
   BOOST_STATIC_CONSTANT(std::size_t, time_dimensions = time_topology::dimensions);

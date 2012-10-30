@@ -2068,6 +2068,19 @@ class manip_direct_kin_map : public shared_object {
       return result;
     };
     
+    /**
+     * This function template applies a forward kinematics calculation on the 
+     * manipulator model with the given joint-space state.
+     * \tparam PointType The point-type of the input space.
+     * \tparam InSpace The type of the input space (joint-space).
+     * \param pt The point in the input space, i.e. the joint coordinates.
+     * \param space_in The input space, i.e. the joint-space.
+     */
+    template <typename PointType, typename InSpace>
+    void apply_to_model(const PointType& pt, const InSpace& space_in) const {
+      detail::write_joint_coordinates_impl(pt, space_in, model);
+      model->doMotion();
+    };
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -2131,12 +2144,29 @@ class manip_rl_direct_kin_map : public shared_object {
       NormalJointSpace normal_j_space;
       typename topology_traits<NormalJointSpace>::point_type pt_inter = joint_limits_map->map_to_space(pt, space_in, normal_j_space);
       detail::write_joint_coordinates_impl(pt_inter, normal_j_space, model);
-    
+      
       model->doMotion();
       
       detail::read_dependent_coordinates_impl(result, space_out, model);
       
       return result;
+    };
+    
+    /**
+     * This function template applies a forward kinematics calculation on the 
+     * manipulator model with the given joint-space state.
+     * \tparam PointType The point-type of the input space.
+     * \tparam InSpace The type of the input space (joint-space).
+     * \param pt The point in the input space, i.e. the joint coordinates.
+     * \param space_in The input space, i.e. the joint-space.
+     */
+    template <typename PointType, typename InSpace>
+    void apply_to_model(const PointType& pt, const InSpace& space_in) const {
+      typedef typename get_rate_illimited_space< InSpace >::type NormalJointSpace;
+      NormalJointSpace normal_j_space;
+      typename topology_traits<NormalJointSpace>::point_type pt_inter = joint_limits_map->map_to_space(pt, space_in, normal_j_space);
+      detail::write_joint_coordinates_impl(pt_inter, normal_j_space, model);
+      model->doMotion();
     };
     
     

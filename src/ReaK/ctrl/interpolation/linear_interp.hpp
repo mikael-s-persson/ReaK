@@ -402,6 +402,22 @@ class linear_interp_traj : public interpolated_trajectory<Topology,linear_interp
 
 };
 
+
+
+namespace rtti {
+
+template <>
+struct get_type_id< pp::linear_interpolation_tag > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 1);
+  static std::string type_name() { return "linear_interpolation_tag"; };
+  static construct_ptr CreatePtr() { return NULL; };
+};
+
+};
+
+
+
+
 };
 
 #endif

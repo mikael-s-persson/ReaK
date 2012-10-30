@@ -447,7 +447,7 @@ struct sap_rate_limited_sampler : public serialization::serializable {
     BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< Space2 >));
     
     const typename point_distribution_traits<Topology>::random_sampler_type& get_sample = get(random_sampler, s);
-    const Space0& s0 = get_space<0>(s, *t_space);
+    //const Space0& s0 = get_space<0>(s, *t_space);
     const Space1& s1 = get_space<1>(s, *t_space);
     const Space2& s2 = get_space<2>(s, *t_space);
     const typename metric_space_traits< Space1 >::distance_metric_type& get_dist1 = get(distance_metric, s1);
@@ -538,8 +538,6 @@ class sap_reach_topology : public BaseTopology
   public:
     BOOST_CONCEPT_ASSERT((TopologyConcept<BaseTopology>));
     BOOST_CONCEPT_ASSERT((PointDistributionConcept<BaseTopology>));
-    BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<BaseTopology>));
-    BOOST_CONCEPT_ASSERT((TangentBundleConcept<BaseTopology, 2, time_topology>));
     
     typedef sap_reach_topology<BaseTopology> self;
     
@@ -682,7 +680,7 @@ class sap_reach_topology : public BaseTopology
       BaseTopology::load(A,BaseTopology::getStaticObjectType()->TypeVersion());
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400022,1,"sap_reach_topology",BaseTopology)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400022,1,"sap_reach_topology",BaseTopology)
     
 };
 
@@ -775,6 +773,17 @@ class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator
 };
 
 
+
+};
+
+namespace rtti {
+
+template <>
+struct get_type_id< pp::sap_interpolation_tag > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 4);
+  static std::string type_name() { return "sap_interpolation_tag"; };
+  static construct_ptr CreatePtr() { return NULL; };
+};
 
 };
 

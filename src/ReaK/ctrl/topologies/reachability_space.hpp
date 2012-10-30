@@ -140,8 +140,8 @@ struct reachable_distance {
    */
   template <typename Point, typename TimeTopology, typename SpaceTopology>
   double operator()(const Point& a, const Point& b, const TimeTopology& t, const SpaceTopology& s) const {
-    TimeTopology::point_difference_type time_diff = t.difference(b.time, a.time);
-    SpaceTopology::point_difference_type point_diff = s.difference(b.pt, a.pt);
+    typename TimeTopology::point_difference_type time_diff = t.difference(b.time, a.time);
+    typename SpaceTopology::point_difference_type point_diff = s.difference(b.pt, a.pt);
     if(backward(time_diff, point_diff, t, s) >= 0.0)
       return forward(time_diff, point_diff, t, s);
     if(backward(-time_diff, -point_diff, t, s) >= 0.0)

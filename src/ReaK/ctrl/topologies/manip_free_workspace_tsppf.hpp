@@ -32,8 +32,8 @@ class manip_quasi_static_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public
   public:
     typedef manip_quasi_static_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> self;
     typedef RK_REACHINTERP_TOPOLOGY<RateLimitedJointSpace> super_space_type;
-    typedef topology_traits< super_space_type >::point_type point_type;
-    typedef topology_traits< super_space_type >::point_difference_type point_difference_type;
+    typedef typename topology_traits< super_space_type >::point_type point_type;
+    typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology_traits< super_space_type >::dimensions);
     
@@ -54,7 +54,7 @@ class manip_quasi_static_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public
     const super_space_type& get_super_space() const { return m_space; };
     
     bool is_free(const point_type& p) const {
-      return m_prox_env.is_free(pt, m_space.get_super_space());
+      return m_prox_env.is_free(p, m_space.get_super_space());
     };
     
     //Topology concepts:
@@ -81,7 +81,7 @@ class manip_quasi_static_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public
     point_type adjust(const point_type& p, const point_difference_type& dp) const { return m_space.adjust(p,dp); };
     
     point_type move_position_toward(const point_type& p1, double fraction, const point_type& p2) const {
-      typedef typename get_tagged_spatial_interpolator< InterpMethodTag, RateLimitedJointSpace, time_topology>::type InterpType;
+      typedef typename get_tagged_spatial_interpolator< RK_REACHINTERP_TAG, RateLimitedJointSpace, time_topology>::type InterpType;
       InterpType interp;
       interp.initialize(p1, p2, 0.0, static_cast<const RateLimitedJointSpace&>(m_space), time_topology(), m_space.get_pseudo_factory());
       double dt_min = interp.get_minimum_travel_time();
@@ -193,8 +193,11 @@ class manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public name
   public:
     typedef manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> self;
     typedef temporal_space< RK_REACHINTERP_TOPOLOGY<RateLimitedJointSpace>, time_poisson_topology, reach_plus_time_metric> super_space_type;
-    typedef topology_traits< super_space_type >::point_type point_type;
-    typedef topology_traits< super_space_type >::point_difference_type point_difference_type;
+    typedef typename topology_traits< super_space_type >::point_type point_type;
+    typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
+    
+    typedef time_poisson_topology time_topology;
+    typedef RK_REACHINTERP_TOPOLOGY<RateLimitedJointSpace> space_topology;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology_traits< super_space_type >::dimensions);
     
@@ -224,7 +227,7 @@ class manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public name
     
     bool is_free(const point_type& p) const {
       for(std::size_t i = 0; i < m_prox_updaters.size(); ++i)
-        m_prox_updaters[i].synchronize_proxy_model(p.time);
+        m_prox_updaters[i]->synchronize_proxy_model(p.time);
       return m_prox_env.is_free(p.pt, m_space);
     };
     
@@ -269,7 +272,7 @@ class manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public name
       if(p1.time > p2.time) // Am I trying to go backwards in time (impossible)?
         return p1; //p2 is not reachable from p1.
         
-      typedef typename get_tagged_spatial_interpolator< InterpMethodTag, RateLimitedJointSpace, time_topology>::type InterpType;
+      typedef typename get_tagged_spatial_interpolator< RK_REACHINTERP_TAG, RateLimitedJointSpace, time_topology>::type InterpType;
       InterpType interp;
       double reach_time = m_space.get_space_topology().distance(p1.pt, p2.pt);
       double dt_total = (p2.time - p1.time);  // the free time that I have along the path.

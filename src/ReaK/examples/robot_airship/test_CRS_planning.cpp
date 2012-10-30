@@ -46,6 +46,11 @@
 #include "serialization/xml_archiver.hpp"
 #include "optimization/optim_exceptions.hpp"
 
+#include "topologies/manip_free_workspace.hpp"
+#include "path_planning/rrt_path_planner.hpp"
+#include "path_planning/manipulator_topo_maps.hpp"
+
+
 struct all_robot_info {
   ReaK::robot_airship::CRS_A465_geom_builder builder;
   ReaK::shared_ptr< ReaK::kte::kte_map_chain > kin_chain;
@@ -58,9 +63,6 @@ struct all_robot_info {
   ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > airship_proxy;
   ReaK::geom::proxy_query_pair_3D robot_airship_proxy;
   ReaK::geom::proxy_query_pair_3D lab_airship_proxy;
-  SoCoordinate3* l_r_proxy_line;
-  SoCoordinate3* r_a_proxy_line;
-  SoCoordinate3* l_a_proxy_line;
 };
 
 
@@ -163,25 +165,62 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
     } catch( ReaK::optim::infeasible_problem& e ) { };
   };
   
+  
+  ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model > manip_kin_mdl = r_info->builder.get_manipulator_kin_model();
+  ReaK::shared_ptr< ReaK::pp::joint_limits_collection<double> > manip_jt_limits(&(r_info->builder.joint_rate_limits), ReaK::null_deleter());
+  typedef ReaK::pp::manip_quasi_static_env<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type, ReaK::pp::sap_interpolation_tag> workspace_type;
+  ReaK::shared_ptr<workspace_type> 
+    workspace(new workspace_type(
+      r_info->builder.get_rl_joint_space(),
+      manip_kin_mdl,
+      manip_jt_limits,
+      0.1, 1.0, 1e-6, 60));
+  
+  ReaK::pp::topology_traits<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type>::point_type start_point, goal_point;
+  ReaK::pp::topology_traits<ReaK::robot_airship::CRS_A465_model_builder::joint_space_type>::point_type start_inter, goal_inter;
+  ReaK::pp::detail::read_joint_coordinates_impl(start_inter, r_info->builder.get_joint_space(), manip_kin_mdl);
+  start_point = manip_jt_limits->map_to_space(start_inter, r_info->builder.get_joint_space(), r_info->builder.get_rl_joint_space());
+  
+  ReaK::vect_n<double> jt_desired = r_info->builder.compute_inverse_kinematics(r_info->target_frame.getGlobalPose());
+  get<0>(get<0>(goal_inter)) = jt_desired[0];
+  get<0>(get<1>(goal_inter)) = jt_desired[1];
+  get<0>(get<2>(goal_inter)) = jt_desired[2];
+  get<0>(get<3>(goal_inter)) = jt_desired[3];
+  get<0>(get<4>(goal_inter)) = jt_desired[4];
+  get<0>(get<5>(goal_inter)) = jt_desired[5];
+  get<0>(get<6>(goal_inter)) = jt_desired[6];
+  get<1>(get<0>(goal_inter)) = 0.0;
+  get<1>(get<1>(goal_inter)) = 0.0;
+  get<1>(get<2>(goal_inter)) = 0.0;
+  get<1>(get<3>(goal_inter)) = 0.0;
+  get<1>(get<4>(goal_inter)) = 0.0;
+  get<1>(get<5>(goal_inter)) = 0.0;
+  get<1>(get<6>(goal_inter)) = 0.0;
+  get<2>(get<0>(goal_inter)) = 0.0;
+  get<2>(get<1>(goal_inter)) = 0.0;
+  get<2>(get<2>(goal_inter)) = 0.0;
+  get<2>(get<3>(goal_inter)) = 0.0;
+  get<2>(get<4>(goal_inter)) = 0.0;
+  get<2>(get<5>(goal_inter)) = 0.0;
+  get<2>(get<6>(goal_inter)) = 0.0;
+  goal_point = manip_jt_limits->map_to_space(goal_inter, r_info->builder.get_joint_space(), r_info->builder.get_rl_joint_space());
+  
+  ReaK::pp::rrt_path_planner<workspace_type>
+    workspace_planner(workspace, 
+                      start_point,
+                      goal_point,
+                      10000, 
+                      500,
+                      ReaK::pp::UNIDIRECTIONAL_RRT,
+                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                      ReaK::pp::DVP_BF2_TREE_KNN,
+                      ReaK::pp::no_sbmp_report(),
+                      50);
+  
+  
+  
   r_info->kin_chain->doMotion();
   
-  ReaK::shared_ptr< ReaK::geom::proximity_finder_3D > lr_pline = r_info->robot_lab_proxy.findMinimumDistance();
-  if(lr_pline) {
-    r_info->l_r_proxy_line->point.set1Value(0, lr_pline->getLastResult().mPoint1[0], lr_pline->getLastResult().mPoint1[1], lr_pline->getLastResult().mPoint1[2]);
-    r_info->l_r_proxy_line->point.set1Value(1, lr_pline->getLastResult().mPoint2[0], lr_pline->getLastResult().mPoint2[1], lr_pline->getLastResult().mPoint2[2]);
-  };
-  
-  ReaK::shared_ptr< ReaK::geom::proximity_finder_3D > ra_pline = r_info->robot_airship_proxy.findMinimumDistance();
-  if(ra_pline) {
-    r_info->r_a_proxy_line->point.set1Value(0, ra_pline->getLastResult().mPoint1[0], ra_pline->getLastResult().mPoint1[1], ra_pline->getLastResult().mPoint1[2]);
-    r_info->r_a_proxy_line->point.set1Value(1, ra_pline->getLastResult().mPoint2[0], ra_pline->getLastResult().mPoint2[1], ra_pline->getLastResult().mPoint2[2]);
-  };
-  
-  ReaK::shared_ptr< ReaK::geom::proximity_finder_3D > la_pline = r_info->lab_airship_proxy.findMinimumDistance();
-  if(la_pline) {
-    r_info->l_a_proxy_line->point.set1Value(0, la_pline->getLastResult().mPoint1[0], la_pline->getLastResult().mPoint1[1], la_pline->getLastResult().mPoint1[2]);
-    r_info->l_a_proxy_line->point.set1Value(1, la_pline->getLastResult().mPoint2[0], la_pline->getLastResult().mPoint2[1], la_pline->getLastResult().mPoint2[2]);
-  };
 };
 
 
@@ -190,7 +229,7 @@ int main(int argc, char ** argv) {
   
   all_robot_info r_info;
   
-  //r_info.builder.load_kte_and_geom("models/CRS_A465_with_prox_geom.xml");
+  //r_info.builder.create_geom_from_preset();
   r_info.builder.load_kte_and_geom("models/CRS_A465_with_geom.xml");
   r_info.builder.load_limits_from_file("models/CRS_A465_limits.xml");
   
@@ -302,87 +341,6 @@ int main(int argc, char ** argv) {
     root->ref();
     
     root->addChild(sg.getSceneGraph());
-    
-    
-    
-    shared_ptr< geom::proximity_finder_3D > lr_pline = r_info.robot_lab_proxy.findMinimumDistance();
-    
-    SoSeparator* sep_lr_pline = new SoSeparator;
-    
-    SoBaseColor * col_lr_pline = new SoBaseColor;
-    col_lr_pline->rgb = SbColor(1, 0, 1);
-    sep_lr_pline->addChild(col_lr_pline);
-    
-    SoCoordinate3* coords_lr_pline = new SoCoordinate3;
-    if(lr_pline) {
-      coords_lr_pline->point.set1Value(0, lr_pline->getLastResult().mPoint1[0], lr_pline->getLastResult().mPoint1[1], lr_pline->getLastResult().mPoint1[2]);
-      coords_lr_pline->point.set1Value(1, lr_pline->getLastResult().mPoint2[0], lr_pline->getLastResult().mPoint2[1], lr_pline->getLastResult().mPoint2[2]);
-    } else {
-      coords_lr_pline->point.set1Value(0, 0.0, 0.0, 0.0);
-      coords_lr_pline->point.set1Value(1, 0.0, 0.0, 0.0);
-    };
-    sep_lr_pline->addChild(coords_lr_pline);
-    r_info.l_r_proxy_line = coords_lr_pline;
-    
-    SoLineSet* ln_set_lr_pline = new SoLineSet;
-    ln_set_lr_pline->numVertices.set1Value(0, 2);
-    sep_lr_pline->addChild(ln_set_lr_pline);
-    
-    root->addChild(sep_lr_pline);
-    
-    
-    
-    shared_ptr< geom::proximity_finder_3D > ra_pline = r_info.robot_airship_proxy.findMinimumDistance();
-    
-    SoSeparator* sep_ra_pline = new SoSeparator;
-    
-    SoBaseColor * col_ra_pline = new SoBaseColor;
-    col_ra_pline->rgb = SbColor(1, 0, 1);
-    sep_ra_pline->addChild(col_ra_pline);
-    
-    SoCoordinate3* coords_ra_pline = new SoCoordinate3;
-    if(ra_pline) {
-      coords_ra_pline->point.set1Value(0, ra_pline->getLastResult().mPoint1[0], ra_pline->getLastResult().mPoint1[1], ra_pline->getLastResult().mPoint1[2]);
-      coords_ra_pline->point.set1Value(1, ra_pline->getLastResult().mPoint2[0], ra_pline->getLastResult().mPoint2[1], ra_pline->getLastResult().mPoint2[2]);
-    } else {
-      coords_ra_pline->point.set1Value(0, 0.0, 0.0, 0.0);
-      coords_ra_pline->point.set1Value(1, 0.0, 0.0, 0.0);
-    };
-    sep_ra_pline->addChild(coords_ra_pline);
-    r_info.r_a_proxy_line = coords_ra_pline;
-    
-    SoLineSet* ln_set_ra_pline = new SoLineSet;
-    ln_set_ra_pline->numVertices.set1Value(0, 2);
-    sep_ra_pline->addChild(ln_set_ra_pline);
-    
-    root->addChild(sep_ra_pline);
-    
-    
-    
-    shared_ptr< geom::proximity_finder_3D > la_pline = r_info.lab_airship_proxy.findMinimumDistance();
-    
-    SoSeparator* sep_la_pline = new SoSeparator;
-    
-    SoBaseColor * col_la_pline = new SoBaseColor;
-    col_la_pline->rgb = SbColor(1, 0, 1);
-    sep_la_pline->addChild(col_la_pline);
-    
-    SoCoordinate3* coords_la_pline = new SoCoordinate3;
-    if(la_pline) {
-      coords_la_pline->point.set1Value(0, la_pline->getLastResult().mPoint1[0], la_pline->getLastResult().mPoint1[1], la_pline->getLastResult().mPoint1[2]);
-      coords_la_pline->point.set1Value(1, la_pline->getLastResult().mPoint2[0], la_pline->getLastResult().mPoint2[1], la_pline->getLastResult().mPoint2[2]);
-    } else {
-      coords_la_pline->point.set1Value(0, 0.0, 0.0, 0.0);
-      coords_la_pline->point.set1Value(1, 0.0, 0.0, 0.0);
-    };
-    sep_la_pline->addChild(coords_la_pline);
-    r_info.l_a_proxy_line = coords_la_pline;
-    
-    SoLineSet* ln_set_la_pline = new SoLineSet;
-    ln_set_la_pline->numVertices.set1Value(0, 2);
-    sep_la_pline->addChild(ln_set_la_pline);
-    
-    root->addChild(sep_la_pline);
     
     
     

@@ -50,7 +50,8 @@
 
 #include "proximity/proxy_query_model.hpp"
 
-#include "patj_planning/manipulator_topo_maps.hpp"
+#include "path_planning/spatial_trajectory_concept.hpp"
+#include "path_planning/manipulator_topo_maps.hpp"
 #include "joint_space_limits.hpp"
 
 #include "temporal_space.hpp"
@@ -67,9 +68,9 @@ namespace detail {
 template <typename RateLimitedJointSpace>
 class manip_dk_proxy_env_impl {
   public:
-    typedef manip_dk_proxy_env<RateLimitedJointSpace> self;
-    typedef topology_traits< RateLimitedJointSpace >::point_type point_type;
-    typedef topology_traits< RateLimitedJointSpace >::point_difference_type point_difference_type;
+    typedef manip_dk_proxy_env_impl<RateLimitedJointSpace> self;
+    typedef typename topology_traits< RateLimitedJointSpace >::point_type point_type;
+    typedef typename topology_traits< RateLimitedJointSpace >::point_difference_type point_difference_type;
     
     shared_ptr< kte::manipulator_kinematics_model > m_model; 
     shared_ptr< joint_limits_collection<double> > m_joint_limits_map;
@@ -77,9 +78,9 @@ class manip_dk_proxy_env_impl {
     std::vector< shared_ptr< geom::proxy_query_pair_2D > > m_proxy_env_2D;
     std::vector< shared_ptr< geom::proxy_query_pair_3D > > m_proxy_env_3D;
     
-    manip_dk_proxy_env(const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
-                       const shared_ptr< joint_limits_collection<double> >& aJointLimitMap = shared_ptr< joint_limits_collection<double> >()) :
-                       m_model(aModel), m_joint_limits_map(aJointLimitMap) { };
+    manip_dk_proxy_env_impl(const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
+                            const shared_ptr< joint_limits_collection<double> >& aJointLimitMap = shared_ptr< joint_limits_collection<double> >()) :
+                            m_model(aModel), m_joint_limits_map(aJointLimitMap) { };
     
     bool is_free(const point_type& pt, const RateLimitedJointSpace& space) const {
       typedef typename get_rate_illimited_space< RateLimitedJointSpace >::type NormalJointSpace;
@@ -150,10 +151,10 @@ template <typename JointTrajectory>
 class manip_dk_traj_updater : public proxy_model_updater {
   public:
     
-    typedef manip_direct_kin_map self;
+    typedef manip_dk_traj_updater< JointTrajectory > self;
     typedef typename spatial_trajectory_traits< JointTrajectory >::topology temporal_space_type;
     typedef typename topology_traits< temporal_space_type >::point_type point_type;
-    typedef typename spatial_trajectory_traits<SpatialTrajectory>::const_waypoint_descriptor wp_desc_type;
+    typedef typename spatial_trajectory_traits< JointTrajectory >::const_waypoint_descriptor wp_desc_type;
     
     BOOST_CONCEPT_ASSERT((SpatialTrajectoryConcept<JointTrajectory, temporal_space_type>));
     
@@ -170,9 +171,9 @@ class manip_dk_traj_updater : public proxy_model_updater {
         last_wp = traj->get_waypoint_at_time(traj->get_start_time());
     };
     
-    manip_direct_kin_map(const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >()
-                         const shared_ptr< JointTrajectory >& aTraj = shared_ptr< JointTrajectory >()) :
-                         model(aModel), traj(aTraj) { };
+    manip_dk_traj_updater(const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
+                          const shared_ptr< JointTrajectory >& aTraj = shared_ptr< JointTrajectory >()) :
+                          model(aModel), traj(aTraj) { };
     
     
     virtual void synchronize_proxy_model(double t) const {
@@ -223,8 +224,8 @@ class manip_quasi_static_env : public named_object {
   public:
     typedef manip_quasi_static_env<RateLimitedJointSpace,InterpMethodTag> self;
     typedef RateLimitedJointSpace super_space_type;
-    typedef topology_traits< super_space_type >::point_type point_type;
-    typedef topology_traits< super_space_type >::point_difference_type point_difference_type;
+    typedef typename topology_traits< super_space_type >::point_type point_type;
+    typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology_traits< super_space_type >::dimensions);
     
@@ -485,8 +486,11 @@ class manip_dynamic_env : public named_object {
   public:
     typedef manip_dynamic_env<RateLimitedJointSpace,InterpMethodTag> self;
     typedef temporal_space<RateLimitedJointSpace, time_poisson_topology, reach_plus_time_metric> super_space_type;
-    typedef topology_traits< super_space_type >::point_type point_type;
-    typedef topology_traits< super_space_type >::point_difference_type point_difference_type;
+    typedef typename topology_traits< super_space_type >::point_type point_type;
+    typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
+    
+    typedef time_poisson_topology time_topology;
+    typedef RateLimitedJointSpace space_topology;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology_traits< super_space_type >::dimensions);
     
@@ -535,7 +539,7 @@ class manip_dynamic_env : public named_object {
      */
     bool is_free(const point_type& p) const {
       for(std::size_t i = 0; i < m_prox_updaters.size(); ++i)
-        m_prox_updaters[i].synchronize_proxy_model(p.time);
+        m_prox_updaters[i]->synchronize_proxy_model(p.time);
       return m_prox_env.is_free(p.pt, m_space);
     };
     

@@ -603,6 +603,23 @@ class quintic_hermite_interp_traj : public interpolated_trajectory<Topology,quin
 
 };
 
+
+
+namespace rtti {
+
+template <>
+struct get_type_id< pp::quintic_hermite_interpolation_tag > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 3);
+  static std::string type_name() { return "quintic_hermite_interpolation_tag"; };
+  static construct_ptr CreatePtr() { return NULL; };
+};
+
+};
+
+
+
+
+
 };
 
 #endif
