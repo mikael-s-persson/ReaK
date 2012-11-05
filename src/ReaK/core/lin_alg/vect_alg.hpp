@@ -254,16 +254,6 @@ class vect : public serialization::serializable {
       return;
     };
     
-    /**
-     * Standard Copy Constructor with standard semantics.
-     * \test PASSED
-     */
-    vect(self& V) {
-      for(size_type i=0;i < Size;++i)
-        q[i] = V.q[i];
-      return;
-    };
-    
 #ifdef RK_ENABLE_CXX11_FEATURES
     /**
      * Standard Move Constructor with standard semantics.

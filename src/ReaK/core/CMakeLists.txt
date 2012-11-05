@@ -59,5 +59,5 @@ get_target_property(RKKINETOSTATICSSOURCES reak_kinetostatics SOURCES)
 add_library(reak_core STATIC ${RKRTTISOURCES} ${RKRECORDERSSOURCES} ${RKSERIALIZATIONSOURCES} ${RKLINALGSOURCES} ${RKKINETOSTATICSSOURCES})
 #target_link_libraries(reak_core reak_rtti reak_serialization reak_recorders)
 setup_custom_target(reak_core "${SRCROOT}${RKCOREDIR}")
-target_link_libraries(reak_core ${Boost_LIBRARIES})
+target_link_libraries(reak_core ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
 

@@ -222,6 +222,12 @@ class hyperball_topology : public vector_topology<Vector>
     
 };
 
+template <typename Vector, typename PDMatrix>
+struct is_metric_space< hyperball_topology<Vector, PDMatrix> > : boost::mpl::true_ { };
+	
+template <typename Vector, typename PDMatrix>
+struct is_point_distribution< hyperball_topology<Vector, PDMatrix> > : boost::mpl::true_ { };
+
 
 };
 

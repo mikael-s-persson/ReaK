@@ -41,6 +41,7 @@
 #include <boost/config.hpp>
 #include <cmath>
 #include <boost/concept_check.hpp>
+#include <boost/utility/enable_if.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -135,6 +136,14 @@ struct LieGroupConcept {
   
 };
 
+
+/**
+ * This tag-type is used to identify (during a "get" call) that the distance-metric object is 
+ * to be fetched.
+ */
+enum distance_metric_t { distance_metric };
+
+
 /**
  * This concept defines the requirements to fulfill in order to model a distance-metric 
  * as used in ReaK::pp. A distance-metric is essentially a callable type that can compute 
@@ -169,12 +178,6 @@ struct DistanceMetricConcept {
   };
   
 };
-
-/**
- * This tag-type is used to identify (during a "get" call) that the distance-metric object is 
- * to be fetched.
- */
-enum distance_metric_t { distance_metric };
   
   
 /**
@@ -187,6 +190,7 @@ struct metric_space_traits {
   typedef typename MetricSpace::distance_metric_type distance_metric_type;
 };
 
+
 /**
  * This concept defines the requirements to fulfill in order to model a metric-space 
  * as used in ReaK::pp. A metric-space is a special kind of topology which has a 
@@ -194,7 +198,7 @@ struct metric_space_traits {
  * 
  * Valid expressions:
  * 
- * dist = get(distance_metric, space);  The distance-metric can be obtained by a tagged "get" call on the metric-space.
+ * dist = get(distance_metric,space);  The distance-metric can be obtained by a tagged "get" call on the metric-space.
  * 
  * p1 = space.move_position_toward(p1,d,p2);  A point can be obtained by moving a fraction (d) away from one point (p1) to another (p2).
  * 
@@ -217,6 +221,9 @@ struct MetricSpaceConcept {
   };
   
 };
+
+template <typename MetricSpace>
+struct is_metric_space : boost::mpl::false_ { };
 
 
 

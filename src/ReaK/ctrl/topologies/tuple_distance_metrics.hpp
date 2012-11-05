@@ -212,6 +212,9 @@ struct manhattan_tuple_distance : public serialization::serializable {
   
   manhattan_tuple_distance() { };
   
+  template <typename Topology>
+  manhattan_tuple_distance(const Topology&) { };
+  
   /** 
    * This function returns the norm of a difference between two points on a topology.
    * \tparam PointDiff The point-difference-type.
@@ -250,13 +253,6 @@ struct manhattan_tuple_distance : public serialization::serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(manhattan_tuple_distance,0xC2410005,1,"manhattan_tuple_distance",serialization::serializable)
 };
 
-template <typename MetricSpace>
-typename boost::enable_if< 
-  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
-                  manhattan_tuple_distance >,
-manhattan_tuple_distance >::type get(distance_metric_t, const MetricSpace&) {
-  return manhattan_tuple_distance();
-};
 
 
 /**
@@ -267,6 +263,9 @@ manhattan_tuple_distance >::type get(distance_metric_t, const MetricSpace&) {
 struct euclidean_tuple_distance : public serialization::serializable {
   
   euclidean_tuple_distance() { };
+
+  template <typename Topology>
+  euclidean_tuple_distance(const Topology&) { };
   
   /** 
    * This function returns the norm of a difference between two points on a topology-tuple.
@@ -308,13 +307,6 @@ struct euclidean_tuple_distance : public serialization::serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(euclidean_tuple_distance,0xC2410006,1,"euclidean_tuple_distance",serialization::serializable)
 };
 
-template <typename MetricSpace>
-typename boost::enable_if< 
-  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
-                  euclidean_tuple_distance >,
-euclidean_tuple_distance >::type get(distance_metric_t, const MetricSpace&) {
-  return euclidean_tuple_distance();
-};
 
 
 
@@ -327,6 +319,9 @@ euclidean_tuple_distance >::type get(distance_metric_t, const MetricSpace&) {
 struct inf_norm_tuple_distance : public serialization::serializable {
   
   inf_norm_tuple_distance() { };
+  
+  template <typename Topology>
+  inf_norm_tuple_distance(const Topology&) { };
   
   /** 
    * This function returns the norm of a difference between two points on a topology-tuple.
@@ -365,14 +360,6 @@ struct inf_norm_tuple_distance : public serialization::serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(inf_norm_tuple_distance,0xC2410007,1,"inf_norm_tuple_distance",serialization::serializable)
 };
 
-template <typename MetricSpace>
-typename boost::enable_if< 
-  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
-                  inf_norm_tuple_distance >,
-inf_norm_tuple_distance >::type get(distance_metric_t, const MetricSpace&) {
-  return inf_norm_tuple_distance();
-};
-
 
 
 /**
@@ -385,6 +372,9 @@ struct p_norm_tuple_distance : public serialization::serializable {
   int p_value;
   
   p_norm_tuple_distance(int aP = 2) : p_value(aP) { };
+  
+  template <typename Topology>
+  p_norm_tuple_distance(const Topology&, int aP = 2) : p_value(aP) { };
   
   /** 
    * This function returns the norm of a difference between two points on a topology-tuple.
@@ -430,13 +420,6 @@ struct p_norm_tuple_distance : public serialization::serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(p_norm_tuple_distance,0xC2410008,1,"p_norm_tuple_distance",serialization::serializable)
 };
 
-template <typename MetricSpace>
-typename boost::enable_if< 
-  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
-                  p_norm_tuple_distance >,
-p_norm_tuple_distance >::type get(distance_metric_t, const MetricSpace&) {
-  return p_norm_tuple_distance();
-};
 
 
 };

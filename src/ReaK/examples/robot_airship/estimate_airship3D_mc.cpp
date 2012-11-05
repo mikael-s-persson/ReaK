@@ -417,7 +417,7 @@ int main(int argc, char** argv) {
         };
         std_devs[12 * (j - skips_min) + 2] = (i * std_devs[12 * (j - skips_min) + 2] + std::sqrt(std_dev[0])) / (double(i+1));
         std_devs[12 * (j - skips_min) + 3] = (i * std_devs[12 * (j - skips_min) + 3] + std::sqrt(std_dev[1])) / (double(i+1));
-      } catch(ReaK::singularity_error& e) {
+      } catch(ReaK::singularity_error& e) { RK_UNUSED(e);
         std::cout << "The Extended Kalman Filter (v2) has thrown a singularity error!" << std::endl;
         std_devs[12 * (j - skips_min) + 2] = std::numeric_limits<double>::infinity();
         std_devs[12 * (j - skips_min) + 3] = std::numeric_limits<double>::infinity();
@@ -472,7 +472,7 @@ int main(int argc, char** argv) {
         };
         std_devs[12 * (j - skips_min) + 4] = (i * std_devs[12 * (j - skips_min) + 4] + std::sqrt(std_dev[0])) / (double(i+1));
         std_devs[12 * (j - skips_min) + 5] = (i * std_devs[12 * (j - skips_min) + 5] + std::sqrt(std_dev[1])) / (double(i+1));
-      } catch(ReaK::singularity_error& e) {
+      } catch(ReaK::singularity_error& e) { RK_UNUSED(e);
         std::cout << "The Invariant Extended Kalman Filter has thrown a singularity error!" << std::endl;
         std_devs[12 * (j - skips_min) + 4] = std::numeric_limits<double>::infinity();
         std_devs[12 * (j - skips_min) + 5] = std::numeric_limits<double>::infinity();
@@ -528,7 +528,7 @@ int main(int argc, char** argv) {
         };
         std_devs[12 * (j - skips_min) + 6] = (i * std_devs[12 * (j - skips_min) + 6] + std::sqrt(std_dev[0])) / (double(i+1));
         std_devs[12 * (j - skips_min) + 7] = (i * std_devs[12 * (j - skips_min) + 7] + std::sqrt(std_dev[1])) / (double(i+1));
-      } catch(ReaK::singularity_error& e) {
+      } catch(ReaK::singularity_error& e) { RK_UNUSED(e);
         std::cout << "The Invariant Extended Kalman Filter (version 2) has thrown a singularity error!" << std::endl;
         std_devs[12 * (j - skips_min) + 6] = std::numeric_limits<double>::infinity();
         std_devs[12 * (j - skips_min) + 7] = std::numeric_limits<double>::infinity();
@@ -585,7 +585,7 @@ int main(int argc, char** argv) {
         };
         std_devs[12 * (j - skips_min) + 8] = (i * std_devs[12 * (j - skips_min) + 8] + std::sqrt(std_dev[0])) / (double(i+1));
         std_devs[12 * (j - skips_min) + 9] = (i * std_devs[12 * (j - skips_min) + 9] + std::sqrt(std_dev[1])) / (double(i+1));
-      } catch(ReaK::singularity_error& e) {
+      } catch(ReaK::singularity_error& e) { RK_UNUSED(e);
         std::cout << "The Invariant-Momentum Kalman Filter (v1) has thrown a singularity error!" << std::endl;
         std_devs[12 * (j - skips_min) + 8] = std::numeric_limits<double>::infinity();
         std_devs[12 * (j - skips_min) + 9] = std::numeric_limits<double>::infinity();
@@ -640,7 +640,7 @@ int main(int argc, char** argv) {
         };
         std_devs[12 * (j - skips_min) + 10] = (i * std_devs[12 * (j - skips_min) + 10] + std::sqrt(std_dev[0])) / (double(i+1));
         std_devs[12 * (j - skips_min) + 11] = (i * std_devs[12 * (j - skips_min) + 11] + std::sqrt(std_dev[1])) / (double(i+1));
-      } catch(ReaK::singularity_error& e) {
+      } catch(ReaK::singularity_error& e) { RK_UNUSED(e);
         std::cout << "The Invariant-Momentum Kalman Filter (v2) has thrown a singularity error!" << std::endl;
         std_devs[12 * (j - skips_min) + 10] = std::numeric_limits<double>::infinity();
         std_devs[12 * (j - skips_min) + 11] = std::numeric_limits<double>::infinity();

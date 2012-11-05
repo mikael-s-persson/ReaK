@@ -664,6 +664,15 @@ template mat_product_result< mat<float,mat_structure::identity>, mat<float,mat_s
 
 };
 
+#else
+
+namespace ReaK {
+
+void dummy_mat_alg_externs_symbol() { };
+
+};
+
+
 
 #endif
 

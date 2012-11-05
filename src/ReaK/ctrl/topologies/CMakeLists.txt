@@ -1,14 +1,7 @@
 
 set(TOPOLOGIES_SOURCES 
+  "${SRCROOT}${RKTOPOLOGIESDIR}/ptrobot2D_test_world.cpp"
 )
-
-if( OpenCV_FOUND )
-  set(TOPOLOGIES_SOURCES 
-    ${TOPOLOGIES_SOURCES}
-    "${SRCROOT}${RKTOPOLOGIESDIR}/ptrobot2D_test_world.cpp"
-  )
-endif()
-
 
 set(TOPOLOGIES_HEADERS 
   "${RKTOPOLOGIESDIR}/basic_distance_metrics.hpp"
@@ -39,7 +32,7 @@ set(TOPOLOGIES_HEADERS
 add_library(reak_topologies STATIC ${TOPOLOGIES_SOURCES})
 setup_custom_target(reak_topologies "${SRCROOT}${RKTOPOLOGIESDIR}")
 setup_headers("${TOPOLOGIES_HEADERS}" "${RKTOPOLOGIESDIR}")
-target_link_libraries(reak_topologies reak_core)
+target_link_libraries(reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
 if( OpenCV_FOUND )
   target_link_libraries(reak_topologies ${OpenCV_LIBS})
 endif()
@@ -51,7 +44,7 @@ if(NOT WIN32)
     setup_custom_target(test_sampling "${SRCROOT}${RKTOPOLOGIESDIR}")
     #target_link_libraries(test_adstar ${Boost_LIBRARIES})
     target_link_libraries(test_sampling ${OpenCV_LIBS})
-    target_link_libraries(test_sampling reak_core)
+    target_link_libraries(test_sampling reak_core ${EXTRA_SYSTEM_LIBS})
   endif()
 endif()
 

@@ -1,9 +1,9 @@
 /**
  * \file temporal_space.hpp
- * 
- * This library provides an implementation of a temporal-space which augments a 
+ *
+ * This library provides an implementation of a temporal-space which augments a
  * topology with a temporal dimension (time-stamp).
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date March 2011
  */
@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -44,7 +44,6 @@
 #include "default_random_sampler.hpp"
 
 #include "base/named_object.hpp"
-#include <X11/X.h>
 
 namespace ReaK {
 
@@ -56,10 +55,10 @@ namespace pp {
 template <typename SpacePoint, typename TimePoint>
 struct temporal_point : public serialization::serializable {
   typedef temporal_point<SpacePoint,TimePoint> self;
-  
+
   TimePoint time; ///< Holds the time associated to the space-time point.
   SpacePoint pt; ///< Holds the spatial-point associated to the space-time point.
-    
+
   /**
    * Default constructor.
    */
@@ -69,39 +68,39 @@ struct temporal_point : public serialization::serializable {
    * \param aTime The time associated to the space-time point.
    * \param aPt The spatial-point associated to the space-time point.
    */
-  temporal_point(const TimePoint& aTime, 
-	         const SpacePoint& aPt) : 
+  temporal_point(const TimePoint& aTime,
+	         const SpacePoint& aPt) :
 	         time(aTime), pt(aPt) { };
-		 
+
   temporal_point(const self& rhs) : time(rhs.time), pt(rhs.pt) { };
-  
+
   self& operator=(const self& rhs) {
     time = rhs.time;
     pt = rhs.pt;
     return *this;
   };
-  
+
 #ifdef RK_ENABLE_CXX0X_FEATURES
   temporal_point(self&& rhs) : time(std::move(rhs.time)), pt(std::move(rhs.pt)) { };
-  
+
   self& operator=(self&& rhs) {
     time = std::move(rhs.time);
     pt = std::move(rhs.pt);
     return *this;
   };
 #endif
-  
-  
+
+
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
-    
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { 
+
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & RK_SERIAL_SAVE_WITH_NAME(time)
         & RK_SERIAL_SAVE_WITH_NAME(pt);
     };
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       A & RK_SERIAL_LOAD_WITH_NAME(time)
         & RK_SERIAL_LOAD_WITH_NAME(pt);
     };
@@ -115,10 +114,10 @@ struct temporal_point : public serialization::serializable {
 template <typename SpaceDiff, typename TimeDiff>
 struct temporal_point_difference : public serialization::serializable {
   typedef temporal_point_difference<SpaceDiff,TimeDiff> self;
-  
+
   TimeDiff time; ///< Holds the time-difference.
   SpaceDiff pt; ///< Holds the spatial-difference.
-      
+
   /**
    * Default constructor.
    */
@@ -129,20 +128,20 @@ struct temporal_point_difference : public serialization::serializable {
    * \param aPt The spatial-difference.
    */
   temporal_point_difference(const TimeDiff& aTime,
-	                    const SpaceDiff& aPt) : 
+	                    const SpaceDiff& aPt) :
 	                    time(aTime), pt(aPt) { };
-  
+
   temporal_point_difference(const self& rhs) : time(rhs.time), pt(rhs.pt) { };
-  
+
   self& operator=(const self& rhs) {
     time = rhs.time;
     pt = rhs.pt;
     return *this;
   };
-  
+
 #ifdef RK_ENABLE_CXX0X_FEATURES
   temporal_point_difference(self&& rhs) : time(std::move(rhs.time)), pt(std::move(rhs.pt)) { };
-  
+
   self& operator=(self&& rhs) {
     time = std::move(rhs.time);
     pt = std::move(rhs.pt);
@@ -161,7 +160,7 @@ struct temporal_point_difference : public serialization::serializable {
   friend self operator*(double a, const self& b) {
     return self(a * b.time, a * b.pt);
   };
-      
+
   self& operator+=(const self& b) {
     time += b.time;
     pt += b.pt;
@@ -173,7 +172,7 @@ struct temporal_point_difference : public serialization::serializable {
     pt -= b.pt;
     return *this;
   };
-      
+
   friend self operator+(const self& a, const self& b) {
     self result;
     result.time = a.time + b.time;
@@ -187,18 +186,18 @@ struct temporal_point_difference : public serialization::serializable {
     result.pt = a.pt - b.pt;
     return result;
   };
-  
-  
+
+
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
-    
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { 
+
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & RK_SERIAL_SAVE_WITH_NAME(time)
         & RK_SERIAL_SAVE_WITH_NAME(pt);
     };
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       A & RK_SERIAL_LOAD_WITH_NAME(time)
         & RK_SERIAL_LOAD_WITH_NAME(pt);
     };
@@ -206,13 +205,13 @@ struct temporal_point_difference : public serialization::serializable {
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000002F,1,"temporal_point_difference",serialization::serializable)
 
 };
-  
-  
+
+
 
 /**
- * This class implementats a temporal-space which augments a 
- * topology with a temporal dimension (time-stamp). The time-dimension resides on a line-segment 
- * topology (see line_segment_topology), while the spatial topology and distance-metric 
+ * This class implementats a temporal-space which augments a
+ * topology with a temporal dimension (time-stamp). The time-dimension resides on a line-segment
+ * topology (see line_segment_topology), while the spatial topology and distance-metric
  * is provided by the user. Models the TemporalSpaceConcept.
  * \tparam Topology The topology type which represents the spatial dimensions, should model MetricSpaceConcept.
  * \tparam TimeTopology The topology type which represents the time dimension, should model MetricSpaceConcept.
@@ -223,17 +222,17 @@ class temporal_space : public named_object {
   public:
     typedef TimeTopology time_topology;
     typedef Topology space_topology;
-    
+
     typedef TemporalDistanceMetric distance_metric_type;
     typedef default_random_sampler random_sampler_type;
-    
+
     typedef temporal_space<Topology,TimeTopology,TemporalDistanceMetric> self;
-    
+
   protected:
     space_topology space;
     time_topology time;
     distance_metric_type dist;
-    
+
   public:
     /**
      * Parametrized constructor.
@@ -242,41 +241,43 @@ class temporal_space : public named_object {
      * \param aDist The temporal distance metric functor to use.
      */
     explicit temporal_space(const std::string& aName = "",
-			    const space_topology& aSpace = space_topology(), 
+			    const space_topology& aSpace = space_topology(),
 			    const time_topology& aTime = time_topology(),
 			    const distance_metric_type& aDist = distance_metric_type()) :
                             named_object(), space(aSpace), time(aTime), dist(aDist) { this->setName(aName); };
-    
+
     typedef temporal_point<typename topology_traits<space_topology>::point_type,
                            typename topology_traits<time_topology>::point_type> point_type;
     typedef temporal_point_difference<typename topology_traits<space_topology>::point_difference_type,
                                       typename topology_traits<time_topology>::point_difference_type> point_difference_type;
-    
+	
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology_traits<space_topology>::dimensions + topology_traits<time_topology>::dimensions);
+
     /** Returns the underlying space topology. */
     const space_topology& get_space_topology() const { return space; };
     /** Returns the underlying time topology. */
     const time_topology& get_time_topology() const { return time; };
     /** Returns the temporal distance metric functor used. */
     const distance_metric_type& get_distance_metric() const { return dist; };
-    
-    friend 
-    const TemporalDistanceMetric& get(distance_metric_t, const self& space) {
+
+    friend
+    const TemporalDistanceMetric& get(distance_metric_t,const self& space) {
       return space.dist;
     };
-    
-    
+
+
     /** Returns the underlying space topology. */
     space_topology& get_space_topology() { return space; };
     /** Returns the underlying time topology. */
     time_topology& get_time_topology() { return time; };
     /** Returns the temporal distance metric functor used. */
     distance_metric_type& get_distance_metric() { return dist; };
-    
-    friend 
-    TemporalDistanceMetric& get(distance_metric_t, self& space) {
+
+    friend
+    TemporalDistanceMetric& get(distance_metric_t,self& space) {
       return space.dist;
     };
-    
+
    /*************************************************************************
     *                             TopologyConcept
     * **********************************************************************/
@@ -300,7 +301,7 @@ class temporal_space : public named_object {
     point_type adjust(const point_type& a, const point_difference_type& delta) const {
       return point_type(time.adjust(a.time, delta.time), space.adjust(a.pt, delta.pt));
     };
-  
+
     /**
      * Returns the origin of the temporal-space.
      * \return The origin of the temporal-space.
@@ -308,11 +309,11 @@ class temporal_space : public named_object {
     point_type origin() const {
       return point_type(time.origin(), space.origin());
     };
-    
+
     /*************************************************************************
     *                             MetricSpaceConcept
     * **********************************************************************/
-    
+
     /**
      * Computes the distance between two points in the temporal-space.
      * \param a The first point.
@@ -356,16 +357,16 @@ class temporal_space : public named_object {
      * Returns a random point within the temporal-space.
      * \return A random point within the temporal-space.
      */
-    point_type random_point() const 
+    point_type random_point() const
     {
-      return point_type(get(random_sampler, time)(time), get(random_sampler, space)(space));
+      return point_type(get(random_sampler,time)(time), get(random_sampler,space)(space));
     };
-    
-    
+
+
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
-    
+
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(space)
@@ -381,8 +382,16 @@ class temporal_space : public named_object {
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400004,1,"temporal_space",named_object)
-    
+
 };
+
+template <typename Topology, typename TimeTopology, typename TemporalDistanceMetric>
+struct is_metric_space< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > : boost::mpl::and_< is_metric_space<Topology>, is_metric_space<TimeTopology> > { };
+	
+template <typename Topology, typename TimeTopology, typename TemporalDistanceMetric>
+struct is_point_distribution< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > : boost::mpl::and_< is_point_distribution<Topology>, is_point_distribution<TimeTopology> > { };
+
+
 
 
 };

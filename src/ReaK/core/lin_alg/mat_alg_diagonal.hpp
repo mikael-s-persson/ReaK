@@ -81,7 +81,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
     typedef void row_iterator;
     typedef void const_row_iterator;
   
-    typedef unsigned int size_type;
+    typedef std::size_t size_type;
     typedef typename container_type::difference_type difference_type;
   
     BOOST_STATIC_CONSTANT(std::size_t, static_row_count = 0);
@@ -634,12 +634,12 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
 *******************************************************************************/
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      A & std::pair<std::string, const std::vector<T>&>("q",q)
-        & std::pair<std::string, unsigned int>("rowCount",rowCount);
+      A & RK_SERIAL_SAVE_WITH_NAME(q)
+        & RK_SERIAL_SAVE_WITH_NAME(rowCount);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      A & std::pair<std::string, std::vector<T>&>("q",q)
-        & std::pair<std::string, unsigned int&>("rowCount",rowCount);
+      A & RK_SERIAL_LOAD_WITH_NAME(q)
+        & RK_SERIAL_LOAD_WITH_NAME(rowCount);
     };
     
     RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)

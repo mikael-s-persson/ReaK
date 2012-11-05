@@ -1,9 +1,9 @@
 /**
  * \file joint_space_limits.hpp
- * 
- * This library provides classes to help create and manipulate joint-space topologies in over 
+ *
+ * This library provides classes to help create and manipulate joint-space topologies in over
  * a joint-space with limits (speed, acceleration, and jerk limits).
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date March 2012
  */
@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -55,18 +55,18 @@ namespace ReaK {
 
 namespace pp {
 
-  
-  
+
+
 namespace detail {
-  
-  
-  
-  
+
+
+
+
 /*******************************************************************************************************************
                                  FUNCTIONS TO CREATE RATE-LIMITED JOINT-SPACES
-*******************************************************************************************************************/ 
-  
-  
+*******************************************************************************************************************/
+
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -80,7 +80,7 @@ namespace detail {
 					  const InSpace& space_in,
 					  const RateLimitMap& j_limits,
 					  std::size_t& gen_i, std::size_t&, std::size_t&) {
-    
+
     space_out = OutSpace(arithmetic_tuple<
                            line_segment_topology< typename RateLimitMap::value_type >
                          >(line_segment_topology< typename RateLimitMap::value_type >(
@@ -92,7 +92,7 @@ namespace detail {
 		);
     ++gen_i;
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -106,7 +106,7 @@ namespace detail {
 					  const InSpace& space_in,
 					  const RateLimitMap& j_limits,
 					  std::size_t& gen_i, std::size_t&, std::size_t&) {
-    
+
     space_out = OutSpace(arithmetic_tuple<
                            line_segment_topology< typename RateLimitMap::value_type >,
                            line_segment_topology< typename RateLimitMap::value_type >
@@ -122,13 +122,13 @@ namespace detail {
 			   )
 			 ),
 	                 euclidean_tuple_distance(),
-	                 reach_time_differentiation_tuple< 1 >::type(
+	                 differentiation_rule_array< 1, reach_time_differentiation >::type(
 	                   reach_time_differentiation( j_limits.gen_speed_limits[gen_i] / j_limits.gen_accel_limits[gen_i] )
 	                 )
 		);
     ++gen_i;
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -142,7 +142,7 @@ namespace detail {
 					  const InSpace& space_in,
 					  const RateLimitMap& j_limits,
 					  std::size_t& gen_i, std::size_t&, std::size_t&) {
-    
+
     space_out = OutSpace(arithmetic_tuple<
                            line_segment_topology< typename RateLimitMap::value_type >,
                            line_segment_topology< typename RateLimitMap::value_type >,
@@ -164,18 +164,18 @@ namespace detail {
 			   )
 			 ),
 	                 euclidean_tuple_distance(),
-	                 reach_time_differentiation_tuple< 2 >::type(
+	                 differentiation_rule_array< 2, reach_time_differentiation >::type(
 	                   reach_time_differentiation( j_limits.gen_speed_limits[gen_i] / j_limits.gen_accel_limits[gen_i] ),
 	                   reach_time_differentiation( j_limits.gen_accel_limits[gen_i] / j_limits.gen_jerk_limits[gen_i] )
 	                 )
 		);
     ++gen_i;
   };
-  
-  
-  
-  
-  
+
+
+
+
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -189,7 +189,7 @@ namespace detail {
 					  const InSpace& space_in,
 					  const RateLimitMap& j_limits,
 					  std::size_t&, std::size_t& f2d_i, std::size_t&) {
-    
+
     typedef typename RateLimitMap::value_type ValueType;
     typedef line_segment_topology< ValueType > LineSegTopo;
     typedef hyperbox_topology< vect<ValueType, 2> > BoxTopo;
@@ -197,7 +197,7 @@ namespace detail {
     typedef arithmetic_tuple< BoxTopo > PosTopoTuple;
     typedef typename arithmetic_tuple_element<0, OutSpace>::type PosTopoOutType;
     typedef typename arithmetic_tuple_element<1, OutSpace>::type RotTopoOutType;
-    
+
     space_out = OutSpace(arithmetic_tuple< PosTopoTuple, RotTopoTuple >(
                            PosTopoOutType(
 			     PosTopoTuple(
@@ -221,7 +221,7 @@ namespace detail {
 		);
     f2d_i += 2;
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -235,7 +235,7 @@ namespace detail {
 					  const InSpace& space_in,
 					  const RateLimitMap& j_limits,
 					  std::size_t&, std::size_t& f2d_i, std::size_t&) {
-    
+
     typedef typename RateLimitMap::value_type ValueType;
     typedef line_segment_topology< ValueType > LineSegTopo;
     typedef hyperbox_topology< vect<ValueType, 2> > BoxTopo;
@@ -244,7 +244,7 @@ namespace detail {
     typedef arithmetic_tuple< BoxTopo, BallTopo > PosTopoTuple;
     typedef typename arithmetic_tuple_element<0, OutSpace>::type PosTopoOutType;
     typedef typename arithmetic_tuple_element<1, OutSpace>::type RotTopoOutType;
-    
+
     space_out = OutSpace(arithmetic_tuple< PosTopoTuple, RotTopoTuple >(
                            PosTopoOutType(
 			     PosTopoTuple(
@@ -260,7 +260,7 @@ namespace detail {
 			       )
 			     ),
 		             euclidean_tuple_distance(),
-			     reach_time_differentiation_tuple< 1 >::type(
+			     differentiation_rule_array< 1, reach_time_differentiation >::type(
 	                       reach_time_differentiation( j_limits.frame2D_speed_limits[f2d_i] / j_limits.frame2D_accel_limits[f2d_i] )
 	                     )
 			   ),
@@ -278,7 +278,7 @@ namespace detail {
 			       )
 			     ),
 		             euclidean_tuple_distance(),
-			     reach_time_differentiation_tuple< 1 >::type(
+			     differentiation_rule_array< 1, reach_time_differentiation >::type(
 	                       reach_time_differentiation( j_limits.frame2D_speed_limits[f2d_i + 1] / j_limits.frame2D_accel_limits[f2d_i + 1] )
 	                     )
 			   )
@@ -286,7 +286,7 @@ namespace detail {
 		);
     f2d_i += 2;
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -300,7 +300,7 @@ namespace detail {
 					  const InSpace& space_in,
 					  const RateLimitMap& j_limits,
 					  std::size_t&, std::size_t& f2d_i, std::size_t&) {
-    
+
     typedef typename RateLimitMap::value_type ValueType;
     typedef line_segment_topology< ValueType > LineSegTopo;
     typedef hyperbox_topology< vect<ValueType, 2> > BoxTopo;
@@ -309,7 +309,7 @@ namespace detail {
     typedef arithmetic_tuple< BoxTopo, BallTopo, BallTopo > PosTopoTuple;
     typedef typename arithmetic_tuple_element<0, OutSpace>::type PosTopoOutType;
     typedef typename arithmetic_tuple_element<1, OutSpace>::type RotTopoOutType;
-    
+
     space_out = OutSpace(arithmetic_tuple< PosTopoTuple, RotTopoTuple >(
                            PosTopoOutType(
 			     PosTopoTuple(
@@ -330,7 +330,7 @@ namespace detail {
 			       )
 			     ),
 		             euclidean_tuple_distance(),
-			     reach_time_differentiation_tuple< 2 >::type(
+			     differentiation_rule_array< 2, reach_time_differentiation >::type(
 	                       reach_time_differentiation( j_limits.frame2D_speed_limits[f2d_i] / j_limits.frame2D_accel_limits[f2d_i] ),
 	                       reach_time_differentiation( j_limits.frame2D_accel_limits[f2d_i] / j_limits.frame2D_jerk_limits[f2d_i] )
 	                     )
@@ -354,7 +354,7 @@ namespace detail {
 			       )
 			     ),
 		             euclidean_tuple_distance(),
-			     reach_time_differentiation_tuple< 2 >::type(
+			     differentiation_rule_array< 2, reach_time_differentiation >::type(
 	                       reach_time_differentiation( j_limits.frame2D_speed_limits[f2d_i + 1] / j_limits.frame2D_accel_limits[f2d_i + 1] ),
 	                       reach_time_differentiation( j_limits.frame2D_accel_limits[f2d_i + 1] / j_limits.frame2D_jerk_limits[f2d_i + 1] )
 	                     )
@@ -363,10 +363,10 @@ namespace detail {
 		);
     f2d_i += 2;
   };
-  
-  
-  
-  
+
+
+
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -380,7 +380,7 @@ namespace detail {
 					  const InSpace& space_in,
 					  const RateLimitMap& j_limits,
 					  std::size_t&, std::size_t&, std::size_t& f3d_i) {
-    
+
     typedef typename RateLimitMap::value_type ValueType;
     typedef rate_limited_quat_space< ValueType > QuatTopo;
     typedef hyperbox_topology< vect<ValueType, 3> > BoxTopo;
@@ -388,7 +388,7 @@ namespace detail {
     typedef arithmetic_tuple< BoxTopo > PosTopoTuple;
     typedef typename arithmetic_tuple_element<0, OutSpace>::type PosTopoOutType;
     typedef typename arithmetic_tuple_element<1, OutSpace>::type RotTopoOutType;
-    
+
     space_out = OutSpace(arithmetic_tuple< PosTopoTuple, RotTopoTuple >(
                            PosTopoOutType(
 			     PosTopoTuple(
@@ -411,7 +411,7 @@ namespace detail {
 		);
     f3d_i += 2;
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -425,7 +425,7 @@ namespace detail {
 					  const InSpace& space_in,
 					  const RateLimitMap& j_limits,
 					  std::size_t&, std::size_t&, std::size_t& f3d_i) {
-    
+
     typedef typename RateLimitMap::value_type ValueType;
     typedef rate_limited_quat_space< ValueType > QuatTopo;
     typedef ang_velocity_3D_topology< ValueType > AngVelTopo;
@@ -435,7 +435,7 @@ namespace detail {
     typedef arithmetic_tuple< BoxTopo, BallTopo > PosTopoTuple;
     typedef typename arithmetic_tuple_element<0, OutSpace>::type PosTopoOutType;
     typedef typename arithmetic_tuple_element<1, OutSpace>::type RotTopoOutType;
-    
+
     space_out = OutSpace(arithmetic_tuple< PosTopoTuple, RotTopoTuple >(
                            PosTopoOutType(
 			     PosTopoTuple(
@@ -451,7 +451,7 @@ namespace detail {
 			       )
 			     ),
 		             euclidean_tuple_distance(),
-			     reach_time_differentiation_tuple< 1 >::type(
+			     differentiation_rule_array< 1, reach_time_differentiation >::type(
 	                       reach_time_differentiation( j_limits.frame3D_speed_limits[f3d_i] / j_limits.frame3D_accel_limits[f3d_i] )
 	                     )
 			   ),
@@ -467,7 +467,7 @@ namespace detail {
 		               )
 			     ),
 		             euclidean_tuple_distance(),
-			     reach_time_differentiation_tuple< 1 >::type(
+			     differentiation_rule_array< 1, reach_time_differentiation >::type(
 	                       reach_time_differentiation( j_limits.frame3D_speed_limits[f3d_i + 1] / j_limits.frame3D_accel_limits[f3d_i + 1] )
 	                     )
 			   )
@@ -475,7 +475,7 @@ namespace detail {
 		);
     f3d_i += 2;
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -489,7 +489,7 @@ namespace detail {
 					  const InSpace& space_in,
 					  const RateLimitMap& j_limits,
 					  std::size_t&, std::size_t&, std::size_t& f3d_i) {
-    
+
     typedef typename RateLimitMap::value_type ValueType;
     typedef rate_limited_quat_space< ValueType > QuatTopo;
     typedef ang_velocity_3D_topology< ValueType > AngVelTopo;
@@ -500,7 +500,7 @@ namespace detail {
     typedef arithmetic_tuple< BoxTopo, BallTopo, BallTopo > PosTopoTuple;
     typedef typename arithmetic_tuple_element<0, OutSpace>::type PosTopoOutType;
     typedef typename arithmetic_tuple_element<1, OutSpace>::type RotTopoOutType;
-    
+
     space_out = OutSpace(arithmetic_tuple< PosTopoTuple, RotTopoTuple >(
                            PosTopoOutType(
 			     PosTopoTuple(
@@ -521,7 +521,7 @@ namespace detail {
 			       )
 			     ),
 		             euclidean_tuple_distance(),
-			     reach_time_differentiation_tuple< 2 >::type(
+			     differentiation_rule_array< 2, reach_time_differentiation >::type(
 	                       reach_time_differentiation( j_limits.frame3D_speed_limits[f3d_i] / j_limits.frame3D_accel_limits[f3d_i] ),
 	                       reach_time_differentiation( j_limits.frame3D_accel_limits[f3d_i] / j_limits.frame3D_jerk_limits[f3d_i] )
 	                     )
@@ -542,7 +542,7 @@ namespace detail {
 		               )
 			     ),
 		             euclidean_tuple_distance(),
-			     reach_time_differentiation_tuple< 2 >::type(
+			     differentiation_rule_array< 2, reach_time_differentiation >::type(
 	                       reach_time_differentiation( j_limits.frame3D_speed_limits[f3d_i + 1] / j_limits.frame3D_accel_limits[f3d_i + 1] ),
 	                       reach_time_differentiation( j_limits.frame3D_accel_limits[f3d_i + 1] / j_limits.frame3D_jerk_limits[f3d_i + 1] )
 	                     )
@@ -551,10 +551,10 @@ namespace detail {
 		);
     f3d_i += 2;
   };
-  
+
   // declarations only:
   template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::disable_if< 
+  typename boost::disable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -563,10 +563,10 @@ namespace detail {
 					   const InSpace& space_in,
 					   const RateLimitMap& j_limits,
 					   std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-  
+
   // declarations only:
   template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::enable_if< 
+  typename boost::enable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -575,11 +575,11 @@ namespace detail {
 					   const InSpace& space_in,
 					   const RateLimitMap& j_limits,
 					   std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-  
-  
-  
+
+
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::disable_if< 
+  typename boost::disable_if<
     boost::mpl::or_<
       is_rate_limited_joint_space< OutSpace >,
       is_rate_limited_se2_space< OutSpace >,
@@ -591,11 +591,11 @@ namespace detail {
 					  std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
     create_rl_joint_spaces_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutSpace > >::type >(space_out, space_in, j_limits, gen_i, f2d_i, f3d_i);
   };
-  
-  
-  
+
+
+
   template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::disable_if< 
+  typename boost::disable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -604,17 +604,17 @@ namespace detail {
 					   const InSpace& space_in,
 					   const RateLimitMap& j_limits,
 					   std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    
+
     create_rl_joint_spaces_impl< typename boost::mpl::prior<Idx>::type >(space_out,space_in,j_limits,gen_i,f2d_i,f3d_i);
-    
-    create_rl_joint_space_impl(get< Idx::type::value >(space_out), 
+
+    create_rl_joint_space_impl(get< Idx::type::value >(space_out),
                                get< Idx::type::value >(space_in),
 			       j_limits, gen_i, f2d_i, f3d_i);
-    
+
   };
-  
+
   template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::enable_if< 
+  typename boost::enable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -623,15 +623,15 @@ namespace detail {
 					   const InSpace& space_in,
 					   const RateLimitMap& j_limits,
 					   std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    
-    create_rl_joint_space_impl(get< 0 >(space_out), 
+
+    create_rl_joint_space_impl(get< 0 >(space_out),
                                get< 0 >(space_in),
 			       j_limits, gen_i, f2d_i, f3d_i);
-    
+
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::disable_if< 
+  typename boost::disable_if<
     boost::mpl::or_<
       is_rate_limited_joint_space< OutSpace >,
       is_rate_limited_se2_space< OutSpace >,
@@ -643,14 +643,14 @@ namespace detail {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
-    create_rl_joint_spaces_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutSpace > >::type >(space_out, 
+    create_rl_joint_spaces_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutSpace > >::type >(space_out,
 											  space_in,
 											  j_limits, gen_i, f2d_i, f3d_i);
-    
+
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::enable_if< 
+  typename boost::enable_if<
     boost::mpl::or_<
       is_rate_limited_joint_space< OutSpace >,
       is_rate_limited_se2_space< OutSpace >,
@@ -664,20 +664,20 @@ namespace detail {
     std::size_t f3d_i = 0;
     create_rl_joint_space_impl(space_out, space_in,
 		               j_limits, gen_i, f2d_i, f3d_i);
-    
+
   };
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
 /*******************************************************************************************************************
                                  FUNCTIONS TO CREATE NORMAL JOINT-SPACES
-*******************************************************************************************************************/ 
-  
-  
+*******************************************************************************************************************/
+
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -691,7 +691,7 @@ namespace detail {
 					      const InSpace& space_in,
 					      const RateLimitMap& j_limits,
 					      std::size_t& gen_i, std::size_t&, std::size_t&) {
-    
+
     space_out = OutSpace(arithmetic_tuple<
                            line_segment_topology< typename RateLimitMap::value_type >
                          >(line_segment_topology< typename RateLimitMap::value_type >(
@@ -703,7 +703,7 @@ namespace detail {
 		);
     ++gen_i;
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -717,7 +717,7 @@ namespace detail {
 					      const InSpace& space_in,
 					      const RateLimitMap& j_limits,
 					      std::size_t& gen_i, std::size_t&, std::size_t&) {
-    
+
     space_out = OutSpace(arithmetic_tuple<
                            line_segment_topology< typename RateLimitMap::value_type >,
                            line_segment_topology< typename RateLimitMap::value_type >
@@ -735,7 +735,7 @@ namespace detail {
 		);
     ++gen_i;
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -749,7 +749,7 @@ namespace detail {
 					      const InSpace& space_in,
 					      const RateLimitMap& j_limits,
 					      std::size_t& gen_i, std::size_t&, std::size_t&) {
-    
+
     space_out = OutSpace(arithmetic_tuple<
                            line_segment_topology< typename RateLimitMap::value_type >,
                            line_segment_topology< typename RateLimitMap::value_type >,
@@ -773,11 +773,11 @@ namespace detail {
 		);
     ++gen_i;
   };
-  
-  
-  
-  
-  
+
+
+
+
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -791,7 +791,7 @@ namespace detail {
 					      const InSpace& space_in,
 					      const RateLimitMap& j_limits,
 					      std::size_t&, std::size_t& f2d_i, std::size_t&) {
-    
+
     typedef typename RateLimitMap::value_type ValueType;
     typedef line_segment_topology< ValueType > LineSegTopo;
     typedef hyperbox_topology< vect<ValueType, 2> > BoxTopo;
@@ -799,7 +799,7 @@ namespace detail {
     typedef arithmetic_tuple< BoxTopo > PosTopoTuple;
     typedef typename arithmetic_tuple_element<0, OutSpace>::type PosTopoOutType;
     typedef typename arithmetic_tuple_element<1, OutSpace>::type RotTopoOutType;
-    
+
     space_out = OutSpace(arithmetic_tuple< PosTopoTuple, RotTopoTuple >(
                            PosTopoOutType(
 			     PosTopoTuple(
@@ -823,7 +823,7 @@ namespace detail {
 		);
     f2d_i += 2;
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -837,7 +837,7 @@ namespace detail {
 					      const InSpace& space_in,
 					      const RateLimitMap& j_limits,
 					      std::size_t&, std::size_t& f2d_i, std::size_t&) {
-    
+
     typedef typename RateLimitMap::value_type ValueType;
     typedef line_segment_topology< ValueType > LineSegTopo;
     typedef hyperbox_topology< vect<ValueType, 2> > BoxTopo;
@@ -846,7 +846,7 @@ namespace detail {
     typedef arithmetic_tuple< BoxTopo, BallTopo > PosTopoTuple;
     typedef typename arithmetic_tuple_element<0, OutSpace>::type PosTopoOutType;
     typedef typename arithmetic_tuple_element<1, OutSpace>::type RotTopoOutType;
-    
+
     space_out = OutSpace(arithmetic_tuple< PosTopoTuple, RotTopoTuple >(
                            PosTopoOutType(
 			     PosTopoTuple(
@@ -880,7 +880,7 @@ namespace detail {
 		);
     f2d_i += 2;
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -894,7 +894,7 @@ namespace detail {
 					      const InSpace& space_in,
 					      const RateLimitMap& j_limits,
 					      std::size_t&, std::size_t& f2d_i, std::size_t&) {
-    
+
     typedef typename RateLimitMap::value_type ValueType;
     typedef line_segment_topology< ValueType > LineSegTopo;
     typedef hyperbox_topology< vect<ValueType, 2> > BoxTopo;
@@ -903,7 +903,7 @@ namespace detail {
     typedef arithmetic_tuple< BoxTopo, BallTopo, BallTopo > PosTopoTuple;
     typedef typename arithmetic_tuple_element<0, OutSpace>::type PosTopoOutType;
     typedef typename arithmetic_tuple_element<1, OutSpace>::type RotTopoOutType;
-    
+
     space_out = OutSpace(arithmetic_tuple< PosTopoTuple, RotTopoTuple >(
                            PosTopoOutType(
 			     PosTopoTuple(
@@ -947,10 +947,10 @@ namespace detail {
 		);
     f2d_i += 2;
   };
-  
-  
-  
-  
+
+
+
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -964,7 +964,7 @@ namespace detail {
 					      const InSpace& space_in,
 					      const RateLimitMap& j_limits,
 					      std::size_t&, std::size_t&, std::size_t& f3d_i) {
-    
+
     typedef typename RateLimitMap::value_type ValueType;
     typedef quaternion_topology< ValueType > QuatTopo;
     typedef hyperbox_topology< vect<ValueType, 3> > BoxTopo;
@@ -972,7 +972,7 @@ namespace detail {
     typedef arithmetic_tuple< BoxTopo > PosTopoTuple;
     typedef typename arithmetic_tuple_element<0, OutSpace>::type PosTopoOutType;
     typedef typename arithmetic_tuple_element<1, OutSpace>::type RotTopoOutType;
-    
+
     space_out = OutSpace(arithmetic_tuple< PosTopoTuple, RotTopoTuple >(
                            PosTopoOutType(
 			     PosTopoTuple(
@@ -994,7 +994,7 @@ namespace detail {
 		);
     f3d_i += 2;
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -1008,7 +1008,7 @@ namespace detail {
 					      const InSpace& space_in,
 					      const RateLimitMap& j_limits,
 					      std::size_t&, std::size_t&, std::size_t& f3d_i) {
-    
+
     typedef typename RateLimitMap::value_type ValueType;
     typedef quaternion_topology< ValueType > QuatTopo;
     typedef ang_velocity_3D_topology< ValueType > AngVelTopo;
@@ -1018,7 +1018,7 @@ namespace detail {
     typedef arithmetic_tuple< BoxTopo, BallTopo > PosTopoTuple;
     typedef typename arithmetic_tuple_element<0, OutSpace>::type PosTopoOutType;
     typedef typename arithmetic_tuple_element<1, OutSpace>::type RotTopoOutType;
-    
+
     space_out = OutSpace(arithmetic_tuple< PosTopoTuple, RotTopoTuple >(
                            PosTopoOutType(
 			     PosTopoTuple(
@@ -1049,7 +1049,7 @@ namespace detail {
 		);
     f3d_i += 2;
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -1063,7 +1063,7 @@ namespace detail {
 					      const InSpace& space_in,
 					      const RateLimitMap& j_limits,
 					      std::size_t&, std::size_t&, std::size_t& f3d_i) {
-    
+
     typedef typename RateLimitMap::value_type ValueType;
     typedef quaternion_topology< ValueType > QuatTopo;
     typedef ang_velocity_3D_topology< ValueType > AngVelTopo;
@@ -1074,7 +1074,7 @@ namespace detail {
     typedef arithmetic_tuple< BoxTopo, BallTopo, BallTopo > PosTopoTuple;
     typedef typename arithmetic_tuple_element<0, OutSpace>::type PosTopoOutType;
     typedef typename arithmetic_tuple_element<1, OutSpace>::type RotTopoOutType;
-    
+
     space_out = OutSpace(arithmetic_tuple< PosTopoTuple, RotTopoTuple >(
                            PosTopoOutType(
 			     PosTopoTuple(
@@ -1114,11 +1114,11 @@ namespace detail {
 		);
     f3d_i += 2;
   };
-  
-  
+
+
   // declaration only:
   template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::disable_if< 
+  typename boost::disable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -1127,10 +1127,10 @@ namespace detail {
 					       const InSpace& space_in,
 					       const RateLimitMap& j_limits,
 					       std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-  
+
   // declaration only:
   template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::enable_if< 
+  typename boost::enable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -1139,10 +1139,10 @@ namespace detail {
 					       const InSpace& space_in,
 					       const RateLimitMap& j_limits,
 					       std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-  
-  
+
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::disable_if< 
+  typename boost::disable_if<
     boost::mpl::or_<
       is_rate_limited_joint_space< InSpace >,
       is_rate_limited_se2_space< InSpace >,
@@ -1154,11 +1154,11 @@ namespace detail {
 					      std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
     create_normal_joint_spaces_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutSpace > >::type >(space_out, space_in, j_limits, gen_i, f2d_i, f3d_i);
   };
-  
-  
-  
+
+
+
   template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::disable_if< 
+  typename boost::disable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -1167,17 +1167,17 @@ namespace detail {
 					       const InSpace& space_in,
 					       const RateLimitMap& j_limits,
 					       std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    
+
     create_normal_joint_spaces_impl< typename boost::mpl::prior<Idx>::type >(space_out,space_in,j_limits,gen_i,f2d_i,f3d_i);
-    
-    create_normal_joint_space_impl(get< Idx::type::value >(space_out), 
+
+    create_normal_joint_space_impl(get< Idx::type::value >(space_out),
                                    get< Idx::type::value >(space_in),
 			           j_limits, gen_i, f2d_i, f3d_i);
-    
+
   };
-  
+
   template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::enable_if< 
+  typename boost::enable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -1186,15 +1186,15 @@ namespace detail {
 					       const InSpace& space_in,
 					       const RateLimitMap& j_limits,
 					       std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    
-    create_normal_joint_space_impl(get< 0 >(space_out), 
+
+    create_normal_joint_space_impl(get< 0 >(space_out),
                                    get< 0 >(space_in),
 			           j_limits, gen_i, f2d_i, f3d_i);
-    
+
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::disable_if< 
+  typename boost::disable_if<
     boost::mpl::or_<
       is_rate_limited_joint_space< InSpace >,
       is_rate_limited_se2_space< InSpace >,
@@ -1206,14 +1206,14 @@ namespace detail {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
-    create_normal_joint_spaces_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutSpace > >::type >(space_out, 
+    create_normal_joint_spaces_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutSpace > >::type >(space_out,
 											      space_in,
 											      j_limits, gen_i, f2d_i, f3d_i);
-    
+
   };
-  
+
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::enable_if< 
+  typename boost::enable_if<
     boost::mpl::or_<
       is_rate_limited_joint_space< InSpace >,
       is_rate_limited_se2_space< InSpace >,
@@ -1227,14 +1227,14 @@ namespace detail {
     std::size_t f3d_i = 0;
     create_normal_joint_space_impl(space_out, space_in, j_limits, gen_i, f2d_i, f3d_i);
   };
-  
-  
-  
-  
+
+
+
+
 /*******************************************************************************************************************
                                  FUNCTIONS TO CREATE RATE-LIMITED JOINT-SPACE VECTORS
-*******************************************************************************************************************/ 
-  
+*******************************************************************************************************************/
+
 
   template <typename RateLimitMap>
   void create_rl_joint_vector_impl(arithmetic_tuple< typename RateLimitMap::value_type >& result,
@@ -1246,11 +1246,11 @@ namespace detail {
   };
 
   template <typename RateLimitMap>
-  void create_rl_joint_vector_impl(arithmetic_tuple< 
+  void create_rl_joint_vector_impl(arithmetic_tuple<
                                      typename RateLimitMap::value_type,
                                      typename RateLimitMap::value_type
                                    >& result,
-				   const arithmetic_tuple< 
+				   const arithmetic_tuple<
 				     typename RateLimitMap::value_type,
 				     typename RateLimitMap::value_type
 				   >& pt,
@@ -1262,12 +1262,12 @@ namespace detail {
   };
 
   template <typename RateLimitMap>
-  void create_rl_joint_vector_impl(arithmetic_tuple< 
+  void create_rl_joint_vector_impl(arithmetic_tuple<
                                      typename RateLimitMap::value_type,
                                      typename RateLimitMap::value_type,
                                      typename RateLimitMap::value_type
                                    >& result,
-				   const arithmetic_tuple< 
+				   const arithmetic_tuple<
 				     typename RateLimitMap::value_type,
 				     typename RateLimitMap::value_type,
 				     typename RateLimitMap::value_type
@@ -1279,24 +1279,24 @@ namespace detail {
     get< 2 >(result) = get< 2 >(pt) / j_limits.gen_jerk_limits[gen_i];
     ++gen_i;
   };
-  
-  
+
+
   template <typename RateLimitMap>
-  void create_rl_joint_vector_impl(arithmetic_tuple< 
-                                     arithmetic_tuple< 
-                                       vect<typename RateLimitMap::value_type,2> 
+  void create_rl_joint_vector_impl(arithmetic_tuple<
+                                     arithmetic_tuple<
+                                       vect<typename RateLimitMap::value_type,2>
                                      >,
-                                     arithmetic_tuple< 
-                                       typename RateLimitMap::value_type 
-                                     > 
+                                     arithmetic_tuple<
+                                       typename RateLimitMap::value_type
+                                     >
                                    >& result,
-				   const arithmetic_tuple< 
-                                     arithmetic_tuple< 
-                                       vect<typename RateLimitMap::value_type,2> 
+				   const arithmetic_tuple<
+                                     arithmetic_tuple<
+                                       vect<typename RateLimitMap::value_type,2>
                                      >,
-                                     arithmetic_tuple< 
-                                       typename RateLimitMap::value_type 
-                                     > 
+                                     arithmetic_tuple<
+                                       typename RateLimitMap::value_type
+                                     >
                                    >& pt,
 				   const RateLimitMap& j_limits,
 				   std::size_t&, std::size_t& f2d_i, std::size_t&) {
@@ -1306,25 +1306,25 @@ namespace detail {
   };
 
   template <typename RateLimitMap>
-  void create_rl_joint_vector_impl(arithmetic_tuple< 
-                                     arithmetic_tuple< 
+  void create_rl_joint_vector_impl(arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,2>,
-                                       vect<typename RateLimitMap::value_type,2> 
+                                       vect<typename RateLimitMap::value_type,2>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        typename RateLimitMap::value_type,
-                                       typename RateLimitMap::value_type 
-                                     > 
+                                       typename RateLimitMap::value_type
+                                     >
                                    >& result,
-				   const arithmetic_tuple< 
-                                     arithmetic_tuple< 
+				   const arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,2>,
-                                       vect<typename RateLimitMap::value_type,2> 
+                                       vect<typename RateLimitMap::value_type,2>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        typename RateLimitMap::value_type,
-                                       typename RateLimitMap::value_type 
-                                     > 
+                                       typename RateLimitMap::value_type
+                                     >
                                    >& pt,
 				   const RateLimitMap& j_limits,
 				   std::size_t&, std::size_t& f2d_i, std::size_t&) {
@@ -1336,29 +1336,29 @@ namespace detail {
   };
 
   template <typename RateLimitMap>
-  void create_rl_joint_vector_impl(arithmetic_tuple< 
-                                     arithmetic_tuple< 
+  void create_rl_joint_vector_impl(arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,2>,
                                        vect<typename RateLimitMap::value_type,2>,
-                                       vect<typename RateLimitMap::value_type,2> 
+                                       vect<typename RateLimitMap::value_type,2>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        typename RateLimitMap::value_type,
                                        typename RateLimitMap::value_type,
                                        typename RateLimitMap::value_type
-                                     > 
+                                     >
                                    >& result,
-				   const arithmetic_tuple< 
-                                     arithmetic_tuple< 
+				   const arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,2>,
                                        vect<typename RateLimitMap::value_type,2>,
-                                       vect<typename RateLimitMap::value_type,2> 
+                                       vect<typename RateLimitMap::value_type,2>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        typename RateLimitMap::value_type,
                                        typename RateLimitMap::value_type,
                                        typename RateLimitMap::value_type
-                                     > 
+                                     >
                                    >& pt,
 				   const RateLimitMap& j_limits,
 				   std::size_t&, std::size_t& f2d_i, std::size_t&) {
@@ -1370,24 +1370,24 @@ namespace detail {
     get< 2 >(get< 1 >(result)) = get< 2 >(get< 1 >(pt)) / j_limits.frame2D_jerk_limits[f2d_i + 1];
     f2d_i += 2;
   };
-  
-  
+
+
   template <typename RateLimitMap>
-  void create_rl_joint_vector_impl(arithmetic_tuple< 
-                                     arithmetic_tuple< 
-                                       vect<typename RateLimitMap::value_type,3> 
+  void create_rl_joint_vector_impl(arithmetic_tuple<
+                                     arithmetic_tuple<
+                                       vect<typename RateLimitMap::value_type,3>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        unit_quat< typename RateLimitMap::value_type >
-                                     > 
+                                     >
                                    >& result,
-				   const arithmetic_tuple< 
-                                     arithmetic_tuple< 
-                                       vect<typename RateLimitMap::value_type,3> 
+				   const arithmetic_tuple<
+                                     arithmetic_tuple<
+                                       vect<typename RateLimitMap::value_type,3>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        unit_quat< typename RateLimitMap::value_type >
-                                     > 
+                                     >
                                    >& pt,
 				   const RateLimitMap& j_limits,
 				   std::size_t&, std::size_t&, std::size_t& f3d_i) {
@@ -1397,25 +1397,25 @@ namespace detail {
   };
 
   template <typename RateLimitMap>
-  void create_rl_joint_vector_impl(arithmetic_tuple< 
-                                     arithmetic_tuple< 
+  void create_rl_joint_vector_impl(arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,3>,
-                                       vect<typename RateLimitMap::value_type,3> 
+                                       vect<typename RateLimitMap::value_type,3>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        unit_quat< typename RateLimitMap::value_type >,
                                        vect<typename RateLimitMap::value_type,3>
-                                     > 
+                                     >
                                    >& result,
-				   const arithmetic_tuple< 
-                                     arithmetic_tuple< 
+				   const arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,3>,
-                                       vect<typename RateLimitMap::value_type,3> 
+                                       vect<typename RateLimitMap::value_type,3>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        unit_quat< typename RateLimitMap::value_type >,
-                                       vect<typename RateLimitMap::value_type,3> 
-                                     > 
+                                       vect<typename RateLimitMap::value_type,3>
+                                     >
                                    >& pt,
 				   const RateLimitMap& j_limits,
 				   std::size_t&, std::size_t&, std::size_t& f3d_i) {
@@ -1427,29 +1427,29 @@ namespace detail {
   };
 
   template <typename RateLimitMap>
-  void create_rl_joint_vector_impl(arithmetic_tuple< 
-                                     arithmetic_tuple< 
+  void create_rl_joint_vector_impl(arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,3>,
                                        vect<typename RateLimitMap::value_type,3>,
-                                       vect<typename RateLimitMap::value_type,3> 
+                                       vect<typename RateLimitMap::value_type,3>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        unit_quat< typename RateLimitMap::value_type >,
                                        vect<typename RateLimitMap::value_type,3>,
                                        vect<typename RateLimitMap::value_type,3>
-                                     > 
+                                     >
                                    >& result,
-				   const arithmetic_tuple< 
-                                     arithmetic_tuple< 
+				   const arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,3>,
                                        vect<typename RateLimitMap::value_type,3>,
-                                       vect<typename RateLimitMap::value_type,3> 
+                                       vect<typename RateLimitMap::value_type,3>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        unit_quat< typename RateLimitMap::value_type >,
                                        vect<typename RateLimitMap::value_type,3>,
                                        vect<typename RateLimitMap::value_type,3>
-                                     > 
+                                     >
                                    >& pt,
 				   const RateLimitMap& j_limits,
 				   std::size_t&, std::size_t&, std::size_t& f3d_i) {
@@ -1461,11 +1461,11 @@ namespace detail {
     get< 2 >(get< 1 >(result)) = get< 2 >(get< 1 >(pt)) * (1.0 / j_limits.frame3D_jerk_limits[f3d_i + 1]);
     f3d_i += 2;
   };
-  
-  
+
+
   // declaration only:
   template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::disable_if< 
+  typename boost::disable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -1474,10 +1474,10 @@ namespace detail {
 				            const InPoint& pt,
 					    const RateLimitMap& j_limits,
 					    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-  
+
   // declaration only:
   template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::enable_if< 
+  typename boost::enable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -1486,7 +1486,7 @@ namespace detail {
 				            const InPoint& pt,
 					    const RateLimitMap& j_limits,
 					    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-  
+
 
   template <typename OutPoint, typename InPoint, typename RateLimitMap>
   void create_rl_joint_vector_impl(OutPoint& result,
@@ -1495,11 +1495,11 @@ namespace detail {
 				   std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
     create_rl_joint_vectors_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutPoint > >::type >(result, pt, j_limits, gen_i, f2d_i, f3d_i);
   };
-  
-  
-  
+
+
+
   template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::disable_if< 
+  typename boost::disable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -1508,17 +1508,17 @@ namespace detail {
 				            const InPoint& pt,
 					    const RateLimitMap& j_limits,
 					    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    
+
     create_rl_joint_vectors_impl< typename boost::mpl::prior<Idx>::type >(result,pt,j_limits,gen_i,f2d_i,f3d_i);
-    
-    create_rl_joint_vector_impl(get< Idx::type::value >(result), 
+
+    create_rl_joint_vector_impl(get< Idx::type::value >(result),
                                 get< Idx::type::value >(pt),
 			        j_limits, gen_i, f2d_i, f3d_i);
-    
+
   };
-  
+
   template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::enable_if< 
+  typename boost::enable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -1527,13 +1527,13 @@ namespace detail {
 				            const InPoint& pt,
 					    const RateLimitMap& j_limits,
 					    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    
-    create_rl_joint_vector_impl(get< 0 >(result), 
+
+    create_rl_joint_vector_impl(get< 0 >(result),
                                 get< 0 >(pt),
 			        j_limits, gen_i, f2d_i, f3d_i);
-    
+
   };
-  
+
   template <typename OutPoint, typename InPoint, typename RateLimitMap>
   void create_rl_joint_vectors_impl(OutPoint& result,
 				    const InPoint& pt,
@@ -1543,14 +1543,14 @@ namespace detail {
     std::size_t f3d_i = 0;
     create_rl_joint_vectors_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutPoint > >::type >(result, pt, j_limits, gen_i, f2d_i, f3d_i);
   };
-  
-  
-  
+
+
+
 /*******************************************************************************************************************
                                  FUNCTIONS TO CREATE NORMAL JOINT-SPACE VECTORS
-*******************************************************************************************************************/ 
-  
-  
+*******************************************************************************************************************/
+
+
 
   template <typename RateLimitMap>
   void create_normal_joint_vector_impl(arithmetic_tuple< typename RateLimitMap::value_type >& result,
@@ -1562,11 +1562,11 @@ namespace detail {
   };
 
   template <typename RateLimitMap>
-  void create_normal_joint_vector_impl(arithmetic_tuple< 
+  void create_normal_joint_vector_impl(arithmetic_tuple<
                                      typename RateLimitMap::value_type,
                                      typename RateLimitMap::value_type
                                    >& result,
-				   const arithmetic_tuple< 
+				   const arithmetic_tuple<
 				     typename RateLimitMap::value_type,
 				     typename RateLimitMap::value_type
 				   >& pt,
@@ -1578,12 +1578,12 @@ namespace detail {
   };
 
   template <typename RateLimitMap>
-  void create_normal_joint_vector_impl(arithmetic_tuple< 
+  void create_normal_joint_vector_impl(arithmetic_tuple<
                                      typename RateLimitMap::value_type,
                                      typename RateLimitMap::value_type,
                                      typename RateLimitMap::value_type
                                    >& result,
-				   const arithmetic_tuple< 
+				   const arithmetic_tuple<
 				     typename RateLimitMap::value_type,
 				     typename RateLimitMap::value_type,
 				     typename RateLimitMap::value_type
@@ -1595,24 +1595,24 @@ namespace detail {
     get< 2 >(result) = get< 2 >(pt) * j_limits.gen_jerk_limits[gen_i];
     ++gen_i;
   };
-  
-  
+
+
   template <typename RateLimitMap>
-  void create_normal_joint_vector_impl(arithmetic_tuple< 
-                                     arithmetic_tuple< 
-                                       vect<typename RateLimitMap::value_type,2> 
+  void create_normal_joint_vector_impl(arithmetic_tuple<
+                                     arithmetic_tuple<
+                                       vect<typename RateLimitMap::value_type,2>
                                      >,
-                                     arithmetic_tuple< 
-                                       typename RateLimitMap::value_type 
-                                     > 
+                                     arithmetic_tuple<
+                                       typename RateLimitMap::value_type
+                                     >
                                    >& result,
-				   const arithmetic_tuple< 
-                                     arithmetic_tuple< 
-                                       vect<typename RateLimitMap::value_type,2> 
+				   const arithmetic_tuple<
+                                     arithmetic_tuple<
+                                       vect<typename RateLimitMap::value_type,2>
                                      >,
-                                     arithmetic_tuple< 
-                                       typename RateLimitMap::value_type 
-                                     > 
+                                     arithmetic_tuple<
+                                       typename RateLimitMap::value_type
+                                     >
                                    >& pt,
 				   const RateLimitMap& j_limits,
 				   std::size_t&, std::size_t& f2d_i, std::size_t&) {
@@ -1622,25 +1622,25 @@ namespace detail {
   };
 
   template <typename RateLimitMap>
-  void create_normal_joint_vector_impl(arithmetic_tuple< 
-                                     arithmetic_tuple< 
+  void create_normal_joint_vector_impl(arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,2>,
-                                       vect<typename RateLimitMap::value_type,2> 
+                                       vect<typename RateLimitMap::value_type,2>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        typename RateLimitMap::value_type,
-                                       typename RateLimitMap::value_type 
-                                     > 
+                                       typename RateLimitMap::value_type
+                                     >
                                    >& result,
-				   const arithmetic_tuple< 
-                                     arithmetic_tuple< 
+				   const arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,2>,
-                                       vect<typename RateLimitMap::value_type,2> 
+                                       vect<typename RateLimitMap::value_type,2>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        typename RateLimitMap::value_type,
-                                       typename RateLimitMap::value_type 
-                                     > 
+                                       typename RateLimitMap::value_type
+                                     >
                                    >& pt,
 				   const RateLimitMap& j_limits,
 				   std::size_t&, std::size_t& f2d_i, std::size_t&) {
@@ -1652,29 +1652,29 @@ namespace detail {
   };
 
   template <typename RateLimitMap>
-  void create_normal_joint_vector_impl(arithmetic_tuple< 
-                                     arithmetic_tuple< 
+  void create_normal_joint_vector_impl(arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,2>,
                                        vect<typename RateLimitMap::value_type,2>,
-                                       vect<typename RateLimitMap::value_type,2> 
+                                       vect<typename RateLimitMap::value_type,2>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        typename RateLimitMap::value_type,
                                        typename RateLimitMap::value_type,
                                        typename RateLimitMap::value_type
-                                     > 
+                                     >
                                    >& result,
-				   const arithmetic_tuple< 
-                                     arithmetic_tuple< 
+				   const arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,2>,
                                        vect<typename RateLimitMap::value_type,2>,
-                                       vect<typename RateLimitMap::value_type,2> 
+                                       vect<typename RateLimitMap::value_type,2>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        typename RateLimitMap::value_type,
                                        typename RateLimitMap::value_type,
                                        typename RateLimitMap::value_type
-                                     > 
+                                     >
                                    >& pt,
 				   const RateLimitMap& j_limits,
 				   std::size_t&, std::size_t& f2d_i, std::size_t&) {
@@ -1686,24 +1686,24 @@ namespace detail {
     get< 2 >(get< 1 >(result)) = get< 2 >(get< 1 >(pt)) * j_limits.frame2D_jerk_limits[f2d_i + 1];
     f2d_i += 2;
   };
-  
-  
+
+
   template <typename RateLimitMap>
-  void create_normal_joint_vector_impl(arithmetic_tuple< 
-                                     arithmetic_tuple< 
-                                       vect<typename RateLimitMap::value_type,3> 
+  void create_normal_joint_vector_impl(arithmetic_tuple<
+                                     arithmetic_tuple<
+                                       vect<typename RateLimitMap::value_type,3>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        unit_quat< typename RateLimitMap::value_type >
-                                     > 
+                                     >
                                    >& result,
-				   const arithmetic_tuple< 
-                                     arithmetic_tuple< 
-                                       vect<typename RateLimitMap::value_type,3> 
+				   const arithmetic_tuple<
+                                     arithmetic_tuple<
+                                       vect<typename RateLimitMap::value_type,3>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        unit_quat< typename RateLimitMap::value_type >
-                                     > 
+                                     >
                                    >& pt,
 				   const RateLimitMap& j_limits,
 				   std::size_t&, std::size_t&, std::size_t& f3d_i) {
@@ -1713,25 +1713,25 @@ namespace detail {
   };
 
   template <typename RateLimitMap>
-  void create_normal_joint_vector_impl(arithmetic_tuple< 
-                                     arithmetic_tuple< 
+  void create_normal_joint_vector_impl(arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,3>,
-                                       vect<typename RateLimitMap::value_type,3> 
+                                       vect<typename RateLimitMap::value_type,3>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        unit_quat< typename RateLimitMap::value_type >,
                                        vect<typename RateLimitMap::value_type,3>
-                                     > 
+                                     >
                                    >& result,
-				   const arithmetic_tuple< 
-                                     arithmetic_tuple< 
+				   const arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,3>,
-                                       vect<typename RateLimitMap::value_type,3> 
+                                       vect<typename RateLimitMap::value_type,3>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        unit_quat< typename RateLimitMap::value_type >,
-                                       vect<typename RateLimitMap::value_type,3> 
-                                     > 
+                                       vect<typename RateLimitMap::value_type,3>
+                                     >
                                    >& pt,
 				   const RateLimitMap& j_limits,
 				   std::size_t&, std::size_t&, std::size_t& f3d_i) {
@@ -1743,29 +1743,29 @@ namespace detail {
   };
 
   template <typename RateLimitMap>
-  void create_normal_joint_vector_impl(arithmetic_tuple< 
-                                     arithmetic_tuple< 
+  void create_normal_joint_vector_impl(arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,3>,
                                        vect<typename RateLimitMap::value_type,3>,
-                                       vect<typename RateLimitMap::value_type,3> 
+                                       vect<typename RateLimitMap::value_type,3>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        unit_quat< typename RateLimitMap::value_type >,
                                        vect<typename RateLimitMap::value_type,3>,
                                        vect<typename RateLimitMap::value_type,3>
-                                     > 
+                                     >
                                    >& result,
-				   const arithmetic_tuple< 
-                                     arithmetic_tuple< 
+				   const arithmetic_tuple<
+                                     arithmetic_tuple<
                                        vect<typename RateLimitMap::value_type,3>,
                                        vect<typename RateLimitMap::value_type,3>,
-                                       vect<typename RateLimitMap::value_type,3> 
+                                       vect<typename RateLimitMap::value_type,3>
                                      >,
-                                     arithmetic_tuple< 
+                                     arithmetic_tuple<
                                        unit_quat< typename RateLimitMap::value_type >,
                                        vect<typename RateLimitMap::value_type,3>,
                                        vect<typename RateLimitMap::value_type,3>
-                                     > 
+                                     >
                                    >& pt,
 				   const RateLimitMap& j_limits,
 				   std::size_t&, std::size_t&, std::size_t& f3d_i) {
@@ -1777,12 +1777,12 @@ namespace detail {
     get< 2 >(get< 1 >(result)) = get< 2 >(get< 1 >(pt)) * j_limits.frame3D_jerk_limits[f3d_i + 1];
     f3d_i += 2;
   };
-  
-  
-  
+
+
+
   // declaration only:
   template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::disable_if< 
+  typename boost::disable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -1791,10 +1791,10 @@ namespace detail {
 				            const InPoint& pt,
 					    const RateLimitMap& j_limits,
 					    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-  
+
   // declaration only:
   template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::enable_if< 
+  typename boost::enable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -1803,8 +1803,8 @@ namespace detail {
 				            const InPoint& pt,
 					    const RateLimitMap& j_limits,
 					    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-  
-  
+
+
 
   template <typename OutPoint, typename InPoint, typename RateLimitMap>
   void create_normal_joint_vector_impl(OutPoint& result,
@@ -1813,12 +1813,12 @@ namespace detail {
 				   std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
     create_normal_joint_vectors_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutPoint > >::type >(result, pt, j_limits, gen_i, f2d_i, f3d_i);
   };
-  
-  
-  
-  
+
+
+
+
   template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::disable_if< 
+  typename boost::disable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -1827,17 +1827,17 @@ namespace detail {
 				            const InPoint& pt,
 					    const RateLimitMap& j_limits,
 					    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    
+
     create_normal_joint_vectors_impl< typename boost::mpl::prior<Idx>::type >(result,pt,j_limits,gen_i,f2d_i,f3d_i);
-    
-    create_normal_joint_vector_impl(get< Idx::type::value >(result), 
+
+    create_normal_joint_vector_impl(get< Idx::type::value >(result),
                                 get< Idx::type::value >(pt),
 			        j_limits, gen_i, f2d_i, f3d_i);
-    
+
   };
-  
+
   template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::enable_if< 
+  typename boost::enable_if<
     boost::mpl::less<
       Idx,
       boost::mpl::size_t<1>
@@ -1846,13 +1846,13 @@ namespace detail {
 				            const InPoint& pt,
 					    const RateLimitMap& j_limits,
 					    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    
-    create_normal_joint_vectors_impl(get< 0 >(result), 
+
+    create_normal_joint_vectors_impl(get< 0 >(result),
                                 get< 0 >(pt),
 			        j_limits, gen_i, f2d_i, f3d_i);
-    
+
   };
-  
+
   template <typename OutPoint, typename InPoint, typename RateLimitMap>
   void create_normal_joint_vectors_impl(OutPoint& result,
 				    const InPoint& pt,
@@ -1863,9 +1863,9 @@ namespace detail {
     create_rl_joint_vectors_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutPoint > >::type >(result, pt, j_limits, gen_i, f2d_i, f3d_i);
   };
 
-  
-  
-  
+
+
+
 };
 
 
@@ -1873,9 +1873,9 @@ namespace detail {
 
 
 /**
- * This class template stores a set of vectors to represent the rate-limits on the joints 
+ * This class template stores a set of vectors to represent the rate-limits on the joints
  * of a manipulator. Basically, this class is just a POD class, but it also provides functions
- * to construct a rate-limited joint-space from a normal joint-space, or vice-versa. Also, 
+ * to construct a rate-limited joint-space from a normal joint-space, or vice-versa. Also,
  * it can act as a mapping between rate-limited joint coordinates and normal joint coordinates.
  * \tparam T The value type of the underlying joint-space.
  */
@@ -1899,17 +1899,17 @@ struct joint_limits_collection : public named_object {
   vect_n<T> frame3D_accel_limits;
   /** Holds the jerk limit for all 3D frames (alternating jerk limit and angular jerk limit). */
   vect_n<T> frame3D_jerk_limits;
-  
+
   typedef T value_type;
   typedef joint_limits_collection<T> self;
-  
+
   /**
    * Default constructor.
    */
   joint_limits_collection(const std::string& aName = "") : named_object() {
     this->setName(aName);
   };
-  
+
   /**
    * This function constructs a rate-limited joint-space out of the given normal joint-space.
    * \tparam NormalSpaceType The topology type of the joint-space.
@@ -1922,7 +1922,7 @@ struct joint_limits_collection : public named_object {
     detail::create_rl_joint_spaces_impl(result, j_space, *this);
     return result;
   };
-  
+
   /**
    * This function constructs a normal joint-space out of the given rate-limited joint-space.
    * \tparam RateLimitedSpaceType The topology type of the rate-limited joint-space.
@@ -1935,7 +1935,7 @@ struct joint_limits_collection : public named_object {
     detail::create_normal_joint_spaces_impl(result, j_space, *this);
     return result;
   };
-  
+
   /**
    * This function maps a set of normal joint coordinates into a set of rate-limited joint coordinates.
    * \tparam NormalSpaceType The topology type of the joint-space.
@@ -1952,8 +1952,8 @@ struct joint_limits_collection : public named_object {
     detail::create_rl_joint_vectors_impl(result, pt, *this);
     return result;
   };
-  
-  
+
+
   /**
    * This function maps a set of rate-limited joint coordinates into a set of normal joint coordinates.
    * \tparam RateLimitedSpaceType The topology type of the rate-limited joint-space.
@@ -1970,9 +1970,9 @@ struct joint_limits_collection : public named_object {
     detail::create_normal_joint_vectors_impl(result, pt, *this);
     return result;
   };
-  
-  
-  
+
+
+
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
@@ -2003,8 +2003,8 @@ struct joint_limits_collection : public named_object {
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400011,1,"joint_limits_collection",named_object)
-    
-  
+
+
 };
 
 

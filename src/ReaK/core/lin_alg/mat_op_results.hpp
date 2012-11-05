@@ -184,6 +184,32 @@ struct product_result_structure<mat_structure::identity,mat_structure::identity>
 };
 
 
+template <bool AreTheseMatrices, typename ResultValueType, typename Matrix1, typename Matrix2>
+struct mat_product_result_impl {
+  typedef mat< 
+    ResultValueType,
+    detail::product_result_structure< 
+      mat_traits<Matrix1>::structure, 
+	  mat_traits<Matrix2>::structure 
+	>::type::value,
+    mat_traits<Matrix1>::alignment,
+	typename boost::mpl::if_< 
+	  has_allocator_matrix< Matrix1 >,
+	  typename mat_traits< Matrix1 >::allocator_type,
+	  typename boost::mpl::if_< 
+	    has_allocator_matrix< Matrix2 >,
+	    typename mat_traits< Matrix2 >::allocator_type,
+	    std::allocator<ResultValueType> 
+	  >::type 
+	>::type::template rebind<ResultValueType>::other 
+  > type;
+};
+
+template <typename ResultValueType, typename Matrix1, typename Matrix2>
+struct mat_product_result_impl<false, ResultValueType, Matrix1, Matrix2> {
+  typedef mat<ResultValueType, mat_structure::rectangular> type;
+};
+
 
 
 template <mat_structure::tag Structure1, mat_structure::tag Structure2>
@@ -380,65 +406,78 @@ struct addition_result_structure<mat_structure::skew_symmetric, mat_structure::s
 
 
 
+
+template <bool AreTheseMatrices, typename ResultValueType, typename Matrix1, typename Matrix2>
+struct mat_addition_result_impl {
+  typedef mat< 
+    ResultValueType,
+    detail::addition_result_structure< 
+      mat_traits<Matrix1>::structure, 
+      mat_traits<Matrix2>::structure 
+	>::type::value,
+	mat_traits<Matrix1>::alignment,
+	typename boost::mpl::if_< 
+	  has_allocator_matrix< Matrix1 >,
+	  typename mat_traits< Matrix1 >::allocator_type,
+	  typename boost::mpl::if_< 
+	    has_allocator_matrix< Matrix2 >,
+	    typename mat_traits< Matrix2 >::allocator_type,
+	    std::allocator<ResultValueType> 
+	  >::type 
+    >::type::template rebind<ResultValueType>::other
+  > type;
+};
+
+template <typename ResultValueType, typename Matrix1, typename Matrix2>
+struct mat_addition_result_impl<false, ResultValueType, Matrix1, Matrix2> {
+  typedef mat<ResultValueType, mat_structure::rectangular> type;
+};
+
+
+
 };
 
 
 
 template <typename Matrix1, typename Matrix2>
 struct mat_product_result {
-  typedef typename mat_traits<Matrix1>::value_type M1ValueType;
-  typedef typename mat_traits<Matrix2>::value_type M2ValueType;
+  typedef typename boost::mpl::if_<
+	is_readable_matrix<Matrix1>,
+	mat_traits<Matrix1>,
+	mat_traits< mat<double, mat_structure::rectangular> > >::type::value_type M1ValueType;
+  typedef typename boost::mpl::if_<
+	is_readable_matrix<Matrix2>,
+	mat_traits<Matrix2>,
+	mat_traits< mat<double, mat_structure::rectangular> > >::type::value_type M2ValueType;
 #ifdef RK_ENABLE_CXX0X_FEATURES
   typedef decltype( M1ValueType() * M2ValueType() + M1ValueType() * M2ValueType() ) ResultValueType;
 #else
   typedef M1ValueType ResultValueType;
 #endif
-  typedef mat< 
-            ResultValueType,
-            detail::product_result_structure< 
-              mat_traits<Matrix1>::structure, 
-	      mat_traits<Matrix2>::structure 
-	    >::type::value,
-	    mat_traits<Matrix1>::alignment,
-	    typename boost::mpl::if_< 
-	      has_allocator_matrix< Matrix1 >,
-	      typename mat_traits< Matrix1 >::allocator_type,
-	      typename boost::mpl::if_< 
-	        has_allocator_matrix< Matrix2 >,
-	        typename mat_traits< Matrix2 >::allocator_type,
-	        std::allocator<ResultValueType> 
-	      >::type 
-	    >::type::template rebind<ResultValueType>::other 
-	  > type;
+  typedef typename detail::mat_product_result_impl<
+    boost::mpl::and_< is_readable_matrix<Matrix1>, is_readable_matrix<Matrix2> >::type::value,
+	ResultValueType, Matrix1, Matrix2>::type type;
 };
 
 
 template <typename Matrix1, typename Matrix2>
 struct mat_addition_result {
-  typedef typename mat_traits<Matrix1>::value_type M1ValueType;
-  typedef typename mat_traits<Matrix2>::value_type M2ValueType;
+  typedef typename boost::mpl::if_<
+	is_readable_matrix<Matrix1>,
+	mat_traits<Matrix1>,
+	mat_traits< mat<double, mat_structure::rectangular> > >::type::value_type M1ValueType;
+  typedef typename boost::mpl::if_<
+	is_readable_matrix<Matrix2>,
+	mat_traits<Matrix2>,
+	mat_traits< mat<double, mat_structure::rectangular> > >::type::value_type M2ValueType;
 #ifdef RK_ENABLE_CXX0X_FEATURES
   typedef decltype( M1ValueType() + M2ValueType() ) ResultValueType;
 #else
   typedef M1ValueType ResultValueType;
 #endif
-  typedef mat< 
-            ResultValueType,
-            detail::addition_result_structure< 
-              mat_traits<Matrix1>::structure, 
-	      mat_traits<Matrix2>::structure 
-	    >::type::value,
-	    mat_traits<Matrix1>::alignment,
-	    typename boost::mpl::if_< 
-	      has_allocator_matrix< Matrix1 >,
-	      typename mat_traits< Matrix1 >::allocator_type,
-	      typename boost::mpl::if_< 
-	        has_allocator_matrix< Matrix2 >,
-	        typename mat_traits< Matrix2 >::allocator_type,
-	        std::allocator<ResultValueType> 
-	      >::type 
-	    >::type::template rebind<ResultValueType>::other
-	  > type;
+  typedef typename detail::mat_addition_result_impl<
+    boost::mpl::and_< is_readable_matrix<Matrix1>, is_readable_matrix<Matrix2> >::type::value,
+	ResultValueType, Matrix1, Matrix2>::type type;
 };
 
 

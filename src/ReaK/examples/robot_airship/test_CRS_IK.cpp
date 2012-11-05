@@ -291,7 +291,7 @@ int main() {
 	      set_frame_3D(ee_x, ee_f);
 	      j_x = ik_knn_map.map_to_space(ee_x, ee_space, j_space);
 	      rec << 1.0;
-	    } catch(ReaK::optim::infeasible_problem& e) {
+	    } catch(ReaK::optim::infeasible_problem& e) { RK_UNUSED(e);
 	      rec << 0.0;
 	    };
 	    /*

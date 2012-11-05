@@ -61,34 +61,34 @@ set(LINALG_HEADERS
 
 add_library(reak_lin_alg STATIC ${LINALG_SOURCES})
 setup_custom_target(reak_lin_alg "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(reak_lin_alg reak_serialization reak_rtti)
+target_link_libraries(reak_lin_alg reak_serialization reak_rtti ${EXTRA_SYSTEM_LIBS})
 
 
 setup_headers("${LINALG_HEADERS}" "${RKLINALGDIR}")
 
 add_executable(test_vect_alg "${SRCROOT}${RKLINALGDIR}/test_vect_alg.cpp")
 setup_custom_target(test_vect_alg "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(test_vect_alg reak_lin_alg reak_rtti)
+target_link_libraries(test_vect_alg reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
 
 add_executable(test_mat_alg "${SRCROOT}${RKLINALGDIR}/test_mat_alg.cpp")
 setup_custom_target(test_mat_alg "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(test_mat_alg reak_lin_alg reak_rtti)
+target_link_libraries(test_mat_alg reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
 
 add_executable(test_mat_num "${SRCROOT}${RKLINALGDIR}/test_mat_num.cpp")
 setup_custom_target(test_mat_num "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(test_mat_num reak_lin_alg reak_rtti)
+target_link_libraries(test_mat_num reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
 
 add_executable(test_mat_num_perf "${SRCROOT}${RKLINALGDIR}/test_mat_num_perf.cpp")
 setup_custom_target(test_mat_num_perf "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(test_mat_num_perf reak_lin_alg reak_rtti)
+target_link_libraries(test_mat_num_perf reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
 
 add_executable(test_mat_are "${SRCROOT}${RKLINALGDIR}/test_mat_are.cpp")
 setup_custom_target(test_mat_are "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(test_mat_are reak_lin_alg reak_rtti)
+target_link_libraries(test_mat_are reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
 
 add_executable(test_mat_views "${SRCROOT}${RKLINALGDIR}/test_views.cpp")
 setup_custom_target(test_mat_views "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(test_mat_views reak_lin_alg reak_rtti)
+target_link_libraries(test_mat_views reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
 
 
 

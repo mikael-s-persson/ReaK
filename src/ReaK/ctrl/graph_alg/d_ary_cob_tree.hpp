@@ -41,6 +41,7 @@
 
 #include <boost/graph/properties.hpp>
 #include <boost/config.hpp>
+#include "bgl_raw_property_graph.hpp"
 
 #include <vector>
 #include <stdexcept>
@@ -173,6 +174,7 @@ class d_ary_cob_tree
     
     typedef VertexProperties vertex_bundled;
     typedef EdgeProperties edge_bundled;
+	typedef void graph_bundled;
     
     struct value_type {
       int out_degree;
@@ -1424,6 +1426,15 @@ bool is_edge_valid( typename d_ary_cob_tree<VertexProperties,Arity,EdgePropertie
 };
 
 };
+
+
+namespace boost {
+
+template <typename VertexProperties, std::size_t Arity, typename EdgeProperties, std::size_t CuttingDepth>
+struct is_raw_property_graph< ReaK::graph::d_ary_cob_tree<VertexProperties, Arity, EdgeProperties, CuttingDepth> > : boost::mpl::true_ { };
+
+};
+
 
 
 #endif

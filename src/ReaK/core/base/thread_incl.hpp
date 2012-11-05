@@ -28,7 +28,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -38,14 +38,14 @@
 #include "defs.hpp"
 
 
-#ifdef __GNUC__
+#if ( defined(__GNUC__) && !defined(_WIN32) )
 
 // if under g++, with c++0x, with gcc version >= 4.7.0
 #if ( defined(RK_ENABLE_CXX11_FEATURES) \
    && ( (__GNUC__ > 4) \
      || ( (__GNUC__ == 4) \
        && (__GNUC_MINOR__ >= 7) ) ) )
-       
+
 #define RK_ENABLE_CXX11_THREAD_LIB
 
 #endif
@@ -69,56 +69,56 @@
 #include <condition_variable>
 
 namespace ReaKaux {
-  
+
   // thread:
-  
+
   using std::thread;
   //using std::swap;
-  
+
   namespace this_thread {
-    
+
     using std::this_thread::get_id;
     using std::this_thread::yield;
     using std::this_thread::sleep_until;
     using std::this_thread::sleep_for;
-    
+
   };
-  
+
   // mutex:
-  
+
   using std::mutex;
   using std::recursive_mutex;
   using std::timed_mutex;
   using std::recursive_timed_mutex;
-  
+
   using std::defer_lock_t;
   using std::try_to_lock_t;
   using std::adopt_lock_t;
-  
+
   using std::defer_lock;
   using std::try_to_lock;
   using std::adopt_lock;
-  
+
   using std::lock_guard;
   using std::unique_lock;
-  
+
   //using std::swap;
-  
+
   using std::try_lock;
   using std::lock;
-  
+
   using std::once_flag;
-  
+
   using std::call_once;
-  
+
   // condition_variable:
-  
+
   using std::condition_variable;
   using std::condition_variable_any;
-  
+
   //using std::notify_all_at_thread_exit;
-  
-  
+
+
 };
 
 #else
@@ -133,65 +133,65 @@ namespace ReaKaux {
 
 
 namespace ReaKaux {
-  
+
   // thread:
-  
+
   using boost::thread;
   //using std::swap;
-  
+
   namespace this_thread {
-    
+
     using boost::this_thread::get_id;
     using boost::this_thread::yield;
-    
+
     template <typename RelativeTime>
     inline
     void sleep_for(const RelativeTime& rel_time) {
       boost::this_thread::sleep(rel_time);
     };
-    
+
     template <typename AbsoluteTime>
     inline
     void sleep_until(const AbsoluteTime& abs_time) {
       boost::this_thread::sleep(abs_time);
     };
-    
+
   };
-  
+
   // mutex:
-  
+
   using boost::mutex;
   using boost::recursive_mutex;
   using boost::timed_mutex;
   using boost::recursive_timed_mutex;
-  
+
   using boost::defer_lock_t;
   using boost::try_to_lock_t;
   using boost::adopt_lock_t;
-  
+
   using boost::defer_lock;
   using boost::try_to_lock;
   using boost::adopt_lock;
-  
+
   using boost::lock_guard;
   using boost::unique_lock;
-  
+
   //using std::swap;
-  
+
   using boost::try_lock;
   using boost::lock;
-  
+
   using boost::once_flag;
-  
+
   using boost::call_once;
-  
+
   // condition_variable:
-  
+
   using boost::condition_variable;
   using boost::condition_variable_any;
-  
+
   //using boost::notify_all_at_thread_exit;
-  
+
 };
 
 #endif

@@ -81,8 +81,8 @@ class ptrobot2D_test_world : public named_object {
     double max_edge_length;
     
     super_space_type m_space;
-    typename metric_space_traits<super_space_type>::distance_metric_type m_distance;
-    typename point_distribution_traits<super_space_type>::random_sampler_type m_rand_sampler;
+    metric_space_traits<super_space_type>::distance_metric_type m_distance;
+    point_distribution_traits<super_space_type>::random_sampler_type m_rand_sampler;
     
     ptrobot2D_test_world();
 
@@ -219,6 +219,13 @@ class ptrobot2D_test_world : public named_object {
     
     
 };
+
+template <>
+struct is_metric_space< ptrobot2D_test_world > : boost::mpl::true_ { };
+	
+template <>
+struct is_point_distribution< ptrobot2D_test_world > : boost::mpl::true_ { };
+
 
 
 };

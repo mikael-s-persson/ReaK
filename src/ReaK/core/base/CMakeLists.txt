@@ -17,6 +17,7 @@ setup_headers("${BASE_HEADERS}" "${RKBASEDIR}")
 
 add_executable(test_base "${SRCROOT}${RKBASEDIR}/test.cpp")
 setup_custom_target(test_base "${SRCROOT}${RKBASEDIR}")
+target_link_libraries(test_base ${EXTRA_SYSTEM_LIBS})
 
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 

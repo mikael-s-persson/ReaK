@@ -19,17 +19,17 @@ set(KINETOSTATICS_HEADERS
 
 add_library(reak_kinetostatics STATIC ${KINETOSTATICS_SOURCES})
 setup_custom_target(reak_kinetostatics "${SRCROOT}${RKKINETOSTATICSDIR}")
-target_link_libraries(reak_kinetostatics reak_lin_alg reak_rtti)
+target_link_libraries(reak_kinetostatics reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
 
 setup_headers("${KINETOSTATICS_HEADERS}" "${RKKINETOSTATICSDIR}")
 
 add_executable(test_kin "${SRCROOT}${RKKINETOSTATICSDIR}/test.cpp")
 setup_custom_target(test_kin "${SRCROOT}${RKKINETOSTATICSDIR}")
-target_link_libraries(test_kin reak_kinetostatics reak_lin_alg reak_rtti)
+target_link_libraries(test_kin reak_kinetostatics reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
 
 add_executable(test_quat "${SRCROOT}${RKKINETOSTATICSDIR}/test_quat.cpp")
 setup_custom_target(test_quat "${SRCROOT}${RKKINETOSTATICSDIR}")
-target_link_libraries(test_quat reak_kinetostatics reak_lin_alg reak_rtti)
+target_link_libraries(test_quat reak_kinetostatics reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
 
 
 

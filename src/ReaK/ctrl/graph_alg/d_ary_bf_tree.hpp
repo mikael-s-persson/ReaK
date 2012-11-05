@@ -38,6 +38,7 @@
 #define REAK_D_ARY_BF_TREE_HPP
 
 #include <boost/graph/properties.hpp>
+#include "bgl_raw_property_graph.hpp"
 
 #include <vector>
 #include <stdexcept>
@@ -75,6 +76,7 @@ class d_ary_bf_tree
     
     typedef VertexProperties vertex_bundled;
     typedef EdgeProperties edge_bundled;
+	typedef void graph_bundled;
     
     struct value_type {
       int out_degree;
@@ -1249,6 +1251,13 @@ bool is_edge_valid( typename d_ary_bf_tree<VertexProperties,Arity,EdgeProperties
 
 };
 
+
+namespace boost {
+
+template <typename VertexProperties, std::size_t Arity, typename EdgeProperties>
+struct is_raw_property_graph< ReaK::graph::d_ary_bf_tree<VertexProperties, Arity, EdgeProperties> > : boost::mpl::true_ { };
+
+};
 
 #endif
 

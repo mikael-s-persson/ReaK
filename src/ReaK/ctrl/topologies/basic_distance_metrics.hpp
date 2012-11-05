@@ -51,6 +51,9 @@ struct default_distance_metric : public serialization::serializable {
   
   default_distance_metric() { };
   
+  template <typename Topology>
+  default_distance_metric(const Topology&) { };
+  
   /** 
    * This function returns the distance between two points on a topology.
    * \tparam Point The point-type.
@@ -93,11 +96,10 @@ struct default_distance_metric : public serialization::serializable {
 
 
 template <typename MetricSpace>
-typename boost::enable_if< 
-  boost::is_same< typename metric_space_traits<MetricSpace>::distance_metric_type, 
-                  default_distance_metric>,
-default_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
-  return default_distance_metric();
+typename boost::enable_if< is_metric_space< MetricSpace >,
+metric_space_traits< MetricSpace > >::type::distance_metric_type get(distance_metric_t, const MetricSpace& s) {
+  typedef typename metric_space_traits< MetricSpace >::distance_metric_type result_type;
+  return result_type(s);
 };
 
 

@@ -14,6 +14,7 @@ set(SERIALIZATION_HEADERS
 
 add_library(reak_serialization STATIC ${SERIALIZATION_SOURCES})
 setup_custom_target(reak_serialization "${SRCROOT}${RKSERIALIZATIONDIR}")
+target_link_libraries(reak_serialization ${EXTRA_SYSTEM_LIBS})
 
 setup_headers("${SERIALIZATION_HEADERS}" "${RKSERIALIZATIONDIR}")
 
@@ -23,7 +24,7 @@ setup_headers("${SERIALIZATION_HEADERS}" "${RKSERIALIZATIONDIR}")
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 
-#target_link_libraries(test_math ${Boost_LIBRARIES})
+#target_link_libraries(test_math ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
 
 
 

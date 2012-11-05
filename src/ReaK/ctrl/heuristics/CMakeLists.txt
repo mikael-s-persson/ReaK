@@ -16,7 +16,7 @@ setup_headers("${HEURISTICS_HEADERS}" "${RKHEURISTICSDIR}")
 #   setup_custom_target(test_heuristics "${SRCROOT}${RKHEURISTICSDIR}")
 #   #target_link_libraries(test_adstar ${Boost_LIBRARIES})
 #   target_link_libraries(test_heuristics "-lcv" "-lcvaux")
-#   target_link_libraries(test_heuristics reak_core)
+#   target_link_libraries(test_heuristics reak_core ${EXTRA_SYSTEM_LIBS})
 # endif()
 
 

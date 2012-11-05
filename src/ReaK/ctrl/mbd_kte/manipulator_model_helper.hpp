@@ -876,7 +876,7 @@ class manip_clik_calculator {
 		          const shared_ptr<const optim::cost_evaluator>& aCostEvaluator = shared_ptr<const optim::cost_evaluator>(),
 		          double aMaxRadius = 1.0, 
 		          double aMu = 0.1, 
-		          double aMaxIter = 300, 
+		          unsigned int aMaxIter = 300, 
 		          double aTol = 1e-6, 
 		          double aEta = 1e-3, 
 		          double aTau = 0.99) : 
@@ -887,8 +887,8 @@ class manip_clik_calculator {
 		            optim::oop_cost_grad(aCostEvaluator),
 		            optim::oop_cost_hess(aCostEvaluator),
 		            aMaxRadius, aMu, aMaxIter,
-		            eq_function(this), eq_jac_filler(this),
-		            ineq_function(this), ineq_jac_filler(this),
+		            eq_function(NULL), eq_jac_filler(NULL),
+		            ineq_function(NULL), ineq_jac_filler(NULL),
 		            aTol, aEta, aTau
 		          ) { 
       if(!model)

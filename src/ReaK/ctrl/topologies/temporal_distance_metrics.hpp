@@ -51,6 +51,9 @@ struct spatial_distance_only : public serialization::serializable {
   
   spatial_distance_only() { };
   
+  template <typename TemporalTopology>
+  spatial_distance_only(const TemporalTopology&) { };
+  
   /**
    * Computes the distance by calling the distance-function of the space-topology (s) on two points (a,b).
    * \tparam Point The point type of points on the temporal-space.
@@ -101,6 +104,9 @@ struct spatial_distance_only : public serialization::serializable {
 struct time_distance_only : public serialization::serializable {
   
   time_distance_only() { };
+  
+  template <typename TemporalTopology>
+  time_distance_only(const TemporalTopology&) { };
   
   /**
    * Computes the distance by calling the distance-function of the time-topology (t) on two points (a,b).

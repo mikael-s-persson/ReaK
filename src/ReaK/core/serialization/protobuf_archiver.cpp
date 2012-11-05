@@ -306,7 +306,7 @@ iarchive& RK_CALL protobuf_iarchive::load_unsigned_char(const std::pair<std::str
 iarchive& RK_CALL protobuf_iarchive::load_int(int& i) {
   unsigned int u = 0;
   protobuf_iarchive::load_unsigned_int(u);
-  i = (u >> 1) ^ (-(u & 1));
+  i = (u >> 1) ^ (-static_cast<int>(u & 1));
   return *this;
 };
 
@@ -403,7 +403,7 @@ iarchive& RK_CALL protobuf_iarchive::load_bool(bool& b) {
   };
   char tmp = 0;
   file_stream->read(&tmp,1);
-  b = tmp;
+  b = (tmp ? true : false);
   return *this;
 };
 
@@ -539,7 +539,7 @@ oarchive& RK_CALL protobuf_oarchive::saveToNewArchive_impl(const serializable_sh
   repeat_state.pop();
   
   str_stream->seekp(0, std::ios::end);
-  hdr.size = str_stream->tellp();
+  hdr.size = static_cast<unsigned int>(str_stream->tellp());
   str_stream->clear();
   
   protobuf_oarchive::save_varint(hdr.size);
@@ -620,7 +620,7 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable_ptr(const serializable_sh
   repeat_state.pop();
   
   str_stream->seekp(0, std::ios::end);
-  hdr.size = str_stream->tellp();
+  hdr.size = static_cast<unsigned int>(str_stream->tellp());
   str_stream->clear();
   
   protobuf_oarchive::save_varint(hdr.size);
@@ -677,7 +677,7 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable(const serializable& Item)
   repeat_state.pop();
   
   str_stream->seekp(0, std::ios::end);
-  hdr.size = str_stream->tellp();
+  hdr.size = static_cast<unsigned int>(str_stream->tellp());
   str_stream->clear();
   
   protobuf_oarchive::save_varint(hdr.size);

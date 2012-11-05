@@ -2557,7 +2557,7 @@ class manip_clik_calc_factory : public shared_object {
     /** Holds the initial mu-value used in the optimization process. */
     double mu;
     /** Holds the maximum number of optimization steps. */
-    double max_iter; 
+    unsigned int max_iter; 
     /** Holds the absolute tolerance on the error on the end-effector state. */
     double tol; 
     /** Holds the eta value for the optimization process (close to 0). */
@@ -2583,7 +2583,7 @@ class manip_clik_calc_factory : public shared_object {
       const CostEvalFactory& aCostEvalFactory = CostEvalFactory(),
       double aRadius = 5.0,
       double aMu = 0.1,
-      double aMaxIter = 100,
+      unsigned int aMaxIter = 100,
       double aTol = 8e-4,
       double aEta = 1e-2,
       double aTau = 0.95) : 
@@ -3436,9 +3436,9 @@ class manip_ik_knn_starts_map : public shared_object {
         
 	try {
           ik_calc->runOptimizer(x);
-	} catch(singularity_error& e) { 
-	} catch(maximum_iteration& e) {
-	} catch(optim::infeasible_problem& e) {
+	} catch(singularity_error& e) { RK_UNUSED(e);
+	} catch(maximum_iteration& e) { RK_UNUSED(e);
+	} catch(optim::infeasible_problem& e) { RK_UNUSED(e);
 	};
 	
 	if( norm_2( kte::manip_clik_calculator::eq_function(ik_calc.get())(x) ) < ik_calc->optimizer.tol * 10.0 ) {

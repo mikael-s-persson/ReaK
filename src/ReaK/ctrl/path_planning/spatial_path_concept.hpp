@@ -70,9 +70,6 @@ struct spatial_path_traits {
   /** This type is the distance metric type used on the topology and defining the travel distances along the path. */
   typedef typename SpatialPath::distance_metric distance_metric;
   
-  /** This constant defines the dimensions of the topology (0 if unknown at compile-time). */
-  BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology::point_type::dimensions);
-  
 };
 
 

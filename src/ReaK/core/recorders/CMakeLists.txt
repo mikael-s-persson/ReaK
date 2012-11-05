@@ -17,7 +17,7 @@ set(RECORDERS_HEADERS
 
 add_library(reak_recorders STATIC ${RECORDERS_SOURCES})
 setup_custom_target(reak_recorders "${SRCROOT}${RKRECORDERSDIR}")
-target_link_libraries(reak_recorders ${Boost_LIBRARIES})
+target_link_libraries(reak_recorders ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
 
 
 setup_headers("${RECORDERS_HEADERS}" "${RKRECORDERSDIR}")
@@ -28,7 +28,7 @@ setup_custom_target(test_rec "${SRCROOT}${RKRECORDERSDIR}")
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 
-target_link_libraries(test_rec ${Boost_LIBRARIES})
+target_link_libraries(test_rec ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
 
 
 target_link_libraries(test_rec reak_recorders reak_serialization reak_rtti)

@@ -30,7 +30,7 @@ namespace ReaK {
 /** Main namespace for ReaK.Geometry */
 namespace geom {
 
-
+void some_dummy_function_prox_fundamentals_2D_CPP() { };
 
 
 };

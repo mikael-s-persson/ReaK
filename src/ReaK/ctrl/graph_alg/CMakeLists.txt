@@ -35,7 +35,7 @@ if(NOT WIN32)
     setup_custom_target(test_adstar "${SRCROOT}${RKGRAPHALGDIR}")
     #target_link_libraries(test_adstar ${Boost_LIBRARIES})
     target_link_libraries(test_adstar ${FreeImage_LIB})
-    target_link_libraries(test_adstar reak_core)
+    target_link_libraries(test_adstar reak_core ${EXTRA_SYSTEM_LIBS})
   endif()
 
   if( OpenCV_FOUND )
@@ -55,11 +55,11 @@ endif()
 
 add_executable(test_trees "${SRCROOT}${RKGRAPHALGDIR}/test_trees.cpp")
 setup_custom_target(test_trees "${SRCROOT}${RKGRAPHALGDIR}")
-target_link_libraries(test_trees reak_core)
+target_link_libraries(test_trees reak_core ${EXTRA_SYSTEM_LIBS})
 
 add_executable(test_graphs "${SRCROOT}${RKGRAPHALGDIR}/test_graphs.cpp")
 setup_custom_target(test_graphs "${SRCROOT}${RKGRAPHALGDIR}")
-target_link_libraries(test_graphs reak_core)
+target_link_libraries(test_graphs reak_core ${EXTRA_SYSTEM_LIBS})
 
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})

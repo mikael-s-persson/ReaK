@@ -446,12 +446,12 @@ struct sap_rate_limited_sampler : public serialization::serializable {
     BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< Space1 >));
     BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< Space2 >));
     
-    const typename point_distribution_traits<Topology>::random_sampler_type& get_sample = get(random_sampler, s);
+    const typename point_distribution_traits<Topology>::random_sampler_type& get_sample = get(random_sampler,s);
     //const Space0& s0 = get_space<0>(s, *t_space);
     const Space1& s1 = get_space<1>(s, *t_space);
     const Space2& s2 = get_space<2>(s, *t_space);
-    const typename metric_space_traits< Space1 >::distance_metric_type& get_dist1 = get(distance_metric, s1);
-    const typename metric_space_traits< Space2 >::distance_metric_type& get_dist2 = get(distance_metric, s2);
+    const typename metric_space_traits< Space1 >::distance_metric_type& get_dist1 = get(distance_metric,s1);
+    const typename metric_space_traits< Space2 >::distance_metric_type& get_dist2 = get(distance_metric,s2);
     
     while(true) {
       PointType pt = get_sample(s);
@@ -599,13 +599,13 @@ class sap_reach_topology : public BaseTopology
                        t_space(new time_topology),
                        rt_dist(t_space), rl_sampler(sap_rate_limited_sampler<time_topology>(t_space)) { };
     
-    template <typename A1>
+    template <typename A1, typename A2, typename A3, typename A4>
     sap_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4) : 
                        BaseTopology(a1, a2, a3, a4),
                        t_space(new time_topology),
                        rt_dist(t_space), rl_sampler(sap_rate_limited_sampler<time_topology>(t_space)) { };
     
-    template <typename A1>
+    template <typename A1, typename A2, typename A3, typename A4, typename A5>
     sap_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5) : 
                        BaseTopology(a1, a2, a3, a4, a5),
                        t_space(new time_topology),
@@ -683,6 +683,12 @@ class sap_reach_topology : public BaseTopology
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400022,1,"sap_reach_topology",BaseTopology)
     
 };
+
+template <typename BaseTopology>
+struct is_metric_space< sap_reach_topology<BaseTopology> > : boost::mpl::true_ { };
+
+template <typename BaseTopology>
+struct is_point_distribution< sap_reach_topology<BaseTopology> > : boost::mpl::true_ { };
 
 
 

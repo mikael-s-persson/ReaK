@@ -146,7 +146,7 @@ void >::type balance_pencil(Matrix1& A, Matrix2& B, Matrix3& Dl, Matrix4& Dr)
     throw std::range_error("Matrix pencil balancing is only possible on square matrices!");
 
   typedef typename mat_traits<Matrix1>::value_type ValueType;
-  typedef typename mat_traits<Matrix1>::value_type SizeType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
   using std::frexp; using std::ldexp;
   
   SizeType N = A.get_row_count();
@@ -227,7 +227,7 @@ typename boost::enable_if_c< is_fully_writable_matrix<Matrix1>::value &&
 void >::type balance_pencil(Matrix1& A, Matrix2& B)
 {  
   typedef typename mat_traits<Matrix1>::value_type ValueType;
-  typedef typename mat_traits<Matrix1>::value_type SizeType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
   mat<ValueType, mat_structure::diagonal> Dl(A.get_row_count());
   mat<ValueType, mat_structure::diagonal> Dr(A.get_row_count());
   balance_pencil(A,B,Dl,Dr);

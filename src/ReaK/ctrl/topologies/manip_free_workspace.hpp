@@ -472,6 +472,13 @@ class manip_quasi_static_env : public named_object {
 
 
 
+template <typename RateLimitedJointSpace, typename InterpMethodTag>
+struct is_metric_space< manip_quasi_static_env<RateLimitedJointSpace, InterpMethodTag> > : boost::mpl::true_ { };
+	
+template <typename RateLimitedJointSpace, typename InterpMethodTag>
+struct is_point_distribution< manip_quasi_static_env<RateLimitedJointSpace, InterpMethodTag> > : boost::mpl::true_ { };
+
+
 
 
 
@@ -783,6 +790,12 @@ class manip_dynamic_env : public named_object {
 
 #undef RK_GENERATE_MDENV_REACHINTERP
 
+
+template <typename RateLimitedJointSpace, typename InterpMethodTag>
+struct is_metric_space< manip_dynamic_env<RateLimitedJointSpace, InterpMethodTag> > : boost::mpl::true_ { };
+	
+template <typename RateLimitedJointSpace, typename InterpMethodTag>
+struct is_point_distribution< manip_dynamic_env<RateLimitedJointSpace, InterpMethodTag> > : boost::mpl::true_ { };
 
 
 

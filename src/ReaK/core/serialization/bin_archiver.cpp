@@ -272,7 +272,7 @@ iarchive& RK_CALL bin_iarchive::load_int(int& i) {
   llong_to_ulong tmp; 
   file_stream.read(reinterpret_cast<char*>(&tmp),sizeof(llong_to_ulong));
   ntoh_2ui32(tmp);
-  i = tmp.i64;
+  i = static_cast<int>(tmp.i64);
   return *this;
 };
 
@@ -284,7 +284,7 @@ iarchive& RK_CALL bin_iarchive::load_unsigned_int(unsigned int& u) {
   ullong_to_ulong tmp; 
   file_stream.read(reinterpret_cast<char*>(&tmp),sizeof(ullong_to_ulong));
   ntoh_2ui32(tmp);
-  u = tmp.ui64;
+  u = static_cast<unsigned int>(tmp.ui64);
   return *this;
 };
 
@@ -319,7 +319,7 @@ iarchive& RK_CALL bin_iarchive::load_double(const std::pair<std::string, double&
 iarchive& RK_CALL bin_iarchive::load_bool(bool& b) {
   char tmp = 0;
   file_stream.read(&tmp,1);
-  b = tmp;
+  b = (tmp ? true : false);
   return *this;
 };
 

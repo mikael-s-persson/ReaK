@@ -108,7 +108,7 @@ struct point_distribution_traits {
  * 
  * Valid expressions:
  * 
- * rand_sampler = get(random_sampler, space);  The random-sampler can be obtained by a tagged "get" call on the point-distribution.
+ * rand_sampler = get(random_sampler,space);  The random-sampler can be obtained by a tagged "get" call on the point-distribution.
  * 
  * \tparam PointDistribution The topology type to be checked for this concept.
  */
@@ -123,10 +123,14 @@ struct PointDistributionConcept {
   
   BOOST_CONCEPT_USAGE(PointDistributionConcept) 
   {
-    rand_sampler = get(random_sampler, space);
+    rand_sampler = get(random_sampler,space);
   };
   
 };
+
+
+template <typename T>
+struct is_point_distribution : boost::mpl::false_ { };
 
 
 

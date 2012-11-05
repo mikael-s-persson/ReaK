@@ -108,6 +108,13 @@ class time_poisson_topology : public time_topology
 
 };
 
+template <>
+struct is_metric_space< time_poisson_topology > : boost::mpl::true_ { };
+	
+template <>
+struct is_point_distribution< time_poisson_topology > : boost::mpl::true_ { };
+
+
 
 };
 

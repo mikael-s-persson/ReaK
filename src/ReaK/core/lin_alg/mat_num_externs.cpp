@@ -542,6 +542,15 @@ template void solve_dtsf_problem(const mat<float,mat_structure::rectangular>& F,
 
 };
 
+#else
+
+namespace ReaK {
+
+void dummy_mat_num_externs_symbol() { };
+
+};
+
+
 
 #endif
 

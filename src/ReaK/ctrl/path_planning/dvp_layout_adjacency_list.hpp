@@ -37,7 +37,10 @@
 #ifndef REAK_DVP_LAYOUT_ADJACENCY_LIST_HPP
 #define REAK_DVP_LAYOUT_ADJACENCY_LIST_HPP
 
+#include <boost/graph/properties.hpp>
+#include <boost/property_map/property_map.hpp>
 #include "graph_alg/adj_list_tree_overlay.hpp"
+#include "graph_alg/bgl_more_property_maps.hpp"
 
 #include "metric_space_search.hpp"
 
@@ -107,13 +110,13 @@ class dvp_adjacency_list
     typedef typename boost::property_traits< vertex_r2b_map_type >::key_type vertex_raw_property_type;
     typedef typename boost::property_traits< edge_r2b_map_type >::key_type edge_raw_property_type;
     
-    typedef typename boost::property_map<vertex_raw_property_type, boost::vertex_key_t>::const_type key_map_type;
+	typedef typename boost::property_map<vertex_raw_property_type, boost::vertex_key_t>::const_type key_map_type; 
     typedef boost::composite_property_map<
       boost::data_member_property_map<distance_type, edge_properties>,
       edge_r2b_map_type> distance_map_type;
     typedef boost::composite_property_map<
       PositionMap,
-      typename boost::property_map<vertex_raw_property_type, boost::vertex_second_bundle_t>::type > position_map_type;
+	  typename boost::property_map<vertex_raw_property_type, boost::vertex_second_bundle_t>::type > position_map_type;
     
     
     typedef dvp_tree_impl< 
@@ -161,7 +164,7 @@ class dvp_adjacency_list
 	     m_impl(
 	       m_tree,
                aSpace, 
-	       get(ReaK::pp::distance_metric, *aSpace),
+	       get(ReaK::pp::distance_metric,*aSpace),
 	       m_vp_key,
 	       distance_map_type(
 		 boost::data_member_property_map<distance_type, edge_properties>(&edge_properties::d),

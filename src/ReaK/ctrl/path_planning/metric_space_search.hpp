@@ -324,7 +324,7 @@ class dvp_tree
 	       aPosition,
 	       m_tree,
                aSpace, 
-	       get(ReaK::pp::distance_metric, *aSpace),
+	       get(ReaK::pp::distance_metric,*aSpace),
 	       m_vp_key,
 	       ep_to_distance_map_type(
 		 distance_map_type(&edge_properties::d),

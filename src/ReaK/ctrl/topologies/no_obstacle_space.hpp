@@ -253,6 +253,17 @@ class no_obstacle_space : public named_object {
 };
 
 
+template <typename Topology, 
+          typename DistanceMetric,
+          typename RandomSampler>
+struct is_metric_space< no_obstacle_space<Topology, DistanceMetric, RandomSampler> > : boost::mpl::true_ { };
+	
+template <typename Topology, 
+          typename DistanceMetric,
+          typename RandomSampler>
+struct is_point_distribution< no_obstacle_space<Topology, DistanceMetric, RandomSampler> > : boost::mpl::true_ { };
+
+
 };
 
 };

@@ -32,8 +32,8 @@ namespace recorder {
 
 
 void data_recorder::record_process::operator()() {
-  unsigned int currentIter = 0;
-  unsigned int iterStep = 1;
+  std::size_t currentIter = 0;
+  std::size_t iterStep = 1;
   boost::posix_time::ptime last_time = boost::posix_time::microsec_clock::local_time();
   while(parent.colCount != 0) {
     {
@@ -44,7 +44,7 @@ void data_recorder::record_process::operator()() {
     if(currentIter == 1000) {
       boost::posix_time::ptime current_time = boost::posix_time::microsec_clock::local_time();
       boost::posix_time::time_duration dt = current_time - last_time;
-      unsigned int numSamples(1 + (parent.flushSampleRate * dt.total_microseconds()) / 1000000);
+      std::size_t numSamples = static_cast<std::size_t>(1 + (parent.flushSampleRate * dt.total_microseconds()) / 1000000);
       iterStep = 1000 / numSamples;
       last_time = current_time;
       currentIter = 0;
@@ -139,8 +139,8 @@ data_recorder& data_recorder::operator <<(flag some_flag) {
 
 
 void data_extractor::extract_process::operator()() {
-  unsigned int currentIter = 0;
-  unsigned int iterStep = 1;
+  std::size_t currentIter = 0;
+  std::size_t iterStep = 1;
   boost::posix_time::ptime last_time = boost::posix_time::microsec_clock::local_time();
   while(parent.colCount != 0) {
     {
@@ -153,7 +153,7 @@ void data_extractor::extract_process::operator()() {
     if(currentIter == 1000) {
       boost::posix_time::ptime current_time = boost::posix_time::microsec_clock::local_time();
       boost::posix_time::time_duration dt = current_time - last_time;
-      unsigned int numSamples(1 + (parent.flushSampleRate * dt.total_microseconds()) / 1000000);
+      std::size_t numSamples = static_cast<std::size_t>(1 + (parent.flushSampleRate * dt.total_microseconds()) / 1000000);
       iterStep = 1000 / numSamples;
       last_time = current_time;
       currentIter = 0;

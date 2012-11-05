@@ -109,109 +109,109 @@ struct default_differentiation_rule : public serialization::serializable {
  * This class defines a tuple of default differentiation rules. This is useful for applying the 
  * default differentiation rule to all the differentiation operations on a given differentiable_space.
  */
-template <std::size_t Order>
-struct default_differentiation_rule_tuple {
+template <std::size_t Order, typename DiffRule>
+struct differentiation_rule_array {
   //BOOST_STATIC_ASSERT(false);
 };
 
-template <>
-struct default_differentiation_rule_tuple<0> {
-  typedef arithmetic_tuple<default_differentiation_rule> type;
+template <typename DiffRule>
+struct differentiation_rule_array<0,DiffRule> {
+  typedef arithmetic_tuple<DiffRule> type;
 };
 
-template <>
-struct default_differentiation_rule_tuple<1> {
-  typedef arithmetic_tuple<default_differentiation_rule> type;
+template <typename DiffRule>
+struct differentiation_rule_array<1,DiffRule> {
+  typedef arithmetic_tuple<DiffRule> type;
 };
 
-template <>
-struct default_differentiation_rule_tuple<2> {
-  typedef arithmetic_tuple<default_differentiation_rule,
-                           default_differentiation_rule> type;
+template <typename DiffRule>
+struct differentiation_rule_array<2,DiffRule> {
+  typedef arithmetic_tuple<DiffRule,
+                           DiffRule> type;
 };
 
-template <>
-struct default_differentiation_rule_tuple<3> {
-  typedef arithmetic_tuple<default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule> type;
+template <typename DiffRule>
+struct differentiation_rule_array<3,DiffRule> {
+  typedef arithmetic_tuple<DiffRule,
+                           DiffRule,
+                           DiffRule> type;
 };
 
-template <>
-struct default_differentiation_rule_tuple<4> {
-  typedef arithmetic_tuple<default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule> type;
+template <typename DiffRule>
+struct differentiation_rule_array<4,DiffRule> {
+  typedef arithmetic_tuple<DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule> type;
 };
 
-template <>
-struct default_differentiation_rule_tuple<5> {
-  typedef arithmetic_tuple<default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule> type;
+template <typename DiffRule>
+struct differentiation_rule_array<5,DiffRule> {
+  typedef arithmetic_tuple<DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule> type;
 };
 
-template <>
-struct default_differentiation_rule_tuple<6> {
-  typedef arithmetic_tuple<default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule> type;
+template <typename DiffRule>
+struct differentiation_rule_array<6,DiffRule> {
+  typedef arithmetic_tuple<DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule> type;
 };
 
-template <>
-struct default_differentiation_rule_tuple<7> {
-  typedef arithmetic_tuple<default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule> type;
+template <typename DiffRule>
+struct differentiation_rule_array<7,DiffRule> {
+  typedef arithmetic_tuple<DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule> type;
 };
 
-template <>
-struct default_differentiation_rule_tuple<8> {
-  typedef arithmetic_tuple<default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule> type;
+template <typename DiffRule>
+struct differentiation_rule_array<8,DiffRule> {
+  typedef arithmetic_tuple<DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule> type;
 };
 
-template <>
-struct default_differentiation_rule_tuple<9> {
-  typedef arithmetic_tuple<default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule> type;
+template <typename DiffRule>
+struct differentiation_rule_array<9,DiffRule> {
+  typedef arithmetic_tuple<DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule> type;
 };
 
-template <>
-struct default_differentiation_rule_tuple<10> {
-  typedef arithmetic_tuple<default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule,
-                           default_differentiation_rule> type;
+template <typename DiffRule>
+struct differentiation_rule_array<10,DiffRule> {
+  typedef arithmetic_tuple<DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule,
+                           DiffRule> type;
 };
 
   
@@ -233,13 +233,16 @@ struct default_differentiation_rule_tuple<10> {
  * \tparam DiffRuleTuple A tuple type (e.g. arithmetic_tuple) which provides a set of differentiation rules 
  *                       to use in order to move vectors across the tangent bundle 
  */
-template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric = manhattan_tuple_distance, typename DiffRuleTuple = typename default_differentiation_rule_tuple< arithmetic_tuple_size<SpaceTuple>::type::value - 1 >::type >
+template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric = manhattan_tuple_distance, typename DiffRule = default_differentiation_rule >
 class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceMetric> {
+  public:
+    typedef typename differentiation_rule_array< arithmetic_tuple_size<SpaceTuple>::type::value - 1, DiffRule >::type diff_rule_tuple;
+
   protected:
-    DiffRuleTuple m_diff_rules;
+    diff_rule_tuple m_diff_rules;
     
   public:
-    typedef differentiable_space< IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRuleTuple > self;
+    typedef differentiable_space< IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRule > self;
     typedef metric_space_tuple<SpaceTuple,TupleDistanceMetric> base_type;
     
     typedef typename base_type::point_type point_type;
@@ -247,6 +250,8 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
     
     typedef typename base_type::distance_metric_type distance_metric_type;
     typedef typename base_type::random_sampler_type random_sampler_type;
+	
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = base_type::dimensions);
     
     /**
      * This nested class template is a meta-function to obtain the type of the space of a given 
@@ -274,7 +279,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
      */
     differentiable_space(const SpaceTuple& aSpaces = SpaceTuple(), 
 			 const TupleDistanceMetric& aDist = TupleDistanceMetric(),
-			 const DiffRuleTuple& aDiffRules = DiffRuleTuple()) :
+			 const diff_rule_tuple& aDiffRules = diff_rule_tuple()) :
 			 base_type(aSpaces,aDist), 
 			 m_diff_rules(aDiffRules) { };
     
@@ -283,7 +288,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
      * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
      */
     template <int Idx>
-    const typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule_impl(const IndependentSpace&) const {
+    const typename arithmetic_tuple_element<Idx, diff_rule_tuple>::type& get_diff_rule_impl(const IndependentSpace&) const {
       return get<Idx>(m_diff_rules);
     };
     
@@ -292,7 +297,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
      * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
      */
     template <int Idx>
-    typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule_impl(const IndependentSpace&) {
+    typename arithmetic_tuple_element<Idx, diff_rule_tuple>::type& get_diff_rule_impl(const IndependentSpace&) {
       return get<Idx>(m_diff_rules);
     };
     
@@ -352,6 +357,11 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
 
 };
 
+template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+struct is_metric_space< differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRuleTuple> > : boost::mpl::true_ { };
+
+template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
+struct is_point_distribution< differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRuleTuple> > : boost::mpl::true_ { };
 
 
 /**
@@ -377,7 +387,7 @@ typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get_space(differentiab
  * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
  */
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
-const typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace&) {
+const typename arithmetic_tuple_element<Idx, typename DiffRuleTuple::type>::type& get_diff_rule(const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace&) {
   return s.template get_diff_rule_impl<Idx>();
 };
     
@@ -386,7 +396,7 @@ const typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule
  * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
  */
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
-typename arithmetic_tuple_element<Idx, DiffRuleTuple>::type& get_diff_rule(differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace&) {
+typename arithmetic_tuple_element<Idx, typename DiffRuleTuple::type>::type& get_diff_rule(differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple>& s, const IndependentSpace&) {
   return s.template get_diff_rule_impl<Idx>();
 };
     

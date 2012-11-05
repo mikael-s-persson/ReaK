@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -34,6 +34,15 @@
 
 #include <string>
 #include <iostream>
+#include <cmath>
+
+#ifndef M_PI
+#define M_PI 3.1415926535898
+#endif
+
+#if ( defined(_WIN32) && !defined(WIN32) )
+#define WIN32 1
+#endif
 
 #ifdef WIN32
 #if defined(_M_X64) || defined(__x86_64__)
@@ -81,7 +90,7 @@
 #ifdef _MSC_VER
 #if (_MSC_VER >= 1600)
 //Cannot do this for now because MSVC doesn't support C++0x threads (why not is a mistery).
-//#define RK_ENABLE_CXXOX_FEATURES 
+//#define RK_ENABLE_CXXOX_FEATURES
 #endif
 
 // All windows platforms are little-endian:
@@ -105,7 +114,7 @@ inline std::string RK_RELATIVE_PATH(const std::string& S) {
 };
 
 /**
- * This MACRO expands into an output of at string as "ReaK/.../current_file.hpp:42" if put in 
+ * This MACRO expands into an output of at string as "ReaK/.../current_file.hpp:42" if put in
  * file "current_file.hpp" at line 42.
  */
 #define RK_HERE __FILE__ << ":" << __LINE__
@@ -121,20 +130,20 @@ inline std::string RK_RELATIVE_PATH(const std::string& S) {
 #define RK_WARNING(X) std::cout << RK_RELATIVE_PATH(__FILE__) << ":" << __LINE__ << " Warning: " << X << std::endl
 
 /**
- * This MACRO outputs to std::cout a notice message containing the filename, line number, and message Y, 
+ * This MACRO outputs to std::cout a notice message containing the filename, line number, and message Y,
  * only if the RK_VERBOSITY is set to lower higher than X.
  */
 #define RK_NOTICE(X,Y) if(X <= RK_VERBOSITY)  std::cout << RK_RELATIVE_PATH(__FILE__) << ":" << __LINE__ << " " << Y << std::endl;
 
 /**
- * This MACRO is used to signify that a declared variable is not used, intentionally. 
- * This creates a no-op that uses the variable X, and thus, avoid annoying compiler warnings 
+ * This MACRO is used to signify that a declared variable is not used, intentionally.
+ * This creates a no-op that uses the variable X, and thus, avoid annoying compiler warnings
  * such as "parameter X is never used" or "variable X is set but never used".
  */
 #define RK_UNUSED(X) { (void)X; }
 
-  
-  
+
+
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
 
@@ -145,7 +154,7 @@ namespace ReaK {
   using std::shared_ptr;
   using std::weak_ptr;
   using std::unique_ptr;
-  
+
 };
 
 #else
@@ -154,10 +163,10 @@ namespace ReaK {
 #include <boost/weak_ptr.hpp>
 
 namespace ReaK {
-  
+
   using boost::shared_ptr;
   using boost::weak_ptr;
-  
+
 };
 
 #endif // RK_ENABLE_CXX0X_FEATURES
@@ -172,6 +181,7 @@ template<bool> struct CompileTimeChecker
 template<> struct CompileTimeChecker<false> { };
 
 };
+
 #define RK_CT_ASSERT(expr, msg) \
    {\
        class ERROR_##msg {}; \

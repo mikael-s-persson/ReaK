@@ -56,6 +56,9 @@ struct manhattan_distance_metric : public serialization::serializable {
   
   manhattan_distance_metric() { };
   
+  template <typename Topology>
+  manhattan_distance_metric(const Topology&) { };
+  
   /** 
    * This function returns the norm of a difference between two points on a topology.
    * \tparam PointDiff The point-difference-type, should model the ReadableVectorConcept.
@@ -101,14 +104,6 @@ struct manhattan_distance_metric : public serialization::serializable {
 
 typedef manhattan_distance_metric norm1_distance_metric;
 
-template <typename MetricSpace>
-typename boost::enable_if< 
-  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
-                  manhattan_distance_metric >,
-manhattan_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
-  return manhattan_distance_metric();
-};
-
 
 /**
  * This class is a Euclidean distance metric functor which models the DistanceMetricConcept.
@@ -118,6 +113,9 @@ manhattan_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
 struct euclidean_distance_metric : public serialization::serializable {
   
   euclidean_distance_metric() { };
+  
+  template <typename Topology>
+  euclidean_distance_metric(const Topology&) { };
   
   /** 
    * This function returns the norm of a difference between two points on a topology.
@@ -165,15 +163,6 @@ struct euclidean_distance_metric : public serialization::serializable {
 
 typedef euclidean_distance_metric norm2_distance_metric;
 
-template <typename MetricSpace>
-typename boost::enable_if< 
-  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
-                  euclidean_distance_metric >,
-euclidean_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
-  return euclidean_distance_metric();
-};
-
-
 
 /**
  * This class is a Infinity-norm distance metric functor which models the DistanceMetricConcept.
@@ -183,6 +172,9 @@ euclidean_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
 struct inf_norm_distance_metric : public serialization::serializable {
   
   inf_norm_distance_metric() { };
+  
+  template <typename Topology>
+  inf_norm_distance_metric(const Topology&) { };
   
   /** 
    * This function returns the norm of a difference between two points on a topology.
@@ -229,14 +221,6 @@ struct inf_norm_distance_metric : public serialization::serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(inf_norm_distance_metric,0xC2410003,1,"inf_norm_distance_metric",serialization::serializable)
 };
 
-template <typename MetricSpace>
-typename boost::enable_if< 
-  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
-                  inf_norm_distance_metric >,
-inf_norm_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
-  return inf_norm_distance_metric();
-};
-
 
 /**
  * This class is a Euclidean distance metric functor which models the DistanceMetricConcept.
@@ -248,6 +232,9 @@ struct p_norm_distance_metric : public serialization::serializable {
   int p_value;
   
   p_norm_distance_metric(int aP = 2) : p_value(aP) { };
+  
+  template <typename Topology>
+  p_norm_distance_metric(const Topology&, int aP = 2) : p_value(aP) { };
   
   /** 
    * This function returns the norm of a difference between two points on a topology.
@@ -295,14 +282,6 @@ struct p_norm_distance_metric : public serialization::serializable {
   };
 
   RK_RTTI_MAKE_ABSTRACT_1BASE(p_norm_distance_metric,0xC2410004,1,"p_norm_distance_metric",serialization::serializable)
-};
-
-template <typename MetricSpace>
-typename boost::enable_if< 
-  boost::is_same< typename metric_space_traits< MetricSpace >::distance_metric_type,
-                  p_norm_distance_metric >,
-p_norm_distance_metric >::type get(distance_metric_t, const MetricSpace&) {
-  return p_norm_distance_metric();
 };
 
 

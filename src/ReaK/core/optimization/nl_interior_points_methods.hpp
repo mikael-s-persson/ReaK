@@ -199,7 +199,7 @@ namespace detail {
     ValueType norm_star = norm_2(x_grad) + norm_2(y * Jac_g) + norm_2(z * Jac_h);
     Vector l(x_grad - y * Jac_g - z * Jac_h);
     Vector lt = l;
-    norm_star = norm_2(l) / sqrt(N);
+    norm_star = norm_2(l) / sqrt(ValueType(N));
     
     mat<ValueType,mat_structure::diagonal> SES(K);
     for(SizeType i = 0; i < K; ++i)
@@ -348,7 +348,7 @@ namespace detail {
               z[i] = mu / s[i];
 	  lt = x_grad - y * Jac_g - z * Jac_h;
 	  //p_grad[range(0,N-1)] = x_grad + y * Jac_g + z * Jac_h;  // NOTE this is not part of original.
-	  norm_star = norm_2(lt) / sqrt(N);
+	  norm_star = norm_2(lt) / sqrt(ValueType(N));
           fill_hessian(H,x,x_value,x_grad,p_x,lt - l);
 	  l = lt;
 	  for(SizeType i = 0; i < K; ++i)

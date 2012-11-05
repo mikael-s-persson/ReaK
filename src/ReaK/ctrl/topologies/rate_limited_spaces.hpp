@@ -113,118 +113,6 @@ struct reach_time_differentiation : public serialization::serializable {
 };
 
 
-
-
-/**
- * This class defines a tuple of reach-time differentiation rules. This is useful for applying the 
- * reach-time differentiation rule to all the differentiation operations on a given differentiable_space.
- */
-template <std::size_t Order>
-struct reach_time_differentiation_tuple {
-  //BOOST_STATIC_ASSERT(false);
-};
-
-template <>
-struct reach_time_differentiation_tuple<0> {
-  typedef arithmetic_tuple<reach_time_differentiation> type;
-};
-
-template <>
-struct reach_time_differentiation_tuple<1> {
-  typedef arithmetic_tuple<reach_time_differentiation> type;
-};
-
-template <>
-struct reach_time_differentiation_tuple<2> {
-  typedef arithmetic_tuple<reach_time_differentiation,
-                           reach_time_differentiation> type;
-};
-
-template <>
-struct reach_time_differentiation_tuple<3> {
-  typedef arithmetic_tuple<reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation> type;
-};
-
-template <>
-struct reach_time_differentiation_tuple<4> {
-  typedef arithmetic_tuple<reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation> type;
-};
-
-template <>
-struct reach_time_differentiation_tuple<5> {
-  typedef arithmetic_tuple<reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation> type;
-};
-
-template <>
-struct reach_time_differentiation_tuple<6> {
-  typedef arithmetic_tuple<reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation> type;
-};
-
-template <>
-struct reach_time_differentiation_tuple<7> {
-  typedef arithmetic_tuple<reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation> type;
-};
-
-template <>
-struct reach_time_differentiation_tuple<8> {
-  typedef arithmetic_tuple<reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation> type;
-};
-
-template <>
-struct reach_time_differentiation_tuple<9> {
-  typedef arithmetic_tuple<reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation> type;
-};
-
-template <>
-struct reach_time_differentiation_tuple<10> {
-  typedef arithmetic_tuple<reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation,
-                           reach_time_differentiation> type;
-};
-
-
 namespace detail {
   
   
@@ -280,11 +168,13 @@ namespace detail {
  *                             space-tuple (e.g. arithmetic_tuple).
  */
 template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric = manhattan_tuple_distance>
-class reach_time_diff_space : public differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,typename reach_time_differentiation_tuple< arithmetic_tuple_size<SpaceTuple>::type::value - 1 >::type> {
+class reach_time_diff_space : public differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric, reach_time_differentiation > {
   public:
     typedef reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric > self;
-    typedef typename reach_time_differentiation_tuple< arithmetic_tuple_size<SpaceTuple>::type::value - 1 >::type DiffRuleTuple;
-    typedef differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> base_type;
+    typedef differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric, reach_time_differentiation> base_type;
+	typedef typename base_type::diff_rule_tuple diff_rule_tuple;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = base_type::dimensions);
     
     /**
      * Parametrized and default constructor.
@@ -294,7 +184,7 @@ class reach_time_diff_space : public differentiable_space<IndependentSpace,Space
      */
     reach_time_diff_space(const SpaceTuple& aSpaces = SpaceTuple(), 
 			  const TupleDistanceMetric& aDist = TupleDistanceMetric(),
-			  const DiffRuleTuple& aDiffRules = DiffRuleTuple()) :
+			  const diff_rule_tuple& aDiffRules = diff_rule_tuple()) :
 			  base_type(aSpaces,aDist,aDiffRules) { };
 
     /**
@@ -310,7 +200,7 @@ class reach_time_diff_space : public differentiable_space<IndependentSpace,Space
     reach_time_diff_space(ForwardIter first, ForwardIter last,
                           const SpaceTuple& aSpaces = SpaceTuple(), 
 			  const TupleDistanceMetric& aDist = TupleDistanceMetric()) :
-			  base_type(aSpaces, aDist, detail::construct_reach_time_diff_rules<DiffRuleTuple>(first, last)) { };
+			  base_type(aSpaces, aDist, detail::construct_reach_time_diff_rules<diff_rule_tuple>(first, last)) { };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
     /**
@@ -324,7 +214,7 @@ class reach_time_diff_space : public differentiable_space<IndependentSpace,Space
     reach_time_diff_space(std::initializer_list<double> aList,
                           const SpaceTuple& aSpaces = SpaceTuple(), 
 			  const TupleDistanceMetric& aDist = TupleDistanceMetric()) :
-			  base_type(aSpaces, aDist, detail::construct_reach_time_diff_rules<DiffRuleTuple>(aList.begin(), aList.end())) { };
+			  base_type(aSpaces, aDist, detail::construct_reach_time_diff_rules<diff_rule_tuple>(aList.begin(), aList.end())) { };
 #endif
     
 			  
@@ -343,7 +233,11 @@ class reach_time_diff_space : public differentiable_space<IndependentSpace,Space
 
 };
 
+template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric>
+struct is_metric_space< reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric> > : boost::mpl::true_ { };
 
+template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric>
+struct is_point_distribution< reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric> > : boost::mpl::true_ { };
 
 
 

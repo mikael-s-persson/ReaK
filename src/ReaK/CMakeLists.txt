@@ -9,6 +9,8 @@ endif()
 
 set(REAK_VERSION_NUMBER "0.26")
 
+#set(EXTRA_SYSTEM_LIBS)
+
 # These are the main sub-directories
 set(RKCOREDIR "${REAKDIR}/core")
 set(RKCTRLDIR "${REAKDIR}/ctrl")
@@ -30,6 +32,7 @@ if( NOT WIN32 )
 
   if(OpenCV_FOUND)
     message(STATUS "OpenCV library components were found: '${OpenCV_LIBS}'")
+    add_definitions( "-DREAK_HAS_OPENCV" )
   else()
     message(WARNING "OpenCV was not detected on this system, some test programs will not be built!")
   endif()
@@ -39,15 +42,25 @@ if( NOT WIN32 )
   if(FreeImage_LIB)
     set(FreeImage_FOUND TRUE)
     message(STATUS "FreeImage library was found: '${FreeImage_LIB}'")
+    add_definitions( "-DREAK_HAS_FREEIMAGE" )
   else()
     set(FreeImage_FOUND FALSE)
     message(WARNING "FreeImage library was not detected on this system, some test programs will not be built!")
   endif()
 
+else()
+  
+  find_library( WINSOCK_LIB wsock32 PATHS "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.0A/Lib")
+  if( NOT WINSOCK_LIB )
+    message( FATAL_ERROR  "Could not located the winsock library (ws2_32)")
+  else()
+    set(EXTRA_SYSTEM_LIBS ${EXTRA_SYSTEM_LIBS} ${WINSOCK_LIB})
+  endif()
+  
 endif()
 
 
-set(Boost_ADDITIONAL_VERSIONS "1.45" "1.45.0" "1.46" "1.46.0" "1.46.1" "1.47" "1.47.0" "1.48" "1.48.0")
+set(Boost_ADDITIONAL_VERSIONS "1.45" "1.45.0" "1.46" "1.46.0" "1.46.1" "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0")
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 
@@ -72,12 +85,17 @@ if (NOT WIN32)
 
 endif()
 
-find_package(Boost 1.42 COMPONENTS thread date_time python REQUIRED)
+find_package(Boost 1.42 COMPONENTS thread date_time system REQUIRED)
 if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIR})
-  add_definitions( "-DHAS_BOOST" )
+  include_directories(SYSTEM ${Boost_INCLUDE_DIR})
+  link_directories(${Boost_LIBRARY_DIRS})
+  add_definitions( "-DREAK_HAS_BOOST" )
   set(BOOST_THREAD_LIB ${Boost_thread_LIBRARY})
   set(BOOST_DATE_TIME_LIB ${Boost_date_time_LIBRARY})
+  if(MSVC)
+    #disable the libraries, since it uses automatic linking:
+	set(Boost_LIBRARIES "")
+  endif()
 endif()
 
 if( NOT WIN32 )
@@ -92,7 +110,8 @@ find_package(Coin3D)
 
 if(COIN3D_FOUND)
   message(STATUS "Coin3D library components were found: '${COIN3D_LIBRARIES}'")
-  include_directories(BEFORE ${COIN3D_INCLUDE_DIRS})
+  include_directories(BEFORE SYSTEM ${COIN3D_INCLUDE_DIRS})
+  add_definitions( "-DREAK_HAS_COIN3D" )
 else()
   message(WARNING "Coin3D was not detected on this system, some test programs will not be built!")
 endif()
@@ -106,7 +125,7 @@ endif()
 
 
 
-include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
+include_directories(BEFORE SYSTEM ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")
 

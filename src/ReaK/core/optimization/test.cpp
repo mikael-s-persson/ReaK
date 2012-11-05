@@ -140,7 +140,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  Broyden-class method started at " << x_2D << std::endl;
-  ReaK::optim::broyden_class_method(banana_function,banana_function_grad, x_2D, 0.5, 100, 1e-7, 1e-7);
+  ReaK::optim::broyden_class_method(banana_function,banana_function_grad, x_2D, 100, 0.5, 1e-7, 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
   std::cout << "    function gives: " << banana_function(x_2D) << " gradient gives: " << banana_function_grad(x_2D) << std::endl;
   
@@ -242,7 +242,7 @@ int main() {
   gradCount = 0;
   x_2D = ReaK::vect<double,2>(0.5,1.0);
   std::cout << "  Broyden-class method started at " << x_2D << std::endl;
-  ReaK::optim::broyden_class_method(easy_function,easy_function_grad, x_2D, 0.5, 100, 1e-7, 1e-7);
+  ReaK::optim::broyden_class_method(easy_function,easy_function_grad, x_2D, 100, 0.5, 1e-7, 1e-7);
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations and " << gradCount << " gradient evaluations." << std::endl;
   std::cout << "    function gives: " << easy_function(x_2D) << " gradient gives: " << easy_function_grad(x_2D) << std::endl;
   

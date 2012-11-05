@@ -158,6 +158,11 @@ class line_topology : public named_object
     
 };
 
+template <typename T>
+struct is_metric_space< line_topology<T> > : boost::mpl::true_ { };
+
+
+
 /**
  * This class implements a line-segment topology. The space extends from the minimum value up to some 
  * maximum value. Models the TopologyConcept, LieGroupConcept, MetricSpaceConcept, 
@@ -310,6 +315,13 @@ class line_segment_topology : public line_topology<T>
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400006,1,"line_segment_topology",line_topology<T>)
 };
+
+template <typename T>
+struct is_metric_space< line_segment_topology<T> > : boost::mpl::true_ { };
+	
+template <typename T>
+struct is_point_distribution< line_segment_topology<T> > : boost::mpl::true_ { };
+
 
 
 };

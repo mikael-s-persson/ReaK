@@ -34,6 +34,7 @@
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
+#include <boost/graph/adjacency_list.hpp>
 
 #include "bgl_more_property_maps.hpp"
     
@@ -142,27 +143,39 @@ struct RawPropertyGraphConcept {
 };
 
 
+template <typename Graph>
+struct is_raw_property_graph : boost::mpl::false_ { };
+
+template <typename OutEdgeListS, typename VertexListS, typename DirectedS, typename VertexProperty,
+          typename EdgeProperty, typename GraphProperty, typename EdgeListS>
+struct is_raw_property_graph< adjacency_list<OutEdgeListS, VertexListS, DirectedS, VertexProperty, EdgeProperty, GraphProperty, EdgeListS> > : boost::mpl::true_ { };
+
+
 
 template <typename Graph>
-typename property_map<Graph, vertex_raw_property_t>::type get(vertex_raw_property_t, Graph& g) {
+typename enable_if< is_raw_property_graph< Graph >,
+property_map<Graph, vertex_raw_property_t> >::type::type get(vertex_raw_property_t, Graph& g) {
   typedef typename property_map<Graph, vertex_raw_property_t>::type result_type;
   return result_type(&g);
 };
 
 template <typename Graph>
-typename property_map<Graph, vertex_raw_property_t>::const_type get(vertex_raw_property_t, const Graph& g) {
+typename enable_if< is_raw_property_graph< Graph >,
+property_map<Graph, vertex_raw_property_t> >::type::const_type get(vertex_raw_property_t, const Graph& g) {
   typedef typename property_map<Graph, vertex_raw_property_t>::const_type result_type;
   return result_type(&g);
 };
 
 template <typename Graph>
-typename property_map<Graph, edge_raw_property_t>::type get(edge_raw_property_t, Graph& g) {
+typename enable_if< is_raw_property_graph< Graph >,
+property_map<Graph, edge_raw_property_t> >::type::type get(edge_raw_property_t, Graph& g) {
   typedef typename property_map<Graph, edge_raw_property_t>::type result_type;
   return result_type(&g);
 };
 
 template <typename Graph>
-typename property_map<Graph, edge_raw_property_t>::const_type get(edge_raw_property_t, const Graph& g) {
+typename enable_if< is_raw_property_graph< Graph >,
+property_map<Graph, edge_raw_property_t> >::type::const_type get(edge_raw_property_t, const Graph& g) {
   typedef typename property_map<Graph, edge_raw_property_t>::const_type result_type;
   return result_type(&g);
 };
@@ -170,22 +183,26 @@ typename property_map<Graph, edge_raw_property_t>::const_type get(edge_raw_prope
 
 
 template <typename Graph>
-typename property_map<Graph, vertex_raw_prop_to_bundle_t>::type get(vertex_raw_prop_to_bundle_t, Graph& g) {
+typename enable_if< is_raw_property_graph< Graph >,
+property_map<Graph, vertex_raw_prop_to_bundle_t> >::type::type get(vertex_raw_prop_to_bundle_t, Graph& g) {
   return typename property_map<Graph, vertex_raw_prop_to_bundle_t>::type();
 };
 
 template <typename Graph>
-typename property_map<Graph, vertex_raw_prop_to_bundle_t>::const_type get(vertex_raw_prop_to_bundle_t, const Graph& g) {
+typename enable_if< is_raw_property_graph< Graph >,
+property_map<Graph, vertex_raw_prop_to_bundle_t> >::type::const_type get(vertex_raw_prop_to_bundle_t, const Graph& g) {
   return typename property_map<Graph, vertex_raw_prop_to_bundle_t>::const_type();
 };
 
 template <typename Graph>
-typename property_map<Graph, edge_raw_prop_to_bundle_t>::type get(edge_raw_prop_to_bundle_t, Graph& g) {
+typename enable_if< is_raw_property_graph< Graph >,
+property_map<Graph, edge_raw_prop_to_bundle_t> >::type::type get(edge_raw_prop_to_bundle_t, Graph& g) {
   return typename property_map<Graph, edge_raw_prop_to_bundle_t>::type();
 };
 
 template <typename Graph>
-typename property_map<Graph, edge_raw_prop_to_bundle_t>::const_type get(edge_raw_prop_to_bundle_t, const Graph& g) {
+typename enable_if< is_raw_property_graph< Graph >,
+property_map<Graph, edge_raw_prop_to_bundle_t> >::type::const_type get(edge_raw_prop_to_bundle_t, const Graph& g) {
   return typename property_map<Graph, edge_raw_prop_to_bundle_t>::const_type();
 };
 
@@ -193,22 +210,26 @@ typename property_map<Graph, edge_raw_prop_to_bundle_t>::const_type get(edge_raw
 
 
 template <typename Graph, typename Vertex>
-typename Graph::vertex_bundled& get(vertex_raw_property_t, Graph& g, Vertex v) {
+typename enable_if< is_raw_property_graph< Graph >,
+Graph >::type::vertex_bundled& get(vertex_raw_property_t, Graph& g, Vertex v) {
   return g[v];
 };
 
 template <typename Graph, typename Vertex>
-const typename Graph::vertex_bundled& get(vertex_raw_property_t, const Graph& g, Vertex v) {
+const typename enable_if< is_raw_property_graph< Graph >,
+Graph >::type::vertex_bundled& get(vertex_raw_property_t, const Graph& g, Vertex v) {
   return g[v];
 };
 
 template <typename Graph, typename Edge>
-typename Graph::edge_bundled& get(edge_raw_property_t, Graph& g, Edge e) {
+typename enable_if< is_raw_property_graph< Graph >,
+Graph >::type::edge_bundled& get(edge_raw_property_t, Graph& g, Edge e) {
   return g[e];
 };
 
 template <typename Graph, typename Edge>
-const typename Graph::edge_bundled& get(edge_raw_property_t, const Graph& g, Edge e) {
+const typename enable_if< is_raw_property_graph<Graph>,
+typename Graph::edge_bundled >::type& get(edge_raw_property_t, const Graph& g, Edge e) {
   return g[e];
 };
 

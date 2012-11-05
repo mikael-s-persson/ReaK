@@ -348,7 +348,7 @@ void RK_CALL manipulator_dynamics_model::computeStateRate(double aTime,const vec
   try {
     mat_vect_adaptor< vect_n<double> > acc_as_mat(aStateRate, getJointAccelerationsCount(), 1, getJointPositionsCount());
     linsolve_Cholesky(Msys,acc_as_mat);
-  } catch(singularity_error& e) {
+  } catch(singularity_error& e) { RK_UNUSED(e);
     std::stringstream ss; ss << "Mass matrix is singular in the manipulator model '" << getName() << "' at time " << aTime << " seconds.";
     throw singularity_error(ss.str());
   };

@@ -176,6 +176,13 @@ class quaternion_topology : public named_object
     
 };
 
+template <typename T>
+struct is_metric_space< quaternion_topology<T> > : boost::mpl::true_ { };
+	
+template <typename T>
+struct is_point_distribution< quaternion_topology<T> > : boost::mpl::true_ { };
+
+
 
 /**
  * This class implements a rate-limited quaternion-space. This topology will produce distance and norm
@@ -280,6 +287,13 @@ class rate_limited_quat_space : public quaternion_topology<T>
 };
 
 
+template <typename T>
+struct is_metric_space< rate_limited_quat_space<T> > : boost::mpl::true_ { };
+	
+template <typename T>
+struct is_point_distribution< rate_limited_quat_space<T> > : boost::mpl::true_ { };
+
+
 /**
  * This class implements an angular velocity topology (for SO(3)). The angular velocities are constrained
  * to within a hyper-ball of a given maximum radius (max angular speed), this topology models 
@@ -327,6 +341,12 @@ class ang_velocity_3D_topology : public hyperball_topology< vect<T,3>, mat<T, ma
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240000D,1,"ang_velocity_3D_topology",base)
     
 };
+
+template <typename T>
+struct is_metric_space< ang_velocity_3D_topology<T> > : boost::mpl::true_ { };
+	
+template <typename T>
+struct is_point_distribution< ang_velocity_3D_topology<T> > : boost::mpl::true_ { };
 
 
 /**
@@ -376,6 +396,13 @@ class ang_accel_3D_topology : public hyperball_topology< vect<T,3>, mat<T, mat_s
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240000E,1,"ang_accel_3D_topology",base)
     
 };
+
+template <typename T>
+struct is_metric_space< ang_accel_3D_topology<T> > : boost::mpl::true_ { };
+	
+template <typename T>
+struct is_point_distribution< ang_accel_3D_topology<T> > : boost::mpl::true_ { };
+
 
 /**
  * This meta-function defines the type for a 0th order SO(3) topology (a zero-differentiable space).

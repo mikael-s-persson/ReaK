@@ -104,13 +104,13 @@ int main() {
       };
       vect<double,2> v1 = r_45deg * vect<double,2>(1.0,1.0);
       if( ( fabs(v1[0]) > std::numeric_limits<double>::epsilon() ) ||
-	  ( fabs(v1[1] - std::sqrt(2)) > std::numeric_limits<double>::epsilon() ) ) {
+	  ( fabs(v1[1] - std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Vector (1,1) rotated by 45deg does not produce the correct vector!");
         return 1;
       };
       v1 = vect<double,2>(1.0,1.0) * r_45deg;
       if( ( fabs(v1[1]) > std::numeric_limits<double>::epsilon() ) ||
-	  ( fabs(v1[0] - std::sqrt(2)) > std::numeric_limits<double>::epsilon() ) ) {
+	  ( fabs(v1[0] - std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Vector (1,1) transposed rotated by 45deg does not produce the correct vector!");
         return 1;
       };
@@ -119,7 +119,7 @@ int main() {
 	RK_ERROR("Composition of a 135deg-rotation2D and a -45deg-rotation2D does not have 90deg angle!");
 	return 1;
       };
-      if( fabs(trace(r_45deg_cpy) - std::sqrt(2)) > std::numeric_limits<double>::epsilon() ) {
+      if( fabs(trace(r_45deg_cpy) - std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) {
 	RK_ERROR("Trace of a 45deg-rotation2D is not correct!");
 	return 1;
       };
@@ -167,7 +167,7 @@ int main() {
 	  ( fabs(m23_r45(1,0) - std::sqrt(0.5)) > std::numeric_limits<double>::epsilon() ) ||
 	  ( fabs(m23_r45(1,1) - std::sqrt(0.5)) > std::numeric_limits<double>::epsilon() ) ||
 	  ( fabs(m23_r45(0,2)) > std::numeric_limits<double>::epsilon() ) ||
-	  ( fabs(m23_r45(1,2) - std::sqrt(2)) > std::numeric_limits<double>::epsilon() ) ) {
+	  ( fabs(m23_r45(1,2) - std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("45deg-rotation2D matrix times a 2x3 matrix is not correct!");
         return 1;
       };
@@ -179,7 +179,7 @@ int main() {
 	  ( fabs(m32_r45(0,1) + std::sqrt(0.5)) > std::numeric_limits<double>::epsilon() ) ||
 	  ( fabs(m32_r45(1,0) - std::sqrt(0.5)) > std::numeric_limits<double>::epsilon() ) ||
 	  ( fabs(m32_r45(1,1) - std::sqrt(0.5)) > std::numeric_limits<double>::epsilon() ) ||
-	  ( fabs(m32_r45(2,0) - std::sqrt(2)) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs(m32_r45(2,0) - std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) ||
 	  ( fabs(m32_r45(2,1)) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("A 3x2 matrix times a 45deg-rotation2D matrix is not correct!");
         return 1;
@@ -252,7 +252,7 @@ int main() {
 	return 1;
       };
       t_45deg_11_cpy.setTranslation(vect<double,2>(1.0,1.0));
-      if( fabs(trace(t_45deg_11_cpy) - 1.0 - std::sqrt(2)) > std::numeric_limits<double>::epsilon() ) {
+      if( fabs(trace(t_45deg_11_cpy) - 1.0 - std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) {
 	RK_ERROR("Trace of (45deg,(1,1))-transformation2D is not correct!");
 	return 1;
       };
@@ -287,7 +287,7 @@ int main() {
         return 1;
       };
       if( ( fabs(invert(t_45deg_11_cpy).getAngle() + 0.25 * double(M_PI)) > std::numeric_limits<double>::epsilon() ) ||
-	  ( fabs(invert(t_45deg_11_cpy).getTranslation()[0] + std::sqrt(2)) > std::numeric_limits<double>::epsilon() ) ) {
+	  ( fabs(invert(t_45deg_11_cpy).getTranslation()[0] + std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("(45deg,(1,1))-transformation2D copy does not produce the correct angle or translation!");
 	return 1;
       };
@@ -324,21 +324,21 @@ int main() {
 
       vect<double,2> v2 = t_45deg_11 * vect<double,2>(1.0,1.0);
       if( ( fabs(v2[0] - 1.0) > std::numeric_limits<double>::epsilon() ) ||
-	  ( fabs(v2[1] - 1.0 - std::sqrt(2)) > std::numeric_limits<double>::epsilon() ) ) {
+	  ( fabs(v2[1] - 1.0 - std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Vector (1,1) transformed by (45deg,(1,1)) does not produce the correct vector!");
 	return 1;
       };
 
       vect<double,3> v3 = t_45deg_11 * vect<double,3>(1.0,1.0,1.0);
       if( ( fabs(v3[0] - 1.0) > std::numeric_limits<double>::epsilon() ) ||
-	  ( fabs(v3[1] - 1.0 - std::sqrt(2)) > std::numeric_limits<double>::epsilon() ) ||
+	  ( fabs(v3[1] - 1.0 - std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) ||
 	  ( fabs(v3[2] - 1.0) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Vector (1,1) transformed by (45deg,(1,1)) does not produce the correct vector!");
 	return 1;
       };
       v2 = t_45deg_11.rotate(vect<double,2>(1.0,1.0));
       if( ( fabs(v2[0]) > std::numeric_limits<double>::epsilon() ) ||
-	  ( fabs(v2[1] - std::sqrt(2)) > std::numeric_limits<double>::epsilon() ) ) {
+	  ( fabs(v2[1] - std::sqrt(2.0)) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Vector (1,1) rotated by (45deg,(1,1)) does not produce the correct vector!");
 	return 1;
       };
@@ -378,7 +378,7 @@ int main() {
     
       rot_mat_3D<double> r_ident;
       if( ( !is_diagonal(r_ident, std::numeric_limits<double>::epsilon()) ) ||
-	  ( fabs( elem_norm_2(r_ident) - std::sqrt(3) ) > std::numeric_limits<double>::epsilon() ) ) {
+	  ( fabs( elem_norm_2(r_ident) - std::sqrt(3.0) ) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Null-rotation3D is not the identity matrix!");
         return 1;
       };
@@ -437,11 +437,11 @@ int main() {
       };
       r_ident *= invert(r_45z);
       if( ( !is_diagonal(r_ident, std::numeric_limits<double>::epsilon()) ) ||
-	  ( fabs( elem_norm_2(r_ident) - std::sqrt(3) ) > std::numeric_limits<double>::epsilon() ) ) {
+	  ( fabs( elem_norm_2(r_ident) - std::sqrt(3.0) ) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Null-rotation3D (from composition of 45degZ-rotation3D and its inverse) is not the identity matrix!");
         return 1;
       };
-      if( fabs(trace(r_45z_cpy) - std::sqrt(2) - 1.0) > std::numeric_limits<double>::epsilon() ) {
+      if( fabs(trace(r_45z_cpy) - std::sqrt(2.0) - 1.0) > std::numeric_limits<double>::epsilon() ) {
 	RK_ERROR("Trace of the 45degZ-rotation3D is not correct!");
 	return 1;
       };
@@ -451,7 +451,7 @@ int main() {
       };
       mat<double,mat_structure::symmetric> msym_45z(r_45z_cpy.getSymPart());
       if( ( !is_diagonal(msym_45z, std::numeric_limits<double>::epsilon()) ) ||
-	  ( fabs( elem_norm_2(msym_45z) - std::sqrt(2) ) > std::numeric_limits<double>::epsilon() ) ) {
+	  ( fabs( elem_norm_2(msym_45z) - std::sqrt(2.0) ) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Symmetric part of 45degZ-rotation3D is not correct!");
         return 1;
       };
@@ -469,7 +469,7 @@ int main() {
         return 1;
       };
       if( ( !is_diagonal((invert(r_45z_cpy) * r_45z_cpy), std::numeric_limits<double>::epsilon()) ) ||
-	  ( fabs( elem_norm_2((invert(r_45z_cpy) * r_45z_cpy)) - std::sqrt(3) ) > std::numeric_limits<double>::epsilon() ) ) {
+	  ( fabs( elem_norm_2((invert(r_45z_cpy) * r_45z_cpy)) - std::sqrt(3.0) ) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Composition of 45degZ-rotation3D and its inverse is not the identity matrix!");
         return 1;
       };
@@ -501,7 +501,7 @@ int main() {
 	return 1;
       };
       if( ( !is_diagonal((r_45z * invert(q_45z)), std::numeric_limits<double>::epsilon()) ) ||
-	  ( fabs( elem_norm_2(r_45z * invert(q_45z)) - std::sqrt(3) ) > std::numeric_limits<double>::epsilon() ) ) {
+	  ( fabs( elem_norm_2(r_45z * invert(q_45z)) - std::sqrt(3.0) ) > std::numeric_limits<double>::epsilon() ) ) {
 	RK_ERROR("Composition of 45degZ-rotation3D and the inverse of 45degZ-quaternion is not the identity matrix!");
         return 1;
       };
@@ -567,7 +567,7 @@ int main() {
 	return 1;
       };
     
-      if( fabs( trace(q_45z_cpy) - 1.0 - std::sqrt(2) ) > std::numeric_limits<double>::epsilon() ) {
+      if( fabs( trace(q_45z_cpy) - 1.0 - std::sqrt(2.0) ) > std::numeric_limits<double>::epsilon() ) {
 	RK_ERROR("Trace of q_45z_cpy is not correct!");
 	return 1;
       };
@@ -698,7 +698,7 @@ int main() {
         return 1;
       };
 
-      if( fabs( trace(e_45z_cpy) - 1.0 - std::sqrt(2) ) > std::numeric_limits<double>::epsilon() ) {
+      if( fabs( trace(e_45z_cpy) - 1.0 - std::sqrt(2.0) ) > std::numeric_limits<double>::epsilon() ) {
 	RK_ERROR("Trace of e_45z_cpy is not correct!");
 	return 1;
       };
@@ -794,7 +794,7 @@ int main() {
 	return 1;
       };
       
-      if( fabs( trace(a_45z_cpy) - 1.0 - std::sqrt(2) ) > std::numeric_limits<double>::epsilon() ) {
+      if( fabs( trace(a_45z_cpy) - 1.0 - std::sqrt(2.0) ) > std::numeric_limits<double>::epsilon() ) {
 	RK_ERROR("Trace of a_45z_cpy is not correct!");
 	return 1;
       };

@@ -101,7 +101,7 @@ int main(int argc, const char** argv) {
     };
     
     try {
-      ReaK::optim::mehrotra_method(probs_A[i],probs_b[i],probs_c[i],x,1e-6);
+      ReaK::optim::mehrotra_method(probs_A[i],probs_b[i],probs_c[i],x,100,1e-6);
       std::cout << "   Mehrotra method produced the following solution vector: " << x << " with cost: " << (probs_c[i] * x) << std::endl;
     } catch(std::exception& e) {
       std::cout << "   Mehrotra method failed with message: " << e.what() << std::endl;

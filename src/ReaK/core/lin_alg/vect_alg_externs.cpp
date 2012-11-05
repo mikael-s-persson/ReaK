@@ -306,6 +306,14 @@ template std::ostream& operator <<(std::ostream& out_stream, const vect_n<float>
 
 };
 
+#else
+
+namespace ReaK {
+
+void dummy_vect_alg_externs_symbol() { };
+
+};
+
 
 #endif
 

@@ -51,6 +51,9 @@ struct default_random_sampler : public serialization::serializable {
   
   default_random_sampler() { };
   
+  template <typename Topology>
+  default_random_sampler(const Topology&) { };
+  
   /** 
    * This function returns a random sample point on a topology.
    * \tparam Topology The topology.
@@ -78,10 +81,10 @@ struct default_random_sampler : public serialization::serializable {
 
 template <typename PointDistribution>
 typename boost::enable_if< 
-  boost::is_same< typename point_distribution_traits<PointDistribution>::random_sampler_type, 
-                  default_random_sampler>,
-default_random_sampler >::type get(random_sampler_t, const PointDistribution&) {
-  return default_random_sampler();
+  is_point_distribution< PointDistribution >,
+point_distribution_traits<PointDistribution> >::type::random_sampler_type get(random_sampler_t, const PointDistribution& s) {
+  typedef typename point_distribution_traits<PointDistribution>::random_sampler_type result_type;
+  return result_type(s);
 };
 
 

@@ -15,7 +15,7 @@ setup_headers("${SORTING_HEADERS}" "${RKSORTINGDIR}")
 
 add_executable(test_sorting_perf "${SRCROOT}${RKSORTINGDIR}/test_sorting_perf.cpp")
 setup_custom_target(test_sorting_perf "${SRCROOT}${RKSORTINGDIR}")
-target_link_libraries(test_sorting_perf reak_rtti)
+target_link_libraries(test_sorting_perf reak_rtti ${EXTRA_SYSTEM_LIBS})
 
 
 

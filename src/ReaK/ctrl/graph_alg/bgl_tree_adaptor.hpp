@@ -149,7 +149,7 @@ std::pair<typename ReaK::graph::tree_traits<Graph>::child_vertex_iterator,
   child_vertices(typename graph_traits<Graph>::vertex_descriptor v, const Graph& g) {
   typedef typename ReaK::graph::tree_traits<Graph>::child_vertex_iterator CVIter;
   typename graph_traits<Graph>::out_edge_iterator ei,ei_end;
-  tie(ei,ei_end) = out_edges(v,g);
+  boost::tie(ei,ei_end) = out_edges(v,g);
   return std::make_pair(CVIter(ei,&g),CVIter(ei_end,&g));
 };
   
@@ -188,7 +188,7 @@ void remove_branch( const typename graph_traits<Graph>::vertex_descriptor& u,
   typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
   std::vector<Vertex> v_list; v_list.reserve(out_degree(u, g));
   EdgeIter ei, ei_end;
-  for( tie(ei, ei_end) = out_edges(u,g); ei != ei_end; ++ei)
+  for( boost::tie(ei, ei_end) = out_edges(u,g); ei != ei_end; ++ei)
     v_list.push_back(target(*ei,g));
   for( typename std::vector<Vertex>::iterator it = v_list.begin(); it != v_list.end(); ++it)
     remove_branch(*it, g);
@@ -285,7 +285,7 @@ OutputIter remove_branch( const typename graph_traits<Graph>::vertex_descriptor&
   typedef typename graph_traits<Graph>::vertex_descriptor Vertex;
   std::vector<Vertex> v_list; v_list.reserve(out_degree(u, g));
   EdgeIter ei, ei_end;
-  for( tie(ei, ei_end) = out_edges(u,g); ei != ei_end; ++ei)
+  for( boost::tie(ei, ei_end) = out_edges(u,g); ei != ei_end; ++ei)
     v_list.push_back(target(*ei,g));
   *(it_out++) = g[u];
   for( typename std::vector<Vertex>::iterator it = v_list.begin(); it != v_list.end(); ++it)
