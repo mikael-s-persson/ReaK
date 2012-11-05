@@ -72,6 +72,44 @@ tracer_coin3d_impl::tracer_coin3d_impl(bool aIsSolution) {
   
 };
 
+tracer_coin3d_impl::tracer_coin3d_impl(const tracer_coin3d_impl& rhs) {
+  path_impl = new tracer_coin3d_impl_pimpl;
+  path_impl->path_sep = new SoSeparator;
+  path_impl->path_sep->ref();
+  
+  path_impl->color = new SoBaseColor;
+  path_impl->color->rgb = rhs.path_impl->color->rgb;
+  path_impl->path_sep->addChild(path_impl->color);
+  
+  path_impl->coords = new SoCoordinate3;
+  path_impl->path_sep->addChild(path_impl->coords);
+    
+  path_impl->ln_set = new SoLineSet;
+  path_impl->path_sep->addChild(path_impl->ln_set);
+};
+
+tracer_coin3d_impl& tracer_coin3d_impl::operator=(const tracer_coin3d_impl& rhs) {
+  path_impl->path_sep->unref();
+  
+  path_impl->path_sep = new SoSeparator;
+  path_impl->path_sep->ref();
+  
+  path_impl->color = new SoBaseColor;
+  path_impl->color->rgb = rhs.path_impl->color->rgb;
+  path_impl->path_sep->addChild(path_impl->color);
+  
+  path_impl->coords = new SoCoordinate3;
+  path_impl->path_sep->addChild(path_impl->coords);
+    
+  path_impl->ln_set = new SoLineSet;
+  path_impl->path_sep->addChild(path_impl->ln_set);
+  
+  path_impl->current_points.clear();
+  
+  return *this;
+};
+
+
 tracer_coin3d_impl::~tracer_coin3d_impl() {
   path_impl->path_sep->unref();
   delete path_impl;
@@ -80,11 +118,17 @@ tracer_coin3d_impl::~tracer_coin3d_impl() {
 void tracer_coin3d_impl::begin_edge(const vect<double,3>& start_point) const {
   if(!(path_impl->current_points.empty()))
     end_edge();
+  if(std::isnan(start_point[0]) || std::isnan(start_point[1]) || std::isnan(start_point[2]))
+    return;
   path_impl->current_points.push_back(start_point);
+  std::cout << "pt: " << start_point << std::endl;
 };
 
 void tracer_coin3d_impl::add_point(const vect<double,3>& new_point) const {
+  if(std::isnan(new_point[0]) || std::isnan(new_point[1]) || std::isnan(new_point[2]))
+    return;
   path_impl->current_points.push_back(new_point);
+  std::cout << "pt: " << new_point << std::endl;
 };
 
 void tracer_coin3d_impl::end_edge() const {

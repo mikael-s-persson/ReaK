@@ -132,6 +132,31 @@ struct bijection_cascade : public shared_object {
 };
 
 
+struct identity_topo_map : public shared_object {
+  typedef identity_topo_map self;
+  
+  identity_topo_map() { };
+  
+  template <typename PointType, typename SpaceIn, typename SpaceOut>
+  PointType map_to_space(const PointType& p_in, const SpaceIn&, const SpaceOut&) const {
+    return p_in;
+  };
+  
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+  virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+    shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+  };
+  virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+    shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240002B,1,"identity_topo_map",shared_object)
+    
+};
+
 
 /**
  * This concept defines the requirements to fulfill in order to model a homeomorphism between 

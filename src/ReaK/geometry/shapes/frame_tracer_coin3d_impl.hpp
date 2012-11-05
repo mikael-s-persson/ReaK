@@ -30,8 +30,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_FRAME_TRACER_COIN3D_HPP
-#define REAK_FRAME_TRACER_COIN3D_HPP
+#ifndef REAK_FRAME_TRACER_COIN3D_IMPL_HPP
+#define REAK_FRAME_TRACER_COIN3D_IMPL_HPP
 
 #include "base/defs.hpp"
 
@@ -60,6 +60,8 @@ struct tracer_coin3d_impl {
   SoSeparator* get_separator() const;
   
   explicit tracer_coin3d_impl(bool aIsSolution = false);
+  tracer_coin3d_impl(const tracer_coin3d_impl& rhs);
+  tracer_coin3d_impl& operator=(const tracer_coin3d_impl& rhs);
   ~tracer_coin3d_impl();
   
   void begin_edge(const vect<double,3>& start_point) const;

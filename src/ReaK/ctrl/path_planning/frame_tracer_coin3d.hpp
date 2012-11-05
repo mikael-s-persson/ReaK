@@ -43,6 +43,7 @@
 #include <boost/graph/graph_concepts.hpp>
 
 #include "manipulator_topo_maps.hpp"
+#include "topological_map_concepts.hpp"
 
 #include "shapes/frame_tracer_coin3d_impl.hpp"
 
@@ -61,13 +62,14 @@ namespace pp {
  * and uses the Coin3D library to trace out the position of a number of 3D poses linked to a model
  * linked with the given DirectKinMapper.
  */
-template <typename DirectKinMapper, typename JointStateSpace, typename JointStateMapping = void, typename NextReporter = no_sbmp_report>
+template <typename DirectKinMapper, typename JointStateSpace, typename JointStateMapping = identity_topo_map, typename NextReporter = no_sbmp_report>
 class frame_tracer_3D : public shared_object {
   public:
-    typedef frame_tracer_3D<NextReporter> self;
+    typedef frame_tracer_3D<DirectKinMapper, JointStateSpace, JointStateMapping, NextReporter> self;
+    
+    NextReporter next_reporter;
     
   protected:
-    NextReporter next_reporter;
     DirectKinMapper dk_map;
     shared_ptr<JointStateSpace> jt_space;
     JointStateMapping map_to_jt_space;
@@ -76,7 +78,7 @@ class frame_tracer_3D : public shared_object {
     
     std::vector< shared_ptr< pose_3D<double> > > traced_frames;
     std::vector< geom::tracer_coin3d_impl > motion_graph_traces;
-    std::map< double, std::vector< tracer_coin3d_impl > > solution_traces;
+    mutable std::map< double, std::vector< geom::tracer_coin3d_impl > > solution_traces;
   
   public:
     
@@ -94,6 +96,37 @@ class frame_tracer_3D : public shared_object {
     self& add_traced_frame(const shared_ptr< pose_3D<double> >& aPose) {
       traced_frames.push_back(aPose);
       motion_graph_traces.push_back(geom::tracer_coin3d_impl(false));
+      return *this;
+    };
+    
+    const geom::tracer_coin3d_impl& get_motion_graph_tracer(const shared_ptr< pose_3D<double> >& aPose) const {
+      std::vector< shared_ptr< pose_3D<double> > >::const_iterator it = std::find(traced_frames.begin(),traced_frames.end(),aPose);
+      if(it != traced_frames.end()) {
+        return motion_graph_traces[it - traced_frames.begin()];
+      } else
+        throw std::range_error("The given pose is not being traced by this frame-tracer!");
+    };
+    
+    std::size_t get_solution_count() const {
+      return solution_traces.size();
+    };
+    
+    double get_best_solution_value() const {
+      if(solution_traces.empty())
+        return std::numeric_limits<double>::infinity();
+      return solution_traces.begin()->first;
+    };
+    
+    const geom::tracer_coin3d_impl& get_solution_tracer(const shared_ptr< pose_3D<double> >& aPose, std::size_t aSolutionId = 0) const {
+      if(aSolutionId >= solution_traces.size())
+        aSolutionId = 0;
+      std::vector< shared_ptr< pose_3D<double> > >::const_iterator it = std::find(traced_frames.begin(),traced_frames.end(),aPose);
+      if(it != traced_frames.end()) {
+        std::map< double, std::vector< geom::tracer_coin3d_impl > >::const_iterator itm = solution_traces.begin();
+        std::advance(itm, aSolutionId);
+        return itm->second[it - traced_frames.begin()];
+      } else
+        throw std::range_error("The given pose is not being traced by this frame-tracer!");
     };
     
     /**
@@ -124,7 +157,7 @@ class frame_tracer_3D : public shared_object {
           JointState s_v = map_to_jt_space.map_to_space(p_v, free_space.get_super_space(), *jt_space);
           dk_map.apply_to_model(s_u, *jt_space);
           for(std::size_t i = 0; i < traced_frames.size(); ++i)
-            motion_graph_traces[i].start_edge(traced_frames[i]->getGlobalPose().Position);
+            motion_graph_traces[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
           for(double j = 0.1; j <= 1.01; j += 0.1) {
             PointType p_new = free_space.get_super_space().move_position_toward(p_u, j, p_v);
             JointState s_new = map_to_jt_space.map_to_space(p_new, free_space.get_super_space(), *jt_space);
@@ -157,7 +190,7 @@ class frame_tracer_3D : public shared_object {
         next_reporter.draw_solution(free_space, traj);
         return;
       };
-      std::vector< tracer_coin3d_impl >& current_trace = solution_traces[t_total];
+      std::vector< geom::tracer_coin3d_impl >& current_trace = solution_traces[t_total];
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
         current_trace.push_back(geom::tracer_coin3d_impl(true));
       
@@ -166,7 +199,7 @@ class frame_tracer_3D : public shared_object {
       JointState s_u = map_to_jt_space.map_to_space(u_pt, free_space.get_super_space(), *jt_space);
       dk_map.apply_to_model(s_u, *jt_space);
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace[i].start_edge(traced_frames[i]->getGlobalPose().Position);
+        current_trace[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
       while(t < traj->get_end_time()) {
         t += interval_size;
         u_pt = traj->get_point_at_time(t);
@@ -199,7 +232,7 @@ class frame_tracer_3D : public shared_object {
         next_reporter.draw_solution(free_space, p);
         return;
       };
-      std::vector< tracer_coin3d_impl >& current_trace = solution_traces[t_total];
+      std::vector< geom::tracer_coin3d_impl >& current_trace = solution_traces[t_total];
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
         current_trace.push_back(geom::tracer_coin3d_impl(true));
       
@@ -208,7 +241,7 @@ class frame_tracer_3D : public shared_object {
       JointState s_u = map_to_jt_space.map_to_space(u_pt, free_space.get_super_space(), *jt_space);
       dk_map.apply_to_model(s_u, *jt_space);
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace[i].start_edge(traced_frames[i]->getGlobalPose().Position);
+        current_trace[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
       while(u_pt != p->get_end_point()) {
         t += interval_size;
         u_pt = p->move_away_from(u_pt, interval_size);
@@ -264,12 +297,13 @@ class frame_tracer_3D : public shared_object {
  * linked with the given DirectKinMapper.
  */
 template <typename DirectKinMapper, typename JointStateSpace, typename NextReporter>
-class frame_tracer_3D<DirectKinMapper, JointStateSpace, void, NextReporter> : public shared_object {
+class frame_tracer_3D<DirectKinMapper, JointStateSpace, identity_topo_map, NextReporter> : public shared_object {
   public:
-    typedef frame_tracer_3D<NextReporter> self;
+    typedef frame_tracer_3D<DirectKinMapper, JointStateSpace, identity_topo_map, NextReporter> self;
+    
+    NextReporter next_reporter;
     
   protected:
-    NextReporter next_reporter;
     DirectKinMapper dk_map;
     shared_ptr<JointStateSpace> jt_space;
     /// Holds the interval-size between output points of the solution trajectory/path.
@@ -277,7 +311,7 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, void, NextReporter> : pu
     
     std::vector< shared_ptr< pose_3D<double> > > traced_frames;
     std::vector< geom::tracer_coin3d_impl > motion_graph_traces;
-    std::map< double, std::vector< tracer_coin3d_impl > > solution_traces;
+    mutable std::map< double, std::vector< geom::tracer_coin3d_impl > > solution_traces;
   
   public:
     
@@ -293,6 +327,37 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, void, NextReporter> : pu
     self& add_traced_frame(const shared_ptr< pose_3D<double> >& aPose) {
       traced_frames.push_back(aPose);
       motion_graph_traces.push_back(geom::tracer_coin3d_impl(false));
+      return *this;
+    };
+    
+    const geom::tracer_coin3d_impl& get_motion_graph_tracer(const shared_ptr< pose_3D<double> >& aPose) const {
+      std::vector< shared_ptr< pose_3D<double> > >::const_iterator it = std::find(traced_frames.begin(),traced_frames.end(),aPose);
+      if(it != traced_frames.end()) {
+        return motion_graph_traces[it - traced_frames.begin()];
+      } else
+        throw std::range_error("The given pose is not being traced by this frame-tracer!");
+    };
+    
+    std::size_t get_solution_count() const {
+      return solution_traces.size();
+    };
+    
+    double get_best_solution_value() const {
+      if(solution_traces.empty())
+        return std::numeric_limits<double>::infinity();
+      return solution_traces.begin()->first;
+    };
+    
+    const geom::tracer_coin3d_impl& get_solution_tracer(const shared_ptr< pose_3D<double> >& aPose, std::size_t aSolutionId = 0) const {
+      if(aSolutionId >= solution_traces.size())
+        aSolutionId = 0;
+      std::vector< shared_ptr< pose_3D<double> > >::const_iterator it = std::find(traced_frames.begin(),traced_frames.end(),aPose);
+      if(it != traced_frames.end()) {
+        std::map< double, std::vector< geom::tracer_coin3d_impl > >::const_iterator itm = solution_traces.begin();
+        std::advance(itm, aSolutionId);
+        return itm->second[it - traced_frames.begin()];
+      } else
+        throw std::range_error("The given pose is not being traced by this frame-tracer!");
     };
     
     /**
@@ -320,7 +385,7 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, void, NextReporter> : pu
           PointType p_v = get(pos, target(*ei, g));
           dk_map.apply_to_model(p_u, *jt_space);
           for(std::size_t i = 0; i < traced_frames.size(); ++i)
-            motion_graph_traces[i].start_edge(traced_frames[i]->getGlobalPose().Position);
+            motion_graph_traces[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
           for(double j = 0.1; j <= 1.01; j += 0.1) {
             PointType p_new = free_space.get_super_space().move_position_toward(p_u, j, p_v);
             dk_map.apply_to_model(p_new, *jt_space);
@@ -351,7 +416,7 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, void, NextReporter> : pu
         next_reporter.draw_solution(free_space, traj);
         return;
       };
-      std::vector< tracer_coin3d_impl >& current_trace = solution_traces[t_total];
+      std::vector< geom::tracer_coin3d_impl >& current_trace = solution_traces[t_total];
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
         current_trace.push_back(geom::tracer_coin3d_impl(true));
       
@@ -359,7 +424,7 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, void, NextReporter> : pu
       PointType u_pt = traj->get_point_at_time(t);
       dk_map.apply_to_model(u_pt, *jt_space);
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace[i].start_edge(traced_frames[i]->getGlobalPose().Position);
+        current_trace[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
       while(t < traj->get_end_time()) {
         t += interval_size;
         u_pt = traj->get_point_at_time(t);
@@ -389,7 +454,7 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, void, NextReporter> : pu
         next_reporter.draw_solution(free_space, p);
         return;
       };
-      std::vector< tracer_coin3d_impl >& current_trace = solution_traces[t_total];
+      std::vector< geom::tracer_coin3d_impl >& current_trace = solution_traces[t_total];
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
         current_trace.push_back(geom::tracer_coin3d_impl(true));
       
@@ -397,7 +462,7 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, void, NextReporter> : pu
       PointType u_pt = p->get_start_point();
       dk_map.apply_to_model(u_pt, *jt_space);
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace[i].start_edge(traced_frames[i]->getGlobalPose().Position);
+        current_trace[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
       while(u_pt != p->get_end_point()) {
         t += interval_size;
         u_pt = p->move_away_from(u_pt, interval_size);

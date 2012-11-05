@@ -293,14 +293,14 @@ namespace detail {
   vect<double,2> sap_compute_projected_deltas(double beta, const vect<double,5>& coefs, double dt_amax, double& A_0, double& A_1) {
     using std::sqrt;
     vect<double,2> result;
-    A_0 = sqrt( coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]) );
-    double t_0 = coefs[0] * coefs[1] / coefs[4];
+    A_0 = sqrt( coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[1] - beta * coefs[4]) );
+    double t_0 = coefs[1] / coefs[4];
     if(A_0 < dt_amax)
       result[0] = 0.5 * sqrt( dt_amax * A_0 ) * ( t_0 + 3.0 * beta );
     else
       result[0] = 0.5 * ((dt_amax + A_0) * (beta + t_0) + dt_amax * dt_amax / A_0 * (beta - t_0));
-    A_1 = sqrt( coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4]) );
-    double t_1 = coefs[2] * coefs[3] / coefs[4];
+    A_1 = sqrt( coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[3] - beta * coefs[4]) );
+    double t_1 = coefs[3] / coefs[4];
     if(A_1 < dt_amax)
       result[1] = 0.5 * sqrt( dt_amax * A_1 ) * (t_1 + 3.0 * beta);
     else
@@ -320,31 +320,31 @@ namespace detail {
     using std::fabs;
     vect<double,2> result;
     if(A_0 < dt_amax) {
-//       if((fabs( coefs[0] * coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[0] * (1.0 - coefs[1]) / coefs[4]) < 1e-6))
+//       if((fabs( coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs((coefs[0] - coefs[1]) / coefs[4]) < 1e-6))
 //         result[0] = sqrt(dt_amax * A_0);
 //       else
-//         result[0] = sqrt(dt_amax * A_0) * (1.5 + 0.25 * (3.0 * beta * coefs[4] + coefs[0] * coefs[1]) * 
-//                                                         (beta * coefs[4] - coefs[0] * coefs[1]) / (A_0 * A_0));
-      result[0] = beta * coefs[4] * (beta * coefs[4] - coefs[0] * coefs[1]) / dt_amax 
-                + coefs[0] * coefs[0] * (1 - coefs[1] * coefs[1]) / dt_amax
+//         result[0] = sqrt(dt_amax * A_0) * (1.5 + 0.25 * (3.0 * beta * coefs[4] + coefs[1]) * 
+//                                                         (beta * coefs[4] - coefs[1]) / (A_0 * A_0));
+      result[0] = beta * coefs[4] * (beta * coefs[4] - coefs[1]) / dt_amax 
+                + (coefs[0] * coefs[0] - coefs[1] * coefs[1]) / dt_amax
                 + 0.5 * dt_amax;
     } else {
-      result[0] = beta * coefs[4] * (beta * coefs[4] - coefs[0] * coefs[1]) / A_0 
-                + 0.5 * ((1.0 + dt_amax * dt_amax / (A_0 * A_0)) * coefs[0] * coefs[0] * (1 - coefs[1] * coefs[1]) / A_0
+      result[0] = beta * coefs[4] * (beta * coefs[4] - coefs[1]) / A_0 
+                + 0.5 * ((1.0 + dt_amax * dt_amax / (A_0 * A_0)) * (coefs[0] * coefs[0] - coefs[1] * coefs[1]) / A_0
                          + dt_amax);
     };
     if(A_1 < dt_amax) {
-//       if((fabs( coefs[2] * coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[2] * (1.0 - coefs[3]) / coefs[4]) < 1e-6))
+//       if((fabs( coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs((coefs[2] - coefs[3]) / coefs[4]) < 1e-6))
 //         result[1] = sqrt(dt_amax * A_1);
 //       else
-//         result[1] = sqrt(dt_amax * A_1) * (1.5 + 0.25 * (3.0 * beta * coefs[4] + coefs[2] * coefs[3]) * 
-//                                                         (beta * coefs[4] - coefs[2] * coefs[3]) / (A_1 * A_1));
-      result[1] = beta * coefs[4] * (beta * coefs[4] - coefs[2] * coefs[3]) / dt_amax 
-                + coefs[2] * coefs[2] * (1 - coefs[3] * coefs[3]) / dt_amax
+//         result[1] = sqrt(dt_amax * A_1) * (1.5 + 0.25 * (3.0 * beta * coefs[4] + coefs[3]) * 
+//                                                         (beta * coefs[4] - coefs[3]) / (A_1 * A_1));
+      result[1] = beta * coefs[4] * (beta * coefs[4] - coefs[3]) / dt_amax 
+                + (coefs[2] * coefs[2] - coefs[3] * coefs[3]) / dt_amax
                 + 0.5 * dt_amax;
     } else {
-      result[1] = beta * coefs[4] * (beta * coefs[4] - coefs[2] * coefs[3]) / A_1 
-                + 0.5 * ((1.0 + dt_amax * dt_amax / (A_1 * A_1)) * coefs[2] * coefs[2] * (1 - coefs[3] * coefs[3]) / A_1
+      result[1] = beta * coefs[4] * (beta * coefs[4] - coefs[3]) / A_1 
+                + 0.5 * ((1.0 + dt_amax * dt_amax / (A_1 * A_1)) * (coefs[2] * coefs[2] - coefs[3] * coefs[3]) / A_1
                          + dt_amax);
     };
     return result;
@@ -388,22 +388,22 @@ namespace detail {
     
     double dt0, dt1;
     if(A_0 < dt_amax) {
-//       if((fabs( coefs[0] * coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[0] * (1.0 - coefs[1]) / coefs[4]) < 1e-6))
+//       if((fabs( coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs((coefs[0] - coefs[1]) / coefs[4]) < 1e-6))
 //         dt0 = -0.5 * sqrt(dt_amax * A_0) / beta;
 //       else
-//         dt0 = sqrt(dt_amax / A_0) * coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
-      dt0 = coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / dt_amax;
+//         dt0 = sqrt(dt_amax / A_0) * coefs[4] * (coefs[4] * beta - coefs[1]) / A_0;
+      dt0 = coefs[4] * (coefs[4] * beta - coefs[1]) / dt_amax;
     } else {
-      dt0 = coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
+      dt0 = coefs[4] * (coefs[4] * beta - coefs[1]) / A_0;
     };
     if(A_1 < dt_amax) {
-//       if((fabs( coefs[2] * coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[2] * (1.0 - coefs[3]) / coefs[4]) < 1e-6))
+//       if((fabs( coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs((coefs[2] - coefs[3]) / coefs[4]) < 1e-6))
 //         dt1 = -0.5 * sqrt(dt_amax * A_1) / beta;
 //       else
-//         dt1 = sqrt(dt_amax / A_1) * coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
-      dt1 = coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / dt_amax;
+//         dt1 = sqrt(dt_amax / A_1) * coefs[4] * (coefs[4] * beta - coefs[3]) / A_1;
+      dt1 = coefs[4] * (coefs[4] * beta - coefs[3]) / dt_amax;
     } else {
-      dt1 = coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
+      dt1 = coefs[4] * (coefs[4] * beta - coefs[3]) / A_1;
     };
     
     return fabs(c) / (beta * beta) - ( c > 0.0 ? c_dot : -c_dot) / beta - dt0 - dt1;
@@ -451,25 +451,25 @@ namespace detail {
     
     double dt0, dt1;
     if(A_0 < dt_amax) {
-//       if((fabs( coefs[0] * coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[0] * (1.0 - coefs[1]) / coefs[4]) < 1e-6))
+//       if((fabs( coefs[1] / coefs[4] - beta ) < 1e-6) && (fabs((coefs[0] - coefs[1]) / coefs[4]) < 1e-6))
 //         dt0 = -0.5 * sqrt(dt_amax * A_0) / beta;
 //       else
-//         dt0 = sqrt(dt_amax / A_0) * coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
-      dt0 = coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / dt_amax;
+//         dt0 = sqrt(dt_amax / A_0) * coefs[4] * (coefs[4] * beta - coefs[1]) / A_0;
+      dt0 = coefs[4] * (coefs[4] * beta - coefs[1]) / dt_amax;
     } else {
-      dt0 = coefs[4] * (coefs[4] * beta - coefs[0] * coefs[1]) / A_0;
+      dt0 = coefs[4] * (coefs[4] * beta - coefs[1]) / A_0;
     };
     if(A_1 < dt_amax) {
-//       if((fabs( coefs[2] * coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs(coefs[2] * (1.0 - coefs[3]) / coefs[4]) < 1e-6))
+//       if((fabs( coefs[3] / coefs[4] - beta ) < 1e-6) && (fabs((coefs[2] - coefs[3]) / coefs[4]) < 1e-6))
 //         dt1 = -0.5 * sqrt(dt_amax * A_1) / beta;
 //       else
-//         dt1 = sqrt(dt_amax / A_1) * coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
-      dt1 = coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / dt_amax;
+//         dt1 = sqrt(dt_amax / A_1) * coefs[4] * (coefs[4] * beta - coefs[3]) / A_1;
+      dt1 = coefs[4] * (coefs[4] * beta - coefs[3]) / dt_amax;
     } else {
-      dt1 = coefs[4] * (coefs[4] * beta - coefs[2] * coefs[3]) / A_1;
+      dt1 = coefs[4] * (coefs[4] * beta - coefs[3]) / A_1;
     };
     
-    RK_NOTICE(1,"   dt-der iter");
+    //RK_NOTICE(1,"   dt-der iter");
     
     return dt0 + dt1 - fabs(c) / (beta * beta) + ( c > 0.0 ? c_dot : -c_dot) / beta;
   };
@@ -560,9 +560,9 @@ namespace detail {
         lower += 0.5 * (upper - lower);
       };
       if(lower < 0.99) {
-	RK_NOTICE(1,"  starting dt-der iterations....");
+	//RK_NOTICE(1,"  starting dt-der iterations....");
         brent_method(lower, upper, boost::bind(sap_compute_derivative_travel_time,_1,boost::cref(deltas_0),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
-	RK_NOTICE(1,"  done.");
+	//RK_NOTICE(1,"  done.");
       } else {
         upper = 1.0;
         lower = 0.9;
@@ -570,9 +570,9 @@ namespace detail {
           upper = lower;
           lower *= 0.5;
         };
-	RK_NOTICE(1,"  starting dt-der iterations....");
+	//RK_NOTICE(1,"  starting dt-der iterations....");
         brent_method(lower, upper, boost::bind(sap_compute_derivative_travel_time,_1,boost::cref(deltas_0),boost::cref(norm_delta),boost::cref(coefs),boost::cref(dt_amax)), num_tol);
-	RK_NOTICE(1,"  done.");
+	//RK_NOTICE(1,"  done.");
       };
       //make sure that the second root does not cause a reversal of the travel direction:
       vect<double,2> deltas_1 = sap_compute_projected_deltas(upper,coefs,dt_amax);
@@ -588,7 +588,7 @@ namespace detail {
   
   bool sap_min_dt_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& result, double dt_amax) {
     result = sap_compute_travel_time(beta,sap_compute_projected_deltas(beta,coefs,dt_amax),norm_delta,coefs,dt_amax);
-    RK_NOTICE(1,"   gives min-dt = " << result);
+    //RK_NOTICE(1,"   gives min-dt = " << result);
     return true;
   };
   
@@ -636,8 +636,8 @@ namespace detail {
       };
     };
       
-    RK_NOTICE(1,"   delta-time = " << delta_time);
-    RK_NOTICE(1,"   beta-peaks = (" << beta_peak1 << " " << beta_peak2 << ")");
+    //RK_NOTICE(1,"   delta-time = " << delta_time);
+    //RK_NOTICE(1,"   beta-peaks = (" << beta_peak1 << " " << beta_peak2 << ")");
     
     if( std::fabs(beta - beta_peak1) < std::fabs(beta - beta_peak2) ) {
       beta = beta_peak1;
@@ -651,7 +651,7 @@ namespace detail {
   
   bool sap_no_slack_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& slack, double delta_time, double dt_amax) {
     slack = sap_compute_slack_time(beta,delta_time,sap_compute_projected_deltas(beta,coefs,dt_amax),norm_delta,coefs,dt_amax);
-    RK_NOTICE(1,"   gives slack-time = " << slack);
+    //RK_NOTICE(1,"   gives slack-time = " << slack);
     return (std::fabs(slack) < 100.0 * num_tol * delta_time );
   };
   
@@ -666,7 +666,7 @@ namespace detail {
 				    double num_tol = 1E-6, unsigned int max_iter = 20) {
     
     double result = 0.0;
-    RK_NOTICE(1,"*********  Starting Min-dt Iterations    *****************");
+    //RK_NOTICE(1,"*********  Starting Min-dt Iterations    *****************");
     
     svp_peak_velocity_iteration(
       start_point, end_point,
@@ -690,7 +690,7 @@ namespace detail {
 				   double num_tol = 1E-6, unsigned int max_iter = 20) {
     
     double slack = 0.0;
-    RK_NOTICE(1,"*********  Starting No-slack Iterations  *****************");
+    //RK_NOTICE(1,"*********  Starting No-slack Iterations  *****************");
     
     svp_peak_velocity_iteration(
       start_point, end_point,

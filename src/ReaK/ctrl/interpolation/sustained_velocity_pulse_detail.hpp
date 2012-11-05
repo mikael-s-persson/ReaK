@@ -289,8 +289,8 @@ namespace detail {
     
     double c = (norm_delta + coefs[4] * (beta_0 * beta_0 - beta * beta) );
     
-    return dt - sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4])) 
-              - sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4]))
+    return dt - sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[1] - beta * coefs[4])) 
+              - sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[3] - beta * coefs[4]))
            - fabs(c) / beta;
   };
     
@@ -301,10 +301,10 @@ namespace detail {
     
     double c = (norm_delta + coefs[4] * (beta_0 * beta_0 - beta * beta) );
     
-    double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]));
-    double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4]));
+    double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[1] - beta * coefs[4]));
+    double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[3] - beta * coefs[4]));
     return fabs(c) / (beta * beta) - ( c > 0.0 ? -2.0 : 2.0) * coefs[4]
-           - coefs[4] * ((coefs[4] * beta - coefs[0] * coefs[1]) / term1 + (coefs[4] * beta - coefs[2] * coefs[3]) / term2);
+           - coefs[4] * ((coefs[4] * beta - coefs[1]) / term1 + (coefs[4] * beta - coefs[3]) / term2);
   };
   
   
@@ -315,8 +315,8 @@ namespace detail {
     
     double c = (norm_delta + coefs[4] * (beta_0 * beta_0 - beta * beta) );
     
-    return sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4])) 
-           + sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4])) 
+    return sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[1] - beta * coefs[4])) 
+           + sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[3] - beta * coefs[4])) 
            + fabs(c) / beta;
   };
     
@@ -327,9 +327,9 @@ namespace detail {
     
     double c = (norm_delta + coefs[4] * (beta_0 * beta_0 - beta * beta) );
     
-    double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[0] * coefs[1] - beta * coefs[4]));
-    double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[2] * coefs[3] - beta * coefs[4]));
-    return coefs[4] * ((coefs[4] * beta - coefs[0] * coefs[1]) / term1 + (coefs[4] * beta - coefs[2] * coefs[3]) / term2) 
+    double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[1] - beta * coefs[4]));
+    double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[3] - beta * coefs[4]));
+    return coefs[4] * ((coefs[4] * beta - coefs[1]) / term1 + (coefs[4] * beta - coefs[3]) / term2) 
            - fabs(c) / (beta * beta) + ( c > 0.0 ? -2.0 : 2.0) * coefs[4];
   };
   
@@ -387,7 +387,7 @@ namespace detail {
   
   bool svp_min_dt_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& result) {
     result = svp_compute_travel_time(beta,beta,norm_delta,coefs);
-    RK_NOTICE(1,"   gives min-dt = " << result);
+    //RK_NOTICE(1,"   gives min-dt = " << result);
     return true;
   };
   
@@ -432,8 +432,8 @@ namespace detail {
       };
     };
       
-    RK_NOTICE(1,"   delta-time = " << delta_time);
-    RK_NOTICE(1,"   beta-peaks = (" << beta_peak1 << " " << beta_peak2 << ")");
+    //RK_NOTICE(1,"   delta-time = " << delta_time);
+    //RK_NOTICE(1,"   beta-peaks = (" << beta_peak1 << " " << beta_peak2 << ")");
     
     if( std::fabs(beta - beta_peak1) < std::fabs(beta - beta_peak2) ) {
       beta = beta_peak1;
@@ -447,7 +447,7 @@ namespace detail {
   
   bool svp_no_slack_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& slack, double delta_time) {
     slack = svp_compute_slack_time(beta,delta_time,beta,norm_delta,coefs);
-    RK_NOTICE(1,"   gives slack-time = " << slack);
+    //RK_NOTICE(1,"   gives slack-time = " << slack);
     return (std::fabs(slack) < 100.0 * num_tol * delta_time );
   };
   
@@ -478,29 +478,29 @@ namespace detail {
     for(unsigned int i = 0; i < max_iter; ++i) {
       PointType1 prev_peak_velocity = peak_velocity;
       
-      RK_NOTICE(1,"*********                       iter = " << i << " *****************");
-      RK_NOTICE(1,"   with peak-vel = " << peak_velocity << " and delta-p = " << delta_first_order);
+      //RK_NOTICE(1,"*********                       iter = " << i << " *****************");
+      //RK_NOTICE(1,"   with peak-vel = " << peak_velocity << " and delta-p = " << delta_first_order);
       
       peak_velocity = space_1.adjust(peak_velocity, space_1.get_diff_to_boundary(peak_velocity));
       
       double temp = get(distance_metric, space_1)(get<1>(start_point), peak_velocity, space_1);
-      coefs[1] = (coefs[0] * coefs[0] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[0] * coefs[4]);
+      coefs[1] = (coefs[0] * coefs[0] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[4]);
       temp = get(distance_metric, space_1)(get<1>(end_point), peak_velocity, space_1);
-      coefs[3] = (coefs[2] * coefs[2] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[2] * coefs[4]);
+      coefs[3] = (coefs[2] * coefs[2] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[4]);
       
-      RK_NOTICE(1,"   coefs = " << coefs);
+      //RK_NOTICE(1,"   coefs = " << coefs);
       
       beta = get_next_beta(beta,norm_delta,coefs,num_tol);
       
-      RK_NOTICE(1,"   found beta = " << beta);
+      //RK_NOTICE(1,"   found beta = " << beta);
       
       peak_velocity = space_1.adjust(space_1.origin(), beta * space_1.difference(peak_velocity, space_1.origin()));
       
       update_delta_p(start_point,end_point,delta_first_order,peak_velocity,norm_delta,beta,space,t_space,num_tol);
       //svp_update_delta_first_order(start_point,end_point,delta_first_order,peak_velocity,norm_delta,beta,space,t_space,num_tol);
       
-      RK_NOTICE(1,"   gives new peak-vel = " << peak_velocity);
-      RK_NOTICE(1,"   gives new delta-p = " << delta_first_order);
+      //RK_NOTICE(1,"   gives new peak-vel = " << peak_velocity);
+      //RK_NOTICE(1,"   gives new delta-p = " << delta_first_order);
       
       if( pred(beta,norm_delta,coefs,num_tol)
 	 && ( beta > num_tol ) && ( beta <= 1.0)
@@ -522,7 +522,7 @@ namespace detail {
 				    double num_tol = 1E-6, unsigned int max_iter = 20) {
     
     double result = 0.0;
-    RK_NOTICE(1,"*********  Starting Min-dt Iterations    *****************");
+    //RK_NOTICE(1,"*********  Starting Min-dt Iterations    *****************");
     
     svp_peak_velocity_iteration(
       start_point, end_point,
@@ -546,7 +546,7 @@ namespace detail {
 				   double num_tol = 1E-6, unsigned int max_iter = 20) {
     
     double slack = 0.0;
-    RK_NOTICE(1,"*********  Starting No-slack Iterations  *****************");
+    //RK_NOTICE(1,"*********  Starting No-slack Iterations  *****************");
     
     svp_peak_velocity_iteration(
       start_point, end_point,

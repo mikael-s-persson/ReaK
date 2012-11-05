@@ -47,7 +47,7 @@
 #include "time_topology.hpp"
 #include "default_random_sampler.hpp"
 #include "differentiable_space.hpp"
-#include <lin_alg/vect_alg.hpp>
+#include "lin_alg/vect_alg.hpp"
 
 namespace ReaK {
 
