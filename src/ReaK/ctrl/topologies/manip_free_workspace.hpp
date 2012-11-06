@@ -87,20 +87,19 @@ class manip_dk_proxy_env_impl {
       NormalJointSpace normal_j_space;
       typename topology_traits<NormalJointSpace>::point_type pt_inter = m_joint_limits_map->map_to_space(pt, space, normal_j_space);
       detail::write_joint_coordinates_impl(pt_inter, normal_j_space, m_model);
-      
       // update the kinematics model with the given joint states.
       m_model->doMotion();
       
       // NOTE: it is assumed that the proxy environments are properly linked with the manipulator kinematic model.
       
       for( std::vector< shared_ptr< geom::proxy_query_pair_2D > >::const_iterator it = m_proxy_env_2D.begin(); it != m_proxy_env_2D.end(); ++it) {
-        double tmp = (*it)->findMinimumDistance();
-        if(tmp < 0.0)
+        ReaK::shared_ptr< ReaK::geom::proximity_finder_2D > tmp = (*it)->findMinimumDistance();
+        if((tmp) && (tmp->getLastResult().mDistance < 0.0))
           return false;
       };
       for( std::vector< shared_ptr< geom::proxy_query_pair_3D > >::const_iterator it = m_proxy_env_3D.begin(); it != m_proxy_env_3D.end(); ++it) {
-        double tmp = (*it)->findMinimumDistance();
-        if(tmp < 0.0)
+        ReaK::shared_ptr< ReaK::geom::proximity_finder_3D > tmp = (*it)->findMinimumDistance();
+        if((tmp) && (tmp->getLastResult().mDistance < 0.0))
           return false;
       };
       
@@ -334,6 +333,7 @@ class manip_quasi_static_env : public named_object {
       double dt_min = m_distance(p1, p2, m_space);
       interp.initialize(p1, p2, dt_min, m_space, time_topology(), InterpFactoryType());
       double dt = dt_min * fraction;
+      dt = (dt < max_edge_length ? dt : max_edge_length);
       double d = min_interval;
       point_type result = p1;
       point_type last_result = p1;
@@ -344,7 +344,7 @@ class manip_quasi_static_env : public named_object {
         d += min_interval;
         last_result = result;
       };
-      if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
+      if((fraction == 1.0) && (dt_min < max_edge_length)) //these equal comparison are used for when exact end fractions are used.
         return p2;
       else if(fraction == 0.0)
         return p1;
@@ -630,6 +630,7 @@ class manip_dynamic_env : public named_object {
         return p1;
       interp.initialize(p1.pt, p2.pt, (p2.time - p1.time), m_space.get_space_topology(), m_space.get_time_topology(), InterpFactoryType());
       double dt = dt_total * fraction;
+      dt = (dt < max_edge_length ? dt : max_edge_length);
       double d = min_interval;
       point_type result = p1;
       point_type last_result = p1;
@@ -641,7 +642,7 @@ class manip_dynamic_env : public named_object {
         d += min_interval;
         last_result = result;
       };
-      if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
+      if((fraction == 1.0) && (dt_total < max_edge_length)) //these equal comparison are used for when exact end fractions are used.
         return p2;
       else if(fraction == 0.0)
         return p1;

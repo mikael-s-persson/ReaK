@@ -1827,13 +1827,13 @@ namespace detail {
 				            const InPoint& pt,
 					    const RateLimitMap& j_limits,
 					    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-
+    
     create_normal_joint_vectors_impl< typename boost::mpl::prior<Idx>::type >(result,pt,j_limits,gen_i,f2d_i,f3d_i);
-
+    
     create_normal_joint_vector_impl(get< Idx::type::value >(result),
                                 get< Idx::type::value >(pt),
 			        j_limits, gen_i, f2d_i, f3d_i);
-
+    
   };
 
   template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
@@ -1847,7 +1847,7 @@ namespace detail {
 					    const RateLimitMap& j_limits,
 					    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
 
-    create_normal_joint_vectors_impl(get< 0 >(result),
+    create_normal_joint_vector_impl(get< 0 >(result),
                                 get< 0 >(pt),
 			        j_limits, gen_i, f2d_i, f3d_i);
 
@@ -1860,7 +1860,7 @@ namespace detail {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
-    create_rl_joint_vectors_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutPoint > >::type >(result, pt, j_limits, gen_i, f2d_i, f3d_i);
+    create_normal_joint_vectors_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutPoint > >::type >(result, pt, j_limits, gen_i, f2d_i, f3d_i);
   };
 
 

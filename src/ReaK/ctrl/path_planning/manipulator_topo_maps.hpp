@@ -146,21 +146,24 @@ class manip_direct_kin_map : public shared_object {
  * (both generalized and frames), and that it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
  * \tparam RateLimitMap The type of the mapping between rate-limited joint-spaces and normal joint-spaces.
  */
-template <typename RateLimitMap>
+template <typename RateLimitMap, typename NormalJointSpace>
 class manip_rl_direct_kin_map : public shared_object {
   public:
     
-    typedef manip_rl_direct_kin_map<RateLimitMap> self;
+    typedef manip_rl_direct_kin_map<RateLimitMap,NormalJointSpace> self;
     
     /** This data member points to a manipulator kinematics model to use for the mappings performed. */
     shared_ptr< kte::manipulator_kinematics_model > model; 
     /** This data member holds a mapping between the rate-limited joint space and the normal joint-space. */
     shared_ptr< RateLimitMap > joint_limits_map;
+    shared_ptr< NormalJointSpace > normal_jt_space;
     
     manip_rl_direct_kin_map(const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
-			    const shared_ptr< RateLimitMap >& aJointLimitMap = shared_ptr< RateLimitMap >()) : 
+			    const shared_ptr< RateLimitMap >& aJointLimitMap = shared_ptr< RateLimitMap >(),
+                            const shared_ptr< NormalJointSpace >& aNormalJtSpace = shared_ptr< NormalJointSpace >()) : 
                             model(aModel),
-                            joint_limits_map(aJointLimitMap) { };
+                            joint_limits_map(aJointLimitMap),
+                            normal_jt_space(aNormalJtSpace) { };
     
     /**
      * This function template performs a forward kinematics calculation on the 
@@ -178,10 +181,8 @@ class manip_rl_direct_kin_map : public shared_object {
     map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
       typename topology_traits< OutSpace >::point_type result;
       
-      typedef typename get_rate_illimited_space< InSpace >::type NormalJointSpace;
-      NormalJointSpace normal_j_space;
-      typename topology_traits<NormalJointSpace>::point_type pt_inter = joint_limits_map->map_to_space(pt, space_in, normal_j_space);
-      detail::write_joint_coordinates_impl(pt_inter, normal_j_space, model);
+      typename topology_traits<NormalJointSpace>::point_type pt_inter = joint_limits_map->map_to_space(pt, space_in, *normal_jt_space);
+      detail::write_joint_coordinates_impl(pt_inter, *normal_jt_space, model);
       
       model->doMotion();
       
@@ -201,9 +202,8 @@ class manip_rl_direct_kin_map : public shared_object {
     template <typename PointType, typename InSpace>
     void apply_to_model(const PointType& pt, const InSpace& space_in) const {
       typedef typename get_rate_illimited_space< InSpace >::type NormalJointSpace;
-      NormalJointSpace normal_j_space;
-      typename topology_traits<NormalJointSpace>::point_type pt_inter = joint_limits_map->map_to_space(pt, space_in, normal_j_space);
-      detail::write_joint_coordinates_impl(pt_inter, normal_j_space, model);
+      typename topology_traits<NormalJointSpace>::point_type pt_inter = joint_limits_map->map_to_space(pt, space_in, *normal_jt_space);
+      detail::write_joint_coordinates_impl(pt_inter, *normal_jt_space, model);
       model->doMotion();
     };
     
@@ -215,12 +215,14 @@ class manip_rl_direct_kin_map : public shared_object {
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(model)
-        & RK_SERIAL_SAVE_WITH_NAME(joint_limits_map);
+        & RK_SERIAL_SAVE_WITH_NAME(joint_limits_map)
+        & RK_SERIAL_SAVE_WITH_NAME(normal_jt_space);
     };
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(model)
-        & RK_SERIAL_LOAD_WITH_NAME(joint_limits_map);
+        & RK_SERIAL_LOAD_WITH_NAME(joint_limits_map)
+        & RK_SERIAL_LOAD_WITH_NAME(normal_jt_space);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400013,1,"manip_rl_direct_kin_map",shared_object)
@@ -1524,7 +1526,7 @@ class manip_ik_knn_starts_map : public shared_object {
     
 };
 
-
+#if 0
 /**
  * This class implements the inverse kinematics mappings associated to a given manipulator kinematics 
  * model. This class assumes that the manipulator model has a number of rate-limited joint coordinates, 
@@ -1704,7 +1706,7 @@ class manip_rl_ik_knn_starts_map : public shared_object {
     
     
 };
-
+#endif
 #endif
 
 

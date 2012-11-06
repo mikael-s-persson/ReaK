@@ -885,6 +885,32 @@ namespace detail {
   
   
   
+  
+  template <typename Idx, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::equal_to< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_std_output_impl( std::ostream& lhs, const Tuple& rhs) { 
+    lhs << "( " << get<Idx::type::value>(rhs);
+  };
+
+  template <typename Idx, typename Tuple>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::greater< 
+      Idx, 
+      boost::mpl::size_t<0> 
+    >,
+  void >::type tuple_std_output_impl( std::ostream& lhs, const Tuple& rhs) {
+    tuple_std_output_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
+    lhs << "; " << get<Idx::type::value>(rhs);
+  };
+  
+  
+  
   template <typename Idx, typename Tuple>
   inline 
   typename boost::enable_if< 
@@ -1268,6 +1294,26 @@ Tuple& >::type operator /=(Tuple& lhs, const Scalar& rhs) {
   detail::tuple_sdivassign_impl<arithmetic_tuple_size<Tuple>,Tuple,Scalar>(lhs, rhs);
   return lhs;
 };
+
+
+
+
+/**
+ * This function template is an overload of the unnamed archive-output operator for arithmetic-tuples. 
+ * This function performs the unnamed archive-output of each element of the tuple, will only compile if 
+ * all elements of the tuple support the unnamed archive-output operator.
+ * \param out The output archive.
+ * \param rhs The arithmetic-tuple object to output on the archive.
+ * \return The output archive.
+ * \tparam Tuple An arithmetic-tuple type (see is_arithmetic_tuple).
+ */  
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+std::ostream& >::type operator <<(std::ostream& out, const Tuple& rhs) {
+  detail::tuple_std_output_impl<typename boost::mpl::prior< arithmetic_tuple_size<Tuple> >::type, Tuple>(out,rhs);
+  return out << ")";
+};
+
 
 
 namespace serialization {

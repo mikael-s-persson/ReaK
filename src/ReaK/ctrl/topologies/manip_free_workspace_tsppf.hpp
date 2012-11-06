@@ -86,6 +86,7 @@ class manip_quasi_static_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public
       interp.initialize(p1, p2, 0.0, static_cast<const RateLimitedJointSpace&>(m_space), time_topology(), m_space.get_pseudo_factory());
       double dt_min = interp.get_minimum_travel_time();
       double dt = dt_min * fraction;
+      dt = (dt < max_edge_length ? dt : max_edge_length);
       double d = min_interval;
       point_type result = p1;
       point_type last_result = p1;
@@ -96,7 +97,7 @@ class manip_quasi_static_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public
         d += min_interval;
         last_result = result;
       };
-      if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
+      if((fraction == 1.0) && (dt_min < max_edge_length)) //these equal comparison are used for when exact end fractions are used.
         return p2;
       else if(fraction == 0.0)
         return p1;
@@ -280,6 +281,7 @@ class manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public name
         return p1;
       interp.initialize(p1.pt, p2.pt, (p2.time - p1.time), static_cast<const RateLimitedJointSpace&>(m_space.get_space_topology()), m_space.get_time_topology(), m_space.get_space_topology().get_pseudo_factory());
       double dt = dt_total * fraction;
+      dt = (dt < max_edge_length ? dt : max_edge_length);
       double d = min_interval;
       point_type result = p1;
       point_type last_result = p1;
@@ -291,7 +293,7 @@ class manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public name
         d += min_interval;
         last_result = result;
       };
-      if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
+      if((fraction == 1.0) && (dt_total < max_edge_length)) //these equal comparison are used for when exact end fractions are used.
         return p2;
       else if(fraction == 0.0)
         return p1;

@@ -73,6 +73,7 @@
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/random_sampler_concept.hpp"
 
+#include "neighborhood_functors.hpp"
 #include "rr_graph.hpp"
 
 namespace ReaK {

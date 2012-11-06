@@ -121,14 +121,12 @@ void tracer_coin3d_impl::begin_edge(const vect<double,3>& start_point) const {
   if(std::isnan(start_point[0]) || std::isnan(start_point[1]) || std::isnan(start_point[2]))
     return;
   path_impl->current_points.push_back(start_point);
-  std::cout << "pt: " << start_point << std::endl;
 };
 
 void tracer_coin3d_impl::add_point(const vect<double,3>& new_point) const {
   if(std::isnan(new_point[0]) || std::isnan(new_point[1]) || std::isnan(new_point[2]))
     return;
   path_impl->current_points.push_back(new_point);
-  std::cout << "pt: " << new_point << std::endl;
 };
 
 void tracer_coin3d_impl::end_edge() const {

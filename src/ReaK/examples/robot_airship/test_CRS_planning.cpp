@@ -48,8 +48,11 @@
 #include "serialization/xml_archiver.hpp"
 #include "optimization/optim_exceptions.hpp"
 
+#include "interpolation/cubic_hermite_interp.hpp"
+
 #include "topologies/manip_free_workspace.hpp"
 #include "path_planning/rrt_path_planner.hpp"
+#include "path_planning/rrtstar_path_planner.hpp"
 #include "path_planning/manipulator_topo_maps.hpp"
 #include "path_planning/frame_tracer_coin3d.hpp"
 
@@ -74,7 +77,11 @@ struct all_robot_info {
 void add_new_solution_sep(void* userData, SoSensor*) {
   all_robot_info* r_info = reinterpret_cast< all_robot_info* >(userData);
   
-  r_info->pp_root->addChild(r_info->solution_seps.back());
+  while(!r_info->solution_seps.empty()) {
+    r_info->pp_root->addChild(r_info->solution_seps.back());
+    r_info->solution_seps.back()->unref();
+    r_info->solution_seps.pop_back();
+  };
   
 };
 
@@ -185,17 +192,25 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
   try {
     ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model > manip_kin_mdl = r_info->builder.get_manipulator_kin_model();
     ReaK::shared_ptr< ReaK::pp::joint_limits_collection<double> > manip_jt_limits(&(r_info->builder.joint_rate_limits), ReaK::null_deleter());
-    typedef ReaK::pp::manip_quasi_static_env<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type, ReaK::pp::sap_interpolation_tag> workspace_type;
+    typedef ReaK::pp::manip_quasi_static_env<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type, ReaK::pp::cubic_hermite_interpolation_tag> workspace_type;
     ReaK::shared_ptr<workspace_type> 
       workspace(new workspace_type(
         r_info->builder.get_rl_joint_space(),
         manip_kin_mdl,
         manip_jt_limits,
-        0.1, 1.0, 1e-6, 60));
+        0.1, 0.8));
+    /*typedef ReaK::pp::manip_quasi_static_env<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type, ReaK::pp::sap_interpolation_tag> workspace_type;
+    ReaK::shared_ptr<workspace_type> 
+      workspace(new workspace_type(
+        r_info->builder.get_rl_joint_space(),
+        manip_kin_mdl,
+        manip_jt_limits,
+        0.1, 1.0, 1e-6, 60));*/
     
     (*workspace) << r_info->robot_lab_proxy << r_info->robot_airship_proxy;
     
     ReaK::shared_ptr< ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type > jt_space(new ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type(r_info->builder.get_rl_joint_space()));
+    ReaK::shared_ptr< ReaK::robot_airship::CRS_A465_model_builder::joint_space_type > normal_jt_space(new ReaK::robot_airship::CRS_A465_model_builder::joint_space_type(r_info->builder.get_joint_space()));
     
     
     ReaK::pp::topology_traits<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type>::point_type start_point, goal_point;
@@ -252,13 +267,15 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
     goal_point = manip_jt_limits->map_to_space(goal_inter, r_info->builder.get_joint_space(), r_info->builder.get_rl_joint_space());
     
     typedef ReaK::pp::frame_tracer_3D<
-      ReaK::pp::manip_rl_direct_kin_map< ReaK::pp::joint_limits_collection<double> >,
+      ReaK::pp::manip_rl_direct_kin_map< ReaK::pp::joint_limits_collection<double>, ReaK::robot_airship::CRS_A465_model_builder::joint_space_type >,
       ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type, 
       ReaK::pp::identity_topo_map, 
       ReaK::pp::print_sbmp_progress<> > frame_reporter_type;
     frame_reporter_type temp_reporter(
-      ReaK::pp::manip_rl_direct_kin_map< ReaK::pp::joint_limits_collection<double> >(
-        manip_kin_mdl, manip_jt_limits));
+      ReaK::pp::manip_rl_direct_kin_map< ReaK::pp::joint_limits_collection<double>, ReaK::robot_airship::CRS_A465_model_builder::joint_space_type >(
+        manip_kin_mdl, manip_jt_limits, normal_jt_space),
+      jt_space,
+      0.05);
     temp_reporter.add_traced_frame(r_info->builder.arm_joint_6_end);
     
     ReaK::pp::rrt_path_planner<workspace_type, frame_reporter_type>
@@ -267,24 +284,34 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
         start_point,
         goal_point,
         1000,
-        500,
+        1000,
         ReaK::pp::UNIDIRECTIONAL_RRT,
         ReaK::pp::ADJ_LIST_MOTION_GRAPH,
         ReaK::pp::DVP_BF2_TREE_KNN,
         temp_reporter,
-        1);
+        5);
+    /*
+    ReaK::pp::rrtstar_path_planner<workspace_type, frame_reporter_type>
+      workspace_planner(
+        workspace,
+        start_point,
+        goal_point,
+        1000,
+        1000,
+        ReaK::pp::UNIDIRECTIONAL_RRT,
+        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_BF2_TREE_KNN,
+        temp_reporter,
+        5);*/
     
     workspace_planner.solve_path();
     
-    // NOTE: There is a problem here, I have to figure out how to add things to the Coin3D scene graph on-the-fly.
-    //r_info->pp_root->addChild(workspace_planner.get_reporter().get_solution_tracer(r_info->builder.arm_EE).get_separator());
-    //r_info->solution_seps.push_back(new SoSeparator);
-    //r_info->solution_seps.back()->ref();
-    //SoCylinder* test_cyl = new SoCylinder;
-    //r_info->solution_seps.back()->addChild(test_cyl);
-    
-    r_info->solution_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info->builder.arm_joint_6_end).get_separator());
+    r_info->solution_seps.push_back(workspace_planner.get_reporter().get_motion_graph_tracer(r_info->builder.arm_joint_6_end).get_separator());
     r_info->solution_seps.back()->ref();
+    if(workspace_planner.get_reporter().get_solution_count()) {
+      r_info->solution_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info->builder.arm_joint_6_end).get_separator());
+      r_info->solution_seps.back()->ref();
+    };
     SoIdleSensor* ask_for_new_solsep = new SoIdleSensor(add_new_solution_sep, r_info);
     ask_for_new_solsep->schedule();
     
@@ -357,6 +384,10 @@ int main(int argc, char ** argv) {
   r_info.robot_lab_proxy     = ReaK::shared_ptr< ReaK::geom::proxy_query_pair_3D >(new ReaK::geom::proxy_query_pair_3D("robot_lab_proxy",r_info.robot_proxy, r_info.lab_proxy));
   r_info.robot_airship_proxy = ReaK::shared_ptr< ReaK::geom::proxy_query_pair_3D >(new ReaK::geom::proxy_query_pair_3D("robot_airship_proxy",r_info.robot_proxy, r_info.airship_proxy));
   r_info.lab_airship_proxy   = ReaK::shared_ptr< ReaK::geom::proxy_query_pair_3D >(new ReaK::geom::proxy_query_pair_3D("lab_airship_proxy",r_info.lab_proxy, r_info.airship_proxy));
+  
+  r_info.robot_lab_proxy->setModelPair(r_info.robot_proxy, r_info.lab_proxy);
+  r_info.robot_airship_proxy->setModelPair(r_info.robot_proxy, r_info.airship_proxy);
+  r_info.lab_airship_proxy->setModelPair(r_info.lab_proxy, r_info.airship_proxy);
   
   {
   QWidget * mainwin = SoQt::init(argc, argv, argv[0]);
