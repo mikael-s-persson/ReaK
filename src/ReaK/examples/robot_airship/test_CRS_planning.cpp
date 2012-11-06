@@ -283,7 +283,7 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
         workspace,
         start_point,
         goal_point,
-        1000,
+        10000,
         1000,
         ReaK::pp::UNIDIRECTIONAL_RRT,
         ReaK::pp::ADJ_LIST_MOTION_GRAPH,
