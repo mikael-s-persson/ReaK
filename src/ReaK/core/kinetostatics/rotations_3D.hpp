@@ -3703,11 +3703,11 @@ extern template class euler_angles_TB<double>;
 extern template class axis_angle<double>;
 extern template class trans_mat_3D<double>;
 
-extern template std::ostream& operator <<(std::ostream& out_stream, const rot_mat_3D<double>& R);
-extern template std::ostream& operator <<(std::ostream& out_stream, const quaternion<double>& Q);
-extern template std::ostream& operator <<(std::ostream& out_stream, const euler_angles_TB<double>& E);
-extern template std::ostream& operator <<(std::ostream& out_stream, const axis_angle<double>& A);
-extern template std::ostream& operator <<(std::ostream& out_stream, const trans_mat_3D<double>& M);
+extern template std::ostream& operator << <double>(std::ostream& out_stream, const rot_mat_3D<double>& R);
+extern template std::ostream& operator << <double>(std::ostream& out_stream, const quaternion<double>& Q);
+extern template std::ostream& operator << <double>(std::ostream& out_stream, const euler_angles_TB<double>& E);
+extern template std::ostream& operator << <double>(std::ostream& out_stream, const axis_angle<double>& A);
+extern template std::ostream& operator << <double>(std::ostream& out_stream, const trans_mat_3D<double>& M);
 
 
 extern template rot_mat_3D<double> operator *(const rot_mat_3D<double>& R, const quaternion<double>& Q);
@@ -3763,11 +3763,11 @@ extern template class euler_angles_TB<float>;
 extern template class axis_angle<float>;
 extern template class trans_mat_3D<float>;
 
-extern template std::ostream& operator <<(std::ostream& out_stream, const rot_mat_3D<float>& R);
-extern template std::ostream& operator <<(std::ostream& out_stream, const quaternion<float>& Q);
-extern template std::ostream& operator <<(std::ostream& out_stream, const euler_angles_TB<float>& E);
-extern template std::ostream& operator <<(std::ostream& out_stream, const axis_angle<float>& A);
-extern template std::ostream& operator <<(std::ostream& out_stream, const trans_mat_3D<float>& M);
+extern template std::ostream& operator << <float>(std::ostream& out_stream, const rot_mat_3D<float>& R);
+extern template std::ostream& operator << <float>(std::ostream& out_stream, const quaternion<float>& Q);
+extern template std::ostream& operator << <float>(std::ostream& out_stream, const euler_angles_TB<float>& E);
+extern template std::ostream& operator << <float>(std::ostream& out_stream, const axis_angle<float>& A);
+extern template std::ostream& operator << <float>(std::ostream& out_stream, const trans_mat_3D<float>& M);
 
 
 extern template rot_mat_3D<float> operator *(const rot_mat_3D<float>& R, const quaternion<float>& Q);

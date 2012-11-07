@@ -926,15 +926,15 @@ struct is_readable_matrix< trans_mat_2D<T> > {
 extern template class rot_mat_2D<double>;
 extern template class trans_mat_2D<double>;
 
-extern template std::ostream& operator <<(std::ostream& out_stream, const rot_mat_2D<double>& R);
-extern template std::ostream& operator <<(std::ostream& out_stream, const trans_mat_2D<double>& M);
+extern template std::ostream& operator << <double>(std::ostream& out_stream, const rot_mat_2D<double>& R);
+extern template std::ostream& operator << <double>(std::ostream& out_stream, const trans_mat_2D<double>& M);
 
 
 extern template class rot_mat_2D<float>;
 extern template class trans_mat_2D<float>;
 
-extern template std::ostream& operator <<(std::ostream& out_stream, const rot_mat_2D<float>& R);
-extern template std::ostream& operator <<(std::ostream& out_stream, const trans_mat_2D<float>& M);
+extern template std::ostream& operator << <float>(std::ostream& out_stream, const rot_mat_2D<float>& R);
+extern template std::ostream& operator << <float>(std::ostream& out_stream, const trans_mat_2D<float>& M);
 
 
 #endif

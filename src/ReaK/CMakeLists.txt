@@ -60,7 +60,7 @@ else()
 endif()
 
 
-set(Boost_ADDITIONAL_VERSIONS "1.45" "1.45.0" "1.46" "1.46.0" "1.46.1" "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0")
+set(Boost_ADDITIONAL_VERSIONS "1.45" "1.45.0" "1.46" "1.46.0" "1.46.1" "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0")
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 
@@ -90,6 +90,7 @@ if(Boost_FOUND)
   include_directories(SYSTEM ${Boost_INCLUDE_DIR})
   link_directories(${Boost_LIBRARY_DIRS})
   add_definitions( "-DREAK_HAS_BOOST" )
+  message(STATUS "Boost library version ${Boost_LIB_VERSION} found, with headers at '${Boost_INCLUDE_DIR}' and libraries at '${Boost_LIBRARY_DIRS}' for libraries: \n${Boost_LIBRARIES}")
   set(BOOST_THREAD_LIB ${Boost_thread_LIBRARY})
   set(BOOST_DATE_TIME_LIB ${Boost_date_time_LIBRARY})
   if(MSVC)

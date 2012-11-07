@@ -84,24 +84,24 @@ template mat<double,mat_structure::symmetric>& mat<double,mat_structure::symmetr
 template mat<double,mat_structure::symmetric>& mat<double,mat_structure::symmetric>::operator -=(const mat<double,mat_structure::symmetric>& M);
 template mat<double,mat_structure::symmetric>& mat<double,mat_structure::symmetric>::operator -=(const mat<double,mat_structure::diagonal>& M);
 
-template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
-template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+template mat<double,mat_structure::rectangular> operator *< mat<double,mat_structure::rectangular,mat_alignment::column_major> >(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+template mat<double,mat_structure::rectangular> operator *< mat<double,mat_structure::rectangular,mat_alignment::row_major> >(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
-template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::symmetric>& M2);
-template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::symmetric>& M2);
+//template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::symmetric>& M2);
+//template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::symmetric>& M2);
 
-template vect<double,2> operator *(const mat<double,mat_structure::symmetric>& M,const vect<double,2>& V);
-template vect<double,3> operator *(const mat<double,mat_structure::symmetric>& M,const vect<double,3>& V);
-template vect<double,4> operator *(const mat<double,mat_structure::symmetric>& M,const vect<double,4>& V);
-template vect<double,6> operator *(const mat<double,mat_structure::symmetric>& M,const vect<double,6>& V);
+template vect<double,2> operator *<2>(const mat<double,mat_structure::symmetric>& M,const vect<double,2>& V);
+template vect<double,3> operator *<3>(const mat<double,mat_structure::symmetric>& M,const vect<double,3>& V);
+template vect<double,4> operator *<4>(const mat<double,mat_structure::symmetric>& M,const vect<double,4>& V);
+template vect<double,6> operator *<6>(const mat<double,mat_structure::symmetric>& M,const vect<double,6>& V);
 
-template vect<double,2> operator *(const vect<double,2>& V,const mat<double,mat_structure::symmetric>& M);
-template vect<double,3> operator *(const vect<double,3>& V,const mat<double,mat_structure::symmetric>& M);
-template vect<double,4> operator *(const vect<double,4>& V,const mat<double,mat_structure::symmetric>& M);
-template vect<double,6> operator *(const vect<double,6>& V,const mat<double,mat_structure::symmetric>& M);
+template vect<double,2> operator *<2>(const vect<double,2>& V,const mat<double,mat_structure::symmetric>& M);
+template vect<double,3> operator *<3>(const vect<double,3>& V,const mat<double,mat_structure::symmetric>& M);
+template vect<double,4> operator *<4>(const vect<double,4>& V,const mat<double,mat_structure::symmetric>& M);
+template vect<double,6> operator *<6>(const vect<double,6>& V,const mat<double,mat_structure::symmetric>& M);
 
-template vect_n<double> operator *(const mat<double,mat_structure::symmetric>& M,const vect_n<double>& V);
-template vect_n<double> operator *(const vect_n<double>& V,const mat<double,mat_structure::symmetric>& M);
+template vect_n<double> operator *< vect_n<double> >(const mat<double,mat_structure::symmetric>& M,const vect_n<double>& V);
+template vect_n<double> operator *< vect_n<double> >(const vect_n<double>& V,const mat<double,mat_structure::symmetric>& M);
 
 
 template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator +=(const mat<float,mat_structure::symmetric>& M);
@@ -109,24 +109,24 @@ template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric
 template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator -=(const mat<float,mat_structure::symmetric>& M);
 template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator -=(const mat<float,mat_structure::diagonal>& M);
 
-template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
-template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+template mat<float,mat_structure::rectangular> operator *< mat<float,mat_structure::rectangular,mat_alignment::column_major> >(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+template mat<float,mat_structure::rectangular> operator *< mat<float,mat_structure::rectangular,mat_alignment::row_major> >(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
-template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::symmetric>& M2);
-template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::symmetric>& M2);
+//template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::symmetric>& M2);
+//template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::symmetric>& M2);
 
-template vect<float,2> operator *(const mat<float,mat_structure::symmetric>& M,const vect<float,2>& V);
-template vect<float,3> operator *(const mat<float,mat_structure::symmetric>& M,const vect<float,3>& V);
-template vect<float,4> operator *(const mat<float,mat_structure::symmetric>& M,const vect<float,4>& V);
-template vect<float,6> operator *(const mat<float,mat_structure::symmetric>& M,const vect<float,6>& V);
+template vect<float,2> operator *<2>(const mat<float,mat_structure::symmetric>& M,const vect<float,2>& V);
+template vect<float,3> operator *<3>(const mat<float,mat_structure::symmetric>& M,const vect<float,3>& V);
+template vect<float,4> operator *<4>(const mat<float,mat_structure::symmetric>& M,const vect<float,4>& V);
+template vect<float,6> operator *<6>(const mat<float,mat_structure::symmetric>& M,const vect<float,6>& V);
 
-template vect<float,2> operator *(const vect<float,2>& V,const mat<float,mat_structure::symmetric>& M);
-template vect<float,3> operator *(const vect<float,3>& V,const mat<float,mat_structure::symmetric>& M);
-template vect<float,4> operator *(const vect<float,4>& V,const mat<float,mat_structure::symmetric>& M);
-template vect<float,6> operator *(const vect<float,6>& V,const mat<float,mat_structure::symmetric>& M);
+template vect<float,2> operator *<2>(const vect<float,2>& V,const mat<float,mat_structure::symmetric>& M);
+template vect<float,3> operator *<3>(const vect<float,3>& V,const mat<float,mat_structure::symmetric>& M);
+template vect<float,4> operator *<4>(const vect<float,4>& V,const mat<float,mat_structure::symmetric>& M);
+template vect<float,6> operator *<6>(const vect<float,6>& V,const mat<float,mat_structure::symmetric>& M);
 
-template vect_n<float> operator *(const mat<float,mat_structure::symmetric>& M,const vect_n<float>& V);
-template vect_n<float> operator *(const vect_n<float>& V,const mat<float,mat_structure::symmetric>& M);
+template vect_n<float> operator *< vect_n<float> >(const mat<float,mat_structure::symmetric>& M,const vect_n<float>& V);
+template vect_n<float> operator *< vect_n<float> >(const vect_n<float>& V,const mat<float,mat_structure::symmetric>& M);
 
 
 
@@ -136,29 +136,29 @@ template class mat<float, mat_structure::nil>;
 template mat<double,mat_structure::nil> mat_nil<double>(mat<double,mat_structure::nil>::size_type aRowCount, mat<double,mat_structure::nil>::size_type aColCount);
 template mat<float,mat_structure::nil> mat_nil<float>(mat<float,mat_structure::nil>::size_type aRowCount, mat<float,mat_structure::nil>::size_type aColCount);
 
-template vect<double,2> operator *(const mat<double,mat_structure::nil>& M,const vect<double,2>& V);
-template vect<double,3> operator *(const mat<double,mat_structure::nil>& M,const vect<double,3>& V);
-template vect<double,4> operator *(const mat<double,mat_structure::nil>& M,const vect<double,4>& V);
-template vect<double,6> operator *(const mat<double,mat_structure::nil>& M,const vect<double,6>& V);
-template vect_n<double> operator *(const mat<double,mat_structure::nil>& M, const vect_n<double>& V);
+template vect<double,2> operator *< double, 2 >(const mat<double,mat_structure::nil>& M,const vect<double,2>& V);
+template vect<double,3> operator *< double, 3 >(const mat<double,mat_structure::nil>& M,const vect<double,3>& V);
+template vect<double,4> operator *< double, 4 >(const mat<double,mat_structure::nil>& M,const vect<double,4>& V);
+template vect<double,6> operator *< double, 6 >(const mat<double,mat_structure::nil>& M,const vect<double,6>& V);
+template vect_n<double> operator *< double, vect_n<double> >(const mat<double,mat_structure::nil>& M, const vect_n<double>& V);
 
-template vect<double,2> operator *(const vect<double,2>& V,const mat<double,mat_structure::nil>& M);
-template vect<double,3> operator *(const vect<double,3>& V,const mat<double,mat_structure::nil>& M);
-template vect<double,4> operator *(const vect<double,4>& V,const mat<double,mat_structure::nil>& M);
-template vect<double,6> operator *(const vect<double,6>& V,const mat<double,mat_structure::nil>& M);
-template vect_n<double> operator *(const vect_n<double>& V,const mat<double,mat_structure::nil>& M);
+template vect<double,2> operator *< double, 2 >(const vect<double,2>& V,const mat<double,mat_structure::nil>& M);
+template vect<double,3> operator *< double, 3 >(const vect<double,3>& V,const mat<double,mat_structure::nil>& M);
+template vect<double,4> operator *< double, 4 >(const vect<double,4>& V,const mat<double,mat_structure::nil>& M);
+template vect<double,6> operator *< double, 6 >(const vect<double,6>& V,const mat<double,mat_structure::nil>& M);
+template vect_n<double> operator *< double, vect_n<double> >(const vect_n<double>& V,const mat<double,mat_structure::nil>& M);
 
-template vect<float,2> operator *(const mat<float,mat_structure::nil>& M,const vect<float,2>& V);
-template vect<float,3> operator *(const mat<float,mat_structure::nil>& M,const vect<float,3>& V);
-template vect<float,4> operator *(const mat<float,mat_structure::nil>& M,const vect<float,4>& V);
-template vect<float,6> operator *(const mat<float,mat_structure::nil>& M,const vect<float,6>& V);
-template vect_n<float> operator *(const mat<float,mat_structure::nil>& M, const vect_n<float>& V);
+template vect<float,2> operator *< float, 2 >(const mat<float,mat_structure::nil>& M,const vect<float,2>& V);
+template vect<float,3> operator *< float, 3 >(const mat<float,mat_structure::nil>& M,const vect<float,3>& V);
+template vect<float,4> operator *< float, 4 >(const mat<float,mat_structure::nil>& M,const vect<float,4>& V);
+template vect<float,6> operator *< float, 6 >(const mat<float,mat_structure::nil>& M,const vect<float,6>& V);
+template vect_n<float> operator *< float, vect_n<float> >(const mat<float,mat_structure::nil>& M, const vect_n<float>& V);
 
-template vect<float,2> operator *(const vect<float,2>& V,const mat<float,mat_structure::nil>& M);
-template vect<float,3> operator *(const vect<float,3>& V,const mat<float,mat_structure::nil>& M);
-template vect<float,4> operator *(const vect<float,4>& V,const mat<float,mat_structure::nil>& M);
-template vect<float,6> operator *(const vect<float,6>& V,const mat<float,mat_structure::nil>& M);
-template vect_n<float> operator *(const vect_n<float>& V,const mat<float,mat_structure::nil>& M);
+template vect<float,2> operator *< float, 2 >(const vect<float,2>& V,const mat<float,mat_structure::nil>& M);
+template vect<float,3> operator *< float, 3 >(const vect<float,3>& V,const mat<float,mat_structure::nil>& M);
+template vect<float,4> operator *< float, 4 >(const vect<float,4>& V,const mat<float,mat_structure::nil>& M);
+template vect<float,6> operator *< float, 6 >(const vect<float,6>& V,const mat<float,mat_structure::nil>& M);
+template vect_n<float> operator *< float, vect_n<float> >(const vect_n<float>& V,const mat<float,mat_structure::nil>& M);
 
 
 
@@ -206,29 +206,29 @@ template mat<float,mat_structure::scalar> operator *(const float& S, const mat<f
 template class mat<double, mat_structure::scalar>;
 template class mat<float, mat_structure::scalar>;
 
-template vect<double,2> operator *(const mat<double,mat_structure::scalar>& M,const vect<double,2>& V);
-template vect<double,3> operator *(const mat<double,mat_structure::scalar>& M,const vect<double,3>& V);
-template vect<double,4> operator *(const mat<double,mat_structure::scalar>& M,const vect<double,4>& V);
-template vect<double,6> operator *(const mat<double,mat_structure::scalar>& M,const vect<double,6>& V);
-template vect_n<double> operator *(const mat<double,mat_structure::scalar>& M, const vect_n<double>& V);
+template vect<double,2> operator *< vect<double,2> >(const mat<double,mat_structure::scalar>& M,const vect<double,2>& V);
+template vect<double,3> operator *< vect<double,3> >(const mat<double,mat_structure::scalar>& M,const vect<double,3>& V);
+template vect<double,4> operator *< vect<double,4> >(const mat<double,mat_structure::scalar>& M,const vect<double,4>& V);
+template vect<double,6> operator *< vect<double,6> >(const mat<double,mat_structure::scalar>& M,const vect<double,6>& V);
+template vect_n<double> operator *< vect_n<double> >(const mat<double,mat_structure::scalar>& M, const vect_n<double>& V);
 
-template vect<double,2> operator *(const vect<double,2>& V,const mat<double,mat_structure::scalar>& M);
-template vect<double,3> operator *(const vect<double,3>& V,const mat<double,mat_structure::scalar>& M);
-template vect<double,4> operator *(const vect<double,4>& V,const mat<double,mat_structure::scalar>& M);
-template vect<double,6> operator *(const vect<double,6>& V,const mat<double,mat_structure::scalar>& M);
-template vect_n<double> operator *(const vect_n<double>& V,const mat<double,mat_structure::scalar>& M);
+template vect<double,2> operator *< vect<double,2> >(const vect<double,2>& V,const mat<double,mat_structure::scalar>& M);
+template vect<double,3> operator *< vect<double,3> >(const vect<double,3>& V,const mat<double,mat_structure::scalar>& M);
+template vect<double,4> operator *< vect<double,4> >(const vect<double,4>& V,const mat<double,mat_structure::scalar>& M);
+template vect<double,6> operator *< vect<double,6> >(const vect<double,6>& V,const mat<double,mat_structure::scalar>& M);
+template vect_n<double> operator *< vect_n<double> >(const vect_n<double>& V,const mat<double,mat_structure::scalar>& M);
 
-template vect<float,2> operator *(const mat<float,mat_structure::scalar>& M,const vect<float,2>& V);
-template vect<float,3> operator *(const mat<float,mat_structure::scalar>& M,const vect<float,3>& V);
-template vect<float,4> operator *(const mat<float,mat_structure::scalar>& M,const vect<float,4>& V);
-template vect<float,6> operator *(const mat<float,mat_structure::scalar>& M,const vect<float,6>& V);
-template vect_n<float> operator *(const mat<float,mat_structure::scalar>& M, const vect_n<float>& V);
+template vect<float,2> operator *< vect<float,2> >(const mat<float,mat_structure::scalar>& M,const vect<float,2>& V);
+template vect<float,3> operator *< vect<float,3> >(const mat<float,mat_structure::scalar>& M,const vect<float,3>& V);
+template vect<float,4> operator *< vect<float,4> >(const mat<float,mat_structure::scalar>& M,const vect<float,4>& V);
+template vect<float,6> operator *< vect<float,6> >(const mat<float,mat_structure::scalar>& M,const vect<float,6>& V);
+template vect_n<float> operator *< vect_n<float> >(const mat<float,mat_structure::scalar>& M, const vect_n<float>& V);
 
-template vect<float,2> operator *(const vect<float,2>& V,const mat<float,mat_structure::scalar>& M);
-template vect<float,3> operator *(const vect<float,3>& V,const mat<float,mat_structure::scalar>& M);
-template vect<float,4> operator *(const vect<float,4>& V,const mat<float,mat_structure::scalar>& M);
-template vect<float,6> operator *(const vect<float,6>& V,const mat<float,mat_structure::scalar>& M);
-template vect_n<float> operator *(const vect_n<float>& V,const mat<float,mat_structure::scalar>& M);
+template vect<float,2> operator *< vect<float,2> >(const vect<float,2>& V,const mat<float,mat_structure::scalar>& M);
+template vect<float,3> operator *< vect<float,3> >(const vect<float,3>& V,const mat<float,mat_structure::scalar>& M);
+template vect<float,4> operator *< vect<float,4> >(const vect<float,4>& V,const mat<float,mat_structure::scalar>& M);
+template vect<float,6> operator *< vect<float,6> >(const vect<float,6>& V,const mat<float,mat_structure::scalar>& M);
+template vect_n<float> operator *< vect_n<float> >(const vect_n<float>& V,const mat<float,mat_structure::scalar>& M);
 
 
 
@@ -237,44 +237,44 @@ template class mat<double, mat_structure::skew_symmetric>;
 template class mat<float, mat_structure::skew_symmetric>;
 
 
-template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
-template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+template mat<double,mat_structure::rectangular> operator *< mat<double,mat_structure::rectangular,mat_alignment::column_major> >(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+template mat<double,mat_structure::rectangular> operator *< mat<double,mat_structure::rectangular,mat_alignment::row_major> >(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
-template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
-template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
+//template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
+//template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
 
-template vect<double,2> operator *(const mat<double,mat_structure::skew_symmetric>& M,const vect<double,2>& V);
-template vect<double,3> operator *(const mat<double,mat_structure::skew_symmetric>& M,const vect<double,3>& V);
-template vect<double,4> operator *(const mat<double,mat_structure::skew_symmetric>& M,const vect<double,4>& V);
-template vect<double,6> operator *(const mat<double,mat_structure::skew_symmetric>& M,const vect<double,6>& V);
+template vect<double,2> operator *<2>(const mat<double,mat_structure::skew_symmetric>& M,const vect<double,2>& V);
+template vect<double,3> operator *<3>(const mat<double,mat_structure::skew_symmetric>& M,const vect<double,3>& V);
+template vect<double,4> operator *<4>(const mat<double,mat_structure::skew_symmetric>& M,const vect<double,4>& V);
+template vect<double,6> operator *<6>(const mat<double,mat_structure::skew_symmetric>& M,const vect<double,6>& V);
 
-template vect<double,2> operator *(const vect<double,2>& V,const mat<double,mat_structure::skew_symmetric>& M);
-template vect<double,3> operator *(const vect<double,3>& V,const mat<double,mat_structure::skew_symmetric>& M);
-template vect<double,4> operator *(const vect<double,4>& V,const mat<double,mat_structure::skew_symmetric>& M);
-template vect<double,6> operator *(const vect<double,6>& V,const mat<double,mat_structure::skew_symmetric>& M);
+template vect<double,2> operator *<2>(const vect<double,2>& V,const mat<double,mat_structure::skew_symmetric>& M);
+template vect<double,3> operator *<3>(const vect<double,3>& V,const mat<double,mat_structure::skew_symmetric>& M);
+template vect<double,4> operator *<4>(const vect<double,4>& V,const mat<double,mat_structure::skew_symmetric>& M);
+template vect<double,6> operator *<6>(const vect<double,6>& V,const mat<double,mat_structure::skew_symmetric>& M);
 
-template vect_n<double> operator *(const mat<double,mat_structure::skew_symmetric>& M,const vect_n<double>& V);
-template vect_n<double> operator *(const vect_n<double>& V,const mat<double,mat_structure::skew_symmetric>& M);
+template vect_n<double> operator *< vect_n<double> >(const mat<double,mat_structure::skew_symmetric>& M,const vect_n<double>& V);
+template vect_n<double> operator *< vect_n<double> >(const vect_n<double>& V,const mat<double,mat_structure::skew_symmetric>& M);
 
 
-template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
-template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+template mat<float,mat_structure::rectangular> operator *< mat<float,mat_structure::rectangular,mat_alignment::column_major> >(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+template mat<float,mat_structure::rectangular> operator *< mat<float,mat_structure::rectangular,mat_alignment::row_major> >(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
-template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
-template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
+//template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
+//template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
 
-template vect<float,2> operator *(const mat<float,mat_structure::skew_symmetric>& M,const vect<float,2>& V);
-template vect<float,3> operator *(const mat<float,mat_structure::skew_symmetric>& M,const vect<float,3>& V);
-template vect<float,4> operator *(const mat<float,mat_structure::skew_symmetric>& M,const vect<float,4>& V);
-template vect<float,6> operator *(const mat<float,mat_structure::skew_symmetric>& M,const vect<float,6>& V);
+template vect<float,2> operator *<2>(const mat<float,mat_structure::skew_symmetric>& M,const vect<float,2>& V);
+template vect<float,3> operator *<3>(const mat<float,mat_structure::skew_symmetric>& M,const vect<float,3>& V);
+template vect<float,4> operator *<4>(const mat<float,mat_structure::skew_symmetric>& M,const vect<float,4>& V);
+template vect<float,6> operator *<6>(const mat<float,mat_structure::skew_symmetric>& M,const vect<float,6>& V);
 
-template vect<float,2> operator *(const vect<float,2>& V,const mat<float,mat_structure::skew_symmetric>& M);
-template vect<float,3> operator *(const vect<float,3>& V,const mat<float,mat_structure::skew_symmetric>& M);
-template vect<float,4> operator *(const vect<float,4>& V,const mat<float,mat_structure::skew_symmetric>& M);
-template vect<float,6> operator *(const vect<float,6>& V,const mat<float,mat_structure::skew_symmetric>& M);
+template vect<float,2> operator *<2>(const vect<float,2>& V,const mat<float,mat_structure::skew_symmetric>& M);
+template vect<float,3> operator *<3>(const vect<float,3>& V,const mat<float,mat_structure::skew_symmetric>& M);
+template vect<float,4> operator *<4>(const vect<float,4>& V,const mat<float,mat_structure::skew_symmetric>& M);
+template vect<float,6> operator *<6>(const vect<float,6>& V,const mat<float,mat_structure::skew_symmetric>& M);
 
-template vect_n<float> operator *(const mat<float,mat_structure::skew_symmetric>& M,const vect_n<float>& V);
-template vect_n<float> operator *(const vect_n<float>& V,const mat<float,mat_structure::skew_symmetric>& M);
+template vect_n<float> operator *< vect_n<float> >(const mat<float,mat_structure::skew_symmetric>& M,const vect_n<float>& V);
+template vect_n<float> operator *< vect_n<float> >(const vect_n<float>& V,const mat<float,mat_structure::skew_symmetric>& M);
 
 
 
@@ -313,17 +313,17 @@ template class mat<double, mat_structure::permutation>;
 template class mat<float, mat_structure::permutation>;
 
 
-template vect<double,2> operator *(const mat<double,mat_structure::permutation>& M, const vect<double,2>& V);
-template vect<double,3> operator *(const mat<double,mat_structure::permutation>& M, const vect<double,3>& V);
-template vect<double,4> operator *(const mat<double,mat_structure::permutation>& M, const vect<double,4>& V);
-template vect<double,6> operator *(const mat<double,mat_structure::permutation>& M, const vect<double,6>& V);
-template vect_n<double> operator *(const mat<double,mat_structure::permutation>& M, const vect_n<double>& V);
+template vect<double,2> operator *< double, vect<double,2> >(const mat<double,mat_structure::permutation>& M, const vect<double,2>& V);
+template vect<double,3> operator *< double, vect<double,3> >(const mat<double,mat_structure::permutation>& M, const vect<double,3>& V);
+template vect<double,4> operator *< double, vect<double,4> >(const mat<double,mat_structure::permutation>& M, const vect<double,4>& V);
+template vect<double,6> operator *< double, vect<double,6> >(const mat<double,mat_structure::permutation>& M, const vect<double,6>& V);
+template vect_n<double> operator *< double, vect_n<double> >(const mat<double,mat_structure::permutation>& M, const vect_n<double>& V);
 
-template vect<double,2> operator *(const vect<double,2>& V, const mat<double,mat_structure::permutation>& M);
-template vect<double,3> operator *(const vect<double,3>& V, const mat<double,mat_structure::permutation>& M);
-template vect<double,4> operator *(const vect<double,4>& V, const mat<double,mat_structure::permutation>& M);
-template vect<double,6> operator *(const vect<double,6>& V, const mat<double,mat_structure::permutation>& M);
-template vect_n<double> operator *(const vect_n<double>& V, const mat<double,mat_structure::permutation>& M);
+template vect<double,2> operator *< double, vect<double,2> >(const vect<double,2>& V, const mat<double,mat_structure::permutation>& M);
+template vect<double,3> operator *< double, vect<double,3> >(const vect<double,3>& V, const mat<double,mat_structure::permutation>& M);
+template vect<double,4> operator *< double, vect<double,4> >(const vect<double,4>& V, const mat<double,mat_structure::permutation>& M);
+template vect<double,6> operator *< double, vect<double,6> >(const vect<double,6>& V, const mat<double,mat_structure::permutation>& M);
+template vect_n<double> operator *< double, vect_n<double> >(const vect_n<double>& V, const mat<double,mat_structure::permutation>& M);
 
 template mat<double,mat_structure::square> operator *(const mat<double,mat_structure::permutation>& M, const double& S);
 template mat<double,mat_structure::square> operator *(const double& S,const mat<double,mat_structure::permutation>& M);
@@ -335,17 +335,17 @@ template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_
 template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::permutation>& M1, const mat<double,mat_structure::square>& M2);
 
 
-template vect<float,2> operator *(const mat<float,mat_structure::permutation>& M, const vect<float,2>& V);
-template vect<float,3> operator *(const mat<float,mat_structure::permutation>& M, const vect<float,3>& V);
-template vect<float,4> operator *(const mat<float,mat_structure::permutation>& M, const vect<float,4>& V);
-template vect<float,6> operator *(const mat<float,mat_structure::permutation>& M, const vect<float,6>& V);
-template vect_n<float> operator *(const mat<float,mat_structure::permutation>& M, const vect_n<float>& V);
+template vect<float,2> operator *< float, vect<float,2> >(const mat<float,mat_structure::permutation>& M, const vect<float,2>& V);
+template vect<float,3> operator *< float, vect<float,3> >(const mat<float,mat_structure::permutation>& M, const vect<float,3>& V);
+template vect<float,4> operator *< float, vect<float,4> >(const mat<float,mat_structure::permutation>& M, const vect<float,4>& V);
+template vect<float,6> operator *< float, vect<float,6> >(const mat<float,mat_structure::permutation>& M, const vect<float,6>& V);
+template vect_n<float> operator *< float, vect_n<float> >(const mat<float,mat_structure::permutation>& M, const vect_n<float>& V);
 
-template vect<float,2> operator *(const vect<float,2>& V, const mat<float,mat_structure::permutation>& M);
-template vect<float,3> operator *(const vect<float,3>& V, const mat<float,mat_structure::permutation>& M);
-template vect<float,4> operator *(const vect<float,4>& V, const mat<float,mat_structure::permutation>& M);
-template vect<float,6> operator *(const vect<float,6>& V, const mat<float,mat_structure::permutation>& M);
-template vect_n<float> operator *(const vect_n<float>& V, const mat<float,mat_structure::permutation>& M);
+template vect<float,2> operator *< float, vect<float,2> >(const vect<float,2>& V, const mat<float,mat_structure::permutation>& M);
+template vect<float,3> operator *< float, vect<float,3> >(const vect<float,3>& V, const mat<float,mat_structure::permutation>& M);
+template vect<float,4> operator *< float, vect<float,4> >(const vect<float,4>& V, const mat<float,mat_structure::permutation>& M);
+template vect<float,6> operator *< float, vect<float,6> >(const vect<float,6>& V, const mat<float,mat_structure::permutation>& M);
+template vect_n<float> operator *< float, vect_n<float> >(const vect_n<float>& V, const mat<float,mat_structure::permutation>& M);
 
 template mat<float,mat_structure::square> operator *(const mat<float,mat_structure::permutation>& M, const float& S);
 template mat<float,mat_structure::square> operator *(const float& S,const mat<float,mat_structure::permutation>& M);
@@ -395,10 +395,10 @@ template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment
 template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::square,mat_alignment::row_major>& M2);
 
 //template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::column_major>, mat<double,mat_structure::symmetric> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::symmetric>& M2);
-template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::symmetric> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::symmetric>& M2);
+//template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::symmetric> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::symmetric>& M2);
 
 //template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::column_major>, mat<double,mat_structure::skew_symmetric> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
-template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::skew_symmetric> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
+//template mat_product_result< mat<double,mat_structure::rectangular,mat_alignment::row_major>, mat<double,mat_structure::skew_symmetric> >::type operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
 
 
 //square and rect matrix.
@@ -407,11 +407,11 @@ template mat_product_result< mat<double,mat_structure::square,mat_alignment::col
 template mat_product_result< mat<double,mat_structure::square,mat_alignment::row_major>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::square,mat_alignment::row_major>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
 template mat_product_result< mat<double,mat_structure::square,mat_alignment::row_major>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::square,mat_alignment::row_major>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
-//template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
-//template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+//template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *< mat<double,mat_structure::rectangular,mat_alignment::column_major> >(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+//template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *< mat<double,mat_structure::rectangular,mat_alignment::row_major> >(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
-//template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
-//template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
+//template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *< mat<double,mat_structure::rectangular,mat_alignment::column_major> >(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
+//template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *< mat<double,mat_structure::rectangular,mat_alignment::row_major> >(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
 
 //square and square matrix.
@@ -541,10 +541,10 @@ template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment:
 template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::square,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::square,mat_alignment::row_major>& M2);
 
 //template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::column_major>, mat<float,mat_structure::symmetric> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::symmetric>& M2);
-template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::symmetric> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::symmetric>& M2);
+//template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::symmetric> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::symmetric>& M2);
 
 //template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::column_major>, mat<float,mat_structure::skew_symmetric> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
-template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::skew_symmetric> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
+//template mat_product_result< mat<float,mat_structure::rectangular,mat_alignment::row_major>, mat<float,mat_structure::skew_symmetric> >::type operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
 
 
 //square and rect matrix.
@@ -553,11 +553,11 @@ template mat_product_result< mat<float,mat_structure::square,mat_alignment::colu
 template mat_product_result< mat<float,mat_structure::square,mat_alignment::row_major>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::square,mat_alignment::row_major>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
 template mat_product_result< mat<float,mat_structure::square,mat_alignment::row_major>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::square,mat_alignment::row_major>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
-//template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
-//template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+//template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *< mat<float,mat_structure::rectangular,mat_alignment::column_major> >(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+//template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *< mat<float,mat_structure::rectangular,mat_alignment::row_major> >(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
-//template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
-//template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
+//template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *< mat<float,mat_structure::rectangular,mat_alignment::column_major> >(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
+//template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *< mat<float,mat_structure::rectangular,mat_alignment::row_major> >(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
 
 //square and square matrix.
