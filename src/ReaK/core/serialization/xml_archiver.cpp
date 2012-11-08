@@ -37,9 +37,9 @@ namespace serialization {
 
 char xml_iarchive::getNextChar() {
   char c;
-  file_stream.get(c);
+  file_stream->get(c);
   while((c == ' ') || (c == '\t') || (c == '\n') || (c == '\r'))
-    file_stream.get(c);
+    file_stream->get(c);
   return c;
 };
 
@@ -51,12 +51,12 @@ std::string xml_iarchive::readToken() {
   c = getNextChar();
   if((c == '!') || (c == '?')) {
     char line_str[512];
-    file_stream.getline(line_str,512);
+    file_stream->getline(line_str,512);
     return readToken();
   };
   while(c != '>') {
     result += c;
-    file_stream.get(c);
+    file_stream->get(c);
   };
   return result;
 };
@@ -87,15 +87,15 @@ bool xml_iarchive::readNamedValue(const std::string& value_name,std::string& val
     return false;
 
   char c;
-  file_stream.get(c);
+  file_stream->get(c);
   while(c != '\"')
-    file_stream.get(c);
+    file_stream->get(c);
 
   value_str.clear();
-  file_stream.get(c);
+  file_stream->get(c);
   while(c != '\"') {
     value_str += c;
-    file_stream.get(c);
+    file_stream->get(c);
   };
 
   token = readToken();
@@ -178,17 +178,29 @@ archive_object_header xml_iarchive::readHeader(const std::string& obj_name) {
 };
 
 xml_iarchive::xml_iarchive(const std::string& FileName) {
-  file_stream.open(FileName.c_str());
-
+  
+  file_stream = shared_ptr< std::istream >(new std::ifstream(FileName.c_str(),std::ios::in));
+  
   archive_object_header global_hdr = readHeader("reak_serialization");
   if(global_hdr.type_version != 2)
     throw std::ios_base::failure("ReaK XML Archive is of an unknown version!");
-
+  
 };
 
-xml_iarchive::~xml_iarchive() {
-  file_stream.close();
+xml_iarchive::xml_iarchive(std::istream& aStream) {
+  
+  file_stream = shared_ptr< std::istream >(&aStream, null_deleter());
+  
+  archive_object_header global_hdr = readHeader("reak_serialization");
+  if(global_hdr.type_version != 2)
+    throw std::ios_base::failure("ReaK XML Archive is of an unknown version!");
+  
 };
+
+
+
+
+xml_iarchive::~xml_iarchive() { };
 
 
 iarchive& RK_CALL xml_iarchive::load_serializable_ptr(serializable_shared_pointer& Item) {
@@ -420,24 +432,35 @@ iarchive& RK_CALL xml_iarchive::load_string(const std::pair<std::string, std::st
 
 
 xml_oarchive::xml_oarchive(const std::string& FileName) {
-  file_stream.open(FileName.c_str());
-
-  file_stream << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>" << std::endl;
-  file_stream << "<!DOCTYPE reak_serialization>" << std::endl;
-  file_stream << "<reak_serialization version=\"2\">" << std::endl;
+  
+  file_stream = shared_ptr< std::ostream >(new std::ofstream(FileName.c_str(), std::ios::out));
+  
+  (*file_stream) << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>" << std::endl;
+  (*file_stream) << "<!DOCTYPE reak_serialization>" << std::endl;
+  (*file_stream) << "<reak_serialization version=\"2\">" << std::endl;
   tabulation = 0;
 };
 
+xml_oarchive::xml_oarchive(std::ostream& aStream) {
+  
+  file_stream = shared_ptr< std::ostream >(&aStream, null_deleter());
+  
+  (*file_stream) << "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>" << std::endl;
+  (*file_stream) << "<!DOCTYPE reak_serialization>" << std::endl;
+  (*file_stream) << "<reak_serialization version=\"2\">" << std::endl;
+  tabulation = 0;
+};
+
+
 xml_oarchive::~xml_oarchive() {
-
-  file_stream << "</reak_serialization>" << std::endl;
-
-  file_stream.close();
+  
+  (*file_stream) << "</reak_serialization>" << std::endl;
+  
 };
 
 void xml_oarchive::addTabulations() {
   for(unsigned int i=0;i<tabulation;++i) {
-    file_stream << "    ";
+    (*file_stream) << "    ";
   };
 };
 
@@ -469,25 +492,25 @@ oarchive& RK_CALL xml_oarchive::saveToNewArchiveNamed_impl(const std::pair<std::
     hdr.size = 0;
 
     addTabulations();
-    file_stream << "<" << Item.first << " type_ID=\"";
+    (*file_stream) << "<" << Item.first << " type_ID=\"";
     while(*type_ID) {
-      file_stream << *type_ID << ".";
+      (*file_stream) << *type_ID << ".";
       ++type_ID;
     };
-    file_stream << "0\" version=\"" << hdr.type_version
+    (*file_stream) << "0\" version=\"" << hdr.type_version
 	        << "\" object_ID=\"" << hdr.object_ID
 	        << "\" is_external=\"true\">" << std::endl;
   } else {
     already_saved = true;
 
     addTabulations();
-    file_stream << "<" << Item.first << " type_ID=\"0\" version=\"0\" object_ID=\"0\" is_external=\"false\">" << std::endl;
+    (*file_stream) << "<" << Item.first << " type_ID=\"0\" version=\"0\" object_ID=\"0\" is_external=\"false\">" << std::endl;
   };
 
   if(!already_saved) {
     tabulation++;
     addTabulations();
-    file_stream << "<filename>\"" << FileName << "\"</filename>" << std::endl;
+    (*file_stream) << "<filename>\"" << FileName << "\"</filename>" << std::endl;
     tabulation--;
 
     xml_oarchive a(FileName);
@@ -495,7 +518,7 @@ oarchive& RK_CALL xml_oarchive::saveToNewArchiveNamed_impl(const std::pair<std::
   };
 
   addTabulations();
-  file_stream << "</" << Item.first << ">" << std::endl;
+  (*file_stream) << "</" << Item.first << ">" << std::endl;
   return *this;
 };
 
@@ -529,19 +552,19 @@ oarchive& RK_CALL xml_oarchive::save_serializable_ptr(const std::pair<std::strin
     hdr.size = 0;
 
     addTabulations();
-    file_stream << "<" << Item.first << " type_ID=\"";
+    (*file_stream) << "<" << Item.first << " type_ID=\"";
     while(*type_ID) {
-      file_stream << *type_ID << "."; 
+      (*file_stream) << *type_ID << "."; 
       ++type_ID;
     };
-    file_stream << "0\" version=\"" << hdr.type_version
+    (*file_stream) << "0\" version=\"" << hdr.type_version
 	        << "\" object_ID=\"" << hdr.object_ID
 	        << "\" is_external=\"false\">" << std::endl;
   } else {
     already_saved = true;
 
     addTabulations();
-    file_stream << "<" << Item.first << " type_ID=\"0\" version=\"0\" object_ID=\"0\" is_external=\"false\">" << std::endl;
+    (*file_stream) << "<" << Item.first << " type_ID=\"0\" version=\"0\" object_ID=\"0\" is_external=\"false\">" << std::endl;
   };
 
   if(!already_saved) {
@@ -553,7 +576,7 @@ oarchive& RK_CALL xml_oarchive::save_serializable_ptr(const std::pair<std::strin
   };
 
   addTabulations();
-  file_stream << "</" << Item.first << ">" << std::endl;
+  (*file_stream) << "</" << Item.first << ">" << std::endl;
   return *this;
 };
 
@@ -571,19 +594,19 @@ oarchive& RK_CALL xml_oarchive::save_serializable(const std::pair<std::string, c
   hdr.is_external = false;
 
   addTabulations();
-  file_stream << "<" << Item.first << " type_ID=\""; 
+  (*file_stream) << "<" << Item.first << " type_ID=\""; 
   while(*type_ID) {
-    file_stream << *type_ID << ".";
+    (*file_stream) << *type_ID << ".";
     ++type_ID;
   };
-  file_stream << "0\" version=\"" << hdr.type_version << "\">" << std::endl;
+  (*file_stream) << "0\" version=\"" << hdr.type_version << "\">" << std::endl;
 
   tabulation++;
   Item.second.save(*this,hdr.type_version);
   tabulation--;
 
   addTabulations();
-  file_stream << "</" << Item.first << ">" << std::endl;
+  (*file_stream) << "</" << Item.first << ">" << std::endl;
   return *this;
 };
 
@@ -594,7 +617,7 @@ oarchive& RK_CALL xml_oarchive::save_char(char i) {
 
 oarchive& RK_CALL xml_oarchive::save_char(const std::pair<std::string, char >& i) {
   addTabulations();
-  file_stream << "<" << i.first << ">\"" << static_cast<int>(i.second) << "\"</" << i.first << ">" << std::endl;
+  (*file_stream) << "<" << i.first << ">\"" << static_cast<int>(i.second) << "\"</" << i.first << ">" << std::endl;
   return *this;
 };
 
@@ -604,7 +627,7 @@ oarchive& RK_CALL xml_oarchive::save_unsigned_char(unsigned char u) {
 
 oarchive& RK_CALL xml_oarchive::save_unsigned_char(const std::pair<std::string, unsigned char >& u) {
   addTabulations();
-  file_stream << "<" << u.first << ">\"" << static_cast<unsigned int>(u.second) << "\"</" << u.first << ">" << std::endl;
+  (*file_stream) << "<" << u.first << ">\"" << static_cast<unsigned int>(u.second) << "\"</" << u.first << ">" << std::endl;
   return *this;
 };
 
@@ -615,7 +638,7 @@ oarchive& RK_CALL xml_oarchive::save_int(int i) {
 
 oarchive& RK_CALL xml_oarchive::save_int(const std::pair<std::string, int >& i) {
   addTabulations();
-  file_stream << "<" << i.first << ">\"" << i.second << "\"</" << i.first << ">" << std::endl;
+  (*file_stream) << "<" << i.first << ">\"" << i.second << "\"</" << i.first << ">" << std::endl;
   return *this;
 };
 
@@ -626,7 +649,7 @@ oarchive& RK_CALL xml_oarchive::save_unsigned_int(unsigned int u) {
 
 oarchive& RK_CALL xml_oarchive::save_unsigned_int(const std::pair<std::string, unsigned int >& u) {
   addTabulations();
-  file_stream << "<" << u.first << ">\"" << u.second << "\"</" << u.first << ">" << std::endl;
+  (*file_stream) << "<" << u.first << ">\"" << u.second << "\"</" << u.first << ">" << std::endl;
   return *this;
 };
 
@@ -638,7 +661,7 @@ oarchive& RK_CALL xml_oarchive::save_float(float f) {
 
 oarchive& RK_CALL xml_oarchive::save_float(const std::pair<std::string, float >& f) {
   addTabulations();
-  file_stream << "<" << f.first << ">\"" << f.second << "\"</" << f.first << ">" << std::endl;
+  (*file_stream) << "<" << f.first << ">\"" << f.second << "\"</" << f.first << ">" << std::endl;
   return *this;
 };
 
@@ -650,7 +673,7 @@ oarchive& RK_CALL xml_oarchive::save_double(double d) {
 
 oarchive& RK_CALL xml_oarchive::save_double(const std::pair<std::string, double >& d) {
   addTabulations();
-  file_stream << "<" << d.first << ">\"" << d.second << "\"</" << d.first << ">" << std::endl;
+  (*file_stream) << "<" << d.first << ">\"" << d.second << "\"</" << d.first << ">" << std::endl;
   return *this;
 };
 
@@ -662,7 +685,7 @@ oarchive& RK_CALL xml_oarchive::save_bool(bool b) {
 
 oarchive& RK_CALL xml_oarchive::save_bool(const std::pair<std::string, bool >& b) {
   addTabulations();
-  file_stream << "<" << b.first << ">\"" << (b.second ? "true" : "false") << "\"</" << b.first << ">" << std::endl;
+  (*file_stream) << "<" << b.first << ">\"" << (b.second ? "true" : "false") << "\"</" << b.first << ">" << std::endl;
   return *this;
 };
 
@@ -674,7 +697,7 @@ oarchive& RK_CALL xml_oarchive::save_string(const std::string& s) {
 
 oarchive& RK_CALL xml_oarchive::save_string(const std::pair<std::string, const std::string& >& s) {
   addTabulations();
-  file_stream << "<" << s.first << ">\"" << s.second << "\"</" << s.first << ">" << std::endl;
+  (*file_stream) << "<" << s.first << ">\"" << s.second << "\"</" << s.first << ">" << std::endl;
   return *this;
 };
 

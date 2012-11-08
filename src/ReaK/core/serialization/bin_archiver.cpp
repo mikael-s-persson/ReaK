@@ -121,9 +121,9 @@ void hton_2ui32(UnionT& value) {
 
 
 bin_iarchive::bin_iarchive(const std::string& FileName) {
-
-  file_stream.open(FileName.c_str(),std::ios::binary | std::ios::in);
-
+  
+  file_stream = shared_ptr< std::istream >(new std::ifstream(FileName.c_str(), std::ios::binary | std::ios::in));
+  
   std::string header;
   *this >> header;
   unsigned int version;
@@ -136,10 +136,26 @@ bin_iarchive::bin_iarchive(const std::string& FileName) {
 
 };
 
-bin_iarchive::~bin_iarchive() {
+bin_iarchive::bin_iarchive(std::istream& aStream) {
+  
+  file_stream = shared_ptr< std::istream >(&aStream, null_deleter());
+  
+  std::string header;
+  *this >> header;
+  unsigned int version;
+  *this >> version;
 
-  file_stream.close();
+  if(!(header == "reak_serialization::bin_archive"))
+    throw std::ios_base::failure("Binary Archive has a corrupt header!");
+  if(version != 2)
+    throw std::ios_base::failure("Binary Archive is of an unknown file version!");
+
 };
+
+
+bin_iarchive::~bin_iarchive() {};
+
+
 
 iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointer& Item) {
   archive_object_header hdr;
@@ -162,17 +178,17 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointe
   };
   if((hdr.object_ID < mObjRegistry.size()) && (mObjRegistry[hdr.object_ID])) {
     Item = mObjRegistry[hdr.object_ID];
-    file_stream.ignore(hdr.size);
+    file_stream->ignore(hdr.size);
     return *this;
   };
 
   if(hdr.is_external) {
     std::string ext_filename;
-    std::streampos start_pos = file_stream.tellg();
+    std::streampos start_pos = file_stream->tellg();
     *this >> ext_filename;
-    std::streampos end_pos = file_stream.tellg();
+    std::streampos end_pos = file_stream->tellg();
     if (hdr.size + start_pos != end_pos)
-      file_stream.seekg(start_pos + std::streampos(hdr.size));
+      file_stream->seekg(start_pos + std::streampos(hdr.size));
 
     bin_iarchive a(ext_filename);
     a >> Item;
@@ -183,7 +199,7 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointe
   //Find the class in question in the repository.
   rtti::so_type::weak_pointer p( rtti::so_type_repo::getInstance().findType(&(typeIDvect[0])) );
   if((p.expired()) || (p.lock()->TypeVersion() < hdr.type_version)) {
-    file_stream.ignore(hdr.size);
+    file_stream->ignore(hdr.size);
     Item = serializable_shared_pointer();
     std::stringstream ss;
     for(std::size_t i = 0; typeIDvect[i]; ++i)
@@ -194,7 +210,7 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointe
   };
   ReaK::shared_ptr<shared_object> po(p.lock()->CreateObject());
   if(!po) {
-    file_stream.ignore(hdr.size);
+    file_stream->ignore(hdr.size);
     Item = serializable_shared_pointer();
     RK_NOTICE(2,"Could not create the object of type '" << p.lock()->TypeName() << "' from the factory function.");
     return *this;
@@ -210,12 +226,12 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointe
     mObjRegistry[hdr.object_ID] = Item;
   };
 
-  std::streampos start_pos = file_stream.tellg();
+  std::streampos start_pos = file_stream->tellg();
   Item->load(*this,hdr.type_version);
-  std::streampos end_pos = file_stream.tellg();
+  std::streampos end_pos = file_stream->tellg();
 
   if (hdr.size + start_pos != end_pos)
-    file_stream.seekg(start_pos + std::streampos(hdr.size));
+    file_stream->seekg(start_pos + std::streampos(hdr.size));
 
   return *this;
 };
@@ -236,12 +252,12 @@ iarchive& RK_CALL bin_iarchive::load_serializable(serializable& Item) {
   
   *this >> hdr.type_version >> hdr.size;
 
-  std::streampos start_pos = file_stream.tellg();
+  std::streampos start_pos = file_stream->tellg();
   Item.load(*this,hdr.type_version);
-  std::streampos end_pos = file_stream.tellg();
+  std::streampos end_pos = file_stream->tellg();
 
   if (hdr.size + start_pos != end_pos)
-    file_stream.seekg(start_pos + std::streampos(hdr.size));
+    file_stream->seekg(start_pos + std::streampos(hdr.size));
 
   return *this;
 };
@@ -251,7 +267,7 @@ iarchive& RK_CALL bin_iarchive::load_serializable(const std::pair<std::string, s
 };
 
 iarchive& RK_CALL bin_iarchive::load_char(char& i) {
-  file_stream.read(reinterpret_cast<char*>(&i),1);
+  file_stream->read(reinterpret_cast<char*>(&i),1);
   return *this;
 };
 
@@ -260,7 +276,7 @@ iarchive& RK_CALL bin_iarchive::load_char(const std::pair<std::string, char& >& 
 };
 
 iarchive& RK_CALL bin_iarchive::load_unsigned_char(unsigned char& u) {
-  file_stream.read(reinterpret_cast<char*>(&u),1);
+  file_stream->read(reinterpret_cast<char*>(&u),1);
   return *this;
 };
 
@@ -270,7 +286,7 @@ iarchive& RK_CALL bin_iarchive::load_unsigned_char(const std::pair<std::string, 
 
 iarchive& RK_CALL bin_iarchive::load_int(int& i) {
   llong_to_ulong tmp; 
-  file_stream.read(reinterpret_cast<char*>(&tmp),sizeof(llong_to_ulong));
+  file_stream->read(reinterpret_cast<char*>(&tmp),sizeof(llong_to_ulong));
   ntoh_2ui32(tmp);
   i = static_cast<int>(tmp.i64);
   return *this;
@@ -282,7 +298,7 @@ iarchive& RK_CALL bin_iarchive::load_int(const std::pair<std::string, int& >& i)
 
 iarchive& RK_CALL bin_iarchive::load_unsigned_int(unsigned int& u) {
   ullong_to_ulong tmp; 
-  file_stream.read(reinterpret_cast<char*>(&tmp),sizeof(ullong_to_ulong));
+  file_stream->read(reinterpret_cast<char*>(&tmp),sizeof(ullong_to_ulong));
   ntoh_2ui32(tmp);
   u = static_cast<unsigned int>(tmp.ui64);
   return *this;
@@ -294,7 +310,7 @@ iarchive& RK_CALL bin_iarchive::load_unsigned_int(const std::pair<std::string, u
 
 iarchive& RK_CALL bin_iarchive::load_float(float& f) {
   float_to_ulong tmp; 
-  file_stream.read(reinterpret_cast<char*>(&tmp),sizeof(float_to_ulong));
+  file_stream->read(reinterpret_cast<char*>(&tmp),sizeof(float_to_ulong));
   ntoh_1ui32(tmp);
   f = tmp.f;
   return *this;
@@ -306,7 +322,7 @@ iarchive& RK_CALL bin_iarchive::load_float(const std::pair<std::string, float& >
 
 iarchive& RK_CALL bin_iarchive::load_double(double& d) {
   double_to_ulong tmp; 
-  file_stream.read(reinterpret_cast<char*>(&tmp),sizeof(double_to_ulong));
+  file_stream->read(reinterpret_cast<char*>(&tmp),sizeof(double_to_ulong));
   ntoh_2ui32(tmp);
   d = tmp.d;
   return *this;
@@ -318,7 +334,7 @@ iarchive& RK_CALL bin_iarchive::load_double(const std::pair<std::string, double&
 
 iarchive& RK_CALL bin_iarchive::load_bool(bool& b) {
   char tmp = 0;
-  file_stream.read(&tmp,1);
+  file_stream->read(&tmp,1);
   b = (tmp ? true : false);
   return *this;
 };
@@ -328,7 +344,7 @@ iarchive& RK_CALL bin_iarchive::load_bool(const std::pair<std::string, bool& >& 
 };
 
 iarchive& RK_CALL bin_iarchive::load_string(std::string& s) {
-  std::getline(file_stream,s,'\0');
+  std::getline(*file_stream,s,'\0');
   return *this;
 };
 
@@ -347,18 +363,26 @@ iarchive& RK_CALL bin_iarchive::load_string(const std::pair<std::string, std::st
 
 
 bin_oarchive::bin_oarchive(const std::string& FileName) {
-  file_stream.open(FileName.c_str(),std::ios::binary | std::ios::out);
-
+  
+  file_stream = shared_ptr< std::ostream >(new std::ofstream(FileName.c_str(), std::ios::binary | std::ios::out));
+  
   *this << std::string("reak_serialization::bin_archive");
   unsigned int version = 2;
   *this << version;
   
 };
 
-bin_oarchive::~bin_oarchive() {
-
-  file_stream.close();
+bin_oarchive::bin_oarchive(std::ostream& aStream) {
+  
+  file_stream = shared_ptr< std::ostream >(&aStream, null_deleter());
+  
+  *this << std::string("reak_serialization::bin_archive");
+  unsigned int version = 2;
+  *this << version;
+  
 };
+
+bin_oarchive::~bin_oarchive() { };
 
 oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const serializable_shared_pointer& Item, const std::string& FileName) {
   archive_object_header hdr;
@@ -403,17 +427,17 @@ oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const serializable_shared_
   if(already_saved) {
     bin_oarchive::save_unsigned_int(hdr.size);
   } else {
-    std::streampos size_pos = file_stream.tellp();
+    std::streampos size_pos = file_stream->tellp();
     bin_oarchive::save_unsigned_int(hdr.size);
     
-    std::streampos start_pos = file_stream.tellp();
+    std::streampos start_pos = file_stream->tellp();
     bin_oarchive::save_string(FileName);
-    std::streampos end_pos = file_stream.tellp();
+    std::streampos end_pos = file_stream->tellp();
     typedef unsigned int tmp_uint;
     hdr.size = tmp_uint(end_pos - start_pos);
-    file_stream.seekp(size_pos);
+    file_stream->seekp(size_pos);
     bin_oarchive::save_unsigned_int(hdr.size);
-    file_stream.seekp(end_pos);
+    file_stream->seekp(end_pos);
     
     bin_oarchive a(FileName);
     a << Item;
@@ -470,18 +494,18 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const serializable_shared_
   if(already_saved) {
     bin_oarchive::save_unsigned_int(hdr.size);
   } else {
-    std::streampos size_pos = file_stream.tellp();
+    std::streampos size_pos = file_stream->tellp();
     bin_oarchive::save_unsigned_int(hdr.size);
 
-    std::streampos start_pos = file_stream.tellp();
+    std::streampos start_pos = file_stream->tellp();
     Item->save(*this,hdr.type_version);
-    std::streampos end_pos = file_stream.tellp();
+    std::streampos end_pos = file_stream->tellp();
 
     typedef unsigned int tmp_uint;
     hdr.size = tmp_uint(end_pos - start_pos);
-    file_stream.seekp(size_pos);
+    file_stream->seekp(size_pos);
     bin_oarchive::save_unsigned_int(hdr.size);
-    file_stream.seekp(end_pos);
+    file_stream->seekp(end_pos);
   };
 
   return *this;
@@ -509,18 +533,18 @@ oarchive& RK_CALL bin_oarchive::save_serializable(const serializable& Item) {
 
   bin_oarchive::save_unsigned_int(hdr.type_version);
   
-  std::streampos size_pos = file_stream.tellp();
+  std::streampos size_pos = file_stream->tellp();
   bin_oarchive::save_unsigned_int(hdr.size);
   
-  std::streampos start_pos = file_stream.tellp();
+  std::streampos start_pos = file_stream->tellp();
   Item.save(*this,hdr.type_version);
-  std::streampos end_pos = file_stream.tellp();
+  std::streampos end_pos = file_stream->tellp();
 
   typedef unsigned int tmp_uint;
   hdr.size = tmp_uint(end_pos - start_pos);
-  file_stream.seekp(size_pos);
+  file_stream->seekp(size_pos);
   bin_oarchive::save_unsigned_int(hdr.size);
-  file_stream.seekp(end_pos);
+  file_stream->seekp(end_pos);
 
   return *this;
 };
@@ -530,7 +554,7 @@ oarchive& RK_CALL bin_oarchive::save_serializable(const std::pair<std::string, c
 };
 
 oarchive& RK_CALL bin_oarchive::save_char(char i) {
-  file_stream.write(reinterpret_cast<char*>(&i),1);
+  file_stream->write(reinterpret_cast<char*>(&i),1);
   return *this;
 };
 
@@ -539,7 +563,7 @@ oarchive& RK_CALL bin_oarchive::save_char(const std::pair<std::string, char >& i
 };
 
 oarchive& RK_CALL bin_oarchive::save_unsigned_char(unsigned char u) {
-  file_stream.write(reinterpret_cast<char*>(&u),1);
+  file_stream->write(reinterpret_cast<char*>(&u),1);
   return *this;
 };
 
@@ -550,7 +574,7 @@ oarchive& RK_CALL bin_oarchive::save_unsigned_char(const std::pair<std::string, 
 oarchive& RK_CALL bin_oarchive::save_int(int i) {
   llong_to_ulong tmp; tmp.i64 = i;
   hton_2ui32(tmp);
-  file_stream.write(reinterpret_cast<char*>(&tmp),sizeof(llong_to_ulong));
+  file_stream->write(reinterpret_cast<char*>(&tmp),sizeof(llong_to_ulong));
   return *this;
 };
 
@@ -562,7 +586,7 @@ oarchive& RK_CALL bin_oarchive::save_int(const std::pair<std::string, int >& i) 
 oarchive& RK_CALL bin_oarchive::save_unsigned_int(unsigned int u) {
   ullong_to_ulong tmp; tmp.ui64 = u;
   hton_2ui32(tmp);
-  file_stream.write(reinterpret_cast<char*>(&tmp),sizeof(ullong_to_ulong));
+  file_stream->write(reinterpret_cast<char*>(&tmp),sizeof(ullong_to_ulong));
   return *this;
 };
 
@@ -575,7 +599,7 @@ oarchive& RK_CALL bin_oarchive::save_unsigned_int(const std::pair<std::string, u
 oarchive& RK_CALL bin_oarchive::save_float(float f) {
   float_to_ulong tmp = { f };
   hton_1ui32(tmp);
-  file_stream.write(reinterpret_cast<char*>(&tmp),sizeof(float_to_ulong));
+  file_stream->write(reinterpret_cast<char*>(&tmp),sizeof(float_to_ulong));
   return *this;
 };
 
@@ -588,7 +612,7 @@ oarchive& RK_CALL bin_oarchive::save_float(const std::pair<std::string, float >&
 oarchive& RK_CALL bin_oarchive::save_double(double d) {
   double_to_ulong tmp = { d };
   hton_2ui32(tmp);
-  file_stream.write(reinterpret_cast<char*>(&tmp),sizeof(double_to_ulong));
+  file_stream->write(reinterpret_cast<char*>(&tmp),sizeof(double_to_ulong));
   return *this;
 };
 
@@ -601,7 +625,7 @@ oarchive& RK_CALL bin_oarchive::save_double(const std::pair<std::string, double 
 oarchive& RK_CALL bin_oarchive::save_bool(bool b) {
   char tmp = 0;
   if(b) tmp = 1;
-  file_stream.write(&tmp,1);
+  file_stream->write(&tmp,1);
   return *this;
 };
 
@@ -612,7 +636,7 @@ oarchive& RK_CALL bin_oarchive::save_bool(const std::pair<std::string, bool >& b
 
 
 oarchive& RK_CALL bin_oarchive::save_string(const std::string& s) {
-  file_stream.write(s.c_str(), s.length() + 1 );
+  file_stream->write(s.c_str(), s.length() + 1 );
   return *this;
 };
 

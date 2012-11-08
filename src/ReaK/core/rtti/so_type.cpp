@@ -132,6 +132,23 @@ so_type::weak_pointer RK_CALL so_type_impl::findDescendant_impl(const unsigned i
   return so_type::weak_pointer();
 };
 
+
+///This function gets the number of direct descendants of this.
+unsigned int RK_CALL so_type_impl::getDescendantCount_impl() const {
+  return mDescendants.size();
+};
+
+///This function gets a Type record by index in the direct descendants of this.
+so_type::shared_pointer RK_CALL so_type_impl::getDescendant_impl(unsigned int aIndex) const {
+  if(aIndex >= mDescendants.size())
+    return so_type::shared_pointer();
+  
+  std::set< so_type::shared_pointer, so_type_impl::compare_shared_t>::const_iterator it = mDescendants.begin();
+  std::advance(it, aIndex);
+  return *it;
+};
+
+
 ///This function checks if a typeID is parent to this.
 so_type::weak_pointer RK_CALL so_type_impl::findAncestor_impl(const unsigned int* aTypeID ) const {
   if( compare_equal(aTypeID, this->TypeID_begin()) ) 

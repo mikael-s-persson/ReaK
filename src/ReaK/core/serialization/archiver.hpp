@@ -195,6 +195,9 @@ class iarchive : public archive {
     /// Loading a string value with a name.
     virtual iarchive& RK_CALL load_string(const std::pair<std::string, std::string& >& s) = 0;
     
+    /// Signaling a (dynamically) polymorphic field.
+    virtual void RK_CALL signal_polymorphic_field(const std::string& aBaseTypeName, const unsigned int* aTypeID, const std::string& aFieldName) { RK_UNUSED(aBaseTypeName); RK_UNUSED(aTypeID); RK_UNUSED(aFieldName); };
+    
     /// Signifying the start of a repeated field.
     virtual void RK_CALL start_repeated_field(const std::string& aTypeName) { RK_UNUSED(aTypeName); };
     
@@ -341,6 +344,7 @@ class iarchive : public archive {
     typename boost::enable_if< 
       boost::is_convertible< T* , serializable* >, 
     iarchive& >::type operator >>(iarchive& in, boost::shared_ptr<T>& Item) {
+      in.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), "Item");
       serializable_shared_pointer tmp;
       in >> tmp;
       if(tmp)
@@ -356,6 +360,7 @@ class iarchive : public archive {
     typename boost::enable_if< 
       boost::is_convertible< T* , serializable* >, 
     iarchive& >::type operator &(iarchive& in, const std::pair<std::string, boost::shared_ptr<T>& >& Item) {
+      in.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), Item.first);
       serializable_shared_pointer tmp;
       in & std::pair<std::string, serializable_shared_pointer& >(Item.first, tmp);
       if(tmp)
@@ -393,6 +398,7 @@ class iarchive : public archive {
     typename boost::enable_if< 
       boost::is_convertible< T* , serializable* >, 
     iarchive& >::type operator >>(iarchive& in, boost::weak_ptr<T>& Item) {
+      in.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), "Item");
       serializable_shared_pointer tmp;
       in >> tmp;
       if(tmp)
@@ -408,6 +414,7 @@ class iarchive : public archive {
     typename boost::enable_if< 
       boost::is_convertible< T* , serializable* >, 
     iarchive& >::type operator &(iarchive& in, const std::pair<std::string, boost::weak_ptr<T>& >& Item) {
+      in.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), Item.first);
       serializable_shared_pointer tmp;
       in & std::pair<std::string, serializable_shared_pointer& >(Item.first, tmp);
       if(tmp)
@@ -423,6 +430,7 @@ class iarchive : public archive {
     typename boost::enable_if< 
       std::is_convertible< T* , serializable* >, 
     iarchive& >::type operator >>(iarchive& in, std::shared_ptr<T>& Item) {
+      in.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), "Item");
       serializable_shared_pointer tmp;
       in >> tmp;
       if(tmp)
@@ -438,6 +446,7 @@ class iarchive : public archive {
     typename boost::enable_if< 
       std::is_convertible< T* , serializable* >, 
     iarchive& >::type operator &(iarchive& in, const std::pair<std::string, std::shared_ptr<T>& >& Item) {
+      in.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), Item.first);
       serializable_shared_pointer tmp;
       in & std::pair<std::string, serializable_shared_pointer& >(Item.first, tmp);
       if(tmp)
@@ -475,6 +484,7 @@ class iarchive : public archive {
     typename boost::enable_if< 
       std::is_convertible< T* , serializable* >, 
     iarchive& >::type operator >>(iarchive& in, std::weak_ptr<T>& Item) {
+      in.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), "Item");
       serializable_shared_pointer tmp;
       in >> tmp;
       if(tmp)
@@ -490,6 +500,7 @@ class iarchive : public archive {
     typename boost::enable_if< 
       std::is_convertible< T* , serializable* >, 
     iarchive& >::type operator &(iarchive& in, const std::pair<std::string, std::weak_ptr<T>& >& Item) {
+      in.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), Item.first);
       serializable_shared_pointer tmp;
       in & std::pair<std::string, serializable_shared_pointer& >(Item.first, tmp);
       if(tmp)
@@ -730,6 +741,9 @@ class oarchive : public archive {
     /// Saving a string value with a name.
     virtual oarchive& RK_CALL save_string(const std::pair<std::string, const std::string& >& s) = 0;
     
+    /// Signaling a (dynamically) polymorphic field.
+    virtual void RK_CALL signal_polymorphic_field(const std::string& aBaseTypeName, const unsigned int* aTypeID, const std::string& aFieldName) { RK_UNUSED(aBaseTypeName); RK_UNUSED(aTypeID); RK_UNUSED(aFieldName); };
+    
     /// Signifying the start of a repeated field.
     virtual void RK_CALL start_repeated_field(const std::string& aTypeName) { RK_UNUSED(aTypeName); };
     
@@ -884,6 +898,7 @@ class oarchive : public archive {
     typename boost::enable_if< 
       boost::is_convertible< const T* , const serializable* >,
     oarchive& >::type operator <<(oarchive& out, const boost::shared_ptr<T>& Item) {
+      out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), "Item");
       serializable_shared_pointer tmp;
       if(Item)
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item);
@@ -896,6 +911,7 @@ class oarchive : public archive {
     typename boost::enable_if< 
       boost::is_convertible< const T* , const serializable* >,
     oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const boost::shared_ptr<T>& >& Item) {
+      out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), Item.first);
       serializable_shared_pointer tmp;
       if(Item.second)
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.second);
@@ -930,6 +946,7 @@ class oarchive : public archive {
     typename boost::enable_if< 
       boost::is_convertible< const T* , const serializable* >,
     oarchive& >::type operator <<(oarchive& out, const boost::weak_ptr<T>& Item) {
+      out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), "Item");
       serializable_shared_pointer tmp;
       if(!Item.expired())
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.lock());
@@ -942,6 +959,7 @@ class oarchive : public archive {
     typename boost::enable_if< 
       boost::is_convertible< const T* , const serializable* >,
     oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const boost::weak_ptr<T>& >& Item) {
+      out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), Item.first);
       serializable_shared_pointer tmp;
       if(!Item.second.expired())
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.second.lock());
@@ -954,6 +972,7 @@ class oarchive : public archive {
     typename boost::enable_if< 
       std::is_convertible< const T* , const serializable* >,
     oarchive& >::type operator <<(oarchive& out, const std::shared_ptr<T>& Item) {
+      out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), "Item");
       serializable_shared_pointer tmp;
       if(Item)
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item);
@@ -966,6 +985,7 @@ class oarchive : public archive {
     typename boost::enable_if< 
       std::is_convertible< const T* , const serializable* >,
     oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const std::shared_ptr<T>& >& Item) {
+      out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), Item.first);
       serializable_shared_pointer tmp;
       if(Item.second)
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.second);
@@ -1000,6 +1020,7 @@ class oarchive : public archive {
     typename boost::enable_if< 
       std::is_convertible< const T* , const serializable* >,
     oarchive& >::type operator <<(oarchive& out, const std::weak_ptr<T>& Item) {
+      out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), "Item");
       serializable_shared_pointer tmp;
       if(!Item.expired())
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.lock());
@@ -1012,6 +1033,7 @@ class oarchive : public archive {
     typename boost::enable_if< 
       std::is_convertible< const T* , const serializable* >,
     oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const std::weak_ptr<T>& >& Item) {
+      out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), Item.first);
       serializable_shared_pointer tmp;
       if(!Item.second.expired())
         tmp = rtti::rk_dynamic_ptr_cast<serializable>(Item.second.lock());

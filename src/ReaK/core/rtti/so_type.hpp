@@ -645,6 +645,12 @@ protected:
   ///This function finds a TypeID in the descendants (recusively) of this.
   virtual weak_pointer RK_CALL findDescendant_impl(const unsigned int* aTypeID ) const = 0;
 
+  ///This function gets the number of direct descendants of this.
+  virtual unsigned int RK_CALL getDescendantCount_impl() const = 0;
+
+  ///This function gets a Type record by index in the direct descendants of this.
+  virtual shared_pointer RK_CALL getDescendant_impl(unsigned int aIndex) const = 0;
+
   ///This function checks if a typeID is parent to this.
   virtual weak_pointer RK_CALL findAncestor_impl(const unsigned int* aTypeID ) const = 0;
   
@@ -673,6 +679,16 @@ public:
   ///This function finds a TypeID in the descendants (recusively) of this.
   weak_pointer RK_CALL findDescendant(const unsigned int* aTypeID ) const {
     return this->findDescendant_impl(aTypeID);
+  };
+
+  ///This function gets the number of direct descendants of this.
+  unsigned int RK_CALL getDirectDescendantCount() const {
+    return this->getDescendantCount_impl();
+  };
+
+  ///This function gets a type record by index in the direct descendants of this.
+  shared_pointer RK_CALL getDirectDescendant(unsigned int aIndex) const {
+    return this->getDescendant_impl(aIndex);
   };
 
   ///This function checks if a typeID is parent to this.
@@ -727,6 +743,12 @@ protected:
   
   ///This function finds a TypeID in the descendants (recusively) of this.
   virtual weak_pointer RK_CALL findDescendant_impl(const unsigned int* aTypeID ) const;
+
+  ///This function gets the number of direct descendants of this.
+  virtual unsigned int RK_CALL getDescendantCount_impl() const;
+
+  ///This function gets a Type record by index in the direct descendants of this.
+  virtual shared_pointer RK_CALL getDescendant_impl(unsigned int aIndex) const;
 
   ///This function checks if a typeID is parent to this.
   virtual weak_pointer RK_CALL findAncestor_impl(const unsigned int* aTypeID ) const;

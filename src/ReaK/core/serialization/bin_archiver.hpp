@@ -48,7 +48,7 @@ namespace serialization {
  */
 class bin_iarchive : public iarchive {
   private:
-    std::ifstream file_stream;
+    shared_ptr< std::istream > file_stream;
     
   protected:
 
@@ -95,6 +95,7 @@ class bin_iarchive : public iarchive {
   public:
 
     bin_iarchive(const std::string& FileName);
+    bin_iarchive(std::istream& aStream);
     virtual ~bin_iarchive();
 
 };
@@ -104,7 +105,7 @@ class bin_iarchive : public iarchive {
  */
 class bin_oarchive : public oarchive {
   private:
-    std::ofstream file_stream;
+    shared_ptr< std::ostream > file_stream;
     
   protected:
 
@@ -155,6 +156,7 @@ class bin_oarchive : public oarchive {
   public:
 
     bin_oarchive(const std::string& FileName);
+    bin_oarchive(std::ostream& aStream);
     virtual ~bin_oarchive();
 
 };
