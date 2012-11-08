@@ -35,6 +35,12 @@
 #include "archiver.hpp"
 
 #include "base/serializable.hpp"
+#include "base/shared_object.hpp"
+
+#include "rtti/so_type.hpp"
+#include "rtti/typed_primitives.hpp"
+#include "rtti/typed_containers.hpp"
+
 
 #include <fstream>
 #include <stack>
@@ -78,6 +84,38 @@ class type_scheme : public shared_object {
     
     virtual std::pair< std::string, shared_ptr< type_scheme > > get_field(std::size_t i) const = 0;
     
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      ReaK::shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      std::vector< unsigned int > ID_vect;
+      const unsigned int* tmp = m_type_ID_ptr;
+      while((tmp) && (*tmp)) {
+        ID_vect.push_back(*tmp);
+        ++tmp;
+      };
+      ID_vect.push_back(0);
+      A & RK_SERIAL_SAVE_WITH_ALIAS("TypeName", m_type_name)
+        & RK_SERIAL_SAVE_WITH_ALIAS("TypeID", ID_vect)
+        & RK_SERIAL_SAVE_WITH_ALIAS("TypeVersion", m_type_version);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      ReaK::shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+      std::vector< unsigned int > ID_vect;
+      A & RK_SERIAL_LOAD_WITH_ALIAS("TypeName", m_type_name)
+        & RK_SERIAL_LOAD_WITH_ALIAS("TypeID", ID_vect)
+        & RK_SERIAL_LOAD_WITH_ALIAS("TypeVersion", m_type_version);
+      rtti::so_type::weak_pointer tmp_wptr = rtti::getRKSharedObjTypeRepo().findType(&ID_vect[0]);
+      if(tmp_wptr.expired())
+        m_type_ID_ptr = NULL;
+      else
+        m_type_ID_ptr = tmp_wptr.lock()->TypeID_begin();
+    };
+
+    RK_RTTI_MAKE_ABSTRACT_1BASE(type_scheme,0x81300001,1,"type_scheme",shared_object)
     
 };
 
@@ -87,6 +125,7 @@ class type_scheme : public shared_object {
 template <typename T>
 class primitive_scheme : public type_scheme {
   public:
+    typedef primitive_scheme<T> self;
     
     primitive_scheme() : type_scheme(rtti::get_type_id<T>::type_name(), NULL) {
       unsigned int* tmp_ptr = new unsigned int[2];
@@ -103,9 +142,117 @@ class primitive_scheme : public type_scheme {
       return std::pair< std::string, shared_ptr< type_scheme > >("", shared_ptr< type_scheme >());
     };
     
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
     
-  
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      type_scheme::save(A,type_scheme::getStaticObjectType()->TypeVersion());
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      type_scheme::load(A,type_scheme::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0x81300002,1,"primitive_scheme",type_scheme)
+    
 };
+
+
+/**
+ * This derived class is used to represent the scheme for a vector of objects.
+ */
+class vector_type_scheme : public type_scheme {
+  protected:
+    shared_ptr< type_scheme > m_value_type;
+    
+  public:
+    
+    vector_type_scheme(const std::string& aTypeName = "", 
+                       const shared_ptr< type_scheme >& aValueType = shared_ptr< type_scheme >()) : 
+                       type_scheme(aTypeName, NULL),
+                       m_value_type(aValueType) { };
+    
+    virtual bool is_single_field() const { return false; };
+    
+    virtual std::size_t get_field_count() const { return 1; };
+    
+    virtual std::pair< std::string, shared_ptr< type_scheme > > get_field(std::size_t i) const {
+      if(i == 0)
+        return std::pair< std::string, shared_ptr< type_scheme > >("q", m_value_type);
+      else
+        return std::pair< std::string, shared_ptr< type_scheme > >("", shared_ptr< type_scheme >());
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      type_scheme::save(A,type_scheme::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("ValueType", m_value_type);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      type_scheme::load(A,type_scheme::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_ALIAS("ValueType", m_value_type);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(vector_type_scheme,0x81300003,1,"vector_type_scheme",type_scheme)
+    
+};
+
+
+/**
+ * This derived class is used to represent the scheme for a map of objects.
+ */
+class map_type_scheme : public type_scheme {
+  protected:
+    shared_ptr< type_scheme > m_key_type;
+    shared_ptr< type_scheme > m_value_type;
+    
+  public:
+    
+    map_type_scheme(const std::string& aTypeName = "", 
+                    const shared_ptr< type_scheme >& aKeyType = shared_ptr< type_scheme >(),
+                    const shared_ptr< type_scheme >& aValueType = shared_ptr< type_scheme >()) : 
+                    type_scheme(aTypeName, NULL),
+                    m_key_type(aKeyType),
+                    m_value_type(aValueType) { };
+    
+    virtual bool is_single_field() const { return false; };
+    
+    virtual std::size_t get_field_count() const { return 2; };
+    
+    virtual std::pair< std::string, shared_ptr< type_scheme > > get_field(std::size_t i) const {
+      if(i == 0)
+        return std::pair< std::string, shared_ptr< type_scheme > >("key", m_key_type);
+      else if(i == 1)
+        return std::pair< std::string, shared_ptr< type_scheme > >("value", m_value_type);
+      else
+        return std::pair< std::string, shared_ptr< type_scheme > >("", shared_ptr< type_scheme >());
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      type_scheme::save(A,type_scheme::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("KeyType", m_key_type)
+        & RK_SERIAL_SAVE_WITH_ALIAS("ValueType", m_value_type);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      type_scheme::load(A,type_scheme::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_ALIAS("KeyType", m_key_type)
+        & RK_SERIAL_LOAD_WITH_ALIAS("ValueType", m_value_type);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(map_type_scheme,0x81300004,1,"map_type_scheme",type_scheme)
+    
+};
+
 
 
 /**
@@ -117,9 +264,9 @@ class serializable_obj_scheme : public type_scheme {
     
   public:
     
-    serializable_obj_scheme(const std::string& aTypeName, 
-                            const unsigned int* aTypeIDPtr,
-                            unsigned int aTypeVersion) : 
+    serializable_obj_scheme(const std::string& aTypeName = "", 
+                            const unsigned int* aTypeIDPtr = NULL,
+                            unsigned int aTypeVersion = 1) : 
                             type_scheme(aTypeName, aTypeIDPtr, aTypeVersion),
                             m_fields() { };
     
@@ -132,8 +279,28 @@ class serializable_obj_scheme : public type_scheme {
     };
     
     void add_field(const std::string& aFieldName, const shared_ptr< type_scheme >& aTypeScheme) {
-      m_fields.push_back(std::pair< std::string, shared_ptr< type_scheme >(aFieldName, aTypeScheme));
+      m_fields.push_back(std::pair< std::string, shared_ptr< type_scheme > >(aFieldName, aTypeScheme));
     };
+    
+    void pop_last_field() {
+      m_fields.pop_back();
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      type_scheme::save(A,type_scheme::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Fields", m_fields);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      type_scheme::load(A,type_scheme::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_ALIAS("Fields", m_fields);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(serializable_obj_scheme,0x81300005,1,"serializable_obj_scheme",type_scheme)
     
 };
 
@@ -149,10 +316,10 @@ class serializable_ptr_scheme : public type_scheme {
     
   public:
     
-    serializable_ptr_scheme(const std::string& aTypeName, 
-                            const unsigned int* aTypeIDPtr,
-                            unsigned int aTypeVersion,
-                            const shared_ptr< type_scheme >& aObjectIDScheme) : 
+    serializable_ptr_scheme(const std::string& aTypeName = "", 
+                            const unsigned int* aTypeIDPtr = NULL,
+                            unsigned int aTypeVersion = 1,
+                            const shared_ptr< type_scheme >& aObjectIDScheme = shared_ptr< type_scheme >()) : 
                             type_scheme(aTypeName, aTypeIDPtr, aTypeVersion),
                             m_object_ID_scheme(aObjectIDScheme) { };
     
@@ -166,6 +333,23 @@ class serializable_ptr_scheme : public type_scheme {
       else
         return std::pair< std::string, shared_ptr< type_scheme > >("", shared_ptr< type_scheme >());
     };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      type_scheme::save(A,type_scheme::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("ObjIDField", m_object_ID_scheme);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      type_scheme::load(A,type_scheme::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_ALIAS("ObjIDField", m_object_ID_scheme);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(serializable_ptr_scheme,0x81300006,1,"serializable_ptr_scheme",type_scheme)
+    
     
 };
   

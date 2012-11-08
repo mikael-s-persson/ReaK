@@ -93,7 +93,7 @@ struct get_type_id< std::map<Key,T,Compare,Allocator> > {
 
 template <typename Key, typename T, typename Compare, typename Allocator, typename Tail>
 struct get_type_info< std::map<Key,T,Compare,Allocator>, Tail > {
-  typedef detail::type_id< std::map<Key,T,Compare,Allocator> , typename get_type_info<T, Tail>::type> type;
+  typedef detail::type_id< std::map<Key,T,Compare,Allocator> , typename get_type_info<Key, get_type_info<T, Tail> >::type > type;
   static std::string type_name() { return get_type_id< std::map<Key,T,Compare,Allocator> >::type_name() + "<" + get_type_id<Key>::type_name() + "," + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
@@ -114,6 +114,23 @@ struct get_type_info< std::set<T,Compare,Allocator>, Tail > {
   static std::string type_name() { return get_type_id< std::set<T,Compare,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
+
+
+template <typename T1, typename T2>
+struct get_type_id< std::pair<T1,T2> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000000C);
+  static std::string type_name() { return "std::pair"; };
+  static construct_ptr CreatePtr() { return NULL; };
+  
+  typedef const std::pair<T1,T2>& save_type;
+  typedef std::pair<T1,T2>& load_type;
+};
+
+template <typename T1, typename T2, typename Tail>
+struct get_type_info< std::pair<T1,T2>, Tail > {
+  typedef detail::type_id< std::pair<T1,T2> , typename get_type_info<T1, get_type_info<T2, Tail> >::type > type;
+  static std::string type_name() { return get_type_id< std::pair<T1,T2> >::type_name() + "<" + get_type_id<T1>::type_name() + "," + get_type_id<T2>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+};
 
 
 

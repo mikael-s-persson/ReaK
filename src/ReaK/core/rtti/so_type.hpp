@@ -110,6 +110,7 @@ struct get_type_id< boost::mpl::int_<I> > {
   static construct_ptr CreatePtr() { return NULL; };
 };
 
+
   
 namespace detail {
   
@@ -160,6 +161,13 @@ namespace detail {
 struct null_type_info {
   typedef detail::null_type_id type;
   static std::string type_name() { return std::string(); };
+};
+
+template <>
+struct get_type_id< null_type_info > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0);
+  static std::string type_name() { return ""; };
+  static construct_ptr CreatePtr() { return NULL; };
 };
 
 #ifdef RK_ENABLE_CXX0X_FEATURES

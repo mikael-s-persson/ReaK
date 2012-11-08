@@ -57,6 +57,7 @@ class scheme_builder : public oarchive {
     
     std::stack< shared_ptr< serializable_obj_scheme > > field_stack;
     std::map< std::string, shared_ptr< type_scheme > > scheme_map;
+    std::stack< std::pair< std::string, std::string > > value_name_stack;
     
   protected:
     
@@ -121,8 +122,8 @@ class scheme_builder : public oarchive {
     
   public:
     
-    protobuf_schemer();
-    virtual ~protobuf_schemer();
+    scheme_builder();
+    virtual ~scheme_builder();
     
 };
 

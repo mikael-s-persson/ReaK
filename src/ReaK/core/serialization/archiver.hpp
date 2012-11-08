@@ -663,6 +663,21 @@ class iarchive : public archive {
       in.finish_repeated_field();
       return in;
     };
+    
+    /// Loading a STL pair of templated entries.
+    template <typename T1, typename T2>
+    friend iarchive& operator >>(iarchive& in, std::pair<T1,T2>& p) {
+      in >> p.first >> p.second;
+      return in;
+    };
+
+    /// Loading a STL pair of templated entries with a name.
+    template <typename T1, typename T2>
+    friend iarchive& operator &(iarchive& in, const std::pair<std::string, std::pair<T1,T2>& >& p) {
+      in & RK_SERIAL_LOAD_WITH_ALIAS(p.first + "_first", p.second.first)
+         & RK_SERIAL_LOAD_WITH_ALIAS(p.first + "_second", p.second.second);
+      return in;
+    };
 
 };
 
@@ -1185,6 +1200,21 @@ class oarchive : public archive {
 	out & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), (*it));
       };
       out.finish_repeated_field();
+      return out;
+    };
+    
+    /// Saving a STL pair of templated entries.
+    template <typename T1, typename T2>
+    friend oarchive& operator <<(oarchive& out, const std::pair<T1,T2>& p) {
+      out << p.first << p.second;
+      return out;
+    };
+
+    /// Saving a STL pair of templated entries with a name.
+    template <typename T1, typename T2>
+    friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::pair<T1,T2>& >& p) {
+      out & RK_SERIAL_SAVE_WITH_ALIAS(p.first + "_first", p.second.first)
+          & RK_SERIAL_SAVE_WITH_ALIAS(p.first + "_second", p.second.second);
       return out;
     };
 };
