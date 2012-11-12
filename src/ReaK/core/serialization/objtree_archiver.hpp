@@ -1,5 +1,5 @@
 /**
- * \file scheme_builder.hpp
+ * \file objtree_archiver.hpp
  *
  * This library declares the class for a creating type schemes that represent the fields contained in the 
  * serialization of a given type.
@@ -30,37 +30,104 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_SCHEME_BUILDER_HPP
-#define REAK_SCHEME_BUILDER_HPP
+#ifndef REAK_OBJTREE_ARCHIVER_HPP
+#define REAK_OBJTREE_ARCHIVER_HPP
 
 #include "archiver.hpp"
 
 #include "base/serializable.hpp"
 
-#include "type_schemes.hpp"
-
 #include <fstream>
-#include <stack>
+
+#include <boost/graph/adjacency_list.hpp>
 
 namespace ReaK {
 
 namespace serialization {
 
+struct object_graph_node {
+  shared_ptr< serializable > p_obj;
+  std::string xml_src;
+};
+
+typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::directedS, object_graph_node > object_graph;
+
 
 /**
- * Protobuf scheme constructor.
+ * An input archive used to generate an object tree.
  */
-class scheme_builder : public oarchive {
+class objtree_iarchive : public iarchive {
   private:
-    std::map< std::string, shared_ptr< type_scheme > > scheme_map;
-    
-    std::stack< shared_ptr< serializable_obj_scheme > > field_stack;
-    std::stack< std::pair< std::string, std::string > > value_name_stack;
+    shared_ptr< object_graph > obj_graph;
+    shared_ptr< std::stringstream > current_ss;
+
+    char getNextChar();
+    std::string readToken();
+    void skipToEndToken(const std::string& name);
+    void trimStr(std::string& s);
+    bool readNamedValue(const std::string& value_name,std::string& value_str);
+    archive_object_header readHeader(const std::string& obj_name);
+
+  protected:
+
+    virtual iarchive& RK_CALL load_serializable_ptr(serializable_shared_pointer& Item);
+
+    virtual iarchive& RK_CALL load_serializable_ptr(const std::pair<std::string, serializable_shared_pointer& >& Item);
+
+    virtual iarchive& RK_CALL load_serializable(serializable& Item);
+
+    virtual iarchive& RK_CALL load_serializable(const std::pair<std::string, serializable& >& Item);
+
+    virtual iarchive& RK_CALL load_char(char& i);
+
+    virtual iarchive& RK_CALL load_char(const std::pair<std::string, char& >& i);
+
+    virtual iarchive& RK_CALL load_unsigned_char(unsigned char& u);
+
+    virtual iarchive& RK_CALL load_unsigned_char(const std::pair<std::string, unsigned char& >& u);
+
+    virtual iarchive& RK_CALL load_int(int& i);
+
+    virtual iarchive& RK_CALL load_int(const std::pair<std::string, int& >& i);
+
+    virtual iarchive& RK_CALL load_unsigned_int(unsigned int& u);
+
+    virtual iarchive& RK_CALL load_unsigned_int(const std::pair<std::string, unsigned int& >& u);
+
+    virtual iarchive& RK_CALL load_float(float& f);
+
+    virtual iarchive& RK_CALL load_float(const std::pair<std::string, float& >& f);
+
+    virtual iarchive& RK_CALL load_double(double& d);
+
+    virtual iarchive& RK_CALL load_double(const std::pair<std::string, double& >& d);
+
+    virtual iarchive& RK_CALL load_bool(bool& b);
+
+    virtual iarchive& RK_CALL load_bool(const std::pair<std::string, bool& >& b);
+
+    virtual iarchive& RK_CALL load_string(std::string& s);
+
+    virtual iarchive& RK_CALL load_string(const std::pair<std::string, std::string& >& s);
+  
+  public:
+
+    objtree_iarchive(const shared_ptr< object_graph >& aObjGraph);
+    virtual ~objtree_iarchive();
+
+};
+
+
+/**
+ * XML output archive.
+ */
+class objtree_oarchive : public oarchive {
+  private:
+    shared_ptr< object_graph > obj_graph;
+    shared_ptr< std::stringstream > current_ss;
+    boost::graph_traits< object_graph >::vertex_descriptor current_node;
     
   protected:
-    
-    template <typename T>
-    void save_primitive(const std::string& aName);
     
     virtual oarchive& RK_CALL saveToNewArchive_impl(const serializable_shared_pointer& Item, const std::string& FileName);
     
@@ -106,30 +173,13 @@ class scheme_builder : public oarchive {
     
     virtual oarchive& RK_CALL save_string(const std::pair<std::string, const std::string& >& s);
     
-    virtual void RK_CALL signal_polymorphic_field(const std::string& aBaseTypeName, const unsigned int* aTypeID, const std::string& aFieldName);
-    
-    virtual void RK_CALL start_repeated_field(const std::string& aTypeName);
-    
-    virtual void RK_CALL start_repeated_field(const std::string& aTypeName, const std::string& s);
-    
-    virtual void RK_CALL finish_repeated_field();
-    
-    virtual void RK_CALL start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2);
-    
-    virtual void RK_CALL start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2, const std::string& s);
-    
-    virtual void RK_CALL finish_repeated_pair();
-    
   public:
     
-    const std::map< std::string, shared_ptr< type_scheme > >& get_scheme_map() const { 
-      return scheme_map;
-    };
-    
-    scheme_builder();
-    virtual ~scheme_builder();
+    objtree_oarchive(const shared_ptr< object_graph >& aObjGraph);
+    virtual ~objtree_oarchive();
     
 };
+
 
 
 }; //serialization
