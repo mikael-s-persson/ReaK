@@ -192,13 +192,13 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
   try {
     ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model > manip_kin_mdl = r_info->builder.get_manipulator_kin_model();
     ReaK::shared_ptr< ReaK::pp::joint_limits_collection<double> > manip_jt_limits(&(r_info->builder.joint_rate_limits), ReaK::null_deleter());
-    typedef ReaK::pp::manip_quasi_static_env<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type, ReaK::pp::cubic_hermite_interpolation_tag> workspace_type;
+    typedef ReaK::pp::manip_quasi_static_env<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_1st_type, ReaK::pp::cubic_hermite_interpolation_tag> workspace_type;
     ReaK::shared_ptr<workspace_type> 
       workspace(new workspace_type(
-        r_info->builder.get_rl_joint_space(),
+        r_info->builder.get_rl_joint_space_1st(),
         manip_kin_mdl,
         manip_jt_limits,
-        0.1, 0.8));
+        0.1, 1.2));
     /*typedef ReaK::pp::manip_quasi_static_env<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type, ReaK::pp::sap_interpolation_tag> workspace_type;
     ReaK::shared_ptr<workspace_type> 
       workspace(new workspace_type(
@@ -209,12 +209,12 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
     
     (*workspace) << r_info->robot_lab_proxy << r_info->robot_airship_proxy;
     
-    ReaK::shared_ptr< ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type > jt_space(new ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type(r_info->builder.get_rl_joint_space()));
-    ReaK::shared_ptr< ReaK::robot_airship::CRS_A465_model_builder::joint_space_type > normal_jt_space(new ReaK::robot_airship::CRS_A465_model_builder::joint_space_type(r_info->builder.get_joint_space()));
+    ReaK::shared_ptr< ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_1st_type > jt_space(new ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_1st_type(r_info->builder.get_rl_joint_space_1st()));
+    ReaK::shared_ptr< ReaK::robot_airship::CRS_A465_model_builder::joint_space_1st_type > normal_jt_space(new ReaK::robot_airship::CRS_A465_model_builder::joint_space_1st_type(r_info->builder.get_joint_space_1st()));
     
     
-    ReaK::pp::topology_traits<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type>::point_type start_point, goal_point;
-    ReaK::pp::topology_traits<ReaK::robot_airship::CRS_A465_model_builder::joint_space_type>::point_type start_inter, goal_inter;
+    ReaK::pp::topology_traits<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_1st_type>::point_type start_point, goal_point;
+    ReaK::pp::topology_traits<ReaK::robot_airship::CRS_A465_model_builder::joint_space_1st_type>::point_type start_inter, goal_inter;
     
     ReaK::pp::detail::read_joint_coordinates_impl(start_inter, r_info->builder.get_joint_space(), manip_kin_mdl);
     
@@ -232,15 +232,15 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
     get<1>(get<4>(start_inter)) = 0.0;
     get<1>(get<5>(start_inter)) = 0.0;
     get<1>(get<6>(start_inter)) = 0.0;
-    get<2>(get<0>(start_inter)) = 0.0;
+/*    get<2>(get<0>(start_inter)) = 0.0;
     get<2>(get<1>(start_inter)) = 0.0;
     get<2>(get<2>(start_inter)) = 0.0;
     get<2>(get<3>(start_inter)) = 0.0;
     get<2>(get<4>(start_inter)) = 0.0;
     get<2>(get<5>(start_inter)) = 0.0;
-    get<2>(get<6>(start_inter)) = 0.0;
+    get<2>(get<6>(start_inter)) = 0.0;*/
     
-    start_point = manip_jt_limits->map_to_space(start_inter, r_info->builder.get_joint_space(), r_info->builder.get_rl_joint_space());
+    start_point = manip_jt_limits->map_to_space(start_inter, r_info->builder.get_joint_space_1st(), r_info->builder.get_rl_joint_space_1st());
     
     ReaK::vect_n<double> jt_desired = r_info->builder.compute_inverse_kinematics(r_info->target_frame.getGlobalPose());
     get<0>(get<0>(goal_inter)) = jt_desired[0];
@@ -257,52 +257,52 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
     get<1>(get<4>(goal_inter)) = 0.0;
     get<1>(get<5>(goal_inter)) = 0.0;
     get<1>(get<6>(goal_inter)) = 0.0;
-    get<2>(get<0>(goal_inter)) = 0.0;
+/*    get<2>(get<0>(goal_inter)) = 0.0;
     get<2>(get<1>(goal_inter)) = 0.0;
     get<2>(get<2>(goal_inter)) = 0.0;
     get<2>(get<3>(goal_inter)) = 0.0;
     get<2>(get<4>(goal_inter)) = 0.0;
     get<2>(get<5>(goal_inter)) = 0.0;
-    get<2>(get<6>(goal_inter)) = 0.0;
-    goal_point = manip_jt_limits->map_to_space(goal_inter, r_info->builder.get_joint_space(), r_info->builder.get_rl_joint_space());
+    get<2>(get<6>(goal_inter)) = 0.0;*/
+    goal_point = manip_jt_limits->map_to_space(goal_inter, r_info->builder.get_joint_space_1st(), r_info->builder.get_rl_joint_space_1st());
     
     typedef ReaK::pp::frame_tracer_3D<
-      ReaK::pp::manip_rl_direct_kin_map< ReaK::pp::joint_limits_collection<double>, ReaK::robot_airship::CRS_A465_model_builder::joint_space_type >,
-      ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type, 
+      ReaK::pp::manip_rl_direct_kin_map< ReaK::pp::joint_limits_collection<double>, ReaK::robot_airship::CRS_A465_model_builder::joint_space_1st_type >,
+      ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_1st_type, 
       ReaK::pp::identity_topo_map, 
       ReaK::pp::print_sbmp_progress<> > frame_reporter_type;
     frame_reporter_type temp_reporter(
-      ReaK::pp::manip_rl_direct_kin_map< ReaK::pp::joint_limits_collection<double>, ReaK::robot_airship::CRS_A465_model_builder::joint_space_type >(
+      ReaK::pp::manip_rl_direct_kin_map< ReaK::pp::joint_limits_collection<double>, ReaK::robot_airship::CRS_A465_model_builder::joint_space_1st_type >(
         manip_kin_mdl, manip_jt_limits, normal_jt_space),
       jt_space,
       0.05);
     temp_reporter.add_traced_frame(r_info->builder.arm_joint_6_end);
-    
+    /*
     ReaK::pp::rrt_path_planner<workspace_type, frame_reporter_type>
       workspace_planner(
         workspace,
         start_point,
         goal_point,
-        10000,
-        1000,
-        ReaK::pp::UNIDIRECTIONAL_RRT,
-        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-        ReaK::pp::DVP_BF2_TREE_KNN,
-        temp_reporter,
-        5);
-    /*
-    ReaK::pp::rrtstar_path_planner<workspace_type, frame_reporter_type>
-      workspace_planner(
-        workspace,
-        start_point,
-        goal_point,
-        1000,
+        2000,
         1000,
         ReaK::pp::UNIDIRECTIONAL_RRT,
         ReaK::pp::ADJ_LIST_MOTION_GRAPH,
         ReaK::pp::DVP_BF2_TREE_KNN,
         temp_reporter,
         5);*/
+    
+    ReaK::pp::rrtstar_path_planner<workspace_type, frame_reporter_type>
+      workspace_planner(
+        workspace,
+        start_point,
+        goal_point,
+        3000,
+        1000,
+        ReaK::pp::UNIDIRECTIONAL_RRT,
+        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_BF2_TREE_KNN,
+        temp_reporter,
+        100);
     
     workspace_planner.solve_path();
     

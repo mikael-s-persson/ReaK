@@ -202,10 +202,17 @@ class CRS_A465_model_builder {
     // summary of robot parameters:
     CRS_A465_model_parameters A465_params;
     
-    typedef pp::metric_space_array< pp::rl_joint_space_2nd_order<double>::type, 7>::type rate_limited_joint_space_type;
-    typedef pp::metric_space_array< pp::joint_space_2nd_order<double>::type, 7>::type joint_space_type;
+    typedef pp::metric_space_array< pp::rl_joint_space_2nd_order<double>::type, 7, pp::euclidean_tuple_distance>::type rate_limited_joint_space_type;
+    typedef pp::metric_space_array< pp::joint_space_2nd_order<double>::type, 7, pp::euclidean_tuple_distance>::type joint_space_type;
     typedef pp::se3_2nd_order_topology<double>::type end_effector_space_type;
     
+    typedef pp::metric_space_array< pp::rl_joint_space_1st_order<double>::type, 7, pp::euclidean_tuple_distance>::type rate_limited_joint_space_1st_type;
+    typedef pp::metric_space_array< pp::joint_space_1st_order<double>::type, 7, pp::euclidean_tuple_distance>::type joint_space_1st_type;
+    typedef pp::se3_1st_order_topology<double>::type end_effector_space_1st_type;
+    
+    typedef pp::metric_space_array< pp::rl_joint_space_0th_order<double>::type, 7, pp::euclidean_tuple_distance>::type rate_limited_joint_space_0th_type;
+    typedef pp::metric_space_array< pp::joint_space_0th_order<double>::type, 7, pp::euclidean_tuple_distance>::type joint_space_0th_type;
+    typedef pp::se3_0th_order_topology<double>::type end_effector_space_0th_type;
     
     /*
     Indicies into joint solution matrix. The internal inverse kinematics
@@ -337,6 +344,56 @@ class CRS_A465_model_builder {
      * \return An end-effector space on which the end-effector state can be represented (note that the bounds of the end-effector spaces are very approximate).
      */
     end_effector_space_type get_end_effector_space() const;
+    
+    /**
+     * This function construct a rate-limited 1st-order joint-space on which the joint vectors can reside. The 
+     * 1st-order joint space is a topology (see pp::TopologyConcept) which is also differentiable (see pp::TangentBundleConcept)
+     * one time with respect to time, and can serve joint states which are stored as reach-time 
+     * values (i.e. position normalized by speed, etc.).
+     * \return A rate-limited 1st-order joint-space corresponding to the rate-limits and joint-limits stored in this model.
+     */
+    rate_limited_joint_space_1st_type get_rl_joint_space_1st() const;
+    
+    /**
+     * This function construct a 1st-order joint-space on which the joint vectors can reside. The 
+     * 1st-order joint space is a topology (see pp::TopologyConcept) which is also differentiable 
+     * (see pp::TangentBundleConcept) one time with respect to time.
+     * \return A 1st-order joint-space corresponding to the rate-limits and joint-limits stored in this model.
+     */
+    joint_space_1st_type get_joint_space_1st() const;
+    
+    /**
+     * This function construct a 1st-order end-effector space on which the end-effector state can be represented. The 
+     * 1st-order end-effector space is a topology (see pp::TopologyConcept) which is also differentiable (see pp::TangentBundleConcept)
+     * one time with respect to time.
+     * \return A 1st-order end-effector space on which the end-effector state can be represented (note that the bounds of the end-effector spaces are very approximate).
+     */
+    end_effector_space_1st_type get_end_effector_space_1st() const;
+    
+    /**
+     * This function construct a rate-limited 0th-order joint-space on which the joint vectors can reside. The 
+     * 0th-order joint space is a topology (see pp::TopologyConcept) which is also differentiable (see pp::TangentBundleConcept)
+     * zero time with respect to time, and can serve joint states which are stored as reach-time 
+     * values (i.e. position normalized by speed, etc.).
+     * \return A rate-limited 0th-order joint-space corresponding to the rate-limits and joint-limits stored in this model.
+     */
+    rate_limited_joint_space_0th_type get_rl_joint_space_0th() const;
+    
+    /**
+     * This function construct a 0th-order joint-space on which the joint vectors can reside. The 
+     * 0th-order joint space is a topology (see pp::TopologyConcept) which is also differentiable 
+     * (see pp::TangentBundleConcept) zero time with respect to time.
+     * \return A 0th-order joint-space corresponding to the rate-limits and joint-limits stored in this model.
+     */
+    joint_space_0th_type get_joint_space_0th() const;
+    
+    /**
+     * This function construct a 0th-order end-effector space on which the end-effector state can be represented. The 
+     * 0th-order end-effector space is a topology (see pp::TopologyConcept) which is also differentiable (see pp::TangentBundleConcept)
+     * zero time with respect to time.
+     * \return A 0th-order end-effector space on which the end-effector state can be represented (note that the bounds of the end-effector spaces are very approximate).
+     */
+    end_effector_space_0th_type get_end_effector_space_0th() const;
     
     
     pose_3D<double> compute_direct_kinematics(const vect_n<double>& joint_positions) const;

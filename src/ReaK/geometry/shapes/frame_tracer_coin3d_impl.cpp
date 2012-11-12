@@ -46,6 +46,7 @@ struct tracer_coin3d_impl_pimpl {
   SoCoordinate3* coords;
   SoLineSet* ln_set;
   std::vector< vect<double,3> > current_points;
+  std::size_t current_offset, current_ln_offset;
 }; 
 
 SoSeparator* tracer_coin3d_impl::get_separator() const {
@@ -70,6 +71,9 @@ tracer_coin3d_impl::tracer_coin3d_impl(bool aIsSolution) {
   path_impl->ln_set = new SoLineSet;
   path_impl->path_sep->addChild(path_impl->ln_set);
   
+  path_impl->current_offset = 0;
+  path_impl->current_ln_offset = 0;
+  
 };
 
 tracer_coin3d_impl::tracer_coin3d_impl(const tracer_coin3d_impl& rhs) {
@@ -86,6 +90,9 @@ tracer_coin3d_impl::tracer_coin3d_impl(const tracer_coin3d_impl& rhs) {
     
   path_impl->ln_set = new SoLineSet;
   path_impl->path_sep->addChild(path_impl->ln_set);
+  
+  path_impl->current_offset = 0;
+  path_impl->current_ln_offset = 0;
 };
 
 tracer_coin3d_impl& tracer_coin3d_impl::operator=(const tracer_coin3d_impl& rhs) {
@@ -105,6 +112,9 @@ tracer_coin3d_impl& tracer_coin3d_impl::operator=(const tracer_coin3d_impl& rhs)
   path_impl->path_sep->addChild(path_impl->ln_set);
   
   path_impl->current_points.clear();
+  
+  path_impl->current_offset = 0;
+  path_impl->current_ln_offset = 0;
   
   return *this;
 };
@@ -130,15 +140,14 @@ void tracer_coin3d_impl::add_point(const vect<double,3>& new_point) const {
 };
 
 void tracer_coin3d_impl::end_edge() const {
-  std::size_t offset = path_impl->coords->point.getNum();
-  
   for(std::size_t i = 0; i < path_impl->current_points.size(); ++i) {
     const vect<double,3>& v = path_impl->current_points[i];
-    path_impl->coords->point.set1Value(offset + i, v[0], v[1], v[2]);
+    path_impl->coords->point.set1Value(path_impl->current_offset + i, v[0], v[1], v[2]);
   };
+  path_impl->current_offset += path_impl->current_points.size();
   
-  std::size_t ln_offset = path_impl->ln_set->numVertices.getNum();
-  path_impl->ln_set->numVertices.set1Value(ln_offset, path_impl->current_points.size());
+  path_impl->ln_set->numVertices.set1Value(path_impl->current_ln_offset, path_impl->current_points.size());
+  path_impl->current_ln_offset += 1;
   
   path_impl->current_points.clear();
 };
