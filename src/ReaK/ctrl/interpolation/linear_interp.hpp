@@ -65,16 +65,16 @@ struct linear_interpolation_tag { };
   
 namespace detail {
   
-  template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
+  template <typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace>
   inline 
   typename boost::enable_if< 
     boost::mpl::less< 
       Idx, 
       boost::mpl::size_t<1> 
     >,
-  void >::type linear_interpolate_HOT_impl(PointType& result, const PointDiff1& dv1v0, const PointDiff1& d_ldp1p0_v0,
-                                                  const DiffSpace& space, const TimeSpace& t_space,
-				 	          double t_factor, double t_normal) {
+  void >::type linear_interpolate_HOT_impl(PointType& result, const PointDiff0& dp1p0,
+                                           const DiffSpace& space, const TimeSpace& t_space,
+				 	   double t_factor, double t_normal) {
     /* nothing to do. */
   };
   

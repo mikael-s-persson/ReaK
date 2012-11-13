@@ -424,7 +424,7 @@ struct svp_rate_limited_sampler : public serialization::serializable {
     BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< Space1 >));
     
     const typename point_distribution_traits<Topology>::random_sampler_type& get_sample = get(random_sampler,s);
-    const Space0& s0 = get_space<0>(s, *t_space);
+//    const Space0& s0 = get_space<0>(s, *t_space);
     const Space1& s1 = get_space<1>(s, *t_space);
     const typename metric_space_traits< Space1 >::distance_metric_type& get_vel_dist = get(distance_metric,s1);
     

@@ -119,19 +119,19 @@ typedef ReaK::robot_airship::CRS_A465_model_builder::joint_space_0th_type jspace
 typedef ReaK::robot_airship::CRS_A465_model_builder::joint_space_1st_type jspace_1_type;
 typedef ReaK::robot_airship::CRS_A465_model_builder::joint_space_type jspace_2_type;
 
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_0_type, ReaK::pp::linear_interpolation_tag> workspace_0linear_type;
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_1_type, ReaK::pp::linear_interpolation_tag> workspace_1linear_type;
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::linear_interpolation_tag> workspace_2linear_type;
+typedef ReaK::pp::manip_quasi_static_env<jspace_rl_0_type, ReaK::pp::linear_interpolation_tag> workspace_0_linear_type;
+typedef ReaK::pp::manip_quasi_static_env<jspace_rl_1_type, ReaK::pp::linear_interpolation_tag> workspace_1_linear_type;
+typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::linear_interpolation_tag> workspace_2_linear_type;
 
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_1_type, ReaK::pp::cubic_hermite_interpolation_tag> workspace_1cubic_type;
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::cubic_hermite_interpolation_tag> workspace_2cubic_type;
+typedef ReaK::pp::manip_quasi_static_env<jspace_rl_1_type, ReaK::pp::cubic_hermite_interpolation_tag> workspace_1_cubic_type;
+typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::cubic_hermite_interpolation_tag> workspace_2_cubic_type;
 
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::quintic_hermite_interpolation_tag> workspace_2quintic_type;
+typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::quintic_hermite_interpolation_tag> workspace_2_quintic_type;
 
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_1_type, ReaK::pp::svp_interpolation_tag> workspace_1svp_type;
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::svp_interpolation_tag> workspace_2svp_type;
+typedef ReaK::pp::manip_quasi_static_env<jspace_rl_1_type, ReaK::pp::svp_interpolation_tag> workspace_1_svp_type;
+typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::svp_interpolation_tag> workspace_2_svp_type;
 
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::sap_interpolation_tag> workspace_2sap_type;
+typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::sap_interpolation_tag> workspace_2_sap_type;
 
 
 typedef ReaK::pp::manip_rl_direct_kin_map< ReaK::pp::joint_limits_collection<double>, jspace_0_type > rldk_0_type;
@@ -586,92 +586,270 @@ void CRSPlannerGUI::executePlanner() {
   SoSeparator* mg_sep = NULL;
   std::vector< SoSeparator* > sol_seps;
   
+  
+  /*
+   * Below are a few rather large MACROs that are used to generate all the code for the different planner-space
+   * combinations.
+   */
+  
+#define RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(WORKSPACE) \
+        ReaK::shared_ptr< jspace_rl_0_type > jt_space(new jspace_rl_0_type(r_info.builder.get_rl_joint_space_0th())); \
+        ReaK::shared_ptr< jspace_0_type > normal_jt_space(new jspace_0_type(r_info.builder.get_joint_space_0th())); \
+         \
+        ReaK::shared_ptr<WORKSPACE>  \
+          workspace(new WORKSPACE( \
+            *jt_space, \
+            r_info.manip_kin_mdl, \
+            r_info.manip_jt_limits, \
+            min_travel, max_travel)); \
+         \
+        (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy; \
+         \
+        ReaK::pp::topology_traits< jspace_rl_0_type >::point_type start_point, goal_point; \
+        ReaK::pp::topology_traits< jspace_0_type >::point_type start_inter, goal_inter; \
+        start_inter = normal_jt_space->origin(); \
+        get<0>(get<0>(start_inter)) = jt_start[0]; \
+        get<0>(get<1>(start_inter)) = jt_start[1]; \
+        get<0>(get<2>(start_inter)) = jt_start[2]; \
+        get<0>(get<3>(start_inter)) = jt_start[3]; \
+        get<0>(get<4>(start_inter)) = jt_start[4]; \
+        get<0>(get<5>(start_inter)) = jt_start[5]; \
+        get<0>(get<6>(start_inter)) = jt_start[6]; \
+        start_point = r_info.manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space); \
+         \
+        goal_inter = normal_jt_space->origin(); \
+        get<0>(get<0>(goal_inter)) = jt_desired[0]; \
+        get<0>(get<1>(goal_inter)) = jt_desired[1]; \
+        get<0>(get<2>(goal_inter)) = jt_desired[2]; \
+        get<0>(get<3>(goal_inter)) = jt_desired[3]; \
+        get<0>(get<4>(goal_inter)) = jt_desired[4]; \
+        get<0>(get<5>(goal_inter)) = jt_desired[5]; \
+        get<0>(get<6>(goal_inter)) = jt_desired[6]; \
+        goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
+         \
+        typedef ReaK::pp::frame_tracer_3D< \
+          rldk_0_type, jspace_rl_0_type, ReaK::pp::identity_topo_map, ReaK::pp::print_sbmp_progress<> > frame_reporter_type; \
+        frame_reporter_type temp_reporter( \
+          rldk_0_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
+          jt_space, 0.5 * min_travel); \
+        temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end);
+        
+#define RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(WORKSPACE) \
+        ReaK::shared_ptr< jspace_rl_1_type > jt_space(new jspace_rl_1_type(r_info.builder.get_rl_joint_space_1st())); \
+        ReaK::shared_ptr< jspace_1_type > normal_jt_space(new jspace_1_type(r_info.builder.get_joint_space_1st())); \
+         \
+        ReaK::shared_ptr<WORKSPACE>  \
+          workspace(new WORKSPACE( \
+            *jt_space, \
+            r_info.manip_kin_mdl, \
+            r_info.manip_jt_limits, \
+            min_travel, max_travel)); \
+         \
+        (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy; \
+         \
+        ReaK::pp::topology_traits< jspace_rl_1_type >::point_type start_point, goal_point; \
+        ReaK::pp::topology_traits< jspace_1_type >::point_type start_inter, goal_inter; \
+        start_inter = normal_jt_space->origin(); \
+        get<0>(get<0>(start_inter)) = jt_start[0]; \
+        get<0>(get<1>(start_inter)) = jt_start[1]; \
+        get<0>(get<2>(start_inter)) = jt_start[2]; \
+        get<0>(get<3>(start_inter)) = jt_start[3]; \
+        get<0>(get<4>(start_inter)) = jt_start[4]; \
+        get<0>(get<5>(start_inter)) = jt_start[5]; \
+        get<0>(get<6>(start_inter)) = jt_start[6]; \
+        start_point = r_info.manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space); \
+         \
+        goal_inter = normal_jt_space->origin(); \
+        get<0>(get<0>(goal_inter)) = jt_desired[0]; \
+        get<0>(get<1>(goal_inter)) = jt_desired[1]; \
+        get<0>(get<2>(goal_inter)) = jt_desired[2]; \
+        get<0>(get<3>(goal_inter)) = jt_desired[3]; \
+        get<0>(get<4>(goal_inter)) = jt_desired[4]; \
+        get<0>(get<5>(goal_inter)) = jt_desired[5]; \
+        get<0>(get<6>(goal_inter)) = jt_desired[6]; \
+        goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
+         \
+        typedef ReaK::pp::frame_tracer_3D< \
+          rldk_1_type, jspace_rl_1_type, ReaK::pp::identity_topo_map, ReaK::pp::print_sbmp_progress<> > frame_reporter_type; \
+        frame_reporter_type temp_reporter( \
+          rldk_1_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
+          jt_space, 0.5 * min_travel); \
+        temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end);
+        
+#define RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(WORKSPACE) \
+        ReaK::shared_ptr< jspace_rl_2_type > jt_space(new jspace_rl_2_type(r_info.builder.get_rl_joint_space())); \
+        ReaK::shared_ptr< jspace_2_type > normal_jt_space(new jspace_2_type(r_info.builder.get_joint_space())); \
+         \
+        ReaK::shared_ptr<WORKSPACE>  \
+          workspace(new WORKSPACE( \
+            *jt_space, \
+            r_info.manip_kin_mdl, \
+            r_info.manip_jt_limits, \
+            min_travel, max_travel)); \
+         \
+        (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy; \
+         \
+        ReaK::pp::topology_traits< jspace_rl_2_type >::point_type start_point, goal_point; \
+        ReaK::pp::topology_traits< jspace_2_type >::point_type start_inter, goal_inter; \
+        start_inter = normal_jt_space->origin(); \
+        get<0>(get<0>(start_inter)) = jt_start[0]; \
+        get<0>(get<1>(start_inter)) = jt_start[1]; \
+        get<0>(get<2>(start_inter)) = jt_start[2]; \
+        get<0>(get<3>(start_inter)) = jt_start[3]; \
+        get<0>(get<4>(start_inter)) = jt_start[4]; \
+        get<0>(get<5>(start_inter)) = jt_start[5]; \
+        get<0>(get<6>(start_inter)) = jt_start[6]; \
+        start_point = r_info.manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space); \
+         \
+        goal_inter = normal_jt_space->origin(); \
+        get<0>(get<0>(goal_inter)) = jt_desired[0]; \
+        get<0>(get<1>(goal_inter)) = jt_desired[1]; \
+        get<0>(get<2>(goal_inter)) = jt_desired[2]; \
+        get<0>(get<3>(goal_inter)) = jt_desired[3]; \
+        get<0>(get<4>(goal_inter)) = jt_desired[4]; \
+        get<0>(get<5>(goal_inter)) = jt_desired[5]; \
+        get<0>(get<6>(goal_inter)) = jt_desired[6]; \
+        goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
+         \
+        typedef ReaK::pp::frame_tracer_3D< \
+          rldk_2_type, jspace_rl_2_type, ReaK::pp::identity_topo_map, ReaK::pp::print_sbmp_progress<> > frame_reporter_type; \
+        frame_reporter_type temp_reporter( \
+          rldk_2_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
+          jt_space, 0.5 * min_travel); \
+        temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end);
+        
+#define RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(WORKSPACE) \
+        ReaK::pp::rrt_path_planner<WORKSPACE, frame_reporter_type> \
+          workspace_planner( \
+            workspace, \
+            start_point, \
+            goal_point, \
+            max_vertices, \
+            prog_interval, \
+            rrt_dir, \
+            store_policy, \
+            knn_method, \
+            temp_reporter,  \
+            max_results); \
+         \
+        workspace_planner.solve_path(); \
+         \
+        mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
+        mg_sep->ref(); \
+        for(std::size_t i = 0; i < workspace_planner.get_reporter().get_solution_count(); ++i) { \
+          sol_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
+          sol_seps.back()->ref(); \
+        }; \
+         \
+        r_info.builder.track_joint_coord->q = get<0>(get<0>(start_inter)); \
+        r_info.builder.arm_joint_1_coord->q = get<0>(get<1>(start_inter)); \
+        r_info.builder.arm_joint_2_coord->q = get<0>(get<2>(start_inter)); \
+        r_info.builder.arm_joint_3_coord->q = get<0>(get<3>(start_inter)); \
+        r_info.builder.arm_joint_4_coord->q = get<0>(get<4>(start_inter)); \
+        r_info.builder.arm_joint_5_coord->q = get<0>(get<5>(start_inter)); \
+        r_info.builder.arm_joint_6_coord->q = get<0>(get<6>(start_inter)); \
+        r_info.kin_chain->doMotion();
+  
+#define RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(WORKSPACE) \
+        ReaK::pp::rrtstar_path_planner<WORKSPACE, frame_reporter_type> \
+          workspace_planner( \
+            workspace, \
+            start_point, \
+            goal_point, \
+            max_vertices, \
+            prog_interval, \
+            rrt_dir, \
+            store_policy, \
+            knn_method, \
+            temp_reporter, \
+            max_results); \
+         \
+        workspace_planner.solve_path(); \
+         \
+        mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
+        mg_sep->ref(); \
+        for(std::size_t i = 0; i < workspace_planner.get_reporter().get_solution_count(); ++i) { \
+          sol_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
+          sol_seps.back()->ref(); \
+        }; \
+         \
+        r_info.builder.track_joint_coord->q = get<0>(get<0>(start_inter)); \
+        r_info.builder.arm_joint_1_coord->q = get<0>(get<1>(start_inter)); \
+        r_info.builder.arm_joint_2_coord->q = get<0>(get<2>(start_inter)); \
+        r_info.builder.arm_joint_3_coord->q = get<0>(get<3>(start_inter)); \
+        r_info.builder.arm_joint_4_coord->q = get<0>(get<4>(start_inter)); \
+        r_info.builder.arm_joint_5_coord->q = get<0>(get<5>(start_inter)); \
+        r_info.builder.arm_joint_6_coord->q = get<0>(get<6>(start_inter)); \
+        r_info.kin_chain->doMotion();
+  
+  
+  
+  
   switch(configs.planning_algo_selection->currentIndex()) {
     case 0:  // RRT
     {
       
-      if((space_order == 1) && (interp_id == 1)) { // first-order space, cubic interpolation.
-        
-        ReaK::shared_ptr< jspace_rl_1_type > jt_space(new jspace_rl_1_type(r_info.builder.get_rl_joint_space_1st()));
-        ReaK::shared_ptr< jspace_1_type > normal_jt_space(new jspace_1_type(r_info.builder.get_joint_space_1st()));
-        
-        ReaK::shared_ptr<workspace_1cubic_type> 
-          workspace(new workspace_1cubic_type(
-            *jt_space,
-            r_info.manip_kin_mdl,
-            r_info.manip_jt_limits,
-            min_travel, max_travel));
-        
-        (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy;
-        
-        ReaK::pp::topology_traits< jspace_rl_1_type >::point_type start_point, goal_point;
-        ReaK::pp::topology_traits< jspace_1_type >::point_type start_inter, goal_inter;
-        start_inter = normal_jt_space->origin();
-        get<0>(get<0>(start_inter)) = jt_start[0];
-        get<0>(get<1>(start_inter)) = jt_start[1];
-        get<0>(get<2>(start_inter)) = jt_start[2];
-        get<0>(get<3>(start_inter)) = jt_start[3];
-        get<0>(get<4>(start_inter)) = jt_start[4];
-        get<0>(get<5>(start_inter)) = jt_start[5];
-        get<0>(get<6>(start_inter)) = jt_start[6];
-        start_point = r_info.manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space);
-        
-        goal_inter = normal_jt_space->origin();
-        get<0>(get<0>(goal_inter)) = jt_desired[0];
-        get<0>(get<1>(goal_inter)) = jt_desired[1];
-        get<0>(get<2>(goal_inter)) = jt_desired[2];
-        get<0>(get<3>(goal_inter)) = jt_desired[3];
-        get<0>(get<4>(goal_inter)) = jt_desired[4];
-        get<0>(get<5>(goal_inter)) = jt_desired[5];
-        get<0>(get<6>(goal_inter)) = jt_desired[6];
-        goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space);
-        
-        typedef ReaK::pp::frame_tracer_3D<
-          rldk_1_type, jspace_rl_1_type, ReaK::pp::identity_topo_map, ReaK::pp::print_sbmp_progress<> > frame_reporter_type;
-        frame_reporter_type temp_reporter(
-          rldk_1_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space),
-          jt_space, 0.5 * min_travel);
-        temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end);
-        
-        ReaK::pp::rrt_path_planner<workspace_1cubic_type, frame_reporter_type>
-          workspace_planner(
-            workspace,
-            start_point,
-            goal_point,
-            max_vertices,
-            prog_interval,
-            rrt_dir,
-            store_policy,
-            knn_method,
-            temp_reporter, 
-            max_results);
-        
-        workspace_planner.solve_path();
-        
-        mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator();
-        mg_sep->ref();
-        for(std::size_t i = 0; i < workspace_planner.get_reporter().get_solution_count(); ++i) {
-          sol_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator());
-          sol_seps.back()->ref();
-        };
-        
-        // reset display position:
-        r_info.builder.track_joint_coord->q = get<0>(get<0>(start_inter));
-        r_info.builder.arm_joint_1_coord->q = get<0>(get<1>(start_inter));
-        r_info.builder.arm_joint_2_coord->q = get<0>(get<2>(start_inter));
-        r_info.builder.arm_joint_3_coord->q = get<0>(get<3>(start_inter));
-        r_info.builder.arm_joint_4_coord->q = get<0>(get<4>(start_inter));
-        r_info.builder.arm_joint_5_coord->q = get<0>(get<5>(start_inter));
-        r_info.builder.arm_joint_6_coord->q = get<0>(get<6>(start_inter));
-        r_info.kin_chain->doMotion();
+      if((space_order == 0) && (interp_id == 0)) { 
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(workspace_0_linear_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_0_linear_type)
+      } else if((space_order == 1) && (interp_id == 0)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(workspace_1_linear_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_1_linear_type)
+      } else if((space_order == 2) && (interp_id == 0)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_linear_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_2_linear_type)
+      } else if((space_order == 1) && (interp_id == 1)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(workspace_1_cubic_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_1_cubic_type)
+      } else if((space_order == 2) && (interp_id == 1)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_cubic_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_2_cubic_type)
+      } else if((space_order == 2) && (interp_id == 2)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_quintic_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_2_quintic_type)
+      } else if((space_order == 1) && (interp_id == 3)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(workspace_1_svp_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_1_svp_type)
+      } else if((space_order == 2) && (interp_id == 3)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_svp_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_2_svp_type)
+      } else if((space_order == 2) && (interp_id == 4)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_sap_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_2_sap_type)
       };
       
     }; break;
     case 1:  // RRT*
     {
       
-      
-      
+      if((space_order == 0) && (interp_id == 0)) { 
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(workspace_0_linear_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_0_linear_type)
+      } else if((space_order == 1) && (interp_id == 0)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(workspace_1_linear_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_1_linear_type)
+      } else if((space_order == 2) && (interp_id == 0)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_linear_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_2_linear_type)
+      } else if((space_order == 1) && (interp_id == 1)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(workspace_1_cubic_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_1_cubic_type)
+      } else if((space_order == 2) && (interp_id == 1)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_cubic_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_2_cubic_type)
+      } else if((space_order == 2) && (interp_id == 2)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_quintic_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_2_quintic_type)
+      } else if((space_order == 1) && (interp_id == 3)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(workspace_1_svp_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_1_svp_type)
+      } else if((space_order == 2) && (interp_id == 3)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_svp_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_2_svp_type)
+      } else if((space_order == 2) && (interp_id == 4)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_sap_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_2_sap_type)
+      };
       
     }; break;
     case 2:  // RRG
