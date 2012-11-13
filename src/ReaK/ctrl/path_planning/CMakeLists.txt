@@ -58,7 +58,6 @@ include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")
 
-find_package( Qt4 )
 if()
 #if(${QT_FOUND})
   include( ${QT_USE_FILE} )

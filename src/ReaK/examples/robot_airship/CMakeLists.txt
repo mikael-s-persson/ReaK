@@ -76,6 +76,24 @@ if(COIN3D_FOUND AND QT_FOUND)
   target_link_libraries(test_CRS_planning reak_kte_coin reak_geom_coin reak_robot_airship reak_mbd_kte reak_geom_prox reak_geom reak_core)
   target_link_libraries(test_CRS_planning ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
   
+  include( ${QT_USE_FILE} )
+  set( ROBOTAIRSHIP_CRSPLANNER_UIS
+     "${SRCROOT}${RKROBOTAIRSHIPDIR}/uis/CRS_planner_window.ui" 
+     "${SRCROOT}${RKROBOTAIRSHIPDIR}/uis/CRS_planner_config.ui"
+  )
+  QT4_WRAP_UI( ROBOTAIRSHIP_CRSPLANNER_UI_HDRS ${ROBOTAIRSHIP_CRSPLANNER_UIS} )
+  set( ROBOTAIRSHIP_CRSPLANNER_MOC_HDRS
+     "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner_impl.h"
+  )
+  QT4_WRAP_CPP( ROBOTAIRSHIP_CRSPLANNER_MOC_SRCS ${ROBOTAIRSHIP_CRSPLANNER_MOC_HDRS} )
+  include_directories( AFTER "${CMAKE_BINARY_DIR}${RKROBOTAIRSHIPDIR}" )
+  
+  add_executable(CRS_planner "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner_impl.cpp" ${ROBOTAIRSHIP_CRSPLANNER_MOC_SRCS} ${ROBOTAIRSHIP_CRSPLANNER_UI_HDRS})
+  setup_custom_target(CRS_planner "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+  target_link_libraries(CRS_planner reak_kte_coin reak_geom_coin reak_robot_airship reak_mbd_kte reak_geom_prox reak_geom reak_core)
+  target_link_libraries(CRS_planner ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
+  target_link_libraries(CRS_planner ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
+  
 endif()
 
 

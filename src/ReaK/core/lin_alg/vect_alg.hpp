@@ -2727,6 +2727,42 @@ std::ostream& >::type operator <<(std::ostream& out_stream,const Vector& V) {
   return out_stream << ")";
 };
 
+/**
+ * Reads a variable-size vector to an input stream as "(v1; v2; v3; ..; vN)".
+ * \test PASSED
+ */
+template <typename T>
+std::istream& operator >>(std::istream& in_stream, vect_n<T>& V) {
+  typedef typename vect_traits< vect_n<T> >::size_type SizeType;
+  std::string tmp_str;
+  std::getline(in_stream, tmp_str, '('); // skip to opening bracket.
+  std::getline(in_stream, tmp_str, ')'); // read to closing bracket.
+  SizeType sz = std::count(tmp_str.begin(), tmp_str.end(), ';') + 1;
+  std::stringstream ss(tmp_str);
+  V.resize(sz);
+  std::string tmp2;
+  for(SizeType i = 0; ss >> V[i]; ++i)
+    std::getline(ss, tmp2, ';');
+  return in_stream;
+};
+
+/**
+ * Reads a variable-size vector to an input stream as "(v1; v2; v3; ..; vN)".
+ * \test PASSED
+ */
+template <typename T, unsigned int Size>
+std::istream& operator >>(std::istream& in_stream, vect<T,Size>& V) {
+  typedef typename vect_traits< vect<T,Size> >::size_type SizeType;
+  std::string tmp_str;
+  std::getline(in_stream, tmp_str, '('); // skip to opening bracket.
+  std::getline(in_stream, tmp_str, ')'); // read to closing bracket.
+  std::stringstream ss(tmp_str);
+  std::string tmp2;
+  for(SizeType i = 0; (i < Size) && (ss >> V[i]); ++i)
+    std::getline(ss, tmp2, ';');
+  return in_stream;
+};
+
 
 
 

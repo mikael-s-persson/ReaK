@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>260</width>
-    <height>591</height>
+    <width>357</width>
+    <height>689</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>CRS Planning Config</string>
@@ -29,7 +35,7 @@
       <enum>QTabWidget::South</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="TopologyTab">
       <attribute name="title">
@@ -151,65 +157,78 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_13">
-         <property name="text">
-          <string>Starting Joint Configuration:</string>
+        <widget class="QGroupBox" name="start_config_group">
+         <property name="title">
+          <string>Starting Joint Configuration</string>
          </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <widget class="QRadioButton" name="check_current_start">
+            <property name="text">
+             <string>Current Configuration</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+            <property name="autoExclusive">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="check_custom_start">
+            <property name="text">
+             <string>Joint Configuration below:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="custom_start_edit">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>(0; 0; 0; 0; 0; 0; 0)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox">
-         <property name="text">
-          <string>Current Configuration</string>
+        <widget class="QGroupBox" name="target_config_group">
+         <property name="title">
+          <string>Target Joint Configuration</string>
          </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="checkBox_2">
-         <property name="text">
-          <string>Joint Configuration below:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="lineEdit">
-         <property name="text">
-          <string>(0; 0; 0; 0; 0; 0; 0)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_14">
-         <property name="text">
-          <string>Target Joint Configuration:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="checkBox_3">
-         <property name="text">
-          <string>Current Target End-effector Pose (IK)</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="checkBox_4">
-         <property name="text">
-          <string>Joint Configuration below:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="lineEdit_2">
-         <property name="text">
-          <string>(0; 0; 0; 0; 0; 0; 0)</string>
-         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QRadioButton" name="check_ik_goal">
+            <property name="text">
+             <string>Current Target End-effector Pose (IK)</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="check_custom_goal">
+            <property name="text">
+             <string>Joint Configuration below:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="custom_goal_edit">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>(0; 0; 0; 0; 0; 0; 0)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
@@ -429,6 +448,9 @@
        </item>
        <item>
         <widget class="QCheckBox" name="check_print_timing">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Timing (printed to terminal)</string>
          </property>
@@ -436,8 +458,14 @@
        </item>
        <item>
         <widget class="QCheckBox" name="check_print_counter">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>Node counter (printed to terminal)</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -469,7 +497,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="execute_button">
          <property name="text">
           <string>Execute Motion Planning...</string>
          </property>
@@ -496,37 +524,49 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="QCheckBox" name="checkBox_5">
+        <widget class="QCheckBox" name="check_show_geom">
          <property name="text">
           <string>Show Robot Geometry</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_6">
+        <widget class="QCheckBox" name="check_show_kinmdl">
          <property name="text">
           <string>Show Robot Kinematic Model</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_7">
+        <widget class="QCheckBox" name="check_show_target">
          <property name="text">
           <string>Show Target Geometry</string>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="checkBox_8">
-         <property name="text">
-          <string>Show Environment</string>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_9">
+        <widget class="QCheckBox" name="check_show_env">
+         <property name="text">
+          <string>Show Environment</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="check_show_proxy">
          <property name="text">
           <string>Show Proximity Query Results</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -545,21 +585,27 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="checkBox_10">
+        <widget class="QCheckBox" name="check_show_motiongraph">
          <property name="text">
           <string>Show Motion-Graph</string>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="checkBox_11">
-         <property name="text">
-          <string>Show Solution(s)</string>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QCheckBox" name="check_show_sol">
+         <property name="text">
+          <string>Show Solution(s)</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="animate_button">
          <property name="text">
           <string>Animate Best Solution</string>
          </property>
@@ -586,7 +632,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <widget class="QCheckBox" name="checkBox_12">
+        <widget class="QCheckBox" name="check_enable_ik">
          <property name="text">
           <string>Enable Inverse Kinematics</string>
          </property>
@@ -691,6 +737,9 @@
          <property name="minimum">
           <number>-1832</number>
          </property>
+         <property name="maximum">
+          <number>1832</number>
+         </property>
          <property name="singleStep">
           <number>10</number>
          </property>
@@ -747,6 +796,12 @@
          <property name="maximum">
           <number>2000</number>
          </property>
+         <property name="singleStep">
+          <number>50</number>
+         </property>
+         <property name="pageStep">
+          <number>50</number>
+         </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -756,6 +811,9 @@
         <widget class="QSlider" name="target_y">
          <property name="minimum">
           <number>-4000</number>
+         </property>
+         <property name="maximum">
+          <number>2000</number>
          </property>
          <property name="singleStep">
           <number>50</number>
@@ -776,6 +834,9 @@
          <property name="maximum">
           <number>3000</number>
          </property>
+         <property name="singleStep">
+          <number>10</number>
+         </property>
          <property name="value">
           <number>1500</number>
          </property>
@@ -794,10 +855,13 @@
        <item>
         <widget class="QSlider" name="target_yaw">
          <property name="minimum">
-          <number>-180</number>
+          <number>-3141</number>
          </property>
          <property name="maximum">
-          <number>180</number>
+          <number>3141</number>
+         </property>
+         <property name="singleStep">
+          <number>10</number>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -807,10 +871,13 @@
        <item>
         <widget class="QSlider" name="target_pitch">
          <property name="minimum">
-          <number>-180</number>
+          <number>-1571</number>
          </property>
          <property name="maximum">
-          <number>180</number>
+          <number>1571</number>
+         </property>
+         <property name="singleStep">
+          <number>10</number>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -820,10 +887,13 @@
        <item>
         <widget class="QSlider" name="target_roll">
          <property name="minimum">
-          <number>-180</number>
+          <number>-3141</number>
          </property>
          <property name="maximum">
-          <number>180</number>
+          <number>3141</number>
+         </property>
+         <property name="singleStep">
+          <number>10</number>
          </property>
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -848,7 +918,575 @@
     </widget>
    </item>
   </layout>
+  <action name="actionStart_Robot">
+   <property name="text">
+    <string>Start_Robot</string>
+   </property>
+  </action>
+  <action name="actionExecutePlanner">
+   <property name="text">
+    <string>ExecutePlanner</string>
+   </property>
+  </action>
+  <action name="actionJointChange">
+   <property name="text">
+    <string>JointChange</string>
+   </property>
+  </action>
+  <action name="actionTargetChange">
+   <property name="text">
+    <string>TargetChange</string>
+   </property>
+  </action>
+  <action name="actionRobotVisibleToggle">
+   <property name="text">
+    <string>RobotVisibleToggle</string>
+   </property>
+  </action>
+  <action name="actionRobotKinVisibleToggle">
+   <property name="text">
+    <string>RobotKinVisibleToggle</string>
+   </property>
+  </action>
+  <action name="actionTargetVisibleToggle">
+   <property name="text">
+    <string>TargetVisibleToggle</string>
+   </property>
+  </action>
+  <action name="actionEnvVisibleToggle">
+   <property name="text">
+    <string>EnvVisibleToggle</string>
+   </property>
+  </action>
+  <action name="actionProxyVisibleToggle">
+   <property name="text">
+    <string>ProxyVisibleToggle</string>
+   </property>
+  </action>
+  <action name="actionMGVisibleToggle">
+   <property name="text">
+    <string>MGVisibleToggle</string>
+   </property>
+  </action>
+  <action name="actionSolutionsVisibleToggle">
+   <property name="text">
+    <string>SolutionsVisibleToggle</string>
+   </property>
+  </action>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>check_enable_ik</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>track_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>143</x>
+     <y>70</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_enable_ik</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint1_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>143</x>
+     <y>97</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_enable_ik</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint2_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>143</x>
+     <y>124</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_enable_ik</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint3_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>143</x>
+     <y>151</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_enable_ik</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint4_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>143</x>
+     <y>178</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_enable_ik</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint5_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>143</x>
+     <y>205</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_enable_ik</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint6_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>143</x>
+     <y>232</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_enable_ik</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_16</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>143</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>143</x>
+     <y>47</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_custom_start</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>custom_start_edit</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>259</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>178</x>
+     <y>285</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_custom_goal</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>custom_goal_edit</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>373</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>178</x>
+     <y>399</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>animate_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionStart_Robot</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>220</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>execute_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionExecutePlanner</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>489</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>track_pos</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>70</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint1_pos</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>97</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint2_pos</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>124</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint3_pos</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>151</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint4_pos</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>178</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint5_pos</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>205</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint6_pos</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>232</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_x</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionTargetChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>304</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_y</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionTargetChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>331</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_z</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionTargetChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>358</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_yaw</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionTargetChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>404</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_pitch</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionTargetChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>431</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_roll</sender>
+   <signal>sliderMoved(int)</signal>
+   <receiver>actionTargetChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>458</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_show_geom</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionRobotVisibleToggle</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>18</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_show_kinmdl</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionRobotKinVisibleToggle</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_show_target</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionTargetVisibleToggle</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>68</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_show_env</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionEnvVisibleToggle</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>93</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_show_proxy</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionProxyVisibleToggle</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>118</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_show_sol</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionSolutionsVisibleToggle</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>194</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_show_motiongraph</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionMGVisibleToggle</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>169</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
