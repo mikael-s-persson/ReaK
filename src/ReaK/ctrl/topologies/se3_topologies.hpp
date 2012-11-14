@@ -34,12 +34,12 @@
 
 
 #include "base/defs.hpp"
-
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
 #include "so3_topologies.hpp"
 
 #include "differentiable_space.hpp"
+#include "rate_limited_spaces.hpp"
 #include "metric_space_tuple.hpp"
 
 #include "hyperbox_topology.hpp"
@@ -48,9 +48,7 @@
 
 #include "lin_alg/arithmetic_tuple.hpp"
 #include "lin_alg/vect_alg.hpp"
-
 #include "kinetostatics/frame_3D.hpp"
-#include "rate_limited_spaces.hpp"
 
 namespace ReaK {
 
@@ -679,7 +677,7 @@ struct is_se3_space<
  * \tparam DistanceMetric The distance metric to apply to the tuple.
  */
 template <typename T, typename DistanceMetric = euclidean_tuple_distance>
-struct rl_se3_0th_order_topology {
+struct se3_0th_order_rl_topology {
   typedef 
     metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< 
@@ -697,7 +695,7 @@ struct rl_se3_0th_order_topology {
 };
 
 template <typename T>
-typename rl_se3_0th_order_topology<T>::type make_rl_se3_space(
+typename se3_0th_order_rl_topology<T>::type make_rl_se3_space(
   const std::string& aName,
   const vect<T,3>& aMinCorner,
   const vect<T,3>& aMaxCorner,
@@ -746,7 +744,7 @@ typename rl_se3_0th_order_topology<T>::type make_rl_se3_space(
 
 
 template <typename TupleDistanceMetric, typename T>
-typename rl_se3_0th_order_topology<T,TupleDistanceMetric>::type make_rl_se3_space(
+typename se3_0th_order_rl_topology<T,TupleDistanceMetric>::type make_rl_se3_space(
   const std::string& aName,
   const vect<T,3>& aMinCorner,
   const vect<T,3>& aMaxCorner,
@@ -801,7 +799,7 @@ typename rl_se3_0th_order_topology<T,TupleDistanceMetric>::type make_rl_se3_spac
  * \tparam DistanceMetric The distance metric to apply to the tuple.
  */
 template <typename T, typename DistanceMetric = euclidean_tuple_distance>
-struct rl_se3_1st_order_topology {
+struct se3_1st_order_rl_topology {
   typedef 
     metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< 
@@ -827,7 +825,7 @@ struct rl_se3_1st_order_topology {
 
 
 template <typename T>
-typename rl_se3_1st_order_topology<T>::type make_rl_se3_space(
+typename se3_1st_order_rl_topology<T>::type make_rl_se3_space(
   const std::string& aName,
   const vect<T,3>& aMinCorner,
   const vect<T,3>& aMaxCorner,
@@ -916,7 +914,7 @@ typename rl_se3_1st_order_topology<T>::type make_rl_se3_space(
 
 
 template <typename TupleDistanceMetric, typename T>
-typename rl_se3_1st_order_topology<T,TupleDistanceMetric>::type make_rl_se3_space(
+typename se3_1st_order_rl_topology<T,TupleDistanceMetric>::type make_rl_se3_space(
   const std::string& aName,
   const vect<T,3>& aMinCorner,
   const vect<T,3>& aMaxCorner,
@@ -1009,7 +1007,7 @@ typename rl_se3_1st_order_topology<T,TupleDistanceMetric>::type make_rl_se3_spac
  * \tparam DistanceMetric The distance metric to apply to the tuple.
  */
 template <typename T, typename DistanceMetric = euclidean_tuple_distance>
-struct rl_se3_2nd_order_topology {
+struct se3_2nd_order_rl_topology {
   typedef 
     metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< 
@@ -1037,7 +1035,7 @@ struct rl_se3_2nd_order_topology {
 
 
 template <typename T>
-typename rl_se3_2nd_order_topology<T>::type make_rl_se3_space(
+typename se3_2nd_order_rl_topology<T>::type make_rl_se3_space(
   const std::string& aName,
   const vect<T,3>& aMinCorner,
   const vect<T,3>& aMaxCorner,
@@ -1143,7 +1141,7 @@ typename rl_se3_2nd_order_topology<T>::type make_rl_se3_space(
 
 
 template <typename TupleDistanceMetric, typename T>
-typename rl_se3_2nd_order_topology<T,TupleDistanceMetric>::type make_rl_se3_space(
+typename se3_2nd_order_rl_topology<T,TupleDistanceMetric>::type make_rl_se3_space(
   const std::string& aName,
   const vect<T,3>& aMinCorner,
   const vect<T,3>& aMaxCorner,
@@ -1621,8 +1619,289 @@ void set_acceleration(
 };
 
 
+};
+
+
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+#include "time_poisson_topology.hpp"
+#include "temporal_space.hpp"
+#include "reachability_space.hpp"
+
+namespace ReaK {
+
+namespace pp {
+
+
+// se3_0th_order_topology
+extern template class metric_space_tuple< arithmetic_tuple<
+      differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >;
+
+extern template se3_0th_order_topology<double>::type make_se3_space(const std::string& aName, 
+                                                                    const vect<double,3>& aMinCorner, const vect<double,3>& aMaxCorner);
+
+// se3_1st_order_topology
+extern template class metric_space_tuple< arithmetic_tuple<
+      differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> >, hyperball_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double>, ang_velocity_3D_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >;
+
+extern template se3_1st_order_topology<double>::type make_se3_space(const std::string& aName,
+                                                                    const vect<double,3>& aMinCorner, const vect<double,3>& aMaxCorner,
+                                                                    const double& aMaxSpeed, const double& aMaxAngularSpeed);
+
+// se3_2nd_order_topology
+extern template class metric_space_tuple< arithmetic_tuple<
+      differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> >, hyperball_topology< vect<double,3> >, hyperball_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double>, ang_velocity_3D_topology<double>, ang_accel_3D_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >;
+
+extern template se3_2nd_order_topology<double>::type make_se3_space(const std::string& aName,
+                                                                    const vect<double,3>& aMinCorner, const vect<double,3>& aMaxCorner,
+                                                                    const double& aMaxSpeed, const double& aMaxAngularSpeed,
+                                                                    const double& aMaxAcceleration, const double& aMaxAngularAccel);
+
+// se3_0th_order_rl_topology
+extern template class metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >;
+
+extern template se3_0th_order_rl_topology<double>::type make_rl_se3_space(const std::string& aName,
+                                                                          const vect<double,3>& aMinCorner, const vect<double,3>& aMaxCorner, 
+                                                                          const double& aMaxSpeed, const double& aMaxAngularSpeed);
+
+// se3_1st_order_rl_topology
+extern template class metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> >, hyperball_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >;
+
+extern template se3_1st_order_rl_topology<double>::type make_rl_se3_space(const std::string& aName,
+                                                                          const vect<double,3>& aMinCorner, const vect<double,3>& aMaxCorner, 
+                                                                          const double& aMaxSpeed, const double& aMaxAngularSpeed,
+                                                                          const double& aMaxAcceleration, const double& aMaxAngularAccel);
+
+// se3_2nd_order_rl_topology
+extern template class metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> >, hyperball_topology< vect<double,3> >, hyperball_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double>, ang_accel_3D_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >; 
+
+extern template se3_2nd_order_rl_topology<double>::type make_rl_se3_space(const std::string& aName,
+                                                                          const vect<double,3>& aMinCorner, const vect<double,3>& aMaxCorner,
+                                                                          const double& aMaxSpeed, const double& aMaxAngularSpeed,
+                                                                          const double& aMaxAcceleration, const double& aMaxAngularAccel,
+                                                                          const double& aMaxJerk, const double& aMaxAngularJerk);
+
+
+// se3_0th_order_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+
+// se3_1st_order_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> >, hyperball_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double>, ang_velocity_3D_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+
+// se3_2nd_order_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> >, hyperball_topology< vect<double,3> >, hyperball_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double>, ang_velocity_3D_topology<double>, ang_accel_3D_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+
+
+// se3_0th_order_rl_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+
+// se3_1st_order_rl_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> >, hyperball_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+
+// se3_2nd_order_rl_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> >, hyperball_topology< vect<double,3> >, hyperball_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double>, ang_accel_3D_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>; 
+
+
+// se3_0th_order_rl_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
+
+// se3_1st_order_rl_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> >, hyperball_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
+
+// se3_2nd_order_rl_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,3> >, hyperball_topology< vect<double,3> >, hyperball_topology< vect<double,3> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double>, ang_accel_3D_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>; 
+
 
 };
+
+
+
+extern template frame_3D<double> get_frame_3D(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt);
+
+extern template frame_3D<double> get_frame_3D(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double>, vect<double,3> > >& pt);
+
+extern template frame_3D<double> get_frame_3D(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double> > >& pt);
+
+extern template void set_frame_3D(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt,
+  const frame_3D<double>& p);
+
+extern template void set_frame_3D(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double>, vect<double,3> > >& pt,
+  const frame_3D<double>& p);
+
+extern template void set_frame_3D(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double> > >& pt,
+  const frame_3D<double>& p);
+
+extern template pose_3D<double> get_pose_3D(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double> > >& pt);
+
+extern template void set_pose_3D(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double> > >& pt,
+  const pose_3D<double>& p);
+
+extern template const unit_quat<double>& get_quaternion(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt);
+
+extern template const unit_quat<double>& get_quaternion(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double>, vect<double,3> > >& pt);
+
+extern template const unit_quat<double>& get_quaternion(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double> > >& pt);
+
+extern template void set_quaternion(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt,
+  const unit_quat<double>& q);
+
+extern template void set_quaternion(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double>, vect<double,3> > >& pt,
+  const unit_quat<double>& q);
+
+extern template void set_quaternion(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double> > >& pt,
+  const unit_quat<double>& q);
+
+extern template const vect<double,3>& get_position(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt);
+
+extern template const vect<double,3>& get_position(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double>, vect<double,3> > >& pt);
+
+extern template const vect<double,3>& get_position(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double> > >& pt);
+
+extern template void set_position(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt,
+  const vect<double,3>& p);
+
+extern template void set_position(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double>, vect<double,3> > >& pt,
+  const vect<double,3>& p);
+
+extern template void set_position(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double> > >& pt,
+  const vect<double,3>& p);
+
+extern template const vect<double,3>& get_ang_velocity(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt);
+
+extern template const vect<double,3>& get_ang_velocity(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double>, vect<double,3> > >& pt);
+
+extern template void set_ang_velocity(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt,
+  const vect<double,3>& p);
+
+extern template void set_ang_velocity(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double>, vect<double,3> > >& pt,
+  const vect<double,3>& p);
+
+extern template const vect<double,3>& get_velocity(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt);
+
+extern template const vect<double,3>& get_velocity(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double>, vect<double,3> > >& pt);
+
+extern template void set_velocity(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt,
+  const vect<double,3>& p);
+
+extern template void set_velocity(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double>, vect<double,3> > >& pt,
+  const vect<double,3>& p);
+
+
+extern template const vect<double,3>& get_ang_acceleration(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt);
+
+extern template void set_ang_acceleration(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt,
+  const vect<double,3>& p);
+
+
+
+extern template const vect<double,3>& get_acceleration(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                          arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt);
+
+extern template void set_acceleration(
+  arithmetic_tuple< arithmetic_tuple< vect<double,3>,    vect<double,3>, vect<double,3> >,
+                    arithmetic_tuple< unit_quat<double>, vect<double,3>, vect<double,3> > >& pt,
+  const vect<double,3>& p);
+
+
+
+};
+
+
+#endif
+
+
+
 
 #endif
 

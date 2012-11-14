@@ -1553,7 +1553,7 @@ int main(int argc, char** argv) {
                                                               ReaK::vect<double,12>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
         0.5));
   
-  typedef ReaK::pp::no_obstacle_space< typename ReaK::pp::rl_se3_1st_order_topology<double>::type > WorldRLSE3Type;
+  typedef ReaK::pp::no_obstacle_space< typename ReaK::pp::se3_1st_order_rl_topology<double>::type > WorldRLSE3Type;
   ReaK::shared_ptr< WorldRLSE3Type > world_RLSE3 =
     ReaK::shared_ptr< WorldRLSE3Type >(
       new WorldRLSE3Type(

@@ -2,9 +2,11 @@
 set(TOPOLOGIES_SOURCES 
   "${SRCROOT}${RKTOPOLOGIESDIR}/hyperball_topology_ext.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/hyperbox_topology_ext.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/joint_space_topologies_ext.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/line_topology_ext.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/ptrobot2D_test_world.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/se2_topologies_ext.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/se3_topologies_ext.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/so3_topologies_ext.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/vector_topology_ext.cpp"
 )
@@ -17,6 +19,7 @@ set(TOPOLOGIES_HEADERS
   "${RKTOPOLOGIESDIR}/hyperbox_topology.hpp"
   "${RKTOPOLOGIESDIR}/joint_space_limits.hpp"
   "${RKTOPOLOGIESDIR}/joint_space_topologies.hpp"
+  "${RKTOPOLOGIESDIR}/joint_space_topologies_ext.hpp"
   "${RKTOPOLOGIESDIR}/line_topology.hpp"
   "${RKTOPOLOGIESDIR}/metric_space_tuple.hpp"
   "${RKTOPOLOGIESDIR}/ptrobot2D_test_world.hpp"

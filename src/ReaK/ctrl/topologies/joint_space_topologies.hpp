@@ -37,23 +37,16 @@
 
 
 #include "base/defs.hpp"
-
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
-
-#include "so3_topologies.hpp"
 
 #include "differentiable_space.hpp"
 #include "metric_space_tuple.hpp"
+#include "rate_limited_spaces.hpp"
 
-#include "hyperbox_topology.hpp"
-#include "hyperball_topology.hpp"
 #include "line_topology.hpp"
 
 #include "lin_alg/arithmetic_tuple.hpp"
-#include "lin_alg/vect_alg.hpp"
-
 #include "kinetostatics/gen_coord.hpp"
-#include "rate_limited_spaces.hpp"
 
 namespace ReaK {
 
@@ -396,6 +389,10 @@ void set_acceleration(
 
 
 };
+
+
+#include "joint_space_topologies_ext.hpp"
+
 
 #endif
 

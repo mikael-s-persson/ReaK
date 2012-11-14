@@ -33,13 +33,10 @@
 #ifndef REAK_TEMPORAL_SPACE_HPP
 #define REAK_TEMPORAL_SPACE_HPP
 
+#include "base/defs.hpp"
 #include <boost/config.hpp>
-#include <cmath>
-#include <boost/random/uniform_01.hpp>
-#include <boost/random/linear_congruential.hpp>
 
-#include "time_topology.hpp"
-#include "path_planning/temporal_space_concept.hpp"
+#include "path_planning/metric_space_concept.hpp"
 #include "temporal_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 
@@ -52,7 +49,7 @@ namespace pp {
 /**
  * This type represents the points of a temporal-space.
  */
-template <typename SpacePoint, typename TimePoint>
+template <typename SpacePoint, typename TimePoint = double>
 struct temporal_point : public serialization::serializable {
   typedef temporal_point<SpacePoint,TimePoint> self;
 
@@ -111,7 +108,7 @@ struct temporal_point : public serialization::serializable {
 /**
  * This nested type represents the difference between two points of the temporal-space.
  */
-template <typename SpaceDiff, typename TimeDiff>
+template <typename SpaceDiff, typename TimeDiff = double>
 struct temporal_point_difference : public serialization::serializable {
   typedef temporal_point_difference<SpaceDiff,TimeDiff> self;
 
@@ -387,7 +384,7 @@ class temporal_space : public named_object {
 
 template <typename Topology, typename TimeTopology, typename TemporalDistanceMetric>
 struct is_metric_space< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > : boost::mpl::and_< is_metric_space<Topology>, is_metric_space<TimeTopology> > { };
-	
+
 template <typename Topology, typename TimeTopology, typename TemporalDistanceMetric>
 struct is_point_distribution< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > : boost::mpl::and_< is_point_distribution<Topology>, is_point_distribution<TimeTopology> > { };
 

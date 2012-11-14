@@ -681,6 +681,10 @@ void set_acceleration(
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
+#include "time_poisson_topology.hpp"
+#include "temporal_space.hpp"
+#include "reachability_space.hpp"
+
 namespace ReaK {
 
 namespace pp {
@@ -717,6 +721,58 @@ extern template class metric_space_tuple< arithmetic_tuple<
 extern template class metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
       reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >;
+
+      
+      
+      
+// se2_0th_order_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+
+// se2_1st_order_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+
+// se2_2nd_order_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+
+
+// se2_0th_order_rl_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+
+// se2_1st_order_rl_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+
+// se2_2nd_order_rl_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+
+      
+// se2_0th_order_rl_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
+
+// se2_1st_order_rl_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
+
+// se2_2nd_order_rl_topology
+extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
+
+
 
 
 };
