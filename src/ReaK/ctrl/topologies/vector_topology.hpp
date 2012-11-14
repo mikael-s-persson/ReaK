@@ -40,7 +40,6 @@
 
 #include "lin_alg/vect_concepts.hpp"
 
-#include <cmath>
 #include "base/named_object.hpp"
 
 namespace ReaK {
@@ -121,9 +120,34 @@ class vector_topology : public named_object
 };
 
 
+
 };
 
 };
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+#include "lin_alg/vect_alg.hpp"
+
+namespace ReaK {
+
+namespace pp {
+
+extern template class vector_topology< vect<double,2> >;
+extern template class vector_topology< vect<double,3> >;
+extern template class vector_topology< vect<double,4> >;
+extern template class vector_topology< vect<double,6> >;
+extern template class vector_topology< vect_n<double> >;
+
+
+};
+
+};
+
+#endif
+
 
 #endif
 

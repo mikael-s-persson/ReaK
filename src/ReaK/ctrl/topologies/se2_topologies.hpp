@@ -34,10 +34,10 @@
 
 
 #include "base/defs.hpp"
-
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
 #include "differentiable_space.hpp"
+#include "rate_limited_spaces.hpp"
 #include "metric_space_tuple.hpp"
 #include "hyperbox_topology.hpp"
 #include "hyperball_topology.hpp"
@@ -45,9 +45,7 @@
 
 #include "lin_alg/arithmetic_tuple.hpp"
 #include "lin_alg/vect_alg.hpp"
-
 #include "kinetostatics/frame_2D.hpp"
-#include "rate_limited_spaces.hpp"
 
 namespace ReaK {
 
@@ -216,7 +214,7 @@ struct is_se2_space<
  * \tparam DistanceMetric The distance metric to apply to the tuple.
  */
 template <typename T, typename DistanceMetric = euclidean_tuple_distance>
-struct rl_se2_0th_order_topology {
+struct se2_0th_order_rl_topology {
   typedef 
     metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< 
@@ -239,7 +237,7 @@ struct rl_se2_0th_order_topology {
  * \tparam DistanceMetric The distance metric to apply to the tuple.
  */
 template <typename T, typename DistanceMetric = euclidean_tuple_distance>
-struct rl_se2_1st_order_topology {
+struct se2_1st_order_rl_topology {
   typedef 
     metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< 
@@ -268,7 +266,7 @@ struct rl_se2_1st_order_topology {
  * \tparam DistanceMetric The distance metric to apply to the tuple.
  */
 template <typename T, typename DistanceMetric = euclidean_tuple_distance>
-struct rl_se2_2nd_order_topology {
+struct se2_2nd_order_rl_topology {
   typedef 
     metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< 
@@ -677,6 +675,203 @@ void set_acceleration(
 
 
 };
+
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+namespace ReaK {
+
+namespace pp {
+  
+  
+// se2_0th_order_topology
+extern template class metric_space_tuple< arithmetic_tuple<
+      differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >;
+
+// se2_1st_order_topology
+extern template class metric_space_tuple< arithmetic_tuple<
+      differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >;
+
+// se2_2nd_order_topology
+extern template class metric_space_tuple< arithmetic_tuple<
+      differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >;
+
+
+
+// se2_0th_order_rl_topology
+extern template class metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >;
+
+// se2_1st_order_rl_topology
+extern template class metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >;
+
+// se2_2nd_order_rl_topology
+extern template class metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
+      reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >;
+
+
+};
+
+
+extern template frame_2D<double> get_frame_2D(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2>,    vect<double,2>, vect<double,2> >,
+                          arithmetic_tuple< double, double, double > >& pt);
+
+extern template frame_2D<double> get_frame_2D(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2> >,
+                          arithmetic_tuple< double, double > >& pt);
+
+extern template frame_2D<double> get_frame_2D(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2> >,
+                          arithmetic_tuple< double > >& pt);
+
+
+extern template void set_frame_2D(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2>,    vect<double,2>, vect<double,2> >,
+                    arithmetic_tuple< double, double, double > >& pt,
+  const frame_2D<double>& p);
+
+extern template void set_frame_2D(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2> >,
+                    arithmetic_tuple< double, double > >& pt,
+  const frame_2D<double>& p);
+
+extern template void set_frame_2D(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2> >,
+                    arithmetic_tuple< double > >& pt,
+  const frame_2D<double>& p);
+
+extern template pose_2D<double> get_pose_2D(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2> >,
+                          arithmetic_tuple< double > >& pt);
+
+extern template void set_pose_2D(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2> >,
+                    arithmetic_tuple< double > >& pt,
+  const pose_2D<double>& p);
+
+extern template const double& get_rotation(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2>, vect<double,2> >,
+                          arithmetic_tuple< double, double, double > >& pt);
+
+extern template const double& get_rotation(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2> >,
+                          arithmetic_tuple< double, double > >& pt);
+
+extern template const double& get_rotation(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2> >,
+                          arithmetic_tuple< double > >& pt);
+
+extern template void set_rotation(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2>, vect<double,2> >,
+                    arithmetic_tuple< double, double, double > >& pt,
+  const double& q);
+
+extern template void set_rotation(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2> >,
+                    arithmetic_tuple< double, double > >& pt,
+  const double& q);
+
+extern template void set_rotation(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2> >,
+                    arithmetic_tuple< double > >& pt,
+  const double& q);
+
+extern template const vect<double,2>& get_position(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2>, vect<double,2> >,
+                          arithmetic_tuple< double, double, double > >& pt);
+
+extern template const vect<double,2>& get_position(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2> >,
+                          arithmetic_tuple< double, double > >& pt);
+
+extern template const vect<double,2>& get_position(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2> >,
+                          arithmetic_tuple< double > >& pt);
+
+extern template void set_position(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2>, vect<double,2> >,
+                    arithmetic_tuple< double, double, double > >& pt,
+  const vect<double,2>& p);
+
+extern template void set_position(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2> >,
+                    arithmetic_tuple< double, double > >& pt,
+  const vect<double,2>& p);
+
+extern template void set_position(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2> >,
+                    arithmetic_tuple< double > >& pt,
+  const vect<double,2>& p);
+
+extern template const double& get_ang_velocity(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2>, vect<double,2> >,
+                          arithmetic_tuple< double, double, double > >& pt);
+
+extern template const double& get_ang_velocity(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2> >,
+                          arithmetic_tuple< double, double > >& pt);
+
+extern template void set_ang_velocity(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2>, vect<double,2> >,
+                    arithmetic_tuple< double, double, double > >& pt,
+  const double& p);
+
+extern template void set_ang_velocity(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2> >,
+                    arithmetic_tuple< double, double > >& pt,
+  const double& p);
+
+extern template const vect<double,2>& get_velocity(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2>, vect<double,2> >,
+                          arithmetic_tuple< double, double, double > >& pt);
+
+extern template const vect<double,2>& get_velocity(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2> >,
+                          arithmetic_tuple< double, double > >& pt);
+
+extern template void set_velocity(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2>, vect<double,2> >,
+                    arithmetic_tuple< double, double, double > >& pt,
+  const vect<double,2>& p);
+
+extern template void set_velocity(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2> >,
+                    arithmetic_tuple< double, double > >& pt,
+  const vect<double,2>& p);
+
+extern template const double& get_ang_acceleration(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2>, vect<double,2> >,
+                          arithmetic_tuple< double, double, double > >& pt);
+
+extern template void set_ang_acceleration(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2>, vect<double,2> >,
+                    arithmetic_tuple< double, double, double > >& pt,
+  const double& p);
+
+extern template const vect<double,2>& get_acceleration(
+  const arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2>, vect<double,2> >,
+                          arithmetic_tuple< double, double, double > >& pt);
+
+extern template void set_acceleration(
+  arithmetic_tuple< arithmetic_tuple< vect<double,2>, vect<double,2>, vect<double,2> >,
+                    arithmetic_tuple< double, double, double > >& pt,
+  const vect<double,2>& p);
+
+};
+
+#endif
+
+
 
 #endif
 

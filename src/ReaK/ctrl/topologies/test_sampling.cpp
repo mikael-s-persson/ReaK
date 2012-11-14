@@ -105,7 +105,7 @@ int main(int argc, char** argv) {
     
     ReaK::pp::hyperball_topology< ReaK::vect<double,2> > topo("hyperball",
 							      ReaK::vect<double,2>(256.0,256.0), 
-							      255.99, ReaK::mat<double,ReaK::mat_structure::identity>(2));
+							      255.99);
     
     for(unsigned int i = 0; i < vertex_count; ++i) {
       ReaK::vect<double,2> v = get(ReaK::pp::random_sampler, topo)(topo);

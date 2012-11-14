@@ -269,7 +269,7 @@ typename se3_1st_order_topology<T>::type make_se3_space(
               hyperball_topology< vect<T,3> > 
             >(
               hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner, aMaxCorner),
-              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed, mat< T, mat_structure::identity >(3))
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed)
             )
           ),
           differentiable_space< 
@@ -352,7 +352,7 @@ typename se3_1st_order_topology<T,TupleDistanceMetric>::type make_se3_space(
               hyperball_topology< vect<T,3> > 
             >(
               hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner, aMaxCorner),
-              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed, mat< T, mat_structure::identity >(3))
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed)
             )
           ),
           differentiable_space< 
@@ -477,8 +477,8 @@ typename se3_2nd_order_topology<T>::type make_se3_space(
               hyperball_topology< vect<T,3> >  
             >(
               hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner, aMaxCorner),
-              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed, mat< T, mat_structure::identity >(3)),
-              hyperball_topology< vect<T,3> >(aName + "_acc", vect<T,3>(0.0,0.0,0.0), aMaxAcceleration, mat< T, mat_structure::identity >(3))
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed),
+              hyperball_topology< vect<T,3> >(aName + "_acc", vect<T,3>(0.0,0.0,0.0), aMaxAcceleration)
             )
           ),
           differentiable_space< 
@@ -571,8 +571,8 @@ typename se3_2nd_order_topology<T,TupleDistanceMetric>::type make_se3_space(
               hyperball_topology< vect<T,3> >  
             >(
               hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner, aMaxCorner),
-              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed, mat< T, mat_structure::identity >(3)),
-              hyperball_topology< vect<T,3> >(aName + "_acc", vect<T,3>(0.0,0.0,0.0), aMaxAcceleration, mat< T, mat_structure::identity >(3))
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed),
+              hyperball_topology< vect<T,3> >(aName + "_acc", vect<T,3>(0.0,0.0,0.0), aMaxAcceleration)
             )
           ),
           differentiable_space< 
@@ -885,7 +885,7 @@ typename rl_se3_1st_order_topology<T>::type make_rl_se3_space(
               hyperball_topology< vect<T,3> > 
             >(
               hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner * (1.0 / aMaxSpeed), aMaxCorner * (1.0 / aMaxSpeed)),
-              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed / aMaxAcceleration, mat< T, mat_structure::identity >(3))
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed / aMaxAcceleration)
             ),
             euclidean_tuple_distance(),
             arithmetic_tuple<reach_time_differentiation>(reach_time_differentiation(aMaxSpeed / aMaxAcceleration))
@@ -974,7 +974,7 @@ typename rl_se3_1st_order_topology<T,TupleDistanceMetric>::type make_rl_se3_spac
               hyperball_topology< vect<T,3> > 
             >(
               hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner * (1.0 / aMaxSpeed), aMaxCorner * (1.0 / aMaxSpeed)),
-              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed / aMaxAcceleration, mat< T, mat_structure::identity >(3))
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed / aMaxAcceleration)
             ),
             TupleDistanceMetric(),
             arithmetic_tuple<reach_time_differentiation>(reach_time_differentiation(aMaxSpeed / aMaxAcceleration))
@@ -1103,8 +1103,8 @@ typename rl_se3_2nd_order_topology<T>::type make_rl_se3_space(
               hyperball_topology< vect<T,3> >  
             >(
               hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner * (1.0 / aMaxSpeed), aMaxCorner * (1.0 / aMaxSpeed)),
-              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed / aMaxAcceleration, mat< T, mat_structure::identity >(3)),
-              hyperball_topology< vect<T,3> >(aName + "_acc", vect<T,3>(0.0,0.0,0.0), aMaxAcceleration / aMaxJerk, mat< T, mat_structure::identity >(3))
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed / aMaxAcceleration),
+              hyperball_topology< vect<T,3> >(aName + "_acc", vect<T,3>(0.0,0.0,0.0), aMaxAcceleration / aMaxJerk)
             ),
             euclidean_tuple_distance(),
             arithmetic_tuple<reach_time_differentiation,reach_time_differentiation>(
@@ -1209,8 +1209,8 @@ typename rl_se3_2nd_order_topology<T,TupleDistanceMetric>::type make_rl_se3_spac
               hyperball_topology< vect<T,3> >  
             >(
               hyperbox_topology< vect<T,3> >(aName + "_pos", aMinCorner * (1.0 / aMaxSpeed), aMaxCorner * (1.0 / aMaxSpeed)),
-              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed / aMaxAcceleration, mat< T, mat_structure::identity >(3)),
-              hyperball_topology< vect<T,3> >(aName + "_acc", vect<T,3>(0.0,0.0,0.0), aMaxAcceleration / aMaxJerk, mat< T, mat_structure::identity >(3))
+              hyperball_topology< vect<T,3> >(aName + "_vel", vect<T,3>(0.0,0.0,0.0), aMaxSpeed / aMaxAcceleration),
+              hyperball_topology< vect<T,3> >(aName + "_acc", vect<T,3>(0.0,0.0,0.0), aMaxAcceleration / aMaxJerk)
             ),
             TupleDistanceMetric(),
             arithmetic_tuple<reach_time_differentiation,reach_time_differentiation>(

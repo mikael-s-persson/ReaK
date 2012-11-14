@@ -36,17 +36,19 @@
 
 
 #include "base/defs.hpp"
-
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
-#include "vect_distance_metrics.hpp"
 
-#include "differentiable_space.hpp"
-#include "hyperball_topology.hpp"
-
-#include <cmath>
 #include "base/named_object.hpp"
 
+#include "tuple_distance_metrics.hpp"
+
+#include "hyperball_topology.hpp"
+#include "differentiable_space.hpp"
+#include "rate_limited_spaces.hpp"
+
+#include "lin_alg/vect_alg.hpp"
+#include "lin_alg/mat_num_exceptions.hpp"
 #include "kinetostatics/quat_alg.hpp"
 
 namespace ReaK {
@@ -301,10 +303,10 @@ struct is_point_distribution< rate_limited_quat_space<T> > : boost::mpl::true_ {
  * \tparam T The value-type for the topology.
  */
 template <typename T>
-class ang_velocity_3D_topology : public hyperball_topology< vect<T,3>, mat<T, mat_structure::identity> > {
+class ang_velocity_3D_topology : public hyperball_topology< vect<T,3> > {
   public:
     typedef ang_velocity_3D_topology<T> self;
-    typedef hyperball_topology< vect<T,3>, mat<T, mat_structure::identity> > base;
+    typedef hyperball_topology< vect<T,3> > base;
     
     typedef typename base::point_type point_type;
     typedef typename base::point_type point_difference_type;
@@ -322,8 +324,7 @@ class ang_velocity_3D_topology : public hyperball_topology< vect<T,3>, mat<T, ma
                              double aMaxAngSpeed = 1.0) : 
 		             base(aName, 
 			          vect<T,3>(), 
-			          aMaxAngSpeed, 
-			          mat<T, mat_structure::identity>(3)) { };
+			          aMaxAngSpeed) { };
     
      
 /*******************************************************************************
@@ -356,10 +357,10 @@ struct is_point_distribution< ang_velocity_3D_topology<T> > : boost::mpl::true_ 
  * \tparam T The value-type for the topology.
  */
 template <typename T>
-class ang_accel_3D_topology : public hyperball_topology< vect<T,3>, mat<T, mat_structure::identity> > {
+class ang_accel_3D_topology : public hyperball_topology< vect<T,3> > {
   public:
     typedef ang_accel_3D_topology<T> self;
-    typedef hyperball_topology< vect<T,3>, mat<T, mat_structure::identity> > base;
+    typedef hyperball_topology< vect<T,3> > base;
     
     typedef typename base::point_type point_type;
     typedef typename base::point_type point_difference_type;
@@ -377,8 +378,7 @@ class ang_accel_3D_topology : public hyperball_topology< vect<T,3>, mat<T, mat_s
                           double aMaxAngAcc = 1.0) : 
 		          base(aName, 
 			       vect<T,3>(), 
-			       aMaxAngAcc, 
-			       mat<T, mat_structure::identity>(3)) { };
+			       aMaxAngAcc) { };
     
      
 /*******************************************************************************
@@ -435,9 +435,80 @@ struct so3_2nd_order_topology {
 };
 
 
+/**
+ * This meta-function defines the type for a 0th order SO(3) rate-limited topology (a zero-differentiable space).
+ * \tparam T The value type for the topology.
+ * \tparam DistanceMetric The distance metric to apply to the tuple.
+ */
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+struct so3_0th_order_rl_topology {
+  typedef reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<T> >, DistanceMetric > type;
+};
+
+/**
+ * This meta-function defines the type for a 1st order SO(3) rate-limited topology (a once-differentiable space).
+ * \tparam T The value type for the topology.
+ * \tparam DistanceMetric The distance metric to apply to the tuple.
+ */
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+struct so3_1st_order_rl_topology {
+  typedef reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<T>, ang_velocity_3D_topology<T> >, DistanceMetric > type;
+};
+
+/**
+ * This meta-function defines the type for a 2nd order SO(3) rate-limited topology (a twice-differentiable space).
+ * \tparam T The value type for the topology.
+ * \tparam DistanceMetric The distance metric to apply to the tuple.
+ */
+template <typename T, typename DistanceMetric = euclidean_tuple_distance>
+struct so3_2nd_order_rl_topology {
+  typedef reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<T>, ang_velocity_3D_topology<T>, ang_accel_3D_topology<T> >, DistanceMetric > type;
+};
+
+
 };
 
 };
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+namespace ReaK {
+
+namespace pp {
+
+extern template class quaternion_topology< double >;
+extern template class rate_limited_quat_space< double >;
+extern template class ang_velocity_3D_topology< double >;
+extern template class ang_accel_3D_topology< double >;
+
+// so3_0th_order_topology
+extern template class differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double> >, euclidean_tuple_distance >;
+
+// so3_1st_order_topology
+extern template class differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double>, ang_velocity_3D_topology<double> >, euclidean_tuple_distance >;
+
+// so3_2nd_order_topology
+extern template class differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double>, ang_velocity_3D_topology<double>, ang_accel_3D_topology<double> >, euclidean_tuple_distance >;
+
+// so3_0th_order_rl_topology
+extern template class reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double> >, euclidean_tuple_distance >;
+
+// so3_1st_order_rl_topology
+extern template class reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double> >, euclidean_tuple_distance >;
+
+// so3_2nd_order_rl_topology
+extern template class reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double>, ang_accel_3D_topology<double> >, euclidean_tuple_distance >;
+
+
+};
+
+};
+
+#endif
+
+
 
 #endif
 

@@ -36,11 +36,10 @@
 
 
 #include "base/defs.hpp"
-
-#include <boost/random/uniform_01.hpp>
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
 #include "path_planning/global_rng.hpp"
+#include <boost/random/uniform_01.hpp>
 
 #include <cmath>
 #include "base/named_object.hpp"
@@ -327,6 +326,25 @@ struct is_point_distribution< line_segment_topology<T> > : boost::mpl::true_ { }
 };
 
 };
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+namespace ReaK {
+
+namespace pp {
+
+extern template class line_topology< double >;
+extern template class line_segment_topology< double >;
+
+};
+
+};
+
+#endif
+
+
 
 #endif
 

@@ -38,16 +38,16 @@
 
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
-#include "lin_alg/vect_concepts.hpp"
+#include "base/named_object.hpp"
 
+#include "lin_alg/vect_concepts.hpp"
 #include "vector_topology.hpp"
 #include "vect_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
+#include "path_planning/global_rng.hpp"
 
 #include <cmath>
-#include "base/named_object.hpp"
 
-#include "path_planning/global_rng.hpp"
 
 namespace ReaK {
 
@@ -231,6 +231,42 @@ struct is_point_distribution< hyperbox_topology<Vector, DistanceMetric> > : boos
 };
 
 };
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+#include "lin_alg/vect_alg.hpp"
+
+namespace ReaK {
+
+namespace pp {
+
+extern template class hyperbox_topology< vect<double,2> >;
+extern template class hyperbox_topology< vect<double,3> >;
+extern template class hyperbox_topology< vect<double,4> >;
+extern template class hyperbox_topology< vect<double,6> >;
+extern template class hyperbox_topology< vect_n<double> >;
+
+extern template class hyperbox_topology< vect<double,2>, manhattan_distance_metric >;
+extern template class hyperbox_topology< vect<double,3>, manhattan_distance_metric >;
+extern template class hyperbox_topology< vect<double,4>, manhattan_distance_metric >;
+extern template class hyperbox_topology< vect<double,6>, manhattan_distance_metric >;
+extern template class hyperbox_topology< vect_n<double>, manhattan_distance_metric >;
+
+extern template class hyperbox_topology< vect<double,2>, inf_norm_distance_metric >;
+extern template class hyperbox_topology< vect<double,3>, inf_norm_distance_metric >;
+extern template class hyperbox_topology< vect<double,4>, inf_norm_distance_metric >;
+extern template class hyperbox_topology< vect<double,6>, inf_norm_distance_metric >;
+extern template class hyperbox_topology< vect_n<double>, inf_norm_distance_metric >;
+
+
+};
+
+};
+
+#endif
+
 
 #endif
 

@@ -36,18 +36,16 @@
 
 #include "base/defs.hpp"
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
+#include "base/serializable.hpp"
 
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/tangent_bundle_concept.hpp"
 #include "path_planning/bounded_space_concept.hpp"
 
 #include "lin_alg/arithmetic_tuple.hpp"
-#include "base/serializable.hpp"
 #include "tuple_distance_metrics.hpp"
-#include "time_topology.hpp"
 #include "default_random_sampler.hpp"
 #include "differentiable_space.hpp"
-#include "lin_alg/vect_alg.hpp"
 
 namespace ReaK {
 
@@ -115,6 +113,13 @@ struct reach_time_differentiation : public serialization::serializable {
 
 namespace detail {
   
+  template <typename Idx, typename ForwardIter, typename ReachTimeDiffTuple>
+  typename boost::disable_if<
+    boost::mpl::less< 
+      Idx,
+      arithmetic_tuple_size< ReachTimeDiffTuple >
+    >,
+  void >::type assign_reach_time_diff_rules(ForwardIter, ReachTimeDiffTuple&); // declaration only.
   
   template <typename Idx, typename ForwardIter, typename ReachTimeDiffTuple>
   typename boost::enable_if<
@@ -124,7 +129,7 @@ namespace detail {
     >,
   void >::type assign_reach_time_diff_rules(ForwardIter it, ReachTimeDiffTuple& diff_rule) {
     get< Idx::type::value >(diff_rule) = *it;
-    assign_reach_time_diff_rules< boost::mpl::next<Idx> >(++it, diff_rule);
+    assign_reach_time_diff_rules< typename boost::mpl::next<Idx>::type >(++it, diff_rule);
   };
   
   template <typename Idx, typename ForwardIter, typename ReachTimeDiffTuple>

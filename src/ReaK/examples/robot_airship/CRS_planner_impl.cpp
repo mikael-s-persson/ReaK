@@ -34,16 +34,11 @@
 
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
-#include <Inventor/Qt/viewers/SoQtPlaneViewer.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoLineSet.h>
-#include <Inventor/nodes/SoCylinder.h>
-#include <Inventor/nodes/SoEventCallback.h>
-#include <Inventor/events/SoKeyboardEvent.h>
-#include <Inventor/sensors/SoIdleSensor.h>
 
 #include "shapes/oi_scene_graph.hpp"
 #include "shapes/plane.hpp"
@@ -55,9 +50,6 @@
 #include "mbd_kte/mass_matrix_calculator.hpp"
 #include "mbd_kte/driving_actuator.hpp"
 #include "mbd_kte/state_measures.hpp"
-#include "mbd_kte/free_joints.hpp"
-#include "mbd_kte/spring.hpp"
-#include "mbd_kte/damper.hpp"
 #include "mbd_kte/free_joints.hpp"
 #include "mbd_kte/kte_map_chain.hpp"
 

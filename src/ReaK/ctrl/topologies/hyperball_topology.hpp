@@ -46,10 +46,8 @@
 
 #include <cmath>
 #include "base/named_object.hpp"
-#include "lin_alg/mat_alg_identity.hpp"
 
 #include "path_planning/global_rng.hpp"
-#include "lin_alg/mat_cholesky.hpp"
 
 namespace ReaK {
 
@@ -61,13 +59,12 @@ namespace pp {
  * This class models the MetricSpaceConcept, the LieGroupConcept, the BoundedSpaceConcept, 
  * the SphereBoundedSpaceConcept, and the PointDistributionConcept.
  * \tparam Vector The vector-type for the topology, should model an Arithmetic concept and WritableVectorConcept.
- * \tparam PDMatrix The matrix-type for the hyper-ellipsoid, should model the ReadableMatrixConcept.
  */
-template <typename Vector, typename PDMatrix = mat< typename vect_traits<Vector>::value_type, mat_structure::identity > >
+template <typename Vector >
 class hyperball_topology : public vector_topology<Vector>
 {
   public:
-    typedef hyperball_topology<Vector,PDMatrix> self;
+    typedef hyperball_topology<Vector> self;
     
     typedef Vector point_type;
     typedef Vector point_difference_type;
@@ -75,25 +72,20 @@ class hyperball_topology : public vector_topology<Vector>
     typedef default_distance_metric distance_metric_type;
     typedef default_random_sampler random_sampler_type;
     
-    typedef PDMatrix pd_matrix_type;
-    
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = vect_traits<Vector>::dimensions);
     
   protected:
     point_type center_point;
     double radius_value;
-    pd_matrix_type scaling_mat;
     
   public:
     
     hyperball_topology(const std::string& aName = "hyperball_topology",
                        const point_type& aOrigin = point_type(),
-		       double aRadius = 1.0,
-		       const pd_matrix_type& aScaling = pd_matrix_type()) : 
+		       double aRadius = 1.0) : 
 		       vector_topology<Vector>(aName),
 		       center_point(aOrigin),
-		       radius_value(aRadius),
-		       scaling_mat(aScaling) { };
+		       radius_value(aRadius) { };
     
    /*************************************************************************
     *                             MetricSpaceConcept
@@ -112,7 +104,7 @@ class hyperball_topology : public vector_topology<Vector>
      */
     double norm(const point_difference_type& delta) const {
       using std::sqrt;
-      double result = sqrt(delta * (scaling_mat * delta));
+      double result = sqrt(delta * delta);
       return result;
     }
     
@@ -124,25 +116,22 @@ class hyperball_topology : public vector_topology<Vector>
      * Generates a random point in the space, uniformly distributed.
      */
     point_type random_point() const {
-      point_difference_type dp = this->difference(center_point,center_point);
+      using std::sqrt;
       
+      point_difference_type dp = this->difference(center_point,center_point);
       if(dp.size() == 0)
 	return center_point;
       
       double radial_dim_correction = double(dp.size());
-      
-      mat< typename mat_traits<pd_matrix_type>::value_type, mat_structure::square> L;
-      decompose_Cholesky(scaling_mat,L);
       
       boost::variate_generator< global_rng_type&, boost::normal_distribution<typename vect_traits<point_difference_type>::value_type> > var_rnd(get_global_rng(), boost::normal_distribution<typename vect_traits<point_difference_type>::value_type>());
       
       for(typename vect_traits<point_difference_type>::size_type i = 0; i < dp.size(); ++i)
         dp[i] = var_rnd();
       
-      using std::sqrt;
       double factor = std::pow(boost::uniform_01<global_rng_type&,double>(get_global_rng())(),1.0 / radial_dim_correction) * radius_value / sqrt(dp * dp);
       
-      return this->adjust(center_point,(L * (factor * dp)));
+      return this->adjust(center_point, factor * dp );
     };
     
    /*************************************************************************
@@ -160,8 +149,8 @@ class hyperball_topology : public vector_topology<Vector>
      * Returns the distance to the boundary of the space.
      */
     double distance_from_boundary(const point_type& a) const {
-      point_difference_type c2a = this->difference(a,center_point);
       using std::fabs;
+      point_difference_type c2a = this->difference(a,center_point);
       return fabs(radius_value - this->norm(c2a));
     };
     
@@ -207,31 +196,53 @@ class hyperball_topology : public vector_topology<Vector>
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(center_point)
-        & RK_SERIAL_SAVE_WITH_NAME(radius_value)
-        & RK_SERIAL_SAVE_WITH_NAME(scaling_mat);
+        & RK_SERIAL_SAVE_WITH_NAME(radius_value);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(center_point)
-        & RK_SERIAL_LOAD_WITH_NAME(radius_value)
-        & RK_SERIAL_LOAD_WITH_NAME(scaling_mat);
+        & RK_SERIAL_LOAD_WITH_NAME(radius_value);
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400008,1,"hyperball_topology",vector_topology<Vector>)
     
 };
 
-template <typename Vector, typename PDMatrix>
-struct is_metric_space< hyperball_topology<Vector, PDMatrix> > : boost::mpl::true_ { };
+template <typename Vector>
+struct is_metric_space< hyperball_topology<Vector> > : boost::mpl::true_ { };
 	
-template <typename Vector, typename PDMatrix>
-struct is_point_distribution< hyperball_topology<Vector, PDMatrix> > : boost::mpl::true_ { };
+template <typename Vector>
+struct is_point_distribution< hyperball_topology<Vector> > : boost::mpl::true_ { };
 
 
 };
 
 };
+
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+#include "lin_alg/vect_alg.hpp"
+
+namespace ReaK {
+
+namespace pp {
+
+extern template class hyperball_topology< vect<double,2> >;
+extern template class hyperball_topology< vect<double,3> >;
+extern template class hyperball_topology< vect<double,4> >;
+extern template class hyperball_topology< vect<double,6> >;
+extern template class hyperball_topology< vect_n<double> >;
+
+
+};
+
+};
+
+#endif
+
 
 #endif
 
