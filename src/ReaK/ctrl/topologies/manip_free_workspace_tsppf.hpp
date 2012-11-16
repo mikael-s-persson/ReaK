@@ -46,7 +46,7 @@ class manip_quasi_static_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public
     
     super_space_type m_space;
     
-    detail::manip_dk_proxy_env_impl<RateLimitedJointSpace> m_prox_env;
+    detail::manip_dk_proxy_env_impl m_prox_env;
     
   public:
     
@@ -211,7 +211,7 @@ class manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public name
     
     super_space_type m_space;
     
-    detail::manip_dk_proxy_env_impl<RateLimitedJointSpace> m_prox_env;
+    detail::manip_dk_proxy_env_impl m_prox_env;
     std::vector< shared_ptr< proxy_model_updater > > m_prox_updaters;
     
   public:

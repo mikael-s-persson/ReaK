@@ -2,8 +2,10 @@
 set(TOPOLOGIES_SOURCES 
   "${SRCROOT}${RKTOPOLOGIESDIR}/hyperball_topology_ext.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/hyperbox_topology_ext.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/joint_space_limits_ext.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/joint_space_topologies_ext.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/line_topology_ext.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/manip_free_workspace_ext.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/ptrobot2D_test_world.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/se2_topologies_ext.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/se3_topologies_ext.cpp"
@@ -18,9 +20,15 @@ set(TOPOLOGIES_HEADERS
   "${RKTOPOLOGIESDIR}/hyperball_topology.hpp"
   "${RKTOPOLOGIESDIR}/hyperbox_topology.hpp"
   "${RKTOPOLOGIESDIR}/joint_space_limits.hpp"
+  "${RKTOPOLOGIESDIR}/joint_space_limits_detail.hpp"
+  "${RKTOPOLOGIESDIR}/joint_space_limits_ext.hpp"
   "${RKTOPOLOGIESDIR}/joint_space_topologies.hpp"
   "${RKTOPOLOGIESDIR}/joint_space_topologies_ext.hpp"
   "${RKTOPOLOGIESDIR}/line_topology.hpp"
+  "${RKTOPOLOGIESDIR}/manip_free_workspace.hpp"
+  "${RKTOPOLOGIESDIR}/manip_free_workspace_ext.hpp"
+  "${RKTOPOLOGIESDIR}/manip_free_workspace_tsppf.hpp"
+  "${RKTOPOLOGIESDIR}/manip_free_dynamic_workspace.hpp"
   "${RKTOPOLOGIESDIR}/metric_space_tuple.hpp"
   "${RKTOPOLOGIESDIR}/ptrobot2D_test_world.hpp"
   "${RKTOPOLOGIESDIR}/rate_limited_spaces.hpp"
@@ -53,7 +61,7 @@ if(NOT WIN32)
     setup_custom_target(test_sampling "${SRCROOT}${RKTOPOLOGIESDIR}")
     #target_link_libraries(test_adstar ${Boost_LIBRARIES})
     target_link_libraries(test_sampling ${OpenCV_LIBS})
-    target_link_libraries(test_sampling reak_core ${EXTRA_SYSTEM_LIBS})
+    target_link_libraries(test_sampling reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
   endif()
 endif()
 

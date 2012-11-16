@@ -71,6 +71,17 @@ struct joint_space_0th_order {
 };
 
 /**
+ * This meta-function defines the type for a 0th order multi-joint space (a zero-differentiable space).
+ * \tparam T The value type for the topology.
+ * \tparam N The number of degrees of freedom of the joint space.
+ * \tparam DistanceMetric The distance metric to apply to the tuple (top-level tuple).
+ */
+template <typename T, std::size_t N, typename DistanceMetric = euclidean_tuple_distance>
+struct Ndof_0th_order_space {
+  typedef typename metric_space_array< typename joint_space_0th_order<T>::type, N, DistanceMetric >::type type;
+};
+
+/**
  * This meta-function defines the type for a 1st order single-joint space.
  * \tparam T The value type for the topology.
  * \tparam DistanceMetric The distance metric to apply to the tuple.
@@ -87,6 +98,18 @@ struct joint_space_1st_order {
       DistanceMetric 
     > type;
 };
+
+/**
+ * This meta-function defines the type for a 1st order multi-joint space (a once-differentiable space).
+ * \tparam T The value type for the topology.
+ * \tparam N The number of degrees of freedom of the joint space.
+ * \tparam DistanceMetric The distance metric to apply to the tuple (top-level tuple).
+ */
+template <typename T, std::size_t N, typename DistanceMetric = euclidean_tuple_distance>
+struct Ndof_1st_order_space {
+  typedef typename metric_space_array< typename joint_space_1st_order<T>::type, N, DistanceMetric >::type type;
+};
+
 
 /**
  * This meta-function defines the type for a 2nd order single-joint space.
@@ -106,6 +129,19 @@ struct joint_space_2nd_order {
       DistanceMetric 
     > type;
 };
+
+/**
+ * This meta-function defines the type for a 2nd order multi-joint space (a once-differentiable space).
+ * \tparam T The value type for the topology.
+ * \tparam N The number of degrees of freedom of the joint space.
+ * \tparam DistanceMetric The distance metric to apply to the tuple (top-level tuple).
+ */
+template <typename T, std::size_t N, typename DistanceMetric = euclidean_tuple_distance>
+struct Ndof_2nd_order_space {
+  typedef typename metric_space_array< typename joint_space_2nd_order<T>::type, N, DistanceMetric >::type type;
+};
+
+
 
 
 
@@ -168,6 +204,17 @@ struct rl_joint_space_0th_order {
 };
 
 /**
+ * This meta-function defines the type for a 0th order multi-joint rate-limited space (a zero-differentiable space).
+ * \tparam T The value type for the topology.
+ * \tparam N The number of degrees of freedom of the joint space.
+ * \tparam DistanceMetric The distance metric to apply to the tuple (top-level tuple).
+ */
+template <typename T, std::size_t N, typename DistanceMetric = euclidean_tuple_distance>
+struct Ndof_0th_order_rl_space {
+  typedef typename metric_space_array< typename rl_joint_space_0th_order<T>::type, N, DistanceMetric >::type type;
+};
+
+/**
  * This meta-function defines the type for a rate-limited 1st order single-joint space.
  * \tparam T The value type for the topology.
  * \tparam DistanceMetric The distance metric to apply to the tuple.
@@ -183,6 +230,17 @@ struct rl_joint_space_1st_order {
       >, 
       DistanceMetric 
     > type;
+};
+
+/**
+ * This meta-function defines the type for a 1st order multi-joint rate-limited space (a once-differentiable space).
+ * \tparam T The value type for the topology.
+ * \tparam N The number of degrees of freedom of the joint space.
+ * \tparam DistanceMetric The distance metric to apply to the tuple (top-level tuple).
+ */
+template <typename T, std::size_t N, typename DistanceMetric = euclidean_tuple_distance>
+struct Ndof_1st_order_rl_space {
+  typedef typename metric_space_array< typename rl_joint_space_1st_order<T>::type, N, DistanceMetric >::type type;
 };
 
 /**
@@ -203,6 +261,18 @@ struct rl_joint_space_2nd_order {
       DistanceMetric 
     > type;
 };
+
+/**
+ * This meta-function defines the type for a 2nd order multi-joint rate-limited space (a twice-differentiable space).
+ * \tparam T The value type for the topology.
+ * \tparam N The number of degrees of freedom of the joint space.
+ * \tparam DistanceMetric The distance metric to apply to the tuple (top-level tuple).
+ */
+template <typename T, std::size_t N, typename DistanceMetric = euclidean_tuple_distance>
+struct Ndof_2nd_order_rl_space {
+  typedef typename metric_space_array< typename rl_joint_space_2nd_order<T>::type, N, DistanceMetric >::type type;
+};
+
 
 
 

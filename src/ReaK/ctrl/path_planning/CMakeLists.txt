@@ -40,11 +40,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 add_executable(test_vp_tree "${SRCROOT}${RKPATHPLANNINGDIR}/test_vp_tree.cpp")
 setup_custom_target(test_vp_tree "${SRCROOT}${RKPATHPLANNINGDIR}")
-target_link_libraries(test_vp_tree reak_core ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_vp_tree reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
 
 add_executable(test_dvp_adj_list "${SRCROOT}${RKPATHPLANNINGDIR}/test_dvp_adj_list.cpp")
 setup_custom_target(test_dvp_adj_list "${SRCROOT}${RKPATHPLANNINGDIR}")
-target_link_libraries(test_dvp_adj_list reak_core ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_dvp_adj_list reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
 
 add_executable(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}/test_planners.cpp")
 setup_custom_target(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
@@ -52,7 +52,7 @@ target_link_libraries(test_planners reak_topologies reak_core ${EXTRA_SYSTEM_LIB
 
 add_executable(test_hidim_planners "${SRCROOT}${RKPATHPLANNINGDIR}/test_hidim_planners.cpp")
 setup_custom_target(test_hidim_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
-target_link_libraries(test_hidim_planners reak_core ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_hidim_planners reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
@@ -82,7 +82,7 @@ if()
   target_link_libraries(pptester ${QT_LIBRARIES})
   target_link_libraries(pptester ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
   target_link_libraries(pptester ${OpenCV_LIBS})
-  target_link_libraries(pptester reak_core)
+  target_link_libraries(pptester reak_topologies reak_core)
   setup_custom_target(pptester "${SRCROOT}${RKPATHPLANNINGDIR}")
 endif()
 

@@ -356,7 +356,7 @@ namespace detail {
     };
   };
   
-  double svp_solve_for_min_dt_beta(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol) {
+  inline double svp_solve_for_min_dt_beta(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol) {
     if(svp_compute_derivative_travel_time(1.0,beta,norm_delta,coefs) > 0.0) {
       double upper = 1.0;
       double lower = 0.5;
@@ -385,13 +385,13 @@ namespace detail {
     return beta;
   };
   
-  bool svp_min_dt_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& result) {
+  inline bool svp_min_dt_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& result) {
     result = svp_compute_travel_time(beta,beta,norm_delta,coefs);
     //RK_NOTICE(1,"   gives min-dt = " << result);
     return true;
   };
   
-  double svp_solve_for_no_slack_beta(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double delta_time) {
+  inline double svp_solve_for_no_slack_beta(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double delta_time) {
     double beta_peak1 = 1.0;
     double beta_peak2 = 5.0;
       
@@ -445,7 +445,7 @@ namespace detail {
     return beta;
   };
   
-  bool svp_no_slack_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& slack, double delta_time) {
+  inline bool svp_no_slack_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& slack, double delta_time) {
     slack = svp_compute_slack_time(beta,delta_time,beta,norm_delta,coefs);
     //RK_NOTICE(1,"   gives slack-time = " << slack);
     return (std::fabs(slack) < 100.0 * num_tol * delta_time );

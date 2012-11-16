@@ -1317,6 +1317,248 @@ struct is_rate_limited_se3_space<
 
 
 
+
+template <typename T, typename DistanceMetric>
+struct get_rate_limited_space< 
+    metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+        DistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< quaternion_topology<T> >, 
+        DistanceMetric 
+      > >,
+      DistanceMetric 
+    > > {
+  typedef metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+        DistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< rate_limited_quat_space<T> >, 
+        DistanceMetric 
+      > >,
+      DistanceMetric 
+    > type;
+};
+
+template <typename T, typename DistanceMetric>
+struct get_rate_limited_space< 
+    metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        DistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          quaternion_topology<T>,
+          ang_velocity_3D_topology<T>
+        >, 
+        DistanceMetric 
+      > >,
+      DistanceMetric 
+    > > { 
+  typedef metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        DistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          rate_limited_quat_space<T>,
+          ang_velocity_3D_topology<T>
+        >, 
+        DistanceMetric 
+      > >,
+      DistanceMetric 
+    > type;
+};
+
+template <typename T, typename DistanceMetric>
+struct get_rate_limited_space< 
+    metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        DistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          quaternion_topology<T>,
+          ang_velocity_3D_topology<T>,
+          ang_accel_3D_topology<T>
+        >, 
+        DistanceMetric 
+      > >,
+      DistanceMetric 
+    > > {
+  typedef metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        DistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          rate_limited_quat_space<T>,
+          ang_velocity_3D_topology<T>,
+          ang_accel_3D_topology<T>
+        >, 
+        DistanceMetric 
+      > >,
+      DistanceMetric 
+    > type;
+};
+
+
+
+template <typename T, typename DistanceMetric>
+struct get_rate_illimited_space< 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+        DistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< rate_limited_quat_space<T> >, 
+        DistanceMetric 
+      > >,
+      DistanceMetric 
+    > > { 
+  typedef metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< hyperbox_topology< vect<T,3> > >, 
+        DistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< quaternion_topology<T> >, 
+        DistanceMetric 
+      > >,
+      DistanceMetric 
+    > type;
+};
+
+template <typename T, typename DistanceMetric>
+struct get_rate_illimited_space< 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        DistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          rate_limited_quat_space<T>,
+          ang_velocity_3D_topology<T>
+        >, 
+        DistanceMetric 
+      > >,
+      DistanceMetric 
+    > > {
+  typedef metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        DistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          quaternion_topology<T>,
+          ang_velocity_3D_topology<T>
+        >, 
+        DistanceMetric 
+      > >,
+      DistanceMetric 
+    > type;
+};
+
+template <typename T, typename DistanceMetric>
+struct get_rate_illimited_space< 
+    metric_space_tuple< arithmetic_tuple<
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        DistanceMetric 
+      >,
+      reach_time_diff_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          rate_limited_quat_space<T>,
+          ang_velocity_3D_topology<T>,
+          ang_accel_3D_topology<T>
+        >, 
+        DistanceMetric 
+      > >,
+      DistanceMetric 
+    > > { 
+  typedef metric_space_tuple< arithmetic_tuple<
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >,
+          hyperball_topology< vect<T,3> >
+        >, 
+        DistanceMetric 
+      >,
+      differentiable_space< 
+        time_topology, 
+        arithmetic_tuple< 
+          quaternion_topology<T>,
+          ang_velocity_3D_topology<T>,
+          ang_accel_3D_topology<T>
+        >, 
+        DistanceMetric 
+      > >,
+      DistanceMetric 
+    > type;
+};
+    
+
+ 
+
 };
 
 

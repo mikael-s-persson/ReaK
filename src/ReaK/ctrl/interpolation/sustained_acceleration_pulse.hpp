@@ -38,6 +38,8 @@
 
 #include "path_planning/spatial_trajectory_concept.hpp"
 
+#include "topologies/differentiable_space.hpp"
+
 #include "path_planning/tangent_bundle_concept.hpp"
 
 #include "interpolated_trajectory.hpp"

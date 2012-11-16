@@ -543,116 +543,117 @@ template class metric_space_tuple< arithmetic_tuple<
 
 
   
+  
 // joint_space_0th_order
-template class temporal_space< metric_space_array< joint_space_0th_order<double>::type, 1, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_0th_order<double>::type, 2, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_0th_order<double>::type, 3, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_0th_order<double>::type, 4, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_0th_order<double>::type, 5, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_0th_order<double>::type, 6, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_0th_order<double>::type, 7, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_0th_order<double>::type, 8, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_0th_order<double>::type, 9, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_0th_order<double>::type, 10, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_space<double, 1>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_space<double, 2>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_space<double, 3>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_space<double, 4>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_space<double, 5>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_space<double, 6>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_space<double, 7>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_space<double, 8>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_space<double, 9>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_space<double,10>::type, time_poisson_topology, spatial_distance_only>;
 
 // joint_space_1st_order
-template class temporal_space< metric_space_array< joint_space_1st_order<double>::type, 1, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_1st_order<double>::type, 2, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_1st_order<double>::type, 3, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_1st_order<double>::type, 4, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_1st_order<double>::type, 5, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_1st_order<double>::type, 6, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_1st_order<double>::type, 7, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_1st_order<double>::type, 8, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_1st_order<double>::type, 9, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_1st_order<double>::type, 10, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_space<double, 1>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_space<double, 2>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_space<double, 3>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_space<double, 4>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_space<double, 5>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_space<double, 6>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_space<double, 7>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_space<double, 8>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_space<double, 9>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_space<double,10>::type, time_poisson_topology, spatial_distance_only>;
 
 // joint_space_2nd_order
-template class temporal_space< metric_space_array< joint_space_2nd_order<double>::type, 1, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_2nd_order<double>::type, 2, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_2nd_order<double>::type, 3, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_2nd_order<double>::type, 4, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_2nd_order<double>::type, 5, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_2nd_order<double>::type, 6, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_2nd_order<double>::type, 7, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_2nd_order<double>::type, 8, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_2nd_order<double>::type, 9, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< joint_space_2nd_order<double>::type, 10, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_space<double, 1>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_space<double, 2>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_space<double, 3>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_space<double, 4>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_space<double, 5>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_space<double, 6>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_space<double, 7>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_space<double, 8>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_space<double, 9>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_space<double,10>::type, time_poisson_topology, spatial_distance_only>;
 
   
   
 // rl_joint_space_0th_order
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 1, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 2, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 3, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 4, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 5, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 6, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 7, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 8, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 9, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 10, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 1>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 2>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 3>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 4>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 5>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 6>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 7>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 8>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 9>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_0th_order_rl_space<double,10>::type, time_poisson_topology, spatial_distance_only>;
 
 // rl_joint_space_1st_order
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 1, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 2, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 3, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 4, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 5, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 6, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 7, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 8, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 9, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 10, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 1>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 2>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 3>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 4>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 5>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 6>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 7>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 8>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 9>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_1st_order_rl_space<double,10>::type, time_poisson_topology, spatial_distance_only>;
 
 // rl_joint_space_2nd_order
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 1, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 2, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 3, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 4, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 5, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 6, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 7, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 8, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 9, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 10, euclidean_tuple_distance >::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 1>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 2>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 3>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 4>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 5>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 6>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 7>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 8>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 9>::type, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< Ndof_2nd_order_rl_space<double,10>::type, time_poisson_topology, spatial_distance_only>;
 
   
 // rl_joint_space_0th_order
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 1, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 2, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 3, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 4, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 5, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 6, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 7, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 8, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 9, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_0th_order<double>::type, 10, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 1>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 2>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 3>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 4>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 5>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 6>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 7>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 8>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_0th_order_rl_space<double, 9>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_0th_order_rl_space<double,10>::type, time_poisson_topology, reach_plus_time_metric>;
 
 // rl_joint_space_1st_order
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 1, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 2, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 3, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 4, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 5, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 6, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 7, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 8, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 9, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_1st_order<double>::type, 10, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 1>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 2>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 3>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 4>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 5>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 6>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 7>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 8>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_1st_order_rl_space<double, 9>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_1st_order_rl_space<double,10>::type, time_poisson_topology, reach_plus_time_metric>;
 
 // rl_joint_space_2nd_order
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 1, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 2, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 3, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 4, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 5, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 6, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 7, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 8, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 9, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< metric_space_array< rl_joint_space_2nd_order<double>::type, 10, euclidean_tuple_distance >::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 1>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 2>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 3>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 4>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 5>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 6>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 7>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 8>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_2nd_order_rl_space<double, 9>::type, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< Ndof_2nd_order_rl_space<double,10>::type, time_poisson_topology, reach_plus_time_metric>;
 
   
 

@@ -522,7 +522,7 @@ namespace detail {
       
       PointDiff0 peak_to_end = get_space<0>(space,t_space).difference(get<0>(end_point),get<0>(end_point));
       
-      if( dt_vp2_1st > num_tol * get_space<0>(space,t_space).get_radius() ) {
+      if( dt_vp2_1st > num_tol * get_space<1>(space,t_space).get_radius() ) {
 	peak_to_end = 
 	  descend_to_space<0>( peak_velocity, dt_vp2, space, t_space)
 	  + descend_to_space<0>( get_space<1>(space,t_space).adjust( peak_velocity,
@@ -550,6 +550,7 @@ namespace detail {
     };
   };
   
+  inline 
   double sap_solve_for_min_dt_beta(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double dt_amax) {
     vect<double,2> deltas_0 = sap_compute_projected_deltas(beta,coefs,dt_amax);
     if(sap_compute_derivative_travel_time(1.0,deltas_0,norm_delta,coefs,dt_amax) > 0.0) {
@@ -586,12 +587,14 @@ namespace detail {
     return beta;
   };
   
+  inline 
   bool sap_min_dt_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& result, double dt_amax) {
     result = sap_compute_travel_time(beta,sap_compute_projected_deltas(beta,coefs,dt_amax),norm_delta,coefs,dt_amax);
     //RK_NOTICE(1,"   gives min-dt = " << result);
     return true;
   };
   
+  inline 
   double sap_solve_for_no_slack_beta(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double delta_time, double dt_amax) {
     double beta_peak1 = 1.0;
     double beta_peak2 = 5.0;
@@ -649,6 +652,7 @@ namespace detail {
     return beta;
   };
   
+  inline 
   bool sap_no_slack_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& slack, double delta_time, double dt_amax) {
     slack = sap_compute_slack_time(beta,delta_time,sap_compute_projected_deltas(beta,coefs,dt_amax),norm_delta,coefs,dt_amax);
     //RK_NOTICE(1,"   gives slack-time = " << slack);
