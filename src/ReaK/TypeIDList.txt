@@ -180,7 +180,8 @@ ang_velocity_control_2D     0xC210004B   bin: 1100 0010 0001 0000 0000 0000 0100
 ang_velocity_control_3D     0xC210004C   bin: 1100 0010 0001 0000 0000 0000 0100 1100  D-R
 manipulator_kinematics_model 0xC210004D  bin: 1100 0010 0001 0000 0000 0000 0100 1101  D-R
 manipulator_dynamics_model  0xC210004E   bin: 1100 0010 0001 0000 0000 0000 0100 1110  D-R
-
+direct_kinematics_model     0xC210004F   bin: 1100 0010 0001 0000 0000 0000 0100 1111  D-R
+inverse_kinematics_model    0xC2100050   bin: 1100 0010 0001 0000 0000 0000 0101 0000  D-R
 
 
 
