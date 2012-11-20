@@ -42,7 +42,7 @@
 #include "trajectory_base.hpp"
 #include <boost/graph/graph_concepts.hpp>
 
-#include "manipulator_topo_maps.hpp"
+#include "topologies/direct_kinematics_topomap.hpp"
 #include "topological_map_concepts.hpp"
 
 #include "shapes/frame_tracer_coin3d_impl.hpp"

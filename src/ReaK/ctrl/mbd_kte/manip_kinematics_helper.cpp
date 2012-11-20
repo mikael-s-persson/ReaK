@@ -23,6 +23,7 @@
 
 #include "manip_kinematics_helper.hpp"
 
+
 namespace ReaK {
 
 namespace kte {
@@ -55,7 +56,7 @@ void manip_kin_mdl_joint_io::getJointPositions(double* result) const {
 
 void manip_kin_mdl_joint_io::setJointPositions(const double* aJointPositions) {
   
-  for( std::size_t i = 0; i < model->getCoordsCount(); ++i, ++j )
+  for( std::size_t i = 0; i < model->getCoordsCount(); ++i )
     model->getCoord(i)->q = (*aJointPositions++);
 
   for( std::size_t i = 0; i < model->getFrames2DCount(); ++i ) {
@@ -173,8 +174,7 @@ void manip_kin_mdl_joint_io::setJointAccelerations(const double* aJointAccelerat
 };
 
 void manip_kin_mdl_joint_io::getDependentPositions(double* result) const {
-  std::size_t j = 0;
-
+  
   for( std::size_t i = 0; i < model->getDependentCoordsCount(); ++i)
     (*result++) = model->getDependentCoord(i)->mFrame->q;
 
@@ -199,7 +199,6 @@ void manip_kin_mdl_joint_io::getDependentPositions(double* result) const {
 };
 
 void manip_kin_mdl_joint_io::getDependentVelocities(double* result) const {
-  std::size_t j = 0;
 
   for( std::size_t i = 0; i < model->getDependentCoordsCount(); ++i)
     (*result++) = model->getDependentCoord(i)->mFrame->q_dot;
@@ -223,7 +222,6 @@ void manip_kin_mdl_joint_io::getDependentVelocities(double* result) const {
 };
 
 void manip_kin_mdl_joint_io::getDependentAccelerations(double* result) const {
-  std::size_t j = 0;
 
   for( std::size_t i = 0; i < model->getDependentCoordsCount(); ++i)
     (*result++) = model->getDependentCoord(i)->mFrame->q_ddot;
@@ -331,7 +329,7 @@ void manip_kin_mdl_jac_calculator::getJacobianMatrixAndDerivativeImpl( mat<doubl
     
     for( std::size_t j=0; j < model->getDependentCoordsCount(); ++j ) {
       shared_ptr< joint_dependent_gen_coord > j_dep = model->getDependentCoord(j);
-      if( model->getDependentCoord(j)->mUpStream2DJoints.find( i_joint ) != model->getDependentCoord(j)->mUpStream2DJoints.end() ) {
+      if( j_dep->mUpStream2DJoints.find( i_joint ) != j_dep->mUpStream2DJoints.end() ) {
         SubMat subJac = sub( Jac )( range( RowInd,RowInd ),range( 3 * i + base_i, 3 * i + base_i + 2 ) );
         if( JacDot ) {
           SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd ),range( 3 * i + base_i, 3 * i + base_i + 2 ) );
@@ -393,7 +391,7 @@ void manip_kin_mdl_jac_calculator::getJacobianMatrixAndDerivativeImpl( mat<doubl
     
     for( std::size_t j=0; j < model->getDependentCoordsCount(); ++j ) {
       shared_ptr< joint_dependent_gen_coord > j_dep = model->getDependentCoord(j);
-      if( j_dep->mUpStreamJoints.find( i_joint ) != j_dep->mUpStreamJoints.end() ) {
+      if( j_dep->mUpStream3DJoints.find( i_joint ) != j_dep->mUpStream3DJoints.end() ) {
         SubMat subJac = sub( Jac )( range( RowInd,RowInd ),range( 6 * i + base_i, 6 * i + base_i + 5 ) );
         if( JacDot ) {
           SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd ),range( 6 * i + base_i, 6 * i + base_i + 5 ) );
@@ -452,8 +450,6 @@ void manip_kin_mdl_jac_calculator::getJacobianMatrixAndDerivativeImpl( mat<doubl
 };
 
 };
-
-#endif
 
 
 

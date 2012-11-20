@@ -74,7 +74,7 @@ class manipulator_kinematics_model : public direct_kinematics_model {
     /**
      * Default constructor.
      */
-    manipulator_kinematics_model(const std::string& aName = "") : kte_map(aName),
+    manipulator_kinematics_model(const std::string& aName = "") : direct_kinematics_model(aName),
                                                                   mCoords(),
                                                                   mFrames2D(),
                                                                   mFrames3D(),
@@ -220,7 +220,7 @@ class manipulator_kinematics_model : public direct_kinematics_model {
     
     virtual void doDirectMotion() {
       if(mModel)
-        mModel->doMotion(aFlag,aStorage);
+        mModel->doMotion();
     };
     
     virtual void getJacobianMatrix(mat<double,mat_structure::rectangular>& Jac) const;

@@ -95,6 +95,13 @@ suppressor<T>               0xC130****   bin: 1100 0001 0011 0000[*********T****
 summation_node<T>           0xC111****
 
 
+//Optimization and higher-level math architectures 0xC15*****
+cost_evaluator              0xC1500001   bin: 1100 0001 0101 0000 0000 0000 0000 0001  D-R
+quadratic_cost_evaluator    0xC1500002   bin: 1100 0001 0101 0000 0000 0000 0000 0010  D-R
+added_cost_evaluator        0xC1500003   bin: 1100 0001 0101 0000 0000 0000 0000 0011  D-R
+clik_bent_joints_cost_eval  0xC1500003   bin: 1100 0001 0101 0000 0000 0000 0000 0100  D-R
+
+
 //Kinetostatic transmission elements 0xC21*****
 kte_map                     0xC2100001   bin: 1100 0010 0001 0000 0000 0000 0000 0001  D-R
 kte_map_chain               0xC2100002   bin: 1100 0010 0001 0000 0000 0000 0000 0010  D-R
@@ -182,6 +189,7 @@ manipulator_kinematics_model 0xC210004D  bin: 1100 0010 0001 0000 0000 0000 0100
 manipulator_dynamics_model  0xC210004E   bin: 1100 0010 0001 0000 0000 0000 0100 1110  D-R
 direct_kinematics_model     0xC210004F   bin: 1100 0010 0001 0000 0000 0000 0100 1111  D-R
 inverse_kinematics_model    0xC2100050   bin: 1100 0010 0001 0000 0000 0000 0101 0000  D-R
+manip_clik_calculator       0xC2100051   bin: 1100 0010 0001 0000 0000 0000 0101 0001  D-R
 
 
 
@@ -278,17 +286,17 @@ joint_limits_collection<T>  0xC2400011   bin: 1100 0010 0100 0000 0000 0000 0001
 manip_direct_kin_map        0xC2400012   bin: 1100 0010 0100 0000 0000 0000 0001 0010  D-R
 manip_rl_direct_kin_map<R>  0xC2400013   bin: 1100 0010 0100 0000 0000 0000 0001 0011  D-R
 manip_inverse_kin_map       0xC2400014   bin: 1100 0010 0100 0000 0000 0000 0001 0100  D-R
-manip_rl_inverse_kin_map<R> 0xC2400015   bin: 1100 0010 0100 0000 0000 0000 0001 0101  D-R
-manip_clik_calc_factory     0xC2400016   bin: 1100 0010 0100 0000 0000 0000 0001 0110  D-R
-clik_quad_cost_factory      0xC2400017   bin: 1100 0010 0100 0000 0000 0000 0001 0111  D-R
-clik_mixed_cost_factory     0xC2400018   bin: 1100 0010 0100 0000 0000 0000 0001 1000  D-R
-clik_bent_joints_cost_factory 0xC2400019 bin: 1100 0010 0100 0000 0000 0000 0001 1001  D-R
+manip_rl_inverse_kin_map    0xC2400015   bin: 1100 0010 0100 0000 0000 0000 0001 0101  D-R
+manip_clik_kin_map          0xC2400016   bin: 1100 0010 0100 0000 0000 0000 0001 0110  D-R
+manip_rl_clik_kin_map       0xC2400017   bin: 1100 0010 0100 0000 0000 0000 0001 0111  D-R
+ 0xC2400018   bin: 1100 0010 0100 0000 0000 0000 0001 1000  D-R
+ 0xC2400019   bin: 1100 0010 0100 0000 0000 0000 0001 1001  D-R
 manip_ik_fixed_ip_map       0xC240001A   bin: 1100 0010 0100 0000 0000 0000 0001 1010  D-R
-manip_rl_ik_fixed_ip_map<R> 0xC240001B   bin: 1100 0010 0100 0000 0000 0000 0001 1011  D-R
+manip_rl_ik_fixed_ip_map    0xC240001B   bin: 1100 0010 0100 0000 0000 0000 0001 1011  D-R
 manip_ik_rnd_restart_map    0xC240001C   bin: 1100 0010 0100 0000 0000 0000 0001 1100  D-R
-manip_rl_ik_rnd_restart_map<R> 0xC240001D bin:1100 0010 0100 0000 0000 0000 0001 1101  D-R
+manip_rl_ik_rnd_restart_map 0xC240001D   bin:1100 0010 0100 0000 0000 0000 0001 1101  D-R
 manip_ik_knn_starts_map     0xC240001E   bin: 1100 0010 0100 0000 0000 0000 0001 1110  D-R
-manip_rl_ik_knn_starts_map<R> 0xC240001F bin: 1100 0010 0100 0000 0000 0000 0001 1111  D-R
+manip_rl_ik_knn_starts_map  0xC240001F   bin: 1100 0010 0100 0000 0000 0000 0001 1111  D-R
 ptrobot2D_test_world        0xC2400020   bin: 1100 0010 0100 0000 0000 0000 0010 0000  D-R
 no_obstacle_space<T,D,R>    0xC2400021   bin: 1100 0010 0100 0000 0000 0000 0010 0001  D-R
 sap_reach_topology<T>       0xC2400022   bin: 1100 0010 0100 0000 0000 0000 0010 0010  D-R

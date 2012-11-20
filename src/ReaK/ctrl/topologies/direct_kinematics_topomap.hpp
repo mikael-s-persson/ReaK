@@ -38,7 +38,7 @@
 #include "base/defs.hpp"
 #include "base/shared_object.hpp"
 
-#include "mbd_kte/manipulator_model.hpp"
+#include "mbd_kte/direct_kinematics_model.hpp"
 
 #include "direct_kinematics_topomap_detail.hpp"
 
@@ -60,9 +60,9 @@ class manip_direct_kin_map : public shared_object {
     typedef manip_direct_kin_map self;
     
     /** This data member points to a manipulator kinematics model to use for the mappings performed. */
-    shared_ptr< kte::manipulator_kinematics_model > model; 
+    shared_ptr< kte::direct_kinematics_model > model; 
     
-    manip_direct_kin_map(const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >()) :
+    manip_direct_kin_map(const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >()) :
                          model(aModel) { };
     
     /**
@@ -83,7 +83,7 @@ class manip_direct_kin_map : public shared_object {
       
       detail::write_joint_coordinates_impl(pt, space_in, model);
     
-      model->doMotion();
+      model->doDirectMotion();
     
       detail::read_dependent_coordinates_impl(result, space_out, model);
       
@@ -101,7 +101,7 @@ class manip_direct_kin_map : public shared_object {
     template <typename PointType, typename InSpace>
     void apply_to_model(const PointType& pt, const InSpace& space_in) const {
       detail::write_joint_coordinates_impl(pt, space_in, model);
-      model->doMotion();
+      model->doDirectMotion();
     };
     
 /*******************************************************************************
@@ -137,12 +137,12 @@ class manip_rl_direct_kin_map : public shared_object {
     typedef manip_rl_direct_kin_map<RateLimitMap,NormalJointSpace> self;
     
     /** This data member points to a manipulator kinematics model to use for the mappings performed. */
-    shared_ptr< kte::manipulator_kinematics_model > model; 
+    shared_ptr< kte::direct_kinematics_model > model; 
     /** This data member holds a mapping between the rate-limited joint space and the normal joint-space. */
     shared_ptr< RateLimitMap > joint_limits_map;
     shared_ptr< NormalJointSpace > normal_jt_space;
     
-    manip_rl_direct_kin_map(const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
+    manip_rl_direct_kin_map(const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
                             const shared_ptr< RateLimitMap >& aJointLimitMap = shared_ptr< RateLimitMap >(),
                             const shared_ptr< NormalJointSpace >& aNormalJtSpace = shared_ptr< NormalJointSpace >()) : 
                             model(aModel),
@@ -168,7 +168,7 @@ class manip_rl_direct_kin_map : public shared_object {
       typename topology_traits<NormalJointSpace>::point_type pt_inter = joint_limits_map->map_to_space(pt, space_in, *normal_jt_space);
       detail::write_joint_coordinates_impl(pt_inter, *normal_jt_space, model);
       
-      model->doMotion();
+      model->doDirectMotion();
       
       detail::read_dependent_coordinates_impl(result, space_out, model);
       
@@ -188,7 +188,7 @@ class manip_rl_direct_kin_map : public shared_object {
       typedef typename get_rate_illimited_space< InSpace >::type NormalJointSpace;
       typename topology_traits<NormalJointSpace>::point_type pt_inter = joint_limits_map->map_to_space(pt, space_in, *normal_jt_space);
       detail::write_joint_coordinates_impl(pt_inter, *normal_jt_space, model);
-      model->doMotion();
+      model->doDirectMotion();
     };
     
     

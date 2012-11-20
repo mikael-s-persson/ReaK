@@ -49,7 +49,7 @@
 #include "jacobian_joint_map.hpp"     // DONE.
 //#include "kte_ext_mappings.hpp"       // not needed.
 #include "line_point_mindist.hpp"     // DONE.
-#include "manipulator_model.hpp"      // DONE.
+//#include "manipulator_model.hpp"      // DONE.
 #include "mass_matrix_calculator.hpp" // DONE.
 #include "plane_point_mindist.hpp"    // DONE.
 #include "prismatic_joint.hpp"        // DONE.
@@ -117,6 +117,7 @@ struct py_mmc_frame_vector {
 };
 
 
+/*
 ReaK::vect_n<double> py_dyn_mdl_compute_output(ReaK::kte::manipulator_dynamics_model& aMdl, double aTime, const ReaK::vect_n<double>& aState) {
   ReaK::vect_n<double> aOutput;
   aMdl.computeOutput(aTime, aState, aOutput);
@@ -128,7 +129,6 @@ ReaK::vect_n<double> py_dyn_mdl_compute_state_rate(ReaK::kte::manipulator_dynami
   aMdl.computeStateRate(aTime, aState, aStateRate);
   return aStateRate;
 };
-
 
 template <typename FrameType, const std::vector< ReaK::shared_ptr< FrameType > >& (ReaK::kte::manipulator_kinematics_model::*MemFuncPtr)() const>
 struct py_mdl_frame_vector {
@@ -145,7 +145,7 @@ struct py_mdl_frame_vector {
   ReaK::shared_ptr< FrameType > get(std::size_t i) const {
     return (kin_mdl->*MemFuncPtr)()[i];
   };
-};
+};*/
 
 
 void export_mbd_kte() {
@@ -1502,7 +1502,7 @@ void export_mbd_kte() {
     .def("frames_3D", &py_mmc_frame_vector< ReaK::frame_3D<double>, &ReaK::kte::mass_matrix_calc::Frames3D >::create);
     
     
-    
+    /*
   class_< py_mdl_frame_vector< ReaK::gen_coord<double>, &ReaK::kte::manipulator_kinematics_model::Coords > >("MDLGenCoordVector", no_init)
     .def("__len__", &py_mdl_frame_vector< ReaK::gen_coord<double>, &ReaK::kte::manipulator_kinematics_model::Coords >::size)
     .def("__getitem__", &py_mdl_frame_vector< ReaK::gen_coord<double>, &ReaK::kte::manipulator_kinematics_model::Coords >::get);
@@ -1577,7 +1577,7 @@ void export_mbd_kte() {
     .def("mass_calculator", &ReaK::kte::manipulator_dynamics_model::getMassCalc, return_internal_reference<>())
     .def("compute_output", &py_dyn_mdl_compute_output)
     .def("compute_state_rate", &py_dyn_mdl_compute_state_rate);
-    
+    */
   
 #ifdef RK_ENABLE_CXX0X_FEATURES
   implicitly_convertible< ReaK::shared_ptr< ReaK::kte::kte_map >, 
@@ -1801,11 +1801,11 @@ void export_mbd_kte() {
   implicitly_convertible< ReaK::shared_ptr< ReaK::kte::mass_matrix_calc >, 
                           ReaK::shared_ptr< ReaK::named_object > >();
                           
-  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model >, 
+/*  implicitly_convertible< ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model >, 
                           ReaK::shared_ptr< ReaK::kte::kte_map > >();
                           
   implicitly_convertible< ReaK::shared_ptr< ReaK::kte::manipulator_dynamics_model >, 
-                          ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model > >();
+                          ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model > >();*/
 #endif
   
 };

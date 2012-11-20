@@ -101,11 +101,7 @@ struct clik_eq_function {
   
   vect_n<double> operator()(const vect_n<double>& x) const {
     
-    direct_kinematics_model* pmdl = parent->model;
-    
-    const std::vector< shared_ptr< joint_dependent_gen_coord > >& dep_gen_coords = pmdl->getDependentCoord();
-    const std::vector< shared_ptr< joint_dependent_frame_2D > >& dep_frames_2D = pmdl->getDependentFrame2D();
-    const std::vector< shared_ptr< joint_dependent_frame_3D > >& dep_frames_3D = pmdl->DependentFrames3D();
+    shared_ptr<direct_kinematics_model> pmdl = parent->model;
     
     if( ( pmdl->getDependentCoordsCount() != parent->desired_gen_coords.size() ) ||
         ( pmdl->getDependentFrames2DCount() != parent->desired_frame_2D.size() ) ||
@@ -115,10 +111,10 @@ struct clik_eq_function {
     manip_kin_mdl_joint_io(pmdl).setJointPositions(&x[0]);
     manip_kin_mdl_joint_io(pmdl).setJointVelocities(&x[pmdl->getJointPositionsCount()]);
     
-    pmdl->doMotion();
+    pmdl->doDirectMotion();
     
     vect_n<double> result(pmdl->getDependentVelocitiesCount() * 2
-                        + pmdl->Frames2D().size() + pmdl->Frames3D().size());
+                        + pmdl->getFrames2DCount() + pmdl->getFrames3DCount());
     
     
     // enforce the desired 'end-effector' frames.
@@ -179,15 +175,15 @@ struct clik_eq_function {
 
 struct clik_eq_jac_filler {
   const manip_clik_calculator* parent;
-  mat<double,mat_structure::rectangular> jac_tmp;
-  mat<double,mat_structure::rectangular> jacdot_tmp;
+  mutable mat<double,mat_structure::rectangular> jac_tmp;
+  mutable mat<double,mat_structure::rectangular> jacdot_tmp;
   
   clik_eq_jac_filler(const manip_clik_calculator* aParent) : parent(aParent) { };
   
   template <typename Matrix>
   void operator()(Matrix& J, const vect_n<double>& x, const vect_n<double>& h) const {
     
-    direct_kinematics_model* pmdl = parent->model;
+    shared_ptr<direct_kinematics_model> pmdl = parent->model;
     
     if( ( pmdl->getDependentCoordsCount() != parent->desired_gen_coords.size() ) ||
         ( pmdl->getDependentFrames2DCount() != parent->desired_frame_2D.size() ) ||
@@ -204,8 +200,8 @@ struct clik_eq_jac_filler {
     manip_kin_mdl_jac_calculator(pmdl).getJacobianMatrixAndDerivative(jac_tmp, jacdot_tmp);
     
     std::size_t n1 = pmdl->getDependentVelocitiesCount();
-    std::size_t m1 = (x.size() + pmdl->getFrames2DCount() + pmdl->Frames3D().size()) / 2;
-    for(std::size_t i = 0; i < (x.size() - pmdl->getFrames2DCount() - pmdl->Frames3D().size()) / 2; ++i) {
+    std::size_t m1 = (x.size() + pmdl->getFrames2DCount() + pmdl->getFrames3DCount()) / 2;
+    for(std::size_t i = 0; i < (x.size() - pmdl->getFrames2DCount() - pmdl->getFrames3DCount()) / 2; ++i) {
       for(std::size_t j = 0; j < n1; ++j)
         J(j, i) = jac_tmp(j, i);
       for(std::size_t j = 0; j < n1; ++j)
@@ -279,6 +275,32 @@ struct clik_eq_jac_filler {
 
 
 
+shared_ptr< optim::quadratic_cost_evaluator > create_clik_quad_cost(const vect_n<double>& aPreferredPosture, 
+                                                                    const vect_n<double>& aLowerBounds,
+                                                                    const vect_n<double>& aUpperBounds,
+                                                                    const direct_kinematics_model& aModel) {
+  std::size_t N1 = aModel.getJointPositionsCount();
+  std::size_t N2 = aModel.getJointVelocitiesCount();
+  
+  vect_n<double> center(N1 + N2, 0.0);
+  mat<double,mat_structure::symmetric> Qmat = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(N1 + N2));
+  
+  for(std::size_t i = 0; i < aPreferredPosture.size(); ++i)
+    center[i] = aPreferredPosture[i];
+  
+  for(std::size_t i = 0; i < N1 + N2; ++i) {
+    if((aUpperBounds[i] != std::numeric_limits<double>::infinity()) &&
+       (aLowerBounds[i] != -std::numeric_limits<double>::infinity()))
+      Qmat(i, i) = 4.0 / ((aUpperBounds[i] - aLowerBounds[i]) * (aUpperBounds[i] - aLowerBounds[i]));
+    else
+      Qmat(i, i) = 0.0;
+  };
+  
+  return shared_ptr< optim::quadratic_cost_evaluator >(new optim::quadratic_cost_evaluator(center, Qmat));
+};
+
+
+
 void manip_clik_calculator::readDesiredFromModel() {
   
   desired_gen_coords.resize( model->getDependentCoordsCount() );
@@ -310,10 +332,15 @@ void manip_clik_calculator::writeJointStatesToModel(const vect_n<double>& x) con
   manip_kin_mdl_joint_io(model).setJointVelocities(&x[model->getJointPositionsCount()]);
 };
 
+
+vect_n<double> manip_clik_calculator::computeStatesError(const vect_n<double>& x) const {
+  return detail::clik_eq_function(this)(x);
+};
+
 void manip_clik_calculator::runOptimizer( vect_n<double>& x ) {
-  shared_ptr<const optim::cost_evaluator> tmp_cost_eval = cost_eval;
+  shared_ptr<optim::cost_evaluator> tmp_cost_eval = cost_eval;
   if(!cost_eval) {
-    tmp_cost_eval = shared_ptr<const optim::cost_evaluator>(
+    tmp_cost_eval = shared_ptr<optim::cost_evaluator>(
       new optim::quadratic_cost_evaluator(
         vect_n<double>(x.size(), double(0.0)),
         mat<double,mat_structure::symmetric>(
@@ -345,8 +372,8 @@ void manip_clik_calculator::runOptimizer( vect_n<double>& x ) {
     optim::oop_cost_grad(tmp_cost_eval),
     optim::oop_cost_hess(tmp_cost_eval),
     max_radius, mu, max_iter,
-    eq_function(this), eq_jac_filler(this),
-    ineq_function(this), ineq_jac_filler(this),
+    detail::clik_eq_function(this), detail::clik_eq_jac_filler(this),
+    detail::clik_ineq_function(this), detail::clik_ineq_jac_filler(this),
     tol, eta, tau);
   
   optimizer( x );

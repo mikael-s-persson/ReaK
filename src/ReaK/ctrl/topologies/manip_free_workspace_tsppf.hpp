@@ -124,7 +124,7 @@ class manip_quasi_static_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public
     };
     
     manip_quasi_static_env(const RateLimitedJointSpace& aSpace = RateLimitedJointSpace(),
-                           const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
+                           const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
                            const shared_ptr< joint_limits_collection<double> >& aJointLimitsMap = shared_ptr< joint_limits_collection<double> >(),
                            double aMinInterval = 0.1, 
                            double aMaxEdgeLength = 1.0,
@@ -322,7 +322,7 @@ class manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public name
     
     
     manip_dynamic_env(const RateLimitedJointSpace& aSpace = RateLimitedJointSpace(),
-                      const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
+                      const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
                       const shared_ptr< joint_limits_collection<double> >& aJointLimitsMap = shared_ptr< joint_limits_collection<double> >(),
                       double aMinInterval = 0.1, 
                       double aMaxEdgeLength = 1.0,

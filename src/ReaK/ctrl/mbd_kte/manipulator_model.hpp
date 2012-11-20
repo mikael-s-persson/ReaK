@@ -638,7 +638,7 @@ class manipulator_dynamics_model : public manipulator_kinematics_model, public s
     };
 
     RK_RTTI_MAKE_CONCRETE_2BASE(manipulator_dynamics_model,0xC210004E,1,"manipulator_dynamics_model",manipulator_kinematics_model,state_rate_function<double>)
-
+    
 };
 
 

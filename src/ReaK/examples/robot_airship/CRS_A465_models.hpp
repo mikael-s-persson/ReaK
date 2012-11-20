@@ -52,7 +52,7 @@
 #include "kinetostatics/motion_jacobians.hpp"
 #include "mbd_kte/jacobian_joint_map.hpp"
 
-#include "mbd_kte/manipulator_model.hpp"
+#include "mbd_kte/manip_dynamics_model.hpp"
 
 #include "topologies/joint_space_topologies.hpp"
 #include "topologies/se3_topologies.hpp"

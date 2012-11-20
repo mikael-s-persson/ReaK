@@ -247,7 +247,7 @@ class manip_dynamic_env : public named_object {
      * \param aMaxEdgeLength The maximum length of an added edge, in time units (e.g., seconds).
      */
     manip_dynamic_env(const super_space_type& aSpace = super_space_type(),
-                      const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
+                      const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
                       const shared_ptr< joint_limits_collection<double> >& aJointLimitsMap = shared_ptr< joint_limits_collection<double> >(),
                       double aMinInterval = 0.1, 
                       double aMaxEdgeLength = 1.0) : 

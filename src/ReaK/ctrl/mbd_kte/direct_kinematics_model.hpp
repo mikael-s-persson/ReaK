@@ -36,6 +36,8 @@
 #include "base/defs.hpp"
 #include "base/named_object.hpp"
 #include "kinetostatics/kinetostatics.hpp"
+#include "jacobian_joint_map.hpp"
+#include "lin_alg/mat_alg.hpp"
 
 namespace ReaK {
 
@@ -335,14 +337,14 @@ class direct_kinematics_model : public virtual named_object {
     
     
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
     };
     
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
     };
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(direct_kinematics_model,0xC210004F,1,"direct_kinematics_model",kte_map)
+    RK_RTTI_MAKE_CONCRETE_1BASE(direct_kinematics_model,0xC210004F,1,"direct_kinematics_model",named_object)
     
 };
 

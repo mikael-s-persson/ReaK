@@ -35,6 +35,8 @@
 
 #include "base/defs.hpp"
 
+#include "base/shared_object.hpp"
+
 namespace ReaK {
 
 namespace optim {
@@ -46,7 +48,7 @@ namespace optim {
  * This base-class defines the interface for a cost evaluator which lumps the evaluation of 
  * the cost value, gradient, and hessian into one interface. 
  */
-class cost_evaluator {
+class cost_evaluator : public shared_object {
   public:
     
     /**
@@ -76,6 +78,21 @@ class cost_evaluator {
      * Default destructor.
      */
     virtual ~cost_evaluator() { };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_ABSTRACT_1BASE(cost_evaluator,0xC1500001,1,"cost_evaluator",shared_object)
+    
 };
 
 
@@ -95,7 +112,8 @@ class quadratic_cost_evaluator : public cost_evaluator {
      * \param aC The center vector of the quadratic cost function.
      * \param aQ The positive definite matrix of the quadratic cost function.
      */
-    quadratic_cost_evaluator(const vect_n<double>& aC, const mat<double,mat_structure::symmetric>& aQ) : c(aC), Q(aQ) { };
+    quadratic_cost_evaluator(const vect_n<double>& aC = vect_n<double>(), 
+                             const mat<double,mat_structure::symmetric>& aQ = mat<double,mat_structure::symmetric>()) : c(aC), Q(aQ) { };
     
     virtual double compute_cost(const vect_n<double>& x) const {
       vect_n<double> tmp = x; tmp -= c;
@@ -110,6 +128,23 @@ class quadratic_cost_evaluator : public cost_evaluator {
       H = Q;
     };
     
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      cost_evaluator::save(A,cost_evaluator::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(c)
+        & RK_SERIAL_SAVE_WITH_NAME(Q);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      cost_evaluator::load(A,cost_evaluator::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(c)
+        & RK_SERIAL_LOAD_WITH_NAME(Q);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(quadratic_cost_evaluator,0xC1500002,1,"quadratic_cost_evaluator",cost_evaluator)
+    
 };
 
 
@@ -120,18 +155,18 @@ class quadratic_cost_evaluator : public cost_evaluator {
  */
 class added_cost_evaluator : public cost_evaluator {
   public:
-    shared_ptr<const cost_evaluator> first_eval; ///< Points to the first cost evaluator.
-    shared_ptr<const cost_evaluator> second_eval; ///< Points to the second cost evaluator.
+    shared_ptr<cost_evaluator> first_eval; ///< Points to the first cost evaluator.
+    shared_ptr<cost_evaluator> second_eval; ///< Points to the second cost evaluator.
     
     /**
      * Parametrized Constructor.
      * \param aFirstEval The first cost evaluator.
      * \param aSecondEval The second cost evaluator.
      */
-    added_cost_evaluator(const shared_ptr<const cost_evaluator>& aFirstEval,
-			 const shared_ptr<const cost_evaluator>& aSecondEval) :
-			 first_eval(aFirstEval),
-			 second_eval(aSecondEval) { };
+    added_cost_evaluator(const shared_ptr<cost_evaluator>& aFirstEval = shared_ptr<cost_evaluator>(),
+                         const shared_ptr<cost_evaluator>& aSecondEval = shared_ptr<cost_evaluator>()) :
+                         first_eval(aFirstEval),
+                         second_eval(aSecondEval) { };
     
     virtual double compute_cost(const vect_n<double>& x) const {
       return first_eval->compute_cost(x) + second_eval->compute_cost(x);
@@ -147,6 +182,24 @@ class added_cost_evaluator : public cost_evaluator {
       second_eval->compute_cost_hessian(H_tmp, x, f, x_grad);
       H += H_tmp;
     };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      cost_evaluator::save(A,cost_evaluator::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(first_eval)
+        & RK_SERIAL_SAVE_WITH_NAME(second_eval);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      cost_evaluator::load(A,cost_evaluator::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(first_eval)
+        & RK_SERIAL_LOAD_WITH_NAME(second_eval);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(added_cost_evaluator,0xC1500003,1,"added_cost_evaluator",cost_evaluator)
+    
 };
 
 
@@ -155,13 +208,13 @@ class added_cost_evaluator : public cost_evaluator {
  * that can be passed as a cost-function to the optimization algorithms.
  */
 struct oop_cost_function {
-  shared_ptr<const cost_evaluator> parent; ///< Points to the OOP cost-evaluator.
+  shared_ptr<cost_evaluator> parent; ///< Points to the OOP cost-evaluator.
       
   /**
    * Parametrized Constructor.
    * \param aParent A pointer to an OOP cost-evaluator object.
    */
-  oop_cost_function(const shared_ptr<const cost_evaluator>& aParent) : parent(aParent) { };
+  oop_cost_function(const shared_ptr<cost_evaluator>& aParent) : parent(aParent) { };
   
   /**
    * Evaluates the cost function at x.
@@ -178,13 +231,13 @@ struct oop_cost_function {
  * that can be passed as a cost-gradient to the optimization algorithms.
  */
 struct oop_cost_grad {
-  shared_ptr<const cost_evaluator> parent; ///< Points to the OOP cost-evaluator.
+  shared_ptr<cost_evaluator> parent; ///< Points to the OOP cost-evaluator.
       
   /**
    * Parametrized Constructor.
    * \param aParent A pointer to an OOP cost-evaluator object.
    */
-  oop_cost_grad(const shared_ptr<const cost_evaluator>& aParent) : parent(aParent) { };
+  oop_cost_grad(const shared_ptr<cost_evaluator>& aParent) : parent(aParent) { };
   
   /**
    * Evaluates the cost gradient at x.
@@ -201,13 +254,13 @@ struct oop_cost_grad {
  * that can be passed as a cost-hessian to the optimization algorithms.
  */
 struct oop_cost_hess {
-  shared_ptr<const cost_evaluator> parent; ///< Points to the OOP cost-evaluator.
+  shared_ptr<cost_evaluator> parent; ///< Points to the OOP cost-evaluator.
       
   /**
    * Parametrized Constructor.
    * \param aParent A pointer to an OOP cost-evaluator object.
    */
-  oop_cost_hess(const shared_ptr<const cost_evaluator>& aParent) : parent(aParent) { };
+  oop_cost_hess(const shared_ptr<cost_evaluator>& aParent) : parent(aParent) { };
   
   /**
    * Evaluates the cost Hessian at x.

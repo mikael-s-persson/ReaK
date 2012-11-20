@@ -43,8 +43,8 @@
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/spatial_trajectory_concept.hpp"  // for SpatialTrajectoryConcept
 
-#include "mbd_kte/manipulator_model.hpp"
-#include "path_planning/manipulator_topo_maps.hpp"       // for write_joint_coordinates_impl
+#include "mbd_kte/direct_kinematics_model.hpp"
+#include "topologies/direct_kinematics_topomap.hpp"       // for write_joint_coordinates_impl
 
 
 namespace ReaK {
@@ -71,7 +71,7 @@ class manip_DK_proxy_updater : public proxy_model_updater {
     BOOST_CONCEPT_ASSERT((SpatialTrajectoryConcept<JointTrajectory, temporal_space_type>));
     
     /** This data member points to a manipulator kinematics model to use for the mappings performed. */
-    shared_ptr< kte::manipulator_kinematics_model > model; 
+    shared_ptr< kte::direct_kinematics_model > model; 
   private:
     shared_ptr< JointTrajectory > traj;
     mutable std::pair<wp_desc_type, point_type> last_wp;
@@ -83,7 +83,7 @@ class manip_DK_proxy_updater : public proxy_model_updater {
         last_wp = traj->get_waypoint_at_time(traj->get_start_time());
     };
     
-    manip_DK_proxy_updater(const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
+    manip_DK_proxy_updater(const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
                            const shared_ptr< JointTrajectory >& aTraj = shared_ptr< JointTrajectory >()) :
                            model(aModel), traj(aTraj) { };
     
@@ -96,7 +96,7 @@ class manip_DK_proxy_updater : public proxy_model_updater {
       
       detail::write_joint_coordinates_impl(last_wp, traj->get_temporal_space().get_space_topology(), model);
     
-      model->doMotion();  //NOTE: It is assumed that the motion of the proxy-model is linked to the manip-kin-model used here.
+      model->doDirectMotion();  //NOTE: It is assumed that the motion of the proxy-model is linked to the manip-kin-model used here.
       
     };
     

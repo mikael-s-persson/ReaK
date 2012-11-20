@@ -68,12 +68,12 @@ manipulator_kinematics_model& manipulator_kinematics_model::operator <<(const sh
 
 
 void manipulator_kinematics_model::getJacobianMatrix(mat<double,mat_structure::rectangular>& Jac) const {
-  manip_kin_mdl_jac_calculator(this).getJacobianMatrix(Jac);
+  manip_kin_mdl_jac_calculator(shared_ptr<const direct_kinematics_model>(this,null_deleter())).getJacobianMatrix(Jac);
 };
 
 void manipulator_kinematics_model::getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, 
                                                                   mat<double,mat_structure::rectangular>& JacDot) const {
-  manip_kin_mdl_jac_calculator(this).getJacobianMatrixAndDerivative(Jac,JacDot);
+  manip_kin_mdl_jac_calculator(shared_ptr<const direct_kinematics_model>(this,null_deleter())).getJacobianMatrixAndDerivative(Jac,JacDot);
 };
   
 
@@ -85,7 +85,7 @@ void manipulator_kinematics_model::getJacobianMatrixAndDerivative(mat<double,mat
 vect_n<double> manipulator_kinematics_model::getJointPositions() const {
   vect_n<double> result(getJointPositionsCount());
   
-  manip_kin_mdl_joint_io(this).getJointPositions(&result[0]);
+  manip_kin_mdl_joint_io(shared_ptr<const direct_kinematics_model>(this,null_deleter())).getJointPositions(&result[0]);
   
   return result;
 };
@@ -94,13 +94,13 @@ void manipulator_kinematics_model::setJointPositions(const vect_n<double>& aJoin
   if(aJointPositions.size() != getJointPositionsCount())
     throw std::range_error("Joint-position vector has incorrect dimensions!");
   
-  manip_kin_mdl_joint_io(this).setJointPositions(&aJointPositions[0]);
+  manip_kin_mdl_joint_io(shared_ptr<const direct_kinematics_model>(this,null_deleter())).setJointPositions(&aJointPositions[0]);
 };
     
 vect_n<double> manipulator_kinematics_model::getJointVelocities() const {
   vect_n<double> result(getJointVelocitiesCount());
   
-  manip_kin_mdl_joint_io(this).getJointVelocities(&result[0]);
+  manip_kin_mdl_joint_io(shared_ptr<const direct_kinematics_model>(this,null_deleter())).getJointVelocities(&result[0]);
   
   return result;  
 };
@@ -109,13 +109,13 @@ void manipulator_kinematics_model::setJointVelocities(const vect_n<double>& aJoi
   if(aJointVelocities.size() != getJointVelocitiesCount())
     throw std::range_error("Joint-velocity vector has incorrect dimensions!");
   
-  manip_kin_mdl_joint_io(this).setJointVelocities(&aJointVelocities[0]);
+  manip_kin_mdl_joint_io(shared_ptr<const direct_kinematics_model>(this,null_deleter())).setJointVelocities(&aJointVelocities[0]);
 };
     
 vect_n<double> manipulator_kinematics_model::getJointAccelerations() const {
   vect_n<double> result(getJointAccelerationsCount());
   
-  manip_kin_mdl_joint_io(this).getJointAccelerations(&result[0]);
+  manip_kin_mdl_joint_io(shared_ptr<const direct_kinematics_model>(this,null_deleter())).getJointAccelerations(&result[0]);
   
   return result;  
 };
@@ -124,13 +124,13 @@ void manipulator_kinematics_model::setJointAccelerations(const vect_n<double>& a
   if(aJointAccelerations.size() != getJointAccelerationsCount())
     throw std::range_error("Joint-acceleration vector has incorrect dimensions!");
   
-  manip_kin_mdl_joint_io(this).setJointAccelerations(&aJointAccelerations[0]);
+  manip_kin_mdl_joint_io(shared_ptr<const direct_kinematics_model>(this,null_deleter())).setJointAccelerations(&aJointAccelerations[0]);
 };
     
 vect_n<double> manipulator_kinematics_model::getDependentPositions() const {
   vect_n<double> result(getDependentPositionsCount());
   
-  manip_kin_mdl_joint_io(this).getDependentPositions(&result[0]);
+  manip_kin_mdl_joint_io(shared_ptr<const direct_kinematics_model>(this,null_deleter())).getDependentPositions(&result[0]);
   
   return result;
 };
@@ -138,7 +138,7 @@ vect_n<double> manipulator_kinematics_model::getDependentPositions() const {
 vect_n<double> manipulator_kinematics_model::getDependentVelocities() const {
   vect_n<double> result(getDependentVelocitiesCount());
   
-  manip_kin_mdl_joint_io(this).getDependentVelocities(&result[0]);
+  manip_kin_mdl_joint_io(shared_ptr<const direct_kinematics_model>(this,null_deleter())).getDependentVelocities(&result[0]);
   
   return result;  
 };
@@ -146,7 +146,7 @@ vect_n<double> manipulator_kinematics_model::getDependentVelocities() const {
 vect_n<double> manipulator_kinematics_model::getDependentAccelerations() const {
   vect_n<double> result(getDependentAccelerationsCount());
   
-  manip_kin_mdl_joint_io(this).getDependentAccelerations(&result[0]);
+  manip_kin_mdl_joint_io(shared_ptr<const direct_kinematics_model>(this,null_deleter())).getDependentAccelerations(&result[0]);
   
   return result;  
 };

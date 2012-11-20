@@ -11,7 +11,7 @@
 #include "CRS_A465_models.hpp"
 #include "CRS_A465_2D_analog.hpp"
 
-#include "path_planning/manipulator_topo_maps.hpp"
+#include "topologies/inverse_kinematics_topomap.hpp"
 
 #include "recorders/tsv_recorder.hpp"
 

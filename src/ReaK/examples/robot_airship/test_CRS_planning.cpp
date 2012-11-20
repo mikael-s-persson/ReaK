@@ -53,7 +53,8 @@
 #include "topologies/manip_free_workspace.hpp"
 #include "path_planning/rrt_path_planner.hpp"
 #include "path_planning/rrtstar_path_planner.hpp"
-#include "path_planning/manipulator_topo_maps.hpp"
+#include "topologies/direct_kinematics_topomap.hpp"
+#include "topologies/inverse_kinematics_topomap.hpp"
 #include "path_planning/frame_tracer_coin3d.hpp"
 
 

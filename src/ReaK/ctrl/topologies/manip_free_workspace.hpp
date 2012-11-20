@@ -50,9 +50,9 @@
 
 #include "proximity/proxy_query_model.hpp"  // for proxy-query class
 
-#include "path_planning/manipulator_topo_maps.hpp"       // for write_joint_coordinates_impl
+#include "topologies/direct_kinematics_topomap.hpp"       // for write_joint_coordinates_impl
 #include "joint_space_limits.hpp"                        // for joint_limits_collection and create_normal_joint_vectors_impl.  (needed for manip_dynamic_env and manip_quasi_static_env)
-
+#include "mbd_kte/direct_kinematics_model.hpp"
 
 namespace ReaK {
 
@@ -63,13 +63,13 @@ namespace detail {
 
 class manip_dk_proxy_env_impl {
   public:
-    shared_ptr< kte::manipulator_kinematics_model > m_model; 
+    shared_ptr< kte::direct_kinematics_model > m_model; 
     shared_ptr< joint_limits_collection<double> > m_joint_limits_map;
     
     std::vector< shared_ptr< geom::proxy_query_pair_2D > > m_proxy_env_2D;
     std::vector< shared_ptr< geom::proxy_query_pair_3D > > m_proxy_env_3D;
     
-    manip_dk_proxy_env_impl(const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
+    manip_dk_proxy_env_impl(const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
                             const shared_ptr< joint_limits_collection<double> >& aJointLimitMap = shared_ptr< joint_limits_collection<double> >()) :
                             m_model(aModel), m_joint_limits_map(aJointLimitMap) { };
     
@@ -81,7 +81,7 @@ class manip_dk_proxy_env_impl {
       detail::create_normal_joint_vectors_impl(pt_inter, pt, *m_joint_limits_map);
       detail::write_joint_coordinates_impl(pt_inter, normal_j_space, m_model);
       // update the kinematics model with the given joint states.
-      m_model->doMotion();
+      m_model->doDirectMotion();
       
       // NOTE: it is assumed that the proxy environments are properly linked with the manipulator kinematic model.
       
@@ -271,7 +271,7 @@ class manip_quasi_static_env : public named_object {
      * \param aMaxEdgeLength The maximum length of an added edge, in time units (e.g., seconds).
      */
     manip_quasi_static_env(const super_space_type& aSpace = super_space_type(),
-                           const shared_ptr< kte::manipulator_kinematics_model >& aModel = shared_ptr< kte::manipulator_kinematics_model >(),
+                           const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
                            const shared_ptr< joint_limits_collection<double> >& aJointLimitsMap = shared_ptr< joint_limits_collection<double> >(),
                            double aMinInterval = 0.1, 
                            double aMaxEdgeLength = 1.0) : 

@@ -41,10 +41,10 @@ namespace kte {
 
 class manip_kin_mdl_joint_io {
   private:
-    const direct_kinematics_model* model;
+    shared_ptr<const direct_kinematics_model> model;
     
   public:
-    manip_kin_mdl_joint_io(const direct_kinematics_model* aModel) : model(aModel) { };
+    manip_kin_mdl_joint_io(const shared_ptr<const direct_kinematics_model>& aModel) : model(aModel) { };
     ~manip_kin_mdl_joint_io() { };
     
     void getJointPositions(double* result) const;
@@ -78,7 +78,7 @@ class manip_kin_mdl_joint_io {
  */
 class manip_kin_mdl_jac_calculator {
   private:
-    const direct_kinematics_model* model;
+    shared_ptr<const direct_kinematics_model> model;
     
     void getJacobianMatrixAndDerivativeImpl(mat<double,mat_structure::rectangular>& Jac, mat<double,mat_structure::rectangular>* JacDot) const;
     
@@ -87,7 +87,7 @@ class manip_kin_mdl_jac_calculator {
     /**
      * Default constructor.
      */
-    manip_kin_mdl_jac_calculator(const direct_kinematics_model* aModel) : model(aModel) { };
+    manip_kin_mdl_jac_calculator(const shared_ptr<const direct_kinematics_model>& aModel) : model(aModel) { };
     
     /**
      * Default destructor.

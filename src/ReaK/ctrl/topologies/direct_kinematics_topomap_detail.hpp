@@ -31,6 +31,9 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef REAK_DIRECT_KINEMATICS_TOPOMAP_DETAIL_HPP
+#define REAK_DIRECT_KINEMATICS_TOPOMAP_DETAIL_HPP
+
 #include <boost/mpl/less.hpp>
 #include <boost/mpl/greater.hpp>
 
@@ -56,8 +59,8 @@ namespace detail {
   void >::type write_one_joint_coord_impl( const PointType& pt,
                                            const InSpace&,
                                            std::size_t& gen_i, std::size_t&, std::size_t&,
-                                           const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    *(model->Coords()[gen_i++]) = get_gen_coord(pt);
+                                           const shared_ptr< kte::direct_kinematics_model >& model) {
+    *(model->getCoord(gen_i++)) = get_gen_coord(pt);
   };
   
   template <typename PointType, typename InSpace>
@@ -66,8 +69,8 @@ namespace detail {
   void >::type write_one_joint_coord_impl( const PointType& pt,
                                            const InSpace&,
                                            std::size_t&, std::size_t& f2d_i, std::size_t&,
-                                           const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    *(model->Frames2D()[f2d_i++]) = get_frame_2D(pt);
+                                           const shared_ptr< kte::direct_kinematics_model >& model) {
+    *(model->getFrame2D(f2d_i++)) = get_frame_2D(pt);
   };
   
   template <typename PointType, typename InSpace>
@@ -76,8 +79,8 @@ namespace detail {
   void >::type write_one_joint_coord_impl( const PointType& pt,
                                            const InSpace&,
                                            std::size_t&, std::size_t&, std::size_t& f3d_i,
-                                           const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    *(model->Frames3D()[f3d_i++]) = get_frame_3D(pt);
+                                           const shared_ptr< kte::direct_kinematics_model >& model) {
+    *(model->getFrame3D(f3d_i++)) = get_frame_3D(pt);
   };
   
   //declaration only.
@@ -90,7 +93,7 @@ namespace detail {
   void >::type write_joint_coordinates_impl( const PointType& pt,
                                              const InSpaceTuple& space_in,
                                              std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                             const shared_ptr< kte::manipulator_kinematics_model >& model);
+                                             const shared_ptr< kte::direct_kinematics_model >& model);
   
   //declaration only.
   template <typename Idx, typename PointType, typename InSpaceTuple>
@@ -102,7 +105,7 @@ namespace detail {
   void >::type write_joint_coordinates_impl( const PointType& pt,
                                              const InSpaceTuple& space_in,
                                              std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                             const shared_ptr< kte::manipulator_kinematics_model >& model);
+                                             const shared_ptr< kte::direct_kinematics_model >& model);
   
   template <typename PointType, typename InSpace>
   typename boost::disable_if< 
@@ -114,7 +117,7 @@ namespace detail {
   void >::type write_one_joint_coord_impl( const PointType& pt,
                                            const InSpace& space_in,
                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                           const shared_ptr< kte::manipulator_kinematics_model >& model) {
+                                           const shared_ptr< kte::direct_kinematics_model >& model) {
     write_joint_coordinates_impl< typename boost::mpl::prior< arithmetic_tuple_size<InSpace> >::type >(pt, space_in, gen_i, f2d_i, f3d_i, model);
   };
   
@@ -129,7 +132,7 @@ namespace detail {
   void >::type write_joint_coordinates_impl( const PointType& pt,
                                              const InSpaceTuple& space_in,
                                              std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                             const shared_ptr< kte::manipulator_kinematics_model >& model) {
+                                             const shared_ptr< kte::direct_kinematics_model >& model) {
     write_joint_coordinates_impl< typename boost::mpl::prior<Idx>::type >(pt,space_in,gen_i,f2d_i,f3d_i,model);
     
     write_one_joint_coord_impl(get<Idx::type::value>(pt),get<Idx::type::value>(space_in),gen_i,f2d_i,f3d_i,model);
@@ -144,7 +147,7 @@ namespace detail {
   void >::type write_joint_coordinates_impl( const PointType& pt,
                                              const InSpaceTuple& space_in,
                                              std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                             const shared_ptr< kte::manipulator_kinematics_model >& model) {
+                                             const shared_ptr< kte::direct_kinematics_model >& model) {
     write_one_joint_coord_impl(get<0>(pt),get<0>(space_in),gen_i,f2d_i,f3d_i,model);
   };
   
@@ -157,7 +160,7 @@ namespace detail {
     >,  
   void >::type write_joint_coordinates_impl( const PointType& pt,
                                      const InSpaceTuple& space_in,
-                                     const shared_ptr< kte::manipulator_kinematics_model >& model) {
+                                     const shared_ptr< kte::direct_kinematics_model >& model) {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
@@ -173,7 +176,7 @@ namespace detail {
     >,  
   void >::type write_joint_coordinates_impl( const PointType& pt,
                                      const InSpaceTuple& space_in,
-                                     const shared_ptr< kte::manipulator_kinematics_model >& model) {
+                                     const shared_ptr< kte::direct_kinematics_model >& model) {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
@@ -189,8 +192,8 @@ namespace detail {
   void >::type read_one_dependent_coord_impl( PointType& pt,
                                               const InSpace&,
                                               std::size_t& gen_i, std::size_t&, std::size_t&,
-                                              const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    set_gen_coord(pt,*(model->DependentCoords()[gen_i++]->mFrame));
+                                              const shared_ptr< kte::direct_kinematics_model >& model) {
+    set_gen_coord(pt,*(model->getDependentCoord(gen_i++)->mFrame));
   };
   
   template <typename PointType, typename InSpace>
@@ -199,8 +202,8 @@ namespace detail {
   void >::type read_one_dependent_coord_impl( PointType& pt,
                                               const InSpace&,
                                               std::size_t&, std::size_t& f2d_i, std::size_t&,
-                                              const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    set_frame_2D(pt,*(model->DependentFrames2D()[f2d_i++]->mFrame));
+                                              const shared_ptr< kte::direct_kinematics_model >& model) {
+    set_frame_2D(pt,*(model->getDependentFrame2D(f2d_i++)->mFrame));
   };
   
   template <typename PointType, typename InSpace>
@@ -209,8 +212,8 @@ namespace detail {
   void >::type read_one_dependent_coord_impl( PointType& pt,
                                               const InSpace&,
                                               std::size_t&, std::size_t&, std::size_t& f3d_i,
-                                              const shared_ptr< kte::manipulator_kinematics_model >& model) {
-    set_frame_3D(pt,*(model->DependentFrames3D()[f3d_i++]->mFrame));
+                                              const shared_ptr< kte::direct_kinematics_model >& model) {
+    set_frame_3D(pt,*(model->getDependentFrame3D(f3d_i++)->mFrame));
   };
   
   
@@ -224,7 +227,7 @@ namespace detail {
   void >::type read_dependent_coordinates_impl( PointType& pt,
                                                 const InSpaceTuple& space_in,
                                                 std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                                const shared_ptr< kte::manipulator_kinematics_model >& model);
+                                                const shared_ptr< kte::direct_kinematics_model >& model);
   
   //declaration only.
   template <typename Idx, typename PointType, typename InSpaceTuple>
@@ -236,7 +239,7 @@ namespace detail {
   void >::type read_dependent_coordinates_impl( PointType& pt,
                                                 const InSpaceTuple& space_in,
                                                 std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                                const shared_ptr< kte::manipulator_kinematics_model >& model);
+                                                const shared_ptr< kte::direct_kinematics_model >& model);
   
   
   template <typename PointType, typename InSpace>
@@ -249,7 +252,7 @@ namespace detail {
   void >::type read_one_dependent_coord_impl( PointType& pt,
                                               const InSpace& space_in,
                                               std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                              const shared_ptr< kte::manipulator_kinematics_model >& model) {
+                                              const shared_ptr< kte::direct_kinematics_model >& model) {
     read_dependent_coordinates_impl< typename boost::mpl::prior< arithmetic_tuple_size<InSpace> >::type >(pt, space_in, gen_i, f2d_i, f3d_i, model);
   };
   
@@ -263,7 +266,7 @@ namespace detail {
   void >::type read_dependent_coordinates_impl( PointType& pt,
                                                 const InSpaceTuple& space_in,
                                                 std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                                const shared_ptr< kte::manipulator_kinematics_model >& model) {
+                                                const shared_ptr< kte::direct_kinematics_model >& model) {
     read_dependent_coordinates_impl< typename boost::mpl::prior<Idx>::type >(pt,space_in,gen_i,f2d_i,f3d_i,model);
     
     read_one_dependent_coord_impl(get<Idx::type::value>(pt),get<Idx::type::value>(space_in),gen_i,f2d_i,f3d_i,model);
@@ -278,7 +281,7 @@ namespace detail {
   void >::type read_dependent_coordinates_impl( PointType& pt,
                                                 const InSpaceTuple& space_in,
                                                 std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                                const shared_ptr< kte::manipulator_kinematics_model >& model) {
+                                                const shared_ptr< kte::direct_kinematics_model >& model) {
     read_one_dependent_coord_impl(get<0>(pt),get<0>(space_in),gen_i,f2d_i,f3d_i,model);
   };
   
@@ -291,7 +294,7 @@ namespace detail {
     >,  
   void >::type read_dependent_coordinates_impl( PointType& pt,
                                         const InSpaceTuple& space_in,
-                                        const shared_ptr< kte::manipulator_kinematics_model >& model) {
+                                        const shared_ptr< kte::direct_kinematics_model >& model) {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
@@ -307,7 +310,7 @@ namespace detail {
     >,  
   void >::type read_dependent_coordinates_impl( PointType& pt,
                                         const InSpaceTuple& space_in,
-                                        const shared_ptr< kte::manipulator_kinematics_model >& model) {
+                                        const shared_ptr< kte::direct_kinematics_model >& model) {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
@@ -323,7 +326,7 @@ namespace detail {
 };
 
 
-
+#endif
 
 
 
