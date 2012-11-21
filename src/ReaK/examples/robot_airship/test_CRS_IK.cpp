@@ -11,6 +11,7 @@
 #include "CRS_A465_models.hpp"
 #include "CRS_A465_2D_analog.hpp"
 
+#include "topologies/direct_kinematics_topomap.hpp"
 #include "topologies/inverse_kinematics_topomap.hpp"
 
 #include "recorders/tsv_recorder.hpp"
@@ -32,30 +33,27 @@ int main() {
   
   ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model > model = builder.get_manipulator_kin_model();
   
-  ReaK::pp::manip_inverse_kin_map<
-    ReaK::pp::manip_clik_calc_factory<
-      JointSpaceType,
-      ReaK::pp::clik_mixed_cost_factory<
-        ReaK::pp::clik_bent_joints_cost_factory
-      >
-    >
-  > ik_map(model,
-	   ReaK::pp::manip_clik_calc_factory<
-             JointSpaceType,
-             ReaK::pp::clik_mixed_cost_factory<
-               ReaK::pp::clik_bent_joints_cost_factory
-             >
-           >( ReaK::shared_ptr< JointSpaceType >(&j_space, ReaK::null_deleter()),
-	      ReaK::pp::clik_mixed_cost_factory<
-                ReaK::pp::clik_bent_joints_cost_factory
-              >(ReaK::pp::clik_bent_joints_cost_factory(3,5)),
-	      10.0, // aRadius
-              0.1, // aMu
-              200, // aMaxIter
-              1e-4, // aTol
-              5e-2, // aEta
-              0.95  // aTau
-	    ));
+  ReaK::shared_ptr< ReaK::optim::cost_evaluator > ik_cost_func = 
+    ReaK::kte::create_clik_mixed_cost(
+      ReaK::kte::create_clik_quad_cost(
+        builder.preferred_posture, 
+        builder.joint_lower_bounds,
+        builder.joint_upper_bounds,
+        *model),
+      ReaK::kte::create_clik_bent_joints(3,5)
+    );
+  
+  ReaK::pp::manip_clik_kin_map ik_map(
+    model, ik_cost_func,
+    10.0, // aRadius
+    0.1,  // aMu
+    200,  // aMaxIter
+    1e-4, // aTol
+    5e-2, // aEta
+    0.95  // aTau
+  );
+  
+  /*
   ReaK::pp::manip_ik_knn_starts_map<
     ReaK::pp::manip_clik_calc_factory<
       JointSpaceType,
@@ -86,7 +84,7 @@ int main() {
 	   ReaK::shared_ptr< JointSpaceType >(&j_space, ReaK::null_deleter()),
 	   ReaK::shared_ptr< EESpaceType >(&ee_space, ReaK::null_deleter()),
 	   1000, 10
-	 );
+	 );*/
   ReaK::pp::manip_direct_kin_map dk_map(model);
   
   typedef ReaK::pp::topology_traits< EESpaceType >::point_type EEPointType;
@@ -289,7 +287,7 @@ int main() {
 	    
 	    try {
 	      set_frame_3D(ee_x, ee_f);
-	      j_x = ik_knn_map.map_to_space(ee_x, ee_space, j_space);
+	      j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
 	      rec << 1.0;
 	    } catch(ReaK::optim::infeasible_problem& e) { RK_UNUSED(e);
 	      rec << 0.0;
@@ -330,7 +328,7 @@ int main() {
   rec << ReaK::recorder::data_recorder::flush;
   
 #endif
-  
+  /*
   ReaK::robot_airship::CRS_A465_2D_model_builder builder2D;
   
   builder2D.load_kte_from_file("models/CRS_A465_2D_raw_components.xml");
@@ -384,7 +382,7 @@ int main() {
   } catch(std::exception& e) {
     std::cout << "ERROR: An exception occurred during 2D IK problem: " << e.what() << std::endl;
   };
-  
+  */
   
   return 0;
 };

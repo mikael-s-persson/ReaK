@@ -99,9 +99,9 @@ endif()
 endif()
 
 
-#add_executable(test_CRS_IK "${SRCROOT}${RKROBOTAIRSHIPDIR}/test_CRS_IK.cpp")
-#setup_custom_target(test_CRS_IK "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-#target_link_libraries(test_CRS_IK reak_robot_airship reak_topologies reak_mbd_kte reak_core)
+add_executable(test_CRS_IK "${SRCROOT}${RKROBOTAIRSHIPDIR}/test_CRS_IK.cpp")
+setup_custom_target(test_CRS_IK "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+target_link_libraries(test_CRS_IK reak_robot_airship reak_topologies reak_mbd_kte reak_core)
 
 add_executable(run_airship3D "${SRCROOT}${RKROBOTAIRSHIPDIR}/run_airship3D.cpp")
 setup_custom_target(run_airship3D "${SRCROOT}${RKROBOTAIRSHIPDIR}")

@@ -42,6 +42,7 @@
 #include "direct_kinematics_model.hpp"
 #include "manip_kinematics_helper.hpp"
 
+#include "optimization/optim_exceptions.hpp"
 #include "optimization/function_types.hpp"
 
 #include <cmath>
