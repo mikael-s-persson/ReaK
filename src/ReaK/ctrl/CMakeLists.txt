@@ -3,12 +3,13 @@ set(RKGRAPHALGDIR "${RKCTRLDIR}/graph_alg")
 set(RKPATHPLANNINGDIR "${RKCTRLDIR}/path_planning")
 set(RKCTRLSYSDIR "${RKCTRLDIR}/ctrl_sys")
 set(RKMBDKTEDIR "${RKCTRLDIR}/mbd_kte")
+set(RKKTEMODELSDIR "${RKCTRLDIR}/kte_models")
 set(RKINTERPOLATIONDIR "${RKCTRLDIR}/interpolation")
 set(RKSYSINTEGRATORSDIR "${RKCTRLDIR}/sys_integrators")
 set(RKTOPOLOGIESDIR "${RKCTRLDIR}/topologies")
 set(RKHEURISTICSDIR "${RKCTRLDIR}/heuristics")
 
-set(RKCTRLSUBDIRS ${RKMBDKTEDIR} ${RKGRAPHALGDIR} ${RKPATHPLANNINGDIR} ${RKCTRLSYSDIR} ${RKINTERPOLATIONDIR} ${RKTOPOLOGIESDIR} ${RKHEURISTICSDIR} ${RKSYSINTEGRATORSDIR})
+set(RKCTRLSUBDIRS ${RKMBDKTEDIR} ${RKKTEMODELSDIR} ${RKGRAPHALGDIR} ${RKPATHPLANNINGDIR} ${RKCTRLSYSDIR} ${RKINTERPOLATIONDIR} ${RKTOPOLOGIESDIR} ${RKHEURISTICSDIR} ${RKSYSINTEGRATORSDIR})
 
 configure_doxyfile(ReaKctrl_sys 
                    "\"ReaK Library - Control and Estimation libraries\"" 
@@ -25,7 +26,7 @@ add_doxygen_target(ReaKpp)
 configure_doxyfile(ReaKmbd_kte 
                    "\"ReaK Library - Multi-body dynamics library\"" 
                    "\"A complete tool-set for multi-body dynamics modeling based on Kinetostatic Transmission Elements (KTE).\"" 
-                   "${DOXTOSRCDIR}${RKMBDKTEDIR}")
+                   "${DOXTOSRCDIR}${RKMBDKTEDIR} ${DOXTOSRCDIR}${RKKTEMODELSDIR}")
 add_doxygen_target(ReaKmbd_kte)
 
 
