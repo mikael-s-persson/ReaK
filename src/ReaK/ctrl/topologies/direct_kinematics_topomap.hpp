@@ -38,7 +38,7 @@
 #include "base/defs.hpp"
 #include "base/shared_object.hpp"
 
-#include "mbd_kte/direct_kinematics_model.hpp"
+#include "kte_models/direct_kinematics_model.hpp"
 
 #include "direct_kinematics_topomap_detail.hpp"
 

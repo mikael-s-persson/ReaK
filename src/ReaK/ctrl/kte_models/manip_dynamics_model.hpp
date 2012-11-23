@@ -36,9 +36,9 @@
 #include "kinetostatics/kinetostatics.hpp"
 #include "manip_kinematics_model.hpp"
 #include "inverse_dynamics_model.hpp"
-#include "mass_matrix_calculator.hpp"
-#include "kte_system_input.hpp"
-#include "kte_system_output.hpp"
+#include "mbd_kte/mass_matrix_calculator.hpp"
+#include "mbd_kte/kte_system_input.hpp"
+#include "mbd_kte/kte_system_output.hpp"
 
 #include "integrators/integrator.hpp"
 

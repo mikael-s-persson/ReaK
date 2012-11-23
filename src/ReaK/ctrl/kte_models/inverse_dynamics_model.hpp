@@ -36,7 +36,7 @@
 #include "base/defs.hpp"
 #include "base/named_object.hpp"
 #include "kinetostatics/kinetostatics.hpp"
-#include "kte_map.hpp"
+#include "mbd_kte/kte_map.hpp"
 
 namespace ReaK {
 

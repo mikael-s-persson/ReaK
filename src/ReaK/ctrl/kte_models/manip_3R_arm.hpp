@@ -129,7 +129,7 @@ class manip_3R_2D_kinematics : public inverse_kinematics_model {
     
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int);
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(manip_3R_2D_kinematics,0x*****,1,"manip_3R_2D_kinematics",inverse_kinematics_model)
+    RK_RTTI_MAKE_CONCRETE_1BASE(manip_3R_2D_kinematics,0xC2100052,1,"manip_3R_2D_kinematics",inverse_kinematics_model)
     
 };
 
@@ -184,7 +184,7 @@ class manip_3R_3D_kinematics : public inverse_kinematics_model {
       return m_joints[i];
     };
     
-    virtual std::size_t getDependentFrames3DCount() const { return 0; };
+    virtual std::size_t getDependentFrames3DCount() const { return 1; };
     
     virtual shared_ptr< joint_dependent_frame_3D > getDependentFrame3D(std::size_t i) const { 
       return m_EE;
@@ -226,7 +226,7 @@ class manip_3R_3D_kinematics : public inverse_kinematics_model {
     
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int);
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(manip_3R_3D_kinematics,0x*****,1,"manip_3R_3D_kinematics",inverse_kinematics_model)
+    RK_RTTI_MAKE_CONCRETE_1BASE(manip_3R_3D_kinematics,0xC2100053,1,"manip_3R_3D_kinematics",inverse_kinematics_model)
     
 };
 

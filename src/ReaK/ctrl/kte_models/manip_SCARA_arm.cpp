@@ -112,7 +112,7 @@ manip_SCARA_kinematics::manip_SCARA_kinematics(const std::string& aName,
       joint_3_base,
       pose_3D<double>(
         weak_ptr<pose_3D<double> >(),
-        vect<double,2>(m_link2_length, 0.0, 0.0),
+        vect<double,3>(m_link2_length, 0.0, 0.0),
         quaternion<double>())),
     scoped_deleter());
   
@@ -133,7 +133,7 @@ manip_SCARA_kinematics::manip_SCARA_kinematics(const std::string& aName,
       arm_EE,
       pose_3D<double>(
         weak_ptr<pose_3D<double> >(),
-        vect<double,2>(0.0, 0.0, m_link3_height),
+        vect<double,3>(0.0, 0.0, m_link3_height),
         quaternion<double>())),
     scoped_deleter());
   
@@ -222,7 +222,7 @@ void manip_SCARA_kinematics::getJacobianMatrix(mat<double,mat_structure::rectang
   vect<double,2> cl1 = double(1.0) % ( R1 * vect<double,2>(m_link1_length, 0.0) );
   vect<double,2> cl2 = double(1.0) % ( R12 * vect<double,2>(m_link2_length, 0.0) );
   
-  Jac.resize(6,3);
+  Jac.resize(std::make_pair(6,3));
   Jac(0,0) = cl1[0]; Jac(1,0) = cl1[1]; Jac(2,0) = 0.0; Jac(3,0) = 0.0; Jac(4,0) = 0.0; Jac(5,0) = 1.0;
   Jac(0,1) = cl2[0]; Jac(1,1) = cl2[1]; Jac(2,1) = 0.0; Jac(3,1) = 0.0; Jac(4,1) = 0.0; Jac(5,1) = 1.0;
   Jac(0,2) = 0.0;    Jac(1,2) = 0.0;    Jac(2,2) = 1.0; Jac(3,2) = 0.0; Jac(4,2) = 0.0; Jac(5,2) = 0.0;
@@ -235,12 +235,12 @@ void manip_SCARA_kinematics::getJacobianMatrixAndDerivative(mat<double,mat_struc
   vect<double,2> l1 = R1 * vect<double,2>(m_link1_length, 0.0);
   vect<double,2> l2 = R12 * vect<double,2>(m_link2_length, 0.0);
   
-  Jac.resize(6,3);
+  Jac.resize(std::make_pair(6,3));
   Jac(0,0) = -l1[1]; Jac(1,0) = l1[0]; Jac(2,0) = 0.0; Jac(3,0) = 0.0; Jac(4,0) = 0.0; Jac(5,0) = 1.0;
   Jac(0,1) = -l2[1]; Jac(1,1) = l2[0]; Jac(2,1) = 0.0; Jac(3,1) = 0.0; Jac(4,1) = 0.0; Jac(5,1) = 1.0;
   Jac(0,2) = 0.0;    Jac(1,2) = 0.0;   Jac(2,2) = 1.0; Jac(3,2) = 0.0; Jac(4,2) = 0.0; Jac(5,2) = 0.0;
   
-  JacDot.resize(6,3);
+  JacDot.resize(std::make_pair(6,3));
   JacDot(0,0) = -m_joints[0]->q_dot * l1[0]; JacDot(1,0) = -m_joints[0]->q_dot * l1[1]; JacDot(2,0) = 0.0; JacDot(3,0) = 0.0; JacDot(4,0) = 0.0; JacDot(5,0) = 0.0;
   JacDot(0,1) = -m_joints[1]->q_dot * l2[0]; JacDot(1,1) = -m_joints[1]->q_dot * l2[1]; JacDot(2,1) = 0.0; JacDot(3,1) = 0.0; JacDot(4,1) = 0.0; JacDot(5,1) = 0.0;
   JacDot(0,2) = 0.0; JacDot(1,2) = 0.0; JacDot(2,2) = 0.0; JacDot(3,2) = 0.0; JacDot(4,2) = 0.0; JacDot(5,2) = 0.0;

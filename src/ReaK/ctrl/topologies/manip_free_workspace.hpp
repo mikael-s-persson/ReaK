@@ -52,7 +52,7 @@
 
 #include "topologies/direct_kinematics_topomap.hpp"       // for write_joint_coordinates_impl
 #include "joint_space_limits.hpp"                        // for joint_limits_collection and create_normal_joint_vectors_impl.  (needed for manip_dynamic_env and manip_quasi_static_env)
-#include "mbd_kte/direct_kinematics_model.hpp"
+#include "kte_models/direct_kinematics_model.hpp"
 
 namespace ReaK {
 

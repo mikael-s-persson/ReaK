@@ -1,7 +1,8 @@
 /**
- * \file manip_SCARA_arm.hpp
+ * \file manip_3R3R_arm.hpp
  * 
- * This library declares a class to represent a kte-based model of a 3R manipulator in 2D or 3D.
+ * This library declares a class to represent a kte-based model of a 3R-3R manipulator in 3D, i.e., 
+ * a 3R-3R manipulator refers to a 6-dof manipulator in a decoupled architecture (2-dof shoulder + elbow + 3-dof wrist).
  * 
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date November 2012
@@ -29,8 +30,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_MANIP_3R_ARM_HPP
-#define REAK_MANIP_3R_ARM_HPP
+#ifndef REAK_MANIP_3R3R_ARM_HPP
+#define REAK_MANIP_3R3R_ARM_HPP
 
 #include "base/defs.hpp"
 #include "inverse_kinematics_model.hpp"
@@ -41,40 +42,52 @@ namespace ReaK {
 namespace kte {
 
 
+
 /**
- * This class that models a 3D manipulator with 2 revolute joints and 1 prismatic joint 
- * arranged in a SCARA configuration (i.e., shoulder-elbow joints and prismatic wrist,
- * all aligned along the z-axis). This class is only a kinematics model.
+ * This class that models a 3D manipulator with 6 revolute joints in a decoupled architecture 
+ * with a 2-dof shoulder, an elbow, and a 3-dof wrist. This class is only a kinematics model.
+ * \note In the zero-configuration (all joints at zero), the arm is pointing straight up (z-axis),
+ * and, at that configuration, joints 1, 4 and 6 turn about the positive z-axis and joints 2, 3, and 5
+ * turn about the negative y-axis, leading to the end-effector (flange) to have its local z-axis pointing 
+ * outwards from the flange and its local y-axis pointing to the side.
  */
-class manip_SCARA_kinematics : public inverse_kinematics_model {
+class manip_3R3R_kinematics : public inverse_kinematics_model {
   private:
     shared_ptr< frame_3D<double> > m_base_frame;
     std::vector< shared_ptr< gen_coord<double> > > m_joints;
     shared_ptr< joint_dependent_frame_3D > m_EE;
-    double m_link1_length;
-    double m_link2_length;
-    double m_link3_height;
-    
+    double base_to_shoulder;
+    double shoulder_to_elbow;
+    double elbow_to_joint_4;
+    double joint_4_to_wrist;
+    double wrist_to_flange;
     shared_ptr< kte_map_chain > m_chain;
     
   public:
     
+    vect_n<double> joint_lower_bounds;
+    vect_n<double> joint_upper_bounds;
+    
     /**
      * Default constructor.
      */
-    manip_SCARA_kinematics(const std::string& aName = "",
-                           const shared_ptr< frame_3D<double> >& aBaseFrame = shared_ptr< frame_3D<double> >(),
-                           double aLink1Length = 1.0,
-                           double aLink2Length = 1.0,
-                           double aLink3Height = 0.0);
+    manip_3R3R_kinematics(const std::string& aName = "",
+                          const shared_ptr< frame_3D<double> >& aBaseFrame = shared_ptr< frame_3D<double> >(),
+                          double aBaseToShoulder = 0.0, 
+                          double aShoulderToElbow = 1.0,
+                          double aElbowToJoint4 = 0.5, 
+                          double aJoint4ToWrist = 0.5,
+                          double aWristToFlange = 0.2,
+                          const vect_n<double>& aJointLowerBounds = vect_n<double>(-M_PI, -M_PI, -M_PI, -M_PI, -M_PI, -M_PI),
+                          const vect_n<double>& aJointUpperBounds = vect_n<double>( M_PI,  M_PI,  M_PI,  M_PI,  M_PI,  M_PI));
     
-    virtual ~manip_SCARA_kinematics() { };
+    virtual ~manip_3R3R_kinematics() { };
     
-    virtual std::size_t getJointPositionsCount() const { return 3; };
+    virtual std::size_t getJointPositionsCount() const { return 6; };
     
-    virtual std::size_t getJointVelocitiesCount() const { return 3; };
+    virtual std::size_t getJointVelocitiesCount() const { return 6; };
     
-    virtual std::size_t getJointAccelerationsCount() const { return 3; };
+    virtual std::size_t getJointAccelerationsCount() const { return 6; };
     
     virtual std::size_t getDependentPositionsCount() const { return 7; };
     
@@ -82,7 +95,7 @@ class manip_SCARA_kinematics : public inverse_kinematics_model {
     
     virtual std::size_t getDependentAccelerationsCount() const { return 6; };
     
-    virtual std::size_t getCoordsCount() const { return 3; };
+    virtual std::size_t getCoordsCount() const { return 6; };
     
     virtual shared_ptr< gen_coord<double> > getCoord(std::size_t i) const { 
       return m_joints[i];
@@ -130,7 +143,7 @@ class manip_SCARA_kinematics : public inverse_kinematics_model {
     
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int);
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(manip_SCARA_kinematics,0xC2100054,1,"manip_SCARA_kinematics",inverse_kinematics_model)
+    RK_RTTI_MAKE_CONCRETE_1BASE(manip_3R3R_kinematics,0xC2100055,1,"manip_3R3R_kinematics",inverse_kinematics_model)
     
 };
 

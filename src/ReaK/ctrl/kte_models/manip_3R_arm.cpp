@@ -70,7 +70,7 @@ manip_3R_2D_kinematics::manip_3R_2D_kinematics(const std::string& aName,
   
   
   //create revolute joint
-  shared_ptr< kte::revolute_joint_2D > joint_1(new kte::revolute_joint_2D(
+  shared_ptr< revolute_joint_2D > joint_1(new revolute_joint_2D(
       "manip_3R_joint_1",
       m_joints[0],
       m_base_frame,
@@ -79,7 +79,7 @@ manip_3R_2D_kinematics::manip_3R_2D_kinematics(const std::string& aName,
     scoped_deleter());
   
   //create link from F to CM (note that this is very approximate!!!)
-  shared_ptr< kte::rigid_link_2D > link_1(new kte::rigid_link_2D(
+  shared_ptr< rigid_link_2D > link_1(new rigid_link_2D(
       "manip_3R_link_1",
       joint_1_end,
       joint_2_base,
@@ -90,7 +90,7 @@ manip_3R_2D_kinematics::manip_3R_2D_kinematics(const std::string& aName,
     scoped_deleter());
   
   //create revolute joint
-  shared_ptr< kte::revolute_joint_2D > joint_2(new kte::revolute_joint_2D(
+  shared_ptr< revolute_joint_2D > joint_2(new revolute_joint_2D(
       "manip_3R_joint_2",
       m_joints[1],
       joint_2_base,
@@ -99,7 +99,7 @@ manip_3R_2D_kinematics::manip_3R_2D_kinematics(const std::string& aName,
     scoped_deleter());
   
   //create link 
-  shared_ptr< kte::rigid_link_2D > link_2(new kte::rigid_link_2D(
+  shared_ptr< rigid_link_2D > link_2(new rigid_link_2D(
       "manip_3R_link_2",
       joint_2_end,
       joint_3_base,
@@ -110,7 +110,7 @@ manip_3R_2D_kinematics::manip_3R_2D_kinematics(const std::string& aName,
     scoped_deleter());
   
   //create revolute joint
-  shared_ptr< kte::revolute_joint_2D > joint_3(new kte::revolute_joint_2D(
+  shared_ptr< revolute_joint_2D > joint_3(new revolute_joint_2D(
       "manip_3R_joint_3",
       m_joints[2],
       joint_3_base,
@@ -119,7 +119,7 @@ manip_3R_2D_kinematics::manip_3R_2D_kinematics(const std::string& aName,
     scoped_deleter());
   
   //create link 
-  shared_ptr< kte::rigid_link_2D > link_3(new kte::rigid_link_2D(
+  shared_ptr< rigid_link_2D > link_3(new rigid_link_2D(
       "manip_3R_link_3",
       joint_3_end,
       arm_EE,
@@ -226,7 +226,7 @@ void manip_3R_2D_kinematics::getJacobianMatrix(mat<double,mat_structure::rectang
   vect<double,2> cl2 = double(1.0) % ( R12 * vect<double,2>(m_link2_length, 0.0) );
   vect<double,2> cl3 = double(1.0) % ( R123 * vect<double,2>(m_link3_length, 0.0) );
   
-  Jac.resize(3,3);
+  Jac.resize(std::make_pair(3,3));
   Jac(0,0) = cl1[0]; Jac(1,0) = cl1[1]; Jac(2,0) = 1.0;
   Jac(0,1) = cl2[0]; Jac(1,1) = cl2[1]; Jac(2,1) = 1.0;
   Jac(0,2) = cl3[0]; Jac(1,2) = cl3[1]; Jac(2,2) = 1.0;
@@ -241,12 +241,12 @@ void manip_3R_2D_kinematics::getJacobianMatrixAndDerivative(mat<double,mat_struc
   vect<double,2> l2 = R12 * vect<double,2>(m_link2_length, 0.0);
   vect<double,2> l3 = R123 * vect<double,2>(m_link3_length, 0.0);
   
-  Jac.resize(3,3);
+  Jac.resize(std::make_pair(3,3));
   Jac(0,0) = -l1[1]; Jac(1,0) = l1[0]; Jac(2,0) = 1.0;
   Jac(0,1) = -l2[1]; Jac(1,1) = l2[0]; Jac(2,1) = 1.0;
   Jac(0,2) = -l3[1]; Jac(1,2) = l3[0]; Jac(2,2) = 1.0;
   
-  JacDot.resize(3,3);
+  JacDot.resize(std::make_pair(3,3));
   JacDot(0,0) = -m_joints[0]->q_dot * l1[0]; JacDot(1,0) = -m_joints[0]->q_dot * l1[1]; JacDot(2,0) = 0.0;
   JacDot(0,1) = -m_joints[1]->q_dot * l2[0]; JacDot(1,1) = -m_joints[1]->q_dot * l2[1]; JacDot(2,1) = 0.0;
   JacDot(0,2) = -m_joints[2]->q_dot * l3[0]; JacDot(1,2) = -m_joints[2]->q_dot * l3[1]; JacDot(2,2) = 0.0;
@@ -423,7 +423,7 @@ manip_3R_3D_kinematics::manip_3R_3D_kinematics(const std::string& aName,
       joint_3_base,
       pose_3D<double>(
         weak_ptr<pose_3D<double> >(),
-        vect<double,2>(m_link2_length, 0.0, m_link2_dz),
+        vect<double,3>(m_link2_length, 0.0, m_link2_dz),
         quaternion<double>())),
     scoped_deleter());
   
@@ -444,7 +444,7 @@ manip_3R_3D_kinematics::manip_3R_3D_kinematics(const std::string& aName,
       arm_EE,
       pose_3D<double>(
         weak_ptr<pose_3D<double> >(),
-        vect<double,2>(m_link3_length, 0.0, m_link3_dz),
+        vect<double,3>(m_link3_length, 0.0, m_link3_dz),
         quaternion<double>())),
     scoped_deleter());
   
@@ -520,7 +520,7 @@ void manip_3R_3D_kinematics::doInverseMotion() {
   A(0,1) = cl2[0]; A(1,1) = cl2[1]; A(2,1) = 1.0;
   A(0,2) = cl3[0]; A(1,2) = cl3[1]; A(2,2) = 1.0;
   mat<double,mat_structure::rectangular> b(3,1);
-  b(0,0) = EE_fr.Velocity[0]; b(1,0) = EE_fr.Velocity[1]; b(2,0) = EE_fr.AngVelocity;
+  b(0,0) = EE_fr.Velocity[0]; b(1,0) = EE_fr.Velocity[1]; b(2,0) = EE_fr.AngVelocity[2];
   mat<double,mat_structure::rectangular> jt_vel(3,1);
   linlsq_QR(A, jt_vel, b); // solve for the joint velocities.
   
@@ -546,7 +546,7 @@ void manip_3R_3D_kinematics::getJacobianMatrix(mat<double,mat_structure::rectang
   vect<double,2> cl2 = double(1.0) % ( R12 * vect<double,2>(m_link2_length, 0.0) );
   vect<double,2> cl3 = double(1.0) % ( R123 * vect<double,2>(m_link3_length, 0.0) );
   
-  Jac.resize(6,3);
+  Jac.resize(std::make_pair(6,3));
   Jac(0,0) = cl1[0]; Jac(1,0) = cl1[1]; Jac(2,0) = 0.0; Jac(3,0) = 0.0; Jac(4,0) = 0.0; Jac(5,0) = 1.0;
   Jac(0,1) = cl2[0]; Jac(1,1) = cl2[1]; Jac(2,1) = 0.0; Jac(3,1) = 0.0; Jac(4,1) = 0.0; Jac(5,1) = 1.0;
   Jac(0,2) = cl3[0]; Jac(1,2) = cl3[1]; Jac(2,2) = 0.0; Jac(3,2) = 0.0; Jac(4,2) = 0.0; Jac(5,2) = 1.0;
@@ -561,12 +561,12 @@ void manip_3R_3D_kinematics::getJacobianMatrixAndDerivative(mat<double,mat_struc
   vect<double,2> l2 = R12 * vect<double,2>(m_link2_length, 0.0);
   vect<double,2> l3 = R123 * vect<double,2>(m_link3_length, 0.0);
   
-  Jac.resize(6,3);
+  Jac.resize(std::make_pair(6,3));
   Jac(0,0) = -l1[1]; Jac(1,0) = l1[0]; Jac(2,0) = 0.0; Jac(3,0) = 0.0; Jac(4,0) = 0.0; Jac(5,0) = 1.0;
   Jac(0,1) = -l2[1]; Jac(1,1) = l2[0]; Jac(2,1) = 0.0; Jac(3,1) = 0.0; Jac(4,1) = 0.0; Jac(5,1) = 1.0;
   Jac(0,2) = -l3[1]; Jac(1,2) = l3[0]; Jac(2,2) = 0.0; Jac(3,2) = 0.0; Jac(4,2) = 0.0; Jac(5,2) = 1.0;
   
-  JacDot.resize(6,3);
+  JacDot.resize(std::make_pair(6,3));
   JacDot(0,0) = -m_joints[0]->q_dot * l1[0]; JacDot(1,0) = -m_joints[0]->q_dot * l1[1]; JacDot(2,0) = 0.0; JacDot(3,0) = 0.0; JacDot(4,0) = 0.0; JacDot(5,0) = 0.0;
   JacDot(0,1) = -m_joints[1]->q_dot * l2[0]; JacDot(1,1) = -m_joints[1]->q_dot * l2[1]; JacDot(2,1) = 0.0; JacDot(3,1) = 0.0; JacDot(4,1) = 0.0; JacDot(5,1) = 0.0;
   JacDot(0,2) = -m_joints[2]->q_dot * l3[0]; JacDot(1,2) = -m_joints[2]->q_dot * l3[1]; JacDot(2,2) = 0.0; JacDot(3,2) = 0.0; JacDot(4,2) = 0.0; JacDot(5,2) = 0.0;

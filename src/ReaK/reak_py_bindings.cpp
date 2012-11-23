@@ -38,6 +38,7 @@ void export_base();
 void export_vect_alg();
 void export_kinetostatics();
 void export_mbd_kte();
+void export_kte_models();
 
 };
 
@@ -52,6 +53,7 @@ BOOST_PYTHON_MODULE(libreak_py) {
   export_vect_alg();
   export_kinetostatics();
   export_mbd_kte();
+  export_kte_models();
   
 };
 

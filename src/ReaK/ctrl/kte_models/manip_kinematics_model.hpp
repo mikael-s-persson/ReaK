@@ -38,7 +38,7 @@
 
 #include "base/defs.hpp"
 #include "kinetostatics/kinetostatics.hpp"
-#include "kte_map_chain.hpp"
+#include "mbd_kte/kte_map_chain.hpp"
 #include "direct_kinematics_model.hpp"
 
 #include <vector>

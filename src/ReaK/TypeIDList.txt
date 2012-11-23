@@ -185,11 +185,16 @@ velocity_control_2D         0xC2100049   bin: 1100 0010 0001 0000 0000 0000 0100
 velocity_control_3D         0xC210004A   bin: 1100 0010 0001 0000 0000 0000 0100 1010  D-R
 ang_velocity_control_2D     0xC210004B   bin: 1100 0010 0001 0000 0000 0000 0100 1011  D-R
 ang_velocity_control_3D     0xC210004C   bin: 1100 0010 0001 0000 0000 0000 0100 1100  D-R
+
 manipulator_kinematics_model 0xC210004D  bin: 1100 0010 0001 0000 0000 0000 0100 1101  D-R
 manipulator_dynamics_model  0xC210004E   bin: 1100 0010 0001 0000 0000 0000 0100 1110  D-R
 direct_kinematics_model     0xC210004F   bin: 1100 0010 0001 0000 0000 0000 0100 1111  D-R
 inverse_kinematics_model    0xC2100050   bin: 1100 0010 0001 0000 0000 0000 0101 0000  D-R
 manip_clik_calculator       0xC2100051   bin: 1100 0010 0001 0000 0000 0000 0101 0001  D-R
+manip_3R_2D_kinematics      0xC2100052   bin: 1100 0010 0001 0000 0000 0000 0101 0010  D-R
+manip_3R_3D_kinematics      0xC2100053   bin: 1100 0010 0001 0000 0000 0000 0101 0011  D-R
+manip_SCARA_kinematics      0xC2100054   bin: 1100 0010 0001 0000 0000 0000 0101 0100  D-R
+manip_3R3R_kinematics       0xC2100055   bin: 1100 0010 0001 0000 0000 0000 0101 0101  D-R
 
 
 

@@ -43,7 +43,7 @@
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/spatial_trajectory_concept.hpp"  // for SpatialTrajectoryConcept
 
-#include "mbd_kte/direct_kinematics_model.hpp"
+#include "kte_models/direct_kinematics_model.hpp"
 #include "topologies/direct_kinematics_topomap.hpp"       // for write_joint_coordinates_impl
 
 

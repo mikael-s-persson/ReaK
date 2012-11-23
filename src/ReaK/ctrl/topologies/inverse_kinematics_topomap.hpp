@@ -38,8 +38,8 @@
 
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
-#include "mbd_kte/inverse_kinematics_model.hpp"
-#include "mbd_kte/manip_clik_calculator.hpp"
+#include "kte_models/inverse_kinematics_model.hpp"
+#include "kte_models/manip_clik_calculator.hpp"
 
 #include "joint_space_limits.hpp"
 

@@ -10,6 +10,7 @@ if(PYTHONLIBS_FOUND)
     "${SRCROOT}${RKCOREDIR}/lin_alg/py_vect_alg.cpp"
     "${SRCROOT}${RKCOREDIR}/kinetostatics/py_kinetostatics.cpp"
     "${SRCROOT}${RKCTRLDIR}/mbd_kte/py_mbd_kte.cpp"
+    "${SRCROOT}${RKCTRLDIR}/kte_models/py_kte_models.cpp"
   )
   
   set(original_Boost_FOUND ${Boost_FOUND})

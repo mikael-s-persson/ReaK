@@ -36,7 +36,7 @@
 #include "base/defs.hpp"
 #include "kinetostatics/kinetostatics.hpp"
 #include "direct_kinematics_model.hpp"
-#include "jacobian_joint_map.hpp"
+#include "mbd_kte/jacobian_joint_map.hpp"
 
 namespace ReaK {
 
