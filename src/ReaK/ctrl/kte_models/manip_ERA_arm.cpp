@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "manip_3R3R_arm.hpp"
+#include "manip_ERA_arm.hpp"
 
 #include "mbd_kte/revolute_joint.hpp"
 #include "mbd_kte/rigid_link.hpp"
@@ -39,32 +39,24 @@ namespace kte {
 //     shared_ptr< frame_3D<double> > m_base_frame;
 //     std::vector< shared_ptr< gen_coord<double> > > m_joints;
 //     shared_ptr< joint_dependent_frame_3D > m_EE;
-//     double base_to_shoulder;
-//     double shoulder_to_elbow;
-//     double elbow_to_joint_4;
-//     double joint_4_to_wrist;
-//     double wrist_to_flange;
+//     vect_n<double> link_lengths;
+//     vect<double,3> preferred_elbow_dir;
 //     vect_n<double> joint_lower_bounds;
 //     vect_n<double> joint_upper_bounds;
 
-manip_3R3R_kinematics::manip_3R3R_kinematics(const std::string& aName,
-                                             const shared_ptr< frame_3D<double> >& aBaseFrame,
-                                             double aBaseToShoulder, 
-                                             double aShoulderToElbow,
-                                             double aElbowToJoint4, 
-                                             double aJoint4ToWrist,
-                                             double aWristToFlange,
-                                             const vect_n<double>& aJointLowerBounds,
-                                             const vect_n<double>& aJointUpperBounds) :
-                                             inverse_kinematics_model(aName),
-                                             m_base_frame(aBaseFrame),
-                                             base_to_shoulder(aBaseToShoulder), 
-                                             shoulder_to_elbow(aShoulderToElbow),
-                                             elbow_to_joint_4(aElbowToJoint4),
-                                             joint_4_to_wrist(aJoint4ToWrist), 
-                                             wrist_to_flange(aWristToFlange),
-                                             joint_lower_bounds(aJointLowerBounds),
-                                             joint_upper_bounds(aJointUpperBounds) {
+manip_ERA_kinematics::manip_ERA_kinematics(const std::string& aName,
+                                           const shared_ptr< frame_3D<double> >& aBaseFrame,
+                                           const vect_n<double>& aLinkLengths, 
+                                           const vect<double,3>& aPreferredElbowDir,
+                                           const vect_n<double>& aJointLowerBounds,
+                                           const vect_n<double>& aJointUpperBounds) :
+                                           inverse_kinematics_model(aName),
+                                           m_base_frame(aBaseFrame),
+                                           link_lengths(aLinkLengths), 
+                                           preferred_elbow_dir(aPreferredElbowDir),
+                                           joint_lower_bounds(aJointLowerBounds),
+                                           joint_upper_bounds(aJointUpperBounds) {
+  m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
@@ -74,6 +66,7 @@ manip_3R3R_kinematics::manip_3R3R_kinematics(const std::string& aName,
   
   
   //declare all the intermediate frames.
+  shared_ptr< frame_3D<double> > joint_1_base(new frame_3D<double>(), scoped_deleter());
   shared_ptr< frame_3D<double> > joint_1_end(new frame_3D<double>(), scoped_deleter());
   shared_ptr< frame_3D<double> > joint_2_base(new frame_3D<double>(), scoped_deleter());
   shared_ptr< frame_3D<double> > joint_2_end(new frame_3D<double>(), scoped_deleter());
@@ -85,6 +78,8 @@ manip_3R3R_kinematics::manip_3R3R_kinematics(const std::string& aName,
   shared_ptr< frame_3D<double> > joint_5_end(new frame_3D<double>(), scoped_deleter());
   shared_ptr< frame_3D<double> > joint_6_base(new frame_3D<double>(), scoped_deleter());
   shared_ptr< frame_3D<double> > joint_6_end(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > joint_7_base(new frame_3D<double>(), scoped_deleter());
+  shared_ptr< frame_3D<double> > joint_7_end(new frame_3D<double>(), scoped_deleter());
   shared_ptr< frame_3D<double> > arm_EE(new frame_3D<double>(), scoped_deleter());
   
   //declare all the joint jacobians.
@@ -94,11 +89,11 @@ manip_3R3R_kinematics::manip_3R3R_kinematics(const std::string& aName,
   shared_ptr< jacobian_gen_3D<double> > joint_4_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
   shared_ptr< jacobian_gen_3D<double> > joint_5_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
   shared_ptr< jacobian_gen_3D<double> > joint_6_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
-  
+  shared_ptr< jacobian_gen_3D<double> > joint_7_jacobian(new jacobian_gen_3D<double>(), scoped_deleter());
   
   //create revolute joint
-  shared_ptr< kte::revolute_joint_3D > joint_1(new kte::revolute_joint_3D(
-      "manip_3R3R_joint_1",
+  shared_ptr< revolute_joint_3D > joint_1(new revolute_joint_3D(
+      "manip_ERA_joint_1",
       m_joints[0],
       vect<double,3>(0.0,0.0,1.0),
       m_base_frame,
@@ -106,109 +101,130 @@ manip_3R3R_kinematics::manip_3R3R_kinematics(const std::string& aName,
       joint_1_jacobian),
     scoped_deleter());
   
-  //create link from F to CM (note that this is very approximate!!!)
-  shared_ptr< kte::rigid_link_3D > link_1(new kte::rigid_link_3D(
-      "manip_3R3R_link_1",
+  //create link 
+  shared_ptr< rigid_link_3D > link_1(new rigid_link_3D(
+      "manip_ERA_link_1",
       joint_1_end,
       joint_2_base,
       pose_3D<double>(
         weak_ptr<pose_3D<double> >(),
-        vect<double,3>(0.0, 0.0, base_to_shoulder),
+        vect<double,3>(0.0, 0.0, link_lengths[0]),
         quaternion<double>())),
     scoped_deleter());
   
   //create revolute joint
-  shared_ptr< kte::revolute_joint_3D > joint_2(new kte::revolute_joint_3D(
-      "manip_3R3R_joint_2",
+  shared_ptr< revolute_joint_3D > joint_2(new revolute_joint_3D(
+      "manip_ERA_joint_2",
       m_joints[1],
-      vect<double,3>(0.0,-1.0,0.0),
+      vect<double,3>(0.0,1.0,0.0),
       joint_2_base,
       joint_2_end,
       joint_2_jacobian),
     scoped_deleter());
   
   //create link 
-  shared_ptr< kte::rigid_link_3D > link_2(new kte::rigid_link_3D(
-      "manip_3R3R_link_2",
+  shared_ptr< rigid_link_3D > link_2(new rigid_link_3D(
+      "manip_ERA_link_2",
       joint_2_end,
       joint_3_base,
       pose_3D<double>(
         weak_ptr<pose_3D<double> >(),
-        vect<double,3>(0.0, 0.0, shoulder_to_elbow),
+        vect<double,3>(0.0, 0.0, link_lengths[1]),
         quaternion<double>())),
     scoped_deleter());
   
   //create revolute joint
-  shared_ptr< kte::revolute_joint_3D > joint_3(new kte::revolute_joint_3D(
-      "manip_3R3R_joint_3",
+  shared_ptr< revolute_joint_3D > joint_3(new revolute_joint_3D(
+      "manip_ERA_joint_3",
       m_joints[2],
-      vect<double,3>(0.0,-1.0,0.0),
+      vect<double,3>(1.0,0.0,0.0),
       joint_3_base,
       joint_3_end,
       joint_3_jacobian),
     scoped_deleter());
   
   //create link 
-  shared_ptr< kte::rigid_link_3D > link_3(new kte::rigid_link_3D(
-      "manip_3R3R_link_3",
+  shared_ptr< rigid_link_3D > link_3(new rigid_link_3D(
+      "manip_ERA_link_3",
       joint_3_end,
       joint_4_base,
       pose_3D<double>(
         weak_ptr<pose_3D<double> >(),
-        vect<double,3>(0.0, 0.0, elbow_to_joint_4),
+        vect<double,3>(0.0, 0.0, link_lengths[2]),
         quaternion<double>())),
     scoped_deleter());
   
   //create revolute joint
-  shared_ptr< kte::revolute_joint_3D > joint_4(new kte::revolute_joint_3D(
-      "manip_3R3R_joint_4",
+  shared_ptr< revolute_joint_3D > joint_4(new revolute_joint_3D(
+      "manip_ERA_joint_4",
       m_joints[3],
-      vect<double,3>(0.0,0.0,1.0),
+      vect<double,3>(1.0,0.0,0.0),
       joint_4_base,
       joint_4_end,
       joint_4_jacobian),
     scoped_deleter());
   
   //create link 
-  shared_ptr< kte::rigid_link_3D > link_4(new kte::rigid_link_3D(
-      "manip_3R3R_link_4",
+  shared_ptr< rigid_link_3D > link_4(new rigid_link_3D(
+      "manip_ERA_link_4",
       joint_4_end,
       joint_5_base,
       pose_3D<double>(
         weak_ptr<pose_3D<double> >(),
-        vect<double,3>(0.0, 0.0, joint_4_to_wrist),
+        vect<double,3>(0.0, 0.0, link_lengths[3]),
         quaternion<double>())),
     scoped_deleter());
   
   //create revolute joint
-  shared_ptr< kte::revolute_joint_3D > joint_5(new kte::revolute_joint_3D(
-      "manip_3R3R_joint_5",
+  shared_ptr< revolute_joint_3D > joint_5(new revolute_joint_3D(
+      "manip_ERA_joint_5",
       m_joints[4],
-      vect<double,3>(0.0,-1.0,0.0),
+      vect<double,3>(1.0,0.0,0.0),
       joint_5_base,
       joint_5_end,
       joint_5_jacobian),
     scoped_deleter());
   
   //create link 
-  shared_ptr< kte::rigid_link_3D > link_5(new kte::rigid_link_3D(
-      "manip_3R3R_link_5",
+  shared_ptr< rigid_link_3D > link_5(new rigid_link_3D(
+      "manip_ERA_link_5",
       joint_5_end,
       joint_6_base,
       pose_3D<double>(
         weak_ptr<pose_3D<double> >(),
-        vect<double,3>(0.0, 0.0, wrist_to_flange),
+        vect<double,3>(0.0, 0.0, link_lengths[4]),
         quaternion<double>())),
     scoped_deleter());
   
   //create revolute joint
   shared_ptr< kte::revolute_joint_3D > joint_6(new kte::revolute_joint_3D(
-      "manip_3R3R_joint_6",
+      "manip_ERA_joint_6",
+      m_joints[5],
+      vect<double,3>(0.0,1.0,0.0),
+      joint_6_base,
+      joint_6_end,
+      joint_6_jacobian),
+    scoped_deleter());
+  
+  //create link 
+  shared_ptr< rigid_link_3D > link_6(new rigid_link_3D(
+      "manip_ERA_link_6",
+      joint_6_end,
+      joint_7_base,
+      pose_3D<double>(
+        weak_ptr<pose_3D<double> >(),
+        vect<double,3>(0.0, 0.0, link_lengths[5]),
+        quaternion<double>())),
+    scoped_deleter());
+  
+  //create revolute joint
+  shared_ptr< kte::revolute_joint_3D > joint_7(new kte::revolute_joint_3D(
+      "manip_ERA_joint_7",
       m_joints[5],
       vect<double,3>(0.0,0.0,1.0),
-      joint_6_base,
+      joint_7_base,
       arm_EE,
-      joint_6_jacobian),
+      joint_7_jacobian),
     scoped_deleter());
   
   //create inertia
@@ -220,8 +236,9 @@ manip_3R3R_kinematics::manip_3R3R_kinematics(const std::string& aName,
   m_EE->add_joint(m_joints[3], joint_4_jacobian);
   m_EE->add_joint(m_joints[4], joint_5_jacobian);
   m_EE->add_joint(m_joints[5], joint_6_jacobian);
+  m_EE->add_joint(m_joints[6], joint_7_jacobian);
   
-  m_chain = shared_ptr< kte_map_chain >(new kte_map_chain("manip_3R3R_kin_model"), scoped_deleter());
+  m_chain = shared_ptr< kte_map_chain >(new kte_map_chain("manip_ERA_kin_model"), scoped_deleter());
   
   *m_chain << joint_1
            << link_1
@@ -233,13 +250,15 @@ manip_3R3R_kinematics::manip_3R3R_kinematics(const std::string& aName,
            << link_4
            << joint_5
            << link_5
-           << joint_6;
+           << joint_6
+           << link_6
+           << joint_7;
   
 };
 
 
 
-void manip_3R3R_kinematics::doDirectMotion() {
+void manip_ERA_kinematics::doDirectMotion() {
   m_chain->doMotion();
 };
 
@@ -259,24 +278,104 @@ static const int bdn_posture = 6;
 static const int bdf_posture = 7;
 
 
-void manip_3R3R_kinematics::doInverseMotion() {
+void manip_ERA_kinematics::doInverseMotion() {
   using std::sin; using std::cos; using std::fabs; 
   using std::atan2; using std::sqrt; using std::pow;
   
+  const double wrist_to_wrist_dist = link_lengths[2] + link_lengths[3];
+  
+  const double pos_epsilon = 1e-4 * wrist_to_wrist_dist;
+  const double extend_epsilon = .01 * wrist_to_wrist_dist;
+  
   frame_3D<double> EE_fr = m_EE->mFrame->getFrameRelativeTo(m_base_frame);
   
+  vect<double,3> wrist_to_wrist = EE_fr.Position;
+  wrist_to_wrist[2] -= link_lengths[0];
+  vect<double,3> EE_x_axis = EE_fr.Quat * vect_i;
+  vect<double,3> EE_y_axis = EE_fr.Quat * vect_j;
+  vect<double,3> EE_z_axis = EE_fr.Quat * vect_k;
+  wrist_to_wrist -= link_lengths[5] * EE_z_axis;
+  
+  vect<double,3> w1_y_axis = vect<double,3>(wrist_to_wrist[0],wrist_to_wrist[1],0.0);
+  double w1_y_dist = norm_2(w1_y_axis);
+  vect<double,3> w2_y_axis = wrist_to_wrist - (wrist_to_wrist * EE_z_axis) * EE_z_axis;
+  double w2_y_dist = norm_2(w2_y_axis);
+  
+  vect<double,3> w2s_1(0.0,0.0,link_lengths[1]);
+  vect<double,3> w2s_2 = link_lengths[4] * EE_z_axis;
+  
+  vect<double,3> shoulder_to_shoulder = wrist_to_wrist;
+  double a3_offset = 0.0; // these are the angles when the arm is fully stretched from shoulder to shoulder.
+  double a5_offset = 0.0;
+  if((w1_y_dist < pos_epsilon) && (w1_y_dist < pos_epsilon)) {
+    // this is a singularity where the two wrists are aligned.
+    shoulder_to_shoulder -= w2s_1 + w2s_2;
+    m_joints[1]->q = 0.0;
+    m_joints[5]->q = 0.0;
+    
+    // at this point, there is a degree of freedom in the 1 and 7 joints that determines arm-plane.
+    double c1 =  preferred_elbow_dir[1];  // preferred elbow direction is the joint-2 axis.
+    double s1 = -preferred_elbow_dir[0];
+    m_joints[0]->q = atan2(s1, c2);
+    
+    double c7 =  preferred_elbow_dir * EE_y_axis;  // preferred elbow direction is the joint-6 axis.
+    double s7 =  preferred_elbow_dir * EE_x_axis;
+    m_joints[6]->q = atan2(s7, c7);
+    
+  } else if(w1_y_dist < pos_epsilon) {
+    // this is a singularity where the wrist has to be straight.
+    // at this point, there is a degree of freedom in the 1 and 7 joints that determines arm-plane.
+    shoulder_to_shoulder -= w2s_1;
+    m_joints[1]->q = 0.0;
+    
+    double c1 =  preferred_elbow_dir[1];  // preferred elbow direction is the joint-2 axis.
+    double s1 = -preferred_elbow_dir[0];
+    m_joints[0]->q = atan2(s1, c2);
+    
+    if(preferred_elbow_dir * w2_y_axis < 0.0)
+      w2_y_axis = -w2_y_axis;
+    w2_y_axis = unit(w2_y_axis);
+    double c7 =  w2_y_axis * EE_y_axis;
+    double s7 =  w2_y_axis * EE_x_axis;
+    m_joints[6]->q = atan2(s7, c7);
+    
+    vect<double,3> w2_x_axis = unit(preferred_elbow_dir % shoulder_to_shoulder);
+    double c6 =  w2_x_axis * EE_x_axis;
+    double s6 =  w2_x_axis * EE_z_axis;
+    m_joints[5]->q = atan2(s6, c6);
+    vect<double,3> w2_z_axis = axis_angle<double>(m_joints[5]->q, w2_y_axis).getQuaternion() * EE_z_axis;
+    shoulder_to_shoulder -= link_lengths[4] * w2_z_axis;
+    
+    a3_offset = atan2(-shoulder_to_shoulder * preferred_elbow_dir, shoulder_to_shoulder[2]);
+    a5_offset = atan2(-shoulder_to_shoulder * w2_y_axis, shoulder_to_shoulder * w2_z_axis);
+    
+  } else if(w2_y_dist < pos_epsilon) {
+    // this is a singularity where the wrist has to be straight.
+    shoulder_to_shoulder -= w2s_2;
+    m_joints[5]->q = 0.0;
+    
+    // at this point, there is a degree of freedom in the 1 and 7 joints that determines arm-plane.
+    
+  } else {
+    // generic case.
+    
+  };
+  
+  double s2s_dist_sqr = shoulder_to_shoulder[0] * shoulder_to_shoulder[0]
+                      + shoulder_to_shoulder[1] * shoulder_to_shoulder[1]
+                      + shoulder_to_shoulder[2] * shoulder_to_shoulder[2];
+  if(s2s_dist_sqr > (wrist_to_wrist_dist - extend_epsilon) * (wrist_to_wrist_dist - extend_epsilon))
+    throw optim::infeasible_problem("Inverse kinematics problem is infeasible! End-effector pose is out-of-reach! Desired wrist position is outside the spherical workspace envelope (fully-extended arm).");
+  
+  
+  
+  
+#if 0
   quaternion<double>::zrot gl_to_track_rot(-0.5 * M_PI);
   vect<double,3> EE_z_axis = EE_fr.Quat * vect_k;
   vect<double,3> EE_y_axis = EE_fr.Quat * vect_j;
   vect<double,3> wrist_pos = EE_fr.Position - wrist_to_flange * EE_z_axis - base_to_shoulder * vect_k;
   
-  double elbow_to_wrist = elbow_to_joint_4 + joint_4_to_wrist;
-  double shoulder_to_wrist = shoulder_to_elbow + elbow_to_wrist;
-  double s2e_dist_sqr = shoulder_to_elbow * shoulder_to_elbow;
-  double e2w_dist_sqr = elbow_to_wrist * elbow_to_wrist;
-  
-  const double pos_epsilon = 1e-4 * shoulder_to_wrist;
-  const double extend_epsilon = .01 * shoulder_to_wrist;
   
   vect_n<double> solns[8];
   for(std::size_t i = 0; i < 8; ++i)
@@ -497,299 +596,427 @@ void manip_3R3R_kinematics::doInverseMotion() {
   m_joints[5]->q_ddot = 0.0;
   
   m_chain->doMotion();
-  
+#endif
 };
 
-void manip_3R3R_kinematics::getJacobianMatrix(mat<double,mat_structure::rectangular>& Jac) const {
+void manip_ERA_kinematics::getJacobianMatrix(mat<double,mat_structure::rectangular>& Jac) const {
   /* calculate individual rotations */
   quaternion<double>::zrot q1( m_joints[0]->q);
-  quaternion<double>::yrot q2(-m_joints[1]->q);
-  quaternion<double>::yrot q3(-m_joints[2]->q);
-  quaternion<double>::zrot q4( m_joints[3]->q);
-  quaternion<double>::yrot q5(-m_joints[4]->q);
-  quaternion<double>::zrot q6( m_joints[5]->q);
+  quaternion<double>::yrot q2( m_joints[1]->q);
+  quaternion<double>::xrot q3( m_joints[2]->q);
+  quaternion<double>::xrot q4( m_joints[3]->q);
+  quaternion<double>::xrot q5( m_joints[4]->q);
+  quaternion<double>::yrot q6( m_joints[5]->q);
+  quaternion<double>::zrot q7( m_joints[6]->q);
   
   quaternion<double> q_accum = q1.getQuaternion();
-  vect<double,3> e2 = -(q_accum * vect_j);
+  vect<double,3> a1 = q_accum * vect<double,3>(0.0, 0.0, link_lengths[0]);
+  vect<double,3> e2 = q_accum * vect_j;
   q_accum *= q2;
-  vect<double,3> a2 = shoulder_to_elbow * (q_accum * vect_k);
+  vect<double,3> a2 = q_accum * vect<double,3>(0.0, 0.0, link_lengths[1]);
+  vect<double,3> e3 = q_accum * vect_i;
   q_accum *= q3;
-  vect<double,3> a3 = (elbow_to_joint_4 + joint_4_to_wrist) * (q_accum * vect_k);
-  vect<double,3> e4 =  q_accum * vect_k;
+  vect<double,3> a3 = q_accum * vect<double,3>(0.0, 0.0, link_lengths[2]);
+  vect<double,3> e4 = q_accum * vect_i;
   q_accum *= q4;
-  vect<double,3> e5 = -(q_accum * vect_j);
+  vect<double,3> a4 = q_accum * vect<double,3>(0.0, 0.0, link_lengths[3]);
+  vect<double,3> e5 = q_accum * vect_i;
   q_accum *= q5;
-  vect<double,3> e6 =  q_accum * vect_k;
+  vect<double,3> a5 = q_accum * vect<double,3>(0.0, 0.0, link_lengths[4]);
+  vect<double,3> e6 = q_accum * vect_j;
   q_accum *= q6;
-  vect<double,3> a6 = wrist_to_flange * e6; 
+  vect<double,3> a6 = q_accum * vect<double,3>(0.0, 0.0, link_lengths[5]);
+  vect<double,3> e7 = q_accum * vect_k;
+  q_accum *= q7;
   
-  vect<double,3> s2f = a2 + a3 + a6; // shoulder to flange
+  vect<double,3> a56 = a5 + a6;
+  vect<double,3> a46 = a4 + a56;
+  vect<double,3> a36 = a3 + a46;
+  vect<double,3> a26 = a2 + a36;
+  vect<double,3> a16 = a1 + a26;
   
-  Jac.resize(std::make_pair(6,6));
-  vect<double,3> v1 = vect_k % s2f;
+  Jac.resize(std::make_pair(6,7));
+  vect<double,3> v1 = vect_k % a16;
   Jac(0,0) = v1[0];
   Jac(1,0) = v1[1];
   Jac(2,0) = v1[2];
   Jac(3,0) = 0.0;
   Jac(4,0) = 0.0;
   Jac(5,0) = 1.0;
-  vect<double,3> v2 = e2 % s2f;
+  vect<double,3> v2 = e2 % a26;
   Jac(0,1) = v2[0];
   Jac(1,1) = v2[1];
   Jac(2,1) = v2[2];
   Jac(3,1) = e2[0];
   Jac(4,1) = e2[1];
   Jac(5,1) = e2[2];
-  vect<double,3> v3 = e2 % (s2f - a2);
+  vect<double,3> v3 = e3 % a36;
   Jac(0,2) = v3[0];
   Jac(1,2) = v3[1];
   Jac(2,2) = v3[2];
-  Jac(3,2) = e2[0];
-  Jac(4,2) = e2[1];
-  Jac(5,2) = e2[2];
-  vect<double,3> v4 = e4 % a6;
+  Jac(3,2) = e3[0];
+  Jac(4,2) = e3[1];
+  Jac(5,2) = e3[2];
+  vect<double,3> v4 = e4 % a46;
   Jac(0,3) = v4[0];
   Jac(1,3) = v4[1];
   Jac(2,3) = v4[2];
   Jac(3,3) = e4[0];
   Jac(4,3) = e4[1];
   Jac(5,3) = e4[2];
-  vect<double,3> v5 = e5 % a6;
+  vect<double,3> v5 = e5 % a56;
   Jac(0,4) = v5[0];
   Jac(1,4) = v5[1];
   Jac(2,4) = v5[2];
   Jac(3,4) = e5[0];
   Jac(4,4) = e5[1];
   Jac(5,4) = e5[2];
-  Jac(0,5) = 0.0;
-  Jac(1,5) = 0.0;
-  Jac(2,5) = 0.0;
+  vect<double,3> v6 = e6 % a6;
+  Jac(0,5) = v6[0];
+  Jac(1,5) = v6[1];
+  Jac(2,5) = v6[2];
   Jac(3,5) = e6[0];
   Jac(4,5) = e6[1];
   Jac(5,5) = e6[2];
+  Jac(0,6) = 0.0;
+  Jac(1,6) = 0.0;
+  Jac(2,6) = 0.0;
+  Jac(3,6) = e7[0];
+  Jac(4,6) = e7[1];
+  Jac(5,6) = e7[2];
 };
 
-void manip_3R3R_kinematics::getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, mat<double,mat_structure::rectangular>& JacDot) const {
+void manip_ERA_kinematics::getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, mat<double,mat_structure::rectangular>& JacDot) const {
   /* calculate individual rotations */
+  
   quaternion<double>::zrot q1( m_joints[0]->q);
-  quaternion<double>::yrot q2(-m_joints[1]->q);
-  quaternion<double>::yrot q3(-m_joints[2]->q);
-  quaternion<double>::zrot q4( m_joints[3]->q);
-  quaternion<double>::yrot q5(-m_joints[4]->q);
-  quaternion<double>::zrot q6( m_joints[5]->q);
+  quaternion<double>::yrot q2( m_joints[1]->q);
+  quaternion<double>::xrot q3( m_joints[2]->q);
+  quaternion<double>::xrot q4( m_joints[3]->q);
+  quaternion<double>::xrot q5( m_joints[4]->q);
+  quaternion<double>::yrot q6( m_joints[5]->q);
+  quaternion<double>::zrot q7( m_joints[6]->q);
+  
+  vect<double,3> a1_p(0.0, 0.0, link_lengths[0]);
+  vect<double,3> a2_p(0.0, 0.0, link_lengths[1]);
+  vect<double,3> a3_p(0.0, 0.0, link_lengths[2]);
+  vect<double,3> a4_p(0.0, 0.0, link_lengths[3]);
+  vect<double,3> a5_p(0.0, 0.0, link_lengths[4]);
+  vect<double,3> a6_p(0.0, 0.0, link_lengths[5]);
   
   quaternion<double> q_accum = q1.getQuaternion();
-  vect<double,3> e2 = -(q_accum * vect_j);
+  vect<double,3> e1(0.0, 0.0, 1.0);
+  vect<double,3> a1 = q_accum * a1_p;
+  vect<double,3> e2 = q_accum * vect_j;
   q_accum *= q2;
-  vect<double,3> a2 = shoulder_to_elbow * (q_accum * vect_k);
+  vect<double,3> a2 = q_accum * a2_p;
+  vect<double,3> e3 = q_accum * vect_i;
   q_accum *= q3;
-  vect<double,3> a3 = (elbow_to_joint_4 + joint_4_to_wrist) * (q_accum * vect_k);
-  vect<double,3> e4 =  q_accum * vect_k;
+  vect<double,3> a3 = q_accum * a3_p;
+  vect<double,3> e4 = q_accum * vect_i;
   q_accum *= q4;
-  vect<double,3> e5 = -(q_accum * vect_j);
+  vect<double,3> a4 = q_accum * a4_p;
+  vect<double,3> e5 = q_accum * vect_i;
   q_accum *= q5;
-  vect<double,3> e6 =  q_accum * vect_k;
+  vect<double,3> a5 = q_accum * a5_p;
+  vect<double,3> e6 = q_accum * vect_j;
   q_accum *= q6;
-  vect<double,3> a6 = wrist_to_flange * e6; 
+  vect<double,3> a6 = q_accum * a6_p;
+  vect<double,3> e7 = q_accum * vect_k;
+  q_accum *= q7;
   
-  vect<double,3> s2f = a2 + a3 + a6; // shoulder to flange
+  vect<double,3> a56 = a5 + a6;
+  vect<double,3> a46 = a4 + a56;
+  vect<double,3> a36 = a3 + a46;
+  vect<double,3> a26 = a2 + a36;
+  vect<double,3> a16 = a1 + a26;
   
-  Jac.resize(std::make_pair(6,6));
-  vect<double,3> v1 = vect_k % s2f;
+  Jac.resize(std::make_pair(6,7));
+  vect<double,3> v1 = vect_k % a16;
   Jac(0,0) = v1[0];
   Jac(1,0) = v1[1];
   Jac(2,0) = v1[2];
   Jac(3,0) = 0.0;
   Jac(4,0) = 0.0;
   Jac(5,0) = 1.0;
-  vect<double,3> v2 = e2 % s2f;
+  vect<double,3> v2 = e2 % a26;
   Jac(0,1) = v2[0];
   Jac(1,1) = v2[1];
   Jac(2,1) = v2[2];
   Jac(3,1) = e2[0];
   Jac(4,1) = e2[1];
   Jac(5,1) = e2[2];
-  vect<double,3> v3 = e2 % (s2f - a2);
+  vect<double,3> v3 = e3 % a36;
   Jac(0,2) = v3[0];
   Jac(1,2) = v3[1];
   Jac(2,2) = v3[2];
-  Jac(3,2) = e2[0];
-  Jac(4,2) = e2[1];
-  Jac(5,2) = e2[2];
-  vect<double,3> v4 = e4 % a6;
+  Jac(3,2) = e3[0];
+  Jac(4,2) = e3[1];
+  Jac(5,2) = e3[2];
+  vect<double,3> v4 = e4 % a46;
   Jac(0,3) = v4[0];
   Jac(1,3) = v4[1];
   Jac(2,3) = v4[2];
   Jac(3,3) = e4[0];
   Jac(4,3) = e4[1];
   Jac(5,3) = e4[2];
-  vect<double,3> v5 = e5 % a6;
+  vect<double,3> v5 = e5 % a56;
   Jac(0,4) = v5[0];
   Jac(1,4) = v5[1];
   Jac(2,4) = v5[2];
   Jac(3,4) = e5[0];
   Jac(4,4) = e5[1];
   Jac(5,4) = e5[2];
-  Jac(0,5) = 0.0;
-  Jac(1,5) = 0.0;
-  Jac(2,5) = 0.0;
+  vect<double,3> v6 = e6 % a6;
+  Jac(0,5) = v6[0];
+  Jac(1,5) = v6[1];
+  Jac(2,5) = v6[2];
   Jac(3,5) = e6[0];
   Jac(4,5) = e6[1];
   Jac(5,5) = e6[2];
+  Jac(0,6) = 0.0;
+  Jac(1,6) = 0.0;
+  Jac(2,6) = 0.0;
+  Jac(3,6) = e7[0];
+  Jac(4,6) = e7[1];
+  Jac(5,6) = e7[2];
   
   
-  //vect<double,3> q1_dot =  m_joints[0]->q_dot * vect_k;
-  //vect<double,3> q2_dot = -m_joints[1]->q_dot * vect_j;
-  //vect<double,3> q3_dot = -m_joints[2]->q_dot * vect_j;
-  //vect<double,3> q4_dot =  m_joints[3]->q_dot * vect_k;
-  //vect<double,3> q5_dot = -m_joints[4]->q_dot * vect_j;
-  //vect<double,3> q6_dot =  m_joints[5]->q_dot * vect_k;
-  vect<double,3> vi(1.0,0.0,0.0);
-  vect<double,3> vj(0.0,1.0,0.0);
-  vect<double,3> vk(0.0,0.0,1.0);
+  vect<double,3> ex(1.0, 0.0, 0.0);
+  vect<double,3> ey(0.0, 1.0, 0.0);
+  vect<double,3> ez(0.0, 0.0, 1.0);
   
-  vect<double,3> e2_dot =  q1 * ( m_joints[0]->q_dot * vi);
+  //vect<double,3> q1_dot = m_joints[0]->q_dot * ez;
+  //vect<double,3> q2_dot = m_joints[1]->q_dot * ey;
+  //vect<double,3> q3_dot = m_joints[2]->q_dot * ex;
+  //vect<double,3> q4_dot = m_joints[3]->q_dot * ex;
+  //vect<double,3> q5_dot = m_joints[4]->q_dot * ex;
+  //vect<double,3> q6_dot = m_joints[5]->q_dot * ey;
+  //vect<double,3> q7_dot = m_joints[6]->q_dot * ez;
+  vect<double,3> a1_dot = q1 * (m_joints[0]->q_dot * ez % a1_p);
   
-  vect<double,3> a2_dot = shoulder_to_elbow * (q1 * (m_joints[0]->q_dot * (vect_k % (q2 * vk))
-                                             + q2 * (-m_joints[1]->q_dot * vi)));
+  vect<double,3> a2_dot = q2 * (m_joints[1]->q_dot * ey % a2_p);
+  a2_p = q2 * a2_p;
+  a2_dot = q1 * (m_joints[0]->q_dot * ez % a2_p + a2_dot);
   
-  vect<double,3> e4_dot =  q1 * ( m_joints[0]->q_dot * (vect_k % (q2 * q3 * vk))
-                         - q2 * ( m_joints[1]->q_dot * (vect_j % (q3 * vk))
-                         + q3 * ( m_joints[2]->q_dot * vi)));
-  vect<double,3> a3_dot = (elbow_to_joint_4 + joint_4_to_wrist) * e4_dot;
-
-  vect<double,3> e5_dot =  q1 * (-m_joints[0]->q_dot * (vect_k % (q2 * q3 * q4 * vj))
-                         + q2 * ( m_joints[1]->q_dot * (vect_j % (q3 * q4 * vj))
-                         + q3 * ( m_joints[2]->q_dot * (vect_j % (q4 * vj))
-                         + q4 * ( m_joints[3]->q_dot * vi))));
+  vect<double,3> a3_dot = q3 * (m_joints[2]->q_dot * ex % a3_p);
+  a3_p = q3 * a3_p;
+  a3_dot = q2 * (m_joints[1]->q_dot * ey % a3_p + a3_dot);
+  a3_p = q2 * a3_p;
+  a3_dot = q1 * (m_joints[0]->q_dot * ez % a3_p + a3_dot);
   
-  vect<double,3> e6_dot =  q1 * ( m_joints[0]->q_dot * (vect_k % (q2 * q3 * q4 * q5 * vk))
-                         - q2 * ( m_joints[1]->q_dot * (vect_j % (q3 * q4 * q5 * vk))
-                         + q3 * ( m_joints[2]->q_dot * (vect_j % (q4 * q5 * vk))
-                         - q4 * ( m_joints[3]->q_dot * (vect_k % (q5 * vk))
-                         - q5 * ( m_joints[4]->q_dot * vi)))));
+  vect<double,3> a4_dot = q4 * (m_joints[3]->q_dot * ex % a4_p);
+  a4_p = q4 * a4_p;
+  a4_dot = q3 * (m_joints[2]->q_dot * ex % a4_p + a4_dot);
+  a4_p = q3 * a4_p;
+  a4_dot = q2 * (m_joints[1]->q_dot * ey % a4_p + a4_dot);
+  a4_p = q2 * a4_p;
+  a4_dot = q1 * (m_joints[0]->q_dot * ez % a4_p + a4_dot);
   
-  vect<double,3> a6_dot = wrist_to_flange * e6_dot; 
-  vect<double,3> s2f_dot = a2_dot + a3_dot + a6_dot; // shoulder to flange
+  vect<double,3> a5_dot = q5 * (m_joints[4]->q_dot * ex % a5_p);
+  a5_p = q5 * a5_p;
+  a5_dot = q4 * (m_joints[3]->q_dot * ex % a5_p + a5_dot);
+  a5_p = q4 * a5_p;
+  a5_dot = q3 * (m_joints[2]->q_dot * ex % a5_p + a5_dot);
+  a5_p = q3 * a5_p;
+  a5_dot = q2 * (m_joints[1]->q_dot * ey % a5_p + a5_dot);
+  a5_p = q2 * a5_p;
+  a5_dot = q1 * (m_joints[0]->q_dot * ez % a5_p + a5_dot);
   
-  JacDot.resize(std::make_pair(6,6));
-  vect<double,3> v1_dot = vect_k % s2f_dot;
+  vect<double,3> a6_dot = q6 * (m_joints[5]->q_dot * ey % a6_p);
+  a6_p = q6 * a6_p;
+  a6_dot = q5 * (m_joints[4]->q_dot * ex % a6_p + a6_dot);
+  a6_p = q5 * a6_p;
+  a6_dot = q4 * (m_joints[3]->q_dot * ex % a6_p + a6_dot);
+  a6_p = q4 * a6_p;
+  a6_dot = q3 * (m_joints[2]->q_dot * ex % a6_p + a6_dot);
+  a6_p = q3 * a6_p;
+  a6_dot = q2 * (m_joints[1]->q_dot * ey % a6_p + a6_dot);
+  a6_p = q2 * a6_p;
+  a6_dot = q1 * (m_joints[0]->q_dot * ez % a6_p + a6_dot);
+  
+  
+  vect<double,3> ex_p;
+  vect<double,3> ey_p;
+  vect<double,3> ez_p;
+  
+  vect<double,3> e2_dot = q1 * (m_joints[0]->q_dot * ez % ey);
+  
+  vect<double,3> e3_dot = q2 * (m_joints[1]->q_dot * ey % ex);
+  ex_p = q2 * ex;
+  e3_dot = q1 * (m_joints[0]->q_dot * ez % ex_p + e3_dot);
+  
+  ex_p = q3 * ex;
+  vect<double,3> e4_dot = q2 * (m_joints[1]->q_dot * ey % ex_p);
+  ex_p = q2 * ex_p;
+  e4_dot = q1 * (m_joints[0]->q_dot * ez % ex_p + e4_dot);
+  
+  ex_p = q4 * ex;
+  vect<double,3> e5_dot = q3 * (m_joints[2]->q_dot * ex % ex_p);
+  ex_p = q3 * ex_p;
+  e5_dot = q2 * (m_joints[1]->q_dot * ey % ex_p + e5_dot);
+  ex_p = q2 * ex_p;
+  e5_dot = q1 * (m_joints[0]->q_dot * ez % ex_p + e5_dot);
+  
+  vect<double,3> e6_dot = q5 * (m_joints[4]->q_dot * ex % ey);
+  ey_p = q5 * ey;
+  e6_dot = q4 * (m_joints[3]->q_dot * ex % ey_p + e6_dot);
+  ey_p = q4 * ey_p;
+  e6_dot = q3 * (m_joints[2]->q_dot * ex % ey_p + e6_dot);
+  ey_p = q3 * ey_p;
+  e6_dot = q2 * (m_joints[1]->q_dot * ey % ey_p + e6_dot);
+  ey_p = q2 * ey_p;
+  e6_dot = q1 * (m_joints[0]->q_dot * ez % ey_p + e6_dot);
+  
+  vect<double,3> e7_dot = q6 * (m_joints[5]->q_dot * ey % ez);
+  ez_p = q6 * ez;
+  e7_dot = q5 * (m_joints[4]->q_dot * ex % ez_p + e7_dot);
+  ez_p = q5 * ez_p;
+  e7_dot = q4 * (m_joints[3]->q_dot * ex % ez_p + e7_dot);
+  ez_p = q4 * ez_p;
+  e7_dot = q3 * (m_joints[2]->q_dot * ex % ez_p + e7_dot);
+  ez_p = q3 * ez_p;
+  e7_dot = q2 * (m_joints[1]->q_dot * ey % ez_p + e7_dot);
+  ez_p = q2 * ez_p;
+  e7_dot = q1 * (m_joints[0]->q_dot * ez % ez_p + e7_dot);
+  
+  vect<double,3> a56_dot = a5_dot + a6_dot;
+  vect<double,3> a46_dot = a4_dot + a56_dot;
+  vect<double,3> a36_dot = a3_dot + a46_dot;
+  vect<double,3> a26_dot = a2_dot + a36_dot;
+  vect<double,3> a16_dot = a1_dot + a26_dot;
+  
+  JacDot.resize(std::make_pair(6,7));
+  vect<double,3> v1_dot = vect_k % a16_dot;
   JacDot(0,0) = v1_dot[0];
   JacDot(1,0) = v1_dot[1];
   JacDot(2,0) = v1_dot[2];
   JacDot(3,0) = 0.0;
   JacDot(4,0) = 0.0;
   JacDot(5,0) = 0.0;
-  vect<double,3> v2_dot = e2_dot % s2f + e2 % s2f_dot;
+  vect<double,3> v2_dot = e2_dot % a26 + e2 % a26_dot;
   JacDot(0,1) = v2_dot[0];
   JacDot(1,1) = v2_dot[1];
   JacDot(2,1) = v2_dot[2];
   JacDot(3,1) = e2_dot[0];
   JacDot(4,1) = e2_dot[1];
   JacDot(5,1) = e2_dot[2];
-  vect<double,3> v3_dot = e2_dot % (s2f - a2) + e2 % (s2f_dot - a2_dot);
+  vect<double,3> v3_dot = e3_dot % a36 + e3 % a36_dot;
   JacDot(0,2) = v3_dot[0];
   JacDot(1,2) = v3_dot[1];
   JacDot(2,2) = v3_dot[2];
-  JacDot(3,2) = e2_dot[0];
-  JacDot(4,2) = e2_dot[1];
-  JacDot(5,2) = e2_dot[2];
-  vect<double,3> v4_dot = e4_dot % a6 + e4 % a6_dot;
+  JacDot(3,2) = e3_dot[0];
+  JacDot(4,2) = e3_dot[1];
+  JacDot(5,2) = e3_dot[2];
+  vect<double,3> v4_dot = e4_dot % a46 + e4 % a46_dot;
   JacDot(0,3) = v4_dot[0];
   JacDot(1,3) = v4_dot[1];
   JacDot(2,3) = v4_dot[2];
   JacDot(3,3) = e4_dot[0];
   JacDot(4,3) = e4_dot[1];
   JacDot(5,3) = e4_dot[2];
-  vect<double,3> v5_dot = e5_dot % a6 + e5 % a6_dot;
+  vect<double,3> v5_dot = e5_dot % a56 + e5 % a56_dot;
   JacDot(0,4) = v5_dot[0];
   JacDot(1,4) = v5_dot[1];
   JacDot(2,4) = v5_dot[2];
   JacDot(3,4) = e5_dot[0];
   JacDot(4,4) = e5_dot[1];
   JacDot(5,4) = e5_dot[2];
-  JacDot(0,5) = 0.0;
-  JacDot(1,5) = 0.0;
-  JacDot(2,5) = 0.0;
+  vect<double,3> v6_dot = e6_dot % a6 + e6 % a6_dot;
+  JacDot(0,5) = v6_dot[0];
+  JacDot(1,5) = v6_dot[1];
+  JacDot(2,5) = v6_dot[2];
   JacDot(3,5) = e6_dot[0];
   JacDot(4,5) = e6_dot[1];
   JacDot(5,5) = e6_dot[2];
+  JacDot(0,6) = 0.0;
+  JacDot(1,6) = 0.0;
+  JacDot(2,6) = 0.0;
+  JacDot(3,6) = e7_dot[0];
+  JacDot(4,6) = e7_dot[1];
+  JacDot(5,6) = e7_dot[2];
 };
 
-vect_n<double> manip_3R3R_kinematics::getJointPositions() const {
+vect_n<double> manip_ERA_kinematics::getJointPositions() const {
   return vect_n<double>(m_joints[0]->q, 
                         m_joints[1]->q, 
                         m_joints[2]->q, 
                         m_joints[3]->q, 
                         m_joints[4]->q, 
-                        m_joints[5]->q);
+                        m_joints[5]->q, 
+                        m_joints[6]->q);
 };
 
-void manip_3R3R_kinematics::setJointPositions(const vect_n<double>& aJointPositions) {
+void manip_ERA_kinematics::setJointPositions(const vect_n<double>& aJointPositions) {
   m_joints[0]->q = aJointPositions[0];
   m_joints[1]->q = aJointPositions[1];
   m_joints[2]->q = aJointPositions[2];
   m_joints[3]->q = aJointPositions[3];
   m_joints[4]->q = aJointPositions[4];
   m_joints[5]->q = aJointPositions[5];
+  m_joints[6]->q = aJointPositions[6];
 };
 
-vect_n<double> manip_3R3R_kinematics::getJointVelocities() const {
+vect_n<double> manip_ERA_kinematics::getJointVelocities() const {
   return vect_n<double>(m_joints[0]->q_dot, 
                         m_joints[1]->q_dot, 
                         m_joints[2]->q_dot, 
                         m_joints[3]->q_dot, 
                         m_joints[4]->q_dot, 
-                        m_joints[5]->q_dot);
+                        m_joints[5]->q_dot, 
+                        m_joints[6]->q_dot);
 };
 
-void manip_3R3R_kinematics::setJointVelocities(const vect_n<double>& aJointVelocities) {
+void manip_ERA_kinematics::setJointVelocities(const vect_n<double>& aJointVelocities) {
   m_joints[0]->q_dot = aJointVelocities[0];
   m_joints[1]->q_dot = aJointVelocities[1];
   m_joints[2]->q_dot = aJointVelocities[2];
   m_joints[3]->q_dot = aJointVelocities[3];
   m_joints[4]->q_dot = aJointVelocities[4];
   m_joints[5]->q_dot = aJointVelocities[5];
+  m_joints[6]->q_dot = aJointVelocities[6];
 };
 
-vect_n<double> manip_3R3R_kinematics::getJointAccelerations() const {
+vect_n<double> manip_ERA_kinematics::getJointAccelerations() const {
   return vect_n<double>(m_joints[0]->q_ddot, 
                         m_joints[1]->q_ddot, 
                         m_joints[2]->q_ddot, 
                         m_joints[3]->q_ddot, 
                         m_joints[4]->q_ddot, 
-                        m_joints[5]->q_ddot);
+                        m_joints[5]->q_ddot, 
+                        m_joints[6]->q_ddot);
 };
 
-void manip_3R3R_kinematics::setJointAccelerations(const vect_n<double>& aJointAccelerations) {
+void manip_ERA_kinematics::setJointAccelerations(const vect_n<double>& aJointAccelerations) {
   m_joints[0]->q_ddot = aJointAccelerations[0];
   m_joints[1]->q_ddot = aJointAccelerations[1];
   m_joints[2]->q_ddot = aJointAccelerations[2];
   m_joints[3]->q_ddot = aJointAccelerations[3];
   m_joints[4]->q_ddot = aJointAccelerations[4];
   m_joints[5]->q_ddot = aJointAccelerations[5];
+  m_joints[6]->q_ddot = aJointAccelerations[6];
 };
 
-vect_n<double> manip_3R3R_kinematics::getDependentPositions() const {
+vect_n<double> manip_ERA_kinematics::getDependentPositions() const {
   return vect_n<double>(
     m_EE->mFrame->Position[0], m_EE->mFrame->Position[1], m_EE->mFrame->Position[2],
     m_EE->mFrame->Quat[0], m_EE->mFrame->Quat[1], m_EE->mFrame->Quat[2], m_EE->mFrame->Quat[3]);
 };
 
-void manip_3R3R_kinematics::setDependentPositions(const vect_n<double>& aDepPositions) {
+void manip_ERA_kinematics::setDependentPositions(const vect_n<double>& aDepPositions) {
   m_EE->mFrame->Position[0] = aDepPositions[0];
   m_EE->mFrame->Position[1] = aDepPositions[1];
   m_EE->mFrame->Position[2] = aDepPositions[2];
   m_EE->mFrame->Quat = quaternion<double>(vect<double,4>(aDepPositions[3], aDepPositions[4], aDepPositions[5], aDepPositions[6]));
 };
 
-vect_n<double> manip_3R3R_kinematics::getDependentVelocities() const {
+vect_n<double> manip_ERA_kinematics::getDependentVelocities() const {
   return vect_n<double>(
     m_EE->mFrame->Velocity[0], m_EE->mFrame->Velocity[1], m_EE->mFrame->Velocity[2],
     m_EE->mFrame->AngVelocity[0], m_EE->mFrame->AngVelocity[1], m_EE->mFrame->AngVelocity[2]);
 };
 
-void manip_3R3R_kinematics::setDependentVelocities(const vect_n<double>& aDepVelocities) {
+void manip_ERA_kinematics::setDependentVelocities(const vect_n<double>& aDepVelocities) {
   m_EE->mFrame->Velocity[0] = aDepVelocities[0];
   m_EE->mFrame->Velocity[1] = aDepVelocities[1];
   m_EE->mFrame->Velocity[2] = aDepVelocities[2];
@@ -798,13 +1025,13 @@ void manip_3R3R_kinematics::setDependentVelocities(const vect_n<double>& aDepVel
   m_EE->mFrame->AngVelocity[2] = aDepVelocities[5];
 };
 
-vect_n<double> manip_3R3R_kinematics::getDependentAccelerations() const {
+vect_n<double> manip_ERA_kinematics::getDependentAccelerations() const {
   return vect_n<double>(
     m_EE->mFrame->Acceleration[0], m_EE->mFrame->Acceleration[1], m_EE->mFrame->Acceleration[2],
     m_EE->mFrame->AngAcceleration[0], m_EE->mFrame->AngAcceleration[1], m_EE->mFrame->AngAcceleration[2]);
 };
 
-void manip_3R3R_kinematics::setDependentAccelerations(const vect_n<double>& aDepAccelerations) {
+void manip_ERA_kinematics::setDependentAccelerations(const vect_n<double>& aDepAccelerations) {
   m_EE->mFrame->Acceleration[0] = aDepAccelerations[0];
   m_EE->mFrame->Acceleration[1] = aDepAccelerations[1];
   m_EE->mFrame->Acceleration[2] = aDepAccelerations[2];
@@ -814,31 +1041,23 @@ void manip_3R3R_kinematics::setDependentAccelerations(const vect_n<double>& aDep
 };
 
 
-void RK_CALL manip_3R3R_kinematics::save(serialization::oarchive& A, unsigned int) const {
+void RK_CALL manip_ERA_kinematics::save(serialization::oarchive& A, unsigned int) const {
   inverse_kinematics_model::save(A,inverse_kinematics_model::getStaticObjectType()->TypeVersion());
   A & RK_SERIAL_SAVE_WITH_NAME(m_base_frame)
     & RK_SERIAL_SAVE_WITH_NAME(m_joints)
     & RK_SERIAL_SAVE_WITH_NAME(m_EE)
-    & RK_SERIAL_SAVE_WITH_NAME(base_to_shoulder)
-    & RK_SERIAL_SAVE_WITH_NAME(shoulder_to_elbow)
-    & RK_SERIAL_SAVE_WITH_NAME(elbow_to_joint_4)
-    & RK_SERIAL_SAVE_WITH_NAME(joint_4_to_wrist)
-    & RK_SERIAL_SAVE_WITH_NAME(wrist_to_flange)
+    & RK_SERIAL_SAVE_WITH_NAME(link_lengths)
     & RK_SERIAL_SAVE_WITH_NAME(joint_lower_bounds)
     & RK_SERIAL_SAVE_WITH_NAME(joint_upper_bounds)
     & RK_SERIAL_SAVE_WITH_NAME(m_chain);
 };
 
-void RK_CALL manip_3R3R_kinematics::load(serialization::iarchive& A, unsigned int) {
+void RK_CALL manip_ERA_kinematics::load(serialization::iarchive& A, unsigned int) {
   inverse_kinematics_model::load(A,inverse_kinematics_model::getStaticObjectType()->TypeVersion());
   A & RK_SERIAL_LOAD_WITH_NAME(m_base_frame)
     & RK_SERIAL_LOAD_WITH_NAME(m_joints)
     & RK_SERIAL_LOAD_WITH_NAME(m_EE)
-    & RK_SERIAL_LOAD_WITH_NAME(base_to_shoulder)
-    & RK_SERIAL_LOAD_WITH_NAME(shoulder_to_elbow)
-    & RK_SERIAL_LOAD_WITH_NAME(elbow_to_joint_4)
-    & RK_SERIAL_LOAD_WITH_NAME(joint_4_to_wrist)
-    & RK_SERIAL_LOAD_WITH_NAME(wrist_to_flange)
+    & RK_SERIAL_LOAD_WITH_NAME(link_lengths)
     & RK_SERIAL_LOAD_WITH_NAME(joint_lower_bounds)
     & RK_SERIAL_LOAD_WITH_NAME(joint_upper_bounds)
     & RK_SERIAL_LOAD_WITH_NAME(m_chain);

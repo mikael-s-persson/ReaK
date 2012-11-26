@@ -7,6 +7,8 @@ set(KTEMODELS_SOURCES
   "${SRCROOT}${RKKTEMODELSDIR}/manip_3R_arm.cpp"
   "${SRCROOT}${RKKTEMODELSDIR}/manip_3R3R_arm.cpp"
   "${SRCROOT}${RKKTEMODELSDIR}/manip_SCARA_arm.cpp"
+  "${SRCROOT}${RKKTEMODELSDIR}/manip_SSRMS_arm.cpp"
+  "${SRCROOT}${RKKTEMODELSDIR}/manip_ERA_arm.cpp"
 )
 
 
@@ -21,6 +23,8 @@ set(KTEMODELS_HEADERS
   "${RKKTEMODELSDIR}/manip_3R_arm.hpp"
   "${RKKTEMODELSDIR}/manip_3R3R_arm.hpp"
   "${RKKTEMODELSDIR}/manip_SCARA_arm.hpp"
+  "${RKKTEMODELSDIR}/manip_SSRMS_arm.hpp"
+  "${RKKTEMODELSDIR}/manip_ERA_arm.hpp"
 )
 
 add_library(reak_kte_models STATIC ${KTEMODELS_SOURCES})
