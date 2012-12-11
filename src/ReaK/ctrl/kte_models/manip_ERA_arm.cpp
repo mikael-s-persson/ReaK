@@ -316,7 +316,7 @@ void manip_ERA_kinematics::doInverseMotion() {
     // at this point, there is a degree of freedom in the 1 and 7 joints that determines arm-plane.
     double c1 =  preferred_elbow_dir[1];  // preferred elbow direction is the joint-2 axis.
     double s1 = -preferred_elbow_dir[0];
-    m_joints[0]->q = atan2(s1, c2);
+    m_joints[0]->q = atan2(s1, c1);
     
     double c7 =  preferred_elbow_dir * EE_y_axis;  // preferred elbow direction is the joint-6 axis.
     double s7 =  preferred_elbow_dir * EE_x_axis;
@@ -330,7 +330,7 @@ void manip_ERA_kinematics::doInverseMotion() {
     
     double c1 =  preferred_elbow_dir[1];  // preferred elbow direction is the joint-2 axis.
     double s1 = -preferred_elbow_dir[0];
-    m_joints[0]->q = atan2(s1, c2);
+    m_joints[0]->q = atan2(s1, c1);
     
     if(preferred_elbow_dir * w2_y_axis < 0.0)
       w2_y_axis = -w2_y_axis;

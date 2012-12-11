@@ -66,7 +66,7 @@ namespace detail {
 
 
 template <typename Matrix>
-typename mat_traits<Matrix>::size_type jacobi_maxind(const Matrix& A, typename mat_traits<Matrix>::size_type k) {
+typename mat_traits<Matrix>::size_type Jacobi_maxind(const Matrix& A, typename mat_traits<Matrix>::size_type k) {
   typedef typename mat_traits<Matrix>::size_type SizeType;
   using std::fabs;
   
@@ -80,21 +80,8 @@ typename mat_traits<Matrix>::size_type jacobi_maxind(const Matrix& A, typename m
   return result;
 };
 
-template <typename Matrix>
-void jacobi_rotate(Matrix& A, 
-		   typename mat_traits<Matrix>::size_type k,
-		   typename mat_traits<Matrix>::size_type l,
-		   typename mat_traits<Matrix>::size_type i,
-		   typename mat_traits<Matrix>::size_type j,
-		   typename mat_traits<Matrix>::value_type s,
-		   typename mat_traits<Matrix>::value_type c) {
-  typename mat_traits<Matrix>::value_type tmp1 = c * A(k,l) - s * A(i,j);
-  A(i,j) = s * A(k,l) + c * A(i,j);
-  A(k,l) = tmp1;
-};
-
 template <typename Matrix1, typename Matrix2, typename Matrix3>
-void eigensolve_Jacobi_impl(Matrix1& A, Matrix2& E, Matrix3& Q, typename mat_traits<Matrix1>::value_type NumTol) {
+void eigensolve_Jacobi_impl(Matrix1& A, Matrix2& E, Matrix3* Q, typename mat_traits<Matrix1>::value_type NumTol) {
   typedef typename mat_traits<Matrix1>::value_type ValueType; 
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   using std::fabs;
@@ -103,77 +90,66 @@ void eigensolve_Jacobi_impl(Matrix1& A, Matrix2& E, Matrix3& Q, typename mat_tra
   SizeType N = A.get_row_count(); 
   
   // init lambda, Q, and arrays ind, changed
-  vect_n<SizeType> ind(N);
-  std::vector<bool> changed(N);
-  for(SizeType i=0;i<N;++i) {
-    for(SizeType j=i+1;j<N;++j)
-      Q(j,i) = (Q(i,j) = 0.0);
-    Q(i,i) = 1.0;
+  for(SizeType i = 0; i < N; ++i)
     E(i,i) = A(i,i);
-    changed[i] = true;
-  };
-  for(SizeType i=0;i<N-1;++i)
-    ind[i] = jacobi_maxind(A,i);
-  SizeType state(N); 
-
-  while(state != 0) { //next rotation
-    //Find the maximum off-diagonal term
-    SizeType m(0); 
-    for(SizeType i=1;i<N-1;++i)
-      if(fabs(A(i,ind[i])) > fabs(A(m,ind[m])))
-	m = i;
-    SizeType k(m); //Choose the row index of the pivot element.
-    SizeType l(ind[m]); //Choose the column index of the pivot element.
-
-    //calculate c = cos(phi), s = sin(phi)
-    ValueType p = A(k,l);
-    if(fabs(p) < NumTol)              // if Akl is below tolerance, then it is over because the maximum off-diagonal term
-      return;                         // is almost zero (close enough to zero).
-    ValueType y(0.5*(E(l,l) - E(k,k)));
-    ValueType t(fabs(y) + sqrt(p*p + y*y));
-    ValueType s(sqrt(p*p + t*t));
-    ValueType c(t / s);
-    s = p / s;
-    t = p*p / t;
-    if(y < 0.0) {
-      s = -s;
-      t = -t;
+  ValueType max_od_value = 0.0;
+  for(SizeType i = 0; i < N-1; ++i)
+    for(SizeType j = i+1; j < N; ++j)
+      if(max_od_value < fabs(A(i,j)))
+        max_od_value = fabs(A(i,j));
+  
+  while(max_od_value > NumTol) {
+    for(SizeType k = 0; k < N-1; ++k) {
+      for(SizeType l = k+1; l < N; ++l) {
+        //calculate c = cos(phi), s = sin(phi)
+        ValueType p = A(k,l);
+        ValueType y(0.5*(E(l,l) - E(k,k)));
+        ValueType t(fabs(y) + sqrt(p*p + y*y));
+        ValueType s(sqrt(p*p + t*t));
+        ValueType c(t / s);
+        s = p / s;
+        t = p*p / t;
+        if(y < 0.0) {
+          s = -s;
+          t = -t;
+        };
+        A(k,l) = 0.0; //Update off-diagonal
+        E(k,k) -= t; //Update diagonal k
+        E(l,l) += t; //Update diagonal l
+        
+        //Perform a Jacobi rotation on the symmetric matrix A.
+        // first, do the segment between k and l (row-segment (k,k) to (k,l), and column-segment (k,l) to (l,l))
+        for(SizeType i = k+1; i < l; ++i)
+          A(i,l) = A(k,i) = c * A(k,i) - s * A(i,l);
+        // then, do the row-segment from l to end.
+        for(SizeType i = l+1; i < A.get_col_count(); ++i) {
+          ValueType tmp1 = c * A(k,i) - s * A(l,i);
+          A(l,i) = s * A(k,i) + c * A(l,i);
+          A(k,i) = tmp1;
+        };
+        // finally, do the column-segment from 1 to k.
+        for(SizeType i = 0; i < k; ++i) {
+          ValueType tmp1 = c * A(i,k) - s * A(i,l);
+          A(i,l) = s * A(i,k) + c * A(i,l);
+          A(i,k) = tmp1;
+        };
+        
+        //Perform a Givens rotation on the eigen vector matrix.
+        if(Q) {
+          for(SizeType i = 0; i < N; ++i) {
+            ValueType tmp1   = c * (*Q)(i,k) - s * (*Q)(i,l);
+            (*Q)(i,l) = s * (*Q)(i,k) + c * (*Q)(i,l);
+            (*Q)(i,k) = tmp1;
+          };
+        };
+      };
     };
-    A(k,l) = 0.0; //Update off-diagonal
-    E(k,k) -= t; //Update diagonal k
-    E(l,l) += t; //Update diagonal l
-
-    //Track the changes to the diagonal terms, state decreases as diagonal terms become numerically constant.
-    if(fabs(t) < NumTol) {
-      if(changed[k]) {
-	changed[k] = false; --state; };
-      if(changed[l]) {
-	changed[l] = false; --state; };
-    } else {
-      if(!changed[k]) {
-	changed[k] = true; ++state; };
-      if(!changed[l]) {
-	changed[l] = true; ++state; };
-    };
-
-    //Perform a Jacobi rotation on the symmetric matrix A.
-    for(SizeType i=0;i<k;++i)
-      jacobi_rotate(A,i,k,i,l,s,c);
-    for(SizeType i=k+1;i<l;++i)
-      jacobi_rotate(A,k,i,i,l,s,c);
-    for(SizeType i=l+1;i<N;++i)
-      jacobi_rotate(A,k,i,l,i,s,c);
-
-    //Perform a Givens rotation on the eigen vector matrix.
-    for(SizeType i=0;i<N;++i) {
-      ValueType tmp1   = c * Q(i,k) - s * Q(i,l);
-      Q(i,l) = s * Q(i,k) + c * Q(i,l);
-      Q(i,k) = tmp1;
-    };
-
-    //Find the biggest off-diagonal elements in the two updated rows.
-    ind[k] = jacobi_maxind(A,k);
-    ind[l] = jacobi_maxind(A,l);
+    
+    max_od_value = 0.0;
+    for(SizeType i = 0; i < N-1; ++i)
+      for(SizeType j = i+1; j < N; ++j)
+        if(max_od_value < fabs(A(i,j)))
+          max_od_value = fabs(A(i,j));
   };
 };
 
@@ -201,9 +177,8 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
 void >::type eigensolve_Jacobi(const Matrix1& A, Matrix2& E, Matrix3& Q, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
   mat<typename mat_traits<Matrix1>::value_type, mat_structure::square> S(A);
   E.set_col_count(A.get_col_count());
-  Q.set_row_count(A.get_col_count());
-  Q.set_col_count(A.get_col_count());
-  detail::eigensolve_Jacobi_impl(S,E,Q,NumTol);
+  Q = mat<typename mat_traits<Matrix1>::value_type, mat_structure::identity>(A.get_col_count());
+  detail::eigensolve_Jacobi_impl(S,E,&Q,NumTol);
 };
 
 /**
@@ -232,71 +207,9 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
 void >::type eigensolve_Jacobi(const Matrix1& A, Matrix2& E, Matrix3& Q, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
   mat<typename mat_traits<Matrix1>::value_type, mat_structure::square> S(A);
   mat<typename mat_traits<Matrix2>::value_type, mat_structure::diagonal> E_tmp(A.get_col_count());
-  Q.set_row_count(A.get_col_count());
-  Q.set_col_count(A.get_col_count());
-  detail::eigensolve_Jacobi_impl(S,E_tmp,Q,NumTol);
+  Q = mat<typename mat_traits<Matrix1>::value_type, mat_structure::identity>(A.get_col_count());
+  detail::eigensolve_Jacobi_impl(S,E_tmp,&Q,NumTol);
   E = E_tmp;
-};
-
-
-/**
- * Computes the eigen-values / -vectors of a matrix via the Jacobi Algorithm.
- *
- * \param A real symmetric matrix.
- * \param E holds, as output, the unsorted eigenvalue on the diagonal.
- * \param Q holds as output, the eigenvectors corresponding to the list of eigenvalues in E.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- *
- * \author Mikael Persson
- */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             ((mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
-                              (mat_traits<Matrix1>::structure == mat_structure::tridiagonal)) &&
-                             is_writable_matrix<Matrix2>::value && 
-                             (mat_traits<Matrix2>::structure == mat_structure::diagonal) &&
-                             is_writable_matrix<Matrix3>::value &&
-                             (mat_traits<Matrix3>::structure == mat_structure::orthogonal), 
-void >::type eigensolve_Jacobi(const Matrix1& A, Matrix2& E, Matrix3& Q, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  mat<typename mat_traits<Matrix1>::value_type, mat_structure::square> S(A);
-  E.set_col_count(A.get_col_count());
-  mat<typename mat_traits<Matrix3>::value_type, mat_structure::square> Q_tmp(A.get_col_count());
-  detail::eigensolve_Jacobi_impl(S,E,Q_tmp,NumTol);
-  Q = Q_tmp;
-};
-
-/**
- * Computes the eigen-values / -vectors of a matrix via the Jacobi Algorithm.
- *
- * \param A real symmetric matrix.
- * \param E holds, as output, the unsorted eigenvalue on the diagonal.
- * \param Q holds as output, the eigenvectors corresponding to the list of eigenvalues in E.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- *
- * \author Mikael Persson
- */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             ((mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
-                              (mat_traits<Matrix1>::structure == mat_structure::tridiagonal)) &&
-                             is_writable_matrix<Matrix2>::value && 
-                             ((mat_traits<Matrix2>::structure == mat_structure::rectangular) ||
-                              (mat_traits<Matrix2>::structure == mat_structure::square) ||
-                              (mat_traits<Matrix2>::structure == mat_structure::tridiagonal) ||
-                              (mat_traits<Matrix2>::structure == mat_structure::upper_triangular) ||
-                              (mat_traits<Matrix2>::structure == mat_structure::lower_triangular) ||
-                              (mat_traits<Matrix2>::structure == mat_structure::symmetric)) &&
-                             is_fully_writable_matrix<Matrix3>::value &&
-                             (mat_traits<Matrix3>::structure == mat_structure::orthogonal), 
-void >::type eigensolve_Jacobi(const Matrix1& A, Matrix2& E, Matrix3& Q, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  mat<typename mat_traits<Matrix1>::value_type, mat_structure::square> S(A);
-  mat<typename mat_traits<Matrix2>::value_type, mat_structure::diagonal> E_tmp(A.get_col_count());
-  mat<typename mat_traits<Matrix3>::value_type, mat_structure::square> Q_tmp(A.get_col_count());
-  detail::eigensolve_Jacobi_impl(S,E_tmp,Q_tmp,NumTol);
-  E = E_tmp;
-  Q = Q_tmp;
 };
 
 
@@ -329,7 +242,7 @@ void >::type linlsq_Jacobi(const Matrix1& A, Matrix2& x, const Matrix3& b, typen
   mat<ValueType,mat_structure::square> S(A);
   mat<ValueType,mat_structure::diagonal> E(A.get_row_count());
   mat<ValueType,mat_structure::square, mat_alignment::column_major> Q(A.get_row_count());
-  detail::eigensolve_Jacobi_impl(S,E,Q,NumTol);
+  detail::eigensolve_Jacobi_impl(S,E,&Q,NumTol);
   for(SizeType i=0;i<A.get_row_count();++i)
     if(fabs(E(i,i)) > NumTol)
       E(i,i) = 1.0 / E(i,i);
@@ -370,7 +283,7 @@ void >::type pseudoinvert_Jacobi(const Matrix1& A, Matrix2& A_inv, typename mat_
   mat<ValueType,mat_structure::square> S(A);
   mat<ValueType,mat_structure::diagonal> E(A.get_row_count());
   mat<ValueType,mat_structure::square, mat_alignment::column_major> Q(A.get_row_count()); 
-  detail::eigensolve_Jacobi_impl(S,E,Q,NumTol); 
+  detail::eigensolve_Jacobi_impl(S,E,&Q,NumTol); 
   for(SizeType i=0;i<A.get_row_count();++i)
     if(fabs(E(i,i)) > NumTol)
       E(i,i) = 1.0 / E(i,i);
@@ -397,7 +310,7 @@ typename mat_traits<Matrix>::value_type >::type determinant_Jacobi(const Matrix&
   mat<ValueType,mat_structure::square> S(A);
   mat<ValueType,mat_structure::diagonal> E(A.get_row_count());
   mat<ValueType,mat_structure::square> Q(A.get_row_count());
-  detail::eigensolve_Jacobi_impl(S,E,Q,NumTol);
+  detail::eigensolve_Jacobi_impl(S,E,&Q,NumTol);
   ValueType result(1.0);
   for(SizeType i=0;i<A.get_row_count();++i)
     result *= E(i,i);

@@ -150,7 +150,7 @@ void export_kte_models() {
     .def("add_inertia_3D",  static_cast< ReaK::kte::manipulator_dynamics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::kte::inertia_3D >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
     .def("add_system_input", static_cast< ReaK::kte::manipulator_dynamics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::kte::system_input >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
     .def("add_system_output",  static_cast< ReaK::kte::manipulator_dynamics_model& (ReaK::kte::manipulator_dynamics_model::*)(const ReaK::shared_ptr< ReaK::kte::system_output >&) >(&ReaK::kte::manipulator_dynamics_model::operator<<), return_internal_reference<>())
-    .add_property("inputs", &ReaK::kte::manipulator_dynamics_model::getInput, &ReaK::kte::manipulator_dynamics_model::setInput)
+    .add_property("inputs", &ReaK::kte::manipulator_dynamics_model::getInput)
     .add_property("dependent_states", &ReaK::kte::manipulator_dynamics_model::getDependentStates)
     .def("mass_calculator", &ReaK::kte::manipulator_dynamics_model::getMassCalc, return_internal_reference<>())
     .def("compute_output", &py_dyn_mdl_compute_output)

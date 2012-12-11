@@ -49,6 +49,104 @@ namespace ReaK {
 namespace detail {
 
 
+/* TESTED and works. Golub & vanLoan Alg-8.3.2 */
+template <typename Matrix1, typename Matrix2>
+void symmetric_QR_step(Matrix1& T, Matrix2* Z, typename mat_traits<Matrix1>::value_type NumTol) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::sqrt;
+  
+  SizeType N = T.get_row_count();
+  
+  ValueType d  = 0.5 * (T(N-2,N-2) - T(N-1,N-1));
+  ValueType tsqr = T(N-1,N-2) * T(N-1,N-2);
+  ValueType mu = T(N-1,N-1) - tsqr / (d + (d > 0.0 ? 1.0 : -1.0) * sqrt(d * d + tsqr));
+  ValueType x = T(0,0) - mu;
+  ValueType z = T(1,0);
+  for(SizeType k = 0; k < N-1; ++k) {
+    givens_rot_matrix< ValueType > g(x,z,NumTol);
+    
+    mat_sub_block<Matrix1> subT1(T, 2, (k < N-2 ? (k > 0 ? 4 : 3) : (k > 0 ? 3 : 2)), k, (k > 0 ? k-1 : 0));
+    givens_rot_prod(g, subT1); // G * A
+    
+    mat_sub_block<Matrix1> subT2(T, (k < N-2 ? (k > 0 ? 4 : 3) : (k > 0 ? 3 : 2)), 2, (k > 0 ? k-1 : 0), k);
+    givens_rot_prod(subT2, transpose(g)); // A * G^T
+    
+    if(Z) {
+      mat_sub_block<Matrix2> subZ(*Z,Z->get_row_count(),2,0,k);
+      givens_rot_prod(subZ,transpose(g)); // Q_prev * P
+    };
+    
+    if(k < N-2) {
+      x = T(k+1,k);
+      z = T(k+2,k);
+    };
+  };
+};
+
+
+template <typename Matrix1, typename Matrix2>
+void symmetric_QRalg_impl(Matrix1& T, Matrix2* Z, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  //if(A.get_col_count() != A.get_row_count())
+   // throw std::range_error("A matrix must be square for its eigen problem to be solved!");
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::fabs;
+  
+  SizeType N = T.get_row_count();
+  
+  ValueType absNumTol = 0.0;
+  for(SizeType i = 0; i < N; ++i)
+    absNumTol = fabs(T(i,i));
+  absNumTol *= NumTol / N;
+  
+  detail::decompose_TriDiag_impl(T,Z,absNumTol);
+  
+  SizeType q = N;
+  SizeType p = N;
+  
+  while(q > 0) {
+    SizeType i = N-1;
+    //find a trailing diagonal sub-matrix
+    for(; i > 0; --i) {
+      if(fabs(T(i,i-1)) < absNumTol)
+        T(i,i-1) = ValueType(0.0);
+      else
+        break;
+    };
+    q = i;
+    if(i == 0) //break if it is entirely diagonal.
+      break;
+    
+    //find the middle, biggest unreduced tridiagonal matrix
+    for(; i > 0; --i) {
+      if(fabs(T(i,i-1)) < absNumTol) {
+        T(i,i-1) = ValueType(0.0);
+        break;
+      };
+    };
+    p = i;
+    
+    //set remaining sub-diagonals to zero if they are very small.
+    for(i = p; i > 0; --i)
+      if(fabs(T(i,i-1)) < absNumTol)
+        T(i,i-1) = ValueType(0.0);
+    
+    if(Z) {
+      mat_sub_block<Matrix2> subZ(*Z, Z->get_row_count(), q-p+1, 0, p);
+      mat_sub_block<Matrix1> subT(T, q-p+1, q-p+1, p, p);
+      symmetric_QR_step(subT,&subZ,absNumTol);
+    } else {
+      mat_sub_block<Matrix1> subT(T, q-p+1, q-p+1, p, p);
+      symmetric_QR_step(subT,static_cast<Matrix2*>(NULL),absNumTol);
+    };
+    
+  };
+  
+};
+
+
+
 
 template <typename Matrix1, typename Matrix2>
 void francis_QR_step(Matrix1& H, Matrix2* Z, typename mat_traits<Matrix1>::size_type Offset, typename mat_traits<Matrix1>::value_type NumTol) {
@@ -267,7 +365,6 @@ bool deflate_hess_all_down_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
                                 typename mat_traits<Matrix1>::value_type NumTol)
 {
   using std::fabs;
-  typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   SizeType N = A.get_row_count();
   SizeType M = N - row_offset;
@@ -400,7 +497,6 @@ bool deflate_hess_all_up_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
 		              typename mat_traits<Matrix1>::value_type NumTol)
 {
   using std::fabs;
-  typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   SizeType N = A.get_row_count();
   SizeType M = N - row_offset;
@@ -754,6 +850,201 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typen
 
 
 }; //detail
+
+
+
+
+/**
+ * Solves for the eigen-values of a matrix, using the symmetric QR algorithm (Golub and vanLoan Alg.-8.3.3).
+ * 
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \tparam Matrix3 A writable matrix type.
+ * \param A square, symmetric matrix.
+ * \param Q holds as output, the unitary square matrix Q.
+ * \param D holds as output, the diagonal matrix D in A = Q D Q^T.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix A does not have equal row and column counts.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_fully_writable_matrix<Matrix2>::value &&
+                             is_writable_matrix<Matrix3>::value, 
+void >::type eigensolve_SymQR(const Matrix1& A, Matrix2& Q, Matrix3& D, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  if(A.get_row_count() != A.get_col_count())
+    throw std::range_error("Symmetric QR algorithm is only possible on a square (symmetric) matrix!");
+
+  Q = mat< typename mat_traits<Matrix2>::value_type, mat_structure::identity>(A.get_row_count());
+  mat< typename mat_traits<Matrix1>::value_type, mat_structure::square> D_tmp(A);
+  detail::symmetric_QRalg_impl(D_tmp,&Q,NumTol);
+  D = D_tmp;
+};
+
+
+/**
+ * Solves for the eigen-values of a matrix, using the symmetric QR algorithm (Golub and vanLoan Alg.-8.3.3).
+ * 
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A writable matrix type.
+ * \param A square, symmetric matrix.
+ * \param D holds as output, the diagonal matrix D in A = Q D Q^T.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix A does not have equal row and column counts.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_writable_matrix<Matrix2>::value, 
+void >::type eigensolve_SymQR(const Matrix1& A, Matrix2& D, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  if(A.get_row_count() != A.get_col_count())
+    throw std::range_error("Symmetric QR algorithm is only possible on a square (symmetric) matrix!");
+  
+  mat< typename mat_traits<Matrix1>::value_type, mat_structure::square> D_tmp(A);
+  detail::symmetric_QRalg_impl(D_tmp,static_cast<mat< typename mat_traits<Matrix1>::value_type, mat_structure::square>*>(NULL),NumTol);
+  D = D_tmp;
+};
+
+
+/**
+ * Inverses a matrix, using the symmetric QR algorithm for eigenvalues (Golub and vanLoan Alg.-8.3.3).
+ * Note that this function will output the pseudo-inverse if there are any zero eigenvalues.
+ * 
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A writable matrix type.
+ * \param A square, symmetric matrix.
+ * \param A_inv holds as output, the (pseudo-)inverse of matrix A.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix A does not have equal row and column counts.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_writable_matrix<Matrix2>::value, 
+void >::type pseudoinvert_SymQR(const Matrix1& A, Matrix2& A_inv, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::fabs;
+  if(A.get_row_count() != A.get_col_count())
+    throw std::range_error("Symmetric QR algorithm is only possible on a square (symmetric) matrix!");
+
+  mat< ValueType, mat_structure::square> Q(mat< ValueType, mat_structure::identity>(A.get_row_count()));
+  mat< ValueType, mat_structure::square> D_tmp(A);
+  detail::symmetric_QRalg_impl(D_tmp,&Q,NumTol);
+  mat< ValueType, mat_structure::diagonal> D(A.get_col_count());
+  for(SizeType i = 0; i < A.get_col_count(); ++i) {
+    if(fabs(D_tmp(i,i)) > NumTol)
+      D(i,i) = ValueType(1.0) / D_tmp(i,i);
+    else
+      D(i,i) = ValueType(0.0);
+  };
+  D_tmp = Q * D;
+  A_inv = D_tmp * transpose_view(Q);
+};
+
+
+/**
+ * Inverses a matrix, using the symmetric QR algorithm for eigenvalues (Golub and vanLoan Alg.-8.3.3).
+ * Note that this function will output the pseudo-inverse if there are any zero eigenvalues.
+ * 
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A writable matrix type.
+ * \param A square, symmetric matrix.
+ * \param B holds, as input, the RHS of the linear system of equations,
+ *          and, as output, the least-square solution of the system.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix A does not have equal row and column counts.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_fully_writable_matrix<Matrix2>::value, 
+void >::type linsolve_SymQR(const Matrix1& A, Matrix2& B, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::fabs;
+  if(A.get_row_count() != A.get_col_count())
+    throw std::range_error("Symmetric QR algorithm is only possible on a square (symmetric) matrix!");
+  if(A.get_row_count() != B.get_row_count())
+    throw std::range_error("The linear system of equations has mismatched dimensions!");
+  
+  mat< ValueType, mat_structure::square> Q(mat< ValueType, mat_structure::identity>(A.get_row_count()));
+  mat< ValueType, mat_structure::square> D_tmp(A);
+  detail::symmetric_QRalg_impl(D_tmp,&Q,NumTol);
+  B = transpose_view(Q) * B;
+  for(SizeType i = 0; i < A.get_col_count(); ++i) {
+    ValueType fact(0.0);
+    if(fabs(D_tmp(i,i)) > NumTol) 
+      fact = ValueType(1.0) / D_tmp(i,i);
+    for(SizeType j = 0; j < B.get_col_count(); ++j)
+      B(i,j) *= fact;
+  };
+  B = Q * B;
+};
+
+
+/**
+ * Functor to wrap a call to a symmetric QR-algorithm-based linear system solver.
+ */
+struct SymQR_linsolver {
+  template <typename Matrix1, typename Matrix2, typename Matrix3>
+  void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+    X = B;
+    linsolve_SymQR(A,X,NumTol);
+  };
+};
+
+
+
+/**
+ * Solves for the eigen-values of a matrix, using the symmetric QR algorithm (Golub and vanLoan Alg.-8.3.3).
+ * 
+ * \tparam Matrix1 A readable matrix type.
+ * \param A square, symmetric matrix.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix A does not have equal row and column counts.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value, 
+mat_traits<Matrix1> >::type::value_type condition_number_SymQR(const Matrix1& A, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::fabs;
+  if(A.get_row_count() != A.get_col_count())
+    throw std::range_error("Symmetric QR algorithm is only possible on a square (symmetric) matrix!");
+  
+  mat< typename mat_traits<Matrix1>::value_type, mat_structure::square> D_tmp(A);
+  detail::symmetric_QRalg_impl(D_tmp,static_cast<mat< typename mat_traits<Matrix1>::value_type, mat_structure::square>*>(NULL),NumTol);
+  ValueType l_max(0.0);
+  ValueType l_min(std::numeric_limits< ValueType >::infinity());
+  for(SizeType i = 0; i < A.get_col_count(); ++i) {
+    if(fabs(D_tmp(i,i)) > l_max)
+      l_max = fabs(D_tmp(i,i));
+    if(fabs(D_tmp(i,i)) < l_min)
+      l_min = fabs(D_tmp(i,i));
+  };
+  if(l_min < 1e-10 * l_max)
+    return std::numeric_limits< ValueType >::infinity();
+  else
+    return l_max / l_min;
+};
+
 
 
 

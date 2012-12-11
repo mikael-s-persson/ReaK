@@ -90,7 +90,41 @@ void decompose_Hess_impl(Matrix1& H, Matrix2* Q, typename mat_traits<Matrix1>::v
   };
   
 };
+
+/* tested and working. Golub and vanLoan Alg.-8.3.1 */
+template <typename Matrix1, typename Matrix2>
+void decompose_TriDiag_impl(Matrix1& T, Matrix2* Q, typename mat_traits<Matrix1>::value_type absNumTol)
+{
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::sqrt;
+  SizeType N = T.get_row_count();
+  householder_matrix< vect_n<ValueType> > hhm;
   
+  SizeType t = N-2;
+  vect_n<ValueType> p(N);
+  vect_n<ValueType> w(N);
+
+  for(SizeType i=0;i<t;++i) {
+    
+    hhm.set(mat_row_slice<Matrix1>(T,i,i+1,N - i - 1),absNumTol);
+    
+    mat_sub_block<Matrix1> subT1(T,N - i, N - i - 1, i, i + 1);
+    householder_prod(subT1,hhm); // Q_prev * P
+    
+    mat_sub_block<Matrix1> subT2(T,N - i - 1, N - i, i + 1, i);
+    householder_prod(hhm,subT2); // Q_prev * P
+    
+    if(Q) {
+      //mat_sub_block<Matrix2> subQ(*Q,N - i - 1,N,i + 1,0);
+      //householder_prod(hhm,subQ); // Q_prev * P
+      mat_sub_block<Matrix2> subQ(*Q,N,N - i - 1,0,i + 1);
+      householder_prod(subQ,hhm); // Q_prev * P
+    };
+
+  };
+  
+};
 
 
 template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>

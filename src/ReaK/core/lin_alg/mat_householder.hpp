@@ -390,10 +390,6 @@ void >::type householder_prod(const householder_matrix<Vector>& P, Matrix& A) {
 template <typename Matrix, typename Vector>
 typename boost::enable_if_c< is_fully_writable_matrix<Matrix>::value,
 Matrix >::type operator *(const Matrix& A, const householder_matrix<Vector>& P) {
-  typedef typename mat_traits<Matrix>::value_type ValueType;
-  typedef typename mat_traits<Matrix>::size_type SizeType;
-  using std::fabs;
-  
   Matrix result(A);
   householder_prod(result,P);
   return result;
@@ -402,10 +398,6 @@ Matrix >::type operator *(const Matrix& A, const householder_matrix<Vector>& P) 
 template <typename Matrix, typename Vector>
 typename boost::enable_if_c< is_fully_writable_matrix<Matrix>::value,
 Matrix >::type operator *(const householder_matrix<Vector>& P, const Matrix& A) {
-  typedef typename mat_traits<Matrix>::value_type ValueType;
-  typedef typename mat_traits<Matrix>::size_type SizeType;
-  using std::fabs;
-  
   Matrix result(A);
   householder_prod(P,result);
   return result;

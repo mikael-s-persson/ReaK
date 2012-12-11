@@ -110,7 +110,7 @@ ReaK::shared_ptr<Y> rk_static_ptr_cast(const ReaK::shared_ptr<ReaK::shared_objec
  */
 template <typename Y>
 ReaK::shared_ptr<Y> rk_dynamic_ptr_cast(const ReaK::shared_ptr<ReaK::shared_object_base>& p) {
-  return ReaK::shared_ptr<Y>(p,reinterpret_cast<Y*>(boost::static_pointer_cast<ReaK::rtti::typed_object>(p)->castTo(Y::getStaticObjectType())));
+  return ReaK::shared_ptr<Y>(p,reinterpret_cast<Y*>(boost::static_pointer_cast<ReaK::shared_object>(p)->castTo(Y::getStaticObjectType())));
 };
 
 //template <typename Y>
@@ -131,7 +131,7 @@ ReaK::shared_ptr<Y> rk_dynamic_ptr_cast(const ReaK::shared_ptr<ReaK::shared_obje
  */
 template <typename Y>
 ReaK::shared_ptr<Y> rk_dynamic_ptr_cast(const ReaK::shared_ptr<ReaK::shared_object_base>& p) {
-  return shared_ptr<Y>(p,reinterpret_cast<Y*>(std::static_pointer_cast<ReaK::rtti::typed_object>(p)->castTo(Y::getStaticObjectType())));
+  return shared_ptr<Y>(p,reinterpret_cast<Y*>(std::static_pointer_cast<ReaK::shared_object>(p)->castTo(Y::getStaticObjectType())));
 };
 
 //template <typename Y>
@@ -141,7 +141,7 @@ ReaK::shared_ptr<Y> rk_dynamic_ptr_cast(const ReaK::shared_ptr<ReaK::shared_obje
 
 template <typename Y, typename Deleter>
 ReaK::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(ReaK::unique_ptr<ReaK::shared_object_base,Deleter>&& p) {
-  void* tmp = static_cast<ReaK::rtti::typed_object*>(p.get())->castTo(Y::getStaticObjectType());
+  void* tmp = static_cast<ReaK::shared_object*>(p.get())->castTo(Y::getStaticObjectType());
   if(tmp) {
     ReaK::unique_ptr<Y,Deleter> r(tmp, p.get_deleter());
     p.release();

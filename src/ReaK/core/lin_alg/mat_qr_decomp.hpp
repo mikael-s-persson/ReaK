@@ -721,12 +721,36 @@ void >::type linlsq_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b, typenam
   
   x_tmp = transpose(P) * x_tmp;
   
-  detail::forwardsub_L_impl(sub(transpose_view(R))(range(0,K-1),range(0,K-1)),x_tmp,NumTol);
-  for(SizeType j = 0; j < x_tmp.get_col_count(); ++j)
-    for(SizeType i = K; i < x_tmp.get_row_count(); ++i)
-      x_tmp(i,j) = 0.0;
-    
-  detail::backsub_R_impl(sub(R)(range(0,K-1),range(0,K-1)),x_tmp,NumTol);
+  if(K < A.get_col_count()) {
+    // A is rank-deficient.
+    mat<ValueType,mat_structure::rectangular> L(A.get_col_count(), K);
+    for(SizeType i = 0; i < K; ++i)
+      for(SizeType j = i; j < A.get_col_count(); ++j)
+        L(j,i) = R(i,j);
+    // solve the problem L x2 = x
+    mat<ValueType,mat_structure::rectangular> x_tmp2(K,x_tmp.get_col_count());
+    mat<ValueType,mat_structure::square> LQ(mat<ValueType,mat_structure::identity>(A.get_col_count()));
+    detail::decompose_QR_impl(L,&LQ,NumTol);
+    x_tmp = transpose_view(LQ) * x_tmp;
+    for(SizeType i = 0; i < x_tmp.get_col_count(); ++i) 
+      for(SizeType j = 0; j < K; ++j)
+        x_tmp2(j,i) = x_tmp(j,i);
+    detail::backsub_R_impl(L, x_tmp2, NumTol);
+    // solve the problem: Lt x3 = x2
+    detail::forwardsub_L_impl(sub(transpose_view(L))(range(0,K),range(0,K)), x_tmp2, NumTol);
+    for(SizeType i = 0; i < x_tmp.get_col_count(); ++i) { 
+      for(SizeType j = 0; j < K; ++j)
+        x_tmp(j,i) = x_tmp2(j,i);
+      for(SizeType j = K; j < x_tmp.get_row_count(); ++j)
+        x_tmp(j,i) = ValueType(0.0);
+    };
+    x_tmp = LQ * x_tmp;
+  } else {
+    // A is full-rank.
+    detail::forwardsub_L_impl(transpose_view(R),x_tmp,NumTol);
+    detail::backsub_R_impl(R,x_tmp,NumTol);
+  };
+  
   x = P * x_tmp;
 };
 
@@ -772,7 +796,6 @@ void >::type minnorm_QR(const Matrix1& A, Matrix2& x, const Matrix3& b, typename
     throw std::range_error("Linear Minimum-Norm solution is only possible if row count of b is equal to row count of A!");
   
   typedef typename mat_traits<Matrix1>::value_type ValueType;
-  typedef typename mat_traits<Matrix1>::size_type SizeType;
   
   mat<ValueType,mat_structure::rectangular> R(A);
   mat_transpose_view< mat<ValueType,mat_structure::rectangular> > R_t(R);
@@ -904,7 +927,6 @@ void >::type pseudoinvert_QR(const Matrix1& A, Matrix2& A_pinv, typename mat_tra
     throw std::range_error("Pseudo-inverse with QR is only possible on a matrix with row-count >= column-count!");
 
   typedef typename mat_traits<Matrix1>::value_type ValueType;
-  typedef typename mat_traits<Matrix1>::size_type SizeType;
   
   mat<ValueType,mat_structure::square> R(A);
   detail::decompose_QR_impl(R,static_cast<mat<ValueType,mat_structure::square>*>(NULL),NumTol);
@@ -912,109 +934,6 @@ void >::type pseudoinvert_QR(const Matrix1& A, Matrix2& A_pinv, typename mat_tra
   A_pinv = transpose(A);
   detail::backsub_Cholesky_impl(transpose_move(R),A_pinv);
 };
-
-
-
-
-
-
-#if 0
-
-
-/**
- * Computes the eigen-values / -vectors via QR decomposition of a matrix, using Householder reflections approach.
- *
- * \param A real square matrix.
- * \param E holds the unsorted eigenvalue vector on its diagonal.
- * \param Q holds as output, the eigenvectors corresponding to the list of eigenvalues in the diagonal E.
- * \param aMaxIter defines the maximum number of iterations to perform.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- *
- * \throws maximum_iteration if the method has reached maximum iteration aMaxIter without converging.
- * \throws std::range_error if the matrix A is not square.
- *
- * \author Mikael Persson
- */
-template <typename Matrix1,typename Matrix2, typename Matrix3>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             is_writable_matrix<Matrix2>::value &&
-                             is_writable_matrix<Matrix3>::value ,
-void >::type eigensolve_QR(const Matrix1& A, Matrix2& E, Matrix3& Q, unsigned int aMaxIter, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  if(A.get_col_count() != A.get_row_count())
-    throw std::range_error("A matrix must be square for its eigen problem to be solved!");
-  typedef typename mat_traits<Matrix1>::value_type ValueType;
-  typedef typename mat_traits<Matrix1>::size_type SizeType;
-  using std::fabs;
-  
-  mat<ValueType,mat_structure::square> A_tmp(A);
-  mat<ValueType,mat_structure::square> R( mat<ValueType,mat_structure::identity>(A.get_col_count()) );
-  mat<ValueType,mat_structure::square> Qk( mat<ValueType,mat_structure::identity>(A.get_col_count()) );
-  mat<ValueType,mat_structure::square> Q_tmp( mat<ValueType,mat_structure::identity>(A.get_col_count()) );
-  
-  SizeType N = A_tmp.get_row_count();
-  
-  RK_NOTICE(2,"A_tmp -1 is " << A_tmp);
-  
-  unsigned int c(0);
-  do {
-    bool is_reduced = false;
-    for(SizeType i = N-1;i>0;--i) {
-      if(fabs(A_tmp(i,i-1)) < NumTol * (fabs(A_tmp(i-1,i-1)) + fabs(A_tmp(i,i)))) {
-	mat<ValueType,mat_structure::square> E_11(i);
-	mat<ValueType,mat_structure::square> Q_11(i);
-	if(i > 1)
-	  eigensolve_QR(mat_const_sub_block< mat<ValueType,mat_structure::square> >(A_tmp,i,i,0,0),E_11,Q_11,aMaxIter,NumTol);
-	else {
-	  E_11(0,0) = A_tmp(0,0);
-	  Q_11(0,0) = ValueType(1.0);
-	};
-	mat<ValueType,mat_structure::square> E_22(N-i);
-	mat<ValueType,mat_structure::square> Q_22(N-i);
-	if(N-i > 1)
-	  eigensolve_QR(mat_const_sub_block< mat<ValueType,mat_structure::square> >(A_tmp,N-i,N-i,i,i),E_22,Q_22,aMaxIter,NumTol);
-	else {
-	  E_22(0,0) = A_tmp(N-1,N-1);
-	  Q_22(0,0) = ValueType(1.0);
-	};
-	set_block(A_tmp,transpose(Q_11) * mat_const_sub_block< mat<ValueType,mat_structure::square> >(A_tmp,i,N-i,0,i) * Q_22, 0, i);
-	set_block(A_tmp,E_11,0,0);
-	set_block(A_tmp,E_22,i,i);
-	
-	mat<ValueType,mat_structure::nil> Q_12(i,N-i);
-	mat<ValueType,mat_structure::nil> Q_21(N-i,i);
-	Q_tmp *= mat_const_ref_horiz_cat< 
-	           mat_const_ref_vert_cat< mat<ValueType,mat_structure::square>, mat<ValueType,mat_structure::nil> >,
-		   mat_const_ref_vert_cat< mat<ValueType,mat_structure::nil>, mat<ValueType,mat_structure::square> > >(
-		     mat_const_ref_vert_cat< mat<ValueType,mat_structure::square>, mat<ValueType,mat_structure::nil> >(Q_11,Q_21),
-		     mat_const_ref_vert_cat< mat<ValueType,mat_structure::nil>, mat<ValueType,mat_structure::square> >(Q_12,Q_22)
-		  );
-	
-	is_reduced = true;
-	break;
-      };
-    };
-    
-    if(!is_reduced) {
-      ValueType mu = A_tmp(N-1,N-1);
-      detail::decompose_QR_impl(A_tmp - mat<double,mat_structure::diagonal>(N,mu),Qk,R,NumTol);
-      A_tmp = R * Qk + mat<double,mat_structure::diagonal>(N,mu);
-      Q_tmp *= Qk;
-    };
-    
-    RK_NOTICE(2,"A_tmp " << c << " is " << A_tmp);
-
-    if (++c == aMaxIter)
-      throw maximum_iteration(aMaxIter);
-
-  } while (!is_diagonal(A_tmp,NumTol));
-  Q = Q_tmp;
-  E = A_tmp;
-};
-
-#endif
-
-
 
 
 

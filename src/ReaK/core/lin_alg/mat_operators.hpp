@@ -115,7 +115,6 @@ void dense_mat_multiply_impl(const Matrix1& M1, const Matrix2& M2, ResultMatrix&
 
 template <typename Matrix1, typename MatrixDiag, typename ResultMatrix>
 void dense_diag_mat_multiply_impl(const Matrix1& M1, const MatrixDiag& M2, ResultMatrix& MR) {
-  typedef typename mat_traits<ResultMatrix>::value_type ValueType;
   typedef typename mat_traits<ResultMatrix>::size_type SizeType;
   for(SizeType i = 0; i < M1.get_row_count(); ++i)
     for(SizeType j = 0; j < M1.get_col_count(); ++j)
@@ -124,7 +123,6 @@ void dense_diag_mat_multiply_impl(const Matrix1& M1, const MatrixDiag& M2, Resul
 
 template <typename MatrixDiag, typename Matrix2, typename ResultMatrix>
 void diag_dense_mat_multiply_impl(const MatrixDiag& M1, const Matrix2& M2, ResultMatrix& MR) {
-  typedef typename mat_traits<ResultMatrix>::value_type ValueType;
   typedef typename mat_traits<ResultMatrix>::size_type SizeType;
   for(SizeType i = 0; i < M2.get_row_count(); ++i)
     for(SizeType j = 0; j < M2.get_col_count(); ++j)
@@ -133,7 +131,6 @@ void diag_dense_mat_multiply_impl(const MatrixDiag& M1, const Matrix2& M2, Resul
 
 template <typename MatrixDiag1, typename MatrixDiag2, typename ResultMatrix>
 void diag_diag_mat_multiply_impl(const MatrixDiag1& M1, const MatrixDiag2& M2, ResultMatrix& MR) {
-  typedef typename mat_traits<ResultMatrix>::value_type ValueType;
   typedef typename mat_traits<ResultMatrix>::size_type SizeType;
   for(SizeType i = 0; i < M1.get_row_count(); ++i)
     MR(i,i) = M1(i,i) * M2(i,i);
@@ -579,7 +576,6 @@ typename mat_addition_result<Matrix1,Matrix2>::type >::type
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type; 
   if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
     throw std::range_error("Matrix dimension mismatch.");
-  typedef typename mat_traits<result_type>::value_type ValueType;
   typedef typename mat_traits<result_type>::size_type SizeType;
   result_type result(M1);
   for(SizeType j=0;j<M1.get_col_count();++j)
@@ -618,7 +614,6 @@ typename mat_addition_result<Matrix1,Matrix2>::type >::type
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type;
   if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
     throw std::range_error("Matrix dimension mismatch.");
-  typedef typename mat_traits<result_type>::value_type ValueType;
   typedef typename mat_traits<result_type>::size_type SizeType;
   result_type result(M1);
   for(SizeType j=0;j<M1.get_col_count();++j)
@@ -1042,7 +1037,6 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && is_readable_m
   operator ==(const Matrix1& M1,const Matrix2& M2) {
     if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
       return false;
-    typedef typename mat_traits< Matrix1 >::value_type ValueType;
     typedef typename mat_traits< Matrix1 >::size_type SizeType;
     for(SizeType j=0;j<M1.get_col_count();++j)
       for(SizeType i=0;i<M1.get_row_count();++i)
@@ -1060,7 +1054,6 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && is_readable_m
   operator !=(const Matrix1& M1,const Matrix2& M2) {
     if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
       return true;
-    typedef typename mat_traits< Matrix1 >::value_type ValueType;
     typedef typename mat_traits< Matrix1 >::size_type SizeType;
     for(SizeType j=0;j<M1.get_col_count();++j)
       for(SizeType i=0;i<M1.get_row_count();++i)

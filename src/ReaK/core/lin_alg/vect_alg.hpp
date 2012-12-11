@@ -2526,7 +2526,6 @@ typename boost::enable_if<
 vect_traits<Vector1> >::type::value_type operator *(const Vector1& v1, const Vector2& v2) {
   if(v1.size() != v2.size())
     throw std::range_error("Vector size mismatch.");
-  typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   typename vect_traits<Vector1>::value_type result(0);
   for(SizeType i=0; i < v1.size(); ++i)
