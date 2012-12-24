@@ -47,13 +47,13 @@ namespace ReaK {
 namespace serialization {
 
 
+std::map< std::string, shared_ptr< type_scheme > >& get_global_schemes();
+
 /**
  * Protobuf scheme constructor.
  */
 class scheme_builder : public oarchive {
   private:
-    std::map< std::string, shared_ptr< type_scheme > > scheme_map;
-    
     std::stack< shared_ptr< serializable_obj_scheme > > field_stack;
     std::stack< std::pair< std::string, std::string > > value_name_stack;
     
@@ -121,10 +121,6 @@ class scheme_builder : public oarchive {
     virtual void RK_CALL finish_repeated_pair();
     
   public:
-    
-    const std::map< std::string, shared_ptr< type_scheme > >& get_scheme_map() const { 
-      return scheme_map;
-    };
     
     scheme_builder();
     virtual ~scheme_builder();

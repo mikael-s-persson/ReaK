@@ -38,6 +38,10 @@ namespace ReaK {
 namespace serialization {
 
 
+std::map< std::string, shared_ptr< type_scheme > >& get_global_schemes() {
+  static std::map< std::string, shared_ptr< type_scheme > > gbl_inst;
+  return gbl_inst;
+};
 
 
 scheme_builder::scheme_builder() {
@@ -72,6 +76,8 @@ oarchive& RK_CALL scheme_builder::save_serializable_ptr(const std::pair<std::str
   
   if(it != mObjRegMap.end())
     return *this;  // this object was already processed, in which case we just don't do anything.
+  
+  std::map< std::string, shared_ptr< type_scheme > >& scheme_map = get_global_schemes();
   
   // See if we need to add the shared_ptr< Type > type-scheme for this object type.
   std::string ptr_type_name = rtti::get_type_id<serializable_shared_pointer>::type_name() + "<" + Item.second->getObjectType()->TypeName() + ">";
@@ -110,6 +116,9 @@ oarchive& RK_CALL scheme_builder::save_serializable(const serializable& Item) {
 };
 
 oarchive& RK_CALL scheme_builder::save_serializable(const std::pair<std::string, const serializable& >& Item) {
+  
+  std::map< std::string, shared_ptr< type_scheme > >& scheme_map = get_global_schemes();
+  
   std::map< std::string, shared_ptr< type_scheme > >::iterator itm = scheme_map.find( Item.second.getObjectType()->TypeName() );
   shared_ptr< type_scheme > sch_ptr;
   if(itm == scheme_map.end()) {
@@ -136,6 +145,9 @@ oarchive& RK_CALL scheme_builder::save_serializable(const std::pair<std::string,
 
 template <typename T>
 void scheme_builder::save_primitive(const std::string& aName) {
+  
+  std::map< std::string, shared_ptr< type_scheme > >& scheme_map = get_global_schemes();
+  
   std::map< std::string, shared_ptr< type_scheme > >::iterator itm = scheme_map.find( rtti::get_type_id< T >::type_name() );
   shared_ptr< type_scheme > sch_ptr;
   if(itm == scheme_map.end()) {
@@ -222,6 +234,9 @@ oarchive& RK_CALL scheme_builder::save_string(const std::pair<std::string, const
 
 
 void RK_CALL scheme_builder::signal_polymorphic_field(const std::string& aBaseTypeName, const unsigned int* aTypeID, const std::string& aFieldName) {
+  
+  std::map< std::string, shared_ptr< type_scheme > >& scheme_map = get_global_schemes();
+  
   // check if the scheme already exists
   std::string ptr_type_name = rtti::get_type_id<serializable_shared_pointer>::type_name() + "<" + aBaseTypeName + ">";
   std::map< std::string, shared_ptr< type_scheme > >::iterator itm = scheme_map.find( ptr_type_name );
@@ -279,6 +294,9 @@ void RK_CALL scheme_builder::start_repeated_field(const std::string& aTypeName, 
 };
 
 void RK_CALL scheme_builder::finish_repeated_field() {
+  
+  std::map< std::string, shared_ptr< type_scheme > >& scheme_map = get_global_schemes();
+  
   // look for the current top of the value_name_stack to find the recorded type scheme.
   std::map< std::string, shared_ptr< type_scheme > >::iterator itm = scheme_map.find( value_name_stack.top().second );
   shared_ptr< type_scheme > val_sch_ptr;
@@ -312,6 +330,9 @@ void RK_CALL scheme_builder::start_repeated_pair(const std::string& aTypeName1, 
 };
 
 void RK_CALL scheme_builder::finish_repeated_pair() {
+  
+  std::map< std::string, shared_ptr< type_scheme > >& scheme_map = get_global_schemes();
+  
   // look for the current top of the value_name_stack to find the recorded type scheme.
   std::map< std::string, shared_ptr< type_scheme > >::iterator val_itm = scheme_map.find( value_name_stack.top().second );
   shared_ptr< type_scheme > val_sch_ptr;

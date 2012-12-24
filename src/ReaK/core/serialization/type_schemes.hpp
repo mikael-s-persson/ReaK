@@ -74,14 +74,41 @@ class type_scheme : public shared_object {
     
     virtual ~type_scheme() { };
     
+    /**
+     * This function returns the name of the type represented by this type-scheme.
+     * \return The name of the type represented by this type-scheme.
+     */
     const std::string& get_type_name() const { return m_type_name; };
+    
+    /**
+     * This function returns the ID of the type represented by this type-scheme, as a null-terminated list of unsigned integers.
+     * \return The ID of the type represented by this type-scheme, as a null-terminated list of unsigned integers.
+     */
     const unsigned int* get_type_ID() const { return m_type_ID_ptr; };
+    
+    /**
+     * This function returns the version of the type represented by this type-scheme, as an unsigned integers.
+     * \return The version of the type represented by this type-scheme, as an unsigned integers.
+     */
     unsigned int get_type_version() const { return m_type_version; };
     
+    /**
+     * This function determines if the type-scheme is a single-field scheme (or not).
+     * \return TRUE if the type-scheme is a single-field scheme (e.g., a primitive type).
+     */
     virtual bool is_single_field() const { return true; };
     
+    /**
+     * This function returns the number of fields in this type-scheme.
+     * \return The number of fields in this type-scheme.
+     */
     virtual std::size_t get_field_count() const { return 0; };
     
+    /**
+     * This function returns the field for a given index in the type-scheme's list of fields.
+     * \param i The index of the field in the type-scheme's list of fields.
+     * \return The field for a given index in the type-scheme's list of fields.
+     */
     virtual std::pair< std::string, shared_ptr< type_scheme > > get_field(std::size_t i) const = 0;
     
 /*******************************************************************************
@@ -278,10 +305,18 @@ class serializable_obj_scheme : public type_scheme {
       return m_fields[i];
     };
     
+    /**
+     * Adds a field to the type-scheme's list of fields.
+     * \param aFieldName The name of the field in the type's scheme.
+     * \param aTypeScheme The type-scheme defining the type of the new field.
+     */
     void add_field(const std::string& aFieldName, const shared_ptr< type_scheme >& aTypeScheme) {
       m_fields.push_back(std::pair< std::string, shared_ptr< type_scheme > >(aFieldName, aTypeScheme));
     };
     
+    /**
+     * Pops the last field off of the type-scheme's list of fields.
+     */
     void pop_last_field() {
       m_fields.pop_back();
     };
@@ -294,12 +329,12 @@ class serializable_obj_scheme : public type_scheme {
       type_scheme::save(A,type_scheme::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_ALIAS("Fields", m_fields);
     };
-
+    
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       type_scheme::load(A,type_scheme::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_ALIAS("Fields", m_fields);
     };
-
+    
     RK_RTTI_MAKE_CONCRETE_1BASE(serializable_obj_scheme,0x81300005,1,"serializable_obj_scheme",type_scheme)
     
 };
@@ -342,17 +377,16 @@ class serializable_ptr_scheme : public type_scheme {
       type_scheme::save(A,type_scheme::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_ALIAS("ObjIDField", m_object_ID_scheme);
     };
-
+    
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       type_scheme::load(A,type_scheme::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_ALIAS("ObjIDField", m_object_ID_scheme);
     };
-
+    
     RK_RTTI_MAKE_CONCRETE_1BASE(serializable_ptr_scheme,0x81300006,1,"serializable_ptr_scheme",type_scheme)
     
     
 };
-  
   
 
 }; //serialization

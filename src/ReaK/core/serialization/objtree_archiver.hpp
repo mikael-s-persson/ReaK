@@ -36,21 +36,73 @@
 #include "archiver.hpp"
 
 #include "base/serializable.hpp"
+#include "type_schemes.hpp"
 
 #include <fstream>
+#include <queue>
 
 #include <boost/graph/adjacency_list.hpp>
 
 namespace ReaK {
 
 namespace serialization {
+  
+class objtree_editor;
+
 
 struct object_graph_node {
   shared_ptr< serializable > p_obj;
   std::string xml_src;
+  
+  object_graph_node(const shared_ptr< serializable >& PObj = shared_ptr< serializable >(), const std::string& aXMLSrc = "") : p_obj(PObj), xml_src(aXMLSrc) { };
 };
 
-typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::directedS, object_graph_node > object_graph;
+typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS, object_graph_node > object_graph;
+typedef boost::graph_traits< object_graph >::vertex_descriptor object_node_desc;
+
+
+class xml_field_editor {
+  private:
+    objtree_editor* p_parent;
+    object_node_desc node;
+    std::vector< std::size_t > src_markers;
+    std::vector< shared_ptr< type_scheme > > field_schemes;
+    std::vector< std::string > field_names;
+    
+    std::string::iterator mark_field(std::string::iterator it_prev, 
+                                     std::string::iterator it_end, 
+                                     const std::string& fld_name, 
+                                     const std::shared_ptr< ReaK::serialization::type_scheme >& scheme);
+    std::size_t get_field_index(const std::string& aName) const;
+    std::string get_object_name(object_node_desc aNode) const;
+    
+  public:
+    
+    friend class objtree_editor;
+    
+    shared_ptr< type_scheme > get_type_scheme() const;
+    const std::string& get_complete_src() const;
+    void set_complete_src(const std::string& aXMLSrc);
+    std::string get_object_name() const;
+    
+    xml_field_editor(objtree_editor* aParent, object_node_desc aNode);
+    
+    std::size_t get_total_field_count() const;
+    std::pair< std::string, shared_ptr< type_scheme > > get_field(std::size_t aIndex) const;
+    
+    std::string get_field_src(std::size_t aIndex) const;
+    std::string get_field_src(const std::string& aName) const;
+    
+    std::string get_field_value(std::size_t aIndex) const;
+    std::string get_field_value(const std::string& aName) const;
+    
+    void set_field_value(std::size_t aIndex, const std::string& aValue);
+    void set_field_value(const std::string& aName, const std::string& aValue);
+    
+    void set_field_newptr(std::size_t aIndex, const shared_ptr< serializable >& aNewPtr);
+    void set_field_newptr(const std::string& aName, const shared_ptr< serializable >& aNewPtr);
+    
+};
 
 
 /**
@@ -60,7 +112,8 @@ class objtree_iarchive : public iarchive {
   private:
     shared_ptr< object_graph > obj_graph;
     shared_ptr< std::stringstream > current_ss;
-
+    object_node_desc obj_graph_root;
+    
     char getNextChar();
     std::string readToken();
     void skipToEndToken(const std::string& name);
@@ -109,12 +162,20 @@ class objtree_iarchive : public iarchive {
     virtual iarchive& RK_CALL load_string(std::string& s);
 
     virtual iarchive& RK_CALL load_string(const std::pair<std::string, std::string& >& s);
-  
+    
+    void load_current_from_node(object_node_desc aNode);
+    
   public:
-
-    objtree_iarchive(const shared_ptr< object_graph >& aObjGraph);
+    
+    friend class objtree_editor;
+    friend class xml_field_editor;
+    
+    shared_ptr< object_graph > get_object_graph() const { return obj_graph; };
+    object_node_desc get_root_node() const { return obj_graph_root; };
+    
+    objtree_iarchive(const shared_ptr< object_graph >& aObjGraph, object_node_desc aRoot = object_node_desc(0));
     virtual ~objtree_iarchive();
-
+    
 };
 
 
@@ -124,8 +185,9 @@ class objtree_iarchive : public iarchive {
 class objtree_oarchive : public oarchive {
   private:
     shared_ptr< object_graph > obj_graph;
+    object_node_desc obj_graph_root;
     shared_ptr< std::stringstream > current_ss;
-    boost::graph_traits< object_graph >::vertex_descriptor current_node;
+    object_node_desc current_node;
     
   protected:
     
@@ -173,13 +235,129 @@ class objtree_oarchive : public oarchive {
     
     virtual oarchive& RK_CALL save_string(const std::pair<std::string, const std::string& >& s);
     
+    void register_new_object(object_node_desc aNode);
+    void unregister_object(object_node_desc aNode);
+    void save_current_stream();
+    void load_current_from_node(object_node_desc aNode);
+    void fresh_current_node(object_node_desc aNode);
+    
   public:
     
-    objtree_oarchive(const shared_ptr< object_graph >& aObjGraph);
+    friend class objtree_editor;
+    
+    shared_ptr< object_graph > get_object_graph() const { return obj_graph; };
+    object_node_desc get_root_node() const { return obj_graph_root; };
+    
+    void set_current_node(object_node_desc aNode) { current_node = aNode; };
+    object_node_desc get_current_node() const { return current_node; };
+    
+    
+    objtree_oarchive(const shared_ptr< object_graph >& aObjGraph, object_node_desc aRoot = object_node_desc(0));
     virtual ~objtree_oarchive();
     
 };
 
+
+/**
+ * This class acts as a manager or container for an object graph that is constantly 
+ * kept in sync with the objects that it handles. In other words, it overlays the 
+ * implicit object-graph formed by the relationships between the objects currently 
+ * loaded in software with explicit "object inspection" capabilities such as those 
+ * necessary for a generic editor for the objects.
+ */
+class objtree_editor {
+  private:
+    shared_ptr< object_graph > obj_graph;
+    object_node_desc obj_graph_root;
+    objtree_oarchive ot_output_arc;
+    objtree_iarchive ot_input_arc;
+    std::priority_queue< object_node_desc > obj_graph_graveyard;
+    
+    objtree_editor(const objtree_editor&); // non-copyable.
+    objtree_editor& operator=(const objtree_editor&); // non-assignable.
+    
+  public:
+    
+    friend class xml_field_editor;
+    
+    const shared_ptr< object_graph >& get_object_graph() const { return obj_graph; };
+    
+    objtree_editor();
+    objtree_editor(const shared_ptr< object_graph >& aObjGraph, object_node_desc aRoot = object_node_desc(0));
+    
+    /**
+     * This function adds a new object node to the object graph. In this version, the new object has a 
+     * given parent and is assumed to replace the 'aOldChild' node as child of the given parent. This 
+     * has the effect of severing that parent-child connection of the old child (unless null) and replacing 
+     * it with a parent-child connection for the new node.
+     * \param aNewObj The new object node to add to the object graph.
+     * \return The vertex descriptor of the node within the object-graph.
+     */
+    object_node_desc add_new_object(const shared_ptr< serializable >& aNewObj, object_node_desc aParent, object_node_desc aOldChild = object_node_desc(0));
+    
+    /**
+     * This function adds a new object node to the object graph. In this version, the new object has no 
+     * parent, and is thus defaulted as being a child of the root node.
+     * \param aNewObj The new object node to add to the object graph.
+     * \return The vertex descriptor of the node within the object-graph.
+     */
+    object_node_desc add_new_object(const shared_ptr< serializable >& aNewObj) {
+      return add_new_object(aNewObj, obj_graph_root);
+    };
+    
+    /**
+     * This function attempts to remove the given object from the object graph. Note that this operation
+     * cannot be performed unless the object has been severed from all its parent-child connections.
+     * With shared-ownership semantics, this function should, in principle, trigger the actual deletion 
+     * of the object referred to by the node being deleted.
+     * \param aNode The node to be removed from the graph.
+     */
+    void remove_object(object_node_desc aNode);
+    
+    /**
+     * This function replaces (or reroutes) the object graph such that a new child node replaces the old child 
+     * in a parent-child connection (edge of the graph). Both the new or old child could be null nodes, meaning 
+     * that either a connection is severed or created, respectively.
+     * \param aParent The parent of which a child is swapped for another.
+     * \param aNewChild The new child that will come and replace the current (old) child. If the new child is null, then the parent-child connection is simply severed.
+     * \param aOldChild The current (or old) child to be replaced. If the old child is null, then a new parent-child connection is created.
+     */
+    void replace_child(object_node_desc aParent, object_node_desc aNewChild, object_node_desc aOldChild);
+    
+    /**
+     * This function severs the parent-child connection (edge of the graph).
+     * \param aParent The parent from which a child is severed.
+     * \param aOldChild The current (or old) child to be severed.
+     */
+    void sever_child(object_node_desc aParent, object_node_desc aOldChild) { replace_child(aParent, object_node_desc(0), aOldChild); };
+    
+    /**
+     * This function creates a parent-child connection (edge of the graph).
+     * \param aParent The parent to which a child is added.
+     * \param aNewChild The new child that will become a child of the parent node.
+     */
+    void create_child(object_node_desc aParent, object_node_desc aNewChild) { replace_child(aParent, aNewChild, object_node_desc(0)); };
+    
+    /**
+     * This function returns a field-editor linked to a given node in the object-tree.
+     * \param aNode The node to which to link the newly created field-editor.
+     * \return A field-editor linked to the given node.
+     */
+    xml_field_editor create_field_editor(object_node_desc aNode) {
+      return xml_field_editor(this, aNode);
+    };
+    
+    /**
+     * This function returns the list of objects in the object graph which are derived from 
+     * the given type identifier pointer. The vector of strings returned by this function contain
+     * object names in the form 'Object_Name (ID:23)' such that they can be used to set object-pointer 
+     * fields using a xml_field_editor object.
+     * \param aType The type identifier of the base-class of which the objects are sought.
+     * \return The list of all objects in the object-graph which meet the criteria, with object names compatible with the 'set_field_value' function in xml_field_editor.
+     */
+    std::vector< std::string > get_objects_derived_from(const shared_ptr< rtti::so_type >& aType) const;
+    
+};
 
 
 }; //serialization

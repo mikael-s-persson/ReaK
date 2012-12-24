@@ -23,15 +23,17 @@
 
 #include "objtree_archiver.hpp"
 
-
 #include "base/shared_object.hpp"
+#include "base/named_object.hpp"
+
+#include "scheme_builder.hpp"
 
 #include <string>
 #include <fstream>
 #include <iomanip>
 
 #include <algorithm>
-
+#include <cctype>
 
 namespace ReaK {
 
@@ -39,6 +41,399 @@ namespace serialization {
 
 
 
+std::string::iterator xml_field_editor::mark_field(std::string::iterator it_prev, 
+                                                   std::string::iterator it_end, 
+                                                   const std::string& fld_name, 
+                                                   const shared_ptr< type_scheme >& scheme) {
+  if(!scheme)
+    return it_prev;
+  
+  std::string& xml_src = (*(p_parent->get_object_graph()))[node].xml_src;
+  
+  if(scheme->is_single_field()) { // must be a primitive scheme.
+
+    std::string test_seq = "<" + fld_name;
+    std::string::iterator it = std::search(it_prev, it_end, test_seq.begin(), test_seq.end());
+    if(it == it_end) 
+      return it_prev;
+    src_markers.push_back(it - xml_src.begin());
+    field_schemes.push_back(scheme);
+    field_names.push_back(fld_name);
+    test_seq = "</" + fld_name + ">";
+    std::string::iterator it_end2 = std::search(it, it_end, test_seq.begin(), test_seq.end());
+    if(it_end2 != it_end)
+      it_end2 += test_seq.length();
+    it_prev = it_end2;
+    
+  } else if(scheme->getObjectType() == serializable_obj_scheme::getStaticObjectType()) {
+    
+    std::string test_seq = "<" + fld_name;
+    std::string::iterator it = std::search(it_prev, it_end, test_seq.begin(), test_seq.end());
+    if(it == it_end)
+      return it_prev;
+    it = std::find(it, it_end, '>');
+    while((it != it_end) && std::isspace(*it))
+      ++it;
+    test_seq = "</" + fld_name + ">";
+    std::string::iterator it_end2 = std::search(it, it_end, test_seq.begin(), test_seq.end());
+    
+    for(std::size_t i = 0; i < scheme->get_field_count(); ++i) {
+      std::pair< std::string, shared_ptr< type_scheme > > fld = scheme->get_field(i);
+      it = mark_field(it, it_end2, fld.first, fld.second);
+    };
+    
+    if(it_end2 != it_end)
+      it_end2 += test_seq.length();
+    it_prev = it_end2;
+    
+  } else if(scheme->getObjectType() == serializable_ptr_scheme::getStaticObjectType()) {
+    
+    std::string test_seq = "<" + fld_name; 
+    std::string::iterator it = std::search(it_prev, it_end, test_seq.begin(), test_seq.end());
+    if(it == it_end)
+      return it_prev;
+    src_markers.push_back(it - xml_src.begin());
+    field_schemes.push_back(scheme);
+    field_names.push_back(fld_name);
+    test_seq = "</" + fld_name + ">";
+    std::string::iterator it_end2 = std::search(it, it_end, test_seq.begin(), test_seq.end());
+    if(it_end2 != it_end)
+      it_end2 += test_seq.length();
+    it_prev = it_end2;
+    
+  } else if(scheme->getObjectType() == vector_type_scheme::getStaticObjectType()) {
+    
+    std::string test_seq = "<" + fld_name + "_count";
+    std::string::iterator it = std::search(it_prev, it_end, test_seq.begin(), test_seq.end());
+    if(it == it_end)
+      return it_prev;
+    src_markers.push_back(it - xml_src.begin());
+    field_schemes.push_back(shared_ptr< type_scheme >(new primitive_scheme<unsigned int>()));
+    field_names.push_back(fld_name + "_count");
+    test_seq = "</" + fld_name + "_count>";
+    std::string::iterator it_end2 = std::search(it, it_end, test_seq.begin(), test_seq.end());
+    if(it_end2 != it_end)
+      it_end2 += test_seq.length();
+    it_prev = it_end2;
+    
+    std::size_t i = 0;
+    std::stringstream ss;
+    ss << fld_name << "_q[" << i << "]";
+    it = mark_field(it_prev, it_end, ss.str(), scheme->get_field(0).second);
+    while(it != it_prev) {
+      it_prev = it;
+      ++i;
+      ss.str("");
+      ss << fld_name << "_q[" << i << "]";
+      it = mark_field(it_prev, it_end, ss.str(), scheme->get_field(0).second);
+    };
+    
+  } else if(scheme->getObjectType() == map_type_scheme::getStaticObjectType()) {
+    
+    std::string test_seq = "<" + fld_name + "_count";
+    std::string::iterator it = std::search(it_prev, it_end, test_seq.begin(), test_seq.end());
+    if(it == it_end)
+      return it_prev;
+    src_markers.push_back(it - xml_src.begin());
+    field_schemes.push_back(shared_ptr< type_scheme >(new primitive_scheme<unsigned int>()));
+    field_names.push_back(fld_name + "_count");
+    test_seq = "</" + fld_name + "_count>";
+    std::string::iterator it_end2 = std::search(it, it_end, test_seq.begin(), test_seq.end());
+    if(it_end2 != it_end)
+      it_end2 += test_seq.length();
+    it_prev = it_end2;
+    
+    std::size_t i = 0;
+    std::stringstream ss;
+    ss << fld_name << "_key[" << i << "]";
+    it = mark_field(it_prev, it_end, ss.str(), scheme->get_field(0).second);
+    while(it != it_prev) {
+      it_prev = it;
+      ss.str("");
+      ss << fld_name << "_value[" << i << "]";
+      it = mark_field(it_prev, it_end, ss.str(), scheme->get_field(1).second);
+      it_prev = it;
+      ++i;
+      ss.str("");
+      ss << fld_name << "_key[" << i << "]";
+      it = mark_field(it_prev, it_end, ss.str(), scheme->get_field(0).second);
+    };
+    
+  };
+  return it_prev;
+};
+
+std::size_t xml_field_editor::get_field_index(const std::string& aName) const {
+  for(std::size_t i = 0; i < src_markers.size(); ++i) {
+    if(aName == field_names[i])
+      return i;
+  };
+  return src_markers.size();
+};
+
+shared_ptr< type_scheme > xml_field_editor::get_type_scheme() const {
+  shared_ptr< serializable > cur_ptr = (*(p_parent->get_object_graph()))[node].p_obj;
+  if(!cur_ptr) 
+    return shared_ptr< type_scheme >();
+  std::string t_name = cur_ptr->getObjectType()->TypeName();
+  if(t_name == "") 
+    return shared_ptr< type_scheme >();
+  std::map< std::string, shared_ptr< type_scheme > >::iterator itm = get_global_schemes().find( t_name );
+  if((itm == get_global_schemes().end()) || (!(itm->second))) 
+    return shared_ptr< type_scheme >();
+  return itm->second;
+};
+
+const std::string& xml_field_editor::get_complete_src() const {
+  return (*(p_parent->get_object_graph()))[node].xml_src;
+};
+
+void xml_field_editor::set_complete_src(const std::string& aXMLSrc) {
+  (*(p_parent->get_object_graph()))[node].xml_src = aXMLSrc;
+  p_parent->ot_input_arc.load_current_from_node(node);
+  shared_ptr< serializable > cur_ptr = (*(p_parent->get_object_graph()))[node].p_obj;
+  src_markers.clear();
+  field_schemes.clear();
+  field_names.clear();
+  if(!cur_ptr)
+    return;
+  cur_ptr->load(p_parent->ot_input_arc, cur_ptr->getObjectType()->TypeVersion());
+  
+  std::string t_name = cur_ptr->getObjectType()->TypeName();
+  if(t_name == "") 
+    return;
+  std::map< std::string, shared_ptr< type_scheme > >::iterator itm = get_global_schemes().find( t_name );
+  if((itm == get_global_schemes().end()) || (!(itm->second))) 
+    return;
+  std::string::iterator it_prev = (*(p_parent->get_object_graph()))[node].xml_src.begin();
+  for(std::size_t i = 0; i < itm->second->get_field_count(); ++i) {
+    std::pair< std::string, shared_ptr< type_scheme > > fld = itm->second->get_field(i);
+    it_prev = mark_field(it_prev, (*(p_parent->get_object_graph()))[node].xml_src.end(), fld.first, fld.second);
+  };
+};
+
+std::string xml_field_editor::get_object_name(object_node_desc aNode) const {
+  shared_ptr< named_object > item_ptr = rtti::rk_dynamic_ptr_cast<named_object>((*(p_parent->get_object_graph()))[aNode].p_obj);
+  std::stringstream ss;
+  if(item_ptr)
+    ss << item_ptr->getName() << " (ID:" << aNode << ")";
+  else
+    ss << "Object (ID:" << aNode << ")";
+  return ss.str();
+};
+
+std::string xml_field_editor::get_object_name() const {
+  return get_object_name(node);
+};
+
+xml_field_editor::xml_field_editor(objtree_editor* aParent, 
+                                   object_node_desc aNode) : 
+                                   p_parent(aParent),
+                                   node(aNode),
+                                   src_markers(),
+                                   field_schemes(),
+                                   field_names() { 
+                                     
+  shared_ptr< serializable > cur_ptr = (*(p_parent->get_object_graph()))[node].p_obj;
+  if(!cur_ptr) 
+    return;
+  std::string t_name = cur_ptr->getObjectType()->TypeName();
+  if(t_name == "") 
+    return;
+  std::map< std::string, shared_ptr< type_scheme > >::iterator itm = get_global_schemes().find( t_name );
+  if((itm == get_global_schemes().end()) || (!(itm->second))) 
+    return;
+  std::string::iterator it_prev = (*(p_parent->get_object_graph()))[node].xml_src.begin();
+  for(std::size_t i = 0; i < itm->second->get_field_count(); ++i) {
+    std::pair< std::string, shared_ptr< type_scheme > > fld = itm->second->get_field(i);
+    it_prev = mark_field(it_prev, (*(p_parent->get_object_graph()))[node].xml_src.end(), fld.first, fld.second);
+  };
+};
+
+std::size_t xml_field_editor::get_total_field_count() const {
+  return src_markers.size();
+};
+
+std::pair< std::string, shared_ptr< type_scheme > > xml_field_editor::get_field(std::size_t aIndex) const {
+  return std::pair< std::string, shared_ptr< type_scheme > >(field_names[aIndex], field_schemes[aIndex]);
+};
+
+std::string xml_field_editor::get_field_src(std::size_t aIndex) const {
+  if(aIndex >= src_markers.size())
+    return "";
+  else if(aIndex + 1 == src_markers.size())
+    return std::string((*(p_parent->get_object_graph()))[node].xml_src.begin() + src_markers[aIndex], (*(p_parent->get_object_graph()))[node].xml_src.end());
+  else
+    return std::string((*(p_parent->get_object_graph()))[node].xml_src.begin() + src_markers[aIndex], (*(p_parent->get_object_graph()))[node].xml_src.begin() + src_markers[aIndex + 1]);
+};
+
+std::string xml_field_editor::get_field_src(const std::string& aName) const {
+  return get_field_src(get_field_index(aName));
+};
+
+std::string xml_field_editor::get_field_value(std::size_t aIndex) const {
+  std::string& xml_src = (*(p_parent->get_object_graph()))[node].xml_src;
+  std::string::iterator it = xml_src.begin() + src_markers[aIndex];
+  std::string test_str;
+  if(field_schemes[aIndex]->getObjectType() == serializable_ptr_scheme::getStaticObjectType())
+    test_str = "object_ID=\"";
+  else
+    test_str = ">\"";
+  
+  it = std::search(it, xml_src.end(), test_str.begin(), test_str.end());
+  if(it == xml_src.end())
+    return "";
+  it += test_str.length();
+  std::string::iterator it_end = std::find(it, xml_src.end(), '\"');
+  if(field_schemes[aIndex]->getObjectType() == serializable_ptr_scheme::getStaticObjectType()) {
+    object_node_desc fld_node = 0;
+    std::stringstream(std::string(it,it_end)) >> fld_node;
+    return get_object_name(fld_node);
+  } else
+    return std::string(it,it_end);
+};
+
+std::string xml_field_editor::get_field_value(const std::string& aName) const {
+  return get_field_value(get_field_index(aName));
+};
+
+void xml_field_editor::set_field_value(std::size_t aIndex, const std::string& aValue) {
+  std::string& xml_src = (*(p_parent->get_object_graph()))[node].xml_src;
+  std::string::iterator it = xml_src.begin() + src_markers[aIndex];
+  std::string test_str;
+  if(field_schemes[aIndex]->getObjectType() == serializable_ptr_scheme::getStaticObjectType())
+    test_str = "object_ID=\"";
+  else
+    test_str = ">\"";
+  it = std::search(it, xml_src.end(), test_str.begin(), test_str.end());
+  if(it == xml_src.end())
+    return;
+  it += test_str.length();
+  std::string::iterator it_end = std::find(it, xml_src.end(), '\"');
+  std::size_t orig_len = it_end - it;
+  std::string new_xml_src(xml_src.begin(), it);
+  std::ptrdiff_t len_diff = aValue.length() - orig_len;
+  
+  if(field_schemes[aIndex]->getObjectType() == serializable_ptr_scheme::getStaticObjectType()) {
+    object_node_desc orig_node, new_node;
+    std::stringstream(std::string(it, it_end)) >> orig_node;
+    {
+      std::string test_str3 = "(ID:";
+      std::string::const_iterator it3 = std::search(aValue.begin(), aValue.end(), test_str3.begin(), test_str3.end());
+      if(it3 == aValue.end())
+        new_node = 0;
+      else {
+        it3 += test_str3.length();
+        std::string::const_iterator it3_end = std::find(it3, aValue.end(), ')');
+        std::stringstream(std::string(it3,it3_end)) >> new_node;
+      };
+    };
+    // first, check if the original node appeared anywhere else in the same xml-source.
+    std::size_t orig_count = 0;
+    {
+      std::stringstream ss2; ss2 << "object_ID=\"" << orig_node << "\""; std::string test_str2 = ss2.str();
+      std::string::iterator it2 = std::search(xml_src.begin(), xml_src.end(), test_str2.begin(), test_str2.end());
+      while(it2 != xml_src.end()) {
+        ++orig_count; ++it2; it2 = std::search(it2, xml_src.end(), test_str2.begin(), test_str2.end());
+      };
+    };
+    // then, check if the new node appears anywhere in the xml-source already.
+    std::size_t new_count = 0;
+    {
+      std::stringstream ss2; ss2 << "object_ID=\"" << new_node << "\""; std::string test_str2 = ss2.str();
+      std::string::iterator it2 = std::search(xml_src.begin(), xml_src.end(), test_str2.begin(), test_str2.end());
+      while(it2 != xml_src.end()) {
+        ++orig_count; ++it2; it2 = std::search(it2, xml_src.end(), test_str2.begin(), test_str2.end());
+      };
+    };
+    if(new_count == 0) {
+      if(orig_count == 1) // the nodes must be swapped.
+        p_parent->replace_child(node, new_node, orig_node);
+      else // the new-node must be linked to the parent without removing the existing link.
+        p_parent->create_child(node, new_node);
+    } else if(orig_count == 1)
+      p_parent->sever_child(node, orig_node);
+    
+    std::stringstream ss4; ss4 << new_node;
+    std::string new_node_str = ss4.str();
+    len_diff = new_node_str.length() - orig_len;
+    new_xml_src.append(new_node_str);
+  } else {
+    new_xml_src.append(aValue);
+  };
+  new_xml_src.append(it_end, xml_src.end());
+  for(std::size_t j = aIndex; j < src_markers.size(); ++j)
+    src_markers[j] += len_diff;
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  xml_src = std::move(new_xml_src);
+#else
+  xml_src = new_xml_src;
+#endif
+  p_parent->ot_input_arc.load_current_from_node(node);
+  shared_ptr< serializable > cur_ptr = (*(p_parent->get_object_graph()))[node].p_obj;
+  if(cur_ptr)
+    cur_ptr->load(p_parent->ot_input_arc, cur_ptr->getObjectType()->TypeVersion());
+};
+
+void xml_field_editor::set_field_value(const std::string& aName, const std::string& aValue) {
+  set_field_value(get_field_index(aName),aValue);
+};
+
+
+void xml_field_editor::set_field_newptr(std::size_t aIndex, const shared_ptr< serializable >& aNewPtr) {
+  if(field_schemes[aIndex]->getObjectType() != serializable_ptr_scheme::getStaticObjectType())
+    return;
+  std::string& xml_src = (*(p_parent->get_object_graph()))[node].xml_src;
+  
+  std::string::iterator it = xml_src.begin() + src_markers[aIndex];
+  std::string test_str = "object_ID=\"";
+  it = std::search(it, xml_src.end(), test_str.begin(), test_str.end());
+  if(it == xml_src.end())
+    return;
+  it += test_str.length();
+  std::string::iterator it_end = std::find(it, xml_src.end(), '\"');
+  
+  object_node_desc orig_node = 0;
+  std::stringstream(std::string(it, it_end)) >> orig_node;
+  // first, check if the original node appeared anywhere else in the same xml-source.
+  std::size_t orig_count = 0;
+  {
+    std::stringstream ss2; ss2 << "object_ID=\"" << orig_node << "\""; std::string test_str2 = ss2.str();
+    std::string::iterator it2 = std::search(xml_src.begin(), xml_src.end(), test_str2.begin(), test_str2.end());
+    while(it2 != xml_src.end()) {
+      ++orig_count; ++it2; it2 = std::search(it2, xml_src.end(), test_str2.begin(), test_str2.end());
+    };
+  };
+  
+  object_node_desc new_node = 0;
+  if(orig_count == 1) // the original node must be replaced.
+    new_node = p_parent->add_new_object(aNewPtr, node, orig_node);
+  else // the new-node must be linked to the parent without removing the existing link.
+    new_node = p_parent->add_new_object(aNewPtr, node);
+  
+  std::size_t orig_len = it_end - it;
+  std::stringstream ss3; ss3 << new_node;
+  std::string aValue = ss3.str();
+  std::ptrdiff_t len_diff = aValue.length() - orig_len;
+  std::string new_xml_src(xml_src.begin(), it);
+  new_xml_src.append(aValue);
+  new_xml_src.append(it_end, xml_src.end());
+  for(std::size_t j = aIndex; j < src_markers.size(); ++j)
+    src_markers[j] += len_diff;
+#ifdef RK_ENABLE_CXX0X_FEATURES
+  xml_src = std::move(new_xml_src);
+#else
+  xml_src = new_xml_src;
+#endif
+  p_parent->ot_input_arc.load_current_from_node(node);
+  shared_ptr< serializable > cur_ptr = (*(p_parent->get_object_graph()))[node].p_obj;
+  if(cur_ptr)
+    cur_ptr->load(p_parent->ot_input_arc, cur_ptr->getObjectType()->TypeVersion());
+};
+
+void xml_field_editor::set_field_newptr(const std::string& aName, const shared_ptr< serializable >& aNewPtr) {
+  set_field_newptr(get_field_index(aName),aNewPtr);
+};
 
 
 char objtree_iarchive::getNextChar() {
@@ -178,12 +573,17 @@ archive_object_header objtree_iarchive::readHeader(const std::string& obj_name) 
   return result;
 };
 
-objtree_iarchive::objtree_iarchive(const shared_ptr< object_graph >& aObjGraph) : obj_graph(aObjGraph) {
-  
-  current_ss = shared_ptr< std::stringstream >(new std::stringstream());
+
+void objtree_iarchive::load_current_from_node(object_node_desc aNode) {
+  current_ss = shared_ptr< std::stringstream >(new std::stringstream((*obj_graph)[aNode].xml_src));
+};
+
+objtree_iarchive::objtree_iarchive(const shared_ptr< object_graph >& aObjGraph, object_node_desc aRoot) : obj_graph(aObjGraph), obj_graph_root(aRoot) {
   
   if(num_vertices(*obj_graph) == 0)
-    add_vertex(*obj_graph);  // add a root node. This case doesn't make much sense, it means the graph is empty.
+    obj_graph_root = add_vertex(*obj_graph);  // add a root node. This case doesn't make much sense, it means the graph is empty.
+  
+  current_ss = shared_ptr< std::stringstream >(new std::stringstream((*obj_graph)[obj_graph_root].xml_src));
   
 };
 
@@ -381,14 +781,36 @@ iarchive& RK_CALL objtree_iarchive::load_string(const std::pair<std::string, std
 
 
 
+void objtree_oarchive::register_new_object(object_node_desc aNode) {
+  mObjRegMap[(*obj_graph)[aNode].p_obj] = static_cast<unsigned int>(aNode);
+};
 
-objtree_oarchive::objtree_oarchive(const shared_ptr< object_graph >& aObjGraph) : obj_graph(aObjGraph) {
+void objtree_oarchive::unregister_object(object_node_desc aNode) {
+  mObjRegMap.erase((*obj_graph)[aNode].p_obj);
+};
+
+void objtree_oarchive::save_current_stream() {
+  (*obj_graph)[current_node].xml_src = current_ss->str();
+};
+
+void objtree_oarchive::load_current_from_node(object_node_desc aNode) {
+  current_ss = shared_ptr< std::stringstream >(new std::stringstream((*obj_graph)[aNode].xml_src));
+  current_node = aNode;
+};
+
+void objtree_oarchive::fresh_current_node(object_node_desc aNode) {
+  current_ss = shared_ptr< std::stringstream >(new std::stringstream());
+  current_node = aNode;
+};
+
+objtree_oarchive::objtree_oarchive(const shared_ptr< object_graph >& aObjGraph, object_node_desc aRoot) : obj_graph(aObjGraph), obj_graph_root(aRoot) {
   current_ss = shared_ptr< std::stringstream >(new std::stringstream());
   
   boost::graph_traits< object_graph >::vertex_iterator vi, vi_end;
   for(boost::tie(vi, vi_end) = vertices(*obj_graph); vi != vi_end; ++vi)
-    mObjRegMap[(*obj_graph)[*vi].p_obj] = static_cast<unsigned int>(*vi);
-  current_node = add_vertex(*obj_graph);
+    if((*obj_graph)[*vi].p_obj)
+      mObjRegMap[(*obj_graph)[*vi].p_obj] = static_cast<unsigned int>(*vi);
+  current_node = obj_graph_root;
 };
 
 objtree_oarchive::~objtree_oarchive() { };
@@ -422,7 +844,8 @@ oarchive& RK_CALL objtree_oarchive::save_serializable_ptr(const std::pair<std::s
       mObjRegMap[Item.second] = object_ID;
     };
     
-    add_edge(current_node, object_ID, *obj_graph);
+    if(!edge(current_node, object_ID, *obj_graph).second)
+      add_edge(current_node, object_ID, *obj_graph);
     
     rtti::so_type::shared_pointer obj_type = Item.second->getObjectType();
     const unsigned int* type_ID = obj_type->TypeID_begin();
@@ -567,10 +990,95 @@ oarchive& RK_CALL objtree_oarchive::save_string(const std::pair<std::string, con
 
 
 
+objtree_editor::objtree_editor() : 
+                               obj_graph(new object_graph()),
+                               obj_graph_root(add_vertex(*obj_graph)),
+                               ot_output_arc(obj_graph, obj_graph_root),
+                               ot_input_arc(obj_graph, obj_graph_root),
+                               obj_graph_graveyard() { };
+
+objtree_editor::objtree_editor(const shared_ptr< object_graph >& aObjGraph, 
+                               object_node_desc aRoot) : 
+                               obj_graph(aObjGraph),
+                               obj_graph_root(aRoot), 
+                               ot_output_arc(obj_graph, obj_graph_root),
+                               ot_input_arc(obj_graph, obj_graph_root),
+                               obj_graph_graveyard() { };
+
+
+object_node_desc objtree_editor::add_new_object(const shared_ptr< serializable >& aNewObj, 
+                                                object_node_desc aParent, 
+                                                object_node_desc aOldChild) {
+  if(!aNewObj)
+    return obj_graph_root;
+  object_node_desc result;
+  if(obj_graph_graveyard.empty())
+    result = add_vertex(object_graph_node(aNewObj,""), *obj_graph);
+  else {
+    result = obj_graph_graveyard.top();
+    obj_graph_graveyard.pop();
+    (*obj_graph)[result].p_obj = aNewObj;
+    (*obj_graph)[result].xml_src = "";
+  };
+  if(aOldChild) {
+    remove_edge(aParent, aOldChild, *obj_graph);
+    remove_object(aOldChild); // if this was the last in-edge on aOldChild.
+  };
+  add_edge(aParent, result, *obj_graph);
+  ot_output_arc.register_new_object(result);
+  ot_output_arc.fresh_current_node(result);
+  aNewObj->save(ot_output_arc, aNewObj->getObjectType()->TypeVersion());
+  ot_output_arc.save_current_stream();
+  return result;
+};
+
+void objtree_editor::remove_object(object_node_desc aNode) {
+  if(in_degree(aNode, *obj_graph))
+    return;
+  std::vector<object_node_desc> v;
+  v.reserve(out_degree(aNode, *obj_graph));
+  boost::graph_traits< object_graph >::out_edge_iterator eo, eo_end;
+  for(boost::tie(eo,eo_end) = out_edges(aNode, *obj_graph); eo != eo_end; ++eo)
+    v.push_back(target(*eo,*obj_graph));
+  clear_vertex(aNode, *obj_graph);
+  for(std::vector<object_node_desc>::iterator it = v.begin(); it != v.end(); ++it)
+    remove_object(*it); // this will only really have an effect if the node has no other in-edge.
+  ot_output_arc.unregister_object(aNode);
+  (*obj_graph)[aNode].p_obj = shared_ptr< serializable >();
+  (*obj_graph)[aNode].xml_src = "";
+  obj_graph_graveyard.push(aNode);
+};
+
+void objtree_editor::replace_child(object_node_desc aParent, object_node_desc aNewChild, object_node_desc aOldChild) {
+  if((aNewChild) && (!edge(aParent, aNewChild, *obj_graph).second))
+    add_edge(aParent, aNewChild, *obj_graph);
+  if(aOldChild) {
+    remove_edge(aParent, aOldChild, *obj_graph);
+    remove_object(aOldChild); // this will only really have an effect if the node has no other in-edge.
+  };
+};
+
+std::vector< std::string > objtree_editor::get_objects_derived_from(const shared_ptr< rtti::so_type >& aType) const {
+  boost::graph_traits< serialization::object_graph >::vertex_iterator vi, vi_end;
+  boost::tie(vi,vi_end) = vertices(*obj_graph);
+  std::vector< std::string > result;
+  for(; vi != vi_end; ++vi) {
+    shared_ptr< serialization::serializable > p_obj = (*obj_graph)[*vi].p_obj;
+    if((p_obj) && (p_obj->castTo(aType))) {
+      shared_ptr< named_object > item_ptr = rtti::rk_dynamic_ptr_cast<named_object>(p_obj);
+      std::stringstream ss;
+      if(item_ptr)
+        ss << item_ptr->getName() << " (ID:" << (*vi) << ")";
+      else
+        ss << "Object (ID:" << (*vi) << ")";
+      result.push_back(ss.str());
+    };
+  };
+  return result;
+};
 
 
 }; //serialization
-
 
 }; //ReaK
 

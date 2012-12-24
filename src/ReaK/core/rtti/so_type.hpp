@@ -725,6 +725,8 @@ public:
 
   virtual shared_object_shared_pointer RK_CALL CreateObject() const = 0;
   
+  virtual bool isConcrete() const = 0;
+  
   friend bool operator ==(const so_type& t1, const so_type& t2) {
     return compare_equal(t1.TypeID_begin(),t2.TypeID_begin());
   };
@@ -807,6 +809,10 @@ public:
     else
       return shared_object_shared_pointer();
   };
+  
+  virtual bool isConcrete() const {
+    return (mConstruct);
+  };
 
   static shared_pointer Create(boost::function< shared_object_shared_pointer() > aConstruct) {
     return shared_pointer(new so_type_descriptor<T,Version>(aConstruct),scoped_deleter());
@@ -837,14 +843,11 @@ namespace detail {
     dummy_so_type(const unsigned int* aTypeID) : mTypeID(aTypeID), mTypeName("Root") { };
     virtual ~dummy_so_type() { };
     
-    virtual const unsigned int* RK_CALL TypeID_begin() const {
-      return mTypeID;
-    };
+    virtual const unsigned int* RK_CALL TypeID_begin() const { return mTypeID; };
     virtual unsigned int RK_CALL TypeVersion() const { return 0; };
     virtual const std::string& RK_CALL TypeName() const { return mTypeName; };
-    virtual shared_object_shared_pointer RK_CALL CreateObject() const {
-      return shared_object_shared_pointer();
-    };
+    virtual shared_object_shared_pointer RK_CALL CreateObject() const { return shared_object_shared_pointer(); };
+    virtual bool isConcrete() const { return false; };
     
   };
   

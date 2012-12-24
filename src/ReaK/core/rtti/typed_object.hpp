@@ -115,6 +115,8 @@ boost::shared_ptr<Y> rk_static_ptr_cast(const boost::shared_ptr<U>& p) {
  */
 template <typename Y,typename U>
 boost::shared_ptr<Y> rk_dynamic_ptr_cast(const boost::shared_ptr<U>& p) {
+  if(!p) 
+    return boost::shared_ptr<Y>();
   return boost::shared_ptr<Y>(p,reinterpret_cast<Y*>(p->castTo(Y::getStaticObjectType())));
 };
 #else
@@ -138,11 +140,15 @@ std::shared_ptr<Y> rk_static_ptr_cast(const std::shared_ptr<U>& p) {
  */
 template <typename Y,typename U>
 std::shared_ptr<Y> rk_dynamic_ptr_cast(const std::shared_ptr<U>& p) {
+  if(!p) 
+    return std::shared_ptr<Y>();
   return std::shared_ptr<Y>(p,reinterpret_cast<Y*>(p->castTo(Y::getStaticObjectType())));
 };
 
 template <typename Y,typename U,typename Deleter>
 std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
+  if(!p) 
+    return std::unique_ptr<Y,Deleter>();
   void* tmp = p->castTo(Y::getStaticObjectType());
   if(tmp) {
     std::unique_ptr<Y,Deleter> r(tmp, p.get_deleter());

@@ -8,6 +8,9 @@ set(BASE_HEADERS
   "${RKBASEDIR}/serializable.hpp"
   "${RKBASEDIR}/shared_object.hpp"
   "${RKBASEDIR}/shared_object_base.hpp"
+  "${RKBASEDIR}/scope_guard.hpp"
+  "${RKBASEDIR}/expected.hpp"
+  "${RKBASEDIR}/thread_incl.hpp"
 )
 
 
