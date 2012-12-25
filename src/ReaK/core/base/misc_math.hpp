@@ -40,14 +40,14 @@ namespace ReaK {
 namespace math {
 
 
-std::size_t highest_pow2(std::size_t N) {
+inline std::size_t highest_pow2(std::size_t N) {
   std::size_t temp;
   for(std::size_t shift = 1; ((shift < 8 * sizeof(std::size_t)) && (temp = N >> shift)); shift <<= 1)
     N |= temp;
   return N & ~(N >> 1);
 };
 
-std::size_t highest_set_bit(std::size_t N) {
+inline std::size_t highest_set_bit(std::size_t N) {
   std::size_t temp = 0;
   for(std::size_t shift = sizeof(std::size_t) * 4; (shift && (N != 1)); shift >>= 1) {
     if(N >> shift) {

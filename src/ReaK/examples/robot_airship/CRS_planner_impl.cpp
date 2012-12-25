@@ -55,15 +55,10 @@
 
 #include "serialization/xml_archiver.hpp"
 
-#include "interpolation/linear_interp.hpp"
-#include "interpolation/cubic_hermite_interp.hpp"
-#include "interpolation/quintic_hermite_interp.hpp"
-#include "interpolation/sustained_velocity_pulse.hpp"
-#include "interpolation/sustained_acceleration_pulse.hpp"
-#include "topologies/manip_free_workspace.hpp"
-#include "path_planning/rrt_path_planner.hpp"
-#include "path_planning/rrtstar_path_planner.hpp"
-#include "path_planning/frame_tracer_coin3d.hpp"
+#include "CRS_workspaces.hpp"
+#include "CRS_rrt_planners.hpp"
+#include "CRS_rrtstar_planners.hpp"
+
 #include "optimization/optim_exceptions.hpp"
 
 
@@ -100,35 +95,6 @@ struct all_robot_info {
   SoCoordinate3* r_a_proxy_line;
   SoCoordinate3* l_a_proxy_line;
 } r_info;
-
-
-typedef ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_0th_type jspace_rl_0_type;
-typedef ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_1st_type jspace_rl_1_type;
-typedef ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type jspace_rl_2_type;
-
-typedef ReaK::robot_airship::CRS_A465_model_builder::joint_space_0th_type jspace_0_type;
-typedef ReaK::robot_airship::CRS_A465_model_builder::joint_space_1st_type jspace_1_type;
-typedef ReaK::robot_airship::CRS_A465_model_builder::joint_space_type jspace_2_type;
-
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_0_type, ReaK::pp::linear_interpolation_tag> workspace_0_linear_type;
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_1_type, ReaK::pp::linear_interpolation_tag> workspace_1_linear_type;
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::linear_interpolation_tag> workspace_2_linear_type;
-
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_1_type, ReaK::pp::cubic_hermite_interpolation_tag> workspace_1_cubic_type;
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::cubic_hermite_interpolation_tag> workspace_2_cubic_type;
-
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::quintic_hermite_interpolation_tag> workspace_2_quintic_type;
-
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_1_type, ReaK::pp::svp_interpolation_tag> workspace_1_svp_type;
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::svp_interpolation_tag> workspace_2_svp_type;
-
-typedef ReaK::pp::manip_quasi_static_env<jspace_rl_2_type, ReaK::pp::sap_interpolation_tag> workspace_2_sap_type;
-
-
-typedef ReaK::pp::manip_rl_direct_kin_map< ReaK::pp::joint_limits_collection<double>, jspace_0_type > rldk_0_type;
-typedef ReaK::pp::manip_rl_direct_kin_map< ReaK::pp::joint_limits_collection<double>, jspace_1_type > rldk_1_type;
-typedef ReaK::pp::manip_rl_direct_kin_map< ReaK::pp::joint_limits_collection<double>, jspace_2_type > rldk_2_type;
-
 
 CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainWindow(parent,flags),
                                                                           configs() {
@@ -584,8 +550,8 @@ void CRSPlannerGUI::executePlanner() {
    */
   
 #define RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(WORKSPACE) \
-        ReaK::shared_ptr< jspace_rl_0_type > jt_space(new jspace_rl_0_type(r_info.builder.get_rl_joint_space_0th())); \
-        ReaK::shared_ptr< jspace_0_type > normal_jt_space(new jspace_0_type(r_info.builder.get_joint_space_0th())); \
+        ReaK::shared_ptr< ReaK::robot_airship::CRS3D_jspace_rl_o0_type > jt_space(new ReaK::robot_airship::CRS3D_jspace_rl_o0_type(r_info.builder.get_rl_joint_space_0th())); \
+        ReaK::shared_ptr< ReaK::robot_airship::CRS3D_jspace_o0_type > normal_jt_space(new ReaK::robot_airship::CRS3D_jspace_o0_type(r_info.builder.get_joint_space_0th())); \
          \
         ReaK::shared_ptr<WORKSPACE>  \
           workspace(new WORKSPACE( \
@@ -596,8 +562,8 @@ void CRSPlannerGUI::executePlanner() {
          \
         (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy; \
          \
-        ReaK::pp::topology_traits< jspace_rl_0_type >::point_type start_point, goal_point; \
-        ReaK::pp::topology_traits< jspace_0_type >::point_type start_inter, goal_inter; \
+        ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_rl_o0_type >::point_type start_point, goal_point; \
+        ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_o0_type >::point_type start_inter, goal_inter; \
         start_inter = normal_jt_space->origin(); \
         get<0>(get<0>(start_inter)) = jt_start[0]; \
         get<0>(get<1>(start_inter)) = jt_start[1]; \
@@ -618,16 +584,15 @@ void CRSPlannerGUI::executePlanner() {
         get<0>(get<6>(goal_inter)) = jt_desired[6]; \
         goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
          \
-        typedef ReaK::pp::frame_tracer_3D< \
-          rldk_0_type, jspace_rl_0_type, ReaK::pp::identity_topo_map, ReaK::pp::print_sbmp_progress<> > frame_reporter_type; \
+        typedef ReaK::robot_airship::CRS3D_rl_o0_tracer frame_reporter_type; \
         frame_reporter_type temp_reporter( \
-          rldk_0_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
+          ReaK::robot_airship::CRS3D_rlDK_o0_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
           jt_space, 0.5 * min_travel); \
         temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end);
         
 #define RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(WORKSPACE) \
-        ReaK::shared_ptr< jspace_rl_1_type > jt_space(new jspace_rl_1_type(r_info.builder.get_rl_joint_space_1st())); \
-        ReaK::shared_ptr< jspace_1_type > normal_jt_space(new jspace_1_type(r_info.builder.get_joint_space_1st())); \
+        ReaK::shared_ptr< ReaK::robot_airship::CRS3D_jspace_rl_o1_type > jt_space(new ReaK::robot_airship::CRS3D_jspace_rl_o1_type(r_info.builder.get_rl_joint_space_1st())); \
+        ReaK::shared_ptr< ReaK::robot_airship::CRS3D_jspace_o1_type > normal_jt_space(new ReaK::robot_airship::CRS3D_jspace_o1_type(r_info.builder.get_joint_space_1st())); \
          \
         ReaK::shared_ptr<WORKSPACE>  \
           workspace(new WORKSPACE( \
@@ -638,8 +603,8 @@ void CRSPlannerGUI::executePlanner() {
          \
         (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy; \
          \
-        ReaK::pp::topology_traits< jspace_rl_1_type >::point_type start_point, goal_point; \
-        ReaK::pp::topology_traits< jspace_1_type >::point_type start_inter, goal_inter; \
+        ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_rl_o1_type >::point_type start_point, goal_point; \
+        ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_o1_type >::point_type start_inter, goal_inter; \
         start_inter = normal_jt_space->origin(); \
         get<0>(get<0>(start_inter)) = jt_start[0]; \
         get<0>(get<1>(start_inter)) = jt_start[1]; \
@@ -660,16 +625,15 @@ void CRSPlannerGUI::executePlanner() {
         get<0>(get<6>(goal_inter)) = jt_desired[6]; \
         goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
          \
-        typedef ReaK::pp::frame_tracer_3D< \
-          rldk_1_type, jspace_rl_1_type, ReaK::pp::identity_topo_map, ReaK::pp::print_sbmp_progress<> > frame_reporter_type; \
+        typedef ReaK::robot_airship::CRS3D_rl_o1_tracer frame_reporter_type; \
         frame_reporter_type temp_reporter( \
-          rldk_1_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
+          ReaK::robot_airship::CRS3D_rlDK_o1_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
           jt_space, 0.5 * min_travel); \
         temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end);
         
 #define RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(WORKSPACE) \
-        ReaK::shared_ptr< jspace_rl_2_type > jt_space(new jspace_rl_2_type(r_info.builder.get_rl_joint_space())); \
-        ReaK::shared_ptr< jspace_2_type > normal_jt_space(new jspace_2_type(r_info.builder.get_joint_space())); \
+        ReaK::shared_ptr< ReaK::robot_airship::CRS3D_jspace_rl_o2_type > jt_space(new ReaK::robot_airship::CRS3D_jspace_rl_o2_type(r_info.builder.get_rl_joint_space())); \
+        ReaK::shared_ptr< ReaK::robot_airship::CRS3D_jspace_o2_type > normal_jt_space(new ReaK::robot_airship::CRS3D_jspace_o2_type(r_info.builder.get_joint_space())); \
          \
         ReaK::shared_ptr<WORKSPACE>  \
           workspace(new WORKSPACE( \
@@ -680,8 +644,8 @@ void CRSPlannerGUI::executePlanner() {
          \
         (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy; \
          \
-        ReaK::pp::topology_traits< jspace_rl_2_type >::point_type start_point, goal_point; \
-        ReaK::pp::topology_traits< jspace_2_type >::point_type start_inter, goal_inter; \
+        ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_rl_o2_type >::point_type start_point, goal_point; \
+        ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_o2_type >::point_type start_inter, goal_inter; \
         start_inter = normal_jt_space->origin(); \
         get<0>(get<0>(start_inter)) = jt_start[0]; \
         get<0>(get<1>(start_inter)) = jt_start[1]; \
@@ -702,10 +666,9 @@ void CRSPlannerGUI::executePlanner() {
         get<0>(get<6>(goal_inter)) = jt_desired[6]; \
         goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
          \
-        typedef ReaK::pp::frame_tracer_3D< \
-          rldk_2_type, jspace_rl_2_type, ReaK::pp::identity_topo_map, ReaK::pp::print_sbmp_progress<> > frame_reporter_type; \
+        typedef ReaK::robot_airship::CRS3D_rl_o2_tracer frame_reporter_type; \
         frame_reporter_type temp_reporter( \
-          rldk_2_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
+          ReaK::robot_airship::CRS3D_rlDK_o2_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
           jt_space, 0.5 * min_travel); \
         temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end);
         
@@ -781,32 +744,32 @@ void CRSPlannerGUI::executePlanner() {
     {
       
       if((space_order == 0) && (interp_id == 0)) { 
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(workspace_0_linear_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_0_linear_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(ReaK::robot_airship::CRS3D_workspace_o0_i1_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o0_i1_type)
       } else if((space_order == 1) && (interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(workspace_1_linear_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_1_linear_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(ReaK::robot_airship::CRS3D_workspace_o1_i1_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o1_i1_type)
       } else if((space_order == 2) && (interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_linear_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_2_linear_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_i1_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_i1_type)
       } else if((space_order == 1) && (interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(workspace_1_cubic_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_1_cubic_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(ReaK::robot_airship::CRS3D_workspace_o1_i3_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o1_i3_type)
       } else if((space_order == 2) && (interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_cubic_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_2_cubic_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_i3_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_i3_type)
       } else if((space_order == 2) && (interp_id == 2)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_quintic_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_2_quintic_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_i5_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_i5_type)
       } else if((space_order == 1) && (interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(workspace_1_svp_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_1_svp_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(ReaK::robot_airship::CRS3D_workspace_o1_svp_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o1_svp_type)
       } else if((space_order == 2) && (interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_svp_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_2_svp_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_svp_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_svp_type)
       } else if((space_order == 2) && (interp_id == 4)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_sap_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(workspace_2_sap_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_sap_type)
+        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_sap_type)
       };
       
     }; break;
@@ -814,32 +777,32 @@ void CRSPlannerGUI::executePlanner() {
     {
       
       if((space_order == 0) && (interp_id == 0)) { 
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(workspace_0_linear_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_0_linear_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(ReaK::robot_airship::CRS3D_workspace_o0_i1_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o0_i1_type)
       } else if((space_order == 1) && (interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(workspace_1_linear_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_1_linear_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(ReaK::robot_airship::CRS3D_workspace_o1_i1_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o1_i1_type)
       } else if((space_order == 2) && (interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_linear_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_2_linear_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_i1_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_i1_type)
       } else if((space_order == 1) && (interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(workspace_1_cubic_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_1_cubic_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(ReaK::robot_airship::CRS3D_workspace_o1_i3_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o1_i3_type)
       } else if((space_order == 2) && (interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_cubic_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_2_cubic_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_i3_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_i3_type)
       } else if((space_order == 2) && (interp_id == 2)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_quintic_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_2_quintic_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_i5_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_i5_type)
       } else if((space_order == 1) && (interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(workspace_1_svp_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_1_svp_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(ReaK::robot_airship::CRS3D_workspace_o1_svp_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o1_svp_type)
       } else if((space_order == 2) && (interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_svp_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_2_svp_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_svp_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_svp_type)
       } else if((space_order == 2) && (interp_id == 4)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(workspace_2_sap_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(workspace_2_sap_type)
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_sap_type)
+        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_sap_type)
       };
       
     }; break;

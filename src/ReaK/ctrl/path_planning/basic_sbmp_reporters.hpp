@@ -38,7 +38,9 @@
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
+#include "subspace_concept.hpp"
 #include "trajectory_base.hpp"
+#include "path_base.hpp"
 #include <boost/graph/graph_concepts.hpp>
 
 #include <boost/date_time/posix_time/posix_time.hpp>

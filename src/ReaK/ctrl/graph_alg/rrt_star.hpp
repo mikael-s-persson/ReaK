@@ -76,6 +76,8 @@
 #include "neighborhood_functors.hpp"
 #include "rr_graph.hpp"
 
+#include <queue>
+
 namespace ReaK {
   
 namespace graph {

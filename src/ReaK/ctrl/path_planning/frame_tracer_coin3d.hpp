@@ -40,6 +40,7 @@
 #include <boost/concept_check.hpp>
 
 #include "trajectory_base.hpp"
+#include "basic_sbmp_reporters.hpp"
 #include <boost/graph/graph_concepts.hpp>
 
 #include "topologies/direct_kinematics_topomap.hpp"

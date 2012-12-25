@@ -3,6 +3,8 @@ set(ROBOTAIRSHIP_SOURCES
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_A465_2D_analog.cpp"
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_A465_geom_model.cpp"
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_A465_models.cpp"
+  "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_rrt_planners.cpp"
+  "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_rrtstar_planners.cpp"
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/satellite_basic_models.cpp"
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/satellite_invar_models.cpp"
 )
@@ -13,6 +15,8 @@ set(ROBOTAIRSHIP_HEADERS
   "${RKROBOTAIRSHIPDIR}/airship3D_lin_model.hpp"
   "${RKROBOTAIRSHIPDIR}/CRS_A465_2D_analog.hpp"
   "${RKROBOTAIRSHIPDIR}/CRS_A465_models.hpp"
+  "${RKROBOTAIRSHIPDIR}/CRS_rrt_planners.hpp"
+  "${RKROBOTAIRSHIPDIR}/CRS_rrtstar_planners.hpp"
   "${RKROBOTAIRSHIPDIR}/rigid_body_states.hpp"
   "${RKROBOTAIRSHIPDIR}/satellite_basic_models.hpp"
   "${RKROBOTAIRSHIPDIR}/satellite_invar_models.hpp"
@@ -76,7 +80,7 @@ if(COIN3D_FOUND AND QT_FOUND)
   target_link_libraries(test_CRS_planning reak_topologies reak_kte_coin reak_geom_coin reak_robot_airship reak_mbd_kte reak_geom_prox reak_geom reak_core)
   target_link_libraries(test_CRS_planning ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
   
-if() #disabling CRS_planner target because it is too heavy to even compile.
+#if() #disabling CRS_planner target because it is too heavy to even compile.
   include( ${QT_USE_FILE} )
   set( ROBOTAIRSHIP_CRSPLANNER_UIS
      "${SRCROOT}${RKROBOTAIRSHIPDIR}/uis/CRS_planner_window.ui" 
@@ -94,7 +98,7 @@ if() #disabling CRS_planner target because it is too heavy to even compile.
   target_link_libraries(CRS_planner reak_kte_coin reak_geom_coin reak_robot_airship reak_topologies reak_mbd_kte reak_geom_prox reak_geom reak_core)
   target_link_libraries(CRS_planner ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
   target_link_libraries(CRS_planner ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
-endif()
+#endif()
   
 endif()
 
