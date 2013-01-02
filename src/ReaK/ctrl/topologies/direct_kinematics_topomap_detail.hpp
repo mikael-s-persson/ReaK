@@ -34,6 +34,8 @@
 #ifndef REAK_DIRECT_KINEMATICS_TOPOMAP_DETAIL_HPP
 #define REAK_DIRECT_KINEMATICS_TOPOMAP_DETAIL_HPP
 
+#include "lin_alg/arithmetic_tuple.hpp"
+
 #include <boost/mpl/less.hpp>
 #include <boost/mpl/greater.hpp>
 
@@ -41,8 +43,6 @@
 #include "joint_space_limits.hpp"
 #include "se3_topologies.hpp"
 #include "se2_topologies.hpp"
-
-#include "lin_alg/arithmetic_tuple.hpp"
 
 namespace ReaK {
 
@@ -324,6 +324,9 @@ namespace detail {
 };
 
 };
+
+
+
 
 
 #endif

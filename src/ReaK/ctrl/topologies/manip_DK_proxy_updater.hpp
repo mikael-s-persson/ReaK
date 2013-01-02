@@ -38,13 +38,13 @@
 #include "base/defs.hpp"
 #include <boost/config.hpp>
 
-#include "path_planning/proxy_model_updater.hpp"
+#include "proxy_model_updater.hpp"
 
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/spatial_trajectory_concept.hpp"  // for SpatialTrajectoryConcept
 
 #include "kte_models/direct_kinematics_model.hpp"
-#include "topologies/direct_kinematics_topomap.hpp"       // for write_joint_coordinates_impl
+#include "direct_kinematics_topomap_detail.hpp"       // for write_joint_coordinates_impl
 
 
 namespace ReaK {

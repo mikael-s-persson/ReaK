@@ -55,6 +55,7 @@
 #include "topologies/basic_distance_metrics.hpp"
 #include "path_planning/bounded_space_concept.hpp"
 #include "topologies/generic_sampler_factory.hpp"
+#include "topologies/rate_limited_spaces.hpp"
 
 #include "sustained_velocity_pulse_detail.hpp"
 
@@ -638,6 +639,12 @@ struct is_point_distribution< svp_reach_topology<BaseTopology> > : boost::mpl::t
 
 
 
+template <typename BaseTopology>
+struct get_rate_illimited_space< svp_reach_topology<BaseTopology> > : 
+  get_rate_illimited_space< BaseTopology > { };
+
+
+
 template <typename SpaceType, typename TimeTopology>
 struct get_tagged_spatial_interpolator< svp_interpolation_tag, SpaceType, TimeTopology> {
   typedef detail::generic_interpolator_impl<svp_interpolator, SpaceType, TimeTopology> type; 
@@ -744,6 +751,144 @@ struct get_type_id< pp::svp_interpolation_tag > {
 
 
 };
+
+
+
+
+#ifdef RK_ENABLE_CXX0X_FEATURES
+
+namespace std {
+  
+/* Specialization, see general template docs. */
+  template <typename BaseTopology>
+  class tuple_size< ReaK::pp::svp_reach_topology<BaseTopology> > : 
+    public tuple_size< BaseTopology > { };
+    
+/* Specialization, see general template docs. */
+  template <typename BaseTopology>
+  class tuple_size< const ReaK::pp::svp_reach_topology<BaseTopology> > : 
+    public tuple_size< const BaseTopology > { };
+    
+/* Specialization, see general template docs. */
+  template <typename BaseTopology>
+  class tuple_size< volatile ReaK::pp::svp_reach_topology<BaseTopology> > : 
+    public tuple_size< volatile BaseTopology > { };
+    
+/* Specialization, see general template docs. */
+  template <typename BaseTopology>
+  class tuple_size< const volatile ReaK::pp::svp_reach_topology<BaseTopology> > : 
+    public tuple_size< const volatile BaseTopology > { };
+  
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename BaseTopology>
+  class tuple_element< Idx, ReaK::pp::svp_reach_topology<BaseTopology> > :
+    public tuple_element< Idx, BaseTopology > { };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename BaseTopology>
+  class tuple_element< Idx, const ReaK::pp::svp_reach_topology<BaseTopology> > :
+    public tuple_element< Idx, const BaseTopology > { };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename BaseTopology>
+  class tuple_element< Idx, volatile ReaK::pp::svp_reach_topology<BaseTopology> > : 
+    public tuple_element< Idx, volatile BaseTopology > { };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename BaseTopology>
+  class tuple_element< Idx, const volatile ReaK::pp::svp_reach_topology<BaseTopology> > :
+    public tuple_element< Idx, const volatile BaseTopology > { };
+  
+};
+
+#else
+
+namespace boost {
+  
+namespace tuples {
+  
+/* Specialization, see general template docs. */
+  template <typename BaseTopology>
+  struct length< ReaK::pp::svp_reach_topology<BaseTopology> > : 
+    ReaK::arithmetic_tuple_size< BaseTopology > { };
+    
+/* Specialization, see general template docs. */
+  template <typename BaseTopology>
+  struct length< const ReaK::pp::svp_reach_topology<BaseTopology> > : 
+    ReaK::arithmetic_tuple_size< BaseTopology > { };
+    
+/* Specialization, see general template docs. */
+  template <typename BaseTopology>
+  struct length< volatile ReaK::pp::svp_reach_topology<BaseTopology> > : 
+    ReaK::arithmetic_tuple_size< BaseTopology > { };
+    
+/* Specialization, see general template docs. */
+  template <typename BaseTopology>
+  struct length< const volatile ReaK::pp::svp_reach_topology<BaseTopology> > : 
+    ReaK::arithmetic_tuple_size< BaseTopology > { };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename BaseTopology>
+  struct element< Idx, ReaK::pp::svp_reach_topology<BaseTopology> > :
+    public element< Idx, BaseTopology > { };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename BaseTopology>
+  struct element< Idx, const ReaK::pp::svp_reach_topology<BaseTopology> > :
+    public element< Idx, const BaseTopology > { };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename BaseTopology>
+  class element< Idx, volatile ReaK::pp::svp_reach_topology<BaseTopology> > :
+    public element< Idx, volatile BaseTopology > { };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename BaseTopology>
+  class element< Idx, const volatile ReaK::pp::svp_reach_topology<BaseTopology> > :
+    public element< Idx, const volatile BaseTopology > { };
+  
+};
+  
+};
+
+#endif
+
+
+namespace ReaK {
+  
+  
+/* Specialization, see general template docs. */
+  template <typename BaseTopology>
+  struct arithmetic_tuple_size< pp::svp_reach_topology<BaseTopology> > : 
+    arithmetic_tuple_size< BaseTopology > { };
+  
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename BaseTopology>
+  class arithmetic_tuple_element< Idx, pp::svp_reach_topology<BaseTopology> > :
+    public arithmetic_tuple_element< Idx, BaseTopology > { };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename BaseTopology>
+  class arithmetic_tuple_element< Idx, const pp::svp_reach_topology<BaseTopology> > : 
+    public arithmetic_tuple_element< Idx, const BaseTopology > { };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename BaseTopology>
+  class arithmetic_tuple_element< Idx, volatile pp::svp_reach_topology<BaseTopology> > : 
+    public arithmetic_tuple_element< Idx, volatile BaseTopology > { };
+  
+/* Specialization, see general template docs. */
+  template <int Idx, typename BaseTopology>
+  class arithmetic_tuple_element< Idx, const volatile pp::svp_reach_topology<BaseTopology> > : 
+    public arithmetic_tuple_element< Idx, const volatile BaseTopology > { };
+  
+};
+
+
+
+
 
 #endif
 

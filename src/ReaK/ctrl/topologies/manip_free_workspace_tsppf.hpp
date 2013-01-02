@@ -229,7 +229,7 @@ class manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public name
     bool is_free(const point_type& p) const {
       for(std::size_t i = 0; i < m_prox_updaters.size(); ++i)
         m_prox_updaters[i]->synchronize_proxy_model(p.time);
-      return m_prox_env.is_free(p.pt, m_space);
+      return m_prox_env.is_free(p.pt, m_space.get_space_topology());
     };
     
     //Topology concepts:
@@ -331,7 +331,7 @@ class manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public name
                       min_interval(aMinInterval),
                       max_edge_length(aMaxEdgeLength),
                       m_space("manip_dynamic_env_underlying_space", 
-                              super_space_type(aSpace, aInterpTolerance, aInterpMaxIter), 
+                              space_topology(aSpace, aInterpTolerance, aInterpMaxIter), 
                               time_poisson_topology("time-poisson topology", aMinInterval, aMaxEdgeLength)),
                       m_prox_env(aModel, aJointLimitsMap) { };
     

@@ -8,7 +8,6 @@ set(PATH_PLANNING_HEADERS
   "${RKPATHPLANNINGDIR}/dvp_tree_detail.hpp"
   "${RKPATHPLANNINGDIR}/global_rng.hpp"
   "${RKPATHPLANNINGDIR}/interpolator_concept.hpp"
-  "${RKPATHPLANNINGDIR}/manipulator_topo_maps.hpp"
   "${RKPATHPLANNINGDIR}/metric_space_concept.hpp"
   "${RKPATHPLANNINGDIR}/metric_space_search.hpp"
   "${RKPATHPLANNINGDIR}/motion_planner_base.hpp"

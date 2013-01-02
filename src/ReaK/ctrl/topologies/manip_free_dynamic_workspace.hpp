@@ -40,7 +40,7 @@
 
 #include "manip_free_workspace.hpp"
 
-#include "path_planning/proxy_model_updater.hpp"       // needed by manip_dynamic_env
+#include "proxy_model_updater.hpp"       // needed by manip_dynamic_env
 #include "temporal_space.hpp"         // needed by manip_dynamic_env
 #include "time_poisson_topology.hpp"  // needed by manip_dynamic_env
 #include "reachability_space.hpp"     // needed by manip_dynamic_env
@@ -115,7 +115,7 @@ class manip_dynamic_env : public named_object {
     bool is_free(const point_type& p) const {
       for(std::size_t i = 0; i < m_prox_updaters.size(); ++i)
         m_prox_updaters[i]->synchronize_proxy_model(p.time);
-      return m_prox_env.is_free(p.pt, m_space);
+      return m_prox_env.is_free(p.pt, m_space.get_space_topology());
     };
     
     //Topology concepts:
@@ -246,7 +246,7 @@ class manip_dynamic_env : public named_object {
      * Parametrized constructor (this class is a RAII class).
      * \param aMaxEdgeLength The maximum length of an added edge, in time units (e.g., seconds).
      */
-    manip_dynamic_env(const super_space_type& aSpace = super_space_type(),
+    manip_dynamic_env(const RateLimitedJointSpace& aSpace = RateLimitedJointSpace(),
                       const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
                       const shared_ptr< joint_limits_collection<double> >& aJointLimitsMap = shared_ptr< joint_limits_collection<double> >(),
                       double aMinInterval = 0.1, 
@@ -373,6 +373,10 @@ struct is_point_distribution< manip_dynamic_env<RateLimitedJointSpace, InterpMet
 };
 
 };
+
+
+#include "manip_free_dynamic_workspace_ext.hpp"
+
 
 #endif
 

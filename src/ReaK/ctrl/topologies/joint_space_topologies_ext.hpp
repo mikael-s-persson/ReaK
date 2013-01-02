@@ -564,6 +564,241 @@ extern template class metric_space_tuple< arithmetic_tuple<
   rl_joint_space_2nd_order<double>::type>, euclidean_tuple_distance >;
 
 
+
+// Multiple degrees of freedom (1-10) for 0th-order space:
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_0th_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type,
+  rl_joint_space_0th_order<double>::type>, inf_norm_tuple_distance >;
+
+
+  
+// Multiple degrees of freedom (1-10) for 1st-order space:
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_1st_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type,
+  rl_joint_space_1st_order<double>::type>, inf_norm_tuple_distance >;
+
+  
+// Multiple degrees of freedom (1-10) for 1st-order space:
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_2nd_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type>, inf_norm_tuple_distance >;
+
+extern template class metric_space_tuple< arithmetic_tuple< 
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type,
+  rl_joint_space_2nd_order<double>::type>, inf_norm_tuple_distance >;
+
   
   
 // joint_space_0th_order

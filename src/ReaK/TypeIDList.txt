@@ -316,6 +316,7 @@ manip_DK_proxy_updater      0xC240002A   bin: 1100 0010 0100 0000 0000 0000 0010
 bijection_cascade           0xC240002B   bin: 1100 0010 0100 0000 0000 0000 0010 1011  D-R
 subspace_map                0xC240002C   bin: 1100 0010 0100 0000 0000 0000 0010 1100  D-R
 identity_topo_map           0xC240002D   bin: 1100 0010 0100 0000 0000 0000 0010 1101  D-R
+Ndof_limits<T,S>            0xC240002E   bin: 1100 0010 0100 0000 0000 0000 0010 1110  D-R
 
 
 //Distance metrics:         0xC241****
@@ -342,6 +343,7 @@ distance_to_goal_heuristic  0xC2410021   bin: 1100 0010 0100 0001 0000 0000 0010
 //Differentiation Rules:    0xC242****
 default_differentiation_rule 0xC2420000  bin: 1100 0010 0100 0010 0000 0000 0000 0000  D-R
 reach_time_differentiation  0xC2420001   bin: 1100 0010 0100 0010 0000 0000 0000 0001  D-R
+Ndof_reach_time_differentiation 0xC2420002 bin:11000010 0100 0010 0000 0000 0000 0010  D-R
 
 //Interpolator Factories:   0xC243****
 linear_interpolator_factory 0xC2430001   bin: 1100 0010 0100 0011 0000 0000 0000 0001  D-R
