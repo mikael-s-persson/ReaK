@@ -47,6 +47,33 @@
 namespace ReaK {
 
 namespace pp {
+  
+/* Just a prototype. */
+template <int Idx, typename SpaceType, typename IndependentSpace>
+const SpaceType& get_space(const SpaceType& s, const IndependentSpace&) {
+  return s;
+};
+
+/* Just a prototype. */
+template <int Idx, typename SpaceType, typename IndependentSpace>
+SpaceType& get_space(SpaceType& s, const IndependentSpace&) {
+  return s;
+};
+    
+/* Just a prototype. */
+template <int Idx, typename PointDiffType, typename TimeDiffType, typename SpaceType, typename IndependentSpace>
+PointDiffType lift_to_space(const PointDiffType& dp, const TimeDiffType& dt, const SpaceType&, const IndependentSpace&) {
+  return dp / dt;
+};
+
+/* Just a prototype. */
+template <int Idx, typename PointType, typename TimeDiffType, typename SpaceType, typename IndependentSpace>
+PointType descend_to_space(const PointType& v, const TimeDiffType& dt, const SpaceType&, const IndependentSpace&) {
+  return v * dt;
+};
+
+
+
 
 /**
  * This meta-function provides an integral-constant type with the maximum differential 
@@ -66,7 +93,7 @@ struct max_derivation_order :
  */
 template <typename TangentBundle, typename IndependentSpace, std::size_t Order>
 struct derived_N_order_space {
-  typedef typename TangentBundle::template space<Order,IndependentSpace>::type type;
+  typedef TangentBundle type;
 };
 
 

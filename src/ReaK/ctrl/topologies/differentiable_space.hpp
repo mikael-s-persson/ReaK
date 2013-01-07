@@ -43,6 +43,7 @@
 
 #include "time_topology.hpp"
 #include "path_planning/metric_space_concept.hpp"
+#include "path_planning/tangent_bundle_concept.hpp"
 #include "metric_space_tuple.hpp"
 
 #include <cmath>
@@ -362,6 +363,13 @@ struct is_metric_space< differentiable_space<IndependentSpace, SpaceTuple, Tuple
 
 template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule>
 struct is_point_distribution< differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRule> > : boost::mpl::true_ { };
+
+
+
+template <typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule, typename IndependentSpace, typename IndependentSpace2, std::size_t Order>
+struct derived_N_order_space< differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRule>, IndependentSpace2, Order > {
+  typedef typename arithmetic_tuple_element<Order, SpaceTuple>::type type;
+};
 
 
 /**

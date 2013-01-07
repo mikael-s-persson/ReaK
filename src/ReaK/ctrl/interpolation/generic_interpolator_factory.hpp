@@ -37,6 +37,7 @@
 
 #include "lin_alg/arithmetic_tuple.hpp"
 #include "topologies/metric_space_tuple.hpp"
+#include "topologies/time_topology.hpp"
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>

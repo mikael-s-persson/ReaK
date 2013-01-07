@@ -45,8 +45,10 @@
 #include "basic_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 
-#include "interpolation/sustained_acceleration_pulse.hpp"  // needed for specialization of manip_dynamic_env and manip_quasi_static_env
-#include "interpolation/sustained_velocity_pulse.hpp"      // needed for specialization of manip_dynamic_env and manip_quasi_static_env
+#include "topologies/rate_limited_spaces.hpp"
+
+#include "interpolation/sap_reach_topologies.hpp"  // needed for specialization of manip_dynamic_env and manip_quasi_static_env
+#include "interpolation/svp_reach_topologies.hpp"      // needed for specialization of manip_dynamic_env and manip_quasi_static_env
 
 #include "proximity/proxy_query_model.hpp"  // for proxy-query class
 
