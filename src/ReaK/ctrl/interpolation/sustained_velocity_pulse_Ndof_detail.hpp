@@ -53,6 +53,8 @@ namespace pp {
   
 namespace detail {
   
+  // this part works the same for the Ndof system
+#if 0
   template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
   inline 
   typename boost::enable_if< 
@@ -78,10 +80,10 @@ namespace detail {
                                         double t_factor) {
     get<2>(result) = lift_to_space<2>(delta_second_order, t_factor, space, t_space);
   };
+#endif
   
-  
-  
-  
+  // this part works the same for the Ndof system.
+#if 0  
   
   template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
   inline
@@ -140,9 +142,10 @@ namespace detail {
     
     return;
   };
+#endif
   
-  
-  
+  // this part works the same for the Ndof system.
+#if 0 
   template <typename Idx, typename PointType, typename PointDiff0, typename DiffSpace, typename TimeSpace>
   inline
   typename boost::enable_if<
@@ -195,13 +198,13 @@ namespace detail {
     return;
   };
   
+#endif
   
   
   
   
-  
-  
-  
+  // this part works the same for the Ndof system.
+#if 0
   template <typename Idx, typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
   inline 
   typename boost::enable_if< 
@@ -214,8 +217,11 @@ namespace detail {
                                     const DiffSpace& space, const TimeSpace& t_space,
                                     double dt, double dt_total) {
     
+    // get time demand of the longest ramp-up (inf-norm).
     double dt1 = get(distance_metric, get_space<1>(space,t_space))(get<1>(start_point), peak_velocity, get_space<1>(space,t_space));
+    // get time demand of the longest ramp-down (inf-norm).
     double dt2 = get(distance_metric, get_space<1>(space,t_space))(peak_velocity, get<1>(end_point), get_space<1>(space,t_space));
+    // subtract the total of the longest ramp-up and ramp-down times from the delta-t total.
     dt_total -= dt1 + dt2;
     
     result = start_point;
@@ -261,6 +267,7 @@ namespace detail {
     
   };
   
+  
   template <typename Idx, typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
   inline 
   typename boost::enable_if< 
@@ -277,6 +284,7 @@ namespace detail {
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
   };
   
+#endif
   
   
   
@@ -333,27 +341,11 @@ namespace detail {
            - fabs(c) / (beta * beta) + ( c > 0.0 ? -2.0 : 2.0) * coefs[4];
   };
   
-  struct svp_update_delta_first_order {
-    template <typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
-    void operator()(const PointType& start_point, const PointType& end_point,
-                    PointDiff0& delta_first_order, PointType1& peak_velocity,
-                    double& norm_delta, const double& beta,
-                    const DiffSpace& space, const TimeSpace& t_space,
-                    double num_tol = 1E-6) {
+  inline
+  double svp_Ndof_compute_derivative_travel_time(double beta, double beta_0, double norm_delta, const vect<double,5>& coefs) {
+    using std::sqrt;
+    using std::fabs;
     
-      PointDiff0 descended_peak_velocity = descend_to_space<0>(peak_velocity,1.0,space,t_space);
-      delta_first_order = get_space<0>(space,t_space).difference(
-        get_space<0>(space,t_space).adjust(get<0>(end_point), (-0.5 * get(distance_metric, get_space<1>(space,t_space))(peak_velocity, get<1>(end_point), get_space<1>(space,t_space))) * ( descended_peak_velocity
-                                                                                                                                                 + descend_to_space<0>(get<1>(end_point),1.0,space,t_space) )),
-        get_space<0>(space,t_space).adjust(get<0>(start_point), (0.5 * get(distance_metric, get_space<1>(space,t_space))(peak_velocity, get<1>(start_point), get_space<1>(space,t_space))) * (descended_peak_velocity
-                                                                                                                                                    + descend_to_space<0>(get<1>(start_point),1.0,space,t_space) ))
-      );
-      norm_delta = get(distance_metric, get_space<0>(space,t_space))(delta_first_order, get_space<0>(space,t_space));
-      if(norm_delta > num_tol)
-        peak_velocity = lift_to_space<1>(delta_first_order * beta, norm_delta, space, t_space);
-      if( get(distance_metric, get_space<0>(space,t_space))(descended_peak_velocity - delta_first_order, get_space<0>(space,t_space)) > get(distance_metric, get_space<0>(space,t_space))(descended_peak_velocity, get_space<0>(space,t_space)) )
-        norm_delta = -norm_delta;
-    };
   };
   
   inline double svp_solve_for_min_dt_beta(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol) {
@@ -452,94 +444,152 @@ namespace detail {
   };
   
   
-  template <typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace,
-            typename UpdateDeltaPFunctor, typename SolveForBetaFunctor, typename AddedPredicate>
-  void svp_peak_velocity_iteration(const PointType& start_point, const PointType& end_point,
-                                   PointDiff0& delta_first_order, PointType1& peak_velocity,
-                                   double& norm_delta, double& beta,
-                                   const DiffSpace& space, const TimeSpace& t_space,
-                                   UpdateDeltaPFunctor update_delta_p, SolveForBetaFunctor get_next_beta,
-                                   AddedPredicate pred,
-                                   double num_tol = 1E-6, unsigned int max_iter = 20) {
+  
+  
+  struct svp_Ndof_update_delta_first_order {
+    void operator()(double start_position, double end_position,
+                    double start_velocity, double end_velocity,
+                    double& delta_first_order, double& peak_velocity,
+                    double max_velocity,
+                    double& norm_delta, const double& beta,
+                    double num_tol = 1E-6) {
+      using std::fabs;
+      
+      double descended_peak_velocity = peak_velocity / max_velocity;
+      // get the travel from after ramp-up to before ramp-down:
+      delta_first_order = 
+        end_position - start_position
+        - (0.5 * fabs(peak_velocity - end_velocity)) * (descended_peak_velocity + end_velocity / max_velocity)
+        - (0.5 * fabs(peak_velocity - start_velocity)) * (descended_peak_velocity + start_velocity / max_velocity);
+      // get the time needed to travel that distance:
+      norm_delta = fabs(delta_first_order);
+      // if the distance is non-zero, then compute the peak velocity
+      if(norm_delta > num_tol)
+        peak_velocity = delta_first_order * beta * max_velocity / norm_delta;
+      if( descended_peak_velocity * delta_first_order < 0.0 )
+        norm_delta = -norm_delta;
+    };
+  };
+  
+  template <typename UpdateDeltaPFunctor, typename SolveForBetaFunctor, typename AddedPredicate>
+  void svp_Ndof_peak_velocity_iteration(double start_position, double end_position,
+                                        double start_velocity, double end_velocity,
+                                        double& delta_first_order, double& peak_velocity, 
+                                        double max_velocity,
+                                        double& norm_delta, double& beta,
+                                        UpdateDeltaPFunctor update_delta_p, SolveForBetaFunctor get_next_beta,
+                                        AddedPredicate pred,
+                                        double num_tol = 1E-6, unsigned int max_iter = 20) {
+    using std::fabs;
     
-    typedef typename derived_N_order_space< DiffSpace, TimeSpace, 1>::type Space1;
-    
-    const Space1& space_1 = get_space<1>(space,t_space);
-    
-    vect<double,5> coefs( get(distance_metric, space_1)( get<1>(start_point), space_1.origin(), space_1 ),
+    vect<double,5> coefs( fabs( start_velocity ),
                           0.0,
-                          get(distance_metric, space_1)( get<1>(end_point), space_1.origin(), space_1 ),
+                          fabs( end_velocity ),
                           0.0,
-                          space_1.get_radius());
+                          max_velocity);
     
-    update_delta_p(start_point,end_point,delta_first_order,peak_velocity,norm_delta,beta,space,t_space,num_tol);
-    //svp_update_delta_first_order(start_point,end_point,delta_first_order,peak_velocity,norm_delta,beta,space,t_space,num_tol);
+    update_delta_p(start_position, end_position,
+                   start_velocity, end_velocity,
+                   delta_first_order, peak_velocity, max_velocity,
+                   norm_delta, beta, num_tol);
     
     for(unsigned int i = 0; i < max_iter; ++i) {
-      PointType1 prev_peak_velocity = peak_velocity;
+      double prev_peak_velocity = peak_velocity;
       
       //RK_NOTICE(1,"*********                       iter = " << i << " *****************");
       //RK_NOTICE(1,"   with peak-vel = " << peak_velocity << " and delta-p = " << delta_first_order);
       
-      peak_velocity = space_1.adjust(peak_velocity, space_1.get_diff_to_boundary(peak_velocity));
-      
-      double temp = get(distance_metric, space_1)(get<1>(start_point), peak_velocity, space_1);
-      coefs[1] = (coefs[0] * coefs[0] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[4]);
-      temp = get(distance_metric, space_1)(get<1>(end_point), peak_velocity, space_1);
-      coefs[3] = (coefs[2] * coefs[2] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[4]);
+      if(peak_velocity > 0.0) {
+        peak_velocity =  max_velocity;
+        coefs[1]      =  start_velocity;
+        coefs[3]      =  end_velocity;
+      } else {
+        peak_velocity = -max_velocity;
+        coefs[1]      = -start_velocity;
+        coefs[3]      = -end_velocity;
+      };
       
       //RK_NOTICE(1,"   coefs = " << coefs);
       
-      beta = get_next_beta(beta,norm_delta,coefs,num_tol);
+      beta = get_next_beta(beta, norm_delta, coefs, num_tol);
       
       //RK_NOTICE(1,"   found beta = " << beta);
       
-      peak_velocity = space_1.adjust(space_1.origin(), beta * space_1.difference(peak_velocity, space_1.origin()));
+      peak_velocity *= beta;
       
-      update_delta_p(start_point,end_point,delta_first_order,peak_velocity,norm_delta,beta,space,t_space,num_tol);
-      //svp_update_delta_first_order(start_point,end_point,delta_first_order,peak_velocity,norm_delta,beta,space,t_space,num_tol);
+      update_delta_p(start_position, end_position,
+                     start_velocity, end_velocity,
+                     delta_first_order, peak_velocity, max_velocity,
+                     norm_delta, beta, num_tol);
       
       //RK_NOTICE(1,"   gives new peak-vel = " << peak_velocity);
       //RK_NOTICE(1,"   gives new delta-p = " << delta_first_order);
       
-      if( pred(beta,norm_delta,coefs,num_tol)
-         && ( beta > num_tol ) && ( beta <= 1.0)
-         && ( get(distance_metric, space_1)(prev_peak_velocity, peak_velocity, space_1) < 1e-6 * space_1.get_radius() ) ) {
+      if( pred(beta, norm_delta, coefs, num_tol)
+         && ( beta > num_tol ) && ( beta <= 1.0 )
+         && ( fabs(prev_peak_velocity - peak_velocity) < 1e-6 * max_velocity ) ) {
         break;
       };
           
+    }; 
+  };
+  
+  
+  
+  inline
+  double svp_Ndof_compute_min_delta_time(double start_position, double end_position,
+                                         double start_velocity, double end_velocity,
+                                         double& delta_first_order, double& peak_velocity, 
+                                         double max_velocity,
+                                         double& norm_delta, double& beta,
+                                         double num_tol = 1E-6, unsigned int max_iter = 20) {
+    using std::fabs;
+    using std::sqrt;
+    
+    // try to assume that peak_velocity = sign(p1 - p0) * max_velocity
+    double sign_p1_p0 = 1.0;
+    if(start_position < end_position)
+      sign_p1_p0 = -1.0;
+    peak_velocity = sign_p1_p0 * max_velocity;
+    double descended_peak_velocity = peak_velocity / max_velocity;
+    delta_first_order = end_position - start_position
+      - (0.5 * fabs(peak_velocity -   end_velocity)) * (descended_peak_velocity +   end_velocity / max_velocity)
+      - (0.5 * fabs(peak_velocity - start_velocity)) * (descended_peak_velocity + start_velocity / max_velocity);
+    norm_delta = fabs(delta_first_order);
+    if(delta_first_order * peak_velocity > 0.0) {
+      // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-position):
+      return norm_delta + fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity);
     };
+    // if not, then can try to see if we simply can quite reach max velocity before having to ramp-down:
+    delta_first_order = 0.0; norm_delta = 0.0;
+    // this assumes that we have p1 - p0 == 0.5 / vm * ( fabs(vp - v1) * (vp + v1) + fabs(vp - v0) * (vp + v0) )
+    // first try if vp is more in the direction (p1-p0) than both v1 and v0:
+    peak_velocity = sqrt(max_velocity * fabs(end_position - start_position) + 0.5 * start_velocity * start_velocity + 0.5 * end_velocity * end_velocity);
+    if( ( peak_velocity > sign_p1_p0 * start_velocity ) && ( peak_velocity > sign_p1_p0 * end_velocity ) ) {
+      // this means that the vp solution is consistent with the assumption:
+      peak_velocity *= sign_p1_p0;
+      return fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity);
+    };
+    // else, try if vp is less in the direction (p1-p0) than both v0 and v1 (because in-between is impossible):
+    if( max_velocity * fabs(end_position - start_position) < 0.5 * (start_velocity * start_velocity + end_velocity * end_velocity) ) {
+      // this means there exists a solution for the magnitude of vp:
+      peak_velocity = sqrt(0.5 * start_velocity * start_velocity + 0.5 * end_velocity * end_velocity - max_velocity * fabs(end_position - start_position));
+      if( ( peak_velocity < sign_p1_p0 * start_velocity ) && ( peak_velocity < sign_p1_p0 * end_velocity ) ) {
+        // this means there is a valid solution for which vp is still in the direction of (p1-p0):
+        peak_velocity *= sign_p1_p0;
+      } else {
+        // this means there must be a valid solution for when vp is in the opposite direction of (p1-p0):
+        peak_velocity *= -sign_p1_p0;
+      };
+      return fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity);
+    };
+    // What the fuck!! This point should never be reached, unless the motion is completely impossible:
+    peak_velocity = 0.0;
+    return std::numeric_limits<double>::infinity();
   };
   
-  
-  
-  
   template <typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
-  double svp_compute_min_delta_time(const PointType& start_point, const PointType& end_point,
-                                    PointDiff0& delta_first_order, PointType1& peak_velocity,
-                                    double& norm_delta, double& beta,
-                                    const DiffSpace& space, const TimeSpace& t_space,
-                                    double num_tol = 1E-6, unsigned int max_iter = 20) {
-    
-    double result = 0.0;
-    //RK_NOTICE(1,"*********  Starting Min-dt Iterations    *****************");
-    
-    svp_peak_velocity_iteration(
-      start_point, end_point,
-      delta_first_order, peak_velocity,
-      norm_delta, beta,
-      space, t_space,
-      svp_update_delta_first_order(),
-      svp_solve_for_min_dt_beta,
-      boost::bind(svp_min_dt_predicate,_1,_2,_3,_4,boost::ref(result)),
-      num_tol, max_iter
-    );
-    
-    return result;
-  };
-  
-  template <typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
-  double svp_compute_peak_velocity(const PointType& start_point, const PointType& end_point,
+  double svp_Ndof_compute_peak_velocity(const PointType& start_point, const PointType& end_point,
                                    PointDiff0& delta_first_order, PointType1& peak_velocity,
                                    double& norm_delta, double& beta, double delta_time,
                                    const DiffSpace& space, const TimeSpace& t_space,
@@ -548,12 +598,12 @@ namespace detail {
     double slack = 0.0;
     //RK_NOTICE(1,"*********  Starting No-slack Iterations  *****************");
     
-    svp_peak_velocity_iteration(
+    svp_Ndof_peak_velocity_iteration(
       start_point, end_point,
       delta_first_order, peak_velocity,
       norm_delta, beta,
       space, t_space,
-      svp_update_delta_first_order(),
+      svp_Ndof_update_delta_first_order(),
       boost::bind(svp_solve_for_no_slack_beta,_1,_2,_3,_4,boost::cref(delta_time)),
       boost::bind(svp_no_slack_predicate,_1,_2,_3,_4,boost::ref(slack),boost::cref(delta_time)),
       num_tol, max_iter
@@ -602,6 +652,63 @@ namespace detail {
     
     return min_delta_time;
   };
+  
+  
+  
+  
+  
+  template <typename PointType, typename DiffSpace, typename TimeSpace>
+  double svp_compute_Ndof_interpolation_data_impl(const PointType& start_point, const PointType& end_point,
+                                             typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,0>::type >::point_difference_type& delta_first_order,
+                                             typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type& peak_velocity,
+                                             const DiffSpace& space, const TimeSpace& t_space,
+                                             double delta_time = 0.0,
+                                             typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type* best_peak_velocity = NULL, 
+                                             double num_tol = 1e-6, unsigned int max_iter = 20) {
+    using std::fabs;
+    
+    delta_first_order = get_space<0>(space,t_space).difference( get<0>(end_point), get<0>(start_point) );
+    
+    for(std::size_t i = 0; i < delta_first_order.size(); ++i) {
+      
+      double norm_delta = fabs(delta_first_order[i]);
+    
+    double norm_delta = get(distance_metric, get_space<0>(space,t_space))( delta_first_order, get_space<0>(space,t_space) );
+    double beta = 0.0;
+    peak_velocity = get_space<1>(space,t_space).origin();
+    
+    double min_delta_time = svp_Ndof_compute_min_delta_time(start_point, end_point, 
+                                                            delta_first_order, peak_velocity,
+                                                            norm_delta, beta, space, t_space, 1e-6, 20);
+    if(best_peak_velocity)
+      *best_peak_velocity = peak_velocity;
+    
+    if(min_delta_time > delta_time)
+      return min_delta_time;
+    
+    beta = beta * min_delta_time / delta_time;
+    peak_velocity = get_space<1>(space,t_space).adjust(
+      get_space<1>(space,t_space).origin(),
+      (min_delta_time / delta_time) *
+      get_space<1>(space,t_space).difference(
+        peak_velocity,
+        get_space<1>(space,t_space).origin()
+      )
+    );
+    
+    svp_compute_peak_velocity(start_point, end_point, 
+                              delta_first_order, peak_velocity,
+                              norm_delta, beta, delta_time,
+                              space, t_space, 1e-6, 100);
+    
+    };
+    
+    return min_delta_time;
+  };
+  
+  
+  
+  
   
 };
 
