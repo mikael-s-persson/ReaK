@@ -1,15 +1,15 @@
 /**
- * \file sustained_velocity_pulse_Ndof_detail.hpp
+ * \file sustained_acceleration_pulse_Ndof_detail.hpp
  * 
- * This library contains the implementation details of the rate-limited sustained velocity 
- * pulse (SVP) interpolation.
+ * This library contains the implementation details of the rate-limited sustained acceleration 
+ * pulse (SAP) interpolation.
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date January 2013
  */
 
 /*
- *    Copyright 2011 Sven Mikael Persson
+ *    Copyright 2012 Sven Mikael Persson
  *
  *    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
  *
@@ -30,8 +30,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_SUSTAINED_VELOCITY_PULSE_NDOF_DETAIL_HPP
-#define REAK_SUSTAINED_VELOCITY_PULSE_NDOF_DETAIL_HPP
+#ifndef REAK_SUSTAINED_ACCELERATION_PULSE_NDOF_DETAIL_HPP
+#define REAK_SUSTAINED_ACCELERATION_PULSE_NDOF_DETAIL_HPP
 
 #include "lin_alg/arithmetic_tuple.hpp"
 
@@ -48,7 +48,7 @@ namespace pp {
 namespace detail {
   
   inline
-  double svp_Ndof_compute_min_delta_time(double start_position, double end_position,
+  double sap_Ndof_compute_min_delta_time(double start_position, double end_position,
                                          double start_velocity, double end_velocity,
                                          double& delta_first_order, double& peak_velocity, 
                                          double max_velocity, double& norm_delta) {
@@ -69,6 +69,7 @@ namespace detail {
       // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-position):
       return norm_delta + fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity);
     };
+    
     // if not, then can try to see if we simply can quite reach max velocity before having to ramp-down:
     delta_first_order = 0.0; norm_delta = 0.0;
     // this assumes that we have p1 - p0 == 0.5 / vm * ( fabs(vp - v1) * (vp + v1) + fabs(vp - v0) * (vp + v0) )
@@ -79,6 +80,7 @@ namespace detail {
       peak_velocity *= sign_p1_p0;
       return fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity);
     };
+    
     // else, try if vp is less in the direction (p1-p0) than both v0 and v1 (because in-between is impossible):
     if( max_velocity * fabs(end_position - start_position) < 0.5 * (start_velocity * start_velocity + end_velocity * end_velocity) ) {
       // this means there exists a solution for the magnitude of vp:
@@ -92,13 +94,14 @@ namespace detail {
       };
       return fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity);
     };
+    
     // What the fuck!! This point should never be reached, unless the motion is completely impossible:
     peak_velocity = 0.0;
     return std::numeric_limits<double>::infinity();
   };
   
   inline
-  void svp_Ndof_compute_peak_velocity(double start_position, double end_position,
+  void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
                                       double start_velocity, double end_velocity,
                                       double& peak_velocity, double max_velocity, double delta_time) {
     // NOTE: Assume that delta-time is larger than minimum reachable delta-time 
@@ -179,7 +182,7 @@ namespace detail {
   };  
   
   template <typename PointType, typename DiffSpace, typename TimeSpace>
-  double svp_compute_Ndof_interpolation_data_impl(const PointType& start_point, const PointType& end_point,
+  double sap_compute_Ndof_interpolation_data_impl(const PointType& start_point, const PointType& end_point,
                                                   typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,0>::type >::point_difference_type& delta_first_order,
                                                   typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type& peak_velocity,
                                                   const DiffSpace& space, const TimeSpace& t_space,
