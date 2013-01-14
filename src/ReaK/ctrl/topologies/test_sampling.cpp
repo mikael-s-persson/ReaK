@@ -27,8 +27,8 @@ using std::size_t;
 using std::ptrdiff_t;
 
 
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include "hyperball_topology.hpp"
 #include "hyperbox_topology.hpp"

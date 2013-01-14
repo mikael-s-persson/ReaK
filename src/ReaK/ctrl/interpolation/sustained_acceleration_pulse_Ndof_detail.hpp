@@ -619,7 +619,8 @@ namespace detail {
     using std::fabs;
     
     delta_first_order = get_space<0>(space,t_space).difference( get<0>(end_point), get<0>(start_point) );
-    typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type max_velocity = get_space<1>(space,t_space).get_upper_corner();
+    typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 1>::type >::point_type max_velocity = get_space<1>(space,t_space).get_upper_corner();
+    typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 2>::type >::point_type max_acceleration = get_space<2>(space,t_space).get_upper_corner();
     peak_velocity = max_velocity;
     double min_dt_final = 0.0;
     
@@ -632,7 +633,7 @@ namespace detail {
       double min_delta_time = sap_Ndof_compute_min_delta_time(
         get<0>(start_point)[i], get<0>(end_point)[i], 
         get<1>(start_point)[i], get<1>(end_point)[i], 
-        dp, vp, max_velocity[i], norm_delta);
+        dp, vp, max_velocity[i], max_acceleration[i], norm_delta);
       delta_first_order[i] = dp;
       peak_velocity[i]     = vp;
       
@@ -648,10 +649,10 @@ namespace detail {
     
     for(std::size_t i = 0; i < peak_velocity.size(); ++i) {
       double vp = 0.0;
-      svp_Ndof_compute_peak_velocity(
+      sap_Ndof_compute_peak_velocity(
         get<0>(start_point)[i], get<0>(end_point)[i], 
         get<1>(start_point)[i], get<1>(end_point)[i], 
-        vp, max_velocity[i], delta_time);
+        vp, max_velocity[i], max_acceleration[i], delta_time);
       peak_velocity[i] = vp;
       
     };
