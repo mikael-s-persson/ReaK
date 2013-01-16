@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Error: Arguments to the program were incorrect!" << std::endl
               << "Usage:" << std::endl
-              << "\t\t./test_interp [time_step] [interp_time_step] [min_time] [max_time] [max_vel] [max_accel] [start_pt] [start_vel] [end_pt] [end_vel]" << std::endl;
+              << "\t\t./test_interp [time_step] [interp_time_step] [min_time] [max_time] [max_vel] [max_accel] [start_pt] [start_vel] [end_pt] [end_vel]" << std::endl;
 
     return 1;
   };

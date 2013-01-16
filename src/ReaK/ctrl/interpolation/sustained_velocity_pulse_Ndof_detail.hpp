@@ -47,6 +47,153 @@ namespace pp {
   
 namespace detail {
   
+  
+  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  inline
+  typename boost::enable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<2>
+    >,
+  void >::type svp_Ndof_constant_accel_motion_HOT_impl(PointType&, double, std::size_t, const DiffSpace&, const TimeSpace& t_space) {
+    /* Nothing to do. */ 
+  };
+  
+  template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
+  inline
+  typename boost::enable_if<
+    boost::mpl::equal_to<
+      Idx,
+      boost::mpl::size_t<2>
+    >,
+  void >::type svp_Ndof_constant_accel_motion_HOT_impl(PointType& result, double descended_accel, std::size_t i, const DiffSpace& space, const TimeSpace& t_space) {
+    typedef typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type PointType2;
+    const PointType2& max_acceleration = get_space<2>(space,t_space).get_upper_corner();
+    get<2>(result)[i] = descended_accel * max_acceleration[i];
+  };
+  
+  
+  template <typename Idx, typename PointType>
+  inline
+  typename boost::enable_if<
+    boost::mpl::less<
+      Idx,
+      boost::mpl::size_t<2>
+    >,
+  void >::type svp_Ndof_constant_vel_motion_HOT_impl(PointType&, std::size_t) {
+    /* Nothing to do. */ 
+  };
+  
+  template <typename Idx, typename PointType>
+  inline
+  typename boost::enable_if<
+    boost::mpl::equal_to<
+      Idx,
+      boost::mpl::size_t<2>
+    >,
+  void >::type svp_Ndof_constant_vel_motion_HOT_impl(PointType& result, std::size_t i) {
+    get<2>(result)[i] = 0.0;
+  };
+  
+  
+  
+  
+  template <typename Idx, typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::less< 
+      Idx, 
+      boost::mpl::size_t<3> 
+    >,
+  void >::type svp_Ndof_interpolate_impl(PointType& result, const PointType& start_point, const PointType& end_point, 
+                                    const PointDiff0& delta_first_order, const PointType1& peak_velocity,
+                                    const DiffSpace& space, const TimeSpace& t_space,
+                                    double dt, double dt_total) {
+    using std::fabs;
+    typedef typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_difference_type PointDiff1;
+    
+    PointType1 max_velocity = get_space<1>(space,t_space).get_upper_corner();
+    
+    PointDiff1 dv1 = get_space<1>(space,t_space).difference(peak_velocity, get<1>(start_point));
+    PointDiff1 dv2 = get_space<1>(space,t_space).difference(get<1>(end_point), peak_velocity);
+    result = start_point;
+    
+    for(std::size_t i = 0; i < dv1.size(); ++i) {
+      
+      double dt1 = fabs(dv1[i]);
+      double dt2 = fabs(dv2[i]);
+      double dt_total_tmp = dt_total - dt1 - dt2;
+      double dt_tmp = dt;
+      
+      //Phase 1: constant acceleration to the peak-velocity:
+      
+      if(dt1 > std::numeric_limits<double>::epsilon()) {
+        if(dt_tmp > dt1)
+          dt_tmp = dt1;
+        
+        get<0>(result)[i] += ( get<1>(result)[i] + 0.5 * dt_tmp / dt1 * dv1[i] ) * dt_tmp / max_velocity[i];
+        
+        get<1>(result)[i] += dt_tmp / dt1 * dv1[i];
+        
+        if(Idx::type::value > 1) 
+          svp_Ndof_constant_accel_motion_HOT_impl<Idx>(result, dv1[i] / dt1, i, space, t_space);
+        
+      };
+      dt_tmp = dt - dt1;
+      if(dt_tmp < 0.0)
+        continue;
+      
+      //Phase 2: constant velocity (or cruise phase):
+      if(dt_tmp > dt_total_tmp)
+        dt_tmp = dt_total_tmp;
+      
+      get<0>(result)[i] += dt_tmp * peak_velocity[i] / max_velocity[i];
+      get<1>(result)[i] = peak_velocity[i];
+      
+      if(Idx::type::value > 1) 
+        svp_Ndof_constant_vel_motion_HOT_impl<Idx>(result,i);
+      
+      dt_tmp = dt - dt1 - dt_total_tmp;
+      if(dt_tmp < 0.0)
+        continue;
+      
+      //Phase 3: constant acceleration to end-velocity:
+      
+      if(dt2 > std::numeric_limits<double>::epsilon()) {
+        if(dt_tmp > dt2)
+          dt_tmp = dt2;
+        
+        get<0>(result)[i] += ( get<1>(result)[i] + 0.5 * dt_tmp / dt2 * dv2[i] ) * dt_tmp / max_velocity[i];
+        
+        get<1>(result)[i] += dt_tmp / dt2 * dv2[i];
+        
+        if(Idx::type::value > 1) 
+          svp_Ndof_constant_accel_motion_HOT_impl<Idx>(result, dv2[i] / dt2, i, space, t_space);
+        
+      };
+    };
+    
+  };
+  
+  template <typename Idx, typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::greater< 
+      Idx, 
+      boost::mpl::size_t<2> 
+    >,
+  void >::type svp_Ndof_interpolate_impl(PointType& result, const PointType& start_point, const PointType& end_point, 
+                                    const PointDiff0& delta_first_order, const PointType1& peak_velocity, 
+                                    const DiffSpace& space, const TimeSpace& t_space,
+                                    double dt, double dt_total) {
+    svp_Ndof_interpolate_impl< typename boost::mpl::prior<Idx>::type >(result,start_point,end_point,delta_first_order,peak_velocity,space,t_space,dt,dt_total);
+    
+    get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
+  };
+  
+  
+  
+  
   inline
   double svp_Ndof_compute_min_delta_time(double start_position, double end_position,
                                          double start_velocity, double end_velocity,
@@ -57,7 +204,7 @@ namespace detail {
     
     // try to assume that peak_velocity = sign(p1 - p0) * max_velocity
     double sign_p1_p0 = 1.0;
-    if(start_position < end_position)
+    if(start_position > end_position)
       sign_p1_p0 = -1.0;
     peak_velocity = sign_p1_p0 * max_velocity;
     double descended_peak_velocity = peak_velocity / max_velocity;
@@ -108,7 +255,7 @@ namespace detail {
     using std::sqrt;
     
     double sign_p1_p0 = 1.0;
-    if(start_position < end_position)
+    if(start_position > end_position)
       sign_p1_p0 = -1.0;
     
     // try to assume that vp more in the direction (p1-p0) than both v1 and v0 (i.e., ramp-up and ramp-down).
@@ -118,12 +265,12 @@ namespace detail {
     if(v0_v1_ts * v0_v1_ts > 4.0 * (vm_p1_p0 + vsqr_avg)) {
       // then there is a real root to the quadratic equation.
       double r1 = 0.5 * (v0_v1_ts + sqrt(v0_v1_ts * v0_v1_ts - 4.0 * (vm_p1_p0 + vsqr_avg))) * sign_p1_p0;
-      if((r1 > start_velocity * sign_p1_p0) && (r1 > end_velocity * sign_p1_p0)) {
+      if((fabs(r1) <= max_velocity) && (r1 >= start_velocity * sign_p1_p0) && (r1 >= end_velocity * sign_p1_p0)) {
         peak_velocity = sign_p1_p0 * r1;
         return;
       };
       r1 = 0.5 * (v0_v1_ts - sqrt(v0_v1_ts * v0_v1_ts - 4.0 * (vm_p1_p0 + vsqr_avg))) * sign_p1_p0;
-      if((r1 > start_velocity * sign_p1_p0) && (r1 > end_velocity * sign_p1_p0)) {
+      if((fabs(r1) <= max_velocity) && (r1 >= start_velocity * sign_p1_p0) && (r1 >= end_velocity * sign_p1_p0)) {
         peak_velocity = sign_p1_p0 * r1;
         return;
       };
@@ -138,7 +285,7 @@ namespace detail {
       vsqr_avg = 0.5 * (start_velocity * start_velocity - end_velocity * end_velocity);
       if(fabs(v0_v1_ts) > 1e-6 * max_velocity) {
         peak_velocity = (vm_p1_p0 + vsqr_avg) / v0_v1_ts;
-        if((peak_velocity >= start_velocity) && (peak_velocity <= end_velocity))
+        if((fabs(peak_velocity) <= max_velocity) && (peak_velocity >= start_velocity) && (peak_velocity <= end_velocity))
           return;
         // then, the solution doesn't fit the assumption.
       };
@@ -149,7 +296,7 @@ namespace detail {
       vsqr_avg = 0.5 * (end_velocity * end_velocity - start_velocity * start_velocity);
       if(fabs(v0_v1_ts) > 1e-6 * max_velocity) {
         peak_velocity = (vm_p1_p0 + vsqr_avg) / v0_v1_ts;
-        if((peak_velocity >= end_velocity) && (peak_velocity <= start_velocity))
+        if((fabs(peak_velocity) <= max_velocity) && (peak_velocity >= end_velocity) && (peak_velocity <= start_velocity))
           return;
         // then, the solution doesn't fit the assumption.
       };
@@ -162,12 +309,12 @@ namespace detail {
     if(v0_v1_ts * v0_v1_ts > 4.0 * (vsqr_avg - vm_p1_p0)) {
       // then there is a real root to the quadratic equation.
       double r1 = 0.5 * (v0_v1_ts + sqrt(v0_v1_ts * v0_v1_ts - 4.0 * (vsqr_avg - vm_p1_p0))) * sign_p1_p0;
-      if((r1 < start_velocity * sign_p1_p0) && (r1 < end_velocity * sign_p1_p0)) {
+      if((fabs(r1) <= max_velocity) && (r1 <= start_velocity * sign_p1_p0) && (r1 <= end_velocity * sign_p1_p0)) {
         peak_velocity = sign_p1_p0 * r1;
         return;
       };
       r1 = 0.5 * (v0_v1_ts - sqrt(v0_v1_ts * v0_v1_ts - 4.0 * (vsqr_avg - vm_p1_p0))) * sign_p1_p0;
-      if((r1 < start_velocity * sign_p1_p0) && (r1 < end_velocity * sign_p1_p0)) {
+      if((fabs(r1) <= max_velocity) && (r1 <= start_velocity * sign_p1_p0) && (r1 <= end_velocity * sign_p1_p0)) {
         peak_velocity = sign_p1_p0 * r1;
         return;
       };
