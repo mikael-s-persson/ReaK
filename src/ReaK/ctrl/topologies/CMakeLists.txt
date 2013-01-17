@@ -57,7 +57,7 @@ set(TOPOLOGIES_HEADERS
 add_library(reak_topologies STATIC ${TOPOLOGIES_SOURCES})
 setup_custom_target(reak_topologies "${SRCROOT}${RKTOPOLOGIESDIR}")
 setup_headers("${TOPOLOGIES_HEADERS}" "${RKTOPOLOGIESDIR}")
-target_link_libraries(reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(reak_topologies reak_interp reak_core ${EXTRA_SYSTEM_LIBS})
 if( OpenCV_FOUND )
   target_link_libraries(reak_topologies ${OpenCV_LIBS})
 endif()

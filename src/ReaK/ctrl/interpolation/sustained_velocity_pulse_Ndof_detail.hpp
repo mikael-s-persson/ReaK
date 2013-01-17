@@ -35,7 +35,6 @@
 
 #include "lin_alg/arithmetic_tuple.hpp"
 
-#include "lin_alg/vect_alg.hpp"
 #include "path_planning/tangent_bundle_concept.hpp"
 
 #include <cmath>
@@ -44,8 +43,18 @@ namespace ReaK {
 
 namespace pp {
   
-  
 namespace detail {
+  
+  
+  double svp_Ndof_compute_min_delta_time(double start_position, double end_position,
+                                         double start_velocity, double end_velocity,
+                                         double& delta_first_order, double& peak_velocity, 
+                                         double max_velocity, double& norm_delta);
+  
+  void svp_Ndof_compute_peak_velocity(double start_position, double end_position,
+                                      double start_velocity, double end_velocity,
+                                      double& peak_velocity, double max_velocity, double delta_time);  
+  
   
   
   template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
@@ -93,6 +102,137 @@ namespace detail {
     >,
   void >::type svp_Ndof_constant_vel_motion_HOT_impl(PointType& result, std::size_t i) {
     get<2>(result)[i] = 0.0;
+  };
+  
+  
+  
+  
+  
+  template <typename Idx, typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
+  inline 
+  typename boost::enable_if< 
+    boost::mpl::less< 
+      Idx, 
+      boost::mpl::size_t<3> 
+    >,
+  void >::type svp_Ndof_interpolate_impl(PointType& result, const PointType& start_point, const PointType& end_point, 
+                                         const PointType1& peak_velocity,
+                                         const DiffSpace& space, const TimeSpace& t_space,
+                                         double dt_current, double dt, double dt_total) {
+    using std::fabs;
+    typedef typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_difference_type PointDiff1;
+    
+    if(dt_current < 0.0) {
+      dt += dt_current;
+      dt_current = 0.0;
+      result = start_point;
+    } else if(dt_current > dt_total) {
+      dt += dt_current - dt_total;
+      dt_current = dt_total;
+      result = end_point;
+    };
+    if(dt + dt_current <= 0.0) {
+      result = start_point;
+      return;
+    };
+    if(dt + dt_current >= dt_total) {
+      result = end_point;
+      return;
+    };
+    
+    PointType1 max_velocity = get_space<1>(space,t_space).get_upper_corner();
+    
+    PointDiff1 dv1 = get_space<1>(space,t_space).difference(peak_velocity, get<1>(start_point));
+    PointDiff1 dv2 = get_space<1>(space,t_space).difference(get<1>(end_point), peak_velocity);
+    
+    
+    for(std::size_t i = 0; i < dv1.size(); ++i) {
+      
+      double dt1 = fabs(dv1[i]);
+      double dt2 = fabs(dv2[i]);
+      double dt_total_tmp = dt_total - dt1 - dt2;
+      double dt_tmp = dt;
+      double dt_cur_tmp = dt_current;
+      
+      if(dt_cur_tmp < dt1) {
+        //Currently in constant acceleration phase towards the peak-velocity:
+        bool must_go_on = false;
+        double dt_tmp2 = dt_tmp;
+        if(dt_tmp2 > dt1 - dt_cur_tmp) {
+          dt_tmp2 = dt1 - dt_cur_tmp;
+          must_go_on = true;
+        };
+        
+        get<0>(result)[i] += ( get<1>(result)[i] + 0.5 * dt_tmp2 / dt1 * dv1[i] ) * dt_tmp2 / max_velocity[i];
+        get<1>(result)[i] += dt_tmp2 / dt1 * dv1[i];
+        if(Idx::type::value > 1) 
+          svp_Ndof_constant_accel_motion_HOT_impl<Idx>(result, dv1[i] / dt1, i, space, t_space);
+        
+        if(!must_go_on)
+          continue;
+        dt_cur_tmp += dt_tmp2;
+        dt_tmp -= dt_tmp2;
+      };
+      
+      if((dt_cur_tmp >= dt1) && (dt_cur_tmp <= dt_total - dt2)) {
+        //Currently in constant velocity (or cruise phase):
+        bool must_go_on = false;
+        double dt_tmp2 = dt_tmp;
+        if(dt_tmp2 < dt1 - dt_cur_tmp) {
+          dt_tmp2 = dt1 - dt_cur_tmp;
+          must_go_on = true;
+        } else if(dt_tmp2 > dt_total - dt2 - dt_cur_tmp) {
+          dt_tmp2 = dt_total - dt2 - dt_cur_tmp;
+          must_go_on = true;
+        };
+        
+        get<0>(result)[i] += dt_tmp2 * peak_velocity[i] / max_velocity[i];
+        get<1>(result)[i] = peak_velocity[i];
+        if(Idx::type::value > 1) 
+          svp_Ndof_constant_vel_motion_HOT_impl<Idx>(result,i);
+        
+        if(!must_go_on)
+          continue;
+        dt_cur_tmp += dt_tmp2;
+        dt_tmp -= dt_tmp2;
+      };
+      
+      if(dt_cur_tmp > dt_total - dt2) {
+        //Currently in constant acceleration phase towards the end-velocity:
+        bool must_go_on = false;
+        double dt_tmp2 = dt_tmp;
+        if(dt_tmp2 <= dt_total - dt2 - dt_cur_tmp) {
+          dt_tmp2 = dt_total - dt2 - dt_cur_tmp;
+          must_go_on = true;
+        };
+        
+        get<0>(result)[i] += ( get<1>(result)[i] + 0.5 * dt_tmp2 / dt2 * dv2[i] ) * dt_tmp2 / max_velocity[i];
+        get<1>(result)[i] += dt_tmp2 / dt2 * dv2[i];
+        if(Idx::type::value > 1) 
+          svp_Ndof_constant_accel_motion_HOT_impl<Idx>(result, dv2[i] / dt2, i, space, t_space);
+        
+        if(!must_go_on)
+          continue;
+        dt_cur_tmp += dt_tmp2;
+        dt_tmp -= dt_tmp2;
+      };
+      
+      //Phase 3: constant acceleration to end-velocity:
+      
+      if(dt2 > std::numeric_limits<double>::epsilon()) {
+        if(dt_tmp > dt2)
+          dt_tmp = dt2;
+        
+        get<0>(result)[i] += ( get<1>(result)[i] + 0.5 * dt_tmp / dt2 * dv2[i] ) * dt_tmp / max_velocity[i];
+        
+        get<1>(result)[i] += dt_tmp / dt2 * dv2[i];
+        
+        if(Idx::type::value > 1) 
+          svp_Ndof_constant_accel_motion_HOT_impl<Idx>(result, dv2[i] / dt2, i, space, t_space);
+        
+      };
+    };
+    
   };
   
   
@@ -191,139 +331,6 @@ namespace detail {
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
   };
   
-  
-  
-  
-  inline
-  double svp_Ndof_compute_min_delta_time(double start_position, double end_position,
-                                         double start_velocity, double end_velocity,
-                                         double& delta_first_order, double& peak_velocity, 
-                                         double max_velocity, double& norm_delta) {
-    using std::fabs;
-    using std::sqrt;
-    
-    // try to assume that peak_velocity = sign(p1 - p0) * max_velocity
-    double sign_p1_p0 = 1.0;
-    if(start_position > end_position)
-      sign_p1_p0 = -1.0;
-    peak_velocity = sign_p1_p0 * max_velocity;
-    double descended_peak_velocity = peak_velocity / max_velocity;
-    delta_first_order = end_position - start_position
-      - (0.5 * fabs(peak_velocity -   end_velocity)) * (descended_peak_velocity +   end_velocity / max_velocity)
-      - (0.5 * fabs(peak_velocity - start_velocity)) * (descended_peak_velocity + start_velocity / max_velocity);
-    norm_delta = fabs(delta_first_order);
-    if(delta_first_order * peak_velocity > 0.0) {
-      // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-position):
-      return norm_delta + fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity);
-    };
-    // if not, then can try to see if we simply can quite reach max velocity before having to ramp-down:
-    delta_first_order = 0.0; norm_delta = 0.0;
-    // this assumes that we have p1 - p0 == 0.5 / vm * ( fabs(vp - v1) * (vp + v1) + fabs(vp - v0) * (vp + v0) )
-    // first try if vp is more in the direction (p1-p0) than both v1 and v0:
-    peak_velocity = sqrt(max_velocity * fabs(end_position - start_position) + 0.5 * start_velocity * start_velocity + 0.5 * end_velocity * end_velocity);
-    if( ( peak_velocity > sign_p1_p0 * start_velocity ) && ( peak_velocity > sign_p1_p0 * end_velocity ) ) {
-      // this means that the vp solution is consistent with the assumption:
-      peak_velocity *= sign_p1_p0;
-      return fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity);
-    };
-    // else, try if vp is less in the direction (p1-p0) than both v0 and v1 (because in-between is impossible):
-    if( max_velocity * fabs(end_position - start_position) < 0.5 * (start_velocity * start_velocity + end_velocity * end_velocity) ) {
-      // this means there exists a solution for the magnitude of vp:
-      peak_velocity = sqrt(0.5 * start_velocity * start_velocity + 0.5 * end_velocity * end_velocity - max_velocity * fabs(end_position - start_position));
-      if( ( peak_velocity < sign_p1_p0 * start_velocity ) && ( peak_velocity < sign_p1_p0 * end_velocity ) ) {
-        // this means there is a valid solution for which vp is still in the direction of (p1-p0):
-        peak_velocity *= sign_p1_p0;
-      } else {
-        // this means there must be a valid solution for when vp is in the opposite direction of (p1-p0):
-        peak_velocity *= -sign_p1_p0;
-      };
-      return fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity);
-    };
-    // What the fuck!! This point should never be reached, unless the motion is completely impossible:
-    peak_velocity = 0.0;
-    return std::numeric_limits<double>::infinity();
-  };
-  
-  inline
-  void svp_Ndof_compute_peak_velocity(double start_position, double end_position,
-                                      double start_velocity, double end_velocity,
-                                      double& peak_velocity, double max_velocity, double delta_time) {
-    // NOTE: Assume that delta-time is larger than minimum reachable delta-time 
-    //       (avoid checking for that, even if it could mean that vp is higher than maximum)
-    
-    using std::fabs;
-    using std::sqrt;
-    
-    double sign_p1_p0 = 1.0;
-    if(start_position > end_position)
-      sign_p1_p0 = -1.0;
-    
-    // try to assume that vp more in the direction (p1-p0) than both v1 and v0 (i.e., ramp-up and ramp-down).
-    double v0_v1_ts = start_velocity + end_velocity + delta_time * sign_p1_p0;
-    double vm_p1_p0 = max_velocity * fabs(end_position - start_position);
-    double vsqr_avg = 0.5 * (start_velocity * start_velocity + end_velocity * end_velocity);
-    if(v0_v1_ts * v0_v1_ts > 4.0 * (vm_p1_p0 + vsqr_avg)) {
-      // then there is a real root to the quadratic equation.
-      double r1 = 0.5 * (v0_v1_ts + sqrt(v0_v1_ts * v0_v1_ts - 4.0 * (vm_p1_p0 + vsqr_avg))) * sign_p1_p0;
-      if((fabs(r1) <= max_velocity) && (r1 >= start_velocity * sign_p1_p0) && (r1 >= end_velocity * sign_p1_p0)) {
-        peak_velocity = sign_p1_p0 * r1;
-        return;
-      };
-      r1 = 0.5 * (v0_v1_ts - sqrt(v0_v1_ts * v0_v1_ts - 4.0 * (vm_p1_p0 + vsqr_avg))) * sign_p1_p0;
-      if((fabs(r1) <= max_velocity) && (r1 >= start_velocity * sign_p1_p0) && (r1 >= end_velocity * sign_p1_p0)) {
-        peak_velocity = sign_p1_p0 * r1;
-        return;
-      };
-      // then, there was no suitable root in this region.
-    };
-    
-    // try to assume that vp is somewhere between v1 and v0 (i.e., ramp-up ramp-up or ramp-down ramp-down).
-    if(end_velocity > start_velocity) {
-      // ramp-up ramp-up
-      v0_v1_ts = start_velocity - end_velocity + delta_time;
-      vm_p1_p0 = max_velocity * (end_position - start_position);
-      vsqr_avg = 0.5 * (start_velocity * start_velocity - end_velocity * end_velocity);
-      if(fabs(v0_v1_ts) > 1e-6 * max_velocity) {
-        peak_velocity = (vm_p1_p0 + vsqr_avg) / v0_v1_ts;
-        if((fabs(peak_velocity) <= max_velocity) && (peak_velocity >= start_velocity) && (peak_velocity <= end_velocity))
-          return;
-        // then, the solution doesn't fit the assumption.
-      };
-    } else {
-      // ramp-down ramp-down
-      v0_v1_ts = end_velocity - start_velocity + delta_time;
-      vm_p1_p0 = max_velocity * (end_position - start_position);
-      vsqr_avg = 0.5 * (end_velocity * end_velocity - start_velocity * start_velocity);
-      if(fabs(v0_v1_ts) > 1e-6 * max_velocity) {
-        peak_velocity = (vm_p1_p0 + vsqr_avg) / v0_v1_ts;
-        if((fabs(peak_velocity) <= max_velocity) && (peak_velocity >= end_velocity) && (peak_velocity <= start_velocity))
-          return;
-        // then, the solution doesn't fit the assumption.
-      };
-    };
-    
-    // try to assume (the last case) that vp is less in the direction (p1-p0) and both v0 and v1.
-    v0_v1_ts = start_velocity + end_velocity - delta_time * sign_p1_p0;
-    vm_p1_p0 = max_velocity * fabs(end_position - start_position);
-    vsqr_avg = 0.5 * (start_velocity * start_velocity + end_velocity * end_velocity);
-    if(v0_v1_ts * v0_v1_ts > 4.0 * (vsqr_avg - vm_p1_p0)) {
-      // then there is a real root to the quadratic equation.
-      double r1 = 0.5 * (v0_v1_ts + sqrt(v0_v1_ts * v0_v1_ts - 4.0 * (vsqr_avg - vm_p1_p0))) * sign_p1_p0;
-      if((fabs(r1) <= max_velocity) && (r1 <= start_velocity * sign_p1_p0) && (r1 <= end_velocity * sign_p1_p0)) {
-        peak_velocity = sign_p1_p0 * r1;
-        return;
-      };
-      r1 = 0.5 * (v0_v1_ts - sqrt(v0_v1_ts * v0_v1_ts - 4.0 * (vsqr_avg - vm_p1_p0))) * sign_p1_p0;
-      if((fabs(r1) <= max_velocity) && (r1 <= start_velocity * sign_p1_p0) && (r1 <= end_velocity * sign_p1_p0)) {
-        peak_velocity = sign_p1_p0 * r1;
-        return;
-      };
-      // then, there was no suitable root in this region.
-    };
-    // What the fuck!! This point should never be reached, unless the motion is completely impossible:
-    peak_velocity = 0.0;
-    return;
-  };  
   
   template <typename PointType, typename DiffSpace, typename TimeSpace>
   double svp_compute_Ndof_interpolation_data_impl(const PointType& start_point, const PointType& end_point,
