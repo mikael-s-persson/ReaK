@@ -35,8 +35,8 @@ namespace detail {
   
   double sap_Ndof_compute_min_delta_time(double start_position, double end_position,
                                          double start_velocity, double end_velocity,
-                                         double& delta_first_order, double& peak_velocity, 
-                                         double max_velocity, double max_acceleration, double& norm_delta) {
+                                         double& peak_velocity, 
+                                         double max_velocity, double max_acceleration) {
     using std::fabs;
     using std::sqrt;
     
@@ -55,17 +55,15 @@ namespace detail {
     
     //   try to assume that vp = sign(p1-p0) * v_max
     peak_velocity = sign_p1_p0 * max_velocity;
-    delta_first_order = end_position - start_position
+    double delta_first_order = end_position - start_position
       - 0.5 * (fabs(peak_velocity -   end_velocity) + max_acceleration) * (peak_velocity +   end_velocity) / max_velocity
       - 0.5 * (fabs(peak_velocity - start_velocity) + max_acceleration) * (peak_velocity + start_velocity) / max_velocity;
-    norm_delta = fabs(delta_first_order);
     if(delta_first_order * peak_velocity > 0.0) {
       // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
-      return norm_delta + fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity) + 2.0 * max_acceleration;
+      return fabs(delta_first_order) + fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity) + 2.0 * max_acceleration;
     };
     
     //   if not, then can try to see if we simply can't quite reach max velocity before having to ramp-down:
-    delta_first_order = 0.0; norm_delta = 0.0;
     //   this assumes that we have 
     //    p1 - p0 == (fabs(vp - v0) + a_max) (vp + v0) / 2*v_max + (fabs(vp - v1) + a_max) (vp + v1) / 2*v_max
     
@@ -115,14 +113,12 @@ namespace detail {
     delta_first_order = end_position - start_position
       - 0.5 * (fabs(peak_velocity -   end_velocity) + max_acceleration) * (peak_velocity +   end_velocity) / max_velocity
       - fabs(peak_velocity - start_velocity) * (peak_velocity + start_velocity) / max_velocity;
-    norm_delta = fabs(delta_first_order);
     if(delta_first_order * peak_velocity > 0.0) {
       // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
-      return norm_delta + fabs(peak_velocity - end_velocity) + 2.0 * fabs(peak_velocity - start_velocity) + max_acceleration;
+      return fabs(delta_first_order) + fabs(peak_velocity - end_velocity) + 2.0 * fabs(peak_velocity - start_velocity) + max_acceleration;
     };
     
     //   if not, then can try to see if we simply can't quite reach max velocity before having to ramp-down:
-    delta_first_order = 0.0; norm_delta = 0.0;
     //   this assumes that we have 
     //  p1 - p0 == fabs(vp - v0) (vp + v0) / v_max + (fabs(vp - v1) + a_max) (vp + v1) / 2*v_max
     
@@ -170,14 +166,12 @@ namespace detail {
     delta_first_order = end_position - start_position
       - fabs(peak_velocity -   end_velocity) * (peak_velocity +   end_velocity) / max_velocity
       - 0.5 * (fabs(peak_velocity -   start_velocity) + max_acceleration) * (peak_velocity + start_velocity) / max_velocity;
-    norm_delta = fabs(delta_first_order);
     if(delta_first_order * peak_velocity > 0.0) {
       // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
-      return norm_delta + 2.0 * fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity) + max_acceleration;
+      return fabs(delta_first_order) + 2.0 * fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity) + max_acceleration;
     };
     
     //   if not, then can try to see if we simply can't quite reach max velocity before having to ramp-down:
-    delta_first_order = 0.0; norm_delta = 0.0;
     //   this assumes that we have 
     //  p1 - p0 == fabs(vp - v1) (vp + v1) / v_max + (fabs(vp - v0) + a_max) (vp + v0) / 2*v_max
     
@@ -225,14 +219,12 @@ namespace detail {
     delta_first_order = end_position - start_position
       - fabs(peak_velocity -   end_velocity) * (peak_velocity +   end_velocity) / max_velocity
       - fabs(peak_velocity -   start_velocity) * (peak_velocity + start_velocity) / max_velocity;
-    norm_delta = fabs(delta_first_order);
     if(delta_first_order * peak_velocity > 0.0) {
       // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-point):
-      return norm_delta + 2.0 * fabs(peak_velocity - end_velocity) + 2.0 * fabs(peak_velocity - start_velocity);
+      return fabs(delta_first_order) + 2.0 * fabs(peak_velocity - end_velocity) + 2.0 * fabs(peak_velocity - start_velocity);
     };
     
     //   if not, then can try to see if we simply can't quite reach max velocity before having to ramp-down:
-    delta_first_order = 0.0; norm_delta = 0.0;
     //   this assumes that we have 
     //  p1 - p0 == fabs(vp - v0) (vp + v0) / v_max + fabs(vp - v1) (vp + v1) / v_max
     

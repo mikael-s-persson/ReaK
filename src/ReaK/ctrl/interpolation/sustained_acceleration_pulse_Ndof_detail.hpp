@@ -51,8 +51,8 @@ namespace detail {
   
   double sap_Ndof_compute_min_delta_time(double start_position, double end_position,
                                          double start_velocity, double end_velocity,
-                                         double& delta_first_order, double& peak_velocity, 
-                                         double max_velocity, double max_acceleration, double& norm_delta);
+                                         double& peak_velocity, 
+                                         double max_velocity, double max_acceleration);
   
   void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
                                       double start_velocity, double end_velocity,
@@ -103,7 +103,7 @@ namespace detail {
   
   
   
-  template <typename Idx, typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
+  template <typename Idx, typename PointType, typename PointType1, typename DiffSpace, typename TimeSpace>
   inline 
   typename boost::enable_if< 
     boost::mpl::less< 
@@ -111,7 +111,7 @@ namespace detail {
       boost::mpl::size_t<4> 
     >,
   void >::type sap_Ndof_interpolate_impl(PointType& result, const PointType& start_point, const PointType& end_point, 
-                                         const PointDiff0& delta_first_order, const PointType1& peak_velocity,
+                                         const PointType1& peak_velocity,
                                          const DiffSpace& space, const TimeSpace& t_space,
                                          double dt, double dt_total) {
     using std::sqrt; using std::fabs;
@@ -267,7 +267,7 @@ namespace detail {
     };
   };
   
-  template <typename Idx, typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
+  template <typename Idx, typename PointType, typename PointType1, typename DiffSpace, typename TimeSpace>
   inline 
   typename boost::enable_if< 
     boost::mpl::greater< 
@@ -275,10 +275,10 @@ namespace detail {
       boost::mpl::size_t<3> 
     >,
   void >::type sap_Ndof_interpolate_impl(PointType& result, const PointType& start_point, const PointType& end_point, 
-                                         const PointDiff0& delta_first_order, const PointType1& peak_velocity, 
+                                         const PointType1& peak_velocity, 
                                          const DiffSpace& space, const TimeSpace& t_space,
                                          double dt, double dt_total) {
-    sap_Ndof_interpolate_impl< typename boost::mpl::prior<Idx>::type >(result,start_point,end_point,delta_first_order,peak_velocity,space,t_space,dt,dt_total);
+    sap_Ndof_interpolate_impl< typename boost::mpl::prior<Idx>::type >(result,start_point,end_point,peak_velocity,space,t_space,dt,dt_total);
     
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
   };
@@ -287,31 +287,24 @@ namespace detail {
   
   template <typename PointType, typename DiffSpace, typename TimeSpace>
   double sap_compute_Ndof_interpolation_data_impl(const PointType& start_point, const PointType& end_point,
-                                                  typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,0>::type >::point_difference_type& delta_first_order,
                                                   typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type& peak_velocity,
                                                   const DiffSpace& space, const TimeSpace& t_space,
                                                   double delta_time = 0.0,
                                                   typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type* best_peak_velocity = NULL) {
     using std::fabs;
     
-    delta_first_order = get_space<0>(space,t_space).difference( get<0>(end_point), get<0>(start_point) );
     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 1>::type >::point_type max_velocity = get_space<1>(space,t_space).get_upper_corner();
     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 2>::type >::point_type max_acceleration = get_space<2>(space,t_space).get_upper_corner();
     peak_velocity = max_velocity;
     double min_dt_final = 0.0;
     
-    for(std::size_t i = 0; i < delta_first_order.size(); ++i) {
-      
-      double norm_delta = fabs(delta_first_order[i]);
-      double dp = 0.0;
+    for(std::size_t i = 0; i < max_velocity.size(); ++i) {
       double vp = 0.0;
-      
       double min_delta_time = sap_Ndof_compute_min_delta_time(
         get<0>(start_point)[i], get<0>(end_point)[i], 
         get<1>(start_point)[i], get<1>(end_point)[i], 
-        dp, vp, max_velocity[i], max_acceleration[i], norm_delta);
-      delta_first_order[i] = dp;
-      peak_velocity[i]     = vp;
+        vp, max_velocity[i], max_acceleration[i]);
+      peak_velocity[i] = vp;
       
       if(min_dt_final < min_delta_time)
         min_dt_final = min_delta_time;

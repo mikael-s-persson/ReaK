@@ -1,5 +1,5 @@
 /**
- * \file sap_metrics.hpp
+ * \file sap_Ndof_metrics.hpp
  * 
  * This library provides an implementation of a distance metric within a temporal topology
  * which is based on the reach-time required by a sustained acceleration pulse motion (SAP) 
@@ -31,8 +31,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_SAP_METRICS_HPP
-#define REAK_SAP_METRICS_HPP
+#ifndef REAK_SAP_NDOF_METRICS_HPP
+#define REAK_SAP_NDOF_METRICS_HPP
 
 #include "base/defs.hpp"
 
@@ -40,7 +40,7 @@
 #include <boost/concept_check.hpp>
 
 #include "generic_interpolator_factory.hpp"
-#include "sustained_acceleration_pulse.hpp"
+#include "sustained_acceleration_pulse_Ndof.hpp"
 #include "topologies/time_topology.hpp"
 
 namespace ReaK {
@@ -55,20 +55,14 @@ namespace pp {
  * \tparam TimeSpaceType The time topology type against which the interpolation is done.
  */
 template <typename TimeSpaceType = time_topology>
-struct sap_reach_time_metric : public serialization::serializable {
+struct sap_Ndof_reach_time_metric : public serialization::serializable {
   
-  typedef sap_reach_time_metric<TimeSpaceType> self;
+  typedef sap_Ndof_reach_time_metric<TimeSpaceType> self;
   
   shared_ptr<TimeSpaceType> t_space;
-  double tolerance;
-  unsigned int maximum_iterations;
   
-  sap_reach_time_metric(const shared_ptr<TimeSpaceType>& aTimeSpace = shared_ptr<TimeSpaceType>(new TimeSpaceType()),
-                        double aTolerance = 1e-6, 
-                        unsigned int aMaxIter = 60) : 
-                        t_space(aTimeSpace),
-                        tolerance(aTolerance),
-                        maximum_iterations(aMaxIter) { };
+  sap_Ndof_reach_time_metric(const shared_ptr<TimeSpaceType>& aTimeSpace = shared_ptr<TimeSpaceType>(new TimeSpaceType())) : 
+                             t_space(aTimeSpace) { };
   
   /** 
    * This function returns the distance between two points on a topology.
@@ -81,7 +75,7 @@ struct sap_reach_time_metric : public serialization::serializable {
    */
   template <typename Point, typename Topology>
   double operator()(const Point& a, const Point& b, const Topology& s) const {
-    detail::generic_interpolator_impl<sap_interpolator,Topology,TimeSpaceType> interp;
+    detail::generic_interpolator_impl<sap_Ndof_interpolator,Topology,TimeSpaceType> interp;
     interp.initialize(a, b, 0.0, s, *t_space, *this);
     return interp.get_minimum_travel_time();
   };
@@ -96,7 +90,7 @@ struct sap_reach_time_metric : public serialization::serializable {
    */
   template <typename PointDiff, typename Topology>
   double operator()(const PointDiff& a, const Topology& s) const {
-    detail::generic_interpolator_impl<sap_interpolator,Topology,TimeSpaceType> interp;
+    detail::generic_interpolator_impl<sap_Ndof_interpolator,Topology,TimeSpaceType> interp;
     interp.initialize(s.origin(), s.adjust(s.origin(),a), 0.0, s, *t_space, *this);
     return interp.get_minimum_travel_time();
   };
@@ -107,18 +101,14 @@ struct sap_reach_time_metric : public serialization::serializable {
 *******************************************************************************/
     
   virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-    A & RK_SERIAL_SAVE_WITH_NAME(t_space)
-      & RK_SERIAL_SAVE_WITH_NAME(tolerance)
-      & RK_SERIAL_SAVE_WITH_NAME(maximum_iterations);
+    A & RK_SERIAL_SAVE_WITH_NAME(t_space);
   };
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-    A & RK_SERIAL_LOAD_WITH_NAME(t_space)
-      & RK_SERIAL_LOAD_WITH_NAME(tolerance)
-      & RK_SERIAL_LOAD_WITH_NAME(maximum_iterations);
+    A & RK_SERIAL_LOAD_WITH_NAME(t_space);
   };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC241000A,1,"sap_reach_time_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC241000D,1,"sap_Ndof_reach_time_metric",serialization::serializable)
 };
 
 
