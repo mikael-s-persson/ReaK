@@ -43,9 +43,20 @@
 #include "rate_limited_spaces.hpp"
 #include "hyperbox_topology.hpp"
 
+#include "kinetostatics/gen_coord.hpp"
+
 namespace ReaK {
 
 namespace pp {
+
+
+template <typename Topo>
+struct is_Ndof_space : boost::mpl::false_ { };
+
+template <typename Topo>
+struct is_Ndof_rl_space : boost::mpl::false_ { };
+
+
 
 
 /**
@@ -177,6 +188,29 @@ struct Ndof_space<T,0,2> {
                                > > type;
 };
 
+
+
+
+template <typename Vector>
+struct is_Ndof_space< differentiable_space<time_topology, 
+         arithmetic_tuple< 
+           hyperbox_topology< Vector, manhattan_distance_metric > 
+         > > > : boost::mpl::true_ { };
+
+template <typename Vector>
+struct is_Ndof_space< differentiable_space<time_topology, 
+         arithmetic_tuple< 
+           hyperbox_topology< Vector, manhattan_distance_metric >, 
+           hyperbox_topology< Vector, manhattan_distance_metric > 
+         > > > : boost::mpl::true_ { };
+
+template <typename Vector>
+struct is_Ndof_space< differentiable_space<time_topology, 
+         arithmetic_tuple< 
+           hyperbox_topology< Vector, manhattan_distance_metric >, 
+           hyperbox_topology< Vector, manhattan_distance_metric >, 
+           hyperbox_topology< Vector, manhattan_distance_metric > 
+         > > > : boost::mpl::true_ { };
 
 
 /**
@@ -382,7 +416,6 @@ typename Ndof_space< typename vect_traits< Vector1 >::value_type, 0, 2>::type ma
 
 
 
-
 /**
  * This meta-function generates a rate-limited N-dof space type for a given value-type, dimension and order.
  * \tparam T The value-type of the space.
@@ -454,6 +487,34 @@ struct Ndof_rl_space<T,0,2> {
                                manhattan_tuple_distance,
                                Ndof_reach_time_differentiation< vect_n<T> > > type;
 };
+
+
+template <typename Vector>
+struct is_Ndof_rl_space< differentiable_space< time_topology, 
+         arithmetic_tuple< 
+           hyperbox_topology< Vector, inf_norm_distance_metric > 
+         >,
+         manhattan_tuple_distance,
+         Ndof_reach_time_differentiation< Vector > > > : boost::mpl::true_ { };
+
+template <typename Vector>
+struct is_Ndof_rl_space< differentiable_space< time_topology, 
+         arithmetic_tuple< 
+           hyperbox_topology< Vector, inf_norm_distance_metric >, 
+           hyperbox_topology< Vector, inf_norm_distance_metric > 
+         >,
+         manhattan_tuple_distance,
+         Ndof_reach_time_differentiation< Vector > > > : boost::mpl::true_ { };
+
+template <typename Vector>
+struct is_Ndof_rl_space< differentiable_space< time_topology, 
+         arithmetic_tuple< 
+           hyperbox_topology< Vector, inf_norm_distance_metric >, 
+           hyperbox_topology< Vector, inf_norm_distance_metric >, 
+           hyperbox_topology< Vector, inf_norm_distance_metric > 
+         >,
+         manhattan_tuple_distance,
+         Ndof_reach_time_differentiation< Vector > > > : boost::mpl::true_ { };
 
 
 
@@ -930,6 +991,158 @@ struct get_rate_limited_space<
 
 
 };
+
+
+
+template <typename Vector>
+gen_coord< typename vect_traits<Vector>::value_type > get_gen_coord(
+  const arithmetic_tuple< Vector, Vector, Vector >& pt, std::size_t i) {
+  return gen_coord< typename vect_traits<Vector>::value_type >(
+    get<0>(pt)[i], 
+    get<1>(pt)[i], 
+    get<2>(pt)[i], 
+    0.0);
+};
+
+template <typename Vector>
+gen_coord< typename vect_traits<Vector>::value_type > get_gen_coord(
+  const arithmetic_tuple< Vector, Vector >& pt, std::size_t i) {
+  return gen_coord< typename vect_traits<Vector>::value_type >(
+    get<0>(pt)[i], 
+    get<1>(pt)[i], 
+    0.0, 
+    0.0);
+};
+
+template <typename Vector>
+gen_coord< typename vect_traits<Vector>::value_type > get_gen_coord(
+  const arithmetic_tuple< Vector >& pt, std::size_t i) {
+  return gen_coord< typename vect_traits<Vector>::value_type >(
+    get<0>(pt)[i], 
+    0.0, 
+    0.0, 
+    0.0);
+};
+
+template <typename Vector>
+void set_gen_coord(
+  arithmetic_tuple< Vector, Vector, Vector >& pt,
+  std::size_t i,
+  const gen_coord< typename vect_traits<Vector>::value_type >& p) {
+  get<0>(pt)[i] = p.q;
+  get<1>(pt)[i] = p.q_dot;
+  get<2>(pt)[i] = p.q_ddot;
+};
+
+template <typename Vector>
+void set_gen_coord(
+  arithmetic_tuple< Vector, Vector >& pt,
+  std::size_t i,
+  const gen_coord< typename vect_traits<Vector>::value_type >& p) {
+  get<0>(pt)[i] = p.q;
+  get<1>(pt)[i] = p.q_dot;
+};
+
+template <typename Vector>
+void set_gen_coord(
+  arithmetic_tuple< Vector >& pt,
+  std::size_t i,
+  const gen_coord< typename vect_traits<Vector>::value_type >& p) {
+  get<0>(pt)[i] = p.q;
+};
+
+
+
+template <typename Vector>
+const typename vect_traits<Vector>::value_type& get_position(
+  const arithmetic_tuple< Vector, Vector, Vector >& pt, std::size_t i) {
+  return get<0>(pt)[i];
+};
+
+template <typename Vector>
+const typename vect_traits<Vector>::value_type& get_position(
+  const arithmetic_tuple< Vector, Vector >& pt, std::size_t i) {
+  return get<0>(pt)[i];
+};
+
+template <typename Vector>
+const typename vect_traits<Vector>::value_type& get_position(
+  const arithmetic_tuple< Vector >& pt, std::size_t i) {
+  return get<0>(pt)[i];
+};
+
+template <typename Vector>
+void set_position(
+  arithmetic_tuple< Vector, Vector, Vector >& pt,
+  std::size_t i,
+  const typename vect_traits<Vector>::value_type& p) {
+  get<0>(pt)[i] = p;
+};
+
+template <typename Vector>
+void set_position(
+  arithmetic_tuple< Vector, Vector >& pt,
+  std::size_t i,
+  const typename vect_traits<Vector>::value_type& p) {
+  get<0>(pt)[i] = p;
+};
+
+template <typename Vector>
+void set_position(
+  arithmetic_tuple< Vector >& pt,
+  std::size_t i,
+  const typename vect_traits<Vector>::value_type& p) {
+  get<0>(pt)[i] = p;
+};
+
+
+
+template <typename Vector>
+const typename vect_traits<Vector>::value_type& get_velocity(
+  const arithmetic_tuple< Vector, Vector, Vector >& pt, std::size_t i) {
+  return get<1>(pt)[i];
+};
+
+template <typename Vector>
+const typename vect_traits<Vector>::value_type& get_velocity(
+  const arithmetic_tuple< Vector, Vector >& pt, std::size_t i) {
+  return get<1>(pt)[i];
+};
+
+template <typename Vector>
+void set_velocity(
+  arithmetic_tuple< Vector, Vector, Vector >& pt,
+  std::size_t i,
+  const typename vect_traits<Vector>::value_type& p) {
+  get<1>(pt)[i] = p;
+};
+
+template <typename Vector>
+void set_velocity(
+  arithmetic_tuple< Vector, Vector >& pt,
+  std::size_t i,
+  const typename vect_traits<Vector>::value_type& p) {
+  get<1>(pt)[i] = p;
+};
+
+
+template <typename Vector>
+const typename vect_traits<Vector>::value_type& get_acceleration(
+  const arithmetic_tuple< Vector, Vector, Vector >& pt, std::size_t i) {
+  return get<2>(pt)[i];
+};
+
+template <typename Vector>
+void set_acceleration(
+  arithmetic_tuple< Vector, Vector, Vector >& pt,
+  std::size_t i,
+  const typename vect_traits<Vector>::value_type& p) {
+  get<2>(pt)[i] = p;
+};
+
+
+
+
 
 };
 

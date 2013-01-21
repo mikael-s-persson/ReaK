@@ -44,11 +44,6 @@ template class rrtstar_path_planner<robot_airship::CRS3D_workspace_o2_i3_type, r
 
 template class rrtstar_path_planner<robot_airship::CRS3D_workspace_o2_i5_type, robot_airship::CRS3D_rl_o2_tracer>;
 
-template class rrtstar_path_planner<robot_airship::CRS3D_workspace_o1_svp_type, robot_airship::CRS3D_rl_o1_tracer>;
-template class rrtstar_path_planner<robot_airship::CRS3D_workspace_o2_svp_type, robot_airship::CRS3D_rl_o2_tracer>;
-
-template class rrtstar_path_planner<robot_airship::CRS3D_workspace_o2_sap_type, robot_airship::CRS3D_rl_o2_tracer>;
-
 
 };
 

@@ -79,6 +79,17 @@ namespace detail {
     set_frame_3D(pt,*(model->getFrame3D(f3d_i++)));
   };
   
+  template <typename PointType, typename InSpace>
+  typename boost::enable_if< 
+    is_Ndof_space<InSpace>,
+  void >::type read_one_joint_coord_impl( PointType& pt,
+                                          const InSpace&,
+                                          std::size_t& gen_i, std::size_t&, std::size_t&,
+                                          const shared_ptr< kte::direct_kinematics_model >& model) {
+    for(std::size_t i = 0; i < get<0>(pt).size(); ++i) 
+      set_gen_coord(pt, i, *(model->getCoord(gen_i++)));
+  };
+  
   
   //declaration only.
   template <typename Idx, typename PointType, typename InSpaceTuple>
@@ -109,7 +120,8 @@ namespace detail {
     boost::mpl::or_<
       is_normal_joint_space<InSpace>,
       is_se2_space<InSpace>,
-      is_se3_space<InSpace>
+      is_se3_space<InSpace>,
+      is_Ndof_space<InSpace>
     >,  
   void >::type read_one_joint_coord_impl( PointType& pt,
                                           const InSpace& space_in,
@@ -152,7 +164,8 @@ namespace detail {
     boost::mpl::or_<
       is_normal_joint_space<InSpaceTuple>,
       is_se2_space<InSpaceTuple>,
-      is_se3_space<InSpaceTuple>
+      is_se3_space<InSpaceTuple>,
+      is_Ndof_space<InSpaceTuple>
     >,  
   void >::type read_joint_coordinates_impl( PointType& pt,
                                     const InSpaceTuple& space_in,
@@ -168,7 +181,8 @@ namespace detail {
     boost::mpl::or_<
       is_normal_joint_space<InSpaceTuple>,
       is_se2_space<InSpaceTuple>,
-      is_se3_space<InSpaceTuple>
+      is_se3_space<InSpaceTuple>,
+      is_Ndof_space<InSpaceTuple>
     >,  
   void >::type read_joint_coordinates_impl( PointType& pt,
                                     const InSpaceTuple& space_in,
@@ -215,6 +229,17 @@ namespace detail {
     *(model->getDependentFrame3D(f3d_i++)->mFrame) = get_frame_3D(pt);
   };
   
+  template <typename PointType, typename InSpace>
+  typename boost::enable_if< 
+    is_Ndof_space<InSpace>,
+  void >::type write_one_dependent_coord_impl( const PointType& pt,
+                                               const InSpace&,
+                                               std::size_t& gen_i, std::size_t&, std::size_t&,
+                                               const shared_ptr< kte::direct_kinematics_model >& model) {
+    for(std::size_t i = 0; i < get<0>(pt).size(); ++i)
+      *(model->getDependentCoord(gen_i++)->mFrame) = get_gen_coord(pt, i);
+  };
+  
   
   //declaration only.
   template <typename Idx, typename PointType, typename InSpaceTuple>
@@ -246,7 +271,8 @@ namespace detail {
     boost::mpl::or_<
       is_normal_joint_space<InSpace>,
       is_se2_space<InSpace>,
-      is_se3_space<InSpace>
+      is_se3_space<InSpace>,
+      is_Ndof_space<InSpace>
     >,  
   void >::type write_one_dependent_coord_impl( const PointType& pt,
                                                const InSpace& space_in,
@@ -289,7 +315,8 @@ namespace detail {
     boost::mpl::or_<
       is_normal_joint_space<InSpaceTuple>,
       is_se2_space<InSpaceTuple>,
-      is_se3_space<InSpaceTuple>
+      is_se3_space<InSpaceTuple>,
+      is_Ndof_space<InSpaceTuple>
     >,  
   void >::type write_dependent_coordinates_impl( const PointType& pt,
                                          const InSpaceTuple& space_in,
@@ -305,7 +332,8 @@ namespace detail {
     boost::mpl::or_<
       is_normal_joint_space<InSpaceTuple>,
       is_se2_space<InSpaceTuple>,
-      is_se3_space<InSpaceTuple>
+      is_se3_space<InSpaceTuple>,
+      is_Ndof_space<InSpaceTuple>
     >,  
   void >::type write_dependent_coordinates_impl( const PointType& pt,
                                                  const InSpaceTuple& space_in,

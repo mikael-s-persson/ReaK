@@ -240,7 +240,7 @@ struct get_tagged_spatial_interpolator< sap_Ndof_interpolation_tag, SpaceType, T
 
 template <typename TemporalSpaceType>
 struct get_tagged_temporal_interpolator< sap_Ndof_interpolation_tag, TemporalSpaceType> {
-  typedef generic_interpolator<sap_Ndof_interpolator_factory<TemporalSpaceType>, sap_Ndof_interpolator> type; 
+  typedef generic_interpolator<sap_Ndof_interp_factory<TemporalSpaceType>, sap_Ndof_interpolator> type; 
 };
 
 

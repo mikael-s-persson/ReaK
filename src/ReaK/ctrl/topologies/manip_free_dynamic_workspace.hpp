@@ -334,32 +334,6 @@ class manip_dynamic_env : public named_object {
 };
 
 
-
-
-
-#define RK_GENERATE_MDENV_REACHINTERP
-
-// Create a manip_dynamic_env specialization for the SAP-interpolator
-#define RK_REACHINTERP_TAG sap_interpolation_tag
-#define RK_REACHINTERP_TOPOLOGY sap_reach_topology
-
-#include "manip_free_workspace_tsppf.hpp"
-
-#undef RK_REACHINTERP_TAG
-#undef RK_REACHINTERP_TOPOLOGY
-
-// Create a manip_dynamic_env specialization for the SVP-interpolator
-#define RK_REACHINTERP_TAG svp_interpolation_tag
-#define RK_REACHINTERP_TOPOLOGY svp_reach_topology
-
-#include "manip_free_workspace_tsppf.hpp"
-
-#undef RK_REACHINTERP_TAG
-#undef RK_REACHINTERP_TOPOLOGY
-
-#undef RK_GENERATE_MDENV_REACHINTERP
-
-
 template <typename RateLimitedJointSpace, typename InterpMethodTag>
 struct is_metric_space< manip_dynamic_env<RateLimitedJointSpace, InterpMethodTag> > : boost::mpl::true_ { };
         
@@ -375,7 +349,86 @@ struct is_point_distribution< manip_dynamic_env<RateLimitedJointSpace, InterpMet
 };
 
 
-#include "manip_free_dynamic_workspace_ext.hpp"
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+#include "differentiable_space.hpp"
+#include "metric_space_tuple.hpp"
+#include "rate_limited_spaces.hpp"
+
+#include "joint_space_topologies.hpp"
+#include "se2_topologies.hpp"
+#include "se3_topologies.hpp"
+
+#include "interpolation/linear_interp.hpp"
+#include "interpolation/cubic_hermite_interp.hpp"
+#include "interpolation/quintic_hermite_interp.hpp"
+
+namespace ReaK {
+
+namespace pp {
+
+
+#define RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(NDOF) \
+extern template class manip_dynamic_env< Ndof_0th_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, linear_interpolation_tag>;\
+extern template class manip_dynamic_env< Ndof_1st_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, linear_interpolation_tag>;\
+extern template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, linear_interpolation_tag>;\
+\
+extern template class manip_dynamic_env< Ndof_1st_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
+extern template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
+\
+extern template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, quintic_hermite_interpolation_tag>;\
+\
+\
+extern template class manip_dynamic_env< Ndof_0th_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, linear_interpolation_tag>;\
+extern template class manip_dynamic_env< Ndof_1st_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, linear_interpolation_tag>;\
+extern template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, linear_interpolation_tag>;\
+\
+extern template class manip_dynamic_env< Ndof_1st_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
+extern template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
+\
+extern template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, quintic_hermite_interpolation_tag>;
+
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(1)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(2)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(3)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(4)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(5)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(6)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(7)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(8)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(9)
+RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(10)
+
+
+extern template class manip_dynamic_env< metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
+extern template class manip_dynamic_env< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
+extern template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
+
+extern template class manip_dynamic_env< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type, cubic_hermite_interpolation_tag>;
+extern template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, cubic_hermite_interpolation_tag>;
+
+extern template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, quintic_hermite_interpolation_tag>;
+
+
+extern template class manip_dynamic_env< metric_space_array< se3_0th_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
+extern template class manip_dynamic_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
+extern template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
+
+extern template class manip_dynamic_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type, cubic_hermite_interpolation_tag>;
+extern template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, cubic_hermite_interpolation_tag>;
+
+extern template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, quintic_hermite_interpolation_tag>;
+
+
+};
+
+};
+
+
+
+
+
+#endif
 
 
 #endif

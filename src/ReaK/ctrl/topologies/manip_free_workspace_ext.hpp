@@ -66,11 +66,6 @@ extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, ND
 \
 extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, quintic_hermite_interpolation_tag>;\
 \
-extern template class manip_quasi_static_env< Ndof_1st_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, svp_interpolation_tag>;\
-extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, svp_interpolation_tag>;\
-\
-extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, sap_interpolation_tag>; \
-\
 \
 extern template class manip_quasi_static_env< Ndof_0th_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, linear_interpolation_tag>;\
 extern template class manip_quasi_static_env< Ndof_1st_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, linear_interpolation_tag>;\
@@ -79,12 +74,7 @@ extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, ND
 extern template class manip_quasi_static_env< Ndof_1st_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
 extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
 \
-extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, quintic_hermite_interpolation_tag>;\
-\
-extern template class manip_quasi_static_env< Ndof_1st_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, svp_interpolation_tag>;\
-extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, svp_interpolation_tag>;\
-\
-extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, sap_interpolation_tag>;
+extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, quintic_hermite_interpolation_tag>;
 
 
 
@@ -110,11 +100,6 @@ extern template class manip_quasi_static_env< metric_space_array< se2_2nd_order_
 
 extern template class manip_quasi_static_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, quintic_hermite_interpolation_tag>;
 
-extern template class manip_quasi_static_env< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
-extern template class manip_quasi_static_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
-
-extern template class manip_quasi_static_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, sap_interpolation_tag>;
-
 
 extern template class manip_quasi_static_env< metric_space_array< se3_0th_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
 extern template class manip_quasi_static_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
@@ -124,11 +109,6 @@ extern template class manip_quasi_static_env< metric_space_array< se3_1st_order_
 extern template class manip_quasi_static_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, cubic_hermite_interpolation_tag>;
 
 extern template class manip_quasi_static_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, quintic_hermite_interpolation_tag>;
-
-extern template class manip_quasi_static_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
-extern template class manip_quasi_static_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
-
-extern template class manip_quasi_static_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, sap_interpolation_tag>;
 
 
 };

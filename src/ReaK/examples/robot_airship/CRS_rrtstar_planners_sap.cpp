@@ -26,24 +26,15 @@
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "CRS_rrt_planners.hpp"
+#include "CRS_rrtstar_planners.hpp"
 
 namespace ReaK {
 
 namespace pp {
 
+//template class rrtstar_path_planner<WORKSPACE, FRAME_REPORTER>;
 
-//template class rrt_path_planner<WORKSPACE, FRAME_REPORTER>;
-
-template class rrt_path_planner<robot_airship::CRS3D_workspace_o0_i1_type, robot_airship::CRS3D_rl_o0_tracer>;
-template class rrt_path_planner<robot_airship::CRS3D_workspace_o1_i1_type, robot_airship::CRS3D_rl_o1_tracer>;
-template class rrt_path_planner<robot_airship::CRS3D_workspace_o2_i1_type, robot_airship::CRS3D_rl_o2_tracer>;
-
-template class rrt_path_planner<robot_airship::CRS3D_workspace_o1_i3_type, robot_airship::CRS3D_rl_o1_tracer>;
-template class rrt_path_planner<robot_airship::CRS3D_workspace_o2_i3_type, robot_airship::CRS3D_rl_o2_tracer>;
-
-template class rrt_path_planner<robot_airship::CRS3D_workspace_o2_i5_type, robot_airship::CRS3D_rl_o2_tracer>;
-
+template class rrtstar_path_planner<robot_airship::CRS3D_workspace_o2_sap_type, robot_airship::CRS3D_rl_o2_tracer>;
 
 };
 
@@ -55,7 +46,7 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_CRS_rrt_planners_externs_symbol() { };
+void dummy_CRS_rrtstar_planners_sap_externs_symbol() { };
 
 };
 

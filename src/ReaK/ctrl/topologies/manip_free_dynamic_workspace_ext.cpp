@@ -45,12 +45,6 @@ template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, euclidea
 \
 template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, quintic_hermite_interpolation_tag>;\
 \
-template class manip_dynamic_env< Ndof_1st_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, svp_interpolation_tag>;\
-template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, svp_interpolation_tag>;\
-\
-template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, sap_interpolation_tag>;\
-\
-\
 template class manip_dynamic_env< Ndof_0th_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, linear_interpolation_tag>;\
 template class manip_dynamic_env< Ndof_1st_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, linear_interpolation_tag>;\
 template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, linear_interpolation_tag>;\
@@ -58,12 +52,7 @@ template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm
 template class manip_dynamic_env< Ndof_1st_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
 template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
 \
-template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, quintic_hermite_interpolation_tag>;\
-\
-template class manip_dynamic_env< Ndof_1st_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, svp_interpolation_tag>;\
-template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, svp_interpolation_tag>;\
-\
-template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, sap_interpolation_tag>;
+template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, quintic_hermite_interpolation_tag>;
 
 RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(1)
 RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(2)
@@ -86,11 +75,6 @@ template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<
 
 template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, quintic_hermite_interpolation_tag>;
 
-template class manip_dynamic_env< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
-template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
-
-template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, sap_interpolation_tag>;
-
 
 template class manip_dynamic_env< metric_space_array< se3_0th_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
 template class manip_dynamic_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
@@ -100,11 +84,6 @@ template class manip_dynamic_env< metric_space_array< se3_1st_order_rl_topology<
 template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, cubic_hermite_interpolation_tag>;
 
 template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, quintic_hermite_interpolation_tag>;
-
-template class manip_dynamic_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
-template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
-
-template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, sap_interpolation_tag>;
 
 
 };

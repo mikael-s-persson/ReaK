@@ -307,13 +307,13 @@ class svp_Ndof_interp_factory : public serialization::serializable {
  * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the DistanceMetricConcept.
  */
 template <typename Topology, typename DistanceMetric = typename metric_space_traits<Topology>::distance_metric_type>
-class svp_Ndof_interp_traj : public interpolated_trajectory<Topology,svp_Ndof_interpolator_factory<Topology>,DistanceMetric> {
+class svp_Ndof_interp_traj : public interpolated_trajectory<Topology,svp_Ndof_interp_factory<Topology>,DistanceMetric> {
   public:
     
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
     
     typedef svp_Ndof_interp_traj<Topology,DistanceMetric> self;
-    typedef interpolated_trajectory<Topology,svp_Ndof_interpolator_factory<Topology>,DistanceMetric> base_class_type;
+    typedef interpolated_trajectory<Topology,svp_Ndof_interp_factory<Topology>,DistanceMetric> base_class_type;
     
     typedef typename base_class_type::point_type point_type;
     typedef typename base_class_type::topology topology;
@@ -327,7 +327,7 @@ class svp_Ndof_interp_traj : public interpolated_trajectory<Topology,svp_Ndof_in
      * \param aDist The distance metric functor that the path should use.
      */
     explicit svp_Ndof_interp_traj(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), const distance_metric& aDist = distance_metric()) : 
-                                  base_class_type(aSpace, aDist, svp_Ndof_interpolator_factory<Topology>(aSpace)) { };
+                                  base_class_type(aSpace, aDist, svp_Ndof_interp_factory<Topology>(aSpace)) { };
     
     /**
      * Constructs the path from a space, the start and end points.
@@ -337,7 +337,7 @@ class svp_Ndof_interp_traj : public interpolated_trajectory<Topology,svp_Ndof_in
      * \param aDist The distance metric functor that the path should use.
      */
     svp_Ndof_interp_traj(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
-                         base_class_type(aSpace, aStart, aEnd, aDist, svp_Ndof_interpolator_factory<Topology>(aSpace)) { };
+                         base_class_type(aSpace, aStart, aEnd, aDist, svp_Ndof_interp_factory<Topology>(aSpace)) { };
                         
     /**
      * Constructs the path from a range of points and their space.
@@ -349,7 +349,7 @@ class svp_Ndof_interp_traj : public interpolated_trajectory<Topology,svp_Ndof_in
      */
     template <typename ForwardIter>
     svp_Ndof_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric& aDist = distance_metric()) : 
-                         base_class_type(aBegin, aEnd, aSpace, aDist, svp_Ndof_interpolator_factory<Topology>(aSpace)) { };
+                         base_class_type(aBegin, aEnd, aSpace, aDist, svp_Ndof_interp_factory<Topology>(aSpace)) { };
     
     
     

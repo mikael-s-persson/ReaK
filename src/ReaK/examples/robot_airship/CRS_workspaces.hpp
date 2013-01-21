@@ -43,6 +43,8 @@
 #include "interpolation/sustained_velocity_pulse.hpp"
 #include "interpolation/sustained_acceleration_pulse.hpp"
 #include "topologies/manip_free_workspace.hpp"
+#include "topologies/manip_free_svp_workspace.hpp"
+#include "topologies/manip_free_sap_workspace.hpp"
 
 #include "path_planning/frame_tracer_coin3d.hpp"
 

@@ -47,6 +47,8 @@
 #include "sustained_acceleration_pulse_Ndof.hpp"
 #include "topologies/time_topology.hpp"
 
+#include <cmath>
+
 namespace ReaK {
 
 namespace pp {
@@ -91,6 +93,8 @@ struct sap_Ndof_rate_limited_sampler : public serialization::serializable {
     typedef typename topology_traits<Space1>::point_difference_type PointDiff1;
     typedef typename topology_traits<Space2>::point_difference_type PointDiff2;
     
+    using std::fabs;
+    
     BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
     BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
     BOOST_CONCEPT_ASSERT((LieGroupConcept<Space2>));
@@ -105,8 +109,6 @@ struct sap_Ndof_rate_limited_sampler : public serialization::serializable {
     const Space0& s0 = get_space<0>(s, *t_space);
     const Space1& s1 = get_space<1>(s, *t_space);
     const Space2& s2 = get_space<2>(s, *t_space);
-    const typename metric_space_traits< Space1 >::distance_metric_type& get_dist1 = get(distance_metric,s1);
-    const typename metric_space_traits< Space2 >::distance_metric_type& get_dist2 = get(distance_metric,s2);
     
     Point1 max_velocity     = s1.get_upper_corner();
     Point2 max_acceleration = s2.get_upper_corner();
@@ -125,7 +127,6 @@ struct sap_Ndof_rate_limited_sampler : public serialization::serializable {
           continue;
         // we know that dt_vp_2nd = dt_vp_1st + dt_amax
         double dt_vp1 = dt_vp1_1st - max_acceleration[i];
-        double dt_ap1 = max_acceleration[i];
         if( dt_vp1 < 0.0 ) {
           //means that we don't have time to reach the maximum acceleration:
           double integ = get<1>(pt)[i] * dt_vp1_1st / max_velocity[i];
