@@ -25,7 +25,7 @@
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "manip_free_sap_workspace.hpp"
+#include "topologies/manip_free_sap_workspace.hpp"
 
 namespace ReaK {
 
@@ -61,7 +61,7 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_manip_free_sap_workspace_externs_symbol() { };
+void dummy_manip_free_workspace_externs_5_symbol() { };
 
 };
 

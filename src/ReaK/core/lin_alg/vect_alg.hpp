@@ -149,13 +149,15 @@ static const vect_component<double,2> vect_k = vect_component<double,2>(1.0);
 
 
 
+template <typename T, typename Allocator>
+class vect_n;  // forward-declaration.
 
 
 
 /**
  * This class implements a fixed-size templated vector class which holds components of primitive type.
  */
-template <class T, unsigned int Size>
+template <typename T, unsigned int Size>
 class vect : public serialization::serializable {
   public:
     typedef vect<T,Size> self;
@@ -233,6 +235,9 @@ class vect : public serialization::serializable {
 	q[i] = value_type();
       return;
     };
+    
+    template <typename U, typename Allocator>
+    vect(const vect_n<U,Allocator>& V);
 
     /**
      * Constructor from an array of values of type T.
@@ -2012,6 +2017,21 @@ vect_n<T> make_vect_n(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q
   return vect_n<T>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10);
 };
 
+
+
+
+
+template <typename T, unsigned int Size>
+template <typename U, typename Allocator>
+vect<T,Size>::vect(const vect_n<U,Allocator>& V) {
+  std::size_t sz = Size;
+  if(sz > V.size())
+    sz = V.size();
+  for(std::size_t i = 0; i < sz; ++i)
+    q[i] = V[i];
+  for(std::size_t i = sz; i < Size; ++i)
+    q[i] = T();
+};
 
 
 

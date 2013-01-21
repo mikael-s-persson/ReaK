@@ -1147,6 +1147,112 @@ void set_acceleration(
 };
 
 
+
+
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+namespace ReaK {
+
+namespace pp {
+
+#define RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DECL(NDOF) \
+extern template class differentiable_space<time_topology, \
+                        arithmetic_tuple< \
+                          hyperbox_topology< vect<double,NDOF>, manhattan_distance_metric > \
+                        > >;\
+extern template class differentiable_space<time_topology, \
+                        arithmetic_tuple< \
+                          hyperbox_topology< vect<double,NDOF>, manhattan_distance_metric >, \
+                          hyperbox_topology< vect<double,NDOF>, manhattan_distance_metric > \
+                        > >;\
+extern template class differentiable_space<time_topology, \
+                        arithmetic_tuple< \
+                          hyperbox_topology< vect<double,NDOF>, manhattan_distance_metric >, \
+                          hyperbox_topology< vect<double,NDOF>, manhattan_distance_metric >, \
+                          hyperbox_topology< vect<double,NDOF>, manhattan_distance_metric > \
+                        > >;
+
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DECL(1)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DECL(2)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DECL(3)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DECL(4)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DECL(5)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DECL(6)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DECL(7)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DECL(8)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DECL(9)
+RK_NDOF_SPACES_MAKE_NORMAL_EXTERN_DECL(10)
+
+extern template class differentiable_space<time_topology, 
+                        arithmetic_tuple< 
+                          hyperbox_topology< vect_n<double>, manhattan_distance_metric > 
+                        > >;
+extern template class differentiable_space<time_topology, 
+                        arithmetic_tuple< 
+                          hyperbox_topology< vect_n<double>, manhattan_distance_metric >, 
+                          hyperbox_topology< vect_n<double>, manhattan_distance_metric > 
+                        > >;
+extern template class differentiable_space<time_topology, 
+                        arithmetic_tuple< 
+                          hyperbox_topology< vect_n<double>, manhattan_distance_metric >, 
+                          hyperbox_topology< vect_n<double>, manhattan_distance_metric >, 
+                          hyperbox_topology< vect_n<double>, manhattan_distance_metric > 
+                        > >;
+
+
+
+#define RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DECL(NDOF) \
+extern template class differentiable_space<time_topology, \
+                        arithmetic_tuple< \
+                          hyperbox_topology< vect<double,NDOF>, inf_norm_distance_metric > \
+                        > >;\
+extern template class differentiable_space<time_topology, \
+                        arithmetic_tuple< \
+                          hyperbox_topology< vect<double,NDOF>, inf_norm_distance_metric >, \
+                          hyperbox_topology< vect<double,NDOF>, inf_norm_distance_metric > \
+                        > >;\
+extern template class differentiable_space<time_topology, \
+                        arithmetic_tuple< \
+                          hyperbox_topology< vect<double,NDOF>, inf_norm_distance_metric >, \
+                          hyperbox_topology< vect<double,NDOF>, inf_norm_distance_metric >, \
+                          hyperbox_topology< vect<double,NDOF>, inf_norm_distance_metric > \
+                        > >;
+
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DECL(1)
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DECL(2)
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DECL(3)
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DECL(4)
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DECL(5)
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DECL(6)
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DECL(7)
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DECL(8)
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DECL(9)
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DECL(10)
+
+extern template class differentiable_space<time_topology, 
+                        arithmetic_tuple< 
+                          hyperbox_topology< vect_n<double>, inf_norm_distance_metric > 
+                        > >;
+extern template class differentiable_space<time_topology, 
+                        arithmetic_tuple< 
+                          hyperbox_topology< vect_n<double>, inf_norm_distance_metric >, 
+                          hyperbox_topology< vect_n<double>, inf_norm_distance_metric > 
+                        > >;
+extern template class differentiable_space<time_topology, 
+                        arithmetic_tuple< 
+                          hyperbox_topology< vect_n<double>, inf_norm_distance_metric >, 
+                          hyperbox_topology< vect_n<double>, inf_norm_distance_metric >, 
+                          hyperbox_topology< vect_n<double>, inf_norm_distance_metric > 
+                        > >;
+
+};
+
+};
+
+#endif
+
+
+
 #endif
 
 

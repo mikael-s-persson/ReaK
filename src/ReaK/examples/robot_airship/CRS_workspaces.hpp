@@ -69,10 +69,10 @@ typedef pp::manip_quasi_static_env<CRS3D_jspace_rl_o2_type, pp::cubic_hermite_in
 
 typedef pp::manip_quasi_static_env<CRS3D_jspace_rl_o2_type, pp::quintic_hermite_interpolation_tag> CRS3D_workspace_o2_i5_type;
 
-typedef pp::manip_quasi_static_env<CRS3D_jspace_rl_o1_type, pp::svp_interpolation_tag> CRS3D_workspace_o1_svp_type;
-typedef pp::manip_quasi_static_env<CRS3D_jspace_rl_o2_type, pp::svp_interpolation_tag> CRS3D_workspace_o2_svp_type;
+typedef pp::manip_quasi_static_env<CRS3D_jspace_rl_o1_type, pp::svp_Ndof_interpolation_tag> CRS3D_workspace_o1_svp_type;
+typedef pp::manip_quasi_static_env<CRS3D_jspace_rl_o2_type, pp::svp_Ndof_interpolation_tag> CRS3D_workspace_o2_svp_type;
 
-typedef pp::manip_quasi_static_env<CRS3D_jspace_rl_o2_type, pp::sap_interpolation_tag> CRS3D_workspace_o2_sap_type;
+typedef pp::manip_quasi_static_env<CRS3D_jspace_rl_o2_type, pp::sap_Ndof_interpolation_tag> CRS3D_workspace_o2_sap_type;
 
 
 typedef pp::manip_rl_direct_kin_map< pp::joint_limits_collection<double>, CRS3D_jspace_o0_type > CRS3D_rlDK_o0_type;

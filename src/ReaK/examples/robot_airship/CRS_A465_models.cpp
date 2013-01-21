@@ -884,10 +884,18 @@ shared_ptr< kte::manipulator_dynamics_model > CRS_A465_model_builder::get_manipu
 
 
 CRS_A465_model_builder::rate_limited_joint_space_type CRS_A465_model_builder::get_rl_joint_space() const {
-  return joint_rate_limits.make_rl_joint_space(get_joint_space());
+  return pp::make_Ndof_rl_space<7>(joint_lower_bounds, joint_upper_bounds, 
+                                   joint_rate_limits.gen_speed_limits, 
+                                   joint_rate_limits.gen_accel_limits, 
+                                   joint_rate_limits.gen_jerk_limits);
+//   return joint_rate_limits.make_rl_joint_space(get_joint_space());
 };
 
 CRS_A465_model_builder::joint_space_type CRS_A465_model_builder::get_joint_space() const {
+  return pp::make_Ndof_space<7>(joint_lower_bounds, joint_upper_bounds, 
+                                joint_rate_limits.gen_speed_limits, 
+                                joint_rate_limits.gen_accel_limits);
+  /*
   typedef pp::joint_space_2nd_order<double>::type SingleJointSpace;
   typedef pp::line_segment_topology<double> LinSeg;
   return joint_space_type( arithmetic_tuple< 
@@ -963,7 +971,7 @@ CRS_A465_model_builder::joint_space_type CRS_A465_model_builder::get_joint_space
 			       )
 	                     )
 			   )
-	                 );
+	                 );*/
 };
 
 CRS_A465_model_builder::end_effector_space_type CRS_A465_model_builder::get_end_effector_space() const {
@@ -1005,11 +1013,16 @@ CRS_A465_model_builder::end_effector_space_type CRS_A465_model_builder::get_end_
 
 
 CRS_A465_model_builder::rate_limited_joint_space_1st_type CRS_A465_model_builder::get_rl_joint_space_1st() const {
-  return joint_rate_limits.make_rl_joint_space(get_joint_space_1st());
+  return pp::make_Ndof_rl_space<7>(joint_lower_bounds, joint_upper_bounds, 
+                                   joint_rate_limits.gen_speed_limits, 
+                                   joint_rate_limits.gen_accel_limits);
+//   return joint_rate_limits.make_rl_joint_space(get_joint_space_1st());
 };
 
 CRS_A465_model_builder::joint_space_1st_type CRS_A465_model_builder::get_joint_space_1st() const {
-  typedef pp::joint_space_1st_order<double>::type SingleJointSpace;
+  return pp::make_Ndof_space<7>(joint_lower_bounds, joint_upper_bounds, 
+                                joint_rate_limits.gen_speed_limits);
+  /*typedef pp::joint_space_1st_order<double>::type SingleJointSpace;
   typedef pp::line_segment_topology<double> LinSeg;
   return joint_space_1st_type( arithmetic_tuple< 
                              SingleJointSpace,
@@ -1077,7 +1090,7 @@ CRS_A465_model_builder::joint_space_1st_type CRS_A465_model_builder::get_joint_s
                                )
                              )
                            )
-                         );
+                         );*/
 };
 
 CRS_A465_model_builder::end_effector_space_1st_type CRS_A465_model_builder::get_end_effector_space_1st() const {
@@ -1116,11 +1129,14 @@ CRS_A465_model_builder::end_effector_space_1st_type CRS_A465_model_builder::get_
 
 
 CRS_A465_model_builder::rate_limited_joint_space_0th_type CRS_A465_model_builder::get_rl_joint_space_0th() const {
-  return joint_rate_limits.make_rl_joint_space(get_joint_space_0th());
+  return pp::make_Ndof_rl_space<7>(joint_lower_bounds, joint_upper_bounds, 
+                                   joint_rate_limits.gen_speed_limits);
+//   return joint_rate_limits.make_rl_joint_space(get_joint_space_0th());
 };
 
 CRS_A465_model_builder::joint_space_0th_type CRS_A465_model_builder::get_joint_space_0th() const {
-  typedef pp::joint_space_0th_order<double>::type SingleJointSpace;
+  return pp::make_Ndof_space<7>(joint_lower_bounds, joint_upper_bounds);
+  /*typedef pp::joint_space_0th_order<double>::type SingleJointSpace;
   typedef pp::line_segment_topology<double> LinSeg;
   return joint_space_0th_type( arithmetic_tuple< 
                              SingleJointSpace,
@@ -1181,7 +1197,7 @@ CRS_A465_model_builder::joint_space_0th_type CRS_A465_model_builder::get_joint_s
                                )
                              )
                            )
-                         );
+                         );*/
 };
 
 CRS_A465_model_builder::end_effector_space_0th_type CRS_A465_model_builder::get_end_effector_space_0th() const {

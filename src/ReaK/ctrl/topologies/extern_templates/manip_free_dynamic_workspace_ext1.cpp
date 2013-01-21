@@ -28,63 +28,46 @@
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "manip_free_dynamic_workspace.hpp"
+#include "topologies/manip_free_dynamic_workspace.hpp"
 
 namespace ReaK {
 
 namespace pp {
 
 
-#define RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(NDOF) \
+#define RK_MANIP_FREE_WORKSPACE_MAKE_LIN_DYN_ENV_FOR_JOINTS_DEFS(NDOF) \
 template class manip_dynamic_env< Ndof_0th_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, linear_interpolation_tag>;\
 template class manip_dynamic_env< Ndof_1st_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, linear_interpolation_tag>;\
 template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, linear_interpolation_tag>;\
-\
-template class manip_dynamic_env< Ndof_1st_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
-template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
-\
-template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, quintic_hermite_interpolation_tag>;\
 \
 template class manip_dynamic_env< Ndof_0th_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, linear_interpolation_tag>;\
 template class manip_dynamic_env< Ndof_1st_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, linear_interpolation_tag>;\
 template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, linear_interpolation_tag>;\
 \
-template class manip_dynamic_env< Ndof_1st_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
-template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
-\
-template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, quintic_hermite_interpolation_tag>;
+template class manip_dynamic_env< Ndof_rl_space<double, NDOF, 0>::type, linear_interpolation_tag>;\
+template class manip_dynamic_env< Ndof_rl_space<double, NDOF, 1>::type, linear_interpolation_tag>;\
+template class manip_dynamic_env< Ndof_rl_space<double, NDOF, 2>::type, linear_interpolation_tag>;
 
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(1)
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(2)
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(3)
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(4)
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(5)
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(6)
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(7)
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(8)
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(9)
-RK_MANIP_FREE_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(10)
+
+RK_MANIP_FREE_WORKSPACE_MAKE_LIN_DYN_ENV_FOR_JOINTS_DEFS(1)
+RK_MANIP_FREE_WORKSPACE_MAKE_LIN_DYN_ENV_FOR_JOINTS_DEFS(2)
+RK_MANIP_FREE_WORKSPACE_MAKE_LIN_DYN_ENV_FOR_JOINTS_DEFS(3)
+RK_MANIP_FREE_WORKSPACE_MAKE_LIN_DYN_ENV_FOR_JOINTS_DEFS(4)
+RK_MANIP_FREE_WORKSPACE_MAKE_LIN_DYN_ENV_FOR_JOINTS_DEFS(5)
+RK_MANIP_FREE_WORKSPACE_MAKE_LIN_DYN_ENV_FOR_JOINTS_DEFS(6)
+RK_MANIP_FREE_WORKSPACE_MAKE_LIN_DYN_ENV_FOR_JOINTS_DEFS(7)
+RK_MANIP_FREE_WORKSPACE_MAKE_LIN_DYN_ENV_FOR_JOINTS_DEFS(8)
+RK_MANIP_FREE_WORKSPACE_MAKE_LIN_DYN_ENV_FOR_JOINTS_DEFS(9)
+RK_MANIP_FREE_WORKSPACE_MAKE_LIN_DYN_ENV_FOR_JOINTS_DEFS(10)
 
 
 template class manip_dynamic_env< metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
 template class manip_dynamic_env< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
 template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
 
-template class manip_dynamic_env< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type, cubic_hermite_interpolation_tag>;
-template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, cubic_hermite_interpolation_tag>;
-
-template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, quintic_hermite_interpolation_tag>;
-
-
 template class manip_dynamic_env< metric_space_array< se3_0th_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
 template class manip_dynamic_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
 template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
-
-template class manip_dynamic_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type, cubic_hermite_interpolation_tag>;
-template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, cubic_hermite_interpolation_tag>;
-
-template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, quintic_hermite_interpolation_tag>;
-
 
 };
 
@@ -96,7 +79,7 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_manip_free_dynamic_workspace_externs_symbol() { };
+void dummy_manip_free_dynamic_workspace_externs_1_symbol() { };
 
 };
 

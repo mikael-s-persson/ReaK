@@ -9,6 +9,9 @@ set(ROBOTAIRSHIP_SOURCES
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_rrtstar_planners.cpp"
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_rrtstar_planners_svp.cpp"
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_rrtstar_planners_sap.cpp"
+  "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_prm_planners.cpp"
+  "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_prm_planners_svp.cpp"
+  "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_prm_planners_sap.cpp"
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/satellite_basic_models.cpp"
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/satellite_invar_models.cpp"
 )

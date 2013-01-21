@@ -219,52 +219,17 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
     
     ReaK::pp::detail::read_joint_coordinates_impl(start_inter, r_info->builder.get_joint_space(), manip_kin_mdl);
     
-    get<0>(get<0>(start_inter)) = 0.0;
-    get<0>(get<1>(start_inter)) = 0.0;
-    get<0>(get<2>(start_inter)) = 0.0;
-    get<0>(get<3>(start_inter)) = 0.0;
-    get<0>(get<4>(start_inter)) = 0.0;
-    get<0>(get<5>(start_inter)) = 0.0;
-    get<0>(get<6>(start_inter)) = 0.0;
-    get<1>(get<0>(start_inter)) = 0.0;
-    get<1>(get<1>(start_inter)) = 0.0;
-    get<1>(get<2>(start_inter)) = 0.0;
-    get<1>(get<3>(start_inter)) = 0.0;
-    get<1>(get<4>(start_inter)) = 0.0;
-    get<1>(get<5>(start_inter)) = 0.0;
-    get<1>(get<6>(start_inter)) = 0.0;
-/*    get<2>(get<0>(start_inter)) = 0.0;
-    get<2>(get<1>(start_inter)) = 0.0;
-    get<2>(get<2>(start_inter)) = 0.0;
-    get<2>(get<3>(start_inter)) = 0.0;
-    get<2>(get<4>(start_inter)) = 0.0;
-    get<2>(get<5>(start_inter)) = 0.0;
-    get<2>(get<6>(start_inter)) = 0.0;*/
+    get<0>(start_inter) = ReaK::vect<double,7>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    get<1>(start_inter) = ReaK::vect<double,7>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+//     get<2>(start_inter) = ReaK::vect<double,7>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     
     start_point = manip_jt_limits->map_to_space(start_inter, r_info->builder.get_joint_space_1st(), r_info->builder.get_rl_joint_space_1st());
     
     ReaK::vect_n<double> jt_desired = r_info->builder.compute_inverse_kinematics(r_info->target_frame.getGlobalPose());
-    get<0>(get<0>(goal_inter)) = jt_desired[0];
-    get<0>(get<1>(goal_inter)) = jt_desired[1];
-    get<0>(get<2>(goal_inter)) = jt_desired[2];
-    get<0>(get<3>(goal_inter)) = jt_desired[3];
-    get<0>(get<4>(goal_inter)) = jt_desired[4];
-    get<0>(get<5>(goal_inter)) = jt_desired[5];
-    get<0>(get<6>(goal_inter)) = jt_desired[6];
-    get<1>(get<0>(goal_inter)) = 0.0;
-    get<1>(get<1>(goal_inter)) = 0.0;
-    get<1>(get<2>(goal_inter)) = 0.0;
-    get<1>(get<3>(goal_inter)) = 0.0;
-    get<1>(get<4>(goal_inter)) = 0.0;
-    get<1>(get<5>(goal_inter)) = 0.0;
-    get<1>(get<6>(goal_inter)) = 0.0;
-/*    get<2>(get<0>(goal_inter)) = 0.0;
-    get<2>(get<1>(goal_inter)) = 0.0;
-    get<2>(get<2>(goal_inter)) = 0.0;
-    get<2>(get<3>(goal_inter)) = 0.0;
-    get<2>(get<4>(goal_inter)) = 0.0;
-    get<2>(get<5>(goal_inter)) = 0.0;
-    get<2>(get<6>(goal_inter)) = 0.0;*/
+    get<0>(goal_inter) = ReaK::vect<double,7>(jt_desired);
+    get<1>(goal_inter) = ReaK::vect<double,7>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+//     get<2>(goal_inter) = ReaK::vect<double,7>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    
     goal_point = manip_jt_limits->map_to_space(goal_inter, r_info->builder.get_joint_space_1st(), r_info->builder.get_rl_joint_space_1st());
     
     typedef ReaK::pp::frame_tracer_3D<
@@ -316,13 +281,13 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
     SoIdleSensor* ask_for_new_solsep = new SoIdleSensor(add_new_solution_sep, r_info);
     ask_for_new_solsep->schedule();
     
-    r_info->builder.track_joint_coord->q = get<0>(get<0>(start_inter));
-    r_info->builder.arm_joint_1_coord->q = get<0>(get<1>(start_inter));
-    r_info->builder.arm_joint_2_coord->q = get<0>(get<2>(start_inter));
-    r_info->builder.arm_joint_3_coord->q = get<0>(get<3>(start_inter));
-    r_info->builder.arm_joint_4_coord->q = get<0>(get<4>(start_inter));
-    r_info->builder.arm_joint_5_coord->q = get<0>(get<5>(start_inter));
-    r_info->builder.arm_joint_6_coord->q = get<0>(get<6>(start_inter));
+    r_info->builder.track_joint_coord->q = get<0>(start_inter)[0];
+    r_info->builder.arm_joint_1_coord->q = get<0>(start_inter)[1];
+    r_info->builder.arm_joint_2_coord->q = get<0>(start_inter)[2];
+    r_info->builder.arm_joint_3_coord->q = get<0>(start_inter)[3];
+    r_info->builder.arm_joint_4_coord->q = get<0>(start_inter)[4];
+    r_info->builder.arm_joint_5_coord->q = get<0>(start_inter)[5];
+    r_info->builder.arm_joint_6_coord->q = get<0>(start_inter)[6];
     
   } catch( ReaK::optim::infeasible_problem& e ) { RK_UNUSED(e);
     

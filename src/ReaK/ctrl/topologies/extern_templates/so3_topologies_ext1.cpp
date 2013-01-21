@@ -25,7 +25,7 @@
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "so3_topologies.hpp"
+#include "topologies/so3_topologies.hpp"
 
 namespace ReaK {
 
@@ -89,7 +89,7 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_so3_topologies_externs_symbol() { };
+void dummy_so3_topologies_externs_1_symbol() { };
 
 };
 

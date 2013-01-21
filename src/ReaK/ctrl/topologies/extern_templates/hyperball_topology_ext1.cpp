@@ -25,16 +25,21 @@
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "hyperball_topology.hpp"
+#include "topologies/hyperball_topology.hpp"
 
 namespace ReaK {
 
 namespace pp {
 
+template class hyperball_topology< vect<double,1> >;
 template class hyperball_topology< vect<double,2> >;
 template class hyperball_topology< vect<double,3> >;
 template class hyperball_topology< vect<double,4> >;
+template class hyperball_topology< vect<double,5> >;
 template class hyperball_topology< vect<double,6> >;
+template class hyperball_topology< vect<double,7> >;
+template class hyperball_topology< vect<double,8> >;
+template class hyperball_topology< vect<double,9> >;
 template class hyperball_topology< vect_n<double> >;
 
 };
@@ -47,7 +52,7 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_hyperball_topology_externs_symbol() { };
+void dummy_hyperball_topology_externs_1_symbol() { };
 
 };
 

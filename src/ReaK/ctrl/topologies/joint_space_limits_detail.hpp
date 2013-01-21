@@ -1540,10 +1540,10 @@ namespace detail {
   
   
   
-  template <typename Vector, typename RateLimitMap>
+  template <typename Idx, typename Vector, typename RateLimitMap>
   typename boost::enable_if<
     is_writable_vector<Vector>,
-  void >::type create_rl_joint_vector_impl(
+  void >::type create_rl_joint_vectors_impl(
       arithmetic_tuple< Vector >& result,
       const arithmetic_tuple< Vector >& pt,
       const RateLimitMap& j_limits,
@@ -1554,10 +1554,10 @@ namespace detail {
     };
   };
   
-  template <typename Vector, typename RateLimitMap>
+  template <typename Idx, typename Vector, typename RateLimitMap>
   typename boost::enable_if<
     is_writable_vector<Vector>,
-  void >::type create_rl_joint_vector_impl(
+  void >::type create_rl_joint_vectors_impl(
       arithmetic_tuple< Vector, Vector >& result,
       const arithmetic_tuple< Vector, Vector >& pt,
       const RateLimitMap& j_limits,
@@ -1569,10 +1569,10 @@ namespace detail {
     };
   };
   
-  template <typename Vector, typename RateLimitMap>
+  template <typename Idx, typename Vector, typename RateLimitMap>
   typename boost::enable_if<
     is_writable_vector<Vector>,
-  void >::type create_rl_joint_vector_impl(
+  void >::type create_rl_joint_vectors_impl(
       arithmetic_tuple< Vector, Vector, Vector >& result,
       const arithmetic_tuple< Vector, Vector, Vector >& pt,
       const RateLimitMap& j_limits,

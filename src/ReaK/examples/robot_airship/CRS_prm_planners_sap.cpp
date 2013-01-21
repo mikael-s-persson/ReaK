@@ -1,6 +1,6 @@
 
 /*
- *    Copyright 2011 Sven Mikael Persson
+ *    Copyright 2012 Sven Mikael Persson
  *
  *    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
  *
@@ -21,28 +21,22 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #include "base/defs.hpp"
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "Ndof_limits.hpp"
+#include "CRS_prm_planners.hpp"
 
 namespace ReaK {
 
 namespace pp {
 
-template class Ndof_limits<double>;
 
-template class Ndof_limits<double,1>;
-template class Ndof_limits<double,2>;
-template class Ndof_limits<double,3>;
-template class Ndof_limits<double,4>;
-template class Ndof_limits<double,5>;
-template class Ndof_limits<double,6>;
-template class Ndof_limits<double,7>;
-template class Ndof_limits<double,8>;
-template class Ndof_limits<double,9>;
-template class Ndof_limits<double,10>;
+//template class prm_path_planner<WORKSPACE, FRAME_REPORTER>;
+
+template class prm_path_planner<robot_airship::CRS3D_workspace_o2_sap_type, robot_airship::CRS3D_rl_o2_tracer>;
+
 
 };
 
@@ -54,24 +48,12 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_Ndof_limits_externs_symbol() { };
+void dummy_CRS_prm_planners_sap_externs_symbol() { };
 
 };
 
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
 
 

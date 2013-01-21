@@ -25,17 +25,22 @@
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "vector_topology.hpp"
+#include "topologies/hyperbox_topology.hpp"
 
 namespace ReaK {
 
 namespace pp {
 
-template class vector_topology< vect<double,2> >;
-template class vector_topology< vect<double,3> >;
-template class vector_topology< vect<double,4> >;
-template class vector_topology< vect<double,6> >;
-template class vector_topology< vect_n<double> >;
+template class hyperbox_topology< vect<double,1>, inf_norm_distance_metric >;
+template class hyperbox_topology< vect<double,2>, inf_norm_distance_metric >;
+template class hyperbox_topology< vect<double,3>, inf_norm_distance_metric >;
+template class hyperbox_topology< vect<double,4>, inf_norm_distance_metric >;
+template class hyperbox_topology< vect<double,5>, inf_norm_distance_metric >;
+template class hyperbox_topology< vect<double,6>, inf_norm_distance_metric >;
+template class hyperbox_topology< vect<double,7>, inf_norm_distance_metric >;
+template class hyperbox_topology< vect<double,8>, inf_norm_distance_metric >;
+template class hyperbox_topology< vect<double,9>, inf_norm_distance_metric >;
+template class hyperbox_topology< vect_n<double>, inf_norm_distance_metric >;
 
 };
 
@@ -47,7 +52,7 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_vector_topology_externs_symbol() { };
+void dummy_hyperbox_topology_externs_3_symbol() { };
 
 };
 

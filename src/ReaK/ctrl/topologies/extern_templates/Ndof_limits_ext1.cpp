@@ -25,14 +25,24 @@
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "line_topology.hpp"
+#include "topologies/Ndof_limits.hpp"
 
 namespace ReaK {
 
 namespace pp {
 
-template class line_topology< double >;
-template class line_segment_topology< double >;
+template class Ndof_limits<double>;
+
+template class Ndof_limits<double,1>;
+template class Ndof_limits<double,2>;
+template class Ndof_limits<double,3>;
+template class Ndof_limits<double,4>;
+template class Ndof_limits<double,5>;
+template class Ndof_limits<double,6>;
+template class Ndof_limits<double,7>;
+template class Ndof_limits<double,8>;
+template class Ndof_limits<double,9>;
+template class Ndof_limits<double,10>;
 
 };
 
@@ -44,7 +54,7 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_line_topology_externs_symbol() { };
+void dummy_Ndof_limits_externs_1_symbol() { };
 
 };
 

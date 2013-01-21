@@ -60,6 +60,8 @@
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/random_sampler_concept.hpp"
 
+#include "bgl_more_property_maps.hpp"
+
 
 namespace ReaK {
 

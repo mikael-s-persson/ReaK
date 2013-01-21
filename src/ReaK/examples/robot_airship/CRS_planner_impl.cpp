@@ -565,23 +565,11 @@ void CRSPlannerGUI::executePlanner() {
         ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_rl_o0_type >::point_type start_point, goal_point; \
         ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_o0_type >::point_type start_inter, goal_inter; \
         start_inter = normal_jt_space->origin(); \
-        get<0>(get<0>(start_inter)) = jt_start[0]; \
-        get<0>(get<1>(start_inter)) = jt_start[1]; \
-        get<0>(get<2>(start_inter)) = jt_start[2]; \
-        get<0>(get<3>(start_inter)) = jt_start[3]; \
-        get<0>(get<4>(start_inter)) = jt_start[4]; \
-        get<0>(get<5>(start_inter)) = jt_start[5]; \
-        get<0>(get<6>(start_inter)) = jt_start[6]; \
+        get<0>(start_inter) = ReaK::vect<double,7>(jt_start); \
         start_point = r_info.manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space); \
          \
         goal_inter = normal_jt_space->origin(); \
-        get<0>(get<0>(goal_inter)) = jt_desired[0]; \
-        get<0>(get<1>(goal_inter)) = jt_desired[1]; \
-        get<0>(get<2>(goal_inter)) = jt_desired[2]; \
-        get<0>(get<3>(goal_inter)) = jt_desired[3]; \
-        get<0>(get<4>(goal_inter)) = jt_desired[4]; \
-        get<0>(get<5>(goal_inter)) = jt_desired[5]; \
-        get<0>(get<6>(goal_inter)) = jt_desired[6]; \
+        get<0>(goal_inter) = ReaK::vect<double,7>(jt_desired); \
         goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
          \
         typedef ReaK::robot_airship::CRS3D_rl_o0_tracer frame_reporter_type; \
@@ -606,23 +594,11 @@ void CRSPlannerGUI::executePlanner() {
         ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_rl_o1_type >::point_type start_point, goal_point; \
         ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_o1_type >::point_type start_inter, goal_inter; \
         start_inter = normal_jt_space->origin(); \
-        get<0>(get<0>(start_inter)) = jt_start[0]; \
-        get<0>(get<1>(start_inter)) = jt_start[1]; \
-        get<0>(get<2>(start_inter)) = jt_start[2]; \
-        get<0>(get<3>(start_inter)) = jt_start[3]; \
-        get<0>(get<4>(start_inter)) = jt_start[4]; \
-        get<0>(get<5>(start_inter)) = jt_start[5]; \
-        get<0>(get<6>(start_inter)) = jt_start[6]; \
+        get<0>(start_inter) = ReaK::vect<double,7>(jt_start); \
         start_point = r_info.manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space); \
          \
         goal_inter = normal_jt_space->origin(); \
-        get<0>(get<0>(goal_inter)) = jt_desired[0]; \
-        get<0>(get<1>(goal_inter)) = jt_desired[1]; \
-        get<0>(get<2>(goal_inter)) = jt_desired[2]; \
-        get<0>(get<3>(goal_inter)) = jt_desired[3]; \
-        get<0>(get<4>(goal_inter)) = jt_desired[4]; \
-        get<0>(get<5>(goal_inter)) = jt_desired[5]; \
-        get<0>(get<6>(goal_inter)) = jt_desired[6]; \
+        get<0>(goal_inter) = ReaK::vect<double,7>(jt_desired); \
         goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
          \
         typedef ReaK::robot_airship::CRS3D_rl_o1_tracer frame_reporter_type; \
@@ -647,23 +623,11 @@ void CRSPlannerGUI::executePlanner() {
         ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_rl_o2_type >::point_type start_point, goal_point; \
         ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_o2_type >::point_type start_inter, goal_inter; \
         start_inter = normal_jt_space->origin(); \
-        get<0>(get<0>(start_inter)) = jt_start[0]; \
-        get<0>(get<1>(start_inter)) = jt_start[1]; \
-        get<0>(get<2>(start_inter)) = jt_start[2]; \
-        get<0>(get<3>(start_inter)) = jt_start[3]; \
-        get<0>(get<4>(start_inter)) = jt_start[4]; \
-        get<0>(get<5>(start_inter)) = jt_start[5]; \
-        get<0>(get<6>(start_inter)) = jt_start[6]; \
+        get<0>(start_inter) = ReaK::vect<double,7>(jt_start); \
         start_point = r_info.manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space); \
          \
         goal_inter = normal_jt_space->origin(); \
-        get<0>(get<0>(goal_inter)) = jt_desired[0]; \
-        get<0>(get<1>(goal_inter)) = jt_desired[1]; \
-        get<0>(get<2>(goal_inter)) = jt_desired[2]; \
-        get<0>(get<3>(goal_inter)) = jt_desired[3]; \
-        get<0>(get<4>(goal_inter)) = jt_desired[4]; \
-        get<0>(get<5>(goal_inter)) = jt_desired[5]; \
-        get<0>(get<6>(goal_inter)) = jt_desired[6]; \
+        get<0>(goal_inter) = ReaK::vect<double,7>(jt_desired); \
         goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
          \
         typedef ReaK::robot_airship::CRS3D_rl_o2_tracer frame_reporter_type; \
@@ -695,13 +659,13 @@ void CRSPlannerGUI::executePlanner() {
           sol_seps.back()->ref(); \
         }; \
          \
-        r_info.builder.track_joint_coord->q = get<0>(get<0>(start_inter)); \
-        r_info.builder.arm_joint_1_coord->q = get<0>(get<1>(start_inter)); \
-        r_info.builder.arm_joint_2_coord->q = get<0>(get<2>(start_inter)); \
-        r_info.builder.arm_joint_3_coord->q = get<0>(get<3>(start_inter)); \
-        r_info.builder.arm_joint_4_coord->q = get<0>(get<4>(start_inter)); \
-        r_info.builder.arm_joint_5_coord->q = get<0>(get<5>(start_inter)); \
-        r_info.builder.arm_joint_6_coord->q = get<0>(get<6>(start_inter)); \
+        r_info.builder.track_joint_coord->q = get<0>(start_inter)[0]; \
+        r_info.builder.arm_joint_1_coord->q = get<0>(start_inter)[1]; \
+        r_info.builder.arm_joint_2_coord->q = get<0>(start_inter)[2]; \
+        r_info.builder.arm_joint_3_coord->q = get<0>(start_inter)[3]; \
+        r_info.builder.arm_joint_4_coord->q = get<0>(start_inter)[4]; \
+        r_info.builder.arm_joint_5_coord->q = get<0>(start_inter)[5]; \
+        r_info.builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
         r_info.kin_chain->doMotion();
   
 #define RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(WORKSPACE) \
@@ -727,13 +691,13 @@ void CRSPlannerGUI::executePlanner() {
           sol_seps.back()->ref(); \
         }; \
          \
-        r_info.builder.track_joint_coord->q = get<0>(get<0>(start_inter)); \
-        r_info.builder.arm_joint_1_coord->q = get<0>(get<1>(start_inter)); \
-        r_info.builder.arm_joint_2_coord->q = get<0>(get<2>(start_inter)); \
-        r_info.builder.arm_joint_3_coord->q = get<0>(get<3>(start_inter)); \
-        r_info.builder.arm_joint_4_coord->q = get<0>(get<4>(start_inter)); \
-        r_info.builder.arm_joint_5_coord->q = get<0>(get<5>(start_inter)); \
-        r_info.builder.arm_joint_6_coord->q = get<0>(get<6>(start_inter)); \
+        r_info.builder.track_joint_coord->q = get<0>(start_inter)[0]; \
+        r_info.builder.arm_joint_1_coord->q = get<0>(start_inter)[1]; \
+        r_info.builder.arm_joint_2_coord->q = get<0>(start_inter)[2]; \
+        r_info.builder.arm_joint_3_coord->q = get<0>(start_inter)[3]; \
+        r_info.builder.arm_joint_4_coord->q = get<0>(start_inter)[4]; \
+        r_info.builder.arm_joint_5_coord->q = get<0>(start_inter)[5]; \
+        r_info.builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
         r_info.kin_chain->doMotion();
   
   
