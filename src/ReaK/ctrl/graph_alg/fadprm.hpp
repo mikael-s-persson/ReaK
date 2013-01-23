@@ -76,12 +76,12 @@ namespace graph {
    * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
    * \tparam Graph The graph type on which the visitor should be able to act.
    */
-  template <typename Visitor, typename Graph>
+  template <typename Visitor, typename Graph, typename Topology>
   struct FADPRMVisitorConcept {
     BOOST_CONCEPT_USAGE(FADPRMVisitorConcept)
     {
       BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
-      BOOST_CONCEPT_ASSERT((PRMVisitorConcept<Visitor,Graph>));
+      BOOST_CONCEPT_ASSERT((PRMVisitorConcept<Visitor,Graph,Topology>));
       BOOST_CONCEPT_ASSERT((ADStarVisitorConcept<Visitor,Graph>));
     }
   };
@@ -142,7 +142,7 @@ namespace graph {
       void update_density(Vertex, const Graph& g) const { };
       
       // Common to both PRM and AD* visitors:
-      bool keep_going() { return true; };
+      bool keep_going() const { return true; };
 
       const Topology& m_free_space;
       PositionMap m_position;
@@ -191,6 +191,8 @@ namespace graph {
     template <typename Topology,
               typename AStarHeuristicMap, 
               typename UniformCostVisitor,
+              typename UpdatableQueue, 
+              typename List,
               typename IndexInHeapMap,
               typename PredecessorMap,
               typename KeyMap, 
@@ -212,11 +214,11 @@ namespace graph {
       typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
 
       fadprm_bfs_visitor(const Topology& free_space, AStarHeuristicMap h, UniformCostVisitor vis,
-                         IndexInHeapMap index_in_heap, PredecessorMap p,
-                         KeyMap k, DistanceMap d, RHSMap rhs, WeightMap w,
+                         UpdatableQueue& Q, List& I, IndexInHeapMap index_in_heap, 
+                         PredecessorMap p, KeyMap k, DistanceMap d, RHSMap rhs, WeightMap w,
                          DensityMap dens, PositionMap pos, NcSelector select_neighborhood, ColorMap col, 
                          double beta)
-        : m_free_space(free_space), m_h(h), m_vis(vis), 
+        : m_free_space(free_space), m_h(h), m_vis(vis), m_Q(Q), m_I(I),
           m_index_in_heap(index_in_heap), m_predecessor(p), m_key(k),
           m_distance(d), m_rhs(rhs), m_weight(w), m_density(dens), m_position(pos), 
           m_select_neighborhood(select_neighborhood), m_color(col), m_beta(beta) { };
@@ -233,18 +235,38 @@ namespace graph {
       void inconsistent_vertex(Vertex u, Graph& g) const {
         m_vis.inconsistent_vertex(u, g);
       };
-      template <class Vertex, class Graph>
-      typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_vertex(Vertex u, Graph& g) const {
+      template <class Graph>
+      typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
+        typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+        typedef typename Graph::vertex_bundled VertexProp;
         
-        PositionValue p = get(m_position, u); 
+        typedef boost::composite_property_map< 
+          PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
+        GraphPositionMap g_position = GraphPositionMap(m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
+        
         std::vector<Vertex> Nc;
-        m_select_neighborhood(p,std::back_inserter(Nc),g,m_free_space,m_position); 
+        m_select_neighborhood(p, std::back_inserter(Nc), g, m_free_space, g_position); 
+        
+        VertexProp up;
+        put(m_position, up, p);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+        Vertex u = add_vertex(std::move(up), g);
+#else
+        Vertex u = add_vertex(up, g);
+#endif
+        m_vis.vertex_added(u,g); 
+        put(m_color, u, Color::white());
+        put(m_distance, u, std::numeric_limits<double>::infinity());
+        put(m_rhs, u, std::numeric_limits<double>::infinity());
+        put(m_key, u, KeyValue(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()));
+        put(m_predecessor, u, u);
+        
         for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
-          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,*it), p, m_free_space) != std::numeric_limits<distance_type>::infinity())) {
+          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
             //this means that u is reachable from *it.
             std::pair<Edge, bool> ep = add_edge(*it,u,g); 
-            if(ep.second) {
+            if(ep.second) { 
               m_vis.edge_added(ep.first, g); 
               update_key(*it,g); 
               update_vertex(*it,g);
@@ -255,60 +277,77 @@ namespace graph {
         update_key(u,g); 
         update_vertex(u,g);
       };
-      template <class Vertex, class Graph>
-      typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(Vertex u, Graph& g) const {
+      template <class Graph>
+      typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
+        typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+        typedef typename Graph::vertex_bundled VertexProp;
         
-        PositionValue p = get(m_position, u); 
+        typedef boost::composite_property_map< 
+          PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
+        GraphPositionMap g_position = GraphPositionMap(m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
+        
         std::vector<Vertex> Pred, Succ;
-        m_select_neighborhood(p,std::back_inserter(Pred),std::back_inserter(Succ),g,m_free_space,m_position); 
+        m_select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, m_free_space, g_position); 
+        
+        VertexProp up;
+        put(m_position, up, p);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+        Vertex u = add_vertex(std::move(up), g);
+#else
+        Vertex u = add_vertex(up, g);
+#endif
+        m_vis.vertex_added(u,g); 
+        put(m_color, u, Color::white());
+        put(m_distance, u, std::numeric_limits<double>::infinity());
+        put(m_rhs, u, std::numeric_limits<double>::infinity());
+        put(m_key, u, KeyValue(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()));
+        put(m_predecessor, u, u);
+        
         for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
-          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,*it), p, m_free_space) != std::numeric_limits<distance_type>::infinity())) {
+          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
             //this means that u is reachable from *it.
-            std::pair<Edge, bool> ep = add_edge(*it,u,g); 
+            std::pair<Edge, bool> ep = add_edge(*it, u, g); 
             if(ep.second) {
               m_vis.edge_added(ep.first, g); 
-              update_key(*it,g); 
-              update_vertex(*it,g);
+              update_key(*it, g); 
+              update_vertex(*it, g);
             };
           };
         };
         put(m_index_in_heap, u, static_cast<std::size_t>(-1));
-        update_key(u,g); 
-        update_vertex(u,g);
+        update_key(u, g); 
+        update_vertex(u, g);
         for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(p, get(m_position,*it), m_free_space) != std::numeric_limits<distance_type>::infinity())) {
+          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(p, get(m_position,g[*it]), m_free_space) != std::numeric_limits<double>::infinity())) {
             //this means that u is reachable from *it.
-            std::pair<Edge, bool> ep = add_edge(u,*it,g); 
+            std::pair<Edge, bool> ep = add_edge(u, *it, g); 
             if(ep.second) {
               m_vis.edge_added(ep.first, g); 
-              update_key(*it,g); 
-              update_vertex(*it,g);
+              update_key(*it, g); 
+              update_vertex(*it, g);
             };
           };
         }; 
       };
       
       template <class Vertex, class Graph>
-      void examine_vertex(Vertex u, Graph& g) const {
+      void examine_vertex(Vertex u, Graph& g) {
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         
         m_vis.examine_vertex(u, g);
         
-        std::vector<Vertex> v_list;
-        m_vis.expand_vertex(u, g, v_list);
-        
-        for(typename std::vector<Vertex>::iterator vi = v_list.begin(); vi != v_list.end(); ++vi) {
-          Vertex v = *vi;
+        std::size_t max_node_degree = math::highest_set_bit(num_vertices(g));
+        while(out_degree(u, g) < max_node_degree) {
           
-          m_vis.vertex_added(v,g); 
-          put(m_color, v, Color::white());
-          put(m_distance, v, std::numeric_limits<double>::infinity());
-          put(m_rhs, v, std::numeric_limits<double>::infinity());
-          put(m_key, v, KeyValue(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()));
-          put(m_predecessor, v, v);
+          PositionValue p_rnd; bool expanding_worked;
+          boost::tie(p_rnd, expanding_worked) = m_vis.random_walk(u, g);
           
-          connect_vertex(v,g);
+          if(expanding_worked)
+            connect_vertex(p_rnd, g);
+          else
+            break;
+          
         };
         update_key(u,g);
       };
@@ -366,8 +405,8 @@ namespace graph {
         };
       };
 
-      template <class Vertex, class BidirectionalGraph, typename UpdatableQueue, typename List>
-      void update_vertex(Vertex u, BidirectionalGraph& g, UpdatableQueue& Q, List& I) const {
+      template <class Vertex, class BidirectionalGraph>
+      void update_vertex(Vertex u, BidirectionalGraph& g) {
         boost::function_requires< boost::BidirectionalGraphConcept<BidirectionalGraph> >();
         typedef boost::graph_traits<BidirectionalGraph> GTraits;
         typename GTraits::in_edge_iterator ei, ei_end;
@@ -403,16 +442,16 @@ namespace graph {
         if(rhs_u != g_u) { 
           if((col_u != Color::black()) && (col_u != Color::red())) {
             update_key(u,g); 
-            Q.push_or_update(u); 
+            m_Q.push_or_update(u); 
             put(m_color, u, Color::gray());                            m_vis.discover_vertex(u, g);
           } else if(col_u == Color::black()) {
-            I.push_back(u); 
+            m_I.push_back(u); 
             put(m_color, u, Color::red());                             m_vis.inconsistent_vertex(u,g);
           };
-        } else if(Q.contains(u)) {
+        } else if(m_Q.contains(u)) {
           put(m_key, u, KeyValue(0.0,0.0)); 
-          Q.update(u); 
-          Q.pop(); //remove from OPEN set
+          m_Q.update(u); 
+          m_Q.pop(); //remove from OPEN set
           update_key(u,g); 
           put(m_color, u, Color::green());                             m_vis.forget_vertex(u, g);
         }; 
@@ -421,6 +460,8 @@ namespace graph {
       const Topology& m_free_space;
       AStarHeuristicMap m_h;
       UniformCostVisitor m_vis;
+      UpdatableQueue m_Q; 
+      List& m_I;
       IndexInHeapMap m_index_in_heap;
       PredecessorMap m_predecessor;
       KeyMap m_key;
@@ -542,9 +583,10 @@ namespace graph {
     std::vector<Vertex> I; //list holding the INCONS set (inconsistent nodes).
     
     detail::fadprm_bfs_visitor<Topology, AStarHeuristicMap, FADPRMVisitor,
+        MutableQueue, std::vector<Vertex>,
         IndexInHeapMap, PredecessorMap, KeyMap, DistanceMap, RHSMap,
         WeightMap, DensityMap, PositionMap, NcSelector, ColorMap>
-      bfs_vis(free_space, hval, vis, index_in_heap, predecessor, key, distance, 
+      bfs_vis(free_space, hval, vis, Q, I, index_in_heap, predecessor, key, distance, 
               rhs, weight, density, position, select_neighborhood, color, epsilon);
     
     detail::adstar_search_loop(
@@ -642,21 +684,27 @@ namespace graph {
      ColorMap color, double epsilon)
   {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-    BOOST_CONCEPT_ASSERT((boost::MutableGraphConcept<Graph>));
+    //BOOST_CONCEPT_ASSERT((boost::MutablePropertyGraphConcept<Graph>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((FADPRMVisitorConcept<FADPRMVisitor,Graph>));
+    BOOST_CONCEPT_ASSERT((FADPRMVisitorConcept<FADPRMVisitor,Graph,Topology>));
     
     typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
     typedef boost::color_traits<ColorValue> Color;
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
+    typedef typename Graph::vertex_bundled VertexProp;
     
     if(num_vertices(g) == 0) {
-      Vertex u = add_vertex(g);
+      VertexProp up;
       PositionValue p = get(ReaK::pp::random_sampler, free_space)(free_space);
-      put(position, u, p);
+      put(position, up, p);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      Vertex u = add_vertex(std::move(up), g);
+#else
+      Vertex u = add_vertex(up, g);
+#endif
       vis.vertex_added(u, g);
       start_vertex = u;
     };

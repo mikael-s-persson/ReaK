@@ -32,6 +32,7 @@
 #include "rrt_path_planner.hpp"
 #include "prm_path_planner.hpp"
 #include "rrtstar_path_planner.hpp"
+#include "fadprm_path_planner.hpp"
 
 #include "basic_sbmp_reporters.hpp"
 
@@ -1172,6 +1173,393 @@ int main(int argc, char** argv) {
     
   };
   std::cout << "Done!" << std::endl;
+  
+  
+  
+  
+  
+  
+  
+  
+  /**********************************************************************************
+   * 
+   * 
+   *     Flexible Anytime-Dynamic Probabilistic Roadmap Path-Planners
+   * 
+   * 
+   * *******************************************************************************/
+  
+  
+  std::cout << "Running FADPRM with adj-list, dvp-bf2..." << std::endl;
+  timing_output << "FADPRM, adj-list, dvp-bf2" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      fadprm_plan(
+        world_map, 
+        world_map->get_start_pos(),
+        world_map->get_goal_pos(),
+        10.0,
+        max_vertices, 
+        100,
+        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_BF2_TREE_KNN,
+        ReaK::pp::timing_sbmp_report<>(ss),
+        10);
+    
+    fadprm_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  
+  std::cout << "Running FADPRM with adj-list, dvp-bf4..." << std::endl;
+  timing_output << "FADPRM, adj-list, dvp-bf4" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      fadprm_plan(
+        world_map, 
+        world_map->get_start_pos(), 
+        world_map->get_goal_pos(),
+        10.0,
+        max_vertices, 
+        100,
+        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_BF4_TREE_KNN,
+        ReaK::pp::timing_sbmp_report<>(ss),
+        1);
+    
+    fadprm_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running FADPRM with adj-list, dvp-cob2..." << std::endl;
+  timing_output << "FADPRM, adj-list, dvp-cob2" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      fadprm_plan(
+        world_map, 
+        world_map->get_start_pos(), 
+        world_map->get_goal_pos(),
+        10.0,
+        max_vertices, 
+        100,
+        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_COB2_TREE_KNN,
+        ReaK::pp::timing_sbmp_report<>(ss),
+        1);
+    
+    fadprm_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running FADPRM with adj-list, dvp-cob4..." << std::endl;
+  timing_output << "FADPRM, adj-list, dvp-cob4" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      fadprm_plan(
+        world_map, 
+        world_map->get_start_pos(), 
+        world_map->get_goal_pos(),
+        10.0,
+        max_vertices, 
+        100,
+        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_COB4_TREE_KNN,
+        ReaK::pp::timing_sbmp_report<>(ss),
+        1);
+    
+    fadprm_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running FADPRM with adj-list, linear-search..." << std::endl;
+  timing_output << "FADPRM, adj-list, linear-search" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      fadprm_plan(
+        world_map, 
+        world_map->get_start_pos(), 
+        world_map->get_goal_pos(),
+        10.0,
+        max_vertices, 
+        100,
+        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::LINEAR_SEARCH_KNN,
+        ReaK::pp::timing_sbmp_report<>(ss),
+        1);
+    
+    fadprm_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  
+  
+  std::cout << "Running FADPRM with dvp-adj-list-bf2..." << std::endl;
+  timing_output << "FADPRM, dvp-adj-list-bf2" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      fadprm_plan(
+        world_map, 
+        world_map->get_start_pos(), 
+        world_map->get_goal_pos(),
+        10.0,
+        max_vertices, 
+        100,
+        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_ALT_BF2_KNN,
+        ReaK::pp::timing_sbmp_report<>(ss),
+        1);
+    
+    fadprm_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running FADPRM with dvp-adj-list-bf4..." << std::endl;
+  timing_output << "FADPRM, dvp-adj-list-bf4" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      fadprm_plan(
+        world_map, 
+        world_map->get_start_pos(), 
+        world_map->get_goal_pos(),
+        10.0,
+        max_vertices, 
+        100,
+        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_ALT_BF4_KNN,
+        ReaK::pp::timing_sbmp_report<>(ss),
+        1);
+    
+    fadprm_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running FADPRM with dvp-adj-list-cob2..." << std::endl;
+  timing_output << "FADPRM, dvp-adj-list-cob2" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      fadprm_plan(
+        world_map, 
+        world_map->get_start_pos(), 
+        world_map->get_goal_pos(),
+        10.0,
+        max_vertices, 
+        100,
+        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_ALT_COB2_KNN,
+        ReaK::pp::timing_sbmp_report<>(ss),
+        1);
+    
+    fadprm_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Running FADPRM with dvp-adj-list-cob4..." << std::endl;
+  timing_output << "FADPRM, dvp-adj-list-cob4" << std::endl;
+  {
+  std::vector< std::pair<int, double> > avg_times(max_vertices_100, std::pair<int, double>(0,0.0));
+  for(std::size_t i = 0; i < run_count; ++i) {
+    std::stringstream ss;
+    
+    ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::timing_sbmp_report<> > 
+      fadprm_plan(
+        world_map, 
+        world_map->get_start_pos(), 
+        world_map->get_goal_pos(),
+        10.0,
+        max_vertices, 
+        100,
+        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_ALT_COB4_KNN,
+        ReaK::pp::timing_sbmp_report<>(ss),
+        1);
+    
+    fadprm_plan.solve_path();
+    
+    int v_count, t_val;
+    int j = 0;
+    while(ss >> v_count) {
+      ss >> t_val;
+      avg_times[j].second = (double(t_val) + double(avg_times[j].first) * avg_times[j].second) / double(avg_times[j].first + 1);
+      avg_times[j].first += 1; ++j;
+    };
+  };
+  for(std::size_t i = 0; i < max_vertices_100; ++i) {
+    if(avg_times[i].first)
+      timing_output << std::setw(6) << (i+1)*100 << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second << std::endl; 
+  };
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  std::cout << "Outputting FADPRM with dvp-adj-list-cob4..." << std::endl;
+  {
+    
+    ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
+      fadprm_plan(
+        world_map, 
+        world_map->get_start_pos(), 
+        world_map->get_goal_pos(),
+        10.0,
+        max_vertices, 
+        100,
+        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_ALT_COB4_KNN,
+        ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/fadprm/" + world_file_name_only + "_", 5),
+        10);
+    
+    fadprm_plan.solve_path();
+    
+  };
+  std::cout << "Done!" << std::endl;
+  
+  
+  
+  
+  
   
   
   

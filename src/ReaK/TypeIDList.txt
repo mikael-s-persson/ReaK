@@ -407,6 +407,7 @@ rrt_path_planner            0xC2460007   bin: 1100 0010 0100 0110 0000 0000 0000
 prm_path_planner            0xC2460008   bin: 1100 0010 0100 0110 0000 0000 0000 1000  D-R
 rrtstar_path_planner        0xC2460009   bin: 1100 0010 0100 0110 0000 0000 0000 1001  D-R
 frame_tracer_3D             0xC246000A   bin: 1100 0010 0100 0110 0000 0000 0000 1010  D-R
+fadprm_path_planner         0xC246000B   bin: 1100 0010 0100 0110 0000 0000 0000 1011  D-R
 
 
 

@@ -124,8 +124,8 @@ namespace graph {
       vis.publish_path(g); // notify the visitor that at least one A* round has completed and its resulting path (partial or complete) can be published (the path is encoded in the predecessor property-map).
       bool b = vis.keep_going(); RK_UNUSED(b); // check to see whether the task is finished (return false) or needs to keep going (true).
       typedef std::back_insert_iterator< std::vector< typename boost::graph_traits<Graph>::edge_descriptor > > EdgeIter;
-      EdgeIter ei;
-      pair<double, EdgeIter> w_change = vis.detect_edge_change(ei,g); // ei: back-inserter / forward-iterator for an edge-list. Return the cummulative weight-change and the edge-iterator at the end of the edge list populated by this function.
+      std::vector< typename boost::graph_traits<Graph>::edge_descriptor > vect;
+      std::pair<double, EdgeIter> w_change = vis.detect_edge_change(std::back_inserter(vect),g); // ei: back-inserter / forward-iterator for an edge-list. Return the cummulative weight-change and the edge-iterator at the end of the edge list populated by this function.
       double old_eps;
       double new_eps = vis.adjust_epsilon(old_eps, w_change.first, g); RK_UNUSED(new_eps); // adjust the value of epsilon for a given old-value and last cummulative weight-change.
     }
@@ -240,8 +240,10 @@ namespace graph {
 
   namespace detail {
 
-    template <typename AStarHeuristicMap, typename UniformCostVisitor, typename PredecessorMap,
-	      typename KeyMap, typename DistanceMap, typename RHSMap, typename WeightMap, typename ColorMap, 
+    template <typename AStarHeuristicMap, typename UniformCostVisitor, 
+              typename UpdatableQueue, typename List,
+              typename PredecessorMap, typename KeyMap, typename DistanceMap, 
+              typename RHSMap, typename WeightMap, typename ColorMap, 
               typename CompareFunction, typename EqualCompareFunction, typename CombineFunction, typename ComposeFunction>
     struct adstar_bfs_visitor
     {
@@ -252,27 +254,16 @@ namespace graph {
       typedef typename boost::property_traits<DistanceMap>::value_type distance_type;
       typedef typename boost::property_traits<WeightMap>::value_type weight_type;
 
-      adstar_bfs_visitor(AStarHeuristicMap h, UniformCostVisitor vis, 
+      adstar_bfs_visitor(AStarHeuristicMap h, UniformCostVisitor vis, UpdatableQueue& Q, List& I,
                          PredecessorMap p, KeyMap k, DistanceMap d, RHSMap rhs, WeightMap w, ColorMap col, 
                          distance_type epsilon,
                          CompareFunction compare, EqualCompareFunction equal_compare,
                          CombineFunction combine, ComposeFunction compose,
                          distance_type inf, distance_type zero)
-        : m_h(h), m_vis(vis), m_predecessor(p), m_key(k),
+        : m_h(h), m_vis(vis), m_Q(Q), m_I(I), m_predecessor(p), m_key(k),
           m_distance(d), m_rhs(rhs), m_weight(w), m_color(col), m_epsilon(epsilon),
           m_compare(compare), m_equal_compare(equal_compare), m_combine(combine),
           m_compose(compose), m_inf(inf), m_zero(zero) {};
-
-      adstar_bfs_visitor(const adstar_bfs_visitor<AStarHeuristicMap, UniformCostVisitor,
-                                                  PredecessorMap, KeyMap, DistanceMap, 
-                                                  RHSMap, WeightMap, ColorMap, 
-                                                  CompareFunction, EqualCompareFunction, 
-                                                  CombineFunction, ComposeFunction>& aVis)
-        : m_h(aVis.m_h), m_vis(aVis.m_vis), m_predecessor(aVis.m_predecessor),
-          m_key(aVis.m_key), m_distance(aVis.m_distance), m_rhs(aVis.m_rhs), m_weight(aVis.m_weight),
-          m_color(aVis.m_color), m_epsilon(aVis.m_epsilon), m_compare(aVis.m_compare),
-          m_equal_compare(aVis.m_equal_compare), m_combine(aVis.m_combine),
-          m_compose(aVis.m_compose), m_inf(aVis.m_inf), m_zero(aVis.m_zero) {};
 
       template <typename Vertex, typename Graph>
       void initialize_vertex(Vertex u, Graph& g) const {
@@ -338,8 +329,8 @@ namespace graph {
           put(m_key, u, KeyValue( m_combine(g_u, get(m_h, u)), g_u, m_compare, m_equal_compare));
       };
 
-      template <typename Vertex, typename BidirectionalGraph, typename UpdatableQueue, typename List>
-      void update_vertex(Vertex u, BidirectionalGraph& g, UpdatableQueue& Q, List& I) {
+      template <typename Vertex, typename BidirectionalGraph>
+      void update_vertex(Vertex u, BidirectionalGraph& g) {
         BOOST_CONCEPT_ASSERT((boost::BidirectionalGraphConcept<BidirectionalGraph>));
         typedef boost::graph_traits<BidirectionalGraph> GTraits;
         typename GTraits::in_edge_iterator ei, ei_end;
@@ -378,17 +369,17 @@ namespace graph {
         if(!m_equal_compare(rhs_u,g_u)) {
           if((col_u != Color::black()) && (col_u != Color::red())) { //if not in CLOSED set (i.e. either just closed (black) or inconsistent (red)).
             update_key(u,g);
-            Q.push_or_update(u);
+            m_Q.push_or_update(u);
             put(m_color, u, Color::gray());                            m_vis.discover_vertex(u, g);
           } else if(col_u == Color::black()) {
-            I.push_back(u);
+            m_I.push_back(u);
             put(m_color, u, Color::red());                             m_vis.inconsistent_vertex(u,g);
           };
-        } else if(Q.contains(u)) { //if u is in the OPEN set, then remove it.
+        } else if(m_Q.contains(u)) { //if u is in the OPEN set, then remove it.
           //KeyValue k = get(m_key, u);
           put(m_key, u, KeyValue(-m_inf,-m_inf,m_compare,m_equal_compare));
-          Q.update(u);
-          Q.pop(); //remove from OPEN set
+          m_Q.update(u);
+          m_Q.pop(); //remove from OPEN set
           //put(m_key, u, k);
           update_key(u, g); //this was the original code!
           put(m_color, u, Color::green());                             m_vis.forget_vertex(u, g);
@@ -398,6 +389,9 @@ namespace graph {
       
       AStarHeuristicMap m_h;
       UniformCostVisitor m_vis;
+      
+      UpdatableQueue& m_Q;
+      List& m_I;
       
       PredecessorMap m_predecessor;
       KeyMap m_key;
@@ -487,11 +481,11 @@ namespace graph {
             put(color, u, Color::black());                     bfs_vis.finish_vertex(u, g);
           } else { 
             put(distance, u, inf);
-            bfs_vis.update_vertex(u, g, Q, I); 
+            bfs_vis.update_vertex(u, g); 
           };
           for (tie(eig, eig_end) = out_edges(u, g); eig != eig_end; ++eig) {
             bfs_vis.examine_edge(*eig, g); 
-            bfs_vis.update_vertex(target(*eig, g), g, Q, I); 
+            bfs_vis.update_vertex(target(*eig, g), g); 
           };
         }; // end while
         
@@ -507,16 +501,16 @@ namespace graph {
         //bfs_vis.update_key(s,g);
 
         //update all nodes that were affected.
-        for(typename AffectedEdgeList::iterator ei = affected_edges.begin(); ei != affected_edges.end(); ++ei) {
+        for(typename std::vector<Edge>::iterator ei = affected_edges.begin(); ei != affected_edges.end(); ++ei) {
           if( get(color, source(*ei,g)) == Color::black() )
             put(color, source(*ei,g), Color::green());
-          bfs_vis.update_vertex(source(*ei, g), g, Q, I);
+          bfs_vis.update_vertex(source(*ei, g), g);
           if( get(color, target(*ei,g)) == Color::black() )
             put(color, target(*ei,g), Color::green());
-          bfs_vis.update_vertex(target(*ei, g), g, Q, I);
+          bfs_vis.update_vertex(target(*ei, g), g);
         };
 
-        epsilon = bfs_vis.adj_epsilon(epsilon, max_w_change);
+        epsilon = bfs_vis.adjust_epsilon(epsilon, max_w_change, g);
 
         //merge the OPEN and INCONS sets
         for(typename InconsList::iterator ui = I.begin(); ui != I.end(); ++ui) {
@@ -666,10 +660,11 @@ namespace graph {
 
 
     detail::adstar_bfs_visitor<AStarHeuristicMap, ADStarVisitor,
+                               MutableQueue, std::vector<Vertex>,
                                PredecessorMap, KeyMap, DistanceMap, RHSMap,
                                WeightMap, ColorMap, CompareFunction,
                                EqualCompareFunction, CombineFunction, ComposeFunction>
-      bfs_vis(hval, vis, predecessor, key, distance, rhs, weight, color, 
+      bfs_vis(hval, vis, Q, I, predecessor, key, distance, rhs, weight, color, 
               epsilon, compare, equal_compare, combine, compose, inf, zero);
     
     detail::adstar_search_loop(g, start_vertex, hval, bfs_vis, predecessor, distance, rhs, key, weight, 

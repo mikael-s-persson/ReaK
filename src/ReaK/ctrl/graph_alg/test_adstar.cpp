@@ -134,28 +134,25 @@ class adstar_test_world {
 
     bool isGoalNotReached() {
       if((current_pos == goal_pos) || (blocked_periods > 10))
-	return false;
+        return false;
       else
-	return true;
+        return true;
     };
-
-    double checkChanges(std::vector< EdgeType >& aList) {
+    
+    template <typename EdgeIter>
+    std::pair<double, EdgeIter> checkChanges(EdgeIter out_iter) {
       double max_change = 0.0;
       graph_traits<WorldGridType>::edge_iterator ei, ei_end;
       for( tie(ei,ei_end) = edges(grid); ei != ei_end; ++ei) {
-	double ei_change = updateEdgeWeight(*ei);
-	if(std::fabs(ei_change) > 1E-3) {
-	  aList.push_back(*ei);
-	  if(std::fabs(ei_change) > max_change)
-	    max_change = std::fabs(ei_change);
-	};
+        double ei_change = updateEdgeWeight(*ei);
+        if(std::fabs(ei_change) > 1E-3) {
+          *(out_iter++) = *ei;
+          if(std::fabs(ei_change) > max_change)
+            max_change = std::fabs(ei_change);
+        };
       };
       
-      /*graph_traits<WorldGridType>::out_edge_iterator eio, eio_end;
-      for( tie(eio,eio_end) = out_edges(current_pos,grid); eio != eio_end; ++eio) {
-	aList.push_back(*eio);
-      };*/
-      return max_change;
+      return std::pair<double, EdgeIter>(max_change, out_iter);
     };
 
     void updatePath() {
@@ -387,6 +384,48 @@ class adstar_test_world {
     double getHeuristicValue(VertexType u) {
       return get(m_heuristic,u);
     };
+    
+    
+    struct visitor {
+      adstar_test_world* parent;
+      explicit visitor(adstar_test_world* aParent) : parent(aParent) { };
+      
+      template <typename Vertex, typename Graph>
+      void initialize_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      template <typename Vertex, typename Graph>
+      void discover_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      template <typename Vertex, typename Graph>
+      void inconsistent_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      template <typename Vertex, typename Graph>
+      void examine_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      template <typename Edge, typename Graph>
+      void examine_edge(Edge e, const Graph& g) const { RK_UNUSED(e); RK_UNUSED(g); };
+      template <typename Edge, typename Graph>
+      void edge_relaxed(Edge e, const Graph& g) const { RK_UNUSED(e); RK_UNUSED(g); };
+      template <typename Vertex, typename Graph>
+      void forget_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      template <typename Vertex, typename Graph>
+      void finish_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      template <typename Vertex, typename Graph>
+      void recycle_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      template <typename Graph>
+      void publish_path(const Graph& g) const { RK_UNUSED(g); 
+        parent->updatePath();
+      };
+      bool keep_going() const { 
+        return parent->isGoalNotReached;
+      };
+      template <typename EdgeIter, typename Graph>
+      std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei, const Graph& g) const { RK_UNUSED(g);
+        return parent->checkChanges(ei);
+      };
+      template <typename Graph>
+      double adjust_epsilon(double old_eps, double w_change, const Graph& g) const { RK_UNUSED(g);
+        return parent->adjustEpsilon(old_eps, w_change);
+      };
+    };
+    
+    
 
     void run() {
 #ifdef TESTING_ASTAR
@@ -408,24 +447,19 @@ class adstar_test_world {
       
 #else
       while(goal_pos != current_pos) {
-	std::cout << "Replanning from scratch..." << std::endl;
-      ReaK::graph::adstar_search(grid,
-		    m_heuristic,
-		    ReaK::graph::default_adstar_visitor(),
-		    m_pred,
-		    m_distance,
-		    get(vertex_rhs, grid),
-		    get(vertex_key, grid),
-		    m_weight,
-		    m_color,
-		    bind(&adstar_test_world::adjustEpsilon,this,_1,_2),
-		    bind(&adstar_test_world::isGoalNotReached, this),
-		    bind(&adstar_test_world::getStartNode,this),
-		    bind(&adstar_test_world::checkChanges,this,_1),
-		    bind(&adstar_test_world::updatePath,this),
-		    initial_epsilon, std::numeric_limits< double >::infinity(),
-		    double(0.0), std::less<double>(), std::equal_to<double>(), std::plus<double>(), std::multiplies<double>()
- 		  );
+        std::cout << "Replanning from scratch..." << std::endl;
+        
+        ReaK::graph::adstar_search(
+          grid, goal_pos,
+          m_heuristic,
+          visitor(this),
+          m_pred,
+          m_distance,
+          get(vertex_rhs, grid),
+          get(vertex_key, grid),
+          m_weight,
+          m_color,
+          initial_epsilon);
         blocked_periods = 0;
       };
 #endif
