@@ -202,10 +202,88 @@ namespace graph {
     void operator()(const typename boost::property_traits<PositionMap>::value_type& p,
 		    PredIterator pred_first, SuccIterator succ_first,
 		    Graph& g, const Topology& free_space, PositionMap position) const {
-      using std::pow; using std::log2;
-      std::size_t N = num_vertices(g);
-      std::size_t log_N = math::highest_set_bit(N) + 1;
       find_neighbors(p, pred_first, succ_first, g, free_space, position, 1, std::numeric_limits< double >::infinity());
+    };
+  };
+    
+    
+    
+  
+  
+  
+  
+  /**
+   * This functor template applies the single-neighbor neighborhood function to the nearest neighbor queries.
+   * This is sort of a trivial functor, but can be used to wrap a k-nn finder.
+   * \tparam NNFinder The functor type of the underlying K-nearest neighbor finder (or predecessor / successor finder).
+   */
+  template <typename NNFinder>
+  struct fixed_neighborhood {
+    
+    NNFinder find_neighbors;
+    std::size_t max_neighbor_count;
+    double max_radius;
+    
+    /**
+     * Parametrized constructor.
+     * \param aFindNeighbors The functor to perform the underlying K-nearest neighbor search (or pred / succ search).
+     */
+    fixed_neighborhood(NNFinder aFindNeighbors,
+                       std::size_t aMaxNeighborCount = 1,
+                       double aMaxRadius = std::numeric_limits<double>::infinity()) : 
+                       find_neighbors(aFindNeighbors),
+                       max_neighbor_count(aMaxNeighborCount),
+                       max_radius(aMaxRadius) { };
+    
+    /**
+     * This function fills the output iterator (like a back-inserter) with the neighborhood of the given
+     * position in the given graph, over the given topology and position-map.
+     * \tparam OutputIterator A forward- and output-iterator type.
+     * \tparam Graph A VertexListGraph (as of BGL).
+     * \tparam Topology A topology type (as of topology concepts in ReaK).
+     * \tparam PositionMap A property-map type over the vertices of the graph, producing associated positions on the topology.
+     * \param p The position with respect to which the nearest-neighbors are sought.
+     * \param output_first An iterator to the start of the storage of the resulting neighborhood vertices, should allow for enough room for the resulting neighborhood.
+     * \param g The graph on which to look for the nearest neighbors.
+     * \param free_space The topology representing the free-space of the positions.
+     * \param position The position-map object which can retrieve the positions associated to each vertex of the graph.
+     */
+    template <typename OutputIterator, 
+              typename Graph, 
+              typename Topology, 
+              typename PositionMap>
+    void operator()(const typename boost::property_traits<PositionMap>::value_type& p,
+                    OutputIterator output_first,
+                    Graph& g, const Topology& free_space, PositionMap position) const {
+      find_neighbors(p, output_first, g, free_space, position, max_neighbor_count, max_radius);
+    };
+    
+    /**
+     * This function fills the output iterators (like a back-inserters) with the neighborhood of the given
+     * position in the given graph, over the given topology and position-map. This overload is expected to 
+     * fill a neighborhood of possible predecessors and possible successors to a given position. This type 
+     * of query is relevant for asymmetric problems in which nodes can rarely be connected with bi-directional paths.
+     * \tparam PredIterator A forward- and output-iterator type.
+     * \tparam SuccIterator A forward- and output-iterator type.
+     * \tparam Graph A VertexListGraph (as of BGL).
+     * \tparam Topology A topology type (as of topology concepts in ReaK).
+     * \tparam PositionMap A property-map type over the vertices of the graph, producing associated positions on the topology.
+     * \param p The position with respect to which the nearest-neighbors are sought.
+     * \param pred_first An iterator to the start of the storage of the resulting predecessor neighborhood vertices, should allow for enough room for the resulting neighborhood.
+     * \param succ_first An iterator to the start of the storage of the resulting predecessor neighborhood vertices, should allow for enough room for the resulting neighborhood.
+     * \param g The graph on which to look for the nearest neighbors.
+     * \param free_space The topology representing the free-space of the positions.
+     * \param position The position-map object which can retrieve the positions associated to each vertex of the graph.
+     */
+    template <typename PredIterator, 
+              typename SuccIterator, 
+              typename Graph, 
+              typename Topology, 
+              typename PositionMap>
+    void operator()(const typename boost::property_traits<PositionMap>::value_type& p,
+                    PredIterator pred_first, SuccIterator succ_first,
+                    Graph& g, const Topology& free_space, PositionMap position) const {
+      find_neighbors(p, pred_first, succ_first, g, free_space, position, max_neighbor_count, max_radius);
     };
   };
     

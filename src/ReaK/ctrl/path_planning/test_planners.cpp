@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
   std::size_t max_vertices_100 = max_vertices / 100;
   
   ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world > world_map =
-    ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world >(new ReaK::pp::ptrobot2D_test_world(world_file_name, 10, 1.0));
+    ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world >(new ReaK::pp::ptrobot2D_test_world(world_file_name, 50, 1.0));
   
 //   ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
 //     rrt_plan(world_map, 
@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
    * 
    * 
    * *******************************************************************************/
-  
+#if 0
   std::cout << "Running RRT with Uni-dir, adj-list, dvp-bf2..." << std::endl;
   timing_output << "RRT, Uni-dir, adj-list, dvp-bf2" << std::endl;
   {
@@ -1188,7 +1188,7 @@ int main(int argc, char** argv) {
    * 
    * 
    * *******************************************************************************/
-  
+
   
   std::cout << "Running FADPRM with adj-list, dvp-bf2..." << std::endl;
   timing_output << "FADPRM, adj-list, dvp-bf2" << std::endl;
@@ -1208,7 +1208,7 @@ int main(int argc, char** argv) {
         ReaK::pp::ADJ_LIST_MOTION_GRAPH,
         ReaK::pp::DVP_BF2_TREE_KNN,
         ReaK::pp::timing_sbmp_report<>(ss),
-        10);
+        1);
     
     fadprm_plan.solve_path();
     
@@ -1533,9 +1533,9 @@ int main(int argc, char** argv) {
   };
   };
   std::cout << "Done!" << std::endl;
+#endif
   
-  
-  std::cout << "Outputting FADPRM with dvp-adj-list-cob4..." << std::endl;
+  std::cout << "Outputting FADPRM with adj-list dvp-bf2..." << std::endl;
   {
     
     ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
@@ -1543,11 +1543,11 @@ int main(int argc, char** argv) {
         world_map, 
         world_map->get_start_pos(), 
         world_map->get_goal_pos(),
-        10.0,
+        0.1,
         max_vertices, 
         100,
-        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-        ReaK::pp::DVP_ALT_COB4_KNN,
+        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_BF2_TREE_KNN,
         ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/fadprm/" + world_file_name_only + "_", 5),
         10);
     
@@ -1574,7 +1574,7 @@ int main(int argc, char** argv) {
    * 
    * *******************************************************************************/
   
-  
+#if 0
   std::cout << "Running RRT* with Uni-dir, adj-list, dvp-bf2..." << std::endl;
   timing_output << "RRT*, Uni-dir, adj-list, dvp-bf2" << std::endl;
   {
@@ -1929,7 +1929,7 @@ int main(int argc, char** argv) {
     
   };
   std::cout << "Done!" << std::endl;
-  
+#endif
   
   
   return 0;

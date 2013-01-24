@@ -235,7 +235,7 @@ class fadprm_path_planner : public sample_based_planner< path_planner_base<FreeS
     void set_goal_pos(const point_type& aGoalPos) { m_goal_pos = aGoalPos; };
     
     double get_initial_relaxation() const { return m_initial_relaxation; };
-    void set_initial_relaxation(double aInitialRelaxation) { m_initial_relaxation = ( aInitialRelaxation < 1.0 ? 1.0 : aInitialRelaxation ); };
+    void set_initial_relaxation(double aInitialRelaxation) { m_initial_relaxation = ( aInitialRelaxation > 1.0 ? 1.0 : aInitialRelaxation ); };
     
     std::size_t get_max_result_count() const { return max_num_results; };
     void set_max_result_count(std::size_t aMaxResultCount) { max_num_results = aMaxResultCount; };
@@ -273,7 +273,7 @@ class fadprm_path_planner : public sample_based_planner< path_planner_base<FreeS
     fadprm_path_planner(const shared_ptr< space_type >& aWorld = shared_ptr< space_type >(), 
                         const point_type& aStartPos = point_type(),
                         const point_type& aGoalPos = point_type(),
-                        double aInitialRelaxation = 10.0,
+                        double aInitialRelaxation = 0.5,
                         std::size_t aMaxVertexCount = 5000, 
                         std::size_t aProgressInterval = 100,
                         std::size_t aGraphKindFlag = ADJ_LIST_MOTION_GRAPH,
@@ -284,7 +284,7 @@ class fadprm_path_planner : public sample_based_planner< path_planner_base<FreeS
                         m_reporter(aReporter),
                         m_start_pos(aStartPos),
                         m_goal_pos(aGoalPos),
-                        m_initial_relaxation( ( aInitialRelaxation < 1.0 ? 1.0 : aInitialRelaxation ) ),
+                        m_initial_relaxation( ( aInitialRelaxation > 1.0 ? 1.0 : aInitialRelaxation ) ),
                         max_num_results(aMaxResultCount),
                         has_reached_max_vertices(false),
                         m_graph_kind_flag(aGraphKindFlag),
@@ -387,21 +387,25 @@ struct fadprm_planner_visitor {
       g[u].density = 0.0;
       return;
     };
-    /*
-    std::size_t max_node_degree = math::highest_set_bit(num_vertices(g));  // log-2 of number of vertices.
+    
+    double max_density = g[m_goal_node].heuristic_value * 5.0;  // NOTE: heuristic value of goal node represents the characteristic length of the space (presumably one of the highest distances possible).
+    
+    std::size_t max_node_degree = 20;
+//     std::size_t max_node_degree = math::highest_set_bit(num_vertices(g)) + 1;  // log-2 of number of vertices.
     if(deg_u >= max_node_degree) {
       //no point trying to expand this vertex, at least, from a density stand-point.
-      g[u].density = g[m_goal_node].heuristic_value;  // NOTE: heuristic value of goal node represents the characteristic length of the space (presumably one of the highest distances possible).
+      g[u].density = max_density;
       return;
-    };*/
+    };
     double sum = 0.0;
     OutEdgeIter ei, ei_end;
     for(boost::tie(ei,ei_end) = out_edges(u,g); ei != ei_end; ++ei)
       sum += g[*ei].astar_weight;
-    sum /= double(deg_u * deg_u); //this gives the average edge distances divided by the number of adjacent nodes.
-    //sum /= double(deg_u * deg_u / max_node_degree);   // possible function to try.
+    //sum /= double(deg_u * deg_u); //this gives the average edge distances divided by the number of adjacent nodes.
+    //sum /= double((deg_u * deg_u) / (max_node_degree - deg_u));   // possible function to try.
+    sum /= double(deg_u) / double(max_node_degree - deg_u);   // possible function to try.
     //sum /= double(deg_u * (max_node_degree - deg_u)); // another possible function to try.
-    g[u].density = g[m_goal_node].heuristic_value * std::exp( -sum * sum );
+    g[u].density = max_density * std::exp( -sum * sum / 1000.0);
     
   };
   
@@ -472,6 +476,8 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
   double space_dim = double((to_vect<double>(this->m_space->get_super_space().difference(this->m_goal_pos,this->m_start_pos))).size()); 
   double space_Lc = get(distance_metric,this->m_space->get_super_space())(this->m_start_pos, this->m_goal_pos, this->m_space->get_super_space());
   
+  double max_radius = 60.0;
+  
   if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {
     
     typedef boost::adjacency_list< 
@@ -515,7 +521,7 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
       fadprm_planner_visitor<FreeSpaceType, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node);
       
       ReaK::graph::generate_fadprm(
-        motion_graph, start_node, *(this->m_space),
+        motion_graph, goal_node, *(this->m_space),
         get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         vis,
         get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
@@ -525,9 +531,12 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
         get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
         get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
         pos_map, 
-        ReaK::graph::star_neighborhood< linear_neighbor_search<> >(
+        ReaK::graph::fixed_neighborhood< linear_neighbor_search<> >(
           linear_neighbor_search<>(), 
-          space_dim, 3.0 * space_Lc),
+          10, max_radius),
+//         ReaK::graph::star_neighborhood< linear_neighbor_search<> >(
+//           linear_neighbor_search<>(), 
+//           space_dim, 3.0 * space_Lc),
         get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
         this->m_initial_relaxation);
       
@@ -543,7 +552,7 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
       fadprm_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node);
       
       ReaK::graph::generate_fadprm(
-        motion_graph, start_node, *(this->m_space),
+        motion_graph, goal_node, *(this->m_space),
         get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         vis,
         get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
@@ -553,9 +562,12 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
         get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
         get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
         pos_map, 
-        ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
+          10, max_radius),
+//         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
+//           nn_finder, 
+//           space_dim, 3.0 * space_Lc),
         get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
         this->m_initial_relaxation);
       
@@ -571,7 +583,7 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
       fadprm_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node);
       
       ReaK::graph::generate_fadprm(
-        motion_graph, start_node, *(this->m_space),
+        motion_graph, goal_node, *(this->m_space),
         get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         vis,
         get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
@@ -581,9 +593,12 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
         get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
         get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
         pos_map, 
-        ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
+          10, max_radius),
+//         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
+//           nn_finder, 
+//           space_dim, 3.0 * space_Lc),
         get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
         this->m_initial_relaxation);
       
@@ -599,7 +614,7 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
       fadprm_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node);
       
       ReaK::graph::generate_fadprm(
-        motion_graph, start_node, *(this->m_space),
+        motion_graph, goal_node, *(this->m_space),
         get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         vis,
         get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
@@ -609,9 +624,12 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
         get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
         get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
         pos_map, 
-        ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
+          10, max_radius),
+//         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
+//           nn_finder, 
+//           space_dim, 3.0 * space_Lc),
         get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
         this->m_initial_relaxation);
       
@@ -627,7 +645,7 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
       fadprm_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node);
       
       ReaK::graph::generate_fadprm(
-        motion_graph, start_node, *(this->m_space),
+        motion_graph, goal_node, *(this->m_space),
         get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         vis,
         get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
@@ -637,9 +655,12 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
         get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
         get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
         pos_map, 
-        ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
+          10, max_radius),
+//         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
+//           nn_finder, 
+//           space_dim, 3.0 * space_Lc),
         get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
         this->m_initial_relaxation);
       
@@ -694,7 +715,7 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
       fadprm_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node);
       
       ReaK::graph::generate_fadprm(
-        motion_graph, start_node, *(this->m_space),
+        motion_graph, goal_node, *(this->m_space),
         get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         vis,
         get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
@@ -704,9 +725,12 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
         get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
         get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
         pos_map, 
-        ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
+          10, max_radius),
+//         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
+//           nn_finder, 
+//           space_dim, 3.0 * space_Lc),
         get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
         this->m_initial_relaxation);
       
@@ -757,7 +781,7 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
       fadprm_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node);
       
       ReaK::graph::generate_fadprm(
-        motion_graph, start_node, *(this->m_space),
+        motion_graph, goal_node, *(this->m_space),
         get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         vis,
         get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
@@ -767,9 +791,12 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
         get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
         get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
         pos_map, 
-        ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
+          10, max_radius),
+//         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
+//           nn_finder, 
+//           space_dim, 3.0 * space_Lc),
         get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
         this->m_initial_relaxation);
       
@@ -820,7 +847,7 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
       fadprm_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node);
       
       ReaK::graph::generate_fadprm(
-        motion_graph, start_node, *(this->m_space),
+        motion_graph, goal_node, *(this->m_space),
         get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         vis,
         get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
@@ -830,9 +857,12 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
         get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
         get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
         pos_map, 
-        ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
+          10, max_radius),
+//         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
+//           nn_finder, 
+//           space_dim, 3.0 * space_Lc),
         get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
         this->m_initial_relaxation);
       
@@ -883,7 +913,7 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
       fadprm_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node);
       
       ReaK::graph::generate_fadprm(
-        motion_graph, start_node, *(this->m_space),
+        motion_graph, goal_node, *(this->m_space),
         get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         vis,
         get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
@@ -893,9 +923,12 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
         get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
         get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
         pos_map, 
-        ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
+          10, max_radius),
+//         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
+//           nn_finder, 
+//           space_dim, 3.0 * space_Lc),
         get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
         this->m_initial_relaxation);
       

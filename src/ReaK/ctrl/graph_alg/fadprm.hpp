@@ -205,6 +205,17 @@ namespace graph {
               typename ColorMap>
     struct fadprm_bfs_visitor
     {
+      
+      
+#define RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP \
+      {\
+        typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;\
+        for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {\
+          std::cout << "Vertex " << (*ui) << " has index is heap is: " << get(m_index_in_heap, *ui) << " for a heap size of: " << m_Q.size() << std::endl;\
+        };\
+      };
+      
+      
 
       typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
       typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
@@ -217,7 +228,7 @@ namespace graph {
                          UpdatableQueue& Q, List& I, IndexInHeapMap index_in_heap, 
                          PredecessorMap p, KeyMap k, DistanceMap d, RHSMap rhs, WeightMap w,
                          DensityMap dens, PositionMap pos, NcSelector select_neighborhood, ColorMap col, 
-                         double beta)
+                         double& beta)
         : m_free_space(free_space), m_h(h), m_vis(vis), m_Q(Q), m_I(I),
           m_index_in_heap(index_in_heap), m_predecessor(p), m_key(k),
           m_distance(d), m_rhs(rhs), m_weight(w), m_density(dens), m_position(pos), 
@@ -255,14 +266,22 @@ namespace graph {
 #else
         Vertex u = add_vertex(up, g);
 #endif
-        m_vis.vertex_added(u,g); 
+        m_vis.vertex_added(u,g);                  //RK_NOTICE(1," reached!");
         put(m_color, u, Color::white());
+        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
         put(m_distance, u, std::numeric_limits<double>::infinity());
         put(m_rhs, u, std::numeric_limits<double>::infinity());
         put(m_key, u, KeyValue(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()));
         put(m_predecessor, u, u);
         
-        for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
+        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+        //RK_NOTICE(1," reached!");
+        
+        std::size_t max_node_degree = 10;
+//         std::size_t max_node_degree = math::highest_set_bit(num_vertices(g)) + 1;
+        std::size_t i = 0;
+        for(typename std::vector<Vertex>::iterator it = Nc.begin(); (it != Nc.end()) && (i < max_node_degree / 2); ++it, ++i) {
+          //RK_NOTICE(1," reached!");
           if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
             //this means that u is reachable from *it.
             std::pair<Edge, bool> ep = add_edge(*it,u,g); 
@@ -270,12 +289,14 @@ namespace graph {
               m_vis.edge_added(ep.first, g); 
               update_key(*it,g); 
               update_vertex(*it,g);
+              //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
             };
           };
         }; 
-        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
-        update_key(u,g); 
-        update_vertex(u,g);
+        //RK_NOTICE(1," reached!");
+        update_key(u,g);       //RK_NOTICE(1," reached!");
+        update_vertex(u,g);    //RK_NOTICE(1," reached!");
+        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
       };
       template <class Graph>
       typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
@@ -299,6 +320,7 @@ namespace graph {
 #endif
         m_vis.vertex_added(u,g); 
         put(m_color, u, Color::white());
+        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
         put(m_distance, u, std::numeric_limits<double>::infinity());
         put(m_rhs, u, std::numeric_limits<double>::infinity());
         put(m_key, u, KeyValue(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()));
@@ -315,7 +337,7 @@ namespace graph {
             };
           };
         };
-        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
+        
         update_key(u, g); 
         update_vertex(u, g);
         for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
@@ -337,19 +359,32 @@ namespace graph {
         
         m_vis.examine_vertex(u, g);
         
-        std::size_t max_node_degree = math::highest_set_bit(num_vertices(g));
-        while(out_degree(u, g) < max_node_degree) {
-          
+        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+        
+        std::size_t max_node_degree = 10;
+        if(out_degree(u, g) >= max_node_degree)
+          return;
+        max_node_degree = (max_node_degree - out_degree(u, g)) / 2;
+        //std::size_t max_node_degree = math::highest_set_bit(num_vertices(g)) + 1;
+        for(std::size_t i = 0; i < max_node_degree; ++i) {
+        //while(out_degree(u, g) < max_node_degree) {
+        //do {
+          //RK_NOTICE(1," reached!");
           PositionValue p_rnd; bool expanding_worked;
           boost::tie(p_rnd, expanding_worked) = m_vis.random_walk(u, g);
-          
+          //RK_NOTICE(1," reached!");
           if(expanding_worked)
             connect_vertex(p_rnd, g);
           else
             break;
-          
-        };
+          //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+          //RK_NOTICE(1," reached!");
+        };// while(out_degree(u, g) < max_node_degree);
+        //RK_NOTICE(1," reached!");
+        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
         update_key(u,g);
+        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+        //RK_NOTICE(1," reached!");
       };
       
       template <class Edge, class Graph>
@@ -405,10 +440,10 @@ namespace graph {
         };
       };
 
-      template <class Vertex, class BidirectionalGraph>
-      void update_vertex(Vertex u, BidirectionalGraph& g) {
-        boost::function_requires< boost::BidirectionalGraphConcept<BidirectionalGraph> >();
-        typedef boost::graph_traits<BidirectionalGraph> GTraits;
+      template <class Vertex, class Graph>
+      void update_vertex(Vertex u, Graph& g) {
+        boost::function_requires< boost::BidirectionalGraphConcept<Graph> >();
+        typedef boost::graph_traits<Graph> GTraits;
         typename GTraits::in_edge_iterator ei, ei_end;
         
         ColorValue col_u = get(m_color, u);
@@ -439,14 +474,21 @@ namespace graph {
           if(pred_u != get(m_predecessor, u))                          m_vis.edge_relaxed(pred_e, g);
         };
         
+        //RK_NOTICE(1," reached!");
+        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+        
         if(rhs_u != g_u) { 
           if((col_u != Color::black()) && (col_u != Color::red())) {
             update_key(u,g); 
             m_Q.push_or_update(u); 
             put(m_color, u, Color::gray());                            m_vis.discover_vertex(u, g);
+            //RK_NOTICE(1," reached!");
+            //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
           } else if(col_u == Color::black()) {
             m_I.push_back(u); 
             put(m_color, u, Color::red());                             m_vis.inconsistent_vertex(u,g);
+            //RK_NOTICE(1," reached!");
+            //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
           };
         } else if(m_Q.contains(u)) {
           put(m_key, u, KeyValue(0.0,0.0)); 
@@ -454,13 +496,15 @@ namespace graph {
           m_Q.pop(); //remove from OPEN set
           update_key(u,g); 
           put(m_color, u, Color::green());                             m_vis.forget_vertex(u, g);
+          //RK_NOTICE(1," reached!");
+          //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
         }; 
       };
 
       const Topology& m_free_space;
       AStarHeuristicMap m_h;
       UniformCostVisitor m_vis;
-      UpdatableQueue m_Q; 
+      UpdatableQueue& m_Q; 
       List& m_I;
       IndexInHeapMap m_index_in_heap;
       PredecessorMap m_predecessor;
@@ -472,7 +516,7 @@ namespace graph {
       PositionMap m_position;
       NcSelector m_select_neighborhood;
       ColorMap m_color;
-      distance_type m_beta;
+      distance_type& m_beta;
     };
 
   
@@ -591,7 +635,7 @@ namespace graph {
     
     detail::adstar_search_loop(
       g, start_vertex, hval, bfs_vis, predecessor, distance, rhs, key, weight, color, 
-      Q, I, epsilon, std::numeric_limits<double>::infinity(), 0.0, 
+      index_in_heap, Q, I, epsilon, std::numeric_limits<double>::infinity(), 0.0, 
       std::less<double>(), std::equal_to<double>(), std::plus<double>(), std::multiplies<double>());
     
   };
