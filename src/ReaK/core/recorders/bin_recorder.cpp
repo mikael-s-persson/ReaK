@@ -30,6 +30,7 @@ namespace recorder {
 
 void bin_recorder::writeRow() {
   if((output_file.is_open()) && (rowCount > 0) && (colCount > 0)) {
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     for(unsigned int i=0;i<colCount;++i) {
       double tmp(values_rm.front());
       output_file.write(reinterpret_cast<char*>(&tmp),sizeof(double));
@@ -72,6 +73,7 @@ void bin_recorder::setFileName(const std::string& aFileName) {
 
 bool bin_extractor::readRow() {
   if((input_file.is_open()) && (colCount > 0)) {
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     for(unsigned int i=0;i<colCount;++i) {
       double tmp = 0;
       input_file.read(reinterpret_cast<char*>(&tmp),sizeof(double));

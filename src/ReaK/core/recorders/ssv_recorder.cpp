@@ -30,6 +30,7 @@ namespace recorder {
 
 void ssv_recorder::writeRow() {
   if((output_file.is_open()) && (rowCount > 0) && (colCount > 0)) {
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     output_file << std::endl;
     output_file << values_rm.front();
     values_rm.pop();
@@ -76,6 +77,7 @@ void ssv_recorder::setFileName(const std::string& aFileName) {
 
 bool ssv_extractor::readRow() {
   if((input_file.is_open()) && (colCount > 0)) {
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     std::string temp;
     std::getline(input_file,temp,'\n');
     std::stringstream ss(temp);

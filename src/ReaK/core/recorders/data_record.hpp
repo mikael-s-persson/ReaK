@@ -269,6 +269,12 @@ class data_extractor : public shared_object {
     virtual bool loadFile(const std::string& aFileName) { return true; };
 
   public:
+    
+    /**
+     * This function returns the number of columns in this extractor.
+     * \return The number of columns in this extractor.
+     */
+    unsigned int getColCount() const { return colCount; };
 
     /// Data record-specific flags for special operations.
     enum flag {

@@ -37,7 +37,6 @@ void data_recorder::record_process::operator()() {
   boost::posix_time::ptime last_time = boost::posix_time::microsec_clock::local_time();
   while(parent.colCount != 0) {
     {
-      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(parent.access_mutex);
       if((parent.rowCount > parent.maxBufferSize) || (currentIter % iterStep == 0))
 	parent.writeRow();
     };
@@ -69,9 +68,9 @@ data_recorder::~data_recorder() {
 
 
 data_recorder& data_recorder::operator <<(double value) {
-  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(colCount != 0) {
     if(currentColumn < colCount) {
+      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
       values_rm.push(value);
       ++currentColumn;
     } else
@@ -81,18 +80,18 @@ data_recorder& data_recorder::operator <<(double value) {
 };
 
 data_recorder& data_recorder::operator <<(const std::string& name) {
-  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(colCount == 0) {
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     names.push_back(name);
   };
   return *this;
 };
 
 data_recorder& data_recorder::operator <<(flag some_flag) {
-  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(some_flag == end_name_row) {
     if(colCount != 0)
       throw improper_flag();
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     colCount = names.size();
     writeNames();
     currentColumn = 0;
@@ -101,6 +100,7 @@ data_recorder& data_recorder::operator <<(flag some_flag) {
   } else if(some_flag == end_value_row) {
     if(colCount == 0)
       throw improper_flag();
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     for(;currentColumn < colCount;++currentColumn)
       values_rm.push(0.0);
     currentColumn = 0;
@@ -116,10 +116,8 @@ data_recorder& data_recorder::operator <<(flag some_flag) {
       writeRow();
     colCount = 0;
     if(writing_thread) {
-      lock_here.unlock();
       if(writing_thread->joinable())
         writing_thread->join();
-      lock_here.lock();
       writing_thread.reset();
     };
   };
@@ -144,7 +142,6 @@ void data_extractor::extract_process::operator()() {
   boost::posix_time::ptime last_time = boost::posix_time::microsec_clock::local_time();
   while(parent.colCount != 0) {
     {
-      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(parent.access_mutex);
       if((parent.values_rm.size() < parent.minBufferSize * parent.colCount) || 
 	 (currentIter % iterStep == 0))
 	if(!parent.readRow())
@@ -178,7 +175,6 @@ data_extractor::~data_extractor() {
 
 
 data_extractor& data_extractor::operator >>(double& value) {
-  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(colCount != 0) {
     if(currentColumn < colCount) {
       if(values_rm.empty()) {
@@ -186,6 +182,7 @@ data_extractor& data_extractor::operator >>(double& value) {
 	if(values_rm.empty())
 	  throw end_of_record();
       };
+      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
       value = values_rm.front();
       values_rm.pop();
       ++currentColumn;
@@ -197,8 +194,8 @@ data_extractor& data_extractor::operator >>(double& value) {
 };
 
 data_extractor& data_extractor::operator >>(std::string& name) {
-  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(currentNameCol < colCount) {
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     name = names[currentNameCol++];
   } else
     throw out_of_bounds();
@@ -206,10 +203,10 @@ data_extractor& data_extractor::operator >>(std::string& name) {
 };
 
 data_extractor& data_extractor::operator >>(flag some_flag) {
-  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(some_flag == end_value_row) {
     if(colCount == 0)
       throw improper_flag();
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     for(;currentColumn < colCount;++currentColumn)
       values_rm.pop();
     currentColumn = 0;
@@ -219,6 +216,7 @@ data_extractor& data_extractor::operator >>(flag some_flag) {
     while((values_rm.size() < minBufferSize) && (readRow())) ;
   } else if(some_flag == close) {
     //flush and stop thread.
+    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     while(!values_rm.empty())
       values_rm.pop();
     colCount = 0;
