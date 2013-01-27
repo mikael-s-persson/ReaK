@@ -506,30 +506,26 @@ namespace ReaK {
   
 /* Specialization, see general template docs. */
   template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
-  class arithmetic_tuple_element< Idx, pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > {
-    public:
-      typedef typename arithmetic_tuple_element< Idx, SpaceTuple >::type type;
+  struct arithmetic_tuple_element< Idx, pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > {
+    typedef typename arithmetic_tuple_element< Idx, SpaceTuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
-  class arithmetic_tuple_element< Idx, const pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > {
-    public:
-      typedef typename arithmetic_tuple_element< Idx, const SpaceTuple >::type type;
+  struct arithmetic_tuple_element< Idx, const pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > {
+    typedef typename arithmetic_tuple_element< Idx, const SpaceTuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
-  class arithmetic_tuple_element< Idx, volatile pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > {
-    public:
-      typedef typename arithmetic_tuple_element< Idx, volatile SpaceTuple >::type type;
+  struct arithmetic_tuple_element< Idx, volatile pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > {
+    typedef typename arithmetic_tuple_element< Idx, volatile SpaceTuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRuleTuple>
-  class arithmetic_tuple_element< Idx, const volatile pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > {
-    public:
-      typedef typename arithmetic_tuple_element< Idx, const volatile SpaceTuple >::type type;
+  struct arithmetic_tuple_element< Idx, const volatile pp::differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRuleTuple> > {
+    typedef typename arithmetic_tuple_element< Idx, const volatile SpaceTuple >::type type;
   };
   
 };

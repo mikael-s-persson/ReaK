@@ -32,7 +32,7 @@ namespace ReaK {
 namespace pp {
 
 
-template class joint_limits_collection<double>;
+template struct joint_limits_collection<double>;
 
 
 

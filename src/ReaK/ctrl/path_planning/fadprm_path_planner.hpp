@@ -473,7 +473,7 @@ shared_ptr< path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReporter>:
   //typedef boost::data_member_property_map<double, fadprm_vertex_data<FreeSpaceType> > DensityMap;
   //DensityMap dens_map = DensityMap(&fadprm_vertex_data<FreeSpaceType>::density);
   
-  double space_dim = double((to_vect<double>(this->m_space->get_super_space().difference(this->m_goal_pos,this->m_start_pos))).size()); 
+//   double space_dim = double((to_vect<double>(this->m_space->get_super_space().difference(this->m_goal_pos,this->m_start_pos))).size()); 
   double space_Lc = get(distance_metric,this->m_space->get_super_space())(this->m_start_pos, this->m_goal_pos, this->m_space->get_super_space());
   
   double max_radius = 60.0;

@@ -76,7 +76,7 @@ struct CRS_A465_model_parameters {
   double joint_4_to_wrist_dist;       // "link_4" offset: vect<double,3>(0.0, 0.0, joint_4_to_wrist_dist),
   double wrist_to_flange_dist;        // "link_5" offset: vect<double,3>(0.0, 0.0, wrist_to_flange_dist),
   
-  CRS_A465_model_parameters(const vect<double,3>& aGlobalToBasePlate = vect<double,3>(0.0,-3.3,0.3),
+  CRS_A465_model_parameters(const vect<double,3>& aGlobalToBasePlate = (vect<double,3>(0.0,-3.3,0.3)),
                             double aBasePlateToShoulderDist = 0.3302,
                             double aShoulderToElbowDist = 0.3048,
                             double aElbowToJoint4Dist = 0.1500,

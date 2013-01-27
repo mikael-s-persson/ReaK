@@ -815,6 +815,9 @@ extern template class mat<double, mat_structure::skew_symmetric>;
 extern template class mat<float, mat_structure::skew_symmetric>;
 
 
+// for compilers that don't support extern templates for friend functions:
+#if !defined(__clang__)
+
 extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
 extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
@@ -853,6 +856,8 @@ extern template vect<float,6> operator *<6>(const vect<float,6>& V,const mat<flo
 
 extern template vect_n<float> operator *(const mat<float,mat_structure::skew_symmetric>& M,const vect_n<float>& V);
 extern template vect_n<float> operator *(const vect_n<float>& V,const mat<float,mat_structure::skew_symmetric>& M);
+
+#endif
 
 
 #endif

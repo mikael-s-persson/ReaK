@@ -126,9 +126,9 @@ public:
    * Parametrized constructor.
    */
   jacobian_gen_2D(const weak_ptr< frame_2D<value_type> >& aParent = weak_ptr< frame_2D<value_type> >(),
-                  const vect<value_type,2>& aQdVel = vect<value_type,2>(),
+                  const vect<value_type,2>& aQdVel = (vect<value_type,2>()),
 		  const value_type& aQdAVel = value_type(), 
-		  const vect<value_type,2>& aQdAcc = vect<value_type,2>(),
+		  const vect<value_type,2>& aQdAcc = (vect<value_type,2>()),
 		  const value_type& aQdAAcc = value_type()) : 
 		  Parent(aParent),
 		  qd_vel(aQdVel),
@@ -225,10 +225,10 @@ public:
    * Parametrized constructor.
    */
   jacobian_gen_3D(const weak_ptr< frame_3D<value_type> >& aParent = weak_ptr< frame_3D<value_type> >(),
-                  const vect<value_type,3>& aQdVel = vect<value_type,3>(),
-		  const vect<value_type,3>& aQdAVel = vect<value_type,3>(), 
-		  const vect<value_type,3>& aQdAcc = vect<value_type,3>(),
-		  const vect<value_type,3>& aQdAAcc = vect<value_type,3>()) : 
+                  const vect<value_type,3>& aQdVel = (vect<value_type,3>()),
+		  const vect<value_type,3>& aQdAVel = (vect<value_type,3>()), 
+		  const vect<value_type,3>& aQdAcc = (vect<value_type,3>()),
+		  const vect<value_type,3>& aQdAAcc = (vect<value_type,3>())) : 
 		  Parent(aParent),
 		  qd_vel(aQdVel),
 		  qd_avel(aQdAVel),
@@ -339,9 +339,9 @@ public:
   /**
    * Parametrized constructor.
    */
-  jacobian_2D_gen(const vect<value_type,2>& aVelQd = vect<value_type,2>(),
+  jacobian_2D_gen(const vect<value_type,2>& aVelQd = (vect<value_type,2>()),
 		  const value_type& aAVelQd = value_type(), 
-		  const vect<value_type,2>& aVelQdd = vect<value_type,2>(),
+		  const vect<value_type,2>& aVelQdd = (vect<value_type,2>()),
 		  const value_type& aAVelQdd = value_type()) : 
 		  vel_qd(aVelQd),
 		  avel_qd(aAVelQd),
@@ -427,13 +427,13 @@ public:
    * Parametrized constructor.
    */
   jacobian_2D_2D(const weak_ptr< frame_2D<value_type> >& aParent = weak_ptr< frame_2D<value_type> >(),
-                 const vect<vect<value_type,2>,2>& aVelVel = vect<vect<value_type,2>,2>(),
-		 const vect<value_type,2>& aVelAVel = vect<value_type,2>(),
-		 const vect<value_type,2>& aAVelVel = vect<value_type,2>(),
+                 const vect<vect<value_type,2>,2>& aVelVel = (vect<vect<value_type,2>,2>()),
+		 const vect<value_type,2>& aVelAVel = (vect<value_type,2>()),
+		 const vect<value_type,2>& aAVelVel = (vect<value_type,2>()),
 		 const value_type& aAVelAVel = value_type(), 
-		 const vect<vect<value_type,2>,2>& aVelAcc = vect<vect<value_type,2>,2>(),
-		 const vect<value_type,2>& aVelAAcc = vect<value_type,2>(),
-		 const vect<value_type,2>& aAVelAcc = vect<value_type,2>(),
+		 const vect<vect<value_type,2>,2>& aVelAcc = (vect<vect<value_type,2>,2>()),
+		 const vect<value_type,2>& aVelAAcc = (vect<value_type,2>()),
+		 const vect<value_type,2>& aAVelAcc = (vect<value_type,2>()),
 		 const value_type& aAVelAAcc = value_type()) : 
 		 Parent(aParent),
 		 vel_vel(aVelVel),
@@ -578,14 +578,14 @@ public:
    * Parametrized constructor.
    */
   jacobian_2D_3D(const weak_ptr< frame_3D<value_type> >& aParent = weak_ptr< frame_3D<value_type> >(),
-                 const vect<vect<value_type,3>,2>& aVelVel = vect<vect<value_type,3>,2>(),
-		 const vect<vect<value_type,3>,2>& aVelAVel = vect<vect<value_type,3>,2>(),
-		 const vect<value_type,3>& aAVelVel = vect<value_type,3>(),
-		 const vect<value_type,3>& aAVelAVel = vect<value_type,3>(), 
-		 const vect<vect<value_type,3>,2>& aVelAcc = vect<vect<value_type,3>,2>(),
-		 const vect<vect<value_type,3>,2>& aVelAAcc = vect<vect<value_type,3>,2>(),
-		 const vect<value_type,3>& aAVelAcc = vect<value_type,3>(),
-		 const vect<value_type,3>& aAVelAAcc = vect<value_type,3>()) : 
+                 const vect<vect<value_type,3>,2>& aVelVel = (vect<vect<value_type,3>,2>()),
+		 const vect<vect<value_type,3>,2>& aVelAVel = (vect<vect<value_type,3>,2>()),
+		 const vect<value_type,3>& aAVelVel = (vect<value_type,3>()),
+		 const vect<value_type,3>& aAVelAVel = (vect<value_type,3>()), 
+		 const vect<vect<value_type,3>,2>& aVelAcc = (vect<vect<value_type,3>,2>()),
+		 const vect<vect<value_type,3>,2>& aVelAAcc = (vect<vect<value_type,3>,2>()),
+		 const vect<value_type,3>& aAVelAcc = (vect<value_type,3>()),
+		 const vect<value_type,3>& aAVelAAcc = (vect<value_type,3>())) : 
 		 Parent(aParent),
 		 vel_vel(aVelVel),
 		 vel_avel(aVelAVel),
@@ -764,10 +764,10 @@ public:
   /**
    * Parametrized constructor.
    */
-  jacobian_3D_gen(const vect<value_type,3>& aVelQd = vect<value_type,3>(),
-		  const vect<value_type,3>& aAVelQd = vect<value_type,3>(), 
-		  const vect<value_type,3>& aVelQdd = vect<value_type,3>(),
-		  const vect<value_type,3>& aAVelQdd = vect<value_type,3>()) : 
+  jacobian_3D_gen(const vect<value_type,3>& aVelQd = (vect<value_type,3>()),
+		  const vect<value_type,3>& aAVelQd = (vect<value_type,3>()), 
+		  const vect<value_type,3>& aVelQdd = (vect<value_type,3>()),
+		  const vect<value_type,3>& aAVelQdd = (vect<value_type,3>())) : 
 		  vel_qd(aVelQd),
 		  avel_qd(aAVelQd),
 		  vel_qdd(aVelQdd),
@@ -862,14 +862,14 @@ public:
    * Parametrized constructor.
    */
   jacobian_3D_2D(const weak_ptr< frame_2D<value_type> >& aParent = weak_ptr< frame_2D<value_type> >(),
-                 const vect<vect<value_type,2>,3>& aVelVel = vect<vect<value_type,2>,3>(),
-		 const vect<value_type,3>& aVelAVel = vect<value_type,3>(),
-		 const vect<vect<value_type,2>,3>& aAVelVel = vect<vect<value_type,2>,3>(),
-		 const vect<value_type,3>& aAVelAVel = vect<value_type,3>(), 
-		 const vect<vect<value_type,2>,3>& aVelAcc = vect<vect<value_type,2>,3>(),
-		 const vect<value_type,3>& aVelAAcc = vect<value_type,3>(),
-		 const vect<vect<value_type,2>,3>& aAVelAcc = vect<vect<value_type,2>,3>(),
-		 const vect<value_type,3>& aAVelAAcc = vect<value_type,3>()) : 
+                 const vect<vect<value_type,2>,3>& aVelVel = (vect<vect<value_type,2>,3>()),
+		 const vect<value_type,3>& aVelAVel = (vect<value_type,3>()),
+		 const vect<vect<value_type,2>,3>& aAVelVel = (vect<vect<value_type,2>,3>()),
+		 const vect<value_type,3>& aAVelAVel = (vect<value_type,3>()), 
+		 const vect<vect<value_type,2>,3>& aVelAcc = (vect<vect<value_type,2>,3>()),
+		 const vect<value_type,3>& aVelAAcc = (vect<value_type,3>()),
+		 const vect<vect<value_type,2>,3>& aAVelAcc = (vect<vect<value_type,2>,3>()),
+		 const vect<value_type,3>& aAVelAAcc = (vect<value_type,3>())) : 
 		 Parent(aParent),
 		 vel_vel(aVelVel),
 		 vel_avel(aVelAVel),
@@ -1056,14 +1056,14 @@ public:
    * Parametrized constructor.
    */
   jacobian_3D_3D(const weak_ptr< frame_3D<value_type> >& aParent = weak_ptr< frame_3D<value_type> >(),
-                 const vect<vect<value_type,3>,3>& aVelVel = vect<vect<value_type,3>,3>(),
-		 const vect<vect<value_type,3>,3>& aVelAVel = vect<vect<value_type,3>,3>(),
-		 const vect<vect<value_type,3>,3>& aAVelVel = vect<vect<value_type,3>,3>(),
-		 const vect<vect<value_type,3>,3>& aAVelAVel = vect<vect<value_type,3>,3>(), 
-		 const vect<vect<value_type,3>,3>& aVelAcc = vect<vect<value_type,3>,3>(),
-		 const vect<vect<value_type,3>,3>& aVelAAcc = vect<vect<value_type,3>,3>(),
-		 const vect<vect<value_type,3>,3>& aAVelAcc = vect<vect<value_type,3>,3>(),
-		 const vect<vect<value_type,3>,3>& aAVelAAcc = vect<vect<value_type,3>,3>()) : 
+                 const vect<vect<value_type,3>,3>& aVelVel = (vect<vect<value_type,3>,3>()),
+		 const vect<vect<value_type,3>,3>& aVelAVel = (vect<vect<value_type,3>,3>()),
+		 const vect<vect<value_type,3>,3>& aAVelVel = (vect<vect<value_type,3>,3>()),
+		 const vect<vect<value_type,3>,3>& aAVelAVel = (vect<vect<value_type,3>,3>()), 
+		 const vect<vect<value_type,3>,3>& aVelAcc = (vect<vect<value_type,3>,3>()),
+		 const vect<vect<value_type,3>,3>& aVelAAcc = (vect<vect<value_type,3>,3>()),
+		 const vect<vect<value_type,3>,3>& aAVelAcc = (vect<vect<value_type,3>,3>()),
+		 const vect<vect<value_type,3>,3>& aAVelAAcc = (vect<vect<value_type,3>,3>())) : 
 		 Parent(aParent),
 		 vel_vel(aVelVel),
 		 vel_avel(aVelAVel),

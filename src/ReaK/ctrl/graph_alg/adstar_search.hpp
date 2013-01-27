@@ -126,7 +126,7 @@ namespace graph {
       typedef std::back_insert_iterator< std::vector< typename boost::graph_traits<Graph>::edge_descriptor > > EdgeIter;
       std::vector< typename boost::graph_traits<Graph>::edge_descriptor > vect;
       std::pair<double, EdgeIter> w_change = vis.detect_edge_change(std::back_inserter(vect),g); // ei: back-inserter / forward-iterator for an edge-list. Return the cummulative weight-change and the edge-iterator at the end of the edge list populated by this function.
-      double old_eps;
+      double old_eps = 0.0;
       double new_eps = vis.adjust_epsilon(old_eps, w_change.first, g); RK_UNUSED(new_eps); // adjust the value of epsilon for a given old-value and last cummulative weight-change.
     }
     Visitor vis;

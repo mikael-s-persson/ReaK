@@ -257,107 +257,6 @@ struct get_tagged_temporal_interpolator< svp_Ndof_interpolation_tag, TemporalSpa
 
 
 
-
-#ifdef RK_ENABLE_CXX0X_FEATURES
-
-namespace std {
-  
-/* Specialization, see general template docs. */
-  template <typename BaseTopology>
-  class tuple_size< ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > : 
-    public tuple_size< BaseTopology > { };
-    
-/* Specialization, see general template docs. */
-  template <typename BaseTopology>
-  class tuple_size< const ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > : 
-    public tuple_size< const BaseTopology > { };
-    
-/* Specialization, see general template docs. */
-  template <typename BaseTopology>
-  class tuple_size< volatile ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > : 
-    public tuple_size< volatile BaseTopology > { };
-    
-/* Specialization, see general template docs. */
-  template <typename BaseTopology>
-  class tuple_size< const volatile ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > : 
-    public tuple_size< const volatile BaseTopology > { };
-  
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename BaseTopology>
-  class tuple_element< Idx, ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > :
-    public tuple_element< Idx, BaseTopology > { };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename BaseTopology>
-  class tuple_element< Idx, const ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > :
-    public tuple_element< Idx, const BaseTopology > { };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename BaseTopology>
-  class tuple_element< Idx, volatile ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > : 
-    public tuple_element< Idx, volatile BaseTopology > { };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename BaseTopology>
-  class tuple_element< Idx, const volatile ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > :
-    public tuple_element< Idx, const volatile BaseTopology > { };
-  
-};
-
-#else
-
-namespace boost {
-  
-namespace tuples {
-  
-/* Specialization, see general template docs. */
-  template <typename BaseTopology>
-  struct length< ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > : 
-    ReaK::arithmetic_tuple_size< BaseTopology > { };
-    
-/* Specialization, see general template docs. */
-  template <typename BaseTopology>
-  struct length< const ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > : 
-    ReaK::arithmetic_tuple_size< BaseTopology > { };
-    
-/* Specialization, see general template docs. */
-  template <typename BaseTopology>
-  struct length< volatile ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > : 
-    ReaK::arithmetic_tuple_size< BaseTopology > { };
-    
-/* Specialization, see general template docs. */
-  template <typename BaseTopology>
-  struct length< const volatile ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > : 
-    ReaK::arithmetic_tuple_size< BaseTopology > { };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename BaseTopology>
-  struct element< Idx, ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > :
-    public element< Idx, BaseTopology > { };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename BaseTopology>
-  struct element< Idx, const ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > :
-    public element< Idx, const BaseTopology > { };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename BaseTopology>
-  class element< Idx, volatile ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > :
-    public element< Idx, volatile BaseTopology > { };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename BaseTopology>
-  class element< Idx, const volatile ReaK::pp::svp_Ndof_reach_topology<BaseTopology> > :
-    public element< Idx, const volatile BaseTopology > { };
-  
-};
-  
-};
-
-#endif
-
-
 namespace ReaK {
   
   
@@ -369,23 +268,23 @@ namespace ReaK {
   
 /* Specialization, see general template docs. */
   template <int Idx, typename BaseTopology>
-  class arithmetic_tuple_element< Idx, pp::svp_Ndof_reach_topology<BaseTopology> > :
-    public arithmetic_tuple_element< Idx, BaseTopology > { };
+  struct arithmetic_tuple_element< Idx, pp::svp_Ndof_reach_topology<BaseTopology> > :
+    arithmetic_tuple_element< Idx, BaseTopology > { };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename BaseTopology>
-  class arithmetic_tuple_element< Idx, const pp::svp_Ndof_reach_topology<BaseTopology> > : 
-    public arithmetic_tuple_element< Idx, const BaseTopology > { };
+  struct arithmetic_tuple_element< Idx, const pp::svp_Ndof_reach_topology<BaseTopology> > : 
+    arithmetic_tuple_element< Idx, const BaseTopology > { };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename BaseTopology>
-  class arithmetic_tuple_element< Idx, volatile pp::svp_Ndof_reach_topology<BaseTopology> > : 
-    public arithmetic_tuple_element< Idx, volatile BaseTopology > { };
+  struct arithmetic_tuple_element< Idx, volatile pp::svp_Ndof_reach_topology<BaseTopology> > : 
+    arithmetic_tuple_element< Idx, volatile BaseTopology > { };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename BaseTopology>
-  class arithmetic_tuple_element< Idx, const volatile pp::svp_Ndof_reach_topology<BaseTopology> > : 
-    public arithmetic_tuple_element< Idx, const volatile BaseTopology > { };
+  struct arithmetic_tuple_element< Idx, const volatile pp::svp_Ndof_reach_topology<BaseTopology> > : 
+    arithmetic_tuple_element< Idx, const volatile BaseTopology > { };
   
 };
 

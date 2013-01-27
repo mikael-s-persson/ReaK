@@ -49,7 +49,7 @@ namespace ReaK {
 namespace pp {
   
 
-extern template class joint_limits_collection<double>;
+extern template struct joint_limits_collection<double>;
 
 
 #define RK_JOINT_SPACE_LIMITS_EXT_MAKE_MEMBER_FUNC(NDOF) \

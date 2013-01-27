@@ -173,7 +173,7 @@ class satellite3D_imdt_sys : public satellite3D_inv_dt_system {
   public:  
     satellite3D_imdt_sys(const std::string& aName = "", 
 			 double aMass = 1.0, 
-			 const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			 const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
 			 double aDt = 0.001); 
   
     virtual ~satellite3D_imdt_sys() { };
@@ -246,7 +246,7 @@ class satellite3D_gyro_imdt_sys : public satellite3D_imdt_sys {
   public:  
     satellite3D_gyro_imdt_sys(const std::string& aName = "", 
 			      double aMass = 1.0, 
-			      const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			      const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
 			      double aDt = 0.001); 
   
     virtual ~satellite3D_gyro_imdt_sys() { };
@@ -321,12 +321,12 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
   public:  
     satellite3D_IMU_imdt_sys(const std::string& aName = "", 
 			     double aMass = 1.0, 
-			     const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			     const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
 			     double aDt = 0.001,
 			     const unit_quat<double>& aIMUOrientation = unit_quat<double>(),
-			     const vect<double,3>& aIMULocation = vect<double,3>(),
+			     const vect<double,3>& aIMULocation = (vect<double,3>()),
 			     const unit_quat<double>& aRoomOrientation = unit_quat<double>(),
-			     const vect<double,3>& aMagFieldVector = vect<double,3>(1.0,0.0,0.0)); 
+			     const vect<double,3>& aMagFieldVector = (vect<double,3>(1.0,0.0,0.0))); 
   
     virtual ~satellite3D_IMU_imdt_sys() { };
     

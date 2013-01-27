@@ -83,8 +83,8 @@ class grid_3D : public geometry_3D {
     grid_3D(const std::string& aName = "",
 	    const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
 	    const pose_3D<double>& aPose = pose_3D<double>(),
-	    const vect<double,3>& aDimensions = vect<double,3>(1.0,1.0,1.0),
-	    const vect<std::size_t,3>& aSquareCounts = vect<std::size_t,3>(10,10,10));
+	    const vect<double,3>& aDimensions = (vect<double,3>(1.0,1.0,1.0)),
+	    const vect<std::size_t,3>& aSquareCounts = (vect<std::size_t,3>(10,10,10)));
     
     /**
      * Default destructor.

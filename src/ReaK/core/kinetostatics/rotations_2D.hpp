@@ -478,6 +478,7 @@ class trans_mat_2D : public serialization::serializable {
     BOOST_STATIC_CONSTANT(mat_alignment::tag, alignment = mat_alignment::column_major);
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::square);
     
+    typedef vect<value_type,2> translation_type;
     
   private:
     value_type q[9];
@@ -508,7 +509,7 @@ class trans_mat_2D : public serialization::serializable {
      * Constructor from a rotation angle and a translation vector.
      * \test PASSED
      */
-    explicit trans_mat_2D(const_reference Angle, vect<value_type,2> Translation = vect<value_type,2>()) {
+    explicit trans_mat_2D(const_reference Angle, translation_type Translation = translation_type()) {
       q[4] =  (q[0] = cos(Angle));
       q[3] = -(q[1] = sin(Angle));
       q[6] = Translation[0];
@@ -518,7 +519,7 @@ class trans_mat_2D : public serialization::serializable {
       q[8] = 1.0;
     };
     
-    explicit trans_mat_2D(const rot_mat_2D<value_type>& R, vect<value_type,2> Translation = vect<value_type,2>()) {
+    explicit trans_mat_2D(const rot_mat_2D<value_type>& R, translation_type Translation = translation_type()) {
       q[4] =  (q[0] = R(0,0));
       q[3] = -(q[1] = R(1,0));
       q[6] = Translation[0];
@@ -533,7 +534,7 @@ class trans_mat_2D : public serialization::serializable {
                                                                         !boost::is_same<self, Matrix>::value, void* >::type dummy = NULL ) {
       if((M.get_col_count() != 3) || (M.get_row_count() != 3))
 	throw std::range_error("Right-hand-side of 2D transformation matrix assignment is not a 3x3 matrix!");
-      vect<value_type,2> v = unit(vect<value_type,2>(M(0,0),M(1,0)));
+      translation_type v = unit(translation_type(M(0,0),M(1,0)));
       q[0] = v[0]; q[1] = v[1]; q[2] = 0.0;
       q[3] = -q[1]; q[4] = q[0]; q[5] = 0.0;
       q[6] = M(0,2);
@@ -600,15 +601,15 @@ class trans_mat_2D : public serialization::serializable {
      * Provides a copy of the translation part of the transformation matrix.
      * \test PASSED
      */
-    vect<value_type,2> getTranslation() const {
-      return vect<value_type,2>(q[6],q[7]);
+    translation_type getTranslation() const {
+      return translation_type(q[6],q[7]);
     };
 
     /**
      * Sets the translation part of the transformation matrix.
      * \test PASSED
      */
-    void setTranslation(const vect<value_type,2>& Translation) {
+    void setTranslation(const translation_type& Translation) {
       q[6] = Translation.q[0];
       q[7] = Translation.q[1];
     };
@@ -663,7 +664,7 @@ class trans_mat_2D : public serialization::serializable {
     self& >::type operator =(const Matrix& M) {
       if((M.get_col_count() != 3) || (M.get_row_count() != 3))
 	throw std::range_error("Right-hand-side of 2D transformation matrix assignment is not a 3x3 matrix!");
-      vect<value_type,2> v = unit(vect<value_type,2>(M(0,0),M(1,0)));
+      translation_type v = unit(translation_type(M(0,0),M(1,0)));
       q[0] = v[0]; q[1] = v[1]; q[2] = 0.0;
       q[3] = -q[1]; q[4] = q[0]; q[5] = 0.0;
       q[6] = M(0,2);

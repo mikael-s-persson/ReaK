@@ -1575,8 +1575,8 @@ class mat_ref_vert_cat {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_row_count() != mu->get_row_count() + ml->get_row_count()) || (M.get_col_count() != mu->get_col_count()))
 	throw std::range_error("Matrix dimensions mismatch.");
-      *mu += sub(M)(range(0,mu.get_row_count()-1),range(0,mu.get_col_count()-1));
-      *ml += sub(M)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()-1),range(0,ml.get_col_count()-1));
+      *mu += sub(M)(range(0,mu->get_row_count()-1),range(0,mu->get_col_count()-1));
+      *ml += sub(M)(range(mu->get_row_count(),mu->get_row_count() + ml->get_row_count()-1),range(0,ml->get_col_count()-1));
       return *this;
     };
 
@@ -1589,8 +1589,8 @@ class mat_ref_vert_cat {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_row_count() != mu->get_row_count() + ml->get_row_count()) || (M.get_col_count() != mu->get_col_count()))
 	throw std::range_error("Matrix dimensions mismatch.");
-      *mu -= sub(M)(range(0,mu.get_row_count()-1),range(0,mu.get_col_count()-1));
-      *ml -= sub(M)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()-1),range(0,ml.get_col_count()-1));
+      *mu -= sub(M)(range(0,mu->get_row_count()-1),range(0,mu->get_col_count()-1));
+      *ml -= sub(M)(range(mu->get_row_count(),mu->get_row_count() + ml->get_row_count()-1),range(0,ml->get_col_count()-1));
       return *this;
     };
 

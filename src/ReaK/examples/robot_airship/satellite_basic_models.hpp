@@ -81,7 +81,7 @@ class satellite3D_lin_dt_system : public named_object {
     
     satellite3D_lin_dt_system(const std::string& aName = "", 
 			      double aMass = 1.0, 
-			      const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			      const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
 			      double aDt = 0.001); 
   
     virtual ~satellite3D_lin_dt_system() { };
@@ -162,7 +162,7 @@ class satellite3D_gyro_lin_dt_system : public satellite3D_lin_dt_system {
     
     satellite3D_gyro_lin_dt_system(const std::string& aName = "", 
 			           double aMass = 1.0, 
-			           const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			           const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
 			           double aDt = 0.001); 
   
     virtual ~satellite3D_gyro_lin_dt_system() { };
@@ -230,7 +230,7 @@ class satellite3D_inv_dt_system : public satellite3D_lin_dt_system {
     
     satellite3D_inv_dt_system(const std::string& aName = "", 
 			      double aMass = 1.0, 
-			      const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			      const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
 			      double aDt = 0.001); 
   
     virtual ~satellite3D_inv_dt_system() { };
@@ -308,7 +308,7 @@ class satellite3D_gyro_inv_dt_system : public satellite3D_inv_dt_system {
     
     satellite3D_gyro_inv_dt_system(const std::string& aName = "", 
 			           double aMass = 1.0, 
-			           const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			           const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
 			           double aDt = 0.001); 
   
     virtual ~satellite3D_gyro_inv_dt_system() { };

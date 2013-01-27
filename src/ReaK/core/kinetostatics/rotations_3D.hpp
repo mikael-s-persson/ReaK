@@ -2484,6 +2484,8 @@ class trans_mat_3D : public serialization::serializable {
     BOOST_STATIC_CONSTANT(mat_alignment::tag, alignment = mat_alignment::column_major);
     BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::orthogonal);
     
+    typedef vect<value_type,3> translation_type;
+    
   private:
     value_type q[16];
 
@@ -2599,7 +2601,7 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const quaternion<value_type>& Q, 
-			  const vect<value_type,3>& V = vect<value_type,3>(value_type(0.0),value_type(0.0),value_type(0.0))) {
+			  const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
       rot_mat_3D<value_type> R(Q.getRotMat());
       q[0] = R.q[0];
       q[1] = R.q[1];
@@ -2624,7 +2626,7 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const euler_angles_TB<value_type>& E, 
-			  const vect<value_type,3>& V = vect<value_type,3>(value_type(0.0),value_type(0.0),value_type(0.0))) {
+			  const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
       rot_mat_3D<value_type> R(E.getRotMat());
       q[0] = R.q[0];
       q[1] = R.q[1];
@@ -2649,7 +2651,7 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const axis_angle<value_type>& A, 
-			  const vect<value_type,3>& V = vect<value_type,3>(value_type(0.0),value_type(0.0),value_type(0.0))) {
+			  const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
       rot_mat_3D<value_type> R(A.getRotMat());
       q[0] = R.q[0];
       q[1] = R.q[1];
@@ -2674,7 +2676,7 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const rot_mat_3D<value_type>& R, 
-			  const vect<value_type,3>& V = vect<value_type,3>(value_type(0.0),value_type(0.0),value_type(0.0))) {
+			  const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
       q[0] = R.q[0];
       q[1] = R.q[1];
       q[2] = R.q[2];
@@ -2791,15 +2793,15 @@ class trans_mat_3D : public serialization::serializable {
      * Provides the translation part of the transformation matrix as a vector.
      * \test PASSED
      */
-    vect<value_type,3> getTranslation() const {
-      return vect<value_type,3>(q[12],q[13],q[14]);
+    translation_type getTranslation() const {
+      return translation_type(q[12],q[13],q[14]);
     };
 
     /**
      * Sets the translation part of the transformation matrix to a vector.
      * \test PASSED
      */
-    void setTranslation(const vect<value_type,3>& Translation) {
+    void setTranslation(const translation_type& Translation) {
       q[12] = Translation[0];
       q[13] = Translation[1];
       q[14] = Translation[2];

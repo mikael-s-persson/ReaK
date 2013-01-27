@@ -82,8 +82,8 @@ class line_seg_2D : public geometry_2D {
     line_seg_2D(const std::string& aName = "",
                 const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
 		const pose_2D<double>& aPose = pose_2D<double>(),
-		const vect<double,2>& aStart = vect<double,2>(),
-		const vect<double,2>& aEnd = vect<double,2>());
+		const vect<double,2>& aStart = (vect<double,2>()),
+		const vect<double,2>& aEnd = (vect<double,2>()));
     
     /**
      * Default destructor.

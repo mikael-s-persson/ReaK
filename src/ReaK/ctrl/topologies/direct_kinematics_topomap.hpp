@@ -185,7 +185,6 @@ class manip_rl_direct_kin_map : public shared_object {
      */
     template <typename PointType, typename InSpace>
     void apply_to_model(const PointType& pt, const InSpace& space_in) const {
-      typedef typename get_rate_illimited_space< InSpace >::type NormalJointSpace;
       typename topology_traits<NormalJointSpace>::point_type pt_inter = joint_limits_map->map_to_space(pt, space_in, *normal_jt_space);
       detail::write_joint_coordinates_impl(pt_inter, *normal_jt_space, model);
       model->doDirectMotion();

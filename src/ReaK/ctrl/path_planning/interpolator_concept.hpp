@@ -153,7 +153,7 @@ struct LimitedInterpolatorConcept : public InterpolatorConcept<LimitedInterpolat
   BOOST_CONCEPT_USAGE(LimitedInterpolatorConcept)
   {
     dt = this->interp.get_minimum_travel_time();
-    bool b = this->interp.is_segment_feasible();
+    bool b = this->interp.is_segment_feasible(); RK_UNUSED(b);
   };
   
 };

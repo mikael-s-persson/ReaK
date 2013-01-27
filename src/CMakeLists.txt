@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-# Use the following root directory on wopa laptop
-# set(CODEROOT "/home/wopa/mpersson/mpersson/code")
-# Use the following root directory on Mikael Persson's home computer
-# set(CODEROOT "/media/S_M_P_0/Ecole/TKKThesis/mpersson/code")
+
 set(CODEROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 # This defines the basic input (src) and output (lib & include) directories.
@@ -16,28 +13,33 @@ if(NOT EXISTS "${DOXROOT}")
 endif()
 
 
+if(NOT EXISTS "${OUTPUTROOT}")
+  set(OUTPUTROOT "${CODEROOT}")
+endif()
+
+
 set(CMAKE_BUILD_TYPE Release)
 
 if (WIN32)
   if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox /W3 /bigobj -D_SCL_SECURE_NO_WARNINGS")
-    set(LIBROOT "${CODEROOT}/lib_msvc")
-    set(INCLUDEROOT "${CODEROOT}/include")
-    set(BINROOT "${CODEROOT}/bin_msvc")
+    set(LIBROOT "${OUTPUTROOT}/lib_msvc")
+    set(INCLUDEROOT "${OUTPUTROOT}/include")
+    set(BINROOT "${OUTPUTROOT}/bin_msvc")
     message(STATUS "Configured compiler options and output directories for MSVC toolset.")
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -O3 -Wall -Woverloaded-virtual -Wold-style-cast -Wnon-virtual-dtor")
     set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} --enable-stdcall-fixup")
-    set(LIBROOT "${CODEROOT}/lib_w32")
-    set(INCLUDEROOT "${CODEROOT}/include")
-    set(BINROOT "${CODEROOT}/bin_w32")
+    set(LIBROOT "${OUTPUTROOT}/lib_w32")
+    set(INCLUDEROOT "${OUTPUTROOT}/include")
+    set(BINROOT "${OUTPUTROOT}/bin_w32")
     message(STATUS "Configured compiler options and output directories for MinGW toolset.")
   endif()
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++0x -O3 -Wall -Woverloaded-virtual -Wold-style-cast -Wnon-virtual-dtor")
-  set(LIBROOT "${CODEROOT}/lib")
-  set(INCLUDEROOT "${CODEROOT}/include")
-  set(BINROOT "${CODEROOT}/bin")
+  set(LIBROOT "${OUTPUTROOT}/lib")
+  set(INCLUDEROOT "${OUTPUTROOT}/include")
+  set(BINROOT "${OUTPUTROOT}/bin")
   message(STATUS "Configured compiler options and output directories for *nix GCC toolset.")
 endif()
 

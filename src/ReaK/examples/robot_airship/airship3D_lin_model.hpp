@@ -75,7 +75,7 @@ class airship3D_lin_system : public named_object {
     
     airship3D_lin_system(const std::string& aName = "", 
 			 double aMass = 1.0, 
-			 const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))) :
+			 const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)))) :
 			 named_object(),
 			 mMass(aMass),
 			 mInertiaMoment(aInertiaMoment) {
@@ -201,7 +201,7 @@ class airship3D_inv_system : public airship3D_lin_system {
    
     airship3D_inv_system(const std::string& aName = "", 
 			 double aMass = 1.0, 
-			 const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))) :
+			 const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)))) :
 			 airship3D_lin_system(aName,aMass,aInertiaMoment) { }; 
   
     virtual ~airship3D_inv_system() { };
@@ -304,7 +304,7 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
     
     airship3D_lin_dt_system(const std::string& aName = "", 
 			    double aMass = 1.0, 
-			    const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			    const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
 			    double aDt = 0.001) :
 			    airship3D_lin_system(aName,aMass,aInertiaMoment),
 			    mDt(aDt) { 
@@ -484,7 +484,7 @@ class airship3D_lin2_dt_system : public airship3D_lin_dt_system {
     
     airship3D_lin2_dt_system(const std::string& aName = "", 
                              double aMass = 1.0, 
-                             const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+                             const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
                              double aDt = 0.001) :
                              airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
   
@@ -589,7 +589,7 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
     
     airship3D_inv_dt_system(const std::string& aName = "", 
 			    double aMass = 1.0, 
-			    const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			    const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
 			    double aDt = 0.001) :
 			    airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
   
@@ -716,7 +716,7 @@ class airship3D_inv2_dt_system : public airship3D_inv_dt_system {
     
     airship3D_inv2_dt_system(const std::string& aName = "", 
                              double aMass = 1.0, 
-                             const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+                             const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
                              double aDt = 0.001) :
                              airship3D_inv_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
   
@@ -812,7 +812,7 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
     
     airship3D_inv_mom_dt_system(const std::string& aName = "", 
 			        double aMass = 1.0, 
-			        const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			        const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
 			        double aDt = 0.001) :
 			        airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
   
@@ -983,7 +983,7 @@ class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
     
     airship3D_inv_mid_dt_system(const std::string& aName = "", 
 			        double aMass = 1.0, 
-			        const mat<double,mat_structure::symmetric>& aInertiaMoment = mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)),
+			        const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
 			        double aDt = 0.001) :
 			        airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
   

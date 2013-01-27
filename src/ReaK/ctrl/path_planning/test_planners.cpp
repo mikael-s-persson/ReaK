@@ -54,25 +54,14 @@ int main(int argc, char** argv) {
   std::stringstream(argv[2]) >> run_count;
   std::size_t max_vertices = 0;
   std::stringstream(argv[3]) >> max_vertices;
-  std::size_t max_vertices_100 = max_vertices / 100;
   
   ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world > world_map =
     ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world >(new ReaK::pp::ptrobot2D_test_world(world_file_name, 50, 1.0));
   
-//   ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
-//     rrt_plan(world_map, 
-// 	     world_map->get_start_pos(), 
-// 	     world_map->get_goal_pos(),
-// 	     10000, 
-// 	     100,
-// 	     ReaK::pp::BIDIRECTIONAL_RRT,
-// 	     ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-// 	     ReaK::pp::DVP_BF2_TREE_KNN,
-// 	     ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt/adstar_test_world_", 5),
-// 	     50);
-  
-  
   std::ofstream timing_output("pp_results/" + world_file_name_only + "_times.txt");
+  
+#if 0
+  std::size_t max_vertices_100 = max_vertices / 100;
   
   
   /**********************************************************************************
@@ -82,7 +71,7 @@ int main(int argc, char** argv) {
    * 
    * 
    * *******************************************************************************/
-#if 0
+
   std::cout << "Running RRT with Uni-dir, adj-list, dvp-bf2..." << std::endl;
   timing_output << "RRT, Uni-dir, adj-list, dvp-bf2" << std::endl;
   {

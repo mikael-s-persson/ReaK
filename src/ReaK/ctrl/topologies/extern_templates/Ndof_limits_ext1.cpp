@@ -31,18 +31,18 @@ namespace ReaK {
 
 namespace pp {
 
-template class Ndof_limits<double>;
+template struct Ndof_limits<double>;
 
-template class Ndof_limits<double,1>;
-template class Ndof_limits<double,2>;
-template class Ndof_limits<double,3>;
-template class Ndof_limits<double,4>;
-template class Ndof_limits<double,5>;
-template class Ndof_limits<double,6>;
-template class Ndof_limits<double,7>;
-template class Ndof_limits<double,8>;
-template class Ndof_limits<double,9>;
-template class Ndof_limits<double,10>;
+template struct Ndof_limits<double,1>;
+template struct Ndof_limits<double,2>;
+template struct Ndof_limits<double,3>;
+template struct Ndof_limits<double,4>;
+template struct Ndof_limits<double,5>;
+template struct Ndof_limits<double,6>;
+template struct Ndof_limits<double,7>;
+template struct Ndof_limits<double,8>;
+template struct Ndof_limits<double,9>;
+template struct Ndof_limits<double,10>;
 
 };
 
