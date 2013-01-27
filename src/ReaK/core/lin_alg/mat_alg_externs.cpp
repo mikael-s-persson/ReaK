@@ -84,6 +84,15 @@ template mat<double,mat_structure::symmetric>& mat<double,mat_structure::symmetr
 template mat<double,mat_structure::symmetric>& mat<double,mat_structure::symmetric>::operator -=(const mat<double,mat_structure::symmetric>& M);
 template mat<double,mat_structure::symmetric>& mat<double,mat_structure::symmetric>::operator -=(const mat<double,mat_structure::diagonal>& M);
 
+template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator +=(const mat<float,mat_structure::symmetric>& M);
+template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator +=(const mat<float,mat_structure::diagonal>& M);
+template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator -=(const mat<float,mat_structure::symmetric>& M);
+template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator -=(const mat<float,mat_structure::diagonal>& M);
+
+
+// for compilers that don't support extern templates for friend functions:
+#if !defined(__clang__)
+
 template mat<double,mat_structure::rectangular> operator *< mat<double,mat_structure::rectangular,mat_alignment::column_major> >(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
 template mat<double,mat_structure::rectangular> operator *< mat<double,mat_structure::rectangular,mat_alignment::row_major> >(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
@@ -104,11 +113,6 @@ template vect_n<double> operator *< vect_n<double> >(const mat<double,mat_struct
 template vect_n<double> operator *< vect_n<double> >(const vect_n<double>& V,const mat<double,mat_structure::symmetric>& M);
 
 
-template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator +=(const mat<float,mat_structure::symmetric>& M);
-template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator +=(const mat<float,mat_structure::diagonal>& M);
-template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator -=(const mat<float,mat_structure::symmetric>& M);
-template mat<float,mat_structure::symmetric>& mat<float,mat_structure::symmetric>::operator -=(const mat<float,mat_structure::diagonal>& M);
-
 template mat<float,mat_structure::rectangular> operator *< mat<float,mat_structure::rectangular,mat_alignment::column_major> >(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
 template mat<float,mat_structure::rectangular> operator *< mat<float,mat_structure::rectangular,mat_alignment::row_major> >(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
@@ -128,6 +132,7 @@ template vect<float,6> operator *<6>(const vect<float,6>& V,const mat<float,mat_
 template vect_n<float> operator *< vect_n<float> >(const mat<float,mat_structure::symmetric>& M,const vect_n<float>& V);
 template vect_n<float> operator *< vect_n<float> >(const vect_n<float>& V,const mat<float,mat_structure::symmetric>& M);
 
+#endif
 
 
 template class mat<double, mat_structure::nil>;
@@ -206,6 +211,10 @@ template mat<float,mat_structure::scalar> operator *(const float& S, const mat<f
 template class mat<double, mat_structure::scalar>;
 template class mat<float, mat_structure::scalar>;
 
+
+// for compilers that don't support extern templates for friend functions:
+#if !defined(__clang__)
+
 template vect<double,2> operator *< vect<double,2> >(const mat<double,mat_structure::scalar>& M,const vect<double,2>& V);
 template vect<double,3> operator *< vect<double,3> >(const mat<double,mat_structure::scalar>& M,const vect<double,3>& V);
 template vect<double,4> operator *< vect<double,4> >(const mat<double,mat_structure::scalar>& M,const vect<double,4>& V);
@@ -230,12 +239,16 @@ template vect<float,4> operator *< vect<float,4> >(const vect<float,4>& V,const 
 template vect<float,6> operator *< vect<float,6> >(const vect<float,6>& V,const mat<float,mat_structure::scalar>& M);
 template vect_n<float> operator *< vect_n<float> >(const vect_n<float>& V,const mat<float,mat_structure::scalar>& M);
 
+#endif
 
 
 
 template class mat<double, mat_structure::skew_symmetric>;
 template class mat<float, mat_structure::skew_symmetric>;
 
+
+// for compilers that don't support extern templates for friend functions:
+#if !defined(__clang__)
 
 template mat<double,mat_structure::rectangular> operator *< mat<double,mat_structure::rectangular,mat_alignment::column_major> >(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
 template mat<double,mat_structure::rectangular> operator *< mat<double,mat_structure::rectangular,mat_alignment::row_major> >(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
@@ -275,6 +288,8 @@ template vect<float,6> operator *<6>(const vect<float,6>& V,const mat<float,mat_
 
 template vect_n<float> operator *< vect_n<float> >(const mat<float,mat_structure::skew_symmetric>& M,const vect_n<float>& V);
 template vect_n<float> operator *< vect_n<float> >(const vect_n<float>& V,const mat<float,mat_structure::skew_symmetric>& M);
+
+#endif
 
 
 

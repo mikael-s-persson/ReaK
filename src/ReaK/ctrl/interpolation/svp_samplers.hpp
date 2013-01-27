@@ -135,7 +135,7 @@ struct svp_rate_limited_sampler : public serialization::serializable {
     A & RK_SERIAL_LOAD_WITH_NAME(t_space);
   };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(svp_rate_limited_sampler,0xC2450001,1,"svp_rate_limited_sampler",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2450001,1,"svp_rate_limited_sampler",serialization::serializable)
 };
 
 

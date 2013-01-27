@@ -25,29 +25,22 @@
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "hyperbox_topology.hpp"
+#include "topologies/hyperbox_topology.hpp"
 
 namespace ReaK {
 
 namespace pp {
 
+template class hyperbox_topology< vect<double,1> >;
 template class hyperbox_topology< vect<double,2> >;
 template class hyperbox_topology< vect<double,3> >;
 template class hyperbox_topology< vect<double,4> >;
+template class hyperbox_topology< vect<double,5> >;
 template class hyperbox_topology< vect<double,6> >;
+template class hyperbox_topology< vect<double,7> >;
+template class hyperbox_topology< vect<double,8> >;
+template class hyperbox_topology< vect<double,9> >;
 template class hyperbox_topology< vect_n<double> >;
-
-template class hyperbox_topology< vect<double,2>, manhattan_distance_metric >;
-template class hyperbox_topology< vect<double,3>, manhattan_distance_metric >;
-template class hyperbox_topology< vect<double,4>, manhattan_distance_metric >;
-template class hyperbox_topology< vect<double,6>, manhattan_distance_metric >;
-template class hyperbox_topology< vect_n<double>, manhattan_distance_metric >;
-
-template class hyperbox_topology< vect<double,2>, inf_norm_distance_metric >;
-template class hyperbox_topology< vect<double,3>, inf_norm_distance_metric >;
-template class hyperbox_topology< vect<double,4>, inf_norm_distance_metric >;
-template class hyperbox_topology< vect<double,6>, inf_norm_distance_metric >;
-template class hyperbox_topology< vect_n<double>, inf_norm_distance_metric >;
 
 };
 
@@ -59,7 +52,7 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_hyperbox_topology_externs_symbol() { };
+void dummy_hyperbox_topology_externs_1_symbol() { };
 
 };
 

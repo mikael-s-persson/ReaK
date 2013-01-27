@@ -25,14 +25,14 @@
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "joint_space_limits.hpp"
+#include "topologies/joint_space_limits.hpp"
 
 namespace ReaK {
 
 namespace pp {
 
 
-template class joint_limits_collection<double>;
+template struct joint_limits_collection<double>;
 
 
 
@@ -188,7 +188,7 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_joint_space_limits_externs_symbol() { };
+void dummy_joint_space_limits_externs_1_symbol() { };
 
 };
 

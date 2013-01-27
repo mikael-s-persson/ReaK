@@ -12,5 +12,6 @@ MSVCbuild
 build_msvc10
 build_w32
 bin_w32
-
+build_clang
+build_iwyuclang
 

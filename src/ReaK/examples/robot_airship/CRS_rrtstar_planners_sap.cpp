@@ -1,6 +1,6 @@
 
 /*
- *    Copyright 2011 Sven Mikael Persson
+ *    Copyright 2012 Sven Mikael Persson
  *
  *    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
  *
@@ -21,21 +21,20 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 #include "base/defs.hpp"
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "hyperball_topology.hpp"
+#include "CRS_rrtstar_planners.hpp"
 
 namespace ReaK {
 
 namespace pp {
 
-template class hyperball_topology< vect<double,2> >;
-template class hyperball_topology< vect<double,3> >;
-template class hyperball_topology< vect<double,4> >;
-template class hyperball_topology< vect<double,6> >;
-template class hyperball_topology< vect_n<double> >;
+//template class rrtstar_path_planner<WORKSPACE, FRAME_REPORTER>;
+
+template class rrtstar_path_planner<robot_airship::CRS3D_workspace_o2_sap_type, robot_airship::CRS3D_rl_o2_tracer>;
 
 };
 
@@ -47,24 +46,12 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_hyperball_topology_externs_symbol() { };
+void dummy_CRS_rrtstar_planners_sap_externs_symbol() { };
 
 };
 
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
 
 

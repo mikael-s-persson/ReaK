@@ -25,7 +25,7 @@
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "se2_topologies.hpp"
+#include "topologies/se2_topologies.hpp"
 
 namespace ReaK {
 
@@ -273,7 +273,7 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_se2_topologies_externs_symbol() { };
+void dummy_se2_topologies_externs_1_symbol() { };
 
 };
 

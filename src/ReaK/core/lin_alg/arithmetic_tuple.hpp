@@ -1443,163 +1443,40 @@ struct get_type_info< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
 
-namespace std {
-  
-/* Specialization, see general template docs. */
-  template <typename... T>
-  class tuple_size< ReaK::arithmetic_tuple<T...> > : 
-    public integral_constant< size_t, sizeof... (T) > { };
-    
-/* Specialization, see general template docs. */
-  template <typename... T>
-  class tuple_size< const ReaK::arithmetic_tuple<T...> > : 
-    public integral_constant< size_t, sizeof... (T) > { };
-    
-/* Specialization, see general template docs. */
-  template <typename... T>
-  class tuple_size< volatile ReaK::arithmetic_tuple<T...> > : 
-    public integral_constant< size_t, sizeof... (T) > { };
-    
-/* Specialization, see general template docs. */
-  template <typename... T>
-  class tuple_size< const volatile ReaK::arithmetic_tuple<T...> > : 
-    public integral_constant< size_t, sizeof... (T) > { };
-  
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename... T>
-  class tuple_element< Idx, ReaK::arithmetic_tuple<T...> > {
-    public:
-      typedef typename tuple_element< Idx, typename ReaK::arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
-  };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename... T>
-  class tuple_element< Idx, const ReaK::arithmetic_tuple<T...> > {
-    public:
-      typedef typename tuple_element< Idx, const typename ReaK::arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
-  };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename... T>
-  class tuple_element< Idx, volatile ReaK::arithmetic_tuple<T...> > {
-    public:
-      typedef typename tuple_element< Idx, volatile typename ReaK::arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
-  };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename... T>
-  class tuple_element< Idx, const volatile ReaK::arithmetic_tuple<T...> > {
-    public:
-      typedef typename tuple_element< Idx, const volatile typename ReaK::arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
-  };
-  
-};
-
-
 namespace ReaK {
   
   template <int Idx, typename Tuple>
-  class arithmetic_tuple_element {
-    public:
-      typedef typename std::tuple_element< Idx, Tuple >::type type;
+  struct arithmetic_tuple_element {
+    typedef typename std::tuple_element< Idx, Tuple >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename... T>
-  class arithmetic_tuple_element< Idx, arithmetic_tuple<T...> > {
-    public:
-      typedef typename std::tuple_element< Idx, typename arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
+  struct arithmetic_tuple_element< Idx, arithmetic_tuple<T...> > {
+    typedef typename std::tuple_element< Idx, typename arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename... T>
-  class arithmetic_tuple_element< Idx, const arithmetic_tuple<T...> > {
-    public:
-      typedef typename std::tuple_element< Idx, const typename arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
+  struct arithmetic_tuple_element< Idx, const arithmetic_tuple<T...> > {
+    typedef typename std::tuple_element< Idx, const typename arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename... T>
-  class arithmetic_tuple_element< Idx, volatile arithmetic_tuple<T...> > {
-    public:
-      typedef typename std::tuple_element< Idx, volatile typename arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
+  struct arithmetic_tuple_element< Idx, volatile arithmetic_tuple<T...> > {
+    typedef typename std::tuple_element< Idx, volatile typename arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
   };
   
 /* Specialization, see general template docs. */
   template <int Idx, typename... T>
-  class arithmetic_tuple_element< Idx, const volatile arithmetic_tuple<T...> > {
-    public:
-      typedef typename std::tuple_element< Idx, const volatile typename arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
+  struct arithmetic_tuple_element< Idx, const volatile arithmetic_tuple<T...> > {
+    typedef typename std::tuple_element< Idx, const volatile typename arithmetic_tuple<T...>::arithmetic_tuple_base_class >::type type;
   };
   
 };
   
 #else
-
-namespace boost {
-  
-namespace tuples {
-  
-/* Specialization, see general template docs. */
-  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
-            typename T6, typename T7, typename T8, typename T9, typename T10>
-  struct length< ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > : 
-    ReaK::arithmetic_tuple_size< ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > { };
-    
-/* Specialization, see general template docs. */
-  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
-            typename T6, typename T7, typename T8, typename T9, typename T10>
-  struct length< const ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > : 
-    ReaK::arithmetic_tuple_size< ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > { };
-    
-/* Specialization, see general template docs. */
-  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
-            typename T6, typename T7, typename T8, typename T9, typename T10>
-  class length< volatile ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > : 
-    ReaK::arithmetic_tuple_size< ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > { };
-    
-/* Specialization, see general template docs. */
-  template <typename T1, typename T2, typename T3, typename T4, typename T5, 
-            typename T6, typename T7, typename T8, typename T9, typename T10>
-  class length< const volatile ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > : 
-    ReaK::arithmetic_tuple_size< ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > { };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename T1, typename T2, typename T3, typename T4, typename T5, 
-            typename T6, typename T7, typename T8, typename T9, typename T10>
-  class element< Idx, ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > {
-    public:
-      typedef typename element< Idx, typename ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::arithmetic_tuple_base_class >::type type;
-  };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename T1, typename T2, typename T3, typename T4, typename T5, 
-            typename T6, typename T7, typename T8, typename T9, typename T10>
-  class element< Idx, const ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > {
-    public:
-      typedef typename element< Idx, const typename ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::arithmetic_tuple_base_class>::type type;
-  };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename T1, typename T2, typename T3, typename T4, typename T5, 
-            typename T6, typename T7, typename T8, typename T9, typename T10>
-  class element< Idx, volatile ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > {
-    public:
-      typedef typename element< Idx, volatile typename ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::arithmetic_tuple_base_class>::type type;
-  };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename T1, typename T2, typename T3, typename T4, typename T5, 
-            typename T6, typename T7, typename T8, typename T9, typename T10>
-  class element< Idx, const volatile ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> > {
-    public:
-      typedef typename element< Idx, const volatile typename ReaK::arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::arithmetic_tuple_base_class>::type type;
-  };
-  
-};
-  
-};
 
 namespace ReaK {
   

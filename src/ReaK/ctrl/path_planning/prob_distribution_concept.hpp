@@ -73,7 +73,7 @@ struct ProbDistFunctionConcept {
   
   BOOST_CONCEPT_USAGE(ProbDistFunctionConcept) 
   {
-    double d = pdf_function(p, space);
+    double d = pdf_function(p, space); RK_UNUSED(d);
   };
   
 };

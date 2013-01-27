@@ -76,7 +76,7 @@ class box : public shape_3D {
     box(const std::string& aName = "",
         const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
 	const pose_3D<double>& aPose = pose_3D<double>(),
-	const vect<double,3>& aDimensions = vect<double,3>(1.0,1.0,1.0));
+	const vect<double,3>& aDimensions = (vect<double,3>(1.0,1.0,1.0)));
     
     /**
      * Default destructor.

@@ -76,12 +76,12 @@ namespace graph {
    * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
    * \tparam Graph The graph type on which the visitor should be able to act.
    */
-  template <typename Visitor, typename Graph>
+  template <typename Visitor, typename Graph, typename Topology>
   struct FADPRMVisitorConcept {
     BOOST_CONCEPT_USAGE(FADPRMVisitorConcept)
     {
       BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
-      BOOST_CONCEPT_ASSERT((PRMVisitorConcept<Visitor,Graph>));
+      BOOST_CONCEPT_ASSERT((PRMVisitorConcept<Visitor,Graph,Topology>));
       BOOST_CONCEPT_ASSERT((ADStarVisitorConcept<Visitor,Graph>));
     }
   };
@@ -95,35 +95,54 @@ namespace graph {
   template <typename Topology, typename PositionMap>
   class default_fadprm_visitor {
     public:
+      typedef typename ReaK::pp::topology_traits<Topology>::point_type PointType;
+      
       default_fadprm_visitor(const Topology& free_space, PositionMap position) : m_free_space(free_space), m_position(position) {};
       default_fadprm_visitor(const default_fadprm_visitor<Topology,PositionMap>& aVis) : m_free_space(aVis.m_free_space), m_position(aVis.m_position) { };
-
-      template <class Vertex, class Graph>
-      void initialize_vertex(Vertex u, Graph& g) { };
-      template <class Vertex, class Graph>
-      void discover_vertex(Vertex u, Graph& g) { };
-      template <class Vertex, class Graph>
-      void inconsistent_vertex(Vertex u, Graph& g) { };
-      template <class Vertex, class Graph>
-      void examine_vertex(Vertex u, Graph& g) { };
-      template <class Edge, class Graph>
-      void examine_edge(Edge e, Graph& g) { };
-      template <class Edge, class Graph>
-      void edge_relaxed(Edge e, Graph& g) { };
-      template <class Vertex, class Graph>
-      void forget_vertex(Vertex u, Graph& g) { };
-      template <class Vertex, class Graph>
-      void finish_vertex(Vertex u, Graph& g) { };
-      template <class Vertex, class Graph>
-      void recycle_vertex(Vertex u, Graph& g) { };
+      
+      // AD* visitor functions:
       template <typename Vertex, typename Graph>
-      void vertex_added(Vertex,Graph&) { };
+      void initialize_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      template <typename Vertex, typename Graph>
+      void discover_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      template <typename Vertex, typename Graph>
+      void inconsistent_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      template <typename Vertex, typename Graph>
+      void examine_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
       template <typename Edge, typename Graph>
-      void edge_added(Edge,Graph&) { };
+      void examine_edge(Edge e, const Graph& g) const { RK_UNUSED(e); RK_UNUSED(g); };
+      template <typename Edge, typename Graph>
+      void edge_relaxed(Edge e, const Graph& g) const { RK_UNUSED(e); RK_UNUSED(g); };
       template <typename Vertex, typename Graph>
-      void expand_vertex(Vertex,Graph&,std::vector<Vertex>&) { };
+      void forget_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
       template <typename Vertex, typename Graph>
-      void update_density(Vertex, Graph& g) { };
+      void finish_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      template <typename Vertex, typename Graph>
+      void recycle_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      template <typename Graph>
+      void publish_path(const Graph& g) const { RK_UNUSED(g); };
+      template <typename EdgeIter, typename Graph>
+      std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei, const Graph& g) const { RK_UNUSED(g);
+        return std::pair<double, EdgeIter>(0.0, ei);
+      };
+      template <typename Graph>
+      double adjust_epsilon(double old_eps, double w_change, const Graph& g) const { RK_UNUSED(w_change); RK_UNUSED(g);
+        return old_eps;
+      };
+      
+      
+      // PRM visitor functions:
+      template <typename Vertex, typename Graph>
+      void vertex_added(Vertex, const Graph&) const { };
+      template <typename Edge, typename Graph>
+      void edge_added(Edge, const Graph&) const { };
+      template <typename Vertex, typename Graph>
+      std::pair<PointType, bool> random_walk(Vertex, const Graph&) const { return std::make_pair(PointType(), false); };
+      template <typename Vertex, typename Graph>
+      void update_density(Vertex, const Graph& g) const { };
+      
+      // Common to both PRM and AD* visitors:
+      bool keep_going() const { return true; };
 
       const Topology& m_free_space;
       PositionMap m_position;
@@ -141,6 +160,10 @@ namespace graph {
   struct composite_fadprm_visitor : public ADStarVisitor, public PRMVisitor {
     composite_fadprm_visitor(ADStarVisitor aVis_adstar, PRMVisitor aVis_prm) : ADStarVisitor(aVis_adstar), PRMVisitor(aVis_prm) { };
     composite_fadprm_visitor(const composite_fadprm_visitor<ADStarVisitor,PRMVisitor>& aVis) : ADStarVisitor(aVis), PRMVisitor(aVis) { };
+    
+    bool keep_going() const {
+      return PRMVisitor::keep_going();
+    };
   };
   
   
@@ -169,24 +192,30 @@ namespace graph {
               typename AStarHeuristicMap, 
               typename UniformCostVisitor,
               typename UpdatableQueue, 
-	      typename List,
-	      typename IndexInHeapMap,
-	      typename PredecessorMap,
-	      typename KeyMap, 
-	      typename DistanceMap, 
-	      typename RHSMap, 
-	      typename WeightMap,
-	      typename DensityMap, 
-	      typename PositionMap, 
-	      typename NcSelector,
-	      typename ColorMap, 
-	      typename ScalarType,
-	      typename CompareFunction,
-	      typename EqualCompareFunction, 
-	      typename CombineFunction,
-	      typename ComposeFunction>
+              typename List,
+              typename IndexInHeapMap,
+              typename PredecessorMap,
+              typename KeyMap, 
+              typename DistanceMap, 
+              typename RHSMap, 
+              typename WeightMap,
+              typename DensityMap, 
+              typename PositionMap, 
+              typename NcSelector,
+              typename ColorMap>
     struct fadprm_bfs_visitor
     {
+      
+      
+#define RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP \
+      {\
+        typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;\
+        for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {\
+          std::cout << "Vertex " << (*ui) << " has index is heap is: " << get(m_index_in_heap, *ui) << " for a heap size of: " << m_Q.size() << std::endl;\
+        };\
+      };
+      
+      
 
       typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
       typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
@@ -196,222 +225,286 @@ namespace graph {
       typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
 
       fadprm_bfs_visitor(const Topology& free_space, AStarHeuristicMap h, UniformCostVisitor vis,
-                         UpdatableQueue& Q, List& I, IndexInHeapMap index_in_heap, PredecessorMap p,
-                         KeyMap k, DistanceMap d, RHSMap rhs, WeightMap w,
-                         DensityMap dens, PositionMap pos, NcSelector select_neighborhood, ColorMap col, const ScalarType& beta,
-                         CompareFunction compare, EqualCompareFunction equal_compare,
-			 CombineFunction combine, ComposeFunction compose,
-			 distance_type inf, distance_type zero)
-        : m_free_space(free_space), m_h(h), m_vis(vis), m_Q(Q), m_I(I), 
+                         UpdatableQueue& Q, List& I, IndexInHeapMap index_in_heap, 
+                         PredecessorMap p, KeyMap k, DistanceMap d, RHSMap rhs, WeightMap w,
+                         DensityMap dens, PositionMap pos, NcSelector select_neighborhood, ColorMap col, 
+                         double& beta)
+        : m_free_space(free_space), m_h(h), m_vis(vis), m_Q(Q), m_I(I),
           m_index_in_heap(index_in_heap), m_predecessor(p), m_key(k),
           m_distance(d), m_rhs(rhs), m_weight(w), m_density(dens), m_position(pos), 
-          m_select_neighborhood(select_neighborhood), m_color(col), m_beta(beta),
-          m_compare(compare), m_equal_compare(equal_compare), m_combine(combine),
-          m_compose(compose), m_inf(inf), m_zero(zero) {};
-
-      fadprm_bfs_visitor(fadprm_bfs_visitor<Topology, AStarHeuristicMap, UniformCostVisitor,
-                                            UpdatableQueue, List, IndexInHeapMap, PredecessorMap,
-					    KeyMap, DistanceMap, RHSMap, WeightMap,
-					    DensityMap, PositionMap, NcSelector, 
-					    ColorMap, ScalarType, CompareFunction,
-					    EqualCompareFunction, CombineFunction,
-					    ComposeFunction>& aVis)
-        : m_free_space(aVis.m_free_space), m_h(aVis.m_h), m_vis(aVis.m_vis), m_Q(aVis.m_Q), m_I(aVis.m_I),
-          m_index_in_heap(aVis.m_index_in_heap), m_predecessor(aVis.m_predecessor),
-          m_key(aVis.m_key), m_distance(aVis.m_distance), m_rhs(aVis.m_rhs), m_weight(aVis.m_weight),
-          m_density(aVis.m_density), m_position(aVis.m_position), m_select_neighborhood(aVis.m_select_neighborhood), m_color(aVis.m_color), m_beta(aVis.m_beta), m_compare(aVis.m_compare),
-          m_equal_compare(aVis.m_equal_compare), m_combine(aVis.m_combine),
-          m_compose(aVis.m_compose), m_inf(aVis.m_inf), m_zero(aVis.m_zero) {};
-
+          m_select_neighborhood(select_neighborhood), m_color(col), m_beta(beta) { };
+      
       template <class Vertex, class Graph>
-      void initialize_vertex(Vertex u, Graph& g) {
+      void initialize_vertex(Vertex u, Graph& g) const {
         m_vis.initialize_vertex(u, g);
       };
       template <class Vertex, class Graph>
-      void discover_vertex(Vertex u, Graph& g) {
+      void discover_vertex(Vertex u, Graph& g) const {
         m_vis.discover_vertex(u, g);
       };
       template <class Vertex, class Graph>
-      void inconsistent_vertex(Vertex u, Graph& g) {
-	m_vis.inconsistent_vertex(u, g);
+      void inconsistent_vertex(Vertex u, Graph& g) const {
+        m_vis.inconsistent_vertex(u, g);
       };
-      template <class Vertex, class Graph>
-      typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_vertex(Vertex u, Graph& g) {
-	typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-	
-	PositionValue p = get(m_position, u); 
+      template <class Graph>
+      typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
+        typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+        typedef typename Graph::vertex_bundled VertexProp;
+        
+        typedef boost::composite_property_map< 
+          PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
+        GraphPositionMap g_position = GraphPositionMap(m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
+        
         std::vector<Vertex> Nc;
-        m_select_neighborhood(p,Nc,g,m_free_space,m_position); 
-        for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
-	  if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,*it), p, m_free_space) != std::numeric_limits<distance_type>::infinity())) {
-	    //this means that u is reachable from *it.
-	    std::pair<Edge, bool> ep = add_edge(*it,u,g); 
-	    if(ep.second) {
-	      m_vis.edge_added(ep.first, g); 
-	      update_key(*it,g); 
-	      update_vertex(*it,g);
-	      //m_Q.update(*it);
-	    };
-	  };
+        m_select_neighborhood(p, std::back_inserter(Nc), g, m_free_space, g_position); 
+        
+        VertexProp up;
+        put(m_position, up, p);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+        Vertex u = add_vertex(std::move(up), g);
+#else
+        Vertex u = add_vertex(up, g);
+#endif
+        m_vis.vertex_added(u,g);                  //RK_NOTICE(1," reached!");
+        put(m_color, u, Color::white());
+        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
+        put(m_distance, u, std::numeric_limits<double>::infinity());
+        put(m_rhs, u, std::numeric_limits<double>::infinity());
+        put(m_key, u, KeyValue(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()));
+        put(m_predecessor, u, u);
+        
+        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+        //RK_NOTICE(1," reached!");
+        
+        std::size_t max_node_degree = 10;
+//         std::size_t max_node_degree = math::highest_set_bit(num_vertices(g)) + 1;
+        std::size_t i = 0;
+        for(typename std::vector<Vertex>::iterator it = Nc.begin(); (it != Nc.end()) && (i < max_node_degree / 2); ++it, ++i) {
+          //RK_NOTICE(1," reached!");
+          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
+            //this means that u is reachable from *it.
+            std::pair<Edge, bool> ep = add_edge(*it,u,g); 
+            if(ep.second) { 
+              m_vis.edge_added(ep.first, g); 
+              update_key(*it,g); 
+              update_vertex(*it,g);
+              //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+            };
+          };
         }; 
-	put(m_index_in_heap, u, static_cast<std::size_t>(-1));
-	update_key(u,g); 
-	//m_Q.push(u); put(m_color, u, Color::gray());
-	update_vertex(u,g);
+        //RK_NOTICE(1," reached!");
+        update_key(u,g);       //RK_NOTICE(1," reached!");
+        update_vertex(u,g);    //RK_NOTICE(1," reached!");
+        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
       };
-      template <class Vertex, class Graph>
-      typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(Vertex u, Graph& g) {
-	typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-	
-	PositionValue p = get(m_position, u); 
-        std::vector<Vertex> Pred;
-	std::vector<Vertex> Succ;
-        m_select_neighborhood(p,Pred,Succ,g,m_free_space,m_position); 
+      template <class Graph>
+      typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
+        typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+        typedef typename Graph::vertex_bundled VertexProp;
+        
+        typedef boost::composite_property_map< 
+          PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
+        GraphPositionMap g_position = GraphPositionMap(m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
+        
+        std::vector<Vertex> Pred, Succ;
+        m_select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, m_free_space, g_position); 
+        
+        VertexProp up;
+        put(m_position, up, p);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+        Vertex u = add_vertex(std::move(up), g);
+#else
+        Vertex u = add_vertex(up, g);
+#endif
+        m_vis.vertex_added(u,g); 
+        put(m_color, u, Color::white());
+        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
+        put(m_distance, u, std::numeric_limits<double>::infinity());
+        put(m_rhs, u, std::numeric_limits<double>::infinity());
+        put(m_key, u, KeyValue(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()));
+        put(m_predecessor, u, u);
+        
         for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
-	  if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,*it), p, m_free_space) != std::numeric_limits<distance_type>::infinity())) {
-	    //this means that u is reachable from *it.
-	    std::pair<Edge, bool> ep = add_edge(*it,u,g); 
-	    if(ep.second) {
-	      m_vis.edge_added(ep.first, g); 
-	      update_key(*it,g); 
-	      update_vertex(*it,g);
-	      //m_Q.update(*it);
-	    };
-	  };
+          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
+            //this means that u is reachable from *it.
+            std::pair<Edge, bool> ep = add_edge(*it, u, g); 
+            if(ep.second) {
+              m_vis.edge_added(ep.first, g); 
+              update_key(*it, g); 
+              update_vertex(*it, g);
+            };
+          };
         };
-	put(m_index_in_heap, u, static_cast<std::size_t>(-1));
-	update_key(u,g); 
-	//m_Q.push(u); put(m_color, u, Color::gray());
-	update_vertex(u,g);
-	for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-	  if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(p, get(m_position,*it), m_free_space) != std::numeric_limits<distance_type>::infinity())) {
-	    //this means that u is reachable from *it.
-	    std::pair<Edge, bool> ep = add_edge(u,*it,g); 
-	    if(ep.second) {
-	      m_vis.edge_added(ep.first, g); 
-	      update_key(*it,g); 
-	      update_vertex(*it,g);
-	      //m_Q.update(*it);
-	    };
-	  };
+        
+        update_key(u, g); 
+        update_vertex(u, g);
+        for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
+          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(p, get(m_position,g[*it]), m_free_space) != std::numeric_limits<double>::infinity())) {
+            //this means that u is reachable from *it.
+            std::pair<Edge, bool> ep = add_edge(u, *it, g); 
+            if(ep.second) {
+              m_vis.edge_added(ep.first, g); 
+              update_key(*it, g); 
+              update_vertex(*it, g);
+            };
+          };
         }; 
       };
       
       template <class Vertex, class Graph>
       void examine_vertex(Vertex u, Graph& g) {
-	typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         
-	m_vis.examine_vertex(u, g);
-	
-	std::vector<Vertex> v_list;
-	m_vis.expand_vertex(u, g, v_list);
-	
-	for(typename std::vector<Vertex>::iterator vi = v_list.begin(); vi != v_list.end(); ++vi) {
-	  Vertex v = *vi;
-	
-          m_vis.vertex_added(v,g); 
-	  put(m_color, v, Color::white());
-          put(m_distance, v, m_inf);
-          put(m_rhs, v, m_inf);
-          put(m_key, v, KeyValue(m_inf,m_inf,m_compare,m_equal_compare));
-          put(m_predecessor, v, v);
-          
-	  connect_vertex(v,g);
-	};
-	update_key(u,g); 
-	//m_Q.update(u);
-	
+        m_vis.examine_vertex(u, g);
+        
+        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+        
+        std::size_t max_node_degree = 10;
+        if(out_degree(u, g) >= max_node_degree)
+          return;
+        max_node_degree = (max_node_degree - out_degree(u, g)) / 2;
+        //std::size_t max_node_degree = math::highest_set_bit(num_vertices(g)) + 1;
+        for(std::size_t i = 0; i < max_node_degree; ++i) {
+        //while(out_degree(u, g) < max_node_degree) {
+        //do {
+          //RK_NOTICE(1," reached!");
+          PositionValue p_rnd; bool expanding_worked;
+          boost::tie(p_rnd, expanding_worked) = m_vis.random_walk(u, g);
+          //RK_NOTICE(1," reached!");
+          if(expanding_worked)
+            connect_vertex(p_rnd, g);
+          else
+            break;
+          //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+          //RK_NOTICE(1," reached!");
+        };// while(out_degree(u, g) < max_node_degree);
+        //RK_NOTICE(1," reached!");
+        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+        update_key(u,g);
+        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+        //RK_NOTICE(1," reached!");
       };
+      
       template <class Edge, class Graph>
-      void examine_edge(Edge e, Graph& g) {
-        if (m_compare(get(m_weight, e), m_zero))
+      void examine_edge(Edge e, Graph& g) const {
+        if (get(m_weight, e) < 0.0)
           throw boost::negative_edge();
         m_vis.examine_edge(e, g);
       };
       template <class Vertex, class Graph>
-      void forget_vertex(Vertex u, Graph& g) {
+      void forget_vertex(Vertex u, Graph& g) const {
         m_vis.forget_vertex(u, g);
       };
       template <class Vertex, class Graph>
-      void finish_vertex(Vertex u, Graph& g) {
-	m_vis.finish_vertex(u, g);
+      void finish_vertex(Vertex u, Graph& g) const {
+        m_vis.finish_vertex(u, g);
       };
       template <class Vertex, class Graph>
-      void recycle_vertex(Vertex u, Graph& g) {
-	m_vis.recycle_vertex(u, g);
+      void recycle_vertex(Vertex u, Graph& g) const {
+        m_vis.recycle_vertex(u, g);
       };
-
+      
+      template <typename Graph>
+      void publish_path(const Graph& g) const { 
+        m_vis.publish_path(g);
+      };
+      
+      bool keep_going() const { 
+        return m_vis.keep_going(); 
+      };
+      
+      template <typename EdgeIter, typename Graph>
+      std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei, const Graph& g) const {
+        return m_vis.detect_edge_change(ei,g);
+      };
+      
+      template <typename Graph>
+      double adjust_epsilon(double old_eps, double w_change, const Graph& g) const {
+        return m_vis.adjust_epsilon(old_eps, w_change, g);
+      };
+      
       template <class Vertex, typename Graph>
-      void update_key(Vertex u, Graph& g) {
-	m_vis.update_density(u, g);
-	distance_type g_u = get(m_distance, u);
-	distance_type rhs_u = get(m_rhs, u);
-	distance_type h_u = get(m_h, u);
-	if( m_compare( rhs_u, g_u ) ) {
-	  distance_type f_u = m_combine( rhs_u, h_u ); //m_compose(0.5, m_combine( rhs_u, h_u ));
-	  put(m_key, u, KeyValue( m_combine(m_compose(1.0 - m_beta, get(m_density, u)), m_compose(m_beta, f_u)), rhs_u, m_compare, m_equal_compare));
-	} else {
-	  distance_type f_u = m_combine( g_u, h_u ); // m_compose(0.5, m_combine( g_u, h_u ));
-	  put(m_key, u, KeyValue( f_u, rhs_u, m_compare, m_equal_compare));
-	};
+      void update_key(Vertex u, Graph& g) const {
+        m_vis.update_density(u, g);
+        distance_type g_u = get(m_distance, u);
+        distance_type rhs_u = get(m_rhs, u);
+        distance_type h_u = get(m_h, u);
+        if( rhs_u < g_u ) {
+          distance_type f_u = rhs_u + h_u; // 0.5 * ( rhs_u + h_u );
+          put(m_key, u, KeyValue( (1.0 - m_beta) * get(m_density, u) + m_beta * f_u, rhs_u ));
+        } else {
+          distance_type f_u = g_u + h_u; // 0.5 * ( g_u + h_u );
+          put(m_key, u, KeyValue(f_u, rhs_u));
+        };
       };
 
-      template <class Vertex, class BidirectionalGraph>
-      void update_vertex(Vertex u, BidirectionalGraph& g) {
-	boost::function_requires< boost::BidirectionalGraphConcept<BidirectionalGraph> >();
-	typedef boost::graph_traits<BidirectionalGraph> GTraits;
-	typename GTraits::in_edge_iterator ei, ei_end;
+      template <class Vertex, class Graph>
+      void update_vertex(Vertex u, Graph& g) {
+        boost::function_requires< boost::BidirectionalGraphConcept<Graph> >();
+        typedef boost::graph_traits<Graph> GTraits;
+        typename GTraits::in_edge_iterator ei, ei_end;
         
-	ColorValue col_u = get(m_color, u);
+        ColorValue col_u = get(m_color, u);
         
-	if(col_u == Color::white()) {
-	  put(m_distance, u, m_inf);
-	  col_u = Color::green();
-	  put(m_color, u, col_u);
-	};
-         
-	distance_type g_u = get(m_distance, u); 
-	distance_type rhs_u = get(m_rhs, u);
-
-	if(!m_equal_compare(rhs_u,m_zero)) {
-	  rhs_u = m_inf; 
-	  Vertex pred_u = get(m_predecessor, u);
-	  typename GTraits::edge_descriptor pred_e; 
-	  for(boost::tie(ei,ei_end) = in_edges(u,g); ei != ei_end; ++ei) {
-	    distance_type rhs_tmp = m_combine(get(m_weight, *ei), get(m_distance, source(*ei,g))); 
-	    if(m_compare(rhs_tmp, rhs_u)) {
-	      rhs_u = rhs_tmp; 
-	      put(m_rhs, u, rhs_u);
-	      put(m_predecessor, u, source(*ei,g)); 
-	      pred_e = *ei;
-	    };
-	  };
-	  rhs_u = get(m_rhs, u); 
-	  if(pred_u != get(m_predecessor, u))                          m_vis.edge_relaxed(pred_e, g);
-	};
-
-	if(!m_equal_compare(rhs_u,g_u)) { 
-	  if((col_u != Color::black()) && (col_u != Color::red())) {
-	    update_key(u,g); 
-	    m_Q.push_or_update(u); 
-	    put(m_color, u, Color::gray());                            m_vis.discover_vertex(u, g);
-	  } else if(col_u == Color::black()) {
-	    m_I.push_back(u); 
-	    put(m_color, u, Color::red());                             m_vis.inconsistent_vertex(u,g);
-	  };
-	} else if(m_Q.contains(u)) {
-	  put(m_key, u, KeyValue(m_zero,m_zero,m_compare,m_equal_compare)); 
-	  m_Q.update(u); 
-	  m_Q.pop(); //remove from OPEN set
-	  update_key(u,g); 
-	  put(m_color, u, Color::green());                             m_vis.forget_vertex(u, g);
-	}; 
+        if(col_u == Color::white()) {
+          put(m_distance, u, std::numeric_limits<double>::infinity());
+          col_u = Color::green();
+          put(m_color, u, col_u);
+        };
+        
+        distance_type g_u = get(m_distance, u); 
+        distance_type rhs_u = get(m_rhs, u);
+        
+        if(rhs_u != 0.0) {
+          rhs_u = std::numeric_limits<double>::infinity(); 
+          Vertex pred_u = get(m_predecessor, u);
+          typename GTraits::edge_descriptor pred_e; 
+          for(boost::tie(ei,ei_end) = in_edges(u,g); ei != ei_end; ++ei) {
+            distance_type rhs_tmp = get(m_weight, *ei) + get(m_distance, source(*ei,g)); 
+            if(rhs_tmp < rhs_u) {
+              rhs_u = rhs_tmp; 
+              put(m_rhs, u, rhs_u);
+              put(m_predecessor, u, source(*ei,g)); 
+              pred_e = *ei;
+            };
+          };
+          rhs_u = get(m_rhs, u); 
+          if(pred_u != get(m_predecessor, u))                          m_vis.edge_relaxed(pred_e, g);
+        };
+        
+        //RK_NOTICE(1," reached!");
+        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+        
+        if(rhs_u != g_u) { 
+          if((col_u != Color::black()) && (col_u != Color::red())) {
+            update_key(u,g); 
+            m_Q.push_or_update(u); 
+            put(m_color, u, Color::gray());                            m_vis.discover_vertex(u, g);
+            //RK_NOTICE(1," reached!");
+            //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+          } else if(col_u == Color::black()) {
+            m_I.push_back(u); 
+            put(m_color, u, Color::red());                             m_vis.inconsistent_vertex(u,g);
+            //RK_NOTICE(1," reached!");
+            //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+          };
+        } else if(m_Q.contains(u)) {
+          put(m_key, u, KeyValue(0.0,0.0)); 
+          m_Q.update(u); 
+          m_Q.pop(); //remove from OPEN set
+          update_key(u,g); 
+          put(m_color, u, Color::green());                             m_vis.forget_vertex(u, g);
+          //RK_NOTICE(1," reached!");
+          //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+        }; 
       };
 
       const Topology& m_free_space;
       AStarHeuristicMap m_h;
       UniformCostVisitor m_vis;
-      UpdatableQueue& m_Q;
+      UpdatableQueue& m_Q; 
       List& m_I;
       IndexInHeapMap m_index_in_heap;
       PredecessorMap m_predecessor;
@@ -423,13 +516,7 @@ namespace graph {
       PositionMap m_position;
       NcSelector m_select_neighborhood;
       ColorMap m_color;
-      const ScalarType& m_beta;
-      CompareFunction m_compare;
-      EqualCompareFunction m_equal_compare;
-      CombineFunction m_combine;
-      ComposeFunction m_compose;
-      distance_type m_inf;
-      distance_type m_zero;
+      distance_type& m_beta;
     };
 
   
@@ -444,6 +531,7 @@ namespace graph {
    * existing graph.
    * \tparam Graph The graph type that can store the generated roadmap, should model 
    *         BidirectionalGraphConcept and MutableGraphConcept.
+   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
    * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
    * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
    *         for each vertex in the graph.
@@ -467,30 +555,11 @@ namespace graph {
    *         are used to mark vertices by their status in the AD* algorithm (white = not visited, 
    *         gray = discovered (in OPEN), black = finished (in CLOSED), green = recycled (not CLOSED, 
    *         not OPEN), red = inconsistent (in INCONS)).
-   * \tparam AdjustFunction This functor type represents the callback function that will adjust the 
-   *         epsilon value (sloppyness of the A* search).
-   * \tparam RunningPredicate This function type represents the callback function that will evaluate 
-   *         if it is still worth continuing the AD* search passes.
-   * \tparam GetStartNodeFunction This function type represents the callback function that will give 
-   *         the starting point for the search (usually the goal vertex).
-   * \tparam ChangeEventFunction This function type represents the callback that can wait for a change 
-   *         in edge weights, and provide the list of changed edges.
-   * \tparam PublishPathFunction This function type represents the callback that is called when a 
-   *         path has been obtained (so that it can be buffered and executed).
-   * \tparam ScalarType The type of the scalar value epsilon (amplification factor, controls the 
-   *         anytime nature of this algorithm).
-   * \tparam CompareFunction A binary comparison functor type that returns true if the first operand 
-   *         is strictly better (less-than) than the second operand.
-   * \tparam EqualCompareFunction A binary comparison functor type that returns true if both operands 
-   *         are equal to each other.
-   * \tparam CombineFunction A binary combination functor type that returns the sum of its operands, 
-   *         semantically-speaking.
-   * \tparam ComposeFunction A binary composition functor type that amplifies a heuristic distance 
-   *         metric by a scalar value (i.e. epsilon x h(u) ).
    * 
    * \param g A mutable graph that should initially store the starting 
    *        vertex (if not it will be randomly generated) and will store 
    *        the generated graph once the algorithm has finished.
+   * \param start_vertex The starting point of the algorithm, on the graph.
    * \param free_space A topology (as defined by the Boost Graph Library). Note 
    *        that it is required to generate only random points in 
    *        the free-space and to only allow interpolation within the free-space.
@@ -517,42 +586,11 @@ namespace graph {
    * \param color The property-map which stores the color-value of the vertices, colors are used to mark
    *        vertices by their status in the AD* algorithm (white = not visited, gray = discovered (in OPEN), 
    *        black = finished (in CLOSED), green = recycled (not CLOSED, not OPEN), red = inconsistent (in INCONS)).
-   * \param adj_epsilon The callback functor that will adjust the epsilon value (sloppyness of the sub-optimal
-   *        A* search) depending (usually) on the level of change in the weights that was recorded after a callback
-   *        using the edge_change functor. Used as: epsilon = adj_epsilon(epsilon, max_w_change); (takes the current 
-   *        epsilon value and the maximum recorder weight change, and outputs the new epsilon value).
-   * \param keep_going The callback functor that will tell whether the AD* search should keep on going (running 
-   *        predicate). Should be callable with no parameter and output a bool value (true to keep going, false
-   *        to stop).
-   * \param get_start The functor that is called to obtain the starting point for the AD* search (usually the 
-   *        goal vertex). Should be callable with no parameter and output a vertex-descriptor of the graph (i.e. 
-   *        a vertex of the graph g).
-   * \param edge_change The callback functor that is called to make a check whether the weights of the graph
-   *        have changed do to a dynamic environment. Used as: max_w_change = edge_change(affected_edges); 
-   *        (takes an STL container (std::vector) of affected edges and populates it all the edges that 
-   *        should be updated because their weight has changed, also returns the maximum weight change 
-   *        measured (or any other measure of how bad the change in the environment is, this value will 
-   *        be forwarded unchanged to the adj_epsilon functor)). The container of affected edges is subject 
-   *        to change, so it is recommended to define this functor with a templated call-operator that 
-   *        can take a generic type of STL container, by non-const reference.
-   * \param publish_path The callback functor that is called when the AD* search has ended, and presumably,
-   *        found a path. Used as: publish_path(); (takes no parameters, returns nothing). The path is retrieved
-   *        by walking the predecessors of the vertices (using the given predecessor property-map).
    * \param epsilon The initial epsilon value that relaxes the A* search to give the AD* its anytime 
    *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
-   * \param inf The quantity that represents infinity (either a very large value or the infinity value for 
-   *        the underlying value-type).
-   * \param zero The quantity that represents zero with the given value-type.
-   * \param compare A binary comparison functor that returns true if the first operand is strictly 
-   *        better (less-than) than the second operand.
-   * \param equal_compare A binary comparison functor that returns true if both operands are equal 
-   *        to each other.
-   * \param combine A binary combination functor that returns the sum of its operands, 
-   *        semantically-speaking.
-   * \param compose A binary composition functor that amplifies a heuristic distance metric by a 
-   *        scalar value (i.e. epsilon x h(u) ).
    */
   template <typename Graph,
+            typename Vertex,
 	    typename Topology,
             typename AStarHeuristicMap,
             typename FADPRMVisitor,
@@ -564,37 +602,15 @@ namespace graph {
             typename PositionMap,
             typename DensityMap,
 	    typename NcSelector,
-	    typename ColorMap,
-	    typename AdjustFunction,
-	    typename RunningPredicate,
-	    typename GetStartNodeFunction,
-	    typename ChangeEventFunction,
-	    typename PublishPathFunction,
-	    typename ScalarType,
-            typename CompareFunction,
-	    typename EqualCompareFunction,
-            typename CombineFunction,
-	    typename ComposeFunction>
+	    typename ColorMap>
   inline void
   generate_fadprm_no_init
-    (Graph &g, const Topology& free_space,
+    (Graph &g, Vertex start_vertex, const Topology& free_space,
      AStarHeuristicMap hval, FADPRMVisitor vis,
      PredecessorMap predecessor, DistanceMap distance,
      RHSMap rhs, KeyMap key, WeightMap weight, DensityMap density, PositionMap position, 
-     NcSelector select_neighborhood, ColorMap color, AdjustFunction adj_epsilon, 
-     RunningPredicate keep_going, GetStartNodeFunction get_start,
-     ChangeEventFunction edge_change, PublishPathFunction publish_path,
-     ScalarType epsilon, typename boost::property_traits<DistanceMap>::value_type inf,
-     typename boost::property_traits<DistanceMap>::value_type zero = typename boost::property_traits<DistanceMap>::value_type(0),
-     CompareFunction compare = CompareFunction(), EqualCompareFunction equal_compare = EqualCompareFunction(),
-     CombineFunction combine = CombineFunction(), ComposeFunction compose = ComposeFunction())
+     NcSelector select_neighborhood, ColorMap color, double epsilon)
   {
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-    typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
-    typedef boost::color_traits<ColorValue> Color;
-    typedef typename boost::property_traits<DistanceMap>::value_type DistanceValue;
-    typedef typename boost::property_traits<WeightMap>::value_type WeightValue;
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef typename adstar_key_traits<KeyValue>::compare_type KeyCompareType;
     typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
@@ -605,25 +621,22 @@ namespace graph {
         put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
       };
     };
-
+    
     typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
     MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
     std::vector<Vertex> I; //list holding the INCONS set (inconsistent nodes).
-
-
+    
     detail::fadprm_bfs_visitor<Topology, AStarHeuristicMap, FADPRMVisitor,
-        MutableQueue, std::vector<Vertex>, IndexInHeapMap, PredecessorMap, KeyMap, DistanceMap, RHSMap,
-        WeightMap, DensityMap, PositionMap, NcSelector, ColorMap, ScalarType, CompareFunction,
-	EqualCompareFunction, CombineFunction, ComposeFunction>
-      bfs_vis(free_space, hval, vis, Q, I, index_in_heap, predecessor, key, distance, rhs, weight, density, position, select_neighborhood,
-              color, epsilon, compare, equal_compare, combine, compose, inf, zero);
-
-    std::vector<Edge> affected_edges;
-
-    detail::adstar_search_loop(g, hval, bfs_vis, predecessor, distance, rhs, key, weight, 
-			       color, Q, I, affected_edges, adj_epsilon, keep_going,
-			       get_start, edge_change, publish_path, epsilon, 
-			       inf, zero, compare, equal_compare, combine, compose);
+        MutableQueue, std::vector<Vertex>,
+        IndexInHeapMap, PredecessorMap, KeyMap, DistanceMap, RHSMap,
+        WeightMap, DensityMap, PositionMap, NcSelector, ColorMap>
+      bfs_vis(free_space, hval, vis, Q, I, index_in_heap, predecessor, key, distance, 
+              rhs, weight, density, position, select_neighborhood, color, epsilon);
+    
+    detail::adstar_search_loop(
+      g, start_vertex, hval, bfs_vis, predecessor, distance, rhs, key, weight, color, 
+      index_in_heap, Q, I, epsilon, std::numeric_limits<double>::infinity(), 0.0, 
+      std::less<double>(), std::equal_to<double>(), std::plus<double>(), std::multiplies<double>());
     
   };
 
@@ -634,6 +647,7 @@ namespace graph {
    * existing graph to (re)start the search.
    * \tparam Graph The graph type that can store the generated roadmap, should model 
    *         BidirectionalGraphConcept and MutableGraphConcept.
+   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
    * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
    * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
    *         for each vertex in the graph.
@@ -657,30 +671,11 @@ namespace graph {
    *         are used to mark vertices by their status in the AD* algorithm (white = not visited, 
    *         gray = discovered (in OPEN), black = finished (in CLOSED), green = recycled (not CLOSED, 
    *         not OPEN), red = inconsistent (in INCONS)).
-   * \tparam AdjustFunction This functor type represents the callback function that will adjust the 
-   *         epsilon value (sloppyness of the A* search).
-   * \tparam RunningPredicate This function type represents the callback function that will evaluate 
-   *         if it is still worth continuing the AD* search passes.
-   * \tparam GetStartNodeFunction This function type represents the callback function that will give 
-   *         the starting point for the search (usually the goal vertex).
-   * \tparam ChangeEventFunction This function type represents the callback that can wait for a change 
-   *         in edge weights, and provide the list of changed edges.
-   * \tparam PublishPathFunction This function type represents the callback that is called when a 
-   *         path has been obtained (so that it can be buffered and executed).
-   * \tparam ScalarType The type of the scalar value epsilon (amplification factor, controls the 
-   *         anytime nature of this algorithm).
-   * \tparam CompareFunction A binary comparison functor type that returns true if the first operand 
-   *         is strictly better (less-than) than the second operand.
-   * \tparam EqualCompareFunction A binary comparison functor type that returns true if both operands 
-   *         are equal to each other.
-   * \tparam CombineFunction A binary combination functor type that returns the sum of its operands, 
-   *         semantically-speaking.
-   * \tparam ComposeFunction A binary composition functor type that amplifies a heuristic distance 
-   *         metric by a scalar value (i.e. epsilon x h(u) ).
    * 
    * \param g A mutable graph that should initially store the starting 
    *        vertex (if not it will be randomly generated) and will store 
    *        the generated graph once the algorithm has finished.
+   * \param start_vertex The starting point of the algorithm, on the graph.
    * \param free_space A topology (as defined by the Boost Graph Library). Note 
    *        that it is required to generate only random points in 
    *        the free-space and to only allow interpolation within the free-space.
@@ -707,110 +702,69 @@ namespace graph {
    * \param color The property-map which stores the color-value of the vertices, colors are used to mark
    *        vertices by their status in the AD* algorithm (white = not visited, gray = discovered (in OPEN), 
    *        black = finished (in CLOSED), green = recycled (not CLOSED, not OPEN), red = inconsistent (in INCONS)).
-   * \param adj_epsilon The callback functor that will adjust the epsilon value (sloppyness of the sub-optimal
-   *        A* search) depending (usually) on the level of change in the weights that was recorded after a callback
-   *        using the edge_change functor. Used as: epsilon = adj_epsilon(epsilon, max_w_change); (takes the current 
-   *        epsilon value and the maximum recorder weight change, and outputs the new epsilon value).
-   * \param keep_going The callback functor that will tell whether the AD* search should keep on going (running 
-   *        predicate). Should be callable with no parameter and output a bool value (true to keep going, false
-   *        to stop).
-   * \param get_start The functor that is called to obtain the starting point for the AD* search (usually the 
-   *        goal vertex). Should be callable with no parameter and output a vertex-descriptor of the graph (i.e. 
-   *        a vertex of the graph g).
-   * \param edge_change The callback functor that is called to make a check whether the weights of the graph
-   *        have changed do to a dynamic environment. Used as: max_w_change = edge_change(affected_edges); 
-   *        (takes an STL container (std::vector) of affected edges and populates it all the edges that 
-   *        should be updated because their weight has changed, also returns the maximum weight change 
-   *        measured (or any other measure of how bad the change in the environment is, this value will 
-   *        be forwarded unchanged to the adj_epsilon functor)). The container of affected edges is subject 
-   *        to change, so it is recommended to define this functor with a templated call-operator that 
-   *        can take a generic type of STL container, by non-const reference.
-   * \param publish_path The callback functor that is called when the AD* search has ended, and presumably,
-   *        found a path. Used as: publish_path(); (takes no parameters, returns nothing). The path is retrieved
-   *        by walking the predecessors of the vertices (using the given predecessor property-map).
    * \param epsilon The initial epsilon value that relaxes the A* search to give the AD* its anytime 
    *        characteristic. Epsilon values usually range from 1 to 10 (theoretically, the range is 1 to infinity).
-   * \param inf The quantity that represents infinity (either a very large value or the infinity value for 
-   *        the underlying value-type).
-   * \param zero The quantity that represents zero with the given value-type.
-   * \param compare A binary comparison functor that returns true if the first operand is strictly 
-   *        better (less-than) than the second operand.
-   * \param equal_compare A binary comparison functor that returns true if both operands are equal 
-   *        to each other.
-   * \param combine A binary combination functor that returns the sum of its operands, 
-   *        semantically-speaking.
-   * \param compose A binary composition functor that amplifies a heuristic distance metric by a 
-   *        scalar value (i.e. epsilon x h(u) ).
    */
   template <typename Graph, //this is the actual graph, should comply to BidirectionalMutableGraphConcept.
-	    typename Topology,
+            typename Vertex, 
+            typename Topology,
             typename AStarHeuristicMap, //this the map of heuristic function value for each vertex.
             typename FADPRMVisitor, //this is a visitor class that can perform special operations at event points.
-	    typename PredecessorMap, //this is the map that stores the preceeding edge for each vertex.
+            typename PredecessorMap, //this is the map that stores the preceeding edge for each vertex.
             typename DistanceMap, //this is the map of distance values associated with each vertex.
-	    typename RHSMap,
-	    typename KeyMap, //this is the map of key values associated to each vertex.
+            typename RHSMap,
+            typename KeyMap, //this is the map of key values associated to each vertex.
             typename WeightMap, //this is the map of edge weight (or cost) associated to each edge of the graph.
             typename DensityMap,
             typename PositionMap,
-	    typename NcSelector,
-	    typename ColorMap, //this is a color map for each vertex, i.e. white=not visited, gray=discovered, black=expanded.
-	    typename AdjustFunction, //this is the function object type that adjusts scalar implification factor epsilon for the current max change in edge weight.
-	    typename RunningPredicate, //this is a function object type that immediately returns true if the algorithm should keep going.
-	    typename GetStartNodeFunction, //this is a function object type that returns the current start node of the graph (to start the bfs).
-	    typename ChangeEventFunction, //this is a function object type that can wait for a change in edge weights, and provide the list of changed edges.
-	    typename PublishPathFunction, //this is a function object type that is called when a path has been obtained (so that it can be buffered and executed).
-	    typename ScalarType/* = typename property_traits<DistanceMap>::value_type*/, //the type of the scalar value epsilon (amplification factor, controls the anytime nature of this algorithm).
-            typename CompareFunction /*= std::less<typename property_traits<DistanceMap>::value_type>*/, //a binary comparison function object that returns true if the first operand is strictly better (less-than) than the second operand.
-	    typename EqualCompareFunction /*= std::equal_to<typename property_traits<DistanceMap>::value_type >*/, //a binary comparison function object that returns true if both operands are equal to each other.
-            typename CombineFunction /*= std::plus<typename property_traits<DistanceMap>::value_type>*/, //a binary combination function object that returns the sum of its operands (sum in the broad sense).
-	    typename ComposeFunction /*= std::multiplies<typename property_traits<DistanceMap>::value_type>*/ > //a binary composition function object that amplifies a heuristic distance metric by a scalar value (i.e. epsilon x h(u) ).
+            typename NcSelector,
+            typename ColorMap> //this is a color map for each vertex, i.e. white=not visited, gray=discovered, black=expanded.
   inline void
   generate_fadprm
-    (Graph &g, const Topology& free_space,
+    (Graph &g, Vertex start_vertex, const Topology& free_space,
      AStarHeuristicMap hval, FADPRMVisitor vis,
-     PredecessorMap predecessor, DistanceMap distance,
-     RHSMap rhs, KeyMap key, WeightMap weight, DensityMap density, PositionMap position, NcSelector select_neighborhood,
-     ColorMap color, AdjustFunction adj_epsilon, RunningPredicate keep_going, GetStartNodeFunction get_start,
-     ChangeEventFunction edge_change, PublishPathFunction publish_path,
-     ScalarType epsilon, typename boost::property_traits<DistanceMap>::value_type inf,
-     typename boost::property_traits<DistanceMap>::value_type zero = typename boost::property_traits<DistanceMap>::value_type(0),
-     CompareFunction compare = CompareFunction(), EqualCompareFunction equal_compare = EqualCompareFunction(),
-     CombineFunction combine = CombineFunction(), ComposeFunction compose = ComposeFunction())
+     PredecessorMap predecessor, DistanceMap distance, RHSMap rhs, KeyMap key, 
+     WeightMap weight, DensityMap density, PositionMap position, NcSelector select_neighborhood,
+     ColorMap color, double epsilon)
   {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-    BOOST_CONCEPT_ASSERT((boost::MutableGraphConcept<Graph>));
+    //BOOST_CONCEPT_ASSERT((boost::MutablePropertyGraphConcept<Graph>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((FADPRMVisitorConcept<FADPRMVisitor,Graph>));
+    BOOST_CONCEPT_ASSERT((FADPRMVisitorConcept<FADPRMVisitor,Graph,Topology>));
     
     typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
     typedef boost::color_traits<ColorValue> Color;
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
+    typedef typename Graph::vertex_bundled VertexProp;
     
     if(num_vertices(g) == 0) {
-      Vertex u = add_vertex(g);
+      VertexProp up;
       PositionValue p = get(ReaK::pp::random_sampler, free_space)(free_space);
-      put(position, u, p);
+      put(position, up, p);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      Vertex u = add_vertex(std::move(up), g);
+#else
+      Vertex u = add_vertex(up, g);
+#endif
       vis.vertex_added(u, g);
+      start_vertex = u;
     };
     
     for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
       put(color, *ui, Color::white());
-      put(distance, *ui, inf);
-      put(rhs, *ui, inf);
-      put(key, *ui, KeyValue(inf,inf,compare,equal_compare));
+      put(distance, *ui, std::numeric_limits<double>::infinity());
+      put(rhs, *ui, std::numeric_limits<double>::infinity());
+      put(key, *ui, KeyValue(std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity()));
       put(predecessor, *ui, *ui);
       vis.initialize_vertex(*ui, g);
     };
 
     generate_fadprm_no_init
-      (g, free_space, hval, vis, predecessor, distance, rhs, key, weight, density, position, select_neighborhood,
-       color, adj_epsilon, keep_going, get_start, edge_change, publish_path,
-       epsilon, inf, zero, compare, equal_compare, combine, compose);
+      (g, start_vertex, free_space, hval, vis, predecessor, distance, rhs, 
+       key, weight, density, position, select_neighborhood, color, epsilon);
 
   };
   

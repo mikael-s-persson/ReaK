@@ -117,7 +117,7 @@ struct svp_reach_time_metric : public serialization::serializable {
       & RK_SERIAL_LOAD_WITH_NAME(maximum_iterations);
   };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(svp_reach_time_metric,0xC2410009,1,"svp_reach_time_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2410009,1,"svp_reach_time_metric",serialization::serializable)
 };
 
 

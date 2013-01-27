@@ -37,6 +37,7 @@
 #include "joint_space_topologies.hpp"
 #include "se2_topologies.hpp"
 #include "se3_topologies.hpp"
+#include "Ndof_spaces.hpp"
 
 
 #include <boost/mpl/and.hpp>
@@ -165,6 +166,144 @@ namespace detail {
 
 
 
+
+  
+
+  template <typename OutSpace, typename InSpace, typename RateLimitMap>
+  typename boost::enable_if<
+    boost::mpl::and_<
+      is_Ndof_space< InSpace >,
+      boost::mpl::equal_to<
+        max_derivation_order< InSpace, time_topology >,
+        boost::mpl::size_t<0>
+      >
+    >,
+  void >::type create_rl_joint_space_impl(OutSpace& space_out,
+                                          const InSpace& space_in,
+                                          const RateLimitMap& j_limits,
+                                          std::size_t& gen_i, std::size_t&, std::size_t&) {
+    typedef typename derived_N_order_space< InSpace, time_topology, 0>::type BoxTopo;
+    typedef typename BoxTopo::point_type VectorType;
+    VectorType lower_bnd = get<0>(space_in).get_lower_corner();
+    VectorType upper_bnd = get<0>(space_in).get_upper_corner();
+    for(std::size_t i = 0; i < lower_bnd.size(); ++i) {
+      lower_bnd[i] /= j_limits.gen_speed_limits[gen_i];
+      upper_bnd[i] /= j_limits.gen_speed_limits[gen_i];
+      ++gen_i;
+    };
+    space_out = OutSpace(arithmetic_tuple<
+                           hyperbox_topology< VectorType, inf_norm_distance_metric >
+                         >(hyperbox_topology< VectorType, inf_norm_distance_metric >(
+                             get<0>(space_in).getName() + "_rl",
+                             lower_bnd,
+                             upper_bnd
+                           )
+                         )
+                );
+  };
+
+  template <typename OutSpace, typename InSpace, typename RateLimitMap>
+  typename boost::enable_if<
+    boost::mpl::and_<
+      is_Ndof_space< InSpace >,
+      boost::mpl::equal_to<
+        max_derivation_order< InSpace, time_topology >,
+        boost::mpl::size_t<1>
+      >
+    >,
+  void >::type create_rl_joint_space_impl(OutSpace& space_out,
+                                          const InSpace& space_in,
+                                          const RateLimitMap& j_limits,
+                                          std::size_t& gen_i, std::size_t&, std::size_t&) {
+    typedef typename derived_N_order_space< InSpace, time_topology, 0>::type BoxTopo;
+    typedef typename BoxTopo::point_type VectorType;
+    VectorType lower_bnd = get<0>(space_in).get_lower_corner();
+    VectorType upper_bnd = get<0>(space_in).get_upper_corner();
+    VectorType speed_lim = get<1>(space_in).get_upper_corner();
+    for(std::size_t i = 0; i < lower_bnd.size(); ++i) {
+      lower_bnd[i] /= j_limits.gen_speed_limits[gen_i];
+      upper_bnd[i] /= j_limits.gen_speed_limits[gen_i];
+      speed_lim[i] /= j_limits.gen_accel_limits[gen_i];
+      ++gen_i;
+    };
+    space_out = OutSpace(arithmetic_tuple<
+                           hyperbox_topology< VectorType, inf_norm_distance_metric >,
+                           hyperbox_topology< VectorType, inf_norm_distance_metric >
+                         >(hyperbox_topology< VectorType, inf_norm_distance_metric >(
+                             get<0>(space_in).getName() + "_rl",
+                             lower_bnd,
+                             upper_bnd
+                           ),
+                           hyperbox_topology< VectorType, inf_norm_distance_metric >(
+                             get<1>(space_in).getName() + "_rl",
+                             -speed_lim,
+                              speed_lim
+                           )
+                         ),
+                         manhattan_tuple_distance(),
+                         arithmetic_tuple< Ndof_reach_time_differentiation< VectorType > >(
+                           Ndof_reach_time_differentiation< VectorType >(speed_lim)
+                         )
+                );
+  };
+
+  template <typename OutSpace, typename InSpace, typename RateLimitMap>
+  typename boost::enable_if<
+    boost::mpl::and_<
+      is_Ndof_space< InSpace >,
+      boost::mpl::equal_to<
+        max_derivation_order< InSpace, time_topology >,
+        boost::mpl::size_t<2>
+      >
+    >,
+  void >::type create_rl_joint_space_impl(OutSpace& space_out,
+                                          const InSpace& space_in,
+                                          const RateLimitMap& j_limits,
+                                          std::size_t& gen_i, std::size_t&, std::size_t&) {
+    typedef typename derived_N_order_space< InSpace, time_topology, 0>::type BoxTopo;
+    typedef typename BoxTopo::point_type VectorType;
+    VectorType lower_bnd = get<0>(space_in).get_lower_corner();
+    VectorType upper_bnd = get<0>(space_in).get_upper_corner();
+    VectorType speed_lim = get<1>(space_in).get_upper_corner();
+    VectorType accel_lim = get<2>(space_in).get_upper_corner();
+    for(std::size_t i = 0; i < lower_bnd.size(); ++i) {
+      lower_bnd[i] /= j_limits.gen_speed_limits[gen_i];
+      upper_bnd[i] /= j_limits.gen_speed_limits[gen_i];
+      speed_lim[i] /= j_limits.gen_accel_limits[gen_i];
+      accel_lim[i] /= j_limits.gen_jerk_limits[gen_i];
+      ++gen_i;
+    };
+    space_out = OutSpace(arithmetic_tuple<
+                           hyperbox_topology< VectorType, inf_norm_distance_metric >,
+                           hyperbox_topology< VectorType, inf_norm_distance_metric >,
+                           hyperbox_topology< VectorType, inf_norm_distance_metric >
+                         >(hyperbox_topology< VectorType, inf_norm_distance_metric >(
+                             get<0>(space_in).getName() + "_rl",
+                             lower_bnd,
+                             upper_bnd
+                           ),
+                           hyperbox_topology< VectorType, inf_norm_distance_metric >(
+                             get<1>(space_in).getName() + "_rl",
+                             -speed_lim,
+                              speed_lim
+                           ),
+                           hyperbox_topology< VectorType, inf_norm_distance_metric >(
+                             get<2>(space_in).getName() + "_rl",
+                             -accel_lim,
+                              accel_lim
+                           )
+                         ),
+                         manhattan_tuple_distance(),
+                         arithmetic_tuple< Ndof_reach_time_differentiation< VectorType >, Ndof_reach_time_differentiation< VectorType > >(
+                           Ndof_reach_time_differentiation< VectorType >(speed_lim),
+                           Ndof_reach_time_differentiation< VectorType >(accel_lim)
+                         )
+                );
+  };
+
+
+  
+  
 
 
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
@@ -766,6 +905,134 @@ namespace detail {
   };
 
 
+  
+
+  template <typename OutSpace, typename InSpace, typename RateLimitMap>
+  typename boost::enable_if<
+    boost::mpl::and_<
+      is_Ndof_rl_space< InSpace >,
+      boost::mpl::equal_to<
+        max_derivation_order< InSpace, time_topology >,
+        boost::mpl::size_t<0>
+      >
+    >,
+  void >::type create_normal_joint_space_impl(OutSpace& space_out,
+                                              const InSpace& space_in,
+                                              const RateLimitMap& j_limits,
+                                              std::size_t& gen_i, std::size_t&, std::size_t&) {
+    typedef typename derived_N_order_space< InSpace, time_topology, 0>::type BoxTopo;
+    typedef typename BoxTopo::point_type VectorType;
+    VectorType lower_bnd = get<0>(space_in).get_lower_corner();
+    VectorType upper_bnd = get<0>(space_in).get_upper_corner();
+    for(std::size_t i = 0; i < lower_bnd.size(); ++i) {
+      lower_bnd[i] *= j_limits.gen_speed_limits[gen_i];
+      upper_bnd[i] *= j_limits.gen_speed_limits[gen_i];
+      ++gen_i;
+    };
+    space_out = OutSpace(arithmetic_tuple<
+                           hyperbox_topology< VectorType, manhattan_distance_metric >
+                         >(hyperbox_topology< VectorType, manhattan_distance_metric >(
+                             get<0>(space_in).getName() + "_non_rl",
+                             lower_bnd,
+                             upper_bnd
+                           )
+                         )
+                );
+  };
+
+  template <typename OutSpace, typename InSpace, typename RateLimitMap>
+  typename boost::enable_if<
+    boost::mpl::and_<
+      is_Ndof_rl_space< InSpace >,
+      boost::mpl::equal_to<
+        max_derivation_order< InSpace, time_topology >,
+        boost::mpl::size_t<1>
+      >
+    >,
+  void >::type create_normal_joint_space_impl(OutSpace& space_out,
+                                              const InSpace& space_in,
+                                              const RateLimitMap& j_limits,
+                                              std::size_t& gen_i, std::size_t&, std::size_t&) {
+    typedef typename derived_N_order_space< InSpace, time_topology, 0>::type BoxTopo;
+    typedef typename BoxTopo::point_type VectorType;
+    VectorType lower_bnd = get<0>(space_in).get_lower_corner();
+    VectorType upper_bnd = get<0>(space_in).get_upper_corner();
+    VectorType speed_lim = get<1>(space_in).get_upper_corner();
+    for(std::size_t i = 0; i < lower_bnd.size(); ++i) {
+      lower_bnd[i] *= j_limits.gen_speed_limits[gen_i];
+      upper_bnd[i] *= j_limits.gen_speed_limits[gen_i];
+      speed_lim[i] *= j_limits.gen_accel_limits[gen_i];
+      ++gen_i;
+    };
+    space_out = OutSpace(arithmetic_tuple<
+                           hyperbox_topology< VectorType, manhattan_distance_metric >,
+                           hyperbox_topology< VectorType, manhattan_distance_metric >
+                         >(hyperbox_topology< VectorType, manhattan_distance_metric >(
+                             get<0>(space_in).getName() + "_non_rl",
+                             lower_bnd,
+                             upper_bnd
+                           ),
+                           hyperbox_topology< VectorType, manhattan_distance_metric >(
+                             get<1>(space_in).getName() + "_non_rl",
+                             -speed_lim,
+                              speed_lim
+                           )
+                         )
+                );
+  };
+
+  template <typename OutSpace, typename InSpace, typename RateLimitMap>
+  typename boost::enable_if<
+    boost::mpl::and_<
+      is_Ndof_rl_space< InSpace >,
+      boost::mpl::equal_to<
+        max_derivation_order< InSpace, time_topology >,
+        boost::mpl::size_t<2>
+      >
+    >,
+  void >::type create_normal_joint_space_impl(OutSpace& space_out,
+                                              const InSpace& space_in,
+                                              const RateLimitMap& j_limits,
+                                              std::size_t& gen_i, std::size_t&, std::size_t&) {
+    typedef typename derived_N_order_space< InSpace, time_topology, 0>::type BoxTopo;
+    typedef typename BoxTopo::point_type VectorType;
+    VectorType lower_bnd = get<0>(space_in).get_lower_corner();
+    VectorType upper_bnd = get<0>(space_in).get_upper_corner();
+    VectorType speed_lim = get<1>(space_in).get_upper_corner();
+    VectorType accel_lim = get<2>(space_in).get_upper_corner();
+    for(std::size_t i = 0; i < lower_bnd.size(); ++i) {
+      lower_bnd[i] *= j_limits.gen_speed_limits[gen_i];
+      upper_bnd[i] *= j_limits.gen_speed_limits[gen_i];
+      speed_lim[i] *= j_limits.gen_accel_limits[gen_i];
+      accel_lim[i] *= j_limits.gen_jerk_limits[gen_i];
+      ++gen_i;
+    };
+    space_out = OutSpace(arithmetic_tuple<
+                           hyperbox_topology< VectorType, manhattan_distance_metric >,
+                           hyperbox_topology< VectorType, manhattan_distance_metric >,
+                           hyperbox_topology< VectorType, manhattan_distance_metric >
+                         >(hyperbox_topology< VectorType, manhattan_distance_metric >(
+                             get<0>(space_in).getName() + "_non_rl",
+                             lower_bnd,
+                             upper_bnd
+                           ),
+                           hyperbox_topology< VectorType, manhattan_distance_metric >(
+                             get<1>(space_in).getName() + "_non_rl",
+                             -speed_lim,
+                              speed_lim
+                           ),
+                           hyperbox_topology< VectorType, manhattan_distance_metric >(
+                             get<2>(space_in).getName() + "_non_rl",
+                             -accel_lim,
+                              accel_lim
+                           )
+                         )
+                );
+  };
+
+
+  
+  
 
 
 
@@ -1270,8 +1537,57 @@ namespace detail {
     get< 2 >(result) = get< 2 >(pt) / j_limits.gen_jerk_limits[gen_i];
     ++gen_i;
   };
-
-
+  
+  
+  
+  template <typename Idx, typename Vector, typename RateLimitMap>
+  typename boost::enable_if<
+    is_writable_vector<Vector>,
+  void >::type create_rl_joint_vectors_impl(
+      arithmetic_tuple< Vector >& result,
+      const arithmetic_tuple< Vector >& pt,
+      const RateLimitMap& j_limits,
+      std::size_t& gen_i, std::size_t&, std::size_t&) {
+    for(std::size_t i = 0; i < get<0>(pt).size(); ++i) {
+      get< 0 >(result)[i] = get< 0 >(pt)[i] / j_limits.gen_speed_limits[gen_i];
+      ++gen_i;
+    };
+  };
+  
+  template <typename Idx, typename Vector, typename RateLimitMap>
+  typename boost::enable_if<
+    is_writable_vector<Vector>,
+  void >::type create_rl_joint_vectors_impl(
+      arithmetic_tuple< Vector, Vector >& result,
+      const arithmetic_tuple< Vector, Vector >& pt,
+      const RateLimitMap& j_limits,
+      std::size_t& gen_i, std::size_t&, std::size_t&) {
+    for(std::size_t i = 0; i < get<0>(pt).size(); ++i) {
+      get< 0 >(result)[i] = get< 0 >(pt)[i] / j_limits.gen_speed_limits[gen_i];
+      get< 1 >(result)[i] = get< 1 >(pt)[i] / j_limits.gen_accel_limits[gen_i];
+      ++gen_i;
+    };
+  };
+  
+  template <typename Idx, typename Vector, typename RateLimitMap>
+  typename boost::enable_if<
+    is_writable_vector<Vector>,
+  void >::type create_rl_joint_vectors_impl(
+      arithmetic_tuple< Vector, Vector, Vector >& result,
+      const arithmetic_tuple< Vector, Vector, Vector >& pt,
+      const RateLimitMap& j_limits,
+      std::size_t& gen_i, std::size_t&, std::size_t&) {
+    for(std::size_t i = 0; i < get<0>(pt).size(); ++i) {
+      get< 0 >(result)[i] = get< 0 >(pt)[i] / j_limits.gen_speed_limits[gen_i];
+      get< 1 >(result)[i] = get< 1 >(pt)[i] / j_limits.gen_accel_limits[gen_i];
+      get< 2 >(result)[i] = get< 2 >(pt)[i] / j_limits.gen_jerk_limits[gen_i];
+      ++gen_i;
+    };
+  };
+  
+  
+  
+  
   template <typename RateLimitMap>
   void create_rl_joint_vector_impl(arithmetic_tuple<
                                      arithmetic_tuple<
@@ -1585,6 +1901,53 @@ namespace detail {
     get< 1 >(result) = get< 1 >(pt) * j_limits.gen_accel_limits[gen_i];
     get< 2 >(result) = get< 2 >(pt) * j_limits.gen_jerk_limits[gen_i];
     ++gen_i;
+  };
+  
+  
+  
+  template <typename Idx, typename Vector, typename RateLimitMap>
+  typename boost::enable_if<
+    is_writable_vector<Vector>,
+  void >::type create_normal_joint_vectors_impl(
+      arithmetic_tuple< Vector >& result,
+      const arithmetic_tuple< Vector >& pt,
+      const RateLimitMap& j_limits,
+      std::size_t& gen_i, std::size_t&, std::size_t&) {
+    for(std::size_t i = 0; i < get<0>(pt).size(); ++i) {
+      get< 0 >(result)[i] = get< 0 >(pt)[i] * j_limits.gen_speed_limits[gen_i];
+      ++gen_i;
+    };
+  };
+  
+  template <typename Idx, typename Vector, typename RateLimitMap>
+  typename boost::enable_if<
+    is_writable_vector<Vector>,
+  void >::type create_normal_joint_vectors_impl(
+      arithmetic_tuple< Vector, Vector >& result,
+      const arithmetic_tuple< Vector, Vector >& pt,
+      const RateLimitMap& j_limits,
+      std::size_t& gen_i, std::size_t&, std::size_t&) {
+    for(std::size_t i = 0; i < get<0>(pt).size(); ++i) {
+      get< 0 >(result)[i] = get< 0 >(pt)[i] * j_limits.gen_speed_limits[gen_i];
+      get< 1 >(result)[i] = get< 1 >(pt)[i] * j_limits.gen_accel_limits[gen_i];
+      ++gen_i;
+    };
+  };
+  
+  template <typename Idx, typename Vector, typename RateLimitMap>
+  typename boost::enable_if<
+    is_writable_vector<Vector>,
+  void >::type create_normal_joint_vectors_impl(
+      arithmetic_tuple< Vector, Vector, Vector >& result,
+      const arithmetic_tuple< Vector, Vector, Vector >& pt,
+      const RateLimitMap& j_limits,
+      std::size_t& gen_i, std::size_t&, std::size_t&) {
+    for(std::size_t i = 0; i < get<0>(pt).size(); ++i) {
+      get< 0 >(result)[i] = get< 0 >(pt)[i] * j_limits.gen_speed_limits[gen_i];
+      get< 1 >(result)[i] = get< 1 >(pt)[i] * j_limits.gen_accel_limits[gen_i];
+      get< 2 >(result)[i] = get< 2 >(pt)[i] * j_limits.gen_jerk_limits[gen_i];
+      ++gen_i;
+    };
   };
 
 

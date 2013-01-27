@@ -57,6 +57,7 @@
 #include "topologies/joint_space_topologies.hpp"
 #include "topologies/se3_topologies.hpp"
 #include "topologies/joint_space_limits.hpp"
+#include "topologies/Ndof_spaces.hpp"
 
 #include "serialization/archiver.hpp"
 
@@ -75,7 +76,7 @@ struct CRS_A465_model_parameters {
   double joint_4_to_wrist_dist;       // "link_4" offset: vect<double,3>(0.0, 0.0, joint_4_to_wrist_dist),
   double wrist_to_flange_dist;        // "link_5" offset: vect<double,3>(0.0, 0.0, wrist_to_flange_dist),
   
-  CRS_A465_model_parameters(const vect<double,3>& aGlobalToBasePlate = vect<double,3>(0.0,-3.3,0.3),
+  CRS_A465_model_parameters(const vect<double,3>& aGlobalToBasePlate = (vect<double,3>(0.0,-3.3,0.3)),
                             double aBasePlateToShoulderDist = 0.3302,
                             double aShoulderToElbowDist = 0.3048,
                             double aElbowToJoint4Dist = 0.1500,
@@ -202,16 +203,22 @@ class CRS_A465_model_builder {
     // summary of robot parameters:
     CRS_A465_model_parameters A465_params;
     
-    typedef pp::metric_space_array< pp::rl_joint_space_2nd_order<double>::type, 7, pp::euclidean_tuple_distance>::type rate_limited_joint_space_type;
-    typedef pp::metric_space_array< pp::joint_space_2nd_order<double>::type, 7, pp::euclidean_tuple_distance>::type joint_space_type;
+    typedef pp::Ndof_rl_space<double, 7, 2>::type rate_limited_joint_space_type;
+    typedef pp::Ndof_space<double, 7, 2>::type joint_space_type;
+//     typedef pp::metric_space_array< pp::rl_joint_space_2nd_order<double>::type, 7, pp::euclidean_tuple_distance>::type rate_limited_joint_space_type;
+//     typedef pp::metric_space_array< pp::joint_space_2nd_order<double>::type, 7, pp::euclidean_tuple_distance>::type joint_space_type;
     typedef pp::se3_2nd_order_topology<double>::type end_effector_space_type;
     
-    typedef pp::metric_space_array< pp::rl_joint_space_1st_order<double>::type, 7, pp::euclidean_tuple_distance>::type rate_limited_joint_space_1st_type;
-    typedef pp::metric_space_array< pp::joint_space_1st_order<double>::type, 7, pp::euclidean_tuple_distance>::type joint_space_1st_type;
+    typedef pp::Ndof_rl_space<double, 7, 1>::type rate_limited_joint_space_1st_type;
+    typedef pp::Ndof_space<double, 7, 1>::type joint_space_1st_type;
+//     typedef pp::metric_space_array< pp::rl_joint_space_1st_order<double>::type, 7, pp::euclidean_tuple_distance>::type rate_limited_joint_space_1st_type;
+//     typedef pp::metric_space_array< pp::joint_space_1st_order<double>::type, 7, pp::euclidean_tuple_distance>::type joint_space_1st_type;
     typedef pp::se3_1st_order_topology<double>::type end_effector_space_1st_type;
     
-    typedef pp::metric_space_array< pp::rl_joint_space_0th_order<double>::type, 7, pp::euclidean_tuple_distance>::type rate_limited_joint_space_0th_type;
-    typedef pp::metric_space_array< pp::joint_space_0th_order<double>::type, 7, pp::euclidean_tuple_distance>::type joint_space_0th_type;
+    typedef pp::Ndof_rl_space<double, 7, 0>::type rate_limited_joint_space_0th_type;
+    typedef pp::Ndof_space<double, 7, 0>::type joint_space_0th_type;
+//     typedef pp::metric_space_array< pp::rl_joint_space_0th_order<double>::type, 7, pp::euclidean_tuple_distance>::type rate_limited_joint_space_0th_type;
+//     typedef pp::metric_space_array< pp::joint_space_0th_order<double>::type, 7, pp::euclidean_tuple_distance>::type joint_space_0th_type;
     typedef pp::se3_0th_order_topology<double>::type end_effector_space_0th_type;
     
     /*

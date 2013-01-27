@@ -127,12 +127,19 @@ class manip_quasi_static_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public
                            const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
                            const shared_ptr< joint_limits_collection<double> >& aJointLimitsMap = shared_ptr< joint_limits_collection<double> >(),
                            double aMinInterval = 0.1, 
-                           double aMaxEdgeLength = 1.0,
-                           double aInterpTolerance = 1e-6, 
-                           unsigned int aInterpMaxIter = 60) : 
+                           double aMaxEdgeLength = 1.0
+#ifdef RK_GENERATE_MQSENV_REACHINTERP_ITERATIVE
+                           , double aInterpTolerance = 1e-6, 
+                           unsigned int aInterpMaxIter = 60
+#endif
+                           ) : 
                            min_interval(aMinInterval),
                            max_edge_length(aMaxEdgeLength),
-                           m_space(aSpace, aInterpTolerance, aInterpMaxIter),
+                           m_space(aSpace
+#ifdef RK_GENERATE_MQSENV_REACHINTERP_ITERATIVE
+                           , aInterpTolerance, aInterpMaxIter
+#endif
+                           ),
                            m_prox_env(aModel, aJointLimitsMap) { };
     
     virtual ~manip_quasi_static_env() { };
@@ -325,13 +332,20 @@ class manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public name
                       const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
                       const shared_ptr< joint_limits_collection<double> >& aJointLimitsMap = shared_ptr< joint_limits_collection<double> >(),
                       double aMinInterval = 0.1, 
-                      double aMaxEdgeLength = 1.0,
-                      double aInterpTolerance = 1e-6, 
-                      unsigned int aInterpMaxIter = 60) : 
+                      double aMaxEdgeLength = 1.0
+#ifdef RK_GENERATE_MDENV_REACHINTERP_ITERATIVE
+                      , double aInterpTolerance = 1e-6, 
+                      unsigned int aInterpMaxIter = 60
+#endif
+                      ) : 
                       min_interval(aMinInterval),
                       max_edge_length(aMaxEdgeLength),
                       m_space("manip_dynamic_env_underlying_space", 
-                              space_topology(aSpace, aInterpTolerance, aInterpMaxIter), 
+                              space_topology(aSpace
+#ifdef RK_GENERATE_MDENV_REACHINTERP_ITERATIVE
+                              , aInterpTolerance, aInterpMaxIter
+#endif
+                              ), 
                               time_poisson_topology("time-poisson topology", aMinInterval, aMaxEdgeLength)),
                       m_prox_env(aModel, aJointLimitsMap) { };
     

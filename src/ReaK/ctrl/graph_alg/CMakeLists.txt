@@ -30,7 +30,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 if(NOT WIN32)
 
-  if( FreeImage_FOUND )
+  if()
+#  if( FreeImage_FOUND )
     add_executable(test_adstar "${SRCROOT}${RKGRAPHALGDIR}/test_adstar.cpp")
     setup_custom_target(test_adstar "${SRCROOT}${RKGRAPHALGDIR}")
     #target_link_libraries(test_adstar ${Boost_LIBRARIES})

@@ -345,38 +345,6 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
       return self(M1.rowCount,M1.q - M2.q);
     };
 
-    /**
-     * Matrix multiplication operator with a column vector.
-     * \param M a scalar matrix.
-     * \param V the vector to be multiplied with this.
-     * \return the matrix-vector product of this and V.
-     * \throw std::range_error if the matrix-vector dimensions don't match.
-     */
-    template <typename Vector>
-    friend 
-    typename boost::enable_if< is_readable_vector<Vector>, 
-    Vector >::type operator *(const self& M, const Vector& V) {
-      if(V.size() != M.rowCount)
-        throw std::range_error("Matrix dimension mismatch.");
-      return V * M.q;
-    };
-    
-    /**
-     * Matrix multiplication operator with a row vector.
-     * \param M a scalar matrix.
-     * \param V the vector to be multiplied with M.
-     * \return the matrix-vector product of this and V.
-     * \throw std::range_error if the matrix-vector dimensions don't match.
-     */
-    template <typename Vector>
-    friend 
-    typename boost::enable_if< is_readable_vector<Vector>, 
-    Vector >::type operator *(const Vector& V, const self& M) {
-      if(V.size() != M.rowCount)
-        throw std::range_error("Matrix dimension mismatch.");
-      return V * M.q;
-    };
-
 /*******************************************************************************
                          Special Methods
 *******************************************************************************/
@@ -496,10 +464,78 @@ struct has_allocator_matrix< mat<T,mat_structure::scalar, Alignment, Allocator> 
 };
 
 
+
+
+/**
+ * Column-vector multiplication with scalar matrix.
+ * \param M some scalar matrix.
+ * \param V some vector.
+ * \return A null vector, by value.
+ * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
+ */
+template <typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator>
+typename boost::enable_if_c< is_readable_vector<Vector>::value, 
+ vect_n< T, Allocator > >::type
+  operator *(const mat<T,mat_structure::scalar,Alignment,Allocator>& M, const Vector& V) {
+    if(V.size() != M.get_col_count())
+      throw std::range_error("Matrix dimension mismatch.");
+    return vect_n< T, Allocator >(V * M(0,0));
+  };
+    
+/**
+ * Row-vector multiplication with scalar matrix.
+ * \param V some row-vector.
+ * \param M a scalar-matrix.
+ * \return A vector, by value.
+ * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
+ */
+template <typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator>
+typename boost::enable_if_c< is_readable_vector<Vector>::value, 
+ vect_n< T, Allocator > >::type 
+  operator *(const Vector& V,const mat<T,mat_structure::scalar,Alignment,Allocator>& M) {
+    if(V.size() != M.get_row_count())
+      throw std::range_error("Matrix dimension mismatch.");
+    return vect_n< T, Allocator >(V * M(0,0));
+  };
+  
+/**
+ * Multiplication by a column-vector (fixed-size).
+ * \param M the scalar matrix.
+ * \param V the column vector.
+ * \return column-vector equal to M * V.
+ * \throw std::range_error if this matrix and the vector dimensions don't match.
+ */
+template <typename T, unsigned int Size, mat_alignment::tag Alignment, typename Allocator>
+vect<T,Size> operator *(const mat<T,mat_structure::scalar,Alignment,Allocator>& M,const vect<T,Size>& V) {
+  if((Size != M.get_col_count()) || (Size != M.get_row_count()))
+    throw std::range_error("Matrix dimension mismatch.");
+  return V * M(0,0);
+};
+
+
+/**
+ * Multiplication by a row-vector (fixed-size).
+ * \param M the scalar matrix.
+ * \param V the column vector.
+ * \return row-vector equal to V * M.
+ * \throw std::range_error if this matrix and the vector dimensions don't match.
+ */
+template <typename T, unsigned int Size, mat_alignment::tag Alignment, typename Allocator>
+vect<T,Size> operator *(const vect<T,Size>& V,const mat<T,mat_structure::scalar,Alignment,Allocator>& M) {
+  if((Size != M.get_col_count()) || (Size != M.get_row_count()))
+    throw std::range_error("Matrix dimension mismatch.");
+  return V * M(0,0);
+};
+
+
+
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
 extern template class mat<double, mat_structure::scalar>;
 extern template class mat<float, mat_structure::scalar>;
+
+// for compilers that don't support extern templates for friend functions:
+#if !defined(__clang__)
 
 extern template vect<double,2> operator *(const mat<double,mat_structure::scalar>& M,const vect<double,2>& V);
 extern template vect<double,3> operator *(const mat<double,mat_structure::scalar>& M,const vect<double,3>& V);
@@ -524,6 +560,8 @@ extern template vect<float,3> operator *(const vect<float,3>& V,const mat<float,
 extern template vect<float,4> operator *(const vect<float,4>& V,const mat<float,mat_structure::scalar>& M);
 extern template vect<float,6> operator *(const vect<float,6>& V,const mat<float,mat_structure::scalar>& M);
 extern template vect_n<float> operator *(const vect_n<float>& V,const mat<float,mat_structure::scalar>& M);
+
+#endif
 
 #endif
 

@@ -80,6 +80,32 @@ struct BoundedSpaceConcept {
 
 
 /**
+ * This concept defines the requirements to fulfill in order to model a box-bounded metric-space 
+ * as used in ReaK::pp.
+ * 
+ * Required Models:
+ * 
+ * The topology should model the BoundedSpaceConcept.
+ * 
+ * Valid expressions:
+ * 
+ * p = space.get_upper_corner(p);  The point (p) at the upper boundary of the metric-space can be obtained.
+ * 
+ * p = space.get_lower_corner(p);  The point (p) at the lower boundary of the metric-space can be obtained.
+ * 
+ * \tparam BoundedSpace The topology type to be checked for this concept.
+ */
+template <typename BoundedSpace>
+struct BoxBoundedSpaceConcept : BoundedSpaceConcept<BoundedSpace> {
+  BOOST_CONCEPT_USAGE(BoxBoundedSpaceConcept) 
+  {
+    this->p = this->space.get_upper_corner();
+    this->p = this->space.get_lower_corner();
+  };
+};
+
+
+/**
  * This concept defines the requirements to fulfill in order to model a sphere-bounded metric-space 
  * as used in ReaK::pp.
  * 
@@ -91,7 +117,7 @@ struct BoundedSpaceConcept {
  * 
  * d = space.get_radius();  The radius (d) can be obtained (maximum distance between a point and the origin of the metric-space).
  * 
- * \tparam Topology The topology type to be checked for this concept.
+ * \tparam BoundedSpace The topology type to be checked for this concept.
  */
 template <typename BoundedSpace>
 struct SphereBoundedSpaceConcept : BoundedSpaceConcept<BoundedSpace> {

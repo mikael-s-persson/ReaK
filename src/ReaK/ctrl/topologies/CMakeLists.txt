@@ -1,18 +1,53 @@
 
+# set(TOPOLOGIES_SOURCES 
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/hyperball_topology_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/hyperbox_topology_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/joint_space_limits_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/joint_space_topologies_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/line_topology_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/manip_free_workspace_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/manip_free_svp_workspace_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/manip_free_sap_workspace_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/manip_free_dynamic_workspace_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/manip_free_svp_dynamic_workspace_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/manip_free_sap_dynamic_workspace_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/Ndof_limits_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/ptrobot2D_test_world.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/se2_topologies_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/se3_topologies_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/so3_topologies_ext.cpp"
+#   "${SRCROOT}${RKTOPOLOGIESDIR}/vector_topology_ext.cpp"
+# )
+
 set(TOPOLOGIES_SOURCES 
-  "${SRCROOT}${RKTOPOLOGIESDIR}/hyperball_topology_ext.cpp"
-  "${SRCROOT}${RKTOPOLOGIESDIR}/hyperbox_topology_ext.cpp"
-  "${SRCROOT}${RKTOPOLOGIESDIR}/joint_space_limits_ext.cpp"
-  "${SRCROOT}${RKTOPOLOGIESDIR}/joint_space_topologies_ext.cpp"
-  "${SRCROOT}${RKTOPOLOGIESDIR}/line_topology_ext.cpp"
-  "${SRCROOT}${RKTOPOLOGIESDIR}/manip_free_workspace_ext.cpp"
-  "${SRCROOT}${RKTOPOLOGIESDIR}/manip_free_dynamic_workspace_ext.cpp"
-  "${SRCROOT}${RKTOPOLOGIESDIR}/Ndof_limits_ext.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/ptrobot2D_test_world.cpp"
-  "${SRCROOT}${RKTOPOLOGIESDIR}/se2_topologies_ext.cpp"
-  "${SRCROOT}${RKTOPOLOGIESDIR}/se3_topologies_ext.cpp"
-  "${SRCROOT}${RKTOPOLOGIESDIR}/so3_topologies_ext.cpp"
-  "${SRCROOT}${RKTOPOLOGIESDIR}/vector_topology_ext.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/hyperball_topology_ext1.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/hyperbox_topology_ext1.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/hyperbox_topology_ext2.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/hyperbox_topology_ext3.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/joint_space_limits_ext1.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/joint_space_topologies_ext1.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/joint_space_topologies_ext2.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/joint_space_topologies_ext3.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/joint_space_topologies_ext4.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/line_topology_ext1.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/manip_free_workspace_ext1.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/manip_free_workspace_ext2.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/manip_free_workspace_ext3.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/manip_free_workspace_ext4.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/manip_free_workspace_ext5.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/manip_free_dynamic_workspace_ext1.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/manip_free_dynamic_workspace_ext2.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/manip_free_dynamic_workspace_ext3.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/manip_free_dynamic_workspace_ext4.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/manip_free_dynamic_workspace_ext5.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/Ndof_limits_ext1.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/Ndof_spaces_ext1.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/Ndof_spaces_ext2.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/se2_topologies_ext1.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/se3_topologies_ext1.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/so3_topologies_ext1.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/vector_topology_ext1.cpp"
 )
 
 set(TOPOLOGIES_HEADERS 
@@ -29,10 +64,12 @@ set(TOPOLOGIES_HEADERS
   "${RKTOPOLOGIESDIR}/line_topology.hpp"
   "${RKTOPOLOGIESDIR}/manip_DK_proxy_updater.hpp"
   "${RKTOPOLOGIESDIR}/manip_free_workspace.hpp"
-  "${RKTOPOLOGIESDIR}/manip_free_workspace_ext.hpp"
-  "${RKTOPOLOGIESDIR}/manip_free_dynamic_workspace_ext.hpp"
+  "${RKTOPOLOGIESDIR}/manip_free_svp_workspace.hpp"
+  "${RKTOPOLOGIESDIR}/manip_free_sap_workspace.hpp"
   "${RKTOPOLOGIESDIR}/manip_free_workspace_tsppf.hpp"
   "${RKTOPOLOGIESDIR}/manip_free_dynamic_workspace.hpp"
+  "${RKTOPOLOGIESDIR}/manip_free_svp_dynamic_workspace.hpp"
+  "${RKTOPOLOGIESDIR}/manip_free_sap_dynamic_workspace.hpp"
   "${RKTOPOLOGIESDIR}/manip_workspaces.hpp"
   "${RKTOPOLOGIESDIR}/metric_space_tuple.hpp"
   "${RKTOPOLOGIESDIR}/Ndof_spaces.hpp"
@@ -57,7 +94,7 @@ set(TOPOLOGIES_HEADERS
 add_library(reak_topologies STATIC ${TOPOLOGIES_SOURCES})
 setup_custom_target(reak_topologies "${SRCROOT}${RKTOPOLOGIESDIR}")
 setup_headers("${TOPOLOGIES_HEADERS}" "${RKTOPOLOGIESDIR}")
-target_link_libraries(reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(reak_topologies reak_interp reak_core ${EXTRA_SYSTEM_LIBS})
 if( OpenCV_FOUND )
   target_link_libraries(reak_topologies ${OpenCV_LIBS})
 endif()

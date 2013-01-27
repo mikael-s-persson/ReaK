@@ -17,7 +17,7 @@ if(PYTHONLIBS_FOUND)
   find_package(Boost 1.42 COMPONENTS python)
   if(Boost_FOUND)
     
-    include_directories(BEFORE ${PYTHON_INCLUDE_DIRS})
+    include_directories(BEFORE SYSTEM ${PYTHON_INCLUDE_DIRS})
     
     add_library(reak_py SHARED ${PYREAK_SOURCES})
     setup_custom_target(reak_py "${SRCROOT}${RKRECORDERSDIR}")

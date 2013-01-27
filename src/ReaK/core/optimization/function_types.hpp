@@ -113,7 +113,12 @@ class quadratic_cost_evaluator : public cost_evaluator {
      * \param aQ The positive definite matrix of the quadratic cost function.
      */
     quadratic_cost_evaluator(const vect_n<double>& aC = vect_n<double>(), 
-                             const mat<double,mat_structure::symmetric>& aQ = mat<double,mat_structure::symmetric>()) : c(aC), Q(aQ) { };
+                             const mat<double,mat_structure::symmetric>& aQ = (mat<double,mat_structure::symmetric>())) : c(aC), Q(aQ) { };
+    
+    /**
+     * Default destructor.
+     */
+    virtual ~quadratic_cost_evaluator() { };
     
     virtual double compute_cost(const vect_n<double>& x) const {
       vect_n<double> tmp = x; tmp -= c;
@@ -167,6 +172,11 @@ class added_cost_evaluator : public cost_evaluator {
                          const shared_ptr<cost_evaluator>& aSecondEval = shared_ptr<cost_evaluator>()) :
                          first_eval(aFirstEval),
                          second_eval(aSecondEval) { };
+    
+    /**
+     * Default destructor.
+     */
+    virtual ~added_cost_evaluator() { };
     
     virtual double compute_cost(const vect_n<double>& x) const {
       return first_eval->compute_cost(x) + second_eval->compute_cost(x);

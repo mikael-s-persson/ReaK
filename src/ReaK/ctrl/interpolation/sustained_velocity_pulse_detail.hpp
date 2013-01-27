@@ -35,16 +35,10 @@
 
 #include "lin_alg/arithmetic_tuple.hpp"
 
-#include "lin_alg/mat_num_exceptions.hpp"
-#include "lin_alg/vect_alg.hpp"
 #include "path_planning/bounded_space_concept.hpp"
 #include "path_planning/tangent_bundle_concept.hpp"
 
-#include "root_finders/bisection_method.hpp"
-
 #include <boost/bind.hpp>
-
-#include <cmath>
 
 namespace ReaK {
 
@@ -52,6 +46,17 @@ namespace pp {
   
   
 namespace detail {
+  
+  
+  double svp_solve_for_min_dt_beta(double beta, double norm_delta, const double (&coefs)[5], double num_tol);
+  
+  bool svp_min_dt_predicate(double beta, double norm_delta, const double (&coefs)[5], double num_tol, double& result);
+  
+  double svp_solve_for_no_slack_beta(double beta, double norm_delta, const double (&coefs)[5], double num_tol, double delta_time);
+  
+  bool svp_no_slack_predicate(double beta, double norm_delta, const double (&coefs)[5], double num_tol, double& slack, double delta_time);
+  
+  
   
   template <typename Idx, typename PointType, typename PointDiff1, typename DiffSpace, typename TimeSpace>
   inline 
@@ -281,58 +286,6 @@ namespace detail {
   
   
   
-  
-  inline
-  double svp_compute_slack_time(double beta, double dt, double beta_0, double norm_delta, const vect<double,5>& coefs) {
-    using std::sqrt;
-    using std::fabs;
-    
-    double c = (norm_delta + coefs[4] * (beta_0 * beta_0 - beta * beta) );
-    
-    return dt - sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[1] - beta * coefs[4])) 
-              - sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[3] - beta * coefs[4]))
-           - fabs(c) / beta;
-  };
-    
-  inline
-  double svp_compute_derivative_slack_time(double beta, double dt, double beta_0, double norm_delta, const vect<double,5>& coefs) {
-    using std::sqrt;
-    using std::fabs;
-    
-    double c = (norm_delta + coefs[4] * (beta_0 * beta_0 - beta * beta) );
-    
-    double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[1] - beta * coefs[4]));
-    double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[3] - beta * coefs[4]));
-    return fabs(c) / (beta * beta) - ( c > 0.0 ? -2.0 : 2.0) * coefs[4]
-           - coefs[4] * ((coefs[4] * beta - coefs[1]) / term1 + (coefs[4] * beta - coefs[3]) / term2);
-  };
-  
-  
-  inline
-  double svp_compute_travel_time(double beta, double beta_0, double norm_delta, const vect<double,5>& coefs) {
-    using std::sqrt;
-    using std::fabs;
-    
-    double c = (norm_delta + coefs[4] * (beta_0 * beta_0 - beta * beta) );
-    
-    return sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[1] - beta * coefs[4])) 
-           + sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[3] - beta * coefs[4])) 
-           + fabs(c) / beta;
-  };
-    
-  inline
-  double svp_compute_derivative_travel_time(double beta, double beta_0, double norm_delta, const vect<double,5>& coefs) {
-    using std::sqrt;
-    using std::fabs;
-    
-    double c = (norm_delta + coefs[4] * (beta_0 * beta_0 - beta * beta) );
-    
-    double term1 = sqrt(coefs[0] * coefs[0] - beta * coefs[4] * (2.0 * coefs[1] - beta * coefs[4]));
-    double term2 = sqrt(coefs[2] * coefs[2] - beta * coefs[4] * (2.0 * coefs[3] - beta * coefs[4]));
-    return coefs[4] * ((coefs[4] * beta - coefs[1]) / term1 + (coefs[4] * beta - coefs[3]) / term2) 
-           - fabs(c) / (beta * beta) + ( c > 0.0 ? -2.0 : 2.0) * coefs[4];
-  };
-  
   struct svp_update_delta_first_order {
     template <typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
     void operator()(const PointType& start_point, const PointType& end_point,
@@ -356,102 +309,6 @@ namespace detail {
     };
   };
   
-  inline double svp_solve_for_min_dt_beta(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol) {
-    if(svp_compute_derivative_travel_time(1.0,beta,norm_delta,coefs) > 0.0) {
-      double upper = 1.0;
-      double lower = 0.5;
-      while((lower < 0.99) && (svp_compute_derivative_travel_time(lower,beta,norm_delta,coefs) > 0.0)) {
-        lower += 0.5 * (upper - lower);
-      };
-      if(lower < 0.99) {
-        bisection_method(lower, upper, boost::bind(svp_compute_derivative_travel_time,_1,boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs)), num_tol);
-      } else {
-        upper = 1.0;
-        lower = 0.5;
-        while(svp_compute_derivative_travel_time(lower,beta,norm_delta,coefs) > 0.0) {
-          upper = lower;
-          lower *= 0.5;
-        };
-        bisection_method(lower, upper, boost::bind(svp_compute_derivative_travel_time,_1,boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs)), num_tol);
-      };
-      //make sure that the second root does not cause a reversal of the travel direction:
-      if( (norm_delta > 0.0) && ( norm_delta + coefs[4] * (beta * beta - upper * upper) < 0.0 )) {
-        upper = std::sqrt(beta * beta + norm_delta / coefs[4]);
-      };
-      beta = upper;
-    } else {
-      beta = 1.0;
-    };
-    return beta;
-  };
-  
-  inline bool svp_min_dt_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& result) {
-    result = svp_compute_travel_time(beta,beta,norm_delta,coefs);
-    //RK_NOTICE(1,"   gives min-dt = " << result);
-    return true;
-  };
-  
-  inline double svp_solve_for_no_slack_beta(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double delta_time) {
-    double beta_peak1 = 1.0;
-    double beta_peak2 = 5.0;
-      
-    if(svp_compute_slack_time(1.0,delta_time,beta,norm_delta,coefs) > 0.0) {
-      //means I have a single root in the interval, so I can solve for it:
-      double beta_low = 0.5;
-      while(svp_compute_slack_time(beta_low,delta_time,beta,norm_delta,coefs) > 0.0) {
-        beta_peak1 = beta_low;
-        beta_low *= 0.5;
-      };
-      bisection_method(beta_low, beta_peak1, boost::bind(svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs)), num_tol);
-    } else {
-      //This means that I must have either a parabola-looking curve, or it never goes positive.
-      // so, find the maximum in the interval, by finding the zero of the derivative:
-      double beta_low = 0.5;
-      while(svp_compute_derivative_slack_time(beta_low,delta_time,beta,norm_delta,coefs) < 0.0) {
-        beta_peak1 = beta_low;
-        beta_low *= 0.5;
-      };
-      bisection_method(beta_low,beta_peak1, boost::bind(svp_compute_derivative_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs)), num_tol);
-      if( svp_compute_slack_time(beta_peak1,delta_time,beta,norm_delta,coefs) > 0.0 ) {
-        //this means the maximum slack-time is actually positive, meaning there must be a root on either side.
-        beta_peak2 = beta_peak1;
-        beta_low = 0.5 * beta_peak1;
-        while(svp_compute_slack_time(beta_low,delta_time,beta,delta_time,coefs) > 0.0) {
-          beta_peak1 = beta_low;
-          beta_low *= 0.5;
-        };
-        bisection_method(beta_low, beta_peak1, boost::bind(svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs)), num_tol);
-        beta_low = beta_peak2;
-        beta_peak2 = 1.0;
-        bisection_method(beta_low, beta_peak2, boost::bind(svp_compute_slack_time,_1,boost::cref(delta_time),boost::cref(beta),boost::cref(norm_delta),boost::cref(coefs)), num_tol);
-          
-        //make sure that the second root does not cause a reversal of the travel direction:
-        if( norm_delta + coefs[4] * (beta * beta - beta_peak2 * beta_peak2) < 0.0 ) {
-          beta_peak2 = 5.0;
-        };
-      };
-    };
-      
-    //RK_NOTICE(1,"   delta-time = " << delta_time);
-    //RK_NOTICE(1,"   beta-peaks = (" << beta_peak1 << " " << beta_peak2 << ")");
-    
-    if( std::fabs(beta - beta_peak1) < std::fabs(beta - beta_peak2) ) {
-      beta = beta_peak1;
-    } else {
-      beta = beta_peak2;
-    };
-    if(beta <= num_tol)
-      beta = num_tol;
-    return beta;
-  };
-  
-  inline bool svp_no_slack_predicate(double beta, double norm_delta, const vect<double,5>& coefs, double num_tol, double& slack, double delta_time) {
-    slack = svp_compute_slack_time(beta,delta_time,beta,norm_delta,coefs);
-    //RK_NOTICE(1,"   gives slack-time = " << slack);
-    return (std::fabs(slack) < 100.0 * num_tol * delta_time );
-  };
-  
-  
   template <typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace,
             typename UpdateDeltaPFunctor, typename SolveForBetaFunctor, typename AddedPredicate>
   void svp_peak_velocity_iteration(const PointType& start_point, const PointType& end_point,
@@ -466,20 +323,16 @@ namespace detail {
     
     const Space1& space_1 = get_space<1>(space,t_space);
     
-    vect<double,5> coefs( get(distance_metric, space_1)( get<1>(start_point), space_1.origin(), space_1 ),
-	                  0.0,
-		          get(distance_metric, space_1)( get<1>(end_point), space_1.origin(), space_1 ),
-	                  0.0,
-		          space_1.get_radius());
+    double coefs[5] = { get(distance_metric, space_1)( get<1>(start_point), space_1.origin(), space_1 ),
+	                0.0,
+		        get(distance_metric, space_1)( get<1>(end_point), space_1.origin(), space_1 ),
+	                0.0,
+		        space_1.get_radius() };
     
     update_delta_p(start_point,end_point,delta_first_order,peak_velocity,norm_delta,beta,space,t_space,num_tol);
-    //svp_update_delta_first_order(start_point,end_point,delta_first_order,peak_velocity,norm_delta,beta,space,t_space,num_tol);
     
     for(unsigned int i = 0; i < max_iter; ++i) {
       PointType1 prev_peak_velocity = peak_velocity;
-      
-      //RK_NOTICE(1,"*********                       iter = " << i << " *****************");
-      //RK_NOTICE(1,"   with peak-vel = " << peak_velocity << " and delta-p = " << delta_first_order);
       
       peak_velocity = space_1.adjust(peak_velocity, space_1.get_diff_to_boundary(peak_velocity));
       
@@ -488,19 +341,11 @@ namespace detail {
       temp = get(distance_metric, space_1)(get<1>(end_point), peak_velocity, space_1);
       coefs[3] = (coefs[2] * coefs[2] + coefs[4] * coefs[4] - temp * temp) / (2.0 * coefs[4]);
       
-      //RK_NOTICE(1,"   coefs = " << coefs);
-      
       beta = get_next_beta(beta,norm_delta,coefs,num_tol);
-      
-      //RK_NOTICE(1,"   found beta = " << beta);
       
       peak_velocity = space_1.adjust(space_1.origin(), beta * space_1.difference(peak_velocity, space_1.origin()));
       
       update_delta_p(start_point,end_point,delta_first_order,peak_velocity,norm_delta,beta,space,t_space,num_tol);
-      //svp_update_delta_first_order(start_point,end_point,delta_first_order,peak_velocity,norm_delta,beta,space,t_space,num_tol);
-      
-      //RK_NOTICE(1,"   gives new peak-vel = " << peak_velocity);
-      //RK_NOTICE(1,"   gives new delta-p = " << delta_first_order);
       
       if( pred(beta,norm_delta,coefs,num_tol)
 	 && ( beta > num_tol ) && ( beta <= 1.0)

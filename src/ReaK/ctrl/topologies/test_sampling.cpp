@@ -34,6 +34,7 @@ using std::ptrdiff_t;
 #include "hyperbox_topology.hpp"
 #include "time_poisson_topology.hpp"
 #include "line_topology.hpp"
+#include "lin_alg/vect_alg.hpp"
 
 
 void printResult(const cv::Mat& image, unsigned int vertex_num, const std::string& dist) {

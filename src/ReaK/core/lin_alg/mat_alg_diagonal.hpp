@@ -654,6 +654,10 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
 extern template class mat<double, mat_structure::diagonal>;
 extern template class mat<float, mat_structure::diagonal>;
 
+
+// for compilers that don't support extern templates for friend functions:
+#if !defined(__clang__)
+
 extern template vect<double,2> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,2> V);
 extern template vect<double,3> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,3> V);
 extern template vect<double,4> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,4> V);
@@ -677,6 +681,9 @@ extern template vect<float,3> operator *(vect<float,3> V,const mat<float,mat_str
 extern template vect<float,4> operator *(vect<float,4> V,const mat<float,mat_structure::diagonal>& M);
 extern template vect<float,6> operator *(vect<float,6> V,const mat<float,mat_structure::diagonal>& M);
 extern template vect_n<float> operator *(vect_n<float> V,const mat<float,mat_structure::diagonal>& M);
+
+#endif
+
 
 #endif
 

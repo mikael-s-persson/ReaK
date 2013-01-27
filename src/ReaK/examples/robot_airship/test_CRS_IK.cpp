@@ -105,21 +105,8 @@ int main() {
   JointPointType j_x;
   JointPointType j_zero;
   using ReaK::get;
-  get<0>(get<0>(j_zero)) = 0.0;
-  get<1>(get<0>(j_zero)) = 0.0;
-  get<0>(get<1>(j_zero)) = 0.0;
-  get<1>(get<1>(j_zero)) = 0.0;
-  get<0>(get<2>(j_zero)) = 0.0;
-  get<1>(get<2>(j_zero)) = 0.0;
-  get<0>(get<3>(j_zero)) = 0.0;
-  get<1>(get<3>(j_zero)) = 0.0;
-  get<0>(get<4>(j_zero)) = 0.0;
-  get<1>(get<4>(j_zero)) = 0.0;
-  get<0>(get<5>(j_zero)) = 0.0;
-  get<1>(get<5>(j_zero)) = 0.0;
-  get<0>(get<6>(j_zero)) = 0.0;
-  get<1>(get<6>(j_zero)) = 0.0;
-  
+  get<0>(j_zero) = ReaK::vect<double,7>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+  get<1>(j_zero) = ReaK::vect<double,7>(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
   
 #if 0
   ReaK::frame_3D<double> ee_fs[10];

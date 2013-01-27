@@ -474,18 +474,18 @@ namespace ReaK {
 
 namespace pp {
 
-extern template class Ndof_limits<double>;
+extern template struct Ndof_limits<double>;
 
-extern template class Ndof_limits<double,1>;
-extern template class Ndof_limits<double,2>;
-extern template class Ndof_limits<double,3>;
-extern template class Ndof_limits<double,4>;
-extern template class Ndof_limits<double,5>;
-extern template class Ndof_limits<double,6>;
-extern template class Ndof_limits<double,7>;
-extern template class Ndof_limits<double,8>;
-extern template class Ndof_limits<double,9>;
-extern template class Ndof_limits<double,10>;
+extern template struct Ndof_limits<double,1>;
+extern template struct Ndof_limits<double,2>;
+extern template struct Ndof_limits<double,3>;
+extern template struct Ndof_limits<double,4>;
+extern template struct Ndof_limits<double,5>;
+extern template struct Ndof_limits<double,6>;
+extern template struct Ndof_limits<double,7>;
+extern template struct Ndof_limits<double,8>;
+extern template struct Ndof_limits<double,9>;
+extern template struct Ndof_limits<double,10>;
 
 };
 

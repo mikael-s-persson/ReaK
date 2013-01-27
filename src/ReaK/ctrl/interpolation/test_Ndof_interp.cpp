@@ -115,23 +115,21 @@ int main(int argc, char** argv) {
       };
       output_rec << ReaK::recorder::data_recorder::end_name_row;
       
-      ReaK::vect< double, TEST_SIZE > delta_first_order;
       ReaK::vect< double, TEST_SIZE > peak_velocity;
       
       double dt_total = max_time - min_time;
       
       double min_dt_final = ReaK::pp::detail::svp_compute_Ndof_interpolation_data_impl(
-        start_point, end_point, delta_first_order, peak_velocity,
+        start_point, end_point, peak_velocity,
         *topo, t_topo, dt_total);
       
       std::cout << "min dt final = \t" << min_dt_final << std::endl;
-      std::cout << "delta first order = \t" << delta_first_order << std::endl;
       std::cout << "peak velocity = \t" << peak_velocity << std::endl;
       
       for(double dt = 0.0; ((dt_total >= min_dt_final) && (dt <= dt_total)); dt += time_step) {
         
         ReaK::pp::detail::svp_Ndof_interpolate_impl< boost::mpl::size_t<2> >(
-          result_point, start_point, end_point, delta_first_order, peak_velocity,
+          result_point, start_point, end_point, peak_velocity,
           *topo, t_topo, dt, dt_total);
         
         output_rec << (min_time + dt);
@@ -160,19 +158,18 @@ int main(int argc, char** argv) {
       };
       output_rec << ReaK::recorder::data_recorder::end_name_row;
       
-      ReaK::vect< double, TEST_SIZE > delta_first_order;
       ReaK::vect< double, TEST_SIZE > peak_velocity;
       
       double dt_total = max_time - min_time;
       
       double min_dt_final = ReaK::pp::detail::sap_compute_Ndof_interpolation_data_impl(
-        start_point, end_point, delta_first_order, peak_velocity,
+        start_point, end_point, peak_velocity,
         *topo, ReaK::pp::time_topology(), dt_total);
       
       for(double dt = 0.0; ((dt_total >= min_dt_final) && (dt <= dt_total)); dt += time_step) {
         
         ReaK::pp::detail::sap_Ndof_interpolate_impl< boost::mpl::size_t<2> >(
-          result_point, start_point, end_point, delta_first_order, peak_velocity,
+          result_point, start_point, end_point, peak_velocity,
           *topo, t_topo, dt, dt_total);
         
         output_rec << (min_time + dt);
