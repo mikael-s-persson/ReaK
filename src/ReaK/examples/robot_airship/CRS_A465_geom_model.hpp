@@ -38,17 +38,18 @@
 
 #include "CRS_A465_models.hpp"
 
-#include "shapes/colored_model.hpp"
-#include "shapes/sphere.hpp"
-#include "shapes/box.hpp"
-#include "shapes/capped_cylinder.hpp"
-#include "shapes/coord_arrows_3D.hpp"
-#include "proximity/proxy_query_model.hpp"
-
-#include "serialization/archiver.hpp"
+#include <string>
 
 namespace ReaK {
 
+namespace geom { 
+  class box;
+  class capped_cylinder;
+  class colored_model_3D;
+  class coord_arrows_3D;
+  class proxy_query_model_3D;
+  class sphere;
+}
 
 namespace robot_airship {
 

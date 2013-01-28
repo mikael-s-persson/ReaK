@@ -26,6 +26,7 @@
 
 #include "shapes/plane.hpp"
 #include "shapes/box.hpp"
+#include "shapes/coord_arrows_3D.hpp"
 #include "shapes/capped_cylinder.hpp"
 
 #include "proximity/proxy_query_model.hpp"

@@ -26,6 +26,7 @@
 #include "base/named_object.hpp"
 
 #include "serialization/scheme_builder.hpp"
+#include "serialization/type_schemes.hpp"
 #include <QMessageBox>
 
 #include <QComboBox>

@@ -35,9 +35,10 @@
 
 #include "archiver.hpp"
 
-#include "base/serializable.hpp"
+#include <iostream>
+#include <utility>
+#include <string>
 
-#include <fstream>
 
 namespace ReaK {
 

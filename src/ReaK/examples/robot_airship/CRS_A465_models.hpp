@@ -37,31 +37,42 @@
 #define RK_CRS_A465_MODELS_HPP
 
 
-#include "mbd_kte/inertia.hpp"
-#include "mbd_kte/spring.hpp"
-#include "mbd_kte/damper.hpp"
-#include "mbd_kte/rigid_link.hpp"
-#include "mbd_kte/revolute_joint.hpp"
-#include "mbd_kte/prismatic_joint.hpp"
-#include "mbd_kte/kte_map_chain.hpp"
-#include "mbd_kte/force_actuator.hpp"
-#include "mbd_kte/joint_friction.hpp"
-#include "mbd_kte/driving_actuator.hpp"
-#include "mbd_kte/mass_matrix_calculator.hpp"
-
+#include "kinetostatics/frame_3D.hpp"
+#include "kinetostatics/gen_coord.hpp"
 #include "kinetostatics/motion_jacobians.hpp"
-#include "mbd_kte/jacobian_joint_map.hpp"
 
-#include "kte_models/manip_dynamics_model.hpp"
-
-#include "topologies/joint_space_topologies.hpp"
 #include "topologies/se3_topologies.hpp"
 #include "topologies/joint_space_limits.hpp"
 #include "topologies/Ndof_spaces.hpp"
 
-#include "serialization/archiver.hpp"
+#include "lin_alg/mat_alg.hpp"
+#include "lin_alg/vect_alg.hpp"
+
+#include <string>
 
 namespace ReaK {
+  
+
+namespace kte {
+  
+  class driving_actuator_gen;
+  class inertia_3D;
+  class inertia_gen;
+  class joint_dependent_frame_3D;
+  class kte_map_chain;
+  class manipulator_dynamics_model;
+  class manipulator_kinematics_model;
+  class mass_matrix_calc;
+  class prismatic_joint_3D;
+  class revolute_joint_3D;
+  class rigid_link_3D;
+  
+};
+
+namespace serialization {
+  class iarchive;
+  class oarchive;
+};
 
 
 namespace robot_airship {

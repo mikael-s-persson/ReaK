@@ -23,6 +23,11 @@
 
 #include "oi_scene_graph.hpp"
 
+#include "geometry_2D.hpp"
+#include "geometry_3D.hpp"
+#include "shape_2D.hpp"
+#include "shape_3D.hpp"
+
 #include "line_seg_2D.hpp"
 #include "grid_2D.hpp"
 #include "coord_arrows_2D.hpp"
@@ -41,20 +46,31 @@
 #include "capped_cylinder.hpp"
 #include "composite_shape_3D.hpp"
 
-#include <Inventor/nodes/SoSeparator.h>
-#include <Inventor/nodes/SoBaseColor.h>
-#include <Inventor/nodes/SoCube.h>
-#include <Inventor/nodes/SoCylinder.h>
-#include <Inventor/nodes/SoSphere.h>
-#include <Inventor/nodes/SoRotation.h>
-#include <Inventor/nodes/SoTranslation.h>
-#include <Inventor/nodes/SoTransform.h>
-#include <Inventor/nodes/SoCoordinate3.h>
-#include <Inventor/nodes/SoLineSet.h>
-#include <Inventor/sensors/SoTimerSensor.h>
-#include <Inventor/SbViewportRegion.h>
+#include <Inventor/SbColor.h>           // for SbColor
+#include <Inventor/SbVec3f.h>           // for SbVec3f
+#include <Inventor/SbViewportRegion.h>  // for SbViewportRegion
+#include <Inventor/SbXfBox3f.h>         // for SbXfBox3f
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
+#include <Inventor/fields/SoMFColor.h>  // for SoMFColor
+#include <Inventor/fields/SoMFInt32.h>  // for SoMFInt32
+#include <Inventor/fields/SoMFVec3f.h>  // for SoMFVec3f
+#include <Inventor/fields/SoSFFloat.h>  // for SoSFFloat
+#include <Inventor/fields/SoSFRotation.h>  // for SoSFRotation
+#include <Inventor/fields/SoSFVec3f.h>  // for SoSFVec3f
+#include <Inventor/fields/SoSubField.h>  // for SoSFFloat::operator=, etc
+#include <Inventor/nodes/SoBaseColor.h>  // for SoBaseColor
+#include <Inventor/nodes/SoCoordinate3.h>  // for SoCoordinate3
+#include <Inventor/nodes/SoCube.h>      // for SoCube
+#include <Inventor/nodes/SoCylinder.h>  // for SoCylinder
+#include <Inventor/nodes/SoLineSet.h>   // for SoLineSet
+#include <Inventor/nodes/SoRotation.h>  // for SoRotation
+#include <Inventor/nodes/SoSeparator.h>  // for SoSeparator
+#include <Inventor/nodes/SoSphere.h>    // for SoSphere
+#include <Inventor/nodes/SoTransform.h>  // for SoTransform
+#include <Inventor/nodes/SoTranslation.h>  // for SoTranslation
+#include <Inventor/sensors/SoTimerSensor.h>  // for SoTimerSensor
 
+#include <cmath>                        // for sqrt, M_PI
 
 namespace ReaK {
 

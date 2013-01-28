@@ -35,17 +35,17 @@
 
 #include "archiver.hpp"
 
-#include "base/serializable.hpp"
-
-#include "type_schemes.hpp"
-
-#include <fstream>
 #include <stack>
+#include <string>
+#include <utility>
+#include <map>
 
 namespace ReaK {
 
 namespace serialization {
 
+class serializable_obj_scheme;
+class type_scheme;
 
 std::map< std::string, shared_ptr< type_scheme > >& get_global_schemes();
 

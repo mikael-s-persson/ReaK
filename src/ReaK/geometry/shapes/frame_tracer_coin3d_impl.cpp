@@ -25,13 +25,18 @@
 #include "frame_tracer_coin3d_impl.hpp"
 
 
-#include <Inventor/nodes/SoSeparator.h>
-#include <Inventor/nodes/SoBaseColor.h>
-#include <Inventor/nodes/SoRotation.h>
-#include <Inventor/nodes/SoTranslation.h>
-#include <Inventor/nodes/SoTransform.h>
-#include <Inventor/nodes/SoCoordinate3.h>
-#include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/SbColor.h>           // for SbColor
+#include <Inventor/fields/SoMFColor.h>  // for SoMFColor
+#include <Inventor/fields/SoMFInt32.h>  // for SoMFInt32
+#include <Inventor/fields/SoMFVec3f.h>  // for SoMFVec3f
+#include <Inventor/fields/SoSubField.h>  // for SoMFColor::operator=, etc
+#include <Inventor/nodes/SoBaseColor.h>  // for SoBaseColor
+#include <Inventor/nodes/SoCoordinate3.h>  // for SoCoordinate3
+#include <Inventor/nodes/SoLineSet.h>   // for SoLineSet
+#include <Inventor/nodes/SoSeparator.h>  // for SoSeparator
+
+#include <cmath>                        // for isnan
+#include <vector>                       // for vector
 
 
 namespace ReaK {

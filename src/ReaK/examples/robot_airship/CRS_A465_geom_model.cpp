@@ -22,12 +22,24 @@
  */
 
 
+#include "base/defs.hpp"
 
 #include "CRS_A465_geom_model.hpp"
+
+#include "kinetostatics/frame_3D.hpp"
+#include "kinetostatics/pose_3D.hpp"
+#include "kinetostatics/rotations_3D.hpp"
 
 #include "serialization/xml_archiver.hpp"
 
 #include "rtti/typed_primitives.hpp"
+
+#include "shapes/colored_model.hpp"
+#include "shapes/sphere.hpp"
+#include "shapes/box.hpp"
+#include "shapes/capped_cylinder.hpp"
+#include "shapes/coord_arrows_3D.hpp"
+#include "proximity/proxy_query_model.hpp"
 
 
 namespace ReaK {

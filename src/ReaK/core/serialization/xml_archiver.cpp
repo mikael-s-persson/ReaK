@@ -23,10 +23,14 @@
 
 #include "xml_archiver.hpp"
 
-#include <iostream>
-#include <iterator>
-
 #include "base/shared_object.hpp"
+#include "rtti/so_type.hpp"
+#include "rtti/so_type_repo.hpp"
+
+#include <fstream>
+#include <algorithm>
+#include <map>
+#include <vector>
 
 #include <cstdlib>
 

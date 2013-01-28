@@ -43,6 +43,7 @@
 #include "shapes/oi_scene_graph.hpp"
 #include "shapes/plane.hpp"
 #include "shapes/box.hpp"
+#include "shapes/coord_arrows_3D.hpp"
 #include "shapes/capped_cylinder.hpp"
 #include "proximity/proxy_query_model.hpp"
 
@@ -52,6 +53,7 @@
 #include "mbd_kte/state_measures.hpp"
 #include "mbd_kte/free_joints.hpp"
 #include "mbd_kte/kte_map_chain.hpp"
+#include "kte_models/manip_dynamics_model.hpp"
 
 #include "serialization/xml_archiver.hpp"
 

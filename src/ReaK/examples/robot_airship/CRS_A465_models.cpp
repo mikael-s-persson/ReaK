@@ -25,12 +25,29 @@
 
 #include "CRS_A465_models.hpp"
 
+#include "mbd_kte/inertia.hpp"
+#include "mbd_kte/spring.hpp"
+#include "mbd_kte/damper.hpp"
+#include "mbd_kte/rigid_link.hpp"
+#include "mbd_kte/revolute_joint.hpp"
+#include "mbd_kte/prismatic_joint.hpp"
+#include "mbd_kte/kte_map_chain.hpp"
+#include "mbd_kte/force_actuator.hpp"
+#include "mbd_kte/joint_friction.hpp"
+#include "mbd_kte/driving_actuator.hpp"
+#include "mbd_kte/mass_matrix_calculator.hpp"
+#include "mbd_kte/jacobian_joint_map.hpp"
+#include "kte_models/manip_dynamics_model.hpp"
+
 #include "serialization/xml_archiver.hpp"
 
 #include "rtti/typed_primitives.hpp"
 
 #include "optimization/optim_exceptions.hpp"
 #include "lin_alg/mat_qr_decomp.hpp"
+
+#include <utility>
+#include <vector>
 
 namespace ReaK {
 

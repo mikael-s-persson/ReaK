@@ -35,19 +35,24 @@
 
 #include "archiver.hpp"
 
-#include "base/serializable.hpp"
-#include "type_schemes.hpp"
-
-#include <fstream>
+#include <string>
+#include <vector>
+#include <utility>
+#include <sstream>
 #include <queue>
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/graph_selectors.hpp>
 
 namespace ReaK {
+  
+namespace rtti { class so_type; };
 
 namespace serialization {
   
 class objtree_editor;
+class type_scheme;
 
 
 struct object_graph_node {

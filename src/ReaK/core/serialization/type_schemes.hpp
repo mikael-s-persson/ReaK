@@ -41,9 +41,9 @@
 #include "rtti/typed_primitives.hpp"
 #include "rtti/typed_containers.hpp"
 
-
-#include <fstream>
-#include <stack>
+#include <string>
+#include <vector>
+#include <utility>
 
 
 namespace ReaK {

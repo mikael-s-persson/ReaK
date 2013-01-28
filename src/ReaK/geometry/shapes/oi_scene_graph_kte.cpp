@@ -23,13 +23,6 @@
 
 #include "oi_scene_graph.hpp"
 
-#include "line_seg_2D.hpp"
-#include "grid_2D.hpp"
-#include "coord_arrows_2D.hpp"
-#include "circle.hpp"
-#include "rectangle.hpp"
-#include "capped_rectangle.hpp"
-#include "composite_shape_2D.hpp"
 
 #include "mbd_kte/inertia.hpp"                  // done.
 #include "mbd_kte/free_joints.hpp"              // done.
@@ -40,10 +33,24 @@
 #include "mbd_kte/spring.hpp"                   // done.
 #include "mbd_kte/torsion_damper.hpp"           // done.
 #include "mbd_kte/torsion_spring.hpp"           // done.
-#include "mbd_kte/line_point_mindist.hpp"       
-#include "mbd_kte/plane_point_mindist.hpp"      
+//#include "mbd_kte/line_point_mindist.hpp"       
+//#include "mbd_kte/plane_point_mindist.hpp"      
 
 
+#include <Inventor/SbColor.h>           // for SbColor
+#include <Inventor/SbMatrix.h>          // for SbMatrix
+#include <Inventor/SbRotation.h>        // for SbRotation
+#include <Inventor/SbVec3f.h>           // for SbVec3f
+#include <Inventor/fields/SoMFColor.h>  // for SoMFColor
+#include <Inventor/fields/SoMFInt32.h>  // for SoMFInt32
+#include <Inventor/fields/SoMFVec2f.h>  // for SoMFVec2f
+#include <Inventor/fields/SoMFVec3f.h>  // for SoMFVec3f
+#include <Inventor/fields/SoSFBitMask.h>  // for SoSFBitMask
+#include <Inventor/fields/SoSFFloat.h>  // for SoSFFloat
+#include <Inventor/fields/SoSFRotation.h>  // for SoSFRotation
+#include <Inventor/fields/SoSFString.h>  // for SoSFString
+#include <Inventor/fields/SoSFVec3f.h>  // for SoSFVec3f
+#include <Inventor/fields/SoSubField.h>  // for SoMFColor::operator=, etc
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCube.h>
@@ -58,7 +65,6 @@
 #include <Inventor/nodes/SoFaceSet.h>
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
-#include <Inventor/sensors/SoTimerSensor.h>
 
 
 namespace ReaK {

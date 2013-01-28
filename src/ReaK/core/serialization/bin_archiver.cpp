@@ -25,12 +25,15 @@
 
 
 #include "base/shared_object.hpp"
+#include "rtti/so_type.hpp"
+#include "rtti/so_type_repo.hpp"
+
 
 #include <string>
-#include <fstream>
-#include <iomanip>
+#include <map>
+#include <vector>
 
-#include <algorithm>
+#include <fstream>
 
 
 #include <stdint.h>
@@ -387,7 +390,6 @@ bin_oarchive::~bin_oarchive() { };
 oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const serializable_shared_pointer& Item, const std::string& FileName) {
   archive_object_header hdr;
   bool already_saved(false);
-  const unsigned int* type_ID = NULL;
 
   if(Item) {
     std::map< serializable_shared_pointer, unsigned int>::const_iterator it = mObjRegMap.find(Item);
@@ -402,10 +404,14 @@ oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const serializable_shared_
     };
 
     rtti::so_type::shared_pointer obj_type = Item->getObjectType();
-    type_ID = obj_type->TypeID_begin();
+    const unsigned int* type_ID = obj_type->TypeID_begin();
     hdr.type_version = obj_type->TypeVersion();
     hdr.is_external = true;
     hdr.size = 0;
+    while((type_ID) && (*type_ID)) {
+      bin_oarchive::save_unsigned_int(*type_ID);
+      ++type_ID;
+    };
   } else {
     hdr.type_version = 0;
     hdr.object_ID = 0;
@@ -414,10 +420,6 @@ oarchive& RK_CALL bin_oarchive::saveToNewArchive_impl(const serializable_shared_
     already_saved = true;
   };
 
-  while((type_ID) && (*type_ID)) {
-    bin_oarchive::save_unsigned_int(*type_ID);
-    ++type_ID;
-  };
   bin_oarchive::save_unsigned_int(0);
 
   bin_oarchive::save_unsigned_int(hdr.type_version);
@@ -454,7 +456,6 @@ oarchive& RK_CALL bin_oarchive::saveToNewArchiveNamed_impl(const std::pair<std::
 oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const serializable_shared_pointer& Item) {
   archive_object_header hdr;
   bool already_saved(false);
-  const unsigned int* type_ID = NULL;
 
   if(Item) {
     std::map< serializable_shared_pointer, unsigned int>::const_iterator it = mObjRegMap.find(Item);
@@ -469,10 +470,14 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const serializable_shared_
     };
 
     rtti::so_type::shared_pointer obj_type = Item->getObjectType();
-    type_ID = obj_type->TypeID_begin();
+    const unsigned int* type_ID = obj_type->TypeID_begin();
     hdr.type_version = obj_type->TypeVersion();
     hdr.is_external = false;
     hdr.size = 0;
+    while((type_ID) && (*type_ID)) {
+      bin_oarchive::save_unsigned_int(*type_ID);
+      ++type_ID;
+    };
   } else {
     hdr.type_version = 0;
     hdr.object_ID = 0;
@@ -481,10 +486,6 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr(const serializable_shared_
     already_saved = true;
   };
   
-  while((type_ID) && (*type_ID)) {
-    bin_oarchive::save_unsigned_int(*type_ID);
-    ++type_ID;
-  };
   bin_oarchive::save_unsigned_int(0);
 
   bin_oarchive::save_unsigned_int(hdr.type_version);

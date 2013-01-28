@@ -47,18 +47,18 @@
 #ifndef REAK_OI_SCENE_GRAPH_HPP
 #define REAK_OI_SCENE_GRAPH_HPP
 
-#include "geometry_2D.hpp"
-#include "geometry_3D.hpp"
+#include "base/defs.hpp"
 
 #include "color.hpp"
 #include "colored_model.hpp"
 
+#include "mbd_kte/kte_map.hpp"          // for kte_map
 #include "mbd_kte/kte_map_chain.hpp"
 
 #include <map>
 #include <vector>
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifdef RK_ENABLE_CXX11_FEATURES
 #include <functional>
 #else
 #include <boost/function.hpp>
@@ -73,10 +73,15 @@ class SoTimerSensor;
 
 /** Main namespace for ReaK */
 namespace ReaK {
+  
+template <typename T> class pose_2D;
+template <typename T> class pose_3D;
 
 /** Main namespace for ReaK.Geometry */
 namespace geom {
 
+class geometry_2D;
+class geometry_3D;
 
 /** 
  * This class acts as an intermediate between various entities of ReaK and the construction of an 

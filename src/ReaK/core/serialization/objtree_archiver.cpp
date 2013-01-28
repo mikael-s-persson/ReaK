@@ -23,14 +23,17 @@
 
 #include "objtree_archiver.hpp"
 
-#include "base/shared_object.hpp"
 #include "base/named_object.hpp"
+#include "rtti/so_type.hpp"
+#include "rtti/so_type_repo.hpp"
 
 #include "scheme_builder.hpp"
+#include "type_schemes.hpp"
 
 #include <string>
 #include <fstream>
-#include <iomanip>
+#include <sstream>
+#include <map>
 
 #include <algorithm>
 #include <cctype>

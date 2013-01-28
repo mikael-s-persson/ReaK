@@ -25,26 +25,17 @@
 
 
 #include "base/shared_object.hpp"
+#include "rtti/so_type.hpp"
+#include "rtti/so_type_repo.hpp"
+#include "rtti/typed_primitives.hpp"
 
 #include <string>
 #include <fstream>
-#include <iomanip>
-
-#include <algorithm>
+#include <sstream>
 
 
 #include <stdint.h>
 
-#ifdef WIN32
-
-#include <winsock2.h>
-
-#else
-
-#include <netinet/in.h>
-//#include <arpa/inet.h>
-
-#endif
 
 namespace ReaK {
 
