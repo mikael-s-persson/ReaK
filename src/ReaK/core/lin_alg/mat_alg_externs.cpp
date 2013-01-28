@@ -215,29 +215,29 @@ template class mat<float, mat_structure::scalar>;
 // for compilers that don't support extern templates for friend functions:
 #if !defined(__clang__)
 
-template vect<double,2> operator *< vect<double,2> >(const mat<double,mat_structure::scalar>& M,const vect<double,2>& V);
-template vect<double,3> operator *< vect<double,3> >(const mat<double,mat_structure::scalar>& M,const vect<double,3>& V);
-template vect<double,4> operator *< vect<double,4> >(const mat<double,mat_structure::scalar>& M,const vect<double,4>& V);
-template vect<double,6> operator *< vect<double,6> >(const mat<double,mat_structure::scalar>& M,const vect<double,6>& V);
-template vect_n<double> operator *< vect_n<double> >(const mat<double,mat_structure::scalar>& M, const vect_n<double>& V);
+template vect<double,2> operator *<double, 2, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::scalar>& M,const vect<double,2>& V);
+template vect<double,3> operator *<double, 3, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::scalar>& M,const vect<double,3>& V);
+template vect<double,4> operator *<double, 4, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::scalar>& M,const vect<double,4>& V);
+template vect<double,6> operator *<double, 6, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::scalar>& M,const vect<double,6>& V);
+template vect_n<double> operator *<double, vect_n<double>, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::scalar>& M, const vect_n<double>& V);
 
-template vect<double,2> operator *< vect<double,2> >(const vect<double,2>& V,const mat<double,mat_structure::scalar>& M);
-template vect<double,3> operator *< vect<double,3> >(const vect<double,3>& V,const mat<double,mat_structure::scalar>& M);
-template vect<double,4> operator *< vect<double,4> >(const vect<double,4>& V,const mat<double,mat_structure::scalar>& M);
-template vect<double,6> operator *< vect<double,6> >(const vect<double,6>& V,const mat<double,mat_structure::scalar>& M);
-template vect_n<double> operator *< vect_n<double> >(const vect_n<double>& V,const mat<double,mat_structure::scalar>& M);
+template vect<double,2> operator *<double, 2, mat_alignment::column_major, std::allocator<double> >(const vect<double,2>& V,const mat<double,mat_structure::scalar>& M);
+template vect<double,3> operator *<double, 3, mat_alignment::column_major, std::allocator<double> >(const vect<double,3>& V,const mat<double,mat_structure::scalar>& M);
+template vect<double,4> operator *<double, 4, mat_alignment::column_major, std::allocator<double> >(const vect<double,4>& V,const mat<double,mat_structure::scalar>& M);
+template vect<double,6> operator *<double, 6, mat_alignment::column_major, std::allocator<double> >(const vect<double,6>& V,const mat<double,mat_structure::scalar>& M);
+template vect_n<double> operator *<double, vect_n<double>, mat_alignment::column_major, std::allocator<double> >(const vect_n<double>& V,const mat<double,mat_structure::scalar>& M);
 
-template vect<float,2> operator *< vect<float,2> >(const mat<float,mat_structure::scalar>& M,const vect<float,2>& V);
-template vect<float,3> operator *< vect<float,3> >(const mat<float,mat_structure::scalar>& M,const vect<float,3>& V);
-template vect<float,4> operator *< vect<float,4> >(const mat<float,mat_structure::scalar>& M,const vect<float,4>& V);
-template vect<float,6> operator *< vect<float,6> >(const mat<float,mat_structure::scalar>& M,const vect<float,6>& V);
-template vect_n<float> operator *< vect_n<float> >(const mat<float,mat_structure::scalar>& M, const vect_n<float>& V);
+template vect<float,2> operator *<float, 2, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::scalar>& M,const vect<float,2>& V);
+template vect<float,3> operator *<float, 3, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::scalar>& M,const vect<float,3>& V);
+template vect<float,4> operator *<float, 4, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::scalar>& M,const vect<float,4>& V);
+template vect<float,6> operator *<float, 6, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::scalar>& M,const vect<float,6>& V);
+template vect_n<float> operator *<float, vect_n<float>, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::scalar>& M, const vect_n<float>& V);
 
-template vect<float,2> operator *< vect<float,2> >(const vect<float,2>& V,const mat<float,mat_structure::scalar>& M);
-template vect<float,3> operator *< vect<float,3> >(const vect<float,3>& V,const mat<float,mat_structure::scalar>& M);
-template vect<float,4> operator *< vect<float,4> >(const vect<float,4>& V,const mat<float,mat_structure::scalar>& M);
-template vect<float,6> operator *< vect<float,6> >(const vect<float,6>& V,const mat<float,mat_structure::scalar>& M);
-template vect_n<float> operator *< vect_n<float> >(const vect_n<float>& V,const mat<float,mat_structure::scalar>& M);
+template vect<float,2> operator *<float, 2, mat_alignment::column_major, std::allocator<float> >(const vect<float,2>& V,const mat<float,mat_structure::scalar>& M);
+template vect<float,3> operator *<float, 3, mat_alignment::column_major, std::allocator<float> >(const vect<float,3>& V,const mat<float,mat_structure::scalar>& M);
+template vect<float,4> operator *<float, 4, mat_alignment::column_major, std::allocator<float> >(const vect<float,4>& V,const mat<float,mat_structure::scalar>& M);
+template vect<float,6> operator *<float, 6, mat_alignment::column_major, std::allocator<float> >(const vect<float,6>& V,const mat<float,mat_structure::scalar>& M);
+template vect_n<float> operator *<float, vect_n<float>, mat_alignment::column_major, std::allocator<float> >(const vect_n<float>& V,const mat<float,mat_structure::scalar>& M);
 
 #endif
 
