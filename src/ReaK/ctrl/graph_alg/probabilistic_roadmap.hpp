@@ -86,6 +86,7 @@ namespace graph {
    * 
    * \tparam Visitor The visitor class to be checked for modeling this concept.
    * \tparam Graph The graph on which the visitor class is required to work with.
+   * \tparam Topology The topology type on which the visitor class is required to work with.
    */
   template <typename Visitor, typename Graph, typename Topology>
   struct PRMVisitorConcept {
@@ -100,7 +101,6 @@ namespace graph {
       BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
       vis.vertex_added(u, g); 
       vis.edge_added(e, g);
-      std::vector<typename boost::graph_traits<Graph>::vertex_descriptor> v;
       boost::tie(pt,b) = vis.random_walk(u, g);
       vis.update_density(u, g);
       b = vis.keep_going();
