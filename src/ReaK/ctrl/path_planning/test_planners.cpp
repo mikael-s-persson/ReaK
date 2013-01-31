@@ -33,6 +33,7 @@
 #include "prm_path_planner.hpp"
 #include "rrtstar_path_planner.hpp"
 #include "fadprm_path_planner.hpp"
+#include "sbastar_path_planner.hpp"
 
 #include "basic_sbmp_reporters.hpp"
 
@@ -1522,7 +1523,6 @@ int main(int argc, char** argv) {
   };
   };
   std::cout << "Done!" << std::endl;
-#endif
   
   std::cout << "Outputting FADPRM with adj-list dvp-bf2..." << std::endl;
   {
@@ -1545,6 +1545,32 @@ int main(int argc, char** argv) {
   };
   std::cout << "Done!" << std::endl;
   
+#endif
+  
+  
+  
+  
+  std::cout << "Outputting SBA* with adj-list dvp-bf2..." << std::endl;
+  {
+    
+    ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
+      sbastar_plan(
+        world_map, 
+        world_map->get_start_pos(), 
+        world_map->get_goal_pos(),
+        0.5,
+        world_map->get_max_edge_length(),
+        max_vertices, 
+        100,
+        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+        ReaK::pp::DVP_BF2_TREE_KNN,
+        ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/sbastar/" + world_file_name_only + "_", 5),
+        10);
+    
+    sbastar_plan.solve_path();
+    
+  };
+  std::cout << "Done!" << std::endl;
   
   
   

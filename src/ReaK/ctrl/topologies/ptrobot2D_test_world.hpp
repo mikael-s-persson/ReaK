@@ -88,6 +88,11 @@ class ptrobot2D_test_world : public named_object {
 
   public:
     
+    double get_robot_radius() const { return robot_radius; };
+    
+    double get_max_edge_length() const { return max_edge_length; };
+    void set_max_edge_length(double aMaxEdgeLength) { max_edge_length = aMaxEdgeLength; };
+    
     /**
      * Returns a reference to the super-space in which this test-world is embedded.
      * \return A reference to the super-space in which this test-world is embedded.

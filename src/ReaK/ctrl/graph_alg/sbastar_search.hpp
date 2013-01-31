@@ -49,6 +49,16 @@
 #include <functional>
 #include <boost/utility/enable_if.hpp>
 
+#include "path_planning/metric_space_concept.hpp"
+#include "path_planning/prob_distribution_concept.hpp"
+
+#include <boost/graph/graph_concepts.hpp>
+#include <boost/graph/properties.hpp>
+
+#include "bgl_more_property_maps.hpp"
+#include "bgl_more_property_tags.hpp"
+#include "bgl_raw_property_graph.hpp"
+
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -161,7 +171,7 @@ namespace graph {
       void publish_path(const Graph&) const { };
       
       template <typename Graph>
-      double adjust_threshold(double old_eps, const Graph&) const { return old_eps * 2.0; };
+      double adjust_threshold(double old_thr, const Graph&) const { return old_thr * 0.5; };
       
       template <typename Vertex, typename Graph>
       void vertex_added(Vertex, const Graph&) const { };
@@ -245,7 +255,7 @@ namespace graph {
         put(m_color, u, Color::white());
         put(m_index_in_heap, u, static_cast<std::size_t>(-1));
         put(m_distance, u, std::numeric_limits<double>::infinity());
-        put(m_key, u, std::numeric_limits<double>::infinity());
+        put(m_key, u, 0.0);
         put(m_predecessor, u, u);
         
         for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
@@ -284,7 +294,7 @@ namespace graph {
         put(m_color, u, Color::white());
         put(m_index_in_heap, u, static_cast<std::size_t>(-1));
         put(m_distance, u, std::numeric_limits<double>::infinity());
-        put(m_key, u, std::numeric_limits<double>::infinity());
+        put(m_key, u, 0.0);
         put(m_predecessor, u, u);
         
         for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
@@ -316,15 +326,9 @@ namespace graph {
       void examine_vertex(Vertex u, Graph& g) {
         m_vis.examine_vertex(u, g);
         
-        std::size_t max_node_degree = 10;
-        if(out_degree(u, g) >= max_node_degree)
-          return;
-        
         std::pair< PositionValue, bool > p_new = m_vis.random_walk(u, g);
         if(p_new.second)
           connect_vertex(p_new.first, g);
-        else
-          break;
         
         update_key(u,g);
       };
@@ -356,10 +360,10 @@ namespace graph {
         m_vis.examine_neighborhood(u, g);  // <--- update the constriction / surprise probabilities from examining the neighborhood of u.
         double g_u = get(m_distance, u);
         double h_u = get(m_heuristic, u);
-        double f_u = rhs_u + h_u;   // <--- no relaxation.
+        double f_u = g_u + h_u;   // <--- no relaxation.
         // Key-value for the min-heap (priority-queue):
         // key[u]  =  P( collision | N(u) ) * (1 - P( surprise | N(u) ) ) * total-distance 
-        put(m_key, u, get(m_constriction, u) * get(m_density, u) * f_u);
+        put(m_key, u, (1.0 - get(m_constriction, u)) * (1.0 - get(m_density, u)) / f_u);
       };
 
       template <class Vertex, class Graph>
@@ -431,19 +435,17 @@ namespace graph {
        PredecessorMap predecessor, KeyMap key, ColorMap color,
        IndexInHeapMap index_in_heap, MutableQueue& Q, double potential_threshold)
     {
-      using namespace boost;
-      typedef typename graph_traits<VertexListGraph>::edge_descriptor Edge;
-      typedef typename graph_traits<VertexListGraph>::out_edge_iterator OutEdgeIter;
-      typedef typename property_traits<ColorMap>::value_type ColorValue;
-      typedef color_traits<ColorValue> Color;
+      typedef typename boost::graph_traits<VertexListGraph>::edge_descriptor Edge;
+      typedef typename boost::graph_traits<VertexListGraph>::out_edge_iterator OutEdgeIter;
+      typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
+      typedef boost::color_traits<ColorValue> Color;
       
-      const double inf = std::numeric_limits<double>::infinity();
-      const double zero = 0.0;
+      double f_min = get(heuristic, start_vertex);
       
       while (bfs_vis.keep_going()) {
         
         Vertex s = start_vertex;
-        put(distance, s, zero);
+        put(distance, s, 0.0);
         bfs_vis.update_key(s,g);
         put(color, s, Color::gray());
         Q.push_or_update(s);                    bfs_vis.discover_vertex(s, g);
@@ -454,23 +456,23 @@ namespace graph {
           bfs_vis.examine_vertex(u, g);
           
           // stop if the best node does not meet the potential threshold.
-          if( (get(key, u) < potential_threshold) ) {
+          if( (get(key, u) < potential_threshold / f_min) ) {
             while(!Q.empty())
               Q.pop();
             break;
           };
           // stop if we have a node at the goal
-          if( (get(heuristic, u) == zero) )
+          if( (get(heuristic, u) == 0.0) )
             break;
           
           OutEdgeIter eig, eig_end;
-          for (tie(eig, eig_end) = out_edges(u, g); eig != eig_end; ++eig) {
+          for (boost::tie(eig, eig_end) = out_edges(u, g); eig != eig_end; ++eig) {
             bfs_vis.examine_edge(*eig, g);  
             bfs_vis.update_vertex(target(*eig, g), g);
           };
           
           // if the node still has a minimally good potential, then push it back on the OPEN queue.
-          if( get(key, u) < potential_threshold ) {
+          if( get(key, u) < potential_threshold / f_min ) {
             put(color, u, Color::gray());
             Q.push(u);                          bfs_vis.discover_vertex(u, g);
           } else {
@@ -481,7 +483,7 @@ namespace graph {
         
         bfs_vis.publish_path(g);
         
-        potential_threshold = bfs.adjust_threshold(potential_threshold, g);
+        potential_threshold = bfs_vis.adjust_threshold(potential_threshold, g);
         
       };
     };
@@ -586,7 +588,7 @@ namespace graph {
      double initial_threshold)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
-    typedef std::less<double> KeyCompareType;
+    typedef std::greater<double> KeyCompareType;  // <---- this is a max-heap.
     typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
     IndexInHeapMap index_in_heap;
     {
@@ -740,7 +742,7 @@ namespace graph {
     for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
       put(color, *ui, Color::white());
       put(distance, *ui, std::numeric_limits<double>::infinity());
-      put(key, *ui, std::numeric_limits<double>::infinity());
+      put(key, *ui, 0.0);
       put(predecessor, *ui, *ui);
       vis.initialize_vertex(*ui, g);
     };
