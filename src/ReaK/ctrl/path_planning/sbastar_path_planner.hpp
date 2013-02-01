@@ -132,6 +132,13 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     
   public:
     
+    double get_best_solution_distance() const {
+      if(m_solutions.size() == 0)
+        return std::numeric_limits<double>::infinity();
+      else
+        return m_solutions.begin()->first;
+    };
+    
     bool keep_going() const {
       return (max_num_results > m_solutions.size()) && !has_reached_max_vertices;
     };
@@ -156,9 +163,9 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     template <typename Vertex, typename Graph>
     void create_solution_path(Vertex start_node, Vertex goal_node, Graph& g) {
       
-      double goal_distance = g[goal_node].distance_accum;
+      double start_distance = g[start_node].distance_accum;
       
-      if(goal_distance < std::numeric_limits<double>::infinity()) {
+      if(start_distance < std::numeric_limits<double>::infinity()) {
         //Draw the edges of the current best solution:
         
         shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
@@ -166,25 +173,25 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
         point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
         std::set<Vertex> path;
         
-        Vertex v = goal_node;
-        point_type p_v = this->m_goal_pos;
+        Vertex v = start_node;
+        point_type p_v = g[v].position;
         Vertex u = g[v].predecessor;
         point_type p_u = g[u].position;
         
-        waypoints.push_front(m_goal_pos);
-        waypoints.push_front(p_u);
+        waypoints.push_back(p_v);
+        waypoints.push_back(p_u);
         path.insert(v);
       
-        while((u != start_node) && (path.insert(u).second)) {
+        while((u != goal_node) && (path.insert(u).second)) {
           v = u; p_v = p_u;
           u = g[v].predecessor; 
           p_u = g[u].position; 
-          waypoints.push_front(p_u);
+          waypoints.push_back(p_u);
         };
         
-        if(u == start_node) {
-          m_solutions[goal_distance] = new_sol;
-          m_reporter.draw_solution(*(this->m_space), m_solutions[goal_distance]);
+        if(u == goal_node) {
+          m_solutions[start_distance] = new_sol;
+          m_reporter.draw_solution(*(this->m_space), m_solutions[start_distance]);
         };
       };
     };
@@ -345,6 +352,9 @@ struct sbastar_planner_visitor {
     // Call progress reporter...
     m_planner->report_progress(g);
     
+    if(g[m_start_node].distance_accum < m_planner->get_best_solution_distance())
+      m_planner->create_solution_path(m_start_node, m_goal_node, g);
+    
   };
   
   template <typename EdgeType, typename Graph>
@@ -393,8 +403,8 @@ struct sbastar_planner_visitor {
         g[u].constriction = ( g[u].collision_count * g[u].constriction + exp_D_KL ) / (g[u].collision_count + 1);
         ++(g[u].collision_count);
         // and to the expansion attempts statistic:
-        g[u].density = ( g[u].expansion_trials * g[u].density + exp_D_KL ) / (g[u].expansion_trials + 1);
-        ++(g[u].expansion_trials);
+//         g[u].density = ( g[u].expansion_trials * g[u].density + exp_D_KL ) / (g[u].expansion_trials + 1);
+//         ++(g[u].expansion_trials);
       } else
         return std::make_pair(p_v, true);
     } while(++i <= 10);

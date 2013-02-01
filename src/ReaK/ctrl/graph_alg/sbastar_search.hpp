@@ -361,6 +361,7 @@ namespace graph {
         double g_u = get(m_distance, u);
         double h_u = get(m_heuristic, u);
         double f_u = g_u + h_u;   // <--- no relaxation.
+//         double f_u = g_u + 5.0 * h_u;   // <--- with relaxation.
         // Key-value for the min-heap (priority-queue):
         // key[u]  =  P( collision | N(u) ) * (1 - P( surprise | N(u) ) ) * total-distance 
         put(m_key, u, (1.0 - get(m_constriction, u)) * (1.0 - get(m_density, u)) / f_u);
@@ -450,7 +451,7 @@ namespace graph {
         put(color, s, Color::gray());
         Q.push_or_update(s);                    bfs_vis.discover_vertex(s, g);
         
-        while (!Q.empty()) { 
+        while (!Q.empty() && bfs_vis.keep_going()) { 
           Vertex u = Q.top(); Q.pop();
           
           bfs_vis.examine_vertex(u, g);
@@ -461,6 +462,7 @@ namespace graph {
               Q.pop();
             break;
           };
+          
           // stop if we have a node at the goal
           if( (get(heuristic, u) == 0.0) )
             break;
