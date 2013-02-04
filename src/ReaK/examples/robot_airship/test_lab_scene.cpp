@@ -263,35 +263,9 @@ int main(int argc, char ** argv) {
     
     sg.setCharacteristicLength(sg_tmp.computeCharacteristicLength());
     
-    shared_ptr< kte::kte_map_chain > d_chain = r_info.builder.get_dynamics_kte_chain();
-    
-    shared_ptr< kte::spring_3D > spr1 = shared_ptr< kte::spring_3D >(new kte::spring_3D(
-      "",
-      r_info.builder.track_joint_end,
-      r_info.builder.arm_EE,
-      1.0,
-      1.0));
-    
-    shared_ptr< kte::damper_3D > dmp1 = shared_ptr< kte::damper_3D >(new kte::damper_3D(
-      "",
-      r_info.builder.arm_joint_2_end,
-      r_info.builder.arm_EE,
-      1.0));
-    
-    shared_ptr< frame_3D<double> > f1 = shared_ptr< frame_3D<double> >(new frame_3D<double>());
-    shared_ptr< frame_3D<double> > f2 = shared_ptr< frame_3D<double> >(new frame_3D<double>());
-    shared_ptr< frame_3D<double> > f3 = shared_ptr< frame_3D<double> >(new frame_3D<double>());
-    
-    shared_ptr< kte::free_joint_3D > fj1 = shared_ptr< kte::free_joint_3D >(new kte::free_joint_3D(
-      "",
-      f1,
-      f2,
-      f3
-    ));
-    
-    (*d_chain) << spr1 << dmp1 << fj1;
-    
-    sg << (*d_chain);
+    sg << (*r_info.kin_chain);
+    sg << (*lab_geom_model) << (*airship_geom_model);
+    sg << geom::coord_arrows_3D("target_arrows",r_info.airship_frame,r_info.target_frame,0.3);
 #else
     
     sg << (*r_info.builder.get_geometric_model());

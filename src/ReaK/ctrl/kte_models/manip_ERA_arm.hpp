@@ -61,11 +61,13 @@ class manip_ERA_kinematics : public inverse_kinematics_model {
     vect_n<double> joint_lower_bounds;
     vect_n<double> joint_upper_bounds;
     
+    shared_ptr< kte_map_chain > getKTEChain() const { return m_chain; };
+    
     /**
      * Default constructor.
      */
     manip_ERA_kinematics(const std::string& aName = "",
-                         const shared_ptr< frame_3D<double> >& aBaseFrame = shared_ptr< frame_3D<double> >(),
+                         const shared_ptr< frame_3D<double> >& aBaseFrame = shared_ptr< frame_3D<double> >(new frame_3D<double>()),
                          const vect_n<double>& aLinkLengths = vect_n<double>(1.228, 0.340, 4.072, 4.072, 0.340, 1.228), 
                          const vect<double,3>& aPreferredElbowDir = (vect<double,3>(0.0, 1.0, 0.0)), 
                          const vect_n<double>& aJointLowerBounds = vect_n<double>(-M_PI, -0.75 * M_PI, -0.75 * M_PI, -0.75 * M_PI, -0.75 * M_PI, -0.75 * M_PI, -M_PI),
