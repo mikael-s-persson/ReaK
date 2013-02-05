@@ -61,6 +61,8 @@ class manip_SSRMS_kinematics : public inverse_kinematics_model {
     vect_n<double> joint_lower_bounds;
     vect_n<double> joint_upper_bounds;
     
+    shared_ptr< kte_map_chain > getKTEChain() const { return m_chain; };
+    
     /**
      * Default constructor.
      */

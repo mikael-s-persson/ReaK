@@ -10,6 +10,7 @@
 
 #include "kte_models/inverse_kinematics_model.hpp"
 #include "kte_models/manip_ERA_arm.hpp"
+#include "kte_models/manip_SSRMS_arm.hpp"
 
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
@@ -33,7 +34,8 @@
 using namespace ReaK;
 
 struct all_robot_info {
-  kte::manip_ERA_kinematics builder;
+//   kte::manip_ERA_kinematics builder;
+  kte::manip_SSRMS_kinematics builder;
   shared_ptr< kte::kte_map_chain > kin_chain;
   shared_ptr< frame_3D<double> > target_frame;
 };

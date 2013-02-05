@@ -284,168 +284,77 @@ void manip_ERA_kinematics::doInverseMotion() {
   vect<double,3> EE_z_axis = EE_fr.Quat * vect_k;
   wrist_to_wrist -= link_lengths[5] * EE_z_axis;
   
-  vect<double,3> w1_y_axis = vect<double,3>(wrist_to_wrist[0],wrist_to_wrist[1],0.0);
-  double w1_y_dist = norm_2(w1_y_axis);
-  vect<double,3> w2_y_axis = wrist_to_wrist - (wrist_to_wrist * EE_z_axis) * EE_z_axis;
-  double w2_y_dist = norm_2(w2_y_axis);
+  vect<double,3> w1_y_axis = preferred_elbow_dir;
+  vect<double,3> w2_y_axis = preferred_elbow_dir;
   
-  vect<double,3> shoulder_to_shoulder = wrist_to_wrist;
-  double a3_offset = 0.0; // these are the angles when the arm is fully stretched from shoulder to shoulder.
-  double a5_offset = 0.0;
-  if((w1_y_dist < pos_epsilon) && (w2_y_dist < pos_epsilon)) {
-    // this is a singularity where the two wrists are aligned.
-    shoulder_to_shoulder -= vect<double,3>(0.0,0.0,link_lengths[1]) + link_lengths[4] * EE_z_axis;
-    m_joints[1]->q = 0.0;
-    m_joints[5]->q = 0.0;
-    
-    // at this point, there is a degree of freedom in the 1 and 7 joints that determines arm-plane.
-    double c1 =  preferred_elbow_dir[1];  // preferred elbow direction is the joint-2 axis.
-    double s1 = -preferred_elbow_dir[0];
-    m_joints[0]->q = atan2(s1, c1);
-    
-    double c7 =  preferred_elbow_dir * EE_y_axis;  // preferred elbow direction is the joint-6 axis.
-    double s7 =  preferred_elbow_dir * EE_x_axis;
-    m_joints[6]->q = atan2(s7, c7);
-    
-  } else if(w1_y_dist < pos_epsilon) {
-    // this is a singularity where the wrist has to be straight.
-    // at this point, there is a degree of freedom in the 1 and 7 joints that determines arm-plane.
-    shoulder_to_shoulder -= vect<double,3>(0.0,0.0,link_lengths[1]);
-    m_joints[1]->q = 0.0;
-    
-    double c1 =  preferred_elbow_dir[1];  // preferred elbow direction is the joint-2 axis.
-    double s1 = -preferred_elbow_dir[0];
-    m_joints[0]->q = atan2(s1, c1);
-    
-    if(preferred_elbow_dir * w2_y_axis < 0.0)
-      w2_y_axis = -w2_y_axis;
-    w2_y_axis *= (1.0 / w2_y_dist);
-    double c7 =  w2_y_axis * EE_y_axis;
-    double s7 =  w2_y_axis * EE_x_axis;
-    m_joints[6]->q = atan2(s7, c7);
-    
-    vect<double,3> w2_x_axis = unit(preferred_elbow_dir % shoulder_to_shoulder);
-    double c6 =  w2_x_axis * EE_x_axis;
-    double s6 =  w2_x_axis * EE_z_axis;
-    m_joints[5]->q = atan2(s6, c6);
-    vect<double,3> w2_z_axis = axis_angle<double>(m_joints[5]->q, w2_y_axis).getQuaternion() * EE_z_axis;
-    shoulder_to_shoulder -= link_lengths[4] * w2_z_axis;
-    
-    a3_offset = atan2(-shoulder_to_shoulder * preferred_elbow_dir, shoulder_to_shoulder[2]);
-    a5_offset = atan2( shoulder_to_shoulder * w2_y_axis, shoulder_to_shoulder * w2_z_axis);
-    
-  } else if(w2_y_dist < pos_epsilon) {
-    // this is a singularity where the wrist has to be straight.
-    shoulder_to_shoulder -= link_lengths[4] * EE_z_axis;
-    m_joints[5]->q = 0.0;
-    
-    double c7 =  preferred_elbow_dir * EE_y_axis;  // preferred elbow direction is the joint-6 axis.
-    double s7 =  preferred_elbow_dir * EE_x_axis;
-    m_joints[6]->q = atan2(s7, c7);
-    
-    // at this point, there is a degree of freedom in the 1 and 7 joints that determines arm-plane.
-    
-    if(preferred_elbow_dir * w1_y_axis < 0.0)
-      w1_y_axis = -w1_y_axis;
-    w1_y_axis *= (1.0 / w1_y_dist);
-    double c1 =  w1_y_axis[1];
-    double s1 = -w1_y_axis[0];
-    m_joints[0]->q = atan2(s1, c1);
-    
-    vect<double,3> w1_x_axis = unit(preferred_elbow_dir % shoulder_to_shoulder);
-    double c2 =  w1_x_axis[0];
-    double s2 = -w1_x_axis[2];
-    m_joints[1]->q = atan2(s2, c2);
-    vect<double,3> w1_z_axis = axis_angle<double>(m_joints[1]->q, w1_y_axis).getQuaternion() * vect<double,3>(0.0,0.0,1.0);
-    shoulder_to_shoulder -= link_lengths[1] * w1_z_axis;
-    
-    a3_offset = atan2(-shoulder_to_shoulder * w1_y_axis, shoulder_to_shoulder * w1_z_axis);
-    a5_offset = atan2( shoulder_to_shoulder * preferred_elbow_dir, shoulder_to_shoulder * EE_z_axis);
-    
-  } else {
-    std::cout << "wrist to wrist = " << shoulder_to_shoulder << std::endl;
-    
-    if(1.0 - fabs(EE_z_axis[2]) < pos_epsilon) {
+//   std::cout << "wrist to wrist = " << wrist_to_wrist << std::endl;
+  
+  if(1.0 - fabs(EE_z_axis[2]) > pos_epsilon) {
+    double d = wrist_to_wrist * EE_z_axis;
+    double denom = EE_z_axis[0] * EE_z_axis[0] + EE_z_axis[1] * EE_z_axis[1];
+    w1_y_axis[0] = EE_z_axis[0] * d / denom; 
+    w1_y_axis[1] = EE_z_axis[1] * d / denom; 
+    w1_y_axis[2] = 0.0; 
+    w2_y_axis = w1_y_axis - wrist_to_wrist;
+    double w1_y_dist = norm_2(w1_y_axis);
+    double w2_y_dist = norm_2(w2_y_axis);
+    if(w1_y_dist < pos_epsilon)
       w1_y_axis = preferred_elbow_dir;
+    else
+      w1_y_axis *= (1.0 / w1_y_dist);
+    if(w2_y_dist < pos_epsilon)
       w2_y_axis = preferred_elbow_dir;
-    } else {
-      double d = wrist_to_wrist * EE_z_axis;
-      double denom = EE_z_axis[0] * EE_z_axis[0] + EE_z_axis[1] * EE_z_axis[1];
-      w1_y_axis[0] = EE_z_axis[0] * d / denom; 
-      w1_y_axis[1] = EE_z_axis[1] * d / denom; 
-      w1_y_axis[2] = 0.0; 
-      w2_y_axis = w1_y_axis - wrist_to_wrist;
-      w1_y_dist = norm_2(w1_y_axis);
-      w2_y_dist = norm_2(w2_y_axis);
-      if(w1_y_dist < pos_epsilon)
-        w1_y_axis = preferred_elbow_dir;
-      else
-        w1_y_axis *= (1.0 / w1_y_dist);
-      if(w2_y_dist < pos_epsilon)
-        w2_y_axis = preferred_elbow_dir;
-      else
-        w2_y_axis *= (1.0 / w2_y_dist);
-//       if(preferred_elbow_dir * w1_y_axis < 0.0)
-//         w1_y_axis = -w1_y_axis;
-//       if(preferred_elbow_dir * w2_y_axis < 0.0)
-//         w2_y_axis = -w2_y_axis;
-    };
-    
-//     w1_y_axis = vect<double,3>(0.0,0.0,1.0) % EE_z_axis;
-//     w1_y_dist = norm_2(w1_y_axis);
-//     if(w1_y_dist < pos_epsilon)
-//       w1_y_axis = preferred_elbow_dir;
-//     else
-//       w1_y_axis *= (1.0 / w1_y_dist);
+    else
+      w2_y_axis *= (1.0 / w2_y_dist);
 //     if(preferred_elbow_dir * w1_y_axis < 0.0)
 //       w1_y_axis = -w1_y_axis;
-//     w2_y_axis = w1_y_axis;
-    
-    // generic case.
-//     if(preferred_elbow_dir * w1_y_axis < 0.0)
-//       w1_y_axis = -w1_y_axis;
-//     w1_y_axis *= (1.0 / w1_y_dist);
-    double c1 =  w1_y_axis[1];
-    double s1 = -w1_y_axis[0];
-    m_joints[0]->q = atan2(s1, c1);
-    std::cout << "w1 y-axis = " << w1_y_axis << std::endl;
-    
 //     if(preferred_elbow_dir * w2_y_axis < 0.0)
 //       w2_y_axis = -w2_y_axis;
-//     w2_y_axis *= (1.0 / w2_y_dist);
-    double c7 =  w2_y_axis * EE_y_axis;
-    double s7 = -w2_y_axis * EE_x_axis;
-    m_joints[6]->q = atan2(s7, c7);
-    std::cout << "w2 y-axis = " << w2_y_axis << std::endl;
-    
-    vect<double,3> w1_x_axis = unit(w1_y_axis % wrist_to_wrist);
-    vect<double,3> w1_z_axis = w1_x_axis % w1_y_axis;
-    std::cout << "w1 x-axis = " << w1_x_axis << std::endl;
-    double c2 =  w1_x_axis[0] * w1_y_axis[1] - w1_x_axis[1] * w1_y_axis[0];
-    double s2 = -w1_x_axis[2];
-    m_joints[1]->q = atan2(s2, c2);
-    shoulder_to_shoulder -= link_lengths[1] * w1_z_axis;
-    std::cout << "w1 z-axis = " << w1_z_axis << std::endl;
-    
-    vect<double,3> w2_x_axis = unit(w2_y_axis % wrist_to_wrist);
-    vect<double,3> w2_z_axis = w2_x_axis % w2_y_axis;
-    std::cout << "w2 x-axis = " << w2_x_axis << std::endl;
-    double c6 =  w2_x_axis * (w2_y_axis % EE_z_axis);
-    double s6 =  w2_x_axis * EE_z_axis;
-    m_joints[5]->q = atan2(s6, c6);
-    shoulder_to_shoulder -= link_lengths[4] * w2_z_axis;
-    std::cout << "w2 z-axis = " << w2_z_axis << std::endl;
-    
-    std::cout << "shouder-to-shoulder = " << shoulder_to_shoulder << std::endl;
-    
-    a3_offset = atan2(-shoulder_to_shoulder * w1_y_axis, shoulder_to_shoulder * w1_z_axis);
-    a5_offset = atan2( shoulder_to_shoulder * w2_y_axis, shoulder_to_shoulder * w2_z_axis);
-    
   };
   
-  double s2s_dist_sqr = shoulder_to_shoulder[0] * shoulder_to_shoulder[0]
-                      + shoulder_to_shoulder[1] * shoulder_to_shoulder[1]
-                      + shoulder_to_shoulder[2] * shoulder_to_shoulder[2];
+  vect<double,3> w1_x_axis = unit(w1_y_axis % wrist_to_wrist);
+  vect<double,3> w1_z_axis = w1_x_axis % w1_y_axis;
+  if(w1_z_axis[2] < 0.0) {
+    w1_y_axis = -w1_y_axis;
+    w1_z_axis = -w1_z_axis;
+  };
+//   std::cout << "w1 x-axis = " << w1_x_axis << std::endl;
+//   std::cout << "w1 y-axis = " << w1_y_axis << std::endl;
+//   std::cout << "w1 z-axis = " << w1_z_axis << std::endl;
+  
+  double c1 =  w1_y_axis[1];
+  double s1 = -w1_y_axis[0];
+  m_joints[0]->q = atan2(s1, c1);
+  
+  double c2 =  w1_x_axis[0] * w1_y_axis[1] - w1_x_axis[1] * w1_y_axis[0];
+  double s2 = -w1_x_axis[2];
+  m_joints[1]->q = atan2(s2, c2);
+  
+  vect<double,3> w2_x_axis = unit(w2_y_axis % wrist_to_wrist);
+  vect<double,3> w2_z_axis = w2_x_axis % w2_y_axis;
+  if(w2_z_axis * EE_z_axis < 0.0) {
+    w2_y_axis = -w2_y_axis;
+    w2_z_axis = -w2_z_axis;
+  };
+//   std::cout << "w2 x-axis = " << w2_x_axis << std::endl;
+//   std::cout << "w2 y-axis = " << w2_y_axis << std::endl;
+//   std::cout << "w2 z-axis = " << w2_z_axis << std::endl;
+  
+  double c7 =  w2_y_axis * EE_y_axis;
+  double s7 = -w2_y_axis * EE_x_axis;
+  m_joints[6]->q = atan2(s7, c7);
+  
+  double c6 =  w2_x_axis * (w2_y_axis % EE_z_axis);
+  double s6 =  w2_x_axis * EE_z_axis;
+  m_joints[5]->q = atan2(s6, c6);
+  
+  vect<double,3> shoulder_to_shoulder = wrist_to_wrist - link_lengths[4] * w2_z_axis - link_lengths[1] * w1_z_axis;
+//   std::cout << "shouder-to-shoulder = " << shoulder_to_shoulder << std::endl;
+  
+  double a3_offset = atan2(-shoulder_to_shoulder * w1_y_axis, shoulder_to_shoulder * w1_z_axis);
+  double a5_offset = atan2( shoulder_to_shoulder * w2_y_axis, shoulder_to_shoulder * w2_z_axis);
+  
+  double s2s_dist_sqr = shoulder_to_shoulder * shoulder_to_shoulder;
   if(s2s_dist_sqr > (wrist_to_wrist_dist - extend_epsilon) * (wrist_to_wrist_dist - extend_epsilon))
     throw optim::infeasible_problem("Inverse kinematics problem is infeasible! End-effector pose is out-of-reach! Desired wrist position is outside the spherical workspace envelope (fully-extended arm).");
   
@@ -459,6 +368,13 @@ void manip_ERA_kinematics::doInverseMotion() {
   m_joints[2]->q = clamp_to_pi_range( acos(c3) + a3_offset );
   m_joints[3]->q = -acos(c4);
   m_joints[4]->q = clamp_to_pi_range( acos(c5) + a5_offset );
+  
+  if((fabs( clamp_to_pi_range( -acos(c3) + a3_offset ) ) < fabs(m_joints[2]->q)) ||
+     (fabs( clamp_to_pi_range( -acos(c5) + a5_offset ) ) < fabs(m_joints[4]->q))) {
+    m_joints[2]->q = clamp_to_pi_range( -acos(c3) + a3_offset );
+    m_joints[3]->q = acos(c4);
+    m_joints[4]->q = clamp_to_pi_range( -acos(c5) + a5_offset );
+  };
   
   // then, use the solution to compute the jacobian matrix:
   mat<double,mat_structure::rectangular> jac(6,7);
