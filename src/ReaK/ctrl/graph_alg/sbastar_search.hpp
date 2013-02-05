@@ -54,6 +54,8 @@
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
+#include <boost/graph/exception.hpp>
+#include <boost/graph/detail/d_ary_heap.hpp>
 
 #include "bgl_more_property_maps.hpp"
 #include "bgl_more_property_tags.hpp"
@@ -363,7 +365,6 @@ namespace graph {
         double f_u = g_u + h_u;   // <--- no relaxation.
 //         double f_u = g_u + 5.0 * h_u;   // <--- with relaxation.
         // Key-value for the min-heap (priority-queue):
-        // key[u]  =  P( collision | N(u) ) * (1 - P( surprise | N(u) ) ) * total-distance 
         put(m_key, u, (1.0 - get(m_constriction, u)) * (1.0 - get(m_density, u)) / f_u);
       };
 
@@ -457,6 +458,7 @@ namespace graph {
           bfs_vis.examine_vertex(u, g);
           
           // stop if the best node does not meet the potential threshold.
+//           std::cout << "\rTop key is: " << std::setw(10) << (get(key,u) * f_min) << std::flush;
           if( (get(key, u) < potential_threshold / f_min) ) {
             while(!Q.empty())
               Q.pop();

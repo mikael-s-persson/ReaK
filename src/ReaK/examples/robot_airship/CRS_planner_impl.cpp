@@ -61,6 +61,8 @@
 #include "CRS_rrt_planners.hpp"
 #include "CRS_rrtstar_planners.hpp"
 #include "CRS_prm_planners.hpp"
+#include "CRS_fadprm_planners.hpp"
+#include "CRS_sbastar_planners.hpp"
 
 #include "optimization/optim_exceptions.hpp"
 
@@ -734,6 +736,71 @@ void CRSPlannerGUI::executePlanner() {
         r_info.builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
         r_info.kin_chain->doMotion();
   
+#define RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(WORKSPACE) \
+        ReaK::pp::fadprm_path_planner<WORKSPACE, frame_reporter_type> \
+          workspace_planner( \
+            workspace, \
+            start_point, \
+            goal_point, \
+            0.1, \
+            max_vertices, \
+            prog_interval, \
+            store_policy, \
+            knn_method, \
+            temp_reporter, \
+            max_results); \
+         \
+        workspace_planner.solve_path(); \
+         \
+        mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
+        mg_sep->ref(); \
+        for(std::size_t i = 0; i < workspace_planner.get_reporter().get_solution_count(); ++i) { \
+          sol_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
+          sol_seps.back()->ref(); \
+        }; \
+         \
+        r_info.builder.track_joint_coord->q = get<0>(start_inter)[0]; \
+        r_info.builder.arm_joint_1_coord->q = get<0>(start_inter)[1]; \
+        r_info.builder.arm_joint_2_coord->q = get<0>(start_inter)[2]; \
+        r_info.builder.arm_joint_3_coord->q = get<0>(start_inter)[3]; \
+        r_info.builder.arm_joint_4_coord->q = get<0>(start_inter)[4]; \
+        r_info.builder.arm_joint_5_coord->q = get<0>(start_inter)[5]; \
+        r_info.builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
+        r_info.kin_chain->doMotion();
+  
+#define RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(WORKSPACE) \
+        ReaK::pp::sbastar_path_planner<WORKSPACE, frame_reporter_type> \
+          workspace_planner( \
+            workspace, \
+            start_point, \
+            goal_point, \
+            0.9, \
+            max_travel, \
+            max_vertices, \
+            prog_interval, \
+            store_policy, \
+            knn_method, \
+            temp_reporter, \
+            max_results); \
+         \
+        workspace_planner.solve_path(); \
+         \
+        mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
+        mg_sep->ref(); \
+        for(std::size_t i = 0; i < workspace_planner.get_reporter().get_solution_count(); ++i) { \
+          sol_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
+          sol_seps.back()->ref(); \
+        }; \
+         \
+        r_info.builder.track_joint_coord->q = get<0>(start_inter)[0]; \
+        r_info.builder.arm_joint_1_coord->q = get<0>(start_inter)[1]; \
+        r_info.builder.arm_joint_2_coord->q = get<0>(start_inter)[2]; \
+        r_info.builder.arm_joint_3_coord->q = get<0>(start_inter)[3]; \
+        r_info.builder.arm_joint_4_coord->q = get<0>(start_inter)[4]; \
+        r_info.builder.arm_joint_5_coord->q = get<0>(start_inter)[5]; \
+        r_info.builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
+        r_info.kin_chain->doMotion();
+  
   
   
   
@@ -804,9 +871,7 @@ void CRSPlannerGUI::executePlanner() {
       };
       
     }; break;
-    case 2:  // RRG
-    { };// break;
-    case 3:  // PRM
+    case 2:  // PRM
     {
       
       if((space_order == 0) && (interp_id == 0)) { 
@@ -839,10 +904,80 @@ void CRSPlannerGUI::executePlanner() {
       };
       
     }; break;
-    case 4:  // PRM*
-    { };// break;
-    case 5:  // FADPRM
-    { };// break;
+    case 3:  // SBA*
+    { 
+      
+      if((space_order == 0) && (interp_id == 0)) { 
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(ReaK::robot_airship::CRS3D_workspace_o0_i1_type)
+        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o0_i1_type)
+      } else if((space_order == 1) && (interp_id == 0)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(ReaK::robot_airship::CRS3D_workspace_o1_i1_type)
+        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o1_i1_type)
+      } else if((space_order == 2) && (interp_id == 0)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_i1_type)
+        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_i1_type)
+      } else if((space_order == 1) && (interp_id == 1)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(ReaK::robot_airship::CRS3D_workspace_o1_i3_type)
+        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o1_i3_type)
+      } else if((space_order == 2) && (interp_id == 1)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_i3_type)
+        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_i3_type)
+      } else if((space_order == 2) && (interp_id == 2)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_i5_type)
+        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_i5_type)
+      } else if((space_order == 1) && (interp_id == 3)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(ReaK::robot_airship::CRS3D_workspace_o1_svp_type)
+        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o1_svp_type)
+      } else if((space_order == 2) && (interp_id == 3)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_svp_type)
+        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_svp_type)
+      } else if((space_order == 2) && (interp_id == 4)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_sap_type)
+        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_sap_type)
+      };
+      
+    }; break;
+    case 4:  // FADPRM
+    { 
+      
+      if((space_order == 0) && (interp_id == 0)) { 
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(ReaK::robot_airship::CRS3D_workspace_o0_i1_type)
+        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o0_i1_type)
+      } else if((space_order == 1) && (interp_id == 0)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(ReaK::robot_airship::CRS3D_workspace_o1_i1_type)
+        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o1_i1_type)
+      } else if((space_order == 2) && (interp_id == 0)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_i1_type)
+        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_i1_type)
+      } else if((space_order == 1) && (interp_id == 1)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(ReaK::robot_airship::CRS3D_workspace_o1_i3_type)
+        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o1_i3_type)
+      } else if((space_order == 2) && (interp_id == 1)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_i3_type)
+        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_i3_type)
+      } else if((space_order == 2) && (interp_id == 2)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_i5_type)
+        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_i5_type)
+      } else if((space_order == 1) && (interp_id == 3)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(ReaK::robot_airship::CRS3D_workspace_o1_svp_type)
+        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o1_svp_type)
+      } else if((space_order == 2) && (interp_id == 3)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_svp_type)
+        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_svp_type)
+      } else if((space_order == 2) && (interp_id == 4)) {
+        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(ReaK::robot_airship::CRS3D_workspace_o2_sap_type)
+        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(ReaK::robot_airship::CRS3D_workspace_o2_sap_type)
+      };
+      
+    }; break;
+    case 5:  // LSBA*
+    { 
+      
+    };// break;
+    case 6:  // ???
+    { 
+      
+    };// break;
     default:
       QMessageBox::information(this,
                   "Planner Not Supported!",

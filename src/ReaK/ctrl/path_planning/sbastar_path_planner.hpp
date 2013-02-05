@@ -457,6 +457,7 @@ struct sbastar_planner_visitor {
   
   template <typename Graph>
   void publish_path(const Graph& g) const {
+//     std::cout << "Publishing path..." << std::endl;
     // try to create a goal connection path
     m_planner->create_solution_path(m_start_node, m_goal_node, g); 
   };

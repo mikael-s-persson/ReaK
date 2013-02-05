@@ -1558,7 +1558,7 @@ int main(int argc, char** argv) {
         world_map, 
         world_map->get_start_pos(), 
         world_map->get_goal_pos(),
-        0.75,
+        0.9,
         world_map->get_max_edge_length(),
         max_vertices, 
         10,

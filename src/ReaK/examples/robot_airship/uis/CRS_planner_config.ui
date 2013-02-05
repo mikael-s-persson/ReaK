@@ -35,7 +35,7 @@
       <enum>QTabWidget::South</enum>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="TopologyTab">
       <attribute name="title">
@@ -272,22 +272,22 @@
          </item>
          <item>
           <property name="text">
-           <string>Rapidly-Exploring Random Graph (RRG)</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
            <string>Probabilistic Road-Map (PRM)</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>Probabilistic Road-Map Star (PRM*)</string>
+           <string>Sampling-based A* (SBA*)</string>
           </property>
          </item>
          <item>
           <property name="text">
            <string>Flexible Anytime-Dynamic PRM (FADPRM)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Lazy Sampling-based A* (LSBA*)</string>
           </property>
          </item>
         </widget>
