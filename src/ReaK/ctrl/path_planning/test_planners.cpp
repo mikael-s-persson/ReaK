@@ -406,6 +406,7 @@ int main(int argc, char** argv) {
   };
   std::cout << "Done!" << std::endl;
   
+#endif
   
   std::cout << "Outputting RRT with Uni-dir, adj-list, dvp-bf2..." << std::endl;
   {
@@ -415,12 +416,12 @@ int main(int argc, char** argv) {
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
                max_vertices, 
-               100,
+               10,
                ReaK::pp::UNIDIRECTIONAL_RRT,
                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_BF2_TREE_KNN,
                ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt/" + world_file_name_only + "_", 5),
-               10);
+               100);
     
     rrt_plan.solve_path();
     
@@ -428,7 +429,7 @@ int main(int argc, char** argv) {
   std::cout << "Done!" << std::endl;
   
   
-  
+#if 0
   
   
   /**********************************************************************************
@@ -1143,7 +1144,7 @@ int main(int argc, char** argv) {
   };
   };
   std::cout << "Done!" << std::endl;
-  
+#endif
   
   std::cout << "Outputting PRM with dvp-adj-list-cob4..." << std::endl;
   {
@@ -1153,7 +1154,7 @@ int main(int argc, char** argv) {
                world_map->get_start_pos(), 
                world_map->get_goal_pos(),
                max_vertices, 
-               100,
+               10,
                ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_ALT_COB4_KNN,
                ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/prm/" + world_file_name_only + "_", 5),
@@ -1165,7 +1166,7 @@ int main(int argc, char** argv) {
   std::cout << "Done!" << std::endl;
   
   
-  
+#if 0
   
   
   
@@ -1524,6 +1525,7 @@ int main(int argc, char** argv) {
   };
   std::cout << "Done!" << std::endl;
   
+  
   std::cout << "Outputting FADPRM with adj-list dvp-bf2..." << std::endl;
   {
     
@@ -1534,7 +1536,7 @@ int main(int argc, char** argv) {
         world_map->get_goal_pos(),
         0.1,
         max_vertices, 
-        100,
+        10,
         ReaK::pp::ADJ_LIST_MOTION_GRAPH,
         ReaK::pp::DVP_BF2_TREE_KNN,
         ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/fadprm/" + world_file_name_only + "_", 5),
@@ -1923,6 +1925,7 @@ int main(int argc, char** argv) {
   };
   std::cout << "Done!" << std::endl;
   
+#endif
   
   
   std::cout << "Outputting RRT* with Uni-dir, adj-list, dvp-bf4..." << std::endl;
@@ -1933,18 +1936,17 @@ int main(int argc, char** argv) {
                    world_map->get_start_pos(), 
                    world_map->get_goal_pos(),
                    max_vertices, 
-                   100,
+                   10,
                    ReaK::pp::UNIDIRECTIONAL_RRT,
                    ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                    ReaK::pp::DVP_BF4_TREE_KNN,
                    ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt_star/" + world_file_name_only + "_", 5),
-                   10);
+                   50);
     
     rrtstar_plan.solve_path();
     
   };
   std::cout << "Done!" << std::endl;
-#endif
   
   
   return 0;
