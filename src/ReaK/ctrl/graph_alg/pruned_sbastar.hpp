@@ -113,135 +113,174 @@ namespace graph {
       typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-        typedef typename Graph::vertex_bundled VertexProp;        //TODO: Add pruning here.
+        typedef typename Graph::vertex_bundled VertexProp;
         
         typedef boost::composite_property_map< 
           PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-        GraphPositionMap g_position = GraphPositionMap(m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
+        GraphPositionMap g_position = GraphPositionMap(this->m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
         
         std::vector<Vertex> Nc;
-        m_select_neighborhood(p, std::back_inserter(Nc), g, m_free_space, g_position); 
+        this->m_select_neighborhood(p, std::back_inserter(Nc), g, this->m_free_space, g_position); 
         
         VertexProp up;
-        put(m_position, up, p);
+        put(this->m_position, up, p);
 #ifdef RK_ENABLE_CXX0X_FEATURES
         Vertex u = add_vertex(std::move(up), g);
 #else
         Vertex u = add_vertex(up, g);
 #endif
-        m_vis.vertex_added(u,g);
-        put(m_color, u, Color::white());
-        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
-        put(m_distance, u, std::numeric_limits<double>::infinity());
-        put(m_key, u, 0.0);
-        put(m_predecessor, u, u);
+        this->m_vis.vertex_added(u,g);
+        put(this->m_color, u, Color::white());
+        put(this->m_index_in_heap, u, static_cast<std::size_t>(-1));
+        put(this->m_distance, u, std::numeric_limits<double>::infinity());
+        put(this->m_key, u, 0.0);
+        put(this->m_predecessor, u, u);
         
         for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
-          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
+          this->m_vis.travel_explored(u, *it, g);
+          if(get(ReaK::pp::distance_metric, this->m_free_space)(get(this->m_position,g[*it]), p, this->m_free_space) != std::numeric_limits<double>::infinity()) {
+            this->m_vis.travel_succeeded(u, *it, g);
             //this means that u is reachable from *it.
             std::pair<Edge, bool> ep = add_edge(*it,u,g); 
             if(ep.second) { 
-              m_vis.edge_added(ep.first, g); 
-              // TODO: Replace the update_vertex call with something that checks if the added edge adds any value, if not, remove it immediately (after edge_added).
-              update_vertex(*it,g);
+              this->m_vis.edge_added(ep.first, g); 
+              double g_in = get(this->m_weight, ep.first) + get(this->m_distance, u);
+              double g_out = get(this->m_weight, ep.first) + get(this->m_distance, *it);
+              bool is_useful = false;
+              if(g_in < get(this->m_distance, *it)) {
+                // edge is useful as an in-edge to (*it).
+                put(this->m_distance, *it, g_in);
+                Vertex old_pred = get(this->m_predecessor, *it);
+                put(this->m_predecessor, *it, u); 
+                this->m_vis.edge_relaxed(ep.first, g);
+                remove_edge(old_pred, *it, g);
+                is_useful = true;
+              };
+              if(g_out < get(this->m_distance, u)) {
+                // edge is useful as an in-edge to u.
+                put(this->m_distance, u, g_out);
+                Vertex old_pred = get(this->m_predecessor, u);
+                put(this->m_predecessor, u, *it); 
+                this->m_vis.edge_relaxed(ep.first, g);
+                remove_edge(old_pred, u, g);
+                is_useful = true;
+              };
+              if(!is_useful) {
+                remove_edge(ep.first, g);
+              };
+              update_key(*it, g); 
+              put(this->m_color, *it, Color::gray()); 
+              this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
             };
+          } else {
+            this->m_vis.travel_failed(u, *it, g);
           };
         }; 
-        update_vertex(u,g);
+        update_key(u,g); 
+        put(this->m_color, u, Color::gray()); 
+        this->m_Q.push(u);                 this->m_vis.discover_vertex(u, g);
       };
       template <class Graph>
       typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-        typedef typename Graph::vertex_bundled VertexProp;        //TODO: Add pruning here.
+        typedef typename Graph::vertex_bundled VertexProp;
         
         typedef boost::composite_property_map< 
           PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-        GraphPositionMap g_position = GraphPositionMap(m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
+        GraphPositionMap g_position = GraphPositionMap(this->m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
         
         std::vector<Vertex> Pred, Succ;
-        m_select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, m_free_space, g_position); 
+        this->m_select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, this->m_free_space, g_position); 
         
         VertexProp up;
-        put(m_position, up, p);
+        put(this->m_position, up, p);
 #ifdef RK_ENABLE_CXX0X_FEATURES
         Vertex u = add_vertex(std::move(up), g);
 #else
         Vertex u = add_vertex(up, g);
 #endif
-        m_vis.vertex_added(u,g); 
-        put(m_color, u, Color::white());
-        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
-        put(m_distance, u, std::numeric_limits<double>::infinity());
-        put(m_key, u, 0.0);
-        put(m_predecessor, u, u);
+        this->m_vis.vertex_added(u,g); 
+        put(this->m_color, u, Color::white());
+        put(this->m_index_in_heap, u, static_cast<std::size_t>(-1));
+        put(this->m_distance, u, std::numeric_limits<double>::infinity());
+        put(this->m_key, u, 0.0);
+        put(this->m_predecessor, u, u);
         
         for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
-          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
+          this->m_vis.travel_explored(*it, u, g);
+          if(get(ReaK::pp::distance_metric, this->m_free_space)(get(this->m_position,g[*it]), p, this->m_free_space) != std::numeric_limits<double>::infinity()) {
+            this->m_vis.travel_succeeded(*it, u, g);
             //this means that u is reachable from *it.
             std::pair<Edge, bool> ep = add_edge(*it, u, g); 
             if(ep.second) {
-              m_vis.edge_added(ep.first, g); 
-              // TODO: Replace the update_vertex call with something that checks if the added edge adds any value, if not, remove it immediately (after edge_added).
-              update_vertex(*it, g);
+              this->m_vis.edge_added(ep.first, g); 
+              double g_out = get(this->m_weight, ep.first) + get(this->m_distance, *it);
+              if(g_out < get(this->m_distance, u)) {
+                // edge is useful as an in-edge to u.
+                put(this->m_distance, u, g_out);
+                Vertex old_pred = get(this->m_predecessor, u);
+                put(this->m_predecessor, u, *it); 
+                this->m_vis.edge_relaxed(ep.first, g);
+                remove_edge(old_pred, u, g);
+              } else {
+                remove_edge(ep.first, g);
+              };
+              update_key(*it, g); 
+              put(this->m_color, *it, Color::gray()); 
+              this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
             };
+          } else {
+            this->m_vis.travel_failed(*it, u, g);
           };
         };
         
-        update_vertex(u, g);
+        update_key(u, g); 
+        put(this->m_color, u, Color::gray()); 
+        this->m_Q.push(u);                 this->m_vis.discover_vertex(u, g);
         
         for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(p, get(m_position,g[*it]), m_free_space) != std::numeric_limits<double>::infinity())) {
+          this->m_vis.travel_explored(u, *it, g);
+          if(get(ReaK::pp::distance_metric, this->m_free_space)(p, get(this->m_position,g[*it]), this->m_free_space) != std::numeric_limits<double>::infinity()) {
+            this->m_vis.travel_succeeded(u, *it, g);
             //this means that u is reachable from *it.
             std::pair<Edge, bool> ep = add_edge(u, *it, g); 
             if(ep.second) {
-              m_vis.edge_added(ep.first, g); 
-              // TODO: Replace the update_vertex call with something that checks if the added edge adds any value, if not, remove it immediately (after edge_added).
-              update_vertex(*it, g);
+              this->m_vis.edge_added(ep.first, g); 
+              double g_in = get(this->m_weight, ep.first) + get(this->m_distance, u);
+              if(g_in < get(this->m_distance, *it)) {
+                // edge is useful as an in-edge to *it.
+                put(this->m_distance, *it, g_in);
+                Vertex old_pred = get(this->m_predecessor, *it);
+                put(this->m_predecessor, *it, u); 
+                this->m_vis.edge_relaxed(ep.first, g);
+                remove_edge(old_pred, *it, g);
+              } else {
+                remove_edge(ep.first, g);
+              };
+              update_key(*it, g); 
+              put(this->m_color, *it, Color::gray()); 
+              this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
             };
+          } else {
+            this->m_vis.travel_failed(u, *it, g);
           };
         }; 
+        
+        update_key(u, g); 
+        put(this->m_color, u, Color::gray()); 
+        this->m_Q.update(u);                 this->m_vis.discover_vertex(u, g);
       };
       
       template <class Vertex, class Graph>
       void examine_vertex(Vertex u, Graph& g) {
-        m_vis.examine_vertex(u, g);
+        this->m_vis.examine_vertex(u, g);
         
-        std::pair< PositionValue, bool > p_new = m_vis.random_walk(u, g);
+        std::pair< PositionValue, bool > p_new = this->m_vis.random_walk(u, g);
         if(p_new.second)
           connect_vertex(p_new.first, g);
         
         update_key(u,g);
-      };
-      
-      template <class Vertex, class Graph>
-      void update_vertex(Vertex u, Graph& g) {        //TODO: Add pruning here. (MAYBE NOT: if the call is replaced in connect_vertex, then there might not be a reason to change this function).
-        boost::function_requires< boost::BidirectionalGraphConcept<Graph> >();
-        typedef typename boost::graph_traits<Graph>::in_edge_iterator InEdgeIter;
-        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-        
-        double g_u = get(m_distance, u); 
-        if(g_u != 0.0) {
-          g_u = std::numeric_limits<double>::infinity(); 
-          Vertex pred_u = get(m_predecessor, u);
-          Edge pred_e; 
-          InEdgeIter ei, ei_end;
-          for(boost::tie(ei,ei_end) = in_edges(u,g); ei != ei_end; ++ei) {
-            double g_tmp = get(m_weight, *ei) + get(m_distance, source(*ei,g)); 
-            if(g_tmp < g_u) {
-              g_u = g_tmp; 
-              put(m_distance, u, g_u);
-              put(m_predecessor, u, source(*ei,g)); 
-              pred_e = *ei;
-            };
-          };
-          g_u = get(m_distance, u); 
-          if(pred_u != get(m_predecessor, u))  m_vis.edge_relaxed(pred_e, g);
-        };
-        
-        update_key(u,g); 
-        put(m_color, u, Color::gray()); 
-        m_Q.push_or_update(u);                 m_vis.discover_vertex(u, g);
       };
       
     };

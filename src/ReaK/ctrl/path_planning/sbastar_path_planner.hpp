@@ -43,7 +43,9 @@
 #include "interpolation/point_to_point_path.hpp"
 #include "basic_sbmp_reporters.hpp"
 
-#include "graph_alg/sbastar_search.hpp"
+// #include "graph_alg/sbastar_search.hpp"
+// #include "graph_alg/pruned_sbastar.hpp"
+#include "graph_alg/lazy_sbastar.hpp"
 
 #include "graph_alg/d_ary_bf_tree.hpp"
 #include "graph_alg/d_ary_cob_tree.hpp"
@@ -366,14 +368,47 @@ struct sbastar_planner_visitor {
       g[target(e,g)].position,
       m_space->get_super_space());
     
-    double exp_value = exp(-g[e].astar_weight * g[e].astar_weight / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
-    
-    g[source(e,g)].density = (g[source(e,g)].expansion_trials * g[source(e,g)].density + exp_value) / (g[source(e,g)].expansion_trials + 1);
-    ++(g[source(e,g)].expansion_trials);
-    g[target(e,g)].density = (g[target(e,g)].expansion_trials * g[target(e,g)].density + exp_value) / (g[target(e,g)].expansion_trials + 1);
-    ++(g[target(e,g)].expansion_trials);
+//     double exp_value = exp(-g[e].astar_weight * g[e].astar_weight / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
+//     
+//     g[source(e,g)].density = (g[source(e,g)].expansion_trials * g[source(e,g)].density + exp_value) / (g[source(e,g)].expansion_trials + 1);
+//     ++(g[source(e,g)].expansion_trials);
+//     g[target(e,g)].density = (g[target(e,g)].expansion_trials * g[target(e,g)].density + exp_value) / (g[target(e,g)].expansion_trials + 1);
+//     ++(g[target(e,g)].expansion_trials);
     
   };
+  
+  template <typename Vertex, typename Graph>
+  void travel_explored(Vertex u, Vertex v, Graph& g) const { 
+    using std::exp;
+    double dist = get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space());
+    double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
+    
+    g[u].density = (g[u].expansion_trials * g[u].density + exp_value) / (g[u].expansion_trials + 1);
+    ++(g[u].expansion_trials);
+    g[v].density = (g[v].expansion_trials * g[v].density + exp_value) / (g[v].expansion_trials + 1);
+    ++(g[v].expansion_trials);
+  };
+  
+  template <typename Vertex, typename Graph>
+  void travel_succeeded(Vertex, Vertex, Graph&) const { 
+    // nothing to do (record explorations and failures only).
+  };
+  
+  template <typename Vertex, typename Graph>
+  void travel_failed(Vertex u, Vertex v, Graph& g) const { 
+    using std::log; using std::exp;
+    double dist = get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space());
+    // assume collision occured half-way.  
+    // assume a blob of collision half-way and occupying half of the interval between u and v (radius 1/4 of dist).
+    double sig2_n_x = 16.0 * (m_planner->get_sampling_radius() * m_planner->get_sampling_radius()) / (dist * dist);
+    double exp_D_KL = exp(-2.0 - 0.5 * m_space_dim * ( sig2_n_x - 1.0 - log(sig2_n_x) ) );
+    
+    g[u].constriction = (g[u].collision_count * g[u].constriction + exp_D_KL) / (g[u].collision_count + 1);
+    ++(g[u].collision_count);
+    g[v].constriction = (g[v].collision_count * g[v].constriction + exp_D_KL) / (g[v].collision_count + 1);
+    ++(g[v].collision_count);
+  };
+      
   
   bool keep_going() const {
     return m_planner->keep_going();
@@ -544,7 +579,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
     if(m_knn_flag == LINEAR_SEARCH_KNN) {
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
       
-      ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_pruned_sbastar(
+      ReaK::graph::generate_lazy_sbastar(
         motion_graph, goal_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
@@ -574,7 +611,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
       
-      ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_pruned_sbastar(
+      ReaK::graph::generate_lazy_sbastar(
         motion_graph, goal_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
@@ -604,7 +643,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
       
-      ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_pruned_sbastar(
+      ReaK::graph::generate_lazy_sbastar(
         motion_graph, goal_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
@@ -634,7 +675,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
       
-      ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_pruned_sbastar(
+      ReaK::graph::generate_lazy_sbastar(
         motion_graph, goal_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
@@ -664,7 +707,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
       
-      ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_pruned_sbastar(
+      ReaK::graph::generate_lazy_sbastar(
         motion_graph, goal_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
@@ -740,7 +785,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
       
-      ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_pruned_sbastar(
+      ReaK::graph::generate_lazy_sbastar(
         motion_graph, goal_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
@@ -812,7 +859,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
       
-      ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_pruned_sbastar(
+      ReaK::graph::generate_lazy_sbastar(
         motion_graph, goal_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
@@ -884,7 +933,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
       
-      ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_pruned_sbastar(
+      ReaK::graph::generate_lazy_sbastar(
         motion_graph, goal_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
@@ -956,7 +1007,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
       
-      ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_sbastar(
+//       ReaK::graph::generate_pruned_sbastar(
+      ReaK::graph::generate_lazy_sbastar(
         motion_graph, goal_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 

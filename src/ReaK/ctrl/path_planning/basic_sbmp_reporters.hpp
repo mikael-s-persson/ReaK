@@ -161,7 +161,7 @@ struct differ_sbmp_report_to_space : public shared_object {
     };
     
     std::stringstream ss;
-    ss << num_vertices(g);
+    ss << std::setw(6) << std::setfill('0') << num_vertices(g);
     free_space.save_output(file_path + "progress_" + ss.str());
     
     next_reporter.draw_motion_graph(free_space, g, pos);
@@ -191,7 +191,7 @@ struct differ_sbmp_report_to_space : public shared_object {
     };
     
     std::stringstream ss;
-    ss << (solution_count++) << "_" << (traj->get_end_time() - traj->get_start_time());
+    ss << std::setw(3) << std::setfill('0') << (solution_count++) << "_" << (traj->get_end_time() - traj->get_start_time());
     free_space.save_output(file_path + "solution_" + ss.str());
     
     next_reporter.draw_solution(free_space, traj);
@@ -221,7 +221,7 @@ struct differ_sbmp_report_to_space : public shared_object {
     };
     
     std::stringstream ss;
-    ss << (solution_count++) << "_" << total_dist;
+    ss << std::setw(3) << std::setfill('0') << (solution_count++) << "_" << total_dist;
     free_space.save_output(file_path + "solution_" + ss.str());
     
     next_reporter.draw_solution(free_space, p);

@@ -104,6 +104,12 @@ namespace graph {
    * 
    * vis.edge_added(e, g);  This function is called whenever a new edge (e) has been created between the last created vertex and its neighbor in the graph (g).
    * 
+   * vis.travel_explored(u, v, g);  This function is called whenever a source-destination pair of vertices have been matched for a potential edge between them.
+   * 
+   * vis.travel_succeeded(u, v, g);  This function is called whenever a source-destination pair of vertices led to a successful travel.
+   * 
+   * vis.travel_failed(u, v, g);  This function is called whenever a source-destination pair of vertices led to a failure to travel (e.g., a collision occurred).
+   * 
    * boost::tie(pt,b) = vis.random_walk(u, g);  This function is called to perform the expansion of the roadmap from a given vertex (u) in the graph (g). This function returns a newly generated position value that is a candidate to be added to the graph.
    * 
    * vis.examine_neighborhood(u, g);  This function is called to evaluate the probability-measures of the graph (g) around the given vertex (u). This value is used to prioritize the generation of new vertices by their potential.
@@ -128,6 +134,9 @@ namespace graph {
       b = vis.keep_going();          // check to see whether the task is finished (return false) or needs to keep going (true).
       vis.vertex_added(u, g); 
       vis.edge_added(e, g);
+      vis.travel_explored(u, u, g);
+      vis.travel_succeeded(u, u, g);
+      vis.travel_failed(u, u, g);
       boost::tie(pt,b) = vis.random_walk(u, g);
       vis.examine_neighborhood(u, g);
     }
@@ -180,6 +189,15 @@ namespace graph {
       
       template <typename Edge, typename Graph>
       void edge_added(Edge, const Graph&) const { };
+      
+      template <typename Vertex, typename Graph>
+      void travel_explored(Vertex, Vertex, const Graph&) const { };
+      
+      template <typename Vertex, typename Graph>
+      void travel_succeeded(Vertex, Vertex, const Graph&) const { };
+      
+      template <typename Vertex, typename Graph>
+      void travel_failed(Vertex, Vertex, const Graph&) const { };
       
       template <typename Vertex, typename Graph>
       std::pair<PointType, bool> random_walk(Vertex, const Graph&) const { return std::make_pair(PointType(), false); };
@@ -261,13 +279,17 @@ namespace graph {
         put(m_predecessor, u, u);
         
         for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
-          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
+          m_vis.travel_explored(u, *it, g);
+          if(get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity()) {
+            m_vis.travel_succeeded(u, *it, g);
             //this means that u is reachable from *it.
             std::pair<Edge, bool> ep = add_edge(*it,u,g); 
             if(ep.second) { 
               m_vis.edge_added(ep.first, g); 
               update_vertex(*it,g);
             };
+          } else {
+            m_vis.travel_failed(u, *it, g);
           };
         }; 
         update_vertex(u,g);
@@ -300,26 +322,34 @@ namespace graph {
         put(m_predecessor, u, u);
         
         for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
-          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
+          m_vis.travel_explored(*it, u, g);
+          if(get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity()) {
             //this means that u is reachable from *it.
+            m_vis.travel_succeeded(*it, u, g);
             std::pair<Edge, bool> ep = add_edge(*it, u, g); 
             if(ep.second) {
               m_vis.edge_added(ep.first, g); 
               update_vertex(*it, g);
             };
+          } else {
+            m_vis.travel_failed(*it, u, g);
           };
         };
         
         update_vertex(u, g);
         
         for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(p, get(m_position,g[*it]), m_free_space) != std::numeric_limits<double>::infinity())) {
+          m_vis.travel_explored(u, *it, g);
+          if(get(ReaK::pp::distance_metric, m_free_space)(p, get(m_position,g[*it]), m_free_space) != std::numeric_limits<double>::infinity()) {
             //this means that u is reachable from *it.
+            m_vis.travel_succeeded(u, *it, g);
             std::pair<Edge, bool> ep = add_edge(u, *it, g); 
             if(ep.second) {
               m_vis.edge_added(ep.first, g); 
               update_vertex(*it, g);
             };
+          } else {
+            m_vis.travel_failed(u, *it, g);
           };
         }; 
       };
