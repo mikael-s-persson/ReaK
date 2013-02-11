@@ -168,7 +168,7 @@ namespace graph {
               if(!is_useful) {
                 remove_edge(ep.first, g);
               };
-              update_key(*it, g); 
+              this->update_key(*it, g); 
               put(this->m_color, *it, Color::gray()); 
               this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
             };
@@ -176,7 +176,7 @@ namespace graph {
             this->m_vis.travel_failed(u, *it, g);
           };
         }; 
-        update_key(u,g); 
+        this->update_key(u,g); 
         put(this->m_color, u, Color::gray()); 
         this->m_Q.push(u);                 this->m_vis.discover_vertex(u, g);
       };
@@ -226,7 +226,7 @@ namespace graph {
               } else {
                 remove_edge(ep.first, g);
               };
-              update_key(*it, g); 
+              this->update_key(*it, g); 
               put(this->m_color, *it, Color::gray()); 
               this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
             };
@@ -235,7 +235,7 @@ namespace graph {
           };
         };
         
-        update_key(u, g); 
+        this->update_key(u, g); 
         put(this->m_color, u, Color::gray()); 
         this->m_Q.push(u);                 this->m_vis.discover_vertex(u, g);
         
@@ -258,7 +258,7 @@ namespace graph {
               } else {
                 remove_edge(ep.first, g);
               };
-              update_key(*it, g); 
+              this->update_key(*it, g); 
               put(this->m_color, *it, Color::gray()); 
               this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
             };
@@ -267,7 +267,7 @@ namespace graph {
           };
         }; 
         
-        update_key(u, g); 
+        this->update_key(u, g); 
         put(this->m_color, u, Color::gray()); 
         this->m_Q.update(u);                 this->m_vis.discover_vertex(u, g);
       };
@@ -280,7 +280,7 @@ namespace graph {
         if(p_new.second)
           connect_vertex(p_new.first, g);
         
-        update_key(u,g);
+        this->update_key(u,g);
       };
       
     };

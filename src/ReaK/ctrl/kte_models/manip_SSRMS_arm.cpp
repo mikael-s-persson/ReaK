@@ -297,6 +297,7 @@ static double clamp_to_pi_range(double a) {
 void manip_SSRMS_kinematics::doInverseMotion() {
   using std::sin; using std::cos; using std::fabs; 
   using std::atan2; using std::sqrt; using std::pow;
+  using std::asin; using std::acos;
   
   const double wrist_to_wrist_dist = link_lengths[2] + link_lengths[3];
   const double plane_offset = joint_offsets[2] + joint_offsets[3] + joint_offsets[4];
@@ -315,81 +316,97 @@ void manip_SSRMS_kinematics::doInverseMotion() {
   
   vect<double,3> w1_y_axis(0.0,-1.0,0.0);
   vect<double,3> w2_y_axis(0.0,-1.0,0.0);
+  vect<double,3> w1_z_axis(0.0, 0.0,1.0);
   
 //   std::cout << "wrist to wrist = " << wrist_to_wrist << std::endl;
   
   if(1.0 - fabs(EE_z_axis[2]) > pos_epsilon) {
-#if 1
-    double d = wrist_to_wrist * EE_z_axis;
-    double denom = EE_z_axis[0] * EE_z_axis[0] + EE_z_axis[1] * EE_z_axis[1];
-    w1_y_axis[0] = EE_z_axis[0] * d / denom; 
-    w1_y_axis[1] = EE_z_axis[1] * d / denom; 
-    w1_y_axis[2] = 0.0; 
-    double w1_y_dist = norm_2(w1_y_axis);
-    w2_y_axis = w1_y_axis - wrist_to_wrist;
-    double w2_y_dist = norm_2(w2_y_axis);
-    if(w1_y_dist < pos_epsilon)
-      w1_y_axis = unit( vect<double,3>(EE_z_axis[0], EE_z_axis[1], 0.0) );
-    else
-      w1_y_axis *= (1.0 / w1_y_dist);
-    if(w2_y_dist < pos_epsilon)
-      w2_y_axis = unit( vect<double,3>(0.0,0.0,1.0) - EE_z_axis[2] * EE_z_axis );
-    else
-      w2_y_axis *= (1.0 / w2_y_dist);
-    w2_y_axis *= -1.0;
+    double wrist_plane_to_base_offset = wrist_to_wrist * EE_z_axis;
+    if(fabs(wrist_plane_to_base_offset) < plane_offset) {
+      
+//       std::cout << "Warning: EE plane not supported!" << std::endl;
+      
+      // Fix the y1 axis:
+      if(wrist_plane_to_base_offset > 0.0)
+        w1_y_axis = unit( vect<double,3>( EE_z_axis[0],  EE_z_axis[1], 0.0) );
+      else
+        w1_y_axis = unit( vect<double,3>(-EE_z_axis[0], -EE_z_axis[1], 0.0) );
+      
+      // Solve for the y2 axis and cross vector.
+      vect<double,3> wrist_to_wrist_planar = wrist_to_wrist - fabs(wrist_plane_to_base_offset) * w1_y_axis;
+      // now the planar w2w vector should be in the w2 plane.
+      vect<double,3> y1_cross_w2w = unit(w1_y_axis % wrist_to_wrist_planar);
+      double w2w_planar_mag = norm_2(wrist_to_wrist_planar);
+      double w2_w2w_ang = asin(plane_offset / w2w_planar_mag);
+      w2_y_axis = wrist_to_wrist_planar - plane_offset * ( cos(w2_w2w_ang) * y1_cross_w2w + (sin(w2_w2w_ang) / w2w_planar_mag) * wrist_to_wrist_planar );
+      w2_y_axis = unit(w2_y_axis);
+      w1_z_axis = unit(w1_y_axis % w2_y_axis);
+    } else if(fabs(wrist_to_wrist[2]) < plane_offset) {
+      
+//       std::cout << "Warning: horizontal plane not supported!" << std::endl;
+      
+      // Fix the y2 axis:
+      if(wrist_to_wrist[2] > 0.0)
+        w2_y_axis = unit( vect<double,3>(0.0,0.0, 1.0) - EE_z_axis[2] * EE_z_axis );
+      else
+        w2_y_axis = unit( vect<double,3>(0.0,0.0,-1.0) + EE_z_axis[2] * EE_z_axis );
+      
+      // Solve for the y1 axis and cross vector.
+      vect<double,3> wrist_to_wrist_planar = wrist_to_wrist - fabs(wrist_to_wrist[2]) * w2_y_axis;
+      // now the planar w2w vector should be in the w2 plane.
+      vect<double,3> y2_cross_w2w = unit(wrist_to_wrist_planar % w2_y_axis);
+      double w2w_planar_mag = norm_2(wrist_to_wrist_planar);
+      double w1_w2w_ang = asin(plane_offset / w2w_planar_mag);
+      w1_y_axis = wrist_to_wrist_planar - plane_offset * ( cos(w1_w2w_ang) * y2_cross_w2w - (sin(w1_w2w_ang) / w2w_planar_mag) * wrist_to_wrist_planar );
+      w1_y_axis = unit(w1_y_axis);
+      w1_z_axis = unit(w1_y_axis % w2_y_axis);
+    } else {
+      
+//       std::cout << "Warning: general solution being computed!" << std::endl;
+      
+      vect<double,3> y1y2_cross(0.0,0.0,0.0);
+      vect<double,3> wrist_to_wrist_planar = wrist_to_wrist;
+      double denom = EE_z_axis[0] * EE_z_axis[0] + EE_z_axis[1] * EE_z_axis[1];
+      for(std::size_t i = 0; i < 20; ++i) {
+        double d = wrist_to_wrist_planar * EE_z_axis;
+        w1_y_axis[0] = EE_z_axis[0] * d / denom; 
+        w1_y_axis[1] = EE_z_axis[1] * d / denom; 
+        w1_y_axis[2] = 0.0; 
+        w2_y_axis = wrist_to_wrist_planar - w1_y_axis;
+//         std::cout << "w1 cross w2w = " << (w1_y_axis % wrist_to_wrist_planar) << std::endl;
+//         std::cout << "w2w cross w2 = " << (wrist_to_wrist_planar % w2_y_axis) << std::endl;
+        vect<double,3> y1y2_new = unit(w1_y_axis % wrist_to_wrist_planar + wrist_to_wrist_planar % w2_y_axis);
+        if(norm_2(y1y2_new - y1y2_cross) * plane_offset > pos_epsilon)
+          y1y2_cross = unit((y1y2_new + y1y2_cross) * 0.5);
+        else
+          break;
+        wrist_to_wrist_planar = wrist_to_wrist - plane_offset * y1y2_cross;
+      };
+      // normalize the y vectors:
+      w1_y_axis *= (1.0 / norm_2(w1_y_axis));
+      w2_y_axis *= (1.0 / norm_2(w2_y_axis));
+      w1_z_axis = unit(w1_y_axis % w2_y_axis);
+    };
+  } else {
     
-    vect<double,3> y1y2_cross = unit(w1_y_axis % w2_y_axis);
-    double w1_y_sign = 1.0;
-//     if(y1y2_cross[2] < 0.0)
-//       w1_y_sign = -1.0;
-    d = w1_y_sign * ((wrist_to_wrist - (w1_y_sign * plane_offset) * y1y2_cross) * EE_z_axis);
-    w1_y_axis[0] = EE_z_axis[0] * d / denom; 
-    w1_y_axis[1] = EE_z_axis[1] * d / denom; 
-    w1_y_axis[2] = 0.0; 
-    w1_y_dist = norm_2(w1_y_axis);
-    w2_y_axis = w1_y_sign * w1_y_axis - (wrist_to_wrist - (w1_y_sign * plane_offset) * y1y2_cross);
-    w2_y_dist = norm_2(w2_y_axis);
-    if(w1_y_dist < pos_epsilon)
-      w1_y_axis = unit( vect<double,3>(EE_z_axis[0], EE_z_axis[1], 0.0) );
-    else
-      w1_y_axis *= (1.0 / w1_y_dist);
-    w1_y_axis *= w1_y_sign;
-    if(w2_y_dist < pos_epsilon)
-      w2_y_axis = unit( vect<double,3>(0.0,0.0,1.0) - EE_z_axis[2] * EE_z_axis );
-    else
-      w2_y_axis *= (1.0 / w2_y_dist);
-    w2_y_axis *= -1.0;
-#else
+//     std::cout << "Warning: aligned EE not supported!" << std::endl;
     
-    vect<double,3> y1y2_cross(0.0,0.0,0.0);
-    double denom = EE_z_axis[0] * EE_z_axis[0] + EE_z_axis[1] * EE_z_axis[1];
-    do {
-      double d = ((wrist_to_wrist - plane_offset * y1y2_cross) * EE_z_axis);
-      w1_y_axis[0] = EE_z_axis[0] * d / denom; 
-      w1_y_axis[1] = EE_z_axis[1] * d / denom; 
-      w1_y_axis[2] = 0.0; 
-      double w1_y_dist = norm_2(w1_y_axis);
-      w2_y_axis = w1_y_axis - (wrist_to_wrist - plane_offset * y1y2_cross);
-      double w2_y_dist = norm_2(w2_y_axis);
-      if(w1_y_dist < pos_epsilon)
-        w1_y_axis = unit( vect<double,3>(EE_z_axis[0], EE_z_axis[1], 0.0) );
-      else
-        w1_y_axis *= (1.0 / w1_y_dist);
-      if(w2_y_dist < pos_epsilon)
-        w2_y_axis = unit( vect<double,3>(0.0,0.0,1.0) - EE_z_axis[2] * EE_z_axis );
-      else
-        w2_y_axis *= (1.0 / w2_y_dist);
-      w2_y_axis *= -1.0;
-      vect<double,3> y1y2_new = unit(w1_y_axis % w2_y_axis);
-      if(norm_2(y1y2_new - y1y2_cross) * plane_offset > pos_epsilon)
-        y1y2_cross = y1y2_new;
-      else
-        break;
-    } while(true);
-#endif
+    // project the w2w vector onto the base plane:
+    vect<double,3> wrist_to_wrist_planar(wrist_to_wrist[0], wrist_to_wrist[1], 0.0);
+    double w2w_planar_mag = norm_2(wrist_to_wrist_planar);
+    if(w2w_planar_mag < plane_offset) {
+      throw optim::infeasible_problem("Inverse kinematics problem is infeasible! End-effector pose is out-of-reach! Desired wrist position is too close to the center axis of the SSRMS arm.");
+    };
+    // now the planar w2w vector should be in the w2 plane.
+    vect<double,3> y_cross_w2w(-wrist_to_wrist[1] / w2w_planar_mag, wrist_to_wrist[0] / w2w_planar_mag, 0.0);
+    double w_w2w_ang = asin(plane_offset / w2w_planar_mag);
+    
+    w1_z_axis = cos(w_w2w_ang) * y_cross_w2w + (sin(w_w2w_ang) / w2w_planar_mag) * wrist_to_wrist_planar;
+    w1_y_axis = wrist_to_wrist_planar - plane_offset * w1_z_axis;
+    w1_y_axis = unit(w1_y_axis);
+    w2_y_axis = w1_y_axis;
   };
   
-  vect<double,3> w1_z_axis = unit(w1_y_axis % w2_y_axis);
   vect<double,3> w1_x_axis = w1_z_axis % w1_y_axis;
 //   std::cout << "w1 x-axis = " << w1_x_axis << std::endl;
 //   std::cout << "w1 y-axis = " << w1_y_axis << std::endl;
