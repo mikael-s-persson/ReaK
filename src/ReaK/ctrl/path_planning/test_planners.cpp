@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
   std::stringstream(argv[3]) >> max_vertices;
   
   ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world > world_map =
-    ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world >(new ReaK::pp::ptrobot2D_test_world(world_file_name, 50, 1.0));
+    ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world >(new ReaK::pp::ptrobot2D_test_world(world_file_name, 20, 1.0));
   
   std::ofstream timing_output("pp_results/" + world_file_name_only + "_times.txt");
   
@@ -421,7 +421,7 @@ int main(int argc, char** argv) {
                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_BF2_TREE_KNN,
                ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt/" + world_file_name_only + "_", 5),
-               100);
+               5);
     
     rrt_plan.solve_path();
     
@@ -1158,7 +1158,7 @@ int main(int argc, char** argv) {
                ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
                ReaK::pp::DVP_ALT_COB4_KNN,
                ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/prm/" + world_file_name_only + "_", 5),
-               10);
+               5);
     
     prm_plan.solve_path();
     
@@ -1567,7 +1567,7 @@ int main(int argc, char** argv) {
         ReaK::pp::ADJ_LIST_MOTION_GRAPH,
         ReaK::pp::DVP_BF2_TREE_KNN,
         ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/sbastar/" + world_file_name_only + "_", 5),
-        10);
+        5);
     
     sbastar_plan.solve_path();
     
@@ -1941,7 +1941,7 @@ int main(int argc, char** argv) {
                    ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                    ReaK::pp::DVP_BF4_TREE_KNN,
                    ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >("pp_results/rrt_star/" + world_file_name_only + "_", 5),
-                   50);
+                   5);
     
     rrtstar_plan.solve_path();
     

@@ -125,6 +125,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     point_type m_goal_pos;
     double m_initial_threshold;
     double m_sampling_radius;
+    std::size_t m_current_num_results;
     std::size_t max_num_results;
     bool has_reached_max_vertices;
     std::size_t m_graph_kind_flag;
@@ -142,7 +143,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     };
     
     bool keep_going() const {
-      return (max_num_results > m_solutions.size()) && !has_reached_max_vertices;
+      return (max_num_results > m_current_num_results) && !has_reached_max_vertices;
     };
     
     template <typename Graph>
@@ -165,9 +166,9 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     template <typename Vertex, typename Graph>
     void create_solution_path(Vertex start_node, Vertex goal_node, Graph& g) {
       
-      double start_distance = g[start_node].distance_accum;
+      double goal_distance = g[goal_node].distance_accum;
       
-      if(start_distance < std::numeric_limits<double>::infinity()) {
+      if(goal_distance < std::numeric_limits<double>::infinity()) {
         //Draw the edges of the current best solution:
         
         shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
@@ -175,25 +176,26 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
         point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
         std::set<Vertex> path;
         
-        Vertex v = start_node;
+        Vertex v = goal_node;
         point_type p_v = g[v].position;
         Vertex u = g[v].predecessor;
         point_type p_u = g[u].position;
         
-        waypoints.push_back(p_v);
-        waypoints.push_back(p_u);
+        waypoints.push_front(p_v);
+        waypoints.push_front(p_u);
         path.insert(v);
       
-        while((u != goal_node) && (path.insert(u).second)) {
+        while((u != start_node) && (path.insert(u).second)) {
           v = u; p_v = p_u;
           u = g[v].predecessor; 
           p_u = g[u].position; 
-          waypoints.push_back(p_u);
+          waypoints.push_front(p_u);
         };
         
-        if(u == goal_node) {
-          m_solutions[start_distance] = new_sol;
-          m_reporter.draw_solution(*(this->m_space), m_solutions[start_distance]);
+        if(u == start_node) {
+          ++m_current_num_results;
+          m_solutions[goal_distance] = new_sol;
+          m_reporter.draw_solution(*(this->m_space), m_solutions[goal_distance]);
         };
       };
     };
@@ -274,6 +276,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
                          m_goal_pos(aGoalPos),
                          m_initial_threshold(aInitialThreshold),
                          m_sampling_radius(aSamplingRadius),
+                         m_current_num_results(0),
                          max_num_results(aMaxResultCount),
                          has_reached_max_vertices(false),
                          m_graph_kind_flag(aGraphKindFlag),
@@ -309,6 +312,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
         & RK_SERIAL_LOAD_WITH_NAME(m_knn_flag);
       has_reached_max_vertices = false;
       m_solutions.clear();
+      m_current_num_results = 0;
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC246000C,1,"sbastar_path_planner",base_type)
@@ -342,8 +346,8 @@ struct sbastar_planner_visitor {
     m_nn_synchro.added_vertex(u,g);
     
     g[u].heuristic_value = get(distance_metric, m_space->get_super_space())(
-      g[m_start_node].position,
       g[u].position,
+      g[m_goal_node].position,
       m_space->get_super_space());
     
     g[u].constriction = 0.0;
@@ -354,7 +358,7 @@ struct sbastar_planner_visitor {
     // Call progress reporter...
     m_planner->report_progress(g);
     
-    if(g[m_start_node].distance_accum < m_planner->get_best_solution_distance())
+    if(g[m_goal_node].distance_accum < m_planner->get_best_solution_distance())
       m_planner->create_solution_path(m_start_node, m_goal_node, g);
     
   };
@@ -461,8 +465,8 @@ struct sbastar_planner_visitor {
     using std::exp;
     
     g[u].heuristic_value = get(ReaK::pp::distance_metric, m_space->get_super_space())(
-      g[m_start_node].position,
       g[u].position,
+      g[m_goal_node].position,
       m_space->get_super_space());
     
     g[u].constriction = 0.0;
@@ -517,6 +521,7 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
   using ReaK::to_vect;
   
   this->has_reached_max_vertices = false;
+  this->m_current_num_results = 0;
   this->m_solutions.clear();
   
   typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpace;
@@ -559,9 +564,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
     motion_graph[start_node].collision_count = 0;
     motion_graph[start_node].density = 0.0;
     motion_graph[start_node].expansion_trials = 0;
-    motion_graph[start_node].heuristic_value = 0.0;  // distance to start node.
-    motion_graph[start_node].distance_accum = std::numeric_limits<double>::infinity();
-    motion_graph[start_node].key_value = 0.0;
+    motion_graph[start_node].heuristic_value = space_Lc;  // distance to goal node.
+    motion_graph[start_node].distance_accum = 0.0;
+    motion_graph[start_node].key_value = 1.0 / space_Lc;
     motion_graph[start_node].astar_color = boost::color_traits<boost::default_color_type>::white();
     motion_graph[start_node].predecessor = start_node;
     
@@ -569,9 +574,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
     motion_graph[goal_node].collision_count = 0;
     motion_graph[goal_node].density = 0.0;
     motion_graph[goal_node].expansion_trials = 0;
-    motion_graph[goal_node].heuristic_value = space_Lc;
-    motion_graph[goal_node].distance_accum = 0.0;
-    motion_graph[goal_node].key_value = 1.0 / space_Lc;
+    motion_graph[goal_node].heuristic_value = 0.0;
+    motion_graph[goal_node].distance_accum = std::numeric_limits<double>::infinity();
+    motion_graph[goal_node].key_value = 0.0;
     motion_graph[goal_node].astar_color = boost::color_traits<boost::default_color_type>::white();
     motion_graph[goal_node].predecessor = goal_node;
     
@@ -582,7 +587,7 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, goal_node, *(this->m_space), vis,
+        motion_graph, start_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
         get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
@@ -614,7 +619,7 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, goal_node, *(this->m_space), vis,
+        motion_graph, start_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
         get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
@@ -646,7 +651,7 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, goal_node, *(this->m_space), vis,
+        motion_graph, start_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
         get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
@@ -678,7 +683,7 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, goal_node, *(this->m_space), vis,
+        motion_graph, start_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
         get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
@@ -710,7 +715,7 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, goal_node, *(this->m_space), vis,
+        motion_graph, start_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
         get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
@@ -764,9 +769,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       motion_graph[start_node].collision_count = 0;
       motion_graph[start_node].density = 0.0;
       motion_graph[start_node].expansion_trials = 0;
-      motion_graph[start_node].heuristic_value = 0.0;  // distance to start node.
-      motion_graph[start_node].distance_accum = std::numeric_limits<double>::infinity();
-      motion_graph[start_node].key_value = 0.0;
+      motion_graph[start_node].heuristic_value = space_Lc;  // distance to goal node.
+      motion_graph[start_node].distance_accum = 0.0;
+      motion_graph[start_node].key_value = 1.0 / space_Lc;
       motion_graph[start_node].astar_color = boost::color_traits<boost::default_color_type>::white();
       motion_graph[start_node].predecessor = start_node;
       
@@ -774,9 +779,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       motion_graph[goal_node].collision_count = 0;
       motion_graph[goal_node].density = 0.0;
       motion_graph[goal_node].expansion_trials = 0;
-      motion_graph[goal_node].heuristic_value = space_Lc;
-      motion_graph[goal_node].distance_accum = 0.0;
-      motion_graph[goal_node].key_value = 1.0 / space_Lc;
+      motion_graph[goal_node].heuristic_value = 0.0;
+      motion_graph[goal_node].distance_accum = std::numeric_limits<double>::infinity();
+      motion_graph[goal_node].key_value = 0.0;
       motion_graph[goal_node].astar_color = boost::color_traits<boost::default_color_type>::white();
       motion_graph[goal_node].predecessor = goal_node;
       
@@ -788,7 +793,7 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, goal_node, *(this->m_space), vis,
+        motion_graph, start_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
         get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
@@ -838,9 +843,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       motion_graph[start_node].collision_count = 0;
       motion_graph[start_node].density = 0.0;
       motion_graph[start_node].expansion_trials = 0;
-      motion_graph[start_node].heuristic_value = 0.0;  // distance to start node.
-      motion_graph[start_node].distance_accum = std::numeric_limits<double>::infinity();
-      motion_graph[start_node].key_value = 0.0;
+      motion_graph[start_node].heuristic_value = space_Lc;  // distance to goal node.
+      motion_graph[start_node].distance_accum = 0.0;
+      motion_graph[start_node].key_value = 1.0 / space_Lc;
       motion_graph[start_node].astar_color = boost::color_traits<boost::default_color_type>::white();
       motion_graph[start_node].predecessor = start_node;
       
@@ -848,9 +853,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       motion_graph[goal_node].collision_count = 0;
       motion_graph[goal_node].density = 0.0;
       motion_graph[goal_node].expansion_trials = 0;
-      motion_graph[goal_node].heuristic_value = space_Lc;
-      motion_graph[goal_node].distance_accum = 0.0;
-      motion_graph[goal_node].key_value = 1.0 / space_Lc;
+      motion_graph[goal_node].heuristic_value = 0.0;
+      motion_graph[goal_node].distance_accum = std::numeric_limits<double>::infinity();
+      motion_graph[goal_node].key_value = 0.0;
       motion_graph[goal_node].astar_color = boost::color_traits<boost::default_color_type>::white();
       motion_graph[goal_node].predecessor = goal_node;
       
@@ -862,7 +867,7 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, goal_node, *(this->m_space), vis,
+        motion_graph, start_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
         get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
@@ -912,9 +917,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       motion_graph[start_node].collision_count = 0;
       motion_graph[start_node].density = 0.0;
       motion_graph[start_node].expansion_trials = 0;
-      motion_graph[start_node].heuristic_value = 0.0;  // distance to start node.
-      motion_graph[start_node].distance_accum = std::numeric_limits<double>::infinity();
-      motion_graph[start_node].key_value = 0.0;
+      motion_graph[start_node].heuristic_value = space_Lc;  // distance to goal node.
+      motion_graph[start_node].distance_accum = 0.0;
+      motion_graph[start_node].key_value = 1.0 / space_Lc;
       motion_graph[start_node].astar_color = boost::color_traits<boost::default_color_type>::white();
       motion_graph[start_node].predecessor = start_node;
       
@@ -922,9 +927,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       motion_graph[goal_node].collision_count = 0;
       motion_graph[goal_node].density = 0.0;
       motion_graph[goal_node].expansion_trials = 0;
-      motion_graph[goal_node].heuristic_value = space_Lc;
-      motion_graph[goal_node].distance_accum = 0.0;
-      motion_graph[goal_node].key_value = 1.0 / space_Lc;
+      motion_graph[goal_node].heuristic_value = 0.0;
+      motion_graph[goal_node].distance_accum = std::numeric_limits<double>::infinity();
+      motion_graph[goal_node].key_value = 0.0;
       motion_graph[goal_node].astar_color = boost::color_traits<boost::default_color_type>::white();
       motion_graph[goal_node].predecessor = goal_node;
       
@@ -936,7 +941,7 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, goal_node, *(this->m_space), vis,
+        motion_graph, start_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
         get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
@@ -986,9 +991,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       motion_graph[start_node].collision_count = 0;
       motion_graph[start_node].density = 0.0;
       motion_graph[start_node].expansion_trials = 0;
-      motion_graph[start_node].heuristic_value = 0.0;  // distance to start node.
-      motion_graph[start_node].distance_accum = std::numeric_limits<double>::infinity();
-      motion_graph[start_node].key_value = 0.0;
+      motion_graph[start_node].heuristic_value = space_Lc;  // distance to goal node.
+      motion_graph[start_node].distance_accum = 0.0;
+      motion_graph[start_node].key_value = 1.0 / space_Lc;
       motion_graph[start_node].astar_color = boost::color_traits<boost::default_color_type>::white();
       motion_graph[start_node].predecessor = start_node;
       
@@ -996,9 +1001,9 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
       motion_graph[goal_node].collision_count = 0;
       motion_graph[goal_node].density = 0.0;
       motion_graph[goal_node].expansion_trials = 0;
-      motion_graph[goal_node].heuristic_value = space_Lc;
-      motion_graph[goal_node].distance_accum = 0.0;
-      motion_graph[goal_node].key_value = 1.0 / space_Lc;
+      motion_graph[goal_node].heuristic_value = 0.0;
+      motion_graph[goal_node].distance_accum = std::numeric_limits<double>::infinity();
+      motion_graph[goal_node].key_value = 0.0;
       motion_graph[goal_node].astar_color = boost::color_traits<boost::default_color_type>::white();
       motion_graph[goal_node].predecessor = goal_node;
       
@@ -1010,7 +1015,7 @@ shared_ptr< path_base< typename sbastar_path_planner<FreeSpaceType,SBPPReporter>
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, goal_node, *(this->m_space), vis,
+        motion_graph, start_node, *(this->m_space), vis,
         get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
         pos_map, 
         get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),

@@ -87,33 +87,44 @@ class waypoint_container_base : public shared_object {
         
     const_waypoint_bounds get_waypoint_bounds(const point_type& p, const_waypoint_descriptor start) const {
       if(!space)
-	return std::make_pair(waypoints.begin(),waypoints.begin());
+        return std::make_pair(waypoints.begin(),waypoints.begin());
       const_waypoint_descriptor it_end = waypoints.end();
       if(start == it_end)
-	throw invalid_path("Waypoints exhausted during waypoint query!");
+        throw invalid_path("Waypoints exhausted during waypoint query!");
       double d1 = dist(*start,p,*space);
       const_waypoint_descriptor it2 = start; ++it2;
       if(it2 == it_end)
-	return std::make_pair(start,start);
-      double d2 = dist(*it2,p,*space);
+        return std::make_pair(start,start);
       double d12 = dist(*start,*it2,*space);
-      double c12 = (d1 * d1 + d2 * d2 - d12 * d12) / (2.0 * d1 * d2); //cosine of the summet angle of the triangle.
-      const_waypoint_descriptor it3 = it2; ++it3;
-      // NOTE basically this loop will select the interval with the triangle (start,p,it2) with the largest angle at p.
-      while(it3 != it_end) {
-	double d3 = dist(*it3,p,*space);
-	double d23 = dist(*it2, *it3, *space);
-	double c23 = (d2 * d2 + d3 * d3 - d23 * d23) / (2.0 * d2 * d3);
-	if(c23 > c12) {
-	  break;
-	} else {
-	  start = it2; d1 = d2;
-	  it2 = it3; d2 = d3;
-	  c12 = c23;
-	  ++it3;
-	};
+      while(d1 > d12) {
+        d1 = dist(*it2, p, *space);
+        if(d1 == std::numeric_limits<double>::infinity())
+          return std::make_pair(start, it2);
+        ++start; ++it2;
+        if(it2 == it_end)
+          return std::make_pair(start, start);
+        d12 = dist(*start,*it2,*space);
       };
       return std::make_pair(start,it2);
+      
+//       double d2 = dist(p,*it2,*space);
+//       double c12 = (d1 * d1 + d2 * d2 - d12 * d12) / (2.0 * d1 * d2); //cosine of the summet angle of the triangle.
+//       const_waypoint_descriptor it3 = it2; ++it3;
+// //       NOTE basically this loop will select the interval with the triangle (start,p,it2) with the largest angle at p.
+//       while(it3 != it_end) {
+//         double d3 = dist(*it3,p,*space);
+//         double d23 = dist(*it2, *it3, *space);
+//         double c23 = (d2 * d2 + d3 * d3 - d23 * d23) / (2.0 * d2 * d3);
+//         if(c23 > c12) {
+//           break;
+//         } else {
+//           start = it2; d1 = d2;
+//           it2 = it3; d2 = d3;
+//           c12 = c23;
+//           ++it3;
+//         };
+//       };
+//       return std::make_pair(start,it2);
     };
     
   public:
@@ -141,7 +152,7 @@ class waypoint_container_base : public shared_object {
       waypoints.push_back(aStart);
       waypoints.push_back(aEnd);
     };
-			
+    
     /**
      * Constructs the waypoint-container from a range of points and their space.
      * \tparam ForwardIter A forward-iterator type for getting points to initialize the waypoints with.
@@ -154,7 +165,7 @@ class waypoint_container_base : public shared_object {
     waypoint_container_base(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric& aDist = distance_metric()) : 
                             space(aSpace), dist(aDist), waypoints(aBegin,aEnd) {
       if(aBegin == aEnd)
-	throw invalid_path("Empty list of waypoints!");
+        throw invalid_path("Empty list of waypoints!");
     };
     
     /**
@@ -227,7 +238,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
     
     struct waypoint_time_ordering {
       bool operator()(const point_type& p1, const point_type& p2) const {
-	return p1.time < p2.time;
+        return p1.time < p2.time;
       };
     };
     
@@ -248,9 +259,9 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
     const_waypoint_bounds get_waypoint_bounds(const point_type& p, const_waypoint_descriptor) const {
       const_waypoint_descriptor it2 = waypoints.lower_bound(p);
       if(it2 == waypoints.begin())
-	return const_waypoint_bounds(it2,it2);
+        return const_waypoint_bounds(it2,it2);
       if(it2 == waypoints.end())
-	return const_waypoint_bounds((++waypoints.rbegin()).base(),(++waypoints.rbegin()).base());
+        return const_waypoint_bounds((++waypoints.rbegin()).base(),(++waypoints.rbegin()).base());
       const_waypoint_descriptor it1 = it2; --it1;
       return const_waypoint_bounds(it1,it2);
     };
@@ -280,7 +291,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
       waypoints.insert(aStart);
       waypoints.insert( waypoints.end(), aEnd);
     };
-			
+    
     /**
      * Constructs the waypoint-container from a range of points and their space.
      * \tparam ForwardIter A forward-iterator type for getting points to initialize the waypoints with.
@@ -293,7 +304,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
     waypoint_container_base(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric& aDist = distance_metric()) : 
                             space(aSpace), dist(aDist), waypoints(aBegin,aEnd) {
       if(aBegin == aEnd)
-	throw invalid_path("Empty list of waypoints!");
+        throw invalid_path("Empty list of waypoints!");
     };
     
     /**
@@ -474,7 +485,7 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
     template <typename InputIterator>
     void assign( InputIterator first, InputIterator last ) {
       if(first == last)
-	throw invalid_path("Empty list of waypoints!");
+        throw invalid_path("Empty list of waypoints!");
       container_type(first,last).swap(this->waypoints);
     };
     
@@ -501,18 +512,18 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
     template <typename InputIterator>
     void insert( waypoint_descriptor position, InputIterator first, InputIterator last) {
       for(; first != last; ++first)
-	this->waypoints.insert(position, *first);
+        this->waypoints.insert(position, *first);
     };
     
     void erase( waypoint_descriptor position) {
       if((position == this->waypoints.begin()) && (this->waypoints.size == 1))
-	throw invalid_path("Cannot empty the list of waypoints!");
+        throw invalid_path("Cannot empty the list of waypoints!");
       this->waypoints.erase(position);
     };
     
     void erase( waypoint_descriptor first, waypoint_descriptor last) {
       if((first == this->waypoints.begin()) && (last == this->waypoints.end()))
-	throw invalid_path("Cannot empty the list of waypoints!");
+        throw invalid_path("Cannot empty the list of waypoints!");
       this->waypoints.erase(first, last);
     };
     

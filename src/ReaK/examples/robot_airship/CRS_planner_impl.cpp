@@ -39,6 +39,7 @@
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/sensors/SoTimerSensor.h>  // for SoTimerSensor
 
 #include "shapes/oi_scene_graph.hpp"
 #include "shapes/plane.hpp"
@@ -66,7 +67,7 @@
 
 #include "optimization/optim_exceptions.hpp"
 
-
+#include <chrono>
 
 struct all_robot_info {
   SoQtExaminerViewer * eviewer;
@@ -99,7 +100,38 @@ struct all_robot_info {
   SoCoordinate3* l_r_proxy_line;
   SoCoordinate3* r_a_proxy_line;
   SoCoordinate3* l_a_proxy_line;
+  
+  std::vector< ReaK::vect<double,7> > bestsol_trajectory;
+  SoTimerSensor* animation_timer;
+  std::size_t animation_progress;
+  std::chrono::high_resolution_clock::time_point animation_last_render;
 } r_info;
+
+
+void CRSPlannerGUI_animate_bestsol_trajectory(void*, SoSensor*) {
+  if(r_info.animation_progress < r_info.bestsol_trajectory.size()) {
+    if(std::chrono::high_resolution_clock::now() - r_info.animation_last_render >= std::chrono::milliseconds(100)) {
+      const ReaK::vect<double,7>& cur_pos = r_info.bestsol_trajectory[r_info.animation_progress];
+      std::cout << "animate point: " << cur_pos << std::endl;
+      r_info.builder.track_joint_coord->q = cur_pos[0];
+      r_info.builder.arm_joint_1_coord->q = cur_pos[1];
+      r_info.builder.arm_joint_2_coord->q = cur_pos[2];
+      r_info.builder.arm_joint_3_coord->q = cur_pos[3];
+      r_info.builder.arm_joint_4_coord->q = cur_pos[4]; 
+      r_info.builder.arm_joint_5_coord->q = cur_pos[5]; 
+      r_info.builder.arm_joint_6_coord->q = cur_pos[6]; 
+      r_info.kin_chain->doMotion();
+      r_info.animation_progress++;
+      r_info.animation_last_render = std::chrono::high_resolution_clock::now();
+    };
+  } else {
+    r_info.animation_timer->unschedule();
+    r_info.animation_progress = 0;
+    r_info.animation_last_render = std::chrono::high_resolution_clock::now();
+  };
+};
+
+
 
 CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainWindow(parent,flags),
                                                                           configs() {
@@ -133,6 +165,8 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   connect(configs.actionSolutionsVisibleToggle, SIGNAL(triggered()), this, SLOT(onSolutionsVisible()));
   
   
+  r_info.animation_progress = 0;
+  r_info.animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_bestsol_trajectory, NULL);
   
   //r_info.builder.create_geom_from_preset();
   r_info.builder.load_kte_and_geom("models/CRS_A465_with_geom.xml");
@@ -361,6 +395,8 @@ CRSPlannerGUI::~CRSPlannerGUI() {
   delete r_info.sg_airship_geom;
   delete r_info.sg_lab_geom;
   
+  delete r_info.animation_timer;
+  
   delete r_info.eviewer;
   r_info.sg_root->unref();
   SoQt::done();
@@ -555,6 +591,7 @@ void CRSPlannerGUI::executePlanner() {
    */
   
 #define RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(WORKSPACE) \
+        typedef ReaK::pp::subspace_traits<WORKSPACE>::super_space_type SuperSpaceType; \
         ReaK::shared_ptr< ReaK::robot_airship::CRS3D_jspace_rl_o0_type > jt_space(new ReaK::robot_airship::CRS3D_jspace_rl_o0_type(r_info.builder.get_rl_joint_space_0th())); \
         ReaK::shared_ptr< ReaK::robot_airship::CRS3D_jspace_o0_type > normal_jt_space(new ReaK::robot_airship::CRS3D_jspace_o0_type(r_info.builder.get_joint_space_0th())); \
          \
@@ -567,8 +604,10 @@ void CRSPlannerGUI::executePlanner() {
          \
         (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy; \
          \
-        ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_rl_o0_type >::point_type start_point, goal_point; \
-        ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_o0_type >::point_type start_inter, goal_inter; \
+        typedef ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_rl_o0_type >::point_type RLPointType; \
+        typedef ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_o0_type >::point_type PointType; \
+        RLPointType start_point, goal_point; \
+        PointType start_inter, goal_inter; \
         start_inter = normal_jt_space->origin(); \
         get<0>(start_inter) = ReaK::vect<double,7>(jt_start); \
         start_point = r_info.manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space); \
@@ -584,6 +623,7 @@ void CRSPlannerGUI::executePlanner() {
         temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end);
         
 #define RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(WORKSPACE) \
+        typedef ReaK::pp::subspace_traits<WORKSPACE>::super_space_type SuperSpaceType; \
         ReaK::shared_ptr< ReaK::robot_airship::CRS3D_jspace_rl_o1_type > jt_space(new ReaK::robot_airship::CRS3D_jspace_rl_o1_type(r_info.builder.get_rl_joint_space_1st())); \
         ReaK::shared_ptr< ReaK::robot_airship::CRS3D_jspace_o1_type > normal_jt_space(new ReaK::robot_airship::CRS3D_jspace_o1_type(r_info.builder.get_joint_space_1st())); \
          \
@@ -596,8 +636,10 @@ void CRSPlannerGUI::executePlanner() {
          \
         (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy; \
          \
-        ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_rl_o1_type >::point_type start_point, goal_point; \
-        ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_o1_type >::point_type start_inter, goal_inter; \
+        typedef ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_rl_o1_type >::point_type RLPointType; \
+        typedef ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_o1_type >::point_type PointType; \
+        RLPointType start_point, goal_point; \
+        PointType start_inter, goal_inter; \
         start_inter = normal_jt_space->origin(); \
         get<0>(start_inter) = ReaK::vect<double,7>(jt_start); \
         start_point = r_info.manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space); \
@@ -613,6 +655,7 @@ void CRSPlannerGUI::executePlanner() {
         temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end);
         
 #define RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(WORKSPACE) \
+        typedef ReaK::pp::subspace_traits<WORKSPACE>::super_space_type SuperSpaceType; \
         ReaK::shared_ptr< ReaK::robot_airship::CRS3D_jspace_rl_o2_type > jt_space(new ReaK::robot_airship::CRS3D_jspace_rl_o2_type(r_info.builder.get_rl_joint_space())); \
         ReaK::shared_ptr< ReaK::robot_airship::CRS3D_jspace_o2_type > normal_jt_space(new ReaK::robot_airship::CRS3D_jspace_o2_type(r_info.builder.get_joint_space())); \
          \
@@ -625,8 +668,10 @@ void CRSPlannerGUI::executePlanner() {
          \
         (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy; \
          \
-        ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_rl_o2_type >::point_type start_point, goal_point; \
-        ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_o2_type >::point_type start_inter, goal_inter; \
+        typedef ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_rl_o2_type >::point_type RLPointType; \
+        typedef ReaK::pp::topology_traits< ReaK::robot_airship::CRS3D_jspace_o2_type >::point_type PointType; \
+        RLPointType start_point, goal_point; \
+        PointType start_inter, goal_inter; \
         start_inter = normal_jt_space->origin(); \
         get<0>(start_inter) = ReaK::vect<double,7>(jt_start); \
         start_point = r_info.manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space); \
@@ -655,7 +700,18 @@ void CRSPlannerGUI::executePlanner() {
             temp_reporter,  \
             max_results); \
          \
-        workspace_planner.solve_path(); \
+        ReaK::shared_ptr< ReaK::pp::path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+         \
+        r_info.bestsol_trajectory.clear(); \
+        if(bestsol_rlpath) { \
+          RLPointType bs_cur_point = bestsol_rlpath->get_start_point(); \
+          RLPointType bs_end_point = bestsol_rlpath->get_end_point(); \
+          while(norm_2(get<0>(bs_cur_point) - get<0>(bs_end_point)) > min_travel) { \
+            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_cur_point, *jt_space, *normal_jt_space)) ); \
+            bs_cur_point = bestsol_rlpath->move_away_from(bs_cur_point, min_travel); \
+          }; \
+          r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_end_point, *jt_space, *normal_jt_space)) ); \
+        }; \
          \
         mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
         mg_sep->ref(); \
@@ -687,7 +743,18 @@ void CRSPlannerGUI::executePlanner() {
             temp_reporter, \
             max_results); \
          \
-        workspace_planner.solve_path(); \
+        ReaK::shared_ptr< ReaK::pp::path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+         \
+        r_info.bestsol_trajectory.clear(); \
+        if(bestsol_rlpath) { \
+          RLPointType bs_cur_point = bestsol_rlpath->get_start_point(); \
+          RLPointType bs_end_point = bestsol_rlpath->get_end_point(); \
+          while(norm_2(get<0>(bs_cur_point) - get<0>(bs_end_point)) > min_travel) { \
+            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_cur_point, *jt_space, *normal_jt_space)) ); \
+            bs_cur_point = bestsol_rlpath->move_away_from(bs_cur_point, min_travel); \
+          }; \
+          r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_end_point, *jt_space, *normal_jt_space)) ); \
+        }; \
          \
         mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
         mg_sep->ref(); \
@@ -718,7 +785,18 @@ void CRSPlannerGUI::executePlanner() {
             temp_reporter, \
             max_results); \
          \
-        workspace_planner.solve_path(); \
+        ReaK::shared_ptr< ReaK::pp::path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+         \
+        r_info.bestsol_trajectory.clear(); \
+        if(bestsol_rlpath) { \
+          RLPointType bs_cur_point = bestsol_rlpath->get_start_point(); \
+          RLPointType bs_end_point = bestsol_rlpath->get_end_point(); \
+          while(norm_2(get<0>(bs_cur_point) - get<0>(bs_end_point)) > min_travel) { \
+            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_cur_point, *jt_space, *normal_jt_space)) ); \
+            bs_cur_point = bestsol_rlpath->move_away_from(bs_cur_point, min_travel); \
+          }; \
+          r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_end_point, *jt_space, *normal_jt_space)) ); \
+        }; \
          \
         mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
         mg_sep->ref(); \
@@ -750,7 +828,18 @@ void CRSPlannerGUI::executePlanner() {
             temp_reporter, \
             max_results); \
          \
-        workspace_planner.solve_path(); \
+        ReaK::shared_ptr< ReaK::pp::path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+         \
+        r_info.bestsol_trajectory.clear(); \
+        if(bestsol_rlpath) { \
+          RLPointType bs_cur_point = bestsol_rlpath->get_start_point(); \
+          RLPointType bs_end_point = bestsol_rlpath->get_end_point(); \
+          while(norm_2(get<0>(bs_cur_point) - get<0>(bs_end_point)) > min_travel) { \
+            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_cur_point, *jt_space, *normal_jt_space)) ); \
+            bs_cur_point = bestsol_rlpath->move_away_from(bs_cur_point, min_travel); \
+          }; \
+          r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_end_point, *jt_space, *normal_jt_space)) ); \
+        }; \
          \
         mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
         mg_sep->ref(); \
@@ -783,7 +872,18 @@ void CRSPlannerGUI::executePlanner() {
             temp_reporter, \
             max_results); \
          \
-        workspace_planner.solve_path(); \
+        ReaK::shared_ptr< ReaK::pp::path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+        std::cout << "The shortest distance is: " << workspace_planner.get_best_solution_distance() << std::endl; \
+        r_info.bestsol_trajectory.clear(); \
+        if(bestsol_rlpath) { \
+          RLPointType bs_cur_point = bestsol_rlpath->get_start_point(); \
+          RLPointType bs_end_point = bestsol_rlpath->get_end_point(); \
+          while(norm_2(get<0>(bs_cur_point) - get<0>(bs_end_point)) > min_travel) { \
+            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_cur_point, *jt_space, *normal_jt_space)) ); \
+            bs_cur_point = bestsol_rlpath->move_away_from(bs_cur_point, min_travel); \
+          }; \
+          r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_end_point, *jt_space, *normal_jt_space)) ); \
+        }; \
          \
         mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
         mg_sep->ref(); \
@@ -1007,10 +1107,9 @@ void CRSPlannerGUI::executePlanner() {
 };
 
 void CRSPlannerGUI::startRobot() {
-  QMessageBox::information(this,
-                  "Action captured!",
-                  "You have just pressed the animate best solution button!",
-                  QMessageBox::Ok);
+  r_info.animation_progress = 0;
+  r_info.animation_last_render = std::chrono::high_resolution_clock::now();
+  r_info.animation_timer->schedule();
 };
 
 
