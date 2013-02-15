@@ -115,7 +115,7 @@ class quadrotor_system : public named_object {
       };
     }; 
   
-    virtual ~airship3D_lin_system() { };
+    virtual ~quadrotor_system() { };
     
     point_derivative_type get_state_derivative(const state_space_type&, const point_type& x, const input_type& u, time_type = 0.0) const {
       using std::fabs;
@@ -218,15 +218,15 @@ class quadrotor_system : public named_object {
       A & RK_SERIAL_LOAD_WITH_NAME(mMass)
         & RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment);
       if((mInertiaMoment.get_row_count() != 3) || (mMass < std::numeric_limits< double >::epsilon()))
-        throw system_incoherency("Inertial information is improper in airship3D_lin_system's definition");
+        throw system_incoherency("Inertial information is improper in quadrotor_system's definition");
       try {
         invert_Cholesky(mInertiaMoment,mInertiaMomentInv);
       } catch(singularity_error&) {
-        throw system_incoherency("Inertial tensor is singular in airship3D_lin_system's definition");
+        throw system_incoherency("Inertial tensor is singular in quadrotor_system's definition");
       };
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(airship3D_lin_system,0xC2310005,1,"airship3D_lin_system",named_object)
+    RK_RTTI_MAKE_CONCRETE_1BASE(quadrotor_system,0xC2310005,1,"quadrotor_system",named_object)
     
 };
 
