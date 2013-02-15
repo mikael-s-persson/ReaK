@@ -125,7 +125,7 @@ class quadrotor_system : public named_object {
       vect<double,3> w_sqr( w[0] * fabs(w[0]), w[1] * fabs(w[1]), w[2] * fabs(w[2]) );
       vect<double,3> aacc = mInertiaMomentInv * ( vect<double,3>(u[1],u[2],u[3]) - w % (mInertiaMoment * w) - mRotDragCoefs * w_sqr );
       
-      vect<double,3> local_v = invert(q) * get<1>(get<0>(x));
+      vect<double,3> local_v = invert(q) * get_velocity(x);
       local_v[0] *= fabs(local_v[0]) / mMass;
       local_v[1] *= fabs(local_v[1]) / mMass;
       local_v[2] *= fabs(local_v[2]) / mMass;
@@ -146,6 +146,7 @@ class quadrotor_system : public named_object {
     };
     
     void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const state_space_type&, const time_type& t, const point_type& x, const input_type& u) const {
+      using std::fabs;
       
       quaternion<double> q = get_quaternion(x);
       mat<double, mat_structure::square> R = q.getMat();
@@ -158,49 +159,47 @@ class quadrotor_system : public named_object {
       A(1,4) = 1.0;
       A(2,5) = 1.0;
       
+      vect<double,3> local_v = invert(q) * get_velocity(x);
+      mat<double,mat_structure::diagonal> dV(vect<double,3>(
+        -2.0 * fabs(local_v[0]) / mMass, 
+        -2.0 * fabs(local_v[1]) / mMass, 
+        -2.0 * fabs(local_v[2]) / mMass));
+      local_v[0] *= fabs(local_v[0]) / mMass;
+      local_v[1] *= fabs(local_v[1]) / mMass;
+      local_v[2] *= fabs(local_v[2]) / mMass;
+      
       // velocity - velocity partial derivative:
-      set_block(A, R * (-mTransDragCoefs) * transpose_view(R), 3, 3);
+      set_block(A, R * mTransDragCoefs * dV, 3, 3);
       // velocity - quaternion partial derivative:
-      set_block(A, R * (mTransDragCoefs * Rdot - Rdot * mTransDragCoefs) * transpose_view(R), 3, 6);
+      set_block(A, R * (mat<double,mat_structure::skew_symmetric>(mTransDragCoefs * local_v) 
+                      - mTransDragCoefs * mat<double,mat_structure::skew_symmetric>(local_v) 
+                      - mat<double,mat_structure::skew_symmetric>(vect<double,3>(0.0, 0.0, u[0] / mMass))), 
+                3, 6);
       
-      A(3,9) = 1.0;
-      A(4,10) = 1.0;
-      A(5,11) = 1.0;
+      // angular velocity to quaternion partial derivative:
+      A(6,9)  = 1.0;
+      A(7,10) = 1.0;  // identity
+      A(8,11) = 1.0;
       
-      B = mat<double,mat_structure::nil>(12,6);
-      B(6,0) = 1.0 / mMass;
-      B(7,1) = 1.0 / mMass;
-      B(8,2) = 1.0 / mMass;
-      set_block(B,mInertiaMomentInv,9,3);
+      vect<double,3> w = get_ang_velocity(x);
+      mat<double,mat_structure::diagonal> dW(vect<double,3>(
+        -2.0 * fabs(w[0]), 
+        -2.0 * fabs(w[1]), 
+        -2.0 * fabs(w[2])));
+      set_block(A, mInertiaMomentInv * ( mRotDragCoefs * dW 
+                                       - mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment
+                                       + mat<double,mat_structure::skew_symmetric>(mInertiaMoment * w) ), 
+                9, 9);
+      
+      B = mat<double,mat_structure::nil>(12,4);
+      set_block(B, R * vect<double,3>(0.0, 0.0, 1.0 / mMass), 6, 0);
+      set_block(B, mInertiaMomentInv, 9, 1);
       
       C = mat<double,mat_structure::nil>(6,12);
       set_block(C,mat<double,mat_structure::identity>(6),0,0);
       
       D = mat<double,mat_structure::nil>(6,6);
       
-      vect<double,3> w(-x[10],-x[11],-x[12]);
-      
-      A = mat<double,mat_structure::nil>(13,13);
-      A(0,7) = 1.0;
-      A(1,8) = 1.0;
-      A(2,9) = 1.0;
-
-      w[0] = -0.5 * x[4];
-      w[1] = -0.5 * x[5];
-      w[2] = -0.5 * x[6];
-      set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w),3,10);
-      set_block(A, (0.5 * x[3]) * mat<double,mat_structure::identity>(3) - mat<double,mat_structure::skew_symmetric>(w),4,10);
-
-      B = mat<double,mat_structure::nil>(13,6);
-      B(7,0) = 1.0 / mMass;
-      B(8,1) = 1.0 / mMass;
-      B(9,2) = 1.0 / mMass;
-      set_block(B,mInertiaMomentInv,10,3);
-      
-      C = mat<double,mat_structure::nil>(7,13);
-      set_block(C,mat<double,mat_structure::identity>(7),0,0);
-      
-      D = mat<double,mat_structure::nil>(7,6);
     };
     
     
@@ -211,12 +210,16 @@ class quadrotor_system : public named_object {
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mMass)
-        & RK_SERIAL_SAVE_WITH_NAME(mInertiaMoment);
+        & RK_SERIAL_SAVE_WITH_NAME(mInertiaMoment)
+        & RK_SERIAL_SAVE_WITH_NAME(mTransDragCoefs)
+        & RK_SERIAL_SAVE_WITH_NAME(mRotDragCoefs);
     };
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mMass)
-        & RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment);
+        & RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment)
+        & RK_SERIAL_LOAD_WITH_NAME(mTransDragCoefs)
+        & RK_SERIAL_LOAD_WITH_NAME(mRotDragCoefs);
       if((mInertiaMoment.get_row_count() != 3) || (mMass < std::numeric_limits< double >::epsilon()))
         throw system_incoherency("Inertial information is improper in quadrotor_system's definition");
       try {

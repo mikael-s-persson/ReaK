@@ -79,12 +79,12 @@ class IHAQR_topology : public named_object
     
     struct point_type {
       state_type x;
-      system_input_type u;
-      matrixA_type A;
-      matrixB_type B;
-      mat<double,mat_structure::square> M;
-      state_derivative_type c;
-      state_derivative_type eta;
+      mutable system_input_type u;
+      mutable matrixA_type A;
+      mutable matrixB_type B;
+      mutable mat<double,mat_structure::square> M;
+      mutable state_derivative_type c;
+      mutable state_derivative_type eta;
       
       explicit point_type(const state_type& aX) : x(aX) { };
 #ifdef RK_ENABLE_CXX11_FEATURES
@@ -96,12 +96,6 @@ class IHAQR_topology : public named_object
     
     struct point_difference_type {
       state_difference_type dx;
-      system_input_type u;
-      matrixA_type A;
-      matrixB_type B;
-      mat<double,mat_structure::square> M;
-      state_derivative_type c;
-      state_derivative_type eta;
       
       explicit point_difference_type(const state_difference_type& aDX) : dx(aDX) { };
 #ifdef RK_ENABLE_CXX11_FEATURES
@@ -114,16 +108,23 @@ class IHAQR_topology : public named_object
     typedef default_random_sampler random_sampler_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 0);
+    
+    
   
-  private:
+  protected:
     
     shared_ptr< StateSpaceSystem > m_system;
     StateSpace m_space;
+    hyperbox_topology< system_input_type > m_input_space;
     
     mat<double,mat_structure::diagonal> m_R;
     mat<double,mat_structure::diagonal> m_Q;
+    double m_time_step;
+    system_input_type m_input_bandwidth;
+    double m_max_time_horizon;
+    double m_goal_proximity_threshold;
     
-    void compute_IHAQR_data(point_type& a) const {
+    void compute_IHAQR_data(const point_type& a) const {
       // compute u
       matrixC_type Ctmp;
       matrixD_type Dtmp;
@@ -132,7 +133,7 @@ class IHAQR_topology : public named_object
       mat_vect_adaptor< vect_n<double> > f_m(f);
       m_system->get_linear_blocks(a.A, a.B, Ctmp, Dtmp, m_space, 0.0, a.x, a.u);
       mat<double,mat_structure::rectangular> u_m(to_vect<double>(a.u).size(), 1);
-      linlsq_QR(a.A, u_m, f_m);
+      linlsq_QR(a.B, u_m, f_m);
       a.u = from_vect< system_input_type >(u_m);
       
       // compute c
@@ -165,9 +166,31 @@ class IHAQR_topology : public named_object
     /**
      * Default constructor.
      */
-    IHAQR_topology(const std::string& aName = "IHAQR_topology") : named_object() {
+    IHAQR_topology(const std::string& aName = "IHAQR_topology"
+                   const shared_ptr< StateSpaceSystem >& aSystem = shared_ptr< StateSpaceSystem >(),
+                   const StateSpace& aSpace = StateSpace(),
+                   const system_input_type& aMinInput = system_input_type(),
+                   const system_input_type& aMaxInput = system_input_type(),
+                   const mat<double,mat_structure::diagonal>& aR = (mat<double,mat_structure::diagonal>()),
+                   const mat<double,mat_structure::diagonal>& aQ = (mat<double,mat_structure::diagonal>()),
+                   double aTimeStep = 0.1,
+                   const system_input_type& aInputBandwidth = system_input_type(),
+                   double aMaxTimeHorizon = 10.0,
+                   double aGoalProximityThreshold = 1.0) : 
+                   named_object(),
+                   m_system(aSystem),
+                   m_space(aSpace),
+                   m_input_space(aName + "_input_space", aMinInput, aMaxInput),
+                   m_R(aR),
+                   m_Q(aQ),
+                   m_time_step(aTimeStep),
+                   m_input_bandwidth(aInputBandwidth),
+                   m_max_time_horizon(aMaxTimeHorizon),
+                   m_goal_proximity_threshold(aGoalProximityThreshold) {
       setName(aName);
     };
+    
+    virtual ~IHAQR_topology() { };
     
     
     /*************************************************************************
@@ -178,6 +201,8 @@ class IHAQR_topology : public named_object
      * Returns the distance between two points.
      */
     double distance(const point_type& a, const point_type& b) const {
+      if(b.M.get_row_count() == 0)
+        compute_IHAQR_data(b);
       vect_n<double> dx =  to_vect<double>(m_space.difference(b.x, a.x));
       return dx * b.M * dx;
     };
@@ -187,7 +212,7 @@ class IHAQR_topology : public named_object
      */
     double norm(const point_difference_type& delta) const {
       vect_n<double> dx = to_vect<double>(delta.dx);
-      return dx * delta.M * dx;
+      return dx * dx;
     };
     
    /*************************************************************************
@@ -212,12 +237,6 @@ class IHAQR_topology : public named_object
      */
     point_difference_type difference(const point_type& a, const point_type& b) const {
       point_difference_type result( m_space.difference(b.x, a.x) );
-      result.u = a.u;
-      result.A = a.A;
-      result.B = a.B;
-      result.M = a.M;
-      result.c = a.c;
-      result.eta = a.eta;
       return result;
     };
 
@@ -226,7 +245,6 @@ class IHAQR_topology : public named_object
      */
     point_type adjust(const point_type& a, const point_difference_type& delta) const {
       point_type result( m_space.adjust(a.x, delta.dx) );
-      compute_IHAQR_data(result);
       return result;
     };
 
@@ -235,7 +253,6 @@ class IHAQR_topology : public named_object
      */
     point_type origin() const {
       point_type result( m_space.origin() );
-      compute_IHAQR_data(result);
       return result;
     };
       
@@ -256,11 +273,55 @@ class IHAQR_topology : public named_object
     * **********************************************************************/
     
     /**
-     * Returns a point which is at a fraction between two points a to b. This function uses SLERP.
+     * Returns a point which is at a fraction between two points a to b.
      */
     point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
     {
-      // TODO
+      if(b.M.get_row_count() == 0)
+        compute_IHAQR_data(b);
+      state_type goal_point = m_space.move_position_toward(a.x, fraction, b.x);
+      mat<double,mat_structure::rectangular> K = invert(m_R) * transpose_view(b.B);
+      state_type x_current = a.x;
+      state_type x_next = x_current;
+      system_input_type u_prev = a.u - invert(m_R) * transpose_view(a.B) * a.eta;
+      
+      // while not reached (fly-by) the goal yet:
+      double current_time = 0.0;
+      while( ( current_time < m_max_time_horizon ) &&
+             ( m_space.distance(x_current, goal_point) > m_goal_proximity_threshold ) ) {
+        // compute the current IHAQR input
+        system_input_type u_current = b.u - K * (b.M * to_vect<double>(m_space.difference(x_current, goal_point)) + b.eta);
+        
+        u_current = m_input_space.adjust(u_current, space.get_diff_to_boundary(u_current));
+        
+        system_input_type du_dt = (u_current - u_prev) * (1.0 / m_time_step);
+        for(std::size_t i = 0; i < du_dt.size(); ++i)
+          if(fabs(du_dt[i]) > m_input_bandwidth[i])
+            u_current[i] = u_prev[i] + (du_dt[i] > 0.0 ? 1.0 : -1.0) * m_input_bandwidth[i] * m_time_step;
+        
+        constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
+        
+        // integrate for one time-step.
+        ctrl::detail::dormand_prince45_integrate_impl(
+          m_space,
+          m_system,
+          x_current,
+          x_next,
+          input_traj,
+          current_time,
+          current_time + m_time_step,
+          m_time_step * 1e-2,
+          1e-3,
+          m_time_step * 1e-6,
+          m_time_step * 0.1);
+        x_current = x_next;
+        current_time += m_time_step;
+        u_prev = u_current;
+      };
+      
+      point_type result( x_current );
+      result.u = u_prev;
+      return result;
     };
 
     
@@ -272,16 +333,26 @@ class IHAQR_topology : public named_object
       ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(m_system)
         & RK_SERIAL_SAVE_WITH_NAME(m_space)
+        & RK_SERIAL_SAVE_WITH_NAME(m_input_space)
         & RK_SERIAL_SAVE_WITH_NAME(m_R)
-        & RK_SERIAL_SAVE_WITH_NAME(m_Q);
+        & RK_SERIAL_SAVE_WITH_NAME(m_Q)
+        & RK_SERIAL_SAVE_WITH_NAME(m_time_step)
+        & RK_SERIAL_SAVE_WITH_NAME(m_input_bandwidth)
+        & RK_SERIAL_SAVE_WITH_NAME(m_max_time_horizon)
+        & RK_SERIAL_SAVE_WITH_NAME(m_goal_proximity_threshold);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(m_system)
         & RK_SERIAL_LOAD_WITH_NAME(m_space)
+        & RK_SERIAL_LOAD_WITH_NAME(m_input_space)
         & RK_SERIAL_LOAD_WITH_NAME(m_R)
-        & RK_SERIAL_LOAD_WITH_NAME(m_Q);
+        & RK_SERIAL_LOAD_WITH_NAME(m_Q)
+        & RK_SERIAL_LOAD_WITH_NAME(m_time_step)
+        & RK_SERIAL_LOAD_WITH_NAME(m_input_bandwidth)
+        & RK_SERIAL_LOAD_WITH_NAME(m_max_time_horizon)
+        & RK_SERIAL_LOAD_WITH_NAME(m_goal_proximity_threshold);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240000C,1,"IHAQR_topology",named_object)
