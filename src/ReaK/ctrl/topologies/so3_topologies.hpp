@@ -152,7 +152,9 @@ class quaternion_topology : public named_object
     point_difference_type get_diff_to_boundary(const point_type&) const {
       return point_difference_type();
     };
-
+    
+    void bring_point_in_bounds(point_type&) const { };
+    
     /*************************************************************************
     *                             LieGroupConcept
     * **********************************************************************/

@@ -56,6 +56,12 @@ namespace ReaK {
 
 namespace pp {
 
+
+// forward-declaration.
+template <typename StateSpace, typename StateSpaceSystem>
+class MEAQR_topology;
+
+
 /**
  * This class implements a quaternion-topology. Because quaternions are constrained on the unit 
  * hyper-sphere, this topology is indeed bounded (yet infinite at the same time). This class
@@ -67,6 +73,8 @@ class IHAQR_topology : public named_object
   public:
     typedef IHAQR_topology<StateSpace, StateSpaceSystem> self;
     
+    friend class MEAQR_topology<StateSpace, StateSpaceSystem>;
+    
     typedef typename ctrl::linear_ss_system_traits< StateSpaceSystem >::matrixA_type matrixA_type;
     typedef typename ctrl::linear_ss_system_traits< StateSpaceSystem >::matrixB_type matrixB_type;
     typedef typename ctrl::linear_ss_system_traits< StateSpaceSystem >::matrixC_type matrixC_type;
@@ -77,14 +85,22 @@ class IHAQR_topology : public named_object
     typedef typename ctrl::ss_system_traits< StateSpaceSystem >::point_derivative_type state_derivative_type;
     typedef typename ctrl::ss_system_traits< StateSpaceSystem >::input_type system_input_type;
     
+    struct linearization_payload {
+      system_input_type u;
+      matrixA_type A;
+      matrixB_type B;
+    };
+    
+    struct IHAQR_payload {
+      mat<double,mat_structure::square> M;
+      state_derivative_type c;
+      state_derivative_type eta;
+    };
+    
     struct point_type {
       state_type x;
-      mutable system_input_type u;
-      mutable matrixA_type A;
-      mutable matrixB_type B;
-      mutable mat<double,mat_structure::square> M;
-      mutable state_derivative_type c;
-      mutable state_derivative_type eta;
+      mutable shared_ptr< linearization_payload > lin_data;
+      mutable shared_ptr< IHAQR_payload > IHAQR_data;
       
       explicit point_type(const state_type& aX) : x(aX) { };
 #ifdef RK_ENABLE_CXX11_FEATURES
@@ -116,6 +132,7 @@ class IHAQR_topology : public named_object
     shared_ptr< StateSpaceSystem > m_system;
     StateSpace m_space;
     hyperbox_topology< system_input_type > m_input_space;
+    hyperbox_topology< system_input_type > m_input_rate_space;
     
     mat<double,mat_structure::diagonal> m_R;
     mat<double,mat_structure::diagonal> m_Q;
@@ -124,28 +141,36 @@ class IHAQR_topology : public named_object
     double m_max_time_horizon;
     double m_goal_proximity_threshold;
     
-    void compute_IHAQR_data(const point_type& a) const {
+    void compute_linearization_data(const point_type& a) const {
+      a.lin_data = shared_ptr< linearization_payload >(new linearization_payload());
+      
       // compute u
       matrixC_type Ctmp;
       matrixD_type Dtmp;
-      a.u = system_input_type();
-      vect_n<double> f = to_vect<double>(m_system->get_state_derivative(m_space, a.x, a.u, 0.0));
+      vect_n<double> f = to_vect<double>(m_system->get_state_derivative(m_space, a.x, a.lin_data->u, 0.0));
       mat_vect_adaptor< vect_n<double> > f_m(f);
-      m_system->get_linear_blocks(a.A, a.B, Ctmp, Dtmp, m_space, 0.0, a.x, a.u);
-      mat<double,mat_structure::rectangular> u_m(to_vect<double>(a.u).size(), 1);
-      linlsq_QR(a.B, u_m, f_m);
-      a.u = from_vect< system_input_type >(u_m);
-      
-      // compute c
-      a.c = m_system->get_state_derivative(m_space, a.x, a.u, 0.0);
-      vect_n<double> c_v = to_vect<double>(a.c);
+      m_system->get_linear_blocks(a.lin_data->A, a.lin_data->B, Ctmp, Dtmp, m_space, 0.0, a.x, a.lin_data->u);
+      mat<double,mat_structure::rectangular> u_m(to_vect<double>(a.lin_data->u).size(), 1);
+      linlsq_QR(a.lin_data->B, u_m, f_m);
+      a.lin_data->u = from_vect< system_input_type >(u_m);
       
       // fill in A and B
-      m_system->get_linear_blocks(a.A, a.B, Ctmp, Dtmp, m_space, 0.0, a.x, a.u);
+      m_system->get_linear_blocks(a.lin_data->A, a.lin_data->B, Ctmp, Dtmp, m_space, 0.0, a.x, a.lin_data->u);
+      
+    };
+    
+    void compute_IHAQR_data(const point_type& a) const {
+      if(!a.lin_data)
+        compute_linearization_data(a);
+      a.IHAQR_data = shared_ptr< IHAQR_payload >(new IHAQR_payload());
+      
+      // compute c
+      a.IHAQR_data->c = m_system->get_state_derivative(m_space, a.x, a.lin_data->u, 0.0);
+      vect_n<double> c_v = to_vect<double>(a.IHAQR_data->c);
       
       // solve for M
       try {
-        solve_care_problem(a.A, a.B, m_R, m_Q, a.M);
+        solve_care_problem(a.lin_data->A, a.lin_data->B, m_R, m_Q, a.IHAQR_data->M);
       } catch(std::exception& e) {
         std::cout << "Warning! Solution to the CARE problem could not be found for the given state point: " << a.x << std::endl
                   << "  The following exception was raised: " << e.what() << std::endl;
@@ -153,11 +178,11 @@ class IHAQR_topology : public named_object
       
       // solve for eta
       // To be neglected in distance metric
-      mat<double,mat_structure::square> lhsMat = a.M * a.B * invert(m_R) * transpose_view(a.B) - transpose_view(a.A);
+      mat<double,mat_structure::square> lhsMat = a.IHAQR_data->M * a.lin_data->B * invert(m_R) * transpose_view(a.lin_data->B) - transpose_view(a.lin_data->A);
       mat_vect_adaptor< vect_n<double> > c_v_m(c_v);
       mat<double,mat_structure::rectangular> eta_m(c_v.size(), 1);
       linlsq_QR(lhsMat, eta_m, c_v_m);
-      a.eta = from_vect<state_derivative_type>(mat_row_slice< mat<double,mat_structure::rectangular> >(eta_m));
+      a.IHAQR_data->eta = from_vect<state_derivative_type>(mat_row_slice< mat<double,mat_structure::rectangular> >(eta_m));
       
     };
     
@@ -171,20 +196,20 @@ class IHAQR_topology : public named_object
                    const StateSpace& aSpace = StateSpace(),
                    const system_input_type& aMinInput = system_input_type(),
                    const system_input_type& aMaxInput = system_input_type(),
+                   const system_input_type& aInputBandwidth = system_input_type(),
                    const mat<double,mat_structure::diagonal>& aR = (mat<double,mat_structure::diagonal>()),
                    const mat<double,mat_structure::diagonal>& aQ = (mat<double,mat_structure::diagonal>()),
                    double aTimeStep = 0.1,
-                   const system_input_type& aInputBandwidth = system_input_type(),
                    double aMaxTimeHorizon = 10.0,
                    double aGoalProximityThreshold = 1.0) : 
                    named_object(),
                    m_system(aSystem),
                    m_space(aSpace),
                    m_input_space(aName + "_input_space", aMinInput, aMaxInput),
+                   m_input_rate_space(aName + "_input_rate_space", -aInputBandwidth, aInputBandwidth),
                    m_R(aR),
                    m_Q(aQ),
                    m_time_step(aTimeStep),
-                   m_input_bandwidth(aInputBandwidth),
                    m_max_time_horizon(aMaxTimeHorizon),
                    m_goal_proximity_threshold(aGoalProximityThreshold) {
       setName(aName);
@@ -201,7 +226,7 @@ class IHAQR_topology : public named_object
      * Returns the distance between two points.
      */
     double distance(const point_type& a, const point_type& b) const {
-      if(b.M.get_row_count() == 0)
+      if(!b.IHAQR_data)
         compute_IHAQR_data(b);
       vect_n<double> dx =  to_vect<double>(m_space.difference(b.x, a.x));
       return dx * b.M * dx;
@@ -236,24 +261,21 @@ class IHAQR_topology : public named_object
      * Returns the difference between two points (analogous to a - b, but implemented in SO(3) Lie algebra).
      */
     point_difference_type difference(const point_type& a, const point_type& b) const {
-      point_difference_type result( m_space.difference(b.x, a.x) );
-      return result;
+      return point_difference_type( m_space.difference(b.x, a.x) );
     };
 
     /**
      * Returns the addition of a point-difference to a point.
      */
     point_type adjust(const point_type& a, const point_difference_type& delta) const {
-      point_type result( m_space.adjust(a.x, delta.dx) );
-      return result;
+      return point_type( m_space.adjust(a.x, delta.dx) );
     };
 
     /**
      * Returns the origin of the space (the lower-limit).
      */
     point_type origin() const {
-      point_type result( m_space.origin() );
-      return result;
+      return point_type( m_space.origin() );
     };
       
     /**
@@ -264,8 +286,17 @@ class IHAQR_topology : public named_object
     };
     
     // NOTE: don't know if I can get rid of this. (only seems useful in bounded interpolators (and samplers)).
-    point_difference_type get_diff_to_boundary(const point_type&) const {
-      return point_difference_type();
+    void bring_point_in_bounds(point_type& p) const {
+      if(!m_space.is_in_bounds(p.x)) {
+        m_space.bring_point_in_bounds(p.x);
+        p.lin_data = shared_ptr< linearization_payload >();
+        p.IHAQR_data = shared_ptr< IHAQR_payload >();
+      };
+    };
+    
+    // NOTE: don't know if I can get rid of this. (only seems useful in bounded interpolators (and samplers)).
+    point_difference_type get_diff_to_boundary(const point_type& p) const {
+      return point_difference_type( m_space.get_diff_to_boundary(p.x) );
     };
 
     /*************************************************************************
@@ -277,7 +308,7 @@ class IHAQR_topology : public named_object
      */
     point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
     {
-      if(b.M.get_row_count() == 0)
+      if(!b.IHAQR_data)
         compute_IHAQR_data(b);
       state_type goal_point = m_space.move_position_toward(a.x, fraction, b.x);
       mat<double,mat_structure::rectangular> K = invert(m_R) * transpose_view(b.B);
@@ -291,10 +322,11 @@ class IHAQR_topology : public named_object
              ( m_space.distance(x_current, goal_point) > m_goal_proximity_threshold ) ) {
         // compute the current IHAQR input
         system_input_type u_current = b.u - K * (b.M * to_vect<double>(m_space.difference(x_current, goal_point)) + b.eta);
-        
-        u_current = m_input_space.adjust(u_current, space.get_diff_to_boundary(u_current));
+        m_input_space.bring_point_in_bounds(u_current);
         
         system_input_type du_dt = (u_current - u_prev) * (1.0 / m_time_step);
+        m_input_rate_space.bring_point_in_bounds(du_dt);
+        u_current = u_prev + m_time_step * du_dt;
         for(std::size_t i = 0; i < du_dt.size(); ++i)
           if(fabs(du_dt[i]) > m_input_bandwidth[i])
             u_current[i] = u_prev[i] + (du_dt[i] > 0.0 ? 1.0 : -1.0) * m_input_bandwidth[i] * m_time_step;

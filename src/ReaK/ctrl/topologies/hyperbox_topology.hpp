@@ -85,10 +85,10 @@ class hyperbox_topology : public vector_topology<Vector>
     
     hyperbox_topology(const std::string& aName = "hyperbox_topology",
                       const point_type& aLowerCorner = point_type(),
-		      const point_type& aUpperCorner = point_type()) : 
-		      vector_topology<Vector>(aName),
-		      lower_corner(aLowerCorner),
-		      upper_corner(aUpperCorner) { };
+                      const point_type& aUpperCorner = point_type()) : 
+                      vector_topology<Vector>(aName),
+                      lower_corner(aLowerCorner),
+                      upper_corner(aUpperCorner) { };
     
     /*************************************************************************
     *                         for PointDistributionConcept
@@ -114,21 +114,20 @@ class hyperbox_topology : public vector_topology<Vector>
     /**
      * Takes a point and clips it to within this line-segment space.
      */
-    point_type bound(point_type a) const {
+    void bring_point_in_bounds(point_type& a) const {
       for(typename vect_traits<point_type>::size_type i = 0; i < a.size(); ++i) {
-	if(lower_corner[i] < upper_corner[i]) {
-	  if(a[i] < lower_corner[i])
-	    a[i] = lower_corner[i];
-	  else if(a[i] > upper_corner[i])
-	    a[i] = upper_corner[i];
-	} else {
-	  if(a[i] > lower_corner[i])
-	    a[i] = lower_corner[i];
-	  else if(a[i] < upper_corner[i])
-	    a[i] = upper_corner[i];
-	};
+        if(lower_corner[i] < upper_corner[i]) {
+          if(a[i] < lower_corner[i])
+            a[i] = lower_corner[i];
+          else if(a[i] > upper_corner[i])
+            a[i] = upper_corner[i];
+        } else {
+          if(a[i] > lower_corner[i])
+            a[i] = lower_corner[i];
+          else if(a[i] < upper_corner[i])
+            a[i] = upper_corner[i];
+        };
       };
-      return a;
     };
 
     /**
@@ -138,10 +137,10 @@ class hyperbox_topology : public vector_topology<Vector>
       double dist = std::numeric_limits< typename vect_traits<point_type>::value_type >::max();
       using std::fabs;
       for(typename vect_traits<point_type>::size_type i = 0; i < a.size(); ++i) {
-	if(dist > fabs(a[i] - lower_corner[i]))
-	  dist = fabs(a[i] - lower_corner[i]);
-	if(dist > fabs(a[i] - upper_corner[i]))
-	  dist = fabs(a[i] - upper_corner[i]);
+        if(dist > fabs(a[i] - lower_corner[i]))
+          dist = fabs(a[i] - lower_corner[i]);
+        if(dist > fabs(a[i] - upper_corner[i]))
+          dist = fabs(a[i] - upper_corner[i]);
       };
       return dist;
     };
@@ -155,24 +154,24 @@ class hyperbox_topology : public vector_topology<Vector>
       bool at_upper = false;
       using std::fabs;
       for(typename vect_traits<point_type>::size_type i = 0; i < a.size(); ++i) {
-	if(dist > fabs(a[i] - lower_corner[i])) {
-	  j = i;
-	  at_upper = false;
-	  dist = fabs(a[i] - lower_corner[i]);
-	};
-	if(dist > fabs(a[i] - upper_corner[i])) {
-	  j = i;
-	  at_upper = true;
-	  dist = fabs(a[i] - upper_corner[i]);
-	};
+        if(dist > fabs(a[i] - lower_corner[i])) {
+          j = i;
+          at_upper = false;
+          dist = fabs(a[i] - lower_corner[i]);
+        };
+        if(dist > fabs(a[i] - upper_corner[i])) {
+          j = i;
+          at_upper = true;
+          dist = fabs(a[i] - upper_corner[i]);
+        };
       };
       point_difference_type dp = this->difference(a,a);
       if(j == a.size())
-	return dp;
+        return dp;
       if(at_upper)
-	dp[j] = upper_corner[j] - a[j];
+        dp[j] = upper_corner[j] - a[j];
       else
-	dp[j] = lower_corner[j] - a[j];
+        dp[j] = lower_corner[j] - a[j];
       return dp;
     };
       
@@ -181,13 +180,13 @@ class hyperbox_topology : public vector_topology<Vector>
      */
     bool is_in_bounds(const point_type& a) const {
       for(typename vect_traits<point_type>::size_type i = 0; i < a.size(); ++i) {
-	if(lower_corner[i] < upper_corner[i]) {
-	  if((a[i] < lower_corner[i]) || (a[i] > upper_corner[i]))
-	    return false;
-	} else {
-	  if((a[i] > lower_corner[i]) || (a[i] < upper_corner[i]))
-	    return false;
-	};
+        if(lower_corner[i] < upper_corner[i]) {
+          if((a[i] < lower_corner[i]) || (a[i] > upper_corner[i]))
+            return false;
+        } else {
+          if((a[i] > lower_corner[i]) || (a[i] < upper_corner[i]))
+            return false;
+        };
       };
       return true;
     };

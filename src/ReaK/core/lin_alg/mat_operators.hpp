@@ -137,6 +137,42 @@ void diag_diag_mat_multiply_impl(const MatrixDiag1& M1, const MatrixDiag2& M2, R
 };
 
 
+/* Multiplies two lower-triangular matrices and saves the result in-place into M2. */
+template <typename MatrixLower1, typename MatrixLower2>
+void inplace_lower_multiply_impl(const MatrixLower1& M1, MatrixLower2& M2) {
+  typedef typename mat_traits<MatrixLower2>::size_type SizeType;
+  typedef typename mat_traits<MatrixLower2>::value_type ValueType;
+  
+  for(SizeType i = M1.get_row_count(); i > 0;) {
+    --i;
+    for(SizeType j = 0; j <= i; ++j) {
+      ValueType sum = ValueType(0.0);
+      for(SizeType k = j; k <= i; ++k)
+        sum += M1(i, k) * M2(k, j);
+      M2(i,j) = sum;
+    };
+  };
+};
+
+/* Multiplies two lower-triangular matrices and saves the result in-place into M2, and fills the upper part of M2 with zeros. */
+template <typename MatrixLower1, typename MatrixLower2>
+void inplace_lower_multiply_with_fill_impl(const MatrixLower1& M1, MatrixLower2& M2) {
+  typedef typename mat_traits<MatrixLower2>::size_type SizeType;
+  typedef typename mat_traits<MatrixLower2>::value_type ValueType;
+  
+  for(SizeType i = M1.get_row_count(); i > 0;) {
+    --i;
+    for(SizeType j = 0; j <= i; ++j) {
+      ValueType sum = ValueType(0.0);
+      for(SizeType k = j; k <= i; ++k)
+        sum += M1(i, k) * M2(k, j);
+      M2(i,j) = sum;
+    };
+    for(SizeType j = i + 1; j < M2.get_col_count(); ++j)
+      M2(i,j) = ValueType(0.0);
+  };
+};
+
 
 
 };

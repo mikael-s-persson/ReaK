@@ -192,8 +192,8 @@ class line_segment_topology : public line_topology<T>
      * \param aEnd The maximum bound of the line-segment.
      */
     explicit line_segment_topology(const std::string& aName = "line_segment_topology", 
-				   point_type aStart = point_type(0.0), 
-				   point_type aEnd = point_type(1.0)) 
+                                   point_type aStart = point_type(0.0), 
+                                   point_type aEnd = point_type(1.0)) 
       : line_topology<T>(aName), start_pt(aStart), end_pt(aEnd) { };
    
     
@@ -215,21 +215,17 @@ class line_segment_topology : public line_topology<T>
     /**
      * Takes a point and clips it to within this line-segment space.
      */
-    point_type bound(point_type a) const {
+    void bring_point_in_bounds(point_type& a) const {
       if(end_pt > start_pt) {
         if(a > end_pt)
-  	  return end_pt;
+          a = end_pt;
         else if(a < start_pt) 
- 	  return start_pt;
-        else
-	  return a;
+          a = start_pt;
       } else {
         if(a < end_pt)
-	  return end_pt;
+          a = end_pt;
         else if(a > start_pt)
-	  return start_pt;
-        else
-	  return a;
+          a = start_pt;
       };
     };
 
@@ -263,10 +259,10 @@ class line_segment_topology : public line_topology<T>
     bool is_in_bounds(const point_type& a) const {
       if(end_pt > start_pt) {
         if((a > end_pt) || (a < start_pt))
-  	  return false;
+          return false;
       } else {
         if((a < end_pt) || (a > start_pt))
-	  return false;
+          return false;
       };
       return true;
     };

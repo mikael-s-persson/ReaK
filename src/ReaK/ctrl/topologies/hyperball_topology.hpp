@@ -82,10 +82,10 @@ class hyperball_topology : public vector_topology<Vector>
     
     hyperball_topology(const std::string& aName = "hyperball_topology",
                        const point_type& aOrigin = point_type(),
-		       double aRadius = 1.0) : 
-		       vector_topology<Vector>(aName),
-		       center_point(aOrigin),
-		       radius_value(aRadius) { };
+                       double aRadius = 1.0) : 
+                       vector_topology<Vector>(aName),
+                       center_point(aOrigin),
+                       radius_value(aRadius) { };
     
    /*************************************************************************
     *                             MetricSpaceConcept
@@ -120,7 +120,7 @@ class hyperball_topology : public vector_topology<Vector>
       
       point_difference_type dp = this->difference(center_point,center_point);
       if(dp.size() == 0)
-	return center_point;
+        return center_point;
       
       double radial_dim_correction = double(dp.size());
       
@@ -139,10 +139,10 @@ class hyperball_topology : public vector_topology<Vector>
     * **********************************************************************/
 
     /**
-     * Takes a point and clips it to within this line-segment space.
+     * Takes a point and clips it to within this hyperball space.
      */
-    point_type bound(const point_type& a) const {
-      return this->adjust(a,this->get_diff_to_boundary(a));
+    void bring_point_in_bounds(point_type& a) const {
+      a = this->adjust(a,this->get_diff_to_boundary(a));
     };
 
     /**
@@ -211,7 +211,7 @@ class hyperball_topology : public vector_topology<Vector>
 
 template <typename Vector>
 struct is_metric_space< hyperball_topology<Vector> > : boost::mpl::true_ { };
-	
+
 template <typename Vector>
 struct is_point_distribution< hyperball_topology<Vector> > : boost::mpl::true_ { };
 

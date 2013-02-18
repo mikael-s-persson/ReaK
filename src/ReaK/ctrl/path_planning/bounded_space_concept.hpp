@@ -59,6 +59,8 @@ namespace pp {
  * 
  * bool b = space.is_in_bounds(p);  A point can be checked for being with the bounds of the space.
  * 
+ * space.bring_point_in_bounds(p);  A point (non-const ref) can be brought within bounds.
+ * 
  * \tparam BoundedSpace The topology type to be checked for this concept.
  */
 template <typename BoundedSpace>
@@ -73,6 +75,7 @@ struct BoundedSpaceConcept {
   {
     pd = space.get_diff_to_boundary(p);
     bool b = space.is_in_bounds(p); RK_UNUSED(b);
+    space.bring_point_in_bounds(p);
   };
   
 };
