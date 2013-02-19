@@ -1,6 +1,7 @@
 
 set(MISCEXAMPLES_SOURCES 
-#   "${SRCROOT}${RKMISCEXAMPLESDIR}/IHAQR_topology.cpp"
+  "${SRCROOT}${RKMISCEXAMPLESDIR}/X8_quadrotor_model.cpp"
+  "${SRCROOT}${RKMISCEXAMPLESDIR}/X8_quadrotor_geom.cpp"
 )
 
 
@@ -8,12 +9,18 @@ set(MISCEXAMPLES_HEADERS
   "${RKMISCEXAMPLESDIR}/quadrotor_system.hpp"
   "${RKMISCEXAMPLESDIR}/IHAQR_topology.hpp"
   "${RKMISCEXAMPLESDIR}/MEAQR_topology.hpp"
+  "${RKMISCEXAMPLESDIR}/X8_quadrotor_model.hpp"
+  "${RKMISCEXAMPLESDIR}/X8_quadrotor_geom.hpp"
 )
 
-# add_library(reak_robot_airship STATIC ${ROBOTAIRSHIP_SOURCES})
-# setup_custom_target(reak_robot_airship "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-# setup_headers("${ROBOTAIRSHIP_HEADERS}" "${RKROBOTAIRSHIPDIR}")
-# target_link_libraries(reak_robot_airship reak_topologies reak_interp reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
+add_library(reak_examples STATIC ${MISCEXAMPLES_SOURCES})
+setup_custom_target(reak_examples "${SRCROOT}${RKMISCEXAMPLESDIR}")
+setup_headers("${MISCEXAMPLES_HEADERS}" "${RKMISCEXAMPLESDIR}")
+target_link_libraries(reak_examples reak_topologies reak_interp reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
+  
+add_executable(build_X8_obstacle_courses "${SRCROOT}${RKMISCEXAMPLESDIR}/build_X8_obstacle_courses.cpp")
+setup_custom_target(build_X8_obstacle_courses "${SRCROOT}${RKMISCEXAMPLESDIR}")
+target_link_libraries(build_X8_obstacle_courses reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
 
 if(COIN3D_FOUND AND QT_FOUND)
   
@@ -26,8 +33,13 @@ if(COIN3D_FOUND AND QT_FOUND)
   
   add_executable(quadrotor_scene "${SRCROOT}${RKMISCEXAMPLESDIR}/quadrotor_scene.cpp")
   setup_custom_target(quadrotor_scene "${SRCROOT}${RKMISCEXAMPLESDIR}")
-  target_link_libraries(quadrotor_scene reak_kte_coin reak_geom_coin reak_topologies reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
+  target_link_libraries(quadrotor_scene reak_examples reak_kte_coin reak_geom_coin reak_topologies reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
   target_link_libraries(quadrotor_scene ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
+  
+  add_executable(X8_test_scene "${SRCROOT}${RKMISCEXAMPLESDIR}/X8_test_scene.cpp")
+  setup_custom_target(X8_test_scene "${SRCROOT}${RKMISCEXAMPLESDIR}")
+  target_link_libraries(X8_test_scene reak_examples reak_kte_coin reak_geom_coin reak_topologies reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
+  target_link_libraries(X8_test_scene ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
   
 endif()
 

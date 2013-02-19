@@ -34,19 +34,16 @@ namespace ReaK {
 
 namespace kte {
 
-
 X8_quadrotor_kinematics::X8_quadrotor_kinematics(const std::string& aName,
                                                  const shared_ptr< frame_3D<double> >& aBaseFrame) :
                                                  inverse_kinematics_model(aName),
                                                  m_base_frame(aBaseFrame) {
   m_motion_frame = shared_ptr< frame_3D<double> >(new frame_3D<double>(), scoped_deleter());
-  shared_ptr< joint_dependent_frame_3D > m_output_frame;
-  shared_ptr< kte_map_chain > m_chain;
   
   shared_ptr< frame_3D<double> > EE_frame(new frame_3D<double>(), scoped_deleter());
   shared_ptr< jacobian_3D_3D<double> > joint_jacobian(new jacobian_3D_3D<double>(), scoped_deleter());
   
-  shared_ptr< revolute_joint_3D > joint_1(new free_joint_3D(
+  shared_ptr< free_joint_3D > joint_1(new free_joint_3D(
       "X8_free_joint",
       m_motion_frame,
       m_base_frame,
@@ -54,7 +51,7 @@ X8_quadrotor_kinematics::X8_quadrotor_kinematics(const std::string& aName,
       joint_jacobian),
     scoped_deleter());
   
-  m_output_frame = shared_ptr< joint_dependent_frame_3D >(new joint_dependent_frame_3D(arm_EE), scoped_deleter());
+  m_output_frame = shared_ptr< joint_dependent_frame_3D >(new joint_dependent_frame_3D(EE_frame), scoped_deleter());
   m_output_frame->add_joint(m_motion_frame, joint_jacobian);
   
   m_chain = shared_ptr< kte_map_chain >(new kte_map_chain("X8_quadrotor_kin_model"), scoped_deleter());
@@ -87,7 +84,7 @@ void X8_quadrotor_kinematics::getJacobianMatrix(mat<double,mat_structure::rectan
 void X8_quadrotor_kinematics::getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, mat<double,mat_structure::rectangular>& JacDot) const {
   
   Jac    = mat<double,mat_structure::identity>(6);
-  JacDot = mat<double,mat_structure::nil>(6);
+  JacDot = mat<double,mat_structure::nil>(6,6);
   
 };
 

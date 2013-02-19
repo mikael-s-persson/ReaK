@@ -76,6 +76,8 @@
 #include "neighborhood_functors.hpp"
 #include "rr_graph.hpp"
 
+#include "node_generators.hpp"
+
 #include <queue>
 
 namespace ReaK {
@@ -350,6 +352,178 @@ namespace detail {
       incons_set.pop();
     };
   };
+  
+  
+  
+  template <typename Graph,
+            typename Topology,
+            typename RRTStarVisitor,
+            typename PositionMap,
+            typename CostMap,
+            typename PredecessorMap,
+            typename WeightMap,
+            typename NodeGenerator,
+            typename DistanceMetric,
+            typename NcSelector>
+  inline typename boost::enable_if< boost::is_undirected_graph<Graph> >::type
+    generate_rrt_star_loop(Graph& g,
+                           const Topology& space,
+                           RRTStarVisitor vis,
+                           PositionMap position,
+                           CostMap cost,
+                           PredecessorMap pred,
+                           WeightMap weight,
+                           NodeGenerator node_generator_func,
+                           DistanceMetric distance,
+                           NcSelector select_neighborhood,
+                           unsigned int max_vertex_count) {
+    typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
+    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge; 
+    typedef typename Graph::vertex_bundled VertexProp;
+    typedef typename Graph::edge_bundled EdgeProp;
+    using std::back_inserter;
+    
+    typedef boost::composite_property_map< 
+      PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
+    GraphPositionMap g_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
+    
+    while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
+      
+      PositionValue p_new = node_generator_func(g, vis, g_position);
+      
+      std::vector<Vertex> Nc;
+      select_neighborhood(p_new, back_inserter(Nc), g, space, g_position);
+      
+      VertexProp xp;
+      put(position, xp, p_new);
+      put(cost, xp, std::numeric_limits<double>::infinity());
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      Vertex x_new = add_vertex(std::move(xp),g);
+#else
+      Vertex x_new = add_vertex(xp,g);
+#endif
+      put(pred, g[x_new], x_new);
+      vis.vertex_added(x_new,g);
+      
+      // Choose Parent:
+      double d_near = distance(get(position, g[x_near]), p_new, space);
+      double c_near = get(cost, g[x_near]) + d_near;
+      for(typename std::vector<Vertex>::const_iterator it = Nc.begin(); it != Nc.end(); ++it) {
+        double c_temp, d_temp;
+        if((*it != x_near) && 
+           (vis.can_be_connected(*it, x_new, g)) &&
+           ((c_temp = get(cost, g[*it]) + (d_temp = distance(get(position, g[*it]), p_new, space))) < c_near)) {
+          x_near = *it;
+          c_near = c_temp;
+          d_near = d_temp;
+        };
+      };
+      
+      EdgeProp eprop;
+      put(weight, eprop, d_near);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      std::pair<Edge, bool> ep = add_edge(x_near, x_new, std::move(eprop), g);
+#else
+      std::pair<Edge, bool> ep = add_edge(x_near, x_new, eprop, g);
+#endif
+      if(!ep.second)
+        continue;
+      put(cost, g[x_new], c_near);
+      put(pred, g[x_new], x_near);
+      vis.edge_added(ep.first, g);
+      
+      detail::rewire_tree_neighborhood(x_new, Nc, g, space, vis, position, cost, pred, weight, distance); 
+      
+    };
+
+  };
+  
+  
+  
+  template <typename Graph,
+            typename Topology,
+            typename RRTStarVisitor,
+            typename PositionMap,
+            typename CostMap,
+            typename WeightMap,
+            typename NodeGenerator,
+            typename DistanceMetric,
+            typename NcSelector>
+  inline typename boost::enable_if< boost::is_directed_graph<Graph> >::type
+    generate_rrt_star_loop(Graph& g,
+                           const Topology& space,
+                           RRTStarVisitor vis,
+                           PositionMap position,
+                           CostMap cost,
+                           WeightMap weight,
+                           NodeGenerator node_generator_func,
+                           DistanceMetric distance,
+                           NcSelector select_neighborhood,
+                           unsigned int max_vertex_count) {
+    typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
+    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge; 
+    typedef typename Graph::vertex_bundled VertexProp;
+    typedef typename Graph::edge_bundled EdgeProp;
+    using std::back_inserter;
+    
+    typedef boost::composite_property_map< 
+      PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
+    GraphPositionMap g_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
+    
+    while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
+      
+      PositionValue p_new = node_generator_func(g, vis, g_position);
+      
+      std::vector<Vertex> Pred;
+      std::vector<Vertex> Succ;
+      select_neighborhood(p_new, back_inserter(Pred), back_inserter(Succ), g, space, g_position);
+      
+      VertexProp xp;
+      put(position, xp, p_new);
+      put(cost, xp, std::numeric_limits<double>::infinity());
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      Vertex x_new = add_vertex(std::move(xp),g);
+#else
+      Vertex x_new = add_vertex(xp,g);
+#endif
+      vis.vertex_added(x_new,g);
+      
+      // Choose Parent
+      double d_near = distance(get(position, g[x_near]), p_new, space);
+      double c_near = get(cost, g[x_near]) + d_near;
+      for(typename std::vector<Vertex>::const_iterator it = Pred.begin(); it != Pred.end(); ++it) {
+        double c_temp, d_temp;
+        if((*it != x_near) && 
+           (vis.can_be_connected(*it, x_new, g)) &&
+           ((c_temp = get(cost, g[*it]) + (d_temp = distance(get(position, g[*it]), p_new, space))) < c_near)) {
+          x_near = *it;
+          c_near = c_temp;
+          d_near = d_temp;
+        };
+      };
+      
+      EdgeProp eprop;
+      put(weight, eprop, d_near);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      std::pair<Edge, bool> ep = add_edge(x_near, x_new, std::move(eprop), g);
+#else
+      std::pair<Edge, bool> ep = add_edge(x_near, x_new, eprop, g);
+#endif
+      if(!ep.second)
+        continue;
+      put(cost, g[x_new], c_near);
+      vis.edge_added(ep.first, g);
+      
+      detail::rewire_tree_neighborhood(x_new, Succ, g, space, vis, position, cost, weight, distance); 
+      
+    };
+
+  };
+  
+  
+  
 
 };
 
@@ -400,18 +574,17 @@ namespace detail {
             typename RandomSampler,
             typename DistanceMetric,
             typename NcSelector>
-  inline typename boost::enable_if< boost::is_undirected_graph<Graph> >::type
-    generate_rrt_star(Graph& g,
-                      const Topology& space,
-                      RRTStarVisitor vis,
-                      PositionMap position,
-                      CostMap cost,
-                      PredecessorMap pred,
-                      WeightMap weight,
-                      RandomSampler get_sample,
-                      DistanceMetric distance,
-                      NcSelector select_neighborhood,
-                      unsigned int max_vertex_count) {
+  inline void generate_rrt_star(Graph& g,
+                                const Topology& space,
+                                RRTStarVisitor vis,
+                                PositionMap position,
+                                CostMap cost,
+                                PredecessorMap pred,
+                                WeightMap weight,
+                                RandomSampler get_sample,
+                                DistanceMetric distance,
+                                NcSelector select_neighborhood,
+                                unsigned int max_vertex_count) {
     BOOST_CONCEPT_ASSERT((RRTStarVisitorConcept<RRTStarVisitor,Graph,PositionMap>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::DistanceMetricConcept<DistanceMetric,Topology>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
@@ -423,10 +596,6 @@ namespace detail {
     typedef typename Graph::edge_bundled EdgeProp;
     using std::back_inserter;
     
-    typedef boost::composite_property_map< 
-      PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-    GraphPositionMap g_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
-
     if(num_vertices(g) == 0) {
       PositionValue p = get_sample(space);
       while(!vis.is_position_free(p))
@@ -442,208 +611,13 @@ namespace detail {
 #endif
       vis.vertex_added(u, g);
     };
-
-    while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
-      
-      PositionValue p_new = get_sample(space);
-      
-      std::vector<Vertex> Nc; 
-      select_neighborhood(p_new, back_inserter(Nc), g, space, g_position);
-      //std::cout << "Trying to expand a vertex... " << Nc.size() << std::endl;
-      Vertex x_near = boost::graph_traits<Graph>::null_vertex();
-      if( ! detail::expand_to_nearest(x_near, p_new, Nc, g, vis) )
-        continue;
-      //std::cout << "Expanded a vertex." << std::endl;
-      
-      Nc.clear();
-      select_neighborhood(p_new, back_inserter(Nc), g, space, g_position);
-      
-      VertexProp xp;
-      put(position, xp, p_new);
-      put(cost, xp, std::numeric_limits<double>::infinity());
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      Vertex x_new = add_vertex(std::move(xp),g);
-#else
-      Vertex x_new = add_vertex(xp,g);
-#endif
-      put(pred, g[x_new], x_new);
-      vis.vertex_added(x_new,g);
-      
-      // Choose Parent:
-      double d_near = distance(get(position, g[x_near]), p_new, space);
-      double c_near = get(cost, g[x_near]) + d_near;
-      for(typename std::vector<Vertex>::const_iterator it = Nc.begin(); it != Nc.end(); ++it) {
-        double c_temp, d_temp;
-        if((*it != x_near) && 
-           (vis.can_be_connected(*it, x_new, g)) &&
-           ((c_temp = get(cost, g[*it]) + (d_temp = distance(get(position, g[*it]), p_new, space))) < c_near)) {
-          x_near = *it;
-          c_near = c_temp;
-          d_near = d_temp;
-        };
-      };
-      
-      EdgeProp eprop;
-      put(weight, eprop, d_near);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      std::pair<Edge, bool> ep = add_edge(x_near, x_new, std::move(eprop), g);
-#else
-      std::pair<Edge, bool> ep = add_edge(x_near, x_new, eprop, g);
-#endif
-      if(!ep.second)
-        continue;
-      put(cost, g[x_new], c_near);
-      put(pred, g[x_new], x_near);
-      vis.edge_added(ep.first, g);
-      
-      detail::rewire_tree_neighborhood(x_new, Nc, g, space, vis, position, cost, pred, weight, distance); 
-      
-    };
-
-  };
-
-  
-  
-  
-  /**
-   * This function template is the RRT* algorithm (refer to rrt_star.hpp dox).
-   * \tparam Graph A mutable graph type that will represent the generated tree, should model boost::VertexListGraphConcept and boost::MutableGraphConcept
-   * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist, should model BGL's Topology concept
-   * \tparam RRTStarVisitor An RRT* visitor type that implements the customizations to this RRT* algorithm, should model the RRTVisitorConcept.
-   * \tparam PositionMap A property-map type that can store the configurations (or positions) of the vertices.
-   * \tparam CostMap This property-map type is used to store the estimated cost-to-go of each vertex to the start (or goal).
-   * \tparam WeightMap This property-map type is used to store the weights of the edges of the graph (cost of travel along an edge).
-   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
-   * \tparam DistanceMetric This is a distance-metric over the topology (see pp::DistanceMetricConcept).
-   * \tparam NcSelector A functor type which can perform a neighborhood search of a point to a graph in the topology (see topological_search.hpp).
-   * \param g A mutable graph that should initially store the starting and goal 
-   *        vertex and will store the generated graph once the algorithm has finished.
-   * \param space A topology (as defined by the Boost Graph Library). Note 
-   *        that it is not required to generate only random points in 
-   *        the free-space.
-   * \param vis A RRT* visitor implementing the RRTStarVisitorConcept. This is the 
-   *        main point of customization and recording of results that the 
-   *        user can implement.
-   * \param position A mapping that implements the MutablePropertyMap Concept. Also,
-   *        the value_type of this map should be the same type as the topology's 
-   *        value_type.
-   * \param cost The property-map which stores the estimated cost-to-go of each vertex to the start (or goal).
-   * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
-   *        along the edge).
-   * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
-   * \param distance A distance metric object to compute the distance between two positions.
-   * \param select_neighborhood A callable object (functor) which can perform a 
-   *        nearest neighbor search of a point to a graph in the topology. (see star_neighborhood)
-   * \param max_vertex_count The maximum number of vertices beyond which the algorithm 
-   *        should stop regardless of whether the resulting tree is satisfactory or not.
-   * 
-   */
-  template <typename Graph,
-            typename Topology,
-            typename RRTStarVisitor,
-            typename PositionMap,
-            typename CostMap,
-            typename WeightMap,
-            typename RandomSampler,
-            typename DistanceMetric,
-            typename NcSelector>
-  inline typename boost::enable_if< boost::is_directed_graph<Graph> >::type
-    generate_rrt_star(Graph& g,
-                      const Topology& space,
-                      RRTStarVisitor vis,
-                      PositionMap position,
-                      CostMap cost,
-                      WeightMap weight,
-                      RandomSampler get_sample,
-                      DistanceMetric distance,
-                      const NcSelector& select_neighborhood,
-                      unsigned int max_vertex_count) {
-    BOOST_CONCEPT_ASSERT((RRTStarVisitorConcept<RRTStarVisitor,Graph,PositionMap>));
-    BOOST_CONCEPT_ASSERT((ReaK::pp::DistanceMetricConcept<DistanceMetric,Topology>));
-    BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
     
-    typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge; 
-    typedef typename Graph::vertex_bundled VertexProp;
-    typedef typename Graph::edge_bundled EdgeProp;
-    using std::back_inserter;
+    detail::generate_rrt_star_loop(
+      g, space, vis, position, cost, pred, weight,
+      rrg_node_generator<Topology, RandomSampler, NcSelector>(&space, get_sample, select_neighborhood),
+      distance, select_neighborhood, max_vertex_count);
     
-    typedef boost::composite_property_map< 
-      PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-    GraphPositionMap g_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
-
-    if(num_vertices(g) == 0) {
-      PositionValue p = get_sample(space);
-      while(!vis.is_position_free(p))
-        p = get_sample(space);
-      VertexProp up;
-      put(position, up, p);
-      put(cost, up, 0.0);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      Vertex u = add_vertex(std::move(up),g);
-#else
-      Vertex u = add_vertex(up,g);
-#endif
-      vis.vertex_added(u, g);
-    };
-
-    while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
-      
-      PositionValue p_new = get_sample(space);
-      
-      std::vector<Vertex> Pred, Succ; 
-      select_neighborhood(p_new, back_inserter(Pred), back_inserter(Succ), g, space, g_position);
-      
-      Vertex x_near;
-      if( ! detail::expand_to_nearest(x_near, p_new, Pred, g, vis) )
-        continue;
-      
-      Pred.clear(); Succ.clear();
-      select_neighborhood(p_new, back_inserter(Pred), back_inserter(Succ), g, space, g_position);
-      
-      VertexProp xp;
-      put(position, xp, p_new);
-      put(cost, xp, std::numeric_limits<double>::infinity());
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      Vertex x_new = add_vertex(std::move(xp),g);
-#else
-      Vertex x_new = add_vertex(xp,g);
-#endif
-      vis.vertex_added(x_new,g);
-      
-      // Choose Parent
-      double d_near = distance(get(position, g[x_near]), p_new, space);
-      double c_near = get(cost, g[x_near]) + d_near;
-      for(typename std::vector<Vertex>::const_iterator it = Pred.begin(); it != Pred.end(); ++it) {
-        double c_temp, d_temp;
-        if((*it != x_near) && 
-           (vis.can_be_connected(*it, x_new, g)) &&
-           ((c_temp = get(cost, g[*it]) + (d_temp = distance(get(position, g[*it]), p_new, space))) < c_near)) {
-          x_near = *it;
-          c_near = c_temp;
-          d_near = d_temp;
-        };
-      };
-      
-      EdgeProp eprop;
-      put(weight, eprop, d_near);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      std::pair<Edge, bool> ep = add_edge(x_near, x_new, std::move(eprop), g);
-#else
-      std::pair<Edge, bool> ep = add_edge(x_near, x_new, eprop, g);
-#endif
-      if(!ep.second)
-        continue;
-      put(cost, g[x_new], c_near);
-      vis.edge_added(ep.first, g);
-      
-      detail::rewire_tree_neighborhood(x_new, Succ, g, space, vis, position, cost, weight, distance); 
-      
-    };
-
   };
-  
   
 
 };

@@ -479,6 +479,7 @@ proxy_query_pair_2D         0xC320001C   bin: 1100 0011 0010 0000 0000 0000 0001
 proxy_query_pair_3D         0xC320001D   bin: 1100 0011 0010 0000 0000 0000 0001 1101  D-R
 
 
+X8_quadrotor_geom           0xC3300001   bin: 1100 0011 0011 0000 0000 0000 0000 0001  D-R
 
 
 //WoPa specific classes     0xC141****
