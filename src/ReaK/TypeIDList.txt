@@ -195,6 +195,9 @@ manip_3R_2D_kinematics      0xC2100052   bin: 1100 0010 0001 0000 0000 0000 0101
 manip_3R_3D_kinematics      0xC2100053   bin: 1100 0010 0001 0000 0000 0000 0101 0011  D-R
 manip_SCARA_kinematics      0xC2100054   bin: 1100 0010 0001 0000 0000 0000 0101 0100  D-R
 manip_3R3R_kinematics       0xC2100055   bin: 1100 0010 0001 0000 0000 0000 0101 0101  D-R
+manip_SSRMS_kinematics      0xC2100056   bin: 1100 0010 0001 0000 0000 0000 0101 0101  D-R
+manip_ERA_kinematics        0xC2100057   bin: 1100 0010 0001 0000 0000 0000 0101 0101  D-R
+X8_quadrotor_kinematics     0xC2100058   bin: 1100 0010 0001 0000 0000 0000 0101 0101  D-R
 
 
 
@@ -299,7 +302,7 @@ manip_rl_clik_kin_map       0xC2400017   bin: 1100 0010 0100 0000 0000 0000 0001
 manip_ik_fixed_ip_map       0xC240001A   bin: 1100 0010 0100 0000 0000 0000 0001 1010  D-R
 manip_rl_ik_fixed_ip_map    0xC240001B   bin: 1100 0010 0100 0000 0000 0000 0001 1011  D-R
 manip_ik_rnd_restart_map    0xC240001C   bin: 1100 0010 0100 0000 0000 0000 0001 1100  D-R
-manip_rl_ik_rnd_restart_map 0xC240001D   bin:1100 0010 0100 0000 0000 0000 0001 1101  D-R
+manip_rl_ik_rnd_restart_map 0xC240001D   bin: 1100 0010 0100 0000 0000 0000 0001 1101  D-R
 manip_ik_knn_starts_map     0xC240001E   bin: 1100 0010 0100 0000 0000 0000 0001 1110  D-R
 manip_rl_ik_knn_starts_map  0xC240001F   bin: 1100 0010 0100 0000 0000 0000 0001 1111  D-R
 ptrobot2D_test_world        0xC2400020   bin: 1100 0010 0100 0000 0000 0000 0010 0000  D-R
@@ -319,6 +322,10 @@ identity_topo_map           0xC240002D   bin: 1100 0010 0100 0000 0000 0000 0010
 Ndof_limits<T,S>            0xC240002E   bin: 1100 0010 0100 0000 0000 0000 0010 1110  D-R
 sap_Ndof_reach_topology<T>  0xC240002F   bin: 1100 0010 0100 0000 0000 0000 0010 1111  D-R
 svp_Ndof_reach_topology<T>  0xC2400030   bin: 1100 0010 0100 0000 0000 0000 0011 0000  D-R
+IHAQR_topology<S,SS>        0xC2400031   bin: 1100 0010 0100 0000 0000 0000 0011 0001  D-R
+IHAQR_topology_with_CD<T>   0xC2400032   bin: 1100 0010 0100 0000 0000 0000 0011 0010  D-R
+MEAQR_topology<T>           0xC2400033   bin: 1100 0010 0100 0000 0000 0000 0011 0011  D-R
+MEAQR_topology_with_CD<T>   0xC2400034   bin: 1100 0010 0100 0000 0000 0000 0011 0100  D-R
 
 
 //Distance metrics:         0xC241****
@@ -387,6 +394,7 @@ path_base                   0xC244000C   bin: 1100 0010 0100 0100 0000 0000 0000
 path_wrapper                0xC244000D   bin: 1100 0010 0100 0100 0000 0000 0000 1101  D-R
 svp_Ndof_interp_traj        0xC244000E   bin: 1100 0010 0100 0100 0000 0000 0000 1110  D-R
 sap_Ndof_interp_traj        0xC244000F   bin: 1100 0010 0100 0100 0000 0000 0000 1111  D-R
+constant_trajectory         0xC2440010   bin: 1100 0010 0100 0100 0000 0000 0001 0000  D-R
 
 //Random-Samplers:          0xC245****   
 default_random_sampler      0xC2450000   bin: 1100 0010 0100 0101 0000 0000 0000 0000  D-R

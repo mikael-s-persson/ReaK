@@ -577,7 +577,7 @@ namespace detail {
       boost::mpl::size_t<0> 
     >,
   void >::type tuple_from_vect_impl( Tuple& lhs, const Vector& rhs, std::size_t& i) {
-    tuple_from_vect_impl< typename boost::mpl::prior<Idx>::type, Vector, Tuple >(lhs, rhs, i);
+    tuple_from_vect_impl< typename boost::mpl::prior<Idx>::type, Tuple, Vector >(lhs, rhs, i);
     from_vect_impl(get<boost::mpl::prior<Idx>::type::value>(lhs), rhs, i);
   };
   

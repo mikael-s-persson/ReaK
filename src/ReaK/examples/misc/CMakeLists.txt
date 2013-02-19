@@ -1,11 +1,13 @@
 
 set(MISCEXAMPLES_SOURCES 
-#   "${SRCROOT}${RKMISCEXAMPLESDIR}/CRS_A465_2D_analog.cpp"
+#   "${SRCROOT}${RKMISCEXAMPLESDIR}/IHAQR_topology.cpp"
 )
 
 
 set(MISCEXAMPLES_HEADERS 
-#   "${RKMISCEXAMPLESDIR}/airship2D_lin_model.hpp"
+  "${RKMISCEXAMPLESDIR}/quadrotor_system.hpp"
+  "${RKMISCEXAMPLESDIR}/IHAQR_topology.hpp"
+  "${RKMISCEXAMPLESDIR}/MEAQR_topology.hpp"
 )
 
 # add_library(reak_robot_airship STATIC ${ROBOTAIRSHIP_SOURCES})
@@ -21,6 +23,11 @@ if(COIN3D_FOUND AND QT_FOUND)
   setup_custom_target(robot_kin_scene "${SRCROOT}${RKMISCEXAMPLESDIR}")
   target_link_libraries(robot_kin_scene reak_kte_coin reak_geom_coin reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
   target_link_libraries(robot_kin_scene ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
+  
+  add_executable(quadrotor_scene "${SRCROOT}${RKMISCEXAMPLESDIR}/quadrotor_scene.cpp")
+  setup_custom_target(quadrotor_scene "${SRCROOT}${RKMISCEXAMPLESDIR}")
+  target_link_libraries(quadrotor_scene reak_kte_coin reak_geom_coin reak_topologies reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
+  target_link_libraries(quadrotor_scene ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
   
 endif()
 

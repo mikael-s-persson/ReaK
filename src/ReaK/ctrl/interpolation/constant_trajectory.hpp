@@ -31,8 +31,8 @@
 #ifndef REAK_CONSTANT_TRAJECTORY_HPP
 #define REAK_CONSTANT_TRAJECTORY_HPP
 
-#include "spatial_path_concept.hpp"
-#include "temporal_space_concept.hpp"
+#include "path_planning/spatial_path_concept.hpp"
+#include "path_planning/temporal_space_concept.hpp"
 
 #include <boost/config.hpp>
 #include <cmath>
@@ -54,7 +54,7 @@ class constant_trajectory : public shared_object {
     struct waypoint_descriptor { };
     struct const_waypoint_descriptor { };
     
-    typedef temporal_space< SpaceType, time_topology > topology;
+    typedef temporal_space< SpaceType, ::ReaK::pp::time_topology > topology;
     typedef ::ReaK::pp::time_topology time_topology;
     typedef SpaceType space_topology;
     typedef spatial_distance_only distance_metric;
@@ -79,18 +79,18 @@ class constant_trajectory : public shared_object {
         start_point = *aStartPoint; 
     };
     
-    point_type get_point_at_time(double t) const { return point_type(t, start_point->pt); };
+    point_type get_point_at_time(double t) const { return point_type(t, start_point.pt); };
     
-    point_type move_time_diff_from(const point_type& p, double dt) const { return point_type(p.time + dt, start_point->pt); };
+    point_type move_time_diff_from(const point_type& p, double dt) const { return point_type(p.time + dt, start_point.pt); };
     
     double travel_distance(const point_type&, const point_type&) const { return 0.0; };
     
     waypoint_pair_type get_waypoint_at_time(double t) const { 
-      return waypoint_pair_type(const_waypoint_descriptor(), point_type(t, start_point->pt)); 
+      return waypoint_pair_type(const_waypoint_descriptor(), point_type(t, start_point.pt)); 
     };
     
     waypoint_pair_type move_time_diff_from(const waypoint_pair_type& w_p, double dt) const { 
-      return waypoint_pair_type(const_waypoint_descriptor(), point_type(w_p.second.time + dt, start_point->pt)); 
+      return waypoint_pair_type(const_waypoint_descriptor(), point_type(w_p.second.time + dt, start_point.pt)); 
     };
     
     double travel_distance(const waypoint_pair_type&, const waypoint_pair_type&) const { return 0.0; };
@@ -110,11 +110,11 @@ class constant_trajectory : public shared_object {
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
-      ReaK::shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      ReaK::shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(start_point);
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0x,1,"constant_trajectory",shared_object)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2440010,1,"constant_trajectory",shared_object)
 };
 
 

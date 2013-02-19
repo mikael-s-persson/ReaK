@@ -120,7 +120,7 @@ class quadrotor_system : public named_object {
     point_derivative_type get_state_derivative(const state_space_type&, const point_type& x, const input_type& u, time_type = 0.0) const {
       using std::fabs;
       
-      quaternion<double> q = get_quaternion(x);
+      quaternion<double> q = get_quaternion(x).as_rotation();
       vect<double,3> w = get_ang_velocity(x);
       vect<double,3> w_sqr( w[0] * fabs(w[0]), w[1] * fabs(w[1]), w[2] * fabs(w[2]) );
       vect<double,3> aacc = mInertiaMomentInv * ( vect<double,3>(u[1],u[2],u[3]) - w % (mInertiaMoment * w) - mRotDragCoefs * w_sqr );
@@ -148,9 +148,8 @@ class quadrotor_system : public named_object {
     void get_linear_blocks(matrixA_type& A, matrixB_type& B, matrixC_type& C, matrixD_type& D, const state_space_type&, const time_type& t, const point_type& x, const input_type& u) const {
       using std::fabs;
       
-      quaternion<double> q = get_quaternion(x);
+      quaternion<double> q = get_quaternion(x).as_rotation();
       mat<double, mat_structure::square> R = q.getMat();
-      mat<double,mat_structure::skew_symmetric> Rdot(w);
       
       A = mat<double,mat_structure::nil>(12,12);
       
@@ -192,7 +191,8 @@ class quadrotor_system : public named_object {
                 9, 9);
       
       B = mat<double,mat_structure::nil>(12,4);
-      set_block(B, R * vect<double,3>(0.0, 0.0, 1.0 / mMass), 6, 0);
+      vect<double,3> t_global = R * vect<double,3>(0.0, 0.0, 1.0 / mMass);
+      set_block(B, mat_vect_adaptor< vect<double,3> >(t_global), 6, 0);
       set_block(B, mInertiaMomentInv, 9, 1);
       
       C = mat<double,mat_structure::nil>(6,12);
