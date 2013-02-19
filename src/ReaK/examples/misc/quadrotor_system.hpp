@@ -126,12 +126,13 @@ class quadrotor_system : public named_object {
       vect<double,3> aacc = mInertiaMomentInv * ( vect<double,3>(u[1],u[2],u[3]) - w % (mInertiaMoment * w) - mRotDragCoefs * w_sqr );
       
       vect<double,3> local_v = invert(q) * get_velocity(x);
+      vect<double,3> v = get_velocity(x);
       local_v[0] *= fabs(local_v[0]) / mMass;
       local_v[1] *= fabs(local_v[1]) / mMass;
       local_v[2] *= fabs(local_v[2]) / mMass;
       return point_derivative_type(
         make_arithmetic_tuple(
-          get_velocity(x),  // velocity -> derivative of position
+          v,  // velocity -> derivative of position
           vect<double,3>(0.0, 0.0, -9.81) - q * (mTransDragCoefs * local_v - vect<double,3>(0.0, 0.0, u[0] / mMass))
         ),  
         make_arithmetic_tuple(
