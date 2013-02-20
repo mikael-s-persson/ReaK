@@ -178,18 +178,18 @@ class rrtstar_path_planner : public sample_based_planner< path_planner_base<Free
       return (max_num_results > m_solutions.size()) && !has_reached_max_vertices;
     };
     
-    template <typename Graph>
-    void report_progress(Graph& g) {
+    template <typename Graph, typename PositionMap>
+    void report_progress(Graph& g, PositionMap g_pos) {
       if(num_vertices(g) % this->m_progress_interval == 0)
-        m_reporter.draw_motion_graph(*(this->m_space), g, get(&rrtstar_vertex_data<FreeSpaceType>::position,g));
+        m_reporter.draw_motion_graph(*(this->m_space), g, g_pos);
       has_reached_max_vertices = (num_vertices(g) >= this->m_max_vertex_count);
     };
     
-    template <typename Graph>
-    void report_progress(Graph& g1, Graph& g2) {
+    template <typename Graph, typename PositionMap>
+    void report_progress(Graph& g1, Graph& g2, PositionMap g1_pos, PositionMap g2_pos) {
       if((num_vertices(g1) + num_vertices(g2)) % this->m_progress_interval == 0) {
-        m_reporter.draw_motion_graph(*(this->m_space), g1, get(&rrtstar_vertex_data<FreeSpaceType>::position,g1));
-        m_reporter.draw_motion_graph(*(this->m_space), g2, get(&rrtstar_vertex_data<FreeSpaceType>::position,g2));
+        m_reporter.draw_motion_graph(*(this->m_space), g1, g1_pos);
+        m_reporter.draw_motion_graph(*(this->m_space), g2, g2_pos);
       };
       has_reached_max_vertices = (num_vertices(g1) + num_vertices(g2) >= this->m_max_vertex_count);
     };
@@ -336,7 +336,7 @@ struct rrtstar_planner_visitor {
     VertexType v = target(e,g);
     
     // Call progress reporter...
-    m_planner->report_progress(g);
+    m_planner->report_progress(g, get(&rrtstar_vertex_data<FreeSpaceType>::position,g));
     
     // Check if a straight path to goal is possible...
     m_planner->check_goal_connection(g[v].position,v,g);
@@ -347,7 +347,9 @@ struct rrtstar_planner_visitor {
   void edge_added(EdgeType e, Graph& g1, Graph& g2) const {
     
     // Call progress reporter...
-    m_planner->report_progress(g1,g2);
+    m_planner->report_progress(g1, g2, 
+                               get(&rrtstar_vertex_data<FreeSpaceType>::position,g1), 
+                               get(&rrtstar_vertex_data<FreeSpaceType>::position,g2));
   };
   
   bool is_position_free(PointType p) const {

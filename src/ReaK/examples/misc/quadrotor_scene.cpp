@@ -12,6 +12,8 @@
 #include "MEAQR_topology.hpp"
 #include "quadrotor_system.hpp"
 
+#include "MEAQR_rrtstar_planner.hpp"
+
 int main(int argc, char ** argv) {
   using namespace ReaK;
   using namespace pp;
@@ -75,7 +77,7 @@ int main(int argc, char ** argv) {
     
     IHAQR_space_type::point_type p_inter = quad_space.move_position_toward(p1, 0.5, p2);
     
-    double dist = quad_space.distance(p1, p2);
+    double dist = quad_space.distance(p1, p2); RK_UNUSED(dist);
   }; 
   
   typedef MEAQR_topology< quadrotor_system::state_space_type, quadrotor_system > MEAQR_space_type;
@@ -92,8 +94,10 @@ int main(int argc, char ** argv) {
   
     MEAQR_space_type::point_type p_inter = quad_MEAQR_space.move_position_toward(p1, 0.5, p2);
   
-    double dist = quad_MEAQR_space.distance(p1, p2);
+    double dist = quad_MEAQR_space.distance(p1, p2); RK_UNUSED(dist);
   };
+  
+  MEAQR_rrtstar_planner< quadrotor_system::state_space_type, quadrotor_system > planner;
   
   return 0;
 };

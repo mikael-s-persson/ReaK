@@ -39,8 +39,8 @@
 
 #include "base/named_object.hpp"
 
-#include "topologies/tuple_distance_metrics.hpp"
 #include "topologies/basic_distance_metrics.hpp"
+#include "topologies/tuple_distance_metrics.hpp"
 #include "topologies/hyperbox_topology.hpp"
 
 #include "path_planning/metric_space_concept.hpp"
@@ -180,6 +180,79 @@ namespace detail {
 };
 
 
+
+template <typename StateSpace, typename StateSpaceSystem>
+class MEAQR_point_type : public IHAQR_point_type<StateSpace, StateSpaceSystem> {
+  public:
+    typedef IHAQR_point_type<StateSpace, StateSpaceSystem> base_type;
+    typedef MEAQR_point_type<StateSpace, StateSpaceSystem> self;
+    
+    typedef typename detail::MEAQR_ZIR_system<StateSpace, StateSpaceSystem>::point_type MEAQR_bundle_type;
+    
+    typedef typename base_type::matrixA_type matrixA_type;
+    typedef typename base_type::matrixB_type matrixB_type;
+    
+    typedef typename base_type::state_type state_type;
+    typedef typename base_type::state_difference_type state_difference_type;
+    typedef typename base_type::state_derivative_type state_derivative_type;
+    typedef typename base_type::system_input_type system_input_type;
+    
+    typedef typename base_type::linearization_payload linearization_payload;
+    typedef typename base_type::IHAQR_payload IHAQR_payload;
+    
+    struct MEAQR_payload {
+      std::vector< std::pair<double, MEAQR_bundle_type> > pts;
+    };
+    
+    mutable shared_ptr< MEAQR_payload > MEAQR_data;
+    
+    MEAQR_point_type(const base_type& rhs) : base_type(rhs) { };
+    explicit MEAQR_point_type(const state_type& aX = state_type()) : base_type(aX) { };
+    
+    MEAQR_point_type& operator()(const base_type& rhs) {
+      this->x = rhs.x;
+      this->lin_data = rhs.lin_data;
+      this->IHAQR_data = rhs.IHAQR_data;
+      this->MEAQR_data = shared_ptr< MEAQR_payload >();
+      return *this;
+    };
+    
+#ifdef RK_ENABLE_CXX11_FEATURES
+    MEAQR_point_type(base_type&& rhs) : base_type(std::move(rhs)) { };
+    explicit MEAQR_point_type(state_type&& aX) : base_type(std::move(aX)) { };
+    
+    MEAQR_point_type& operator()(base_type&& rhs) {
+      this->x = std::move(rhs.x);
+      this->lin_data = std::move(rhs.lin_data);
+      this->IHAQR_data = std::move(rhs.IHAQR_data);
+      this->MEAQR_data = shared_ptr< MEAQR_payload >();
+      return *this;
+    };
+#endif
+    
+    
+    virtual ~MEAQR_point_type() { };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      base_type::save(A, base_type::getStaticObjectType()->TypeVersion());
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      base_type::load(A, base_type::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400034,1,"MEAQR_point_type",base_type)
+
+  
+};
+
+
+
+
+
 /**
  * This class 
  */
@@ -203,20 +276,10 @@ class MEAQR_topology : public named_object
     typedef typename IHAQR_space_type::point_type IHAQR_point_type;
     typedef typename IHAQR_space_type::point_difference_type IHAQR_point_difference_type;
     
-    typedef typename detail::MEAQR_ZIR_system<StateSpace, StateSpaceSystem>::point_type MEAQR_point_type;
+    typedef typename detail::MEAQR_ZIR_system<StateSpace, StateSpaceSystem>::point_type MEAQR_bundle_type;
     
-    struct MEAQR_payload {
-      std::vector< std::pair<double, MEAQR_point_type> > pts;
-    };
-    
-    struct point_type : IHAQR_point_type {
-      mutable shared_ptr< MEAQR_payload > MEAQR_data;
-      
-      explicit point_type(const state_type& aX) : IHAQR_point_type(aX) { };
-#ifdef RK_ENABLE_CXX11_FEATURES
-      explicit point_type(state_type&& aX) : IHAQR_point_type(std::move(aX)) { };
-#endif
-    };
+    typedef MEAQR_point_type<StateSpace, StateSpaceSystem> point_type;
+    typedef typename point_type::MEAQR_payload MEAQR_payload;
     
     typedef IHAQR_point_difference_type point_difference_type;
     
@@ -241,17 +304,17 @@ class MEAQR_topology : public named_object
         p.IHAQR_data.get(),
         m_IHAQR_space->m_R);
       
-      vector_topology< MEAQR_point_type > MEAQR_sys_space;
+      vector_topology< MEAQR_bundle_type > MEAQR_sys_space;
       
       double init_damping_value = 1e-3 * norm_inf(MEAQR_sys.BRBmatrix);
       std::size_t N = p.lin_data->A.get_row_count();
-      MEAQR_point_type start_point(
+      MEAQR_bundle_type start_point(
         mat<double,mat_structure::square>( mat<double,mat_structure::scalar>(N, init_damping_value) ),
         mat<double,mat_structure::square>( mat<double,mat_structure::scalar>(N, init_damping_value) ),
         vect_n<double>(N, 0.0),
         vect_n<double>(N, 0.0)
       );
-      MEAQR_point_type current_point = start_point;
+      MEAQR_bundle_type current_point = start_point;
       
       typedef typename detail::MEAQR_ZIR_system<StateSpace, StateSpaceSystem>::input_type InputType;
       constant_trajectory< vector_topology< InputType > > input_traj = constant_trajectory< vector_topology< InputType > >(InputType());
@@ -303,7 +366,7 @@ class MEAQR_topology : public named_object
       
       // first, find the T-optimal:
       
-      typedef typename std::vector< std::pair<double, MEAQR_point_type> >::const_iterator Iter;
+      typedef typename std::vector< std::pair<double, MEAQR_bundle_type> >::const_iterator Iter;
       
       double min_J = std::numeric_limits<double>::infinity();
       Iter min_it = b.MEAQR_data->pts.end();
@@ -425,6 +488,14 @@ class MEAQR_topology : public named_object
     
   public:
     
+    StateSpace& get_state_space() { return m_IHAQR_space->get_state_space(); };
+    const StateSpace& get_state_space() const { return m_IHAQR_space->get_state_space(); };
+    
+    IHAQR_space_type& get_IHAQR_space() { return *m_IHAQR_space; };
+    const IHAQR_space_type& get_IHAQR_space() const { return *m_IHAQR_space; };
+    
+    
+    
     /**
      * Default constructor.
      */
@@ -455,7 +526,7 @@ class MEAQR_topology : public named_object
       
       double min_J = std::numeric_limits<double>::infinity();
       
-      typedef typename std::vector< std::pair<double, MEAQR_point_type> >::const_iterator Iter;
+      typedef typename std::vector< std::pair<double, MEAQR_bundle_type> >::const_iterator Iter;
       
       mat<double,mat_structure::square> eAdt(b.lin_data->A.get_row_count());
       ReaK::exp_PadeSAS(b.lin_data->A * m_MEAQR_data_step_size, eAdt, QR_linlsqsolver(), 1e-6);
@@ -570,7 +641,7 @@ class MEAQR_topology : public named_object
         & RK_SERIAL_LOAD_WITH_NAME(m_idle_power_cost);
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400033,1,"MEAQR_topology",named_object)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400035,1,"MEAQR_topology",named_object)
     
 };
 
@@ -610,9 +681,9 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
   protected:
     shared_ptr< kte::direct_kinematics_model > m_model; 
     
-    virtual bool is_free_impl(const point_type& a) const {
+    virtual bool is_free_impl(const state_type& a) const {
       
-      detail::write_joint_coordinates_impl(a.x, this->m_IHAQR_space->m_space, m_model);
+      detail::write_joint_coordinates_impl(a, this->m_IHAQR_space->get_state_space(), m_model);
       // update the kinematics model with the given joint states.
       m_model->doDirectMotion();
       
@@ -699,7 +770,7 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
         & RK_SERIAL_LOAD_WITH_NAME(m_proxy_env_3D);
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400034,1,"MEAQR_topology_with_CD",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400036,1,"MEAQR_topology_with_CD",base_type)
     
     
 };

@@ -322,10 +322,12 @@ identity_topo_map           0xC240002D   bin: 1100 0010 0100 0000 0000 0000 0010
 Ndof_limits<T,S>            0xC240002E   bin: 1100 0010 0100 0000 0000 0000 0010 1110  D-R
 sap_Ndof_reach_topology<T>  0xC240002F   bin: 1100 0010 0100 0000 0000 0000 0010 1111  D-R
 svp_Ndof_reach_topology<T>  0xC2400030   bin: 1100 0010 0100 0000 0000 0000 0011 0000  D-R
-IHAQR_topology<S,SS>        0xC2400031   bin: 1100 0010 0100 0000 0000 0000 0011 0001  D-R
-IHAQR_topology_with_CD<T>   0xC2400032   bin: 1100 0010 0100 0000 0000 0000 0011 0010  D-R
-MEAQR_topology<T>           0xC2400033   bin: 1100 0010 0100 0000 0000 0000 0011 0011  D-R
-MEAQR_topology_with_CD<T>   0xC2400034   bin: 1100 0010 0100 0000 0000 0000 0011 0100  D-R
+IHAQR_point_type<S,SS>      0xC2400031   bin: 1100 0010 0100 0000 0000 0000 0011 0001  D-R
+IHAQR_topology<S,SS>        0xC2400032   bin: 1100 0010 0100 0000 0000 0000 0011 0010  D-R
+IHAQR_topology_with_CD<S,SS> 0xC2400033  bin: 1100 0010 0100 0000 0000 0000 0011 0011  D-R
+MEAQR_point_type<S,SS>      0xC2400034   bin: 1100 0010 0100 0000 0000 0000 0011 0100  D-R
+MEAQR_topology<S,SS>        0xC2400035   bin: 1100 0010 0100 0000 0000 0000 0011 0101  D-R
+MEAQR_topology_with_CD<S,SS> 0xC2400036  bin: 1100 0010 0100 0000 0000 0000 0011 0110  D-R
 
 
 //Distance metrics:         0xC241****
@@ -402,6 +404,7 @@ svp_rate_limited_sampler    0xC2450001   bin: 1100 0010 0100 0101 0000 0000 0000
 sap_rate_limited_sampler    0xC2450002   bin: 1100 0010 0100 0101 0000 0000 0000 0010  D-R
 svp_Ndof_rate_limited_sampler 0xC2450003 bin: 1100 0010 0100 0101 0000 0000 0000 0011  D-R
 sap_Ndof_rate_limited_sampler 0xC2450004 bin: 1100 0010 0100 0101 0000 0000 0000 0100  D-R
+fixed_topology_random_sampler 0xC2450005 bin: 1100 0010 0100 0101 0000 0000 0000 0101  D-R
 
 //Motion-Planners:          0xC246****
 motion_planner_base         0xC2460000   bin: 1100 0010 0100 0110 0000 0000 0000 0000  D-R
@@ -417,7 +420,7 @@ rrtstar_path_planner        0xC2460009   bin: 1100 0010 0100 0110 0000 0000 0000
 frame_tracer_3D             0xC246000A   bin: 1100 0010 0100 0110 0000 0000 0000 1010  D-R
 fadprm_path_planner         0xC246000B   bin: 1100 0010 0100 0110 0000 0000 0000 1011  D-R
 sbastar_path_planner        0xC246000C   bin: 1100 0010 0100 0110 0000 0000 0000 1100  D-R
-
+MEAQR_rrtstar_planner       0xC246000D   bin: 1100 0010 0100 0110 0000 0000 0000 1101  D-R
 
 
 

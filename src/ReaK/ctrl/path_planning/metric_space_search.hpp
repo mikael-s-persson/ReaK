@@ -610,6 +610,107 @@ struct multi_dvp_tree_search {
 };
 
 
+
+/**
+ * This class template is used as a type of kind of associative container for DVP-trees that 
+ * span distinct graphs. For problems in which multiple graphs exist and nearest-neighbors 
+ * may be queried from any of these graphs, one can use this class to associate each graph 
+ * with a dvp-tree. This class is callable as a single query and a KNN / range query.
+ * \tparam Graph The graph type which can contain the vertices.
+ * \tparam DVPTree The DVP-tree type that is used to perform the nearest-neighbor queries.
+ */
+template <typename Graph, typename DVPTree>
+struct multi_dvp_tree_pred_succ_search {
+  /** This associative container is used to store and access the DVP-trees. */
+  typename std::map<Graph*, DVPTree*> graph_tree_map;
+  
+  multi_dvp_tree_pred_succ_search() : graph_tree_map() { };
+  
+  /**
+   * This call-operator finds the nearest predecesor and successor of a graph, to a given position.
+   * \tparam Topology The topology type which contains the positions, should model the MetricSpaceConcept.
+   * \tparam PositionMap The property-map type which can store the position associated with each vertex.
+   * \param p A position in the space, to which the nearest-neighbors are sought.
+   * \param g A graph containing the vertices from which to find the nearest-neighbor, 
+   *        should be tree-structured.
+   * \param space The topology objects which define the space in which the positions reside.
+   * \param position The property-map which can retrieve the position associated to each vertex.
+   * \return A pair containing the nearest predecessor and successor vertex.
+   */
+  template <typename Topology, typename PositionMap>
+  typename boost::graph_traits<Graph>::vertex_descriptor 
+  std::pair< typename boost::graph_traits<Graph>::vertex_descriptor, 
+             typename boost::graph_traits<Graph>::vertex_descriptor > 
+    operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
+               Graph& g, const Topology& space, PositionMap position) const {
+    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
+    if((it != graph_tree_map.end()) && (it->second))
+      return it->second->find_nearest_pred_succ(p);
+    else
+      return std::pair< typename boost::graph_traits<Graph>::vertex_descriptor, 
+                        typename boost::graph_traits<Graph>::vertex_descriptor >();
+  };
+  
+  /**
+   * This call-operator finds the nearest vertices of a graph, to a given position.
+   * \tparam Topology The topology type which contains the positions.
+   * \tparam PositionMap The property-map type which can store the position associated 
+   *         with each vertex.
+   * \tparam OutputIterator The forward- output-iterator type which can contain the 
+   *         list of nearest-neighbors.
+   * \param p A position in the space, to which the nearest-neighbors are sought.
+   * \param pred_first An iterator to the first place where to put the sorted list of 
+   *        the best predecessor elements.
+   * \param succ_first An iterator to the first place where to put the sorted list of 
+   *        the best successor elements.
+   * \param g A graph containing the vertices from which to find the nearest-neighbors, 
+   *        should be tree-structured.
+   * \param space The topology objects which define the space in which the positions reside.
+   * \param position The property-map which can retrieve the position associated to each vertex.
+   * \param max_neighbors The maximum number of neighbors to have in the list.
+   * \param radius The minimum distance around the position that a vertex should be in to be 
+   *        considered a neighbor.
+   * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
+   */
+  template <typename Topology, typename PositionMap, typename OutputIterator>
+  std::pair< OutputIterator, OutputIterator > 
+    operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
+               OutputIterator pred_first, 
+               OutputIterator succ_first, 
+               Graph& g, const Topology& space, PositionMap position, 
+               std::size_t max_neighbors = 1, double radius = std::numeric_limits<double>::infinity()) const {
+    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
+    if((it != graph_tree_map.end()) && (it->second))
+      return it->second->find_nearest(p, pred_first, succ_first, max_neighbors, radius);
+    else
+      return std::pair< OutputIterator, OutputIterator >(pred_first, succ_first);
+  };
+  
+  
+  /**
+   * This is a call-back for when a vertex has been added.
+   */
+  template <typename Vertex>
+  void added_vertex(Vertex v, Graph& g) const { 
+    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
+    if((it != graph_tree_map.end()) && (it->second))
+      it->second->insert(v);
+  };
+  
+  /**
+   * This is a call-back for when a vertex is about to be removed.
+   */
+  template <typename Vertex>
+  void removed_vertex(Vertex v, Graph& g) const { 
+    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
+    if((it != graph_tree_map.end()) && (it->second))
+      it->second->erase(v);
+  };
+  
+};
+
+
+
 };
 
 };

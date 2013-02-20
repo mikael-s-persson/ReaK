@@ -72,6 +72,62 @@ template <typename StateSpace, typename StateSpaceSystem>
 class MEAQR_topology;
 
 
+
+template <typename StateSpace, typename StateSpaceSystem>
+class IHAQR_point_type : public shared_object {
+  public:
+    typedef IHAQR_point_type<StateSpace, StateSpaceSystem> self;
+    
+    typedef typename ctrl::linear_ss_system_traits< StateSpaceSystem >::matrixA_type matrixA_type;
+    typedef typename ctrl::linear_ss_system_traits< StateSpaceSystem >::matrixB_type matrixB_type;
+    
+    typedef typename ctrl::ss_system_traits< StateSpaceSystem >::point_type state_type;
+    typedef typename ctrl::ss_system_traits< StateSpaceSystem >::point_difference_type state_difference_type;
+    typedef typename ctrl::ss_system_traits< StateSpaceSystem >::point_derivative_type state_derivative_type;
+    typedef typename ctrl::ss_system_traits< StateSpaceSystem >::input_type system_input_type;
+    
+    struct linearization_payload {
+      system_input_type u;
+      matrixA_type A;
+      matrixB_type B;
+    };
+    
+    struct IHAQR_payload {
+      mat<double,mat_structure::square> M;
+      state_derivative_type c;
+      state_derivative_type eta;
+    };
+    
+    state_type x;
+    mutable shared_ptr< linearization_payload > lin_data;
+    mutable shared_ptr< IHAQR_payload > IHAQR_data;
+    
+    explicit IHAQR_point_type(const state_type& aX = state_type()) : x(aX) { };
+#ifdef RK_ENABLE_CXX11_FEATURES
+    explicit IHAQR_point_type(state_type&& aX) : x(std::move(aX)) { };
+#endif
+    
+    virtual ~IHAQR_point_type() { };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      shared_object::save(A, shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(x);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      shared_object::load(A, shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(x);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400031,1,"IHAQR_point_type",shared_object)
+
+};
+
+
+
 /**
  * This class implements a quaternion-topology. Because quaternions are constrained on the unit 
  * hyper-sphere, this topology is indeed bounded (yet infinite at the same time). This class
@@ -95,35 +151,14 @@ class IHAQR_topology : public named_object
     typedef typename ctrl::ss_system_traits< StateSpaceSystem >::point_derivative_type state_derivative_type;
     typedef typename ctrl::ss_system_traits< StateSpaceSystem >::input_type system_input_type;
     
-    struct linearization_payload {
-      system_input_type u;
-      matrixA_type A;
-      matrixB_type B;
-    };
-    
-    struct IHAQR_payload {
-      mat<double,mat_structure::square> M;
-      state_derivative_type c;
-      state_derivative_type eta;
-    };
-    
-    struct point_type {
-      state_type x;
-      mutable shared_ptr< linearization_payload > lin_data;
-      mutable shared_ptr< IHAQR_payload > IHAQR_data;
-      
-      explicit point_type(const state_type& aX) : x(aX) { };
-#ifdef RK_ENABLE_CXX11_FEATURES
-      explicit point_type(state_type&& aX) : x(std::move(aX)) { };
-#endif
-      
-      
-    };
+    typedef IHAQR_point_type<StateSpace, StateSpaceSystem> point_type;
+    typedef typename point_type::linearization_payload linearization_payload;
+    typedef typename point_type::IHAQR_payload IHAQR_payload;
     
     struct point_difference_type {
       state_difference_type dx;
       
-      explicit point_difference_type(const state_difference_type& aDX) : dx(aDX) { };
+      explicit point_difference_type(const state_difference_type& aDX = state_difference_type()) : dx(aDX) { };
 #ifdef RK_ENABLE_CXX11_FEATURES
       explicit point_difference_type(state_difference_type&& aDX) : dx(std::move(aDX)) { };
 #endif
@@ -265,6 +300,9 @@ class IHAQR_topology : public named_object
     };
     
   public:
+    
+    StateSpace& get_state_space() { return m_space; };
+    const StateSpace& get_state_space() const { return m_space; };
     
     /**
      * Default constructor.
@@ -418,7 +456,7 @@ class IHAQR_topology : public named_object
         & RK_SERIAL_LOAD_WITH_NAME(m_goal_proximity_threshold);
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400031,1,"IHAQR_topology",named_object)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400032,1,"IHAQR_topology",named_object)
     
 };
 
@@ -550,7 +588,7 @@ class IHAQR_topology_with_CD : public IHAQR_topology<StateSpace, StateSpaceSyste
         & RK_SERIAL_LOAD_WITH_NAME(m_proxy_env_3D);
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400032,1,"IHAQR_topology_with_CD",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400033,1,"IHAQR_topology_with_CD",base_type)
     
     
 };
