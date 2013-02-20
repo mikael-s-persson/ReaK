@@ -111,7 +111,8 @@ struct rrg_node_generator {
             typename RRGVisitor,
             typename PositionMap>
   inline typename boost::enable_if< boost::is_undirected_graph<Graph>,
-  typename boost::property_traits<PositionMap>::value_type >::type 
+  std::pair< typename boost::graph_traits<Graph>::vertex_descriptor,
+             typename boost::property_traits<PositionMap>::value_type > >::type 
     operator()(Graph& g,
                RRGVisitor vis,
                PositionMap g_position) {
@@ -120,24 +121,25 @@ struct rrg_node_generator {
     using std::back_inserter;
     
     while(true) {
-      PositionValue p_new = get_sample(space);
+      PositionValue p_new = get_sample(*space);
       
       std::vector<Vertex> Nc; 
-      select_neighborhood(p_new, back_inserter(Nc), g, space, g_position);
+      select_neighborhood(p_new, back_inserter(Nc), g, *space, g_position);
       
-      Vertex x_near;
+      Vertex x_near = Vertex();
       if( detail::expand_to_nearest(x_near, p_new, Nc, g, vis) )
-        return p_new;
+        return std::pair<Vertex,PositionValue>(x_near, p_new);
     };
     
-    return PositionValue();
+    return std::pair<Vertex,PositionValue>();
   };
   
   template <typename Graph,
             typename RRGVisitor,
             typename PositionMap>
   inline typename boost::enable_if< boost::is_directed_graph<Graph>,
-  typename boost::property_traits<PositionMap>::value_type >::type 
+  std::pair< typename boost::graph_traits<Graph>::vertex_descriptor,
+             typename boost::property_traits<PositionMap>::value_type > >::type 
     operator()(Graph& g,
                RRGVisitor vis,
                PositionMap g_position) {
@@ -146,18 +148,18 @@ struct rrg_node_generator {
     using std::back_inserter;
     
     while(true) {
-      PositionValue p_new = get_sample(space);
+      PositionValue p_new = get_sample(*space);
       
       std::vector<Vertex> Pred;
       std::vector<Vertex> Succ;
-      select_neighborhood(p_new, back_inserter(Pred), back_inserter(Succ), g, space, g_position);
+      select_neighborhood(p_new, back_inserter(Pred), back_inserter(Succ), g, *space, g_position);
       
-      Vertex x_near;
+      Vertex x_near = Vertex();
       if( detail::expand_to_nearest(x_near, p_new, Pred, g, vis) )
-        return p_new;
+        return std::pair<Vertex,PositionValue>(x_near, p_new);
     };
     
-    return PositionValue();
+    return std::pair<Vertex,PositionValue>();
   };
 
 };

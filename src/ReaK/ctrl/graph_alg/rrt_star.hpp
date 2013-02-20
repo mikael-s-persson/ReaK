@@ -390,7 +390,9 @@ namespace detail {
     
     while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
       
-      PositionValue p_new = node_generator_func(g, vis, g_position);
+      PositionValue p_new = PositionValue();
+      Vertex x_near = Vertex();
+      boost::tie(x_near, p_new) = node_generator_func(g, vis, g_position);
       
       std::vector<Vertex> Nc;
       select_neighborhood(p_new, back_inserter(Nc), g, space, g_position);
@@ -474,7 +476,9 @@ namespace detail {
     
     while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
       
-      PositionValue p_new = node_generator_func(g, vis, g_position);
+      PositionValue p_new = PositionValue();
+      Vertex x_near = Vertex();
+      boost::tie(x_near, p_new) = node_generator_func(g, vis, g_position);
       
       std::vector<Vertex> Pred;
       std::vector<Vertex> Succ;
