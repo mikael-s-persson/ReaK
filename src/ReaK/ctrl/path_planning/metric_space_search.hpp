@@ -238,18 +238,20 @@ struct position_caching_policy {
 template <typename Key,
           typename Topology,
           typename PositionMap,
-	  unsigned int Arity = 2,
-	  typename VPChooser = random_vp_chooser,
-	  typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<Arity>,
-	  typename PositionCachingPolicy = position_caching_policy>
+          unsigned int Arity = 2,
+          typename VPChooser = random_vp_chooser,
+          typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<Arity>,
+          typename PositionCachingPolicy = position_caching_policy>
 class dvp_tree
 {
   public:
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     
-    typedef typename metric_space_traits<Topology>::distance_metric_type distance_metric;
-    typedef typename topology_traits<Topology>::point_type point_type;
-    typedef typename topology_traits<Topology>::point_difference_type point_difference_type;
+    typedef typename boost::mpl::if_<
+      is_metric_symmetric<Topology>,
+      typename metric_space_traits<Topology>::distance_metric_type,
+      symmetrized_metric< typename metric_space_traits<Topology>::distance_metric_type > >::type distance_metric_type;
+    typedef typename boost::property_traits<PositionMap>::value_type point_type;
     typedef double distance_type;
     
   private:
@@ -277,7 +279,7 @@ class dvp_tree
     typedef dvp_tree_impl< 
       tree_indexer,
       Topology,
-      distance_metric,
+      distance_metric_type,
       vp_to_key_map_type,
       ep_to_distance_map_type,
       vp_to_pos_map_type,
@@ -306,33 +308,33 @@ class dvp_tree
      */
     template <typename Graph>
     dvp_tree(const Graph& g, 
-	     const ReaK::shared_ptr<const Topology>& aSpace, 
-	     PositionMap aPosition,
-	     VPChooser aVPChooser = VPChooser()) :
-	     m_tree(),
-	     m_position(aPosition),
-	     m_vp_key(
-	       key_map_type(&vertex_properties::k),
-	       get(boost::vertex_raw_prop_to_bundle, m_tree)
-	     ),
-	     m_vp_pos(
-	       vertex_position_map(key_map_type(&vertex_properties::k), aPosition),
-	       get(boost::vertex_raw_prop_to_bundle, m_tree)
-	     ),
-	     m_impl(
-	       g,
-	       aPosition,
-	       m_tree,
+             const ReaK::shared_ptr<const Topology>& aSpace, 
+             PositionMap aPosition,
+             VPChooser aVPChooser = VPChooser()) :
+             m_tree(),
+             m_position(aPosition),
+             m_vp_key(
+               key_map_type(&vertex_properties::k),
+               get(boost::vertex_raw_prop_to_bundle, m_tree)
+             ),
+             m_vp_pos(
+               vertex_position_map(key_map_type(&vertex_properties::k), aPosition),
+               get(boost::vertex_raw_prop_to_bundle, m_tree)
+             ),
+             m_impl(
+               g,
+               aPosition,
+               m_tree,
                aSpace, 
-	       get(ReaK::pp::distance_metric,*aSpace),
-	       m_vp_key,
-	       ep_to_distance_map_type(
-		 distance_map_type(&edge_properties::d),
-		 get(boost::edge_raw_prop_to_bundle, m_tree)
-	       ),
-	       m_vp_pos,
-	       aVPChooser
-	     ) { };
+               distance_metric_type(get(ReaK::pp::distance_metric,*aSpace)),
+               m_vp_key,
+               ep_to_distance_map_type(
+                 distance_map_type(&edge_properties::d),
+                 get(boost::edge_raw_prop_to_bundle, m_tree)
+               ),
+               m_vp_pos,
+               aVPChooser
+             ) { };
     
     /**
      * Construct the DVP-tree from a range, topology and property-map.
@@ -345,35 +347,35 @@ class dvp_tree
      */
     template <typename ForwardIterator>
     dvp_tree(ForwardIterator aBegin,
-	     ForwardIterator aEnd,
-	     const ReaK::shared_ptr<const Topology>& aSpace, 
-	     PositionMap aPosition,
-	     VPChooser aVPChooser = VPChooser()) : 
-	     m_tree(),
-	     m_position(aPosition),
-	     m_vp_key(
-	       key_map_type(&vertex_properties::k),
-	       get(boost::vertex_raw_prop_to_bundle, m_tree)
-	     ),
-	     m_vp_pos(
-	       vertex_position_map(key_map_type(&vertex_properties::k), aPosition),
-	       get(boost::vertex_raw_prop_to_bundle, m_tree)
-	     ),
-	     m_impl(
-	       aBegin,
-	       aEnd,
-	       aPosition,
-	       m_tree,
+             ForwardIterator aEnd,
+             const ReaK::shared_ptr<const Topology>& aSpace, 
+             PositionMap aPosition,
+             VPChooser aVPChooser = VPChooser()) : 
+             m_tree(),
+             m_position(aPosition),
+             m_vp_key(
+               key_map_type(&vertex_properties::k),
+               get(boost::vertex_raw_prop_to_bundle, m_tree)
+             ),
+             m_vp_pos(
+               vertex_position_map(key_map_type(&vertex_properties::k), aPosition),
+               get(boost::vertex_raw_prop_to_bundle, m_tree)
+             ),
+             m_impl(
+               aBegin,
+               aEnd,
+               aPosition,
+               m_tree,
                aSpace, 
-	       get(ReaK::pp::distance_metric, *aSpace),
-	       m_vp_key,
-	       ep_to_distance_map_type(
-		 distance_map_type(&edge_properties::d),
-		 get(boost::edge_raw_prop_to_bundle, m_tree)
-	       ),
-	       m_vp_pos,
-	       aVPChooser
-	     ) { };
+               distance_metric_type(get(ReaK::pp::distance_metric, *aSpace)),
+               m_vp_key,
+               ep_to_distance_map_type(
+                 distance_map_type(&edge_properties::d),
+                 get(boost::edge_raw_prop_to_bundle, m_tree)
+               ),
+               m_vp_pos,
+               aVPChooser
+             ) { };
   
     
     
@@ -423,7 +425,7 @@ class dvp_tree
     void insert(ForwardIterator aBegin, ForwardIterator aEnd) { 
       std::vector< vertex_raw_property_type > vp_list;
       for(; aBegin != aEnd; ++aBegin) {
-	vp_list.push_back(vertex_raw_property_type());
+        vp_list.push_back(vertex_raw_property_type());
         put(m_vp_key, vp_list.back(), *aBegin);
         put(m_vp_pos, vp_list.back(), get(m_position, *aBegin));
       };
@@ -449,9 +451,9 @@ class dvp_tree
       typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor TreeVertex;
       std::vector< TreeVertex > v_list;
       for(; aBegin != aEnd; ++aBegin) {
-	TreeVertex u = m_impl.get_vertex(*aBegin, get(m_position, *aBegin));
-	if(is_vertex_valid(u, m_tree))
-	  v_list.push_back(u);
+        TreeVertex u = m_impl.get_vertex(*aBegin, get(m_position, *aBegin));
+        if(is_vertex_valid(u, m_tree))
+          v_list.push_back(u);
       };
       m_impl.erase(v_list.begin(), v_list.end());
     };
@@ -475,6 +477,18 @@ class dvp_tree
     };
     
     /**
+     * Finds the nearest predecessor and successor to a given position.
+     * \note This only works for an unsymmetric metric (symmetrized in this DVP tree, but unsymmetrized for this query).
+     * \param aPoint The position from which to find the nearest-neighbor of.
+     * \return The vertices in the DVP-tree that are nearest predecessor and successor to the given point.
+     */
+    std::pair<Key, Key> find_nearest_pred_succ(const point_type& aPoint) const {
+      typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor TreeVertex;
+      std::pair<TreeVertex, TreeVertex> u = m_impl.find_nearest_pred_succ(aPoint);
+      return std::pair<Key, Key>(m_tree[u.first].k, m_tree[u.second].k);
+    };
+    
+    /**
      * Finds the K nearest-neighbors to a given position.
      * \tparam OutputIterator The forward- output-iterator type which can contain the 
      *         list of nearest-neighbors.
@@ -491,8 +505,35 @@ class dvp_tree
       std::vector< TreeVertex > v_list;
       m_impl.find_nearest(aPoint, back_inserter(v_list), K, R);
       for(typename std::vector< TreeVertex >::iterator it = v_list.begin(); it != v_list.end(); ++it)
-	*(aOutputBegin++) = m_tree[*it].k;
+        *(aOutputBegin++) = m_tree[*it].k;
       return aOutputBegin;
+    };
+    
+    /**
+     * Finds the K nearest predecessors and successors to a given position.
+     * \note This only works for an unsymmetric metric (symmetrized in this DVP tree, but unsymmetrized for this query).
+     * \tparam OutputIterator The forward- output-iterator type which can contain the 
+     *         list of nearest-neighbors.
+     * \param aPoint The position from which to find the nearest-neighbors.
+     * \param aPredBegin An iterator to the first place where to put the sorted list of 
+     *        predecessor elements with the smallest distance.
+     * \param aSuccBegin An iterator to the first place where to put the sorted list of 
+     *        successor elements with the smallest distance.
+     * \param K The number of nearest-neighbors.
+     * \param R The maximum distance value for the nearest-neighbors.
+     * \return The output-iterator to the end of the two lists of nearest neighbors (predecessors and successors).
+     */
+    template <typename OutputIterator>
+    std::pair<OutputIterator, OutputIterator> find_nearest(const point_type& aPoint, OutputIterator aPredBegin, OutputIterator aSuccBegin, std::size_t K, distance_type R = std::numeric_limits<distance_type>::infinity()) const {
+      typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor TreeVertex;
+      std::vector< TreeVertex > pred_list;
+      std::vector< TreeVertex > succ_list;
+      m_impl.find_nearest(aPoint, back_inserter(pred_list), back_inserter(succ_list), K, R);
+      for(typename std::vector< TreeVertex >::iterator it = pred_list.begin(); it != pred_list.end(); ++it)
+        *(aPredBegin++) = m_tree[*it].k;
+      for(typename std::vector< TreeVertex >::iterator it = succ_list.begin(); it != succ_list.end(); ++it)
+        *(aSuccBegin++) = m_tree[*it].k;
+      return std::pair<OutputIterator, OutputIterator>(aPredBegin,aSuccBegin);
     };
     
     /**
@@ -511,7 +552,7 @@ class dvp_tree
       std::vector< TreeVertex > v_list;
       m_impl.find_in_range(aPoint, back_inserter(v_list), R);
       for(typename std::vector< TreeVertex >::iterator it = v_list.begin(); it != v_list.end(); ++it)
-	*(aOutputBegin++) = m_tree[*it].k;
+        *(aOutputBegin++) = m_tree[*it].k;
       return aOutputBegin;
     };
     
@@ -638,7 +679,6 @@ struct multi_dvp_tree_pred_succ_search {
    * \return A pair containing the nearest predecessor and successor vertex.
    */
   template <typename Topology, typename PositionMap>
-  typename boost::graph_traits<Graph>::vertex_descriptor 
   std::pair< typename boost::graph_traits<Graph>::vertex_descriptor, 
              typename boost::graph_traits<Graph>::vertex_descriptor > 
     operator()(const typename boost::property_traits<PositionMap>::value_type& p, 

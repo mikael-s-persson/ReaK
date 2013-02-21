@@ -444,6 +444,43 @@ namespace pp {
   };
   
   
+  
+  
+  /**
+   * This class is a composite synchronization class. Some nearest-neighbor methods 
+   * might require a call-back whenever a vertex has been added or when it is about
+   * to be removed in order to update the data-structure maintained to perform the 
+   * NN queries. This class can be used when no such synchronization is needed.
+   */
+  template <typename NNSynchro1, typename NNSynchro2>
+  struct composite_NNsynchro {
+    NNSynchro1 s1;
+    NNSynchro2 s2;
+    
+    composite_NNsynchro(NNSynchro1 aS1 = NNSynchro1(), NNSynchro2 aS2 = NNSynchro2()) : s1(aS1), s2(aS2) { };
+    
+    /**
+     * This is a call-back for when a vertex has been added.
+     */
+    template <typename Vertex, typename Graph>
+    void added_vertex(Vertex u, Graph& g) const { 
+      s1.added_vertex(u,g);
+      s2.added_vertex(u,g);
+    };
+    
+    /**
+     * This is a call-back for when a vertex is about to be removed.
+     */
+    template <typename Vertex, typename Graph>
+    void removed_vertex(Vertex u, Graph& g) const {
+      s1.removed_vertex(u,g);
+      s2.removed_vertex(u,g);
+    };
+    
+  };
+  
+  
+  
   namespace detail {
     
     template <typename Topology, typename PositionMap>

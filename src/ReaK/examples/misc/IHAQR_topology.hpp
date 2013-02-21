@@ -467,6 +467,10 @@ template <typename StateSpace, typename StateSpaceSystem>
 struct is_point_distribution< IHAQR_topology<StateSpace, StateSpaceSystem> > : 
   is_point_distribution<StateSpace> { };
 
+template <typename StateSpace, typename StateSpaceSystem>
+struct is_metric_symmetric< IHAQR_topology<StateSpace, StateSpaceSystem> > : boost::mpl::false_ { };
+  
+  
 
   
 /**
@@ -600,6 +604,10 @@ struct is_metric_space< IHAQR_topology_with_CD<StateSpace, StateSpaceSystem> > :
 template <typename StateSpace, typename StateSpaceSystem>
 struct is_point_distribution< IHAQR_topology_with_CD<StateSpace, StateSpaceSystem> > : 
   is_point_distribution<StateSpace> { };
+  
+template <typename StateSpace, typename StateSpaceSystem>
+struct is_metric_symmetric< IHAQR_topology_with_CD<StateSpace, StateSpaceSystem> > : boost::mpl::false_ { };
+  
   
 
 

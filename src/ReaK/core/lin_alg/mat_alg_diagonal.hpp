@@ -656,7 +656,7 @@ extern template class mat<float, mat_structure::diagonal>;
 
 
 // for compilers that don't support extern templates for friend functions:
-#if !defined(__clang__)
+#if 0
 
 extern template vect<double,2> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,2> V);
 extern template vect<double,3> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,3> V);

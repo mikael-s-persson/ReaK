@@ -85,9 +85,7 @@ class dvp_tree_impl
   public:
     
     /** Type of the points in the topology. */ 
-    typedef typename topology_traits<Topology>::point_type point_type;
-    /** Type of the point-differences in the topology. */ 
-    typedef typename topology_traits<Topology>::point_difference_type point_difference_type;
+    typedef typename boost::property_traits<PositionMap>::value_type point_type;
     /** Type of the distance values. */ 
     typedef double distance_type;
     /** Type of the distance metric. */ 

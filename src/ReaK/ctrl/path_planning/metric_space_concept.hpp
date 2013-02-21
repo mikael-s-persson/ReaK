@@ -225,6 +225,9 @@ struct MetricSpaceConcept {
 template <typename MetricSpace>
 struct is_metric_space : boost::mpl::false_ { };
 
+template <typename MetricSpace>
+struct is_metric_symmetric : boost::mpl::true_ { };
+
 
 
 };

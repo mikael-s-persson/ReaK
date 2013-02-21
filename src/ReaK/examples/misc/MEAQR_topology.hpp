@@ -647,10 +647,13 @@ class MEAQR_topology : public named_object
 
 template <typename StateSpace, typename StateSpaceSystem>
 struct is_metric_space< MEAQR_topology<StateSpace, StateSpaceSystem> > : boost::mpl::true_ { };
-        
+
 template <typename StateSpace, typename StateSpaceSystem>
 struct is_point_distribution< MEAQR_topology<StateSpace, StateSpaceSystem> > : 
   is_point_distribution<StateSpace> { };
+
+template <typename StateSpace, typename StateSpaceSystem>
+struct is_metric_symmetric< MEAQR_topology<StateSpace, StateSpaceSystem> > : boost::mpl::false_ { };
   
   
   
@@ -778,11 +781,15 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
   
 template <typename StateSpace, typename StateSpaceSystem>
 struct is_metric_space< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> > : boost::mpl::true_ { };
-        
+
 template <typename StateSpace, typename StateSpaceSystem>
 struct is_point_distribution< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> > : 
   is_point_distribution<StateSpace> { };
+
+template <typename StateSpace, typename StateSpaceSystem>
+struct is_metric_symmetric< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> > : boost::mpl::false_ { };
   
+
 
 
 

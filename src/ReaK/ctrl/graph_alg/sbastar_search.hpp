@@ -496,7 +496,7 @@ namespace graph {
           };
           
           // stop if we have a node at the goal
-          if( (get(heuristic, u) == 0.0) )
+          if( get(heuristic, u) == 0.0 )
             break;
           
           OutEdgeIter eig, eig_end;

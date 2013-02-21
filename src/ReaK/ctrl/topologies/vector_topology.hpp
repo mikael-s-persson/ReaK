@@ -60,7 +60,7 @@ class vector_topology : public named_object
     typedef Vector point_type;
     typedef Vector point_difference_type;
     
-    BOOST_STATIC_CONSTANT(std::size_t, dimensions = vect_traits<Vector>::dimensions);
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 0);
     
     vector_topology(const std::string& aName = "vector_topology") : named_object() {
       setName(aName);
@@ -100,7 +100,7 @@ class vector_topology : public named_object
      */
     point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
     {
-      return a + (b - a) * typename vect_traits<Vector>::value_type( fraction );
+      return a + (b - a) * fraction;
     }
     
 /*******************************************************************************

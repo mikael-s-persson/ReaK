@@ -297,6 +297,8 @@ template vect_n<float> operator *< vect_n<float> >(const vect_n<float>& V,const 
 template class mat<double, mat_structure::diagonal>;
 template class mat<float, mat_structure::diagonal>;
 
+#if 0
+
 template vect<double,2> operator *(const mat<double,mat_structure::diagonal>& M,const vect<double,2>& V);
 template vect<double,3> operator *(const mat<double,mat_structure::diagonal>& M,const vect<double,3>& V);
 template vect<double,4> operator *(const mat<double,mat_structure::diagonal>& M,const vect<double,4>& V);
@@ -321,6 +323,7 @@ template vect<float,4> operator *(const vect<float,4>& V,const mat<float,mat_str
 template vect<float,6> operator *(const vect<float,6>& V,const mat<float,mat_structure::diagonal>& M);
 template vect_n<float> operator *(const vect_n<float>& V,const mat<float,mat_structure::diagonal>& M);
 
+#endif
 
 
 
