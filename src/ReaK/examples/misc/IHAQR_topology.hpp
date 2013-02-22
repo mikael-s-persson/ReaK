@@ -218,12 +218,28 @@ class IHAQR_topology : public named_object
       
       // solve for M
       try {
-        solve_care_problem(a.lin_data->A, a.lin_data->B, m_R, m_Q, a.IHAQR_data->M);
+//         std::cout << "A = (" << a.lin_data->A.get_row_count() << ", " << a.lin_data->A.get_col_count() << ") = " << a.lin_data->A << std::endl;
+//         std::cout << "B = (" << a.lin_data->B.get_row_count() << ", " << a.lin_data->B.get_col_count() << ") = " << a.lin_data->B << std::endl;
+//         std::cout << "R = (" << m_R.get_row_count() << ", " << m_R.get_col_count() << ") = " << m_R << std::endl;
+//         std::cout << "Q = (" << m_Q.get_row_count() << ", " << m_Q.get_col_count() << ") = " << m_Q << std::endl;
+        
+        mat<double, mat_structure::rectangular> CtrlMat(a.lin_data->A.get_row_count(), a.lin_data->A.get_row_count() * a.lin_data->B.get_col_count());
+        mat<double, mat_structure::rectangular> Btmp = a.lin_data->B;
+        for(std::size_t i = 0; i < a.lin_data->A.get_row_count(); ++i) {
+          sub(CtrlMat)(range(std::size_t(0), a.lin_data->A.get_row_count() - 1), range(i * a.lin_data->B.get_col_count(), (i+1) * a.lin_data->B.get_col_count() - 1)) = Btmp;
+          Btmp = a.lin_data->A * Btmp;
+        };
+        mat<double,mat_structure::permutation> P(a.lin_data->A.get_row_count());
+        std::size_t C_rank = ReaK::detail::decompose_RRQR_impl(CtrlMat,static_cast<mat<double,mat_structure::square>*>(NULL),P,1e-5);
+        std::cout << "The rank of the Controllability matrix is = " << C_rank << std::endl;
+        
+        
+        solve_care_problem(a.lin_data->A, a.lin_data->B, m_Q, m_R, a.IHAQR_data->M, 1e-2, false);
       } catch(std::exception& e) {
         std::cout << "Warning! Solution to the CARE problem could not be found for the given state point: " << a.x << std::endl
                   << "  The following exception was raised: " << e.what() << std::endl;
       };
-      
+      RK_NOTICE(1," reached!");
       // solve for eta
       // To be neglected in distance metric
       mat<double,mat_structure::square> lhsMat = a.IHAQR_data->M * a.lin_data->B * invert(m_R) * transpose_view(a.lin_data->B) - transpose_view(a.lin_data->A);

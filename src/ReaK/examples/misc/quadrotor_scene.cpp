@@ -13,6 +13,7 @@
 #include "quadrotor_system.hpp"
 
 #include "MEAQR_rrtstar_planner.hpp"
+#include "MEAQR_sbastar_planner.hpp"
 
 int main(int argc, char ** argv) {
   using namespace ReaK;
@@ -91,13 +92,20 @@ int main(int argc, char ** argv) {
   {
     MEAQR_space_type::point_type p1 = quad_MEAQR_space.random_point();
     MEAQR_space_type::point_type p2 = quad_MEAQR_space.random_point();
-  
-    MEAQR_space_type::point_type p_inter = quad_MEAQR_space.move_position_toward(p1, 0.5, p2);
-  
+    
+    std::cout << " p1 = " << p1.x << std::endl;
+    std::cout << " p2 = " << p2.x << std::endl << std::endl;
+    
+    for(double t = 0.0; t < 1.0; t += 0.1) { 
+      MEAQR_space_type::point_type p_inter = quad_MEAQR_space.move_position_toward(p1, t, p2);
+      std::cout << t << " " << p_inter.x << std::endl;
+    };
+    
     double dist = quad_MEAQR_space.distance(p1, p2); RK_UNUSED(dist);
   };
   
-  MEAQR_rrtstar_planner< quadrotor_system::state_space_type, quadrotor_system > planner;
+  MEAQR_rrtstar_planner< quadrotor_system::state_space_type, quadrotor_system > planner1;
+  MEAQR_sbastar_planner< quadrotor_system::state_space_type, quadrotor_system > planner2;
   
   return 0;
 };

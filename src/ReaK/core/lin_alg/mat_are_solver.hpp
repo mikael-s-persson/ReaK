@@ -1465,7 +1465,7 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
 //   std::cout << "CARE: (R; B; 0) = " << R_tmp << std::endl;
 //   std::cout << "CARE: Q = " << Q_tmp << std::endl;
   
-  detail::decompose_QR_impl(R_tmp, &Q_tmp, NumTol);
+  detail::decompose_QR_impl(R_tmp, &Q_tmp, NumTol * 1e-3);
   Q_tmp = transpose(Q_tmp);
   
 //   std::cout << "CARE: Q' (R; B; 0) = " << R_tmp << std::endl;
@@ -1531,7 +1531,7 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
   P.set_col_count(N);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ11(Z_aug, N, N, 0, 0);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ21(Z_aug, N, N, N, 0);
-  linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
+  linlsq_RRQR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol * 1e-3);
   
   if(UseBalancing) {
     for(SizeType i = 0; i < N; ++i)

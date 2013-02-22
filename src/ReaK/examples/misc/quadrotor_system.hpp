@@ -193,7 +193,7 @@ class quadrotor_system : public named_object {
       
       B = mat<double,mat_structure::nil>(12,4);
       vect<double,3> t_global = R * vect<double,3>(0.0, 0.0, 1.0 / mMass);
-      set_block(B, mat_vect_adaptor< vect<double,3> >(t_global), 6, 0);
+      set_block(B, mat_vect_adaptor< vect<double,3> >(t_global), 3, 0);
       set_block(B, mInertiaMomentInv, 9, 1);
       
       C = mat<double,mat_structure::nil>(6,12);

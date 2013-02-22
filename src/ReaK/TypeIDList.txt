@@ -421,6 +421,7 @@ frame_tracer_3D             0xC246000A   bin: 1100 0010 0100 0110 0000 0000 0000
 fadprm_path_planner         0xC246000B   bin: 1100 0010 0100 0110 0000 0000 0000 1011  D-R
 sbastar_path_planner        0xC246000C   bin: 1100 0010 0100 0110 0000 0000 0000 1100  D-R
 MEAQR_rrtstar_planner       0xC246000D   bin: 1100 0010 0100 0110 0000 0000 0000 1101  D-R
+MEAQR_sbastar_planner       0xC246000E   bin: 1100 0010 0100 0110 0000 0000 0000 1110  D-R
 
 
 
