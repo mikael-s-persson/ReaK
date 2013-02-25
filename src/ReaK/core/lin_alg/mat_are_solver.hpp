@@ -40,6 +40,8 @@
 #include "mat_hess_decomp.hpp"
 #include "mat_schur_decomp.hpp"
 
+#include "mat_ctrl_decomp.hpp"
+
 #include "mat_norms.hpp"
 #include "mat_balance.hpp"
 
@@ -1427,9 +1429,14 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
  * \param P holds as output, the nonnegative definite solution to Q + A^T P + P A - P B R^-1 B^T P = 0.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
- * \param UseBalancing whether balancing is done or not prior to solving the problem.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
  *
  * \author Mikael Persson
  */
@@ -1532,7 +1539,11 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
   P.set_col_count(N);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ11(Z_aug, N, N, 0, 0);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ21(Z_aug, N, N, N, 0);
-  linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
+  try {
+    linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
+  } catch(singularity_error& e) {
+    throw singularity_error("The Continuous-time Algebraic Riccati Equation (CARE) cannot be solved! Usually indicates that the system is not stabilizable.");
+  };
   
   if(UseBalancing) {
     for(SizeType i = 0; i < N; ++i)
@@ -1565,8 +1576,14 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
  * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
  *
  * \author Mikael Persson
  */
@@ -1608,8 +1625,14 @@ void >::type solve_IHCT_LQR(const Matrix1& A, const Matrix2& B,
  * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
  *
  * \author Mikael Persson
  */
@@ -1629,6 +1652,244 @@ void >::type solve_IHCT_LQR(const Matrix1& A, const Matrix2& B,
   mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(A.get_row_count());
   solve_IHCT_LQR(A,B,Q,R,K,P,NumTol,UseBalancing);
 };
+
+
+
+
+
+
+/**
+ * Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem
+ * with a controllability reduction prior to solving the Algebraic Riccati Equation (CARE). 
+ * This function should be used if the system is (or could be) uncontrollable in some 
+ * directions of motion (modes). 
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_care_problem.
+ * 
+ * \note If the system is not completely controllable, the resulting controller will in effect ignore 
+ * the uncontrollable state errors, both for the computation of the control inputs and for the 
+ * cost-to-go metric (quadratic weighting matrix P). This means that both matrices K and P will 
+ * have a rank equal to that returned by this function (number of controllable states). This 
+ * implies that the possible rank-deficiency of the matrices must be considered when doing further 
+ * operations with these matrices (e.g., inversions or factorizations).
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A fully-writable matrix type.
+ * \tparam Matrix6 A fully-writable (square) matrix type.
+ * \tparam Matrix7 A fully-writable (square) matrix type.
+ * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+ * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
+ * \param Qr holds as output, the (nxn) orthogonal transformation that maps the state vector into an 
+ *           equivalent state vector whose first r elements are controllable and N-r elements remaining are not.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
+ * \return The numerical rank of the system, i.e., the number of controllable states.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3, 
+          typename Matrix4, typename Matrix5, typename Matrix6, typename Matrix7>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_fully_writable_matrix<Matrix5>::value && 
+                             is_fully_writable_matrix<Matrix6>::value && 
+                             is_fully_writable_matrix<Matrix7>::value, 
+mat_traits<Matrix1> >::type::size_type 
+  solve_IHCT_LQR_with_reduction(const Matrix1& A, const Matrix2& B, 
+                                const Matrix3& Q, const Matrix4& R, 
+                                Matrix5& K, Matrix6& P, Matrix7& Qr,
+                                typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                                bool UseBalancing = false) {
+  if((A.get_row_count() != A.get_col_count()) || 
+     (B.get_row_count() != A.get_row_count()) || 
+     (Q.get_row_count() != Q.get_col_count()) || 
+     (R.get_row_count() != R.get_col_count()) || 
+     (B.get_col_count() != R.get_col_count()))
+    throw std::range_error("Infinite-horizon Continuous-time LQR with reduction: The dimensions of the system matrices do not match! Should be A(n x n), B(n x m), Q(n x n), and R(m x m).");
+  
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  
+  SizeType N = A.get_row_count();
+  SizeType M = B.get_col_count();
+  
+  mat<ValueType,mat_structure::rectangular> Br(B);
+  mat<ValueType,mat_structure::rectangular> Ar(A);
+  Qr = mat<ValueType,mat_structure::identity>( N );
+  mat<ValueType,mat_structure::square>      Zr( mat<ValueType,mat_structure::identity>( M ) );
+  
+  SizeType r = ctrl_reduction(Ar, Br, Qr, Zr, NumTol);
+  
+  if(r == N) { // all states are controllable. Use the normal function (avoid unnecessary operations):
+    solve_IHCT_LQR(A, B, Q, R, K, P, NumTol, UseBalancing);
+    return r;
+  };
+  
+  // create the transformed quadratic penalty matrices:
+  mat<ValueType,mat_structure::rectangular> Qrr(sub(Qr)(range(0,N-1), range(0,r-1)));
+  mat<ValueType,mat_structure::square> R_reduced( transpose_view(Zr) * R * Zr );
+  mat<ValueType,mat_structure::square> Q_reduced( transpose_view(Qrr) * Q * Qrr);
+  
+  // solve the IHCT LQR problem over the controllable states:
+  mat<double,mat_structure::rectangular> P_reduced(r,r);
+  mat<double,mat_structure::rectangular> K_reduced(M,r);
+  solve_IHCT_LQR(sub(Ar)(range(0,r-1),range(0,r-1)), 
+                 sub(Br)(range(0,r-1),range(0,M-1)), 
+                 Q_reduced, R_reduced, K_reduced, P_reduced, NumTol, UseBalancing);
+  
+  // compute the resulting cost-matrix and gain-matrix (note: they are positive-semi-definite and rank deficient, respectively).
+  P = Qrr * P_reduced * transpose_view(Qrr);
+  K = Zr * K_reduced * transpose_view(Qrr);
+  
+  return r;
+};
+
+
+
+
+/**
+ * Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem
+ * with a controllability reduction prior to solving the Algebraic Riccati Equation (CARE). 
+ * This function should be used if the system is (or could be) uncontrollable in some 
+ * directions of motion (modes). 
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_care_problem.
+ * 
+ * \note If the system is not completely controllable, the resulting controller will in effect ignore 
+ * the uncontrollable state errors, both for the computation of the control inputs and for the 
+ * cost-to-go metric (quadratic weighting matrix P). This means that both matrices K and P will 
+ * have a rank equal to that returned by this function (number of controllable states). This 
+ * implies that the possible rank-deficiency of the matrices must be considered when doing further 
+ * operations with these matrices (e.g., inversions or factorizations).
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A fully-writable matrix type.
+ * \tparam Matrix6 A fully-writable (square) matrix type.
+ * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+ * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
+ * \return The numerical rank of the system, i.e., the number of controllable states.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3, 
+          typename Matrix4, typename Matrix5, typename Matrix6>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_fully_writable_matrix<Matrix5>::value && 
+                             is_fully_writable_matrix<Matrix6>::value, 
+mat_traits<Matrix1> >::type::size_type 
+  solve_IHCT_LQR_with_reduction(const Matrix1& A, const Matrix2& B, 
+                                const Matrix3& Q, const Matrix4& R, 
+                                Matrix5& K, Matrix6& P, 
+                                typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                                bool UseBalancing = false) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  mat<ValueType, mat_structure::square> Qr = mat<ValueType, mat_structure::square>(A.get_row_count());
+  return solve_IHCT_LQR_with_reduction(A,B,Q,R,K,P,Qr,NumTol,UseBalancing);
+};
+
+
+
+
+
+/**
+ * Solves the Infinite-horizon Continuous-time Linear Quadratic Regulator (LQR) problem
+ * with a controllability reduction prior to solving the Algebraic Riccati Equation (CARE). 
+ * This function should be used if the system is (or could be) uncontrollable in some 
+ * directions of motion (modes). 
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_care_problem.
+ * 
+ * \note If the system is not completely controllable, the resulting controller will in effect ignore 
+ * the uncontrollable state errors, both for the computation of the control inputs and for the 
+ * cost-to-go metric (quadratic weighting matrix P). This means that both matrices K and P will 
+ * have a rank equal to that returned by this function (number of controllable states). This 
+ * implies that the possible rank-deficiency of the matrices must be considered when doing further 
+ * operations with these matrices (e.g., inversions or factorizations).
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A fully-writable matrix type.
+ * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+ * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
+ * \return The numerical rank of the system, i.e., the number of controllable states.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3, 
+          typename Matrix4, typename Matrix5>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_fully_writable_matrix<Matrix5>::value, 
+mat_traits<Matrix1> >::type::size_type 
+  solve_IHCT_LQR_with_reduction(const Matrix1& A, const Matrix2& B, 
+                                const Matrix3& Q, const Matrix4& R, 
+                                Matrix5& K, 
+                                typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                                bool UseBalancing = false) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(A.get_row_count());
+  return solve_IHCT_LQR_with_reduction(A,B,Q,R,K,P,NumTol,UseBalancing);
+};
+
+
+
+
+
+
 
 
 
@@ -1660,8 +1921,14 @@ void >::type solve_IHCT_LQR(const Matrix1& A, const Matrix2& B,
  * \param S holds as output, the (nxn) nonnegative definite solution to S = F^T S F - F^T S G ( R + G^T S G )^{-1} G^T S F + Q.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
  *
  * \author Mikael Persson
  */
@@ -1683,7 +1950,8 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
 void >::type solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C,
                             const Matrix4& V, const Matrix5& W, const Matrix6& Q, const Matrix7& R, 
                             Matrix8& K, Matrix9& P, Matrix10& L, Matrix11& S, 
-                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                            bool UseBalancing = false) {
   solve_care_problem(transpose_view(A),transpose_view(C),V,W,P,NumTol);
   
   mat<double,mat_structure::rectangular> M1_tmp(C.get_row_count(),A.get_col_count());
@@ -1692,7 +1960,7 @@ void >::type solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C
   linlsq_QR(W,Msol_tmp,M1_tmp);
   K = transpose_view(Msol_tmp);
   
-  solve_care_problem(A,B,Q,R,S,NumTol);
+  solve_care_problem(A,B,Q,R,S,NumTol,UseBalancing);
   
   mat<double,mat_structure::rectangular> M2_tmp(B.get_col_count(),A.get_col_count());
   M2_tmp = transpose_view(B) * S;
@@ -1724,8 +1992,14 @@ void >::type solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C
  * \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
  *
  * \author Mikael Persson
  */
@@ -1744,11 +2018,12 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
 void >::type solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C,
                             const Matrix4& V, const Matrix5& W, const Matrix6& Q, const Matrix7& R, 
                             Matrix8& K, Matrix9& L, 
-                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                            bool UseBalancing = false) {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(A.get_row_count());
   mat<ValueType, mat_structure::square> S = mat<ValueType, mat_structure::square>(A.get_row_count());
-  solve_IHCT_LQG(A,B,C,V,W,Q,R,K,P,L,S,NumTol);
+  solve_IHCT_LQG(A,B,C,V,W,Q,R,K,P,L,S,NumTol,UseBalancing);
 };
 
 
@@ -1785,9 +2060,14 @@ void >::type solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C
  * \param P holds as output, the nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
- * \param UseBalancing whether balancing is done or not prior to solving the problem.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
  *
  * \author Mikael Persson
  */
@@ -1850,7 +2130,7 @@ void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G,
 //   std::cout << "DARE: (Before Schur) Z_aug = " << Z_aug << std::endl;
   
   bool should_interchange = false;
-  std::cout << "DARE: norm_A = " << norm_1(A_aug) << " norm_B = " << norm_1(B_aug) << std::endl;
+//   std::cout << "DARE: norm_A = " << norm_1(A_aug) << " norm_B = " << norm_1(B_aug) << std::endl;
   if(norm_1(A_aug) > norm_1(B_aug))
     should_interchange = true;
   
@@ -1893,7 +2173,12 @@ void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G,
   P.set_col_count(N);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ11(Z_aug, N, N, 0, 0);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ21(Z_aug, N, N, N, 0);
-  linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
+  
+  try {
+    linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
+  } catch(singularity_error& e) {
+    throw singularity_error("The Discrete-time Algebraic Riccati Equation (DARE) cannot be solved! Usually indicates that the system is not stabilizable.");
+  };
   
   if(UseBalancing) {
     for(SizeType i = 0; i < N; ++i)
@@ -1924,8 +2209,14 @@ void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G,
  * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
  *
  * \author Mikael Persson
  */
@@ -1939,8 +2230,10 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix6>::value, 
 void >::type solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, 
                             const Matrix3& Q, const Matrix4& R, 
-                            Matrix5& K, Matrix6& P, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  solve_dare_problem(F,G,Q,R,P,NumTol);
+                            Matrix5& K, Matrix6& P, 
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                            bool UseBalancing = false) {
+  solve_dare_problem(F,G,Q,R,P,NumTol,UseBalancing);
   
   mat<double,mat_structure::rectangular> M_tmp = R;
   M_tmp += transpose_view(G) * P * G;
@@ -1967,8 +2260,14 @@ void >::type solve_IHDT_LQR(const Matrix1& F, const Matrix2& G,
  * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
  *
  * \author Mikael Persson
  */
@@ -1981,10 +2280,12 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix5>::value, 
 void >::type solve_IHDT_LQR(const Matrix1& F, const Matrix2& G, 
                             const Matrix3& Q, const Matrix4& R, 
-                            Matrix5& K, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                            Matrix5& K, 
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                            bool UseBalancing = false) {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(F.get_row_count());
-  solve_ihdt_lqr(F,G,Q,R,K,P,NumTol);
+  solve_ihdt_lqr(F,G,Q,R,K,P,NumTol,UseBalancing);
 };
 
 
@@ -2016,8 +2317,14 @@ void >::type solve_IHDT_LQR(const Matrix1& F, const Matrix2& G,
  * \param S holds as output, the (nxn) nonnegative definite solution to S = F^T S F - F^T S G ( R + G^T S G )^{-1} G^T S F + Q.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
  *
  * \author Mikael Persson
  */
@@ -2039,8 +2346,9 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
 void >::type solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
                             const Matrix4& V, const Matrix5& W, const Matrix6& Q, const Matrix7& R, 
                             Matrix8& K, Matrix9& P, Matrix10& L, Matrix11& S, 
-                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  solve_dare_problem(transpose_view(F),transpose_view(H),V,W,P,NumTol);
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                            bool UseBalancing = false) {
+  solve_dare_problem(transpose_view(F),transpose_view(H),V,W,P,NumTol,UseBalancing);
   
   mat<double,mat_structure::rectangular> M_tmp = W;
   M_tmp += H * P * transpose_view(H);
@@ -2050,7 +2358,7 @@ void >::type solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H
   linlsq_QR(M_tmp,Msol_tmp,M2_tmp);
   K = transpose_view(Msol_tmp);
   
-  solve_dare_problem(F,G,Q,R,S,NumTol);
+  solve_dare_problem(F,G,Q,R,S,NumTol,UseBalancing);
   
   mat<double,mat_structure::rectangular> M3_tmp = R;
   M3_tmp += transpose_view(G) * S * G;
@@ -2084,8 +2392,14 @@ void >::type solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H
  * \param L holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the DARE problem cannot be solved, usually because the system is not stabilizable.
  *
  * \author Mikael Persson
  */
@@ -2103,11 +2417,13 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix9>::value, 
 void >::type solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H,
                             const Matrix4& V, const Matrix5& W, const Matrix6& Q, const Matrix7& R, 
-                            Matrix8& K, Matrix9& L, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                            Matrix8& K, Matrix9& L, 
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                            bool UseBalancing = false) {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(F.get_row_count());
   mat<ValueType, mat_structure::square> S = mat<ValueType, mat_structure::square>(F.get_row_count());
-  solve_IHDT_LQG(F,G,H,V,W,Q,R,K,P,L,S,NumTol);
+  solve_IHDT_LQG(F,G,H,V,W,Q,R,K,P,L,S,NumTol,UseBalancing);
 };
 
 
@@ -2144,9 +2460,14 @@ void >::type solve_IHDT_LQG(const Matrix1& F, const Matrix2& G, const Matrix3& H
  * \param P holds as output, the nonnegative definite solution.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
- * \param UseBalancing whether balancing is done or not prior to solving the problem.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the CTSF problem cannot be solved, usually because the system is not stabilizable.
  *
  * \author Mikael Persson
  */
@@ -2212,7 +2533,12 @@ void >::type solve_ctsf_problem(const Matrix1& A, const Matrix2& B,
   P.set_col_count(N);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ11(Z_aug, N, N, 0, 0);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ21(Z_aug, N, N, N, 0);
-  linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
+  
+  try {
+    linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
+  } catch(singularity_error& e) {
+    throw singularity_error("The Continuous-time Spectral Factorisation (CTSF) cannot be solved! Usually indicates that the system is not stabilizable.");
+  };
   
   if(UseBalancing) {
     for(SizeType i = 0; i < N; ++i)
@@ -2255,9 +2581,14 @@ void >::type solve_ctsf_problem(const Matrix1& A, const Matrix2& B,
  * \param P holds as output, the nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
- * \param UseBalancing whether balancing is done or not prior to solving the problem.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
  *
  * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the DTSF problem cannot be solved, usually because the system is not stabilizable.
  *
  * \author Mikael Persson
  */
@@ -2323,7 +2654,12 @@ void >::type solve_dtsf_problem(const Matrix1& F, const Matrix2& G,
   P.set_col_count(N);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ11(Z_aug, N, N, 0, 0);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ21(Z_aug, N, N, N, 0);
-  linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
+  
+  try {
+    linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
+  } catch(singularity_error& e) {
+    throw singularity_error("The Discrete-time Spectral Factorisation (CTSF) cannot be solved! Usually indicates that the system is not stabilizable.");
+  };
   
   if(UseBalancing) {
     for(SizeType i = 0; i < N; ++i)
