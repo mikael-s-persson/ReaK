@@ -1465,7 +1465,7 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
 //   std::cout << "CARE: (R; B; 0) = " << R_tmp << std::endl;
 //   std::cout << "CARE: Q = " << Q_tmp << std::endl;
   
-  detail::decompose_QR_impl(R_tmp, &Q_tmp, NumTol * 1e-3);
+  detail::decompose_QR_impl(R_tmp, &Q_tmp, NumTol);
   Q_tmp = transpose(Q_tmp);
   
 //   std::cout << "CARE: Q' (R; B; 0) = " << R_tmp << std::endl;
@@ -1491,7 +1491,7 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
 //   std::cout << "CARE: (Before Schur) Z_aug = " << Z_aug << std::endl;
   
   bool should_interchange = false;
-  std::cout << "CARE: norm_A = " << norm_1(A_aug) << " norm_B = " << norm_1(B_aug) << std::endl;
+//   std::cout << "CARE: norm_A = " << norm_1(A_aug) << " norm_B = " << norm_1(B_aug) << std::endl;
   if(norm_1(A_aug) > norm_1(B_aug))
     should_interchange = true;
   
@@ -1502,8 +1502,9 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
   mat<ValueType, mat_structure::diagonal> Dr_aug(2*N);
   if(UseBalancing)
     balance_pencil(A_aug,B_aug,Dl_aug,Dr_aug);
-//   std::cout << "CARE: (After Balancing) A_aug = " << A_aug << std::endl;
+//   std::cout << "CARE: norm_A = " << norm_1(A_aug) << " norm_B = " << norm_1(B_aug) << std::endl;
 //   std::cout << "CARE: (After Balancing) B_aug = " << B_aug << std::endl;
+//   std::cout << "CARE: (After Balancing) A_aug = " << A_aug << std::endl;
   
   if(should_interchange)
     detail::gen_schur_decomp_impl(B_aug,A_aug,&Q_aug,&Z_aug,NumTol);
@@ -1531,7 +1532,7 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
   P.set_col_count(N);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ11(Z_aug, N, N, 0, 0);
   mat_sub_block< mat<ValueType, mat_structure::square> > subZ21(Z_aug, N, N, N, 0);
-  linlsq_RRQR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol * 1e-3);
+  linlsq_QR(transpose_view(subZ11), P, transpose_view(subZ21), NumTol);
   
   if(UseBalancing) {
     for(SizeType i = 0; i < N; ++i)
@@ -1579,8 +1580,10 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix6>::value, 
 void >::type solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, 
                             const Matrix3& Q, const Matrix4& R, 
-                            Matrix5& K, Matrix6& P, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  solve_care_problem(A,B,Q,R,P,NumTol);
+                            Matrix5& K, Matrix6& P, 
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                            bool UseBalancing = false) {
+  solve_care_problem(A,B,Q,R,P,NumTol,UseBalancing);
   
   mat<double,mat_structure::rectangular> M_tmp(B.get_col_count(),A.get_col_count());
   M_tmp = transpose_view(B) * P;
@@ -1619,10 +1622,12 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix5>::value, 
 void >::type solve_IHCT_LQR(const Matrix1& A, const Matrix2& B, 
                             const Matrix3& Q, const Matrix4& R, 
-                            Matrix5& K, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                            Matrix5& K, 
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                            bool UseBalancing = false) {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(A.get_row_count());
-  solve_IHCT_LQR(A,B,Q,R,K,P,NumTol);
+  solve_IHCT_LQR(A,B,Q,R,K,P,NumTol,UseBalancing);
 };
 
 

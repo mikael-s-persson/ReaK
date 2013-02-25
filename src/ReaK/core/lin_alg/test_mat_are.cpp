@@ -42,7 +42,7 @@ int main() {
   
   std::size_t passed = 0;
   std::size_t expected_passes = 0;
-  
+#if 0
   {
   
   std::vector< mat<double, mat_structure::rectangular> > F_list;
@@ -242,6 +242,114 @@ int main() {
   
   std::cout << "*******************************************************************************************************" << std::endl;
   std::cout << "Algebraic Riccati Equation Tests results: " << passed << " out of " << expected_passes << " expected successful tests." << std::endl;
+  
+  
+#endif
+  
+  {
+  /*
+  mat<double,mat_structure::rectangular> A(4,4);
+  mat<double,mat_structure::rectangular> B(4,2);
+  A(0,0) = 0.0; A(0,1) = 0.0; A(0,2) = 1.0; A(0,3) = 0.0; 
+  A(1,0) = 0.0; A(1,1) = 0.0; A(1,2) = 0.0; A(1,3) = 1.0; 
+  A(2,0) = 0.0; A(2,1) = 0.0; A(2,2) = 0.0; A(2,3) = 0.0; 
+  A(3,0) = 0.0; A(3,1) = 0.0; A(3,2) = 0.0; A(3,3) = 0.0; 
+  
+  B(0,0) = 0.0; B(0,1) = 0.0;
+  B(1,0) = 0.0; B(1,1) = 0.0;
+  B(2,0) = 0.01; B(2,1) = 0.0;
+  B(3,0) = 0.0; B(3,1) = 1.0;
+  
+  mat<double,mat_structure::rectangular> R = mat<double,mat_structure::rectangular>(mat<double,mat_structure::identity>(2));
+  R(0,0) = 0.01;
+  mat<double,mat_structure::rectangular> Q = mat<double,mat_structure::rectangular>(mat<double,mat_structure::identity>(4));
+  Q(0,0) = 0.01;
+  Q(2,2) = 0.01;
+  */
+  
+  mat<double,mat_structure::rectangular> A(4,4);
+  mat<double,mat_structure::rectangular> B(4,1);
+  A(0,0) = 0.0; A(0,1) = 0.0; A(0,2) = 1.0; A(0,3) = 0.0; 
+  A(1,0) = 0.0; A(1,1) = 0.0; A(1,2) = 0.0; A(1,3) = 1.0; 
+  A(2,0) = 0.0; A(2,1) = 0.0; A(2,2) = 0.0; A(2,3) = 0.0; 
+  A(3,0) = 0.0; A(3,1) = 0.0; A(3,2) = 0.0; A(3,3) = 0.0; 
+  
+  B(0,0) = 0.0;
+  B(1,0) = 0.0;
+  B(2,0) = 0.0;
+  B(3,0) = 1.0;
+  
+  mat<double,mat_structure::rectangular> R = mat<double,mat_structure::rectangular>(mat<double,mat_structure::identity>(1));
+  mat<double,mat_structure::rectangular> Q = mat<double,mat_structure::rectangular>(mat<double,mat_structure::identity>(4));
+  Q(0,0) = 0.0;
+  Q(2,2) = 0.0;
+  
+  
+  std::cout << " A = " << A << std::endl;
+  std::cout << " B = " << B << std::endl;
+  mat<double,mat_structure::rectangular> Br(B);
+  mat<double,mat_structure::square> Tr( mat<double,mat_structure::identity>(B.get_row_count()) );
+  mat<double,mat_structure::permutation> PCr(B.get_row_count());
+  std::size_t r = detail::decompose_RRQR_impl(Br, &Tr, PCr, 1e-4);
+  mat<double,mat_structure::rectangular> Ar = transpose_view(Tr) * A * Tr;
+  std::cout << " Ar = " << Ar << std::endl;
+  std::cout << " Br = " << Br << std::endl;
+  std::cout << " Tr = " << Tr << std::endl;
+  std::cout << " PCr = " << PCr << std::endl;
+  // look for the biggest zero-block at the lower left corner of Ar, cannot be bigger than N-r.
+  std::size_t N = Ar.get_row_count();
+  for(std::size_t i = N; i > r; ) {
+    --i;
+    for(std::size_t j = 0; j < N-r; ++j)
+      if(std::fabs(Ar(i,j)) > 1e-6)
+        r = N - j;
+  };
+  // now, r contains the number of controllable states.
+  std::cout << " r = " << r << std::endl;
+  mat<double,mat_structure::square> Rr(transpose(PCr) * R * PCr);
+  mat<double,mat_structure::rectangular> Trr(sub(Tr)(range(0,Tr.get_row_count()-1), range(0,r-1)));
+  mat<double,mat_structure::square> Qr(transpose_view(Trr) * Q * Trr);
+  std::cout << " Trr = " << Trr << std::endl;
+  std::cout << " Rr = " << Rr << std::endl;
+  std::cout << " Qr = " << Qr << std::endl;
+  
+  mat<double,mat_structure::rectangular> Pr(r,r);
+  mat<double,mat_structure::rectangular> Kr(B.get_col_count(),r);
+  solve_IHCT_LQR(sub(Ar)(range(0,r-1),range(0,r-1)), 
+                 sub(Br)(range(0,r-1),range(0,Br.get_col_count()-1)), 
+                 Qr, Rr, Kr, Pr, 1e-6, false);
+  
+  mat<double,mat_structure::rectangular> P = Trr * Pr * transpose_view(Trr);
+  mat<double,mat_structure::rectangular> K = PCr * Kr * transpose_view(Trr);
+  std::cout << " Pr = " << Pr << std::endl;
+  std::cout << " Kr = " << Kr << std::endl;
+  std::cout << " P = " << P << std::endl;
+  std::cout << " K = " << K << std::endl;
+  
+#if 0
+  mat<double,mat_structure::rectangular> P(A.get_row_count(),A.get_col_count());
+  mat<double,mat_structure::rectangular> K(B.get_col_count(),A.get_col_count());
+  solve_IHCT_LQR(A, B, Q, R, K, P, 1e-4, false);
+#endif
+  
+  mat<double,mat_structure::rectangular> M_tmp = R;
+  mat<double,mat_structure::rectangular> M2_tmp(B.get_col_count(),A.get_col_count());
+  M2_tmp = transpose_view(B) * P;
+  mat<double,mat_structure::rectangular> Msol_tmp;
+  linlsq_QR(M_tmp,Msol_tmp,M2_tmp);
+  mat<double,mat_structure::rectangular> X = 
+    (transpose_view(A) * P + P * A 
+   - P * B * Msol_tmp + Q);
+  std::cout << "Q + A^T P + P A - P B R^{-1} B^T P = " 
+            << X << std::endl;
+  double err_norm = norm_1( X );
+  double P_norm = norm_1( P );
+  std::cout << "\t|| Err || = " << std::setw(14) << err_norm 
+            << " relative to || P || = " << std::setw(14) << P_norm 
+            << " for a relative error of " << std::setw(14) << (err_norm / P_norm) << std::endl;
+  
+  };
+  
   
   
   if(passed == expected_passes) { 

@@ -238,6 +238,7 @@ void forwardsub_L_impl(const Matrix1& L, Matrix2& B, typename mat_traits<Matrix1
 
 
 /* This implementation is that of Golub and vanLoan, the QR with column pivoting. 
+ * Produces P-Q-R as follows:  A P = Q R
    This algorithm is not guaranteed to always reveal the rank. */
 template <typename Matrix1, typename Matrix2>
 typename mat_traits<Matrix1>::size_type decompose_RRQR_impl(Matrix1& A, Matrix2* Q, mat<typename mat_traits<Matrix1>::value_type,mat_structure::permutation>& P, typename mat_traits<Matrix1>::value_type NumTol)
@@ -247,7 +248,7 @@ typename mat_traits<Matrix1>::size_type decompose_RRQR_impl(Matrix1& A, Matrix2*
   using std::swap;
   SizeType N = A.get_row_count();
   SizeType M = A.get_col_count();
-  P.set_row_count(N);
+  P.set_row_count(M);
   householder_matrix< vect_n<ValueType> > hhm;
   
   SizeType t = (N-1 > M ? M : N-1);
