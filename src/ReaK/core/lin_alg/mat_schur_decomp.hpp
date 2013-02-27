@@ -690,6 +690,8 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typen
   using std::fabs; using std::sqrt;
   
   SizeType N = A.get_row_count();
+  if(N == 0)
+    return;
   
   ValueType absNumTol = 0.0;
   for(SizeType i = 0; i < N; ++i) 

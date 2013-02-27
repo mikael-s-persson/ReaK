@@ -298,6 +298,7 @@ class MEAQR_topology : public named_object
       m_IHAQR_space->compute_IHAQR_data(p);
       if(p.MEAQR_data)
         return;
+      p.MEAQR_data = shared_ptr< MEAQR_payload >(new MEAQR_payload());
       
       detail::MEAQR_ZIR_system<StateSpace, StateSpaceSystem> MEAQR_sys(
         p.lin_data.get(), 

@@ -50,6 +50,7 @@
 #include "ctrl_sys/linear_ss_system_concept.hpp"
 
 #include "sys_integrators/dormand_prince45_integrator_sys.hpp"
+#include "sys_integrators/runge_kutta4_integrator_sys.hpp"
 
 #include "topologies/direct_kinematics_topomap.hpp"       // for write_joint_coordinates_impl
 #include "kte_models/direct_kinematics_model.hpp"
@@ -96,7 +97,7 @@ class IHAQR_point_type : public shared_object {
       mat<double,mat_structure::square> M;      // IH-LQR cost-to-go matrix.
       mat<double,mat_structure::rectangular> K; // IH-LQR optimal gain matrix.
       state_derivative_type c;
-      state_derivative_type eta;
+      system_input_type u_bias;
     };
     
     state_type x;
@@ -217,26 +218,17 @@ class IHAQR_topology : public named_object
       a.IHAQR_data->c = m_system->get_state_derivative(m_space, a.x, a.lin_data->u, 0.0);
       vect_n<double> c_v = to_vect<double>(a.IHAQR_data->c);
       
-      // solve for M
-      std::size_t r = 0;
+      // solve for M, K, and u_bias
       try {
-        r = solve_IHCT_LQR_with_reduction(a.lin_data->A, a.lin_data->B, m_Q, m_R, a.IHAQR_data->K, a.IHAQR_data->M, 1e-3, false);
+        vect_n<double> u_bias_v = to_vect<double>(a.lin_data->u);
+        solve_IHCT_AQR_with_reduction(a.lin_data->A, a.lin_data->B, c_v, m_Q, m_R, 
+                                      a.IHAQR_data->K, a.IHAQR_data->M, u_bias_v, 1e-3, true);
+        a.IHAQR_data->u_bias = from_vect<system_input_type>(u_bias_v);
+        std::cout << " IHAQR Gain = " << a.IHAQR_data->K << std::endl;
+        std::cout << " IHAQR bias = " << a.IHAQR_data->u_bias << std::endl;
       } catch(std::exception& e) {
         std::cout << "Warning! Solution to the CARE problem could not be found for the given state point: " << a.x << std::endl
                   << "  The following exception was raised: " << e.what() << std::endl;
-      };
-      RK_NOTICE(1," reached!");
-      // solve for eta
-      // To be neglected in distance metric
-      if(r != a.lin_data->A.get_row_count()) {
-        mat<double,mat_structure::square> lhsMat = transpose_view(a.IHAQR_data->K) * transpose_view(a.lin_data->B) - transpose_view(a.lin_data->A);
-        mat_vect_adaptor< vect_n<double> > c_v_m(c_v);
-        vect_n<double> eta(c_v.size());
-        mat_vect_adaptor< vect_n<double> > eta_m(eta);
-        linlsq_QR(lhsMat, eta_m, c_v_m);
-        a.IHAQR_data->eta = from_vect<state_derivative_type>(eta);
-      } else {
-        // ???????? What to do here??
       };
     };
     
@@ -249,11 +241,9 @@ class IHAQR_topology : public named_object
       if(!b.IHAQR_data)
         compute_IHAQR_data(b);
       state_type goal_point = m_space.move_position_toward(a.x, fraction, b.x);
-      mat<double,mat_structure::rectangular> K = invert(m_R) * transpose_view(b.lin_data->B);
       state_type x_current = a.x;
       state_type x_next = x_current;
-      mat<double,mat_structure::rectangular> Ka = invert(m_R) * transpose_view(a.lin_data->B);
-      system_input_type u_prev = a.lin_data->u - Ka * to_vect<double>(a.IHAQR_data->eta);
+      system_input_type u_prev = a.lin_data->u - a.IHAQR_data->u_bias;
       m_input_space.bring_point_in_bounds(u_prev);
       
       // while not reached (fly-by) the goal yet:
@@ -261,7 +251,10 @@ class IHAQR_topology : public named_object
       while( ( current_time < m_max_time_horizon ) &&
              ( m_space.distance(x_current, goal_point) > m_goal_proximity_threshold ) ) {
         // compute the current IHAQR input
-        system_input_type u_current = b.lin_data->u - K * (b.IHAQR_data->M * to_vect<double>(m_space.difference(x_current, goal_point)) + to_vect<double>(b.IHAQR_data->eta));
+        system_input_type u_current = b.lin_data->u 
+                                    - from_vect< system_input_type >(
+                                        b.IHAQR_data->K * to_vect<double>(m_space.difference(x_current, goal_point))) 
+                                    - b.IHAQR_data->u_bias;
         m_input_space.bring_point_in_bounds(u_current);
         
         system_input_type du_dt = (u_current - u_prev) * (1.0 / m_time_step);
@@ -271,7 +264,16 @@ class IHAQR_topology : public named_object
         constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
         
         // integrate for one time-step.
-        ctrl::detail::dormand_prince45_integrate_impl(
+        ctrl::detail::runge_kutta4_integrate_impl(
+          m_space,
+          *m_system,
+          x_current,
+          x_next,
+          input_traj,
+          current_time,
+          current_time + m_time_step,
+          m_time_step * 1e-2);
+        /*ctrl::detail::dormand_prince45_integrate_impl(
           m_space,
           *m_system,
           x_current,
@@ -280,9 +282,9 @@ class IHAQR_topology : public named_object
           current_time,
           current_time + m_time_step,
           m_time_step * 1e-2,
-          1e-3,
+          1e-2,
           m_time_step * 1e-6,
-          m_time_step * 0.1);
+          m_time_step * 0.1);*/
         if(!with_collision_check || is_free_impl(x_next)) {
           x_current = x_next;
           current_time += m_time_step;

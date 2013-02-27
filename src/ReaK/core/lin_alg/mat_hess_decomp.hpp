@@ -70,9 +70,7 @@ void decompose_Hess_impl(Matrix1& H, Matrix2* Q, typename mat_traits<Matrix1>::v
   SizeType N = H.get_row_count();
   householder_matrix< vect_n<ValueType> > hhm;
   
-  SizeType t = N-2;
-
-  for(SizeType i=0;i<t;++i) {
+  for(SizeType i=0; i+2 < N; ++i) {
     
     hhm.set(mat_row_slice<Matrix1>(H,i,i+1,N - i - 1),absNumTol);
     
@@ -101,11 +99,10 @@ void decompose_TriDiag_impl(Matrix1& T, Matrix2* Q, typename mat_traits<Matrix1>
   SizeType N = T.get_row_count();
   householder_matrix< vect_n<ValueType> > hhm;
   
-  SizeType t = N-2;
   vect_n<ValueType> p(N);
   vect_n<ValueType> w(N);
 
-  for(SizeType i=0;i<t;++i) {
+  for(SizeType i=0; i+2 < N; ++i) {
     
     hhm.set(mat_row_slice<Matrix1>(T,i,i+1,N - i - 1),absNumTol);
     
@@ -134,6 +131,8 @@ void reduce_HessTri_offset_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
 {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::fabs;
+  
   SizeType N = A.get_row_count() - row_offset;
   
   givens_rot_matrix<ValueType> G;
@@ -143,7 +142,7 @@ void reduce_HessTri_offset_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
   
   householder_matrix< vect_n<ValueType> > hhm;
   
-  for(SizeType i = 0; i < N-1; ++i) {
+  for(SizeType i = 0; i+1 < N; ++i) {
     
     hhm.set(mat_row_slice<Matrix2>(B, i, row_offset + i, N - i), absNumTol);
     
@@ -162,9 +161,7 @@ void reduce_HessTri_offset_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
 //   std::cout << "Hess-Tri: After QR: A = " << A << std::endl;
 //   std::cout << "Hess-Tri: After QR: B = " << B << std::endl;
   
-  SizeType t = N-2;
-
-  for(SizeType j = 0; j < t; ++j) {
+  for(SizeType j = 0; j+2 < N; ++j) {
     for(SizeType i = N-1; i > j+1; --i) {
       if(fabs(A(i,j)) < absNumTol)
         continue;

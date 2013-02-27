@@ -97,39 +97,47 @@ mat_traits<Matrix1> >::type::size_type
      (B.get_row_count() != A.get_row_count()))
     throw std::range_error("The dimensions of the system matrices do not match! Should be A(n x n) and B(n x m).");
   
-  if((A.get_row_count() != 0) || 
-     (B.get_col_count() != 0))
+  if((A.get_row_count() == 0) || 
+     (B.get_col_count() == 0))
     return 0;
   
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
-  using std::fabs;
+  using std::fabs; using std::swap;
   
   SizeType N = A.get_row_count();
   SizeType M = B.get_col_count();
   
-  if((A.get_row_count() != Q.get_col_count()) || 
+  if((N != Q.get_col_count()) || 
      (Q.get_row_count() != Q.get_col_count())) {
     Q = mat<ValueType, mat_structure::identity>(N);
   };
   
-  if((B.get_col_count() != Z.get_col_count()) || 
+  if((M != Z.get_col_count()) || 
      (Z.get_row_count() != Z.get_col_count())) {
     Z = mat<ValueType, mat_structure::identity>(N);
   };
   
-  mat<ValueType,mat_structure::square> Tr( mat<ValueType,mat_structure::identity>(B.get_row_count()) );
-  mat<ValueType,mat_structure::permutation> PCr(B.get_row_count());
+  
+  mat<ValueType,mat_structure::square> Tr( (mat<ValueType,mat_structure::identity>(N)) );
+  mat<ValueType,mat_structure::permutation> PCr(M);
   SizeType r = detail::decompose_RRQR_impl(B, &Tr, PCr, NumTol);
   A = transpose_view(Tr) * A * Tr;
   Q = Q * Tr;
   Z = Z * PCr;
-  // look for the biggest zero-block at the lower left corner of Ar, cannot be bigger than N-r.
-  for(SizeType i = N; i > r; ) {
-    --i;
-    for(SizeType j = 0; j < N-r; ++j)
-      if(fabs(Ar(i,j)) > NumTol)
-        r = N - j;
+  if(r == N)
+    return N;
+  mat<ValueType,mat_structure::rectangular> AB_accum( B );
+  for(SizeType i = 1; i < N; ++i) {
+    AB_accum = sub(A)(range(r,N-1),range(N-AB_accum.get_row_count(),N-1)) * AB_accum;
+    mat<ValueType,mat_structure::square> Tr2( (mat<ValueType,mat_structure::identity>(N)) );
+    mat<ValueType,mat_structure::permutation> PCr2(M);
+    mat_sub_block< mat<ValueType,mat_structure::square> > Tr2_sub(Tr2, N-r, N-r, r, r);
+    r += detail::decompose_RRQR_impl(AB_accum, &Tr2_sub, PCr2, NumTol);
+    A = transpose_view(Tr2) * A * Tr2;
+    Q = Q * Tr2;
+    if(r == N)
+      return N;
   };
   return r;
 };

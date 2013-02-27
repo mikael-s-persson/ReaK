@@ -86,7 +86,7 @@ int main(int argc, char ** argv) {
   MEAQR_space_type quad_MEAQR_space(
     "QuadRotor_MEAQR_topology",
     shared_ptr< IHAQR_space_type >(&quad_space, null_deleter()),
-    0.1,
+    0.02,
     1.0);
   
   {

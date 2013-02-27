@@ -1461,6 +1461,8 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   SizeType N = A.get_row_count();
   SizeType M = R.get_row_count();
+  if((N == 0) || (M == 0))
+    return;
   
   mat<ValueType, mat_structure::rectangular> R_tmp(N * 2 + M, M);
   sub(R_tmp)(range(0,M-1), range(0,M-1)) = R;
@@ -1501,7 +1503,6 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
 //   std::cout << "CARE: norm_A = " << norm_1(A_aug) << " norm_B = " << norm_1(B_aug) << std::endl;
   if(norm_1(A_aug) > norm_1(B_aug))
     should_interchange = true;
-  
   
 //   std::cout << "CARE: (Before Balancing) A_aug = " << A_aug << std::endl;
 //   std::cout << "CARE: (Before Balancing) B_aug = " << B_aug << std::endl;
@@ -1600,9 +1601,10 @@ void >::type solve_IHCT_LQR(const Matrix1& A, const Matrix2& B,
                             Matrix5& K, Matrix6& P, 
                             typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
                             bool UseBalancing = false) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
   solve_care_problem(A,B,Q,R,P,NumTol,UseBalancing);
   
-  mat<double,mat_structure::rectangular> M_tmp(B.get_col_count(),A.get_col_count());
+  mat<ValueType,mat_structure::rectangular> M_tmp(B.get_col_count(),A.get_col_count());
   M_tmp = transpose_view(B) * P;
   linlsq_QR(R,K,M_tmp);
 };
@@ -1733,7 +1735,7 @@ mat_traits<Matrix1> >::type::size_type
   mat<ValueType,mat_structure::rectangular> Br(B);
   mat<ValueType,mat_structure::rectangular> Ar(A);
   Qr = mat<ValueType,mat_structure::identity>( N );
-  mat<ValueType,mat_structure::square>      Zr( mat<ValueType,mat_structure::identity>( M ) );
+  mat<ValueType,mat_structure::square>      Zr( (mat<ValueType,mat_structure::identity>( M )) );
   
   SizeType r = ctrl_reduction(Ar, Br, Qr, Zr, NumTol);
   
@@ -1748,8 +1750,8 @@ mat_traits<Matrix1> >::type::size_type
   mat<ValueType,mat_structure::square> Q_reduced( transpose_view(Qrr) * Q * Qrr);
   
   // solve the IHCT LQR problem over the controllable states:
-  mat<double,mat_structure::rectangular> P_reduced(r,r);
-  mat<double,mat_structure::rectangular> K_reduced(M,r);
+  mat<ValueType,mat_structure::rectangular> P_reduced(r,r);
+  mat<ValueType,mat_structure::rectangular> K_reduced(M,r);
   solve_IHCT_LQR(sub(Ar)(range(0,r-1),range(0,r-1)), 
                  sub(Br)(range(0,r-1),range(0,M-1)), 
                  Q_reduced, R_reduced, K_reduced, P_reduced, NumTol, UseBalancing);
@@ -1889,6 +1891,191 @@ mat_traits<Matrix1> >::type::size_type
 
 
 
+/**
+ * Solves the Infinite-horizon Continuous-time Affine Quadratic Regulator (AQR) problem.
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_care_problem.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A fully-writable matrix type.
+ * \tparam Matrix6 A fully-writable (square) matrix type.
+ * \tparam Vector1 A readable vector type.
+ * \tparam Vector2 A writable vector type.
+ * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+ * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+ * \param c a readable vector (n) which represents the constant term of the state-derivative expression.
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
+ * \param u_bias holds as output, the constant input term to apply to the system in addition to the feedback term (K * (x_cur - x_ref)).
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Vector1, typename Matrix3, 
+          typename Matrix4, typename Matrix5, typename Matrix6, typename Vector2>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_vector<Vector1>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_fully_writable_matrix<Matrix5>::value && 
+                             is_fully_writable_matrix<Matrix6>::value &&
+                             is_writable_vector<Vector2>::value, 
+void >::type solve_IHCT_AQR(const Matrix1& A, const Matrix2& B, const Vector1& c,
+                            const Matrix3& Q, const Matrix4& R, 
+                            Matrix5& K, Matrix6& P, Vector2& u_bias,
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                            bool UseBalancing = false) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  
+  solve_care_problem(A,B,Q,R,P,NumTol,UseBalancing);
+  
+  mat<ValueType,mat_structure::rectangular> M_tmp(B.get_col_count(),A.get_col_count());
+  M_tmp = transpose_view(B) * P;
+  linlsq_QR(R,K,M_tmp);
+  
+  mat<ValueType,mat_structure::square> KB_A ( transpose_view(K) * transpose_view(B) - transpose_view(A) );
+  mat_const_vect_adaptor< Vector1 > c_v_m(c);
+  mat<ValueType,mat_structure::rectangular> eta( c_v_m );
+  linlsq_QR(KB_A, eta, c_v_m);
+  mat_vect_adaptor< Vector2 > u_bias_m(u_bias);
+  linlsq_QR(R, u_bias_m, transpose_view(B) * eta);
+};
+
+
+
+/**
+ * Solves the Infinite-horizon Continuous-time Affine Quadratic Regulator (AQR) problem.
+ * This function should be used if the system is (or could be) uncontrollable in some 
+ * directions of motion (modes). 
+ * This implementation uses the QZ-algorithm approach as described in Van Dooren (1981)
+ * and implemented in the function solve_care_problem.
+ * 
+ * \note If the system is not completely controllable, the resulting controller will in effect ignore 
+ * the uncontrollable state errors, both for the computation of the control inputs and for the 
+ * cost-to-go metric (quadratic weighting matrix P). This means that both matrices K and P will 
+ * have a rank equal to that returned by this function (number of controllable states). This 
+ * implies that the possible rank-deficiency of the matrices must be considered when doing further 
+ * operations with these matrices (e.g., inversions or factorizations).
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A readable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \tparam Matrix4 A readable matrix type.
+ * \tparam Matrix5 A fully-writable matrix type.
+ * \tparam Matrix6 A fully-writable (square) matrix type.
+ * \tparam Vector1 A readable vector type.
+ * \tparam Vector2 A writable vector type.
+ * \param A square (n x n) matrix which represents state-to-state-derivative linear map.
+ * \param B rectangular (n x m) matrix which represents input-to-state-derivative linear map.
+ * \param c a readable vector (n) which represents the constant term of the state-derivative expression.
+ * \param Q square (n x n) positive-definite matrix which represents quadratic state-error penalty.
+ * \param R square (m x m) positive-definite matrix which represents quadratic input penalty.
+ * \param K holds as output, the (mxn) LQR-optimal gain matrix for u = - K * (x_cur - x_ref).
+ * \param P holds as output, the (nxn) nonnegative definite solution to P = F^T P F - F^T P G ( R + G^T P G )^{-1} G^T P F + Q.
+ * \param u_bias holds as output, the constant input term to apply to the system in addition to the feedback term (K * (x_cur - x_ref)).
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ * \param UseBalancing specifies whether balancing should be applied to the problem before performing 
+ *                     the Schur decomposition. This can help for ill-conditioned systems to increase 
+ *                     the final accuracy (accumulated round-off errors). However, for certain systems,
+ *                     balancing will worsen the results, so, use with caution. By default, no balancing 
+ *                     is performed.
+ *
+ * \throws std::range_error if the matrix dimensions are not consistent.
+ * \throws singularity_error if the CARE problem cannot be solved, usually because the system is not stabilizable.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Vector1, typename Matrix3, 
+          typename Matrix4, typename Matrix5, typename Matrix6, typename Vector2>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && 
+                             is_readable_matrix<Matrix2>::value && 
+                             is_readable_vector<Vector1>::value && 
+                             is_readable_matrix<Matrix3>::value && 
+                             is_readable_matrix<Matrix4>::value && 
+                             is_fully_writable_matrix<Matrix5>::value && 
+                             is_fully_writable_matrix<Matrix6>::value &&
+                             is_writable_vector<Vector2>::value, 
+mat_traits<Matrix1> >::type::size_type
+  solve_IHCT_AQR_with_reduction(const Matrix1& A, const Matrix2& B, const Vector1& c,
+                                const Matrix3& Q, const Matrix4& R, 
+                                Matrix5& K, Matrix6& P, Vector2& u_bias,
+                                typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
+                                bool UseBalancing = false) {
+  if((A.get_row_count() != A.get_col_count()) || 
+     (B.get_row_count() != A.get_row_count()) || 
+     (Q.get_row_count() != Q.get_col_count()) || 
+     (R.get_row_count() != R.get_col_count()) || 
+     (B.get_col_count() != R.get_col_count()))
+    throw std::range_error("Infinite-horizon Continuous-time AQR with reduction: The dimensions of the system matrices do not match! Should be A(n x n), B(n x m), Q(n x n), and R(m x m).");
+  
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  
+  SizeType N = A.get_row_count();
+  SizeType M = B.get_col_count();
+  mat<ValueType,mat_structure::rectangular> Br(B);
+  mat<ValueType,mat_structure::rectangular> Ar(A);
+  mat<ValueType,mat_structure::square>      Qr( (mat<ValueType,mat_structure::identity>( N )) );
+  mat<ValueType,mat_structure::square>      Zr( (mat<ValueType,mat_structure::identity>( M )) );
+  
+  SizeType r = ctrl_reduction(Ar, Br, Qr, Zr, NumTol);
+  std::cout << "  r = " << r << std::endl;
+  std::cout << " Ar = " << Ar << std::endl;
+  std::cout << " Br = " << Br << std::endl;
+  std::cout << " Qr = " << Qr << std::endl;
+  std::cout << " Zr = " << Zr << std::endl;
+  
+  if(r == N) { // all states are controllable. Use the normal function (avoid unnecessary operations):
+    solve_IHCT_AQR(A, B, c, Q, R, K, P, u_bias, NumTol, UseBalancing);
+    return r;
+  };
+  
+  // create the transformed quadratic penalty matrices:
+  mat<ValueType,mat_structure::rectangular> Qrr(sub(Qr)(range(0,N-1), range(0,r-1)));
+  mat<ValueType,mat_structure::square> R_reduced( transpose_view(Zr) * R * Zr );
+  mat<ValueType,mat_structure::square> Q_reduced( transpose_view(Qrr) * Q * Qrr);
+  std::cout << "  r = " << r << std::endl;
+  std::cout << " A_red = " << sub(Ar)(range(0,r-1),range(0,r-1)) << std::endl;
+  std::cout << " B_red = " << sub(Br)(range(0,r-1),range(0,M-1)) << std::endl;
+  std::cout << " Q_red = " << Q_reduced << std::endl;
+  std::cout << " R_red = " << R_reduced << std::endl;
+  
+  // solve the IHCT AQR problem over the controllable states:
+  mat<ValueType,mat_structure::rectangular> P_reduced(r,r);
+  mat<ValueType,mat_structure::rectangular> K_reduced(M,r);
+  solve_IHCT_AQR(sub(Ar)(range(0,r-1),range(0,r-1)), 
+                 sub(Br)(range(0,r-1),range(0,M-1)), 
+                 transpose_view(Qrr) * c,
+                 Q_reduced, R_reduced, 
+                 K_reduced, P_reduced, u_bias, NumTol, UseBalancing);
+  
+  // compute the resulting cost-matrix and gain-matrix (note: they are positive-semi-definite and rank deficient, respectively).
+  P = Qrr * P_reduced * transpose_view(Qrr);
+  K = Zr * K_reduced * transpose_view(Qrr);
+  u_bias = Zr * u_bias;
+  
+  return r;
+};
+
+
+
+
 
 
 
@@ -1952,17 +2139,19 @@ void >::type solve_IHCT_LQG(const Matrix1& A, const Matrix2& B, const Matrix3& C
                             Matrix8& K, Matrix9& P, Matrix10& L, Matrix11& S, 
                             typename mat_traits<Matrix1>::value_type NumTol = 1E-8,
                             bool UseBalancing = false) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  
   solve_care_problem(transpose_view(A),transpose_view(C),V,W,P,NumTol);
   
-  mat<double,mat_structure::rectangular> M1_tmp(C.get_row_count(),A.get_col_count());
+  mat<ValueType,mat_structure::rectangular> M1_tmp(C.get_row_count(),A.get_col_count());
   M1_tmp = B * P;
-  mat<double,mat_structure::rectangular> Msol_tmp;
+  mat<ValueType,mat_structure::rectangular> Msol_tmp;
   linlsq_QR(W,Msol_tmp,M1_tmp);
   K = transpose_view(Msol_tmp);
   
   solve_care_problem(A,B,Q,R,S,NumTol,UseBalancing);
   
-  mat<double,mat_structure::rectangular> M2_tmp(B.get_col_count(),A.get_col_count());
+  mat<ValueType,mat_structure::rectangular> M2_tmp(B.get_col_count(),A.get_col_count());
   M2_tmp = transpose_view(B) * S;
   linlsq_QR(R,L,M2_tmp);
 };

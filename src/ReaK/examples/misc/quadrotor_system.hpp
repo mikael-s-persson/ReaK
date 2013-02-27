@@ -170,12 +170,12 @@ class quadrotor_system : public named_object {
       
       // velocity - velocity partial derivative:
 //       set_block(A, mat<double,mat_structure::scalar>(3,-0.001), 3, 3);
-//       set_block(A, R * mTransDragCoefs * dV, 3, 3);
+      set_block(A, R * mTransDragCoefs * dV, 3, 3);
       // velocity - quaternion partial derivative:
-//       set_block(A, R * (mat<double,mat_structure::skew_symmetric>(mTransDragCoefs * local_v) 
-//                       - mTransDragCoefs * mat<double,mat_structure::skew_symmetric>(local_v) 
-//                       - mat<double,mat_structure::skew_symmetric>(vect<double,3>(0.0, 0.0, u[0] / mMass))), 
-//                 3, 6);
+      set_block(A, R * (mat<double,mat_structure::skew_symmetric>(mTransDragCoefs * local_v) 
+                      - mTransDragCoefs * mat<double,mat_structure::skew_symmetric>(local_v) 
+                      - mat<double,mat_structure::skew_symmetric>(vect<double,3>(0.0, 0.0, u[0] / mMass))), 
+                3, 6);
       
       // angular velocity to quaternion partial derivative:
       A(6,9)  = 1.0;
@@ -187,13 +187,13 @@ class quadrotor_system : public named_object {
         -2.0 * fabs(w[0]), 
         -2.0 * fabs(w[1]), 
         -2.0 * fabs(w[2])));
-      set_block(A, mInertiaMomentInv * ( mat<double,mat_structure::skew_symmetric>(mInertiaMoment * w)
-                                       - mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment), 
-                9, 9);
-//       set_block(A, mInertiaMomentInv * ( mRotDragCoefs * dW 
-//                                        - mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment
-//                                        + mat<double,mat_structure::skew_symmetric>(mInertiaMoment * w) ), 
+//       set_block(A, mInertiaMomentInv * ( mat<double,mat_structure::skew_symmetric>(mInertiaMoment * w)
+//                                        - mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment), 
 //                 9, 9);
+      set_block(A, mInertiaMomentInv * ( mRotDragCoefs * dW 
+                                       - mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment
+                                       + mat<double,mat_structure::skew_symmetric>(mInertiaMoment * w) ), 
+                9, 9);
       
       B = mat<double,mat_structure::nil>(12,4);
       vect<double,3> t_global = R * vect<double,3>(0.0, 0.0, 1.0 / mMass);
