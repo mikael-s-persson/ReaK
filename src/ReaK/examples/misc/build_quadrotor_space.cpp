@@ -12,6 +12,10 @@
 #include "MEAQR_topology.hpp"
 #include "quadrotor_system.hpp"
 
+#include "topologies/se3_random_samplers.hpp"
+
+#include "path_planning/path_planner_options.hpp"
+
 #include "serialization/xml_archiver.hpp"
 
 int main(int argc, char ** argv) {
@@ -28,8 +32,8 @@ int main(int argc, char ** argv) {
     mat<double,mat_structure::diagonal>(vect<double,3>(0.1, 0.1, 0.1))));
   
   
-  vect<double,3> min_corner(0.0, 0.0, 0.0);  // min corner
-  vect<double,3> max_corner(5.0, 5.0, 5.0);  // mix corner
+  vect<double,3> min_corner(0.0, 0.0, -5.0);  // min corner
+  vect<double,3> max_corner(5.0, 5.0, 0.0);  // max corner
   double v_max = 6.0;
   double w_max = M_PI;
   vect<double,4> u_max(35.0, 5.0,  5.0,  3.0);
@@ -54,7 +58,7 @@ int main(int argc, char ** argv) {
     u_max[0] * char_length_sqr / v_max
   ));
   
-  typedef IHAQR_topology< quadrotor_system::state_space_type, quadrotor_system > IHAQR_space_type;
+  typedef IHAQR_topology< quadrotor_system::state_space_type, quadrotor_system, position_only_sampler > IHAQR_space_type;
   
   shared_ptr< IHAQR_space_type > quad_space( new IHAQR_space_type(
       "Quadrotor_IHAQR_topology",
@@ -66,9 +70,9 @@ int main(int argc, char ** argv) {
         v_max,    // aMaxSpeed
         w_max),  // aMaxAngularSpeed
 //       vect<double,4>(0.0, -5.0, -5.0, -3.0),  // aMinInput
-      vect<double,4>(-500.0, -500.0, -500.0, -500.0),  // aMinInput
+      vect<double,4>(0.0, -5.0, -5.0, -5.0),  // aMinInput
 //       u_max,  // aMaxInput
-      vect<double,4>(500.0, 500.0,  500.0,  500.0),
+      vect<double,4>(35.0, 5.0,  5.0,  5.0),
       vect<double,4>(100.0, 25.0, 25.0, 25.0),  // aInputBandwidth
       mat<double,mat_structure::diagonal>(weightR_mat * Rscale),
       mat<double,mat_structure::diagonal>(weightQ_mat * Qscale),
@@ -76,18 +80,27 @@ int main(int argc, char ** argv) {
       20.0, // aMaxTimeHorizon = 10.0,
       0.1)); //aGoalProximityThreshold = 1.0)
   
-  typedef MEAQR_topology< quadrotor_system::state_space_type, quadrotor_system > MEAQR_space_type;
+  typedef MEAQR_topology< quadrotor_system::state_space_type, quadrotor_system, position_only_sampler > MEAQR_space_type;
   
   shared_ptr< MEAQR_space_type > quad_MEAQR_space(new MEAQR_space_type(
     "QuadRotor_MEAQR_topology",
     quad_space,
-    0.02, // aMEAQRDataStepSize
-    10.0)); // aIdlePowerCost
+    0.05, // aMEAQRDataStepSize
+    20.0)); // aIdlePowerCost
 //     225.0)); // aIdlePowerCost
   
   xml_oarchive file_out("models/quadrotor_spaces.xml");
   
   file_out << quad_sys << quad_space << quad_MEAQR_space;
+  
+  {
+    serialization::xml_oarchive out("models/X8_planner_params.xml");
+    out & RK_SERIAL_SAVE_WITH_ALIAS("planner_kind", (std::string("rrt_star")))
+        & RK_SERIAL_SAVE_WITH_ALIAS("max_vertices", (std::size_t(1000))) 
+        & RK_SERIAL_SAVE_WITH_ALIAS("prog_interval", (std::size_t(100))) 
+        & RK_SERIAL_SAVE_WITH_ALIAS("max_results", (std::size_t(50))) 
+        & RK_SERIAL_SAVE_WITH_ALIAS("knn_method", (std::size_t(pp::DVP_BF2_TREE_KNN)));
+  };
   
   return 0;
 };

@@ -97,8 +97,8 @@ namespace detail {
       BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 0);
       BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 0);
       
-      typedef typename IHAQR_topology< StateSpace, StateSpaceSystem >::linearization_payload lin_payload;
-      typedef typename IHAQR_topology< StateSpace, StateSpaceSystem >::IHAQR_payload IHAQR_payload;
+      typedef typename IHAQR_point_type< StateSpace, StateSpaceSystem >::linearization_payload lin_payload;
+      typedef typename IHAQR_point_type< StateSpace, StateSpaceSystem >::IHAQR_payload IHAQR_payload;
       
     public:
       lin_payload* lin_data;
@@ -250,17 +250,51 @@ class MEAQR_point_type : public IHAQR_point_type<StateSpace, StateSpaceSystem> {
 };
 
 
+class MEAQR_to_state_mapper : public named_object {
+  public:
+    
+    MEAQR_to_state_mapper() : named_object() { setName("MEAQR_to_state_mapper"); };
+    
+    template <typename SourceSpace, typename StateSpace, typename StateSpaceSystem>
+    typename topology_traits< StateSpace >::point_type map_to_space(
+      const MEAQR_point_type<StateSpace,StateSpaceSystem>& pt,
+      const SourceSpace&, const StateSpace&) const {
+      return pt.x;
+    };
+    
+    template <typename DestSpace, typename StateSpace>
+    typename topology_traits< DestSpace >::point_type map_to_space(
+      const typename topology_traits< StateSpace >::point_type& pt,
+      const StateSpace&, const DestSpace&) const {
+      return typename topology_traits< DestSpace >::point_type(pt);
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(MEAQR_to_state_mapper,0xC2400038,1,"MEAQR_to_state_mapper",named_object)
+    
+};
+
 
 
 
 /**
  * This class 
  */
-template <typename StateSpace, typename StateSpaceSystem>
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 class MEAQR_topology : public named_object
 {
   public:
-    typedef MEAQR_topology<StateSpace, StateSpaceSystem> self;
+    typedef MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> self;
     
     typedef typename ctrl::linear_ss_system_traits< StateSpaceSystem >::matrixA_type matrixA_type;
     typedef typename ctrl::linear_ss_system_traits< StateSpaceSystem >::matrixB_type matrixB_type;
@@ -272,7 +306,9 @@ class MEAQR_topology : public named_object
     typedef typename ctrl::ss_system_traits< StateSpaceSystem >::point_derivative_type state_derivative_type;
     typedef typename ctrl::ss_system_traits< StateSpaceSystem >::input_type system_input_type;
     
-    typedef IHAQR_topology< StateSpace, StateSpaceSystem > IHAQR_space_type;
+    typedef StateSpaceSampler state_sampler_type;
+    
+    typedef IHAQR_topology< StateSpace, StateSpaceSystem, StateSpaceSampler > IHAQR_space_type;
     typedef typename IHAQR_space_type::point_type IHAQR_point_type;
     typedef typename IHAQR_space_type::point_difference_type IHAQR_point_difference_type;
     
@@ -349,7 +385,7 @@ class MEAQR_topology : public named_object
           input_traj,
           current_time,
           current_time + m_MEAQR_data_step_size,
-          m_MEAQR_data_step_size * 1e-2);
+          m_MEAQR_data_step_size * 1e-1);
         start_point = current_point;
         current_time += m_MEAQR_data_step_size;
         p.MEAQR_data->pts.push_back(std::make_pair(current_time, current_point));
@@ -409,7 +445,7 @@ class MEAQR_topology : public named_object
       };
       if(!found_T_optimal)
         return point_type( m_IHAQR_space->move_position_toward(a, fraction, b).x );
-      ++min_it;
+      
       double T_optimal = min_it->first;
 //       std::cout << " t_optimal = " << T_optimal << std::endl;
       
@@ -445,19 +481,19 @@ class MEAQR_topology : public named_object
           double next_fraction = (T_optimal - min_it->first - current_time) / m_MEAQR_data_step_size;
           mat<double,mat_structure::square> H = prev_fraction * get<1>(prev_it->second) + next_fraction * get<1>(min_it->second);
           vect_n<double> eta = prev_fraction * get<2>(prev_it->second) + next_fraction * get<2>(min_it->second);
-          std::cout << "eta = " << eta << std::endl;
+//           std::cout << "eta = " << eta << std::endl;
 //       RK_NOTICE(1," reached!");
           
           vect_n<double> HHx = to_vect<double>(m_IHAQR_space->m_space.difference(x_current, b.x));
-          std::cout << "dx = " << HHx << std::endl;
-          std::cout << "H = " << H << std::endl;
+//           std::cout << "dx = " << HHx << std::endl;
+//           std::cout << "H = " << H << std::endl;
           mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
           ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
-          std::cout << "M * dx = " << HHx << std::endl;
+//           std::cout << "M * dx = " << HHx << std::endl;
 //       RK_NOTICE(1," reached!");
           
           system_input_type u_current = b.lin_data->u - K * (HHx + eta);
-          std::cout << " u_current (before bounding) = " << u_current << std::endl;
+//           std::cout << " u_current (before bounding) = " << u_current << std::endl;
           m_IHAQR_space->m_input_space.bring_point_in_bounds(u_current);
 //       RK_NOTICE(1," reached!");
           
@@ -465,7 +501,7 @@ class MEAQR_topology : public named_object
           m_IHAQR_space->m_input_rate_space.bring_point_in_bounds(du_dt);
           u_current = u_prev + m_IHAQR_space->m_time_step * du_dt;
 //       RK_NOTICE(1," reached!");
-          std::cout << " u_current (after bounding) = " << u_current << std::endl;
+//           std::cout << " u_current (after bounding) = " << u_current << std::endl;
           
           accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
           
@@ -493,13 +529,13 @@ class MEAQR_topology : public named_object
             input_traj,
             current_time,
             current_time + m_IHAQR_space->m_time_step,
-            m_IHAQR_space->m_time_step * 1e-2);
+            m_IHAQR_space->m_time_step * 1e-1);
 //       RK_NOTICE(1," reached!");
           
           if((!with_collision_check) || is_free_impl(x_next)) {
             x_current = x_next;
             current_time += m_IHAQR_space->m_time_step;
-            std::cout << " time = " << current_time << "  state = " << x_current << std::endl;
+//             std::cout << " time = " << current_time << "  state = " << x_current << std::endl;
             u_prev = u_current;
           } else {
             ended_in_collision = true;
@@ -507,20 +543,91 @@ class MEAQR_topology : public named_object
           };
         };
         if(ended_in_collision)
-          break;
+          return point_type( x_current );
 //       RK_NOTICE(1," reached!");
       
       };
 //       RK_NOTICE(1," reached!");
+      
+      bool ended_in_collision = false;
+      // while not reached (fly-by) the goal yet:
+      while( ( current_time < T_optimal + 2.0 * m_MEAQR_data_step_size ) &&
+             ( m_IHAQR_space->m_space.distance(x_current, goal_point) > m_IHAQR_space->m_goal_proximity_threshold ) ) {
+        // compute the current MEAQR input
+        mat<double,mat_structure::square> H = get<1>(min_it->second);
+        vect_n<double> eta = get<2>(min_it->second);
+//         std::cout << "eta = " << eta << std::endl;
+//       RK_NOTICE(1," reached!");
+        
+        vect_n<double> HHx = to_vect<double>(m_IHAQR_space->m_space.difference(x_current, b.x));
+//         std::cout << "dx = " << HHx << std::endl;
+//         std::cout << "H = " << H << std::endl;
+        mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
+        ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
+//         std::cout << "M * dx = " << HHx << std::endl;
+//       RK_NOTICE(1," reached!");
+        
+        system_input_type u_current = b.lin_data->u - K * (HHx + eta);
+//         std::cout << " u_current (before bounding) = " << u_current << std::endl;
+        m_IHAQR_space->m_input_space.bring_point_in_bounds(u_current);
+//       RK_NOTICE(1," reached!");
+        
+        system_input_type du_dt = (u_current - u_prev) * (1.0 / m_IHAQR_space->m_time_step);
+        m_IHAQR_space->m_input_rate_space.bring_point_in_bounds(du_dt);
+        u_current = u_prev + m_IHAQR_space->m_time_step * du_dt;
+//       RK_NOTICE(1," reached!");
+//         std::cout << " u_current (after bounding) = " << u_current << std::endl;
+        
+        accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
+        
+//       RK_NOTICE(1," reached!");
+        constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
+        
+        // integrate for one time-step.
+//           ReaK::ctrl::detail::dormand_prince45_integrate_impl(
+//             m_IHAQR_space->m_space,
+//             *(m_IHAQR_space->m_system),
+//             x_current,
+//             x_next,
+//             input_traj,
+//             current_time,
+//             current_time + m_IHAQR_space->m_time_step,
+//             m_IHAQR_space->m_time_step * 1e-2,
+//             1e-3,
+//             m_IHAQR_space->m_time_step * 1e-6,
+//             m_IHAQR_space->m_time_step * 0.1);
+        ReaK::ctrl::detail::runge_kutta4_integrate_impl(
+          m_IHAQR_space->m_space,
+          *(m_IHAQR_space->m_system),
+          x_current,
+          x_next,
+          input_traj,
+          current_time,
+          current_time + m_IHAQR_space->m_time_step,
+          m_IHAQR_space->m_time_step * 1e-1);
+//       RK_NOTICE(1," reached!");
+        
+        if((!with_collision_check) || is_free_impl(x_next)) {
+          x_current = x_next;
+          current_time += m_IHAQR_space->m_time_step;
+//           std::cout << " time = " << current_time << "  state = " << x_current << std::endl;
+          u_prev = u_current;
+        } else {
+          ended_in_collision = true;
+          break;
+        };
+      };
+      if(ended_in_collision)
+        return point_type( x_current );
       
       point_type result( x_current );
       return result;
     };
     
     point_type random_point_impl(bool with_collision_check) const {
-      state_type result_pt = get(random_sampler, m_IHAQR_space->m_space)(m_IHAQR_space->m_space);
+      state_type result_pt = m_IHAQR_space->m_get_sample(m_IHAQR_space->m_space);
       while(with_collision_check && !is_free_impl(result_pt))
-        result_pt = get(random_sampler, m_IHAQR_space->m_space)(m_IHAQR_space->m_space);
+        result_pt = m_IHAQR_space->m_get_sample(m_IHAQR_space->m_space);
       point_type result( result_pt );
       m_IHAQR_space->compute_IHAQR_data(result);
       compute_MEAQR_data(result);
@@ -543,7 +650,7 @@ class MEAQR_topology : public named_object
     MEAQR_topology(const std::string& aName = "MEAQR_topology",
                    const shared_ptr< IHAQR_space_type >& aIHAQRSpace = shared_ptr< IHAQR_space_type >(),
                    double aMEAQRDataStepSize = 0.1,
-                   double aIdlePowerCost = 1.0) : 
+                   double aIdlePowerCost = 20.0) : 
                    named_object(),
                    m_IHAQR_space(aIHAQRSpace),
                    m_MEAQR_data_step_size(aMEAQRDataStepSize),
@@ -686,15 +793,15 @@ class MEAQR_topology : public named_object
     
 };
 
-template <typename StateSpace, typename StateSpaceSystem>
-struct is_metric_space< MEAQR_topology<StateSpace, StateSpaceSystem> > : boost::mpl::true_ { };
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_metric_space< MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::true_ { };
 
-template <typename StateSpace, typename StateSpaceSystem>
-struct is_point_distribution< MEAQR_topology<StateSpace, StateSpaceSystem> > : 
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_point_distribution< MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> > : 
   is_point_distribution<StateSpace> { };
 
-template <typename StateSpace, typename StateSpaceSystem>
-struct is_metric_symmetric< MEAQR_topology<StateSpace, StateSpaceSystem> > : boost::mpl::false_ { };
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_metric_symmetric< MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::false_ { };
   
   
   
@@ -702,11 +809,11 @@ struct is_metric_symmetric< MEAQR_topology<StateSpace, StateSpaceSystem> > : boo
 /**
  * This class has collision detection.
  */
-template <typename StateSpace, typename StateSpaceSystem>
-class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSystem> {
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> {
   public:
-    typedef MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> self;
-    typedef MEAQR_topology<StateSpace, StateSpaceSystem> base_type;
+    typedef MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> self;
+    typedef MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> base_type;
     
     typedef base_type super_space_type;
     
@@ -733,13 +840,15 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
       
       for( std::vector< shared_ptr< geom::proxy_query_pair_2D > >::const_iterator it = m_proxy_env_2D.begin(); it != m_proxy_env_2D.end(); ++it) {
         shared_ptr< geom::proximity_finder_2D > tmp = (*it)->findMinimumDistance();
-        if((tmp) && (tmp->getLastResult().mDistance < 0.0))
+        if((tmp) && (tmp->getLastResult().mDistance < 0.0)) {
           return false;
+        };
       };
       for( std::vector< shared_ptr< geom::proxy_query_pair_3D > >::const_iterator it = m_proxy_env_3D.begin(); it != m_proxy_env_3D.end(); ++it) {
         shared_ptr< geom::proximity_finder_3D > tmp = (*it)->findMinimumDistance();
-        if((tmp) && (tmp->getLastResult().mDistance < 0.0))
+        if((tmp) && (tmp->getLastResult().mDistance < 0.0)) {
           return false;
+        };
       };
       
       return true;
@@ -759,6 +868,16 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
                            double aIdlePowerCost = 1.0,
                            const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >()) : 
                            base_type(aName, aIHAQRSpace, aMEAQRDataStepSize, aIdlePowerCost),
+                           m_model(aModel),
+                           m_proxy_env_2D(),
+                           m_proxy_env_3D() { };
+    
+    /**
+     * Default constructor.
+     */
+    MEAQR_topology_with_CD(const base_type& aBaseSpace,
+                           const shared_ptr< kte::direct_kinematics_model >& aModel) : 
+                           base_type(aBaseSpace),
                            m_model(aModel),
                            m_proxy_env_2D(),
                            m_proxy_env_3D() { };
@@ -783,7 +902,7 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
     
     
     bool is_free(const point_type& a) const {
-      return this->is_free_impl(a);
+      return this->is_free_impl(a.x);
     };
     
     /**
@@ -820,15 +939,15 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
 };
   
   
-template <typename StateSpace, typename StateSpaceSystem>
-struct is_metric_space< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> > : boost::mpl::true_ { };
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_metric_space< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::true_ { };
 
-template <typename StateSpace, typename StateSpaceSystem>
-struct is_point_distribution< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> > : 
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_point_distribution< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> > : 
   is_point_distribution<StateSpace> { };
 
-template <typename StateSpace, typename StateSpaceSystem>
-struct is_metric_symmetric< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> > : boost::mpl::false_ { };
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_metric_symmetric< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::false_ { };
   
 
 

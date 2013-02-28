@@ -113,7 +113,7 @@ class proxy_query_pair_2D : public named_object {
     proxy_query_pair_2D(const std::string& aName = "",
                         const shared_ptr< proxy_query_model_2D >& aModel1 = shared_ptr< proxy_query_model_2D >(), 
                         const shared_ptr< proxy_query_model_2D >& aModel2 = shared_ptr< proxy_query_model_2D >()) : 
-                        named_object(), mModel1(), mModel2(), mProxFinders() { 
+                        named_object(), mModel1(aModel1), mModel2(aModel2), mProxFinders() { 
       this->setName(aName); 
       createProxFinderList();
     };
@@ -217,7 +217,7 @@ class proxy_query_pair_3D : public named_object {
     proxy_query_pair_3D(const std::string& aName = "",
                         const shared_ptr< proxy_query_model_3D >& aModel1 = shared_ptr< proxy_query_model_3D >(), 
                         const shared_ptr< proxy_query_model_3D >& aModel2 = shared_ptr< proxy_query_model_3D >()) : 
-                        named_object(), mModel1(), mModel2(), mProxFinders() { 
+                        named_object(), mModel1(aModel1), mModel2(aModel2), mProxFinders() { 
       this->setName(aName); 
       createProxFinderList();
     };

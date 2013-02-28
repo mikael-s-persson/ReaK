@@ -221,6 +221,7 @@ void proxy_query_pair_3D::createProxFinderList() {
   for(std::size_t i = 0; i < mModel1->mShapeList.size(); ++i) {
     if(!mModel1->mShapeList[i])
       continue;
+    
     // for all shapes in mModel2
     for(std::size_t j = 0; j < mModel2->mShapeList.size(); ++j) {
       if(!mModel2->mShapeList[j])

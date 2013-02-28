@@ -66,9 +66,9 @@ namespace pp {
   
 
 
-template <typename StateSpace, typename StateSpaceSystem>
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 struct MEAQR_rrtstar_vdata {
-  typedef typename topology_traits< MEAQR_topology<StateSpace, StateSpaceSystem> >::point_type PointType;
+  typedef typename topology_traits< MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> >::point_type PointType;
   
   PointType position;
   double distance_accum;
@@ -78,7 +78,7 @@ struct MEAQR_rrtstar_vdata {
                           distance_accum(0.0), predecessor(0) { };
 };
 
-template <typename StateSpace, typename StateSpaceSystem>
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 struct MEAQR_rrtstar_edata {
   double weight;
   
@@ -95,15 +95,15 @@ struct MEAQR_rrtstar_edata {
  * \tparam StateSpaceSystem The type of the dynamic system under MEAQR control.
  * \tparam SBPPReporter The reporter type to use to report the progress of the path-planning.
  */
-template <typename StateSpace, typename StateSpaceSystem,
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler,
           typename SBPPReporter = no_sbmp_report>
-class MEAQR_rrtstar_planner : public sample_based_planner< path_planner_base< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> > > {
+class MEAQR_rrtstar_planner : public sample_based_planner< path_planner_base< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> > > {
   public:
-    typedef MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> space_type;
+    typedef MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> space_type;
     typedef typename subspace_traits<space_type>::super_space_type super_space_type;
     
     typedef sample_based_planner< path_planner_base< space_type > > base_type;
-    typedef MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, SBPPReporter> self;
+    typedef MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter> self;
     
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
@@ -302,15 +302,15 @@ class MEAQR_rrtstar_planner : public sample_based_planner< path_planner_base< ME
 
 
 
-template <typename StateSpace, typename StateSpaceSystem, typename NNFinderSynchro, typename SBPPReporter = no_sbmp_report>
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler, typename NNFinderSynchro, typename SBPPReporter = no_sbmp_report>
 struct MEAQR_rrtstar_visitor {
-  typedef MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> space_type;
+  typedef MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> space_type;
   shared_ptr< space_type > m_space;
-  MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, SBPPReporter>* m_planner;
+  MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>* m_planner;
   NNFinderSynchro m_nn_synchro;
   
   MEAQR_rrtstar_visitor(const shared_ptr< space_type >& aSpace, 
-                        MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, SBPPReporter>* aPlanner,
+                        MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>* aPlanner,
                         NNFinderSynchro aNNSynchro) : 
                         m_space(aSpace), m_planner(aPlanner), m_nn_synchro(aNNSynchro) { };
   
@@ -333,7 +333,7 @@ struct MEAQR_rrtstar_visitor {
     VertexType v = target(e,g);
     
     // Call progress reporter...
-    m_planner->report_progress(g, get(&MEAQR_rrtstar_vdata<StateSpace,StateSpaceSystem>::position,g));
+    m_planner->report_progress(g, get(&MEAQR_rrtstar_vdata<StateSpace,StateSpaceSystem, StateSpaceSampler>::position,g));
     
     // Check if a straight path to goal is possible...
     m_planner->check_goal_connection(g[v].position,v,g);
@@ -345,8 +345,8 @@ struct MEAQR_rrtstar_visitor {
     
     // Call progress reporter...
     m_planner->report_progress(g1, g2, 
-                               get(&MEAQR_rrtstar_vdata<StateSpace,StateSpaceSystem>::position,g1), 
-                               get(&MEAQR_rrtstar_vdata<StateSpace,StateSpaceSystem>::position,g2));
+                               get(&MEAQR_rrtstar_vdata<StateSpace,StateSpaceSystem, StateSpaceSampler>::position,g1), 
+                               get(&MEAQR_rrtstar_vdata<StateSpace,StateSpaceSystem, StateSpaceSampler>::position,g2));
   };
   
   bool is_position_free(PointType p) const {
@@ -364,10 +364,15 @@ struct MEAQR_rrtstar_visitor {
   
   template <typename Vertex, typename Graph>
   std::pair<PointType, bool> steer_towards_position(const PointType& p, Vertex u, Graph& g) const {
-    PointType result_p = m_space->move_position_toward(g[u].position, 1.0, p);
+    // get a destination point that is half the distance to a point reachable by the IHAQR motion (with limited time-horizon):
+    PointType p_dest( m_space->get_state_space().adjust(g[u].position.x, 
+                      0.5 * m_space->get_state_space().difference(
+                        m_space->get_IHAQR_space().move_position_toward(g[u].position, 1.0, p).x, g[u].position.x) ) );
+    
+    PointType result_p = m_space->move_position_toward(g[u].position, 1.0, p_dest);
     
     // NOTE Differs from rrtstar_path_planner HERE:
-    double best_case_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, p.x, m_space->get_state_space());
+    double best_case_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, p_dest.x, m_space->get_state_space());
     double actual_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, result_p.x, m_space->get_state_space());
     
     if(actual_dist > 0.1 * best_case_dist)
@@ -384,7 +389,7 @@ struct MEAQR_rrtstar_visitor {
     double best_case_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, g[v].position.x, m_space->get_state_space());
     double actual_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, result_p.x, m_space->get_state_space());
     
-    if(actual_dist > 0.99 * best_case_dist)
+    if(actual_dist > 0.95 * best_case_dist)
       return true;
     else 
       return false;
@@ -398,28 +403,28 @@ struct MEAQR_rrtstar_visitor {
 
 
 template <typename StateSpace, 
-          typename StateSpaceSystem, 
+          typename StateSpaceSystem, typename StateSpaceSampler, 
           typename SBPPReporter>
-shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, SBPPReporter>::super_space_type > > 
-  MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, SBPPReporter>::solve_path() {
+shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>::super_space_type > > 
+  MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>::solve_path() {
   using ReaK::to_vect;
   
-  typedef typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, SBPPReporter>::space_type SpaceType;
-  typedef typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, SBPPReporter>::super_space_type SuperSpace;
+  typedef typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>::space_type SpaceType;
+  typedef typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>::super_space_type SuperSpace;
   typedef typename SuperSpace::IHAQR_space_type IHAQRSpace;
   typedef typename topology_traits<SuperSpace>::point_type PointType;
   
-  typedef boost::data_member_property_map<PointType, MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem> > PositionMap;
-  PositionMap pos_map = PositionMap(&MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem>::position);
+  typedef boost::data_member_property_map<PointType, MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler> > PositionMap;
+  PositionMap pos_map = PositionMap(&MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler>::position);
   
-  typedef boost::data_member_property_map<double, MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem> > CostMap;
-  CostMap cost_map = CostMap(&MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem>::distance_accum);
+  typedef boost::data_member_property_map<double, MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler> > CostMap;
+  CostMap cost_map = CostMap(&MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler>::distance_accum);
   
-//   typedef boost::data_member_property_map<std::size_t, MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem> > PredMap;
-//   PredMap pred_map = PredMap(&MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem>::predecessor);
+//   typedef boost::data_member_property_map<std::size_t, MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler> > PredMap;
+//   PredMap pred_map = PredMap(&MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler>::predecessor);
   
-  typedef boost::data_member_property_map<double, MEAQR_rrtstar_edata<StateSpace, StateSpaceSystem> > WeightMap;
-  WeightMap weight_map = WeightMap(&MEAQR_rrtstar_edata<StateSpace, StateSpaceSystem>::weight);
+  typedef boost::data_member_property_map<double, MEAQR_rrtstar_edata<StateSpace, StateSpaceSystem, StateSpaceSampler> > WeightMap;
+  WeightMap weight_map = WeightMap(&MEAQR_rrtstar_edata<StateSpace, StateSpaceSystem, StateSpaceSampler>::weight);
   
   typedef fixed_topology_random_sampler< SpaceType > SamplerType;
   SamplerType get_sample = SamplerType( this->m_space.get() );
@@ -428,8 +433,8 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
   double space_Lc = get(distance_metric,this->m_space->get_state_space())(this->m_start_pos.x, this->m_goal_pos.x, this->m_space->get_state_space());
   
   typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS,
-                                 MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem>,
-                                 MEAQR_rrtstar_edata<StateSpace, StateSpaceSystem>,
+                                 MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler>,
+                                 MEAQR_rrtstar_edata<StateSpace, StateSpaceSystem, StateSpaceSampler>,
                                  boost::vecS> MotionGraphType;
   typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
   typedef typename MotionGraphType::vertex_property_type VertexProp;
@@ -439,14 +444,14 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
   MotionGraphType motion_graph;
   GraphPositionMap g_pos_map = GraphPositionMap(pos_map, boost::whole_bundle_property_map< MotionGraphType, boost::vertex_bundle_t >(&motion_graph));
   
-  MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem> v_p;
+  MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler> v_p;
   v_p.position = this->m_start_pos;
   v_p.distance_accum = 0.0;
   v_p.predecessor = MotionGraphType::null_vertex();
   add_vertex(v_p, motion_graph);
   
   if(this->m_knn_flag == LINEAR_SEARCH_KNN) {
-    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro());
+    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro());
     
     ReaK::graph::detail::generate_rrt_star_loop(
       motion_graph, 
@@ -492,7 +497,7 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
       multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>,
       multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > DualNNSynchro;
     
-    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
+    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
     
     ReaK::graph::detail::generate_rrt_star_loop(
       motion_graph, 
@@ -538,7 +543,7 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
       multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>,
       multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > DualNNSynchro;
     
-    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
+    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
     
     ReaK::graph::detail::generate_rrt_star_loop(
       motion_graph, 
@@ -584,7 +589,7 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
       multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>,
       multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > DualNNSynchro;
     
-    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
+    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
     
     ReaK::graph::detail::generate_rrt_star_loop(
       motion_graph, 
@@ -630,7 +635,7 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
       multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>,
       multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > DualNNSynchro;
     
-    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
+    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
     
     ReaK::graph::detail::generate_rrt_star_loop(
       motion_graph, 

@@ -243,7 +243,7 @@ class frame_tracer_3D : public shared_object {
       dk_map.apply_to_model(s_u, *jt_space);
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
         current_trace[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
-      while(u_pt != p->get_end_point()) {
+      while(get(distance_metric, free_space.get_super_space())(u_pt, p->get_end_point(), free_space.get_super_space()) > interval_size) {
         t += interval_size;
         u_pt = p->move_away_from(u_pt, interval_size);
         s_u = map_to_jt_space.map_to_space(u_pt, free_space.get_super_space(), *jt_space);

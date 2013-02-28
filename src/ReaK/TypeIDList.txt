@@ -328,6 +328,7 @@ IHAQR_topology_with_CD<S,SS> 0xC2400033  bin: 1100 0010 0100 0000 0000 0000 0011
 MEAQR_point_type<S,SS>      0xC2400034   bin: 1100 0010 0100 0000 0000 0000 0011 0100  D-R
 MEAQR_topology<S,SS>        0xC2400035   bin: 1100 0010 0100 0000 0000 0000 0011 0101  D-R
 MEAQR_topology_with_CD<S,SS> 0xC2400036  bin: 1100 0010 0100 0000 0000 0000 0011 0110  D-R
+IHAQR_to_state_mapper       0xC2400037   bin: 1100 0010 0100 0000 0000 0000 0011 0111  D-R
 
 
 //Distance metrics:         0xC241****
@@ -405,6 +406,7 @@ sap_rate_limited_sampler    0xC2450002   bin: 1100 0010 0100 0101 0000 0000 0000
 svp_Ndof_rate_limited_sampler 0xC2450003 bin: 1100 0010 0100 0101 0000 0000 0000 0011  D-R
 sap_Ndof_rate_limited_sampler 0xC2450004 bin: 1100 0010 0100 0101 0000 0000 0000 0100  D-R
 fixed_topology_random_sampler 0xC2450005 bin: 1100 0010 0100 0101 0000 0000 0000 0101  D-R
+position_only_sampler       0xC2450006   bin: 1100 0010 0100 0101 0000 0000 0000 0110  D-R
 
 //Motion-Planners:          0xC246****
 motion_planner_base         0xC2460000   bin: 1100 0010 0100 0110 0000 0000 0000 0000  D-R

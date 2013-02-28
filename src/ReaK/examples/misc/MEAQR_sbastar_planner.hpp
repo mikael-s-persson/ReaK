@@ -69,9 +69,9 @@ namespace pp {
   
   
 
-template <typename StateSpace, typename StateSpaceSystem>
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 struct MEAQR_sbastar_vdata {
-  typedef typename topology_traits< MEAQR_topology<StateSpace, StateSpaceSystem> >::point_type PointType;
+  typedef typename topology_traits< MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> >::point_type PointType;
   PointType position;
   double constriction;
   std::size_t collision_count;  // r
@@ -89,7 +89,7 @@ struct MEAQR_sbastar_vdata {
                           astar_color(), predecessor(0) { };
 };
 
-template <typename StateSpace, typename StateSpaceSystem>
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 struct MEAQR_sbastar_edata { 
   double astar_weight; //for A*
   
@@ -106,15 +106,15 @@ struct MEAQR_sbastar_edata {
  * \tparam StateSpaceSystem The type of the dynamic system under MEAQR control.
  * \tparam SBPPReporter The reporter type to use to report the progress of the path-planning.
  */
-template <typename StateSpace, typename StateSpaceSystem,
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler,
           typename SBPPReporter = no_sbmp_report>
-class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> > > {
+class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> > > {
   public:
-    typedef MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> space_type;
+    typedef MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> space_type;
     typedef typename subspace_traits<space_type>::super_space_type super_space_type;
     
     typedef sample_based_planner< path_planner_base< space_type > > base_type;
-    typedef MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, SBPPReporter> self;
+    typedef MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter> self;
     
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
@@ -148,7 +148,7 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
     template <typename Graph>
     void report_progress(Graph& g) {
       if(num_vertices(g) % this->m_progress_interval == 0)
-        m_reporter.draw_motion_graph(*(this->m_space), g, get(&MEAQR_sbastar_vdata<StateSpace,StateSpaceSystem>::position,g));
+        m_reporter.draw_motion_graph(*(this->m_space), g, get(&MEAQR_sbastar_vdata<StateSpace,StateSpaceSystem, StateSpaceSampler>::position,g));
       has_reached_max_vertices = (num_vertices(g) >= this->m_max_vertex_count);
     };
     
@@ -308,20 +308,20 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
 
 
 
-template <typename StateSpace, typename StateSpaceSystem, typename MotionGraph, typename NNFinderSynchro, typename SBPPReporter = no_sbmp_report>
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler, typename MotionGraph, typename NNFinderSynchro, typename SBPPReporter = no_sbmp_report>
 struct MEAQR_sbastar_visitor {
-  typedef MEAQR_topology_with_CD<StateSpace, StateSpaceSystem> space_type;
+  typedef MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> space_type;
   typedef typename boost::graph_traits<MotionGraph>::vertex_descriptor Vertex;
   
   shared_ptr< space_type > m_space;
-  MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, SBPPReporter>* m_planner;
+  MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>* m_planner;
   NNFinderSynchro m_nn_synchro;
   Vertex m_start_node;
   Vertex m_goal_node;
   double m_space_dim;
   
   MEAQR_sbastar_visitor(const shared_ptr< space_type >& aSpace, 
-                        MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, SBPPReporter>* aPlanner,
+                        MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>* aPlanner,
                         NNFinderSynchro aNNSynchro,
                         Vertex aStartNode, Vertex aGoalNode, double aSpaceDim) : 
                         m_space(aSpace), m_planner(aPlanner), m_nn_synchro(aNNSynchro),
@@ -402,8 +402,11 @@ struct MEAQR_sbastar_visitor {
   // NOTE: This is the main thing that must be revised:
   template <typename Vertex, typename Graph>
   std::pair<PointType, bool> random_walk(Vertex u, Graph& g) const {
+    typedef typename topology_traits<StateSpace>::point_difference_type state_difference_type;
     using std::exp;
     using std::log;
+    using ReaK::to_vect;
+    using ReaK::from_vect;
     
     typename point_distribution_traits< 
       typename subspace_traits<space_type>::super_space_type >::random_sampler_type 
@@ -412,13 +415,23 @@ struct MEAQR_sbastar_visitor {
       typename subspace_traits<space_type>::super_space_type >::distance_metric_type 
       get_distance = get(distance_metric, m_space->get_super_space());
     
+    boost::variate_generator< pp::global_rng_type&, boost::normal_distribution<double> > var_rnd(pp::get_global_rng(), boost::normal_distribution<double>());
+//     mat<double,mat_structure::diagonal> L;
+    
     unsigned int i = 0;
     do {
-      PointType p_rnd = get_sample(m_space->get_super_space());
-      double dist = get_distance(g[u].position, p_rnd, m_space->get_super_space());
-      double target_dist = boost::uniform_01<global_rng_type&,double>(get_global_rng())() * m_planner->get_sampling_radius();
-      PointType p_v = m_space->move_position_toward(g[u].position, target_dist / dist, p_rnd);
-      dist = get_distance(g[u].position, p_v, m_space->get_super_space());
+      
+      //decompose_Cholesky(invert(m_space->get_IHAQR_space().get_state_cost_matrix()) * (m_planner->get_sampling_radius() * m_planner->get_sampling_radius()), L);
+      
+      vect_n<double> z = to_vect<double>(m_space->get_state_space().difference(g[u].position.x, g[u].position.x));
+      for(std::size_t i = 0; i < z.size(); ++i)
+        z[i] = var_rnd();
+      
+//       PointType p_rnd( m_space->get_state_space().adjust(g[u].position.x, from_vect<state_difference_type>(L * z)) );
+      PointType p_rnd( m_space->get_state_space().adjust(g[u].position.x, from_vect<state_difference_type>(m_planner->get_sampling_radius() * z)) );
+      double target_dist = get_distance(g[u].position, p_rnd, m_space->get_super_space());
+      PointType p_v = m_space->move_position_toward(g[u].position, 1.0, p_rnd);
+      double dist = get_distance(g[u].position, p_v, m_space->get_super_space());
       if( dist < 0.9 * target_dist ) {
         // this means that we had a collision before reaching the target distance, 
         // must record that to the constriction statistic:
@@ -501,10 +514,10 @@ struct MEAQR_sbastar_visitor {
 
 
 template <typename StateSpace, 
-          typename StateSpaceSystem, 
+          typename StateSpaceSystem, typename StateSpaceSampler, 
           typename SBPPReporter>
-shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, SBPPReporter>::super_space_type > > 
-  MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, SBPPReporter>::solve_path() {
+shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>::super_space_type > > 
+  MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>::solve_path() {
   using ReaK::to_vect;
   
   this->has_reached_max_vertices = false;
@@ -512,12 +525,12 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
   this->m_solutions.clear();
   
   
-  typedef typename MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, SBPPReporter>::space_type SpaceType;
-  typedef typename MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, SBPPReporter>::super_space_type SuperSpace;
+  typedef typename MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>::space_type SpaceType;
+  typedef typename MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>::super_space_type SuperSpace;
   typedef typename SuperSpace::IHAQR_space_type IHAQRSpace;
   typedef typename topology_traits<SuperSpace>::point_type PointType;
-  typedef MEAQR_sbastar_vdata<StateSpace, StateSpaceSystem> VertexProp;
-  typedef MEAQR_sbastar_edata<StateSpace, StateSpaceSystem> EdgeProp;
+  typedef MEAQR_sbastar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler> VertexProp;
+  typedef MEAQR_sbastar_edata<StateSpace, StateSpaceSystem, StateSpaceSampler> EdgeProp;
   
   typedef boost::data_member_property_map<PointType, VertexProp > PositionMap;
   PositionMap pos_map = PositionMap(&VertexProp::position);
@@ -573,7 +586,7 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
   
   
   if(m_knn_flag == LINEAR_SEARCH_KNN) {
-    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
+    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
     
     ReaK::graph::generate_lazy_sbastar(
       motion_graph, start_node, *(this->m_space), vis,
@@ -604,7 +617,7 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
     multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> nn_finder;
     nn_finder.graph_tree_map[&motion_graph] = &space_part;
     
-    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
+    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
     
     ReaK::graph::generate_lazy_sbastar(
       motion_graph, start_node, *(this->m_space), vis,
@@ -635,7 +648,7 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
     multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> nn_finder;
     nn_finder.graph_tree_map[&motion_graph] = &space_part;
     
-    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
+    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
     
     ReaK::graph::generate_lazy_sbastar(
       motion_graph, start_node, *(this->m_space), vis,
@@ -666,7 +679,7 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
     multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> nn_finder;
     nn_finder.graph_tree_map[&motion_graph] = &space_part;
     
-    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
+    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
     
     ReaK::graph::generate_lazy_sbastar(
       motion_graph, start_node, *(this->m_space), vis,
@@ -697,7 +710,7 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
     multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> nn_finder;
     nn_finder.graph_tree_map[&motion_graph] = &space_part;
     
-    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
+    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
     
     ReaK::graph::generate_lazy_sbastar(
       motion_graph, start_node, *(this->m_space), vis,

@@ -12,6 +12,8 @@
 #include "MEAQR_topology.hpp"
 #include "quadrotor_system.hpp"
 
+#include "topologies/se3_random_samplers.hpp"
+
 #include "MEAQR_rrtstar_planner.hpp"
 #include "MEAQR_sbastar_planner.hpp"
 
@@ -23,8 +25,8 @@ int main(int argc, char ** argv) {
   using namespace pp;
   using namespace ctrl;
   
-  typedef IHAQR_topology< quadrotor_system::state_space_type, quadrotor_system > IHAQR_space_type;
-  typedef MEAQR_topology< quadrotor_system::state_space_type, quadrotor_system > MEAQR_space_type;
+  typedef IHAQR_topology< quadrotor_system::state_space_type, quadrotor_system, position_only_sampler > IHAQR_space_type;
+  typedef MEAQR_topology< quadrotor_system::state_space_type, quadrotor_system, position_only_sampler > MEAQR_space_type;
   
 #if 0
   
@@ -133,36 +135,43 @@ int main(int argc, char ** argv) {
   }; 
   
   {
-    MEAQR_space_type::point_type p1(make_arithmetic_tuple(make_arithmetic_tuple(
-        vect<double,3>(0.0,0.0,-1.0),
-        vect<double,3>(0.0,0.0,0.0)
-      ),
-      make_arithmetic_tuple(
-        unit_quat<double>(1.0,0.0,0.0,0.0),
-        vect<double,3>(0.0,0.0,0.0)
-      )));
-    MEAQR_space_type::point_type p2(make_arithmetic_tuple(make_arithmetic_tuple(
-        vect<double,3>(0.3,0.0,-1.2),
-        vect<double,3>(0.0,0.0,0.0)
-      ),
-      make_arithmetic_tuple(
-        unit_quat<double>(1.0,0.0,0.0,0.0),
-        vect<double,3>(0.0,0.0,0.0)
-      )));
-    
-    std::cout << " p1 = " << p1.x << std::endl;
-    std::cout << " p2 = " << p2.x << std::endl << std::endl;
-    
-    MEAQR_space_type::point_type p_inter = quad_MEAQR_space->move_position_toward(p1, 1.0, p2);
-    std::cout << " steer 1 = " << p_inter.x << std::endl;
-    p_inter = quad_MEAQR_space->move_position_toward(p1, 1.0, p_inter);
-    std::cout << " steer 2 = " << p_inter.x << std::endl;
-    p_inter = quad_MEAQR_space->move_position_toward(p1, 1.0, p_inter);
-    std::cout << " steer 3 = " << p_inter.x << std::endl;
+    for(unsigned int i = 0; i < 10; ++i) {
+      MEAQR_space_type::point_type p_rnd = quad_MEAQR_space->random_point();
+      std::cout << " p_rnd = " << p_rnd.x << std::endl;
+    };
   };
-  /*
-  MEAQR_rrtstar_planner< quadrotor_system::state_space_type, quadrotor_system > planner1;
-  MEAQR_sbastar_planner< quadrotor_system::state_space_type, quadrotor_system > planner2;*/
+  
+  {
+//     MEAQR_space_type::point_type p1(make_arithmetic_tuple(make_arithmetic_tuple(
+//         vect<double,3>(0.0,0.0,-1.0),
+//         vect<double,3>(0.0,0.0,0.0)
+//       ),
+//       make_arithmetic_tuple(
+//         unit_quat<double>(1.0,0.0,0.0,0.0),
+//         vect<double,3>(0.0,0.0,0.0)
+//       )));
+//     MEAQR_space_type::point_type p2(make_arithmetic_tuple(make_arithmetic_tuple(
+//         vect<double,3>(0.3,0.0,-1.2),
+//         vect<double,3>(0.0,0.0,0.0)
+//       ),
+//       make_arithmetic_tuple(
+//         unit_quat<double>(1.0,0.0,0.0,0.0),
+//         vect<double,3>(0.0,0.0,0.0)
+//       )));
+//     
+//     std::cout << " p1 = " << p1.x << std::endl;
+//     std::cout << " p2 = " << p2.x << std::endl << std::endl;
+//     
+//     MEAQR_space_type::point_type p_inter = quad_MEAQR_space->move_position_toward(p1, 1.0, p2);
+//     std::cout << " steer 1 = " << p_inter.x << std::endl;
+//     p_inter = quad_MEAQR_space->move_position_toward(p1, 1.0, p_inter);
+//     std::cout << " steer 2 = " << p_inter.x << std::endl;
+//     p_inter = quad_MEAQR_space->move_position_toward(p1, 1.0, p_inter);
+//     std::cout << " steer 3 = " << p_inter.x << std::endl;
+  };
+  
+  MEAQR_rrtstar_planner< quadrotor_system::state_space_type, quadrotor_system, position_only_sampler > planner1;
+  MEAQR_sbastar_planner< quadrotor_system::state_space_type, quadrotor_system, position_only_sampler > planner2;
   
   return 0;
 };

@@ -69,7 +69,7 @@ namespace pp {
 
 
 // forward-declaration.
-template <typename StateSpace, typename StateSpaceSystem>
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 class MEAQR_topology;
 
 
@@ -130,18 +130,55 @@ class IHAQR_point_type : public shared_object {
 
 
 
+class IHAQR_to_state_mapper : public named_object {
+  public:
+    
+    IHAQR_to_state_mapper() : named_object() { setName("IHAQR_to_state_mapper"); };
+    
+    template <typename SourceSpace, typename StateSpace, typename StateSpaceSystem>
+    typename topology_traits< StateSpace >::point_type map_to_space(
+      const IHAQR_point_type<StateSpace,StateSpaceSystem>& pt,
+      const SourceSpace&, const StateSpace&) const {
+      return pt.x;
+    };
+    
+    template <typename DestSpace, typename StateSpace>
+    typename topology_traits< DestSpace >::point_type map_to_space(
+      const typename topology_traits< StateSpace >::point_type& pt,
+      const StateSpace&, const DestSpace&) const {
+      return typename topology_traits< DestSpace >::point_type(pt);
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(IHAQR_to_state_mapper,0xC2400037,1,"IHAQR_to_state_mapper",named_object)
+    
+};
+
+
+
+
 /**
  * This class implements a quaternion-topology. Because quaternions are constrained on the unit 
  * hyper-sphere, this topology is indeed bounded (yet infinite at the same time). This class
  * models the MetricSpaceConcept, the LieGroupConcept, and the PointDistributionConcept.
  */
-template <typename StateSpace, typename StateSpaceSystem>
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 class IHAQR_topology : public named_object
 {
   public:
-    typedef IHAQR_topology<StateSpace, StateSpaceSystem> self;
+    typedef IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> self;
     
-    friend class MEAQR_topology<StateSpace, StateSpaceSystem>;
+    friend class MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>;
     
     typedef typename ctrl::linear_ss_system_traits< StateSpaceSystem >::matrixA_type matrixA_type;
     typedef typename ctrl::linear_ss_system_traits< StateSpaceSystem >::matrixB_type matrixB_type;
@@ -152,6 +189,8 @@ class IHAQR_topology : public named_object
     typedef typename ctrl::ss_system_traits< StateSpaceSystem >::point_difference_type state_difference_type;
     typedef typename ctrl::ss_system_traits< StateSpaceSystem >::point_derivative_type state_derivative_type;
     typedef typename ctrl::ss_system_traits< StateSpaceSystem >::input_type system_input_type;
+    
+    typedef StateSpaceSampler state_sampler_type;
     
     typedef IHAQR_point_type<StateSpace, StateSpaceSystem> point_type;
     typedef typename point_type::linearization_payload linearization_payload;
@@ -178,6 +217,7 @@ class IHAQR_topology : public named_object
     
     shared_ptr< StateSpaceSystem > m_system;
     StateSpace m_space;
+    state_sampler_type m_get_sample;
     hyperbox_topology< system_input_type > m_input_space;
     hyperbox_topology< system_input_type > m_input_rate_space;
     
@@ -220,16 +260,16 @@ class IHAQR_topology : public named_object
       // solve for M, K, and u_bias
       try {
         vect_n<double> u_bias_v = to_vect<double>(a.lin_data->u);
-        std::cout << " Asys = " << a.lin_data->A << std::endl;
-        std::cout << " Bsys = " << a.lin_data->B << std::endl;
-        std::cout << " u_sys = " << a.lin_data->u << std::endl;
+//         std::cout << " Asys = " << a.lin_data->A << std::endl;
+//         std::cout << " Bsys = " << a.lin_data->B << std::endl;
+//         std::cout << " u_sys = " << a.lin_data->u << std::endl;
 //         solve_IHCT_AQR_with_reduction(a.lin_data->A, a.lin_data->B, c_v, m_Q, m_R, 
 //                                       a.IHAQR_data->K, a.IHAQR_data->M, u_bias_v, 1e-3, true);
         solve_IHCT_AQR(a.lin_data->A, a.lin_data->B, c_v, m_Q, m_R, 
                        a.IHAQR_data->K, a.IHAQR_data->M, u_bias_v, 1e-4, true);
         a.IHAQR_data->u_bias = from_vect<system_input_type>(u_bias_v);
-        std::cout << " IHAQR Gain = " << a.IHAQR_data->K << std::endl;
-        std::cout << " IHAQR bias = " << a.IHAQR_data->u_bias << std::endl;
+//         std::cout << " IHAQR Gain = " << a.IHAQR_data->K << std::endl;
+//         std::cout << " IHAQR bias = " << a.IHAQR_data->u_bias << std::endl;
       } catch(std::exception& e) {
         std::cout << "Warning! Solution to the CARE problem could not be found for the given state point: " << a.x << std::endl
                   << "  The following exception was raised: " << e.what() << std::endl;
@@ -257,20 +297,20 @@ class IHAQR_topology : public named_object
       while( ( current_time < m_max_time_horizon ) &&
              ( m_space.distance(x_current, goal_point) > m_goal_proximity_threshold ) ) {
         // compute the current IHAQR input
-        std::cout << " t = " << current_time << std::endl;
-        std::cout << " x_difference = " << m_space.difference(x_current, goal_point) << std::endl;
+//         std::cout << " t = " << current_time << std::endl;
+//         std::cout << " x_difference = " << m_space.difference(x_current, goal_point) << std::endl;
         system_input_type u_current = b.lin_data->u 
                                     - from_vect< system_input_type >(
                                         b.IHAQR_data->K * to_vect<double>(m_space.difference(x_current, goal_point))) 
                                     - b.IHAQR_data->u_bias;
-        std::cout << " u_current (before bounding) = " << u_current << std::endl;
+//         std::cout << " u_current (before bounding) = " << u_current << std::endl;
         m_input_space.bring_point_in_bounds(u_current);
         
         system_input_type du_dt = (u_current - u_prev) * (1.0 / m_time_step);
         m_input_rate_space.bring_point_in_bounds(du_dt);
         u_current = u_prev + m_time_step * du_dt;
         
-        std::cout << " u_current (after bounding) = " << u_current << std::endl;
+//         std::cout << " u_current (after bounding) = " << u_current << std::endl;
         
         constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
         
@@ -284,7 +324,7 @@ class IHAQR_topology : public named_object
           current_time,
           current_time + m_time_step,
           m_time_step * 1e-2);
-        std::cout << " x_next = " << x_next << std::endl;
+//         std::cout << " x_next = " << x_next << std::endl;
         /*ctrl::detail::dormand_prince45_integrate_impl(
           m_space,
           *m_system,
@@ -310,9 +350,9 @@ class IHAQR_topology : public named_object
     };
     
     point_type random_point_impl(bool with_collision_check) const {
-      state_type result_pt = get(random_sampler, m_space)(m_space);
+      state_type result_pt = m_get_sample(m_space);
       while(with_collision_check && !is_free_impl(result_pt))
-        result_pt = get(random_sampler, m_space)(m_space);
+        result_pt = m_get_sample(m_space);
       point_type result( result_pt );
       compute_IHAQR_data(result);
       return result;
@@ -322,6 +362,11 @@ class IHAQR_topology : public named_object
     
     StateSpace& get_state_space() { return m_space; };
     const StateSpace& get_state_space() const { return m_space; };
+    
+    state_sampler_type get_state_sampler() const { return m_get_sample; };
+    
+    const mat<double,mat_structure::diagonal>& get_input_cost_matrix() const { return m_R; };
+    const mat<double,mat_structure::diagonal>& get_state_cost_matrix() const { return m_Q; };
     
     /**
      * Default constructor.
@@ -336,10 +381,12 @@ class IHAQR_topology : public named_object
                    const mat<double,mat_structure::diagonal>& aQ = (mat<double,mat_structure::diagonal>()),
                    double aTimeStep = 0.1,
                    double aMaxTimeHorizon = 10.0,
-                   double aGoalProximityThreshold = 1.0) : 
+                   double aGoalProximityThreshold = 1.0,
+                   state_sampler_type aGetSample = state_sampler_type()) : 
                    named_object(),
                    m_system(aSystem),
                    m_space(aSpace),
+                   m_get_sample(aGetSample),
                    m_input_space(aName + "_input_space", aMinInput, aMaxInput),
                    m_input_rate_space(aName + "_input_rate_space", -aInputBandwidth, aInputBandwidth),
                    m_R(aR),
@@ -453,6 +500,7 @@ class IHAQR_topology : public named_object
       ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(m_system)
         & RK_SERIAL_SAVE_WITH_NAME(m_space)
+        & RK_SERIAL_SAVE_WITH_NAME(m_get_sample)
         & RK_SERIAL_SAVE_WITH_NAME(m_input_space)
         & RK_SERIAL_SAVE_WITH_NAME(m_input_rate_space)
         & RK_SERIAL_SAVE_WITH_NAME(m_R)
@@ -466,6 +514,7 @@ class IHAQR_topology : public named_object
       ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(m_system)
         & RK_SERIAL_LOAD_WITH_NAME(m_space)
+        & RK_SERIAL_LOAD_WITH_NAME(m_get_sample)
         & RK_SERIAL_LOAD_WITH_NAME(m_input_space)
         & RK_SERIAL_LOAD_WITH_NAME(m_input_rate_space)
         & RK_SERIAL_LOAD_WITH_NAME(m_R)
@@ -479,15 +528,15 @@ class IHAQR_topology : public named_object
     
 };
 
-template <typename StateSpace, typename StateSpaceSystem>
-struct is_metric_space< IHAQR_topology<StateSpace, StateSpaceSystem> > : boost::mpl::true_ { };
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_metric_space< IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::true_ { };
         
-template <typename StateSpace, typename StateSpaceSystem>
-struct is_point_distribution< IHAQR_topology<StateSpace, StateSpaceSystem> > : 
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_point_distribution< IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> > : 
   is_point_distribution<StateSpace> { };
 
-template <typename StateSpace, typename StateSpaceSystem>
-struct is_metric_symmetric< IHAQR_topology<StateSpace, StateSpaceSystem> > : boost::mpl::false_ { };
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_metric_symmetric< IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::false_ { };
   
   
 
@@ -495,11 +544,11 @@ struct is_metric_symmetric< IHAQR_topology<StateSpace, StateSpaceSystem> > : boo
 /**
  * This class has collision detection.
  */
-template <typename StateSpace, typename StateSpaceSystem>
-class IHAQR_topology_with_CD : public IHAQR_topology<StateSpace, StateSpaceSystem> {
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+class IHAQR_topology_with_CD : public IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> {
   public:
-    typedef IHAQR_topology_with_CD<StateSpace, StateSpaceSystem> self;
-    typedef IHAQR_topology<StateSpace, StateSpaceSystem> base_type;
+    typedef IHAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> self;
+    typedef IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> base_type;
     
     typedef base_type super_space_type;
     
@@ -555,10 +604,20 @@ class IHAQR_topology_with_CD : public IHAQR_topology<StateSpace, StateSpaceSyste
                            const mat<double,mat_structure::diagonal>& aR = (mat<double,mat_structure::diagonal>()),
                            const mat<double,mat_structure::diagonal>& aQ = (mat<double,mat_structure::diagonal>()),
                            double aTimeStep = 0.1,
-                           double aMaxTimeHorizon = 10.0,
+                           double aMaxTimeHorizon = 5.0,
                            double aGoalProximityThreshold = 1.0,
                            const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >()) :
                            base_type(aName, aSystem, aSpace, aMinInput, aMaxInput, aInputBandwidth, aR, aQ, aTimeStep,aMaxTimeHorizon, aGoalProximityThreshold) { };
+    
+    /**
+     * Default constructor.
+     */
+    IHAQR_topology_with_CD(const base_type& aBaseSpace,
+                           const shared_ptr< kte::direct_kinematics_model >& aModel) : 
+                           base_type(aBaseSpace),
+                           m_model(aModel),
+                           m_proxy_env_2D(),
+                           m_proxy_env_3D() { };
     
     virtual ~IHAQR_topology_with_CD() { };
     
@@ -617,15 +676,15 @@ class IHAQR_topology_with_CD : public IHAQR_topology<StateSpace, StateSpaceSyste
 };
   
   
-template <typename StateSpace, typename StateSpaceSystem>
-struct is_metric_space< IHAQR_topology_with_CD<StateSpace, StateSpaceSystem> > : boost::mpl::true_ { };
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_metric_space< IHAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::true_ { };
         
-template <typename StateSpace, typename StateSpaceSystem>
-struct is_point_distribution< IHAQR_topology_with_CD<StateSpace, StateSpaceSystem> > : 
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_point_distribution< IHAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> > : 
   is_point_distribution<StateSpace> { };
   
-template <typename StateSpace, typename StateSpaceSystem>
-struct is_metric_symmetric< IHAQR_topology_with_CD<StateSpace, StateSpaceSystem> > : boost::mpl::false_ { };
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_metric_symmetric< IHAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::false_ { };
   
   
 

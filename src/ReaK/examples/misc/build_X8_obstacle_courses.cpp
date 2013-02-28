@@ -39,7 +39,7 @@ int main(int argc, char ** argv) {
     
     shared_ptr< box > building = shared_ptr< box >(new box("building", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(2.5,2.5,2.5), quaternion<double>()),
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(2.5,2.5,-2.5), quaternion<double>()),
       vect<double,3>(1.0,1.0,5.0)));
     
     (*one_building)
@@ -51,9 +51,12 @@ int main(int argc, char ** argv) {
      .addShape(floor)
      .addShape(building);
     
+    vect<double,3> start_position(0.75,0.75,-1.0);
+    vect<double,3> end_position(4.25,4.25,-3.0);
+    
     serialization::xml_oarchive out("models/one_building.xml");
     
-    out << one_building << one_building_proxy;
+    out << one_building << one_building_proxy << start_position << end_position;
     
   };
   
@@ -69,42 +72,42 @@ int main(int argc, char ** argv) {
     
     shared_ptr< box > wall1 = shared_ptr< box >(new box("wall1", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(1.5,0.5,2.5), quaternion<double>()),
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(1.5,0.5,-2.5), quaternion<double>()),
       vect<double,3>(0.2,1.0,5.0)));
     
     shared_ptr< box > wall2 = shared_ptr< box >(new box("wall2", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(1.5,1.75,1.25), quaternion<double>()),
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(1.5,1.75,-1.25), quaternion<double>()),
       vect<double,3>(0.2,1.5,2.5)));
     
     shared_ptr< box > wall3 = shared_ptr< box >(new box("wall3", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(1.5,1.75,4.5), quaternion<double>()),
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(1.5,1.75,-4.5), quaternion<double>()),
       vect<double,3>(0.2,1.5,1.0)));
     
     shared_ptr< box > wall4 = shared_ptr< box >(new box("wall4", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(1.5,3.75,2.5), quaternion<double>()),
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(1.5,3.75,-2.5), quaternion<double>()),
       vect<double,3>(0.2,2.5,5.0)));
     
     shared_ptr< box > wall5 = shared_ptr< box >(new box("wall5", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.5,1.25,2.5), quaternion<double>()),
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.5,1.25,-2.5), quaternion<double>()),
       vect<double,3>(0.2,2.5,5.0)));
     
     shared_ptr< box > wall6 = shared_ptr< box >(new box("wall6", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.5,3.25,0.5), quaternion<double>()),
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.5,3.25,-0.5), quaternion<double>()),
       vect<double,3>(0.2,1.5,1.0)));
     
     shared_ptr< box > wall7 = shared_ptr< box >(new box("wall7", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.5,3.25,3.75), quaternion<double>()),
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.5,3.25,-3.75), quaternion<double>()),
       vect<double,3>(0.2,1.5,2.5)));
     
     shared_ptr< box > wall8 = shared_ptr< box >(new box("wall8", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.5,4.5,2.5), quaternion<double>()),
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.5,4.5,-2.5), quaternion<double>()),
       vect<double,3>(0.2,1.0,5.0)));
     
     (*window_crossing)
@@ -130,9 +133,12 @@ int main(int argc, char ** argv) {
      .addShape(wall7)
      .addShape(wall8);
     
+    vect<double,3> start_position(0.75,1.0,-1.0);
+    vect<double,3> end_position(4.25,1.0,-3.0);
+    
     serialization::xml_oarchive out("models/window_crossing.xml");
     
-    out << window_crossing << window_crossing_proxy;
+    out << window_crossing << window_crossing_proxy << start_position << end_position;
     
   };
   
