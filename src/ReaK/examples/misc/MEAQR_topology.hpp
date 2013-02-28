@@ -349,7 +349,7 @@ class MEAQR_topology : public named_object
           input_traj,
           current_time,
           current_time + m_MEAQR_data_step_size,
-          m_MEAQR_data_step_size * 1e-2);
+          m_MEAQR_data_step_size * 1e-1);
         start_point = current_point;
         current_time += m_MEAQR_data_step_size;
         p.MEAQR_data->pts.push_back(std::make_pair(current_time, current_point));
@@ -409,7 +409,7 @@ class MEAQR_topology : public named_object
       };
       if(!found_T_optimal)
         return point_type( m_IHAQR_space->move_position_toward(a, fraction, b).x );
-      ++min_it;
+      
       double T_optimal = min_it->first;
 //       std::cout << " t_optimal = " << T_optimal << std::endl;
       
@@ -493,7 +493,7 @@ class MEAQR_topology : public named_object
             input_traj,
             current_time,
             current_time + m_IHAQR_space->m_time_step,
-            m_IHAQR_space->m_time_step * 1e-2);
+            m_IHAQR_space->m_time_step * 1e-1);
 //       RK_NOTICE(1," reached!");
           
           if((!with_collision_check) || is_free_impl(x_next)) {
@@ -507,11 +507,82 @@ class MEAQR_topology : public named_object
           };
         };
         if(ended_in_collision)
-          break;
+          return point_type( x_current );
 //       RK_NOTICE(1," reached!");
       
       };
 //       RK_NOTICE(1," reached!");
+      
+      bool ended_in_collision = false;
+      // while not reached (fly-by) the goal yet:
+      while( ( current_time < T_optimal + 2.0 * m_MEAQR_data_step_size ) &&
+             ( m_IHAQR_space->m_space.distance(x_current, goal_point) > m_IHAQR_space->m_goal_proximity_threshold ) ) {
+        // compute the current MEAQR input
+        mat<double,mat_structure::square> H = get<1>(min_it->second);
+        vect_n<double> eta = get<2>(min_it->second);
+        std::cout << "eta = " << eta << std::endl;
+//       RK_NOTICE(1," reached!");
+        
+        vect_n<double> HHx = to_vect<double>(m_IHAQR_space->m_space.difference(x_current, b.x));
+        std::cout << "dx = " << HHx << std::endl;
+        std::cout << "H = " << H << std::endl;
+        mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
+        ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
+        std::cout << "M * dx = " << HHx << std::endl;
+//       RK_NOTICE(1," reached!");
+        
+        system_input_type u_current = b.lin_data->u - K * (HHx + eta);
+        std::cout << " u_current (before bounding) = " << u_current << std::endl;
+        m_IHAQR_space->m_input_space.bring_point_in_bounds(u_current);
+//       RK_NOTICE(1," reached!");
+        
+        system_input_type du_dt = (u_current - u_prev) * (1.0 / m_IHAQR_space->m_time_step);
+        m_IHAQR_space->m_input_rate_space.bring_point_in_bounds(du_dt);
+        u_current = u_prev + m_IHAQR_space->m_time_step * du_dt;
+//       RK_NOTICE(1," reached!");
+        std::cout << " u_current (after bounding) = " << u_current << std::endl;
+        
+        accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
+        
+//       RK_NOTICE(1," reached!");
+        constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
+        
+        // integrate for one time-step.
+//           ReaK::ctrl::detail::dormand_prince45_integrate_impl(
+//             m_IHAQR_space->m_space,
+//             *(m_IHAQR_space->m_system),
+//             x_current,
+//             x_next,
+//             input_traj,
+//             current_time,
+//             current_time + m_IHAQR_space->m_time_step,
+//             m_IHAQR_space->m_time_step * 1e-2,
+//             1e-3,
+//             m_IHAQR_space->m_time_step * 1e-6,
+//             m_IHAQR_space->m_time_step * 0.1);
+        ReaK::ctrl::detail::runge_kutta4_integrate_impl(
+          m_IHAQR_space->m_space,
+          *(m_IHAQR_space->m_system),
+          x_current,
+          x_next,
+          input_traj,
+          current_time,
+          current_time + m_IHAQR_space->m_time_step,
+          m_IHAQR_space->m_time_step * 1e-1);
+//       RK_NOTICE(1," reached!");
+        
+        if((!with_collision_check) || is_free_impl(x_next)) {
+          x_current = x_next;
+          current_time += m_IHAQR_space->m_time_step;
+          std::cout << " time = " << current_time << "  state = " << x_current << std::endl;
+          u_prev = u_current;
+        } else {
+          ended_in_collision = true;
+          break;
+        };
+      };
+      if(ended_in_collision)
+        return point_type( x_current );
       
       point_type result( x_current );
       return result;
