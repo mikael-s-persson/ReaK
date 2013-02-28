@@ -556,6 +556,7 @@ class MEAQR_topology : public named_object
         // compute the current MEAQR input
         mat<double,mat_structure::square> H = get<1>(min_it->second);
         vect_n<double> eta = get<2>(min_it->second);
+<<<<<<< HEAD
 //         std::cout << "eta = " << eta << std::endl;
 //       RK_NOTICE(1," reached!");
         
@@ -569,6 +570,21 @@ class MEAQR_topology : public named_object
         
         system_input_type u_current = b.lin_data->u - K * (HHx + eta);
 //         std::cout << " u_current (before bounding) = " << u_current << std::endl;
+=======
+        std::cout << "eta = " << eta << std::endl;
+//       RK_NOTICE(1," reached!");
+        
+        vect_n<double> HHx = to_vect<double>(m_IHAQR_space->m_space.difference(x_current, b.x));
+        std::cout << "dx = " << HHx << std::endl;
+        std::cout << "H = " << H << std::endl;
+        mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
+        ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
+        std::cout << "M * dx = " << HHx << std::endl;
+//       RK_NOTICE(1," reached!");
+        
+        system_input_type u_current = b.lin_data->u - K * (HHx + eta);
+        std::cout << " u_current (before bounding) = " << u_current << std::endl;
+>>>>>>> c6cc8e58257574778a75453e16d1c65a58bf5f83
         m_IHAQR_space->m_input_space.bring_point_in_bounds(u_current);
 //       RK_NOTICE(1," reached!");
         
@@ -576,7 +592,11 @@ class MEAQR_topology : public named_object
         m_IHAQR_space->m_input_rate_space.bring_point_in_bounds(du_dt);
         u_current = u_prev + m_IHAQR_space->m_time_step * du_dt;
 //       RK_NOTICE(1," reached!");
+<<<<<<< HEAD
 //         std::cout << " u_current (after bounding) = " << u_current << std::endl;
+=======
+        std::cout << " u_current (after bounding) = " << u_current << std::endl;
+>>>>>>> c6cc8e58257574778a75453e16d1c65a58bf5f83
         
         accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
         
@@ -610,7 +630,11 @@ class MEAQR_topology : public named_object
         if((!with_collision_check) || is_free_impl(x_next)) {
           x_current = x_next;
           current_time += m_IHAQR_space->m_time_step;
+<<<<<<< HEAD
 //           std::cout << " time = " << current_time << "  state = " << x_current << std::endl;
+=======
+          std::cout << " time = " << current_time << "  state = " << x_current << std::endl;
+>>>>>>> c6cc8e58257574778a75453e16d1c65a58bf5f83
           u_prev = u_current;
         } else {
           ended_in_collision = true;
