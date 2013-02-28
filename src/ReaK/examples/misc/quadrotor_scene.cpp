@@ -15,10 +15,18 @@
 #include "MEAQR_rrtstar_planner.hpp"
 #include "MEAQR_sbastar_planner.hpp"
 
+#include "serialization/xml_archiver.hpp"
+
 int main(int argc, char ** argv) {
   using namespace ReaK;
+  using namespace serialization;
   using namespace pp;
   using namespace ctrl;
+  
+  typedef IHAQR_topology< quadrotor_system::state_space_type, quadrotor_system > IHAQR_space_type;
+  typedef MEAQR_topology< quadrotor_system::state_space_type, quadrotor_system > MEAQR_space_type;
+  
+#if 0
   
   shared_ptr< quadrotor_system > quad_sys( new quadrotor_system(
     "Quadrotor_system", 
@@ -33,7 +41,8 @@ int main(int argc, char ** argv) {
   double v_max = 6.0;
   double w_max = M_PI;
   vect<double,4> u_max(35.0, 5.0,  5.0,  3.0);
-  mat<double,mat_structure::diagonal> weightR_mat(vect<double,4>(0.25, 0.5, 0.5, 0.5));
+  mat<double,mat_structure::diagonal> weightR_mat(vect<double,4>(25, 50, 50, 50));
+//   mat<double,mat_structure::diagonal> weightR_mat(vect<double,4>(0.25, 0.5, 0.5, 0.5));
   mat<double,mat_structure::diagonal> Rscale(vect<double,4>(v_max / u_max[0], w_max / u_max[1], w_max / u_max[2], w_max / u_max[3]));
   
   double char_length_sqr = norm_2_sqr(max_corner - min_corner);
@@ -53,9 +62,7 @@ int main(int argc, char ** argv) {
     u_max[0] * char_length_sqr / v_max
   ));
   
-  typedef IHAQR_topology< quadrotor_system::state_space_type, quadrotor_system > IHAQR_space_type;
-  
-  IHAQR_space_type quad_space(
+  shared_ptr< IHAQR_space_type > quad_space(new IHAQR_space_type(
       "Quadrotor_IHAQR_topology",
       quad_sys,
       make_se3_space(
@@ -64,48 +71,98 @@ int main(int argc, char ** argv) {
         max_corner,  // mix corner
         v_max,    // aMaxSpeed
         w_max),  // aMaxAngularSpeed
-      vect<double,4>(0.0, -5.0, -5.0, -3.0),  // aMinInput
-      u_max,  // aMaxInput
-      vect<double,4>(10.0, 10.0, 10.0, 10.0),  // aInputBandwidth
+//       vect<double,4>(0.0, -5.0, -5.0, -3.0),  // aMinInput
+      vect<double,4>(-500.0, -500.0, -500.0, -500.0),  // aMinInput
+//       u_max,  // aMaxInput
+      vect<double,4>(500.0, 500.0,  500.0,  500.0),
+      vect<double,4>(100.0, 25.0, 25.0, 25.0),  // aInputBandwidth
       mat<double,mat_structure::diagonal>(weightR_mat * Rscale),
       mat<double,mat_structure::diagonal>(weightQ_mat * Qscale),
       0.01, // aTimeStep = 0.1,
-      10.0, // aMaxTimeHorizon = 10.0,
-      0.1); //aGoalProximityThreshold = 1.0)
+      20.0, // aMaxTimeHorizon = 10.0,
+      0.1)); //aGoalProximityThreshold = 1.0)
+
+  
+  
+  shared_ptr< MEAQR_space_type > quad_MEAQR_space(new MEAQR_space_type(
+    "QuadRotor_MEAQR_topology",
+    quad_space,
+    0.02, // aMEAQRDataStepSize
+    10.0)); // aIdlePowerCost
+//     225.0)); // aIdlePowerCost
+#else 
+  shared_ptr< quadrotor_system > quad_sys;
+  shared_ptr< IHAQR_space_type > quad_space;
+  shared_ptr< MEAQR_space_type > quad_MEAQR_space;
+  
+  
+  xml_iarchive file_in("models/quadrotor_spaces.xml");
+  
+  file_in >> quad_sys >> quad_space >> quad_MEAQR_space;
+  
+#endif
+  
   {
-    IHAQR_space_type::point_type p1 = quad_space.random_point();
-    IHAQR_space_type::point_type p2 = quad_space.random_point();
+//     IHAQR_space_type::point_type p1(make_arithmetic_tuple(make_arithmetic_tuple(
+//         vect<double,3>(0.0,0.0,-1.0),
+//         vect<double,3>(0.0,0.0,0.0)
+//       ),
+//       make_arithmetic_tuple(
+//         unit_quat<double>(1.0,0.0,0.0,0.0),
+//         vect<double,3>(0.0,0.0,0.0)
+//       )));
+//     IHAQR_space_type::point_type p2(make_arithmetic_tuple(make_arithmetic_tuple(
+//         vect<double,3>(0.3,0.0,-1.2),
+//         vect<double,3>(0.0,0.0,0.0)
+//       ),
+//       make_arithmetic_tuple(
+//         unit_quat<double>(1.0,0.0,0.0,0.0),
+//         vect<double,3>(0.0,0.0,0.0)
+//       )));
+//     
+//     std::cout << " p1 = " << p1.x << std::endl;
+//     std::cout << " p2 = " << p2.x << std::endl << std::endl;
+//     
+//     IHAQR_space_type::point_type p_inter = quad_space->move_position_toward(p1, 1.0, p2);
+//     std::cout << " steer 1 = " << p_inter.x << std::endl;
+//     p_inter = quad_space->move_position_toward(p1, 1.0, p_inter);
+//     std::cout << " steer 2 = " << p_inter.x << std::endl;
+//     p_inter = quad_space->move_position_toward(p1, 1.0, p_inter);
+//     std::cout << " steer 3 = " << p_inter.x << std::endl;
     
-    IHAQR_space_type::point_type p_inter = quad_space.move_position_toward(p1, 0.5, p2);
-    
-    double dist = quad_space.distance(p1, p2); RK_UNUSED(dist);
   }; 
   
-  typedef MEAQR_topology< quadrotor_system::state_space_type, quadrotor_system > MEAQR_space_type;
-  
-  MEAQR_space_type quad_MEAQR_space(
-    "QuadRotor_MEAQR_topology",
-    shared_ptr< IHAQR_space_type >(&quad_space, null_deleter()),
-    0.02,
-    1.0);
-  
   {
-    MEAQR_space_type::point_type p1 = quad_MEAQR_space.random_point();
-    MEAQR_space_type::point_type p2 = quad_MEAQR_space.random_point();
+    MEAQR_space_type::point_type p1(make_arithmetic_tuple(make_arithmetic_tuple(
+        vect<double,3>(0.0,0.0,-1.0),
+        vect<double,3>(0.0,0.0,0.0)
+      ),
+      make_arithmetic_tuple(
+        unit_quat<double>(1.0,0.0,0.0,0.0),
+        vect<double,3>(0.0,0.0,0.0)
+      )));
+    MEAQR_space_type::point_type p2(make_arithmetic_tuple(make_arithmetic_tuple(
+        vect<double,3>(0.3,0.0,-1.2),
+        vect<double,3>(0.0,0.0,0.0)
+      ),
+      make_arithmetic_tuple(
+        unit_quat<double>(1.0,0.0,0.0,0.0),
+        vect<double,3>(0.0,0.0,0.0)
+      )));
     
     std::cout << " p1 = " << p1.x << std::endl;
     std::cout << " p2 = " << p2.x << std::endl << std::endl;
     
-    for(double t = 0.0; t < 1.0; t += 0.1) { 
-      MEAQR_space_type::point_type p_inter = quad_MEAQR_space.move_position_toward(p1, t, p2);
-      std::cout << t << " " << p_inter.x << std::endl;
-    };
-    
-    double dist = quad_MEAQR_space.distance(p1, p2); RK_UNUSED(dist);
+    MEAQR_space_type::point_type p_inter = quad_MEAQR_space->move_position_toward(p1, 1.0, p2);
+    std::cout << " steer 1 = " << p_inter.x << std::endl;
+    p_inter = quad_MEAQR_space->move_position_toward(p1, 1.0, p_inter);
+    std::cout << " steer 2 = " << p_inter.x << std::endl;
+    p_inter = quad_MEAQR_space->move_position_toward(p1, 1.0, p_inter);
+    std::cout << " steer 3 = " << p_inter.x << std::endl;
   };
-  
+  /*
   MEAQR_rrtstar_planner< quadrotor_system::state_space_type, quadrotor_system > planner1;
-  MEAQR_sbastar_planner< quadrotor_system::state_space_type, quadrotor_system > planner2;
+  MEAQR_sbastar_planner< quadrotor_system::state_space_type, quadrotor_system > planner2;*/
   
   return 0;
 };

@@ -133,7 +133,7 @@ class quadrotor_system : public named_object {
       return point_derivative_type(
         make_arithmetic_tuple(
           v,  // velocity -> derivative of position
-          vect<double,3>(0.0, 0.0, -9.81) - q * (mTransDragCoefs * local_v - vect<double,3>(0.0, 0.0, u[0] / mMass))
+          vect<double,3>(0.0, 0.0, 9.81) - q * (mTransDragCoefs * local_v + vect<double,3>(0.0, 0.0, u[0] / mMass))
         ),  
         make_arithmetic_tuple(
           w,  // angular velocity -> invariant derivative of rotation
@@ -164,18 +164,22 @@ class quadrotor_system : public named_object {
         -2.0 * fabs(local_v[0]) / mMass, 
         -2.0 * fabs(local_v[1]) / mMass, 
         -2.0 * fabs(local_v[2]) / mMass));
+      
+      // velocity - velocity partial derivative:
+      set_block(A, R * mTransDragCoefs * dV, 3, 3);
+      
+      // velocity - quaternion partial derivative:
       local_v[0] *= fabs(local_v[0]) / mMass;
       local_v[1] *= fabs(local_v[1]) / mMass;
       local_v[2] *= fabs(local_v[2]) / mMass;
-      
-      // velocity - velocity partial derivative:
-//       set_block(A, mat<double,mat_structure::scalar>(3,-0.001), 3, 3);
-      set_block(A, R * mTransDragCoefs * dV, 3, 3);
-      // velocity - quaternion partial derivative:
       set_block(A, R * (mat<double,mat_structure::skew_symmetric>(mTransDragCoefs * local_v) 
                       - mTransDragCoefs * mat<double,mat_structure::skew_symmetric>(local_v) 
-                      - mat<double,mat_structure::skew_symmetric>(vect<double,3>(0.0, 0.0, u[0] / mMass))), 
+                      + mat<double,mat_structure::skew_symmetric>(vect<double,3>(0.0, 0.0, u[0] / mMass))), 
                 3, 6);
+//       set_block(A, R * (mat<double,mat_structure::skew_symmetric>(vect<double,3>(0.0, 0.0, u[0] / mMass))), 
+//                 3, 6);
+//       set_block(A, mat<double,mat_structure::skew_symmetric>(vect<double,3>(0.0, 0.0, 9.81)), 
+//                 3, 6);
       
       // angular velocity to quaternion partial derivative:
       A(6,9)  = 1.0;
@@ -196,7 +200,8 @@ class quadrotor_system : public named_object {
                 9, 9);
       
       B = mat<double,mat_structure::nil>(12,4);
-      vect<double,3> t_global = R * vect<double,3>(0.0, 0.0, 1.0 / mMass);
+      vect<double,3> t_global = R * vect<double,3>(0.0, 0.0, -1.0 / mMass);
+//       vect<double,3> t_global = vect<double,3>(0.0, 0.0, -1.0 / mMass);
       set_block(B, mat_vect_adaptor< vect<double,3> >(t_global), 3, 0);
       set_block(B, mInertiaMomentInv, 9, 1);
       

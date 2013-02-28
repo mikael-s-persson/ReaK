@@ -184,7 +184,6 @@ class IHAQR_topology : public named_object
     mat<double,mat_structure::diagonal> m_R;
     mat<double,mat_structure::diagonal> m_Q;
     double m_time_step;
-    system_input_type m_input_bandwidth;
     double m_max_time_horizon;
     double m_goal_proximity_threshold;
     
@@ -194,7 +193,7 @@ class IHAQR_topology : public named_object
       // compute u
       matrixC_type Ctmp;
       matrixD_type Dtmp;
-      vect_n<double> f = to_vect<double>(m_system->get_state_derivative(m_space, a.x, a.lin_data->u, 0.0));
+      vect_n<double> f = - to_vect<double>(m_system->get_state_derivative(m_space, a.x, a.lin_data->u, 0.0));
       mat_vect_adaptor< vect_n<double> > f_m(f);
       m_system->get_linear_blocks(a.lin_data->A, a.lin_data->B, Ctmp, Dtmp, m_space, 0.0, a.x, a.lin_data->u);
       vect_n<double> u = to_vect<double>(a.lin_data->u);
@@ -221,8 +220,13 @@ class IHAQR_topology : public named_object
       // solve for M, K, and u_bias
       try {
         vect_n<double> u_bias_v = to_vect<double>(a.lin_data->u);
-        solve_IHCT_AQR_with_reduction(a.lin_data->A, a.lin_data->B, c_v, m_Q, m_R, 
-                                      a.IHAQR_data->K, a.IHAQR_data->M, u_bias_v, 1e-3, true);
+        std::cout << " Asys = " << a.lin_data->A << std::endl;
+        std::cout << " Bsys = " << a.lin_data->B << std::endl;
+        std::cout << " u_sys = " << a.lin_data->u << std::endl;
+//         solve_IHCT_AQR_with_reduction(a.lin_data->A, a.lin_data->B, c_v, m_Q, m_R, 
+//                                       a.IHAQR_data->K, a.IHAQR_data->M, u_bias_v, 1e-3, true);
+        solve_IHCT_AQR(a.lin_data->A, a.lin_data->B, c_v, m_Q, m_R, 
+                       a.IHAQR_data->K, a.IHAQR_data->M, u_bias_v, 1e-4, true);
         a.IHAQR_data->u_bias = from_vect<system_input_type>(u_bias_v);
         std::cout << " IHAQR Gain = " << a.IHAQR_data->K << std::endl;
         std::cout << " IHAQR bias = " << a.IHAQR_data->u_bias << std::endl;
@@ -238,6 +242,8 @@ class IHAQR_topology : public named_object
     
     point_type move_position_toward_impl(const point_type& a, double fraction, const point_type& b, bool with_collision_check) const 
     {
+      if(!a.IHAQR_data)
+        compute_IHAQR_data(a);
       if(!b.IHAQR_data)
         compute_IHAQR_data(b);
       state_type goal_point = m_space.move_position_toward(a.x, fraction, b.x);
@@ -251,15 +257,20 @@ class IHAQR_topology : public named_object
       while( ( current_time < m_max_time_horizon ) &&
              ( m_space.distance(x_current, goal_point) > m_goal_proximity_threshold ) ) {
         // compute the current IHAQR input
+        std::cout << " t = " << current_time << std::endl;
+        std::cout << " x_difference = " << m_space.difference(x_current, goal_point) << std::endl;
         system_input_type u_current = b.lin_data->u 
                                     - from_vect< system_input_type >(
                                         b.IHAQR_data->K * to_vect<double>(m_space.difference(x_current, goal_point))) 
                                     - b.IHAQR_data->u_bias;
+        std::cout << " u_current (before bounding) = " << u_current << std::endl;
         m_input_space.bring_point_in_bounds(u_current);
         
         system_input_type du_dt = (u_current - u_prev) * (1.0 / m_time_step);
         m_input_rate_space.bring_point_in_bounds(du_dt);
         u_current = u_prev + m_time_step * du_dt;
+        
+        std::cout << " u_current (after bounding) = " << u_current << std::endl;
         
         constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
         
@@ -273,6 +284,7 @@ class IHAQR_topology : public named_object
           current_time,
           current_time + m_time_step,
           m_time_step * 1e-2);
+        std::cout << " x_next = " << x_next << std::endl;
         /*ctrl::detail::dormand_prince45_integrate_impl(
           m_space,
           *m_system,
@@ -442,10 +454,10 @@ class IHAQR_topology : public named_object
       A & RK_SERIAL_SAVE_WITH_NAME(m_system)
         & RK_SERIAL_SAVE_WITH_NAME(m_space)
         & RK_SERIAL_SAVE_WITH_NAME(m_input_space)
+        & RK_SERIAL_SAVE_WITH_NAME(m_input_rate_space)
         & RK_SERIAL_SAVE_WITH_NAME(m_R)
         & RK_SERIAL_SAVE_WITH_NAME(m_Q)
         & RK_SERIAL_SAVE_WITH_NAME(m_time_step)
-        & RK_SERIAL_SAVE_WITH_NAME(m_input_bandwidth)
         & RK_SERIAL_SAVE_WITH_NAME(m_max_time_horizon)
         & RK_SERIAL_SAVE_WITH_NAME(m_goal_proximity_threshold);
     };
@@ -455,10 +467,10 @@ class IHAQR_topology : public named_object
       A & RK_SERIAL_LOAD_WITH_NAME(m_system)
         & RK_SERIAL_LOAD_WITH_NAME(m_space)
         & RK_SERIAL_LOAD_WITH_NAME(m_input_space)
+        & RK_SERIAL_LOAD_WITH_NAME(m_input_rate_space)
         & RK_SERIAL_LOAD_WITH_NAME(m_R)
         & RK_SERIAL_LOAD_WITH_NAME(m_Q)
         & RK_SERIAL_LOAD_WITH_NAME(m_time_step)
-        & RK_SERIAL_LOAD_WITH_NAME(m_input_bandwidth)
         & RK_SERIAL_LOAD_WITH_NAME(m_max_time_horizon)
         & RK_SERIAL_LOAD_WITH_NAME(m_goal_proximity_threshold);
     };

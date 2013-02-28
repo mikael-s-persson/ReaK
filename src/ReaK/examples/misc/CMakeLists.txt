@@ -36,6 +36,10 @@ if(COIN3D_FOUND AND QT_FOUND)
   target_link_libraries(quadrotor_scene reak_examples reak_kte_coin reak_geom_coin reak_topologies reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
   target_link_libraries(quadrotor_scene ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
   
+  add_executable(build_quadrotor_space "${SRCROOT}${RKMISCEXAMPLESDIR}/build_quadrotor_space.cpp")
+  setup_custom_target(build_quadrotor_space "${SRCROOT}${RKMISCEXAMPLESDIR}")
+  target_link_libraries(build_quadrotor_space reak_examples reak_topologies reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
+  
   add_executable(X8_test_scene "${SRCROOT}${RKMISCEXAMPLESDIR}/X8_test_scene.cpp")
   setup_custom_target(X8_test_scene "${SRCROOT}${RKMISCEXAMPLESDIR}")
   target_link_libraries(X8_test_scene reak_examples reak_kte_coin reak_geom_coin reak_topologies reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
