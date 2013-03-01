@@ -450,7 +450,7 @@ class MEAQR_topology : public named_object
 //       std::cout << " t_optimal = " << T_optimal << std::endl;
       
 //       RK_NOTICE(1," reached!");
-      state_type goal_point = m_IHAQR_space->m_space.move_position_toward(a.x, fraction, b.x);
+      double T_goal = fraction * (T_optimal + 2.0 * m_MEAQR_data_step_size);
 //       RK_NOTICE(1," reached!");
       mat<double,mat_structure::rectangular> K = invert(m_IHAQR_space->m_R) * transpose_view(b.lin_data->B);
 //       RK_NOTICE(1," reached!");
@@ -465,7 +465,7 @@ class MEAQR_topology : public named_object
       // Iterate through the MEAQR sequence points.
       double current_time = 0.0;
       double accum_steer_cost = 0.0;
-      while(min_it != b.MEAQR_data->pts.begin()) {
+      while(( current_time < T_goal ) && (min_it != b.MEAQR_data->pts.begin())) {
         Iter prev_it = min_it;
         --min_it;
         
@@ -474,8 +474,9 @@ class MEAQR_topology : public named_object
         
         bool ended_in_collision = false;
         // while not reached (fly-by) the goal yet:
-        while( ( current_time < T_optimal - min_it->first ) &&
-               ( m_IHAQR_space->m_space.distance(x_current, goal_point) > m_IHAQR_space->m_goal_proximity_threshold ) ) {
+        while( ( current_time < T_goal ) &&
+               ( current_time < T_optimal - min_it->first ) &&
+               ( m_IHAQR_space->m_space.distance(x_current, b.x) > m_IHAQR_space->m_goal_proximity_threshold ) ) {
           // compute the current MEAQR input
           double prev_fraction = (current_time - T_optimal + prev_it->first) / m_MEAQR_data_step_size;
           double next_fraction = (T_optimal - min_it->first - current_time) / m_MEAQR_data_step_size;
@@ -551,12 +552,11 @@ class MEAQR_topology : public named_object
       
       bool ended_in_collision = false;
       // while not reached (fly-by) the goal yet:
-      while( ( current_time < T_optimal + 2.0 * m_MEAQR_data_step_size ) &&
-             ( m_IHAQR_space->m_space.distance(x_current, goal_point) > m_IHAQR_space->m_goal_proximity_threshold ) ) {
+      while( ( current_time < T_goal ) && 
+             ( m_IHAQR_space->m_space.distance(x_current, b.x) > m_IHAQR_space->m_goal_proximity_threshold ) ) {
         // compute the current MEAQR input
         mat<double,mat_structure::square> H = get<1>(min_it->second);
         vect_n<double> eta = get<2>(min_it->second);
-<<<<<<< HEAD
 //         std::cout << "eta = " << eta << std::endl;
 //       RK_NOTICE(1," reached!");
         
@@ -570,21 +570,6 @@ class MEAQR_topology : public named_object
         
         system_input_type u_current = b.lin_data->u - K * (HHx + eta);
 //         std::cout << " u_current (before bounding) = " << u_current << std::endl;
-=======
-        std::cout << "eta = " << eta << std::endl;
-//       RK_NOTICE(1," reached!");
-        
-        vect_n<double> HHx = to_vect<double>(m_IHAQR_space->m_space.difference(x_current, b.x));
-        std::cout << "dx = " << HHx << std::endl;
-        std::cout << "H = " << H << std::endl;
-        mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
-        ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
-        std::cout << "M * dx = " << HHx << std::endl;
-//       RK_NOTICE(1," reached!");
-        
-        system_input_type u_current = b.lin_data->u - K * (HHx + eta);
-        std::cout << " u_current (before bounding) = " << u_current << std::endl;
->>>>>>> c6cc8e58257574778a75453e16d1c65a58bf5f83
         m_IHAQR_space->m_input_space.bring_point_in_bounds(u_current);
 //       RK_NOTICE(1," reached!");
         
@@ -592,11 +577,7 @@ class MEAQR_topology : public named_object
         m_IHAQR_space->m_input_rate_space.bring_point_in_bounds(du_dt);
         u_current = u_prev + m_IHAQR_space->m_time_step * du_dt;
 //       RK_NOTICE(1," reached!");
-<<<<<<< HEAD
 //         std::cout << " u_current (after bounding) = " << u_current << std::endl;
-=======
-        std::cout << " u_current (after bounding) = " << u_current << std::endl;
->>>>>>> c6cc8e58257574778a75453e16d1c65a58bf5f83
         
         accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
         
@@ -630,11 +611,7 @@ class MEAQR_topology : public named_object
         if((!with_collision_check) || is_free_impl(x_next)) {
           x_current = x_next;
           current_time += m_IHAQR_space->m_time_step;
-<<<<<<< HEAD
 //           std::cout << " time = " << current_time << "  state = " << x_current << std::endl;
-=======
-          std::cout << " time = " << current_time << "  state = " << x_current << std::endl;
->>>>>>> c6cc8e58257574778a75453e16d1c65a58bf5f83
           u_prev = u_current;
         } else {
           ended_in_collision = true;

@@ -34,7 +34,9 @@ int main(int argc, char ** argv) {
     
     shared_ptr< plane > floor = shared_ptr< plane >(new plane("floor", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(2.5,2.5,0.0), quaternion<double>()),
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), 
+        vect<double,3>(2.5,2.5,0.0), 
+        quaternion<double>::xrot(M_PI).getQuaternion()),
       vect<double,2>(5.0,5.0)));
     
     shared_ptr< box > building = shared_ptr< box >(new box("building", 
@@ -67,7 +69,9 @@ int main(int argc, char ** argv) {
     
     shared_ptr< plane > floor = shared_ptr< plane >(new plane("floor", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(2.5,2.5,0.0), quaternion<double>()),
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), 
+        vect<double,3>(2.5,2.5,0.0), 
+        quaternion<double>::xrot(M_PI).getQuaternion()),
       vect<double,2>(5.0,5.0)));
     
     shared_ptr< box > wall1 = shared_ptr< box >(new box("wall1", 

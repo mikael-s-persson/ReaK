@@ -240,13 +240,19 @@ class frame_tracer_3D : public shared_object {
       double t = 0.0;
       PointType u_pt = p->get_start_point();
       JointState s_u = map_to_jt_space.map_to_space(u_pt, free_space.get_super_space(), *jt_space);
+      JointState s_prev = map_to_jt_space.map_to_space(p->get_end_point(), free_space.get_super_space(), *jt_space);
+      double total_dist = get(distance_metric, *jt_space)(s_u, s_prev, *jt_space);
       dk_map.apply_to_model(s_u, *jt_space);
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
         current_trace[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
-      while(get(distance_metric, free_space.get_super_space())(u_pt, p->get_end_point(), free_space.get_super_space()) > interval_size) {
+      while(get(distance_metric, *jt_space)(s_prev, s_u, *jt_space) > 0.01 * total_dist) {
+      //while(get(distance_metric, free_space.get_super_space())(u_pt, p->get_end_point(), free_space.get_super_space()) > interval_size) {
+        s_prev = s_u;
         t += interval_size;
         u_pt = p->move_away_from(u_pt, interval_size);
         s_u = map_to_jt_space.map_to_space(u_pt, free_space.get_super_space(), *jt_space);
+        std::cout << "s_u = " << s_u << std::endl;
+        std::cout << "s_prev = " << s_prev << std::endl;
         dk_map.apply_to_model(s_u, *jt_space);
         for(std::size_t i = 0; i < traced_frames.size(); ++i)
           current_trace[i].add_point(traced_frames[i]->getGlobalPose().Position);

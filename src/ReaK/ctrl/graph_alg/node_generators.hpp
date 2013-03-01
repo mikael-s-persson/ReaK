@@ -153,7 +153,6 @@ struct rrg_node_generator {
       std::vector<Vertex> Pred;
       std::vector<Vertex> Succ;
       select_neighborhood(p_new, back_inserter(Pred), back_inserter(Succ), g, *space, g_position);
-      
       Vertex x_near = Vertex();
       if( detail::expand_to_nearest(x_near, p_new, Pred, g, vis) )
         return std::pair<Vertex,PositionValue>(x_near, p_new);

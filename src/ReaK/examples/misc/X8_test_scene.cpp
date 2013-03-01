@@ -129,21 +129,21 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
       X8_MEAQRCD_space_type::point_type start_point( start_state );
       X8_MEAQRCD_space_type::point_type goal_point( goal_state );
       
-//       typedef frame_tracer_3D<
-//         manip_direct_kin_map,
-//         quadrotor_system::state_space_type,
-//         MEAQR_to_state_mapper,
-//         print_sbmp_progress<> > frame_reporter_type;
-//       
-//       frame_reporter_type temp_reporter(
-//         manip_direct_kin_map(r_info->builder),
-//         shared_ptr<quadrotor_system::state_space_type>(&(r_info->X8_MEAQR_space->get_state_space()),null_deleter()),
-//         MEAQR_to_state_mapper(),
-//         0.1);
-//       temp_reporter.add_traced_frame(r_info->target_frame);
+      typedef frame_tracer_3D<
+        manip_direct_kin_map,
+        quadrotor_system::state_space_type,
+        MEAQR_to_state_mapper,
+        print_sbmp_progress<> > frame_reporter_type;
       
-      typedef print_sbmp_progress<> frame_reporter_type;
-      frame_reporter_type temp_reporter;
+      frame_reporter_type temp_reporter(
+        manip_direct_kin_map(r_info->builder),
+        shared_ptr<quadrotor_system::state_space_type>(&(r_info->X8_MEAQR_space->get_state_space()),null_deleter()),
+        MEAQR_to_state_mapper(),
+        5);
+      temp_reporter.add_traced_frame(r_info->target_frame);
+      
+//       typedef print_sbmp_progress<> frame_reporter_type;
+//       frame_reporter_type temp_reporter;
       
       typedef MEAQR_rrtstar_planner< 
         quadrotor_system::state_space_type, 
@@ -180,13 +180,13 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
       
       X8_planner.solve_path();
       
-//       mg_sep = X8_planner.get_reporter().get_motion_graph_tracer(r_info->target_frame).get_separator();
-//       mg_sep->ref();
-//       
-//       for(std::size_t i = 0; i < X8_planner.get_reporter().get_solution_count(); ++i) {
-//         sol_seps.push_back(X8_planner.get_reporter().get_solution_tracer(r_info->target_frame, i).get_separator());
-//         sol_seps.back()->ref();
-//       };
+      mg_sep = X8_planner.get_reporter().get_motion_graph_tracer(r_info->target_frame).get_separator();
+      mg_sep->ref();
+      
+      for(std::size_t i = 0; i < X8_planner.get_reporter().get_solution_count(); ++i) {
+        sol_seps.push_back(X8_planner.get_reporter().get_solution_tracer(r_info->target_frame, i).get_separator());
+        sol_seps.back()->ref();
+      };
       
     } catch( ReaK::optim::infeasible_problem& e ) { RK_UNUSED(e);
       

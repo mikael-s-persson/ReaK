@@ -125,13 +125,13 @@ class MEAQR_rrtstar_planner : public sample_based_planner< path_planner_base< ME
     void check_goal_connection(const point_type& p_u, Vertex u, Graph& g) {
       point_type result_p = this->m_space->move_position_toward(p_u, 1.0, this->m_goal_pos);
       // NOTE Differs from rrtstar_path_planner HERE:
-      double best_case_dist = get(distance_metric, this->m_space->get_state_space())(p_u.x, this->m_goal_pos.x, this->m_space->get_state_space());
+      double diff_dist = get(distance_metric, this->m_space->get_state_space())(result_p.x, this->m_goal_pos.x, this->m_space->get_state_space());
       double actual_dist = get(distance_metric, this->m_space->get_state_space())(p_u.x, result_p.x, this->m_space->get_state_space());
       
-      if(actual_dist < 0.99 * best_case_dist)
+      if(diff_dist > 0.05 * actual_dist)
         return;
       
-      double solutions_total_dist = actual_dist + g[u].distance_accum;
+      double solutions_total_dist = g[u].distance_accum + get(distance_metric, this->m_space->get_super_space())(p_u, this->m_goal_pos, this->m_space->get_super_space());
 //       if(solutions_total_dist >= this->m_solutions.begin()->first)
 //         return;
       
@@ -375,10 +375,12 @@ struct MEAQR_rrtstar_visitor {
     double best_case_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, p_dest.x, m_space->get_state_space());
     double actual_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, result_p.x, m_space->get_state_space());
     
-    if(actual_dist > 0.1 * best_case_dist)
+    if(actual_dist > 0.1 * best_case_dist) {
+      std::cout << "Steered successfully!" << std::endl;
       return std::make_pair(result_p, true);
-    else
+    } else {
       return std::make_pair(result_p, false);
+    };
   };
   
   template <typename Vertex, typename Graph>
@@ -387,12 +389,14 @@ struct MEAQR_rrtstar_visitor {
     
     // NOTE Differs from rrtstar_path_planner HERE:
     double best_case_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, g[v].position.x, m_space->get_state_space());
-    double actual_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, result_p.x, m_space->get_state_space());
+    double diff_dist = get(distance_metric, m_space->get_state_space())(result_p.x, g[v].position.x, m_space->get_state_space());
     
-    if(actual_dist > 0.95 * best_case_dist)
+    if(diff_dist < 0.1 * best_case_dist) {
+      std::cout << "Connected successfully!" << std::endl;
       return true;
-    else 
+    } else {
       return false;
+    };
   };
   
 };
@@ -426,8 +430,8 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
   typedef boost::data_member_property_map<double, MEAQR_rrtstar_edata<StateSpace, StateSpaceSystem, StateSpaceSampler> > WeightMap;
   WeightMap weight_map = WeightMap(&MEAQR_rrtstar_edata<StateSpace, StateSpaceSystem, StateSpaceSampler>::weight);
   
-  typedef fixed_topology_random_sampler< SpaceType > SamplerType;
-  SamplerType get_sample = SamplerType( this->m_space.get() );
+  typedef fixed_topology_random_sampler< SuperSpace > SamplerType;
+  SamplerType get_sample = SamplerType( &(this->m_space->get_super_space()) );
   
   double space_dim = double((to_vect<double>(this->m_space->get_state_space().difference(this->m_goal_pos.x,this->m_start_pos.x))).size()); 
   double space_Lc = get(distance_metric,this->m_space->get_state_space())(this->m_start_pos.x, this->m_goal_pos.x, this->m_space->get_state_space());
