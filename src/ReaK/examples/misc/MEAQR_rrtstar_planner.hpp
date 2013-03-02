@@ -365,11 +365,12 @@ struct MEAQR_rrtstar_visitor {
   template <typename Vertex, typename Graph>
   std::pair<PointType, bool> steer_towards_position(const PointType& p, Vertex u, Graph& g) const {
     // get a destination point that is half the distance to a point reachable by the IHAQR motion (with limited time-horizon):
-    PointType p_dest( m_space->get_state_space().adjust(g[u].position.x, 
-                      0.5 * m_space->get_state_space().difference(
-                        m_space->get_IHAQR_space().move_position_toward(g[u].position, 1.0, p).x, g[u].position.x) ) );
-    
-    PointType result_p = m_space->move_position_toward(g[u].position, 1.0, p_dest);
+//     PointType p_dest( m_space->get_state_space().adjust(g[u].position.x, 
+//                       0.5 * m_space->get_state_space().difference(
+//                         m_space->get_IHAQR_space().move_position_toward(g[u].position, 1.0, p).x, g[u].position.x) ) );
+    PointType p_dest = m_space->move_position_toward(g[u].position, 0.5, p);
+
+    PointType result_p = m_space->move_position_toward(g[u].position, 0.8, p_dest);
     
     // NOTE Differs from rrtstar_path_planner HERE:
     double best_case_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, p_dest.x, m_space->get_state_space());
@@ -391,7 +392,7 @@ struct MEAQR_rrtstar_visitor {
     double best_case_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, g[v].position.x, m_space->get_state_space());
     double diff_dist = get(distance_metric, m_space->get_state_space())(result_p.x, g[v].position.x, m_space->get_state_space());
     
-    if(diff_dist < 0.1 * best_case_dist) {
+    if(diff_dist < 0.05 * best_case_dist) {
       std::cout << "Connected successfully!" << std::endl;
       return true;
     } else {
@@ -433,8 +434,8 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
   typedef fixed_topology_random_sampler< SuperSpace > SamplerType;
   SamplerType get_sample = SamplerType( &(this->m_space->get_super_space()) );
   
-  double space_dim = double((to_vect<double>(this->m_space->get_state_space().difference(this->m_goal_pos.x,this->m_start_pos.x))).size()); 
-  double space_Lc = get(distance_metric,this->m_space->get_state_space())(this->m_start_pos.x, this->m_goal_pos.x, this->m_space->get_state_space());
+//   double space_dim = double((to_vect<double>(this->m_space->get_state_space().difference(this->m_goal_pos.x,this->m_start_pos.x))).size()); 
+//   double space_Lc = get(distance_metric,this->m_space->get_state_space())(this->m_start_pos.x, this->m_goal_pos.x, this->m_space->get_state_space());
   
   typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS,
                                  MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler>,
@@ -464,31 +465,35 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
       pos_map, 
       cost_map,
       weight_map,
+//       ReaK::graph::rrg_node_generator<
+//         IHAQRSpace, 
+//         SamplerType, 
+//         ReaK::graph::fixed_neighborhood< linear_pred_succ_search<> > >(
+//           &(this->m_space->get_IHAQR_space()), 
+//           get_sample, 
+//           ReaK::graph::fixed_neighborhood< linear_pred_succ_search<> >(
+//             linear_pred_succ_search<>(), 
+//             5, std::numeric_limits<double>::infinity())),
       ReaK::graph::rrg_node_generator<
-        IHAQRSpace, 
+        SuperSpace, 
         SamplerType, 
         ReaK::graph::fixed_neighborhood< linear_pred_succ_search<> > >(
-          &(this->m_space->get_IHAQR_space()), 
+          &(this->m_space->get_super_space()), 
           get_sample, 
           ReaK::graph::fixed_neighborhood< linear_pred_succ_search<> >(
             linear_pred_succ_search<>(), 
             5, std::numeric_limits<double>::infinity())),
       get(distance_metric, this->m_space->get_super_space()),
-      ReaK::graph::star_neighborhood< linear_pred_succ_search<> >(
+//       ReaK::graph::star_neighborhood< linear_pred_succ_search<> >(
+//         linear_pred_succ_search<>(), 
+//         space_dim, 3.0 * space_Lc), 
+      ReaK::graph::fixed_neighborhood< linear_pred_succ_search<> >(
         linear_pred_succ_search<>(), 
-        space_dim, 3.0 * space_Lc), 
+        5, std::numeric_limits<double>::infinity()),
       this->m_max_vertex_count);
     
   } else if(this->m_knn_flag == DVP_BF2_TREE_KNN) {
     
-    typedef dvp_tree<Vertex, IHAQRSpace, GraphPositionMap, 2, 
-                     random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<2>, 
-                     no_position_caching_policy > IHAQRSpacePartType;
-    IHAQRSpacePartType IHAQR_space_part(motion_graph, ReaK::shared_ptr<const IHAQRSpace>(&(this->m_space->get_IHAQR_space()),null_deleter()), g_pos_map);
-    
-    multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> IHAQR_nn_finder;
-    IHAQR_nn_finder.graph_tree_map[&motion_graph] = &IHAQR_space_part;
-    
     typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 2, 
                      random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<2>, 
                      no_position_caching_policy > SpacePartType;
@@ -497,11 +502,23 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
     multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> nn_finder;
     nn_finder.graph_tree_map[&motion_graph] = &space_part;
     
-    typedef composite_NNsynchro< 
-      multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>,
-      multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > DualNNSynchro;
+    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder);
     
-    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
+    
+//     typedef dvp_tree<Vertex, IHAQRSpace, GraphPositionMap, 2, 
+//                      random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<2>, 
+//                      no_position_caching_policy > IHAQRSpacePartType;
+//     IHAQRSpacePartType IHAQR_space_part(motion_graph, ReaK::shared_ptr<const IHAQRSpace>(&(this->m_space->get_IHAQR_space()),null_deleter()), g_pos_map);
+//     
+//     multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> IHAQR_nn_finder;
+//     IHAQR_nn_finder.graph_tree_map[&motion_graph] = &IHAQR_space_part;
+//     
+//     typedef composite_NNsynchro< 
+//       multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>,
+//       multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > DualNNSynchro;
+//     
+//     MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
+    
     
     ReaK::graph::detail::generate_rrt_star_loop(
       motion_graph, 
@@ -510,31 +527,35 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
       pos_map, 
       cost_map,
       weight_map,
+//       ReaK::graph::rrg_node_generator<
+//         IHAQRSpace, 
+//         SamplerType, 
+//         ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > >(
+//           &(this->m_space->get_IHAQR_space()), 
+//           get_sample, 
+//           ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> >(
+//             IHAQR_nn_finder, 
+//             5, std::numeric_limits<double>::infinity())),
       ReaK::graph::rrg_node_generator<
-        IHAQRSpace, 
+        SuperSpace, 
         SamplerType, 
-        ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > >(
-          &(this->m_space->get_IHAQR_space()), 
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> > >(
+          &(this->m_space->get_super_space()), 
           get_sample, 
-          ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> >(
-            IHAQR_nn_finder, 
+          ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+            nn_finder, 
             5, std::numeric_limits<double>::infinity())),
       get(distance_metric, this->m_space->get_super_space()),
-      ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc),
+      ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
         nn_finder, 
-        space_dim, 3.0 * space_Lc), 
+        5, std::numeric_limits<double>::infinity()),
       this->m_max_vertex_count);
     
   } else if(this->m_knn_flag == DVP_BF4_TREE_KNN) {
     
-    typedef dvp_tree<Vertex, IHAQRSpace, GraphPositionMap, 4, 
-                     random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<4>, 
-                     no_position_caching_policy > IHAQRSpacePartType;
-    IHAQRSpacePartType IHAQR_space_part(motion_graph, ReaK::shared_ptr<const IHAQRSpace>(&(this->m_space->get_IHAQR_space()),null_deleter()), g_pos_map);
-    
-    multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> IHAQR_nn_finder;
-    IHAQR_nn_finder.graph_tree_map[&motion_graph] = &IHAQR_space_part;
-    
     typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 4, 
                      random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<4>, 
                      no_position_caching_policy > SpacePartType;
@@ -543,11 +564,23 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
     multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> nn_finder;
     nn_finder.graph_tree_map[&motion_graph] = &space_part;
     
-    typedef composite_NNsynchro< 
-      multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>,
-      multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > DualNNSynchro;
+    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder);
     
-    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
+    
+//     typedef dvp_tree<Vertex, IHAQRSpace, GraphPositionMap, 4, 
+//                      random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<4>, 
+//                      no_position_caching_policy > IHAQRSpacePartType;
+//     IHAQRSpacePartType IHAQR_space_part(motion_graph, ReaK::shared_ptr<const IHAQRSpace>(&(this->m_space->get_IHAQR_space()),null_deleter()), g_pos_map);
+//     
+//     multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> IHAQR_nn_finder;
+//     IHAQR_nn_finder.graph_tree_map[&motion_graph] = &IHAQR_space_part;
+//     
+//     typedef composite_NNsynchro< 
+//       multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>,
+//       multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > DualNNSynchro;
+//     
+//     MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
+    
     
     ReaK::graph::detail::generate_rrt_star_loop(
       motion_graph, 
@@ -556,30 +589,34 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
       pos_map, 
       cost_map,
       weight_map,
+//       ReaK::graph::rrg_node_generator<
+//         IHAQRSpace, 
+//         SamplerType, 
+//         ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > >(
+//           &(this->m_space->get_IHAQR_space()), 
+//           get_sample, 
+//           ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> >(
+//             IHAQR_nn_finder, 
+//             5, std::numeric_limits<double>::infinity())),
       ReaK::graph::rrg_node_generator<
-        IHAQRSpace, 
+        SuperSpace, 
         SamplerType, 
-        ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > >(
-          &(this->m_space->get_IHAQR_space()), 
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> > >(
+          &(this->m_space->get_super_space()), 
           get_sample, 
-          ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> >(
-            IHAQR_nn_finder, 
+          ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+            nn_finder, 
             5, std::numeric_limits<double>::infinity())),
       get(distance_metric, this->m_space->get_super_space()),
-      ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc), 
+      ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
         nn_finder, 
-        space_dim, 3.0 * space_Lc), 
+        5, std::numeric_limits<double>::infinity()),
       this->m_max_vertex_count);
     
   } else if(this->m_knn_flag == DVP_COB2_TREE_KNN) {
-    
-    typedef dvp_tree<Vertex, IHAQRSpace, GraphPositionMap, 2, 
-                     random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<2>, 
-                     no_position_caching_policy > IHAQRSpacePartType;
-    IHAQRSpacePartType IHAQR_space_part(motion_graph, ReaK::shared_ptr<const IHAQRSpace>(&(this->m_space->get_IHAQR_space()),null_deleter()), g_pos_map);
-    
-    multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> IHAQR_nn_finder;
-    IHAQR_nn_finder.graph_tree_map[&motion_graph] = &IHAQR_space_part;
     
     typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 2, 
                      random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<2>, 
@@ -589,11 +626,23 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
     multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> nn_finder;
     nn_finder.graph_tree_map[&motion_graph] = &space_part;
     
-    typedef composite_NNsynchro< 
-      multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>,
-      multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > DualNNSynchro;
+    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder);
     
-    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
+    
+//     typedef dvp_tree<Vertex, IHAQRSpace, GraphPositionMap, 2, 
+//                      random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<2>, 
+//                      no_position_caching_policy > IHAQRSpacePartType;
+//     IHAQRSpacePartType IHAQR_space_part(motion_graph, ReaK::shared_ptr<const IHAQRSpace>(&(this->m_space->get_IHAQR_space()),null_deleter()), g_pos_map);
+//     
+//     multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> IHAQR_nn_finder;
+//     IHAQR_nn_finder.graph_tree_map[&motion_graph] = &IHAQR_space_part;
+//     
+//     typedef composite_NNsynchro< 
+//       multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>,
+//       multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > DualNNSynchro;
+//     
+//     MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
+    
     
     ReaK::graph::detail::generate_rrt_star_loop(
       motion_graph, 
@@ -602,30 +651,35 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
       pos_map, 
       cost_map,
       weight_map,
+//       ReaK::graph::rrg_node_generator<
+//         IHAQRSpace, 
+//         SamplerType, 
+//         ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > >(
+//           &(this->m_space->get_IHAQR_space()), 
+//           get_sample, 
+//           ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> >(
+//             IHAQR_nn_finder, 
+//             5, std::numeric_limits<double>::infinity())),
       ReaK::graph::rrg_node_generator<
-        IHAQRSpace, 
+        SuperSpace, 
         SamplerType, 
-        ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > >(
-          &(this->m_space->get_IHAQR_space()), 
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> > >(
+          &(this->m_space->get_super_space()), 
           get_sample, 
-          ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> >(
-            IHAQR_nn_finder, 
+          ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+            nn_finder, 
             5, std::numeric_limits<double>::infinity())),
       get(distance_metric, this->m_space->get_super_space()),
-      ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc), 
+      ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
         nn_finder, 
-        space_dim, 3.0 * space_Lc), 
+        5, std::numeric_limits<double>::infinity()),
       this->m_max_vertex_count);
     
   } else if(this->m_knn_flag == DVP_COB4_TREE_KNN) {
     
-    typedef dvp_tree<Vertex, IHAQRSpace, GraphPositionMap, 4, 
-                     random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<4>, 
-                     no_position_caching_policy > IHAQRSpacePartType;
-    IHAQRSpacePartType IHAQR_space_part(motion_graph, ReaK::shared_ptr<const IHAQRSpace>(&(this->m_space->get_IHAQR_space()),null_deleter()), g_pos_map);
-    
-    multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> IHAQR_nn_finder;
-    IHAQR_nn_finder.graph_tree_map[&motion_graph] = &IHAQR_space_part;
     
     typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 4, 
                      random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<4>, 
@@ -635,11 +689,24 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
     multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> nn_finder;
     nn_finder.graph_tree_map[&motion_graph] = &space_part;
     
-    typedef composite_NNsynchro< 
-      multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>,
-      multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > DualNNSynchro;
+    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder);
     
-    MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
+    
+//     typedef dvp_tree<Vertex, IHAQRSpace, GraphPositionMap, 4, 
+//                      random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<4>, 
+//                      no_position_caching_policy > IHAQRSpacePartType;
+//     IHAQRSpacePartType IHAQR_space_part(motion_graph, ReaK::shared_ptr<const IHAQRSpace>(&(this->m_space->get_IHAQR_space()),null_deleter()), g_pos_map);
+//     
+//     multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> IHAQR_nn_finder;
+//     IHAQR_nn_finder.graph_tree_map[&motion_graph] = &IHAQR_space_part;
+//     
+//     typedef composite_NNsynchro< 
+//       multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>,
+//       multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > DualNNSynchro;
+//     
+//     MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, DualNNSynchro, SBPPReporter> vis(this->m_space, this, DualNNSynchro(nn_finder, IHAQR_nn_finder));
+//     
+    
     
     ReaK::graph::detail::generate_rrt_star_loop(
       motion_graph, 
@@ -648,19 +715,31 @@ shared_ptr< path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpaceSyst
       pos_map, 
       cost_map,
       weight_map,
+//       ReaK::graph::rrg_node_generator<
+//         IHAQRSpace, 
+//         SamplerType, 
+//         ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > >(
+//           &(this->m_space->get_IHAQR_space()), 
+//           get_sample, 
+//           ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> >(
+//             IHAQR_nn_finder, 
+//             5, std::numeric_limits<double>::infinity())),
       ReaK::graph::rrg_node_generator<
-        IHAQRSpace, 
+        SuperSpace, 
         SamplerType, 
-        ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> > >(
-          &(this->m_space->get_IHAQR_space()), 
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> > >(
+          &(this->m_space->get_super_space()), 
           get_sample, 
-          ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, IHAQRSpacePartType> >(
-            IHAQR_nn_finder, 
+          ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+            nn_finder, 
             5, std::numeric_limits<double>::infinity())),
       get(distance_metric, this->m_space->get_super_space()),
-      ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc), 
+      ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
         nn_finder, 
-        space_dim, 3.0 * space_Lc), 
+        5, std::numeric_limits<double>::infinity()),
       this->m_max_vertex_count);
     
   };

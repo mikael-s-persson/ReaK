@@ -102,25 +102,24 @@ namespace detail {
       
     public:
       lin_payload* lin_data;
-      IHAQR_payload* IHAQR_data;
       mat<double,mat_structure::square> BRBmatrix;
       vect_n<double> stat_drift;
       
     public:
       
       MEAQR_ZIR_system(lin_payload* aLinData = NULL, 
-                       IHAQR_payload* aIHAQRData = NULL,
-                       const mat<double,mat_structure::diagonal>& aR = (mat<double,mat_structure::diagonal>())) : lin_data(aLinData), IHAQR_data(aIHAQRData) {
-        if(!IHAQR_data || !lin_data)
+                       const mat<double,mat_structure::diagonal>& aR = (mat<double,mat_structure::diagonal>())) : 
+                       lin_data(aLinData) {
+        if(!lin_data)
           return;
         
         BRBmatrix = lin_data->B * invert(aR) * transpose_view(lin_data->B);
-        stat_drift = to_vect<double>(IHAQR_data->c);
+        stat_drift = to_vect<double>(lin_data->c);
       };
       
       
       point_derivative_type get_state_derivative(const state_space_type&, const point_type& p, input_type, double) const {
-        if(!IHAQR_data || !lin_data)
+        if(!lin_data)
           return point_derivative_type();
         
         const mat<double,mat_structure::square>& L = get<0>(p);
@@ -331,14 +330,13 @@ class MEAQR_topology : public named_object
     double m_idle_power_cost;
     
     void compute_MEAQR_data(const point_type& p) const {
-      m_IHAQR_space->compute_IHAQR_data(p);
+      m_IHAQR_space->compute_linearization_data(p);
       if(p.MEAQR_data)
         return;
       p.MEAQR_data = shared_ptr< MEAQR_payload >(new MEAQR_payload());
       
       detail::MEAQR_ZIR_system<StateSpace, StateSpaceSystem> MEAQR_sys(
         p.lin_data.get(), 
-        p.IHAQR_data.get(),
         m_IHAQR_space->m_R);
       
       vector_topology< MEAQR_bundle_type > MEAQR_sys_space;
@@ -365,18 +363,6 @@ class MEAQR_topology : public named_object
       p.MEAQR_data->pts.push_back(std::make_pair(current_time, current_point));
       while( current_time < m_IHAQR_space->m_max_time_horizon )  {
         // integrate for one time-step.
-//         ReaK::ctrl::detail::dormand_prince45_integrate_impl(
-//           MEAQR_sys_space,
-//           MEAQR_sys,
-//           start_point,
-//           current_point,
-//           input_traj,
-//           current_time,
-//           current_time + m_MEAQR_data_step_size,
-//           m_MEAQR_data_step_size * 1e-2,
-//           1e-3,
-//           m_MEAQR_data_step_size * 1e-6,
-//           m_MEAQR_data_step_size * 0.1);
         ReaK::ctrl::detail::runge_kutta4_integrate_impl(
           MEAQR_sys_space,
           MEAQR_sys,
@@ -419,59 +405,95 @@ class MEAQR_topology : public named_object
       
       vect_n<double> a_rel = to_vect<double>(m_IHAQR_space->m_space.difference(a.x, b.x));
       
-      bool found_T_optimal = false;
       for(Iter it = b.MEAQR_data->pts.begin(); it != b.MEAQR_data->pts.end(); ++it) {
         
         vect_n<double> s = eAt * a_rel + get<3>(it->second);  // ZIR(a_rel, t);
         
         // s = invert(L) * s
         mat_vect_adaptor< vect_n<double> > s_m(s);
-//         std::cout << " t = \t" << std::setw(10) << it->first << std::endl;
-//         std::cout << " L = \t" << get<0>(it->second) << std::endl;
         ReaK::detail::forwardsub_L_impl(get<0>(it->second), s_m, 1e-6);
         
         double J = m_idle_power_cost * it->first + 0.5 * (s * s); 
-//         std::cout << " J = \t" << std::setw(10) << J << std::endl;
         if(J < min_J) {
           min_J = J;
           min_it = it;
         };
         if(min_J < m_idle_power_cost * it->first) {
-          found_T_optimal = true;
           break;
         };
         
         eAt = eAdt * eAt;
       };
-      if(!found_T_optimal)
-        return point_type( m_IHAQR_space->move_position_toward(a, fraction, b).x );
       
       double T_optimal = min_it->first;
 //       std::cout << " t_optimal = " << T_optimal << std::endl;
-      
-//       RK_NOTICE(1," reached!");
       double T_goal = fraction * (T_optimal + 2.0 * m_MEAQR_data_step_size);
-//       RK_NOTICE(1," reached!");
       mat<double,mat_structure::rectangular> K = invert(m_IHAQR_space->m_R) * transpose_view(b.lin_data->B);
-//       RK_NOTICE(1," reached!");
       state_type x_current = a.x;
       state_type x_next = x_current;
-//       RK_NOTICE(1," reached!");
       system_input_type u_prev = a.lin_data->u;
-//       RK_NOTICE(1," reached!");
       m_IHAQR_space->m_input_space.bring_point_in_bounds(u_prev);
-//       RK_NOTICE(1," reached!");
       
-      // Iterate through the MEAQR sequence points.
       double current_time = 0.0;
       double accum_steer_cost = 0.0;
+      
+      if(min_it == b.MEAQR_data->pts.end() - 1) {
+        T_optimal += (min_J / m_idle_power_cost - T_optimal) * 0.5;
+        T_goal = fraction * (T_optimal + 2.0 * m_MEAQR_data_step_size);
+        mat<double,mat_structure::square> H = get<1>(min_it->second);
+        vect_n<double> eta = get<2>(min_it->second);
+        
+        bool ended_in_collision = false;
+        // while not reached (fly-by) the goal yet:
+        while( ( current_time < T_goal ) && 
+               ( current_time < T_optimal - m_IHAQR_space->m_max_time_horizon ) && 
+               ( m_IHAQR_space->m_space.distance(x_current, b.x) > m_IHAQR_space->m_goal_proximity_threshold ) ) {
+          // compute the current MEAQR input
+          vect_n<double> HHx = to_vect<double>(m_IHAQR_space->m_space.difference(x_current, b.x));
+          mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
+          ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
+          
+          system_input_type u_current = b.lin_data->u - K * (HHx + eta);
+          m_IHAQR_space->m_input_space.bring_point_in_bounds(u_current);
+          
+          system_input_type du_dt = (u_current - u_prev) * (1.0 / m_IHAQR_space->m_time_step);
+          m_IHAQR_space->m_input_rate_space.bring_point_in_bounds(du_dt);
+          u_current = u_prev + m_IHAQR_space->m_time_step * du_dt;
+          
+          accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
+          
+          constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
+          
+          // integrate for one time-step.
+          ReaK::ctrl::detail::runge_kutta4_integrate_impl(
+            m_IHAQR_space->m_space,
+            *(m_IHAQR_space->m_system),
+            x_current,
+            x_next,
+            input_traj,
+            current_time,
+            current_time + m_IHAQR_space->m_time_step,
+            m_IHAQR_space->m_time_step * 1e-1);
+          
+          if((!with_collision_check) || is_free_impl(x_next)) {
+            x_current = x_next;
+            current_time += m_IHAQR_space->m_time_step;
+            u_prev = u_current;
+          } else {
+            ended_in_collision = true;
+            break;
+          };
+        };
+        if(ended_in_collision)
+          return point_type( x_current );
+      };
+      
+      // Iterate through the MEAQR sequence points.
       while(( current_time < T_goal ) && (min_it != b.MEAQR_data->pts.begin())) {
         Iter prev_it = min_it;
         --min_it;
         
-//       RK_NOTICE(1," reached!");
         // integrate for some time steps.
-        
         bool ended_in_collision = false;
         // while not reached (fly-by) the goal yet:
         while( ( current_time < T_goal ) &&
@@ -482,46 +504,23 @@ class MEAQR_topology : public named_object
           double next_fraction = (T_optimal - min_it->first - current_time) / m_MEAQR_data_step_size;
           mat<double,mat_structure::square> H = prev_fraction * get<1>(prev_it->second) + next_fraction * get<1>(min_it->second);
           vect_n<double> eta = prev_fraction * get<2>(prev_it->second) + next_fraction * get<2>(min_it->second);
-//           std::cout << "eta = " << eta << std::endl;
-//       RK_NOTICE(1," reached!");
           
           vect_n<double> HHx = to_vect<double>(m_IHAQR_space->m_space.difference(x_current, b.x));
-//           std::cout << "dx = " << HHx << std::endl;
-//           std::cout << "H = " << H << std::endl;
           mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
           ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
-//           std::cout << "M * dx = " << HHx << std::endl;
-//       RK_NOTICE(1," reached!");
           
           system_input_type u_current = b.lin_data->u - K * (HHx + eta);
-//           std::cout << " u_current (before bounding) = " << u_current << std::endl;
           m_IHAQR_space->m_input_space.bring_point_in_bounds(u_current);
-//       RK_NOTICE(1," reached!");
           
           system_input_type du_dt = (u_current - u_prev) * (1.0 / m_IHAQR_space->m_time_step);
           m_IHAQR_space->m_input_rate_space.bring_point_in_bounds(du_dt);
           u_current = u_prev + m_IHAQR_space->m_time_step * du_dt;
-//       RK_NOTICE(1," reached!");
-//           std::cout << " u_current (after bounding) = " << u_current << std::endl;
           
           accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
           
-//       RK_NOTICE(1," reached!");
           constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
           
           // integrate for one time-step.
-//           ReaK::ctrl::detail::dormand_prince45_integrate_impl(
-//             m_IHAQR_space->m_space,
-//             *(m_IHAQR_space->m_system),
-//             x_current,
-//             x_next,
-//             input_traj,
-//             current_time,
-//             current_time + m_IHAQR_space->m_time_step,
-//             m_IHAQR_space->m_time_step * 1e-2,
-//             1e-3,
-//             m_IHAQR_space->m_time_step * 1e-6,
-//             m_IHAQR_space->m_time_step * 0.1);
           ReaK::ctrl::detail::runge_kutta4_integrate_impl(
             m_IHAQR_space->m_space,
             *(m_IHAQR_space->m_system),
@@ -531,12 +530,10 @@ class MEAQR_topology : public named_object
             current_time,
             current_time + m_IHAQR_space->m_time_step,
             m_IHAQR_space->m_time_step * 1e-1);
-//       RK_NOTICE(1," reached!");
           
           if((!with_collision_check) || is_free_impl(x_next)) {
             x_current = x_next;
             current_time += m_IHAQR_space->m_time_step;
-//             std::cout << " time = " << current_time << "  state = " << x_current << std::endl;
             u_prev = u_current;
           } else {
             ended_in_collision = true;
@@ -545,58 +542,32 @@ class MEAQR_topology : public named_object
         };
         if(ended_in_collision)
           return point_type( x_current );
-//       RK_NOTICE(1," reached!");
       
       };
-//       RK_NOTICE(1," reached!");
       
       bool ended_in_collision = false;
+      mat<double,mat_structure::square> H = get<1>(min_it->second);
+      vect_n<double> eta = get<2>(min_it->second);
       // while not reached (fly-by) the goal yet:
       while( ( current_time < T_goal ) && 
              ( m_IHAQR_space->m_space.distance(x_current, b.x) > m_IHAQR_space->m_goal_proximity_threshold ) ) {
         // compute the current MEAQR input
-        mat<double,mat_structure::square> H = get<1>(min_it->second);
-        vect_n<double> eta = get<2>(min_it->second);
-//         std::cout << "eta = " << eta << std::endl;
-//       RK_NOTICE(1," reached!");
-        
         vect_n<double> HHx = to_vect<double>(m_IHAQR_space->m_space.difference(x_current, b.x));
-//         std::cout << "dx = " << HHx << std::endl;
-//         std::cout << "H = " << H << std::endl;
         mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
         ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
-//         std::cout << "M * dx = " << HHx << std::endl;
-//       RK_NOTICE(1," reached!");
         
         system_input_type u_current = b.lin_data->u - K * (HHx + eta);
-//         std::cout << " u_current (before bounding) = " << u_current << std::endl;
         m_IHAQR_space->m_input_space.bring_point_in_bounds(u_current);
-//       RK_NOTICE(1," reached!");
         
         system_input_type du_dt = (u_current - u_prev) * (1.0 / m_IHAQR_space->m_time_step);
         m_IHAQR_space->m_input_rate_space.bring_point_in_bounds(du_dt);
         u_current = u_prev + m_IHAQR_space->m_time_step * du_dt;
-//       RK_NOTICE(1," reached!");
-//         std::cout << " u_current (after bounding) = " << u_current << std::endl;
         
         accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
         
-//       RK_NOTICE(1," reached!");
         constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
         
         // integrate for one time-step.
-//           ReaK::ctrl::detail::dormand_prince45_integrate_impl(
-//             m_IHAQR_space->m_space,
-//             *(m_IHAQR_space->m_system),
-//             x_current,
-//             x_next,
-//             input_traj,
-//             current_time,
-//             current_time + m_IHAQR_space->m_time_step,
-//             m_IHAQR_space->m_time_step * 1e-2,
-//             1e-3,
-//             m_IHAQR_space->m_time_step * 1e-6,
-//             m_IHAQR_space->m_time_step * 0.1);
         ReaK::ctrl::detail::runge_kutta4_integrate_impl(
           m_IHAQR_space->m_space,
           *(m_IHAQR_space->m_system),
@@ -606,12 +577,10 @@ class MEAQR_topology : public named_object
           current_time,
           current_time + m_IHAQR_space->m_time_step,
           m_IHAQR_space->m_time_step * 1e-1);
-//       RK_NOTICE(1," reached!");
         
         if((!with_collision_check) || is_free_impl(x_next)) {
           x_current = x_next;
           current_time += m_IHAQR_space->m_time_step;
-//           std::cout << " time = " << current_time << "  state = " << x_current << std::endl;
           u_prev = u_current;
         } else {
           ended_in_collision = true;
@@ -630,7 +599,7 @@ class MEAQR_topology : public named_object
       while(with_collision_check && !is_free_impl(result_pt))
         result_pt = m_IHAQR_space->m_get_sample(m_IHAQR_space->m_space);
       point_type result( result_pt );
-      m_IHAQR_space->compute_IHAQR_data(result);
+      m_IHAQR_space->compute_linearization_data(result);
       compute_MEAQR_data(result);
       return result;
     };
@@ -674,6 +643,7 @@ class MEAQR_topology : public named_object
         compute_MEAQR_data(b);
       
       double min_J = std::numeric_limits<double>::infinity();
+      double min_T = 0.0;
       
       typedef typename std::vector< std::pair<double, MEAQR_bundle_type> >::const_iterator Iter;
       
@@ -692,15 +662,19 @@ class MEAQR_topology : public named_object
         ReaK::detail::forwardsub_L_impl(get<0>(it->second), s_m, 1e-6);
         
         double J = m_idle_power_cost * it->first + 0.5 * (s * s); 
-        if(J < min_J)
+        if(J < min_J) {
           min_J = J;
+          min_T = it->first;
+        };
         if(min_J < m_idle_power_cost * it->first)
           break;
         
         eAt = eAdt * eAt;
       };
+      if(min_T < m_IHAQR_space->m_max_time_horizon - 0.5 * m_MEAQR_data_step_size)
+        return min_J;
       
-      return min_J;
+      return 0.25 * m_idle_power_cost * m_IHAQR_space->m_max_time_horizon + 0.75 * min_J;
     };
     
     /**
@@ -834,6 +808,9 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
     shared_ptr< kte::direct_kinematics_model > m_model; 
     
     virtual bool is_free_impl(const state_type& a) const {
+      
+      if(!this->get_state_space().is_in_bounds(a)) 
+        return false;
       
       detail::write_joint_coordinates_impl(a, this->m_IHAQR_space->get_state_space(), m_model);
       // update the kinematics model with the given joint states.

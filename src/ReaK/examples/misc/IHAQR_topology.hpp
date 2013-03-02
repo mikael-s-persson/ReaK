@@ -91,12 +91,12 @@ class IHAQR_point_type : public shared_object {
       system_input_type u;
       matrixA_type A;
       matrixB_type B;
+      state_derivative_type c;
     };
     
     struct IHAQR_payload {
       mat<double,mat_structure::square> M;      // IH-LQR cost-to-go matrix.
       mat<double,mat_structure::rectangular> K; // IH-LQR optimal gain matrix.
-      state_derivative_type c;
       system_input_type u_bias;
     };
     
@@ -244,6 +244,8 @@ class IHAQR_topology : public named_object
       // fill in A and B
       m_system->get_linear_blocks(a.lin_data->A, a.lin_data->B, Ctmp, Dtmp, m_space, 0.0, a.x, a.lin_data->u);
       
+      a.lin_data->c = m_system->get_state_derivative(m_space, a.x, a.lin_data->u, 0.0);
+      
     };
     
     void compute_IHAQR_data(const point_type& a) const {
@@ -254,8 +256,7 @@ class IHAQR_topology : public named_object
       a.IHAQR_data = shared_ptr< IHAQR_payload >(new IHAQR_payload());
       
       // compute c
-      a.IHAQR_data->c = m_system->get_state_derivative(m_space, a.x, a.lin_data->u, 0.0);
-      vect_n<double> c_v = to_vect<double>(a.IHAQR_data->c);
+      vect_n<double> c_v = to_vect<double>(a.lin_data->c);
       
       // solve for M, K, and u_bias
       try {

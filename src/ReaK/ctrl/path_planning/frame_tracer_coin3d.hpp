@@ -227,7 +227,7 @@ class frame_tracer_3D : public shared_object {
                        const shared_ptr< path_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& p) const {
       typedef typename topology_traits<FreeSpaceType>::point_type PointType;
       typedef typename topology_traits< JointStateSpace >::point_type JointState;
-      
+      /*
       double t_total = p->travel_distance(p->get_start_point(), p->get_end_point());
       if(!(solution_traces.empty()) && t_total > solution_traces.begin()->first) {
         next_reporter.draw_solution(free_space, p);
@@ -259,7 +259,7 @@ class frame_tracer_3D : public shared_object {
       };
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
         current_trace[i].end_edge();
-      
+      */
       next_reporter.draw_solution(free_space, p);
     };
   
