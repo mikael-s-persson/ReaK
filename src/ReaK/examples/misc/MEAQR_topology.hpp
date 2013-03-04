@@ -371,7 +371,8 @@ class MEAQR_topology : public named_object
           input_traj,
           current_time,
           current_time + m_MEAQR_data_step_size,
-          m_MEAQR_data_step_size * 1e-1);
+          m_MEAQR_data_step_size);
+//           m_MEAQR_data_step_size * 5e-1);
         start_point = current_point;
         current_time += m_MEAQR_data_step_size;
         p.MEAQR_data->pts.push_back(std::make_pair(current_time, current_point));
@@ -612,6 +613,10 @@ class MEAQR_topology : public named_object
     IHAQR_space_type& get_IHAQR_space() { return *m_IHAQR_space; };
     const IHAQR_space_type& get_IHAQR_space() const { return *m_IHAQR_space; };
     
+    
+    double get_max_time_horizon() const { return m_IHAQR_space->m_max_time_horizon; };
+    
+    double get_idle_power_cost() const { return m_idle_power_cost; };
     
     
     /**
@@ -870,6 +875,18 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
    /*************************************************************************
     *                         for PointDistributionConcept
     * **********************************************************************/
+    
+    /**
+     * Returns the distance between two points.
+     */
+    double distance(const point_type& a, const point_type& b) const {
+      point_type result = this->move_position_toward_impl(a, 1.0, b, true);
+      if(get(distance_metric,this->get_state_space())(a.x, b.x, this->get_state_space()) * 0.05 > get(distance_metric, this->get_state_space())(result.x, b.x, this->get_state_space()) ) {
+        return base_type::distance(a,b);
+      } else {
+        return std::numeric_limits<double>::infinity();
+      };
+    };
     
     /**
      * Generates a random point in the space, uniformly distributed.

@@ -333,10 +333,10 @@ struct MEAQR_sbastar_visitor {
   void vertex_added(Vertex u, Graph& g) const {
     m_nn_synchro.added_vertex(u,g);
     
-    g[u].heuristic_value = get(distance_metric, m_space->get_IHAQR_space())(
+    g[u].heuristic_value = get(distance_metric, m_space->get_super_space())(
       g[u].position,
       g[m_goal_node].position,
-      m_space->get_IHAQR_space());
+      m_space->get_super_space());
     
     g[u].constriction = 0.0;
     g[u].collision_count = 0;  // r
@@ -421,18 +421,14 @@ struct MEAQR_sbastar_visitor {
     unsigned int i = 0;
     do {
       
-      //decompose_Cholesky(invert(m_space->get_IHAQR_space().get_state_cost_matrix()) * (m_planner->get_sampling_radius() * m_planner->get_sampling_radius()), L);
-      
-      vect_n<double> z = to_vect<double>(m_space->get_state_space().difference(g[u].position.x, g[u].position.x));
-      for(std::size_t i = 0; i < z.size(); ++i)
-        z[i] = var_rnd();
-      
-//       PointType p_rnd( m_space->get_state_space().adjust(g[u].position.x, from_vect<state_difference_type>(L * z)) );
-      PointType p_rnd( m_space->get_state_space().adjust(g[u].position.x, from_vect<state_difference_type>(m_planner->get_sampling_radius() * z)) );
-      double target_dist = get_distance(g[u].position, p_rnd, m_space->get_super_space());
-      PointType p_v = m_space->move_position_toward(g[u].position, 1.0, p_rnd);
-      double dist = get_distance(g[u].position, p_v, m_space->get_super_space());
-      if( dist < 0.9 * target_dist ) {
+      PointType p_rnd = get_sample(m_space->get_super_space());
+      double dist = get_distance(g[u].position, p_rnd, m_space->get_super_space());
+      double target_dist = var_rnd() * m_planner->get_sampling_radius();
+      PointType p_inter( m_space->get_state_space().move_position_toward(g[u].position.x, target_dist / dist, p_rnd.x) );
+      target_dist = get_distance(g[u].position, p_inter, m_space->get_super_space());
+      PointType p_v = m_space->move_position_toward(g[u].position, 0.8, p_inter);
+      dist = get_distance(g[u].position, p_v, m_space->get_super_space());
+      if( dist < 0.7 * target_dist ) {
         // this means that we had a collision before reaching the target distance, 
         // must record that to the constriction statistic:
         double sig2_n = m_planner->get_sampling_radius() * m_planner->get_sampling_radius();
@@ -463,10 +459,10 @@ struct MEAQR_sbastar_visitor {
     typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
     using std::exp;
     
-    g[u].heuristic_value = get(distance_metric, m_space->get_IHAQR_space())(
+    g[u].heuristic_value = get(distance_metric, m_space->get_super_space())(
       g[u].position,
       g[m_goal_node].position,
-      m_space->get_IHAQR_space());
+      m_space->get_super_space());
     
     g[u].constriction = 0.0;
     g[u].collision_count = 0;  // r
@@ -536,11 +532,9 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
   PositionMap pos_map = PositionMap(&VertexProp::position);
   
   double space_dim = double((to_vect<double>(this->m_space->get_state_space().difference(this->m_goal_pos.x,this->m_start_pos.x))).size()); 
+  double space_Lc = get(distance_metric,this->m_space->get_super_space())(this->m_start_pos, this->m_goal_pos, this->m_space->get_super_space());
   
-//   double space_Lc = get(distance_metric,this->m_space->get_state_space())(this->m_start_pos.x, this->m_goal_pos.x, this->m_space->get_state_space());
-  double space_Lc = get(distance_metric,this->m_space->get_IHAQR_space())(this->m_start_pos, this->m_goal_pos, this->m_space->get_IHAQR_space());
-  
-//   double max_radius = 2.0 * m_sampling_radius;
+  double max_radius = 2.0 * m_sampling_radius;
     
   typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS,
                                  VertexProp,
@@ -599,12 +593,12 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
       get(&VertexProp::predecessor, motion_graph), 
       get(&VertexProp::key_value, motion_graph), 
       get(&VertexProp::astar_color, motion_graph),
-//         ReaK::graph::fixed_neighborhood< linear_pred_succ_search<> >(
-//           linear_pred_succ_search<>(), 
-//           10, max_radius),
-      ReaK::graph::star_neighborhood< linear_pred_succ_search<> >(
-        linear_pred_succ_search<>(), 
-        space_dim, 3.0 * space_Lc),
+        ReaK::graph::fixed_neighborhood< linear_pred_succ_search<> >(
+          linear_pred_succ_search<>(), 
+          10, max_radius),
+//       ReaK::graph::star_neighborhood< linear_pred_succ_search<> >(
+//         linear_pred_succ_search<>(), 
+//         space_dim, 3.0 * space_Lc),
       this->m_initial_threshold);
     
   } else if(m_knn_flag == DVP_BF2_TREE_KNN) {
@@ -630,12 +624,12 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
       get(&VertexProp::predecessor, motion_graph), 
       get(&VertexProp::key_value, motion_graph), 
       get(&VertexProp::astar_color, motion_graph),
-//         ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
-//           nn_finder, 
-//           10, max_radius),
-      ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
-        nn_finder, 
-        space_dim, 3.0 * space_Lc),
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+          nn_finder, 
+          10, max_radius),
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc),
       this->m_initial_threshold);
     
   } else if(m_knn_flag == DVP_BF4_TREE_KNN) {
@@ -661,12 +655,12 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
       get(&VertexProp::predecessor, motion_graph), 
       get(&VertexProp::key_value, motion_graph), 
       get(&VertexProp::astar_color, motion_graph),
-//         ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
-//           nn_finder, 
-//           10, max_radius),
-      ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
-        nn_finder, 
-        space_dim, 3.0 * space_Lc),
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+          nn_finder, 
+          10, max_radius),
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc),
       this->m_initial_threshold);
     
   } else if(m_knn_flag == DVP_COB2_TREE_KNN) {
@@ -692,12 +686,12 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
       get(&VertexProp::predecessor, motion_graph), 
       get(&VertexProp::key_value, motion_graph), 
       get(&VertexProp::astar_color, motion_graph),
-//         ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
-//           nn_finder, 
-//           10, max_radius),
-      ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
-        nn_finder, 
-        space_dim, 3.0 * space_Lc),
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+          nn_finder, 
+          10, max_radius),
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc),
       this->m_initial_threshold);
     
   } else if(m_knn_flag == DVP_COB4_TREE_KNN) {
@@ -723,12 +717,12 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
       get(&VertexProp::predecessor, motion_graph), 
       get(&VertexProp::key_value, motion_graph), 
       get(&VertexProp::astar_color, motion_graph),
-//         ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
-//           nn_finder, 
-//           10, max_radius),
-      ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
-        nn_finder, 
-        space_dim, 3.0 * space_Lc),
+        ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+          nn_finder, 
+          10, max_radius),
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc),
       this->m_initial_threshold);
     
   };

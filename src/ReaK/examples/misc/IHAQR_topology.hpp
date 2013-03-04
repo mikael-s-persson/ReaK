@@ -632,6 +632,18 @@ class IHAQR_topology_with_CD : public IHAQR_topology<StateSpace, StateSpaceSyste
     * **********************************************************************/
     
     /**
+     * Returns the distance between two points.
+     */
+    double distance(const point_type& a, const point_type& b) const {
+      point_type result = this->move_position_toward_impl(a, 1.0, b, true);
+      if(get(distance_metric,this->get_state_space())(a.x, b.x, this->get_state_space()) * 0.1 > get(distance_metric,this->get_state_space())(result.x, b.x, this->get_state_space()) ) {
+        return base_type::distance(a,b);
+      } else {
+        return std::numeric_limits<double>::infinity();
+      };
+    };
+    
+    /**
      * Generates a random point in the space, uniformly distributed.
      */
     point_type random_point() const {
@@ -646,8 +658,7 @@ class IHAQR_topology_with_CD : public IHAQR_topology<StateSpace, StateSpaceSyste
     /**
      * Returns a point which is at a fraction between two points a to b.
      */
-    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
-    {
+    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const {
       return this->move_position_toward_impl(a, fraction, b, true);
     };
     
