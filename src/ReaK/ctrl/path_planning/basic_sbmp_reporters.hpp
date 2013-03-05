@@ -40,7 +40,7 @@
 
 #include "subspace_concept.hpp"
 #include "trajectory_base.hpp"
-#include "path_base.hpp"
+#include "seq_path_base.hpp"
 #include <boost/graph/graph_concepts.hpp>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -83,7 +83,7 @@ struct no_sbmp_report : public shared_object {
    */
   template <typename FreeSpaceType>
   void draw_solution(const FreeSpaceType&, 
-                     const shared_ptr< path_base< typename subspace_traits<FreeSpaceType>::super_space_type > >&) const { };
+                     const shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > >&) const { };
   
   
 /*******************************************************************************
@@ -205,19 +205,21 @@ struct differ_sbmp_report_to_space : public shared_object {
    */
   template <typename FreeSpaceType>
   void draw_solution(const FreeSpaceType& free_space, 
-                     const shared_ptr< path_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& p) const {
+                     const shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& p) const {
     typedef typename topology_traits<FreeSpaceType>::point_type PointType;
+    typedef typename seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type >::point_distance_iterator PtIter;
     
     free_space.reset_output();
     
     double total_dist = 0.0;
-    PointType u_pt = p->get_start_point();
-    PointType v_pt = p->move_away_from(u_pt, interval_size);
-    while(v_pt != u_pt) {
+    
+    PtIter u_it = p->begin_distance_travel();
+    PtIter v_it = u_it; v_it += interval_size;
+    while(u_it != p->end_distance_travel()) {
       total_dist += interval_size;
-      free_space.draw_edge(u_pt, v_pt, true);
-      u_pt = v_pt;
-      v_pt = p->move_away_from(u_pt, interval_size);
+      free_space.draw_edge(*u_it, *v_it, true);
+      u_it = v_it;
+      v_it += interval_size;
     };
     
     std::stringstream ss;
@@ -312,7 +314,7 @@ struct timing_sbmp_report : public shared_object {
    */
   template <typename FreeSpaceType>
   void draw_solution(const FreeSpaceType& free_space, 
-                     const shared_ptr< path_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& p) const {
+                     const shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& p) const {
     next_reporter.draw_solution(free_space, p);
   };
   
@@ -391,7 +393,7 @@ struct print_sbmp_progress : public shared_object {
    */
   template <typename FreeSpaceType>
   void draw_solution(const FreeSpaceType& free_space, 
-                     const shared_ptr< path_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& p) const {
+                     const shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& p) const {
     std::cout << "Solution Found!" << std::endl;
     
     next_reporter.draw_solution(free_space, p);

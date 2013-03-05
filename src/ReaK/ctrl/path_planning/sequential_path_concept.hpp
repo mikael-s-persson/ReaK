@@ -55,9 +55,9 @@ struct sequential_path_traits {
   typedef typename SequentialPath::point_type point_type;
   
   /** This type describes an iterator, corresponding to a point on the path, which can be incremented by distance to travel to the next iterator. */
-  typedef typename SequentialPath::point_distance_iterator;
+  typedef typename SequentialPath::point_distance_iterator point_distance_iterator;
   /** This type describes an iterator, corresponding to a point on the path, which can be incremented by a fraction between waypoints to travel to the next iterator. */
-  typedef typename SequentialPath::point_fraction_iterator;
+  typedef typename SequentialPath::point_fraction_iterator point_fraction_iterator;
   
   /** This type is the topology type in which the path exists. */
   typedef typename SequentialPath::topology topology;

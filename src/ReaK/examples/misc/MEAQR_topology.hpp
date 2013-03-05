@@ -454,12 +454,11 @@ class MEAQR_topology : public named_object
           mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
           ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
           
-          system_input_type u_current = b.lin_data->u - K * (HHx + eta);
-          m_IHAQR_space->m_input_space.bring_point_in_bounds(u_current);
-          
-          system_input_type du_dt = (u_current - u_prev) * (1.0 / m_IHAQR_space->m_time_step);
-          m_IHAQR_space->m_input_rate_space.bring_point_in_bounds(du_dt);
-          u_current = u_prev + m_IHAQR_space->m_time_step * du_dt;
+//           system_input_type u_current = m_IHAQR_space->get_bounded_input(
+//             u_prev, 
+//             b.lin_data->u - K * eta, 
+//             -K * HHx);
+          system_input_type u_current = b.lin_data->u - K * eta - K * HHx;
           
           accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
           
@@ -510,12 +509,11 @@ class MEAQR_topology : public named_object
           mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
           ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
           
-          system_input_type u_current = b.lin_data->u - K * (HHx + eta);
-          m_IHAQR_space->m_input_space.bring_point_in_bounds(u_current);
-          
-          system_input_type du_dt = (u_current - u_prev) * (1.0 / m_IHAQR_space->m_time_step);
-          m_IHAQR_space->m_input_rate_space.bring_point_in_bounds(du_dt);
-          u_current = u_prev + m_IHAQR_space->m_time_step * du_dt;
+//           system_input_type u_current = m_IHAQR_space->get_bounded_input(
+//             u_prev, 
+//             b.lin_data->u - K * eta, 
+//             -K * HHx);
+          system_input_type u_current = b.lin_data->u - K * eta - K * HHx;
           
           accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
           
@@ -557,12 +555,11 @@ class MEAQR_topology : public named_object
         mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
         ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
         
-        system_input_type u_current = b.lin_data->u - K * (HHx + eta);
-        m_IHAQR_space->m_input_space.bring_point_in_bounds(u_current);
-        
-        system_input_type du_dt = (u_current - u_prev) * (1.0 / m_IHAQR_space->m_time_step);
-        m_IHAQR_space->m_input_rate_space.bring_point_in_bounds(du_dt);
-        u_current = u_prev + m_IHAQR_space->m_time_step * du_dt;
+//         system_input_type u_current = m_IHAQR_space->get_bounded_input(
+//           u_prev, 
+//           b.lin_data->u - K * eta, 
+//           -K * HHx);
+        system_input_type u_current = b.lin_data->u - K * eta - K * HHx;
         
         accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
         

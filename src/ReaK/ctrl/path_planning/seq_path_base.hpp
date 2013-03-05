@@ -173,7 +173,7 @@ class seq_path_base : public named_object {
         
       public:
         
-        point_fraction_iterator(point_distance_iterator_impl* aPImpl) : p_impl(aPImpl) { };
+        point_fraction_iterator(point_fraction_iterator_impl* aPImpl) : p_impl(aPImpl) { };
         
         point_fraction_iterator(const point_fraction_iterator& rhs) : p_impl(rhs.p_impl->clone()) { };
 #ifdef RK_ENABLE_CXX11_FEATURES
@@ -191,31 +191,31 @@ class seq_path_base : public named_object {
         
         friend 
         point_fraction_iterator operator+(point_fraction_iterator lhs, double rhs) {
-          lhs.p_impl->move_by_distance(rhs);
+          lhs.p_impl->move_by_fraction(rhs);
           return lhs;
         };
         
         friend 
         point_fraction_iterator operator+(double lhs, point_fraction_iterator rhs) {
-          rhs.p_impl->move_by_distance(lhs);
+          rhs.p_impl->move_by_fraction(lhs);
           return rhs;
         };
         
         friend
         point_fraction_iterator& operator+=(point_fraction_iterator& lhs, double rhs) {
-          lhs.p_impl->move_by_distance(rhs);
+          lhs.p_impl->move_by_fraction(rhs);
           return lhs;
         };
         
         friend 
         point_fraction_iterator operator-(point_fraction_iterator lhs, double rhs) {
-          lhs.p_impl->move_by_distance(-rhs);
+          lhs.p_impl->move_by_fraction(-rhs);
           return lhs;
         };
         
         friend
         point_fraction_iterator& operator-=(point_fraction_iterator& lhs, double rhs) {
-          lhs.p_impl->move_by_distance(-rhs);
+          lhs.p_impl->move_by_fraction(-rhs);
           return lhs;
         };
         
@@ -234,8 +234,6 @@ class seq_path_base : public named_object {
         const point_type& operator*() const {
           return p_impl->get_point();
         };
-        
-      };
       
     };
     
@@ -251,6 +249,8 @@ class seq_path_base : public named_object {
                        named_object() { 
       setName(aName);
     };
+    
+    virtual ~seq_path_base() { };
     
     /**
      * Returns the starting distance-iterator along the path.

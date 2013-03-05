@@ -57,12 +57,12 @@ namespace pp {
   
 
 /**
- * This class implements a linear-interpolated path within a topology.
- * The path is represented by a set of waypoints and all intermediate points 
- * are computed with a linear interpolation based on the distance. 
- * This class models the SpatialPathConcept.
- * \tparam Topology The topology type on which the points and the path can reside, should model the TemporalSpaceConcept.
- * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the TemporalDistMetricConcept.
+ * This class implements a point-to-point path within a topology (interpolated by whatever method is used in 
+ * the topology's move function). The path is represented by a set of waypoints and all intermediate points 
+ * are computed with the topology's move_position_toward function based on the distance or fraction of travel. 
+ * This class models the SpatialPathConcept and SequentialPathConcept.
+ * \tparam Topology The topology type on which the points and the path can reside, should model the MetricSpaceConcept.
+ * \tparam DistanceMetric The distance metric used to assess the distance between points in the path, should model the DistanceMetricConcept.
  */
 template <typename Topology, typename DistanceMetric = typename metric_space_traits<Topology>::distance_metric_type>
 class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
@@ -81,7 +81,16 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
     
     typedef std::pair<const_waypoint_descriptor, point_type> waypoint_pair;
     
+    
+    
   private:
+    
+    typedef typename base_class_type::container_type container_type;
+    
+    const container_type& get_waypoints() const { return this->waypoints; };
+    const distance_metric& get_dist() const { return this->dist; };
+    const topology& get_space() const { return *(this->space); };
+    
     
     double travel_distance_impl(const point_type& a, const const_waypoint_bounds& wpb_a, 
                                 const point_type& b, const const_waypoint_bounds& wpb_b) const {
@@ -138,6 +147,346 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
     };
     
   public:
+    
+    
+    struct point_distance_iterator {
+      const point_to_point_path* parent;
+      const_waypoint_bounds current_wpbound;
+      point_type current_pt;
+      double segment_distance;
+      double current_distance;
+      
+      point_distance_iterator(const point_to_point_path* aParent,
+                              const const_waypoint_bounds& aWPB, 
+                              const point_type& aCurrentPt) :
+                              parent(aParent),
+                              current_wpbound(aWPB), 
+                              current_pt(aCurrentPt) {
+        if(current_wpbound.first == current_wpbound.second) {
+          segment_distance = 0.0;
+          current_distance = 0.0;
+          return;
+        };
+        segment_distance = parent->get_dist()(*(current_wpbound.first), *(current_wpbound.second), parent->get_space());
+        double cur_d_back = parent->get_dist()(*(current_wpbound.first), current_pt, parent->get_space());
+        double cur_d_forth = parent->get_dist()(current_pt, *(current_wpbound.second), parent->get_space());
+        current_distance = (cur_d_back + (segment_distance - cur_d_forth)) * 0.5;
+        if(current_distance < 0.0)
+          current_distance = cur_d_back;
+      };
+      
+      point_distance_iterator(const point_to_point_path* aParent,
+                              const const_waypoint_bounds& aWPB) :
+                              parent(aParent),
+                              current_wpbound(aWPB), 
+                              current_pt(*(aWPB.first)) {
+        segment_distance = parent->get_dist()(*(current_wpbound.first), *(current_wpbound.second), parent->get_space());
+        current_distance = 0.0;
+      };
+                              
+#ifdef RK_ENABLE_CXX11_FEATURES
+      point_distance_iterator(const point_to_point_path* aParent,
+                              const_waypoint_bounds&& aWPB, 
+                              point_type&& aCurrentPt) :
+                              parent(aParent),
+                              current_wpbound(std::move(aWPB)), 
+                              current_pt(std::move(aCurrentPt)) {
+        if(current_wpbound.first == current_wpbound.second) {
+          segment_distance = 0.0;
+          current_distance = 0.0;
+          return;
+        };
+        segment_distance = parent->get_dist()(*(current_wpbound.first), *(current_wpbound.second), parent->get_space());
+        double cur_d_back = parent->get_dist()(*(current_wpbound.first), current_pt, parent->get_space());
+        double cur_d_forth = parent->get_dist()(current_pt, *(current_wpbound.second), parent->get_space());
+        current_distance = (cur_d_back + (segment_distance - cur_d_forth)) * 0.5;
+        if(current_distance < 0.0)
+          current_distance = cur_d_back;
+      };
+      
+      point_distance_iterator(const point_to_point_path* aParent,
+                              const_waypoint_bounds&& aWPB) :
+                              parent(aParent),
+                              current_wpbound(std::move(aWPB)), 
+                              current_pt(*(current_wpbound.first)) {
+        segment_distance = parent->get_dist()(*(current_wpbound.first), *(current_wpbound.second), parent->get_space());
+        current_distance = 0.0;
+      };
+#endif
+      
+      point_distance_iterator& operator+=(double rhs) {
+        if(current_wpbound.first == current_wpbound.second) {
+          // then we are at some edge of the set of waypoints.
+          if(current_wpbound.first == parent->get_waypoints().begin()) {
+            // we are at the beginning.
+            if(rhs < 0.0)
+              return *this;  // cannot move further back.
+            ++(current_wpbound.second);
+            if(current_wpbound.second == parent->get_waypoints().end()) {
+              current_wpbound.second = current_wpbound.first;
+              return *this;  // nothing beyond the first point.
+            };
+            segment_distance = parent->get_dist()(*(current_wpbound.first), *(current_wpbound.second), parent->get_space());
+          } else {
+            // we are at the end.
+            if(rhs > 0.0) 
+              return *this;  // cannot move further forward.
+            --(current_wpbound.first);
+            segment_distance = parent->get_dist()(*(current_wpbound.first), *(current_wpbound.second), parent->get_space());
+            current_distance = segment_distance;
+          };
+        };
+        
+        if( rhs < 0.0) {
+          while(current_distance + rhs < 0.0) {  // while spilling over before the current bounds.
+            if(current_wpbound.first == parent->get_waypoints().begin()) {
+              current_pt = *(current_wpbound.first);
+              current_wpbound.second = current_wpbound.first;
+              segment_distance = 0.0;
+              current_distance = 0.0;
+              return *this;
+            };
+            --(current_wpbound.first);
+            --(current_wpbound.second);
+            rhs += current_distance;
+            segment_distance = parent->get_dist()(*(current_wpbound.first), *(current_wpbound.second), parent->get_space());
+            current_distance = segment_distance;
+          };
+        } else {
+          while(segment_distance <= current_distance + rhs) {  // while spilling over beyond the current bounds.
+            ++(current_wpbound.first);
+            ++(current_wpbound.second);
+            rhs -= segment_distance - current_distance;
+            current_distance = 0.0;
+            if(current_wpbound.second == parent->get_waypoints().end()) {
+              current_pt = *(current_wpbound.first);
+              current_wpbound.second = current_wpbound.first;
+              segment_distance = 0.0;
+              current_distance = 0.0;
+              return *this;
+            };
+            segment_distance = parent->get_dist()(*(current_wpbound.first), *(current_wpbound.second), parent->get_space());
+          };
+        };
+        
+        double frac = (current_distance + rhs) / segment_distance;
+        current_pt = parent->get_space().move_position_toward(*(current_wpbound.first), frac, *(current_wpbound.second));
+        current_distance += rhs;
+        return *this;
+      };
+      
+      friend 
+      point_distance_iterator operator+(point_distance_iterator lhs, double rhs) {
+        return (lhs += rhs);
+      };
+      
+      friend 
+      point_distance_iterator operator+(double lhs, point_distance_iterator rhs) {
+        return (rhs += lhs);
+      };
+      
+      friend 
+      point_distance_iterator operator-(point_distance_iterator lhs, double rhs) {
+        return (lhs += -rhs);
+      };
+      
+      friend
+      point_distance_iterator& operator-=(point_distance_iterator& lhs, double rhs) {
+        return (lhs += -rhs);
+      };
+      
+      friend 
+      bool operator==(const point_distance_iterator& lhs, 
+                      const point_distance_iterator& rhs) {
+        using std::fabs;
+        if((lhs.parent == rhs.parent) && 
+           (lhs.current_wpbound.first == rhs.current_wpbound.first) &&
+           (lhs.current_wpbound.second == rhs.current_wpbound.second) &&
+           (fabs(lhs.current_distance - rhs.current_distance) <= std::numeric_limits<double>::epsilon()))
+          return true;
+        else 
+          return false;
+      };
+      
+      friend 
+      bool operator!=(const point_distance_iterator& lhs, 
+                      const point_distance_iterator& rhs) {
+        return !(lhs == rhs);
+      };
+      
+      const point_type& operator*() const {
+        return current_pt;
+      };
+      
+    };
+    
+    
+    struct point_fraction_iterator {
+      const point_to_point_path* parent;
+      const_waypoint_bounds current_wpbound;
+      point_type current_pt;
+      double current_fraction;
+      
+      point_fraction_iterator(const point_to_point_path* aParent,
+                              const const_waypoint_bounds& aWPB, 
+                              const point_type& aCurrentPt) :
+                              parent(aParent),
+                              current_wpbound(aWPB), 
+                              current_pt(aCurrentPt) {
+        if(current_wpbound.first == current_wpbound.second) {
+          current_fraction = 0.0;
+          return;
+        };
+        double segment_distance = parent->get_dist()(*(current_wpbound.first), *(current_wpbound.second), parent->get_space());
+        double cur_d_back = parent->get_dist()(*(current_wpbound.first), current_pt, parent->get_space());
+        double cur_d_forth = parent->get_dist()(current_pt, *(current_wpbound.second), parent->get_space());
+        double current_distance = (cur_d_back + (segment_distance - cur_d_forth)) * 0.5;
+        if(current_distance < 0.0)
+          current_distance = cur_d_back;
+        if(current_distance > segment_distance)
+          current_distance = segment_distance;
+        current_fraction = current_distance / segment_distance;
+      };
+      
+      point_fraction_iterator(const point_to_point_path* aParent,
+                              const const_waypoint_bounds& aWPB) :
+                              parent(aParent),
+                              current_wpbound(aWPB), 
+                              current_pt(*(aWPB.first)),
+                              current_fraction(0.0) { };
+                              
+#ifdef RK_ENABLE_CXX11_FEATURES
+      point_fraction_iterator(const point_to_point_path* aParent,
+                              const_waypoint_bounds&& aWPB, 
+                              point_type&& aCurrentPt) :
+                              parent(aParent),
+                              current_wpbound(std::move(aWPB)), 
+                              current_pt(std::move(aCurrentPt)) {
+        if(current_wpbound.first == current_wpbound.second) {
+          current_fraction = 0.0;
+          return;
+        };
+        double segment_distance = parent->get_dist()(*(current_wpbound.first), *(current_wpbound.second), parent->get_space());
+        double cur_d_back = parent->get_dist()(*(current_wpbound.first), current_pt, parent->get_space());
+        double cur_d_forth = parent->get_dist()(current_pt, *(current_wpbound.second), parent->get_space());
+        double current_distance = (cur_d_back + (segment_distance - cur_d_forth)) * 0.5;
+        if(current_distance < 0.0)
+          current_distance = cur_d_back;
+        if(current_distance > segment_distance)
+          current_distance = segment_distance;
+        current_fraction = current_distance / segment_distance;
+      };
+      
+      point_fraction_iterator(const point_to_point_path* aParent,
+                              const_waypoint_bounds&& aWPB) :
+                              parent(aParent),
+                              current_wpbound(std::move(aWPB)), 
+                              current_pt(*(current_wpbound.first)),
+                              current_fraction(0.0) { };
+#endif
+      
+      point_fraction_iterator& operator+=(double rhs) {
+        if(current_wpbound.first == current_wpbound.second) {
+          // then we are at some edge of the set of waypoints.
+          if(current_wpbound.first == parent->get_waypoints().begin()) {
+            // we are at the beginning.
+            if(rhs < 0.0)
+              return *this;  // cannot move further back.
+            ++(current_wpbound.second);
+            if(current_wpbound.second == parent->get_waypoints().end()) {
+              current_wpbound.second = current_wpbound.first;
+              return *this;  // nothing beyond the first point.
+            };
+          } else {
+            // we are at the end.
+            if(rhs > 0.0) 
+              return *this;  // cannot move further forward.
+            --(current_wpbound.first);
+            current_fraction = 1.0;
+          };
+        };
+        
+        if(rhs < 0.0) {
+          while(current_fraction + rhs < 0.0) {  // while spilling over before the current bounds.
+            if(current_wpbound.first == parent->get_waypoints().begin()) {
+              current_pt = *(current_wpbound.first);
+              current_wpbound.second = current_wpbound.first;
+              current_fraction = 0.0;
+              return *this;
+            };
+            --(current_wpbound.first);
+            --(current_wpbound.second);
+            rhs += current_fraction;
+            current_fraction = 1.0;
+          };
+        } else {
+          while(1.0 <= current_fraction + rhs) {  // while spilling over beyond the current bounds.
+            ++(current_wpbound.first);
+            ++(current_wpbound.second);
+            rhs -= 1.0 - current_fraction;
+            current_fraction = 0.0;
+            if(current_wpbound.second == parent->get_waypoints().end()) {
+              current_pt = *(current_wpbound.first);
+              current_wpbound.second = current_wpbound.first;
+              current_fraction = 0.0;
+              return *this;
+            };
+          };
+        };
+        
+        current_pt = parent->get_space().move_position_toward(*(current_wpbound.first), current_fraction + rhs, 
+                                                              *(current_wpbound.second));
+        current_fraction += rhs;
+        return *this;
+      };
+      
+      friend 
+      point_fraction_iterator operator+(point_fraction_iterator lhs, double rhs) {
+        return (lhs += rhs);
+      };
+      
+      friend 
+      point_fraction_iterator operator+(double lhs, point_fraction_iterator rhs) {
+        return (rhs += lhs);
+      };
+      
+      friend 
+      point_fraction_iterator operator-(point_fraction_iterator lhs, double rhs) {
+        return (lhs += -rhs);
+      };
+      
+      friend
+      point_fraction_iterator& operator-=(point_fraction_iterator& lhs, double rhs) {
+        return (lhs += -rhs);
+      };
+      
+      friend 
+      bool operator==(const point_fraction_iterator& lhs, 
+                      const point_fraction_iterator& rhs) {
+        using std::fabs;
+        if((lhs.parent == rhs.parent) && 
+           (lhs.current_wpbound.first == rhs.current_wpbound.first) &&
+           (lhs.current_wpbound.second == rhs.current_wpbound.second) &&
+           (fabs(lhs.current_fraction - rhs.current_fraction) <= std::numeric_limits<double>::epsilon()))
+          return true;
+        else 
+          return false;
+      };
+      
+      friend 
+      bool operator!=(const point_fraction_iterator& lhs, 
+                      const point_fraction_iterator& rhs) {
+        return !(lhs == rhs);
+      };
+      
+      const point_type& operator*() const {
+        return current_pt;
+      };
+      
+    };
+    
+    
+    
     /**
      * Constructs the path from a space, assumes the start and end are at the origin 
      * of the space.
@@ -181,6 +530,41 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(static_cast<base_class_type&>(lhs),static_cast<base_class_type&>(rhs));
+    };
+    
+    
+    /**
+     * Returns the starting distance-iterator along the path.
+     * \return The starting distance-iterator along the path.
+     */
+    point_distance_iterator begin_distance_travel() const {
+      return point_distance_iterator(this, const_waypoint_bounds(this->waypoints.begin(),this->waypoints.begin()));
+    };
+    
+    /**
+     * Returns the end distance-iterator along the path.
+     * \return The end distance-iterator along the path.
+     */
+    point_distance_iterator end_distance_travel() const {
+      const_waypoint_descriptor it = this->waypoints.end(); --it;
+      return point_distance_iterator(this, const_waypoint_bounds(it,it));
+    };
+    
+    /**
+     * Returns the starting fraction-iterator along the path.
+     * \return The starting fraction-iterator along the path.
+     */
+    point_fraction_iterator begin_fraction_travel() const {
+      return point_fraction_iterator(this, const_waypoint_bounds(this->waypoints.begin(),this->waypoints.begin()));
+    };
+    
+    /**
+     * Returns the end fraction-iterator along the path.
+     * \return The end fraction-iterator along the path.
+     */
+    point_fraction_iterator end_fraction_travel() const {
+      const_waypoint_descriptor it = this->waypoints.end(); --it;
+      return point_fraction_iterator(this, const_waypoint_bounds(it,it));
     };
     
     /**

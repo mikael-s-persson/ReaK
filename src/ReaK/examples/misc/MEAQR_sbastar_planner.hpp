@@ -39,7 +39,7 @@
 #include "path_planning/sbmp_reporter_concept.hpp"
 
 #include "path_planning/metric_space_concept.hpp"
-#include "path_planning/path_base.hpp"
+#include "path_planning/seq_path_wrapper.hpp"
 #include "interpolation/point_to_point_path.hpp"
 #include "path_planning/basic_sbmp_reporters.hpp"
 
@@ -130,7 +130,7 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
     bool has_reached_max_vertices;
     std::size_t m_knn_flag;
     
-    std::map<double, shared_ptr< path_base< super_space_type > > > m_solutions;
+    std::map<double, shared_ptr< seq_path_base< super_space_type > > > m_solutions;
     
   public:
     
@@ -166,7 +166,7 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
         //Draw the edges of the current best solution:
         
         shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
-        shared_ptr< path_wrapper< point_to_point_path<super_space_type> > > new_sol(new path_wrapper< point_to_point_path<super_space_type> >("MEAQR_sbastar_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
+        shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("MEAQR_sbastar_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
         point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
         std::set<Vertex> path;
         
@@ -202,7 +202,7 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
      * the function is likely to fail.
      * \return The path object that can be used to map out the path.
      */
-    virtual shared_ptr< path_base< super_space_type > > solve_path();
+    virtual shared_ptr< seq_path_base< super_space_type > > solve_path();
     
     const SBPPReporter& get_reporter() const { return m_reporter; };
     void set_reporter(const SBPPReporter& aNewReporter) { m_reporter = aNewReporter; };
@@ -512,7 +512,7 @@ struct MEAQR_sbastar_visitor {
 template <typename StateSpace, 
           typename StateSpaceSystem, typename StateSpaceSampler, 
           typename SBPPReporter>
-shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>::super_space_type > > 
+shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>::super_space_type > > 
   MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>::solve_path() {
   using ReaK::to_vect;
   
@@ -730,7 +730,7 @@ shared_ptr< path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpaceSyst
   if(m_solutions.size())
     return m_solutions.begin()->second;
   else
-    return shared_ptr< path_base< SuperSpace > >();
+    return shared_ptr< seq_path_base< SuperSpace > >();
 };
 
 

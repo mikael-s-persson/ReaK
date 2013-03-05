@@ -40,7 +40,7 @@
 #include "subspace_concept.hpp"
 
 #include "trajectory_base.hpp"
-#include "path_base.hpp"
+#include "seq_path_base.hpp"
 
 namespace ReaK {
   
@@ -139,7 +139,7 @@ class path_planner_base : public named_object {
      * the function is likely to fail.
      * \return The path object that can be used to map out the path.
      */
-    virtual shared_ptr< path_base< super_space_type > > solve_path() = 0;
+    virtual shared_ptr< seq_path_base< super_space_type > > solve_path() = 0;
     
     /**
      * Parametrized constructor.

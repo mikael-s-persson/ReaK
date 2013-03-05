@@ -281,6 +281,31 @@ class IHAQR_topology : public named_object
       return true;
     };
     
+    system_input_type get_bounded_input(const system_input_type& u_prev, system_input_type u_bias, system_input_type u_correction) const {
+      
+      m_input_space.bring_point_in_bounds(u_bias);
+      
+      system_input_type u_current = u_bias + u_correction;
+      if(m_input_space.is_in_bounds(u_current)) {
+        system_input_type du_dt = (u_current - u_prev) * (1.0 / m_time_step);
+        m_input_rate_space.bring_point_in_bounds(du_dt);
+        return u_prev + m_time_step * du_dt;
+      };
+      
+      for(std::size_t j = 0; j < 10; ++j) {
+        u_correction *= 0.5;
+        u_current -= u_correction;
+        if(m_input_space.is_in_bounds(u_current)) {
+          u_bias = u_current;
+          u_current += u_correction;
+        };
+      };
+      
+      system_input_type du_dt = (u_bias - u_prev) * (1.0 / m_time_step);
+      m_input_rate_space.bring_point_in_bounds(du_dt);
+      return u_prev + m_time_step * du_dt;
+    };
+    
     point_type move_position_toward_impl(const point_type& a, double fraction, const point_type& b, bool with_collision_check) const 
     {
       if(!a.IHAQR_data)
@@ -300,18 +325,10 @@ class IHAQR_topology : public named_object
         // compute the current IHAQR input
 //         std::cout << " t = " << current_time << std::endl;
 //         std::cout << " x_difference = " << m_space.difference(x_current, goal_point) << std::endl;
-        system_input_type u_current = b.lin_data->u 
-                                    - from_vect< system_input_type >(
-                                        b.IHAQR_data->K * to_vect<double>(m_space.difference(x_current, goal_point))) 
-                                    - b.IHAQR_data->u_bias;
-//         std::cout << " u_current (before bounding) = " << u_current << std::endl;
-        m_input_space.bring_point_in_bounds(u_current);
-        
-        system_input_type du_dt = (u_current - u_prev) * (1.0 / m_time_step);
-        m_input_rate_space.bring_point_in_bounds(du_dt);
-        u_current = u_prev + m_time_step * du_dt;
-        
-//         std::cout << " u_current (after bounding) = " << u_current << std::endl;
+        system_input_type u_current = get_bounded_input(u_prev, 
+                                                        b.lin_data->u - b.IHAQR_data->u_bias, 
+                                                        - from_vect< system_input_type >( b.IHAQR_data->K * to_vect<double>(m_space.difference(x_current, goal_point)) )
+                                                       );
         
         constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
         
@@ -326,18 +343,6 @@ class IHAQR_topology : public named_object
           current_time + m_time_step,
           m_time_step * 1e-2);
 //         std::cout << " x_next = " << x_next << std::endl;
-        /*ctrl::detail::dormand_prince45_integrate_impl(
-          m_space,
-          *m_system,
-          x_current,
-          x_next,
-          input_traj,
-          current_time,
-          current_time + m_time_step,
-          m_time_step * 1e-2,
-          1e-2,
-          m_time_step * 1e-6,
-          m_time_step * 0.1);*/
         if(!with_collision_check || is_free_impl(x_next)) {
           x_current = x_next;
           current_time += m_time_step;

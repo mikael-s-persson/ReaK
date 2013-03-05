@@ -41,7 +41,7 @@
 #include <boost/concept_check.hpp>
 
 #include "trajectory_base.hpp"
-#include "path_base.hpp"
+#include "seq_path_base.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -89,7 +89,7 @@ struct SBPPReporterConcept {
   FreeSpaceType free_space;
   MotionGraph g;
   PositionMap pos_map;
-  shared_ptr< path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > path;
+  shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > path;
   
   BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
   

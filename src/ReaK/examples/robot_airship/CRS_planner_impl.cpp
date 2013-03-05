@@ -700,17 +700,13 @@ void CRSPlannerGUI::executePlanner() {
             temp_reporter,  \
             max_results); \
          \
-        ReaK::shared_ptr< ReaK::pp::path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
          \
         r_info.bestsol_trajectory.clear(); \
         if(bestsol_rlpath) { \
-          RLPointType bs_cur_point = bestsol_rlpath->get_start_point(); \
-          RLPointType bs_end_point = bestsol_rlpath->get_end_point(); \
-          while(norm_2(get<0>(bs_cur_point) - get<0>(bs_end_point)) > min_travel) { \
-            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_cur_point, *jt_space, *normal_jt_space)) ); \
-            bs_cur_point = bestsol_rlpath->move_away_from(bs_cur_point, min_travel); \
-          }; \
-          r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_end_point, *jt_space, *normal_jt_space)) ); \
+          typedef ReaK::pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
+          for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1) \
+            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
         }; \
          \
         mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
@@ -743,17 +739,13 @@ void CRSPlannerGUI::executePlanner() {
             temp_reporter, \
             max_results); \
          \
-        ReaK::shared_ptr< ReaK::pp::path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
          \
         r_info.bestsol_trajectory.clear(); \
         if(bestsol_rlpath) { \
-          RLPointType bs_cur_point = bestsol_rlpath->get_start_point(); \
-          RLPointType bs_end_point = bestsol_rlpath->get_end_point(); \
-          while(norm_2(get<0>(bs_cur_point) - get<0>(bs_end_point)) > min_travel) { \
-            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_cur_point, *jt_space, *normal_jt_space)) ); \
-            bs_cur_point = bestsol_rlpath->move_away_from(bs_cur_point, min_travel); \
-          }; \
-          r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_end_point, *jt_space, *normal_jt_space)) ); \
+          typedef ReaK::pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
+          for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1) \
+            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
         }; \
          \
         mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
@@ -785,17 +777,13 @@ void CRSPlannerGUI::executePlanner() {
             temp_reporter, \
             max_results); \
          \
-        ReaK::shared_ptr< ReaK::pp::path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
          \
         r_info.bestsol_trajectory.clear(); \
         if(bestsol_rlpath) { \
-          RLPointType bs_cur_point = bestsol_rlpath->get_start_point(); \
-          RLPointType bs_end_point = bestsol_rlpath->get_end_point(); \
-          while(norm_2(get<0>(bs_cur_point) - get<0>(bs_end_point)) > min_travel) { \
-            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_cur_point, *jt_space, *normal_jt_space)) ); \
-            bs_cur_point = bestsol_rlpath->move_away_from(bs_cur_point, min_travel); \
-          }; \
-          r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_end_point, *jt_space, *normal_jt_space)) ); \
+          typedef ReaK::pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
+          for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1) \
+            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
         }; \
          \
         mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
@@ -828,17 +816,13 @@ void CRSPlannerGUI::executePlanner() {
             temp_reporter, \
             max_results); \
          \
-        ReaK::shared_ptr< ReaK::pp::path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
          \
         r_info.bestsol_trajectory.clear(); \
         if(bestsol_rlpath) { \
-          RLPointType bs_cur_point = bestsol_rlpath->get_start_point(); \
-          RLPointType bs_end_point = bestsol_rlpath->get_end_point(); \
-          while(norm_2(get<0>(bs_cur_point) - get<0>(bs_end_point)) > min_travel) { \
-            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_cur_point, *jt_space, *normal_jt_space)) ); \
-            bs_cur_point = bestsol_rlpath->move_away_from(bs_cur_point, min_travel); \
-          }; \
-          r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_end_point, *jt_space, *normal_jt_space)) ); \
+          typedef ReaK::pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
+          for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1) \
+            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
         }; \
          \
         mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
@@ -872,17 +856,13 @@ void CRSPlannerGUI::executePlanner() {
             temp_reporter, \
             max_results); \
          \
-        ReaK::shared_ptr< ReaK::pp::path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
         std::cout << "The shortest distance is: " << workspace_planner.get_best_solution_distance() << std::endl; \
         r_info.bestsol_trajectory.clear(); \
         if(bestsol_rlpath) { \
-          RLPointType bs_cur_point = bestsol_rlpath->get_start_point(); \
-          RLPointType bs_end_point = bestsol_rlpath->get_end_point(); \
-          while(norm_2(get<0>(bs_cur_point) - get<0>(bs_end_point)) > min_travel) { \
-            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_cur_point, *jt_space, *normal_jt_space)) ); \
-            bs_cur_point = bestsol_rlpath->move_away_from(bs_cur_point, min_travel); \
-          }; \
-          r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(bs_end_point, *jt_space, *normal_jt_space)) ); \
+          typedef ReaK::pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
+          for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1) \
+            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
         }; \
          \
         mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
