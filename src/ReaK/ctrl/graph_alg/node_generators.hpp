@@ -38,6 +38,7 @@
 #include <boost/limits.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
+#include <boost/tuple/tuple.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -51,44 +52,42 @@ namespace ReaK {
   
 namespace graph {
 
-
 namespace detail {
-  
-  
   
   template <typename PositionValue,
             typename Graph,
             typename RRGVisitor>
-  inline bool expand_to_nearest(
-      typename boost::graph_traits<Graph>::vertex_descriptor& x_near,
+  inline 
+  boost::tuple< typename boost::graph_traits<Graph>::vertex_descriptor, 
+                bool, typename Graph::edge_bundled > 
+    expand_to_nearest(
       PositionValue& p_new,
       const std::vector< typename boost::graph_traits<Graph>::vertex_descriptor >& Nc,
       Graph& g,
       RRGVisitor vis) {
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge; 
-    using std::back_inserter;
-
+    typedef typename Graph::edge_bundled EdgeProp;
+    typedef boost::tuple< Vertex, bool, EdgeProp > ResultType;
+    
     if(Nc.empty())
       return false;
     
-    PositionValue p_tmp; bool expand_succeeded = false;
+    PositionValue p_tmp; 
+    bool expand_succeeded = false;
+    EdgeProp ep;
     typename std::vector<Vertex>::const_iterator it = Nc.begin();
     while((!expand_succeeded) && (it != Nc.end())) {
-      boost::tie(p_tmp, expand_succeeded) = vis.steer_towards_position(p_new, *it, g);
+      boost::tie(p_tmp, expand_succeeded, ep) = vis.steer_towards_position(p_new, *it, g);
       ++it;
     };
     
     if(!expand_succeeded)
-      return false;
+      return ResultType(Vertex(), false,EdgeProp());
     
-    x_near = *(--it);
     p_new = p_tmp;
-    return true;
+    return ResultType(*(--it), true, ep);
   };
-  
-  
-  
   
 };
   
@@ -111,13 +110,18 @@ struct rrg_node_generator {
             typename RRGVisitor,
             typename PositionMap>
   inline typename boost::enable_if< boost::is_undirected_graph<Graph>,
-  std::pair< typename boost::graph_traits<Graph>::vertex_descriptor,
-             typename boost::property_traits<PositionMap>::value_type > >::type 
+  boost::tuple< typename boost::graph_traits<Graph>::vertex_descriptor,
+                typename boost::property_traits<PositionMap>::value_type,
+                typename Graph::edge_bundled > >::type 
     operator()(Graph& g,
                RRGVisitor vis,
                PositionMap g_position) {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    typedef typename Graph::edge_bundled EdgeProp;
+    typedef boost::tuple< typename boost::graph_traits<Graph>::vertex_descriptor,
+                          typename boost::property_traits<PositionMap>::value_type,
+                          typename Graph::edge_bundled > ResultType;
     using std::back_inserter;
     
     while(true) {
@@ -126,39 +130,46 @@ struct rrg_node_generator {
       std::vector<Vertex> Nc; 
       select_neighborhood(p_new, back_inserter(Nc), g, *space, g_position);
       
-      Vertex x_near = Vertex();
-      if( detail::expand_to_nearest(x_near, p_new, Nc, g, vis) )
-        return std::pair<Vertex,PositionValue>(x_near, p_new);
+      Vertex x_near; bool was_expanded; EdgeProp ep;
+      boost::tie(x_near, was_expanded, ep) = detail::expand_to_nearest(p_new, Nc, g, vis);
+      if( was_expanded )
+        return ResultType(x_near, p_new, ep);
     };
     
-    return std::pair<Vertex,PositionValue>();
+    return ResultType();
   };
   
   template <typename Graph,
             typename RRGVisitor,
             typename PositionMap>
   inline typename boost::enable_if< boost::is_directed_graph<Graph>,
-  std::pair< typename boost::graph_traits<Graph>::vertex_descriptor,
-             typename boost::property_traits<PositionMap>::value_type > >::type 
+  boost::tuple< typename boost::graph_traits<Graph>::vertex_descriptor,
+                typename boost::property_traits<PositionMap>::value_type,
+                typename Graph::edge_bundled > >::type 
     operator()(Graph& g,
                RRGVisitor vis,
                PositionMap g_position) {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    typedef typename Graph::edge_bundled EdgeProp;
+    typedef boost::tuple< typename boost::graph_traits<Graph>::vertex_descriptor,
+                          typename boost::property_traits<PositionMap>::value_type,
+                          typename Graph::edge_bundled > ResultType;
     using std::back_inserter;
     
     while(true) {
       PositionValue p_new = get_sample(*space);
       
-      std::vector<Vertex> Pred;
-      std::vector<Vertex> Succ;
+      std::vector<Vertex> Pred, Succ;
       select_neighborhood(p_new, back_inserter(Pred), back_inserter(Succ), g, *space, g_position);
-      Vertex x_near = Vertex();
-      if( detail::expand_to_nearest(x_near, p_new, Pred, g, vis) )
-        return std::pair<Vertex,PositionValue>(x_near, p_new);
+      
+      Vertex x_near; bool was_expanded; EdgeProp ep;
+      boost::tie(x_near, was_expanded, ep) = detail::expand_to_nearest(p_new, Pred, g, vis);
+      if( was_expanded )
+        return ResultType(x_near, p_new, ep);
     };
     
-    return std::pair<Vertex,PositionValue>();
+    return ResultType();
   };
 
 };

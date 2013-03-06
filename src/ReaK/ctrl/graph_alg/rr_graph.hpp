@@ -72,16 +72,18 @@ namespace graph {
    * 
    * Valid expressions:
    * 
-   * b = vis.can_be_connected(u,v,g);  This function is called to attempt to steer from vertex u to vertex v, it returns true if a local path exists and is collision-free.
-   *
+   * tie(b, ep) = vis.can_be_connected(u,v,g);  This function is called to attempt to steer from vertex u to vertex v, it returns true if a local path exists and is collision-free, and it also returns the edge-property of the edge that could connect those two vertices.
+   * 
    * \tparam Visitor The visitor class to be checked for modeling this concept.
    * \tparam Graph The graph on which the visitor class is required to work with.
    * \tparam PositionMap The position property-map that provides the position descriptors with which the visitor class is required to work.
    */
   template <typename Visitor, typename Graph, typename PositionMap>
   struct RRGVisitorConcept : RRTVisitorConcept<Visitor,Graph,PositionMap> {
+    typename Graph::edge_bundled ep;
+    
     BOOST_CONCEPT_USAGE(RRGVisitorConcept) {
-      this->b = this->vis.can_be_connected(this->u,this->u,this->g);
+      boost::tie(this->b, ep) = this->vis.can_be_connected(this->u,this->u,this->g);
     };
   };
 
@@ -91,7 +93,10 @@ namespace graph {
    */
   struct default_rrg_visitor : default_rrt_visitor {
     template <typename Vertex, typename Graph>
-    bool can_be_connected(Vertex,Vertex,Graph&) { return true; };
+    std::pair<bool, typename Graph::edge_bundled> can_be_connected(Vertex,Vertex,Graph&) { 
+      typedef typename Graph::edge_bundled EdgeProp;
+      return std::pair<bool, EdgeProp>(true, EdgeProp());
+    };
   };
 
   /**
@@ -188,6 +193,7 @@ namespace detail {
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge; 
     typedef typename Graph::vertex_bundled VertexProp;
+    typedef typename Graph::edge_bundled EdgeProp;
     using std::back_inserter;
     
     typedef boost::composite_property_map< 
@@ -196,9 +202,8 @@ namespace detail {
     
     while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
       
-      PositionValue p_new = PositionValue();
-      Vertex x_near = Vertex();
-      boost::tie(x_near, p_new) = node_generator_func(g, vis, g_position);
+      PositionValue p_new; Vertex x_near; EdgeProp eprop;
+      boost::tie(x_near, p_new, eprop) = node_generator_func(g, vis, g_position);
       
       std::vector<Vertex> Nc;
       select_neighborhood(p_new, back_inserter(Nc), g, space, g_position);
@@ -212,12 +217,30 @@ namespace detail {
 #endif
       vis.vertex_added(x_new,g);
       
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      std::pair<Edge, bool> ep = add_edge(x_near, x_new, std::move(eprop), g);
+#else
+      std::pair<Edge, bool> ep = add_edge(x_near, x_new, eprop, g);
+#endif
+      if(ep.second)
+        vis.edge_added(ep.first, g);
+      
       for(typename std::vector<Vertex>::const_iterator it = Nc.begin(); it != Nc.end(); ++it) {
-        if((*it == x_near) || (vis.can_be_connected(*it, x_new, g))) {
-          std::pair<Edge, bool> ep = add_edge(*it, x_new, g);
-          if(ep.second)
-            vis.edge_added(ep.first, g);
-        };
+        if(*it == x_near)
+          continue;
+        
+        EdgeProp eprop2; bool can_connect;
+        boost::tie(can_connect, eprop2) = vis.can_be_connected(*it, x_new, g);
+        if(!can_connect)
+          continue;
+        
+#ifdef RK_ENABLE_CXX0X_FEATURES
+        ep = add_edge(*it, x_new, std::move(eprop2), g);
+#else
+        ep = add_edge(*it, x_new, eprop2, g);
+#endif
+        if(ep.second)
+          vis.edge_added(ep.first, g);
       };
     };
 
@@ -242,6 +265,7 @@ namespace detail {
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge; 
     typedef typename Graph::vertex_bundled VertexProp;
+    typedef typename Graph::edge_bundled EdgeProp;
     using std::back_inserter;
     
     typedef boost::composite_property_map< 
@@ -250,12 +274,10 @@ namespace detail {
     
     while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
       
-      PositionValue p_new = PositionValue();
-      Vertex x_near = Vertex();
-      boost::tie(x_near, p_new) = node_generator_func(g, vis, g_position);
+      PositionValue p_new; Vertex x_near; EdgeProp eprop;
+      boost::tie(x_near, p_new, eprop) = node_generator_func(g, vis, g_position);
       
-      std::vector<Vertex> Pred;
-      std::vector<Vertex> Succ;
+      std::vector<Vertex> Pred, Succ;
       select_neighborhood(p_new, std::back_inserter(Pred), std::back_inserter(Succ), g, space, g_position);
       
       VertexProp xp_new;
@@ -267,20 +289,45 @@ namespace detail {
 #endif
       vis.vertex_added(x_new,g);
       
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      std::pair<Edge, bool> ep = add_edge(x_near, x_new, std::move(eprop), g);
+#else
+      std::pair<Edge, bool> ep = add_edge(x_near, x_new, eprop, g);
+#endif
+      if(ep.second)
+        vis.edge_added(ep.first, g);
+      
       for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
-        if((*it == x_near) || (vis.can_be_connected(*it, x_new, g))) {
-          std::pair<Edge, bool> ep = add_edge(*it, x_new, g);
-          if(ep.second)
-            vis.edge_added(ep.first, g);
-        };
+        if(*it == x_near)
+          continue;
+        
+        EdgeProp eprop2; bool can_connect;
+        boost::tie(can_connect, eprop2) = vis.can_be_connected(*it, x_new, g);
+        if(!can_connect)
+          continue;
+        
+#ifdef RK_ENABLE_CXX0X_FEATURES
+        ep = add_edge(*it, x_new, std::move(eprop2), g);
+#else
+        ep = add_edge(*it, x_new, eprop2, g);
+#endif
+        if(ep.second)
+          vis.edge_added(ep.first, g);
       };
       
       for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-        if(vis.can_be_connected(x_new, *it, g)) {
-          std::pair<Edge, bool> ep = add_edge(x_new, *it, g);
-          if(ep.second)
-            vis.edge_added(ep.first, g);
-        };
+        EdgeProp eprop2; bool can_connect;
+        boost::tie(can_connect, eprop2) = vis.can_be_connected(x_new, *it, g);
+        if(!can_connect)
+          continue;
+        
+#ifdef RK_ENABLE_CXX0X_FEATURES
+        ep = add_edge(x_new, *it, std::move(eprop2), g);
+#else
+        ep = add_edge(x_new, *it, eprop2, g);
+#endif
+        if(ep.second)
+          vis.edge_added(ep.first, g);
       };
     };
 

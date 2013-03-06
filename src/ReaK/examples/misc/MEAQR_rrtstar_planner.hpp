@@ -80,7 +80,7 @@ template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSam
 struct MEAQR_rrtstar_edata {
   double weight;
   
-  MEAQR_rrtstar_edata() : weight(0) { };
+  MEAQR_rrtstar_edata(double aWeight = 0.0) : weight(aWeight) { };
 };
 
 
@@ -313,6 +313,7 @@ struct MEAQR_rrtstar_visitor {
                         m_space(aSpace), m_planner(aPlanner), m_nn_synchro(aNNSynchro) { };
   
   typedef typename topology_traits< space_type >::point_type PointType;
+  typedef MEAQR_rrtstar_edata<StateSpace, StateSpaceSystem, StateSpaceSampler> EdgeProp;
   
   template <typename Vertex, typename Graph>
   void vertex_added(Vertex u, Graph& g) const {
@@ -361,7 +362,8 @@ struct MEAQR_rrtstar_visitor {
   };
   
   template <typename Vertex, typename Graph>
-  std::pair<PointType, bool> steer_towards_position(const PointType& p, Vertex u, Graph& g) const {
+  boost::tuple<PointType, bool, EdgeProp> steer_towards_position(const PointType& p, Vertex u, Graph& g) const {
+    typedef boost::tuple<PointType, bool, EdgeProp> ResultType;
     // get a destination point that is half the distance to a point reachable by the IHAQR motion (with limited time-horizon):
 //     PointType p_dest( m_space->get_state_space().adjust(g[u].position.x, 
 //                       0.5 * m_space->get_state_space().difference(
@@ -392,7 +394,7 @@ struct MEAQR_rrtstar_visitor {
       
       if(diff_dist < 0.1 * actual_dist) {
         std::cout << "Steered successfully!" << std::endl;
-        return std::make_pair(p_dest, true);
+        return ResultType(p_dest, true, EdgeProp(get(distance_metric, m_space->get_super_space())(g[u].position, p_dest, m_space->get_super_space())));
       } else {
         std::cout << "Steering wasn't connectable! diff = " << diff_dist << " over " << actual_dist << std::endl;
         std::cout << "Steering wasn't connectable! MEAQR-dist-attempt = " 
@@ -402,15 +404,15 @@ struct MEAQR_rrtstar_visitor {
                   << "  MEAQR-dist-remaining = " 
                   << get(distance_metric, m_space->get_super_space())(p_dest, result_p, m_space->get_super_space())
                   << std::endl;
-        return std::make_pair(result_p, false);
+        return ResultType(result_p, false, EdgeProp());
       };
     } else {
-      return std::make_pair(result_p, false);
+      return ResultType(result_p, false, EdgeProp());
     };
   };
   
   template <typename Vertex, typename Graph>
-  bool can_be_connected(Vertex u, Vertex v, const Graph& g) {
+  std::pair<bool,EdgeProp> can_be_connected(Vertex u, Vertex v, const Graph& g) {
     PointType result_p = m_space->move_position_toward(g[u].position, 1.0, g[v].position);
     
     // NOTE Differs from rrtstar_path_planner HERE:
@@ -419,9 +421,9 @@ struct MEAQR_rrtstar_visitor {
     
     if(diff_dist < 0.05 * best_case_dist) {
       std::cout << "Connected successfully!" << std::endl;
-      return true;
+      return std::pair<bool,EdgeProp>(true,EdgeProp(get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space())));
     } else {
-      return false;
+      return std::pair<bool,EdgeProp>(false,EdgeProp());
     };
   };
   

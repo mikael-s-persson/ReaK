@@ -218,25 +218,28 @@ namespace detail {
     typedef typename Graph::vertex_bundled VertexProp;
     typedef typename Graph::edge_bundled EdgeProp;
     using std::back_inserter;
-
-    std::queue< Vertex > incons_set;
-    double c_near = get(cost, g[x_new]);
+    
+    double c_new = get(cost, g[x_new]);
     PositionValue p_new = get(position, g[x_new]);
+    
+    std::queue< Vertex > incons_set;
     for(NcIter it = Nc.begin(); it != Nc.end(); ++it) {
-      double c_temp, d_temp;
-      if((x_new != get(pred, g[*it])) &&
-         (vis.can_be_connected(x_new, *it, g)) &&
-         ((c_temp = c_near + (d_temp = distance(p_new, get(position, g[*it]), space))) < get(cost, g[*it]))) {
+      double d_temp = distance(p_new, get(position, g[*it]), space);
+      double c_temp = c_new + d_temp;
+      if(c_temp < get(cost, g[*it])) {
+        EdgeProp eprop; bool can_connect;
+        boost::tie(can_connect, eprop) = vis.can_be_connected(x_new, *it, g);
+        if(!can_connect)
+          continue;
         
-        EdgeProp eprop;
-        put(weight, eprop, d_temp);
+        d_temp = get(weight, eprop);
 #ifdef RK_ENABLE_CXX0X_FEATURES
         std::pair<Edge,bool> ep = add_edge(x_new, *it, std::move(eprop), g);
 #else
         std::pair<Edge,bool> ep = add_edge(x_new, *it, eprop, g);
 #endif
         if(ep.second) {
-          put(cost, g[*it], c_temp);
+          put(cost, g[*it], c_new + d_temp);
           Vertex x_pred = get(pred, g[*it]);
           put(pred, g[*it], x_new);
           vis.edge_added(ep.first, g);
@@ -304,24 +307,27 @@ namespace detail {
     typedef typename std::vector< Vertex >::const_iterator NcIter;
     typedef typename Graph::edge_bundled EdgeProp;
     using std::back_inserter;
-
-    std::queue< Vertex > incons_set;
-    double c_near = get(cost, g[x_new]);
+    
+    double c_new = get(cost, g[x_new]);
     PositionValue p_new = get(position, g[x_new]);
+    
+    std::queue< Vertex > incons_set;
     for(NcIter it = Nc.begin(); it != Nc.end(); ++it) {
-      double c_temp, d_temp;
-      if((vis.can_be_connected(x_new, *it, g)) &&
-         ((c_temp = c_near + (d_temp = distance(p_new, get(position, g[*it]), space))) < get(cost, g[*it]))) {
+      double d_temp = distance(p_new, get(position, g[*it]), space);
+      if(c_new + d_temp < get(cost, g[*it])) {
+        EdgeProp eprop; bool can_connect;
+        boost::tie(can_connect, eprop) = vis.can_be_connected(x_new, *it, g);
+        if(!can_connect)
+          continue;
         
-        EdgeProp eprop;
-        put(weight, eprop, d_temp);
+        d_temp = get(weight, eprop);
 #ifdef RK_ENABLE_CXX0X_FEATURES
         std::pair<Edge,bool> ep = add_edge(x_new, *it, std::move(eprop), g);
 #else
         std::pair<Edge,bool> ep = add_edge(x_new, *it, eprop, g);
 #endif
         if(ep.second) {
-          put(cost, g[*it], c_temp);
+          put(cost, g[*it], c_new + d_temp);
           vis.edge_added(ep.first, g);
           InEdgeIter iei, iei_end;
           for(boost::tie(iei, iei_end) = in_edges(*it,g); iei != iei_end; ++iei) {
@@ -390,9 +396,8 @@ namespace detail {
     
     while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
       
-      PositionValue p_new = PositionValue();
-      Vertex x_near = Vertex();
-      boost::tie(x_near, p_new) = node_generator_func(g, vis, g_position);
+      PositionValue p_new; Vertex x_near; EdgeProp eprop;
+      boost::tie(x_near, p_new, eprop) = node_generator_func(g, vis, g_position);
       
       std::vector<Vertex> Nc;
       select_neighborhood(p_new, back_inserter(Nc), g, space, g_position);
@@ -409,21 +414,30 @@ namespace detail {
       vis.vertex_added(x_new,g);
       
       // Choose Parent:
-      double d_near = distance(get(position, g[x_near]), p_new, space);
+      double d_near = get(weight, eprop);
       double c_near = get(cost, g[x_near]) + d_near;
       for(typename std::vector<Vertex>::const_iterator it = Nc.begin(); it != Nc.end(); ++it) {
-        double c_temp, d_temp;
-        if((*it != x_near) && 
-           (vis.can_be_connected(*it, x_new, g)) &&
-           ((c_temp = get(cost, g[*it]) + (d_temp = distance(get(position, g[*it]), p_new, space))) < c_near)) {
+        if(*it == x_near)
+          continue;
+        double d_temp = distance(get(position, g[*it]), p_new, space);
+        double c_temp = get(cost, g[*it]) + d_temp;
+        if(c_temp < c_near) {
+          EdgeProp eprop2; bool can_connect;
+          boost::tie(can_connect, eprop2) = vis.can_be_connected(*it, x_new, g);
+          if(!can_connect)
+            continue;
+          
           x_near = *it;
-          c_near = c_temp;
-          d_near = d_temp;
+          d_near = get(weight, eprop2);
+          c_near = get(cost, g[*it]) + d_near;
+#ifdef RK_ENABLE_CXX11_FEATURES
+          eprop  = std::move(eprop2);
+#else
+          eprop  = eprop2;
+#endif
         };
       };
       
-      EdgeProp eprop;
-      put(weight, eprop, d_near);
 #ifdef RK_ENABLE_CXX0X_FEATURES
       std::pair<Edge, bool> ep = add_edge(x_near, x_new, std::move(eprop), g);
 #else
@@ -476,12 +490,10 @@ namespace detail {
     
     while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
       
-      PositionValue p_new = PositionValue();
-      Vertex x_near = Vertex();
-      boost::tie(x_near, p_new) = node_generator_func(g, vis, g_position);
+      PositionValue p_new; Vertex x_near; EdgeProp eprop;
+      boost::tie(x_near, p_new, eprop) = node_generator_func(g, vis, g_position);
       
-      std::vector<Vertex> Pred;
-      std::vector<Vertex> Succ;
+      std::vector<Vertex> Pred, Succ;
       select_neighborhood(p_new, back_inserter(Pred), back_inserter(Succ), g, space, g_position);
       
       VertexProp xp;
@@ -494,22 +506,31 @@ namespace detail {
 #endif
       vis.vertex_added(x_new,g);
       
-      // Choose Parent
-      double d_near = distance(get(position, g[x_near]), p_new, space);
+      // Choose Parent:
+      double d_near = get(weight, eprop);
       double c_near = get(cost, g[x_near]) + d_near;
       for(typename std::vector<Vertex>::const_iterator it = Pred.begin(); it != Pred.end(); ++it) {
-        double c_temp, d_temp;
-        if((*it != x_near) && 
-           (vis.can_be_connected(*it, x_new, g)) &&
-           ((c_temp = get(cost, g[*it]) + (d_temp = distance(get(position, g[*it]), p_new, space))) < c_near)) {
+        if(*it == x_near)
+          continue;
+        double d_temp = distance(get(position, g[*it]), p_new, space);
+        double c_temp = get(cost, g[*it]) + d_temp;
+        if(c_temp < c_near) {
+          EdgeProp eprop2; bool can_connect;
+          boost::tie(can_connect, eprop2) = vis.can_be_connected(*it, x_new, g);
+          if(!can_connect)
+            continue;
+          
           x_near = *it;
-          c_near = c_temp;
-          d_near = d_temp;
+          d_near = get(weight, eprop2);
+          c_near = get(cost, g[*it]) + d_near;
+#ifdef RK_ENABLE_CXX11_FEATURES
+          eprop  = std::move(eprop2);
+#else
+          eprop  = eprop2;
+#endif
         };
       };
       
-      EdgeProp eprop;
-      put(weight, eprop, d_near);
 #ifdef RK_ENABLE_CXX0X_FEATURES
       std::pair<Edge, bool> ep = add_edge(x_near, x_new, std::move(eprop), g);
 #else

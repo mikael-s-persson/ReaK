@@ -310,6 +310,7 @@ struct rrt_planner_visitor {
                       m_space(aSpace), m_planner(aPlanner), m_nn_synchro(aNNSynchro) { };
   
   typedef typename topology_traits<FreeSpaceType>::point_type PointType;
+  typedef rrt_edge_data<FreeSpaceType> EdgeProp;
   
   template <typename Vertex, typename Graph>
   void vertex_added(Vertex u, Graph& g) const {
@@ -363,14 +364,15 @@ struct rrt_planner_visitor {
   };
   
   template <typename Vertex, typename Graph>
-  std::pair<PointType, bool> steer_towards_position(const PointType& p, Vertex u, Graph& g) const {
+  boost::tuple<PointType, bool, EdgeProp> steer_towards_position(const PointType& p, Vertex u, Graph& g) const {
+    typedef boost::tuple<PointType, bool, EdgeProp> ResultType;
     PointType result_p = m_space->move_position_toward(g[u].position, 1.0, p);
     double best_case_dist = get(distance_metric, m_space->get_super_space())(g[u].position, p, m_space->get_super_space());
     double actual_dist = get(distance_metric, m_space->get_super_space())(g[u].position, result_p, m_space->get_super_space());
     if(actual_dist > 0.1 * best_case_dist)
-      return std::make_pair(result_p, true);
+      return ResultType(result_p, true, EdgeProp());
     else
-      return std::make_pair(result_p, false);
+      return ResultType(result_p, false, EdgeProp());
   };
   
   

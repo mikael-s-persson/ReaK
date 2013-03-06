@@ -90,7 +90,7 @@ namespace graph {
    * 
    * vis.edge_added(e, g);  This function is called whenever a new edge (e) has been created between the last created vertex and its nearest neighbor in the graph (g).
    *
-   * tie(p,b) = vis.steer_towards_position(p,u,g);  This function is called to attempt to steer from vertex u to position p, it returns a std::pair with the position that could be reached and a boolean value to indicate whether any significant motion occurred (collision-free).
+   * tie(p,b,ep) = vis.steer_towards_position(p,u,g);  This function is called to attempt to steer from vertex u to position p, it returns a std::pair with the position that could be reached and a boolean value to indicate whether any significant motion occurred (collision-free).
    * 
    * bool b = vis.is_position_free(p);  This function is called to query whether a particular configuration (position, p) is free.
    * 
@@ -107,6 +107,7 @@ namespace graph {
     typename boost::graph_traits<Graph>::vertex_descriptor u;
     typename boost::graph_traits<Graph>::edge_descriptor e;
     typename boost::property_traits<PositionMap>::value_type p;
+    typename Graph::edge_bundled ep;
     bool b;
     
     BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
@@ -114,7 +115,7 @@ namespace graph {
     BOOST_CONCEPT_USAGE(RRTVisitorConcept) {
       vis.vertex_added(u, g); 
       vis.edge_added(e, g); 
-      boost::tie(p,b) = vis.steer_towards_position(p,u,g);
+      boost::tie(p,b,ep) = vis.steer_towards_position(p,u,g);
       b = vis.is_position_free(p);
       b = vis.keep_going(); 
     };
@@ -130,7 +131,11 @@ namespace graph {
     template <typename Edge, typename Graph>
     void edge_added(Edge,Graph&) { };
     template <typename PositionValue, typename Vertex, typename Graph>
-    std::pair<PositionValue,bool> steer_towards_position(const PositionValue& p,Vertex,Graph&) { return std::make_pair(p,true); };
+    boost::tuple<PositionValue,bool,typename Graph::edge_bundled> steer_towards_position(const PositionValue& p,Vertex,Graph&) { 
+      typedef typename Graph::edge_bundled EdgeProp;
+      typedef boost::tuple<PositionValue,bool,EdgeProp> ResultType;
+      return ResultType(p,true,EdgeProp()); 
+    };
     template <typename PositionValue>
     bool is_position_free(const PositionValue&) { return true; };
     bool keep_going() { return true; };
@@ -194,7 +199,7 @@ namespace graph {
    * 
    * vis.edge_added(e, g1, g2);  This function is called whenever a new edge (e) has been created between the last created vertex and its nearest neighbor in the graph (g).
    *
-   * tie(p,b) = vis.steer_towards_position(p,u,g);  This function is called to attempt to steer from vertex u to position p, it returns a std::pair with the position that could be reached and a boolean value to indicate whether any significant motion occurred (collision-free).
+   * tie(p,b,ep) = vis.steer_towards_position(p,u,g);  This function is called to attempt to steer from vertex u to position p, it returns a std::pair with the position that could be reached and a boolean value to indicate whether any significant motion occurred (collision-free).
    * 
    * bool b = vis.is_position_free(p);  This function is called to query whether a particular configuration (position, p) is free.
    * 
@@ -213,6 +218,7 @@ namespace graph {
     typename boost::graph_traits<Graph>::vertex_descriptor u;
     typename boost::graph_traits<Graph>::edge_descriptor e;
     typename boost::property_traits<PositionMap>::value_type p;
+    typename Graph::edge_bundled ep;
     bool b;
     
     BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
@@ -220,7 +226,7 @@ namespace graph {
     BOOST_CONCEPT_USAGE(BiRRTVisitorConcept) {
       vis.vertex_added(u, g, g); 
       vis.edge_added(e, g, g); 
-      boost::tie(p,b) = vis.steer_towards_position(p,u,g);
+      boost::tie(p,b,ep) = vis.steer_towards_position(p,u,g);
       b = vis.is_position_free(p);
       vis.joining_vertex_found(u, u, g, g); 
       b = vis.keep_going(); 
@@ -237,7 +243,11 @@ namespace graph {
     template <typename Edge, typename Graph>
     void edge_added(Edge, Graph&, Graph&) { };
     template <typename PositionValue, typename Vertex, typename Graph>
-    std::pair<PositionValue,bool> steer_towards_position(const PositionValue& p, Vertex, Graph&) { return std::make_pair(p,true); };
+    boost::tuple<PositionValue,bool,typename Graph::edge_bundled> steer_towards_position(const PositionValue& p,Vertex,Graph&) { 
+      typedef typename Graph::edge_bundled EdgeProp;
+      typedef boost::tuple<PositionValue,bool,EdgeProp> ResultType;
+      return ResultType(p,true,EdgeProp()); 
+    };
     template <typename PositionValue>
     bool is_position_free(const PositionValue&) { return true; };
     template <typename Vertex, typename Graph>
@@ -312,17 +322,16 @@ namespace detail {
     typedef typename Graph::edge_bundled EdgeProp;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
     
-    bool reached_new = false;
-    PositionValue p_v;
-    boost::tie(p_v, reached_new) = vis.steer_towards_position(p_target,u,g);
+    bool reached_new; PositionValue p_v; EdgeProp ep;
+    boost::tie(p_v, reached_new, ep) = vis.steer_towards_position(p_target,u,g);
     if(reached_new) {  // i.e., a new position was reached, collision-free.
       VertexProp vp; 
       put(position, vp, p_v);
       Vertex v; Edge e;
 #ifdef RK_ENABLE_CXX0X_FEATURES
-      boost::tie(v,e) = add_child_vertex(u, std::move(vp), EdgeProp(), g);
+      boost::tie(v,e) = add_child_vertex(u, std::move(vp), std::move(ep), g);
 #else
-      boost::tie(v,e) = add_child_vertex(u, vp, EdgeProp(), g);
+      boost::tie(v,e) = add_child_vertex(u, vp, ep, g);
 #endif
       vis.vertex_added(v,g);
       vis.edge_added(e, g);
@@ -346,17 +355,16 @@ namespace detail {
     typedef typename Graph::edge_bundled EdgeProp;
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
     
-    bool reached_new = false;
-    PositionValue p_v;
-    boost::tie(p_v, reached_new) = vis.steer_towards_position(p_target,u,g1);
+    bool reached_new; PositionValue p_v; EdgeProp ep;
+    boost::tie(p_v, reached_new, ep) = vis.steer_towards_position(p_target,u,g1);
     if(reached_new) {  // i.e., a new position was reached, collision-free.
       VertexProp vp; 
       put(position, vp, p_v);
       Vertex v; Edge e;
 #ifdef RK_ENABLE_CXX0X_FEATURES
-      boost::tie(v,e) = add_child_vertex(u, std::move(vp), EdgeProp(), g1);
+      boost::tie(v,e) = add_child_vertex(u, std::move(vp), std::move(ep), g1);
 #else
-      boost::tie(v,e) = add_child_vertex(u, vp, EdgeProp(), g1);
+      boost::tie(v,e) = add_child_vertex(u, vp, ep, g1);
 #endif
       vis.vertex_added(v, g1, g2);
       vis.edge_added(e, g1, g2);
