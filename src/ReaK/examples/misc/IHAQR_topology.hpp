@@ -288,7 +288,7 @@ class IHAQR_topology : public named_object
       system_input_type u_current = u_bias + u_correction;
       if(m_input_space.is_in_bounds(u_current)) {
         system_input_type du_dt = (u_current - u_prev) * (1.0 / m_time_step);
-        m_input_rate_space.bring_point_in_bounds(du_dt);
+//         m_input_rate_space.bring_point_in_bounds(du_dt);
         return u_prev + m_time_step * du_dt;
       };
       
@@ -302,7 +302,7 @@ class IHAQR_topology : public named_object
       };
       
       system_input_type du_dt = (u_bias - u_prev) * (1.0 / m_time_step);
-      m_input_rate_space.bring_point_in_bounds(du_dt);
+//       m_input_rate_space.bring_point_in_bounds(du_dt);
       return u_prev + m_time_step * du_dt;
     };
     

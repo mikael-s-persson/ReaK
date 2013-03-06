@@ -350,7 +350,7 @@ class MEAQR_topology : public named_object
         vect_n<double>(N, 0.0)
       );
       
-      ReaK::detail::decompose_Cholesky_impl(MEAQR_sys.BRBmatrix * m_MEAQR_data_step_size + get<0>(start_point), get<0>(start_point), 1e-8);
+      ReaK::detail::decompose_Cholesky_impl(MEAQR_sys.BRBmatrix * m_IHAQR_space->m_time_step + get<0>(start_point), get<0>(start_point), 1e-8);
       get<1>(start_point) = get<0>(start_point);
       
       MEAQR_bundle_type current_point = start_point;
@@ -370,11 +370,10 @@ class MEAQR_topology : public named_object
           current_point,
           input_traj,
           current_time,
-          current_time + m_MEAQR_data_step_size,
-          m_MEAQR_data_step_size);
-//           m_MEAQR_data_step_size * 5e-1);
+          current_time + m_IHAQR_space->m_time_step,
+          m_IHAQR_space->m_time_step);
         start_point = current_point;
-        current_time += m_MEAQR_data_step_size;
+        current_time += m_IHAQR_space->m_time_step;
         p.MEAQR_data->pts.push_back(std::make_pair(current_time, current_point));
       };
       
@@ -386,182 +385,96 @@ class MEAQR_topology : public named_object
     };
     
     
-    
-    point_type move_position_toward_impl(const point_type& a, double fraction, const point_type& b, bool with_collision_check) const 
-    {
-      if(!a.lin_data)
-        m_IHAQR_space->compute_linearization_data(a);
+    void find_optimal_cost_and_time(const point_type& a, const point_type& b,
+                                    const mat<double,mat_structure::rectangular>& K, 
+                                    const system_input_type& u0, 
+                                    double& T_optimal, double& J_optimal, 
+                                    typename std::vector< std::pair<double, MEAQR_bundle_type> >::const_iterator& it_optimal) const {
+      if(!b.lin_data)
+        m_IHAQR_space->compute_linearization_data(b);
       if(!b.MEAQR_data)
         compute_MEAQR_data(b);
-      // first, find the T-optimal:
+      
+      J_optimal = std::numeric_limits<double>::infinity();
+      T_optimal = std::numeric_limits<double>::infinity();
+      it_optimal = b.MEAQR_data->pts.end();
       
       typedef typename std::vector< std::pair<double, MEAQR_bundle_type> >::const_iterator Iter;
       
-      double min_J = std::numeric_limits<double>::infinity();
-      Iter min_it = b.MEAQR_data->pts.end();
-      
       mat<double,mat_structure::square> eAdt(b.lin_data->A.get_row_count());
-      ReaK::exp_PadeSAS(b.lin_data->A * m_MEAQR_data_step_size, eAdt, QR_linlsqsolver(), 1e-6);
+      ReaK::exp_PadeSAS(b.lin_data->A * m_IHAQR_space->m_time_step, eAdt, QR_linlsqsolver(), 1e-6);
       mat<double,mat_structure::square> eAt = eAdt;
       
       vect_n<double> a_rel = to_vect<double>(m_IHAQR_space->m_space.difference(a.x, b.x));
       
       for(Iter it = b.MEAQR_data->pts.begin(); it != b.MEAQR_data->pts.end(); ++it) {
         
-        vect_n<double> s = eAt * a_rel + get<3>(it->second);  // ZIR(a_rel, t);
+        vect_n<double> s = eAt * a_rel + get<3>(it->second);  // ZIR(T)  from Nir's paper.
         
         // s = invert(L) * s
         mat_vect_adaptor< vect_n<double> > s_m(s);
         ReaK::detail::forwardsub_L_impl(get<0>(it->second), s_m, 1e-6);
         
         double J = m_idle_power_cost * it->first + 0.5 * (s * s); 
-        if(J < min_J) {
-          min_J = J;
-          min_it = it;
+        
+        ReaK::detail::backsub_R_impl(transpose_view(get<0>(it->second)), s_m, 1e-6);
+//         std::cout << s << std::endl;
+        system_input_type u_T = u0 - ( K * transpose_view(eAt) * s ) - K * get<2>(it->second);
+//         std::cout << " eAt = " << eAt << std::endl;
+//         std::cout << " estimated T = " << it->first << std::endl;
+//         std::cout << " estimated max u = " << u_T << std::endl;
+        
+        if((J < J_optimal) && 
+           (m_IHAQR_space->m_input_space.is_in_bounds(u_T))) {
+          J_optimal = J;
+          T_optimal = it->first;
+          it_optimal = it;
         };
-        if(min_J < m_idle_power_cost * it->first) {
+        if(J_optimal < m_idle_power_cost * it->first)
           break;
-        };
         
         eAt = eAdt * eAt;
       };
       
-      double T_optimal = min_it->first;
-//       std::cout << " t_optimal = " << T_optimal << std::endl;
-      double T_goal = fraction * (T_optimal + 2.0 * m_MEAQR_data_step_size);
-      mat<double,mat_structure::rectangular> K = invert(m_IHAQR_space->m_R) * transpose_view(b.lin_data->B);
-      state_type x_current = a.x;
+      if(it_optimal == b.MEAQR_data->pts.end() - 1) {
+        T_optimal += (J_optimal / m_idle_power_cost - T_optimal) * 0.5;
+        J_optimal = 0.25 * m_idle_power_cost * m_IHAQR_space->m_max_time_horizon + 0.75 * J_optimal;
+      };
+      
+    };
+    
+    
+    bool steer_with_constant_control(const mat<double,mat_structure::square>& H, 
+                                     const mat<double,mat_structure::rectangular>& K, 
+                                     const vect_n<double>& eta, 
+                                     const system_input_type& u0, system_input_type& u_prev, 
+                                     state_type& x_current, const state_type& x_goal, 
+                                     double& current_time, double time_limit, 
+                                     bool with_collision_check) const {
+      bool was_collision_free = true;
       state_type x_next = x_current;
-      system_input_type u_prev = a.lin_data->u;
-      m_IHAQR_space->m_input_space.bring_point_in_bounds(u_prev);
-      
-      double current_time = 0.0;
-      double accum_steer_cost = 0.0;
-      
-      if(min_it == b.MEAQR_data->pts.end() - 1) {
-        T_optimal += (min_J / m_idle_power_cost - T_optimal) * 0.5;
-        T_goal = fraction * (T_optimal + 2.0 * m_MEAQR_data_step_size);
-        mat<double,mat_structure::square> H = get<1>(min_it->second);
-        vect_n<double> eta = get<2>(min_it->second);
-        
-        bool ended_in_collision = false;
-        // while not reached (fly-by) the goal yet:
-        while( ( current_time < T_goal ) && 
-               ( current_time < T_optimal - m_IHAQR_space->m_max_time_horizon ) && 
-               ( m_IHAQR_space->m_space.distance(x_current, b.x) > m_IHAQR_space->m_goal_proximity_threshold ) ) {
-          // compute the current MEAQR input
-          vect_n<double> HHx = to_vect<double>(m_IHAQR_space->m_space.difference(x_current, b.x));
-          mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
-          ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
-          
-//           system_input_type u_current = m_IHAQR_space->get_bounded_input(
-//             u_prev, 
-//             b.lin_data->u - K * eta, 
-//             -K * HHx);
-          system_input_type u_current = b.lin_data->u - K * eta - K * HHx;
-          
-          accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
-          
-          constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
-          
-          // integrate for one time-step.
-          ReaK::ctrl::detail::runge_kutta4_integrate_impl(
-            m_IHAQR_space->m_space,
-            *(m_IHAQR_space->m_system),
-            x_current,
-            x_next,
-            input_traj,
-            current_time,
-            current_time + m_IHAQR_space->m_time_step,
-            m_IHAQR_space->m_time_step * 1e-1);
-          
-          if((!with_collision_check) || is_free_impl(x_next)) {
-            x_current = x_next;
-            current_time += m_IHAQR_space->m_time_step;
-            u_prev = u_current;
-          } else {
-            ended_in_collision = true;
-            break;
-          };
-        };
-        if(ended_in_collision)
-          return point_type( x_current );
-      };
-      
-      // Iterate through the MEAQR sequence points.
-      while(( current_time < T_goal ) && (min_it != b.MEAQR_data->pts.begin())) {
-        Iter prev_it = min_it;
-        --min_it;
-        
-        // integrate for some time steps.
-        bool ended_in_collision = false;
-        // while not reached (fly-by) the goal yet:
-        while( ( current_time < T_goal ) &&
-               ( current_time < T_optimal - min_it->first ) &&
-               ( m_IHAQR_space->m_space.distance(x_current, b.x) > m_IHAQR_space->m_goal_proximity_threshold ) ) {
-          // compute the current MEAQR input
-          double prev_fraction = (current_time - T_optimal + prev_it->first) / m_MEAQR_data_step_size;
-          double next_fraction = (T_optimal - min_it->first - current_time) / m_MEAQR_data_step_size;
-          mat<double,mat_structure::square> H = prev_fraction * get<1>(prev_it->second) + next_fraction * get<1>(min_it->second);
-          vect_n<double> eta = prev_fraction * get<2>(prev_it->second) + next_fraction * get<2>(min_it->second);
-          
-          vect_n<double> HHx = to_vect<double>(m_IHAQR_space->m_space.difference(x_current, b.x));
-          mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
-          ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
-          
-//           system_input_type u_current = m_IHAQR_space->get_bounded_input(
-//             u_prev, 
-//             b.lin_data->u - K * eta, 
-//             -K * HHx);
-          system_input_type u_current = b.lin_data->u - K * eta - K * HHx;
-          
-          accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
-          
-          constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
-          
-          // integrate for one time-step.
-          ReaK::ctrl::detail::runge_kutta4_integrate_impl(
-            m_IHAQR_space->m_space,
-            *(m_IHAQR_space->m_system),
-            x_current,
-            x_next,
-            input_traj,
-            current_time,
-            current_time + m_IHAQR_space->m_time_step,
-            m_IHAQR_space->m_time_step * 1e-1);
-          
-          if((!with_collision_check) || is_free_impl(x_next)) {
-            x_current = x_next;
-            current_time += m_IHAQR_space->m_time_step;
-            u_prev = u_current;
-          } else {
-            ended_in_collision = true;
-            break;
-          };
-        };
-        if(ended_in_collision)
-          return point_type( x_current );
-      
-      };
-      
-      bool ended_in_collision = false;
-      mat<double,mat_structure::square> H = get<1>(min_it->second);
-      vect_n<double> eta = get<2>(min_it->second);
       // while not reached (fly-by) the goal yet:
-      while( ( current_time < T_goal ) && 
-             ( m_IHAQR_space->m_space.distance(x_current, b.x) > m_IHAQR_space->m_goal_proximity_threshold ) ) {
+      while( ( current_time < time_limit ) && 
+             ( m_IHAQR_space->m_space.distance(x_current, x_goal) > m_IHAQR_space->m_goal_proximity_threshold ) ) {
         // compute the current MEAQR input
-        vect_n<double> HHx = to_vect<double>(m_IHAQR_space->m_space.difference(x_current, b.x));
+        vect_n<double> HHx = to_vect<double>(m_IHAQR_space->m_space.difference(x_current, x_goal));
         mat_vect_adaptor< vect_n<double> > HHx_m(HHx);
         ReaK::detail::backsub_Cholesky_impl(H, HHx_m);
+      
         
-//         system_input_type u_current = m_IHAQR_space->get_bounded_input(
-//           u_prev, 
-//           b.lin_data->u - K * eta, 
-//           -K * HHx);
-        system_input_type u_current = b.lin_data->u - K * eta - K * HHx;
+        system_input_type u_current;
+        if(current_time < m_IHAQR_space->m_time_step) {
+          u_current = u0 - K * eta - K * HHx;  // don't saturate the first time step.
+        } else {
+          u_current = m_IHAQR_space->get_bounded_input(
+            u_prev, 
+            u0 - K * eta, 
+            -K * HHx);
+        };
+//         system_input_type u_current = u0 - K * eta - K * HHx;
+//         std::cout << " current u = " << u_current << std::endl;
         
-        accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
+//         accum_steer_cost += to_vect<double>(u_current) * (m_IHAQR_space->m_R * to_vect<double>(u_current)) * m_IHAQR_space->m_time_step;
         
         constant_trajectory< vector_topology< system_input_type > > input_traj(u_current);
         
@@ -575,21 +488,89 @@ class MEAQR_topology : public named_object
           current_time,
           current_time + m_IHAQR_space->m_time_step,
           m_IHAQR_space->m_time_step * 1e-1);
+//         std::cout << " current x = " << x_current << std::endl;
         
         if((!with_collision_check) || is_free_impl(x_next)) {
           x_current = x_next;
           current_time += m_IHAQR_space->m_time_step;
           u_prev = u_current;
         } else {
-          ended_in_collision = true;
+          was_collision_free = false;
           break;
         };
       };
-      if(ended_in_collision)
-        return point_type( x_current );
+      return was_collision_free;
+    };
+    
+    
+    point_type move_position_toward_impl(const point_type& a, double fraction, const point_type& b, bool with_collision_check) const 
+    {
+      if(!a.lin_data)
+        m_IHAQR_space->compute_linearization_data(a);
+      if(!b.lin_data)
+        m_IHAQR_space->compute_linearization_data(b);
+      if(!b.MEAQR_data)
+        compute_MEAQR_data(b);
       
-      point_type result( x_current );
-      return result;
+      typedef typename std::vector< std::pair<double, MEAQR_bundle_type> >::const_iterator Iter;
+      
+      mat<double,mat_structure::rectangular> K = invert(m_IHAQR_space->m_R) * transpose_view(b.lin_data->B);
+      
+      // first, find the T-optimal:
+      double min_J;
+      double T_optimal;
+      Iter min_it;
+      find_optimal_cost_and_time(a, b, K, b.lin_data->u, T_optimal, min_J, min_it);
+      if(min_it == b.MEAQR_data->pts.end())
+        return a;  // cost is infinite!
+      
+      // scale back the end-time to meet the fractional travel requirement:
+      double T_goal = fraction * (T_optimal + 2.0 * m_IHAQR_space->m_time_step);
+      
+//       std::cout << " t_optimal = " << T_optimal << std::endl;
+      
+      // compute basic controller components: gain matrix and previous actuation.
+      system_input_type u_prev = a.lin_data->u;
+      m_IHAQR_space->m_input_space.bring_point_in_bounds(u_prev);
+      
+      double current_time = 0.0;
+      state_type x_current = a.x;
+      
+      // First, steer up to the time-horizon if the optimal time was beyond it.
+      if(min_it == b.MEAQR_data->pts.end() - 1) {
+        mat<double,mat_structure::square> H = get<1>(min_it->second);
+        vect_n<double> eta = get<2>(min_it->second);
+        
+        double time_limit = T_optimal - m_IHAQR_space->m_max_time_horizon;
+        if(time_limit > T_goal)
+          time_limit = T_goal;
+        if(!steer_with_constant_control(get<1>(min_it->second), K,  // H, K
+                                        get<2>(min_it->second), b.lin_data->u, u_prev, // eta, u0, u_previous
+                                        x_current, b.x, current_time, time_limit, with_collision_check))
+          return point_type( x_current ); // resulted in a collision, output last non-colliding point.
+      };
+      
+      // Then, iterate through the MEAQR sequence points.
+      while(( current_time < T_goal ) && (min_it != b.MEAQR_data->pts.begin())) {
+        Iter prev_it = min_it;
+        --min_it;
+        
+        // integrate for some time steps.
+        double time_limit = T_optimal - min_it->first;
+        if(time_limit > T_goal)
+          time_limit = T_goal;
+        if(!steer_with_constant_control(get<1>(prev_it->second), K,  // H, K
+                                        get<2>(prev_it->second), b.lin_data->u, u_prev, // eta, u0, u_previous
+                                        x_current, b.x, current_time, time_limit, with_collision_check))
+          return point_type( x_current ); // resulted in a collision, output last non-colliding point.
+      };
+      
+      // Finally, apply a bit more control, in case the goal state wasn't quite reached yet (mostly due to discrete-time effects).
+      steer_with_constant_control(get<1>(min_it->second), K,  // H, K
+                                  get<2>(min_it->second), b.lin_data->u, u_prev, // eta, u0, u_previous
+                                  x_current, b.x, current_time, T_goal, with_collision_check);
+      
+      return point_type( x_current ); // output last non-colliding point, whether collision occurred or not.
     };
     
     point_type random_point_impl(bool with_collision_check) const {
@@ -641,42 +622,21 @@ class MEAQR_topology : public named_object
      * Returns the distance between two points.
      */
     double distance(const point_type& a, const point_type& b) const {
+      if(!b.lin_data)
+        m_IHAQR_space->compute_linearization_data(b);
       if(!b.MEAQR_data)
         compute_MEAQR_data(b);
       
-      double min_J = std::numeric_limits<double>::infinity();
-      double min_T = 0.0;
-      
       typedef typename std::vector< std::pair<double, MEAQR_bundle_type> >::const_iterator Iter;
       
-      mat<double,mat_structure::square> eAdt(b.lin_data->A.get_row_count());
-      ReaK::exp_PadeSAS(b.lin_data->A * m_MEAQR_data_step_size, eAdt, QR_linlsqsolver(), 1e-6);
-      mat<double,mat_structure::square> eAt = eAdt;
+      mat<double,mat_structure::rectangular> K = invert(m_IHAQR_space->m_R) * transpose_view(b.lin_data->B);
       
-      vect_n<double> a_rel = to_vect<double>(m_IHAQR_space->m_space.difference(a.x, b.x));
+      double min_J;
+      double T_optimal;
+      Iter min_it;
+      find_optimal_cost_and_time(a, b, K, b.lin_data->u, T_optimal, min_J, min_it);
       
-      for(Iter it = b.MEAQR_data->pts.begin(); it != b.MEAQR_data->pts.end(); ++it) {
-        
-        vect_n<double> s = eAt * a_rel + get<3>(it->second);
-        
-        // s = invert(L) * s
-        mat_vect_adaptor< vect_n<double> > s_m(s);
-        ReaK::detail::forwardsub_L_impl(get<0>(it->second), s_m, 1e-6);
-        
-        double J = m_idle_power_cost * it->first + 0.5 * (s * s); 
-        if(J < min_J) {
-          min_J = J;
-          min_T = it->first;
-        };
-        if(min_J < m_idle_power_cost * it->first)
-          break;
-        
-        eAt = eAdt * eAt;
-      };
-      if(min_T < m_IHAQR_space->m_max_time_horizon - 0.5 * m_MEAQR_data_step_size)
-        return min_J;
-      
-      return 0.25 * m_idle_power_cost * m_IHAQR_space->m_max_time_horizon + 0.75 * min_J;
+      return min_J;
     };
     
     /**

@@ -75,6 +75,7 @@ class sbmp_point_recorder : public shared_object {
     double interval_size;
     /// Holds the file-path where to output the reports.
     std::string file_path;
+    mutable std::size_t solution_count;
     
   public:
     
@@ -87,7 +88,8 @@ class sbmp_point_recorder : public shared_object {
                                  jt_space(aJointSpace),
                                  map_to_jt_space(aMapToJtSpace),
                                  interval_size(aIntervalSize),
-                                 file_path(aFilePath) { };
+                                 file_path(aFilePath), 
+                                 solution_count(0) { };
     
     /**
      * Draws the entire motion-graph.
@@ -137,23 +139,22 @@ class sbmp_point_recorder : public shared_object {
           PointType p_v = get(pos, target(*ei, g));
           JointState s_v = map_to_jt_space.map_to_space(p_v, free_space.get_super_space(), *jt_space);
           
-          dk_map.apply_to_model(s_u, *jt_space);
-          for(std::size_t i = 0; i < traced_frames.size(); ++i)
-            motion_graph_traces[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
+          for(std::size_t i = 0; i < v_s_u.size(); ++i)
+            rec_out << v_s_u[i];
+          rec_out << recorder::data_recorder::end_value_row;
+          
           for(double j = 0.1; j <= 1.01; j += 0.1) {
             PointType p_new = free_space.get_super_space().move_position_toward(p_u, j, p_v);
             JointState s_new = map_to_jt_space.map_to_space(p_new, free_space.get_super_space(), *jt_space);
             vect_n<double> v_s_new = to_vect<double>(s_new);
-            
-            dk_map.apply_to_model(s_new, *jt_space);
-            for(std::size_t i = 0; i < traced_frames.size(); ++i)
-              motion_graph_traces[i].add_point(traced_frames[i]->getGlobalPose().Position);
+            for(std::size_t i = 0; i < v_s_new.size(); ++i)
+              rec_out << v_s_new[i];
+            rec_out << recorder::data_recorder::end_value_row;
           };
-          for(std::size_t i = 0; i < traced_frames.size(); ++i)
-            motion_graph_traces[i].end_edge();
           
         };
       };
+      rec_out << recorder::data_recorder::flush;
       
       next_reporter.draw_motion_graph(free_space, g, pos);
     };
@@ -170,32 +171,35 @@ class sbmp_point_recorder : public shared_object {
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
       typedef typename topology_traits< JointStateSpace >::point_type JointState;
       
-      double t_total = traj->get_end_time() - traj->get_start_time();
-      if(!(solution_traces.empty()) && t_total > solution_traces.begin()->first) {
-        next_reporter.draw_solution(free_space, traj);
-        return;
-      };
-      std::vector< geom::tracer_coin3d_impl >& current_trace = solution_traces[t_total];
-      for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace.push_back(geom::tracer_coin3d_impl(true));
+      std::stringstream ss;
+      ss << std::setw(3) << std::setfill('0') << (solution_count++) << "_" << t_total << ".ssv";
+      recorder::ssv_recorder rec_out(file_path + "solution_" + ss.str());
       
       double t = traj->get_start_time();
       PointType u_pt = traj->get_point_at_time(t);
       JointState s_u = map_to_jt_space.map_to_space(u_pt, free_space.get_super_space(), *jt_space);
-      dk_map.apply_to_model(s_u, *jt_space);
-      for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
+      vect_n<double> v_s_u = to_vect<double>(s_u);
+      
+      for(std::size_t i = 0; i < v_s_u.size(); ++i) {
+        std::stringstream ss2;
+        ss2 << "state_" << std::setw(2) << std::setfill('0') << i;
+        rec_out << ss2.str();
+      };
+      rec_out << recorder::data_recorder::end_name_row;
+      for(std::size_t i = 0; i < v_s_u.size(); ++i)
+        rec_out << v_s_u[i];
+      rec_out << recorder::data_recorder::end_value_row;
+      
       while(t < traj->get_end_time()) {
         t += interval_size;
         u_pt = traj->get_point_at_time(t);
         s_u = map_to_jt_space.map_to_space(u_pt, free_space.get_super_space(), *jt_space);
-        
-        dk_map.apply_to_model(s_u, *jt_space);
-        for(std::size_t i = 0; i < traced_frames.size(); ++i)
-          current_trace[i].add_point(traced_frames[i]->getGlobalPose().Position);
+        v_s_u = to_vect<double>(s_u);
+        for(std::size_t i = 0; i < v_s_u.size(); ++i)
+          rec_out << v_s_u[i];
+        rec_out << recorder::data_recorder::end_value_row;
       };
-      for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace[i].end_edge();
+      rec_out << recorder::data_recorder::flush;
       
       next_reporter.draw_solution(free_space, traj);
     };
@@ -213,31 +217,35 @@ class sbmp_point_recorder : public shared_object {
       typedef typename topology_traits< JointStateSpace >::point_type JointState;
       typedef typename seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type >::point_fraction_iterator PtIter;
       
-      std::vector< geom::tracer_coin3d_impl > current_trace;
-      for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace.push_back(geom::tracer_coin3d_impl(true));
+      std::stringstream ss;
+      ss << std::setw(3) << std::setfill('0') << (solution_count++) << ".ssv";
+      recorder::ssv_recorder rec_out(file_path + "solution_" + ss.str());
       
-      double t = 0.0;
       PtIter it = p->begin_fraction_travel();
       PointType last_pt = *it;
       JointState s_u = map_to_jt_space.map_to_space(last_pt, free_space.get_super_space(), *jt_space);
-      dk_map.apply_to_model(s_u, *jt_space);
-      for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
+      vect_n<double> v_s_u = to_vect<double>(s_u);
+      
+      for(std::size_t i = 0; i < v_s_u.size(); ++i) {
+        std::stringstream ss2;
+        ss2 << "state_" << std::setw(2) << std::setfill('0') << i;
+        rec_out << ss2.str();
+      };
+      rec_out << recorder::data_recorder::end_name_row;
+      for(std::size_t i = 0; i < v_s_u.size(); ++i)
+        rec_out << v_s_u[i];
+      rec_out << recorder::data_recorder::end_value_row;
+      
       while(it != p->end_fraction_travel()) {
         it += 0.1;
-        t += get(distance_metric, free_space.get_super_space())(last_pt, *it, free_space.get_super_space());
         last_pt = *it;
         s_u = map_to_jt_space.map_to_space(last_pt, free_space.get_super_space(), *jt_space);
-        dk_map.apply_to_model(s_u, *jt_space);
-        for(std::size_t i = 0; i < traced_frames.size(); ++i)
-          current_trace[i].add_point(traced_frames[i]->getGlobalPose().Position);
+        v_s_u = to_vect<double>(s_u);
+        for(std::size_t i = 0; i < v_s_u.size(); ++i)
+          rec_out << v_s_u[i];
+        rec_out << recorder::data_recorder::end_value_row;
       };
-      for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace[i].end_edge();
-      
-      if(solution_traces.empty() || (t <= solution_traces.begin()->first))
-        solution_traces[t].swap(current_trace);
+      rec_out << recorder::data_recorder::flush;
       
       next_reporter.draw_solution(free_space, p);
     };
@@ -263,6 +271,7 @@ class sbmp_point_recorder : public shared_object {
         & RK_SERIAL_LOAD_WITH_NAME(map_to_jt_space)
         & RK_SERIAL_LOAD_WITH_NAME(interval_size)
         & RK_SERIAL_LOAD_WITH_NAME(file_path);
+      solution_count = 0;
     };
     
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC246000F,1,"sbmp_point_recorder",shared_object)
@@ -285,23 +294,22 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
     NextReporter next_reporter;
     
   protected:
-    shared_ptr<JointStateSpace> jt_space;
     /// Holds the interval-size between output points of the solution trajectory/path.
     double interval_size;
     /// Holds the file-path where to output the reports.
     std::string file_path;
+    mutable std::size_t solution_count;
   
   public:
     
     explicit sbmp_point_recorder(const DirectKinMapper& aDKMap = DirectKinMapper(),
-                                 const shared_ptr<JointStateSpace>& aJointSpace = shared_ptr<JointStateSpace>(),
                                  const std::string& aFilePath = "", 
                                  double aIntervalSize = 0.1,
                                  NextReporter aNextReporter = NextReporter()) : 
                                  next_reporter(aNextReporter),
-                                 jt_space(aJointSpace),
                                  interval_size(aIntervalSize),
-                                 file_path(aFilePath) { };
+                                 file_path(aFilePath),
+                                 solution_count(0) { };
     
     /**
      * Draws the entire motion-graph.
@@ -319,26 +327,50 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
       typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
       typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
+      using ReaK::to_vect;
+      
+      std::stringstream ss;
+      ss << std::setw(6) << std::setfill('0') << num_vertices(g) << ".ssv";
+      recorder::ssv_recorder rec_out(file_path + "progress_" + ss.str());
+      bool not_initialized_yet = true;
       
       VIter vi, vi_end;
       for(boost::tie(vi,vi_end) = vertices(g); vi != vi_end; ++vi) {
         EIter ei, ei_end;
         PointType p_u = get(pos, *vi);
+        vect_n<double> v_s_u = to_vect<double>(p_u);
+        
+        if(not_initialized_yet) {
+          for(std::size_t i = 0; i < v_s_u.size(); ++i) {
+            std::stringstream ss2;
+            ss2 << "state_" << std::setw(2) << std::setfill('0') << i;
+            rec_out << ss2.str();
+          };
+          rec_out << recorder::data_recorder::end_name_row;
+          not_initialized_yet = false;
+        };
+        for(std::size_t i = 0; i < v_s_u.size(); ++i)
+          rec_out << v_s_u[i];
+        rec_out << recorder::data_recorder::end_value_row;
+        
         for(boost::tie(ei,ei_end) = out_edges(*vi,g); ei != ei_end; ++ei) {
           PointType p_v = get(pos, target(*ei, g));
-          dk_map.apply_to_model(p_u, *jt_space);
-          for(std::size_t i = 0; i < traced_frames.size(); ++i)
-            motion_graph_traces[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
+          
+          for(std::size_t i = 0; i < v_s_u.size(); ++i)
+            rec_out << v_s_u[i];
+          rec_out << recorder::data_recorder::end_value_row;
+          
           for(double j = 0.1; j <= 1.01; j += 0.1) {
             PointType p_new = free_space.get_super_space().move_position_toward(p_u, j, p_v);
-            dk_map.apply_to_model(p_new, *jt_space);
-            for(std::size_t i = 0; i < traced_frames.size(); ++i)
-              motion_graph_traces[i].add_point(traced_frames[i]->getGlobalPose().Position);
+            vect_n<double> v_s_new = to_vect<double>(p_new);
+            for(std::size_t i = 0; i < v_s_new.size(); ++i)
+              rec_out << v_s_new[i];
+            rec_out << recorder::data_recorder::end_value_row;
           };
-          for(std::size_t i = 0; i < traced_frames.size(); ++i)
-            motion_graph_traces[i].end_edge();
+          
         };
       };
+      rec_out << recorder::data_recorder::flush;
       
       next_reporter.draw_motion_graph(free_space, g, pos);
     };
@@ -355,28 +387,33 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
       
       double t_total = traj->get_end_time() - traj->get_start_time();
-      if(!(solution_traces.empty()) && t_total > solution_traces.begin()->first) {
-        next_reporter.draw_solution(free_space, traj);
-        return;
-      };
-      std::vector< geom::tracer_coin3d_impl >& current_trace = solution_traces[t_total];
-      for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace.push_back(geom::tracer_coin3d_impl(true));
+      std::stringstream ss;
+      ss << std::setw(3) << std::setfill('0') << (solution_count++) << "_" << t_total << ".ssv";
+      recorder::ssv_recorder rec_out(file_path + "solution_" + ss.str());
       
       double t = traj->get_start_time();
       PointType u_pt = traj->get_point_at_time(t);
-      dk_map.apply_to_model(u_pt, *jt_space);
-      for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
+      vect_n<double> v_s_u = to_vect<double>(u_pt);
+      
+      for(std::size_t i = 0; i < v_s_u.size(); ++i) {
+        std::stringstream ss2;
+        ss2 << "state_" << std::setw(2) << std::setfill('0') << i;
+        rec_out << ss2.str();
+      };
+      rec_out << recorder::data_recorder::end_name_row;
+      for(std::size_t i = 0; i < v_s_u.size(); ++i)
+        rec_out << v_s_u[i];
+      rec_out << recorder::data_recorder::end_value_row;
+      
       while(t < traj->get_end_time()) {
         t += interval_size;
         u_pt = traj->get_point_at_time(t);
-        dk_map.apply_to_model(u_pt, *jt_space);
-        for(std::size_t i = 0; i < traced_frames.size(); ++i)
-          current_trace[i].add_point(traced_frames[i]->getGlobalPose().Position);
+        v_s_u = to_vect<double>(u_pt);
+        for(std::size_t i = 0; i < v_s_u.size(); ++i)
+          rec_out << v_s_u[i];
+        rec_out << recorder::data_recorder::end_value_row;
       };
-      for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace[i].end_edge();
+      rec_out << recorder::data_recorder::flush;
       
       next_reporter.draw_solution(free_space, traj);
     };
@@ -393,29 +430,31 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
       typedef typename topology_traits<FreeSpaceType>::point_type PointType;
       typedef typename seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type >::point_fraction_iterator PtIter;
       
-      std::vector< geom::tracer_coin3d_impl > current_trace;
-      for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace.push_back(geom::tracer_coin3d_impl(true));
+      std::stringstream ss;
+      ss << std::setw(3) << std::setfill('0') << (solution_count++) << ".ssv";
+      recorder::ssv_recorder rec_out(file_path + "solution_" + ss.str());
       
-      double t = 0.0;
       PtIter it = p->begin_fraction_travel();
-      PointType last_pt = *it;
-      dk_map.apply_to_model(last_pt, *jt_space);
-      for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
+      vect_n<double> v_s_u = to_vect<double>(*it);
+      
+      for(std::size_t i = 0; i < v_s_u.size(); ++i) {
+        std::stringstream ss2;
+        ss2 << "state_" << std::setw(2) << std::setfill('0') << i;
+        rec_out << ss2.str();
+      };
+      rec_out << recorder::data_recorder::end_name_row;
+      for(std::size_t i = 0; i < v_s_u.size(); ++i)
+        rec_out << v_s_u[i];
+      rec_out << recorder::data_recorder::end_value_row;
+      
       while(it != p->end_fraction_travel()) {
         it += 0.1;
-        t += get(distance_metric, free_space.get_super_space())(last_pt, *it, free_space.get_super_space());
-        last_pt = *it;
-        dk_map.apply_to_model(last_pt, *jt_space);
-        for(std::size_t i = 0; i < traced_frames.size(); ++i)
-          current_trace[i].add_point(traced_frames[i]->getGlobalPose().Position);
+        v_s_u = to_vect<double>(*it);
+        for(std::size_t i = 0; i < v_s_u.size(); ++i)
+          rec_out << v_s_u[i];
+        rec_out << recorder::data_recorder::end_value_row;
       };
-      for(std::size_t i = 0; i < traced_frames.size(); ++i)
-        current_trace[i].end_edge();
-      
-      if(solution_traces.empty() || (t <= solution_traces.begin()->first))
-        solution_traces[t].swap(current_trace);
+      rec_out << recorder::data_recorder::flush;
       
       next_reporter.draw_solution(free_space, p);
     };
@@ -428,7 +467,6 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(next_reporter)
-        & RK_SERIAL_SAVE_WITH_NAME(jt_space)
         & RK_SERIAL_SAVE_WITH_NAME(interval_size)
         & RK_SERIAL_SAVE_WITH_NAME(file_path);
     };
@@ -436,9 +474,9 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(next_reporter)
-        & RK_SERIAL_LOAD_WITH_NAME(jt_space)
         & RK_SERIAL_LOAD_WITH_NAME(interval_size)
         & RK_SERIAL_LOAD_WITH_NAME(file_path);
+      solution_count = 0;
     };
     
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC246000F,1,"sbmp_point_recorder",shared_object)

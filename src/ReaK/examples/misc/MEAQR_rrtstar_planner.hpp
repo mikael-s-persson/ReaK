@@ -395,6 +395,13 @@ struct MEAQR_rrtstar_visitor {
         return std::make_pair(p_dest, true);
       } else {
         std::cout << "Steering wasn't connectable! diff = " << diff_dist << " over " << actual_dist << std::endl;
+        std::cout << "Steering wasn't connectable! MEAQR-dist-attempt = " 
+                  << get(distance_metric, m_space->get_super_space())(g[u].position, result_p, m_space->get_super_space())
+                  << "  MEAQR-dist-obtained = " 
+                  << get(distance_metric, m_space->get_super_space())(g[u].position, p_dest, m_space->get_super_space())
+                  << "  MEAQR-dist-remaining = " 
+                  << get(distance_metric, m_space->get_super_space())(p_dest, result_p, m_space->get_super_space())
+                  << std::endl;
         return std::make_pair(result_p, false);
       };
     } else {
