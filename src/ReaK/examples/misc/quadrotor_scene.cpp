@@ -85,10 +85,7 @@ int main(int argc, char ** argv) {
   
   shared_ptr< MEAQR_space_type > quad_MEAQR_space(new MEAQR_space_type(
     "QuadRotor_MEAQR_topology",
-    quad_space,
-    0.02, // aMEAQRDataStepSize
-    10.0)); // aIdlePowerCost
-//     225.0)); // aIdlePowerCost
+    quad_space);
 #else 
   shared_ptr< quadrotor_system > quad_sys;
   shared_ptr< IHAQR_space_type > quad_space;

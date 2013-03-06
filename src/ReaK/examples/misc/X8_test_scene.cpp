@@ -172,7 +172,7 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
 //         start_point,
 //         goal_point,
 //         0.9, 
-//         0.25 * r_info->X8_MEAQR_space->get_max_time_horizon() * r_info->X8_MEAQR_space->get_idle_power_cost(),
+//         0.25 * r_info->X8_MEAQR_space->get_max_time_horizon() * r_info->X8_MEAQR_space->get_idle_power_cost(start_point),
 //         r_info->X8_plan_params.max_vertices, 
 //         r_info->X8_plan_params.prog_interval,
 //         r_info->X8_plan_params.knn_method,

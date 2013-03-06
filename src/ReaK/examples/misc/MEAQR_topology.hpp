@@ -44,6 +44,10 @@
 #include "topologies/hyperbox_topology.hpp"
 
 #include "path_planning/metric_space_concept.hpp"
+#include "path_planning/steerable_space_concept.hpp"
+
+#include "interpolation/discrete_point_path.hpp"
+
 #include "ctrl_sys/linear_ss_system_concept.hpp"
 
 #include "IHAQR_topology.hpp"
@@ -323,11 +327,11 @@ class MEAQR_topology : public named_object
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 0);
     
+    typedef discrete_point_path<StateSpace> steer_record_type;
+    
   protected:
     
     shared_ptr< IHAQR_space_type > m_IHAQR_space;
-    double m_MEAQR_data_step_size;
-    double m_idle_power_cost;
     
     void compute_MEAQR_data(const point_type& p) const {
       m_IHAQR_space->compute_linearization_data(p);
@@ -399,6 +403,8 @@ class MEAQR_topology : public named_object
       T_optimal = std::numeric_limits<double>::infinity();
       it_optimal = b.MEAQR_data->pts.end();
       
+      double rho = 0.01 * (u0 * (m_IHAQR_space->m_R * u0));
+      
       typedef typename std::vector< std::pair<double, MEAQR_bundle_type> >::const_iterator Iter;
       
       mat<double,mat_structure::square> eAdt(b.lin_data->A.get_row_count());
@@ -415,7 +421,7 @@ class MEAQR_topology : public named_object
         mat_vect_adaptor< vect_n<double> > s_m(s);
         ReaK::detail::forwardsub_L_impl(get<0>(it->second), s_m, 1e-6);
         
-        double J = m_idle_power_cost * it->first + 0.5 * (s * s); 
+        double J = rho * it->first + 0.5 * (s * s); 
         
         ReaK::detail::backsub_R_impl(transpose_view(get<0>(it->second)), s_m, 1e-6);
 //         std::cout << s << std::endl;
@@ -430,15 +436,15 @@ class MEAQR_topology : public named_object
           T_optimal = it->first;
           it_optimal = it;
         };
-        if(J_optimal < m_idle_power_cost * it->first)
+        if(J_optimal < rho * it->first)
           break;
         
         eAt = eAdt * eAt;
       };
       
       if(it_optimal == b.MEAQR_data->pts.end() - 1) {
-        T_optimal += (J_optimal / m_idle_power_cost - T_optimal) * 0.5;
-        J_optimal = 0.25 * m_idle_power_cost * m_IHAQR_space->m_max_time_horizon + 0.75 * J_optimal;
+        T_optimal += (J_optimal / rho - T_optimal) * 0.5;
+        J_optimal = 0.25 * rho * m_IHAQR_space->m_max_time_horizon + 0.75 * J_optimal;
       };
       
     };
@@ -450,7 +456,8 @@ class MEAQR_topology : public named_object
                                      const system_input_type& u0, system_input_type& u_prev, 
                                      state_type& x_current, const state_type& x_goal, 
                                      double& current_time, double time_limit, 
-                                     bool with_collision_check) const {
+                                     bool with_collision_check,
+                                     steer_record_type* st_rec = NULL) const {
       bool was_collision_free = true;
       state_type x_next = x_current;
       // while not reached (fly-by) the goal yet:
@@ -494,6 +501,8 @@ class MEAQR_topology : public named_object
           x_current = x_next;
           current_time += m_IHAQR_space->m_time_step;
           u_prev = u_current;
+          if(st_rec)
+            st_rec->push_back(x_current);
         } else {
           was_collision_free = false;
           break;
@@ -503,7 +512,8 @@ class MEAQR_topology : public named_object
     };
     
     
-    point_type move_position_toward_impl(const point_type& a, double fraction, const point_type& b, bool with_collision_check) const 
+    point_type move_position_toward_impl(const point_type& a, double fraction, const point_type& b, 
+                                         bool with_collision_check, steer_record_type* st_rec = NULL) const 
     {
       if(!a.lin_data)
         m_IHAQR_space->compute_linearization_data(a);
@@ -535,6 +545,8 @@ class MEAQR_topology : public named_object
       
       double current_time = 0.0;
       state_type x_current = a.x;
+      if(st_rec)
+        st_rec->push_back(x_current);
       
       // First, steer up to the time-horizon if the optimal time was beyond it.
       if(min_it == b.MEAQR_data->pts.end() - 1) {
@@ -546,7 +558,7 @@ class MEAQR_topology : public named_object
           time_limit = T_goal;
         if(!steer_with_constant_control(get<1>(min_it->second), K,  // H, K
                                         get<2>(min_it->second), b.lin_data->u, u_prev, // eta, u0, u_previous
-                                        x_current, b.x, current_time, time_limit, with_collision_check))
+                                        x_current, b.x, current_time, time_limit, with_collision_check, st_rec))
           return point_type( x_current ); // resulted in a collision, output last non-colliding point.
       };
       
@@ -561,14 +573,14 @@ class MEAQR_topology : public named_object
           time_limit = T_goal;
         if(!steer_with_constant_control(get<1>(prev_it->second), K,  // H, K
                                         get<2>(prev_it->second), b.lin_data->u, u_prev, // eta, u0, u_previous
-                                        x_current, b.x, current_time, time_limit, with_collision_check))
+                                        x_current, b.x, current_time, time_limit, with_collision_check, st_rec))
           return point_type( x_current ); // resulted in a collision, output last non-colliding point.
       };
       
       // Finally, apply a bit more control, in case the goal state wasn't quite reached yet (mostly due to discrete-time effects).
       steer_with_constant_control(get<1>(min_it->second), K,  // H, K
                                   get<2>(min_it->second), b.lin_data->u, u_prev, // eta, u0, u_previous
-                                  x_current, b.x, current_time, T_goal, with_collision_check);
+                                  x_current, b.x, current_time, T_goal, with_collision_check, st_rec);
       
       return point_type( x_current ); // output last non-colliding point, whether collision occurred or not.
     };
@@ -594,20 +606,20 @@ class MEAQR_topology : public named_object
     
     double get_max_time_horizon() const { return m_IHAQR_space->m_max_time_horizon; };
     
-    double get_idle_power_cost() const { return m_idle_power_cost; };
+    double get_idle_power_cost(const point_type& b) const { 
+      if(!b.lin_data)
+        m_IHAQR_space->compute_linearization_data(b);
+      return 0.01 * (b.lin_data->u * (m_IHAQR_space->m_R * b.lin_data->u));
+    };
     
     
     /**
      * Default constructor.
      */
     MEAQR_topology(const std::string& aName = "MEAQR_topology",
-                   const shared_ptr< IHAQR_space_type >& aIHAQRSpace = shared_ptr< IHAQR_space_type >(),
-                   double aMEAQRDataStepSize = 0.1,
-                   double aIdlePowerCost = 20.0) : 
+                   const shared_ptr< IHAQR_space_type >& aIHAQRSpace = shared_ptr< IHAQR_space_type >()) : 
                    named_object(),
-                   m_IHAQR_space(aIHAQRSpace),
-                   m_MEAQR_data_step_size(aMEAQRDataStepSize),
-                   m_idle_power_cost(aIdlePowerCost) {
+                   m_IHAQR_space(aIHAQRSpace) {
       setName(aName);
     };
     
@@ -707,6 +719,20 @@ class MEAQR_topology : public named_object
       return move_position_toward_impl(a, fraction, b, false);
     };
 
+    /*************************************************************************
+    *                             SteerableSpaceConcept
+    * **********************************************************************/
+    
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    std::pair<point_type, steer_record_type> steer_position_toward(const point_type& a, double fraction, const point_type& b) const 
+    {
+      std::pair<point_type, steer_record_type> result(point_type(), steer_record_type(shared_ptr<StateSpace>(m_IHAQR_space, &(m_IHAQR_space->m_space))));
+      result.first = move_position_toward_impl(a, fraction, b, false, &result.second);
+      return result;
+    };
+
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -714,16 +740,12 @@ class MEAQR_topology : public named_object
     
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(m_IHAQR_space)
-        & RK_SERIAL_SAVE_WITH_NAME(m_MEAQR_data_step_size)
-        & RK_SERIAL_SAVE_WITH_NAME(m_idle_power_cost);
+      A & RK_SERIAL_SAVE_WITH_NAME(m_IHAQR_space);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(m_IHAQR_space)
-        & RK_SERIAL_LOAD_WITH_NAME(m_MEAQR_data_step_size)
-        & RK_SERIAL_LOAD_WITH_NAME(m_idle_power_cost);
+      A & RK_SERIAL_LOAD_WITH_NAME(m_IHAQR_space);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400035,1,"MEAQR_topology",named_object)
@@ -740,6 +762,9 @@ struct is_point_distribution< MEAQR_topology<StateSpace, StateSpaceSystem, State
 template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 struct is_metric_symmetric< MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::false_ { };
   
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_steerable_space< MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::true_ { };
+
   
   
   
@@ -765,6 +790,8 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
     typedef default_random_sampler random_sampler_type;
     
     typedef typename base_type::IHAQR_space_type IHAQR_space_type;
+    
+    typedef typename base_type::steer_record_type steer_record_type;
     
   protected:
     shared_ptr< kte::direct_kinematics_model > m_model; 
@@ -804,10 +831,8 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
      */
     MEAQR_topology_with_CD(const std::string& aName = "MEAQR_topology_with_CD",
                            const shared_ptr< IHAQR_space_type >& aIHAQRSpace = shared_ptr< IHAQR_space_type >(),
-                           double aMEAQRDataStepSize = 0.1,
-                           double aIdlePowerCost = 1.0,
                            const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >()) : 
-                           base_type(aName, aIHAQRSpace, aMEAQRDataStepSize, aIdlePowerCost),
+                           base_type(aName, aIHAQRSpace),
                            m_model(aModel),
                            m_proxy_env_2D(),
                            m_proxy_env_3D() { };
@@ -865,6 +890,15 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
       return this->move_position_toward_impl(a, fraction, b, true);
     };
     
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    std::pair<point_type, steer_record_type> steer_position_toward(const point_type& a, double fraction, const point_type& b) const 
+    {
+      std::pair<point_type, steer_record_type> result(point_type(), steer_record_type(shared_ptr<StateSpace>(this->m_IHAQR_space, &(this->m_IHAQR_space->get_state_space()))));
+      result.first = move_position_toward_impl(a, fraction, b, true, &result.second);
+      return result;
+    };
     
     
 /*******************************************************************************
@@ -901,6 +935,9 @@ struct is_point_distribution< MEAQR_topology_with_CD<StateSpace, StateSpaceSyste
 template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 struct is_metric_symmetric< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::false_ { };
   
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct is_steerable_space< MEAQR_topology_with_CD<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::true_ { };
+
 
 
 

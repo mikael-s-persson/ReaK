@@ -78,9 +78,15 @@ struct MEAQR_rrtstar_vdata {
 
 template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 struct MEAQR_rrtstar_edata {
-  double weight;
+  typedef typename MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>::steer_record_type steer_record_type;
   
-  MEAQR_rrtstar_edata(double aWeight = 0.0) : weight(aWeight) { };
+  double weight;
+  steer_record_type steer_rec;
+  
+  MEAQR_rrtstar_edata(double aWeight = 0.0, const steer_record_type& aSteerRec = steer_record_type()) : weight(aWeight), steer_rec(aSteerRec) { };
+#ifdef RK_ENABLE_CXX11_FEATURES
+  MEAQR_rrtstar_edata(double aWeight, steer_record_type&& aSteerRec) : weight(aWeight), steer_rec(std::move(aSteerRec)) { };
+#endif
 };
 
 
@@ -106,6 +112,8 @@ class MEAQR_rrtstar_planner : public sample_based_planner< path_planner_base< ME
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
     
+    typedef typename steerable_space_traits< super_space_type >::steer_record_type steer_record_type;
+    
   protected:
     SBPPReporter m_reporter;
     point_type m_start_pos;
@@ -121,37 +129,50 @@ class MEAQR_rrtstar_planner : public sample_based_planner< path_planner_base< ME
     
     template <typename Vertex, typename Graph>
     void check_goal_connection(const point_type& p_u, Vertex u, Graph& g) {
-      point_type result_p = this->m_space->move_position_toward(p_u, 1.0, this->m_goal_pos);
+      typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+      typedef typename steer_record_type::point_fraction_iterator SteerIter;
+      
+      std::pair< point_type, steer_record_type > steer_result = this->m_space->steer_position_toward(p_u, 1.0, this->m_goal_pos);
       // NOTE Differs from rrtstar_path_planner HERE:
-      double diff_dist = get(distance_metric, this->m_space->get_state_space())(result_p.x, this->m_goal_pos.x, this->m_space->get_state_space());
-      double actual_dist = get(distance_metric, this->m_space->get_state_space())(p_u.x, result_p.x, this->m_space->get_state_space());
+      double diff_dist = get(distance_metric, this->m_space->get_state_space())(steer_result.first.x, this->m_goal_pos.x, this->m_space->get_state_space());
+      double actual_dist = get(distance_metric, this->m_space->get_state_space())(p_u.x, this->m_goal_pos.x, this->m_space->get_state_space());
       
       if(diff_dist > 0.05 * actual_dist)
         return;
+      
+      std::cout << " starting to print out solution... " << std::endl;
       
       double solutions_total_dist = g[u].distance_accum + get(distance_metric, this->m_space->get_super_space())(p_u, this->m_goal_pos, this->m_space->get_super_space());
 //       if(solutions_total_dist >= this->m_solutions.begin()->first)
 //         return;
       
       shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
-      shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("MEAQR_rrtstar_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
-      point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
+      shared_ptr< seq_path_wrapper< discrete_point_path<super_space_type> > > new_sol(new seq_path_wrapper< discrete_point_path<super_space_type> >("MEAQR_rrtstar_solution", discrete_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
+      discrete_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
       
-      waypoints.push_front(this->m_goal_pos);
-      waypoints.push_front(p_u);
+      for(SteerIter it = steer_result.second.end_fraction_travel(); it != steer_result.second.begin_fraction_travel(); it -= 10.0)
+        waypoints.push_front( point_type(*it) );
       
       while(in_degree(u,g)) {
-        u = source(*(in_edges(u,g).first),g);
-        waypoints.push_front(g[u].position);
+        Edge e = *(in_edges(u,g).first);
+        u = source(e,g);
+        for(SteerIter it = g[e].steer_rec.end_fraction_travel(); it != g[e].steer_rec.begin_fraction_travel(); it -= 10.0) {
+          waypoints.push_front( point_type(*it) );
+        };
       };
       
       this->m_solutions[solutions_total_dist] = new_sol;
       this->m_reporter.draw_solution(*(this->m_space), this->m_solutions[solutions_total_dist]);
+      
+      std::cout << "Done!" << std::endl;
     };
     
     // NOTE: This is the same as rrtstar_path_planner
     template <typename Vertex, typename Graph>
     void joining_vertex_found(Vertex u1, Vertex u2, Graph& g1, Graph& g2) {
+      typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+      typedef typename steer_record_type::point_fraction_iterator SteerIter;
+      
       double total_dist = g1[u1].distance_accum + g2[u2].distance_accum
         + get(distance_metric, this->m_space->get_super_space())(g1[u1].position, g2[u2].position, this->m_space->get_super_space());
       
@@ -159,19 +180,21 @@ class MEAQR_rrtstar_planner : public sample_based_planner< path_planner_base< ME
 //         return;
       
       shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
-      shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("birrt_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
-      point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
+      shared_ptr< seq_path_wrapper< discrete_point_path<super_space_type> > > new_sol(new seq_path_wrapper< discrete_point_path<super_space_type> >("birrt_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
+      discrete_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
       
-      waypoints.push_front(g1[u1].position);
       while(in_degree(u1,g1)) {
-        u1 = source(*(in_edges(u1,g1).first),g1);
-        waypoints.push_front(g1[u1].position);
+        Edge e = *(in_edges(u1,g1).first);
+        u1 = source(e,g1);
+        for(SteerIter it = g1[e].steer_rec.end_fraction_travel(); it != g1[e].steer_rec.begin_fraction_travel(); it -= 10.0)
+          waypoints.push_front( point_type(*it) );
       };
       
-      waypoints.push_back(g2[u2].position);
       while(in_degree(u2,g2)) {
-        u2 = source(*(in_edges(u2,g2).first),g2);
-        waypoints.push_back(g2[u2].position);
+        Edge e = *(in_edges(u2,g2).first);
+        u2 = source(e,g2);
+        for(SteerIter it = g2[e].steer_rec.begin_fraction_travel(); it != g2[e].steer_rec.end_fraction_travel(); it += 10.0)
+          waypoints.push_back( point_type(*it) );
       };
       
       m_solutions[total_dist] = new_sol;
@@ -332,7 +355,8 @@ struct MEAQR_rrtstar_visitor {
     VertexType v = target(e,g);
     
     // Call progress reporter...
-    m_planner->report_progress(g, get(&MEAQR_rrtstar_vdata<StateSpace,StateSpaceSystem, StateSpaceSampler>::position,g));
+//     m_planner->report_progress(g, get(&MEAQR_rrtstar_vdata<StateSpace,StateSpaceSystem, StateSpaceSampler>::position,g));
+    m_planner->report_progress(g, get(&MEAQR_rrtstar_edata<StateSpace,StateSpaceSystem, StateSpaceSampler>::steer_rec,g));
     
     // Check if a straight path to goal is possible...
     m_planner->check_goal_connection(g[v].position,v,g);
@@ -343,9 +367,12 @@ struct MEAQR_rrtstar_visitor {
   void edge_added(EdgeType e, Graph& g1, Graph& g2) const {
     
     // Call progress reporter...
+//     m_planner->report_progress(g1, g2, 
+//                                get(&MEAQR_rrtstar_vdata<StateSpace,StateSpaceSystem, StateSpaceSampler>::position,g1), 
+//                                get(&MEAQR_rrtstar_vdata<StateSpace,StateSpaceSystem, StateSpaceSampler>::position,g2));
     m_planner->report_progress(g1, g2, 
-                               get(&MEAQR_rrtstar_vdata<StateSpace,StateSpaceSystem, StateSpaceSampler>::position,g1), 
-                               get(&MEAQR_rrtstar_vdata<StateSpace,StateSpaceSystem, StateSpaceSampler>::position,g2));
+                               get(&MEAQR_rrtstar_edata<StateSpace,StateSpaceSystem, StateSpaceSampler>::steer_rec,g1), 
+                               get(&MEAQR_rrtstar_edata<StateSpace,StateSpaceSystem, StateSpaceSampler>::steer_rec,g2));
   };
   
   bool is_position_free(PointType p) const {
@@ -363,6 +390,7 @@ struct MEAQR_rrtstar_visitor {
   
   template <typename Vertex, typename Graph>
   boost::tuple<PointType, bool, EdgeProp> steer_towards_position(const PointType& p, Vertex u, Graph& g) const {
+    typedef typename EdgeProp::steer_record_type SteerRec;
     typedef boost::tuple<PointType, bool, EdgeProp> ResultType;
     // get a destination point that is half the distance to a point reachable by the IHAQR motion (with limited time-horizon):
 //     PointType p_dest( m_space->get_state_space().adjust(g[u].position.x, 
@@ -370,7 +398,7 @@ struct MEAQR_rrtstar_visitor {
 //                         m_space->get_IHAQR_space().move_position_toward(g[u].position, 1.0, p).x, g[u].position.x) ) );
     
     double total_dist = get(distance_metric, m_space->get_super_space())(g[u].position, p, m_space->get_super_space());
-    double max_cost_to_go = 0.75 * m_space->get_max_time_horizon() * m_space->get_idle_power_cost();
+    double max_cost_to_go = 0.75 * m_space->get_max_time_horizon() * m_space->get_idle_power_cost(g[u].position);
     PointType p_dest = p;
     while(total_dist > max_cost_to_go) {
       p_dest = PointType( m_space->get_state_space().move_position_toward(g[u].position.x, 0.5, p_dest.x) );
@@ -379,51 +407,65 @@ struct MEAQR_rrtstar_visitor {
     
 //     PointType p_dest = m_space->move_position_toward(g[u].position, 0.5, p);
     
-    PointType result_p = m_space->move_position_toward(g[u].position, 0.8, p_dest);
+    std::pair<PointType, SteerRec> steer_result = m_space->steer_position_toward(g[u].position, 0.8, p_dest);
     
     // NOTE Differs from rrtstar_path_planner HERE:
     double best_case_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, p_dest.x, m_space->get_state_space());
-    double actual_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, result_p.x, m_space->get_state_space());
+    double actual_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, steer_result.first.x, m_space->get_state_space());
     
     if(actual_dist > 0.1 * best_case_dist) {
-//       std::cout << "Steered successfully!" << std::endl;
-//       return std::make_pair(result_p, true);
+      std::cout << "Steered successfully!" << std::endl;
+#ifdef RK_ENABLE_CXX11_FEATURES
+      return ResultType(steer_result.first, true, EdgeProp(0.8 * total_dist, std::move(steer_result.second)));
+#else
+      return ResultType(steer_result.first, true, EdgeProp(0.8 * total_dist, steer_result.second));
+#endif
         
-      p_dest = m_space->move_position_toward(g[u].position, 1.0, result_p);
-      double diff_dist = get(distance_metric, m_space->get_state_space())(p_dest.x, result_p.x, m_space->get_state_space());
-      
-      if(diff_dist < 0.1 * actual_dist) {
-        std::cout << "Steered successfully!" << std::endl;
-        return ResultType(p_dest, true, EdgeProp(get(distance_metric, m_space->get_super_space())(g[u].position, p_dest, m_space->get_super_space())));
-      } else {
-        std::cout << "Steering wasn't connectable! diff = " << diff_dist << " over " << actual_dist << std::endl;
-        std::cout << "Steering wasn't connectable! MEAQR-dist-attempt = " 
-                  << get(distance_metric, m_space->get_super_space())(g[u].position, result_p, m_space->get_super_space())
-                  << "  MEAQR-dist-obtained = " 
-                  << get(distance_metric, m_space->get_super_space())(g[u].position, p_dest, m_space->get_super_space())
-                  << "  MEAQR-dist-remaining = " 
-                  << get(distance_metric, m_space->get_super_space())(p_dest, result_p, m_space->get_super_space())
-                  << std::endl;
-        return ResultType(result_p, false, EdgeProp());
-      };
+//       p_dest = m_space->move_position_toward(g[u].position, 1.0, steer_result.first);
+//       double diff_dist = get(distance_metric, m_space->get_state_space())(p_dest.x, steer_result.first.x, m_space->get_state_space());
+//       
+//       if(diff_dist < 0.1 * actual_dist) {
+//         std::cout << "Steered successfully!" << std::endl;
+//         return ResultType(p_dest, true, EdgeProp(get(distance_metric, m_space->get_super_space())(g[u].position, p_dest, m_space->get_super_space())));
+//       } else {
+//         std::cout << "Steering wasn't connectable! diff = " << diff_dist << " over " << actual_dist << std::endl;
+//         std::cout << "Steering wasn't connectable! MEAQR-dist-attempt = " 
+//                   << get(distance_metric, m_space->get_super_space())(g[u].position, steer_result.first, m_space->get_super_space())
+//                   << "  MEAQR-dist-obtained = " 
+//                   << get(distance_metric, m_space->get_super_space())(g[u].position, p_dest, m_space->get_super_space())
+//                   << "  MEAQR-dist-remaining = " 
+//                   << get(distance_metric, m_space->get_super_space())(p_dest, steer_result.first, m_space->get_super_space())
+//                   << std::endl;
+//         return ResultType(steer_result.first, false, EdgeProp());
+//       };
     } else {
-      return ResultType(result_p, false, EdgeProp());
+      return ResultType(steer_result.first, false, EdgeProp());
     };
   };
   
   template <typename Vertex, typename Graph>
   std::pair<bool,EdgeProp> can_be_connected(Vertex u, Vertex v, const Graph& g) {
-    PointType result_p = m_space->move_position_toward(g[u].position, 1.0, g[v].position);
+    typedef typename EdgeProp::steer_record_type SteerRec;
+    typedef std::pair<bool,EdgeProp> ResultType;
+    
+    std::pair<PointType, SteerRec> steer_result = m_space->steer_position_toward(g[u].position, 1.0, g[v].position);
     
     // NOTE Differs from rrtstar_path_planner HERE:
     double best_case_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, g[v].position.x, m_space->get_state_space());
-    double diff_dist = get(distance_metric, m_space->get_state_space())(result_p.x, g[v].position.x, m_space->get_state_space());
+    double diff_dist = get(distance_metric, m_space->get_state_space())(steer_result.first.x, g[v].position.x, m_space->get_state_space());
     
     if(diff_dist < 0.05 * best_case_dist) {
       std::cout << "Connected successfully!" << std::endl;
-      return std::pair<bool,EdgeProp>(true,EdgeProp(get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space())));
+      return ResultType(true, EdgeProp(
+        get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space()),
+#ifdef RK_ENABLE_CXX11_FEATURES
+        std::move(steer_result.second)
+#else
+        steer_result.second
+#endif
+      ));
     } else {
-      return std::pair<bool,EdgeProp>(false,EdgeProp());
+      return ResultType(false,EdgeProp());
     };
   };
   

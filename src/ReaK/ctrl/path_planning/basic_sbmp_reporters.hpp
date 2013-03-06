@@ -39,6 +39,7 @@
 #include <boost/concept_check.hpp>
 
 #include "subspace_concept.hpp"
+#include "steerable_space_concept.hpp"
 #include "trajectory_base.hpp"
 #include "seq_path_base.hpp"
 #include <boost/graph/graph_concepts.hpp>
@@ -147,7 +148,8 @@ struct differ_sbmp_report_to_space : public shared_object {
   template <typename FreeSpaceType,
             typename MotionGraph,
             typename PositionMap>
-  void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
+  typename boost::disable_if< is_steerable_space<FreeSpaceType>,
+  void >::type draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
     typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
     typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
     
@@ -166,6 +168,51 @@ struct differ_sbmp_report_to_space : public shared_object {
     
     next_reporter.draw_motion_graph(free_space, g, pos);
   };
+  
+  
+  /**
+   * Draws the entire motion-graph.
+   * \tparam FreeSpaceType The C-free topology type.
+   * \tparam MotionGraph The graph structure type representing the motion-graph.
+   * \tparam SteerRecMap The property-map type that can map motion-graph edge descriptors into steer-records.
+   * \param free_space The C-free topology.
+   * \param g The motion-graph.
+   * \param steer_rec The steer-record-map to obtain steer-records of the motion-graph edges.
+   */
+  template <typename FreeSpaceType,
+            typename MotionGraph,
+            typename SteerRecMap>
+  typename boost::enable_if< is_steerable_space<FreeSpaceType>,
+  void >::type draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, SteerRecMap steer_rec) const {
+    typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
+    typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
+    typedef typename topology_traits<FreeSpaceType>::point_type PointType;
+    typedef typename boost::property_traits<SteerRecMap>::value_type SteerRecType;
+    typedef typename SteerRecType::point_fraction_iterator SteerIter;
+    
+    free_space.reset_output();
+    
+    VIter vi, vi_end;
+    for(boost::tie(vi,vi_end) = vertices(g); vi != vi_end; ++vi) {
+      EIter ei, ei_end;
+      for(boost::tie(ei,ei_end) = out_edges(*vi,g); ei != ei_end; ++ei) {
+        const SteerRecType& st_rec = get(steer_rec, *ei);
+        SteerIter it = st_rec.begin_fraction_travel();
+        SteerIter prev_it = it; it += 0.1;
+        for(; prev_it != st_rec.end_fraction_travel(); it += 0.1) {
+          free_space.draw_edge(PointType(*prev_it), PointType(*it), false);
+          prev_it = it;
+        };
+      };
+    };
+    
+    std::stringstream ss;
+    ss << std::setw(6) << std::setfill('0') << num_vertices(g);
+    free_space.save_output(file_path + "progress_" + ss.str());
+    
+    next_reporter.draw_motion_graph(free_space, g, steer_rec);
+  };
+  
   
   /**
    * Draws the solution trajectory.

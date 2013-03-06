@@ -146,7 +146,7 @@ void X8_quadrotor_geom::create_geom_from_preset(const kte::X8_quadrotor_kinemati
   
   pose_3D<double> skid_pose = xz_pose;
   skid_pose.addBefore(pose_3D<double>(weak_ptr< pose_3D<double> >(),
-      vect<double,3>(0.0,-0.25,0.0),
+      vect<double,3>(0.0,0.25,0.0),
       quaternion<double>::yrot(M_PI * 0.5).getQuaternion()));
   
   skid_pose.addBefore(pose_3D<double>(weak_ptr< pose_3D<double> >(),
@@ -173,8 +173,8 @@ void X8_quadrotor_geom::create_geom_from_preset(const kte::X8_quadrotor_kinemati
    .addElement(color(0.1,0.1,0.1),armRF)
    .addElement(color(0.1,0.1,0.1),armRB)
    .addElement(color(0.1,0.1,0.1),armLB)
-   .addElement(color(1.0,0.0,0),motorLF)
-   .addElement(color(0,1.0,0.0),motorRF)
+   .addElement(color(0.0,1.0,0.0),motorLF)
+   .addElement(color(1.0,0.0,0.0),motorRF)
    .addElement(color(0.1,0.1,0.1),motorRB)
    .addElement(color(0.1,0.1,0.1),motorLB)
    .addElement(color(0,0,0),UrotorLF)

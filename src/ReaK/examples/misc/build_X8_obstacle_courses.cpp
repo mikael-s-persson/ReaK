@@ -70,49 +70,49 @@ int main(int argc, char ** argv) {
     shared_ptr< plane > floor = shared_ptr< plane >(new plane("floor", 
       shared_ptr< pose_3D<double> >(), 
       pose_3D<double>(weak_ptr< pose_3D<double> >(), 
-        vect<double,3>(2.5,2.5,0.0), 
+        vect<double,3>(5.0,5.0,0.0), 
         quaternion<double>::xrot(M_PI).getQuaternion()),
-      vect<double,2>(5.0,5.0)));
+      vect<double,2>(10.0,10.0)));
     
     shared_ptr< box > wall1 = shared_ptr< box >(new box("wall1", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(1.5,0.5,-2.5), quaternion<double>()),
-      vect<double,3>(0.2,1.0,5.0)));
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.0,1.5,-5.0), quaternion<double>()),
+      vect<double,3>(0.2,3.0,10.0)));
     
     shared_ptr< box > wall2 = shared_ptr< box >(new box("wall2", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(1.5,1.75,-1.25), quaternion<double>()),
-      vect<double,3>(0.2,1.5,2.5)));
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.0,4.5,-2.5), quaternion<double>()),
+      vect<double,3>(0.2,3.0,5.0)));
     
     shared_ptr< box > wall3 = shared_ptr< box >(new box("wall3", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(1.5,1.75,-4.5), quaternion<double>()),
-      vect<double,3>(0.2,1.5,1.0)));
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.0,4.5,-9.0), quaternion<double>()),
+      vect<double,3>(0.2,3.0,2.0)));
     
     shared_ptr< box > wall4 = shared_ptr< box >(new box("wall4", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(1.5,3.75,-2.5), quaternion<double>()),
-      vect<double,3>(0.2,2.5,5.0)));
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.0,8.0,-5.0), quaternion<double>()),
+      vect<double,3>(0.2,4.0,10.0)));
     
     shared_ptr< box > wall5 = shared_ptr< box >(new box("wall5", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.5,1.25,-2.5), quaternion<double>()),
-      vect<double,3>(0.2,2.5,5.0)));
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(7.0,2.0,-5.0), quaternion<double>()),
+      vect<double,3>(0.2,4.0,10.0)));
     
     shared_ptr< box > wall6 = shared_ptr< box >(new box("wall6", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.5,3.25,-0.5), quaternion<double>()),
-      vect<double,3>(0.2,1.5,1.0)));
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(7.0,5.5,-1.0), quaternion<double>()),
+      vect<double,3>(0.2,3.0,2.0)));
     
     shared_ptr< box > wall7 = shared_ptr< box >(new box("wall7", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.5,3.25,-3.75), quaternion<double>()),
-      vect<double,3>(0.2,1.5,2.5)));
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(7.0,5.5,-7.5), quaternion<double>()),
+      vect<double,3>(0.2,3.0,5.0)));
     
     shared_ptr< box > wall8 = shared_ptr< box >(new box("wall8", 
       shared_ptr< pose_3D<double> >(), 
-      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(3.5,4.5,-2.5), quaternion<double>()),
-      vect<double,3>(0.2,1.0,5.0)));
+      pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(7.0,8.5,-5.0), quaternion<double>()),
+      vect<double,3>(0.2,3.0,5.0)));
     
     (*window_crossing)
      .addElement(color(0,0,0),shared_ptr< coord_arrows_3D >(new coord_arrows_3D("global_frame_arrows",shared_ptr< pose_3D<double> >(),pose_3D<double>(),0.3)))
@@ -138,7 +138,7 @@ int main(int argc, char ** argv) {
      .addShape(wall8);
     
     vect<double,3> start_position(0.75,1.0,-1.0);
-    vect<double,3> end_position(4.25,1.0,-3.0);
+    vect<double,3> end_position(9.0,3.0,-7.0);
     
     serialization::xml_oarchive out("models/window_crossing.xml");
     

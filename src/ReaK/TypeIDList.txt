@@ -400,6 +400,7 @@ sap_Ndof_interp_traj        0xC244000F   bin: 1100 0010 0100 0100 0000 0000 0000
 constant_trajectory         0xC2440010   bin: 1100 0010 0100 0100 0000 0000 0001 0000  D-R
 seq_path_base               0xC2440011   bin: 1100 0010 0100 0100 0000 0000 0001 0001  D-R
 seq_path_wrapper            0xC2440012   bin: 1100 0010 0100 0100 0000 0000 0001 0010  D-R
+discrete_point_path         0xC2440013   bin: 1100 0010 0100 0100 0000 0000 0001 0011  D-R
 
 //Random-Samplers:          0xC245****   
 default_random_sampler      0xC2450000   bin: 1100 0010 0100 0101 0000 0000 0000 0000  D-R

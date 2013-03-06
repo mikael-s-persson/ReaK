@@ -103,7 +103,8 @@ class sbmp_point_recorder : public shared_object {
     template <typename FreeSpaceType,
               typename MotionGraph,
               typename PositionMap>
-    void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
+    typename boost::disable_if< is_steerable_space<FreeSpaceType>,
+    void >::type draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
       typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
       typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
@@ -158,6 +159,68 @@ class sbmp_point_recorder : public shared_object {
       
       next_reporter.draw_motion_graph(free_space, g, pos);
     };
+    
+    
+    
+    /**
+     * Draws the entire motion-graph.
+     * \tparam FreeSpaceType The C-free topology type.
+     * \tparam MotionGraph The graph structure type representing the motion-graph.
+     * \tparam SteerRecMap The property-map type that can map motion-graph edge descriptors into steer-records.
+     * \param free_space The C-free topology.
+     * \param g The motion-graph.
+     * \param steer_rec The steer-record-map to obtain steer-records of the motion-graph edges.
+     */
+    template <typename FreeSpaceType,
+              typename MotionGraph,
+              typename SteerRecMap>
+    typename boost::enable_if< is_steerable_space<FreeSpaceType>,
+    void >::type draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, SteerRecMap steer_rec) const {
+      typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
+      typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
+      typedef typename topology_traits< FreeSpaceType >::point_type PointType;
+      typedef typename topology_traits< JointStateSpace >::point_type JointState;
+      typedef typename boost::property_traits<SteerRecMap>::value_type SteerRecType;
+      typedef typename SteerRecType::point_fraction_iterator SteerIter;
+      using ReaK::to_vect;
+      
+      std::stringstream ss;
+      ss << std::setw(6) << std::setfill('0') << num_vertices(g) << ".ssv";
+      recorder::ssv_recorder rec_out(file_path + "progress_" + ss.str());
+      bool not_initialized_yet = true;
+      
+      VIter vi, vi_end;
+      for(boost::tie(vi,vi_end) = vertices(g); vi != vi_end; ++vi) {
+        EIter ei, ei_end;
+        for(boost::tie(ei,ei_end) = out_edges(*vi,g); ei != ei_end; ++ei) {
+          const SteerRecType& st_rec = get(steer_rec, *ei);
+          for(SteerIter it = st_rec.begin_fraction_travel(); it != st_rec.end_fraction_travel(); it += 0.1) { 
+            JointState s_new = map_to_jt_space.map_to_space(PointType(*it), free_space.get_super_space(), *jt_space);
+            vect_n<double> v_s_new = to_vect<double>(s_new);
+            
+            if(not_initialized_yet) {
+              for(std::size_t i = 0; i < v_s_new.size(); ++i) {
+                std::stringstream ss2;
+                ss2 << "state_" << std::setw(2) << std::setfill('0') << i;
+                rec_out << ss2.str();
+              };
+              rec_out << recorder::data_recorder::end_name_row;
+              not_initialized_yet = false;
+            };
+            
+            for(std::size_t i = 0; i < v_s_new.size(); ++i)
+              rec_out << v_s_new[i];
+            rec_out << recorder::data_recorder::end_value_row;
+          };
+        };
+      };
+      rec_out << recorder::data_recorder::flush;
+      
+      next_reporter.draw_motion_graph(free_space, g, steer_rec);
+    };
+    
+    
+    
     
     /**
      * Draws the solution trajectory.
@@ -323,7 +386,8 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
     template <typename FreeSpaceType,
               typename MotionGraph,
               typename PositionMap>
-    void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
+    typename boost::disable_if< is_steerable_space<FreeSpaceType>,
+    void >::type draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
       typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
       typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
@@ -374,6 +438,65 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
       
       next_reporter.draw_motion_graph(free_space, g, pos);
     };
+    
+    
+    /**
+     * Draws the entire motion-graph.
+     * \tparam FreeSpaceType The C-free topology type.
+     * \tparam MotionGraph The graph structure type representing the motion-graph.
+     * \tparam SteerRecMap The property-map type that can map motion-graph edge descriptors into steer-records.
+     * \param free_space The C-free topology.
+     * \param g The motion-graph.
+     * \param steer_rec The steer-record-map to obtain steer-records of the motion-graph edges.
+     */
+    template <typename FreeSpaceType,
+              typename MotionGraph,
+              typename SteerRecMap>
+    typename boost::enable_if< is_steerable_space<FreeSpaceType>,
+    void >::type draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, SteerRecMap steer_rec) const {
+      typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
+      typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
+      typedef typename topology_traits< FreeSpaceType >::point_type PointType;
+      typedef typename boost::property_traits<SteerRecMap>::value_type SteerRecType;
+      typedef typename SteerRecType::point_fraction_iterator SteerIter;
+      using ReaK::to_vect;
+      
+      std::stringstream ss;
+      ss << std::setw(6) << std::setfill('0') << num_vertices(g) << ".ssv";
+      recorder::ssv_recorder rec_out(file_path + "progress_" + ss.str());
+      bool not_initialized_yet = true;
+      
+      VIter vi, vi_end;
+      for(boost::tie(vi,vi_end) = vertices(g); vi != vi_end; ++vi) {
+        EIter ei, ei_end;
+        for(boost::tie(ei,ei_end) = out_edges(*vi,g); ei != ei_end; ++ei) {
+          const SteerRecType& st_rec = get(steer_rec, *ei);
+          for(SteerIter it = st_rec.begin_fraction_travel(); it != st_rec.end_fraction_travel(); it += 0.1) { 
+            vect_n<double> v_s_new = to_vect<double>(PointType(*it));
+            
+            if(not_initialized_yet) {
+              for(std::size_t i = 0; i < v_s_new.size(); ++i) {
+                std::stringstream ss2;
+                ss2 << "state_" << std::setw(2) << std::setfill('0') << i;
+                rec_out << ss2.str();
+              };
+              rec_out << recorder::data_recorder::end_name_row;
+              not_initialized_yet = false;
+            };
+            
+            for(std::size_t i = 0; i < v_s_new.size(); ++i)
+              rec_out << v_s_new[i];
+            rec_out << recorder::data_recorder::end_value_row;
+          };
+        };
+      };
+      rec_out << recorder::data_recorder::flush;
+      
+      next_reporter.draw_motion_graph(free_space, g, steer_rec);
+    };
+    
+    
+    
     
     /**
      * Draws the solution trajectory.

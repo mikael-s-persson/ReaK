@@ -142,7 +142,8 @@ class frame_tracer_3D : public shared_object {
     template <typename FreeSpaceType,
               typename MotionGraph,
               typename PositionMap>
-    void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
+    typename boost::disable_if< is_steerable_space<FreeSpaceType>,
+    void >::type draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
       typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
       typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
@@ -173,6 +174,56 @@ class frame_tracer_3D : public shared_object {
       
       next_reporter.draw_motion_graph(free_space, g, pos);
     };
+    
+    
+    /**
+     * Draws the entire motion-graph.
+     * \tparam FreeSpaceType The C-free topology type.
+     * \tparam MotionGraph The graph structure type representing the motion-graph.
+     * \tparam SteerRecMap The property-map type that can map motion-graph edge descriptors into steer-records.
+     * \param free_space The C-free topology.
+     * \param g The motion-graph.
+     * \param steer_rec The steer-record-map to obtain steer-records of the motion-graph edges.
+     */
+    template <typename FreeSpaceType,
+              typename MotionGraph,
+              typename SteerRecMap>
+    typename boost::enable_if< is_steerable_space<FreeSpaceType>,
+    void >::type draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, SteerRecMap steer_rec) const {
+      typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
+      typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
+      typedef typename topology_traits< FreeSpaceType >::point_type PointType;
+      typedef typename topology_traits< JointStateSpace >::point_type JointState;
+      typedef typename boost::property_traits<SteerRecMap>::value_type SteerRecType;
+      typedef typename SteerRecType::point_fraction_iterator SteerIter;
+      
+      VIter vi, vi_end;
+      for(boost::tie(vi,vi_end) = vertices(g); vi != vi_end; ++vi) {
+        EIter ei, ei_end;
+        for(boost::tie(ei,ei_end) = out_edges(*vi,g); ei != ei_end; ++ei) {
+          const SteerRecType& st_rec = get(steer_rec, *ei);
+          SteerIter it = st_rec.begin_fraction_travel();
+          JointState s_v = map_to_jt_space.map_to_space(PointType(*it), free_space.get_super_space(), *jt_space);
+          dk_map.apply_to_model(s_v, *jt_space);
+          for(std::size_t i = 0; i < traced_frames.size(); ++i)
+            motion_graph_traces[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
+          
+          for(; it != st_rec.end_fraction_travel(); it += 1.0) { 
+            JointState s_new = map_to_jt_space.map_to_space(PointType(*it), free_space.get_super_space(), *jt_space);
+            dk_map.apply_to_model(s_new, *jt_space);
+            for(std::size_t i = 0; i < traced_frames.size(); ++i)
+              motion_graph_traces[i].add_point(traced_frames[i]->getGlobalPose().Position);
+          };
+          
+          for(std::size_t i = 0; i < traced_frames.size(); ++i)
+            motion_graph_traces[i].end_edge();
+        };
+      };
+      
+      next_reporter.draw_motion_graph(free_space, g, steer_rec);
+    };
+    
+    
     
     /**
      * Draws the solution trajectory.
@@ -375,7 +426,8 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, identity_topo_map, NextR
     template <typename FreeSpaceType,
               typename MotionGraph,
               typename PositionMap>
-    void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
+    typename boost::disable_if< is_steerable_space<FreeSpaceType>,
+    void >::type draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
       typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
       typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
@@ -402,6 +454,52 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, identity_topo_map, NextR
       
       next_reporter.draw_motion_graph(free_space, g, pos);
     };
+    
+    
+    /**
+     * Draws the entire motion-graph.
+     * \tparam FreeSpaceType The C-free topology type.
+     * \tparam MotionGraph The graph structure type representing the motion-graph.
+     * \tparam SteerRecMap The property-map type that can map motion-graph edge descriptors into steer-records.
+     * \param free_space The C-free topology.
+     * \param g The motion-graph.
+     * \param steer_rec The steer-record-map to obtain steer-records of the motion-graph edges.
+     */
+    template <typename FreeSpaceType,
+              typename MotionGraph,
+              typename SteerRecMap>
+    typename boost::enable_if< is_steerable_space<FreeSpaceType>,
+    void >::type draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, SteerRecMap steer_rec) const {
+      typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
+      typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
+      typedef typename topology_traits< FreeSpaceType >::point_type PointType;
+      typedef typename boost::property_traits<SteerRecMap>::value_type SteerRecType;
+      typedef typename SteerRecType::point_fraction_iterator SteerIter;
+      
+      VIter vi, vi_end;
+      for(boost::tie(vi,vi_end) = vertices(g); vi != vi_end; ++vi) {
+        EIter ei, ei_end;
+        for(boost::tie(ei,ei_end) = out_edges(*vi,g); ei != ei_end; ++ei) {
+          const SteerRecType& st_rec = get(steer_rec, *ei);
+          SteerIter it = st_rec.begin_fraction_travel();
+          dk_map.apply_to_model(PointType(*it), *jt_space);
+          for(std::size_t i = 0; i < traced_frames.size(); ++i)
+            motion_graph_traces[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
+          
+          for(; it != st_rec.end_fraction_travel(); it += 0.1) { 
+            dk_map.apply_to_model(PointType(*it), *jt_space);
+            for(std::size_t i = 0; i < traced_frames.size(); ++i)
+              motion_graph_traces[i].add_point(traced_frames[i]->getGlobalPose().Position);
+          };
+          
+          for(std::size_t i = 0; i < traced_frames.size(); ++i)
+            motion_graph_traces[i].end_edge();
+        };
+      };
+      
+      next_reporter.draw_motion_graph(free_space, g, steer_rec);
+    };
+    
     
     /**
      * Draws the solution trajectory.
