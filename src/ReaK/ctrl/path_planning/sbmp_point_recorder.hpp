@@ -156,6 +156,7 @@ class sbmp_point_recorder : public shared_object {
         };
       };
       rec_out << recorder::data_recorder::flush;
+      rec_out << recorder::data_recorder::close;
       
       next_reporter.draw_motion_graph(free_space, g, pos);
     };
@@ -215,6 +216,7 @@ class sbmp_point_recorder : public shared_object {
         };
       };
       rec_out << recorder::data_recorder::flush;
+      rec_out << recorder::data_recorder::close;
       
       next_reporter.draw_motion_graph(free_space, g, steer_rec);
     };
@@ -235,7 +237,7 @@ class sbmp_point_recorder : public shared_object {
       typedef typename topology_traits< JointStateSpace >::point_type JointState;
       
       std::stringstream ss;
-      ss << std::setw(3) << std::setfill('0') << (solution_count++) << "_" << t_total << ".ssv";
+      ss << std::setw(3) << std::setfill('0') << (solution_count++) << ".ssv";
       recorder::ssv_recorder rec_out(file_path + "solution_" + ss.str());
       
       double t = traj->get_start_time();
@@ -263,6 +265,7 @@ class sbmp_point_recorder : public shared_object {
         rec_out << recorder::data_recorder::end_value_row;
       };
       rec_out << recorder::data_recorder::flush;
+      rec_out << recorder::data_recorder::close;
       
       next_reporter.draw_solution(free_space, traj);
     };
@@ -309,6 +312,7 @@ class sbmp_point_recorder : public shared_object {
         rec_out << recorder::data_recorder::end_value_row;
       };
       rec_out << recorder::data_recorder::flush;
+      rec_out << recorder::data_recorder::close;
       
       next_reporter.draw_solution(free_space, p);
     };
@@ -365,8 +369,7 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
   
   public:
     
-    explicit sbmp_point_recorder(const DirectKinMapper& aDKMap = DirectKinMapper(),
-                                 const std::string& aFilePath = "", 
+    explicit sbmp_point_recorder(const std::string& aFilePath = "", 
                                  double aIntervalSize = 0.1,
                                  NextReporter aNextReporter = NextReporter()) : 
                                  next_reporter(aNextReporter),

@@ -41,7 +41,8 @@ void bin_recorder::writeRow() {
 };
 
 void bin_recorder::writeNames() {
-  output_file.write(reinterpret_cast<char*>(&colCount),sizeof(unsigned int));
+  unsigned int aColCount = colCount;
+  output_file.write(reinterpret_cast<char*>(&aColCount),sizeof(unsigned int));
   std::vector<std::string>::iterator it = names.begin();
   for(;it != names.end(); ++it)
     output_file.write(it->c_str(),it->size() + 1);
@@ -86,7 +87,9 @@ bool bin_extractor::readRow() {
 };
 
 bool bin_extractor::readNames() {
-  input_file.read(reinterpret_cast<char*>(&colCount),sizeof(unsigned int));
+  unsigned int aColCount;
+  input_file.read(reinterpret_cast<char*>(&aColCount),sizeof(unsigned int));
+  colCount = aColCount;
   char temp[128];
   for(unsigned int i = 0; i < colCount; ++i) {
     char* temp_ptr = temp;

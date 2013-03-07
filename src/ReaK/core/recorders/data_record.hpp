@@ -109,9 +109,9 @@ class improper_flag : public std::exception {
  */
 class data_recorder : public shared_object {
   protected:
-    unsigned int colCount; ///< Holds the column count.
-    unsigned int rowCount; ///< Holds the number of rows of data records.
-    unsigned int currentColumn; ///< Holds the current column to which the next data entry will be written to.
+    volatile unsigned int colCount; ///< Holds the column count.
+    volatile unsigned int rowCount; ///< Holds the number of rows of data records.
+    volatile unsigned int currentColumn; ///< Holds the current column to which the next data entry will be written to.
     unsigned int flushSampleRate; ///< Holds the sample rate at which the data is automatically flushed to the file.
     unsigned int maxBufferSize; ///< Holds the maximum size for the data buffer, overload will trigger a file-flush.
     std::string fileName; ///< Holds the filename of the data record.
@@ -192,7 +192,7 @@ class data_recorder : public shared_object {
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(colCount)
+      A & RK_SERIAL_SAVE_WITH_NAME(static_cast<unsigned int>(colCount))
         & RK_SERIAL_SAVE_WITH_NAME(flushSampleRate)
 	& RK_SERIAL_SAVE_WITH_NAME(maxBufferSize)
 	& RK_SERIAL_SAVE_WITH_NAME(fileName)
@@ -203,16 +203,17 @@ class data_recorder : public shared_object {
       colCount = 0;
       if(writing_thread) {
         lock_here.unlock();
-        if(writing_thread->joinable())
-          writing_thread->join();
+        writing_thread->join();
         lock_here.lock();
       };
       shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(colCount)
+      unsigned int aColCount;
+      A & RK_SERIAL_LOAD_WITH_ALIAS("colCount",aColCount)
         & RK_SERIAL_LOAD_WITH_NAME(flushSampleRate)
 	& RK_SERIAL_LOAD_WITH_NAME(maxBufferSize)
 	& RK_SERIAL_LOAD_WITH_NAME(fileName)
 	& RK_SERIAL_LOAD_WITH_NAME(names);
+      colCount = aColCount;
       rowCount = 0;
       currentColumn = 0;
       values_rm = std::queue<double>();
@@ -233,9 +234,9 @@ class data_recorder : public shared_object {
  */
 class data_extractor : public shared_object {
   protected:
-    unsigned int colCount; ///< Holds the column count.
-    unsigned int currentColumn; ///< Holds the current column to which the next data entry will be read from.
-    unsigned int currentNameCol; ///< Holds the current column to which the next name entry will be read from.
+    volatile unsigned int colCount; ///< Holds the column count.
+    volatile unsigned int currentColumn; ///< Holds the current column to which the next data entry will be read from.
+    volatile unsigned int currentNameCol; ///< Holds the current column to which the next name entry will be read from.
     unsigned int flushSampleRate; ///< Holds the sample rate at which the data is automatically flushed to the file.
     unsigned int minBufferSize; ///< Holds the minimum size for the data buffer, underload will trigger a file-read.
     std::string fileName; ///< Holds the filename of the data record.
@@ -325,7 +326,7 @@ class data_extractor : public shared_object {
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(colCount)
+      A & RK_SERIAL_SAVE_WITH_NAME(static_cast<unsigned int>(colCount))
         & RK_SERIAL_SAVE_WITH_NAME(flushSampleRate)
 	& RK_SERIAL_SAVE_WITH_NAME(minBufferSize)
 	& RK_SERIAL_SAVE_WITH_NAME(fileName)
@@ -336,16 +337,17 @@ class data_extractor : public shared_object {
       colCount = 0;
       if(reading_thread) {
         lock_here.unlock();
-        if(reading_thread->joinable())
-          reading_thread->join();
+        reading_thread->join();
         lock_here.lock();
       };
       shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(colCount)
+      unsigned int aColCount;
+      A & RK_SERIAL_LOAD_WITH_ALIAS("colCount",aColCount)
         & RK_SERIAL_LOAD_WITH_NAME(flushSampleRate)
 	& RK_SERIAL_LOAD_WITH_NAME(minBufferSize)
 	& RK_SERIAL_LOAD_WITH_NAME(fileName)
 	& RK_SERIAL_LOAD_WITH_NAME(names);
+      colCount = aColCount;
       currentColumn = 0;
       currentNameCol = 0;
       values_rm = std::queue<double>();

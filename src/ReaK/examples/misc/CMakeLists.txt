@@ -47,6 +47,11 @@ if(COIN3D_FOUND AND QT_FOUND)
   
 endif()
 
+add_executable(X8_run_planner "${SRCROOT}${RKMISCEXAMPLESDIR}/X8_run_planner.cpp")
+setup_custom_target(X8_run_planner "${SRCROOT}${RKMISCEXAMPLESDIR}")
+target_link_libraries(X8_run_planner reak_examples reak_topologies reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
+
+
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")

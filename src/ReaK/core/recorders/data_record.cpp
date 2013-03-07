@@ -57,12 +57,11 @@ void data_recorder::record_process::operator()() {
 data_recorder::~data_recorder() {
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   colCount = 0;
-  if((writing_thread) && (writing_thread->joinable())) {
+  if(writing_thread) {
     lock_here.unlock();
-    if(writing_thread->get_id() != ReaKaux::this_thread::get_id())
-      writing_thread->join();
+    writing_thread->join();
     lock_here.lock();
-    writing_thread.reset();
+    writing_thread = ReaK::shared_ptr<ReaKaux::thread>();
   };
 };
 
@@ -116,9 +115,8 @@ data_recorder& data_recorder::operator <<(flag some_flag) {
       writeRow();
     colCount = 0;
     if(writing_thread) {
-      if(writing_thread->joinable())
-        writing_thread->join();
-      writing_thread.reset();
+      writing_thread->join();
+      writing_thread = ReaK::shared_ptr<ReaKaux::thread>();
     };
   };
   return *this;
@@ -166,8 +164,7 @@ data_extractor::~data_extractor() {
   colCount = 0;
   if((reading_thread) && (reading_thread->joinable())) {
     lock_here.unlock();
-    if(reading_thread->get_id() != ReaKaux::this_thread::get_id())
-      reading_thread->join();
+    reading_thread->join();
     lock_here.lock();
     reading_thread.reset();
   };

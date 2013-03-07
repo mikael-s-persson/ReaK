@@ -168,9 +168,18 @@ class IHAQR_to_state_mapper : public named_object {
 
 
 /**
- * This class implements a quaternion-topology. Because quaternions are constrained on the unit 
- * hyper-sphere, this topology is indeed bounded (yet infinite at the same time). This class
- * models the MetricSpaceConcept, the LieGroupConcept, and the PointDistributionConcept.
+ * This class implements a topology on a system controlled by an infinite-horizon affine
+ * quadratic regulator (IHAQR). This topology class takes an underlying state-space (topology),
+ * a state-space system of that topology, and a sampler that is appropriate for the state-space.
+ * One main feature of this topology is that the distance-metric is a reflection of the 
+ * cost to go from one state to another, as defined by the Q and R matrices (LQR cost function).
+ * Another main feature is that movements between points are governed by the IHAQR controller
+ * applied to the underlying state-space system (dynamics), and numerically integrated. This 
+ * topology fulfills the SteerableSpaceConcept which means that the record of a steer between 
+ * two points can be recorded as a path in the state-space.
+ * \tparam StateSpace A topology type which represents the space in which the states of the system can exist, should model the TopologyConcept.
+ * \tparam StateSpaceSystem A state-space system type, should model the SSSystemConcept and the LinearSSSystemConcept (linearizable system).
+ * \tparam StateSpaceSampler A random sampler type for the given state-space, should model the RandomSamplerConcept.
  */
 template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 class IHAQR_topology : public named_object
@@ -227,6 +236,10 @@ class IHAQR_topology : public named_object
     double m_max_time_horizon;
     double m_goal_proximity_threshold;
     
+    /**
+     * This function computes linearization data (A,B,u0,c) for a given point p.
+     * \param p The point for which the linearization data is required.
+     */
     void compute_linearization_data(const point_type& a) const {
       a.lin_data = shared_ptr< linearization_payload >(new linearization_payload());
       
@@ -248,6 +261,10 @@ class IHAQR_topology : public named_object
       
     };
     
+    /**
+     * This function computes IHAQR data (M,K,u_bias) for a given point p.
+     * \param p The point for which the IHAQR data is required.
+     */
     void compute_IHAQR_data(const point_type& a) const {
       if(!a.lin_data)
         compute_linearization_data(a);
@@ -261,26 +278,31 @@ class IHAQR_topology : public named_object
       // solve for M, K, and u_bias
       try {
         vect_n<double> u_bias_v = to_vect<double>(a.lin_data->u);
-//         std::cout << " Asys = " << a.lin_data->A << std::endl;
-//         std::cout << " Bsys = " << a.lin_data->B << std::endl;
-//         std::cout << " u_sys = " << a.lin_data->u << std::endl;
-//         solve_IHCT_AQR_with_reduction(a.lin_data->A, a.lin_data->B, c_v, m_Q, m_R, 
-//                                       a.IHAQR_data->K, a.IHAQR_data->M, u_bias_v, 1e-3, true);
         solve_IHCT_AQR(a.lin_data->A, a.lin_data->B, c_v, m_Q, m_R, 
                        a.IHAQR_data->K, a.IHAQR_data->M, u_bias_v, 1e-4, true);
         a.IHAQR_data->u_bias = from_vect<system_input_type>(u_bias_v);
-//         std::cout << " IHAQR Gain = " << a.IHAQR_data->K << std::endl;
-//         std::cout << " IHAQR bias = " << a.IHAQR_data->u_bias << std::endl;
       } catch(std::exception& e) {
         std::cout << "Warning! Solution to the CARE problem could not be found for the given state point: " << a.x << std::endl
                   << "  The following exception was raised: " << e.what() << std::endl;
       };
     };
     
+    /**
+     * This virtual function evaluates if a given state-space point is within free-space (non-colliding).
+     * \param a The state for which collision is checked.
+     * \return True if the given state-space point is not colliding (in free-space).
+     */
     virtual bool is_free_impl(const state_type& a) const {
       return true;
     };
     
+    /**
+     * This function bounds the input and its change.
+     * \param u_prev The previous input given to the system.
+     * \param u_bias The current input-bias needed for the system.
+     * \param u_correction The current feedback-correction input needed for the steering.
+     * \return An input vector that closely matches (u_bias + u_correction) while remaining in bounds and conserving the direction of the feedback correction.
+     */
     system_input_type get_bounded_input(const system_input_type& u_prev, system_input_type u_bias, system_input_type u_correction) const {
       
       m_input_space.bring_point_in_bounds(u_bias);
@@ -306,6 +328,14 @@ class IHAQR_topology : public named_object
       return u_prev + m_time_step * du_dt;
     };
     
+    /**
+     * This function attempts to travel (steer) between two points for a given fraction between them.
+     * \param a The starting point of the travel.
+     * \param fraction The fraction of the complete travel that should be done.
+     * \param b The end point of the travel.
+     * \param with_collision_check A flag to tell if collision should be checked or not (through the virtual is_free_impl() function).
+     * \return The resulting point after the steering.
+     */
     point_type move_position_toward_impl(const point_type& a, double fraction, const point_type& b, bool with_collision_check) const 
     {
       if(!a.IHAQR_data)
@@ -323,8 +353,6 @@ class IHAQR_topology : public named_object
       while( ( current_time < m_max_time_horizon ) &&
              ( m_space.distance(x_current, goal_point) > m_goal_proximity_threshold ) ) {
         // compute the current IHAQR input
-//         std::cout << " t = " << current_time << std::endl;
-//         std::cout << " x_difference = " << m_space.difference(x_current, goal_point) << std::endl;
         system_input_type u_current = get_bounded_input(u_prev, 
                                                         b.lin_data->u - b.IHAQR_data->u_bias, 
                                                         - from_vect< system_input_type >( b.IHAQR_data->K * to_vect<double>(m_space.difference(x_current, goal_point)) )
@@ -355,6 +383,11 @@ class IHAQR_topology : public named_object
       return result;
     };
     
+    /**
+     * This function samples a point from the free-space (if collision check is enabled).
+     * \param with_collision_check A flag to tell if collision should be checked or not (through the virtual is_free_impl() function).
+     * \return The resulting point of the random sampling.
+     */
     point_type random_point_impl(bool with_collision_check) const {
       state_type result_pt = m_get_sample(m_space);
       while(with_collision_check && !is_free_impl(result_pt))
@@ -376,6 +409,18 @@ class IHAQR_topology : public named_object
     
     /**
      * Default constructor.
+     * \param aName The name of this topology / object.
+     * \param aSystem A pointer to the state-space system that is being steered by this controller.
+     * \param aSpace A state-space object on which the state-space points belong.
+     * \param aMinInput The lower-bound on the inputs to the system.
+     * \param aMaxInput The upper-bound on the inputs to the system.
+     * \param aInputBandwidth The maximum allowable change (time-derivative) in the inputs given to the system.
+     * \param aR The quadratic input-cost matrix (should be positive-definite).
+     * \param aQ The quadratic state-error-cost matrix (should be positive-definite).
+     * \param aTimeStep The sampling time-step between successive input vector calculation (i.e., the sampling rate of the actual control system).
+     * \param aMaxTimeHorizon The maximum time-horizon after which steering is abandonned.
+     * \param aGoalProximityThreshold The state-space norm threshold between the current state-space point and the steering-goal point. If reached, steering is stopped (completed).
+     * \param aGetSample The state-space sampler functor to be used to generate random state-space points.
      */
     IHAQR_topology(const std::string& aName = "IHAQR_topology",
                    const shared_ptr< StateSpaceSystem >& aSystem = shared_ptr< StateSpaceSystem >(),
@@ -569,6 +614,7 @@ class IHAQR_topology_with_CD : public IHAQR_topology<StateSpace, StateSpaceSyste
     typedef typename base_type::point_difference_type point_difference_type;
     typedef default_distance_metric distance_metric_type;
     typedef default_random_sampler random_sampler_type;
+    typedef typename base_type::state_sampler_type state_sampler_type;
     
   protected:
     shared_ptr< kte::direct_kinematics_model > m_model; 
@@ -600,6 +646,20 @@ class IHAQR_topology_with_CD : public IHAQR_topology<StateSpace, StateSpaceSyste
     
     /**
      * Default constructor.
+     * \param aName The name of this topology / object.
+     * \param aSystem A pointer to the state-space system that is being steered by this controller.
+     * \param aSpace A state-space object on which the state-space points belong.
+     * \param aMinInput The lower-bound on the inputs to the system.
+     * \param aMaxInput The upper-bound on the inputs to the system.
+     * \param aInputBandwidth The maximum allowable change (time-derivative) in the inputs given to the system.
+     * \param aR The quadratic input-cost matrix (should be positive-definite).
+     * \param aQ The quadratic state-error-cost matrix (should be positive-definite).
+     * \param aTimeStep The sampling time-step between successive input vector calculation (i.e., the sampling rate of the actual control system).
+     * \param aMaxTimeHorizon The maximum time-horizon after which steering is abandonned.
+     * \param aGoalProximityThreshold The state-space norm threshold between the current state-space point and the steering-goal point. If reached, steering is stopped (completed).
+     * \param aGetSample The state-space sampler functor to be used to generate random state-space points.
+     * \param aModel The direct-kinematics model for the system (this is for the application of 
+     *               state-space points to synchronize the collision-detection code which rely on KTE-based systems).
      */
     IHAQR_topology_with_CD(const std::string& aName = "IHAQR_topology_with_CD",
                            const shared_ptr< StateSpaceSystem >& aSystem = shared_ptr< StateSpaceSystem >(),
@@ -612,11 +672,18 @@ class IHAQR_topology_with_CD : public IHAQR_topology<StateSpace, StateSpaceSyste
                            double aTimeStep = 0.1,
                            double aMaxTimeHorizon = 5.0,
                            double aGoalProximityThreshold = 1.0,
+                           state_sampler_type aGetSample = state_sampler_type(),
                            const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >()) :
-                           base_type(aName, aSystem, aSpace, aMinInput, aMaxInput, aInputBandwidth, aR, aQ, aTimeStep,aMaxTimeHorizon, aGoalProximityThreshold) { };
+                           base_type(aName, aSystem, aSpace, aMinInput, aMaxInput, aInputBandwidth, aR, aQ, aTimeStep,aMaxTimeHorizon, aGoalProximityThreshold, aGetSample),
+                           m_model(aModel),
+                           m_proxy_env_2D(),
+                           m_proxy_env_3D() { };
     
     /**
      * Default constructor.
+     * \param aBaseSpace A IHAQR_topology object to copy.
+     * \param aModel The direct-kinematics model for the system (this is for the application of 
+     *               state-space points to synchronize the collision-detection code which rely on KTE-based systems).
      */
     IHAQR_topology_with_CD(const base_type& aBaseSpace,
                            const shared_ptr< kte::direct_kinematics_model >& aModel) : 

@@ -84,7 +84,8 @@ int main(int argc, char ** argv) {
   
   shared_ptr< MEAQR_space_type > quad_MEAQR_space(new MEAQR_space_type(
     "QuadRotor_MEAQR_topology",
-    quad_space)); 
+    quad_space,
+    0.01));  // IdleToCostRatio 
   
   xml_oarchive file_out("models/quadrotor_spaces.xml");
   

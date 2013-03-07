@@ -392,11 +392,8 @@ struct MEAQR_rrtstar_visitor {
   boost::tuple<PointType, bool, EdgeProp> steer_towards_position(const PointType& p, Vertex u, Graph& g) const {
     typedef typename EdgeProp::steer_record_type SteerRec;
     typedef boost::tuple<PointType, bool, EdgeProp> ResultType;
-    // get a destination point that is half the distance to a point reachable by the IHAQR motion (with limited time-horizon):
-//     PointType p_dest( m_space->get_state_space().adjust(g[u].position.x, 
-//                       0.5 * m_space->get_state_space().difference(
-//                         m_space->get_IHAQR_space().move_position_toward(g[u].position, 1.0, p).x, g[u].position.x) ) );
     
+    // First, try to bring the state-space point within the time-horizon:
     double total_dist = get(distance_metric, m_space->get_super_space())(g[u].position, p, m_space->get_super_space());
     double max_cost_to_go = 0.75 * m_space->get_max_time_horizon() * m_space->get_idle_power_cost(g[u].position);
     PointType p_dest = p;
@@ -405,39 +402,20 @@ struct MEAQR_rrtstar_visitor {
       total_dist = get(distance_metric, m_space->get_super_space())(g[u].position, p_dest, m_space->get_super_space());
     };
     
-//     PointType p_dest = m_space->move_position_toward(g[u].position, 0.5, p);
-    
+    // Then, steer to that point, recording the path of the steering function.
     std::pair<PointType, SteerRec> steer_result = m_space->steer_position_toward(g[u].position, 0.8, p_dest);
     
-    // NOTE Differs from rrtstar_path_planner HERE:
+    // Check if the progress in the state-space was significant (at least 0.1 of the best-case).
     double best_case_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, p_dest.x, m_space->get_state_space());
     double actual_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, steer_result.first.x, m_space->get_state_space());
     
     if(actual_dist > 0.1 * best_case_dist) {
-      std::cout << "Steered successfully!" << std::endl;
+//       std::cout << "Steered successfully!" << std::endl;
 #ifdef RK_ENABLE_CXX11_FEATURES
       return ResultType(steer_result.first, true, EdgeProp(0.8 * total_dist, std::move(steer_result.second)));
 #else
       return ResultType(steer_result.first, true, EdgeProp(0.8 * total_dist, steer_result.second));
 #endif
-        
-//       p_dest = m_space->move_position_toward(g[u].position, 1.0, steer_result.first);
-//       double diff_dist = get(distance_metric, m_space->get_state_space())(p_dest.x, steer_result.first.x, m_space->get_state_space());
-//       
-//       if(diff_dist < 0.1 * actual_dist) {
-//         std::cout << "Steered successfully!" << std::endl;
-//         return ResultType(p_dest, true, EdgeProp(get(distance_metric, m_space->get_super_space())(g[u].position, p_dest, m_space->get_super_space())));
-//       } else {
-//         std::cout << "Steering wasn't connectable! diff = " << diff_dist << " over " << actual_dist << std::endl;
-//         std::cout << "Steering wasn't connectable! MEAQR-dist-attempt = " 
-//                   << get(distance_metric, m_space->get_super_space())(g[u].position, steer_result.first, m_space->get_super_space())
-//                   << "  MEAQR-dist-obtained = " 
-//                   << get(distance_metric, m_space->get_super_space())(g[u].position, p_dest, m_space->get_super_space())
-//                   << "  MEAQR-dist-remaining = " 
-//                   << get(distance_metric, m_space->get_super_space())(p_dest, steer_result.first, m_space->get_super_space())
-//                   << std::endl;
-//         return ResultType(steer_result.first, false, EdgeProp());
-//       };
     } else {
       return ResultType(steer_result.first, false, EdgeProp());
     };
@@ -455,7 +433,7 @@ struct MEAQR_rrtstar_visitor {
     double diff_dist = get(distance_metric, m_space->get_state_space())(steer_result.first.x, g[v].position.x, m_space->get_state_space());
     
     if(diff_dist < 0.05 * best_case_dist) {
-      std::cout << "Connected successfully!" << std::endl;
+//       std::cout << "Connected successfully!" << std::endl;
       return ResultType(true, EdgeProp(
         get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space()),
 #ifdef RK_ENABLE_CXX11_FEATURES

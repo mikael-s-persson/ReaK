@@ -291,7 +291,20 @@ class MEAQR_to_state_mapper : public named_object {
 
 
 /**
- * This class 
+ * This class implements a topology on a system controlled by an minimum-energy affine
+ * quadratic regulator (MEAQR). This topology class takes an underlying state-space (topology),
+ * a state-space system of that topology, and a sampler that is appropriate for the state-space.
+ * One main feature of this topology is that the distance-metric is a reflection of the 
+ * cost to go from one state to another by a finite-horizon minimum-energy AQR controller, 
+ * as defined by the R matrix (quadratic input cost) and the ratio of the cost for the 
+ * input-bias (drift-compensation) and the feedback input (driven by the state-space error).
+ * Another main feature is that movements between points are governed by the MEAQR controller
+ * applied to the underlying state-space system (dynamics), and numerically integrated. This 
+ * topology fulfills the SteerableSpaceConcept which means that the record of a steer between 
+ * two points can be recorded as a path in the state-space.
+ * \tparam StateSpace A topology type which represents the space in which the states of the system can exist, should model the TopologyConcept.
+ * \tparam StateSpaceSystem A state-space system type, should model the SSSystemConcept and the LinearSSSystemConcept (linearizable system).
+ * \tparam StateSpaceSampler A random sampler type for the given state-space, should model the RandomSamplerConcept.
  */
 template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 class MEAQR_topology : public named_object
@@ -331,8 +344,13 @@ class MEAQR_topology : public named_object
     
   protected:
     
-    shared_ptr< IHAQR_space_type > m_IHAQR_space;
+    shared_ptr< IHAQR_space_type > m_IHAQR_space; ///< Holds the IHAQR_topology for the same system. The IHAQR topology has many of the same parameters and necessary functions for the MEAQR, and is thus stored internally in the MEAQR instead of repeating all that code.
+    double m_idle_to_cost_ratio; ///< The ratio of the idle-power cost to the feedback input cost, e.g., a value of 0.1 would mean that the input-bias cost (idle or hover cost) is penalized ten times less than the feedback term.
     
+    /**
+     * This function fills the vector of MEAQR data points (P,M,eta,D) for a given point p and up to the maximum time-horizon.
+     * \param p The point for which the data points are required.
+     */
     void compute_MEAQR_data(const point_type& p) const {
       m_IHAQR_space->compute_linearization_data(p);
       if(p.MEAQR_data)
@@ -384,11 +402,26 @@ class MEAQR_topology : public named_object
       return;
     };
     
+    /**
+     * This virtual function evaluates if a given state-space point is within free-space (non-colliding).
+     * \param a The state for which collision is checked.
+     * \return True if the given state-space point is not colliding (in free-space).
+     */
     virtual bool is_free_impl(const state_type& a) const {
       return true;
     };
     
     
+    /**
+     * This function computes the cost-to-go and optimal time-horizon for a potential travel between two points.
+     * \param a The starting point of the travel.
+     * \param b The end point of the travel.
+     * \param K The constant gain matrix at the destination (R^-1 * B^T)
+     * \param u0 The input bias or drift conpensation at the destination point.
+     * \param T_optimal Stores, as output, the optimal time-horizon for the travel.
+     * \param J_optimal Stores, as output, the optimal cost-to-go for the travel.
+     * \param it_optimal Stores, as output, an iterator to the MEAQR data point corresponding to where T_optimal and J_optimal are located.
+     */
     void find_optimal_cost_and_time(const point_type& a, const point_type& b,
                                     const mat<double,mat_structure::rectangular>& K, 
                                     const system_input_type& u0, 
@@ -403,7 +436,7 @@ class MEAQR_topology : public named_object
       T_optimal = std::numeric_limits<double>::infinity();
       it_optimal = b.MEAQR_data->pts.end();
       
-      double rho = 0.01 * (u0 * (m_IHAQR_space->m_R * u0));
+      double rho = m_idle_to_cost_ratio * (u0 * (m_IHAQR_space->m_R * u0));
       
       typedef typename std::vector< std::pair<double, MEAQR_bundle_type> >::const_iterator Iter;
       
@@ -424,11 +457,7 @@ class MEAQR_topology : public named_object
         double J = rho * it->first + 0.5 * (s * s); 
         
         ReaK::detail::backsub_R_impl(transpose_view(get<0>(it->second)), s_m, 1e-6);
-//         std::cout << s << std::endl;
         system_input_type u_T = u0 - ( K * transpose_view(eAt) * s ) - K * get<2>(it->second);
-//         std::cout << " eAt = " << eAt << std::endl;
-//         std::cout << " estimated T = " << it->first << std::endl;
-//         std::cout << " estimated max u = " << u_T << std::endl;
         
         if((J < J_optimal) && 
            (m_IHAQR_space->m_input_space.is_in_bounds(u_T))) {
@@ -450,6 +479,21 @@ class MEAQR_topology : public named_object
     };
     
     
+    /**
+     * This function attempts to travel (steer) for some time interval.
+     * \param H The current H matrix (lower-triangular part of M^-1).
+     * \param K The current feedback gain matrix (R^-1 B^T).
+     * \param eta The current drift term (affine term of the MEAQR).
+     * \param u0 The current input-bias (or drift compensation) for the destination point.
+     * \param u_prev The previous input to the system, used for bandwidth limitations on the input.
+     * \param x_current The current state-space point (will be modified to contain the resulting state-space point).
+     * \param x_goal The ultimate state-space point to be reached (the steering will stop if it is reached at any time).
+     * \param current_time The current time (will be modified to contain the resulting time).
+     * \param time_limit The time limit after which to stop this steering segment.
+     * \param with_collision_check A flag to tell if collision should be checked or not (through the virtual is_free_impl() function).
+     * \param st_rec A pointer to a steer-record object. If NULL, then the steering doesn't get recorded.
+     * \return False if a collision occurred.
+     */
     bool steer_with_constant_control(const mat<double,mat_structure::square>& H, 
                                      const mat<double,mat_structure::rectangular>& K, 
                                      const vect_n<double>& eta, 
@@ -512,6 +556,15 @@ class MEAQR_topology : public named_object
     };
     
     
+    /**
+     * This function attempts to travel (steer) between two points for a given fraction between them.
+     * \param a The starting point of the travel.
+     * \param fraction The fraction of the complete travel that should be done.
+     * \param b The end point of the travel.
+     * \param with_collision_check A flag to tell if collision should be checked or not (through the virtual is_free_impl() function).
+     * \param st_rec A pointer to a steer-record object. If NULL, then the steering doesn't get recorded.
+     * \return The resulting point after the steering.
+     */
     point_type move_position_toward_impl(const point_type& a, double fraction, const point_type& b, 
                                          bool with_collision_check, steer_record_type* st_rec = NULL) const 
     {
@@ -585,6 +638,11 @@ class MEAQR_topology : public named_object
       return point_type( x_current ); // output last non-colliding point, whether collision occurred or not.
     };
     
+    /**
+     * This function samples a point from the free-space (if collision check is enabled).
+     * \param with_collision_check A flag to tell if collision should be checked or not (through the virtual is_free_impl() function).
+     * \return The resulting point of the random sampling.
+     */
     point_type random_point_impl(bool with_collision_check) const {
       state_type result_pt = m_IHAQR_space->m_get_sample(m_IHAQR_space->m_space);
       while(with_collision_check && !is_free_impl(result_pt))
@@ -597,29 +655,61 @@ class MEAQR_topology : public named_object
     
   public:
     
+    
+    /**
+     * This function returns a reference to the underlying state-space used by this topology.
+     * \return A reference to the underlying state-space used by this topology.
+     */
     StateSpace& get_state_space() { return m_IHAQR_space->get_state_space(); };
+    /**
+     * This function returns a const-reference to the underlying state-space used by this topology.
+     * \return A const-reference to the underlying state-space used by this topology.
+     */
     const StateSpace& get_state_space() const { return m_IHAQR_space->get_state_space(); };
     
+    /**
+     * This function returns a reference to the underlying IHAQR topology used by this topology.
+     * \return A reference to the underlying IHAQR topology used by this topology.
+     */
     IHAQR_space_type& get_IHAQR_space() { return *m_IHAQR_space; };
+    /**
+     * This function returns a const-reference to the underlying IHAQR topology used by this topology.
+     * \return A const-reference to the underlying IHAQR topology used by this topology.
+     */
     const IHAQR_space_type& get_IHAQR_space() const { return *m_IHAQR_space; };
     
     
+    /**
+     * This function returns a maximum allowable time-horizon.
+     * \return A maximum allowable time-horizon.
+     */
     double get_max_time_horizon() const { return m_IHAQR_space->m_max_time_horizon; };
     
+    /**
+     * This function returns the idle-power (hover-power) cost for a given point.
+     * \return The idle-power (hover-power) cost for a given point.
+     */
     double get_idle_power_cost(const point_type& b) const { 
       if(!b.lin_data)
         m_IHAQR_space->compute_linearization_data(b);
-      return 0.01 * (b.lin_data->u * (m_IHAQR_space->m_R * b.lin_data->u));
+      return m_idle_to_cost_ratio * (b.lin_data->u * (m_IHAQR_space->m_R * b.lin_data->u));
     };
     
     
     /**
      * Default constructor.
+     * \param aName The name of this topology / object.
+     * \param aIHAQRSpace A pointer to a IHAQR topology that can be used by this MEAQR topology.
+     * \param aIdleToCostRatio The ratio of the idle-power cost to the feedback input cost, e.g., 
+     *                         a value of 0.1 would mean that the input-bias cost (idle or hover cost) 
+     *                         is penalized ten times less than the feedback term.
      */
     MEAQR_topology(const std::string& aName = "MEAQR_topology",
-                   const shared_ptr< IHAQR_space_type >& aIHAQRSpace = shared_ptr< IHAQR_space_type >()) : 
+                   const shared_ptr< IHAQR_space_type >& aIHAQRSpace = shared_ptr< IHAQR_space_type >(),
+                   double aIdleToCostRatio = 0.01) : 
                    named_object(),
-                   m_IHAQR_space(aIHAQRSpace) {
+                   m_IHAQR_space(aIHAQRSpace),
+                   m_idle_to_cost_ratio(aIdleToCostRatio) {
       setName(aName);
     };
     
@@ -740,12 +830,14 @@ class MEAQR_topology : public named_object
     
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(m_IHAQR_space);
+      A & RK_SERIAL_SAVE_WITH_NAME(m_IHAQR_space)
+        & RK_SERIAL_SAVE_WITH_NAME(m_idle_to_cost_ratio);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(m_IHAQR_space);
+      A & RK_SERIAL_LOAD_WITH_NAME(m_IHAQR_space)
+        & RK_SERIAL_LOAD_WITH_NAME(m_idle_to_cost_ratio);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400035,1,"MEAQR_topology",named_object)
@@ -769,7 +861,7 @@ struct is_steerable_space< MEAQR_topology<StateSpace, StateSpaceSystem, StateSpa
   
   
 /**
- * This class has collision detection.
+ * This class is an implementation of the MEAQR_topology with collision detection.
  */
 template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> {
@@ -828,17 +920,28 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
     
     /**
      * Default constructor.
+     * \param aName The name of this topology / object.
+     * \param aIHAQRSpace A pointer to a IHAQR topology that can be used by this MEAQR topology.
+     * \param aIdleToCostRatio The ratio of the idle-power cost to the feedback input cost, e.g., 
+     *                         a value of 0.1 would mean that the input-bias cost (idle or hover cost) 
+     *                         is penalized ten times less than the feedback term.
+     * \param aModel The direct-kinematics model for the system (this is for the application of 
+     *               state-space points to synchronize the collision-detection code which rely on KTE-based systems).
      */
     MEAQR_topology_with_CD(const std::string& aName = "MEAQR_topology_with_CD",
                            const shared_ptr< IHAQR_space_type >& aIHAQRSpace = shared_ptr< IHAQR_space_type >(),
+                           double aIdleToCostRatio = 0.01,
                            const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >()) : 
-                           base_type(aName, aIHAQRSpace),
+                           base_type(aName, aIHAQRSpace, aIdleToCostRatio),
                            m_model(aModel),
                            m_proxy_env_2D(),
                            m_proxy_env_3D() { };
     
     /**
      * Default constructor.
+     * \param aBaseSpace A MEAQR_topology object to copy.
+     * \param aModel The direct-kinematics model for the system (this is for the application of 
+     *               state-space points to synchronize the collision-detection code which rely on KTE-based systems).
      */
     MEAQR_topology_with_CD(const base_type& aBaseSpace,
                            const shared_ptr< kte::direct_kinematics_model >& aModel) : 
