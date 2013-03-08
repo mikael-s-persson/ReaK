@@ -60,7 +60,7 @@ target_link_libraries(reak_geom reak_core)
 
 if(COIN3D_FOUND AND QT_FOUND)
 
-  add_library(reak_geom_coin STATIC "${SRCROOT}${RKSHAPESDIR}/oi_scene_graph.cpp" "${SRCROOT}${RKSHAPESDIR}/frame_tracer_coin3d_impl.cpp")
+  add_library(reak_geom_coin STATIC "${SRCROOT}${RKSHAPESDIR}/oi_scene_graph.cpp" "${SRCROOT}${RKSHAPESDIR}/oi_reader.cpp" "${SRCROOT}${RKSHAPESDIR}/frame_tracer_coin3d_impl.cpp")
   setup_custom_target(reak_geom_coin "${SRCROOT}${RKSHAPESDIR}")
   target_link_libraries(reak_geom_coin ${COIN3D_LIBRARIES} reak_mbd_kte reak_core)
   
