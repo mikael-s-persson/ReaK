@@ -86,6 +86,15 @@ if(COIN3D_FOUND AND QT_FOUND)
 endif()
 
 
+if(COIN3D_FOUND)
+  
+  add_executable(vrml2reak "${SRCROOT}${RKSHAPESDIR}/vrml2reak.cpp")
+  setup_custom_target(vrml2reak "${SRCROOT}${RKSHAPESDIR}")
+  
+  target_link_libraries(vrml2reak reak_geom_coin reak_geom_prox reak_geom reak_core)
+  target_link_libraries(vrml2reak ${COIN3D_LIBRARIES} ${Boost_LIBRARIES})
+  
+endif()
 
 #target_link_libraries(test_mbd_basic ${Boost_LIBRARIES})
 #target_link_libraries(test_mbd_basic reak_mbd_kte reak_core)

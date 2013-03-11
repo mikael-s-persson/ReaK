@@ -37,6 +37,7 @@
 
 #include "color.hpp"
 #include "colored_model.hpp"
+#include "proximity/proxy_query_model.hpp"
 
 #include "mbd_kte/kte_map.hpp"          // for kte_map
 #include "mbd_kte/kte_map_chain.hpp"
@@ -86,9 +87,23 @@ class oi_reader {
     oi_reader();
     
     /**
-     * Default constructor.
+     * Default constructor from a file-name.
      */
     oi_reader(const std::string& aFileName);
+    
+    /**
+     * Default constructor from an input stream.
+     */
+    oi_reader(std::istream& aStream);
+    
+    
+    oi_reader(const oi_reader&);
+    oi_reader& operator=(const oi_reader&);
+    
+#ifdef RK_ENABLE_CXX11_FEATURES
+    oi_reader(oi_reader&&);
+    oi_reader& operator=(oi_reader&&);
+#endif
     
     /**
      * Default destructor.
@@ -101,6 +116,11 @@ class oi_reader {
     oi_reader& read_file(const std::string& aFileName);
     
     /**
+     * Read scene-graph from a given stream.
+     */
+    oi_reader& read_stream(std::istream& aStream);
+    
+    /**
      * Check if the.
      */
     operator bool() const { return (mRoot != NULL); };
@@ -109,18 +129,31 @@ class oi_reader {
     friend
     oi_reader& operator>>(oi_reader& aSG, colored_model_3D& aModel);
     
+    friend
+    oi_reader& operator>>(oi_reader& aSG, proxy_query_model_3D& aProxy);
+    
+    oi_reader& translate_into(colored_model_3D& aModel, proxy_query_model_3D& aProxy);
+    
 };
 
 
 // Re-declaration down in the geom namespace directly as some compilers give trouble with friend functions only declared in the class.
 
 /**
- * This operator adds a 3D colored geometric model to an Open-Inventor scene-graph.
- * \param aSG An Open-Inventor scene-graph to add the geometric model to.
- * \param aModel The 3D colored geometric model to add to the scene-graph.
- * \return The Open-Inventor scene-graph given as the first parameter, by reference.
+ * This operator creates a 3D colored geometric model from an Open-Inventor scene-graph.
+ * \param aSG An Open-Inventor scene-graph reader to construct the geometric model from.
+ * \param aModel The 3D colored geometric model constructed by the scene-graph reader.
+ * \return The Open-Inventor scene-graph reader given as the first parameter, by reference.
  */
 oi_reader& operator>>(oi_reader& aSG, colored_model_3D& aModel);
+
+/**
+ * This operator creates a 3D proximity-query model from an Open-Inventor scene-graph.
+ * \param aSG An Open-Inventor scene-graph reader to construct the proximity-query model from.
+ * \param aProxy The 3D proximity-query model constructed by the scene-graph reader.
+ * \return The Open-Inventor scene-graph reader given as the first parameter, by reference.
+ */
+oi_reader& operator>>(oi_reader& aSG, proxy_query_model_3D& aProxy);
 
 };
 

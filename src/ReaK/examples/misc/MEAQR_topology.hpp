@@ -999,7 +999,7 @@ class MEAQR_topology_with_CD : public MEAQR_topology<StateSpace, StateSpaceSyste
     std::pair<point_type, steer_record_type> steer_position_toward(const point_type& a, double fraction, const point_type& b) const 
     {
       std::pair<point_type, steer_record_type> result(point_type(), steer_record_type(shared_ptr<StateSpace>(this->m_IHAQR_space, &(this->m_IHAQR_space->get_state_space()))));
-      result.first = move_position_toward_impl(a, fraction, b, true, &result.second);
+      result.first = this->move_position_toward_impl(a, fraction, b, true, &result.second);
       return result;
     };
     
