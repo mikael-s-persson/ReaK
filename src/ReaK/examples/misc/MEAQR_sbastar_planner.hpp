@@ -90,12 +90,17 @@ struct MEAQR_sbastar_vdata {
 };
 
 template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
-struct MEAQR_sbastar_edata { 
-  double astar_weight; //for A*
+struct MEAQR_sbastar_edata {
+  typedef typename MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler>::steer_record_type steer_record_type;
   
-  MEAQR_sbastar_edata() : astar_weight(0.0) { };
+  double astar_weight;
+  steer_record_type steer_rec;
+  
+  MEAQR_sbastar_edata(double aWeight = 0.0, const steer_record_type& aSteerRec = steer_record_type()) : astar_weight(aWeight), steer_rec(aSteerRec) { };
+#ifdef RK_ENABLE_CXX11_FEATURES
+  MEAQR_sbastar_edata(double aWeight, steer_record_type&& aSteerRec) : astar_weight(aWeight), steer_rec(std::move(aSteerRec)) { };
+#endif
 };
-
 
 
 
@@ -145,10 +150,11 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
       return (max_num_results > m_current_num_results) && !has_reached_max_vertices;
     };
     
-    template <typename Graph>
-    void report_progress(Graph& g) {
+    // NOTE: This is the same as rrtstar_path_planner
+    template <typename Graph, typename PositionMap>
+    void report_progress(Graph& g, PositionMap g_pos) {
       if(num_vertices(g) % this->m_progress_interval == 0)
-        m_reporter.draw_motion_graph(*(this->m_space), g, get(&MEAQR_sbastar_vdata<StateSpace,StateSpaceSystem, StateSpaceSampler>::position,g));
+        m_reporter.draw_motion_graph(*(this->m_space), g, g_pos);
       has_reached_max_vertices = (num_vertices(g) >= this->m_max_vertex_count);
     };
     
@@ -328,6 +334,7 @@ struct MEAQR_sbastar_visitor {
                         m_start_node(aStartNode), m_goal_node(aGoalNode), m_space_dim(aSpaceDim) { };
   
   typedef typename topology_traits< space_type >::point_type PointType;
+  typedef MEAQR_sbastar_edata<StateSpace, StateSpaceSystem, StateSpaceSampler> EdgeProp;
   
   template <typename Vertex, typename Graph>
   void vertex_added(Vertex u, Graph& g) const {
@@ -344,7 +351,8 @@ struct MEAQR_sbastar_visitor {
     g[u].expansion_trials = 0;  // m
     
     // Call progress reporter...
-    m_planner->report_progress(g);
+//     m_planner->report_progress(g, get(&MEAQR_sbastar_vdata<StateSpace,StateSpaceSystem, StateSpaceSampler>::position,g));
+    m_planner->report_progress(g, get(&EdgeProp::steer_rec,g));
     
     if(g[m_goal_node].distance_accum < m_planner->get_best_solution_distance())
       m_planner->create_solution_path(m_start_node, m_goal_node, g);
@@ -355,10 +363,10 @@ struct MEAQR_sbastar_visitor {
   void edge_added(EdgeType e, Graph& g) const {
     using std::exp;
     
-    g[e].astar_weight = get(distance_metric, m_space->get_super_space())(
-      g[source(e,g)].position,
-      g[target(e,g)].position,
-      m_space->get_super_space());
+//     g[e].astar_weight = get(distance_metric, m_space->get_super_space())(
+//       g[source(e,g)].position,
+//       g[target(e,g)].position,
+//       m_space->get_super_space());
     
   };
   
@@ -401,7 +409,9 @@ struct MEAQR_sbastar_visitor {
   
   // NOTE: This is the main thing that must be revised:
   template <typename Vertex, typename Graph>
-  std::pair<PointType, bool> random_walk(Vertex u, Graph& g) const {
+  boost::tuple<PointType, bool, EdgeProp > random_walk(Vertex u, Graph& g) const {
+    typedef boost::tuple<PointType, bool, EdgeProp > ResultType;
+    typedef typename EdgeProp::steer_record_type SteerRec;
     typedef typename topology_traits<StateSpace>::point_difference_type state_difference_type;
     using std::exp;
     using std::log;
@@ -416,7 +426,6 @@ struct MEAQR_sbastar_visitor {
       get_distance = get(distance_metric, m_space->get_super_space());
     
     boost::variate_generator< pp::global_rng_type&, boost::normal_distribution<double> > var_rnd(pp::get_global_rng(), boost::normal_distribution<double>());
-//     mat<double,mat_structure::diagonal> L;
     
     unsigned int i = 0;
     do {
@@ -424,10 +433,12 @@ struct MEAQR_sbastar_visitor {
       PointType p_rnd = get_sample(m_space->get_super_space());
       double dist = get_distance(g[u].position, p_rnd, m_space->get_super_space());
       double target_dist = var_rnd() * m_planner->get_sampling_radius();
+      
       PointType p_inter( m_space->get_state_space().move_position_toward(g[u].position.x, target_dist / dist, p_rnd.x) );
       target_dist = get_distance(g[u].position, p_inter, m_space->get_super_space());
-      PointType p_v = m_space->move_position_toward(g[u].position, 0.8, p_inter);
-      dist = get_distance(g[u].position, p_v, m_space->get_super_space());
+      
+      std::pair<PointType, SteerRec> steer_result = m_space->steer_position_toward(g[u].position, 0.8, p_inter);
+      dist = get_distance(g[u].position, steer_result.first, m_space->get_super_space());
       if( dist < 0.7 * target_dist ) {
         // this means that we had a collision before reaching the target distance, 
         // must record that to the constriction statistic:
@@ -440,17 +451,39 @@ struct MEAQR_sbastar_visitor {
 //         g[u].density = ( g[u].expansion_trials * g[u].density + exp_D_KL ) / (g[u].expansion_trials + 1);
 //         ++(g[u].expansion_trials);
       } else
-        return std::make_pair(p_v, true);
+#ifdef RK_ENABLE_CXX11_FEATURES
+        return ResultType(steer_result.first, true, EdgeProp(dist, std::move(steer_result.second)));
+#else
+        return ResultType(steer_result.first, true, EdgeProp(dist, steer_result.second));
+#endif
     } while(++i <= 10);
-    return std::make_pair(g[u].position, false);
+    return ResultType(g[u].position, false, EdgeProp(std::numeric_limits<double>::infinity()));
   };
-    
+  
   template <typename Vertex, typename Graph>
-  void examine_neighborhood(Vertex, Graph&) const {
+  std::pair<bool,EdgeProp> can_be_connected(Vertex u, Vertex v, const Graph& g) {
+    typedef typename EdgeProp::steer_record_type SteerRec;
+    typedef std::pair<bool,EdgeProp> ResultType;
     
-    // NOTE : don't know what is needed here exactly, maybe nothing at all 
-    // since density and contriction are computed in added-edge and random-walk.
+    std::pair<PointType, SteerRec> steer_result = m_space->steer_position_toward(g[u].position, 1.0, g[v].position);
     
+    // NOTE Differs from rrtstar_path_planner HERE:
+    double best_case_dist = get(distance_metric, m_space->get_state_space())(g[u].position.x, g[v].position.x, m_space->get_state_space());
+    double diff_dist = get(distance_metric, m_space->get_state_space())(steer_result.first.x, g[v].position.x, m_space->get_state_space());
+    
+    if(diff_dist < 0.05 * best_case_dist) {
+//       std::cout << "Connected successfully!" << std::endl;
+      return ResultType(true, EdgeProp(
+        get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space()),
+#ifdef RK_ENABLE_CXX11_FEATURES
+        std::move(steer_result.second)
+#else
+        steer_result.second
+#endif
+      ));
+    } else {
+      return ResultType(false,EdgeProp(std::numeric_limits<double>::infinity()));
+    };
   };
   
   
@@ -531,6 +564,9 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
   typedef boost::data_member_property_map<PointType, VertexProp > PositionMap;
   PositionMap pos_map = PositionMap(&VertexProp::position);
   
+  typedef boost::data_member_property_map<double, EdgeProp > WeightMap;
+  WeightMap weight_map = WeightMap(&EdgeProp::astar_weight);
+  
   double space_dim = double((to_vect<double>(this->m_space->get_state_space().difference(this->m_goal_pos.x,this->m_start_pos.x))).size()); 
   double space_Lc = get(distance_metric,this->m_space->get_super_space())(this->m_start_pos, this->m_goal_pos, this->m_space->get_super_space());
   
@@ -583,10 +619,10 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
     MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
     
     ReaK::graph::generate_lazy_sbastar(
-      motion_graph, start_node, *(this->m_space), vis,
+      motion_graph, start_node, this->m_space->get_super_space(), vis,
       get(&VertexProp::heuristic_value, motion_graph), 
       pos_map, 
-      get(&EdgeProp::astar_weight, motion_graph),
+      weight_map,
       get(&VertexProp::density, motion_graph), 
       get(&VertexProp::constriction, motion_graph), 
       get(&VertexProp::distance_accum, motion_graph),
@@ -614,10 +650,10 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
     MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
     
     ReaK::graph::generate_lazy_sbastar(
-      motion_graph, start_node, *(this->m_space), vis,
+      motion_graph, start_node, this->m_space->get_super_space(), vis,
       get(&VertexProp::heuristic_value, motion_graph), 
       pos_map, 
-      get(&EdgeProp::astar_weight, motion_graph),
+      weight_map,
       get(&VertexProp::density, motion_graph), 
       get(&VertexProp::constriction, motion_graph), 
       get(&VertexProp::distance_accum, motion_graph),
@@ -645,10 +681,10 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
     MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
     
     ReaK::graph::generate_lazy_sbastar(
-      motion_graph, start_node, *(this->m_space), vis,
+      motion_graph, start_node, this->m_space->get_super_space(), vis,
       get(&VertexProp::heuristic_value, motion_graph), 
       pos_map, 
-      get(&EdgeProp::astar_weight, motion_graph),
+      weight_map,
       get(&VertexProp::density, motion_graph), 
       get(&VertexProp::constriction, motion_graph), 
       get(&VertexProp::distance_accum, motion_graph),
@@ -676,10 +712,10 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
     MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
     
     ReaK::graph::generate_lazy_sbastar(
-      motion_graph, start_node, *(this->m_space), vis,
+      motion_graph, start_node, this->m_space->get_super_space(), vis,
       get(&VertexProp::heuristic_value, motion_graph), 
       pos_map, 
-      get(&EdgeProp::astar_weight, motion_graph),
+      weight_map,
       get(&VertexProp::density, motion_graph), 
       get(&VertexProp::constriction, motion_graph), 
       get(&VertexProp::distance_accum, motion_graph),
@@ -707,10 +743,10 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
     MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
     
     ReaK::graph::generate_lazy_sbastar(
-      motion_graph, start_node, *(this->m_space), vis,
+      motion_graph, start_node, this->m_space->get_super_space(), vis,
       get(&VertexProp::heuristic_value, motion_graph), 
       pos_map, 
-      get(&EdgeProp::astar_weight, motion_graph),
+      weight_map,
       get(&VertexProp::density, motion_graph), 
       get(&VertexProp::constriction, motion_graph), 
       get(&VertexProp::distance_accum, motion_graph),

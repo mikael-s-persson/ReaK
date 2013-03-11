@@ -110,9 +110,9 @@ namespace graph {
    * 
    * vis.travel_failed(u, v, g);  This function is called whenever a source-destination pair of vertices led to a failure to travel (e.g., a collision occurred).
    * 
-   * boost::tie(pt,b) = vis.random_walk(u, g);  This function is called to perform the expansion of the roadmap from a given vertex (u) in the graph (g). This function returns a newly generated position value that is a candidate to be added to the graph.
+   * tie(pt,b,ep) = vis.random_walk(u, g);  This function is called to perform the expansion of the roadmap from a given vertex (u) in the graph (g). This function returns a newly generated position value that is a candidate to be added to the graph, and with an edge-property object associated with a new edge.
    * 
-   * vis.examine_neighborhood(u, g);  This function is called to evaluate the probability-measures of the graph (g) around the given vertex (u). This value is used to prioritize the generation of new vertices by their potential.
+   * tie(b, ep) = vis.can_be_connected(u,v,g);  This function is called to attempt to steer from vertex u to vertex v, it returns true if a local path exists and is collision-free, and it also returns the edge-property of the edge that could connect those two vertices.
    * 
    * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
    * \tparam Graph The graph type on which the visitor should be able to act.
@@ -137,13 +137,14 @@ namespace graph {
       vis.travel_explored(u, u, g);
       vis.travel_succeeded(u, u, g);
       vis.travel_failed(u, u, g);
-      boost::tie(pt,b) = vis.random_walk(u, g);
-      vis.examine_neighborhood(u, g);
+      boost::tie(pt, b, ep) = vis.random_walk(u, g);
+      boost::tie(b, ep) = vis.can_be_connected(u, u, g);
     }
     Visitor vis;
     Graph g;
     typename boost::graph_traits<Graph>::vertex_descriptor u;
     typename boost::graph_traits<Graph>::edge_descriptor e;
+    typename Graph::edge_bundled ep;
     typename ReaK::pp::topology_traits<Topology>::point_type pt;
     bool b;
     double thresh;
@@ -200,12 +201,20 @@ namespace graph {
       void travel_failed(Vertex, Vertex, const Graph&) const { };
       
       template <typename Vertex, typename Graph>
-      std::pair<PointType, bool> random_walk(Vertex, const Graph&) const { return std::make_pair(PointType(), false); };
-      
-      bool keep_going() const { return true; };
+      boost::tuple<PointType, bool, typename Graph::edge_bundled> random_walk(Vertex, const Graph&) const { 
+        typedef typename Graph::edge_bundled EdgeProp;
+        typedef boost::tuple<PointType, bool, EdgeProp> ResultType;
+        return ResultType(PointType(), false, EdgeProp()); 
+      };
       
       template <typename Vertex, typename Graph>
-      void examine_neighborhood(Vertex, const Graph&) const { };
+      std::pair<bool, typename Graph::edge_bundled> can_be_connected(Vertex, Vertex, const Graph&) const { 
+        typedef typename Graph::edge_bundled EdgeProp;
+        typedef std::pair<bool, EdgeProp> ResultType;
+        return ResultType(false, EdgeProp()); 
+      };
+      
+      bool keep_going() const { return true; };
   };
   
   
@@ -232,12 +241,12 @@ namespace graph {
       typedef boost::color_traits<ColorValue> Color;
       typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
 
-      sbastar_bfs_visitor(const Topology& free_space, UniformCostVisitor vis,
+      sbastar_bfs_visitor(const Topology& super_space, UniformCostVisitor vis,
                           UpdatableQueue& Q, IndexInHeapMap index_in_heap,  
                           AStarHeuristicMap heuristic, PositionMap pos, WeightMap weight, 
                           DensityMap density, ConstrictionMap constriction, DistanceMap dist, 
                           PredecessorMap pred, KeyMap key, ColorMap col, NcSelector select_neighborhood) : 
-                          m_free_space(free_space), m_vis(vis), 
+                          m_super_space(super_space), m_vis(vis), 
                           m_Q(Q), m_index_in_heap(index_in_heap), 
                           m_heuristic(heuristic), m_position(pos), m_weight(weight),
                           m_density(density), m_constriction(constriction), m_distance(dist),
@@ -251,8 +260,9 @@ namespace graph {
       void discover_vertex(Vertex u, Graph& g) const {
         m_vis.discover_vertex(u, g);
       };
-      template <class Graph>
-      typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
+      
+      template <class Vertex, class EdgeProp, class Graph>
+      typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_vertex(const PositionValue& p, Vertex u, EdgeProp ep, Graph& g) {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         typedef typename Graph::vertex_bundled VertexProp;
@@ -262,40 +272,60 @@ namespace graph {
         GraphPositionMap g_position = GraphPositionMap(m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
         
         std::vector<Vertex> Nc;
-        m_select_neighborhood(p, std::back_inserter(Nc), g, m_free_space, g_position); 
+        m_select_neighborhood(p, std::back_inserter(Nc), g, m_super_space, g_position); 
         
-        VertexProp up;
-        put(m_position, up, p);
+        VertexProp vp;
+        put(m_position, vp, p);
 #ifdef RK_ENABLE_CXX0X_FEATURES
-        Vertex u = add_vertex(std::move(up), g);
+        Vertex v = add_vertex(std::move(vp), g);
 #else
-        Vertex u = add_vertex(up, g);
+        Vertex v = add_vertex(vp, g);
 #endif
-        m_vis.vertex_added(u,g);
-        put(m_color, u, Color::white());
-        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
-        put(m_distance, u, std::numeric_limits<double>::infinity());
-        put(m_key, u, 0.0);
-        put(m_predecessor, u, u);
+        m_vis.vertex_added(v,g);
+        put(m_color, v, Color::white());
+        put(m_index_in_heap, v, static_cast<std::size_t>(-1));
+        put(m_distance, v, std::numeric_limits<double>::infinity());
+        put(m_key, v, 0.0);
+        put(m_predecessor, v, v);
+        
+        m_vis.travel_succeeded(u, v, g);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+        std::pair<Edge, bool> e_new = add_edge(u, v, std::move(ep), g);
+#else
+        std::pair<Edge, bool> e_new = add_edge(u, v, ep, g);
+#endif
+        if(e_new.second) {
+          m_vis.edge_added(e_new.first, g);
+          update_vertex(u,g);
+        };
         
         for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
-          m_vis.travel_explored(u, *it, g);
-          if(get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity()) {
-            m_vis.travel_succeeded(u, *it, g);
+          m_vis.travel_explored(v, *it, g);
+          if(*it == u)
+            continue;
+          bool can_connect;
+          boost::tie(can_connect, ep) = m_vis.can_be_connected(*it, v, g);
+          if(can_connect) {
+            m_vis.travel_succeeded(*it, v, g);
             //this means that u is reachable from *it.
-            std::pair<Edge, bool> ep = add_edge(*it,u,g); 
-            if(ep.second) { 
-              m_vis.edge_added(ep.first, g); 
+#ifdef RK_ENABLE_CXX0X_FEATURES
+            e_new = add_edge(*it, v, std::move(ep), g);
+#else
+            e_new = add_edge(*it, v, ep, g);
+#endif
+            if(e_new.second) { 
+              m_vis.edge_added(e_new.first, g); 
               update_vertex(*it,g);
             };
           } else {
-            m_vis.travel_failed(u, *it, g);
+            m_vis.travel_failed(*it, v, g);
           };
         }; 
-        update_vertex(u,g);
+        update_vertex(v,g);
       };
-      template <class Graph>
-      typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
+      
+      template <class Vertex, class EdgeProp, class Graph>
+      typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(const PositionValue& p, Vertex u, EdgeProp ep, Graph& g) {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         typedef typename Graph::vertex_bundled VertexProp;
@@ -305,69 +335,97 @@ namespace graph {
         GraphPositionMap g_position = GraphPositionMap(m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
         
         std::vector<Vertex> Pred, Succ;
-        m_select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, m_free_space, g_position); 
+        m_select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, m_super_space, g_position); 
         
-        VertexProp up;
-        put(m_position, up, p);
+        VertexProp vp;
+        put(m_position, vp, p);
 #ifdef RK_ENABLE_CXX0X_FEATURES
-        Vertex u = add_vertex(std::move(up), g);
+        Vertex v = add_vertex(std::move(vp), g);
 #else
-        Vertex u = add_vertex(up, g);
+        Vertex v = add_vertex(vp, g);
 #endif
-        m_vis.vertex_added(u,g); 
-        put(m_color, u, Color::white());
-        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
-        put(m_distance, u, std::numeric_limits<double>::infinity());
-        put(m_key, u, 0.0);
-        put(m_predecessor, u, u);
+        m_vis.vertex_added(v,g); 
+        put(m_color, v, Color::white());
+        put(m_index_in_heap, v, static_cast<std::size_t>(-1));
+        put(m_distance, v, std::numeric_limits<double>::infinity());
+        put(m_key, v, 0.0);
+        put(m_predecessor, v, v);
+        
+        m_vis.travel_succeeded(u, v, g);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+        std::pair<Edge, bool> e_new = add_edge(u, v, std::move(ep), g);
+#else
+        std::pair<Edge, bool> e_new = add_edge(u, v, ep, g);
+#endif
+        if(e_new.second) {
+          m_vis.edge_added(e_new.first, g);
+          update_vertex(u,g);
+        };
         
         for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
-          m_vis.travel_explored(*it, u, g);
-          if(get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity()) {
+          m_vis.travel_explored(*it, v, g);
+          if(*it == u)
+            continue;
+          bool can_connect;
+          boost::tie(can_connect, ep) = m_vis.can_be_connected(*it, v, g);
+          if(can_connect) {
+            m_vis.travel_succeeded(*it, v, g);
             //this means that u is reachable from *it.
-            m_vis.travel_succeeded(*it, u, g);
-            std::pair<Edge, bool> ep = add_edge(*it, u, g); 
-            if(ep.second) {
-              m_vis.edge_added(ep.first, g); 
-              update_vertex(*it, g);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+            e_new = add_edge(*it, v, std::move(ep), g);
+#else
+            e_new = add_edge(*it, v, ep, g);
+#endif
+            if(e_new.second) { 
+              m_vis.edge_added(e_new.first, g); 
+              update_vertex(*it,g);
             };
           } else {
-            m_vis.travel_failed(*it, u, g);
+            m_vis.travel_failed(*it, v, g);
           };
         };
         
-        update_vertex(u, g);
+        update_vertex(v, g);
         
         for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-          m_vis.travel_explored(u, *it, g);
-          if(get(ReaK::pp::distance_metric, m_free_space)(p, get(m_position,g[*it]), m_free_space) != std::numeric_limits<double>::infinity()) {
+          m_vis.travel_explored(v, *it, g);
+          bool can_connect;
+          boost::tie(can_connect, ep) = m_vis.can_be_connected(v, *it, g);
+          if(can_connect) {
+            m_vis.travel_succeeded(v, *it, g);
             //this means that u is reachable from *it.
-            m_vis.travel_succeeded(u, *it, g);
-            std::pair<Edge, bool> ep = add_edge(u, *it, g); 
-            if(ep.second) {
-              m_vis.edge_added(ep.first, g); 
-              update_vertex(*it, g);
+#ifdef RK_ENABLE_CXX0X_FEATURES
+            e_new = add_edge(v, *it, std::move(ep), g);
+#else
+            e_new = add_edge(v, *it, ep, g);
+#endif
+            if(e_new.second) { 
+              m_vis.edge_added(e_new.first, g); 
+              update_vertex(*it,g);
             };
           } else {
-            m_vis.travel_failed(u, *it, g);
+            m_vis.travel_failed(v, *it, g);
           };
         }; 
       };
       
       template <class Vertex, class Graph>
       void examine_vertex(Vertex u, Graph& g) {
+        typedef typename Graph::edge_bundled EdgeProp;
+        
         m_vis.examine_vertex(u, g);
         
-        std::pair< PositionValue, bool > p_new = m_vis.random_walk(u, g);
-        if(p_new.second)
-          connect_vertex(p_new.first, g);
+        PositionValue p_new; bool walk_succeeded; EdgeProp ep_new;
+        boost::tie(p_new, walk_succeeded, ep_new) = m_vis.random_walk(u, g);
+        if(walk_succeeded)
+          connect_vertex(p_new, u, ep_new, g);
         
         update_key(u,g);
       };
       
       template <class Edge, class Graph>
       void examine_edge(Edge e, Graph& g) const {
-        if (get(m_weight, e) < 0.0)
+        if (get(m_weight, g[e]) < 0.0)
           throw boost::negative_edge();
         m_vis.examine_edge(e, g);
       };
@@ -389,7 +447,6 @@ namespace graph {
       
       template <class Vertex, typename Graph>
       void update_key(Vertex u, Graph& g) const {
-        m_vis.examine_neighborhood(u, g);  // <--- update the constriction / surprise probabilities from examining the neighborhood of u.
         double g_u = get(m_distance, u);
         double h_u = get(m_heuristic, u);
         double f_u = g_u + h_u;   // <--- no relaxation.
@@ -411,7 +468,7 @@ namespace graph {
           Edge pred_e; 
           InEdgeIter ei, ei_end;
           for(boost::tie(ei,ei_end) = in_edges(u,g); ei != ei_end; ++ei) {
-            double g_tmp = get(m_weight, *ei) + get(m_distance, source(*ei,g)); 
+            double g_tmp = get(m_weight, g[*ei]) + get(m_distance, source(*ei,g)); 
             if(g_tmp < g_u) {
               g_u = g_tmp; 
               put(m_distance, u, g_u);
@@ -428,7 +485,7 @@ namespace graph {
         m_Q.push_or_update(u);                 m_vis.discover_vertex(u, g);
       };
 
-      const Topology& m_free_space;
+      const Topology& m_super_space;
       UniformCostVisitor m_vis;
       UpdatableQueue& m_Q; 
       IndexInHeapMap m_index_in_heap;
@@ -543,7 +600,7 @@ namespace graph {
    * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
    *         for each vertex in the graph.
    * \tparam PositionMap A property-map type that can store the position of each vertex. 
-   * \tparam WeightMap This property-map type is used to store the weights of the edges of the 
+   * \tparam WeightMap This property-map type is used to store the weights of the edge-properties of the 
    *         graph (cost of travel along an edge).
    * \tparam DensityMap A property-map type that can store the probability-measure of the expected common information 
    *         between a new sample and the current neighborhood for each vertex.
@@ -553,7 +610,7 @@ namespace graph {
    *         to the goal.
    * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
    *         vertex together with its optimal predecessor.
-   * \tparam KeyMap This property-map type is used to store the weights of the edges of the 
+   * \tparam KeyMap This property-map type is used to store the priority-keys of the vertices of the 
    *         graph (cost of travel along an edge).
    * \tparam ColorMap This property-map type is used to store the color-value of the vertices, colors 
    *         are used to mark vertices by their status in the A* algorithm (white = not visited, 
@@ -566,9 +623,8 @@ namespace graph {
    *        vertex (if not it will be randomly generated) and will store 
    *        the generated graph once the algorithm has finished.
    * \param start_vertex The starting point of the algorithm, on the graph.
-   * \param free_space A topology (as defined by the Boost Graph Library). Note 
-   *        that it is required to generate only random points in 
-   *        the free-space and to only allow interpolation within the free-space.
+   * \param super_space A topology (as defined by the Boost Graph Library). This topology 
+   *        should not include collision checking in its distance metric.
    * \param vis A SBA* visitor implementing the FADPRMVisitorConcept. This is the 
    *        main point of customization and recording of results that the 
    *        user can implement.
@@ -576,7 +632,7 @@ namespace graph {
    * \param position A mapping that implements the MutablePropertyMap Concept. Also,
    *        the value_type of this map should be the same type as the topology's 
    *        value_type.
-   * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
+   * \param weight The property-map which stores the weight of each edge-property object (the cost of travel
    *        along the edge).
    * \param density A property-map that provides the expected common information associated with a sample drawn near 
    *        to a vertex w.r.t. the current neighborhood of that vertex.
@@ -614,7 +670,7 @@ namespace graph {
             typename NcSelector>
   inline void
   generate_sbastar_no_init
-    (Graph &g, Vertex start_vertex, const Topology& free_space, SBAStarVisitor vis,  // basic parameters
+    (Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor vis,  // basic parameters
      AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key, ColorMap color,                         // properties resulting from the algorithm
@@ -649,7 +705,7 @@ namespace graph {
       PredecessorMap,
       KeyMap,
       ColorMap, 
-      NcSelector> bfs_vis(free_space, vis, Q, index_in_heap, 
+      NcSelector> bfs_vis(super_space, vis, Q, index_in_heap, 
                           hval, position, weight, 
                           density, constriction, distance,
                           predecessor, key, color, select_neighborhood);
@@ -672,7 +728,7 @@ namespace graph {
    * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
    *         for each vertex in the graph.
    * \tparam PositionMap A property-map type that can store the position of each vertex. 
-   * \tparam WeightMap This property-map type is used to store the weights of the edges of the 
+   * \tparam WeightMap This property-map type is used to store the weights of the edge-properties of the 
    *         graph (cost of travel along an edge).
    * \tparam DensityMap A property-map type that can store the probability-measure of the expected common information 
    *         between a new sample and the current neighborhood for each vertex.
@@ -681,7 +737,7 @@ namespace graph {
    *         to the goal.
    * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
    *         vertex together with its optimal predecessor.
-   * \tparam KeyMap This property-map type is used to store the weights of the edges of the 
+   * \tparam KeyMap This property-map type is used to store the priority-keys of the vertices of the 
    *         graph (cost of travel along an edge).
    * \tparam ColorMap This property-map type is used to store the color-value of the vertices, colors 
    *         are used to mark vertices by their status in the A* algorithm (white = not visited, 
@@ -694,9 +750,8 @@ namespace graph {
    *        vertex (if not it will be randomly generated) and will store 
    *        the generated graph once the algorithm has finished.
    * \param start_vertex The starting point of the algorithm, on the graph.
-   * \param free_space A topology (as defined by the Boost Graph Library). Note 
-   *        that it is required to generate only random points in 
-   *        the free-space and to only allow interpolation within the free-space.
+   * \param super_space A topology (as defined by the Boost Graph Library). This topology 
+   *        should not include collision checking in its distance metric.
    * \param vis A SBA* visitor implementing the FADPRMVisitorConcept. This is the 
    *        main point of customization and recording of results that the 
    *        user can implement.
@@ -704,7 +759,7 @@ namespace graph {
    * \param position A mapping that implements the MutablePropertyMap Concept. Also,
    *        the value_type of this map should be the same type as the topology's 
    *        value_type.
-   * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
+   * \param weight The property-map which stores the weight of each edge-property object (the cost of travel
    *        along the edge).
    * \param density A property-map that provides the expected common information associated with a sample drawn near 
    *        to a vertex w.r.t. the current neighborhood of that vertex.
@@ -742,7 +797,7 @@ namespace graph {
             typename NcSelector>
   inline void
   generate_sbastar
-    (Graph &g, Vertex start_vertex, const Topology& free_space, SBAStarVisitor vis,  // basic parameters
+    (Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor vis,  // basic parameters
      AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key, ColorMap color,                         // properties resulting from the algorithm
@@ -760,19 +815,6 @@ namespace graph {
     typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
     typedef typename Graph::vertex_bundled VertexProp;
     
-    if(num_vertices(g) == 0) {
-      VertexProp up;
-      PositionValue p = get(ReaK::pp::random_sampler, free_space)(free_space);
-      put(position, up, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      Vertex u = add_vertex(std::move(up), g);
-#else
-      Vertex u = add_vertex(up, g);
-#endif
-      vis.vertex_added(u, g);
-      start_vertex = u;
-    };
-    
     for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
       put(color, *ui, Color::white());
       put(distance, *ui, std::numeric_limits<double>::infinity());
@@ -782,7 +824,7 @@ namespace graph {
     };
 
     generate_sbastar_no_init(
-      g, start_vertex, free_space, vis, 
+      g, start_vertex, super_space, vis, 
       hval, position, weight, density, constriction, distance,
       predecessor, key, color, select_neighborhood, initial_threshold);
 

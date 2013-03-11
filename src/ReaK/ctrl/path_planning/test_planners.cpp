@@ -38,6 +38,21 @@
 #include "basic_sbmp_reporters.hpp"
 
 
+// #define RK_ENABLE_TEST_URRT_MC_RUNS
+// #define RK_ENABLE_TEST_BRRT_MC_RUNS
+// #define RK_ENABLE_TEST_RRTSTAR_MC_RUNS
+// #define RK_ENABLE_TEST_PRM_MC_RUNS
+// #define RK_ENABLE_TEST_FADPRM_MC_RUNS
+// #define RK_ENABLE_TEST_SBASTAR_MC_RUNS
+
+// #define RK_ENABLE_TEST_URRT_SINGLE_RUN
+// #define RK_ENABLE_TEST_BRRT_SINGLE_RUN
+// #define RK_ENABLE_TEST_RRTSTAR_SINGLE_RUN
+// #define RK_ENABLE_TEST_PRM_SINGLE_RUN
+// #define RK_ENABLE_TEST_FADPRM_SINGLE_RUN
+#define RK_ENABLE_TEST_SBASTAR_SINGLE_RUN
+
+
 int main(int argc, char** argv) {
   
   if(argc < 4) {
@@ -61,9 +76,11 @@ int main(int argc, char** argv) {
   
   std::ofstream timing_output("pp_results/" + world_file_name_only + "_times.txt");
   
-#if 0
+#if defined(RK_ENABLE_TEST_URRT_MC_RUNS) || defined(RK_ENABLE_TEST_BRRT_MC_RUNS) || defined(RK_ENABLE_TEST_RRTSTAR_MC_RUNS) || defined(RK_ENABLE_TEST_PRM_MC_RUNS) || defined(RK_ENABLE_TEST_FADPRM_MC_RUNS) || defined(RK_ENABLE_TEST_SBASTAR_MC_RUNS)
   std::size_t max_vertices_100 = max_vertices / 100;
+#endif
   
+#ifdef RK_ENABLE_TEST_URRT_MC_RUNS
   
   /**********************************************************************************
    * 
@@ -408,6 +425,9 @@ int main(int argc, char** argv) {
   
 #endif
   
+  
+#ifdef RK_ENABLE_TEST_URRT_SINGLE_RUN
+  
   std::cout << "Outputting RRT with Uni-dir, adj-list, dvp-bf2..." << std::endl;
   {
     
@@ -428,9 +448,10 @@ int main(int argc, char** argv) {
   };
   std::cout << "Done!" << std::endl;
   
+#endif
   
-#if 0
   
+#ifdef RK_ENABLE_TEST_BRRT_MC_RUNS
   
   /**********************************************************************************
    * 
@@ -782,8 +803,10 @@ int main(int argc, char** argv) {
   };
   std::cout << "Done!" << std::endl;
   
+#endif
   
-    
+  
+#ifdef RK_ENABLE_TEST_BRRT_SINGLE_RUN
   
   std::cout << "Outputting RRT with Bi-dir, adj-list, dvp-bf2..." << std::endl;
   {
@@ -805,11 +828,11 @@ int main(int argc, char** argv) {
   };
   std::cout << "Done!" << std::endl;
   
+#endif
   
   
   
-  
-  
+#ifdef RK_ENABLE_TEST_PRM_MC_RUNS
   
   /**********************************************************************************
    * 
@@ -1144,7 +1167,11 @@ int main(int argc, char** argv) {
   };
   };
   std::cout << "Done!" << std::endl;
+  
 #endif
+  
+  
+#ifdef RK_ENABLE_TEST_PRM_SINGLE_RUN
   
   std::cout << "Outputting PRM with dvp-adj-list-cob4..." << std::endl;
   {
@@ -1165,12 +1192,12 @@ int main(int argc, char** argv) {
   };
   std::cout << "Done!" << std::endl;
   
-  
-#if 0
-  
+#endif
   
   
   
+  
+#ifdef RK_ENABLE_TEST_FADPRM_MC_RUNS
   
   /**********************************************************************************
    * 
@@ -1525,6 +1552,11 @@ int main(int argc, char** argv) {
   };
   std::cout << "Done!" << std::endl;
   
+#endif
+  
+  
+  
+#ifdef RK_ENABLE_TEST_FADPRM_SINGLE_RUN
   
   std::cout << "Outputting FADPRM with adj-list dvp-bf2..." << std::endl;
   {
@@ -1552,6 +1584,8 @@ int main(int argc, char** argv) {
   
   
   
+#ifdef RK_ENABLE_TEST_SBASTAR_SINGLE_RUN
+  
   std::cout << "Outputting SBA* with adj-list dvp-bf2..." << std::endl;
   {
     
@@ -1574,14 +1608,14 @@ int main(int argc, char** argv) {
   };
   std::cout << "Done!" << std::endl;
   
+#endif
   
   
   
   
   
   
-  
-  
+#ifdef RK_ENABLE_TEST_RRTSTAR_MC_RUNS
   
   /**********************************************************************************
    * 
@@ -1591,7 +1625,6 @@ int main(int argc, char** argv) {
    * 
    * *******************************************************************************/
   
-#if 0
   std::cout << "Running RRT* with Uni-dir, adj-list, dvp-bf2..." << std::endl;
   timing_output << "RRT*, Uni-dir, adj-list, dvp-bf2" << std::endl;
   {
@@ -1928,6 +1961,9 @@ int main(int argc, char** argv) {
 #endif
   
   
+  
+#ifdef RK_ENABLE_TEST_RRTSTAR_SINGLE_RUN
+  
   std::cout << "Outputting RRT* with Uni-dir, adj-list, dvp-bf4..." << std::endl;
   {
     
@@ -1947,6 +1983,8 @@ int main(int argc, char** argv) {
     
   };
   std::cout << "Done!" << std::endl;
+  
+#endif
   
   
   return 0;

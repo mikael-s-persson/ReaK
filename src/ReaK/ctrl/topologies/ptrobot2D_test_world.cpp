@@ -34,6 +34,8 @@
 
 #include <string>
 
+#include "path_planning/global_rng.hpp"
+
 namespace ReaK {
 
 namespace pp {
@@ -174,6 +176,8 @@ void ptrobot2D_test_world::save_output(const std::string& aFilename) const {
 
 void ptrobot2D_test_world::draw_edge(const ptrobot2D_test_world::point_type& p_u, const ptrobot2D_test_world::point_type& p_v, bool goal_path) const {
   double dist = m_distance(p_v, p_u, m_space);
+  if(dist < 1.0)
+    return;
   double d = 0.0;
   while(d <= dist) {
     ptrobot2D_test_world::point_type p = m_space.move_position_toward(p_u, (d / dist), p_v);
@@ -218,6 +222,8 @@ ptrobot2D_test_world::point_type ptrobot2D_test_world::adjust(const ptrobot2D_te
 
 ptrobot2D_test_world::point_type ptrobot2D_test_world::move_position_toward(const ptrobot2D_test_world::point_type& p1, double fraction, const ptrobot2D_test_world::point_type& p2) const {
   double dist = m_distance(p1, p2, m_space);
+  if(dist * fraction > max_edge_length)
+    fraction = max_edge_length / dist;
   double d = 1.0;
   while(d < dist * fraction) {
     if (!pimpl->is_free(m_space.move_position_toward(p1, (d / dist), p2))) {
@@ -239,7 +245,7 @@ std::pair<ptrobot2D_test_world::point_type, bool> ptrobot2D_test_world::random_w
   do {
     p_rnd = m_rand_sampler(m_space);
     double dist = m_distance(p_u, p_rnd, m_space);
-    p_v = move_position_toward(p_u, max_edge_length / dist, p_rnd);
+    p_v = move_position_toward(p_u, boost::uniform_01<global_rng_type&,double>(get_global_rng())() * max_edge_length / dist, p_rnd);
     ++i;
   } while((m_distance(p_u, p_v, m_space) < 1.0) && (i <= 10));
   if(i > 10) {

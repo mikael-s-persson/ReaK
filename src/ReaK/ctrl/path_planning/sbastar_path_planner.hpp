@@ -83,7 +83,7 @@ struct sbastar_vertex_data {
   std::size_t predecessor;
   
   sbastar_vertex_data() : position(typename topology_traits<FreeSpaceType>::point_type()),
-                          constriction(0.2), collision_count(1), density(0.0), expansion_trials(0),
+                          constriction(0.0), collision_count(0), density(0.0), expansion_trials(0),
                           heuristic_value(0.0), distance_accum(0.0), key_value(0.0),
                           astar_color(), predecessor(0) { };
 };
@@ -92,7 +92,7 @@ template <typename FreeSpaceType>
 struct sbastar_edge_data { 
   double astar_weight; //for A*
   
-  sbastar_edge_data() : astar_weight(0.0) { };
+  sbastar_edge_data(double aWeight = 0.0) : astar_weight(aWeight) { };
 };
 
 
@@ -331,15 +331,20 @@ struct sbastar_planner_visitor {
   Vertex m_start_node;
   Vertex m_goal_node;
   double m_space_dim;
+  double m_samp_prob_norm;
   
   sbastar_planner_visitor(const shared_ptr< FreeSpaceType >& aSpace, 
                           sbastar_path_planner<FreeSpaceType,SBPPReporter>* aPlanner,
                           NNFinderSynchro aNNSynchro,
                           Vertex aStartNode, Vertex aGoalNode, double aSpaceDim) : 
                           m_space(aSpace), m_planner(aPlanner), m_nn_synchro(aNNSynchro),
-                          m_start_node(aStartNode), m_goal_node(aGoalNode), m_space_dim(aSpaceDim) { };
+                          m_start_node(aStartNode), m_goal_node(aGoalNode), m_space_dim(aSpaceDim) {
+    using std::pow;
+    m_samp_prob_norm = pow(m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * M_PI * 2.0, -m_space_dim * 0.5);
+  };
   
   typedef typename topology_traits<FreeSpaceType>::point_type PointType;
+  typedef sbastar_edge_data<FreeSpaceType> EdgeProp;
   
   template <typename Vertex, typename Graph>
   void vertex_added(Vertex u, Graph& g) const {
@@ -365,19 +370,6 @@ struct sbastar_planner_visitor {
   
   template <typename EdgeType, typename Graph>
   void edge_added(EdgeType e, Graph& g) const {
-    using std::exp;
-    
-    g[e].astar_weight = get(distance_metric, m_space->get_super_space())(
-      g[source(e,g)].position,
-      g[target(e,g)].position,
-      m_space->get_super_space());
-    
-//     double exp_value = exp(-g[e].astar_weight * g[e].astar_weight / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
-//     
-//     g[source(e,g)].density = (g[source(e,g)].expansion_trials * g[source(e,g)].density + exp_value) / (g[source(e,g)].expansion_trials + 1);
-//     ++(g[source(e,g)].expansion_trials);
-//     g[target(e,g)].density = (g[target(e,g)].expansion_trials * g[target(e,g)].density + exp_value) / (g[target(e,g)].expansion_trials + 1);
-//     ++(g[target(e,g)].expansion_trials);
     
   };
   
@@ -385,6 +377,18 @@ struct sbastar_planner_visitor {
   void travel_explored(Vertex u, Vertex v, Graph& g) const { 
     using std::exp;
     double dist = get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space());
+    
+//     double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
+//     double samp_prob = exp_value * m_samp_prob_norm;
+//     
+//     g[u].density += samp_prob * exp_value;
+//     ++(g[u].expansion_trials);
+//     g[v].density += samp_prob * exp_value;
+//     ++(g[v].expansion_trials);
+    
+    
+    if(m_planner->get_sampling_radius() < dist)
+      return;
     double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
     
     g[u].density = (g[u].expansion_trials * g[u].density + exp_value) / (g[u].expansion_trials + 1);
@@ -402,6 +406,22 @@ struct sbastar_planner_visitor {
   void travel_failed(Vertex u, Vertex v, Graph& g) const { 
     using std::log; using std::exp;
     double dist = get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space());
+    
+//     // assume collision occured half-way.  
+//     // assume a blob of collision half-way and occupying half of the interval between u and v (radius 1/4 of dist).
+//     double sig2_n_x = 16.0 * (m_planner->get_sampling_radius() * m_planner->get_sampling_radius()) / (dist * dist);
+//     double exp_D_KL = exp(-2.0 - 0.5 * m_space_dim * ( sig2_n_x - 1.0 - log(sig2_n_x) ) );
+//     
+//     double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
+//     double samp_prob = exp_value * m_samp_prob_norm;
+//     
+//     g[u].constriction += samp_prob * exp_D_KL;
+//     ++(g[u].collision_count);
+//     g[v].constriction += samp_prob * exp_D_KL;
+//     ++(g[v].collision_count);
+    
+    if(m_planner->get_sampling_radius() < dist)
+      return;
     // assume collision occured half-way.  
     // assume a blob of collision half-way and occupying half of the interval between u and v (radius 1/4 of dist).
     double sig2_n_x = 16.0 * (m_planner->get_sampling_radius() * m_planner->get_sampling_radius()) / (dist * dist);
@@ -419,45 +439,62 @@ struct sbastar_planner_visitor {
   };
   
   template <typename Vertex, typename Graph>
-  std::pair<PointType, bool> random_walk(Vertex u, Graph& g) const {
+  boost::tuple<PointType, bool, sbastar_edge_data<FreeSpaceType> > random_walk(Vertex u, Graph& g) const {
+    typedef boost::tuple<PointType, bool, EdgeProp > ResultType;
     using std::exp;
     using std::log;
+    using std::fabs;
     
     typename point_distribution_traits< typename subspace_traits<FreeSpaceType>::super_space_type >::random_sampler_type get_sample = get(random_sampler, m_space->get_super_space());
     typename metric_space_traits< typename subspace_traits<FreeSpaceType>::super_space_type >::distance_metric_type get_distance = get(distance_metric, m_space->get_super_space());
     
+    boost::variate_generator< pp::global_rng_type&, boost::normal_distribution<double> > var_rnd(pp::get_global_rng(), boost::normal_distribution<double>());
+    
     unsigned int i = 0;
+    PointType p_rnd = g[m_goal_node].position;
     do {
-      PointType p_rnd = get_sample(m_space->get_super_space());
+//       PointType p_rnd = get_sample(m_space->get_super_space());
       double dist = get_distance(g[u].position, p_rnd, m_space->get_super_space());
-      double target_dist = boost::uniform_01<global_rng_type&,double>(get_global_rng())() * m_planner->get_sampling_radius();
+//       double target_dist = boost::uniform_01<global_rng_type&,double>(get_global_rng())() * m_planner->get_sampling_radius();
+//       double target_dist = m_planner->get_sampling_radius();
+      double target_dist = fabs(var_rnd()) * m_planner->get_sampling_radius();
       PointType p_v = m_space->move_position_toward(g[u].position, target_dist / dist, p_rnd);
       dist = get_distance(g[u].position, p_v, m_space->get_super_space());
       if( dist < 0.9 * target_dist ) {
         // this means that we had a collision before reaching the target distance, 
         // must record that to the constriction statistic:
+        
+//         double exp_value = exp(-target_dist * target_dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
+//         double samp_prob = exp_value * m_samp_prob_norm;
+//         
+//         double sig2_n = m_planner->get_sampling_radius() * m_planner->get_sampling_radius();
+//         double sig2_x = (target_dist - dist) * (target_dist - dist);
+//         double exp_D_KL = exp(-target_dist * target_dist / (sig2_x * 2.0) - 0.5 * m_space_dim * ( sig2_n / sig2_x - 1.0 - log(sig2_n / sig2_x) ) );
+//         g[u].constriction += samp_prob * exp_D_KL;
+//         ++(g[u].collision_count);
+        
+        
         double sig2_n = m_planner->get_sampling_radius() * m_planner->get_sampling_radius();
         double sig2_x = (target_dist - dist) * (target_dist - dist);
         double exp_D_KL = exp(-target_dist * target_dist / (sig2_x * 2.0) - 0.5 * m_space_dim * ( sig2_n / sig2_x - 1.0 - log(sig2_n / sig2_x) ) );
         g[u].constriction = ( g[u].collision_count * g[u].constriction + exp_D_KL ) / (g[u].collision_count + 1);
         ++(g[u].collision_count);
+        
         // and to the expansion attempts statistic:
 //         g[u].density = ( g[u].expansion_trials * g[u].density + exp_D_KL ) / (g[u].expansion_trials + 1);
 //         ++(g[u].expansion_trials);
+        p_rnd = get_sample(m_space->get_super_space());
       } else
-        return std::make_pair(p_v, true);
+        return ResultType(p_v, true, EdgeProp(dist));
     } while(++i <= 10);
-    return std::make_pair(g[u].position, false);
-  };
-    
-  template <typename Vertex, typename Graph>
-  void examine_neighborhood(Vertex, Graph&) const {
-    
-    // NOTE : don't know what is needed here exactly, maybe nothing at all 
-    // since density and contriction are computed in added-edge and random-walk.
-    
+    return ResultType(g[u].position, false, EdgeProp(std::numeric_limits<double>::infinity()));
   };
   
+  template <typename Vertex, typename Graph>
+  std::pair<bool, EdgeProp> can_be_connected(Vertex u, Vertex v, const Graph& g) {
+    double dist = get(distance_metric, *m_space)(g[u].position, g[v].position, *m_space);
+    return std::pair<bool, EdgeProp>((dist < std::numeric_limits<double>::infinity()), EdgeProp(dist));
+  };
   
   template <typename Vertex, typename Graph>
   void initialize_vertex(Vertex u, Graph& g) const {
@@ -526,9 +563,14 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
   
   typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpace;
   typedef typename topology_traits<SuperSpace>::point_type PointType;
+  typedef sbastar_vertex_data<FreeSpaceType> VertexProp;
+  typedef sbastar_edge_data<FreeSpaceType> EdgeProp;
   
-  typedef boost::data_member_property_map<PointType, sbastar_vertex_data<FreeSpaceType> > PositionMap;
-  PositionMap pos_map = PositionMap(&sbastar_vertex_data<FreeSpaceType>::position);
+  typedef boost::data_member_property_map<PointType, VertexProp > PositionMap;
+  PositionMap pos_map = PositionMap(&VertexProp::position);
+  
+  typedef boost::data_member_property_map<double, EdgeProp > WeightMap;
+  WeightMap weight_map = WeightMap(&EdgeProp::astar_weight);
   
   double space_dim = double((to_vect<double>(this->m_space->get_super_space().difference(this->m_goal_pos,this->m_start_pos))).size()); 
   double space_Lc = get(distance_metric,this->m_space->get_super_space())(this->m_start_pos, this->m_goal_pos, this->m_space->get_super_space());
@@ -539,17 +581,15 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     
     typedef boost::adjacency_list< 
       boost::vecS, boost::vecS, boost::undirectedS,
-      sbastar_vertex_data<FreeSpaceType>,
-      sbastar_edge_data<FreeSpaceType>, boost::listS> MotionGraphType;
+      VertexProp, EdgeProp, boost::listS> MotionGraphType;
     typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
-    typedef typename MotionGraphType::vertex_property_type VertexProp;
     typedef boost::composite_property_map< 
       PositionMap, boost::whole_bundle_property_map< MotionGraphType, boost::vertex_bundle_t > > GraphPositionMap;
     
     MotionGraphType motion_graph;
     GraphPositionMap g_pos_map = GraphPositionMap(pos_map, boost::whole_bundle_property_map< MotionGraphType, boost::vertex_bundle_t >(&motion_graph));
     
-    sbastar_vertex_data<FreeSpaceType> vs_p, vg_p;
+    VertexProp vs_p, vg_p;
     vs_p.position = this->m_start_pos;
     vg_p.position = this->m_goal_pos;
     
@@ -587,16 +627,16 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, start_node, *(this->m_space), vis,
-        get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
+        motion_graph, start_node, this->m_space->get_super_space(), vis,
+        get(&VertexProp::heuristic_value, motion_graph), 
         pos_map, 
-        get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::density, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::constriction, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::distance_accum, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::key_value, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::astar_color, motion_graph),
+        weight_map,
+        get(&VertexProp::density, motion_graph), 
+        get(&VertexProp::constriction, motion_graph), 
+        get(&VertexProp::distance_accum, motion_graph),
+        get(&VertexProp::predecessor, motion_graph), 
+        get(&VertexProp::key_value, motion_graph), 
+        get(&VertexProp::astar_color, motion_graph),
 //         ReaK::graph::fixed_neighborhood< linear_neighbor_search<> >(
 //           linear_neighbor_search<>(), 
 //           10, max_radius),
@@ -619,16 +659,16 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, start_node, *(this->m_space), vis,
-        get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
+        motion_graph, start_node, this->m_space->get_super_space(), vis,
+        get(&VertexProp::heuristic_value, motion_graph), 
         pos_map, 
-        get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::density, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::constriction, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::distance_accum, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::key_value, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::astar_color, motion_graph),
+        weight_map,
+        get(&VertexProp::density, motion_graph), 
+        get(&VertexProp::constriction, motion_graph), 
+        get(&VertexProp::distance_accum, motion_graph),
+        get(&VertexProp::predecessor, motion_graph), 
+        get(&VertexProp::key_value, motion_graph), 
+        get(&VertexProp::astar_color, motion_graph),
 //         ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
 //           nn_finder, 
 //           10, max_radius),
@@ -651,16 +691,16 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, start_node, *(this->m_space), vis,
-        get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
+        motion_graph, start_node, this->m_space->get_super_space(), vis,
+        get(&VertexProp::heuristic_value, motion_graph), 
         pos_map, 
-        get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::density, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::constriction, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::distance_accum, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::key_value, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::astar_color, motion_graph),
+        weight_map,
+        get(&VertexProp::density, motion_graph), 
+        get(&VertexProp::constriction, motion_graph), 
+        get(&VertexProp::distance_accum, motion_graph),
+        get(&VertexProp::predecessor, motion_graph), 
+        get(&VertexProp::key_value, motion_graph), 
+        get(&VertexProp::astar_color, motion_graph),
 //         ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
 //           nn_finder, 
 //           10, max_radius),
@@ -683,16 +723,16 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, start_node, *(this->m_space), vis,
-        get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
+        motion_graph, start_node, this->m_space->get_super_space(), vis,
+        get(&VertexProp::heuristic_value, motion_graph), 
         pos_map, 
-        get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::density, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::constriction, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::distance_accum, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::key_value, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::astar_color, motion_graph),
+        weight_map,
+        get(&VertexProp::density, motion_graph), 
+        get(&VertexProp::constriction, motion_graph), 
+        get(&VertexProp::distance_accum, motion_graph),
+        get(&VertexProp::predecessor, motion_graph), 
+        get(&VertexProp::key_value, motion_graph), 
+        get(&VertexProp::astar_color, motion_graph),
 //         ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
 //           nn_finder, 
 //           10, max_radius),
@@ -715,16 +755,16 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, start_node, *(this->m_space), vis,
-        get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
+        motion_graph, start_node, this->m_space->get_super_space(), vis,
+        get(&VertexProp::heuristic_value, motion_graph), 
         pos_map, 
-        get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::density, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::constriction, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::distance_accum, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::key_value, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::astar_color, motion_graph),
+        weight_map,
+        get(&VertexProp::density, motion_graph), 
+        get(&VertexProp::constriction, motion_graph), 
+        get(&VertexProp::distance_accum, motion_graph),
+        get(&VertexProp::predecessor, motion_graph), 
+        get(&VertexProp::key_value, motion_graph), 
+        get(&VertexProp::astar_color, motion_graph),
 //         ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
 //           nn_finder, 
 //           10, max_radius),
@@ -740,8 +780,8 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     if(m_knn_flag == DVP_ALT_BF2_KNN) {
       
       typedef dvp_adjacency_list<
-        sbastar_vertex_data<FreeSpaceType>,
-        sbastar_edge_data<FreeSpaceType>,
+        VertexProp,
+        EdgeProp,
         SuperSpace,
         PositionMap,
         2, random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<2>,
@@ -754,7 +794,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       MotionGraph motion_graph = space_part.get_adjacency_list();
       
-      sbastar_vertex_data<FreeSpaceType> vs_p, vg_p;
+      VertexProp vs_p, vg_p;
       vs_p.position = this->m_start_pos;
       vg_p.position = this->m_goal_pos;
     
@@ -793,16 +833,16 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, start_node, *(this->m_space), vis,
-        get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
+        motion_graph, start_node, this->m_space->get_super_space(), vis,
+        get(&VertexProp::heuristic_value, motion_graph), 
         pos_map, 
-        get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::density, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::constriction, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::distance_accum, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::key_value, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::astar_color, motion_graph),
+        weight_map,
+        get(&VertexProp::density, motion_graph), 
+        get(&VertexProp::constriction, motion_graph), 
+        get(&VertexProp::distance_accum, motion_graph),
+        get(&VertexProp::predecessor, motion_graph), 
+        get(&VertexProp::key_value, motion_graph), 
+        get(&VertexProp::astar_color, motion_graph),
 //         ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
 //           nn_finder, 
 //           10, max_radius),
@@ -814,8 +854,8 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     } else if(m_knn_flag == DVP_ALT_BF4_KNN) {
       
       typedef dvp_adjacency_list<
-        sbastar_vertex_data<FreeSpaceType>,
-        sbastar_edge_data<FreeSpaceType>,
+        VertexProp,
+        EdgeProp,
         SuperSpace,
         PositionMap,
         4, random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<4>,
@@ -828,7 +868,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       MotionGraph motion_graph = space_part.get_adjacency_list();
       
-      sbastar_vertex_data<FreeSpaceType> vs_p, vg_p;
+      VertexProp vs_p, vg_p;
       vs_p.position = this->m_start_pos;
       vg_p.position = this->m_goal_pos;
     
@@ -867,16 +907,16 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, start_node, *(this->m_space), vis,
-        get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
+        motion_graph, start_node, this->m_space->get_super_space(), vis,
+        get(&VertexProp::heuristic_value, motion_graph), 
         pos_map, 
-        get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::density, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::constriction, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::distance_accum, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::key_value, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::astar_color, motion_graph),
+        weight_map,
+        get(&VertexProp::density, motion_graph), 
+        get(&VertexProp::constriction, motion_graph), 
+        get(&VertexProp::distance_accum, motion_graph),
+        get(&VertexProp::predecessor, motion_graph), 
+        get(&VertexProp::key_value, motion_graph), 
+        get(&VertexProp::astar_color, motion_graph),
 //         ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
 //           nn_finder, 
 //           10, max_radius),
@@ -888,8 +928,8 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     } else if(m_knn_flag == DVP_ALT_COB2_KNN) {
       
       typedef dvp_adjacency_list<
-        sbastar_vertex_data<FreeSpaceType>,
-        sbastar_edge_data<FreeSpaceType>,
+        VertexProp,
+        EdgeProp,
         SuperSpace,
         PositionMap,
         2, random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<2>,
@@ -902,7 +942,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       MotionGraph motion_graph = space_part.get_adjacency_list();
       
-      sbastar_vertex_data<FreeSpaceType> vs_p, vg_p;
+      VertexProp vs_p, vg_p;
       vs_p.position = this->m_start_pos;
       vg_p.position = this->m_goal_pos;
     
@@ -941,16 +981,16 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, start_node, *(this->m_space), vis,
-        get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
+        motion_graph, start_node, this->m_space->get_super_space(), vis,
+        get(&VertexProp::heuristic_value, motion_graph), 
         pos_map, 
-        get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::density, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::constriction, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::distance_accum, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::key_value, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::astar_color, motion_graph),
+        weight_map,
+        get(&VertexProp::density, motion_graph), 
+        get(&VertexProp::constriction, motion_graph), 
+        get(&VertexProp::distance_accum, motion_graph),
+        get(&VertexProp::predecessor, motion_graph), 
+        get(&VertexProp::key_value, motion_graph), 
+        get(&VertexProp::astar_color, motion_graph),
 //         ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
 //           nn_finder, 
 //           10, max_radius),
@@ -962,8 +1002,8 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     } else if(m_knn_flag == DVP_ALT_COB4_KNN) {
       
       typedef dvp_adjacency_list<
-        sbastar_vertex_data<FreeSpaceType>,
-        sbastar_edge_data<FreeSpaceType>,
+        VertexProp,
+        EdgeProp,
         SuperSpace,
         PositionMap,
         4, random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<4>,
@@ -976,7 +1016,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       MotionGraph motion_graph = space_part.get_adjacency_list();
       
-      sbastar_vertex_data<FreeSpaceType> vs_p, vg_p;
+      VertexProp vs_p, vg_p;
       vs_p.position = this->m_start_pos;
       vg_p.position = this->m_goal_pos;
     
@@ -1015,16 +1055,16 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
       ReaK::graph::generate_lazy_sbastar(
-        motion_graph, start_node, *(this->m_space), vis,
-        get(&sbastar_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
+        motion_graph, start_node, this->m_space->get_super_space(), vis,
+        get(&VertexProp::heuristic_value, motion_graph), 
         pos_map, 
-        get(&sbastar_edge_data<FreeSpaceType>::astar_weight, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::density, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::constriction, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::distance_accum, motion_graph),
-        get(&sbastar_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::key_value, motion_graph), 
-        get(&sbastar_vertex_data<FreeSpaceType>::astar_color, motion_graph),
+        weight_map,
+        get(&VertexProp::density, motion_graph), 
+        get(&VertexProp::constriction, motion_graph), 
+        get(&VertexProp::distance_accum, motion_graph),
+        get(&VertexProp::predecessor, motion_graph), 
+        get(&VertexProp::key_value, motion_graph), 
+        get(&VertexProp::astar_color, motion_graph),
 //         ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
 //           nn_finder, 
 //           10, max_radius),
