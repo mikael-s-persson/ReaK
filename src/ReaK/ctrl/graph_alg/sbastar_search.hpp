@@ -61,6 +61,7 @@
 #include "bgl_more_property_tags.hpp"
 #include "bgl_raw_property_graph.hpp"
 
+#include <stack>
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -96,8 +97,6 @@ namespace graph {
    * 
    * vis.publish_path(g);  A function to notify the visitor that at least one A* round has completed and its resulting path (partial or complete) can be published (the path is encoded in the predecessor property-map).
    * 
-   * new_threshold = vis.adjust_threshold(old_threshold, g);  A function to adjust the value of the key-value threshold for a given old-value and graph. The threshold controls what stays on the OPEN set (what still has potential).
-   * 
    * b = vis.keep_going();  A function to check to see whether the task is finished (return false) or needs to keep going (true).
    * 
    * vis.vertex_added(u, g);  This function is called whenever a new vertex (u) has been added to the graph (g), but not yet connected.
@@ -113,6 +112,10 @@ namespace graph {
    * tie(pt,b,ep) = vis.random_walk(u, g);  This function is called to perform the expansion of the roadmap from a given vertex (u) in the graph (g). This function returns a newly generated position value that is a candidate to be added to the graph, and with an edge-property object associated with a new edge.
    * 
    * tie(b, ep) = vis.can_be_connected(u,v,g);  This function is called to attempt to steer from vertex u to vertex v, it returns true if a local path exists and is collision-free, and it also returns the edge-property of the edge that could connect those two vertices.
+   * 
+   * b = vis.has_search_potential(u, g);  This function is called to check if the key associated to the vertex is deemed minimally useful by some measure (e.g., a threshold value).
+   * 
+   * b = vis.should_close(u, g);  This function is called to check if a vertex should be closed according to some measure (e.g., a threshold value on key or density or constriction or anything else).
    * 
    * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
    * \tparam Graph The graph type on which the visitor should be able to act.
@@ -130,7 +133,6 @@ namespace graph {
       vis.finish_vertex(u, g);       //whenever a vertex is added to the CLOSED set.
       vis.edge_relaxed(e, g);        //whenever it is newly decided that an edge is relaxed (has improved the distance for its target)
       vis.publish_path(g);           // notify the visitor that at least one A* round has completed and its resulting path (partial or complete) can be published (the path is encoded in the predecessor property-map).
-      thresh = vis.adjust_threshold(thresh, g); // adjust the value of epsilon for a given old-value and last cummulative weight-change.
       b = vis.keep_going();          // check to see whether the task is finished (return false) or needs to keep going (true).
       vis.vertex_added(u, g); 
       vis.edge_added(e, g);
@@ -139,6 +141,8 @@ namespace graph {
       vis.travel_failed(u, u, g);
       boost::tie(pt, b, ep) = vis.random_walk(u, g);
       boost::tie(b, ep) = vis.can_be_connected(u, u, g);
+      b = vis.has_search_potential(u, g); 
+      b = vis.should_close(u, g); 
     }
     Visitor vis;
     Graph g;
@@ -147,7 +151,6 @@ namespace graph {
     typename Graph::edge_bundled ep;
     typename ReaK::pp::topology_traits<Topology>::point_type pt;
     bool b;
-    double thresh;
   };
   
   /**
@@ -182,9 +185,6 @@ namespace graph {
       template <typename Graph>
       void publish_path(const Graph&) const { };
       
-      template <typename Graph>
-      double adjust_threshold(double old_thr, const Graph&) const { return old_thr * 0.5; };
-      
       template <typename Vertex, typename Graph>
       void vertex_added(Vertex, const Graph&) const { };
       
@@ -215,6 +215,12 @@ namespace graph {
       };
       
       bool keep_going() const { return true; };
+      
+      template <typename Vertex, typename Graph>
+      bool has_search_potential(Vertex, const Graph&) const { return true; };
+      
+      template <typename Vertex, typename Graph>
+      bool should_close(Vertex, const Graph&) const { return false; };
   };
   
   
@@ -265,6 +271,7 @@ namespace graph {
       typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_vertex(const PositionValue& p, Vertex u, EdgeProp ep, Graph& g) {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+        typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
         typedef typename Graph::vertex_bundled VertexProp;
         
         typedef boost::composite_property_map< 
@@ -322,12 +329,35 @@ namespace graph {
           };
         }; 
         update_vertex(v,g);
+        
+        // need to update all the children of the v node:
+        std::stack<Vertex> incons;
+        incons.push(v);
+        while(!incons.empty()) {
+          Vertex s = incons.top(); incons.pop();
+          OutEdgeIter eo, eo_end;
+          for(boost::tie(eo,eo_end) = out_edges(s,g); eo != eo_end; ++eo) {
+            Vertex t = target(*eo, g);
+            if(t == s)
+              t = source(*eo, g);
+            if(s != get(this->m_predecessor, t))
+              continue;
+            put(this->m_distance, t, get(this->m_distance, s) + get(this->m_weight, g[*eo]));
+            this->update_key(t,g);
+            if( ! should_close(t, g) ) {
+              put(this->m_color, t, Color::gray()); 
+              this->m_Q.push_or_update(t);
+            };
+            incons.push(t);
+          };
+        };
       };
       
       template <class Vertex, class EdgeProp, class Graph>
       typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(const PositionValue& p, Vertex u, EdgeProp ep, Graph& g) {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+        typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
         typedef typename Graph::vertex_bundled VertexProp;
         
         typedef boost::composite_property_map< 
@@ -407,6 +437,29 @@ namespace graph {
             m_vis.travel_failed(v, *it, g);
           };
         }; 
+        
+        // need to update all the children of the v node:
+        std::stack<Vertex> incons;
+        incons.push(v);
+        while(!incons.empty()) {
+          Vertex s = incons.top(); incons.pop();
+          OutEdgeIter eo, eo_end;
+          for(boost::tie(eo,eo_end) = out_edges(s,g); eo != eo_end; ++eo) {
+            Vertex t = target(*eo, g);
+            if(t == s)
+              t = source(*eo, g);
+            if(s != get(this->m_predecessor, t))
+              continue;
+            put(this->m_distance, t, get(this->m_distance, s) + get(this->m_weight, g[*eo]));
+            this->update_key(t,g);
+            
+            if( ! should_close(t, g) ) {
+              put(this->m_color, t, Color::gray()); 
+              this->m_Q.push_or_update(t);
+            };
+            incons.push(t);
+          };
+        };
       };
       
       template <class Vertex, class Graph>
@@ -440,10 +493,15 @@ namespace graph {
       bool keep_going() const { 
         return m_vis.keep_going(); 
       };
-      template <typename Graph>
-      double adjust_threshold(double old_threshold, const Graph& g) const {
-        return m_vis.adjust_threshold(old_threshold, g);
+      template <typename Vertex, typename Graph>
+      bool has_search_potential(Vertex u, const Graph& g) const { 
+        return m_vis.has_search_potential(u,g);
       };
+      template <typename Vertex, typename Graph>
+      bool should_close(Vertex u, const Graph& g) const { 
+        return m_vis.should_close(u,g);
+      };
+      
       
       template <class Vertex, typename Graph>
       void update_key(Vertex u, Graph& g) const {
@@ -481,8 +539,11 @@ namespace graph {
         };
         
         update_key(u,g); 
-        put(m_color, u, Color::gray()); 
-        m_Q.push_or_update(u);                 m_vis.discover_vertex(u, g);
+        
+        if( ! should_close(u, g) ) {
+          put(m_color, u, Color::gray()); 
+          m_Q.push_or_update(u);                 m_vis.discover_vertex(u, g);
+        };
       };
 
       const Topology& m_super_space;
@@ -522,14 +583,12 @@ namespace graph {
       (VertexListGraph &g, Vertex start_vertex, SBAStarBFSVisitor& bfs_vis, 
        AStarHeuristicMap heuristic, DistanceMap distance,
        PredecessorMap predecessor, KeyMap key, ColorMap color,
-       IndexInHeapMap index_in_heap, MutableQueue& Q, double potential_threshold)
+       IndexInHeapMap index_in_heap, MutableQueue& Q)
     {
       typedef typename boost::graph_traits<VertexListGraph>::edge_descriptor Edge;
       typedef typename boost::graph_traits<VertexListGraph>::out_edge_iterator OutEdgeIter;
       typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
       typedef boost::color_traits<ColorValue> Color;
-      
-      double f_min = get(heuristic, start_vertex);
       
       while (bfs_vis.keep_going()) {
         
@@ -545,25 +604,11 @@ namespace graph {
           bfs_vis.examine_vertex(u, g);
           
           // stop if the best node does not meet the potential threshold.
-//           std::cout << "\rTop key is: " << std::setw(10) << (get(key,u) * f_min) << std::flush;
-          if( (get(key, u) < potential_threshold / f_min) ) {
-            while(!Q.empty())
-              Q.pop();
+          if( ! bfs_vis.has_search_potential(u, g) )
             break;
-          };
-          
-          // stop if we have a node at the goal
-          if( get(heuristic, u) == 0.0 )
-            break;
-          
-          OutEdgeIter eig, eig_end;
-          for (boost::tie(eig, eig_end) = out_edges(u, g); eig != eig_end; ++eig) {
-            bfs_vis.examine_edge(*eig, g);  
-            bfs_vis.update_vertex(target(*eig, g), g);
-          };
           
           // if the node still has a minimally good potential, then push it back on the OPEN queue.
-          if( get(key, u) < potential_threshold / f_min ) {
+          if( ! bfs_vis.should_close(u, g) ) {
             put(color, u, Color::gray());
             Q.push(u);                          bfs_vis.discover_vertex(u, g);
           } else {
@@ -573,8 +618,6 @@ namespace graph {
         }; // end while  (the queue is either empty or it contains vertices that still have low key values.
         
         bfs_vis.publish_path(g);
-        
-        potential_threshold = bfs_vis.adjust_threshold(potential_threshold, g);
         
       };
     };
@@ -649,10 +692,6 @@ namespace graph {
    * \param select_neighborhood A callable object (functor) that can select a list of 
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
-   * \param initial_threshold The initial threshold value that determines if vertices should still be in the OPEN
-   *        set given their key value. Vertices with key values higher than the threshold are taken off the OPEN set. 
-   *        The inner loop of the algorithm terminates when the vertex with the lowest key value is higher than the 
-   *        threshold or the priority-queue is empty.
    */
   template <typename Graph,
             typename Vertex,
@@ -674,8 +713,7 @@ namespace graph {
      AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key, ColorMap color,                         // properties resulting from the algorithm
-     NcSelector select_neighborhood, 
-     double initial_threshold)
+     NcSelector select_neighborhood)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef std::greater<double> KeyCompareType;  // <---- this is a max-heap.
@@ -712,7 +750,7 @@ namespace graph {
     
     detail::sbastar_search_loop(g, start_vertex, bfs_vis, 
                                 hval, distance, predecessor, key, color,
-                                index_in_heap, Q, initial_threshold);
+                                index_in_heap, Q);
     
   };
 
@@ -776,10 +814,6 @@ namespace graph {
    * \param select_neighborhood A callable object (functor) that can select a list of 
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
-   * \param initial_threshold The initial threshold value that determines if vertices should still be in the OPEN
-   *        set given their key value. Vertices with key values higher than the threshold are taken off the OPEN set. 
-   *        The inner loop of the algorithm terminates when the vertex with the lowest key value is higher than the 
-   *        threshold or the priority-queue is empty.
    */
   template <typename Graph,
             typename Vertex,
@@ -801,7 +835,7 @@ namespace graph {
      AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key, ColorMap color,                         // properties resulting from the algorithm
-     NcSelector select_neighborhood, double initial_threshold)
+     NcSelector select_neighborhood)
   {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
     //BOOST_CONCEPT_ASSERT((boost::MutablePropertyGraphConcept<Graph>));
@@ -826,7 +860,7 @@ namespace graph {
     generate_sbastar_no_init(
       g, start_vertex, super_space, vis, 
       hval, position, weight, density, constriction, distance,
-      predecessor, key, color, select_neighborhood, initial_threshold);
+      predecessor, key, color, select_neighborhood);
 
   };
   

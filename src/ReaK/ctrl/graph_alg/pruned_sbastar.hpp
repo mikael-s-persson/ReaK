@@ -64,6 +64,8 @@
 #include "bgl_more_property_tags.hpp"
 #include "bgl_raw_property_graph.hpp"
 
+#include <stack>
+
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -113,6 +115,7 @@ namespace graph {
       typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_vertex(const PositionValue& p, Vertex u, EdgeProp ep, Graph& g) {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+        typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
         typedef typename Graph::vertex_bundled VertexProp;
         
         typedef boost::composite_property_map< 
@@ -189,21 +192,48 @@ namespace graph {
               };
             };
             this->update_key(*it, g); 
-            put(this->m_color, *it, Color::gray()); 
-            this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
+            if( ! this->should_close(*it, g) ) {
+              put(this->m_color, *it, Color::gray()); 
+              this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
+            };
           } else {
             this->m_vis.travel_failed(v, *it, g);
           };
         }; 
         this->update_key(v,g); 
-        put(this->m_color, v, Color::gray()); 
-        this->m_Q.push(v);                 this->m_vis.discover_vertex(v, g);
+        if( ! this->should_close(v, g) ) {
+          put(this->m_color, v, Color::gray()); 
+          this->m_Q.push(v);                 this->m_vis.discover_vertex(v, g);
+        };
+        
+        // need to update all the children of the v node:
+        std::stack<Vertex> incons;
+        incons.push(v);
+        while(!incons.empty()) {
+          Vertex s = incons.top(); incons.pop();
+          OutEdgeIter eo, eo_end;
+          for(boost::tie(eo,eo_end) = out_edges(s,g); eo != eo_end; ++eo) {
+            Vertex t = target(*eo, g);
+            if(t == s)
+              t = source(*eo, g);
+            if(s != get(this->m_predecessor, t))
+              continue;
+            put(this->m_distance, t, get(this->m_distance, s) + get(this->m_weight, g[*eo]));
+            this->update_key(t,g);
+            if( ! this->should_close(t, g) ) {
+              put(this->m_color, t, Color::gray()); 
+              this->m_Q.push_or_update(t);
+            };
+            incons.push(t);
+          };
+        };
       };
       
       template <class Vertex, class EdgeProp, class Graph>
       typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(const PositionValue& p, Vertex u, EdgeProp ep, Graph& g) {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+        typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
         typedef typename Graph::vertex_bundled VertexProp;
         
         typedef boost::composite_property_map< 
@@ -265,8 +295,10 @@ namespace graph {
               };
             };
             this->update_key(*it, g); 
-            put(this->m_color, *it, Color::gray()); 
-            this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
+            if( ! this->should_close(*it, g) ) {
+              put(this->m_color, *it, Color::gray()); 
+              this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
+            };
           } else {
             this->m_vis.travel_failed(v, *it, g);
           };
@@ -300,16 +332,38 @@ namespace graph {
               };
             };
             this->update_key(*it, g); 
-            put(this->m_color, *it, Color::gray()); 
-            this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
+            if( ! this->should_close(*it, g) ) {
+              put(this->m_color, *it, Color::gray()); 
+              this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
+            };
           } else {
             this->m_vis.travel_failed(v, *it, g);
           };
         }; 
         
         this->update_key(v, g); 
-        put(this->m_color, v, Color::gray()); 
-        this->m_Q.update(v);                 this->m_vis.discover_vertex(v, g);
+        if( ! this->should_close(v, g) ) {
+          put(this->m_color, v, Color::gray()); 
+          this->m_Q.push_or_update(v);                 this->m_vis.discover_vertex(v, g);
+        };
+        
+        // need to update all the children of the v node:
+        std::stack<Vertex> incons;
+        incons.push(v);
+        while(!incons.empty()) {
+          Vertex s = incons.top(); incons.pop();
+          OutEdgeIter eo, eo_end;
+          for(boost::tie(eo,eo_end) = out_edges(s,g); eo != eo_end; ++eo) {
+            Vertex t = target(*eo, g);
+            put(this->m_distance, t, get(this->m_distance, s) + get(this->m_weight, g[*eo]));
+            this->update_key(t,g);
+            if( ! this->should_close(t, g) ) {
+              put(this->m_color, t, Color::gray()); 
+              this->m_Q.push_or_update(t);
+            };
+            incons.push(t);
+          };
+        };
       };
       
       template <class Vertex, class Graph>
@@ -393,10 +447,6 @@ namespace graph {
    * \param select_neighborhood A callable object (functor) that can select a list of 
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
-   * \param initial_threshold The initial threshold value that determines if vertices should still be in the OPEN
-   *        set given their key value. Vertices with key values higher than the threshold are taken off the OPEN set. 
-   *        The inner loop of the algorithm terminates when the vertex with the lowest key value is higher than the 
-   *        threshold or the priority-queue is empty.
    */
   template <typename Graph,
             typename Vertex,
@@ -418,8 +468,7 @@ namespace graph {
      AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key, ColorMap color,                         // properties resulting from the algorithm
-     NcSelector select_neighborhood, 
-     double initial_threshold)
+     NcSelector select_neighborhood)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef std::greater<double> KeyCompareType;  // <---- this is a max-heap.
@@ -456,7 +505,7 @@ namespace graph {
     
     detail::sbastar_search_loop(g, start_vertex, bfs_vis, 
                                 hval, distance, predecessor, key, color,
-                                index_in_heap, Q, initial_threshold);
+                                index_in_heap, Q);
     
   };
 
@@ -520,10 +569,6 @@ namespace graph {
    * \param select_neighborhood A callable object (functor) that can select a list of 
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
-   * \param initial_threshold The initial threshold value that determines if vertices should still be in the OPEN
-   *        set given their key value. Vertices with key values higher than the threshold are taken off the OPEN set. 
-   *        The inner loop of the algorithm terminates when the vertex with the lowest key value is higher than the 
-   *        threshold or the priority-queue is empty.
    */
   template <typename Graph,
             typename Vertex,
@@ -545,7 +590,7 @@ namespace graph {
      AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key, ColorMap color,                         // properties resulting from the algorithm
-     NcSelector select_neighborhood, double initial_threshold)
+     NcSelector select_neighborhood)
   {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
     //BOOST_CONCEPT_ASSERT((boost::MutablePropertyGraphConcept<Graph>));
@@ -570,7 +615,7 @@ namespace graph {
     generate_pruned_sbastar_no_init(
       g, start_vertex, super_space, vis, 
       hval, position, weight, density, constriction, distance,
-      predecessor, key, color, select_neighborhood, initial_threshold);
+      predecessor, key, color, select_neighborhood);
 
   };
   

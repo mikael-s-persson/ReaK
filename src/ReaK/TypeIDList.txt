@@ -428,6 +428,7 @@ sbastar_path_planner        0xC246000C   bin: 1100 0010 0100 0110 0000 0000 0000
 MEAQR_rrtstar_planner       0xC246000D   bin: 1100 0010 0100 0110 0000 0000 0000 1101  D-R
 MEAQR_sbastar_planner       0xC246000E   bin: 1100 0010 0100 0110 0000 0000 0000 1110  D-R
 sbmp_point_recorder         0xC246000F   bin: 1100 0010 0100 0110 0000 0000 0000 1111  D-R
+least_cost_sbmp_report      0xC2460010   bin: 1100 0010 0100 0110 0000 0000 0001 0000  D-R
 
 
 

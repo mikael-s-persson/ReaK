@@ -315,11 +315,17 @@ struct rrt_planner_visitor {
   template <typename Vertex, typename Graph>
   void vertex_added(Vertex u, Graph& g) const {
     m_nn_synchro.added_vertex(u,g);
+    
+    // Call progress reporter...
+    m_planner->report_progress(g);
   };
   
   template <typename Vertex, typename Graph>
-  void vertex_added(Vertex u, Graph& g, Graph&) const {
-    m_nn_synchro.added_vertex(u,g);
+  void vertex_added(Vertex u, Graph& g1, Graph& g2) const {
+    m_nn_synchro.added_vertex(u,g1);
+    
+    // Call progress reporter...
+    m_planner->report_progress(g1,g2);
   };
   
   template <typename EdgeType, typename Graph>
@@ -329,9 +335,6 @@ struct rrt_planner_visitor {
     VertexType v = target(e,g);
     
     g[v].distance_accum = g[u].distance_accum + get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space());
-    
-    // Call progress reporter...
-    m_planner->report_progress(g);
     
     // Check if a straight path to goal is possible...
     m_planner->check_goal_connection(g[v].position,v,g);
@@ -345,9 +348,6 @@ struct rrt_planner_visitor {
     VertexType v = target(e,g1);
     
     g1[v].distance_accum = g1[u].distance_accum + get(distance_metric, m_space->get_super_space())(g1[u].position, g1[v].position, m_space->get_super_space());
-    
-    // Call progress reporter...
-    m_planner->report_progress(g1,g2);
   };
   
   bool is_position_free(PointType p) const {

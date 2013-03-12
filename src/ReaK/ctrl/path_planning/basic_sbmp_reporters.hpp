@@ -466,6 +466,103 @@ struct print_sbmp_progress : public shared_object {
 };
 
 
+
+/**
+ * This class can be used as a SBMP/SBPP Reporter (SBMPReporterConcept and SBPPReporterConcept) 
+ * and records the current best solution for each progress interval, which it outputs to a given output stream.
+ */
+template <typename NextReporter = no_sbmp_report>
+struct least_cost_sbmp_report : public shared_object {
+  typedef least_cost_sbmp_report<NextReporter> self;
+  
+  NextReporter next_reporter;
+  std::ostream* p_out;
+  mutable double current_best;
+  
+  explicit least_cost_sbmp_report(std::ostream& aOutStream = std::cout,
+                                  NextReporter aNextReporter = NextReporter()) : 
+                                  next_reporter(aNextReporter),
+                                  p_out(&aOutStream),
+                                  current_best(1e10) { };
+  
+  /**
+   * Draws the entire motion-graph.
+   * \tparam FreeSpaceType The C-free topology type.
+   * \tparam MotionGraph The graph structure type representing the motion-graph.
+   * \tparam PositionMap The property-map type that can map motion-graph vertex descriptors into point values.
+   * \param free_space The C-free topology.
+   * \param g The motion-graph.
+   * \param pos The position-map to obtain positions of the motion-graph vertices.
+   */
+  template <typename FreeSpaceType,
+            typename MotionGraph,
+            typename PositionMap>
+  void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
+    (*p_out) << num_vertices(g) << " " << current_best << std::endl;
+    
+    next_reporter.draw_motion_graph(free_space, g, pos);
+  };
+  
+  /**
+   * Draws the solution trajectory.
+   * \tparam FreeSpaceType The C-free topology type.
+   * \param free_space The C-free topology.
+   * \param traj The solution trajectory.
+   */
+  template <typename FreeSpaceType>
+  void draw_solution(const FreeSpaceType& free_space, 
+                     const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
+    double total_cost = traj->get_end_time() - traj->get_start_time();
+    if(total_cost < current_best)
+      current_best = total_cost;
+    
+    next_reporter.draw_solution(free_space, traj);
+  };
+  
+  /**
+   * Draws the solution path.
+   * \tparam FreeSpaceType The C-free topology type.
+   * \param free_space The C-free topology.
+   * \param p The solution path.
+   */
+  template <typename FreeSpaceType>
+  void draw_solution(const FreeSpaceType& free_space, 
+                     const shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& p) const {
+    typedef typename seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type >::point_fraction_iterator FIter;
+    double total_cost = 0.0;
+    for(FIter it = p->begin_fraction_travel(); it != p->end_fraction_travel(); ) {
+      FIter it_next = it; it_next += 1.0;
+      total_cost += get(distance_metric, free_space.get_super_space())(*it, *it_next, free_space.get_super_space());
+      it = it_next;
+    };
+    if(total_cost < current_best)
+      current_best = total_cost;
+    
+    next_reporter.draw_solution(free_space, p);
+  };
+  
+  
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+  
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+    shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+    A & RK_SERIAL_SAVE_WITH_NAME(next_reporter);
+  };
+  
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+    shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+    A & RK_SERIAL_LOAD_WITH_NAME(next_reporter);
+    current_best = std::numeric_limits<double>::infinity();
+  };
+  
+  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460010,1,"least_cost_sbmp_report",shared_object)
+  
+};
+
+
+
 };
 
 };

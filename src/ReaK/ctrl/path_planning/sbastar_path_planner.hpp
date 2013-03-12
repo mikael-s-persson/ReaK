@@ -123,13 +123,17 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     SBPPReporter m_reporter;
     point_type m_start_pos;
     point_type m_goal_pos;
-    double m_initial_threshold;
+    double m_init_key_threshold;
+    double m_init_dens_threshold;
     double m_sampling_radius;
     std::size_t m_current_num_results;
     std::size_t max_num_results;
     bool has_reached_max_vertices;
     std::size_t m_graph_kind_flag;
     std::size_t m_knn_flag;
+    
+    double m_current_key_threshold;
+    double m_current_dens_threshold;
     
     std::map<double, shared_ptr< seq_path_base< super_space_type > > > m_solutions;
     
@@ -219,8 +223,19 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     const point_type& get_goal_pos() const { return m_goal_pos; };
     void set_goal_pos(const point_type& aGoalPos) { m_goal_pos = aGoalPos; };
     
-    double get_initial_threshold() const { return m_initial_threshold; };
-    void set_initial_threshold(double aInitialThreshold) { m_initial_threshold = aInitialThreshold; };
+    
+    double get_initial_key_threshold() const { return m_init_key_threshold; };
+    void set_initial_key_threshold(double aInitialThreshold) { m_init_key_threshold = aInitialThreshold; };
+    
+    double get_initial_density_threshold() const { return m_init_dens_threshold; };
+    void set_initial_density_threshold(double aInitialThreshold) { m_init_dens_threshold = aInitialThreshold; };
+    
+    double get_current_key_threshold() const { return m_current_key_threshold; };
+    void set_current_key_threshold(double aCurrentThreshold) { m_current_key_threshold = aCurrentThreshold; };
+    
+    double get_current_density_threshold() const { return m_current_dens_threshold; };
+    void set_current_density_threshold(double aCurrentThreshold) { m_current_dens_threshold = aCurrentThreshold; };
+    
     
     double get_sampling_radius() const { return m_sampling_radius; };
     void set_sampling_radius(double aSamplingRadius) { m_sampling_radius = aSamplingRadius; };
@@ -240,7 +255,8 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
      * \param aWorld A topology which represents the C-free (obstacle-free configuration space).
      * \param aStartPos The position value of the starting location.
      * \param aGoalPos The position value of the goal location.
-     * \param aInitialThreshold The initial threshold for exploring nodes, should be somewhere between 0 and 1.
+     * \param aInitialKeyThreshold The initial key-value threshold for exploring nodes, should be somewhere between 0 and 1.
+     * \param aInitialDensityThreshold The initial density-value threshold for exploring nodes, should be somewhere between 0 (reject no points based on density) and 1 (reject all points, requires zero density).
      * \param aSamplingRadius The radius of the sampled space around a given point when doing random walks.
      * \param aMaxVertexCount The maximum number of samples to generate during the motion planning.
      * \param aProgressInterval The number of new samples between each "progress report".
@@ -262,7 +278,8 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     sbastar_path_planner(const shared_ptr< space_type >& aWorld = shared_ptr< space_type >(), 
                          const point_type& aStartPos = point_type(),
                          const point_type& aGoalPos = point_type(),
-                         double aInitialThreshold = 0.5,
+                         double aInitialKeyThreshold = 0.8,
+                         double aInitialDensityThreshold = 0.8,
                          double aSamplingRadius = 1.0,
                          std::size_t aMaxVertexCount = 5000, 
                          std::size_t aProgressInterval = 100,
@@ -274,13 +291,17 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
                          m_reporter(aReporter),
                          m_start_pos(aStartPos),
                          m_goal_pos(aGoalPos),
-                         m_initial_threshold(aInitialThreshold),
+                         m_init_key_threshold(aInitialKeyThreshold),
+                         m_init_dens_threshold(aInitialDensityThreshold),
                          m_sampling_radius(aSamplingRadius),
                          m_current_num_results(0),
                          max_num_results(aMaxResultCount),
                          has_reached_max_vertices(false),
                          m_graph_kind_flag(aGraphKindFlag),
-                         m_knn_flag(aKNNMethodFlag) { };
+                         m_knn_flag(aKNNMethodFlag) { 
+      m_current_key_threshold = m_init_key_threshold;
+      m_current_dens_threshold = m_init_dens_threshold;
+    };
     
     virtual ~sbastar_path_planner() { };
     
@@ -293,7 +314,8 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
       A & RK_SERIAL_SAVE_WITH_NAME(m_reporter)
         & RK_SERIAL_SAVE_WITH_NAME(m_start_pos)
         & RK_SERIAL_SAVE_WITH_NAME(m_goal_pos)
-        & RK_SERIAL_SAVE_WITH_NAME(m_initial_threshold)
+        & RK_SERIAL_SAVE_WITH_NAME(m_init_key_threshold)
+        & RK_SERIAL_SAVE_WITH_NAME(m_init_dens_threshold)
         & RK_SERIAL_SAVE_WITH_NAME(m_sampling_radius)
         & RK_SERIAL_SAVE_WITH_NAME(max_num_results)
         & RK_SERIAL_SAVE_WITH_NAME(m_graph_kind_flag)
@@ -305,7 +327,8 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
       A & RK_SERIAL_LOAD_WITH_NAME(m_reporter)
         & RK_SERIAL_LOAD_WITH_NAME(m_start_pos)
         & RK_SERIAL_LOAD_WITH_NAME(m_goal_pos)
-        & RK_SERIAL_LOAD_WITH_NAME(m_initial_threshold)
+        & RK_SERIAL_LOAD_WITH_NAME(m_init_key_threshold)
+        & RK_SERIAL_LOAD_WITH_NAME(m_init_dens_threshold)
         & RK_SERIAL_LOAD_WITH_NAME(m_sampling_radius)
         & RK_SERIAL_LOAD_WITH_NAME(max_num_results)
         & RK_SERIAL_LOAD_WITH_NAME(m_graph_kind_flag)
@@ -313,6 +336,8 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
       has_reached_max_vertices = false;
       m_solutions.clear();
       m_current_num_results = 0;
+      m_current_key_threshold = m_init_key_threshold;
+      m_current_dens_threshold = m_init_dens_threshold;
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC246000C,1,"sbastar_path_planner",base_type)
@@ -331,14 +356,16 @@ struct sbastar_planner_visitor {
   Vertex m_start_node;
   Vertex m_goal_node;
   double m_space_dim;
+  double m_space_Lc;
   double m_samp_prob_norm;
   
   sbastar_planner_visitor(const shared_ptr< FreeSpaceType >& aSpace, 
                           sbastar_path_planner<FreeSpaceType,SBPPReporter>* aPlanner,
                           NNFinderSynchro aNNSynchro,
-                          Vertex aStartNode, Vertex aGoalNode, double aSpaceDim) : 
+                          Vertex aStartNode, Vertex aGoalNode, double aSpaceDim, double aSpaceLc) : 
                           m_space(aSpace), m_planner(aPlanner), m_nn_synchro(aNNSynchro),
-                          m_start_node(aStartNode), m_goal_node(aGoalNode), m_space_dim(aSpaceDim) {
+                          m_start_node(aStartNode), m_goal_node(aGoalNode), 
+                          m_space_dim(aSpaceDim), m_space_Lc(aSpaceLc) {
     using std::pow;
     m_samp_prob_norm = pow(m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * M_PI * 2.0, -m_space_dim * 0.5);
   };
@@ -536,11 +563,29 @@ struct sbastar_planner_visitor {
 //     std::cout << "Publishing path..." << std::endl;
     // try to create a goal connection path
     m_planner->create_solution_path(m_start_node, m_goal_node, g); 
+    
+    m_planner->set_current_key_threshold( 0.75 * m_planner->get_current_key_threshold() );
+    m_planner->set_current_density_threshold( 0.95 * m_planner->get_current_density_threshold() );
+    
+//     std::cout << " new key-value threshold =\t" << m_planner->get_current_key_threshold() << std::endl;
+//     std::cout << " new density-value threshold =\t" << m_planner->get_current_density_threshold() << std::endl;
   };
   
-  template <typename Graph>
-  double adjust_threshold(double old_thr, const Graph&) const { 
-    return old_thr * 0.5;  // geometrically progress towards 0, from above.
+  template <typename Vertex, typename Graph>
+  bool has_search_potential(Vertex u, const Graph& g) const { 
+    if( (u != m_goal_node) && (g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc) )
+      return true;
+    else 
+      return false;
+  };
+  
+  template <typename Vertex, typename Graph>
+  bool should_close(Vertex u, const Graph& g) const { 
+    if(g[u].density < (1.0 - m_planner->get_current_density_threshold() / m_space_Lc))
+//     if(g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc)
+      return false;
+    else 
+      return true;
   };
   
   
@@ -560,6 +605,8 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
   this->has_reached_max_vertices = false;
   this->m_current_num_results = 0;
   this->m_solutions.clear();
+  this->m_current_key_threshold = this->m_init_key_threshold;
+  this->m_current_dens_threshold = this->m_init_dens_threshold;
   
   typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpace;
   typedef typename topology_traits<SuperSpace>::point_type PointType;
@@ -622,7 +669,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     
     
     if(m_knn_flag == LINEAR_SEARCH_KNN) {
-      sbastar_planner_visitor<FreeSpaceType, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
+      sbastar_planner_visitor<FreeSpaceType, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
@@ -642,8 +689,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //           10, max_radius),
         ReaK::graph::star_neighborhood< linear_neighbor_search<> >(
           linear_neighbor_search<>(), 
-          space_dim, 3.0 * space_Lc),
-        this->m_initial_threshold);
+          space_dim, 3.0 * space_Lc));
       
     } else if(m_knn_flag == DVP_BF2_TREE_KNN) {
       
@@ -654,7 +700,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       multi_dvp_tree_search<MotionGraphType, SpacePartType> nn_finder;
       nn_finder.graph_tree_map[&motion_graph] = &space_part;
       
-      sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
+      sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
       
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
@@ -674,8 +720,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //           10, max_radius),
         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
-        this->m_initial_threshold);
+          space_dim, 3.0 * space_Lc));
       
     } else if(m_knn_flag == DVP_BF4_TREE_KNN) {
       
@@ -686,7 +731,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       multi_dvp_tree_search<MotionGraphType, SpacePartType> nn_finder;
       nn_finder.graph_tree_map[&motion_graph] = &space_part;
       
-      sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
+      sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
       
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
@@ -706,8 +751,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //           10, max_radius),
         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
-        this->m_initial_threshold);
+          space_dim, 3.0 * space_Lc));
       
     } else if(m_knn_flag == DVP_COB2_TREE_KNN) {
       
@@ -718,7 +762,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       multi_dvp_tree_search<MotionGraphType, SpacePartType> nn_finder;
       nn_finder.graph_tree_map[&motion_graph] = &space_part;
       
-      sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
+      sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
       
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
@@ -738,8 +782,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //           10, max_radius),
         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
-        this->m_initial_threshold);
+          space_dim, 3.0 * space_Lc));
       
     } else if(m_knn_flag == DVP_COB4_TREE_KNN) {
       
@@ -750,7 +793,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       multi_dvp_tree_search<MotionGraphType, SpacePartType> nn_finder;
       nn_finder.graph_tree_map[&motion_graph] = &space_part;
       
-      sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
+      sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
       
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
@@ -770,8 +813,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //           10, max_radius),
         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
-        this->m_initial_threshold);
+          space_dim, 3.0 * space_Lc));
       
     };
     
@@ -828,7 +870,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
       nn_finder.graph_tree_map[&motion_graph] = &space_part;
       
-      sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
+      sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
@@ -848,8 +890,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //           10, max_radius),
         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
-        this->m_initial_threshold);
+          space_dim, 3.0 * space_Lc));
       
     } else if(m_knn_flag == DVP_ALT_BF4_KNN) {
       
@@ -902,7 +943,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
       nn_finder.graph_tree_map[&motion_graph] = &space_part;
       
-      sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
+      sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
@@ -922,8 +963,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //           10, max_radius),
         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
-        this->m_initial_threshold);
+          space_dim, 3.0 * space_Lc));
       
     } else if(m_knn_flag == DVP_ALT_COB2_KNN) {
       
@@ -976,7 +1016,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
       nn_finder.graph_tree_map[&motion_graph] = &space_part;
       
-      sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
+      sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
@@ -996,8 +1036,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //           10, max_radius),
         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
-        this->m_initial_threshold);
+          space_dim, 3.0 * space_Lc));
       
     } else if(m_knn_flag == DVP_ALT_COB4_KNN) {
       
@@ -1050,7 +1089,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
       nn_finder.graph_tree_map[&motion_graph] = &space_part;
       
-      sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
+      sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
 //       ReaK::graph::generate_sbastar(
 //       ReaK::graph::generate_pruned_sbastar(
@@ -1070,8 +1109,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //           10, max_radius),
         ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
           nn_finder, 
-          space_dim, 3.0 * space_Lc),
-        this->m_initial_threshold);
+          space_dim, 3.0 * space_Lc));
       
     };
     

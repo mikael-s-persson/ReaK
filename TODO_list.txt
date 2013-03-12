@@ -87,7 +87,42 @@ update the DVP-tree implementation to include asymmetric metrics
   define concepts related to asymmetric metrics   -------------------------------X
   implement the tree construction for asym. metrics   ---------------------------X
   implement the KNN query for asym. metrics   -----------------------------------X
-  test on directed motion graph planners (RRT, RRT*, and PRM)
+  test on directed motion graph planners (RRT, RRT*, and PRM)   -----------------X
+
+
+implement a "Sampling-based A*" (generalization of A* to sampled graphs)   
+  implement the basic sampling-based A* algorithm   -----------------------------X
+    test on 2d point-robot world   ----------------------------------------------X
+    test on CRS robot (static)   ------------------------------------------------X
+    test on CRS robot (dynamic)   
+  implement the "pruned" sampling-based A* algorithm   --------------------------X
+    test on 2d point-robot world   ----------------------------------------------X
+    test on CRS robot (static)   ------------------------------------------------X
+    test on CRS robot (dynamic)   
+  implement the lazy sampling-based A* algorithm   ------------------------------X
+    test on 2d point-robot world   ----------------------------------------------X
+    test on CRS robot (static)   ------------------------------------------------X
+    test on CRS robot (dynamic)   
+  implement the inconst-set traversal   -----------------------------------------X
+    in SBA*   -------------------------------------------------------------------X
+    in Pruned-SBA*   ------------------------------------------------------------X
+    in Lazy-SBA*   --------------------------------------------------------------X
+  implement a density threshold 
+    in SBA*   
+    in Pruned-SBA*   
+    in Lazy-SBA*   
+    test on 2d point-robot world   
+    test on CRS robot (static)   
+    test on CRS robot (dynamic)   
+  incorporate collision probability into constriction calculation   
+    in SBA*   
+    in Pruned-SBA*   
+    in Lazy-SBA*   
+    test on 2d point-robot world   
+    test on CRS robot (static)   
+    test on CRS robot (dynamic)   
+    
+  
 
 
 implement "promising trajectory sampling"

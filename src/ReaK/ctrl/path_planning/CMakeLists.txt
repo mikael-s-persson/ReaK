@@ -48,6 +48,7 @@ target_link_libraries(test_dvp_adj_list reak_topologies reak_core ${EXTRA_SYSTEM
 add_executable(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}/test_planners.cpp")
 setup_custom_target(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
 target_link_libraries(test_planners reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_planners ${Boost_LIBRARIES})
 
 add_executable(test_hidim_planners "${SRCROOT}${RKPATHPLANNINGDIR}/test_hidim_planners.cpp")
 setup_custom_target(test_hidim_planners "${SRCROOT}${RKPATHPLANNINGDIR}")

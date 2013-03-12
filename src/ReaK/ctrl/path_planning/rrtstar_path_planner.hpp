@@ -323,21 +323,26 @@ struct rrtstar_planner_visitor {
   void vertex_added(Vertex u, Graph& g) const {
     m_nn_synchro.added_vertex(u,g);
     //std::cout << "reached this point." << std::endl;
-    std::cout << "\r" << std::setw(10) << num_vertices(g) << std::flush;
+//     std::cout << "\r" << std::setw(10) << num_vertices(g) << std::flush;
+    
+    // Call progress reporter...
+    m_planner->report_progress(g, get(&rrtstar_vertex_data<FreeSpaceType>::position,g));
   };
   
   template <typename Vertex, typename Graph>
-  void vertex_added(Vertex u, Graph& g, Graph&) const {
-    m_nn_synchro.added_vertex(u,g);
+  void vertex_added(Vertex u, Graph& g1, Graph& g2) const {
+    m_nn_synchro.added_vertex(u,g1);
+    
+    // Call progress reporter...
+    m_planner->report_progress(g1, g2, 
+                               get(&rrtstar_vertex_data<FreeSpaceType>::position,g1), 
+                               get(&rrtstar_vertex_data<FreeSpaceType>::position,g2));
   };
   
   template <typename EdgeType, typename Graph>
   void edge_added(EdgeType e, Graph& g) const {
     typedef typename boost::graph_traits<Graph>::vertex_descriptor VertexType;
     VertexType v = target(e,g);
-    
-    // Call progress reporter...
-    m_planner->report_progress(g, get(&rrtstar_vertex_data<FreeSpaceType>::position,g));
     
     // Check if a straight path to goal is possible...
     m_planner->check_goal_connection(g[v].position,v,g);
@@ -346,11 +351,6 @@ struct rrtstar_planner_visitor {
   
   template <typename EdgeType, typename Graph>
   void edge_added(EdgeType e, Graph& g1, Graph& g2) const {
-    
-    // Call progress reporter...
-    m_planner->report_progress(g1, g2, 
-                               get(&rrtstar_vertex_data<FreeSpaceType>::position,g1), 
-                               get(&rrtstar_vertex_data<FreeSpaceType>::position,g2));
   };
   
   bool is_position_free(PointType p) const {
