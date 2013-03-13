@@ -848,6 +848,7 @@ void CRSPlannerGUI::executePlanner() {
             start_point, \
             goal_point, \
             0.9, \
+            0.9, \
             max_travel, \
             max_vertices, \
             prog_interval, \

@@ -44,7 +44,6 @@
 #include "path_planning/basic_sbmp_reporters.hpp"
 
 // #include "graph_alg/sbastar_search.hpp"
-// #include "graph_alg/pruned_sbastar.hpp"
 #include "graph_alg/lazy_sbastar.hpp"
 
 #include "graph_alg/d_ary_bf_tree.hpp"
@@ -128,12 +127,16 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
     SBPPReporter m_reporter;
     point_type m_start_pos;
     point_type m_goal_pos;
-    double m_initial_threshold;
+    double m_init_key_threshold;
+    double m_init_dens_threshold;
     double m_sampling_radius;
     std::size_t m_current_num_results;
     std::size_t max_num_results;
     bool has_reached_max_vertices;
     std::size_t m_knn_flag;
+    
+    double m_current_key_threshold;
+    double m_current_dens_threshold;
     
     std::map<double, shared_ptr< seq_path_base< super_space_type > > > m_solutions;
     
@@ -219,8 +222,19 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
     const point_type& get_goal_pos() const { return m_goal_pos; };
     void set_goal_pos(const point_type& aGoalPos) { m_goal_pos = aGoalPos; };
     
-    double get_initial_threshold() const { return m_initial_threshold; };
-    void set_initial_threshold(double aInitialThreshold) { m_initial_threshold = aInitialThreshold; };
+    
+    double get_initial_key_threshold() const { return m_init_key_threshold; };
+    void set_initial_key_threshold(double aInitialThreshold) { m_init_key_threshold = aInitialThreshold; };
+    
+    double get_initial_density_threshold() const { return m_init_dens_threshold; };
+    void set_initial_density_threshold(double aInitialThreshold) { m_init_dens_threshold = aInitialThreshold; };
+    
+    double get_current_key_threshold() const { return m_current_key_threshold; };
+    void set_current_key_threshold(double aCurrentThreshold) { m_current_key_threshold = aCurrentThreshold; };
+    
+    double get_current_density_threshold() const { return m_current_dens_threshold; };
+    void set_current_density_threshold(double aCurrentThreshold) { m_current_dens_threshold = aCurrentThreshold; };
+    
     
     double get_sampling_radius() const { return m_sampling_radius; };
     void set_sampling_radius(double aSamplingRadius) { m_sampling_radius = aSamplingRadius; };
@@ -237,7 +251,8 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
      * \param aWorld A topology which represents the C-free (obstacle-free configuration space).
      * \param aStartPos The position value of the starting location.
      * \param aGoalPos The position value of the goal location.
-     * \param aInitialThreshold The initial threshold for exploring nodes, should be somewhere between 0 and 1.
+     * \param aInitialKeyThreshold The initial key-value threshold for exploring nodes, should be somewhere between 0 and 1.
+     * \param aInitialDensityThreshold The initial density-value threshold for exploring nodes, should be somewhere between 0 (reject no points based on density) and 1 (reject all points, requires zero density).
      * \param aSamplingRadius The radius of the sampled space around a given point when doing random walks.
      * \param aMaxVertexCount The maximum number of samples to generate during the motion planning.
      * \param aProgressInterval The number of new samples between each "progress report".
@@ -259,7 +274,8 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
     MEAQR_sbastar_planner(const shared_ptr< space_type >& aWorld = shared_ptr< space_type >(), 
                           const point_type& aStartPos = point_type(),
                           const point_type& aGoalPos = point_type(),
-                          double aInitialThreshold = 0.5,
+                          double aInitialKeyThreshold = 0.8,
+                          double aInitialDensityThreshold = 0.8,
                           double aSamplingRadius = 1.0,
                           std::size_t aMaxVertexCount = 5000, 
                           std::size_t aProgressInterval = 100,
@@ -270,12 +286,15 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
                           m_reporter(aReporter),
                           m_start_pos(aStartPos),
                           m_goal_pos(aGoalPos),
-                          m_initial_threshold(aInitialThreshold),
+                          m_init_key_threshold(aInitialKeyThreshold),
+                          m_init_dens_threshold(aInitialDensityThreshold),
                           m_sampling_radius(aSamplingRadius),
                           m_current_num_results(0),
                           max_num_results(aMaxResultCount),
                           has_reached_max_vertices(false),
-                          m_knn_flag(aKNNMethodFlag) { };
+                          m_knn_flag(aKNNMethodFlag),
+                          m_current_key_threshold(m_init_key_threshold),
+                          m_current_dens_threshold(m_init_dens_threshold) { };
     
     virtual ~MEAQR_sbastar_planner() { };
     
@@ -288,7 +307,8 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
       A & RK_SERIAL_SAVE_WITH_NAME(m_reporter)
         & RK_SERIAL_SAVE_WITH_NAME(m_start_pos)
         & RK_SERIAL_SAVE_WITH_NAME(m_goal_pos)
-        & RK_SERIAL_SAVE_WITH_NAME(m_initial_threshold)
+        & RK_SERIAL_SAVE_WITH_NAME(m_init_key_threshold)
+        & RK_SERIAL_SAVE_WITH_NAME(m_init_dens_threshold)
         & RK_SERIAL_SAVE_WITH_NAME(m_sampling_radius)
         & RK_SERIAL_SAVE_WITH_NAME(max_num_results)
         & RK_SERIAL_SAVE_WITH_NAME(m_knn_flag);
@@ -299,13 +319,16 @@ class MEAQR_sbastar_planner : public sample_based_planner< path_planner_base< ME
       A & RK_SERIAL_LOAD_WITH_NAME(m_reporter)
         & RK_SERIAL_LOAD_WITH_NAME(m_start_pos)
         & RK_SERIAL_LOAD_WITH_NAME(m_goal_pos)
-        & RK_SERIAL_LOAD_WITH_NAME(m_initial_threshold)
+        & RK_SERIAL_LOAD_WITH_NAME(m_init_key_threshold)
+        & RK_SERIAL_LOAD_WITH_NAME(m_init_dens_threshold)
         & RK_SERIAL_LOAD_WITH_NAME(m_sampling_radius)
         & RK_SERIAL_LOAD_WITH_NAME(max_num_results)
         & RK_SERIAL_LOAD_WITH_NAME(m_knn_flag);
       has_reached_max_vertices = false;
       m_solutions.clear();
       m_current_num_results = 0;
+      m_current_key_threshold = m_init_key_threshold;
+      m_current_dens_threshold = m_init_dens_threshold;
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC246000E,1,"MEAQR_sbastar_planner",base_type)
@@ -325,13 +348,15 @@ struct MEAQR_sbastar_visitor {
   Vertex m_start_node;
   Vertex m_goal_node;
   double m_space_dim;
+  double m_space_Lc;
   
   MEAQR_sbastar_visitor(const shared_ptr< space_type >& aSpace, 
                         MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler, SBPPReporter>* aPlanner,
                         NNFinderSynchro aNNSynchro,
-                        Vertex aStartNode, Vertex aGoalNode, double aSpaceDim) : 
+                        Vertex aStartNode, Vertex aGoalNode, double aSpaceDim, double aSpaceLc) : 
                         m_space(aSpace), m_planner(aPlanner), m_nn_synchro(aNNSynchro),
-                        m_start_node(aStartNode), m_goal_node(aGoalNode), m_space_dim(aSpaceDim) { };
+                        m_start_node(aStartNode), m_goal_node(aGoalNode), 
+                        m_space_dim(aSpaceDim), m_space_Lc(aSpaceLc) { };
   
   typedef typename topology_traits< space_type >::point_type PointType;
   typedef MEAQR_sbastar_edata<StateSpace, StateSpaceSystem, StateSpaceSampler> EdgeProp;
@@ -360,15 +385,7 @@ struct MEAQR_sbastar_visitor {
   };
   
   template <typename EdgeType, typename Graph>
-  void edge_added(EdgeType e, Graph& g) const {
-    using std::exp;
-    
-//     g[e].astar_weight = get(distance_metric, m_space->get_super_space())(
-//       g[source(e,g)].position,
-//       g[target(e,g)].position,
-//       m_space->get_super_space());
-    
-  };
+  void edge_added(EdgeType e, Graph& g) const { };
   
   template <typename Vertex, typename Graph>
   void travel_explored(Vertex u, Vertex v, Graph& g) const { 
@@ -527,13 +544,30 @@ struct MEAQR_sbastar_visitor {
 //     std::cout << "Publishing path..." << std::endl;
     // try to create a goal connection path
     m_planner->create_solution_path(m_start_node, m_goal_node, g); 
+    
+    m_planner->set_current_key_threshold( 0.75 * m_planner->get_current_key_threshold() );
+    m_planner->set_current_density_threshold( 0.95 * m_planner->get_current_density_threshold() );
+    
+//     std::cout << " new key-value threshold =\t" << m_planner->get_current_key_threshold() << std::endl;
+//     std::cout << " new density-value threshold =\t" << m_planner->get_current_density_threshold() << std::endl;
   };
   
-  template <typename Graph>
-  double adjust_threshold(double old_thr, const Graph&) const { 
-    return old_thr * 0.5;  // geometrically progress towards 0, from above.
+  template <typename Vertex, typename Graph>
+  bool has_search_potential(Vertex u, const Graph& g) const { 
+    if( (u != m_goal_node) && (g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc) )
+      return true;
+    else 
+      return false;
   };
   
+  template <typename Vertex, typename Graph>
+  bool should_close(Vertex u, const Graph& g) const { 
+    if(g[u].density < (1.0 - m_planner->get_current_density_threshold() / m_space_Lc))
+//     if(g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc)
+      return false;
+    else 
+      return true;
+  };
   
 };
 
@@ -616,7 +650,7 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
   
   
   if(m_knn_flag == LINEAR_SEARCH_KNN) {
-    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim);
+    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
     
     ReaK::graph::generate_lazy_sbastar(
       motion_graph, start_node, this->m_space->get_super_space(), vis,
@@ -631,11 +665,10 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
       get(&VertexProp::astar_color, motion_graph),
         ReaK::graph::fixed_neighborhood< linear_pred_succ_search<> >(
           linear_pred_succ_search<>(), 
-          10, max_radius),
+          10, max_radius));
 //       ReaK::graph::star_neighborhood< linear_pred_succ_search<> >(
 //         linear_pred_succ_search<>(), 
-//         space_dim, 3.0 * space_Lc),
-      this->m_initial_threshold);
+//         space_dim, 3.0 * space_Lc));
     
   } else if(m_knn_flag == DVP_BF2_TREE_KNN) {
     
@@ -647,7 +680,7 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
     multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> nn_finder;
     nn_finder.graph_tree_map[&motion_graph] = &space_part;
     
-    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
+    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
     
     ReaK::graph::generate_lazy_sbastar(
       motion_graph, start_node, this->m_space->get_super_space(), vis,
@@ -662,11 +695,10 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
       get(&VertexProp::astar_color, motion_graph),
         ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
           nn_finder, 
-          10, max_radius),
+          10, max_radius));
 //       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
 //         nn_finder, 
-//         space_dim, 3.0 * space_Lc),
-      this->m_initial_threshold);
+//         space_dim, 3.0 * space_Lc));
     
   } else if(m_knn_flag == DVP_BF4_TREE_KNN) {
     
@@ -678,7 +710,7 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
     multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> nn_finder;
     nn_finder.graph_tree_map[&motion_graph] = &space_part;
     
-    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
+    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
     
     ReaK::graph::generate_lazy_sbastar(
       motion_graph, start_node, this->m_space->get_super_space(), vis,
@@ -693,11 +725,10 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
       get(&VertexProp::astar_color, motion_graph),
         ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
           nn_finder, 
-          10, max_radius),
+          10, max_radius));
 //       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
 //         nn_finder, 
-//         space_dim, 3.0 * space_Lc),
-      this->m_initial_threshold);
+//         space_dim, 3.0 * space_Lc));
     
   } else if(m_knn_flag == DVP_COB2_TREE_KNN) {
     
@@ -709,7 +740,7 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
     multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> nn_finder;
     nn_finder.graph_tree_map[&motion_graph] = &space_part;
     
-    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
+    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
     
     ReaK::graph::generate_lazy_sbastar(
       motion_graph, start_node, this->m_space->get_super_space(), vis,
@@ -724,11 +755,10 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
       get(&VertexProp::astar_color, motion_graph),
         ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
           nn_finder, 
-          10, max_radius),
+          10, max_radius));
 //       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
 //         nn_finder, 
-//         space_dim, 3.0 * space_Lc),
-      this->m_initial_threshold);
+//         space_dim, 3.0 * space_Lc));
     
   } else if(m_knn_flag == DVP_COB4_TREE_KNN) {
     
@@ -740,7 +770,7 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
     multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> nn_finder;
     nn_finder.graph_tree_map[&motion_graph] = &space_part;
     
-    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim);
+    MEAQR_sbastar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, MotionGraphType, multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
     
     ReaK::graph::generate_lazy_sbastar(
       motion_graph, start_node, this->m_space->get_super_space(), vis,
@@ -755,11 +785,10 @@ shared_ptr< seq_path_base< typename MEAQR_sbastar_planner<StateSpace, StateSpace
       get(&VertexProp::astar_color, motion_graph),
         ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
           nn_finder, 
-          10, max_radius),
+          10, max_radius));
 //       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
 //         nn_finder, 
-//         space_dim, 3.0 * space_Lc),
-      this->m_initial_threshold);
+//         space_dim, 3.0 * space_Lc));
     
   };
   

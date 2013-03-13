@@ -169,6 +169,7 @@ int main(int argc, char ** argv) {
 //       start_point,
 //       goal_point,
 //       0.9, 
+//       0.9, 
 //       0.25 * X8_MEAQR_space->get_max_time_horizon() * X8_MEAQR_space->get_idle_power_cost(start_point),
 //       max_vertices, 
 //       prog_interval,

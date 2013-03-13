@@ -76,144 +76,76 @@ namespace ReaK {
 namespace graph {
   
   namespace detail {
-  
-    template <typename Topology,
-              typename UniformCostVisitor,
-              typename UpdatableQueue, 
-              typename IndexInHeapMap,
-              typename AStarHeuristicMap, 
-              typename PositionMap, 
-              typename WeightMap,
-              typename DensityMap,
-              typename ConstrictionMap, 
-              typename DistanceMap,  
-              typename PredecessorMap,
-              typename KeyMap,
-              typename ColorMap, 
-              typename NcSelector>
-    struct lazy_sbastar_bfs_visitor : 
-      sbastar_bfs_visitor< Topology, UniformCostVisitor, UpdatableQueue, IndexInHeapMap,
-                           AStarHeuristicMap, PositionMap, WeightMap, DensityMap, ConstrictionMap, 
-                           DistanceMap, PredecessorMap, KeyMap, ColorMap, NcSelector >
-    {
-      typedef sbastar_bfs_visitor< Topology, UniformCostVisitor, UpdatableQueue, IndexInHeapMap,        
-                                   AStarHeuristicMap, PositionMap, WeightMap, DensityMap, ConstrictionMap, 
-                                   DistanceMap, PredecessorMap, KeyMap, ColorMap, NcSelector > base_type;
+    
+    struct lazy_sbastar_node_connector {
       
-      typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
-      typedef boost::color_traits<ColorValue> Color;
-      typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
-
-      lazy_sbastar_bfs_visitor(const Topology& super_space, UniformCostVisitor vis,
-                               UpdatableQueue& Q, IndexInHeapMap index_in_heap,  
-                               AStarHeuristicMap heuristic, PositionMap pos, WeightMap weight, 
-                               DensityMap density, ConstrictionMap constriction, DistanceMap dist, 
-                               PredecessorMap pred, KeyMap key, ColorMap col, NcSelector select_neighborhood) : 
-                               base_type(super_space, vis, Q, index_in_heap, heuristic, pos, weight, 
-                                         density, constriction, dist, pred, key, col, select_neighborhood) { };
-      
-      template <class Vertex, class EdgeProp, class Graph>
-      typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_vertex(const PositionValue& p, Vertex u, EdgeProp ep, Graph& g) {
+      template <typename Graph,
+                typename Topology,
+                typename SBAVisitor,
+                typename PositionMap,
+                typename DistanceMap,
+                typename PredecessorMap,
+                typename WeightMap,
+                typename NcSelector>
+      typename boost::enable_if< boost::is_undirected_graph<Graph> >::type operator()(
+          const typename boost::property_traits<PositionMap>::value_type& p, 
+          typename boost::graph_traits<Graph>::vertex_descriptor u, 
+          typename Graph::edge_bundled& ep, 
+          Graph& g,
+          const Topology& super_space,
+          const SBAVisitor& sba_vis,
+          PositionMap position,
+          DistanceMap distance,
+          PredecessorMap predecessor,
+          WeightMap weight,
+          NcSelector select_neighborhood) const {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
-        typedef typename Graph::vertex_bundled VertexProp;
         
         typedef boost::composite_property_map< 
           PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-        GraphPositionMap g_position = GraphPositionMap(this->m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
+        GraphPositionMap g_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
         
         std::vector<Vertex> Nc;
-        this->m_select_neighborhood(p, std::back_inserter(Nc), g, this->m_super_space, g_position); 
+        select_neighborhood(p, std::back_inserter(Nc), g, super_space, g_position); 
         
-        VertexProp vp;
-        put(this->m_position, vp, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        Vertex v = add_vertex(std::move(vp), g);
-#else
-        Vertex v = add_vertex(vp, g);
-#endif
-        this->m_vis.vertex_added(v,g);
-        put(this->m_color, v, Color::white());
-        put(this->m_index_in_heap, v, static_cast<std::size_t>(-1));
-        put(this->m_distance, v, std::numeric_limits<double>::infinity());
-        put(this->m_key, v, 0.0);
-        put(this->m_predecessor, v, v);
+        Vertex v = sba_vis.create_vertex(p, g);
         
-        this->m_vis.travel_succeeded(u, v, g);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        std::pair<Edge, bool> e_new = add_edge(u, v, std::move(ep), g);
-#else
-        std::pair<Edge, bool> e_new = add_edge(u, v, ep, g);
-#endif
-        if(e_new.second) {
-          put(this->m_distance, v, get(this->m_distance, u) + get(this->m_weight, g[e_new.first]));
-          put(this->m_predecessor, v, u);
-          this->m_vis.edge_added(e_new.first, g);
-          this->update_key(u,g);
+        if( sba_vis.create_edge(u, v, ep, g) ) {
+          put(distance, v, get(distance, u) + get(weight, g[edge(u,v,g).first]));
+          put(predecessor, v, u);
+          sba_vis.update_key(u,g);
         };
         
         for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
-          this->m_vis.travel_explored(*it, v, g);
           if(*it == u)
             continue;
-          double tentative_weight = get(ReaK::pp::distance_metric, this->m_super_space)(get(this->m_position,g[*it]), p, this->m_super_space);
-          double g_in  = tentative_weight + get(this->m_distance, v);
-          double g_out = tentative_weight + get(this->m_distance, *it);
-          if(g_in < get(this->m_distance, *it)) {
+          double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[*it]), p, super_space);
+          double g_in  = tentative_weight + get(distance, v);
+          double g_out = tentative_weight + get(distance, *it);
+          if(g_in < get(distance, *it)) {
             // edge is useful as an in-edge to (*it).
-            bool can_connect;
-            boost::tie(can_connect, ep) = this->m_vis.can_be_connected(v, *it, g);
-            if(can_connect) {
-              this->m_vis.travel_succeeded(v, *it, g);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-              e_new = add_edge(v, *it, std::move(ep), g);
-#else
-              e_new = add_edge(v, *it, ep, g);
-#endif
-              if(e_new.second) {
-                put(this->m_distance, *it, g_in);
-                Vertex old_pred = get(this->m_predecessor, *it);
-                put(this->m_predecessor, *it, v); 
-                this->m_vis.edge_relaxed(e_new.first, g);
-                remove_edge(old_pred, *it, g);
-              };
-            } else {
-              this->m_vis.travel_failed(v, *it, g);
+            if(sba_vis.attempt_connecting_edge(v, *it, g)) {
+              put(distance, *it, g_in);
+              Vertex old_pred = get(predecessor, *it);
+              put(predecessor, *it, v); 
+              sba_vis.edge_relaxed(edge(v,*it,g).first, g);
+              remove_edge(old_pred, *it, g);
             };
-          } else if(g_out < get(this->m_distance, v)) {
+          } else if(g_out < get(distance, v)) {
             // edge is useful as an in-edge to v.
-            bool can_connect;
-            boost::tie(can_connect, ep) = this->m_vis.can_be_connected(*it, v, g);
-            if(can_connect) {
-              this->m_vis.travel_succeeded(*it, v, g);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-              e_new = add_edge(*it, v, std::move(ep), g);
-#else
-              e_new = add_edge(*it, v, ep, g);
-#endif
-              if(e_new.second) {
-                put(this->m_distance, v, g_out);
-                Vertex old_pred = get(this->m_predecessor, v);
-                put(this->m_predecessor, v, *it); 
-                this->m_vis.edge_relaxed(e_new.first, g);
-                remove_edge(old_pred, v, g);
-              };
-            } else {
-              this->m_vis.travel_failed(*it, v, g);
+            if(sba_vis.attempt_connecting_edge(*it, v, g)) {
+              put(distance, v, g_out);
+              Vertex old_pred = get(predecessor, v);
+              put(predecessor, v, *it); 
+              sba_vis.edge_relaxed(edge(*it,v,g).first, g);
+              remove_edge(old_pred, v, g);
             };
           };
-          this->update_key(*it, g); 
-          if( ! this->should_close(*it, g) ) {
-            put(this->m_color, *it, Color::gray()); 
-            this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
-          };
+          sba_vis.requeue_vertex(*it,g);
         }; 
-        this->update_key(v,g); 
-        if( ! this->should_close(v, g) ) {
-          put(this->m_color, v, Color::gray()); 
-          this->m_Q.push(v);                 this->m_vis.discover_vertex(v, g);
-        };
+        
+        sba_vis.requeue_vertex(v,g);
         
         // need to update all the children of the v node:
         std::stack<Vertex> incons;
@@ -225,141 +157,94 @@ namespace graph {
             Vertex t = target(*eo, g);
             if(t == s)
               t = source(*eo, g);
-            if(s != get(this->m_predecessor, t))
+            if(s != get(predecessor, t))
               continue;
-            put(this->m_distance, t, get(this->m_distance, s) + get(this->m_weight, g[*eo]));
-            this->update_key(t,g);
-            if( ! this->should_close(t, g) ) {
-              put(this->m_color, t, Color::gray()); 
-              this->m_Q.push_or_update(t);
-            };
+            put(distance, t, get(distance, s) + get(weight, g[*eo]));
+            
+            sba_vis.requeue_vertex(t,g);
+            
             incons.push(t);
           };
         };
       };
       
-      template <class Vertex, class EdgeProp, class Graph>
-      typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(const PositionValue& p, Vertex u, EdgeProp ep, Graph& g) {
+      template <typename Graph,
+                typename Topology,
+                typename SBAVisitor,
+                typename PositionMap,
+                typename DistanceMap,
+                typename PredecessorMap,
+                typename WeightMap,
+                typename NcSelector>
+      typename boost::enable_if< boost::is_directed_graph<Graph> >::type operator()(
+          const typename boost::property_traits<PositionMap>::value_type& p, 
+          typename boost::graph_traits<Graph>::vertex_descriptor u, 
+          typename Graph::edge_bundled& ep, 
+          Graph& g,
+          const Topology& super_space,
+          const SBAVisitor& sba_vis,
+          PositionMap position,
+          DistanceMap distance,
+          PredecessorMap predecessor,
+          WeightMap weight,
+          NcSelector select_neighborhood) const {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
-        typedef typename Graph::vertex_bundled VertexProp;
         
         typedef boost::composite_property_map< 
           PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-        GraphPositionMap g_position = GraphPositionMap(this->m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
+        GraphPositionMap g_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
         
         std::vector<Vertex> Pred, Succ;
-        this->m_select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, this->m_super_space, g_position); 
+        select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, super_space, g_position); 
         
-        VertexProp vp;
-        put(this->m_position, vp, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        Vertex v = add_vertex(std::move(vp), g);
-#else
-        Vertex v = add_vertex(vp, g);
-#endif
-        this->m_vis.vertex_added(v, g); 
-        put(this->m_color, v, Color::white());
-        put(this->m_index_in_heap, v, static_cast<std::size_t>(-1));
-        put(this->m_distance, v, std::numeric_limits<double>::infinity());
-        put(this->m_key, v, 0.0);
-        put(this->m_predecessor, v, v);
+        Vertex v = sba_vis.create_vertex(p, g);
         
-        this->m_vis.travel_succeeded(u, v, g);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        std::pair<Edge, bool> e_new = add_edge(u, v, std::move(ep), g);
-#else
-        std::pair<Edge, bool> e_new = add_edge(u, v, ep, g);
-#endif
-        if(e_new.second) {
-          put(this->m_distance, v, get(this->m_distance, u) + get(this->m_weight, g[e_new.first]));
-          put(this->m_predecessor, v, u);
-          this->m_vis.edge_added(e_new.first, g);
-          this->update_key(u,g);
+        if( sba_vis.create_edge(u, v, ep, g) ) {
+          put(distance, v, get(distance, u) + get(weight, g[edge(u,v,g).first]));
+          put(predecessor, v, u);
+          sba_vis.update_key(u,g);
         };
         
         for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
-          this->m_vis.travel_explored(*it, u, g);
           if(*it == u)
             continue;
           
-          double tentative_weight = get(ReaK::pp::distance_metric, this->m_super_space)(get(this->m_position,g[*it]), p, this->m_super_space);
-          double g_out = tentative_weight + get(this->m_distance, *it);
-          if(g_out < get(this->m_distance, v)) {
+          double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[*it]), p, super_space);
+          double g_out = tentative_weight + get(distance, *it);
+          if(g_out < get(distance, v)) {
             // edge is useful as an in-edge to v.
-            bool can_connect;
-            boost::tie(can_connect, ep) = this->m_vis.can_be_connected(*it, v, g);
-            if(can_connect) {
-              this->m_vis.travel_succeeded(*it, v, g);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-              e_new = add_edge(*it, v, std::move(ep), g);
-#else
-              e_new = add_edge(*it, v, ep, g);
-#endif
-              if(e_new.second) {
-                put(this->m_distance, v, g_out);
-                Vertex old_pred = get(this->m_predecessor, v);
-                put(this->m_predecessor, v, *it); 
-                this->m_vis.edge_relaxed(e_new.first, g);
-                remove_edge(old_pred, v, g);
-              };
-            } else {
-              this->m_vis.travel_failed(*it, v, g);
+            if(sba_vis.attempt_connecting_edge(*it, v, g)) {
+              put(distance, v, g_out);
+              Vertex old_pred = get(predecessor, v);
+              put(predecessor, v, *it); 
+              sba_vis.edge_relaxed(edge(*it,v,g).first, g);
+              remove_edge(old_pred, v, g);
             };
           };
-          this->update_key(*it, g); 
-          if( ! this->should_close(*it, g) ) {
-            put(this->m_color, *it, Color::gray()); 
-            this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
-          };
+          sba_vis.requeue_vertex(*it,g);
         };
         
-        this->update_key(v, g); 
-        if( ! this->should_close(v, g) ) {
-          put(this->m_color, v, Color::gray()); 
-          this->m_Q.push(v);                 this->m_vis.discover_vertex(v, g);
-        };
+        sba_vis.requeue_vertex(v,g);
         
         for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-          this->m_vis.travel_explored(u, *it, g);
-          double tentative_weight = get(ReaK::pp::distance_metric, this->m_super_space)(p, get(this->m_position,g[*it]), this->m_super_space);
           
-          double g_in  = tentative_weight + get(this->m_distance, v);
-          if(g_in < get(this->m_distance, *it)) {
+          double tentative_weight = get(ReaK::pp::distance_metric, super_space)(p, get(position,g[*it]), super_space);
+          double g_in  = tentative_weight + get(distance, v);
+          if(g_in < get(distance, *it)) {
             // edge is useful as an in-edge to (*it).
-            bool can_connect;
-            boost::tie(can_connect, ep) = this->m_vis.can_be_connected(v, *it, g);
-            if(can_connect) {
-              this->m_vis.travel_succeeded(v, *it, g);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-              e_new = add_edge(v, *it, std::move(ep), g);
-#else
-              e_new = add_edge(v, *it, ep, g);
-#endif
-              if(e_new.second) {
-                put(this->m_distance, *it, g_in);
-                Vertex old_pred = get(this->m_predecessor, *it);
-                put(this->m_predecessor, *it, v); 
-                this->m_vis.edge_relaxed(e_new.first, g);
-                remove_edge(old_pred, *it, g);
-              };
-            } else {
-              this->m_vis.travel_failed(v, *it, g);
+            if(sba_vis.attempt_connecting_edge(v, *it, g)) {
+              put(distance, *it, g_in);
+              Vertex old_pred = get(predecessor, *it);
+              put(predecessor, *it, v); 
+              sba_vis.edge_relaxed(edge(v,*it,g).first, g);
+              remove_edge(old_pred, *it, g);
             };
           };
-          this->update_key(*it, g); 
-          if( ! this->should_close(*it, g) ) {
-            put(this->m_color, *it, Color::gray()); 
-            this->m_Q.push_or_update(*it);                 this->m_vis.discover_vertex(*it, g);
-          };
+          sba_vis.requeue_vertex(*it,g);
         }; 
         
-        this->update_key(v, g); 
-        if( ! this->should_close(v, g) ) {
-          put(this->m_color, v, Color::gray()); 
-          this->m_Q.push_or_update(v);                 this->m_vis.discover_vertex(v, g);
-        };
+        sba_vis.requeue_vertex(v,g);
         
         // need to update all the children of the v node:
         std::stack<Vertex> incons;
@@ -369,34 +254,17 @@ namespace graph {
           OutEdgeIter eo, eo_end;
           for(boost::tie(eo,eo_end) = out_edges(s,g); eo != eo_end; ++eo) {
             Vertex t = target(*eo, g);
-            put(this->m_distance, t, get(this->m_distance, s) + get(this->m_weight, g[*eo]));
-            this->update_key(t,g);
-            if( ! this->should_close(t, g) ) {
-              put(this->m_color, t, Color::gray()); 
-              this->m_Q.push_or_update(t);
-            };
+            put(distance, t, get(distance, s) + get(weight, g[*eo]));
+            
+            sba_vis.requeue_vertex(t,g);
+            
             incons.push(t);
           };
         };
       };
       
-      template <class Vertex, class Graph>
-      void examine_vertex(Vertex u, Graph& g) {
-        typedef typename Graph::edge_bundled EdgeProp;
-        
-        this->m_vis.examine_vertex(u, g);
-        
-        PositionValue p_new; bool walk_succeeded; EdgeProp ep_new;
-        boost::tie(p_new, walk_succeeded, ep_new) = this->m_vis.random_walk(u, g);
-        if(walk_succeeded)
-          connect_vertex(p_new, u, ep_new, g);
-        
-        this->update_key(u,g);
-      };
-      
     };
     
-  
   }; //end of detail namespace.
   
   
@@ -424,9 +292,6 @@ namespace graph {
    *         vertex together with its optimal predecessor.
    * \tparam KeyMap This property-map type is used to store the priority-keys of the vertices of the 
    *         graph (cost of travel along an edge).
-   * \tparam ColorMap This property-map type is used to store the color-value of the vertices, colors 
-   *         are used to mark vertices by their status in the A* algorithm (white = not visited, 
-   *         gray = discovered (in OPEN), black = finished (in CLOSED)).
    * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
    *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors). 
    *         See classes in the topological_search.hpp header-file.
@@ -455,9 +320,6 @@ namespace graph {
    *        vertices together with their optimal predecessor (follow in reverse to discover the 
    *        complete path).
    * \param key The property-map which stores the AD* key-values associated to each vertex.
-   * \param color The property-map which stores the color-value of the vertices, colors are used to mark
-   *        vertices by their status in the AD* algorithm (white = not visited, gray = discovered (in OPEN), 
-   *        black = finished (in CLOSED), green = recycled (not CLOSED, not OPEN), red = inconsistent (in INCONS)).
    * \param select_neighborhood A callable object (functor) that can select a list of 
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
@@ -474,14 +336,13 @@ namespace graph {
             typename DistanceMap,
             typename PredecessorMap,
             typename KeyMap,
-            typename ColorMap,
             typename NcSelector>
   inline void
   generate_lazy_sbastar_no_init
     (Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor vis,  // basic parameters
      AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
-     PredecessorMap predecessor, KeyMap key, ColorMap color,                         // properties resulting from the algorithm
+     PredecessorMap predecessor, KeyMap key,                         // properties resulting from the algorithm
      NcSelector select_neighborhood)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
@@ -498,9 +359,10 @@ namespace graph {
     typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
     MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
     
-    detail::lazy_sbastar_bfs_visitor<
+    detail::sbastar_bfs_visitor<
       Topology, 
       SBAStarVisitor,
+      detail::lazy_sbastar_node_connector,
       MutableQueue, 
       IndexInHeapMap,
       AStarHeuristicMap, 
@@ -510,16 +372,13 @@ namespace graph {
       ConstrictionMap, 
       DistanceMap,  
       PredecessorMap,
-      KeyMap,
-      ColorMap, 
-      NcSelector> bfs_vis(super_space, vis, Q, index_in_heap, 
+      KeyMap, 
+      NcSelector> bfs_vis(super_space, vis, detail::lazy_sbastar_node_connector(), Q, index_in_heap, 
                           hval, position, weight, 
                           density, constriction, distance,
-                          predecessor, key, color, select_neighborhood);
+                          predecessor, key, select_neighborhood);
     
-    detail::sbastar_search_loop(g, start_vertex, bfs_vis, 
-                                hval, distance, predecessor, key, color,
-                                index_in_heap, Q);
+    detail::sbastar_search_loop(g, start_vertex, bfs_vis, Q);
     
   };
 
@@ -546,9 +405,6 @@ namespace graph {
    *         vertex together with its optimal predecessor.
    * \tparam KeyMap This property-map type is used to store the priority-keys of the vertices of the 
    *         graph (cost of travel along an edge).
-   * \tparam ColorMap This property-map type is used to store the color-value of the vertices, colors 
-   *         are used to mark vertices by their status in the A* algorithm (white = not visited, 
-   *         gray = discovered (in OPEN), black = finished (in CLOSED)).
    * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
    *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors). 
    *         See classes in the topological_search.hpp header-file.
@@ -577,9 +433,6 @@ namespace graph {
    *        vertices together with their optimal predecessor (follow in reverse to discover the 
    *        complete path).
    * \param key The property-map which stores the AD* key-values associated to each vertex.
-   * \param color The property-map which stores the color-value of the vertices, colors are used to mark
-   *        vertices by their status in the AD* algorithm (white = not visited, gray = discovered (in OPEN), 
-   *        black = finished (in CLOSED), green = recycled (not CLOSED, not OPEN), red = inconsistent (in INCONS)).
    * \param select_neighborhood A callable object (functor) that can select a list of 
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
@@ -596,14 +449,13 @@ namespace graph {
             typename DistanceMap,
             typename PredecessorMap,
             typename KeyMap,
-            typename ColorMap,
             typename NcSelector>
   inline void
   generate_lazy_sbastar
     (Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor vis,  // basic parameters
      AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
-     PredecessorMap predecessor, KeyMap key, ColorMap color,                         // properties resulting from the algorithm
+     PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
      NcSelector select_neighborhood)
   {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
@@ -612,14 +464,11 @@ namespace graph {
     BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>));
     BOOST_CONCEPT_ASSERT((SBAStarVisitorConcept<SBAStarVisitor,Graph,Topology>));
     
-    typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
-    typedef boost::color_traits<ColorValue> Color;
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
     typedef typename Graph::vertex_bundled VertexProp;
     
     for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
-      put(color, *ui, Color::white());
       put(distance, *ui, std::numeric_limits<double>::infinity());
       put(key, *ui, 0.0);
       put(predecessor, *ui, *ui);
@@ -629,7 +478,7 @@ namespace graph {
     generate_lazy_sbastar_no_init(
       g, start_vertex, super_space, vis, 
       hval, position, weight, density, constriction, distance,
-      predecessor, key, color, select_neighborhood);
+      predecessor, key, select_neighborhood);
 
   };
   
