@@ -127,8 +127,8 @@ class rrtstar_path_planner : public sample_based_planner< path_planner_base<Free
         return;
       
       double solutions_total_dist = actual_dist + g[u].distance_accum;
-//       if(solutions_total_dist >= m_solutions.begin()->first)
-//         return;
+      if((m_solutions.size()) && (solutions_total_dist >= m_solutions.begin()->first))
+        return;
       
       shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
       shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("rrt_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
@@ -151,8 +151,8 @@ class rrtstar_path_planner : public sample_based_planner< path_planner_base<Free
       double total_dist = g1[u1].distance_accum + g2[u2].distance_accum
         + get(distance_metric, this->m_space->get_super_space())(g1[u1].position, g2[u2].position, this->m_space->get_super_space());
       
-//       if(total_dist >= m_solutions.begin()->first)
-//         return;
+      if((m_solutions.size()) && (total_dist >= m_solutions.begin()->first))
+        return;
       
       shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
       shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("birrt_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));

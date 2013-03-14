@@ -854,6 +854,8 @@ void CRSPlannerGUI::executePlanner() {
             prog_interval, \
             store_policy, \
             knn_method, \
+            ReaK::pp::LAZY_COLLISION_CHECKING, \
+            ReaK::pp::PLAN_WITH_VORONOI_PULL, \
             temp_reporter, \
             max_results); \
          \

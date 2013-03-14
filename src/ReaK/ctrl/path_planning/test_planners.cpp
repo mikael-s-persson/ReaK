@@ -31,7 +31,7 @@
 #include "topologies/ptrobot2D_test_world.hpp"
 
 
-#define RK_ENABLE_TEST_URRT_PLANNER
+// #define RK_ENABLE_TEST_URRT_PLANNER
 // #define RK_ENABLE_TEST_BRRT_PLANNER
 #define RK_ENABLE_TEST_RRTSTAR_PLANNER
 // #define RK_ENABLE_TEST_PRM_PLANNER
@@ -87,6 +87,8 @@ int main(int argc, char** argv) {
     ("mc-vertices", po::value< std::size_t >()->default_value(5000), "maximum number of vertices during monte-carlo runs (default is 5000)")
     ("mc-prog-interval", po::value< std::size_t >()->default_value(100), "number of vertices between progress reports during monte-carlo runs (default is 5000)")
     ("mc-results", po::value< std::size_t >()->default_value(50), "maximum number of result-paths during monte-carlo runs (default is 50)")
+    ("mc-dvp-alt", "do monte-carlo runs with the DVP-adjacency-list-tree layout (default is not)")
+    ("mc-cob-tree", "do monte-carlo runs with cache-oblivious b-trees (default is not)")
   ;
   
   po::options_description single_options("Single-run options");
@@ -115,6 +117,8 @@ int main(int argc, char** argv) {
 #endif
 #ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
     ("sba-star", "specify that the SBA* algorithm should be run")
+    ("sba-potential-cutoff", po::value< double >()->default_value(0.9), "specify the potential cutoff for the SBA* algorithm")
+    ("sba-density-cutoff", po::value< double >()->default_value(0.9), "specify the density cutoff for the SBA* algorithm")
 #endif
     ("all-planners,a", "specify that all supported planners should be run (default if no particular planner is specified)")
   ;
@@ -251,6 +255,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
+      if(vm.count("mc-cob-tree")) {
       std::cout << "Running RRT with Uni-dir, adj-list, dvp-cob2..." << std::endl;
       timing_output << "RRT, Uni-dir, adj-list, dvp-cob2" << std::endl;
       {
@@ -291,7 +296,6 @@ int main(int argc, char** argv) {
       };
       std::cout << "Done!" << std::endl;
       
-      
       std::cout << "Running RRT with Uni-dir, adj-list, dvp-cob4..." << std::endl;
       timing_output << "RRT, Uni-dir, adj-list, dvp-cob4" << std::endl;
       {
@@ -331,6 +335,7 @@ int main(int argc, char** argv) {
       };
       };
       std::cout << "Done!" << std::endl;
+      };
       
       
       std::cout << "Running RRT with Uni-dir, adj-list, linear-search..." << std::endl;
@@ -374,7 +379,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
-      
+      if(vm.count("mc-dvp-alt")) {
       std::cout << "Running RRT with Uni-dir, dvp-adj-list-bf2..." << std::endl;
       timing_output << "RRT, Uni-dir, dvp-adj-list-bf2" << std::endl;
       {
@@ -457,6 +462,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
+      if(vm.count("mc-cob-tree")) {
       std::cout << "Running RRT with Uni-dir, dvp-adj-list-cob2..." << std::endl;
       timing_output << "RRT, Uni-dir, dvp-adj-list-cob2" << std::endl;
       {
@@ -537,6 +543,8 @@ int main(int argc, char** argv) {
       };
       };
       std::cout << "Done!" << std::endl;
+      };
+      };
       
     };
     
@@ -641,6 +649,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
+      if(vm.count("mc-cob-tree")) {
       std::cout << "Running RRT with Bi-dir, adj-list, dvp-cob2..." << std::endl;
       timing_output << "RRT, Bi-dir, adj-list, dvp-cob2" << std::endl;
       {
@@ -722,6 +731,7 @@ int main(int argc, char** argv) {
       };
       };
       std::cout << "Done!" << std::endl;
+      };
       
       
       std::cout << "Running RRT with Bi-dir, adj-list, linear-search..." << std::endl;
@@ -767,6 +777,7 @@ int main(int argc, char** argv) {
       
       
       
+      if(vm.count("mc-dvp-alt")) {
       std::cout << "Running RRT with Bi-dir, dvp-adj-list-bf2..." << std::endl;
       timing_output << "RRT, Bi-dir, dvp-adj-list-bf2" << std::endl;
       {
@@ -851,6 +862,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
+      if(vm.count("mc-cob-tree")) {
       std::cout << "Running RRT with Bi-dir, dvp-adj-list-cob2..." << std::endl;
       timing_output << "RRT, Bi-dir, dvp-adj-list-cob2" << std::endl;
       {
@@ -933,6 +945,8 @@ int main(int argc, char** argv) {
       };
       };
       std::cout << "Done!" << std::endl;
+      };
+      };
       
     };
     
@@ -1034,6 +1048,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
+      if(vm.count("mc-cob-tree")) {
       std::cout << "Running PRM with adj-list, dvp-cob2..." << std::endl;
       timing_output << "PRM, adj-list, dvp-cob2" << std::endl;
       {
@@ -1112,6 +1127,7 @@ int main(int argc, char** argv) {
       };
       };
       std::cout << "Done!" << std::endl;
+      };
       
       
       std::cout << "Running PRM with adj-list, linear-search..." << std::endl;
@@ -1156,6 +1172,7 @@ int main(int argc, char** argv) {
       
       
       
+      if(vm.count("mc-dvp-alt")) {
       std::cout << "Running PRM with dvp-adj-list-bf2..." << std::endl;
       timing_output << "PRM, dvp-adj-list-bf2" << std::endl;
       {
@@ -1236,6 +1253,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
+      if(vm.count("mc-cob-tree")) {
       std::cout << "Running PRM with dvp-adj-list-cob2..." << std::endl;
       timing_output << "PRM, dvp-adj-list-cob2" << std::endl;
       {
@@ -1314,6 +1332,8 @@ int main(int argc, char** argv) {
       };
       };
       std::cout << "Done!" << std::endl;
+      };
+      };
       
     };
     
@@ -1419,6 +1439,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
+      if(vm.count("mc-cob-tree")) {
       std::cout << "Running FADPRM with adj-list, dvp-cob2..." << std::endl;
       timing_output << "FADPRM, adj-list, dvp-cob2" << std::endl;
       {
@@ -1501,6 +1522,7 @@ int main(int argc, char** argv) {
       };
       };
       std::cout << "Done!" << std::endl;
+      };
       
       
       std::cout << "Running FADPRM with adj-list, linear-search..." << std::endl;
@@ -1547,6 +1569,7 @@ int main(int argc, char** argv) {
       
       
       
+      if(vm.count("mc-dvp-alt")) {
       std::cout << "Running FADPRM with dvp-adj-list-bf2..." << std::endl;
       timing_output << "FADPRM, dvp-adj-list-bf2" << std::endl;
       {
@@ -1631,6 +1654,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
+      if(vm.count("mc-cob-tree")) {
       std::cout << "Running FADPRM with dvp-adj-list-cob2..." << std::endl;
       timing_output << "FADPRM, dvp-adj-list-cob2" << std::endl;
       {
@@ -1713,6 +1737,8 @@ int main(int argc, char** argv) {
       };
       };
       std::cout << "Done!" << std::endl;
+      };
+      };
       
     };
     
@@ -1741,17 +1767,19 @@ int main(int argc, char** argv) {
         
         ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      0.9,
-                      0.9,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_BF2_TREE_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       vm["sba-potential-cutoff"].as<double>(),
+                       vm["sba-density-cutoff"].as<double>(),
+                       world_map->get_max_edge_length(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                       ReaK::pp::DVP_BF2_TREE_KNN,
+                       ReaK::pp::LAZY_COLLISION_CHECKING,
+                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         sbastar_plan.solve_path();
         
@@ -1784,17 +1812,19 @@ int main(int argc, char** argv) {
         
         ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      0.9,
-                      0.9,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_BF4_TREE_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       vm["sba-potential-cutoff"].as<double>(),
+                       vm["sba-density-cutoff"].as<double>(),
+                       world_map->get_max_edge_length(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                       ReaK::pp::DVP_BF4_TREE_KNN,
+                       ReaK::pp::LAZY_COLLISION_CHECKING,
+                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         sbastar_plan.solve_path();
         
@@ -1818,6 +1848,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
+      if(vm.count("mc-cob-tree")) {
       std::cout << "Running SBA* with adj-list, dvp-cob2..." << std::endl;
       timing_output << "SBA*, adj-list, dvp-cob2" << std::endl;
       {
@@ -1827,17 +1858,19 @@ int main(int argc, char** argv) {
         
         ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      0.9,
-                      0.9,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_COB2_TREE_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       vm["sba-potential-cutoff"].as<double>(),
+                       vm["sba-density-cutoff"].as<double>(),
+                       world_map->get_max_edge_length(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                       ReaK::pp::DVP_COB2_TREE_KNN,
+                       ReaK::pp::LAZY_COLLISION_CHECKING,
+                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         sbastar_plan.solve_path();
         
@@ -1870,17 +1903,19 @@ int main(int argc, char** argv) {
         
         ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      0.9,
-                      0.9,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_COB4_TREE_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       vm["sba-potential-cutoff"].as<double>(),
+                       vm["sba-density-cutoff"].as<double>(),
+                       world_map->get_max_edge_length(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                       ReaK::pp::DVP_COB4_TREE_KNN,
+                       ReaK::pp::LAZY_COLLISION_CHECKING,
+                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         sbastar_plan.solve_path();
         
@@ -1902,6 +1937,7 @@ int main(int argc, char** argv) {
       };
       };
       std::cout << "Done!" << std::endl;
+      };
       
       
       std::cout << "Running SBA* with adj-list, linear-search..." << std::endl;
@@ -1913,17 +1949,19 @@ int main(int argc, char** argv) {
         
         ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      0.9,
-                      0.9,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::LINEAR_SEARCH_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       vm["sba-potential-cutoff"].as<double>(),
+                       vm["sba-density-cutoff"].as<double>(),
+                       world_map->get_max_edge_length(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                       ReaK::pp::LINEAR_SEARCH_KNN,
+                       ReaK::pp::LAZY_COLLISION_CHECKING,
+                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         sbastar_plan.solve_path();
         
@@ -1948,6 +1986,7 @@ int main(int argc, char** argv) {
       
       
       
+      if(vm.count("mc-dvp-alt")) {
       std::cout << "Running SBA* with dvp-adj-list-bf2..." << std::endl;
       timing_output << "SBA*, dvp-adj-list-bf2" << std::endl;
       {
@@ -1957,17 +1996,19 @@ int main(int argc, char** argv) {
         
         ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      0.9,
-                      0.9,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_ALT_BF2_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       vm["sba-potential-cutoff"].as<double>(),
+                       vm["sba-density-cutoff"].as<double>(),
+                       world_map->get_max_edge_length(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                       ReaK::pp::DVP_ALT_BF2_KNN,
+                       ReaK::pp::LAZY_COLLISION_CHECKING,
+                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         sbastar_plan.solve_path();
         
@@ -2000,17 +2041,19 @@ int main(int argc, char** argv) {
         
         ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      0.9,
-                      0.9,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_ALT_BF4_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       vm["sba-potential-cutoff"].as<double>(),
+                       vm["sba-density-cutoff"].as<double>(),
+                       world_map->get_max_edge_length(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                       ReaK::pp::DVP_ALT_BF4_KNN,
+                       ReaK::pp::LAZY_COLLISION_CHECKING,
+                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         sbastar_plan.solve_path();
         
@@ -2034,6 +2077,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
+      if(vm.count("mc-cob-tree")) {
       std::cout << "Running SBA* with dvp-adj-list-cob2..." << std::endl;
       timing_output << "SBA*, dvp-adj-list-cob2" << std::endl;
       {
@@ -2043,17 +2087,19 @@ int main(int argc, char** argv) {
         
         ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      0.9,
-                      0.9,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_ALT_COB2_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       vm["sba-potential-cutoff"].as<double>(),
+                       vm["sba-density-cutoff"].as<double>(),
+                       world_map->get_max_edge_length(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                       ReaK::pp::DVP_ALT_COB2_KNN,
+                       ReaK::pp::LAZY_COLLISION_CHECKING,
+                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         sbastar_plan.solve_path();
         
@@ -2086,17 +2132,19 @@ int main(int argc, char** argv) {
         
         ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      0.9,
-                      0.9,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_ALT_COB4_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       vm["sba-potential-cutoff"].as<double>(),
+                       vm["sba-density-cutoff"].as<double>(),
+                       world_map->get_max_edge_length(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                       ReaK::pp::DVP_ALT_COB4_KNN,
+                       ReaK::pp::LAZY_COLLISION_CHECKING,
+                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         sbastar_plan.solve_path();
         
@@ -2118,6 +2166,9 @@ int main(int argc, char** argv) {
       };
       };
       std::cout << "Done!" << std::endl;
+      };
+      };
+      
     };
       
 #endif
@@ -2220,6 +2271,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
+      if(vm.count("mc-cob-tree")) {
       std::cout << "Running RRT* with Uni-dir, adj-list, dvp-cob2..." << std::endl;
       timing_output << "RRT*, Uni-dir, adj-list, dvp-cob2" << std::endl;
       {
@@ -2300,6 +2352,7 @@ int main(int argc, char** argv) {
       };
       };
       std::cout << "Done!" << std::endl;
+      };
       
       
       std::cout << "Running RRT* with Uni-dir, adj-list, linear-search..." << std::endl;
@@ -2344,6 +2397,7 @@ int main(int argc, char** argv) {
       
       
       
+      if(vm.count("mc-dvp-alt")) {
       std::cout << "Running RRT* with Uni-dir, dvp-adj-list-bf2..." << std::endl;
       timing_output << "RRT*, Uni-dir, dvp-adj-list-bf2" << std::endl;
       {
@@ -2426,6 +2480,7 @@ int main(int argc, char** argv) {
       std::cout << "Done!" << std::endl;
       
       
+      if(vm.count("mc-cob-tree")) {
       std::cout << "Running RRT* with Uni-dir, dvp-adj-list-cob2..." << std::endl;
       timing_output << "RRT*, Uni-dir, dvp-adj-list-cob2" << std::endl;
       {
@@ -2506,6 +2561,9 @@ int main(int argc, char** argv) {
       };
       };
       std::cout << "Done!" << std::endl;
+      };
+      };
+      
     };
       
 #endif
@@ -2523,7 +2581,7 @@ int main(int argc, char** argv) {
 #ifdef RK_ENABLE_TEST_URRT_PLANNER
     
     if(run_all_planners || vm.count("rrt")) {
-      std::cout << "Outputting RRT with Uni-dir, adj-list, dvp-bf2..." << std::endl;
+      std::cout << "Outputting RRT with Uni-dir, adj-list, dvp-bf4..." << std::endl;
       
       ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
         rrt_plan(world_map, 
@@ -2533,7 +2591,7 @@ int main(int argc, char** argv) {
                 10,
                 ReaK::pp::UNIDIRECTIONAL_RRT,
                 ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                ReaK::pp::DVP_BF2_TREE_KNN,
+                ReaK::pp::DVP_BF4_TREE_KNN,
                 ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(output_path_name + "/rrt/" + world_file_name_only + "_", 5),
                 sr_results);
       
@@ -2547,7 +2605,7 @@ int main(int argc, char** argv) {
 #ifdef RK_ENABLE_TEST_BRRT_PLANNER
     
     if(run_all_planners || vm.count("bi-rrt")) {
-      std::cout << "Outputting RRT with Bi-dir, adj-list, dvp-bf2..." << std::endl;
+      std::cout << "Outputting RRT with Bi-dir, adj-list, dvp-bf4..." << std::endl;
       
       ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
         rrt_plan(world_map, 
@@ -2557,7 +2615,7 @@ int main(int argc, char** argv) {
                 100,
                 ReaK::pp::BIDIRECTIONAL_RRT,
                 ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                ReaK::pp::DVP_BF2_TREE_KNN,
+                ReaK::pp::DVP_BF4_TREE_KNN,
                 ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(output_path_name + "/birrt/" + world_file_name_only + "_", 5),
                 sr_results);
       
@@ -2571,7 +2629,7 @@ int main(int argc, char** argv) {
 #ifdef RK_ENABLE_TEST_PRM_PLANNER
     
     if(run_all_planners || vm.count("prm")) {
-      std::cout << "Outputting PRM with dvp-adj-list-cob4..." << std::endl;
+      std::cout << "Outputting PRM with adj-list dvp-bf4..." << std::endl;
       
       ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
         prm_plan(world_map, 
@@ -2579,8 +2637,8 @@ int main(int argc, char** argv) {
                 world_map->get_goal_pos(),
                 sr_max_vertices, 
                 10,
-                ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                ReaK::pp::DVP_ALT_COB4_KNN,
+                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                ReaK::pp::DVP_BF4_TREE_KNN,
                 ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(output_path_name + "/prm/" + world_file_name_only + "_", 5),
                 sr_results);
       
@@ -2594,7 +2652,7 @@ int main(int argc, char** argv) {
 #ifdef RK_ENABLE_TEST_FADPRM_PLANNER
     
     if(run_all_planners || vm.count("fadprm")) {
-      std::cout << "Outputting FADPRM with adj-list dvp-bf2..." << std::endl;
+      std::cout << "Outputting FADPRM with adj-list dvp-bf4..." << std::endl;
       
       ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
         fadprm_plan(
@@ -2605,7 +2663,7 @@ int main(int argc, char** argv) {
           sr_max_vertices, 
           10,
           ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-          ReaK::pp::DVP_BF2_TREE_KNN,
+          ReaK::pp::DVP_BF4_TREE_KNN,
           ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(output_path_name + "/fadprm/" + world_file_name_only + "_", 5),
           sr_results);
       
@@ -2619,20 +2677,22 @@ int main(int argc, char** argv) {
 #ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
     
     if(run_all_planners || vm.count("sba-star")) {
-      std::cout << "Outputting SBA* with adj-list dvp-bf2..." << std::endl;
+      std::cout << "Outputting SBA* with adj-list dvp-bf4..." << std::endl;
       
       ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
         sbastar_plan(
           world_map, 
           world_map->get_start_pos(), 
           world_map->get_goal_pos(),
-          0.9,
-          0.9,
+          vm["sba-potential-cutoff"].as<double>(),
+          vm["sba-density-cutoff"].as<double>(),
           world_map->get_max_edge_length(),
           sr_max_vertices, 
           10,
           ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-          ReaK::pp::DVP_BF2_TREE_KNN,
+          ReaK::pp::DVP_BF4_TREE_KNN,
+          ReaK::pp::LAZY_COLLISION_CHECKING,
+          ReaK::pp::PLAN_WITH_VORONOI_PULL,
           ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(output_path_name + "/sbastar/" + world_file_name_only + "_", 5),
           sr_results);
       

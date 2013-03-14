@@ -359,7 +359,7 @@ namespace graph {
       };
 
       template <class Vertex, class Graph>
-      void update_vertex(Vertex u, Graph& g) {
+      void update_vertex(Vertex u, Graph& g) const {
         boost::function_requires< boost::BidirectionalGraphConcept<Graph> >();
         typedef typename boost::graph_traits<Graph>::in_edge_iterator InEdgeIter;
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
@@ -441,8 +441,11 @@ namespace graph {
         
         Vertex v = sba_vis.create_vertex(p, g);
         
-        if( sba_vis.create_edge(u, v, ep, g) )
-          sba_vis.update_vertex(u,g);
+        if( sba_vis.create_edge(u, v, ep, g) ) {
+          put(distance, v, get(distance, u) + get(weight, g[edge(u,v,g).first]));
+          put(predecessor, v, u);
+          sba_vis.requeue_vertex(u,g);
+        };
         
         for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
           if(*it == u)
@@ -503,7 +506,11 @@ namespace graph {
         
         Vertex v = sba_vis.create_vertex(p, g);
         
-        sba_vis.create_edge(u, v, ep, g);
+        if( sba_vis.create_edge(u, v, ep, g) ) {
+          put(distance, v, get(distance, u) + get(weight, g[edge(u,v,g).first]));
+          put(predecessor, v, u);
+          sba_vis.requeue_vertex(u,g);
+        };
         
         for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
           if(*it == u)
@@ -689,6 +696,8 @@ namespace graph {
                           density, constriction, distance,
                           predecessor, key, select_neighborhood);
     
+    put(distance, start_vertex, 0.0);
+    
     detail::sbastar_search_loop(g, start_vertex, bfs_vis, Q);
     
   };
@@ -785,7 +794,7 @@ namespace graph {
       put(predecessor, *ui, *ui);
       vis.initialize_vertex(*ui, g);
     };
-
+    
     generate_sbastar_no_init(
       g, start_vertex, super_space, vis, 
       hval, position, weight, density, constriction, distance,

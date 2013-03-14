@@ -114,7 +114,7 @@ namespace graph {
         if( sba_vis.create_edge(u, v, ep, g) ) {
           put(distance, v, get(distance, u) + get(weight, g[edge(u,v,g).first]));
           put(predecessor, v, u);
-          sba_vis.update_key(u,g);
+          sba_vis.requeue_vertex(u,g);
         };
         
         for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
@@ -203,7 +203,7 @@ namespace graph {
         if( sba_vis.create_edge(u, v, ep, g) ) {
           put(distance, v, get(distance, u) + get(weight, g[edge(u,v,g).first]));
           put(predecessor, v, u);
-          sba_vis.update_key(u,g);
+          sba_vis.requeue_vertex(u,g);
         };
         
         for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
@@ -377,6 +377,8 @@ namespace graph {
                           hval, position, weight, 
                           density, constriction, distance,
                           predecessor, key, select_neighborhood);
+    
+    put(distance, start_vertex, 0.0);
     
     detail::sbastar_search_loop(g, start_vertex, bfs_vis, Q);
     

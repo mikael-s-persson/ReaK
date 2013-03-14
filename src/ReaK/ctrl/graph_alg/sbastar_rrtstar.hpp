@@ -68,6 +68,8 @@
 
 #include "lazy_sbastar.hpp"
 
+#include "base/misc_math.hpp"
+
 #include <stack>
 
 /** Main namespace for ReaK */
@@ -343,6 +345,8 @@ namespace graph {
                           density, constriction, distance,
                           predecessor, key, select_neighborhood);
     
+    put(distance, start_vertex, 0.0);
+    
     detail::sbastar_search_loop(g, start_vertex, bfs_vis, Q);
     
   };
@@ -571,6 +575,8 @@ namespace graph {
                           hval, position, weight, 
                           density, constriction, distance,
                           predecessor, key, select_neighborhood);
+    
+    put(distance, start_vertex, 0.0);
     
     detail::sbastar_search_loop(g, start_vertex, bfs_vis, Q);
     

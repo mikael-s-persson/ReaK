@@ -129,6 +129,8 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     bool has_reached_max_vertices;
     std::size_t m_graph_kind_flag;
     std::size_t m_knn_flag;
+    std::size_t m_collision_check_flag;
+    std::size_t m_added_bias_flags;
     
     double m_current_key_threshold;
     double m_current_dens_threshold;
@@ -247,6 +249,11 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     std::size_t get_knn_flag() const { return m_knn_flag; };
     void set_knn_flag(std::size_t aKNNMethodFlag) { m_knn_flag = aKNNMethodFlag; };
     
+    std::size_t get_collision_check_flag() const { return m_collision_check_flag; };
+    void set_collision_check_flag(std::size_t aCollisionCheckFlag) { m_collision_check_flag = aCollisionCheckFlag; };
+    
+    std::size_t get_added_bias_flags() const { return m_added_bias_flags; };
+    void set_added_bias_flags(std::size_t aAddedBiasFlags) { m_added_bias_flags = aAddedBiasFlags; };
     
     /**
      * Parametrized constructor.
@@ -283,6 +290,8 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
                          std::size_t aProgressInterval = 100,
                          std::size_t aGraphKindFlag = ADJ_LIST_MOTION_GRAPH,
                          std::size_t aKNNMethodFlag = DVP_BF2_TREE_KNN,
+                         std::size_t aCollisionCheckFlag = LAZY_COLLISION_CHECKING,
+                         std::size_t aAddedBiasFlags = NOMINAL_PLANNER_ONLY,
                          SBPPReporter aReporter = SBPPReporter(),
                          std::size_t aMaxResultCount = 50) :
                          base_type("sbastar_planner", aWorld, aMaxVertexCount, aProgressInterval),
@@ -297,6 +306,8 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
                          has_reached_max_vertices(false),
                          m_graph_kind_flag(aGraphKindFlag),
                          m_knn_flag(aKNNMethodFlag),
+                         m_collision_check_flag(aCollisionCheckFlag), 
+                         m_added_bias_flags(aAddedBiasFlags),
                          m_current_key_threshold(m_init_key_threshold),
                          m_current_dens_threshold(m_init_dens_threshold) { };
     
@@ -316,7 +327,9 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
         & RK_SERIAL_SAVE_WITH_NAME(m_sampling_radius)
         & RK_SERIAL_SAVE_WITH_NAME(max_num_results)
         & RK_SERIAL_SAVE_WITH_NAME(m_graph_kind_flag)
-        & RK_SERIAL_SAVE_WITH_NAME(m_knn_flag);
+        & RK_SERIAL_SAVE_WITH_NAME(m_knn_flag)
+        & RK_SERIAL_SAVE_WITH_NAME(m_collision_check_flag)
+        & RK_SERIAL_SAVE_WITH_NAME(m_added_bias_flags);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
@@ -329,7 +342,9 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
         & RK_SERIAL_LOAD_WITH_NAME(m_sampling_radius)
         & RK_SERIAL_LOAD_WITH_NAME(max_num_results)
         & RK_SERIAL_LOAD_WITH_NAME(m_graph_kind_flag)
-        & RK_SERIAL_LOAD_WITH_NAME(m_knn_flag);
+        & RK_SERIAL_LOAD_WITH_NAME(m_knn_flag)
+        & RK_SERIAL_LOAD_WITH_NAME(m_collision_check_flag)
+        & RK_SERIAL_LOAD_WITH_NAME(m_added_bias_flags);
       has_reached_max_vertices = false;
       m_solutions.clear();
       m_current_num_results = 0;
@@ -387,9 +402,12 @@ struct sbastar_planner_visitor {
     // Call progress reporter...
     m_planner->report_progress(g);
     
-    if(g[m_goal_node].distance_accum < m_planner->get_best_solution_distance())
-      m_planner->create_solution_path(m_start_node, m_goal_node, g);
-    
+    if(in_degree(m_goal_node,g)) {
+//       std::cout << "Start node has distance = " << g[m_start_node].distance_accum << std::endl;
+//       std::cout << "Goal node has in-degree = " << in_degree(m_goal_node,g) << " and distance = " << g[m_goal_node].distance_accum << std::endl;
+      if(g[m_goal_node].distance_accum < m_planner->get_best_solution_distance())
+        m_planner->create_solution_path(m_start_node, m_goal_node, g);
+    };
   };
   
   template <typename EdgeType, typename Graph>
@@ -403,21 +421,38 @@ struct sbastar_planner_visitor {
     double dist = get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space());
     
 //     double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
-//     double samp_prob = exp_value * m_samp_prob_norm;
+//     double samp_prob = exp_value;  // relative probability.
+// //     double samp_prob = m_samp_prob_norm * exp_value;  // absolute probability.
 //     
-//     g[u].density += samp_prob * exp_value;
+// //     g[u].density = g[u].density * (1.0 - samp_prob) + samp_prob * exp_value;
+//     double tmp_density = g[u].density * (1.0 - samp_prob) + samp_prob * exp_value;
+//     g[u].density = (g[u].expansion_trials * g[u].density + tmp_density) / (g[u].expansion_trials + 1);
 //     ++(g[u].expansion_trials);
-//     g[v].density += samp_prob * exp_value;
+// //     g[v].density = g[v].density * (1.0 - samp_prob) + samp_prob * exp_value;
+//     tmp_density = g[v].density * (1.0 - samp_prob) + samp_prob * exp_value;
+//     g[v].density = (g[v].expansion_trials * g[v].density + tmp_density) / (g[v].expansion_trials + 1);
 //     ++(g[v].expansion_trials);
     
     
-    if(m_planner->get_sampling_radius() < dist)
-      return;
+// //     if(m_planner->get_sampling_radius() < dist)
+// //       return;
+//     double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
+//     
+//     g[u].density = (g[u].expansion_trials * g[u].density + exp_value) / (g[u].expansion_trials + 1);
+//     ++(g[u].expansion_trials);
+//     g[v].density = (g[v].expansion_trials * g[v].density + exp_value) / (g[v].expansion_trials + 1);
+//     ++(g[v].expansion_trials);
+    
+    
+//     if(m_planner->get_sampling_radius() < dist)
+//       return;
     double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
     
-    g[u].density = (g[u].expansion_trials * g[u].density + exp_value) / (g[u].expansion_trials + 1);
+    if(exp_value > g[u].density)
+      g[u].density = exp_value;
     ++(g[u].expansion_trials);
-    g[v].density = (g[v].expansion_trials * g[v].density + exp_value) / (g[v].expansion_trials + 1);
+    if(exp_value > g[v].density)
+      g[v].density = exp_value;
     ++(g[v].expansion_trials);
   };
   
@@ -444,8 +479,8 @@ struct sbastar_planner_visitor {
 //     g[v].constriction += samp_prob * exp_D_KL;
 //     ++(g[v].collision_count);
     
-    if(m_planner->get_sampling_radius() < dist)
-      return;
+//     if(m_planner->get_sampling_radius() < dist)
+//       return;
     // assume collision occured half-way.  
     // assume a blob of collision half-way and occupying half of the interval between u and v (radius 1/4 of dist).
     double sig2_n_x = 16.0 * (m_planner->get_sampling_radius() * m_planner->get_sampling_radius()) / (dist * dist);
@@ -476,15 +511,16 @@ struct sbastar_planner_visitor {
     
     unsigned int i = 0;
     PointType p_rnd = g[m_goal_node].position;
+//     PointType p_rnd = get_sample(m_space->get_super_space());
     do {
 //       PointType p_rnd = get_sample(m_space->get_super_space());
       double dist = get_distance(g[u].position, p_rnd, m_space->get_super_space());
-//       double target_dist = boost::uniform_01<global_rng_type&,double>(get_global_rng())() * m_planner->get_sampling_radius();
-//       double target_dist = m_planner->get_sampling_radius();
-      double target_dist = fabs(var_rnd()) * m_planner->get_sampling_radius();
+      double target_dist = boost::uniform_01<global_rng_type&,double>(get_global_rng())() * m_planner->get_sampling_radius();
+//       double target_dist = fabs(var_rnd()) * m_planner->get_sampling_radius();
       PointType p_v = m_space->move_position_toward(g[u].position, target_dist / dist, p_rnd);
       dist = get_distance(g[u].position, p_v, m_space->get_super_space());
       if( dist < 0.9 * target_dist ) {
+//       if(( dist < 0.9 * target_dist ) && ( dist < 0.95 * m_planner->get_sampling_radius() )) {
         // this means that we had a collision before reaching the target distance, 
         // must record that to the constriction statistic:
         
@@ -570,11 +606,11 @@ struct sbastar_planner_visitor {
     // try to create a goal connection path
     m_planner->create_solution_path(m_start_node, m_goal_node, g); 
     
-    m_planner->set_current_key_threshold( 0.75 * m_planner->get_current_key_threshold() );
+    m_planner->set_current_key_threshold( 0.95 * m_planner->get_current_key_threshold() );
     m_planner->set_current_density_threshold( 0.95 * m_planner->get_current_density_threshold() );
     
-//     std::cout << " new key-value threshold =\t" << m_planner->get_current_key_threshold() << std::endl;
-//     std::cout << " new density-value threshold =\t" << m_planner->get_current_density_threshold() << std::endl;
+    std::cout << " new key-value threshold =\t" << m_planner->get_current_key_threshold() << std::endl;
+    std::cout << " new density-value threshold =\t" << m_planner->get_current_density_threshold() << std::endl;
   };
   
   template <typename Vertex, typename Graph>
@@ -587,7 +623,7 @@ struct sbastar_planner_visitor {
   
   template <typename Vertex, typename Graph>
   bool should_close(Vertex u, const Graph& g) const { 
-    if(g[u].density < (1.0 - m_planner->get_current_density_threshold() / m_space_Lc))
+    if(g[u].density < (1.0 - m_planner->get_current_density_threshold()))
 //     if(g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc)
       return false;
     else 
@@ -628,7 +664,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
   double space_dim = double((to_vect<double>(this->m_space->get_super_space().difference(this->m_goal_pos,this->m_start_pos))).size()); 
   double space_Lc = get(distance_metric,this->m_space->get_super_space())(this->m_start_pos, this->m_goal_pos, this->m_space->get_super_space());
   
-//   double max_radius = 2.0 * m_sampling_radius;
+  double max_radius = m_sampling_radius;
   
   
   // Some MACROs to reduce the size of the code below.
@@ -763,14 +799,26 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     if(m_knn_flag == LINEAR_SEARCH_KNN) {
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
-//       ReaK::graph::fixed_neighborhood< linear_neighbor_search<> >(
-//         linear_neighbor_search<>(), 
-//         10, max_radius);
-      ReaK::graph::star_neighborhood< linear_neighbor_search<> > nc_selector(
+      ReaK::graph::fixed_neighborhood< linear_neighbor_search<> > nc_selector(
         linear_neighbor_search<>(), 
-        space_dim, 3.0 * space_Lc);
+        10, max_radius);
+//       ReaK::graph::star_neighborhood< linear_neighbor_search<> > nc_selector(
+//         linear_neighbor_search<>(), 
+//         space_dim, 3.0 * space_Lc);
       
-      RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+        };
+      } else { // assume lazy collision checking
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+        };
+      };
       
     } else if(m_knn_flag == DVP_BF2_TREE_KNN) {
       
@@ -783,15 +831,27 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
       
-//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
-//         nn_finder, 
-//         10, max_radius);
-      
-      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
         nn_finder, 
-        space_dim, 3.0 * space_Lc);
+        10, max_radius);
       
-      RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc);
+      
+      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+        };
+      } else { // assume lazy collision checking
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+        };
+      };
       
     } else if(m_knn_flag == DVP_BF4_TREE_KNN) {
       
@@ -804,15 +864,27 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
       
-//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
-//         nn_finder, 
-//         10, max_radius);
-      
-      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
         nn_finder, 
-        space_dim, 3.0 * space_Lc);
+        10, max_radius);
       
-      RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc);
+      
+      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+        };
+      } else { // assume lazy collision checking
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+        };
+      };
       
     } else if(m_knn_flag == DVP_COB2_TREE_KNN) {
       
@@ -825,15 +897,27 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
       
-//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
-//         nn_finder, 
-//         10, max_radius);
-      
-      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
         nn_finder, 
-        space_dim, 3.0 * space_Lc);
+        10, max_radius);
       
-      RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc);
+      
+      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+        };
+      } else { // assume lazy collision checking
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+        };
+      };
       
     } else if(m_knn_flag == DVP_COB4_TREE_KNN) {
       
@@ -854,7 +938,19 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+        };
+      } else { // assume lazy collision checking
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+        };
+      };
       
     };
     
@@ -884,15 +980,27 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
-//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
-//         nn_finder, 
-//         10, max_radius);
-      
-      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
         nn_finder, 
-        space_dim, 3.0 * space_Lc);
+        10, max_radius);
       
-      RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc);
+      
+      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+        };
+      } else { // assume lazy collision checking
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+        };
+      };
       
     } else if(m_knn_flag == DVP_ALT_BF4_KNN) {
       
@@ -918,15 +1026,27 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
-//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
-//         nn_finder, 
-//         10, max_radius);
-      
-      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
         nn_finder, 
-        space_dim, 3.0 * space_Lc);
+        10, max_radius);
       
-      RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc);
+      
+      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+        };
+      } else { // assume lazy collision checking
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+        };
+      };
       
     } else if(m_knn_flag == DVP_ALT_COB2_KNN) {
       
@@ -952,15 +1072,27 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
-//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
-//         nn_finder, 
-//         10, max_radius);
-      
-      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
         nn_finder, 
-        space_dim, 3.0 * space_Lc);
+        10, max_radius);
       
-      RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc);
+      
+      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+        };
+      } else { // assume lazy collision checking
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+        };
+      };
       
     } else if(m_knn_flag == DVP_ALT_COB4_KNN) {
       
@@ -986,21 +1118,37 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
-//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
-//         nn_finder, 
-//         10, max_radius);
-      
-      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
         nn_finder, 
-        space_dim, 3.0 * space_Lc);
+        10, max_radius);
       
-      RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc);
+      
+      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+        };
+      } else { // assume lazy collision checking
+        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+        } else { // assume nominal method only.
+          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+        };
+      };
       
     };
     
   };
   
 #undef RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
+#undef RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
   
   if(m_solutions.size())
     return m_solutions.begin()->second;

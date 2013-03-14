@@ -37,21 +37,28 @@ namespace ReaK {
 namespace pp {
 
 
-const std::size_t ADJ_LIST_MOTION_GRAPH = 0;
+const std::size_t ADJ_LIST_MOTION_GRAPH     = 0;
 const std::size_t DVP_ADJ_LIST_MOTION_GRAPH = 1;
-const std::size_t LINKED_TREE_MOTION_GRAPH = 2;
+const std::size_t LINKED_TREE_MOTION_GRAPH  = 2;
 
-const std::size_t LINEAR_SEARCH_KNN = 0;
+const std::size_t LINEAR_SEARCH_KNN        = 0;
 const std::size_t APPROX_LINEAR_SEARCH_KNN = 1;
-const std::size_t DVP_LINKED_TREE_KNN = 2;
-const std::size_t DVP_BF2_TREE_KNN = 3;
-const std::size_t DVP_BF4_TREE_KNN = 4;
-const std::size_t DVP_COB2_TREE_KNN = 5;
-const std::size_t DVP_COB4_TREE_KNN = 6;
-const std::size_t DVP_ALT_BF2_KNN = 7;
-const std::size_t DVP_ALT_BF4_KNN = 8;
-const std::size_t DVP_ALT_COB2_KNN = 9;
-const std::size_t DVP_ALT_COB4_KNN = 10;
+const std::size_t DVP_LINKED_TREE_KNN      = 2;
+const std::size_t DVP_BF2_TREE_KNN         = 3;
+const std::size_t DVP_BF4_TREE_KNN         = 4;
+const std::size_t DVP_COB2_TREE_KNN        = 5;
+const std::size_t DVP_COB4_TREE_KNN        = 6;
+const std::size_t DVP_ALT_BF2_KNN          = 7;
+const std::size_t DVP_ALT_BF4_KNN          = 8;
+const std::size_t DVP_ALT_COB2_KNN         = 9;
+const std::size_t DVP_ALT_COB4_KNN         = 10;
+
+const std::size_t EAGER_COLLISION_CHECKING = 0;
+const std::size_t LAZY_COLLISION_CHECKING  = 1;
+
+const std::size_t NOMINAL_PLANNER_ONLY          = 0;
+const std::size_t PLAN_WITH_VORONOI_PULL        = 0x01;
+const std::size_t PLAN_WITH_NARROW_PASSAGE_PUSH = 0x02;
 
 
 };
