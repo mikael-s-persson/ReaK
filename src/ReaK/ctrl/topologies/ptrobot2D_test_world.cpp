@@ -222,8 +222,8 @@ ptrobot2D_test_world::point_type ptrobot2D_test_world::adjust(const ptrobot2D_te
 
 ptrobot2D_test_world::point_type ptrobot2D_test_world::move_position_toward(const ptrobot2D_test_world::point_type& p1, double fraction, const ptrobot2D_test_world::point_type& p2) const {
   double dist = m_distance(p1, p2, m_space);
-  if(dist * fraction > max_edge_length)
-    fraction = max_edge_length / dist;
+//   if(dist * fraction > max_edge_length)
+//     fraction = max_edge_length / dist;
   double d = 1.0;
   while(d < dist * fraction) {
     if (!pimpl->is_free(m_space.move_position_toward(p1, (d / dist), p2))) {

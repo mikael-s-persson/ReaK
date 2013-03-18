@@ -385,10 +385,9 @@ struct sbastar_planner_visitor {
   typedef typename topology_traits<FreeSpaceType>::point_type PointType;
   typedef sbastar_edge_data<FreeSpaceType> EdgeProp;
   
+  
   template <typename Vertex, typename Graph>
-  void vertex_added(Vertex u, Graph& g) const {
-    m_nn_synchro.added_vertex(u,g);
-    
+  void init_vertex_properties(Vertex u, Graph& g) const {
     g[u].heuristic_value = get(distance_metric, m_space->get_super_space())(
       g[u].position,
       g[m_goal_node].position,
@@ -398,62 +397,126 @@ struct sbastar_planner_visitor {
     g[u].collision_count = 0;  // r
     g[u].density = 0.0;
     g[u].expansion_trials = 0;  // m
+  };
+  
+  
+  // compute sample similarity directly as KL-divergence between Gaussians:
+  
+  double compute_sample_similarity(double travel_dist, double event_radius) const {
+    using std::exp; using std::log;
+    
+    if(travel_dist > m_planner->get_sampling_radius())
+      return 0.0;
+    double sig2_n = 0.25 * m_planner->get_sampling_radius() * m_planner->get_sampling_radius();
+    double sig2_x = 0.25 * event_radius * event_radius;
+    return exp(-travel_dist * travel_dist / (sig2_x * 2.0) - 0.5 * m_space_dim * ( sig2_n / sig2_x - 1.0 - log(sig2_n / sig2_x) ) );
+  };
+  
+  double compute_sample_similarity(double travel_dist) const {
+    using std::exp;
+    
+    if(travel_dist > m_planner->get_sampling_radius())
+      return 0.0;
+    return exp(-travel_dist * travel_dist / (0.25 * m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
+  };
+  
+#if 0
+  // keep the average sample similarity:
+  
+  template <typename Vertex, typename Graph>
+  void register_explored_sample(Vertex u, Graph& g, double samp_sim) const {
+    g[u].density = (g[u].expansion_trials * g[u].density + samp_sim) / (g[u].expansion_trials + 1);
+    ++(g[u].expansion_trials);
+//     std::cout << " Vertex " << u << " has density: " << g[u].density << std::endl;
+  };
+  
+  template <typename Vertex, typename Graph>
+  void register_failed_sample(Vertex u, Graph& g, double samp_sim) const {
+    g[u].constriction = (g[u].collision_count * g[u].constriction + samp_sim) / (g[u].collision_count + 1);
+    ++(g[u].collision_count);
+//     std::cout << " Vertex " << u << " has constriction: " << g[u].constriction << std::endl;
+  };
+#endif
+  
+#if 0
+  // keep the average sample similarity weighted by the sample probability (and its binomial converse).
+  
+  template <typename Vertex, typename Graph>
+  void register_explored_sample(Vertex u, Graph& g, double samp_sim) const {
+    double tmp_density = g[u].density * (1.0 - samp_sim) + samp_sim * samp_sim;
+    g[u].density = (g[u].expansion_trials * g[u].density + tmp_density) / (g[u].expansion_trials + 1);
+    ++(g[u].expansion_trials);
+//     std::cout << " Vertex " << u << " has density: " << g[u].density << std::endl;
+  };
+  template <typename Vertex, typename Graph>
+  void register_failed_sample(Vertex u, Graph& g, double samp_sim) const {
+    double tmp_density = g[u].constriction * (1.0 - samp_sim) + samp_sim * samp_sim;
+    g[u].constriction = (g[u].collision_count * g[u].constriction + tmp_density) / (g[u].collision_count + 1);
+    ++(g[u].collision_count);
+//     std::cout << " Vertex " << u << " has constriction: " << g[u].constriction << std::endl;
+  };
+#endif
+  
+#if 1
+  // keep the sample similarity weighted by the sample probability (and its binomial converse).
+  // that is, assume the existing density to reflect the overall density and the newly computed 
+  // sample similarity to reflect the density in its relatively probable region (binomial).
+  
+  template <typename Vertex, typename Graph>
+  void register_explored_sample(Vertex u, Graph& g, double samp_sim) const {
+    g[u].density = g[u].density * (1.0 - samp_sim) + samp_sim * samp_sim;
+//     std::cout << " Vertex " << u << " has density: " << g[u].density << std::endl;
+  };
+  template <typename Vertex, typename Graph>
+  void register_failed_sample(Vertex u, Graph& g, double samp_sim) const {
+    g[u].constriction = g[u].constriction * (1.0 - samp_sim) + samp_sim * samp_sim;
+//     std::cout << " Vertex " << u << " has constriction: " << g[u].constriction << std::endl;
+  };
+#endif
+  
+#if 0
+  // keep track only of the maximum sample similarity in the region of a node:
+  
+  template <typename Vertex, typename Graph>
+  void register_explored_sample(Vertex u, Graph& g, double samp_sim) const {
+    if(samp_sim > g[u].density)
+      g[u].density = samp_sim;
+//     std::cout << " Vertex " << u << " has density: " << g[u].density << std::endl;
+  };
+  template <typename Vertex, typename Graph>
+  void register_failed_sample(Vertex u, Graph& g, double samp_sim) const {
+    if(samp_sim > g[u].constriction)
+      g[u].constriction = samp_sim;
+//     std::cout << " Vertex " << u << " has constriction: " << g[u].constriction << std::endl;
+  };
+#endif
+  
+  
+  
+  template <typename Vertex, typename Graph>
+  void vertex_added(Vertex u, Graph& g) const {
+    m_nn_synchro.added_vertex(u,g);
+    
+    init_vertex_properties(u,g);
     
     // Call progress reporter...
     m_planner->report_progress(g);
     
-    if(in_degree(m_goal_node,g)) {
-//       std::cout << "Start node has distance = " << g[m_start_node].distance_accum << std::endl;
-//       std::cout << "Goal node has in-degree = " << in_degree(m_goal_node,g) << " and distance = " << g[m_goal_node].distance_accum << std::endl;
-      if(g[m_goal_node].distance_accum < m_planner->get_best_solution_distance())
-        m_planner->create_solution_path(m_start_node, m_goal_node, g);
-    };
+    if((in_degree(m_goal_node,g)) && (g[m_goal_node].distance_accum < m_planner->get_best_solution_distance()))
+      m_planner->create_solution_path(m_start_node, m_goal_node, g);
   };
   
   template <typename EdgeType, typename Graph>
-  void edge_added(EdgeType e, Graph& g) const {
-    
-  };
+  void edge_added(EdgeType e, Graph& g) const { };
   
   template <typename Vertex, typename Graph>
   void travel_explored(Vertex u, Vertex v, Graph& g) const { 
-    using std::exp;
     double dist = get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space());
-    
-//     double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
-//     double samp_prob = exp_value;  // relative probability.
-// //     double samp_prob = m_samp_prob_norm * exp_value;  // absolute probability.
-//     
-// //     g[u].density = g[u].density * (1.0 - samp_prob) + samp_prob * exp_value;
-//     double tmp_density = g[u].density * (1.0 - samp_prob) + samp_prob * exp_value;
-//     g[u].density = (g[u].expansion_trials * g[u].density + tmp_density) / (g[u].expansion_trials + 1);
-//     ++(g[u].expansion_trials);
-// //     g[v].density = g[v].density * (1.0 - samp_prob) + samp_prob * exp_value;
-//     tmp_density = g[v].density * (1.0 - samp_prob) + samp_prob * exp_value;
-//     g[v].density = (g[v].expansion_trials * g[v].density + tmp_density) / (g[v].expansion_trials + 1);
-//     ++(g[v].expansion_trials);
-    
-    
-//     if(m_planner->get_sampling_radius() < dist)
-//       return;
-    double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
-    
-    g[u].density = (g[u].expansion_trials * g[u].density + exp_value) / (g[u].expansion_trials + 1);
-    ++(g[u].expansion_trials);
-    g[v].density = (g[v].expansion_trials * g[v].density + exp_value) / (g[v].expansion_trials + 1);
-    ++(g[v].expansion_trials);
-    
-    
-// //     if(m_planner->get_sampling_radius() < dist)
-// //       return;
-//     double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
-//     
-//     if(exp_value > g[u].density)
-//       g[u].density = exp_value;
-//     ++(g[u].expansion_trials);
-//     if(exp_value > g[v].density)
-//       g[v].density = exp_value;
-//     ++(g[v].expansion_trials);
+    double samp_sim = compute_sample_similarity(dist);
+    if(samp_sim < std::numeric_limits<double>::epsilon())
+      return;
+    register_explored_sample(u,g,samp_sim);
+    register_explored_sample(v,g,samp_sim);
   };
   
   template <typename Vertex, typename Graph>
@@ -466,30 +529,14 @@ struct sbastar_planner_visitor {
     using std::log; using std::exp;
     double dist = get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space());
     
-//     // assume collision occured half-way.  
-//     // assume a blob of collision half-way and occupying half of the interval between u and v (radius 1/4 of dist).
-//     double sig2_n_x = 16.0 * (m_planner->get_sampling_radius() * m_planner->get_sampling_radius()) / (dist * dist);
-//     double exp_D_KL = exp(-2.0 - 0.5 * m_space_dim * ( sig2_n_x - 1.0 - log(sig2_n_x) ) );
-//     
-//     double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
-//     double samp_prob = exp_value * m_samp_prob_norm;
-//     
-//     g[u].constriction += samp_prob * exp_D_KL;
-//     ++(g[u].collision_count);
-//     g[v].constriction += samp_prob * exp_D_KL;
-//     ++(g[v].collision_count);
-    
-//     if(m_planner->get_sampling_radius() < dist)
-//       return;
     // assume collision occured half-way.  
-    // assume a blob of collision half-way and occupying half of the interval between u and v (radius 1/4 of dist).
-    double sig2_n_x = 16.0 * (m_planner->get_sampling_radius() * m_planner->get_sampling_radius()) / (dist * dist);
-    double exp_D_KL = exp(-2.0 - 0.5 * m_space_dim * ( sig2_n_x - 1.0 - log(sig2_n_x) ) );
+    // assume a blob of collision half-way and occupying half of the interval between u and v (radius 1/4 of travel_dist).
+    double samp_sim = compute_sample_similarity(0.5 * dist, 0.25 * dist);
+    if(samp_sim < std::numeric_limits<double>::epsilon())
+      return;
+    register_failed_sample(u,g,samp_sim);
+    register_failed_sample(v,g,samp_sim);
     
-    g[u].constriction = (g[u].collision_count * g[u].constriction + exp_D_KL) / (g[u].collision_count + 1);
-    ++(g[u].collision_count);
-    g[v].constriction = (g[v].collision_count * g[v].constriction + exp_D_KL) / (g[v].collision_count + 1);
-    ++(g[v].collision_count);
   };
       
   
@@ -523,26 +570,10 @@ struct sbastar_planner_visitor {
 //       if(( dist < 0.9 * target_dist ) && ( dist < 0.95 * m_planner->get_sampling_radius() )) {
         // this means that we had a collision before reaching the target distance, 
         // must record that to the constriction statistic:
+        double samp_sim = compute_sample_similarity(target_dist, (target_dist - dist));
+        if(samp_sim > std::numeric_limits<double>::epsilon())
+          register_failed_sample(u,g,samp_sim);
         
-//         double exp_value = exp(-target_dist * target_dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
-//         double samp_prob = exp_value * m_samp_prob_norm;
-//         
-//         double sig2_n = m_planner->get_sampling_radius() * m_planner->get_sampling_radius();
-//         double sig2_x = (target_dist - dist) * (target_dist - dist);
-//         double exp_D_KL = exp(-target_dist * target_dist / (sig2_x * 2.0) - 0.5 * m_space_dim * ( sig2_n / sig2_x - 1.0 - log(sig2_n / sig2_x) ) );
-//         g[u].constriction += samp_prob * exp_D_KL;
-//         ++(g[u].collision_count);
-        
-        
-        double sig2_n = m_planner->get_sampling_radius() * m_planner->get_sampling_radius();
-        double sig2_x = (target_dist - dist) * (target_dist - dist);
-        double exp_D_KL = exp(-target_dist * target_dist / (sig2_x * 2.0) - 0.5 * m_space_dim * ( sig2_n / sig2_x - 1.0 - log(sig2_n / sig2_x) ) );
-        g[u].constriction = ( g[u].collision_count * g[u].constriction + exp_D_KL ) / (g[u].collision_count + 1);
-        ++(g[u].collision_count);
-        
-        // and to the expansion attempts statistic:
-//         g[u].density = ( g[u].expansion_trials * g[u].density + exp_D_KL ) / (g[u].expansion_trials + 1);
-//         ++(g[u].expansion_trials);
         p_rnd = get_sample(m_space->get_super_space());
       } else
         return ResultType(p_v, true, EdgeProp(dist));
@@ -574,21 +605,13 @@ struct sbastar_planner_visitor {
     typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
     using std::exp;
     
-    g[u].heuristic_value = get(ReaK::pp::distance_metric, m_space->get_super_space())(
-      g[u].position,
-      g[m_goal_node].position,
-      m_space->get_super_space());
+    init_vertex_properties(u,g);
     
-    g[u].constriction = 0.0;
-    g[u].collision_count = 0;  // r
-    
-    g[u].density = 0.0;
-    g[u].expansion_trials = 0;  // m
     OutEdgeIter ei, ei_end;
-    const double denom = m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0;
     for(boost::tie(ei,ei_end) = out_edges(u,g); ei != ei_end; ++ei) {
-      g[u].density = (g[u].expansion_trials * g[u].density + exp(-g[*ei].astar_weight * g[*ei].astar_weight / denom)) / (g[u].expansion_trials + 1);
-      ++(g[u].expansion_trials);
+      double samp_sim = compute_sample_similarity(g[*ei].astar_weight);
+      if(samp_sim > std::numeric_limits<double>::epsilon())
+        register_explored_sample(u,g,samp_sim);
     };
     
   };
@@ -602,7 +625,6 @@ struct sbastar_planner_visitor {
   
   template <typename Graph>
   void publish_path(const Graph& g) const {
-//     std::cout << "Publishing path..." << std::endl;
     // try to create a goal connection path
     m_planner->create_solution_path(m_start_node, m_goal_node, g); 
     

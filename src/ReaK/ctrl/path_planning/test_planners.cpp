@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Uni-dir, adj-list, dvp-bf2..." << std::endl;
       timing_output << "RRT, Uni-dir, adj-list, dvp-bf2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10, 0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -198,17 +198,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1])
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1] << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -217,7 +221,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Uni-dir, adj-list, dvp-bf4..." << std::endl;
       timing_output << "RRT, Uni-dir, adj-list, dvp-bf4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -239,17 +243,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -259,7 +267,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Uni-dir, adj-list, dvp-cob2..." << std::endl;
       timing_output << "RRT, Uni-dir, adj-list, dvp-cob2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -281,17 +289,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -299,7 +311,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Uni-dir, adj-list, dvp-cob4..." << std::endl;
       timing_output << "RRT, Uni-dir, adj-list, dvp-cob4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -321,17 +333,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -341,7 +357,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Uni-dir, adj-list, linear-search..." << std::endl;
       timing_output << "RRT, Uni-dir, adj-list, linear-search" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -363,17 +379,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -383,7 +403,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Uni-dir, dvp-adj-list-bf2..." << std::endl;
       timing_output << "RRT, Uni-dir, dvp-adj-list-bf2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -405,17 +425,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -424,7 +448,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Uni-dir, dvp-adj-list-bf4..." << std::endl;
       timing_output << "RRT, Uni-dir, dvp-adj-list-bf4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -446,17 +470,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -466,7 +494,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Uni-dir, dvp-adj-list-cob2..." << std::endl;
       timing_output << "RRT, Uni-dir, dvp-adj-list-cob2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -488,17 +516,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -507,7 +539,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Uni-dir, dvp-adj-list-cob4..." << std::endl;
       timing_output << "RRT, Uni-dir, dvp-adj-list-cob4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -529,17 +561,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -568,7 +604,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Bi-dir, adj-list, dvp-bf2..." << std::endl;
       timing_output << "RRT, Bi-dir, adj-list, dvp-bf2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -590,18 +626,22 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
           ss >> v_count >> t_val;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -610,7 +650,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Bi-dir, adj-list, dvp-bf4..." << std::endl;
       timing_output << "RRT, Bi-dir, adj-list, dvp-bf4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -632,18 +672,22 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
           ss >> v_count >> t_val;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -653,7 +697,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Bi-dir, adj-list, dvp-cob2..." << std::endl;
       timing_output << "RRT, Bi-dir, adj-list, dvp-cob2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -675,17 +719,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -694,7 +742,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Bi-dir, adj-list, dvp-cob4..." << std::endl;
       timing_output << "RRT, Bi-dir, adj-list, dvp-cob4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -716,18 +764,22 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
           ss >> v_count >> t_val;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -737,7 +789,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Bi-dir, adj-list, linear-search..." << std::endl;
       timing_output << "RRT, Bi-dir, adj-list, linear-search" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -759,18 +811,22 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
           ss >> v_count >> t_val;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -781,7 +837,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Bi-dir, dvp-adj-list-bf2..." << std::endl;
       timing_output << "RRT, Bi-dir, dvp-adj-list-bf2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -803,18 +859,22 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
           ss >> v_count >> t_val;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -823,7 +883,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Bi-dir, dvp-adj-list-bf4..." << std::endl;
       timing_output << "RRT, Bi-dir, dvp-adj-list-bf4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -845,18 +905,22 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
           ss >> v_count >> t_val;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -866,7 +930,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Bi-dir, dvp-adj-list-cob2..." << std::endl;
       timing_output << "RRT, Bi-dir, dvp-adj-list-cob2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -888,18 +952,22 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
           ss >> v_count >> t_val;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -908,7 +976,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Bi-dir, dvp-adj-list-cob4..." << std::endl;
       timing_output << "RRT, Bi-dir, dvp-adj-list-cob4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -930,18 +998,22 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
           ss >> v_count >> t_val;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -971,7 +1043,7 @@ int main(int argc, char** argv) {
       std::cout << "Running PRM with adj-list, dvp-bf2..." << std::endl;
       timing_output << "PRM, adj-list, dvp-bf2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -992,17 +1064,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1011,7 +1087,7 @@ int main(int argc, char** argv) {
       std::cout << "Running PRM with adj-list, dvp-bf4..." << std::endl;
       timing_output << "PRM, adj-list, dvp-bf4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1032,17 +1108,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1052,7 +1132,7 @@ int main(int argc, char** argv) {
       std::cout << "Running PRM with adj-list, dvp-cob2..." << std::endl;
       timing_output << "PRM, adj-list, dvp-cob2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1073,17 +1153,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1092,7 +1176,7 @@ int main(int argc, char** argv) {
       std::cout << "Running PRM with adj-list, dvp-cob4..." << std::endl;
       timing_output << "PRM, adj-list, dvp-cob4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1113,17 +1197,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1133,7 +1221,7 @@ int main(int argc, char** argv) {
       std::cout << "Running PRM with adj-list, linear-search..." << std::endl;
       timing_output << "PRM, adj-list, linear-search" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1154,17 +1242,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1176,7 +1268,7 @@ int main(int argc, char** argv) {
       std::cout << "Running PRM with dvp-adj-list-bf2..." << std::endl;
       timing_output << "PRM, dvp-adj-list-bf2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1197,17 +1289,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1216,7 +1312,7 @@ int main(int argc, char** argv) {
       std::cout << "Running PRM with dvp-adj-list-bf4..." << std::endl;
       timing_output << "PRM, dvp-adj-list-bf4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1237,17 +1333,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1257,7 +1357,7 @@ int main(int argc, char** argv) {
       std::cout << "Running PRM with dvp-adj-list-cob2..." << std::endl;
       timing_output << "PRM, dvp-adj-list-cob2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1278,17 +1378,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1297,7 +1401,7 @@ int main(int argc, char** argv) {
       std::cout << "Running PRM with dvp-adj-list-cob4..." << std::endl;
       timing_output << "PRM, dvp-adj-list-cob4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1318,17 +1422,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1357,7 +1465,7 @@ int main(int argc, char** argv) {
       std::cout << "Running FADPRM with adj-list, dvp-bf2..." << std::endl;
       timing_output << "FADPRM, adj-list, dvp-bf2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1380,17 +1488,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1400,7 +1512,7 @@ int main(int argc, char** argv) {
       std::cout << "Running FADPRM with adj-list, dvp-bf4..." << std::endl;
       timing_output << "FADPRM, adj-list, dvp-bf4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1423,17 +1535,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1443,7 +1559,7 @@ int main(int argc, char** argv) {
       std::cout << "Running FADPRM with adj-list, dvp-cob2..." << std::endl;
       timing_output << "FADPRM, adj-list, dvp-cob2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1466,17 +1582,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1485,7 +1605,7 @@ int main(int argc, char** argv) {
       std::cout << "Running FADPRM with adj-list, dvp-cob4..." << std::endl;
       timing_output << "FADPRM, adj-list, dvp-cob4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1508,17 +1628,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1528,7 +1652,7 @@ int main(int argc, char** argv) {
       std::cout << "Running FADPRM with adj-list, linear-search..." << std::endl;
       timing_output << "FADPRM, adj-list, linear-search" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1551,17 +1675,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1573,7 +1701,7 @@ int main(int argc, char** argv) {
       std::cout << "Running FADPRM with dvp-adj-list-bf2..." << std::endl;
       timing_output << "FADPRM, dvp-adj-list-bf2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1596,17 +1724,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1615,7 +1747,7 @@ int main(int argc, char** argv) {
       std::cout << "Running FADPRM with dvp-adj-list-bf4..." << std::endl;
       timing_output << "FADPRM, dvp-adj-list-bf4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1638,17 +1770,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1658,7 +1794,7 @@ int main(int argc, char** argv) {
       std::cout << "Running FADPRM with dvp-adj-list-cob2..." << std::endl;
       timing_output << "FADPRM, dvp-adj-list-cob2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1681,17 +1817,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1700,7 +1840,7 @@ int main(int argc, char** argv) {
       std::cout << "Running FADPRM with dvp-adj-list-cob4..." << std::endl;
       timing_output << "FADPRM, dvp-adj-list-cob4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1723,17 +1863,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1761,7 +1905,7 @@ int main(int argc, char** argv) {
       std::cout << "Running SBA* with adj-list, dvp-bf2..." << std::endl;
       timing_output << "SBA*, adj-list, dvp-bf2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1787,17 +1931,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1806,7 +1954,7 @@ int main(int argc, char** argv) {
       std::cout << "Running SBA* with adj-list, dvp-bf4..." << std::endl;
       timing_output << "SBA*, adj-list, dvp-bf4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1832,17 +1980,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1852,7 +2004,7 @@ int main(int argc, char** argv) {
       std::cout << "Running SBA* with adj-list, dvp-cob2..." << std::endl;
       timing_output << "SBA*, adj-list, dvp-cob2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1878,17 +2030,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1897,7 +2053,7 @@ int main(int argc, char** argv) {
       std::cout << "Running SBA* with adj-list, dvp-cob4..." << std::endl;
       timing_output << "SBA*, adj-list, dvp-cob4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1923,17 +2079,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1943,7 +2103,7 @@ int main(int argc, char** argv) {
       std::cout << "Running SBA* with adj-list, linear-search..." << std::endl;
       timing_output << "SBA*, adj-list, linear-search" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -1969,17 +2129,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -1990,7 +2154,7 @@ int main(int argc, char** argv) {
       std::cout << "Running SBA* with dvp-adj-list-bf2..." << std::endl;
       timing_output << "SBA*, dvp-adj-list-bf2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2016,17 +2180,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -2035,7 +2203,7 @@ int main(int argc, char** argv) {
       std::cout << "Running SBA* with dvp-adj-list-bf4..." << std::endl;
       timing_output << "SBA*, dvp-adj-list-bf4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2061,17 +2229,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -2081,7 +2253,7 @@ int main(int argc, char** argv) {
       std::cout << "Running SBA* with dvp-adj-list-cob2..." << std::endl;
       timing_output << "SBA*, dvp-adj-list-cob2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2107,17 +2279,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -2126,7 +2302,7 @@ int main(int argc, char** argv) {
       std::cout << "Running SBA* with dvp-adj-list-cob4..." << std::endl;
       timing_output << "SBA*, dvp-adj-list-cob4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2152,17 +2328,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -2192,7 +2372,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT* with Uni-dir, adj-list, dvp-bf2..." << std::endl;
       timing_output << "RRT*, Uni-dir, adj-list, dvp-bf2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2214,17 +2394,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -2233,7 +2417,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT* with Uni-dir, adj-list, dvp-bf4..." << std::endl;
       timing_output << "RRT*, Uni-dir, adj-list, dvp-bf4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2255,17 +2439,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -2275,7 +2463,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT* with Uni-dir, adj-list, dvp-cob2..." << std::endl;
       timing_output << "RRT*, Uni-dir, adj-list, dvp-cob2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2297,17 +2485,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -2316,7 +2508,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT* with Uni-dir, adj-list, dvp-cob4..." << std::endl;
       timing_output << "RRT*, Uni-dir, adj-list, dvp-cob4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2338,17 +2530,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -2358,7 +2554,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT* with Uni-dir, adj-list, linear-search..." << std::endl;
       timing_output << "RRT*, Uni-dir, adj-list, linear-search" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2380,17 +2576,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -2401,7 +2601,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT* with Uni-dir, dvp-adj-list-bf2..." << std::endl;
       timing_output << "RRT*, Uni-dir, dvp-adj-list-bf2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2423,17 +2623,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -2442,7 +2646,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT* with Uni-dir, dvp-adj-list-bf4..." << std::endl;
       timing_output << "RRT*, Uni-dir, dvp-adj-list-bf4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2464,17 +2668,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -2484,7 +2692,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT* with Uni-dir, dvp-adj-list-cob2..." << std::endl;
       timing_output << "RRT*, Uni-dir, dvp-adj-list-cob2" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2506,17 +2714,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;
@@ -2525,7 +2737,7 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT* with Uni-dir, dvp-adj-list-cob4..." << std::endl;
       timing_output << "RRT*, Uni-dir, dvp-adj-list-cob4" << std::endl;
       {
-      std::vector< std::pair<int, ReaK::vect<double,3> > > avg_times(mc_max_vertices_100, std::pair<int, ReaK::vect<double,3> >(0,ReaK::vect<double,3>(0.0,1.0e10,0.0)));
+      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
       for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
@@ -2547,17 +2759,21 @@ int main(int argc, char** argv) {
         int j = 0;
         while(ss >> v_count) {
           ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first) * avg_times[j].second[0]) / double(avg_times[j].first + 1);
+          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
           if(c_val < avg_times[j].second[1]) 
             avg_times[j].second[1] = c_val;
           if(c_val > avg_times[j].second[2])
             avg_times[j].second[2] = c_val;
-          avg_times[j].first += 1; ++j;
+          if(c_val < 1.0e9) {
+            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
+            avg_times[j].first[1] += 1;
+          };
+          avg_times[j].first[0] += 1; ++j;
         };
       };
       for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first)
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << std::endl; 
+        if(avg_times[i].first[0])
+          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
       };
       };
       std::cout << "Done!" << std::endl;

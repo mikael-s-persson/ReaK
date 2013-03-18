@@ -199,7 +199,10 @@ namespace graph {
     inline void
     sbarrtstar_search_loop
       (Graph &g, Vertex start_vertex, SBARRTStarBFSVisitor& sba_vis, MutableQueue& Q)
-    { 
+    {
+      std::size_t num_rrt_vertices = 0;
+      std::size_t num_sba_vertices = num_vertices(g);
+      
       while (sba_vis.keep_going()) {
         
         sba_vis.requeue_vertex(start_vertex,g);
@@ -217,16 +220,21 @@ namespace graph {
           sba_vis.requeue_vertex(u,g);
           
         }; // end while  (the queue is either empty or it contains vertices that still have low key values.
+        num_sba_vertices = num_vertices(g) - num_rrt_vertices;
         
         sba_vis.publish_path(g);
         
         std::size_t max_vertex_count = num_vertices(g);
-        max_vertex_count += max_vertex_count / 2 + 1;
+        max_vertex_count += max_vertex_count / 5 + 1;
 //         max_vertex_count += 4 * (math::highest_set_bit(max_vertex_count) + 1);
         while((num_vertices(g) < max_vertex_count) && (sba_vis.keep_going()))
           sba_vis.add_exploratory_node(g);
         
+        num_rrt_vertices = num_vertices(g) - num_sba_vertices;
+        
       };
+      std::cout << " SBA* vertices generated = " << num_sba_vertices << std::endl;
+      std::cout << " RRT* vertices generated = " << num_rrt_vertices << std::endl;
     };
     
   
