@@ -100,6 +100,7 @@ namespace graph {
           WeightMap weight,
           NcSelector select_neighborhood) const {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
         
         typedef boost::composite_property_map< 
@@ -111,8 +112,9 @@ namespace graph {
         
         Vertex v = sba_vis.create_vertex(p, g);
         
-        if( sba_vis.create_edge(u, v, ep, g) ) {
-          put(distance, v, get(distance, u) + get(weight, g[edge(u,v,g).first]));
+        std::pair<Edge, bool> e_new = sba_vis.create_edge(u, v, ep, g);
+        if( e_new.second ) {
+          put(distance, v, get(distance, u) + get(weight, g[e_new.first]));
           put(predecessor, v, u);
           sba_vis.requeue_vertex(u,g);
         };
@@ -125,20 +127,22 @@ namespace graph {
           double g_out = tentative_weight + get(distance, *it);
           if(g_in < get(distance, *it)) {
             // edge is useful as an in-edge to (*it).
-            if(sba_vis.attempt_connecting_edge(v, *it, g)) {
+            e_new = sba_vis.attempt_connecting_edge(v, *it, g);
+            if( e_new.second ) {
               put(distance, *it, g_in);
               Vertex old_pred = get(predecessor, *it);
               put(predecessor, *it, v); 
-              sba_vis.edge_relaxed(edge(v,*it,g).first, g);
+              sba_vis.edge_relaxed(e_new.first, g);
               remove_edge(old_pred, *it, g);
             };
           } else if(g_out < get(distance, v)) {
             // edge is useful as an in-edge to v.
-            if(sba_vis.attempt_connecting_edge(*it, v, g)) {
+            e_new = sba_vis.attempt_connecting_edge(*it, v, g);
+            if( e_new.second ) {
               put(distance, v, g_out);
               Vertex old_pred = get(predecessor, v);
               put(predecessor, v, *it); 
-              sba_vis.edge_relaxed(edge(*it,v,g).first, g);
+              sba_vis.edge_relaxed(e_new.first, g);
               remove_edge(old_pred, v, g);
             };
           };
@@ -189,6 +193,7 @@ namespace graph {
           WeightMap weight,
           NcSelector select_neighborhood) const {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
         
         typedef boost::composite_property_map< 
@@ -200,8 +205,9 @@ namespace graph {
         
         Vertex v = sba_vis.create_vertex(p, g);
         
-        if( sba_vis.create_edge(u, v, ep, g) ) {
-          put(distance, v, get(distance, u) + get(weight, g[edge(u,v,g).first]));
+        std::pair<Edge, bool> e_new = sba_vis.create_edge(u, v, ep, g);
+        if( e_new.second ) {
+          put(distance, v, get(distance, u) + get(weight, g[e_new.first]));
           put(predecessor, v, u);
           sba_vis.requeue_vertex(u,g);
         };
@@ -214,11 +220,12 @@ namespace graph {
           double g_out = tentative_weight + get(distance, *it);
           if(g_out < get(distance, v)) {
             // edge is useful as an in-edge to v.
-            if(sba_vis.attempt_connecting_edge(*it, v, g)) {
+            e_new = sba_vis.attempt_connecting_edge(*it, v, g);
+            if( e_new.second ) {
               put(distance, v, g_out);
               Vertex old_pred = get(predecessor, v);
               put(predecessor, v, *it); 
-              sba_vis.edge_relaxed(edge(*it,v,g).first, g);
+              sba_vis.edge_relaxed(e_new.first, g);
               remove_edge(old_pred, v, g);
             };
           };
@@ -233,11 +240,12 @@ namespace graph {
           double g_in  = tentative_weight + get(distance, v);
           if(g_in < get(distance, *it)) {
             // edge is useful as an in-edge to (*it).
-            if(sba_vis.attempt_connecting_edge(v, *it, g)) {
+            e_new = sba_vis.attempt_connecting_edge(v, *it, g);
+            if( e_new.second ) {
               put(distance, *it, g_in);
               Vertex old_pred = get(predecessor, *it);
               put(predecessor, *it, v); 
-              sba_vis.edge_relaxed(edge(v,*it,g).first, g);
+              sba_vis.edge_relaxed(e_new.first, g);
               remove_edge(old_pred, *it, g);
             };
           };

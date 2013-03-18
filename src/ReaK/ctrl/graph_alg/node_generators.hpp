@@ -115,7 +115,7 @@ struct rrg_node_generator {
                 typename Graph::edge_bundled > >::type 
     operator()(Graph& g,
                RRGVisitor vis,
-               PositionMap g_position) {
+               PositionMap g_position) const {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename Graph::edge_bundled EdgeProp;
@@ -148,7 +148,7 @@ struct rrg_node_generator {
                 typename Graph::edge_bundled > >::type 
     operator()(Graph& g,
                RRGVisitor vis,
-               PositionMap g_position) {
+               PositionMap g_position) const {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename Graph::edge_bundled EdgeProp;

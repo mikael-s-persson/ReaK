@@ -434,26 +434,26 @@ struct sbastar_planner_visitor {
 //     ++(g[v].expansion_trials);
     
     
-// //     if(m_planner->get_sampling_radius() < dist)
-// //       return;
-//     double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
-//     
-//     g[u].density = (g[u].expansion_trials * g[u].density + exp_value) / (g[u].expansion_trials + 1);
-//     ++(g[u].expansion_trials);
-//     g[v].density = (g[v].expansion_trials * g[v].density + exp_value) / (g[v].expansion_trials + 1);
-//     ++(g[v].expansion_trials);
-    
-    
 //     if(m_planner->get_sampling_radius() < dist)
 //       return;
     double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
     
-    if(exp_value > g[u].density)
-      g[u].density = exp_value;
+    g[u].density = (g[u].expansion_trials * g[u].density + exp_value) / (g[u].expansion_trials + 1);
     ++(g[u].expansion_trials);
-    if(exp_value > g[v].density)
-      g[v].density = exp_value;
+    g[v].density = (g[v].expansion_trials * g[v].density + exp_value) / (g[v].expansion_trials + 1);
     ++(g[v].expansion_trials);
+    
+    
+// //     if(m_planner->get_sampling_radius() < dist)
+// //       return;
+//     double exp_value = exp(-dist * dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
+//     
+//     if(exp_value > g[u].density)
+//       g[u].density = exp_value;
+//     ++(g[u].expansion_trials);
+//     if(exp_value > g[v].density)
+//       g[v].density = exp_value;
+//     ++(g[v].expansion_trials);
   };
   
   template <typename Vertex, typename Graph>
@@ -498,7 +498,7 @@ struct sbastar_planner_visitor {
   };
   
   template <typename Vertex, typename Graph>
-  boost::tuple<PointType, bool, sbastar_edge_data<FreeSpaceType> > random_walk(Vertex u, Graph& g) const {
+  boost::tuple<PointType, bool, EdgeProp > random_walk(Vertex u, Graph& g) const {
     typedef boost::tuple<PointType, bool, EdgeProp > ResultType;
     using std::exp;
     using std::log;
@@ -510,8 +510,8 @@ struct sbastar_planner_visitor {
     boost::variate_generator< pp::global_rng_type&, boost::normal_distribution<double> > var_rnd(pp::get_global_rng(), boost::normal_distribution<double>());
     
     unsigned int i = 0;
-    PointType p_rnd = g[m_goal_node].position;
-//     PointType p_rnd = get_sample(m_space->get_super_space());
+//     PointType p_rnd = g[m_goal_node].position;
+    PointType p_rnd = get_sample(m_space->get_super_space());
     do {
 //       PointType p_rnd = get_sample(m_space->get_super_space());
       double dist = get_distance(g[u].position, p_rnd, m_space->get_super_space());
@@ -606,11 +606,11 @@ struct sbastar_planner_visitor {
     // try to create a goal connection path
     m_planner->create_solution_path(m_start_node, m_goal_node, g); 
     
-    m_planner->set_current_key_threshold( 0.95 * m_planner->get_current_key_threshold() );
-    m_planner->set_current_density_threshold( 0.95 * m_planner->get_current_density_threshold() );
+    m_planner->set_current_key_threshold( 0.8 * m_planner->get_current_key_threshold() );
+//     m_planner->set_current_density_threshold( 0.95 * m_planner->get_current_density_threshold() );
     
     std::cout << " new key-value threshold =\t" << m_planner->get_current_key_threshold() << std::endl;
-    std::cout << " new density-value threshold =\t" << m_planner->get_current_density_threshold() << std::endl;
+//     std::cout << " new density-value threshold =\t" << m_planner->get_current_density_threshold() << std::endl;
   };
   
   template <typename Vertex, typename Graph>
@@ -799,12 +799,12 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     if(m_knn_flag == LINEAR_SEARCH_KNN) {
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
-      ReaK::graph::fixed_neighborhood< linear_neighbor_search<> > nc_selector(
-        linear_neighbor_search<>(), 
-        10, max_radius);
-//       ReaK::graph::star_neighborhood< linear_neighbor_search<> > nc_selector(
+//       ReaK::graph::fixed_neighborhood< linear_neighbor_search<> > nc_selector(
 //         linear_neighbor_search<>(), 
-//         space_dim, 3.0 * space_Lc);
+//         10, max_radius);
+      ReaK::graph::star_neighborhood< linear_neighbor_search<> > nc_selector(
+        linear_neighbor_search<>(), 
+        space_dim, 3.0 * space_Lc);
       
       if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
         if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
@@ -831,13 +831,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
       
-      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
-        nn_finder, 
-        10, max_radius);
-      
-//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
 //         nn_finder, 
-//         space_dim, 3.0 * space_Lc);
+//         10, max_radius);
+      
+      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+        nn_finder, 
+        space_dim, 3.0 * space_Lc);
       
       if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
         if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
@@ -864,13 +864,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
       
-      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
-        nn_finder, 
-        10, max_radius);
-      
-//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
 //         nn_finder, 
-//         space_dim, 3.0 * space_Lc);
+//         10, max_radius);
+      
+      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+        nn_finder, 
+        space_dim, 3.0 * space_Lc);
       
       if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
         if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
@@ -897,13 +897,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
       
-      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
-        nn_finder, 
-        10, max_radius);
-      
-//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
 //         nn_finder, 
-//         space_dim, 3.0 * space_Lc);
+//         10, max_radius);
+      
+      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+        nn_finder, 
+        space_dim, 3.0 * space_Lc);
       
       if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
         if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
@@ -930,13 +930,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
       
-//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
-//         nn_finder, 
-//         10, max_radius);
-      
-      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
         nn_finder, 
-        space_dim, 3.0 * space_Lc);
+        10, max_radius);
+      
+//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+//         nn_finder, 
+//         space_dim, 3.0 * space_Lc);
       
       if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
         if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
@@ -980,13 +980,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
-      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
-        nn_finder, 
-        10, max_radius);
-      
-//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
 //         nn_finder, 
-//         space_dim, 3.0 * space_Lc);
+//         10, max_radius);
+      
+      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+        nn_finder, 
+        space_dim, 3.0 * space_Lc);
       
       if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
         if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
@@ -1026,13 +1026,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
-      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
-        nn_finder, 
-        10, max_radius);
-      
-//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
 //         nn_finder, 
-//         space_dim, 3.0 * space_Lc);
+//         10, max_radius);
+      
+      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+        nn_finder, 
+        space_dim, 3.0 * space_Lc);
       
       if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
         if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
@@ -1072,13 +1072,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
-      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
-        nn_finder, 
-        10, max_radius);
-      
-//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
 //         nn_finder, 
-//         space_dim, 3.0 * space_Lc);
+//         10, max_radius);
+      
+      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+        nn_finder, 
+        space_dim, 3.0 * space_Lc);
       
       if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
         if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
@@ -1118,13 +1118,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
-      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
-        nn_finder, 
-        10, max_radius);
-      
-//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
 //         nn_finder, 
-//         space_dim, 3.0 * space_Lc);
+//         10, max_radius);
+      
+      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
+        nn_finder, 
+        space_dim, 3.0 * space_Lc);
       
       if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
         if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {

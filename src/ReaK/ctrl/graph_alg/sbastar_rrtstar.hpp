@@ -175,13 +175,17 @@ namespace graph {
           PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
         GraphPositionMap g_position = GraphPositionMap(this->m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
         
-        boost::tuple< Vertex, PositionValue, EdgeProp > gen_result = m_node_generator(g, this->m_vis, g_position);
-        
-        this->m_connect_vertex(get<1>(gen_result), get<0>(gen_result), get<2>(gen_result), 
-                               g, this->m_super_space, *this, 
-                               this->m_position, this->m_distance, this->m_predecessor, this->m_weight,
-                               this->m_select_neighborhood);
-        
+        while (true) {
+          boost::tuple< Vertex, PositionValue, EdgeProp > gen_result = m_node_generator(g, this->m_vis, g_position);
+          
+          if(get(this->m_distance, get<0>(gen_result)) != std::numeric_limits<double>::infinity()) {
+            this->m_connect_vertex(get<1>(gen_result), get<0>(gen_result), get<2>(gen_result), 
+                                   g, this->m_super_space, *this, 
+                                   this->m_position, this->m_distance, this->m_predecessor, this->m_weight,
+                                   this->m_select_neighborhood);
+            return;
+          };
+        };
       };
       
       RRTNodeGenerator m_node_generator;
@@ -217,7 +221,8 @@ namespace graph {
         sba_vis.publish_path(g);
         
         std::size_t max_vertex_count = num_vertices(g);
-        max_vertex_count += 4 * (math::highest_set_bit(max_vertex_count) + 1);
+        max_vertex_count += max_vertex_count / 2 + 1;
+//         max_vertex_count += 4 * (math::highest_set_bit(max_vertex_count) + 1);
         while((num_vertices(g) < max_vertex_count) && (sba_vis.keep_going()))
           sba_vis.add_exploratory_node(g);
         
@@ -347,7 +352,7 @@ namespace graph {
     
     put(distance, start_vertex, 0.0);
     
-    detail::sbastar_search_loop(g, start_vertex, bfs_vis, Q);
+    detail::sbarrtstar_search_loop(g, start_vertex, bfs_vis, Q);
     
   };
 
@@ -578,7 +583,7 @@ namespace graph {
     
     put(distance, start_vertex, 0.0);
     
-    detail::sbastar_search_loop(g, start_vertex, bfs_vis, Q);
+    detail::sbarrtstar_search_loop(g, start_vertex, bfs_vis, Q);
     
   };
 

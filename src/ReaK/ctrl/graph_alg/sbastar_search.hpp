@@ -267,7 +267,8 @@ namespace graph {
       
       
       template <typename Vertex, typename EdgeProp, typename Graph>
-      bool create_edge(Vertex u, Vertex v, EdgeProp& ep, Graph& g) const {
+      std::pair<typename boost::graph_traits<Graph>::edge_descriptor, bool> 
+          create_edge(Vertex u, Vertex v, EdgeProp& ep, Graph& g) const {
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         
         m_vis.travel_explored(u, v, g);
@@ -279,11 +280,13 @@ namespace graph {
 #endif
         if(e_new.second)
           m_vis.edge_added(e_new.first, g);
-        return e_new.second;
+        return e_new;
       };
       
       template <typename Vertex, typename Graph>
-      bool attempt_connecting_edge(Vertex u, Vertex v, Graph& g) const {
+      std::pair<typename boost::graph_traits<Graph>::edge_descriptor, bool>
+          attempt_connecting_edge(Vertex u, Vertex v, Graph& g) const {
+        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         typedef typename Graph::edge_bundled EdgeProp;
         
         std::pair<bool, EdgeProp> connect_result = m_vis.can_be_connected(u, v, g);
@@ -292,7 +295,7 @@ namespace graph {
         } else {
           m_vis.travel_explored(u, v, g);
           m_vis.travel_failed(u, v, g);
-          return false;
+          return std::pair<Edge, bool>(Edge(), false);
         };
       };
       
@@ -430,6 +433,7 @@ namespace graph {
           WeightMap weight,
           NcSelector select_neighborhood) const {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
         
         typedef boost::composite_property_map< 
@@ -441,8 +445,9 @@ namespace graph {
         
         Vertex v = sba_vis.create_vertex(p, g);
         
-        if( sba_vis.create_edge(u, v, ep, g) ) {
-          put(distance, v, get(distance, u) + get(weight, g[edge(u,v,g).first]));
+        std::pair<Edge, bool> e_new = sba_vis.create_edge(u, v, ep, g);
+        if( e_new.second ) {
+          put(distance, v, get(distance, u) + get(weight, g[e_new.first]));
           put(predecessor, v, u);
           sba_vis.requeue_vertex(u,g);
         };
@@ -450,7 +455,8 @@ namespace graph {
         for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
           if(*it == u)
             continue;
-          if( sba_vis.attempt_connecting_edge(*it, v, g) )
+          e_new = sba_vis.attempt_connecting_edge(*it, v, g);
+          if( e_new.second )
             sba_vis.update_vertex(*it,g);
         }; 
         sba_vis.update_vertex(v,g);
@@ -495,6 +501,7 @@ namespace graph {
           WeightMap weight,
           NcSelector select_neighborhood) const {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
         
         typedef boost::composite_property_map< 
@@ -506,8 +513,9 @@ namespace graph {
         
         Vertex v = sba_vis.create_vertex(p, g);
         
-        if( sba_vis.create_edge(u, v, ep, g) ) {
-          put(distance, v, get(distance, u) + get(weight, g[edge(u,v,g).first]));
+        std::pair<Edge, bool> e_new = sba_vis.create_edge(u, v, ep, g);
+        if( e_new.second ) {
+          put(distance, v, get(distance, u) + get(weight, g[e_new.first]));
           put(predecessor, v, u);
           sba_vis.requeue_vertex(u,g);
         };
@@ -521,7 +529,7 @@ namespace graph {
         sba_vis.update_vertex(v, g);
         
         for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-          if(sba_vis.attempt_connecting_edge(v, *it, g))
+          if(sba_vis.attempt_connecting_edge(v, *it, g).second)
             sba_vis.update_vertex(*it,g);
         }; 
         
