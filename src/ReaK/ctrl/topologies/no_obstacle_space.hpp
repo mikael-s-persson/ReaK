@@ -78,6 +78,8 @@ class no_obstacle_space : public named_object {
 
   public:
     
+    double get_max_edge_length() const { return max_edge_length; };
+    
     /**
      * Returns a reference to the super-space in which this test-world is embedded.
      * \return A reference to the super-space in which this test-world is embedded.

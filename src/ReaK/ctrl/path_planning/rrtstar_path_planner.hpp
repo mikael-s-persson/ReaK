@@ -397,6 +397,9 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
   rrtstar_path_planner<FreeSpaceType,SBPPReporter>::solve_path() {
   using ReaK::to_vect;
   
+  this->has_reached_max_vertices = false;
+  this->m_solutions.clear();
+  
   typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpace;
   typedef typename topology_traits<SuperSpace>::point_type PointType;
   typedef boost::data_member_property_map<PointType, rrtstar_vertex_data<FreeSpaceType> > PositionMap;

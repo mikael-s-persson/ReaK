@@ -389,6 +389,9 @@ template <typename FreeSpaceType,
 shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>::super_space_type > > 
   rrt_path_planner<FreeSpaceType,SBPPReporter>::solve_path() {
   
+  this->has_reached_max_vertices = false;
+  this->m_solutions.clear();
+  
   typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpace;
   typedef typename topology_traits<SuperSpace>::point_type PointType;
   typedef boost::data_member_property_map<PointType, rrt_vertex_data<FreeSpaceType> > PositionMap;

@@ -67,6 +67,81 @@
 namespace po = boost::program_options;
 
 
+
+typedef ReaK::pp::ptrobot2D_test_world TestTopology;
+typedef ReaK::pp::timing_sbmp_report< ReaK::pp::least_cost_sbmp_report<> > MCReporterType;
+
+void run_monte_carlo_tests(
+    std::size_t mc_run_count,
+    std::size_t mc_num_records,
+    ReaK::pp::sample_based_planner< ReaK::pp::path_planner_base<TestTopology> >& planner,
+    std::stringstream& time_rec_ss,
+    std::stringstream& cost_rec_ss,
+    std::ostream& result_output) {
+  std::vector< std::size_t > vertex_counts(mc_num_records, 0);
+  std::vector< std::size_t > num_remaining_planners(mc_num_records, 0);
+  std::vector< std::size_t > num_successful_planners(mc_num_records, 0);
+  
+  std::vector< double > time_values(mc_num_records, 0.0);
+  std::vector< double > best_costs(mc_num_records, 0.0);
+  std::vector< double > worst_costs(mc_num_records, 1.0e10);
+  std::vector< double > avg_costs(mc_num_records, 0.0);
+  
+  for(std::size_t i = 0; i < mc_run_count; ++i) {
+    
+    planner.solve_path();
+    
+    std::size_t v_count, t_val; 
+    std::size_t j = 0;
+    while(time_rec_ss >> v_count) {
+      time_rec_ss >> t_val;
+      vertex_counts[j] = v_count;
+      time_values[j] = (double(t_val) + double(num_remaining_planners[j]) * time_values[j]) / double(num_remaining_planners[j] + 1);
+      num_remaining_planners[j] += 1; 
+      ++j;
+    };
+    
+    double c_val;
+    j = 0;
+    while(cost_rec_ss >> v_count) {
+      cost_rec_ss >> c_val;
+      if(c_val < best_costs[j])
+        best_costs[j] = c_val;
+      if(c_val > worst_costs[j])
+        worst_costs[j] = c_val;
+      if(c_val < 1.0e9) {
+        avg_costs[j] = (double(c_val) + double(num_successful_planners[j]) * avg_costs[j]) / double(num_successful_planners[j] + 1);
+        num_successful_planners[j] += 1;
+      };
+      ++j;
+    };
+    
+    while(j < mc_num_records) {
+      if(c_val < best_costs[j])
+        best_costs[j] = c_val;
+      if(c_val > worst_costs[j])
+        worst_costs[j] = c_val;
+      if(c_val < 1.0e9) {
+        avg_costs[j] = (double(c_val) + double(num_successful_planners[j]) * avg_costs[j]) / double(num_successful_planners[j] + 1);
+        num_successful_planners[j] += 1;
+      };
+      ++j;
+    };
+  };
+  for(std::size_t i = 0; i < mc_num_records; ++i) {
+    result_output << std::setw(9) << vertex_counts[i] 
+           << " " << std::setw(9) << num_remaining_planners[i] 
+           << " " << std::setw(9) << num_successful_planners[i] 
+           << " " << std::setw(9) << time_values[i] 
+           << " " << std::setw(9) << best_costs[i] 
+           << " " << std::setw(9) << worst_costs[i] 
+           << " " << std::setw(9) << avg_costs[i] << std::endl; 
+  };
+};
+
+
+
+
 int main(int argc, char** argv) {
   
   po::options_description generic_options("Generic options");
@@ -176,8 +251,6 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Uni-dir, adj-list, dvp-bf2..." << std::endl;
       timing_output << "RRT, Uni-dir, adj-list, dvp-bf2" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -192,28 +265,7 @@ int main(int argc, char** argv) {
                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                   mc_results);
         
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1])
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1] << " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
@@ -221,8 +273,6 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Uni-dir, adj-list, dvp-bf4..." << std::endl;
       timing_output << "RRT, Uni-dir, adj-list, dvp-bf4" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -237,128 +287,59 @@ int main(int argc, char** argv) {
                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                   mc_results);
         
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
       
       if(vm.count("mc-cob-tree")) {
-      std::cout << "Running RRT with Uni-dir, adj-list, dvp-cob2..." << std::endl;
-      timing_output << "RRT, Uni-dir, adj-list, dvp-cob2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::UNIDIRECTIONAL_RRT,
-                  ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_COB2_TREE_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
+        std::cout << "Running RRT with Uni-dir, adj-list, dvp-cob2..." << std::endl;
+        timing_output << "RRT, Uni-dir, adj-list, dvp-cob2" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            rrt_plan(world_map, 
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    ReaK::pp::UNIDIRECTIONAL_RRT,
+                    ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                    ReaK::pp::DVP_COB2_TREE_KNN,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
         };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      std::cout << "Running RRT with Uni-dir, adj-list, dvp-cob4..." << std::endl;
-      timing_output << "RRT, Uni-dir, adj-list, dvp-cob4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
+        std::cout << "Done!" << std::endl;
         
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::UNIDIRECTIONAL_RRT,
-                  ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_COB4_TREE_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
+        std::cout << "Running RRT with Uni-dir, adj-list, dvp-cob4..." << std::endl;
+        timing_output << "RRT, Uni-dir, adj-list, dvp-cob4" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            rrt_plan(world_map, 
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    ReaK::pp::UNIDIRECTIONAL_RRT,
+                    ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                    ReaK::pp::DVP_COB4_TREE_KNN,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
         };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
+        std::cout << "Done!" << std::endl;
       };
       
       
       std::cout << "Running RRT with Uni-dir, adj-list, linear-search..." << std::endl;
       timing_output << "RRT, Uni-dir, adj-list, linear-search" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -373,215 +354,101 @@ int main(int argc, char** argv) {
                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                   mc_results);
         
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
       
       if(vm.count("mc-dvp-alt")) {
-      std::cout << "Running RRT with Uni-dir, dvp-adj-list-bf2..." << std::endl;
-      timing_output << "RRT, Uni-dir, dvp-adj-list-bf2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
+        std::cout << "Running RRT with Uni-dir, dvp-adj-list-bf2..." << std::endl;
+        timing_output << "RRT, Uni-dir, dvp-adj-list-bf2" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            rrt_plan(world_map, 
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    ReaK::pp::UNIDIRECTIONAL_RRT,
+                    ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                    ReaK::pp::DVP_ALT_BF2_KNN,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
+        };
+        std::cout << "Done!" << std::endl;
         
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::UNIDIRECTIONAL_RRT,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_BF2_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
         
-        rrt_plan.solve_path();
+        std::cout << "Running RRT with Uni-dir, dvp-adj-list-bf4..." << std::endl;
+        timing_output << "RRT, Uni-dir, dvp-adj-list-bf4" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            rrt_plan(world_map, 
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    ReaK::pp::UNIDIRECTIONAL_RRT,
+                    ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                    ReaK::pp::DVP_ALT_BF4_KNN,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
+        };
+        std::cout << "Done!" << std::endl;
         
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
+        
+        if(vm.count("mc-cob-tree")) {
+          std::cout << "Running RRT with Uni-dir, dvp-adj-list-cob2..." << std::endl;
+          timing_output << "RRT, Uni-dir, dvp-adj-list-cob2" << std::endl;
+          {
+            std::stringstream ss, ss2;
+            
+            ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+              rrt_plan(world_map, 
+                      world_map->get_start_pos(), 
+                      world_map->get_goal_pos(),
+                      mc_max_vertices, 
+                      mc_prog_interval,
+                      ReaK::pp::UNIDIRECTIONAL_RRT,
+                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                      ReaK::pp::DVP_ALT_COB2_KNN,
+                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                      mc_results);
+            
+            run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
           };
-          avg_times[j].first[0] += 1; ++j;
+          std::cout << "Done!" << std::endl;
+          
+          
+          std::cout << "Running RRT with Uni-dir, dvp-adj-list-cob4..." << std::endl;
+          timing_output << "RRT, Uni-dir, dvp-adj-list-cob4" << std::endl;
+          {
+            std::stringstream ss, ss2;
+            
+            ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+              rrt_plan(world_map, 
+                      world_map->get_start_pos(), 
+                      world_map->get_goal_pos(),
+                      mc_max_vertices, 
+                      mc_prog_interval,
+                      ReaK::pp::UNIDIRECTIONAL_RRT,
+                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                      ReaK::pp::DVP_ALT_COB4_KNN,
+                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                      mc_results);
+            
+            run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
+          };
+          std::cout << "Done!" << std::endl;
         };
       };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT with Uni-dir, dvp-adj-list-bf4..." << std::endl;
-      timing_output << "RRT, Uni-dir, dvp-adj-list-bf4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::UNIDIRECTIONAL_RRT,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_BF4_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      if(vm.count("mc-cob-tree")) {
-      std::cout << "Running RRT with Uni-dir, dvp-adj-list-cob2..." << std::endl;
-      timing_output << "RRT, Uni-dir, dvp-adj-list-cob2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::UNIDIRECTIONAL_RRT,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_COB2_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT with Uni-dir, dvp-adj-list-cob4..." << std::endl;
-      timing_output << "RRT, Uni-dir, dvp-adj-list-cob4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::UNIDIRECTIONAL_RRT,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_COB4_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      };
-      };
-      
     };
     
 #endif
@@ -604,8 +471,6 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Bi-dir, adj-list, dvp-bf2..." << std::endl;
       timing_output << "RRT, Bi-dir, adj-list, dvp-bf2" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -620,29 +485,7 @@ int main(int argc, char** argv) {
                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                   mc_results);
         
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-          ss >> v_count >> t_val;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
@@ -650,8 +493,6 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Bi-dir, adj-list, dvp-bf4..." << std::endl;
       timing_output << "RRT, Bi-dir, adj-list, dvp-bf4" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -666,131 +507,60 @@ int main(int argc, char** argv) {
                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                   mc_results);
         
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-          ss >> v_count >> t_val;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
       
       if(vm.count("mc-cob-tree")) {
-      std::cout << "Running RRT with Bi-dir, adj-list, dvp-cob2..." << std::endl;
-      timing_output << "RRT, Bi-dir, adj-list, dvp-cob2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::BIDIRECTIONAL_RRT,
-                  ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_COB2_TREE_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
+        std::cout << "Running RRT with Bi-dir, adj-list, dvp-cob2..." << std::endl;
+        timing_output << "RRT, Bi-dir, adj-list, dvp-cob2" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            rrt_plan(world_map, 
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    ReaK::pp::BIDIRECTIONAL_RRT,
+                    ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                    ReaK::pp::DVP_COB2_TREE_KNN,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
         };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT with Bi-dir, adj-list, dvp-cob4..." << std::endl;
-      timing_output << "RRT, Bi-dir, adj-list, dvp-cob4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
+        std::cout << "Done!" << std::endl;
         
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::BIDIRECTIONAL_RRT,
-                  ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_COB4_TREE_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
         
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-          ss >> v_count >> t_val;
+        std::cout << "Running RRT with Bi-dir, adj-list, dvp-cob4..." << std::endl;
+        timing_output << "RRT, Bi-dir, adj-list, dvp-cob4" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            rrt_plan(world_map, 
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    ReaK::pp::BIDIRECTIONAL_RRT,
+                    ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                    ReaK::pp::DVP_COB4_TREE_KNN,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
         };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
+        std::cout << "Done!" << std::endl;
       };
       
       
       std::cout << "Running RRT with Bi-dir, adj-list, linear-search..." << std::endl;
       timing_output << "RRT, Bi-dir, adj-list, linear-search" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -805,221 +575,102 @@ int main(int argc, char** argv) {
                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                   mc_results);
         
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-          ss >> v_count >> t_val;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
       
       
       if(vm.count("mc-dvp-alt")) {
-      std::cout << "Running RRT with Bi-dir, dvp-adj-list-bf2..." << std::endl;
-      timing_output << "RRT, Bi-dir, dvp-adj-list-bf2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
+        std::cout << "Running RRT with Bi-dir, dvp-adj-list-bf2..." << std::endl;
+        timing_output << "RRT, Bi-dir, dvp-adj-list-bf2" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            rrt_plan(world_map, 
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    ReaK::pp::BIDIRECTIONAL_RRT,
+                    ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                    ReaK::pp::DVP_ALT_BF2_KNN,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
+        };
+        std::cout << "Done!" << std::endl;
         
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::BIDIRECTIONAL_RRT,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_BF2_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
         
-        rrt_plan.solve_path();
+        std::cout << "Running RRT with Bi-dir, dvp-adj-list-bf4..." << std::endl;
+        timing_output << "RRT, Bi-dir, dvp-adj-list-bf4" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            rrt_plan(world_map, 
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    ReaK::pp::BIDIRECTIONAL_RRT,
+                    ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                    ReaK::pp::DVP_ALT_BF4_KNN,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
+        };
+        std::cout << "Done!" << std::endl;
         
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
+        
+        if(vm.count("mc-cob-tree")) {
+          std::cout << "Running RRT with Bi-dir, dvp-adj-list-cob2..." << std::endl;
+          timing_output << "RRT, Bi-dir, dvp-adj-list-cob2" << std::endl;
+          {
+            std::stringstream ss, ss2;
+            
+            ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+              rrt_plan(world_map, 
+                      world_map->get_start_pos(), 
+                      world_map->get_goal_pos(),
+                      mc_max_vertices, 
+                      mc_prog_interval,
+                      ReaK::pp::BIDIRECTIONAL_RRT,
+                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                      ReaK::pp::DVP_ALT_COB2_KNN,
+                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                      mc_results);
+            
+            run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
           };
-          avg_times[j].first[0] += 1; ++j;
-          ss >> v_count >> t_val;
+          std::cout << "Done!" << std::endl;
+          
+          
+          std::cout << "Running RRT with Bi-dir, dvp-adj-list-cob4..." << std::endl;
+          timing_output << "RRT, Bi-dir, dvp-adj-list-cob4" << std::endl;
+          {
+            std::stringstream ss, ss2;
+            
+            ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+              rrt_plan(world_map, 
+                      world_map->get_start_pos(), 
+                      world_map->get_goal_pos(),
+                      mc_max_vertices, 
+                      mc_prog_interval,
+                      ReaK::pp::BIDIRECTIONAL_RRT,
+                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                      ReaK::pp::DVP_ALT_COB4_KNN,
+                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                      mc_results);
+            
+            run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
+          };
+          std::cout << "Done!" << std::endl;
         };
       };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT with Bi-dir, dvp-adj-list-bf4..." << std::endl;
-      timing_output << "RRT, Bi-dir, dvp-adj-list-bf4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::BIDIRECTIONAL_RRT,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_BF4_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-          ss >> v_count >> t_val;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      if(vm.count("mc-cob-tree")) {
-      std::cout << "Running RRT with Bi-dir, dvp-adj-list-cob2..." << std::endl;
-      timing_output << "RRT, Bi-dir, dvp-adj-list-cob2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::BIDIRECTIONAL_RRT,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_COB2_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-          ss >> v_count >> t_val;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT with Bi-dir, dvp-adj-list-cob4..." << std::endl;
-      timing_output << "RRT, Bi-dir, dvp-adj-list-cob4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::BIDIRECTIONAL_RRT,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_COB4_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        rrt_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-          ss >> v_count >> t_val;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      };
-      };
-      
     };
     
   #endif
@@ -1043,8 +694,6 @@ int main(int argc, char** argv) {
       std::cout << "Running PRM with adj-list, dvp-bf2..." << std::endl;
       timing_output << "PRM, adj-list, dvp-bf2" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -1058,28 +707,7 @@ int main(int argc, char** argv) {
                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                   mc_results);
         
-        prm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
@@ -1087,8 +715,6 @@ int main(int argc, char** argv) {
       std::cout << "Running PRM with adj-list, dvp-bf4..." << std::endl;
       timing_output << "PRM, adj-list, dvp-bf4" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -1102,127 +728,58 @@ int main(int argc, char** argv) {
                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                   mc_results);
         
-        prm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
       
       if(vm.count("mc-cob-tree")) {
-      std::cout << "Running PRM with adj-list, dvp-cob2..." << std::endl;
-      timing_output << "PRM, adj-list, dvp-cob2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          prm_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_COB2_TREE_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        prm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
+        std::cout << "Running PRM with adj-list, dvp-cob2..." << std::endl;
+        timing_output << "PRM, adj-list, dvp-cob2" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            prm_plan(world_map, 
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                    ReaK::pp::DVP_COB2_TREE_KNN,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
         };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running PRM with adj-list, dvp-cob4..." << std::endl;
-      timing_output << "PRM, adj-list, dvp-cob4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
+        std::cout << "Done!" << std::endl;
         
-        ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          prm_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_COB4_TREE_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
         
-        prm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
+        std::cout << "Running PRM with adj-list, dvp-cob4..." << std::endl;
+        timing_output << "PRM, adj-list, dvp-cob4" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            prm_plan(world_map, 
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                    ReaK::pp::DVP_COB4_TREE_KNN,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
         };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
+        std::cout << "Done!" << std::endl;
       };
       
       
       std::cout << "Running PRM with adj-list, linear-search..." << std::endl;
       timing_output << "PRM, adj-list, linear-search" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -1236,28 +793,7 @@ int main(int argc, char** argv) {
                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                   mc_results);
         
-        prm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
@@ -1265,184 +801,91 @@ int main(int argc, char** argv) {
       
       
       if(vm.count("mc-dvp-alt")) {
-      std::cout << "Running PRM with dvp-adj-list-bf2..." << std::endl;
-      timing_output << "PRM, dvp-adj-list-bf2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
+        std::cout << "Running PRM with dvp-adj-list-bf2..." << std::endl;
+        timing_output << "PRM, dvp-adj-list-bf2" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            prm_plan(world_map, 
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                    ReaK::pp::DVP_ALT_BF2_KNN,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
+        };
+        std::cout << "Done!" << std::endl;
         
-        ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          prm_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_BF2_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
         
-        prm_plan.solve_path();
+        std::cout << "Running PRM with dvp-adj-list-bf4..." << std::endl;
+        timing_output << "PRM, dvp-adj-list-bf4" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            prm_plan(world_map, 
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                    ReaK::pp::DVP_ALT_BF4_KNN,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
+        };
+        std::cout << "Done!" << std::endl;
         
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
+        
+        if(vm.count("mc-cob-tree")) {
+          std::cout << "Running PRM with dvp-adj-list-cob2..." << std::endl;
+          timing_output << "PRM, dvp-adj-list-cob2" << std::endl;
+          {
+            std::stringstream ss, ss2;
+            
+            ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+              prm_plan(world_map, 
+                      world_map->get_start_pos(), 
+                      world_map->get_goal_pos(),
+                      mc_max_vertices, 
+                      mc_prog_interval,
+                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                      ReaK::pp::DVP_ALT_COB2_KNN,
+                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                      mc_results);
+            
+            run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
           };
-          avg_times[j].first[0] += 1; ++j;
+          std::cout << "Done!" << std::endl;
+          
+          
+          std::cout << "Running PRM with dvp-adj-list-cob4..." << std::endl;
+          timing_output << "PRM, dvp-adj-list-cob4" << std::endl;
+          {
+            std::stringstream ss, ss2;
+            
+            ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+              prm_plan(world_map, 
+                      world_map->get_start_pos(), 
+                      world_map->get_goal_pos(),
+                      mc_max_vertices, 
+                      mc_prog_interval,
+                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                      ReaK::pp::DVP_ALT_COB4_KNN,
+                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                      mc_results);
+            
+            run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
+          };
+          std::cout << "Done!" << std::endl;
         };
       };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running PRM with dvp-adj-list-bf4..." << std::endl;
-      timing_output << "PRM, dvp-adj-list-bf4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          prm_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_BF4_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        prm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      if(vm.count("mc-cob-tree")) {
-      std::cout << "Running PRM with dvp-adj-list-cob2..." << std::endl;
-      timing_output << "PRM, dvp-adj-list-cob2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          prm_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_COB2_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        prm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running PRM with dvp-adj-list-cob4..." << std::endl;
-      timing_output << "PRM, dvp-adj-list-cob4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          prm_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_COB4_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
-        
-        prm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      };
-      };
-      
     };
     
 #endif
@@ -1465,8 +908,6 @@ int main(int argc, char** argv) {
       std::cout << "Running FADPRM with adj-list, dvp-bf2..." << std::endl;
       timing_output << "FADPRM, adj-list, dvp-bf2" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -1482,28 +923,7 @@ int main(int argc, char** argv) {
             ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
             mc_results);
         
-        fadprm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
@@ -1512,8 +932,6 @@ int main(int argc, char** argv) {
       std::cout << "Running FADPRM with adj-list, dvp-bf4..." << std::endl;
       timing_output << "FADPRM, adj-list, dvp-bf4" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -1529,131 +947,62 @@ int main(int argc, char** argv) {
             ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
             mc_results);
         
-        fadprm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
       
       if(vm.count("mc-cob-tree")) {
-      std::cout << "Running FADPRM with adj-list, dvp-cob2..." << std::endl;
-      timing_output << "FADPRM, adj-list, dvp-cob2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          fadprm_plan(
-            world_map, 
-            world_map->get_start_pos(), 
-            world_map->get_goal_pos(),
-            10.0,
-            mc_max_vertices, 
-            mc_prog_interval,
-            ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-            ReaK::pp::DVP_COB2_TREE_KNN,
-            ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-            mc_results);
-        
-        fadprm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
+        std::cout << "Running FADPRM with adj-list, dvp-cob2..." << std::endl;
+        timing_output << "FADPRM, adj-list, dvp-cob2" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            fadprm_plan(
+              world_map, 
+              world_map->get_start_pos(), 
+              world_map->get_goal_pos(),
+              10.0,
+              mc_max_vertices, 
+              mc_prog_interval,
+              ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+              ReaK::pp::DVP_COB2_TREE_KNN,
+              ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+              mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
         };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running FADPRM with adj-list, dvp-cob4..." << std::endl;
-      timing_output << "FADPRM, adj-list, dvp-cob4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
+        std::cout << "Done!" << std::endl;
         
-        ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          fadprm_plan(
-            world_map, 
-            world_map->get_start_pos(), 
-            world_map->get_goal_pos(),
-            10.0,
-            mc_max_vertices, 
-            mc_prog_interval,
-            ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-            ReaK::pp::DVP_COB4_TREE_KNN,
-            ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-            mc_results);
         
-        fadprm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
+        std::cout << "Running FADPRM with adj-list, dvp-cob4..." << std::endl;
+        timing_output << "FADPRM, adj-list, dvp-cob4" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            fadprm_plan(
+              world_map, 
+              world_map->get_start_pos(), 
+              world_map->get_goal_pos(),
+              10.0,
+              mc_max_vertices, 
+              mc_prog_interval,
+              ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+              ReaK::pp::DVP_COB4_TREE_KNN,
+              ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+              mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
         };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
+        std::cout << "Done!" << std::endl;
       };
       
       
       std::cout << "Running FADPRM with adj-list, linear-search..." << std::endl;
       timing_output << "FADPRM, adj-list, linear-search" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -1669,28 +1018,7 @@ int main(int argc, char** argv) {
             ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
             mc_results);
         
-        fadprm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
@@ -1698,192 +1026,99 @@ int main(int argc, char** argv) {
       
       
       if(vm.count("mc-dvp-alt")) {
-      std::cout << "Running FADPRM with dvp-adj-list-bf2..." << std::endl;
-      timing_output << "FADPRM, dvp-adj-list-bf2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
+        std::cout << "Running FADPRM with dvp-adj-list-bf2..." << std::endl;
+        timing_output << "FADPRM, dvp-adj-list-bf2" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            fadprm_plan(
+              world_map, 
+              world_map->get_start_pos(), 
+              world_map->get_goal_pos(),
+              10.0,
+              mc_max_vertices, 
+              mc_prog_interval,
+              ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+              ReaK::pp::DVP_ALT_BF2_KNN,
+              ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+              mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
+        };
+        std::cout << "Done!" << std::endl;
         
-        ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          fadprm_plan(
-            world_map, 
-            world_map->get_start_pos(), 
-            world_map->get_goal_pos(),
-            10.0,
-            mc_max_vertices, 
-            mc_prog_interval,
-            ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-            ReaK::pp::DVP_ALT_BF2_KNN,
-            ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-            mc_results);
         
-        fadprm_plan.solve_path();
+        std::cout << "Running FADPRM with dvp-adj-list-bf4..." << std::endl;
+        timing_output << "FADPRM, dvp-adj-list-bf4" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            fadprm_plan(
+              world_map, 
+              world_map->get_start_pos(), 
+              world_map->get_goal_pos(),
+              10.0,
+              mc_max_vertices, 
+              mc_prog_interval,
+              ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+              ReaK::pp::DVP_ALT_BF4_KNN,
+              ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+              mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
+        };
+        std::cout << "Done!" << std::endl;
         
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
+        
+        if(vm.count("mc-cob-tree")) {
+          std::cout << "Running FADPRM with dvp-adj-list-cob2..." << std::endl;
+          timing_output << "FADPRM, dvp-adj-list-cob2" << std::endl;
+          {
+            std::stringstream ss, ss2;
+            
+            ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+              fadprm_plan(
+                world_map, 
+                world_map->get_start_pos(), 
+                world_map->get_goal_pos(),
+                10.0,
+                mc_max_vertices, 
+                mc_prog_interval,
+                ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                ReaK::pp::DVP_ALT_COB2_KNN,
+                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                mc_results);
+            
+            run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
           };
-          avg_times[j].first[0] += 1; ++j;
+          std::cout << "Done!" << std::endl;
+          
+          
+          std::cout << "Running FADPRM with dvp-adj-list-cob4..." << std::endl;
+          timing_output << "FADPRM, dvp-adj-list-cob4" << std::endl;
+          {
+            std::stringstream ss, ss2;
+            
+            ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+              fadprm_plan(
+                world_map, 
+                world_map->get_start_pos(), 
+                world_map->get_goal_pos(),
+                10.0,
+                mc_max_vertices, 
+                mc_prog_interval,
+                ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                ReaK::pp::DVP_ALT_COB4_KNN,
+                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                mc_results);
+            
+            run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
+          };
+          std::cout << "Done!" << std::endl;
         };
       };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running FADPRM with dvp-adj-list-bf4..." << std::endl;
-      timing_output << "FADPRM, dvp-adj-list-bf4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          fadprm_plan(
-            world_map, 
-            world_map->get_start_pos(), 
-            world_map->get_goal_pos(),
-            10.0,
-            mc_max_vertices, 
-            mc_prog_interval,
-            ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-            ReaK::pp::DVP_ALT_BF4_KNN,
-            ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-            mc_results);
-        
-        fadprm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      if(vm.count("mc-cob-tree")) {
-      std::cout << "Running FADPRM with dvp-adj-list-cob2..." << std::endl;
-      timing_output << "FADPRM, dvp-adj-list-cob2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          fadprm_plan(
-            world_map, 
-            world_map->get_start_pos(), 
-            world_map->get_goal_pos(),
-            10.0,
-            mc_max_vertices, 
-            mc_prog_interval,
-            ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-            ReaK::pp::DVP_ALT_COB2_KNN,
-            ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-            mc_results);
-        
-        fadprm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running FADPRM with dvp-adj-list-cob4..." << std::endl;
-      timing_output << "FADPRM, dvp-adj-list-cob4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          fadprm_plan(
-            world_map, 
-            world_map->get_start_pos(), 
-            world_map->get_goal_pos(),
-            10.0,
-            mc_max_vertices, 
-            mc_prog_interval,
-            ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-            ReaK::pp::DVP_ALT_COB4_KNN,
-            ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-            mc_results);
-        
-        fadprm_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      };
-      };
-      
     };
     
 #endif
@@ -1905,8 +1140,6 @@ int main(int argc, char** argv) {
       std::cout << "Running SBA* with adj-list, dvp-bf2..." << std::endl;
       timing_output << "SBA*, adj-list, dvp-bf2" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -1925,28 +1158,7 @@ int main(int argc, char** argv) {
                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                        mc_results);
         
-        sbastar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
@@ -1954,8 +1166,6 @@ int main(int argc, char** argv) {
       std::cout << "Running SBA* with adj-list, dvp-bf4..." << std::endl;
       timing_output << "SBA*, adj-list, dvp-bf4" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -1974,137 +1184,68 @@ int main(int argc, char** argv) {
                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                        mc_results);
         
-        sbastar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
       
       if(vm.count("mc-cob-tree")) {
-      std::cout << "Running SBA* with adj-list, dvp-cob2..." << std::endl;
-      timing_output << "SBA*, adj-list, dvp-cob2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          sbastar_plan(world_map, 
-                       world_map->get_start_pos(), 
-                       world_map->get_goal_pos(),
-                       vm["sba-potential-cutoff"].as<double>(),
-                       vm["sba-density-cutoff"].as<double>(),
-                       world_map->get_max_edge_length(),
-                       mc_max_vertices, 
-                       mc_prog_interval,
-                       ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                       ReaK::pp::DVP_COB2_TREE_KNN,
-                       ReaK::pp::LAZY_COLLISION_CHECKING,
-                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
-                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
-        
-        sbastar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
+        std::cout << "Running SBA* with adj-list, dvp-cob2..." << std::endl;
+        timing_output << "SBA*, adj-list, dvp-cob2" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            sbastar_plan(world_map, 
+                        world_map->get_start_pos(), 
+                        world_map->get_goal_pos(),
+                        vm["sba-potential-cutoff"].as<double>(),
+                        vm["sba-density-cutoff"].as<double>(),
+                        world_map->get_max_edge_length(),
+                        mc_max_vertices, 
+                        mc_prog_interval,
+                        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                        ReaK::pp::DVP_COB2_TREE_KNN,
+                        ReaK::pp::LAZY_COLLISION_CHECKING,
+                        ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                        mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
         };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running SBA* with adj-list, dvp-cob4..." << std::endl;
-      timing_output << "SBA*, adj-list, dvp-cob4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
+        std::cout << "Done!" << std::endl;
         
-        ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          sbastar_plan(world_map, 
-                       world_map->get_start_pos(), 
-                       world_map->get_goal_pos(),
-                       vm["sba-potential-cutoff"].as<double>(),
-                       vm["sba-density-cutoff"].as<double>(),
-                       world_map->get_max_edge_length(),
-                       mc_max_vertices, 
-                       mc_prog_interval,
-                       ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                       ReaK::pp::DVP_COB4_TREE_KNN,
-                       ReaK::pp::LAZY_COLLISION_CHECKING,
-                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
-                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
         
-        sbastar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
+        std::cout << "Running SBA* with adj-list, dvp-cob4..." << std::endl;
+        timing_output << "SBA*, adj-list, dvp-cob4" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            sbastar_plan(world_map, 
+                        world_map->get_start_pos(), 
+                        world_map->get_goal_pos(),
+                        vm["sba-potential-cutoff"].as<double>(),
+                        vm["sba-density-cutoff"].as<double>(),
+                        world_map->get_max_edge_length(),
+                        mc_max_vertices, 
+                        mc_prog_interval,
+                        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                        ReaK::pp::DVP_COB4_TREE_KNN,
+                        ReaK::pp::LAZY_COLLISION_CHECKING,
+                        ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                        mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
         };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
+        std::cout << "Done!" << std::endl;
       };
       
       
       std::cout << "Running SBA* with adj-list, linear-search..." << std::endl;
       timing_output << "SBA*, adj-list, linear-search" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -2123,232 +1264,118 @@ int main(int argc, char** argv) {
                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                        mc_results);
         
-        sbastar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
       
       
       if(vm.count("mc-dvp-alt")) {
-      std::cout << "Running SBA* with dvp-adj-list-bf2..." << std::endl;
-      timing_output << "SBA*, dvp-adj-list-bf2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
+        std::cout << "Running SBA* with dvp-adj-list-bf2..." << std::endl;
+        timing_output << "SBA*, dvp-adj-list-bf2" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            sbastar_plan(world_map, 
+                        world_map->get_start_pos(), 
+                        world_map->get_goal_pos(),
+                        vm["sba-potential-cutoff"].as<double>(),
+                        vm["sba-density-cutoff"].as<double>(),
+                        world_map->get_max_edge_length(),
+                        mc_max_vertices, 
+                        mc_prog_interval,
+                        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                        ReaK::pp::DVP_ALT_BF2_KNN,
+                        ReaK::pp::LAZY_COLLISION_CHECKING,
+                        ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                        mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
+        };
+        std::cout << "Done!" << std::endl;
         
-        ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          sbastar_plan(world_map, 
-                       world_map->get_start_pos(), 
-                       world_map->get_goal_pos(),
-                       vm["sba-potential-cutoff"].as<double>(),
-                       vm["sba-density-cutoff"].as<double>(),
-                       world_map->get_max_edge_length(),
-                       mc_max_vertices, 
-                       mc_prog_interval,
-                       ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                       ReaK::pp::DVP_ALT_BF2_KNN,
-                       ReaK::pp::LAZY_COLLISION_CHECKING,
-                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
-                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
         
-        sbastar_plan.solve_path();
+        std::cout << "Running SBA* with dvp-adj-list-bf4..." << std::endl;
+        timing_output << "SBA*, dvp-adj-list-bf4" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            sbastar_plan(world_map, 
+                        world_map->get_start_pos(), 
+                        world_map->get_goal_pos(),
+                        vm["sba-potential-cutoff"].as<double>(),
+                        vm["sba-density-cutoff"].as<double>(),
+                        world_map->get_max_edge_length(),
+                        mc_max_vertices, 
+                        mc_prog_interval,
+                        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                        ReaK::pp::DVP_ALT_BF4_KNN,
+                        ReaK::pp::LAZY_COLLISION_CHECKING,
+                        ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                        mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
+        };
+        std::cout << "Done!" << std::endl;
         
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
+        
+        if(vm.count("mc-cob-tree")) {
+          std::cout << "Running SBA* with dvp-adj-list-cob2..." << std::endl;
+          timing_output << "SBA*, dvp-adj-list-cob2" << std::endl;
+          {
+            std::stringstream ss, ss2;
+            
+            ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+              sbastar_plan(world_map, 
+                          world_map->get_start_pos(), 
+                          world_map->get_goal_pos(),
+                          vm["sba-potential-cutoff"].as<double>(),
+                          vm["sba-density-cutoff"].as<double>(),
+                          world_map->get_max_edge_length(),
+                          mc_max_vertices, 
+                          mc_prog_interval,
+                          ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                          ReaK::pp::DVP_ALT_COB2_KNN,
+                          ReaK::pp::LAZY_COLLISION_CHECKING,
+                          ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                          ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                          mc_results);
+            
+            run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
           };
-          avg_times[j].first[0] += 1; ++j;
+          std::cout << "Done!" << std::endl;
+          
+          
+          std::cout << "Running SBA* with dvp-adj-list-cob4..." << std::endl;
+          timing_output << "SBA*, dvp-adj-list-cob4" << std::endl;
+          {
+            std::stringstream ss, ss2;
+            
+            ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+              sbastar_plan(world_map, 
+                          world_map->get_start_pos(), 
+                          world_map->get_goal_pos(),
+                          vm["sba-potential-cutoff"].as<double>(),
+                          vm["sba-density-cutoff"].as<double>(),
+                          world_map->get_max_edge_length(),
+                          mc_max_vertices, 
+                          mc_prog_interval,
+                          ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                          ReaK::pp::DVP_ALT_COB4_KNN,
+                          ReaK::pp::LAZY_COLLISION_CHECKING,
+                          ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                          ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                          mc_results);
+            
+            run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
+          };
+          std::cout << "Done!" << std::endl;
         };
       };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running SBA* with dvp-adj-list-bf4..." << std::endl;
-      timing_output << "SBA*, dvp-adj-list-bf4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          sbastar_plan(world_map, 
-                       world_map->get_start_pos(), 
-                       world_map->get_goal_pos(),
-                       vm["sba-potential-cutoff"].as<double>(),
-                       vm["sba-density-cutoff"].as<double>(),
-                       world_map->get_max_edge_length(),
-                       mc_max_vertices, 
-                       mc_prog_interval,
-                       ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                       ReaK::pp::DVP_ALT_BF4_KNN,
-                       ReaK::pp::LAZY_COLLISION_CHECKING,
-                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
-                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
-        
-        sbastar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      if(vm.count("mc-cob-tree")) {
-      std::cout << "Running SBA* with dvp-adj-list-cob2..." << std::endl;
-      timing_output << "SBA*, dvp-adj-list-cob2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          sbastar_plan(world_map, 
-                       world_map->get_start_pos(), 
-                       world_map->get_goal_pos(),
-                       vm["sba-potential-cutoff"].as<double>(),
-                       vm["sba-density-cutoff"].as<double>(),
-                       world_map->get_max_edge_length(),
-                       mc_max_vertices, 
-                       mc_prog_interval,
-                       ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                       ReaK::pp::DVP_ALT_COB2_KNN,
-                       ReaK::pp::LAZY_COLLISION_CHECKING,
-                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
-                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
-        
-        sbastar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running SBA* with dvp-adj-list-cob4..." << std::endl;
-      timing_output << "SBA*, dvp-adj-list-cob4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          sbastar_plan(world_map, 
-                       world_map->get_start_pos(), 
-                       world_map->get_goal_pos(),
-                       vm["sba-potential-cutoff"].as<double>(),
-                       vm["sba-density-cutoff"].as<double>(),
-                       world_map->get_max_edge_length(),
-                       mc_max_vertices, 
-                       mc_prog_interval,
-                       ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                       ReaK::pp::DVP_ALT_COB4_KNN,
-                       ReaK::pp::LAZY_COLLISION_CHECKING,
-                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
-                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
-        
-        sbastar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      };
-      };
-      
     };
       
 #endif
@@ -2372,8 +1399,6 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT* with Uni-dir, adj-list, dvp-bf2..." << std::endl;
       timing_output << "RRT*, Uni-dir, adj-list, dvp-bf2" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -2388,28 +1413,7 @@ int main(int argc, char** argv) {
                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                       mc_results);
         
-        rrtstar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
@@ -2417,8 +1421,6 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT* with Uni-dir, adj-list, dvp-bf4..." << std::endl;
       timing_output << "RRT*, Uni-dir, adj-list, dvp-bf4" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -2433,129 +1435,60 @@ int main(int argc, char** argv) {
                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                       mc_results);
         
-        rrtstar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
       
       if(vm.count("mc-cob-tree")) {
-      std::cout << "Running RRT* with Uni-dir, adj-list, dvp-cob2..." << std::endl;
-      timing_output << "RRT*, Uni-dir, adj-list, dvp-cob2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrtstar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::UNIDIRECTIONAL_RRT,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_COB2_TREE_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
-        
-        rrtstar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
+        std::cout << "Running RRT* with Uni-dir, adj-list, dvp-cob2..." << std::endl;
+        timing_output << "RRT*, Uni-dir, adj-list, dvp-cob2" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            rrtstar_plan(world_map, 
+                        world_map->get_start_pos(), 
+                        world_map->get_goal_pos(),
+                        mc_max_vertices, 
+                        mc_prog_interval,
+                        ReaK::pp::UNIDIRECTIONAL_RRT,
+                        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                        ReaK::pp::DVP_COB2_TREE_KNN,
+                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                        mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
         };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT* with Uni-dir, adj-list, dvp-cob4..." << std::endl;
-      timing_output << "RRT*, Uni-dir, adj-list, dvp-cob4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
+        std::cout << "Done!" << std::endl;
         
-        ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrtstar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::UNIDIRECTIONAL_RRT,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_COB4_TREE_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
         
-        rrtstar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
+        std::cout << "Running RRT* with Uni-dir, adj-list, dvp-cob4..." << std::endl;
+        timing_output << "RRT*, Uni-dir, adj-list, dvp-cob4" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            rrtstar_plan(world_map, 
+                        world_map->get_start_pos(), 
+                        world_map->get_goal_pos(),
+                        mc_max_vertices, 
+                        mc_prog_interval,
+                        ReaK::pp::UNIDIRECTIONAL_RRT,
+                        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+                        ReaK::pp::DVP_COB4_TREE_KNN,
+                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                        mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
         };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
+        std::cout << "Done!" << std::endl;
       };
       
       
       std::cout << "Running RRT* with Uni-dir, adj-list, linear-search..." << std::endl;
       timing_output << "RRT*, Uni-dir, adj-list, linear-search" << std::endl;
       {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
         std::stringstream ss, ss2;
         
         ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
@@ -2570,216 +1503,102 @@ int main(int argc, char** argv) {
                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                       mc_results);
         
-        rrtstar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
+        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
       };
       std::cout << "Done!" << std::endl;
       
       
       
       if(vm.count("mc-dvp-alt")) {
-      std::cout << "Running RRT* with Uni-dir, dvp-adj-list-bf2..." << std::endl;
-      timing_output << "RRT*, Uni-dir, dvp-adj-list-bf2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
+        std::cout << "Running RRT* with Uni-dir, dvp-adj-list-bf2..." << std::endl;
+        timing_output << "RRT*, Uni-dir, dvp-adj-list-bf2" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            rrtstar_plan(world_map, 
+                        world_map->get_start_pos(), 
+                        world_map->get_goal_pos(),
+                        mc_max_vertices, 
+                        mc_prog_interval,
+                        ReaK::pp::UNIDIRECTIONAL_RRT,
+                        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                        ReaK::pp::DVP_ALT_BF2_KNN,
+                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                        mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
+        };
+        std::cout << "Done!" << std::endl;
         
-        ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrtstar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::UNIDIRECTIONAL_RRT,
-                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_ALT_BF2_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
         
-        rrtstar_plan.solve_path();
+        std::cout << "Running RRT* with Uni-dir, dvp-adj-list-bf4..." << std::endl;
+        timing_output << "RRT*, Uni-dir, dvp-adj-list-bf4" << std::endl;
+        {
+          std::stringstream ss, ss2;
+          
+          ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+            rrtstar_plan(world_map, 
+                        world_map->get_start_pos(), 
+                        world_map->get_goal_pos(),
+                        mc_max_vertices, 
+                        mc_prog_interval,
+                        ReaK::pp::UNIDIRECTIONAL_RRT,
+                        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                        ReaK::pp::DVP_ALT_BF4_KNN,
+                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                        mc_results);
+          
+          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
+        };
+        std::cout << "Done!" << std::endl;
         
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
+        
+        if(vm.count("mc-cob-tree")) {
+          std::cout << "Running RRT* with Uni-dir, dvp-adj-list-cob2..." << std::endl;
+          timing_output << "RRT*, Uni-dir, dvp-adj-list-cob2" << std::endl;
+          {
+            std::stringstream ss, ss2;
+            
+            ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+              rrtstar_plan(world_map, 
+                          world_map->get_start_pos(), 
+                          world_map->get_goal_pos(),
+                          mc_max_vertices, 
+                          mc_prog_interval,
+                          ReaK::pp::UNIDIRECTIONAL_RRT,
+                          ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                          ReaK::pp::DVP_ALT_COB2_KNN,
+                          ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                          mc_results);
+            
+            run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
           };
-          avg_times[j].first[0] += 1; ++j;
+          std::cout << "Done!" << std::endl;
+          
+          
+          std::cout << "Running RRT* with Uni-dir, dvp-adj-list-cob4..." << std::endl;
+          timing_output << "RRT*, Uni-dir, dvp-adj-list-cob4" << std::endl;
+          {
+            std::stringstream ss, ss2;
+            
+            ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
+              rrtstar_plan(world_map, 
+                          world_map->get_start_pos(), 
+                          world_map->get_goal_pos(),
+                          mc_max_vertices, 
+                          mc_prog_interval,
+                          ReaK::pp::UNIDIRECTIONAL_RRT,
+                          ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
+                          ReaK::pp::DVP_ALT_COB4_KNN,
+                          ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                          mc_results);
+            
+            run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
+          };
+          std::cout << "Done!" << std::endl;
         };
       };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT* with Uni-dir, dvp-adj-list-bf4..." << std::endl;
-      timing_output << "RRT*, Uni-dir, dvp-adj-list-bf4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrtstar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::UNIDIRECTIONAL_RRT,
-                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_ALT_BF4_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
-        
-        rrtstar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      if(vm.count("mc-cob-tree")) {
-      std::cout << "Running RRT* with Uni-dir, dvp-adj-list-cob2..." << std::endl;
-      timing_output << "RRT*, Uni-dir, dvp-adj-list-cob2" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrtstar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::UNIDIRECTIONAL_RRT,
-                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_ALT_COB2_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
-        
-        rrtstar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT* with Uni-dir, dvp-adj-list-cob4..." << std::endl;
-      timing_output << "RRT*, Uni-dir, dvp-adj-list-cob4" << std::endl;
-      {
-      std::vector< std::pair< ReaK::vect<int,2>, ReaK::vect<double,4> > > avg_times(mc_max_vertices_100, std::pair<ReaK::vect<int,2>, ReaK::vect<double,4> >(ReaK::vect<int,2>(0,0),ReaK::vect<double,4>(0.0,1.0e10, 0.0, 0.0)));
-      for(std::size_t i = 0; i < mc_run_count; ++i) {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrtstar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::UNIDIRECTIONAL_RRT,
-                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_ALT_COB4_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
-        
-        rrtstar_plan.solve_path();
-        
-        int v_count, t_val; double c_val;
-        int j = 0;
-        while(ss >> v_count) {
-          ss >> t_val; ss2 >> v_count >> c_val;
-          avg_times[j].second[0] = (double(t_val) + double(avg_times[j].first[0]) * avg_times[j].second[0]) / double(avg_times[j].first[0] + 1);
-          if(c_val < avg_times[j].second[1]) 
-            avg_times[j].second[1] = c_val;
-          if(c_val > avg_times[j].second[2])
-            avg_times[j].second[2] = c_val;
-          if(c_val < 1.0e9) {
-            avg_times[j].second[3] = (double(c_val) + double(avg_times[j].first[1]) * avg_times[j].second[3]) / double(avg_times[j].first[1] + 1);
-            avg_times[j].first[1] += 1;
-          };
-          avg_times[j].first[0] += 1; ++j;
-        };
-      };
-      for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-        if(avg_times[i].first[0])
-          timing_output << std::setw(6) << (i+1)*mc_prog_interval << " " << std::setw(6) << avg_times[i].first[0] << " " << std::setw(6) << avg_times[i].first[1]<< " " << std::setw(10) << avg_times[i].second[0] << " " << std::setw(10) << avg_times[i].second[1] << " " << std::setw(10) << avg_times[i].second[2] << " " << std::setw(10) << avg_times[i].second[3] << std::endl; 
-      };
-      };
-      std::cout << "Done!" << std::endl;
-      };
-      };
-      
     };
       
 #endif
