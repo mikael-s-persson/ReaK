@@ -81,6 +81,22 @@ struct rrtstar_edge_data {
 
 
 
+struct rrtstar_vprinter : serialization::serializable {
+  
+  template <typename Vertex, typename Graph>
+  void operator()(std::ostream& out, Vertex u, const Graph& g) const {
+    using ReaK::to_vect;
+    vect_n<double> v_pos = to_vect<double>(g[u].position);
+    for(std::size_t i = 0; i < v_pos.size(); ++i)
+      out << " " << std::setw(10) << v_pos[i];
+    out << " " << std::setw(10) << g[u].distance_accum << std::endl;
+  };
+  
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
+  
+  RK_RTTI_MAKE_ABSTRACT_1BASE(rrtstar_vprinter,0xC2460014,1,"rrtstar_vprinter",serialization::serializable)
+};
 
 
 /**

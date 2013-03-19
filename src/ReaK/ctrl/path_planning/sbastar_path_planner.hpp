@@ -95,6 +95,31 @@ struct sbastar_edge_data {
 
 
 
+struct sbastar_vprinter : serialization::serializable {
+  
+  template <typename Vertex, typename Graph>
+  void operator()(std::ostream& out, Vertex u, const Graph& g) const {
+    using ReaK::to_vect;
+    vect_n<double> v_pos = to_vect<double>(g[u].position);
+    for(std::size_t i = 0; i < v_pos.size(); ++i)
+      out << " " << std::setw(10) << v_pos[i];
+    out << " " << std::setw(10) << g[u].constriction 
+        << " " << std::setw(10) << g[u].collision_count 
+        << " " << std::setw(10) << g[u].density 
+        << " " << std::setw(10) << g[u].expansion_trials 
+        << " " << std::setw(10) << g[u].heuristic_value 
+        << " " << std::setw(10) << g[u].distance_accum 
+        << " " << std::setw(10) << g[u].key_value << std::endl;
+  };
+  
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
+  
+  RK_RTTI_MAKE_ABSTRACT_1BASE(sbastar_vprinter,0xC2460012,1,"sbastar_vprinter",serialization::serializable)
+};
+
+
+
 
 
 /**
@@ -405,8 +430,8 @@ struct sbastar_planner_visitor {
   double compute_sample_similarity(double travel_dist, double event_radius) const {
     using std::exp; using std::log;
     
-    if(travel_dist > m_planner->get_sampling_radius())
-      return 0.0;
+//     if(travel_dist > m_planner->get_sampling_radius())
+//       return 0.0;
     double sig2_n = 0.25 * m_planner->get_sampling_radius() * m_planner->get_sampling_radius();
     double sig2_x = 0.25 * event_radius * event_radius;
     return exp(-travel_dist * travel_dist / (sig2_x * 2.0) - 0.5 * m_space_dim * ( sig2_n / sig2_x - 1.0 - log(sig2_n / sig2_x) ) );
@@ -415,8 +440,8 @@ struct sbastar_planner_visitor {
   double compute_sample_similarity(double travel_dist) const {
     using std::exp;
     
-    if(travel_dist > m_planner->get_sampling_radius())
-      return 0.0;
+//     if(travel_dist > m_planner->get_sampling_radius())
+//       return 0.0;
     return exp(-travel_dist * travel_dist / (0.25 * m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
   };
   
@@ -438,7 +463,8 @@ struct sbastar_planner_visitor {
   };
 #endif
   
-#if 0
+  // NOTE: This seems to be the best one.
+#if 1
   // keep the average sample similarity weighted by the sample probability (and its binomial converse).
   
   template <typename Vertex, typename Graph>
@@ -457,7 +483,7 @@ struct sbastar_planner_visitor {
   };
 #endif
   
-#if 1
+#if 0
   // keep the sample similarity weighted by the sample probability (and its binomial converse).
   // that is, assume the existing density to reflect the overall density and the newly computed 
   // sample similarity to reflect the density in its relatively probable region (binomial).
@@ -637,7 +663,8 @@ struct sbastar_planner_visitor {
   
   template <typename Vertex, typename Graph>
   bool has_search_potential(Vertex u, const Graph& g) const { 
-    if( (u != m_goal_node) && (g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc) )
+//     if( (u != m_goal_node) && (g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc) )
+    if( g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc )
       return true;
     else 
       return false;

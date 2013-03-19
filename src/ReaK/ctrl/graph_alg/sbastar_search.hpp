@@ -355,8 +355,8 @@ namespace graph {
       void update_key(Vertex u, Graph& g) const {
         double g_u = get(m_distance, u);
         double h_u = get(m_heuristic, u);
-        double f_u = g_u + h_u;   // <--- no relaxation.
-//         double f_u = g_u + 5.0 * h_u;   // <--- with relaxation.
+//         double f_u = g_u + h_u;   // <--- no relaxation.
+        double f_u = g_u + 10.0 * h_u;   // <--- with relaxation.
         // Key-value for the min-heap (priority-queue):
         put(m_key, u, (1.0 - get(m_constriction, u)) * (1.0 - get(m_density, u)) / f_u);
       };

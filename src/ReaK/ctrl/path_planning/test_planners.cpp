@@ -60,7 +60,7 @@
 #endif
 
 #include "basic_sbmp_reporters.hpp"
-
+#include "vlist_sbmp_report.hpp"
 
 #include <boost/program_options.hpp>
 
@@ -1714,7 +1714,7 @@ int main(int argc, char** argv) {
     if(run_all_planners || vm.count("sba-star")) {
       std::cout << "Outputting SBA* with adj-list dvp-bf4..." << std::endl;
       
-      ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
+      ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::vlist_sbmp_report< ReaK::pp::sbastar_vprinter, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > > 
         sbastar_plan(
           world_map, 
           world_map->get_start_pos(), 
@@ -1728,7 +1728,10 @@ int main(int argc, char** argv) {
           ReaK::pp::DVP_BF4_TREE_KNN,
           ReaK::pp::LAZY_COLLISION_CHECKING,
           ReaK::pp::PLAN_WITH_VORONOI_PULL,
-          ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(output_path_name + "/sbastar/" + world_file_name_only + "_", 5),
+          ReaK::pp::vlist_sbmp_report< ReaK::pp::sbastar_vprinter, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > >(
+            output_path_name + "/sbastar/" + world_file_name_only + "_",
+            ReaK::pp::sbastar_vprinter(),
+            ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(output_path_name + "/sbastar/" + world_file_name_only + "_", 5)),
           sr_results);
       
       sbastar_plan.solve_path();
