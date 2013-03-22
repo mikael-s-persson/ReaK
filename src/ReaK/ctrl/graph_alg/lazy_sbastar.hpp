@@ -354,7 +354,12 @@ namespace graph {
      NcSelector select_neighborhood)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
+#ifdef RK_SBASTAR_USE_INVERTED_ASTAR_KEY
     typedef std::greater<double> KeyCompareType;  // <---- this is a max-heap.
+#endif
+#ifdef RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
+    typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
+#endif
     typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
     IndexInHeapMap index_in_heap;
     {

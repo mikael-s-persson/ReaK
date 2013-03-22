@@ -63,6 +63,11 @@
 
 #include <stack>
 
+
+// #define RK_SBASTAR_USE_INVERTED_ASTAR_KEY
+#define RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
+
+
 /** Main namespace for ReaK */
 namespace ReaK {
 
@@ -331,7 +336,6 @@ namespace graph {
                            m_position, m_distance, m_predecessor, m_weight,
                            m_select_neighborhood);
         
-        update_key(u,g);
       };
       
       template <typename Graph>
@@ -351,6 +355,7 @@ namespace graph {
       };
       
       
+#ifdef RK_SBASTAR_USE_INVERTED_ASTAR_KEY
       template <class Vertex, typename Graph>
       void update_key(Vertex u, Graph& g) const {
         double g_u = get(m_distance, u);
@@ -360,6 +365,19 @@ namespace graph {
         // Key-value for the min-heap (priority-queue):
         put(m_key, u, (1.0 - get(m_constriction, u)) * (1.0 - get(m_density, u)) / f_u);
       };
+#endif
+      
+#ifdef RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
+      template <class Vertex, typename Graph>
+      void update_key(Vertex u, Graph& g) const {
+        double g_u = get(m_distance, u);
+        double h_u = get(m_heuristic, u);
+        // Key-value for the min-heap (priority-queue):
+//         put(m_key, u, get(m_constriction, u) * get(m_density, u) * g_u + h_u);
+        put(m_key, u, ((g_u + h_u) / (1.0 - get(m_constriction, u)) + (10000.0 / num_vertices(g)) * h_u) / (1.0 - get(m_density, u)));
+      };
+#endif
+      
 
       template <class Vertex, class Graph>
       void update_vertex(Vertex u, Graph& g) const {
@@ -387,7 +405,6 @@ namespace graph {
             m_vis.edge_relaxed(pred_e, g);
         };
         
-        requeue_vertex(u,g);
       };
 
       const Topology& m_super_space;
@@ -456,10 +473,13 @@ namespace graph {
           if(*it == u)
             continue;
           e_new = sba_vis.attempt_connecting_edge(*it, v, g);
-          if( e_new.second )
+          if( e_new.second ) {
             sba_vis.update_vertex(*it,g);
+            sba_vis.requeue_vertex(*it,g);
+          };
         }; 
         sba_vis.update_vertex(v,g);
+        sba_vis.requeue_vertex(v,g);
         
         // need to update all the children of the v node:
         std::stack<Vertex> incons;
@@ -527,10 +547,13 @@ namespace graph {
         };
         
         sba_vis.update_vertex(v, g);
+        sba_vis.requeue_vertex(v,g);
         
         for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-          if(sba_vis.attempt_connecting_edge(v, *it, g).second)
+          if(sba_vis.attempt_connecting_edge(v, *it, g).second) {
             sba_vis.update_vertex(*it,g);
+            sba_vis.requeue_vertex(*it,g);
+          };
         }; 
         
         // need to update all the children of the v node:
@@ -574,13 +597,12 @@ namespace graph {
         while (!Q.empty() && sba_vis.keep_going()) { 
           Vertex u = Q.top(); Q.pop();
           
-          sba_vis.examine_vertex(u, g);
-          
           // stop if the best node does not meet the potential threshold.
           if( ! sba_vis.has_search_potential(u, g) )
             break;
           
-          // if the node still has a minimally good potential, then push it back on the OPEN queue.
+          sba_vis.examine_vertex(u, g);
+          // then push it back on the OPEN queue.
           sba_vis.requeue_vertex(u,g);
           
         }; // end while  (the queue is either empty or it contains vertices that still have low key values.
@@ -672,7 +694,12 @@ namespace graph {
      NcSelector select_neighborhood)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
+#ifdef RK_SBASTAR_USE_INVERTED_ASTAR_KEY
     typedef std::greater<double> KeyCompareType;  // <---- this is a max-heap.
+#endif
+#ifdef RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
+    typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
+#endif
     typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
     IndexInHeapMap index_in_heap;
     {

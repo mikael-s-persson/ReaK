@@ -210,12 +210,11 @@ namespace graph {
         while (!Q.empty() && sba_vis.keep_going()) { 
           Vertex u = Q.top(); Q.pop();
           
-          sba_vis.examine_vertex(u, g);
-          
           // stop if the best node does not meet the potential threshold.
           if( ! sba_vis.has_search_potential(u, g) )
             break;
           
+          sba_vis.examine_vertex(u, g);
           // if the node still has a minimally good potential, then push it back on the OPEN queue.
           sba_vis.requeue_vertex(u,g);
           
@@ -323,7 +322,12 @@ namespace graph {
      NcSelector select_neighborhood)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
+#ifdef RK_SBASTAR_USE_INVERTED_ASTAR_KEY
     typedef std::greater<double> KeyCompareType;  // <---- this is a max-heap.
+#endif
+#ifdef RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
+    typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
+#endif
     typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
     IndexInHeapMap index_in_heap;
     {
@@ -554,7 +558,12 @@ namespace graph {
      NcSelector select_neighborhood)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
+#ifdef RK_SBASTAR_USE_INVERTED_ASTAR_KEY
     typedef std::greater<double> KeyCompareType;  // <---- this is a max-heap.
+#endif
+#ifdef RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
+    typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
+#endif
     typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
     IndexInHeapMap index_in_heap;
     {

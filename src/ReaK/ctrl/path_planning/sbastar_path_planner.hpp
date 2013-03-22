@@ -663,8 +663,13 @@ struct sbastar_planner_visitor {
   
   template <typename Vertex, typename Graph>
   bool has_search_potential(Vertex u, const Graph& g) const { 
+#ifdef RK_SBASTAR_USE_INVERTED_ASTAR_KEY
 //     if( (u != m_goal_node) && (g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc) )
     if( g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc )
+#endif
+#ifdef RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
+    if( g[u].key_value > m_planner->get_current_key_threshold() * m_space_Lc )
+#endif
       return true;
     else 
       return false;
@@ -672,8 +677,14 @@ struct sbastar_planner_visitor {
   
   template <typename Vertex, typename Graph>
   bool should_close(Vertex u, const Graph& g) const { 
+#ifdef RK_SBASTAR_USE_INVERTED_ASTAR_KEY
     if(g[u].density < (1.0 - m_planner->get_current_density_threshold()))
 //     if(g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc)
+#endif
+#ifdef RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
+    if(g[u].density < (1.0 - m_planner->get_current_density_threshold()))
+//     if(g[u].key_value > m_planner->get_current_key_threshold() * m_space_Lc)
+#endif
       return false;
     else 
       return true;
