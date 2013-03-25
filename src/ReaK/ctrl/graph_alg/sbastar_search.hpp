@@ -64,10 +64,6 @@
 #include <stack>
 
 
-// #define RK_SBASTAR_USE_INVERTED_ASTAR_KEY
-#define RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
-
-
 /** Main namespace for ReaK */
 namespace ReaK {
 
@@ -354,30 +350,13 @@ namespace graph {
         return m_vis.should_close(u,g);
       };
       
-      
-#ifdef RK_SBASTAR_USE_INVERTED_ASTAR_KEY
-      template <class Vertex, typename Graph>
-      void update_key(Vertex u, Graph& g) const {
-        double g_u = get(m_distance, u);
-        double h_u = get(m_heuristic, u);
-//         double f_u = g_u + h_u;   // <--- no relaxation.
-        double f_u = g_u + 10.0 * h_u;   // <--- with relaxation.
-        // Key-value for the min-heap (priority-queue):
-        put(m_key, u, (1.0 - get(m_constriction, u)) * (1.0 - get(m_density, u)) / f_u);
-      };
-#endif
-      
-#ifdef RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
       template <class Vertex, typename Graph>
       void update_key(Vertex u, Graph& g) const {
         double g_u = get(m_distance, u);
         double h_u = get(m_heuristic, u);
         // Key-value for the min-heap (priority-queue):
-//         put(m_key, u, get(m_constriction, u) * get(m_density, u) * g_u + h_u);
-        put(m_key, u, ((g_u + h_u) / (1.0 - get(m_constriction, u)) + (10000.0 / num_vertices(g)) * h_u) / (1.0 - get(m_density, u)));
+        put(m_key, u, (g_u + h_u) / (1.0 - get(m_constriction, u)) / (1.0 - get(m_density, u)));
       };
-#endif
-      
 
       template <class Vertex, class Graph>
       void update_vertex(Vertex u, Graph& g) const {
@@ -694,12 +673,7 @@ namespace graph {
      NcSelector select_neighborhood)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
-#ifdef RK_SBASTAR_USE_INVERTED_ASTAR_KEY
-    typedef std::greater<double> KeyCompareType;  // <---- this is a max-heap.
-#endif
-#ifdef RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
     typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
-#endif
     typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
     IndexInHeapMap index_in_heap;
     {

@@ -90,6 +90,7 @@ namespace po = boost::program_options;
 
 double sba_potential_cutoff;
 double sba_density_cutoff;
+double sba_relaxation;
 
 
 template <typename SpaceType>
@@ -1096,6 +1097,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
                       world_map->get_goal_pos(),
                       sba_potential_cutoff,
                       sba_density_cutoff,
+                      sba_relaxation,
                       world_map->get_max_edge_length(),
                       mc_max_vertices, 
                       mc_prog_interval,
@@ -1122,6 +1124,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
                       world_map->get_goal_pos(),
                       sba_potential_cutoff,
                       sba_density_cutoff,
+                      sba_relaxation,
                       world_map->get_max_edge_length(),
                       mc_max_vertices, 
                       mc_prog_interval,
@@ -1149,6 +1152,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
                       world_map->get_goal_pos(),
                       sba_potential_cutoff,
                       sba_density_cutoff,
+                      sba_relaxation,
                       world_map->get_max_edge_length(),
                       mc_max_vertices, 
                       mc_prog_interval,
@@ -1175,6 +1179,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
                       world_map->get_goal_pos(),
                       sba_potential_cutoff,
                       sba_density_cutoff,
+                      sba_relaxation,
                       world_map->get_max_edge_length(),
                       mc_max_vertices, 
                       mc_prog_interval,
@@ -1202,6 +1207,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
                       world_map->get_goal_pos(),
                       sba_potential_cutoff,
                       sba_density_cutoff,
+                      sba_relaxation,
                       world_map->get_max_edge_length(),
                       mc_max_vertices, 
                       mc_prog_interval,
@@ -1230,6 +1236,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
                       world_map->get_goal_pos(),
                       sba_potential_cutoff,
                       sba_density_cutoff,
+                      sba_relaxation,
                       world_map->get_max_edge_length(),
                       mc_max_vertices, 
                       mc_prog_interval,
@@ -1256,6 +1263,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
                       world_map->get_goal_pos(),
                       sba_potential_cutoff,
                       sba_density_cutoff,
+                      sba_relaxation,
                       world_map->get_max_edge_length(),
                       mc_max_vertices, 
                       mc_prog_interval,
@@ -1283,6 +1291,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
                         world_map->get_goal_pos(),
                         sba_potential_cutoff,
                         sba_density_cutoff,
+                        sba_relaxation,
                         world_map->get_max_edge_length(),
                         mc_max_vertices, 
                         mc_prog_interval,
@@ -1309,6 +1318,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
                         world_map->get_goal_pos(),
                         sba_potential_cutoff,
                         sba_density_cutoff,
+                        sba_relaxation,
                         world_map->get_max_edge_length(),
                         mc_max_vertices, 
                         mc_prog_interval,
@@ -1607,6 +1617,7 @@ int main(int argc, char** argv) {
     ("sba-star", "specify that the SBA* algorithm should be run")
     ("sba-potential-cutoff", po::value< double >()->default_value(0.0), "specify the potential cutoff for the SBA* algorithm")
     ("sba-density-cutoff", po::value< double >()->default_value(0.5), "specify the density cutoff for the SBA* algorithm")
+    ("sba-relaxation", po::value< double >()->default_value(0.0), "specify the initial relaxation factor for the Anytime SBA* algorithm")
 #endif
     ("all-planners,a", "specify that all supported planners should be run (default if no particular planner is specified)")
   ;
@@ -1639,6 +1650,7 @@ int main(int argc, char** argv) {
 #ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
   sba_potential_cutoff = vm["sba-potential-cutoff"].as<double>();
   sba_density_cutoff   = vm["sba-density-cutoff"].as<double>();
+  sba_relaxation       = vm["sba-relaxation"].as<double>();
 #endif
   
   std::size_t mc_flags = 0;

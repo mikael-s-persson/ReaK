@@ -194,6 +194,7 @@ int main(int argc, char** argv) {
     ("sba-star", "specify that the SBA* algorithm should be run")
     ("sba-potential-cutoff", po::value< double >()->default_value(0.9), "specify the potential cutoff for the SBA* algorithm")
     ("sba-density-cutoff", po::value< double >()->default_value(0.9), "specify the density cutoff for the SBA* algorithm")
+    ("sba-relaxation", po::value< double >()->default_value(0.0), "specify the initial relaxation factor for the Anytime SBA* algorithm")
 #endif
     ("all-planners,a", "specify that all supported planners should be run (default if no particular planner is specified)")
   ;
@@ -1148,6 +1149,7 @@ int main(int argc, char** argv) {
                        world_map->get_goal_pos(),
                        vm["sba-potential-cutoff"].as<double>(),
                        vm["sba-density-cutoff"].as<double>(),
+                       vm["sba-relaxation"].as<double>(),
                        world_map->get_max_edge_length(),
                        mc_max_vertices, 
                        mc_prog_interval,
@@ -1174,6 +1176,7 @@ int main(int argc, char** argv) {
                        world_map->get_goal_pos(),
                        vm["sba-potential-cutoff"].as<double>(),
                        vm["sba-density-cutoff"].as<double>(),
+                       vm["sba-relaxation"].as<double>(),
                        world_map->get_max_edge_length(),
                        mc_max_vertices, 
                        mc_prog_interval,
@@ -1201,6 +1204,7 @@ int main(int argc, char** argv) {
                         world_map->get_goal_pos(),
                         vm["sba-potential-cutoff"].as<double>(),
                         vm["sba-density-cutoff"].as<double>(),
+                        vm["sba-relaxation"].as<double>(),
                         world_map->get_max_edge_length(),
                         mc_max_vertices, 
                         mc_prog_interval,
@@ -1227,6 +1231,7 @@ int main(int argc, char** argv) {
                         world_map->get_goal_pos(),
                         vm["sba-potential-cutoff"].as<double>(),
                         vm["sba-density-cutoff"].as<double>(),
+                        vm["sba-relaxation"].as<double>(),
                         world_map->get_max_edge_length(),
                         mc_max_vertices, 
                         mc_prog_interval,
@@ -1254,6 +1259,7 @@ int main(int argc, char** argv) {
                        world_map->get_goal_pos(),
                        vm["sba-potential-cutoff"].as<double>(),
                        vm["sba-density-cutoff"].as<double>(),
+                       vm["sba-relaxation"].as<double>(),
                        world_map->get_max_edge_length(),
                        mc_max_vertices, 
                        mc_prog_interval,
@@ -1282,6 +1288,7 @@ int main(int argc, char** argv) {
                         world_map->get_goal_pos(),
                         vm["sba-potential-cutoff"].as<double>(),
                         vm["sba-density-cutoff"].as<double>(),
+                        vm["sba-relaxation"].as<double>(),
                         world_map->get_max_edge_length(),
                         mc_max_vertices, 
                         mc_prog_interval,
@@ -1308,6 +1315,7 @@ int main(int argc, char** argv) {
                         world_map->get_goal_pos(),
                         vm["sba-potential-cutoff"].as<double>(),
                         vm["sba-density-cutoff"].as<double>(),
+                        vm["sba-relaxation"].as<double>(),
                         world_map->get_max_edge_length(),
                         mc_max_vertices, 
                         mc_prog_interval,
@@ -1335,6 +1343,7 @@ int main(int argc, char** argv) {
                           world_map->get_goal_pos(),
                           vm["sba-potential-cutoff"].as<double>(),
                           vm["sba-density-cutoff"].as<double>(),
+                          vm["sba-relaxation"].as<double>(),
                           world_map->get_max_edge_length(),
                           mc_max_vertices, 
                           mc_prog_interval,
@@ -1361,6 +1370,7 @@ int main(int argc, char** argv) {
                           world_map->get_goal_pos(),
                           vm["sba-potential-cutoff"].as<double>(),
                           vm["sba-density-cutoff"].as<double>(),
+                          vm["sba-relaxation"].as<double>(),
                           world_map->get_max_edge_length(),
                           mc_max_vertices, 
                           mc_prog_interval,
@@ -1721,12 +1731,14 @@ int main(int argc, char** argv) {
           world_map->get_goal_pos(),
           vm["sba-potential-cutoff"].as<double>(),
           vm["sba-density-cutoff"].as<double>(),
+          vm["sba-relaxation"].as<double>(),
           world_map->get_max_edge_length(),
           sr_max_vertices, 
           10,
           ReaK::pp::ADJ_LIST_MOTION_GRAPH,
           ReaK::pp::DVP_BF4_TREE_KNN,
           ReaK::pp::LAZY_COLLISION_CHECKING,
+//           ReaK::pp::NOMINAL_PLANNER_ONLY,
           ReaK::pp::PLAN_WITH_VORONOI_PULL,
           ReaK::pp::vlist_sbmp_report< ReaK::pp::sbastar_vprinter, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > >(
             output_path_name + "/sbastar/" + world_file_name_only + "_",

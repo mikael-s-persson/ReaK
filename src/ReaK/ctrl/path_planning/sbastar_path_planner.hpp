@@ -55,6 +55,7 @@
 
 #include "graph_alg/lazy_sbastar.hpp"
 #include "graph_alg/sbastar_rrtstar.hpp"
+#include "graph_alg/anytime_sbastar.hpp"
 
 #include "graph_alg/d_ary_bf_tree.hpp"
 #include "graph_alg/d_ary_cob_tree.hpp"
@@ -210,6 +211,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     point_type m_goal_pos;
     double m_init_key_threshold;
     double m_init_dens_threshold;
+    double m_init_relaxation;
     double m_sampling_radius;
     std::size_t m_current_num_results;
     std::size_t max_num_results;
@@ -221,6 +223,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     
     double m_current_key_threshold;
     double m_current_dens_threshold;
+    double m_current_relaxation;
     
     std::map<double, shared_ptr< seq_path_base< super_space_type > > > m_solutions;
     
@@ -384,6 +387,17 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     void set_initial_density_threshold(double aInitialThreshold) { m_init_dens_threshold = aInitialThreshold; };
     
     /**
+     * Returns the initial relaxation factor used by this planner.
+     * \return The initial relaxation factor used by this planner.
+     */
+    double get_initial_relaxation() const { return m_init_relaxation; };
+    /**
+     * Sets the initial relaxation factor to be used by this planner.
+     * \param aInitialRelaxation The initial relaxation factor to be used by this planner.
+     */
+    void set_initial_relaxation(double aInitialRelaxation) { m_init_relaxation = aInitialRelaxation; };
+    
+    /**
      * Returns the current key-value threshold used by this planner.
      * \return The current key-value threshold used by this planner.
      */
@@ -404,6 +418,17 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
      * \param aCurrentThreshold The current density-value threshold to be used by this planner.
      */
     void set_current_density_threshold(double aCurrentThreshold) { m_current_dens_threshold = aCurrentThreshold; };
+    
+    /**
+     * Returns the current relaxation factor used by this planner.
+     * \return The current relaxation factor used by this planner.
+     */
+    double get_current_relaxation() const { return m_current_relaxation; };
+    /**
+     * Sets the current relaxation factor to be used by this planner.
+     * \param aCurrentRelaxation The current relaxation factor to be used by this planner.
+     */
+    void set_current_relaxation(double aCurrentRelaxation) { m_current_relaxation = aCurrentRelaxation; };
     
     
     /**
@@ -483,6 +508,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
      * \param aGoalPos The position value of the goal location.
      * \param aInitialKeyThreshold The initial key-value threshold for exploring nodes, should be somewhere between 0 and 1.
      * \param aInitialDensityThreshold The initial density-value threshold for exploring nodes, should be somewhere between 0 (reject no points based on density) and 1 (reject all points, requires zero density).
+     * \param aInitialRelaxation The initial relaxation factor for exploring nodes, should be greater than 0 (if equal to or less than 0, then the plain SBA* algorithms are used instead of the Anytime SBA* algorithms).
      * \param aSamplingRadius The radius of the sampled space around a given point when doing random walks.
      * \param aMaxVertexCount The maximum number of samples to generate during the motion planning.
      * \param aProgressInterval The number of new samples between each "progress report".
@@ -506,6 +532,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
                          const point_type& aGoalPos = point_type(),
                          double aInitialKeyThreshold = 0.8,
                          double aInitialDensityThreshold = 0.8,
+                         double aInitialRelaxation = 0.0,
                          double aSamplingRadius = 1.0,
                          std::size_t aMaxVertexCount = 5000, 
                          std::size_t aProgressInterval = 100,
@@ -521,6 +548,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
                          m_goal_pos(aGoalPos),
                          m_init_key_threshold(aInitialKeyThreshold),
                          m_init_dens_threshold(aInitialDensityThreshold),
+                         m_init_relaxation(aInitialRelaxation),
                          m_sampling_radius(aSamplingRadius),
                          m_current_num_results(0),
                          max_num_results(aMaxResultCount),
@@ -530,7 +558,8 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
                          m_collision_check_flag(aCollisionCheckFlag), 
                          m_added_bias_flags(aAddedBiasFlags),
                          m_current_key_threshold(m_init_key_threshold),
-                         m_current_dens_threshold(m_init_dens_threshold) { };
+                         m_current_dens_threshold(m_init_dens_threshold),
+                         m_current_relaxation(m_init_relaxation) { };
     
     virtual ~sbastar_path_planner() { };
     
@@ -545,6 +574,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
         & RK_SERIAL_SAVE_WITH_NAME(m_goal_pos)
         & RK_SERIAL_SAVE_WITH_NAME(m_init_key_threshold)
         & RK_SERIAL_SAVE_WITH_NAME(m_init_dens_threshold)
+        & RK_SERIAL_SAVE_WITH_NAME(m_init_relaxation)
         & RK_SERIAL_SAVE_WITH_NAME(m_sampling_radius)
         & RK_SERIAL_SAVE_WITH_NAME(max_num_results)
         & RK_SERIAL_SAVE_WITH_NAME(m_graph_kind_flag)
@@ -560,6 +590,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
         & RK_SERIAL_LOAD_WITH_NAME(m_goal_pos)
         & RK_SERIAL_LOAD_WITH_NAME(m_init_key_threshold)
         & RK_SERIAL_LOAD_WITH_NAME(m_init_dens_threshold)
+        & RK_SERIAL_LOAD_WITH_NAME(m_init_relaxation)
         & RK_SERIAL_LOAD_WITH_NAME(m_sampling_radius)
         & RK_SERIAL_LOAD_WITH_NAME(max_num_results)
         & RK_SERIAL_LOAD_WITH_NAME(m_graph_kind_flag)
@@ -571,6 +602,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
       m_current_num_results = 0;
       m_current_key_threshold = m_init_key_threshold;
       m_current_dens_threshold = m_init_dens_threshold;
+      m_current_relaxation = m_init_relaxation;
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC246000C,1,"sbastar_path_planner",base_type)
@@ -768,6 +800,8 @@ struct sbastar_planner_visitor {
       
   
   bool keep_going() const {
+    if( ( m_planner->get_initial_relaxation() > 1e-6 ) && ( m_planner->get_current_relaxation() < 1e-6 ) )
+      return false;
     return m_planner->keep_going();
   };
   
@@ -853,42 +887,52 @@ struct sbastar_planner_visitor {
   template <typename Graph>
   void publish_path(const Graph& g) const {
     // try to create a goal connection path
-    m_planner->create_solution_path(m_start_node, m_goal_node, g); 
+    if((in_degree(m_goal_node,g)) && (g[m_goal_node].distance_accum < m_planner->get_best_solution_distance()))
+      m_planner->create_solution_path(m_start_node, m_goal_node, g); 
     
     m_planner->set_current_key_threshold( 0.8 * m_planner->get_current_key_threshold() );
 //     m_planner->set_current_density_threshold( 0.95 * m_planner->get_current_density_threshold() );
     
-    std::cout << " new key-value threshold =\t" << m_planner->get_current_key_threshold() << std::endl;
+//     std::cout << " new key-value threshold =\t" << m_planner->get_current_key_threshold() << std::endl;
 //     std::cout << " new density-value threshold =\t" << m_planner->get_current_density_threshold() << std::endl;
   };
   
   template <typename Vertex, typename Graph>
   bool has_search_potential(Vertex u, const Graph& g) const { 
-#ifdef RK_SBASTAR_USE_INVERTED_ASTAR_KEY
-//     if( (u != m_goal_node) && (g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc) )
-    if( g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc )
-#endif
-#ifdef RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
-    if( g[u].key_value > m_planner->get_current_key_threshold() * m_space_Lc )
-#endif
+    if( m_planner->get_initial_relaxation() > 1e-6 ) {
+      // assume we are running a Anytime SBA* algorithm.
+      if(u == m_goal_node)
+        return false;
+      else 
+        return true;
+    };
+    if( (m_planner->get_current_key_threshold() < 1e-6) || (g[u].key_value < m_space_Lc / m_planner->get_current_key_threshold()) )
       return true;
     else 
       return false;
   };
   
   template <typename Vertex, typename Graph>
-  bool should_close(Vertex u, const Graph& g) const { 
-#ifdef RK_SBASTAR_USE_INVERTED_ASTAR_KEY
-    if(g[u].density < (1.0 - m_planner->get_current_density_threshold()))
-//     if(g[u].key_value > m_planner->get_current_key_threshold() / m_space_Lc)
-#endif
-#ifdef RK_SBASTAR_USE_DENSITY_CONSTRICTION_ASTAR_KEY
+  bool should_close(Vertex u, const Graph& g) const {
+    if( m_planner->get_initial_relaxation() > 1e-6 ) {
+      // assume we are running a Anytime SBA* algorithm.
+      if((1.0 - g[u].density) > 1.0 / (1.0 + m_planner->get_current_relaxation()))
+        return false;
+      else 
+        return true;
+    };
     if(g[u].density < (1.0 - m_planner->get_current_density_threshold()))
 //     if(g[u].key_value > m_planner->get_current_key_threshold() * m_space_Lc)
-#endif
       return false;
     else 
       return true;
+  };
+  
+  template <typename Graph>
+  double adjust_relaxation(double old_relax, const Graph& g) const {
+    m_planner->set_current_relaxation(old_relax * 0.5);
+    std::cout << " new relaxation =\t" << m_planner->get_current_relaxation() << std::endl;
+    return m_planner->get_current_relaxation();
   };
   
   
@@ -910,6 +954,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
   this->m_solutions.clear();
   this->m_current_key_threshold = this->m_init_key_threshold;
   this->m_current_dens_threshold = this->m_init_dens_threshold;
+  this->m_current_relaxation = this->m_init_relaxation;
   
   typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpace;
   typedef typename topology_traits<SuperSpace>::point_type PointType;
@@ -944,7 +989,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     motion_graph[start_node].expansion_trials = 0; \
     motion_graph[start_node].heuristic_value = heuristic(start_node,motion_graph); \
     motion_graph[start_node].distance_accum = 0.0; \
-    motion_graph[start_node].key_value = 1.0 / space_Lc; \
+    motion_graph[start_node].key_value = space_Lc + this->m_init_relaxation * space_Lc; \
     motion_graph[start_node].predecessor = start_node; \
      \
     motion_graph[goal_node].constriction = 0.0; \
@@ -953,7 +998,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     motion_graph[goal_node].expansion_trials = 0; \
     motion_graph[goal_node].heuristic_value = 0.0; \
     motion_graph[goal_node].distance_accum = std::numeric_limits<double>::infinity(); \
-    motion_graph[goal_node].key_value = 0.0; \
+    motion_graph[goal_node].key_value = std::numeric_limits<double>::infinity(); \
     motion_graph[goal_node].predecessor = goal_node;
     
 #else
@@ -970,7 +1015,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     motion_graph[start_node].expansion_trials = 0; \
     motion_graph[start_node].heuristic_value = heuristic(start_node,motion_graph); \
     motion_graph[start_node].distance_accum = 0.0; \
-    motion_graph[start_node].key_value = 1.0 / space_Lc; \
+    motion_graph[start_node].key_value = space_Lc + this->m_init_relaxation * space_Lc; \
     motion_graph[start_node].predecessor = start_node; \
      \
     motion_graph[goal_node].constriction = 0.0; \
@@ -979,7 +1024,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     motion_graph[goal_node].expansion_trials = 0; \
     motion_graph[goal_node].heuristic_value = 0.0; \
     motion_graph[goal_node].distance_accum = std::numeric_limits<double>::infinity(); \
-    motion_graph[goal_node].key_value = 0.0; \
+    motion_graph[goal_node].key_value = std::numeric_limits<double>::infinity(); \
     motion_graph[goal_node].predecessor = goal_node;
   
 #endif
@@ -1041,7 +1086,67 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       get(&VertexProp::key_value, motion_graph),  \
       get(random_sampler, this->m_space->get_super_space()), \
       nc_selector);
+   
+   
+   
+   
+#define RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION \
+    ReaK::graph::generate_anytime_sbastar( \
+      motion_graph, start_node, this->m_space->get_super_space(), vis, \
+      get(&VertexProp::heuristic_value, motion_graph),  \
+      pos_map,  \
+      weight_map, \
+      get(&VertexProp::density, motion_graph),  \
+      get(&VertexProp::constriction, motion_graph),  \
+      get(&VertexProp::distance_accum, motion_graph), \
+      get(&VertexProp::predecessor, motion_graph),  \
+      get(&VertexProp::key_value, motion_graph),  \
+      nc_selector, this->m_init_relaxation);
   
+  
+#define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION \
+    ReaK::graph::generate_anytime_lazy_sbastar( \
+      motion_graph, start_node, this->m_space->get_super_space(), vis, \
+      get(&VertexProp::heuristic_value, motion_graph),  \
+      pos_map,  \
+      weight_map, \
+      get(&VertexProp::density, motion_graph),  \
+      get(&VertexProp::constriction, motion_graph),  \
+      get(&VertexProp::distance_accum, motion_graph), \
+      get(&VertexProp::predecessor, motion_graph),  \
+      get(&VertexProp::key_value, motion_graph),  \
+      nc_selector, this->m_init_relaxation);
+  
+  
+#define RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION \
+    ReaK::graph::generate_anytime_sbarrtstar( \
+      motion_graph, start_node, this->m_space->get_super_space(), vis, \
+      get(&VertexProp::heuristic_value, motion_graph),  \
+      pos_map,  \
+      weight_map, \
+      get(&VertexProp::density, motion_graph),  \
+      get(&VertexProp::constriction, motion_graph),  \
+      get(&VertexProp::distance_accum, motion_graph), \
+      get(&VertexProp::predecessor, motion_graph),  \
+      get(&VertexProp::key_value, motion_graph),  \
+      get(random_sampler, this->m_space->get_super_space()), \
+      nc_selector, this->m_init_relaxation);
+  
+  
+#define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION \
+    ReaK::graph::generate_anytime_lazy_sbarrtstar( \
+      motion_graph, start_node, this->m_space->get_super_space(), vis, \
+      get(&VertexProp::heuristic_value, motion_graph),  \
+      pos_map,  \
+      weight_map, \
+      get(&VertexProp::density, motion_graph),  \
+      get(&VertexProp::constriction, motion_graph),  \
+      get(&VertexProp::distance_accum, motion_graph), \
+      get(&VertexProp::predecessor, motion_graph),  \
+      get(&VertexProp::key_value, motion_graph),  \
+      get(random_sampler, this->m_space->get_super_space()), \
+      nc_selector, this->m_init_relaxation);
+ 
   
   if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {
     
@@ -1067,17 +1172,33 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         linear_neighbor_search<>(), 
         space_dim, 3.0 * space_Lc);
       
-      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+      if(this->m_init_relaxation < 1e-6) {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+          };
         };
-      } else { // assume lazy collision checking
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+      } else {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
+          };
         };
       };
       
@@ -1100,17 +1221,33 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+      if(this->m_init_relaxation < 1e-6) {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+          };
         };
-      } else { // assume lazy collision checking
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+      } else {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
+          };
         };
       };
       
@@ -1133,17 +1270,33 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+      if(this->m_init_relaxation < 1e-6) {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+          };
         };
-      } else { // assume lazy collision checking
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+      } else {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
+          };
         };
       };
       
@@ -1166,17 +1319,33 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+      if(this->m_init_relaxation < 1e-6) {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+          };
         };
-      } else { // assume lazy collision checking
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+      } else {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
+          };
         };
       };
       
@@ -1199,17 +1368,33 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 //         nn_finder, 
 //         space_dim, 3.0 * space_Lc);
       
-      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+      if(this->m_init_relaxation < 1e-6) {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+          };
         };
-      } else { // assume lazy collision checking
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+      } else {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
+          };
         };
       };
       
@@ -1249,17 +1434,33 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+      if(this->m_init_relaxation < 1e-6) {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+          };
         };
-      } else { // assume lazy collision checking
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+      } else {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
+          };
         };
       };
       
@@ -1295,17 +1496,33 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+      if(this->m_init_relaxation < 1e-6) {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+          };
         };
-      } else { // assume lazy collision checking
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+      } else {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
+          };
         };
       };
       
@@ -1341,17 +1558,33 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+      if(this->m_init_relaxation < 1e-6) {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+          };
         };
-      } else { // assume lazy collision checking
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+      } else {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
+          };
         };
       };
       
@@ -1387,17 +1620,33 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+      if(this->m_init_relaxation < 1e-6) {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+          };
         };
-      } else { // assume lazy collision checking
-        if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-        } else { // assume nominal method only.
-          RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+      } else {
+        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
+          };
+        } else { // assume lazy collision checking
+          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
+          } else { // assume nominal method only.
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
+          };
         };
       };
       
@@ -1410,6 +1659,10 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 #undef RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
 #undef RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
 #undef RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
   
   if(m_solutions.size())
     return m_solutions.begin()->second;
