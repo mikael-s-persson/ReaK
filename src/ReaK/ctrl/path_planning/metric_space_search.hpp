@@ -152,7 +152,14 @@ class random_vp_chooser {
     };
 };
 
-
+/**
+ * This class is a position-caching policy class for the space partitioning trees that are indirectly 
+ * indexing a set of vertices of a graph (or other container). When building an indirect index, it can
+ * be advantageous to store (copy) the position values (or vector) in the index itself to increase
+ * the locality of reference during the traversal-mutating operations (lookups, insertions, etc.) 
+ * through the space partitioning tree. This position-caching policy mandates that no such caching 
+ * is done.
+ */
 struct no_position_caching_policy {
   template < typename PointType >
   struct vertex_base_property { }; // intentionally empty.
@@ -182,6 +189,14 @@ struct no_position_caching_policy {
 };
 
 
+/**
+ * This class is a position-caching policy class for the space partitioning trees that are indirectly 
+ * indexing a set of vertices of a graph (or other container). When building an indirect index, it can
+ * be advantageous to store (copy) the position values (or vector) in the index itself to increase
+ * the locality of reference during the traversal-mutating operations (lookups, insertions, etc.) 
+ * through the space partitioning tree. This position-caching policy mandates such caching of the 
+ * position values within the index.
+ */
 struct position_caching_policy {
   template <typename PointType>
   struct vertex_base_property {

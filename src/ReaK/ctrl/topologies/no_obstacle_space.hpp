@@ -81,14 +81,14 @@ class no_obstacle_space : public named_object {
     double get_max_edge_length() const { return max_edge_length; };
     
     /**
-     * Returns a reference to the super-space in which this test-world is embedded.
-     * \return A reference to the super-space in which this test-world is embedded.
+     * Returns a reference to the super-space in which this topology is embedded.
+     * \return A reference to the super-space in which this topology is embedded.
      */
     super_space_type& get_super_space() { return m_space; };
     
     /**
-     * Returns a const-reference to the super-space in which this test-world is embedded.
-     * \return A const-reference to the super-space in which this test-world is embedded.
+     * Returns a const-reference to the super-space in which this topology is embedded.
+     * \return A const-reference to the super-space in which this topology is embedded.
      */
     const super_space_type& get_super_space() const { return m_space; };
     
@@ -113,11 +113,10 @@ class no_obstacle_space : public named_object {
     };
     
     /**
-     * Computes the distance between two points. If there is no collision-free line between
-     * the two points, the distance is infinite.
+     * Computes the distance between two points.
      * \param p1 The first point.
      * \param p2 The second point.
-     * \return The collision-free distance between the two given points.
+     * \return The distance between the two given points.
      */
     double distance(const point_type& p1, const point_type& p2) const {
       if(m_distance(p2,move_position_toward(p1,1.0,p2), m_space) < std::numeric_limits< double >::epsilon())
@@ -175,26 +174,52 @@ class no_obstacle_space : public named_object {
       return std::pair<point_type, bool>(move_position_toward(p_u, 1.0, m_rand_sampler(m_space)), true);
     };
     
+    /**
+     * Returns the bird-flight distance to the goal from the given point.
+     * \param p_u The point from which the bird-flight distance is sought.
+     * \return The bird-flight distance to the goal from the given point.
+     */
     double bird_fly_to_goal(const point_type& p_u) const {
       return m_distance(p_u, m_goal_point, m_space);
     };
     
+    /**
+     * Returns the bird-flight distance to the given point from the start.
+     * \param p_u The point from which the bird-flight distance is sought.
+     * \return The bird-flight distance to the given point from the start.
+     */
     double bird_fly_to_start(const point_type& p_u) const {
       return m_distance(m_start_point, p_u, m_space);
     };
     
+    /**
+     * Returns the start point.
+     * \return The start point.
+     */
     const point_type& get_start_pos() const {
       return m_start_point;
     };
     
+    /**
+     * Returns the goal point.
+     * \return The goal point.
+     */
     const point_type& get_goal_pos() const {
       return m_goal_point;
     };
     
+    /**
+     * Set the start point.
+     * \param aStart The new start point.
+     */
     void set_start_pos(const point_type& aStart) {
       m_start_point = aStart;
     };
     
+    /**
+     * Set the goal point.
+     * \param aStart The new goal point.
+     */
     void set_goal_pos(const point_type& aGoal) {
       m_goal_point = aGoal;
     };

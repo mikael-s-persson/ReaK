@@ -1,7 +1,12 @@
 /**
  * \file prm_path_planner.hpp
  * 
- * This library defines a class
+ * This library defines a class to solve path planning problems using the 
+ * Probabilistic Road-map (PRM) algorithm (or one of its variants). 
+ * Given a C_free (configuration space restricted to non-colliding points) and a 
+ * result reporting policy, this class will probabilistically construct a motion-graph 
+ * that will connect a starting point and a goal point with a path through C-free 
+ * that is as close as possible to the optimal path in terms of distance.
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date July 2012
@@ -66,31 +71,70 @@ namespace pp {
   
 
 
+/**
+ * This POD type contains the data required on a per-vertex basis for the PRM path-planning algorithm.
+ * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger configuration space.
+ */
 template <typename FreeSpaceType>
 struct prm_vertex_data {
+  /// The position associated to the vertex.
   typename topology_traits<FreeSpaceType>::point_type position;  //for PRM
+  /// The density associated to the vertex.
   double density;                                                //for PRM
+  /// Keeps track of the root of the connected component this node belongs to.
   std::size_t cc_root;                                           //for PRM
+  /// The travel-distance accumulated in the vertex, i.e., the travel-distance from the start vertex to this vertex.
   double distance_accum;                 //for A*
+  /// The key-value associated to the vertex, computed by the A* algorithm.
   double astar_rhs_value;                //for A*
+  /// The color-value associated to the vertex, computed by the A* algorithm.
   boost::default_color_type astar_color; //for A*
+  /// The predecessor associated to the vertex, i.e., following the predecessor links starting at the goal node yields a backward trace of the optimal path.
   std::size_t predecessor;       //for A*
   
+  /**
+   * Default constructor.
+   */
   prm_vertex_data() : position(typename topology_traits<FreeSpaceType>::point_type()),
                       density(0.0), distance_accum(0.0), astar_rhs_value(0.0), 
                       astar_color(), predecessor(0) { };
 };
 
+/**
+ * This POD type contains the data required on a per-edge basis for the PRM path-planning algorithm.
+ * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger configuration space.
+ */
 template <typename FreeSpaceType>
 struct prm_edge_data { 
+  /// The travel-distance associated to the edge (from source to target).
   double astar_weight; //for A*
   
-  prm_edge_data() : astar_weight(0.0) { };
+  /**
+   * Default constructor.
+   * \param aWeight The travel-distance to be associated to this edge.
+   */
+  prm_edge_data(double aWeight = 0.0) : astar_weight(aWeight) { };
 };
 
 
+/**
+ * This stateless functor type can be used to print out the information about a given PRM vertex.
+ * This functor type can be used as a printing policy type for the vlist_sbmp_report class 
+ * template that prints the list of vertices to a file.
+ * \note This is mostly useful for debugging purposes (recording all information about the 
+ *       motion-graph), it should not be used as the "output" of the path-planner.
+ */
 struct prm_vprinter : serialization::serializable {
   
+  /**
+   * This call operator prints all the PRM information about a given vertex 
+   * to a given output-stream.
+   * \tparam Vertex The vertex-descriptor type for the motion-graph.
+   * \tparam Graph The motion-graph type used by the PRM planning algorithm.
+   * \param out The output-stream to which to print the PRM information about the vertex.
+   * \param u The vertex whose information is to be printed.
+   * \param g The motion-graph to which the vertex belongs.
+   */
   template <typename Vertex, typename Graph>
   void operator()(std::ostream& out, Vertex u, const Graph& g) const {
     using ReaK::to_vect;
@@ -113,7 +157,12 @@ struct prm_vprinter : serialization::serializable {
 
 
 /**
- * This class is a PRM-based path-planner over the given topology.
+ * This class solves path planning problems using the 
+ * Probabilistic Road-map (PRM) algorithm (or one of its variants). 
+ * Given a C_free (configuration space restricted to non-colliding points) and a 
+ * result reporting policy, this class will probabilistically construct a motion-graph 
+ * that will connect a starting point and a goal point with a path through C-free 
+ * that is as close as possible to the optimal path in terms of distance.
  * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger configuration space.
  * \tparam SBPPReporter The reporter type to use to report the progress of the path-planning.
  */
@@ -147,10 +196,32 @@ class prm_path_planner : public sample_based_planner< path_planner_base<FreeSpac
     
   public:
     
+    /**
+     * Returns the best solution distance obtained after solve_path() has been called.
+     * \return The best solution distance obtained after solve_path() has been called.
+     */
+    double get_best_solution_distance() const {
+      if(m_solutions.size() == 0)
+        return std::numeric_limits<double>::infinity();
+      else
+        return m_solutions.begin()->first;
+    };
+    
+    /**
+     * Returns true if the solver should keep on going trying to solve the path-planning problem.
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \return True if the solver should keep on going trying to solve the path-planning problem.
+     */
     bool keep_going() const {
       return (max_num_results > m_solutions.size()) && !has_reached_max_vertices;
     };
     
+    /**
+     * This function invokes the path-planning reporter to report on the progress of the path-planning
+     * solver.
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \param g The current motion-graph.
+     */
     template <typename Graph>
     void report_progress(Graph& g) {
       if(num_vertices(g) % this->m_progress_interval == 0)
@@ -158,11 +229,27 @@ class prm_path_planner : public sample_based_planner< path_planner_base<FreeSpac
       has_reached_max_vertices = (num_vertices(g) >= this->m_max_vertex_count);
     };
     
+    /**
+     * This function computes the heuristic distance value of a given node, i.e., the bird-flight 
+     * distance to the goal position.
+     * \note This function is used internally by the path-planning algorithm (a visitor callback).
+     * \param u The node for which the heuristic value is sought.
+     * \param g The current motion-graph.
+     * \return The heuristic distance value of the given node.
+     */
     template <typename Graph>
     double heuristic(typename boost::graph_traits<Graph>::vertex_descriptor u, const Graph& g) const {
       return get(distance_metric, this->m_space->get_super_space())(g[u].position, this->m_goal_pos, this->m_space->get_super_space());
     };
     
+    /**
+     * This function constructs a solution path (if one is found) and invokes the path-planning 
+     * reporter to report on that solution path.
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \param start_node The start node in the motion-graph.
+     * \param goal_node The goal node in the motion-graph.
+     * \param g The current motion-graph.
+     */
     template <typename Vertex, typename Graph>
     void create_solution_path(Vertex start_node, Vertex goal_node, Graph& g) {
       
@@ -217,6 +304,14 @@ class prm_path_planner : public sample_based_planner< path_planner_base<FreeSpac
     };
     
     
+    /**
+     * This function constructs a solution path (if one is found) and invokes the path-planning 
+     * reporter to report on that solution path.
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \param p_u The latest added position.
+     * \param u The latest added node in the motion-graph.
+     * \param g The current motion-graph.
+     */
     template <typename Vertex, typename EdgeType, typename Graph>
     void check_goal_connection(Vertex start_node, Vertex goal_node, EdgeType e, Graph& g) {
       typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
@@ -279,22 +374,74 @@ class prm_path_planner : public sample_based_planner< path_planner_base<FreeSpac
      */
     virtual shared_ptr< seq_path_base< super_space_type > > solve_path();
     
+    /**
+     * Returns a const-reference to the path-planning reporter used by this planner.
+     * \return A const-reference to the path-planning reporter used by this planner.
+     */
     const SBPPReporter& get_reporter() const { return m_reporter; };
+    /**
+     * Sets the path-planning reporter to be used by this planner.
+     * \param aNewReporter The path-planning reporter to be used by this planner.
+     */
     void set_reporter(const SBPPReporter& aNewReporter) { m_reporter = aNewReporter; };
     
+    /**
+     * Returns a const-reference to the start position used by this planner.
+     * \return A const-reference to the start position used by this planner.
+     */
     const point_type& get_start_pos() const { return m_start_pos; };
+    /**
+     * Sets the start position to be used by this planner.
+     * \param aNewReporter The start position to be used by this planner.
+     */
     void set_start_pos(const point_type& aStartPos) { m_start_pos = aStartPos; };
     
+    /**
+     * Returns a const-reference to the goal position used by this planner.
+     * \return A const-reference to the goal position used by this planner.
+     */
     const point_type& get_goal_pos() const { return m_goal_pos; };
+    /**
+     * Sets the goal position to be used by this planner.
+     * \param aNewReporter The goal position to be used by this planner.
+     */
     void set_goal_pos(const point_type& aGoalPos) { m_goal_pos = aGoalPos; };
     
+    /**
+     * Returns the maximum number of solutions that this planner should register.
+     * \note Most probabilistic path-planners produce an initial solution that isn't perfect, and so, 
+     *       more solutions should be sought to eventually have a more optimal one (shorter distance).
+     * \return The maximum number of solutions that this planner should register.
+     */
     std::size_t get_max_result_count() const { return max_num_results; };
+    /**
+     * Sets the maximum number of solutions that this planner should register.
+     * \note Most probabilistic path-planners produce an initial solution that isn't perfect, and so, 
+     *       more solutions should be sought to eventually have a more optimal one (shorter distance).
+     * \param aMaxResultCount The maximum number of solutions that this planner should register.
+     */
     void set_max_result_count(std::size_t aMaxResultCount) { max_num_results = aMaxResultCount; };
     
+    /**
+     * Returns the integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
+     * \return The integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
+     */
     std::size_t get_graph_kind_flag() const { return m_graph_kind_flag; };
+    /**
+     * Sets the integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
+     * \param aGraphKindFlag The integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
+     */
     void set_graph_kind_flag(std::size_t aGraphKindFlag) { m_graph_kind_flag = aGraphKindFlag; };
     
+    /**
+     * Returns the integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
+     * \return The integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
+     */
     std::size_t get_knn_flag() const { return m_knn_flag; };
+    /**
+     * Sets the integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
+     * \param aKNNMethodFlag The integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
+     */
     void set_knn_flag(std::size_t aKNNMethodFlag) { m_knn_flag = aKNNMethodFlag; };
     
     
@@ -305,10 +452,8 @@ class prm_path_planner : public sample_based_planner< path_planner_base<FreeSpac
      * \param aGoalPos The position value of the goal location.
      * \param aMaxVertexCount The maximum number of samples to generate during the motion planning.
      * \param aProgressInterval The number of new samples between each "progress report".
-     * \param aBiDirFlag An integer flag representing the directionality of the RRT algorithm 
-     *                   used (either UNIDIRECTIONAL_RRT or BIDIRECTIONAL_RRT).
      * \param aGraphKindFlag An integer flag representing the kind of motion graph to use in the 
-     *                       RRT algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
+     *                       PRM algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
      * \param aKNNMethodFlag An integer flag representing the kind of KNN method to use for nearest
      *                       neighbor queries in the graph. Can be LINEAR_SEARCH_KNN, DVP_BF2_TREE_KNN,
      *                       DVP_BF4_TREE_KNN, DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN when the 
@@ -376,6 +521,16 @@ class prm_path_planner : public sample_based_planner< path_planner_base<FreeSpac
 
 
 
+/**
+ * This class template is used by the PRM path-planner as the visitor object needed to 
+ * collaborate with the PRM algorithms to generate the motion-graph and path-planning solutions.
+ * This class template models the PRMVisitorConcept and AStarVisitorConcept.
+ * As with most planning algorithms in ReaK, the algorithm is really made up of a high-level 
+ * algorithmic logic in the form of function templates, and a number of customization points 
+ * collected as member functions of an algorithm visitor class that implement the problem-specific 
+ * behaviors (random-walks / local-planning, heuristic computation, progress reporting, 
+ * completion criteria, etc.). 
+ */
 template <typename FreeSpaceType, typename MotionGraph, typename NNFinderSynchro, typename SBPPReporter = no_sbmp_report>
 struct prm_planner_visitor {
   typedef typename boost::graph_traits<MotionGraph>::vertex_descriptor Vertex;

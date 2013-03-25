@@ -1,8 +1,8 @@
 /**
  * \file sbmp_point_recorder.hpp
  * 
- * This library defines a sampling-based motion/path planning reporter for tracing out the points along a motion graph
- * and solution paths.
+ * This library defines a sampling-based motion/path planning reporter for recording the 
+ * points along a motion graph and solution paths.
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date March 2013
@@ -58,18 +58,24 @@ namespace pp {
 
 /**
  * This class can be used as a SBMP/SBPP Reporter (SBMPReporterConcept and SBPPReporterConcept) 
- * and uses the recorder library to trace out the points of a motion-graph and solution paths
+ * and uses the recorder library to print out the points of a motion-graph and solution paths
  * as space-separated files (i.e., loadable into Matlab / Octave).
+ * \tparam JointStateSpace A joint-state space type.
+ * \tparam JointStateMapping A map type that can map the points of the path-planning topology into points of the joint-state space.
+ * \tparam NextReporter A SBMP/SBPP reporter type to chain to this reporter.
  */
 template <typename JointStateSpace, typename JointStateMapping = identity_topo_map, typename NextReporter = no_sbmp_report>
 class sbmp_point_recorder : public shared_object {
   public:
     typedef sbmp_point_recorder<JointStateSpace, JointStateMapping, NextReporter> self;
     
+    /// Holds the instance of the SBMP/SBPP reporter to which calls are forwarded to.
     NextReporter next_reporter;
     
   protected:
+    /// A shared-pointer to the joint-state space.
     shared_ptr<JointStateSpace> jt_space;
+    /// A map that can map the points of the path-planning topology into points of the joint-state space.
     JointStateMapping map_to_jt_space;
     /// Holds the interval-size between output points of the solution trajectory/path.
     double interval_size;
@@ -79,6 +85,14 @@ class sbmp_point_recorder : public shared_object {
     
   public:
     
+    /**
+     * Parametrized constructor.
+     * \param aJointSpace The shared-pointer to the joint-state space.
+     * \param aMapToJtSpace The map that can map the points of the path-planning topology into points of the joint-state space.
+     * \param aFilePath The path where to create the output files.
+     * \param aIntervalSize The interval-size between output points of the solution trajectory/path.
+     * \param aNextReporter The instance of the SBMP/SBPP reporter to which calls are forwarded to.
+     */
     explicit sbmp_point_recorder(const shared_ptr<JointStateSpace>& aJointSpace = shared_ptr<JointStateSpace>(),
                                  const JointStateMapping& aMapToJtSpace = JointStateMapping(),
                                  const std::string& aFilePath = "", 
@@ -350,14 +364,17 @@ class sbmp_point_recorder : public shared_object {
 
 /**
  * This class can be used as a SBMP/SBPP Reporter (SBMPReporterConcept and SBPPReporterConcept) 
- * and uses the recorder library to trace out the points of a motion-graph and solution paths
+ * and uses the recorder library to print out the points of a motion-graph and solution paths
  * as space-separated files (i.e., loadable into Matlab / Octave).
+ * \tparam JointStateSpace A joint-state space type.
+ * \tparam NextReporter A SBMP/SBPP reporter type to chain to this reporter.
  */
 template <typename JointStateSpace, typename NextReporter>
 class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : public shared_object {
   public:
     typedef sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> self;
     
+    /// Holds the instance of the SBMP/SBPP reporter to which calls are forwarded to.
     NextReporter next_reporter;
     
   protected:
@@ -369,6 +386,12 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
   
   public:
     
+    /**
+     * Parametrized constructor.
+     * \param aFilePath The path where to create the output files.
+     * \param aIntervalSize The interval-size between output points of the solution trajectory/path.
+     * \param aNextReporter The instance of the SBMP/SBPP reporter to which calls are forwarded to.
+     */
     explicit sbmp_point_recorder(const std::string& aFilePath = "", 
                                  double aIntervalSize = 0.1,
                                  NextReporter aNextReporter = NextReporter()) : 

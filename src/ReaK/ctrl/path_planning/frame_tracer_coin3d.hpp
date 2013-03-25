@@ -62,27 +62,46 @@ namespace pp {
  * This class can be used as a SBMP/SBPP Reporter (SBMPReporterConcept and SBPPReporterConcept) 
  * and uses the Coin3D library to trace out the position of a number of 3D poses linked to a model
  * linked with the given DirectKinMapper.
+ * \tparam DirectKinMapper A direct-kinematics map type that can apply a given joint-state to a direct kinematic model.
+ * \tparam JointStateSpace A joint-state space type.
+ * \tparam JointStateMapping A map type that can map the points of the path-planning topology into points of the joint-state space.
+ * \tparam NextReporter A SBMP/SBPP reporter type to chain to this reporter.
  */
 template <typename DirectKinMapper, typename JointStateSpace, typename JointStateMapping = identity_topo_map, typename NextReporter = no_sbmp_report>
 class frame_tracer_3D : public shared_object {
   public:
     typedef frame_tracer_3D<DirectKinMapper, JointStateSpace, JointStateMapping, NextReporter> self;
     
+    /// Holds the instance of the SBMP/SBPP reporter to which calls are forwarded to.
     NextReporter next_reporter;
     
   protected:
+    /// Holds the direct-kinematics map that can apply a given joint-state to a direct kinematic model.
     DirectKinMapper dk_map;
+    /// A shared-pointer to the joint-state space.
     shared_ptr<JointStateSpace> jt_space;
+    /// A map that can map the points of the path-planning topology into points of the joint-state space.
     JointStateMapping map_to_jt_space;
     /// Holds the interval-size between output points of the solution trajectory/path.
     double interval_size;
     
+    /// Holds the list of frames (poses) to trace out.
     std::vector< shared_ptr< pose_3D<double> > > traced_frames;
+    /// Holds the list of traces that represent the current motion-graph.
     std::vector< geom::tracer_coin3d_impl > motion_graph_traces;
+    /// Holds the list of traces that represent each solution recorded.
     mutable std::map< double, std::vector< geom::tracer_coin3d_impl > > solution_traces;
   
   public:
     
+    /**
+     * Parametrized constructor.
+     * \param aDKMap The direct-kinematics map that can apply a given joint-state to a direct kinematic model.
+     * \param aJointSpace The shared-pointer to the joint-state space.
+     * \param aMapToJtSpace The map that can map the points of the path-planning topology into points of the joint-state space.
+     * \param aIntervalSize The interval-size between output points of the solution trajectory/path.
+     * \param aNextReporter The instance of the SBMP/SBPP reporter to which calls are forwarded to.
+     */
     explicit frame_tracer_3D(const DirectKinMapper& aDKMap = DirectKinMapper(),
                              const shared_ptr<JointStateSpace>& aJointSpace = shared_ptr<JointStateSpace>(),
                              const JointStateMapping& aMapToJtSpace = JointStateMapping(),
@@ -94,12 +113,23 @@ class frame_tracer_3D : public shared_object {
                              map_to_jt_space(aMapToJtSpace),
                              interval_size(aIntervalSize) { };
     
+    /**
+     * This function adds a frame to the list of traced frames, i.e., the frames whose 
+     * position will be traced out in the Coin3D scene-graph.
+     * \param aPose The frame to add to the list of traced frames.
+     * \return A reference to this tracer.
+     */
     self& add_traced_frame(const shared_ptr< pose_3D<double> >& aPose) {
       traced_frames.push_back(aPose);
       motion_graph_traces.push_back(geom::tracer_coin3d_impl(false));
       return *this;
     };
     
+    /**
+     * This function returns the motion-graph trace associated to the given frame (pose).
+     * \param aPose The frame of which the motion-graph trace is sought.
+     * \return A const-reference to the motion-graph trace as a Coin3d scene-graph.
+     */
     const geom::tracer_coin3d_impl& get_motion_graph_tracer(const shared_ptr< pose_3D<double> >& aPose) const {
       std::vector< shared_ptr< pose_3D<double> > >::const_iterator it = std::find(traced_frames.begin(),traced_frames.end(),aPose);
       if(it != traced_frames.end()) {
@@ -108,16 +138,30 @@ class frame_tracer_3D : public shared_object {
         throw std::range_error("The given pose is not being traced by this frame-tracer!");
     };
     
+    /**
+     * This function returns the number of solutions registers by this reporter.
+     * \return The number of solutions registers by this reporter.
+     */
     std::size_t get_solution_count() const {
       return solution_traces.size();
     };
     
+    /**
+     * This function returns the cost of the best solution registered by this reporter.
+     * \return The cost of the best solution registered by this reporter.
+     */
     double get_best_solution_value() const {
       if(solution_traces.empty())
         return std::numeric_limits<double>::infinity();
       return solution_traces.begin()->first;
     };
     
+    /**
+     * This function returns the solution trace associated to the given frame (pose).
+     * \param aPose The frame of which the solution trace is sought.
+     * \param aSolutionId The index of the solution trace, 0 is the best solution.
+     * \return A const-reference to the solution trace as a Coin3d scene-graph.
+     */
     const geom::tracer_coin3d_impl& get_solution_tracer(const shared_ptr< pose_3D<double> >& aPose, std::size_t aSolutionId = 0) const {
       if(aSolutionId >= solution_traces.size())
         aSolutionId = 0;
@@ -349,26 +393,42 @@ class frame_tracer_3D : public shared_object {
  * This class can be used as a SBMP/SBPP Reporter (SBMPReporterConcept and SBPPReporterConcept) 
  * and uses the Coin3D library to trace out the position of a number of 3D poses linked to a model
  * linked with the given DirectKinMapper.
+ * \tparam DirectKinMapper A direct-kinematics map type that can apply a given joint-state to a direct kinematic model.
+ * \tparam JointStateSpace A joint-state space type.
+ * \tparam NextReporter A SBMP/SBPP reporter type to chain to this reporter.
  */
 template <typename DirectKinMapper, typename JointStateSpace, typename NextReporter>
 class frame_tracer_3D<DirectKinMapper, JointStateSpace, identity_topo_map, NextReporter> : public shared_object {
   public:
     typedef frame_tracer_3D<DirectKinMapper, JointStateSpace, identity_topo_map, NextReporter> self;
     
+    /// Holds the instance of the SBMP/SBPP reporter to which calls are forwarded to.
     NextReporter next_reporter;
     
   protected:
+    /// Holds the direct-kinematics map that can apply a given joint-state to a direct kinematic model.
     DirectKinMapper dk_map;
+    /// A shared-pointer to the joint-state space.
     shared_ptr<JointStateSpace> jt_space;
     /// Holds the interval-size between output points of the solution trajectory/path.
     double interval_size;
     
+    /// Holds the list of frames (poses) to trace out.
     std::vector< shared_ptr< pose_3D<double> > > traced_frames;
+    /// Holds the list of traces that represent the current motion-graph.
     std::vector< geom::tracer_coin3d_impl > motion_graph_traces;
+    /// Holds the list of traces that represent each solution recorded.
     mutable std::map< double, std::vector< geom::tracer_coin3d_impl > > solution_traces;
   
   public:
     
+    /**
+     * Parametrized constructor.
+     * \param aDKMap The direct-kinematics map that can apply a given joint-state to a direct kinematic model.
+     * \param aJointSpace The shared-pointer to the joint-state space.
+     * \param aIntervalSize The interval-size between output points of the solution trajectory/path.
+     * \param aNextReporter The instance of the SBMP/SBPP reporter to which calls are forwarded to.
+     */
     explicit frame_tracer_3D(const DirectKinMapper& aDKMap = DirectKinMapper(),
                              const shared_ptr<JointStateSpace>& aJointSpace = shared_ptr<JointStateSpace>(),
                              double aIntervalSize = 0.1,
@@ -378,12 +438,23 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, identity_topo_map, NextR
                              jt_space(aJointSpace),
                              interval_size(aIntervalSize) { };
     
+    /**
+     * This function adds a frame to the list of traced frames, i.e., the frames whose 
+     * position will be traced out in the Coin3D scene-graph.
+     * \param aPose The frame to add to the list of traced frames.
+     * \return A reference to this tracer.
+     */
     self& add_traced_frame(const shared_ptr< pose_3D<double> >& aPose) {
       traced_frames.push_back(aPose);
       motion_graph_traces.push_back(geom::tracer_coin3d_impl(false));
       return *this;
     };
     
+    /**
+     * This function returns the motion-graph trace associated to the given frame (pose).
+     * \param aPose The frame of which the motion-graph trace is sought.
+     * \return A const-reference to the motion-graph trace as a Coin3d scene-graph.
+     */
     const geom::tracer_coin3d_impl& get_motion_graph_tracer(const shared_ptr< pose_3D<double> >& aPose) const {
       std::vector< shared_ptr< pose_3D<double> > >::const_iterator it = std::find(traced_frames.begin(),traced_frames.end(),aPose);
       if(it != traced_frames.end()) {
@@ -392,16 +463,30 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, identity_topo_map, NextR
         throw std::range_error("The given pose is not being traced by this frame-tracer!");
     };
     
+    /**
+     * This function returns the number of solutions registers by this reporter.
+     * \return The number of solutions registers by this reporter.
+     */
     std::size_t get_solution_count() const {
       return solution_traces.size();
     };
     
+    /**
+     * This function returns the cost of the best solution registered by this reporter.
+     * \return The cost of the best solution registered by this reporter.
+     */
     double get_best_solution_value() const {
       if(solution_traces.empty())
         return std::numeric_limits<double>::infinity();
       return solution_traces.begin()->first;
     };
     
+    /**
+     * This function returns the solution trace associated to the given frame (pose).
+     * \param aPose The frame of which the solution trace is sought.
+     * \param aSolutionId The index of the solution trace, 0 is the best solution.
+     * \return A const-reference to the solution trace as a Coin3d scene-graph.
+     */
     const geom::tracer_coin3d_impl& get_solution_tracer(const shared_ptr< pose_3D<double> >& aPose, std::size_t aSolutionId = 0) const {
       if(aSolutionId >= solution_traces.size())
         aSolutionId = 0;

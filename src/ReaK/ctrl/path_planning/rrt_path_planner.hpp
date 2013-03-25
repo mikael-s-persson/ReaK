@@ -1,7 +1,12 @@
 /**
  * \file rrt_path_planner.hpp
  * 
- * This library defines a class
+ * This library defines a class to solve path planning problems using the 
+ * Rapidly-exploring Random Tree (RRT) algorithm (or one of its variants). 
+ * Given a C_free (configuration space restricted to non-colliding points) and a 
+ * result reporting policy, this class will probabilistically construct a motion-graph 
+ * that will connect a starting point and a goal point with a path through C-free 
+ * that is as close as possible to the optimal path in terms of distance.
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date July 2012
@@ -61,21 +66,44 @@ namespace ReaK {
 namespace pp {
   
 
-const std::size_t UNIDIRECTIONAL_RRT = 0;
-const std::size_t BIDIRECTIONAL_RRT = 1;
 
-
+/**
+ * This POD type contains the data required on a per-vertex basis for the RRT path-planning algorithm.
+ * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger configuration space.
+ */
 template <typename FreeSpaceType>
 struct rrt_vertex_data {
+  /// The position associated to the vertex.
   typename topology_traits<FreeSpaceType>::point_type position;
+  /// The travel-distance accumulated in the vertex, i.e., the travel-distance from the start vertex to this vertex.
   double distance_accum;
 };
 
+/**
+ * This POD type contains the data required on a per-edge basis for the RRT path-planning algorithm.
+ * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger configuration space.
+ */
 template <typename FreeSpaceType>
 struct rrt_edge_data { };
 
+/**
+ * This stateless functor type can be used to print out the information about a given RRT vertex.
+ * This functor type can be used as a printing policy type for the vlist_sbmp_report class 
+ * template that prints the list of vertices to a file.
+ * \note This is mostly useful for debugging purposes (recording all information about the 
+ *       motion-graph), it should not be used as the "output" of the path-planner.
+ */
 struct rrt_vprinter : serialization::serializable {
   
+  /**
+   * This call operator prints all the RRT information about a given vertex 
+   * to a given output-stream.
+   * \tparam Vertex The vertex-descriptor type for the motion-graph.
+   * \tparam Graph The motion-graph type used by the RRT planning algorithm.
+   * \param out The output-stream to which to print the RRT information about the vertex.
+   * \param u The vertex whose information is to be printed.
+   * \param g The motion-graph to which the vertex belongs.
+   */
   template <typename Vertex, typename Graph>
   void operator()(std::ostream& out, Vertex u, const Graph& g) const {
     using ReaK::to_vect;
@@ -96,7 +124,12 @@ struct rrt_vprinter : serialization::serializable {
 
 
 /**
- * This class is a RRT-based path-planner over the given topology.
+ * This class solves path planning problems using the 
+ * Rapidly-exploring Random Tree (RRT) algorithm (or one of its variants). 
+ * Given a C_free (configuration space restricted to non-colliding points) and a 
+ * result reporting policy, this class will probabilistically construct a motion-graph 
+ * that will connect a starting point and a goal point with a path through C-free 
+ * that is as close as possible to the optimal path in terms of distance.
  * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger configuration space.
  * \tparam SBPPReporter The reporter type to use to report the progress of the path-planning.
  */
@@ -129,6 +162,25 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
     
   public:
     
+    /**
+     * Returns the best solution distance obtained after solve_path() has been called.
+     * \return The best solution distance obtained after solve_path() has been called.
+     */
+    double get_best_solution_distance() const {
+      if(m_solutions.size() == 0)
+        return std::numeric_limits<double>::infinity();
+      else
+        return m_solutions.begin()->first;
+    };
+    
+    /**
+     * This function constructs a solution path (if one is found) and invokes the path-planning 
+     * reporter to report on that solution path.
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \param p_u The latest added position.
+     * \param u The latest added node in the motion-graph.
+     * \param g The current motion-graph.
+     */
     template <typename Vertex, typename Graph>
     void check_goal_connection(const point_type& p_u, Vertex u, Graph& g) {
       point_type result_p = this->m_space->move_position_toward(p_u, 1.0, m_goal_pos);
@@ -158,6 +210,16 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
       m_reporter.draw_solution(*(this->m_space), m_solutions[solutions_total_dist]);
     };
     
+    /**
+     * This function constructs a solution path (if one is found) and invokes the path-planning 
+     * reporter to report on that solution path. This is the bi-directional version which is 
+     * called when a joining vertex is found between the two motion-graphs.
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \param u1 The latest added node in the first motion-graph.
+     * \param u2 The latest added node in the second motion-graph.
+     * \param g1 The first motion-graph.
+     * \param g2 The second motion-graph.
+     */
     template <typename Vertex, typename Graph>
     void joining_vertex_found(Vertex u1, Vertex u2, Graph& g1, Graph& g2) {
       double total_dist = g1[u1].distance_accum + g2[u2].distance_accum
@@ -186,10 +248,22 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
       m_reporter.draw_solution(*(this->m_space), m_solutions[total_dist]);
     };
     
+    /**
+     * Returns true if the solver should keep on going trying to solve the path-planning problem.
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \return True if the solver should keep on going trying to solve the path-planning problem.
+     */
     bool keep_going() const {
       return (max_num_results > m_solutions.size()) && !has_reached_max_vertices;
     };
     
+    /**
+     * This function invokes the path-planning reporter to report on the progress of the path-planning
+     * solver.
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \param g The current motion-graph.
+     * \param g_pos The position map for the vertices of the motion-graph.
+     */
     template <typename Graph>
     void report_progress(Graph& g) {
       if(num_vertices(g) % this->m_progress_interval == 0)
@@ -197,6 +271,15 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
       has_reached_max_vertices = (num_vertices(g) >= this->m_max_vertex_count);
     };
     
+    /**
+     * This function invokes the path-planning reporter to report on the progress of the path-planning
+     * solver. This is the bi-directional version (i.e., two motion-graphs).
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \param g1 The first motion-graph.
+     * \param g2 The second motion-graph.
+     * \param g1_pos The position map for the vertices of the first motion-graph.
+     * \param g2_pos The position map for the vertices of the second motion-graph.
+     */
     template <typename Graph>
     void report_progress(Graph& g1, Graph& g2) {
       if((num_vertices(g1) + num_vertices(g2)) % this->m_progress_interval == 0) {
@@ -216,25 +299,85 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
      */
     virtual shared_ptr< seq_path_base< super_space_type > > solve_path();
     
+    /**
+     * Returns a const-reference to the path-planning reporter used by this planner.
+     * \return A const-reference to the path-planning reporter used by this planner.
+     */
     const SBPPReporter& get_reporter() const { return m_reporter; };
+    /**
+     * Sets the path-planning reporter to be used by this planner.
+     * \param aNewReporter The path-planning reporter to be used by this planner.
+     */
     void set_reporter(const SBPPReporter& aNewReporter) { m_reporter = aNewReporter; };
     
+    /**
+     * Returns a const-reference to the start position used by this planner.
+     * \return A const-reference to the start position used by this planner.
+     */
     const point_type& get_start_pos() const { return m_start_pos; };
+    /**
+     * Sets the start position to be used by this planner.
+     * \param aNewReporter The start position to be used by this planner.
+     */
     void set_start_pos(const point_type& aStartPos) { m_start_pos = aStartPos; };
     
+    /**
+     * Returns a const-reference to the goal position used by this planner.
+     * \return A const-reference to the goal position used by this planner.
+     */
     const point_type& get_goal_pos() const { return m_goal_pos; };
+    /**
+     * Sets the goal position to be used by this planner.
+     * \param aNewReporter The goal position to be used by this planner.
+     */
     void set_goal_pos(const point_type& aGoalPos) { m_goal_pos = aGoalPos; };
     
+    /**
+     * Returns the maximum number of solutions that this planner should register.
+     * \note Most probabilistic path-planners produce an initial solution that isn't perfect, and so, 
+     *       more solutions should be sought to eventually have a more optimal one (shorter distance).
+     * \return The maximum number of solutions that this planner should register.
+     */
     std::size_t get_max_result_count() const { return max_num_results; };
+    /**
+     * Sets the maximum number of solutions that this planner should register.
+     * \note Most probabilistic path-planners produce an initial solution that isn't perfect, and so, 
+     *       more solutions should be sought to eventually have a more optimal one (shorter distance).
+     * \param aMaxResultCount The maximum number of solutions that this planner should register.
+     */
     void set_max_result_count(std::size_t aMaxResultCount) { max_num_results = aMaxResultCount; };
     
+    /**
+     * Returns the integer flag that identifies whether to use a uni-directional or bi-directional method (see path_planner_options.hpp).
+     * \return The integer flag that identifies whether to use a uni-directional or bi-directional method (see path_planner_options.hpp).
+     */
     std::size_t get_bidir_flag() const { return m_bidir_flag; };
+    /**
+     * Sets the integer flag that identifies whether to use a uni-directional or bi-directional method (see path_planner_options.hpp).
+     * \param aBidirFlag The integer flag that identifies whether to use a uni-directional or bi-directional method (see path_planner_options.hpp).
+     */
     void set_bidir_flag(std::size_t aBidirFlag) { m_bidir_flag = aBidirFlag; };
     
+    /**
+     * Returns the integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
+     * \return The integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
+     */
     std::size_t get_graph_kind_flag() const { return m_graph_kind_flag; };
+    /**
+     * Sets the integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
+     * \param aGraphKindFlag The integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
+     */
     void set_graph_kind_flag(std::size_t aGraphKindFlag) { m_graph_kind_flag = aGraphKindFlag; };
     
+    /**
+     * Returns the integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
+     * \return The integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
+     */
     std::size_t get_knn_flag() const { return m_knn_flag; };
+    /**
+     * Sets the integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
+     * \param aKNNMethodFlag The integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
+     */
     void set_knn_flag(std::size_t aKNNMethodFlag) { m_knn_flag = aKNNMethodFlag; };
     
     
@@ -317,6 +460,16 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
 
 
 
+
+/**
+ * This class template is used by the RRT path-planner as the visitor object needed to 
+ * collaborate with the RRT algorithms to generate the motion-graph and path-planning solutions.
+ * This class template models the RRTStarVisitorConcept.
+ * As with most planning algorithms in ReaK, the algorithm is really made up of a high-level 
+ * algorithmic logic in the form of function templates, and a number of customization points 
+ * collected as member functions of an algorithm visitor class that implement the problem-specific 
+ * behaviors (random-walks / local-planning, progress reporting, completion criteria, etc.). 
+ */
 template <typename FreeSpaceType, typename NNFinderSynchro, typename SBPPReporter = no_sbmp_report>
 struct rrt_planner_visitor {
   shared_ptr< FreeSpaceType > m_space;

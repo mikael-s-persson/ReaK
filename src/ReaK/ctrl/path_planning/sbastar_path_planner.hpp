@@ -1,14 +1,24 @@
 /**
  * \file sbastar_path_planner.hpp
  * 
- * This library defines a class
+ * This library defines a class to solve path planning problems using the 
+ * Sampling-based A* algorithm (or one of its variants). Given a C_free (configuration space
+ * restricted to non-colliding points) and a result reporting policy, this class 
+ * will probabilistically construct a motion-graph that will connect a starting point 
+ * and a goal point with a path through C-free that is as close as possible to the 
+ * optimal path in terms of distance. The planner uses a selectable variant of the 
+ * Sampling-based A* (SBA*) algorithm, including the basic version, the SBA*-RRT*
+ * alternating algorithm, and the Anytime SBA* algorithm. In all cases, collision 
+ * checking and connectivity can be either full or lazy (and pruned) to either construct
+ * a full-connectivity graph containing only collision-free edges, or a single-query motion-tree
+ * that includes only optimal edges (whose collisions are checked lazily).
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date January 2013
  */
 
 /*
- *    Copyright 2012 Sven Mikael Persson
+ *    Copyright 2013 Sven Mikael Persson
  *
  *    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
  *
@@ -67,36 +77,78 @@ namespace pp {
   
   
   
-
+/**
+ * This POD type contains the data required on a per-vertex basis for the 
+ * Sampling-based A* path-planning algorithms.
+ * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger configuration space.
+ */
 template <typename FreeSpaceType>
 struct sbastar_vertex_data {
+  /// The position associated to the vertex.
   typename topology_traits<FreeSpaceType>::point_type position;
+  /// The constriction associated to the vertex, which represents the probability that a sample drawn from the neighborhood of the vertex will be colliding (or unreachable by a collision-free path).
   double constriction;
-  std::size_t collision_count;  // r
+  /// Keeps track of the number of neighbors of the vertex that could not be connected to it due to a collision.
+  std::size_t collision_count;
+  /// The density associated to the vertex, which represents the probability that a sample drawn from the neighborhood of the vertex will not yield any information gain.
   double density;
-  std::size_t expansion_trials;  // m
+  /// Keeps track of the number of neighbors of the vertex.
+  std::size_t expansion_trials;
+  /// The heuristic-value associated to the vertex, i.e., the bird-flight distance to the goal.
   double heuristic_value;
+  /// The travel-distance accumulated in the vertex, i.e., the travel-distance from the start vertex to this vertex.
   double distance_accum;
+  /// The key-value associated to the vertex, computed by the SBA* algorithm.
   double key_value;
+  /// The predecessor associated to the vertex, i.e., following the predecessor links starting at the goal node yields a backward trace of the optimal path.
   std::size_t predecessor;
   
+  /**
+   * Default constructor.
+   */
   sbastar_vertex_data() : position(typename topology_traits<FreeSpaceType>::point_type()),
                           constriction(0.0), collision_count(0), density(0.0), expansion_trials(0),
                           heuristic_value(0.0), distance_accum(0.0), key_value(0.0),
                           predecessor(0) { };
 };
 
+/**
+ * This POD type contains the data required on a per-edge basis for the 
+ * Sampling-based A* path-planning algorithms.
+ * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger configuration space.
+ */
 template <typename FreeSpaceType>
 struct sbastar_edge_data { 
-  double astar_weight; //for A*
+  /// The travel-distance associated to the edge (from source to target).
+  double astar_weight;
   
+  /**
+   * Default constructor.
+   * \param aWeight The travel-distance to be associated to this edge.
+   */
   sbastar_edge_data(double aWeight = 0.0) : astar_weight(aWeight) { };
 };
 
 
 
+/**
+ * This stateless functor type can be used to print out the information about a given SBA* vertex.
+ * This functor type can be used as a printing policy type for the vlist_sbmp_report class 
+ * template that prints the list of vertices to a file.
+ * \note This is mostly useful for debugging purposes (recording all information about the 
+ *       motion-graph), it should not be used as the "output" of the path-planner.
+ */
 struct sbastar_vprinter : serialization::serializable {
   
+  /**
+   * This call operator prints all the SBA* information about a given vertex 
+   * to a given output-stream.
+   * \tparam Vertex The vertex-descriptor type for the motion-graph.
+   * \tparam Graph The motion-graph type used by the SBA* planning algorithm.
+   * \param out The output-stream to which to print the SBA* information about the vertex.
+   * \param u The vertex whose information is to be printed.
+   * \param g The motion-graph to which the vertex belongs.
+   */
   template <typename Vertex, typename Graph>
   void operator()(std::ostream& out, Vertex u, const Graph& g) const {
     using ReaK::to_vect;
@@ -123,7 +175,17 @@ struct sbastar_vprinter : serialization::serializable {
 
 
 /**
- * This class is a FADPRM-based path-planner over the given topology.
+ * This class solves path planning problems using the 
+ * Sampling-based A* algorithm (or one of its variants). Given a C_free (configuration space
+ * restricted to non-colliding points) and a result reporting policy, this class 
+ * will probabilistically construct a motion-graph that will connect a starting point 
+ * and a goal point with a path through C-free that is as close as possible to the 
+ * optimal path in terms of distance. The planner uses a selectable variant of the 
+ * Sampling-based A* (SBA*) algorithm, including the basic version, the SBA*-RRT*
+ * alternating algorithm, and the Anytime SBA* algorithm. In all cases, collision 
+ * checking and connectivity can be either full or lazy (and pruned) to either construct
+ * a full-connectivity graph containing only collision-free edges, or a single-query motion-tree
+ * that includes only optimal edges (whose collisions are checked lazily).
  * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger configuration space.
  * \tparam SBPPReporter The reporter type to use to report the progress of the path-planning.
  */
@@ -164,6 +226,10 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     
   public:
     
+    /**
+     * Returns the best solution distance obtained after solve_path() has been called.
+     * \return The best solution distance obtained after solve_path() has been called.
+     */
     double get_best_solution_distance() const {
       if(m_solutions.size() == 0)
         return std::numeric_limits<double>::infinity();
@@ -171,15 +237,21 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
         return m_solutions.begin()->first;
     };
     
+    /**
+     * Returns true if the solver should keep on going trying to solve the path-planning problem.
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \return True if the solver should keep on going trying to solve the path-planning problem.
+     */
     bool keep_going() const {
       return (max_num_results > m_current_num_results) && !has_reached_max_vertices;
     };
     
-    template <typename Graph>
-    double adjust_threshold(double old_thr, const Graph&) const { 
-      return old_thr * 2.0;  // geometrically progress towards infinity.
-    };
-    
+    /**
+     * This function invokes the path-planning reporter to report on the progress of the path-planning
+     * solver.
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \param g The current motion-graph.
+     */
     template <typename Graph>
     void report_progress(Graph& g) {
       if(num_vertices(g) % this->m_progress_interval == 0)
@@ -187,11 +259,27 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
       has_reached_max_vertices = (num_vertices(g) >= this->m_max_vertex_count);
     };
     
+    /**
+     * This function computes the heuristic distance value of a given node, i.e., the bird-flight 
+     * distance to the goal position.
+     * \note This function is used internally by the path-planning algorithm (a visitor callback).
+     * \param u The node for which the heuristic value is sought.
+     * \param g The current motion-graph.
+     * \return The heuristic distance value of the given node.
+     */
     template <typename Graph>
     double heuristic(typename boost::graph_traits<Graph>::vertex_descriptor u, const Graph& g) const {
       return get(distance_metric, this->m_space->get_super_space())(g[u].position, this->m_goal_pos, this->m_space->get_super_space());
     };
     
+    /**
+     * This function constructs a solution path (if one is found) and invokes the path-planning 
+     * reporter to report on that solution path.
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \param start_node The start node in the motion-graph.
+     * \param goal_node The goal node in the motion-graph.
+     * \param g The current motion-graph.
+     */
     template <typename Vertex, typename Graph>
     void create_solution_path(Vertex start_node, Vertex goal_node, Graph& g) {
       
@@ -239,45 +327,153 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
      */
     virtual shared_ptr< seq_path_base< super_space_type > > solve_path();
     
+    /**
+     * Returns a const-reference to the path-planning reporter used by this planner.
+     * \return A const-reference to the path-planning reporter used by this planner.
+     */
     const SBPPReporter& get_reporter() const { return m_reporter; };
+    /**
+     * Sets the path-planning reporter to be used by this planner.
+     * \param aNewReporter The path-planning reporter to be used by this planner.
+     */
     void set_reporter(const SBPPReporter& aNewReporter) { m_reporter = aNewReporter; };
     
+    /**
+     * Returns a const-reference to the start position used by this planner.
+     * \return A const-reference to the start position used by this planner.
+     */
     const point_type& get_start_pos() const { return m_start_pos; };
+    /**
+     * Sets the start position to be used by this planner.
+     * \param aNewReporter The start position to be used by this planner.
+     */
     void set_start_pos(const point_type& aStartPos) { m_start_pos = aStartPos; };
     
+    /**
+     * Returns a const-reference to the goal position used by this planner.
+     * \return A const-reference to the goal position used by this planner.
+     */
     const point_type& get_goal_pos() const { return m_goal_pos; };
+    /**
+     * Sets the goal position to be used by this planner.
+     * \param aNewReporter The goal position to be used by this planner.
+     */
     void set_goal_pos(const point_type& aGoalPos) { m_goal_pos = aGoalPos; };
     
     
+    /**
+     * Returns the initial key-value threshold used by this planner.
+     * \return The initial key-value threshold used by this planner.
+     */
     double get_initial_key_threshold() const { return m_init_key_threshold; };
+    /**
+     * Sets the initial key-value threshold to be used by this planner.
+     * \param aInitialThreshold The initial key-value threshold to be used by this planner.
+     */
     void set_initial_key_threshold(double aInitialThreshold) { m_init_key_threshold = aInitialThreshold; };
     
+    /**
+     * Returns the initial density-value threshold used by this planner.
+     * \return The initial density-value threshold used by this planner.
+     */
     double get_initial_density_threshold() const { return m_init_dens_threshold; };
+    /**
+     * Sets the initial density-value threshold to be used by this planner.
+     * \param aInitialThreshold The initial density-value threshold to be used by this planner.
+     */
     void set_initial_density_threshold(double aInitialThreshold) { m_init_dens_threshold = aInitialThreshold; };
     
+    /**
+     * Returns the current key-value threshold used by this planner.
+     * \return The current key-value threshold used by this planner.
+     */
     double get_current_key_threshold() const { return m_current_key_threshold; };
+    /**
+     * Sets the current key-value threshold to be used by this planner.
+     * \param aCurrentThreshold The current key-value threshold to be used by this planner.
+     */
     void set_current_key_threshold(double aCurrentThreshold) { m_current_key_threshold = aCurrentThreshold; };
     
+    /**
+     * Returns the current density-value threshold used by this planner.
+     * \return The current density-value threshold used by this planner.
+     */
     double get_current_density_threshold() const { return m_current_dens_threshold; };
+    /**
+     * Sets the current density-value threshold to be used by this planner.
+     * \param aCurrentThreshold The current density-value threshold to be used by this planner.
+     */
     void set_current_density_threshold(double aCurrentThreshold) { m_current_dens_threshold = aCurrentThreshold; };
     
     
+    /**
+     * Returns the sampling radius (in the topology's distance metric) used by this planner.
+     * \return The sampling radius used by this planner.
+     */
     double get_sampling_radius() const { return m_sampling_radius; };
+    /**
+     * Sets the sampling radius (in the topology's distance metric) to be used by this planner.
+     * \param aSamplingRadius The sampling radius to be used by this planner.
+     */
     void set_sampling_radius(double aSamplingRadius) { m_sampling_radius = aSamplingRadius; };
     
+    /**
+     * Returns the maximum number of solutions that this planner should register.
+     * \note Most probabilistic path-planners produce an initial solution that isn't perfect, and so, 
+     *       more solutions should be sought to eventually have a more optimal one (shorter distance).
+     * \return The maximum number of solutions that this planner should register.
+     */
     std::size_t get_max_result_count() const { return max_num_results; };
+    /**
+     * Sets the maximum number of solutions that this planner should register.
+     * \note Most probabilistic path-planners produce an initial solution that isn't perfect, and so, 
+     *       more solutions should be sought to eventually have a more optimal one (shorter distance).
+     * \param aMaxResultCount The maximum number of solutions that this planner should register.
+     */
     void set_max_result_count(std::size_t aMaxResultCount) { max_num_results = aMaxResultCount; };
     
+    /**
+     * Returns the integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
+     * \return The integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
+     */
     std::size_t get_graph_kind_flag() const { return m_graph_kind_flag; };
+    /**
+     * Sets the integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
+     * \param aGraphKindFlag The integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
+     */
     void set_graph_kind_flag(std::size_t aGraphKindFlag) { m_graph_kind_flag = aGraphKindFlag; };
     
+    /**
+     * Returns the integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
+     * \return The integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
+     */
     std::size_t get_knn_flag() const { return m_knn_flag; };
+    /**
+     * Sets the integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
+     * \param aKNNMethodFlag The integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
+     */
     void set_knn_flag(std::size_t aKNNMethodFlag) { m_knn_flag = aKNNMethodFlag; };
     
+    /**
+     * Returns the integer flag that identifies the kind of collision-checking to use (eager or lazy) (see path_planner_options.hpp).
+     * \return The integer flag that identifies the kind of collision-checking to use (eager or lazy) (see path_planner_options.hpp).
+     */
     std::size_t get_collision_check_flag() const { return m_collision_check_flag; };
+    /**
+     * Sets the integer flag that identifies the kind of collision-checking to use (eager or lazy) (see path_planner_options.hpp).
+     * \param aCollisionCheckFlag The integer flag that identifies the kind of collision-checking to use (eager or lazy) (see path_planner_options.hpp).
+     */
     void set_collision_check_flag(std::size_t aCollisionCheckFlag) { m_collision_check_flag = aCollisionCheckFlag; };
     
+    /**
+     * Returns the integer flag that identifies the kind of added bias to use (no-bias, RRT*, etc.) (see path_planner_options.hpp).
+     * \return The integer flag that identifies the kind of added bias to use (no-bias, RRT*, etc.) (see path_planner_options.hpp).
+     */
     std::size_t get_added_bias_flags() const { return m_added_bias_flags; };
+    /**
+     * Sets the integer flag that identifies the kind of added bias to use (no-bias, RRT*, etc.) (see path_planner_options.hpp).
+     * \param aAddedBiasFlags The integer flag that identifies the kind of added bias to use (no-bias, RRT*, etc.) (see path_planner_options.hpp).
+     */
     void set_added_bias_flags(std::size_t aAddedBiasFlags) { m_added_bias_flags = aAddedBiasFlags; };
     
     /**
@@ -290,16 +486,16 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
      * \param aSamplingRadius The radius of the sampled space around a given point when doing random walks.
      * \param aMaxVertexCount The maximum number of samples to generate during the motion planning.
      * \param aProgressInterval The number of new samples between each "progress report".
-     * \param aBiDirFlag An integer flag representing the directionality of the RRT algorithm 
-     *                   used (either UNIDIRECTIONAL_RRT or BIDIRECTIONAL_RRT).
      * \param aGraphKindFlag An integer flag representing the kind of motion graph to use in the 
-     *                       RRT algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
+     *                       planning algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
      * \param aKNNMethodFlag An integer flag representing the kind of KNN method to use for nearest
      *                       neighbor queries in the graph. Can be LINEAR_SEARCH_KNN, DVP_BF2_TREE_KNN,
      *                       DVP_BF4_TREE_KNN, DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN when the 
      *                       motion graph is of kind ADJ_LIST_MOTION_GRAPH. Can be DVP_ALT_BF2_TREE_KNN,
      *                       DVP_ALT_BF4_TREE_KNN, DVP_ALT_COB2_TREE_KNN, or DVP_ALT_COB4_TREE_KNN when 
      *                       the motion graph is of kind DVP_ADJ_LIST_MOTION_GRAPH.
+     * \param aCollisionCheckFlag The integer flag that identifies the kind of collision-checking to use (eager or lazy) (see path_planner_options.hpp).
+     * \param aAddedBiasFlags The integer flag that identifies the kind of added bias to use (no-bias, RRT*, etc.) (see path_planner_options.hpp).
      * \param aReporter The SBPP reporter object to use to report results and progress.
      * \param aMaxResultCount The maximum number of successful start-goal connections to make before 
      *                        stopping the path planner (the higher the number the more likely that a 
@@ -382,7 +578,16 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
 
 
 
-
+/**
+ * This class template is used by the SBA* path-planner as the visitor object needed to 
+ * collaborate with the SBA* algorithms to generate the motion-graph and path-planning solutions.
+ * This class template models the SBAStarVisitorConcept and SBARRTStarVisitorConcept.
+ * As with most planning algorithms in ReaK, the algorithm is really made up of a high-level 
+ * algorithmic logic in the form of function templates, and a number of customization points 
+ * collected as member functions of an algorithm visitor class that implement the problem-specific 
+ * behaviors (random-walks / local-planning, heuristic computation, progress reporting, 
+ * completion criteria, etc.). 
+ */
 template <typename FreeSpaceType, typename MotionGraph, typename NNFinderSynchro, typename SBPPReporter = no_sbmp_report>
 struct sbastar_planner_visitor {
   typedef typename boost::graph_traits<MotionGraph>::vertex_descriptor Vertex;
@@ -413,11 +618,7 @@ struct sbastar_planner_visitor {
   
   template <typename Vertex, typename Graph>
   void init_vertex_properties(Vertex u, Graph& g) const {
-    g[u].heuristic_value = get(distance_metric, m_space->get_super_space())(
-      g[u].position,
-      g[m_goal_node].position,
-      m_space->get_super_space());
-    
+    g[u].heuristic_value = m_planner->heuristic(u,g);
     g[u].constriction = 0.0;
     g[u].collision_count = 0;  // r
     g[u].density = 0.0;
@@ -741,7 +942,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     motion_graph[start_node].collision_count = 0; \
     motion_graph[start_node].density = 0.0; \
     motion_graph[start_node].expansion_trials = 0; \
-    motion_graph[start_node].heuristic_value = space_Lc; \
+    motion_graph[start_node].heuristic_value = heuristic(start_node,motion_graph); \
     motion_graph[start_node].distance_accum = 0.0; \
     motion_graph[start_node].key_value = 1.0 / space_Lc; \
     motion_graph[start_node].predecessor = start_node; \
@@ -767,7 +968,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     motion_graph[start_node].collision_count = 0; \
     motion_graph[start_node].density = 0.0; \
     motion_graph[start_node].expansion_trials = 0; \
-    motion_graph[start_node].heuristic_value = space_Lc; \
+    motion_graph[start_node].heuristic_value = heuristic(start_node,motion_graph); \
     motion_graph[start_node].distance_accum = 0.0; \
     motion_graph[start_node].key_value = 1.0 / space_Lc; \
     motion_graph[start_node].predecessor = start_node; \

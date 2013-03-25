@@ -1,7 +1,12 @@
 /**
  * \file motion_planner_base.hpp
  * 
- * This library defines a class
+ * This library defines base classes for path-planners and motion-planners as the 
+ * stem of OOP path-planners used in ReaK. OOP-style planners are useful to hide away
+ * the cumbersome details of calling the underlying planning algorithms which are 
+ * generic programming (GP) style and thus provide a lot more flexibility but are difficult
+ * to deal with in the user-space. The OOP planners are meant to offer a much simpler interface,
+ * i.e., a member function that "solves the problem" and returns the solution path or trajectory.
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date July 2012
@@ -47,7 +52,12 @@ namespace ReaK {
 namespace pp {
 
 /**
- * This class is the basic OOP interface for a motion planner.
+ * This class is the basic OOP interface for a motion planner. 
+ * OOP-style planners are useful to hide away
+ * the cumbersome details of calling the underlying planning algorithms which are 
+ * generic programming (GP) style and thus provide a lot more flexibility but are difficult
+ * to deal with in the user-space. The OOP planners are meant to offer a much simpler interface,
+ * i.e., a member function that "solves the problem" and returns the solution path or trajectory.
  */
 template <typename FreeSpaceType>
 class motion_planner_base : public named_object {
@@ -110,7 +120,12 @@ class motion_planner_base : public named_object {
 
 
 /**
- * This class is the basic OOP interface for a path planner.
+ * This class is the basic OOP interface for a path planner. 
+ * OOP-style planners are useful to hide away
+ * the cumbersome details of calling the underlying planning algorithms which are 
+ * generic programming (GP) style and thus provide a lot more flexibility but are difficult
+ * to deal with in the user-space. The OOP planners are meant to offer a much simpler interface,
+ * i.e., a member function that "solves the problem" and returns the solution path or trajectory.
  */
 template <typename FreeSpaceType>
 class path_planner_base : public named_object {
@@ -173,7 +188,12 @@ class path_planner_base : public named_object {
 
 
 /**
- * This class is the basic OOP interface for a sampling-based motion planner.
+ * This class is the basic OOP interface for a sampling-based motion planner. 
+ * OOP-style planners are useful to hide away
+ * the cumbersome details of calling the underlying planning algorithms which are 
+ * generic programming (GP) style and thus provide a lot more flexibility but are difficult
+ * to deal with in the user-space. The OOP planners are meant to offer a much simpler interface,
+ * i.e., a member function that "solves the problem" and returns the solution path or trajectory.
  */
 template <typename BaseType>
 class sample_based_planner : public BaseType {

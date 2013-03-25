@@ -1,7 +1,8 @@
 /**
  * \file vlist_sbmp_report.hpp
  * 
- * This library defines a sampling-based motion/path planning reporter that prints a list of vertex and their properties. 
+ * This library defines a sampling-based motion/path planning reporter that prints a list of 
+ * vertex and their properties. 
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date March 2013
@@ -55,24 +56,27 @@ namespace pp {
 
 /**
  * This class can be used as a SBMP/SBPP Reporter (SBMPReporterConcept and SBPPReporterConcept) 
- * and uses the underlying C-free (free_space) to draw individual edges of the motion graph or 
- * solution trajectory. The underlying space should have the functions:
- * 
- * void reset_output() const;
- * 
- * void draw_edge(const point_type& a, const point_type& b, bool is_solution_path) const;
- * 
- * void save_output(const std::string& filename) const;
+ * and prints all the vertices (the properties) of the motion graph into files.
+ * \tparam VertexPrinter A functor type that can print, in a single line, all the properties of a vertex of the motion-graph.
+ * \tparam NextReporter A SBMP/SBPP reporter type to chain to this reporter.
  */
 template <typename VertexPrinter, typename NextReporter = no_sbmp_report>
 struct vlist_sbmp_report : public shared_object {
   typedef vlist_sbmp_report<VertexPrinter, NextReporter> self;
   
+  /// Holds the instance of the SBMP/SBPP reporter to which calls are forwarded to.
   NextReporter next_reporter;
+  /// Holds the functor that can print, in a single line, all the properties of a vertex of the motion-graph.
   VertexPrinter print_to_stream;
   /// Holds the file-path where to output the reports.
   std::string file_path;
   
+  /**
+   * Parametrized constructor.
+   * \param aFilePath The path where to create the output files.
+   * \param aPrinter The functor that can print, in a single line, all the properties of a vertex of the motion-graph.
+   * \param aNextReporter The instance of the SBMP/SBPP reporter to which calls are forwarded to.
+   */
   explicit vlist_sbmp_report(const std::string& aFilePath = "", 
                              VertexPrinter aPrinter = VertexPrinter(),
                              NextReporter aNextReporter = NextReporter()) : 
