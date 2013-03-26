@@ -697,7 +697,7 @@ struct sbastar_planner_visitor {
 #endif
   
   // NOTE: This seems to be the best one.
-#if 1
+#if 0
   // keep the average sample similarity weighted by the sample probability (and its binomial converse).
   
   template <typename Vertex, typename Graph>
@@ -716,7 +716,8 @@ struct sbastar_planner_visitor {
   };
 #endif
   
-#if 0
+  // NOTE: This one seems to work quite well too.
+#if 1
   // keep the sample similarity weighted by the sample probability (and its binomial converse).
   // that is, assume the existing density to reflect the overall density and the newly computed 
   // sample similarity to reflect the density in its relatively probable region (binomial).
@@ -890,7 +891,7 @@ struct sbastar_planner_visitor {
     if((in_degree(m_goal_node,g)) && (g[m_goal_node].distance_accum < m_planner->get_best_solution_distance()))
       m_planner->create_solution_path(m_start_node, m_goal_node, g); 
     
-    m_planner->set_current_key_threshold( 0.8 * m_planner->get_current_key_threshold() );
+//     m_planner->set_current_key_threshold( 0.5 * m_planner->get_current_key_threshold() );
 //     m_planner->set_current_density_threshold( 0.95 * m_planner->get_current_density_threshold() );
     
 //     std::cout << " new key-value threshold =\t" << m_planner->get_current_key_threshold() << std::endl;
@@ -901,7 +902,13 @@ struct sbastar_planner_visitor {
   bool has_search_potential(Vertex u, const Graph& g) const { 
     if( m_planner->get_initial_relaxation() > 1e-6 ) {
       // assume we are running a Anytime SBA* algorithm.
-      if(u == m_goal_node)
+//       std::cout << " A* key = " << std::setw(10) << (g[u].distance_accum + g[u].heuristic_value) 
+//                 << " weighted by density = " << std::setw(10) << ((g[u].distance_accum + g[u].heuristic_value) / (1.0 - g[u].constriction) / (1.0 - g[u].density))
+//                 << " compared to key-value = " << std::setw(10) << (g[u].key_value)
+//                 << " and compared to relaxed heuristic: " << std::setw(10) << (g[u].heuristic_value * m_planner->get_current_relaxation()) << std::endl;
+//       std::cout << " sampling potential = " << std::setw(10) << ((1.0 - g[u].constriction) * (1.0 - g[u].density)) 
+//                 << " compared to relaxation potential: " << std::setw(10) << (1.0 / (1.0 + m_planner->get_current_relaxation())) << std::endl;
+      if(in_degree(m_goal_node,g) && ( g[u].heuristic_value < m_planner->get_current_key_threshold() * (g[u].distance_accum + g[u].heuristic_value) / (1.0 - g[u].constriction) / (1.0 - g[u].density) ))
         return false;
       else 
         return true;
@@ -914,23 +921,24 @@ struct sbastar_planner_visitor {
   
   template <typename Vertex, typename Graph>
   bool should_close(Vertex u, const Graph& g) const {
+    if(u == m_goal_node)  // never enqueue the goal node.
+      return true;
     if( m_planner->get_initial_relaxation() > 1e-6 ) {
       // assume we are running a Anytime SBA* algorithm.
-      if((1.0 - g[u].density) > 1.0 / (1.0 + m_planner->get_current_relaxation()))
-        return false;
-      else 
+      if((1.0 - g[u].constriction) * (1.0 - g[u].density) < m_planner->get_current_density_threshold())
         return true;
+      else 
+        return false;
     };
-    if(g[u].density < (1.0 - m_planner->get_current_density_threshold()))
-//     if(g[u].key_value > m_planner->get_current_key_threshold() * m_space_Lc)
-      return false;
-    else 
+    if((1.0 - g[u].constriction) * (1.0 - g[u].density) < m_planner->get_current_density_threshold())
       return true;
+    else 
+      return false;
   };
   
   template <typename Graph>
-  double adjust_relaxation(double old_relax, const Graph& g) const {
-    m_planner->set_current_relaxation(old_relax * 0.5);
+  double adjust_relaxation(double, const Graph& g) const {
+    m_planner->set_current_relaxation(m_planner->get_current_relaxation() * 0.5);
     std::cout << " new relaxation =\t" << m_planner->get_current_relaxation() << std::endl;
     return m_planner->get_current_relaxation();
   };

@@ -227,18 +227,24 @@ namespace graph {
         double g_u = get(this->m_distance, u);
         double h_u = get(this->m_heuristic, u);
         // Key-value for the min-heap (priority-queue):
-        put(this->m_key, u, ((g_u + h_u) / (1.0 - get(this->m_constriction, u)) + m_current_relaxation * h_u) / (1.0 - get(this->m_density, u)));
+//         put(this->m_key, u, ((g_u + h_u) / (1.0 - get(this->m_constriction, u)) + m_current_relaxation * h_u) / (1.0 - get(this->m_density, u)));
+        put(this->m_key, u, ((g_u + h_u) / (1.0 - get(this->m_constriction, u))) / (1.0 - get(this->m_density, u)) + m_current_relaxation * h_u);
       };
       
       template <typename Graph>
-      void publish_path(const Graph& g) { 
-        this->m_vis.publish_path(g);
+      void update_relaxation(const Graph& g) { 
         m_current_relaxation = this->m_vis.adjust_relaxation(m_current_relaxation, g);
         
         typedef typename boost::graph_traits<Graph>::vertex_iterator VIter;
         VIter vi, vi_end;
         for(boost::tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
           requeue_vertex(*vi, g);
+      };
+      
+      template <typename Graph>
+      void publish_path(const Graph& g) { 
+        this->m_vis.publish_path(g);
+        update_relaxation(g);
       };
       
       template <typename Vertex, typename Graph>

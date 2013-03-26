@@ -1738,8 +1738,8 @@ int main(int argc, char** argv) {
           ReaK::pp::ADJ_LIST_MOTION_GRAPH,
           ReaK::pp::DVP_BF4_TREE_KNN,
           ReaK::pp::LAZY_COLLISION_CHECKING,
-//           ReaK::pp::NOMINAL_PLANNER_ONLY,
-          ReaK::pp::PLAN_WITH_VORONOI_PULL,
+          ReaK::pp::NOMINAL_PLANNER_ONLY,
+//           ReaK::pp::PLAN_WITH_VORONOI_PULL,
           ReaK::pp::vlist_sbmp_report< ReaK::pp::sbastar_vprinter, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > >(
             output_path_name + "/sbastar/" + world_file_name_only + "_",
             ReaK::pp::sbastar_vprinter(),
