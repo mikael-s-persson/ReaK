@@ -318,51 +318,6 @@ namespace graph {
       RRTNodeGenerator m_node_generator;
     };
     
-    
-    
-    
-    template <typename Graph, //this is the actual graph, should comply to BidirectionalGraphConcept.
-              typename Vertex, //this is the type to describe a vertex in the graph.
-              typename SBARRTStarBFSVisitor, //this is a visitor class that can perform special operations at event points.
-              typename MutableQueue>
-    inline void
-    anytime_sbarrtstar_search_loop
-      (Graph &g, Vertex start_vertex, SBARRTStarBFSVisitor& sba_vis, MutableQueue& Q)
-    {
-      std::size_t num_rrt_vertices = 0;
-      std::size_t num_sba_vertices = num_vertices(g);
-      
-      while (sba_vis.keep_going()) {
-        
-        sba_vis.requeue_vertex(start_vertex,g);
-        
-        while (!Q.empty() && sba_vis.keep_going()) { 
-          Vertex u = Q.top(); Q.pop();
-          
-          // stop if the best node does not meet the potential threshold.
-          if( ! sba_vis.has_search_potential(u, g) )
-            break;
-          
-          sba_vis.examine_vertex(u, g);
-          // if the node still has a minimally good potential, then push it back on the OPEN queue.
-          sba_vis.requeue_vertex(u,g);
-          
-        }; // end while  (the queue is either empty or it contains vertices that still have low key values.
-        num_sba_vertices = num_vertices(g) - num_rrt_vertices;
-        
-        sba_vis.publish_path(g);
-        
-        while(( ! sba_vis.has_search_potential(Q.top(), g) ) && (sba_vis.keep_going()))
-          sba_vis.add_exploratory_node(g);
-        
-        num_rrt_vertices = num_vertices(g) - num_sba_vertices;
-        
-      };
-      std::cout << " SBA* vertices generated = " << num_sba_vertices << std::endl;
-      std::cout << " RRT* vertices generated = " << num_rrt_vertices << std::endl;
-    };
-    
-  
   }; //end of detail namespace.
   
   
@@ -902,7 +857,9 @@ namespace graph {
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
      RandomSampler get_sample,
-     NcSelector select_neighborhood, double init_relaxation)
+     NcSelector select_neighborhood, 
+     double init_relaxation,
+     double SA_init_temperature = -1.0)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
@@ -942,7 +899,10 @@ namespace graph {
     
     put(distance, start_vertex, 0.0);
     
-    detail::anytime_sbarrtstar_search_loop(g, start_vertex, bfs_vis, Q);
+    if(SA_init_temperature <= 0.0)
+      detail::sbarrtstar_search_loop(g, start_vertex, bfs_vis, Q);
+    else
+      detail::sbarrtstar_sa_search_loop(g, start_vertex, bfs_vis, Q, SA_init_temperature);
     
   };
 
@@ -1026,7 +986,9 @@ namespace graph {
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key,                         // properties resulting from the algorithm
      RandomSampler get_sample,
-     NcSelector select_neighborhood, double init_relaxation)
+     NcSelector select_neighborhood, 
+     double init_relaxation,
+     double SA_init_temperature = -1.0)
   {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
     //BOOST_CONCEPT_ASSERT((boost::MutablePropertyGraphConcept<Graph>));
@@ -1048,7 +1010,8 @@ namespace graph {
     generate_anytime_sbarrtstar_no_init(
       g, start_vertex, super_space, vis, 
       hval, position, weight, density, constriction, distance,
-      predecessor, key, get_sample, select_neighborhood, init_relaxation);
+      predecessor, key, get_sample, select_neighborhood, 
+      init_relaxation, SA_init_temperature);
 
   };
   
@@ -1137,7 +1100,9 @@ namespace graph {
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
      RandomSampler get_sample,
-     NcSelector select_neighborhood, double init_relaxation)
+     NcSelector select_neighborhood, 
+     double init_relaxation,
+     double SA_init_temperature = -1.0)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
@@ -1177,7 +1142,10 @@ namespace graph {
     
     put(distance, start_vertex, 0.0);
     
-    detail::anytime_sbarrtstar_search_loop(g, start_vertex, bfs_vis, Q);
+    if(SA_init_temperature <= 0.0)
+      detail::sbarrtstar_search_loop(g, start_vertex, bfs_vis, Q);
+    else
+      detail::sbarrtstar_sa_search_loop(g, start_vertex, bfs_vis, Q, SA_init_temperature);
     
   };
 
@@ -1261,7 +1229,9 @@ namespace graph {
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key,                         // properties resulting from the algorithm
      RandomSampler get_sample,
-     NcSelector select_neighborhood, double init_relaxation)
+     NcSelector select_neighborhood, 
+     double init_relaxation,
+     double SA_init_temperature = -1.0)
   {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
     //BOOST_CONCEPT_ASSERT((boost::MutablePropertyGraphConcept<Graph>));
@@ -1283,7 +1253,8 @@ namespace graph {
     generate_anytime_lazy_sbarrtstar_no_init(
       g, start_vertex, super_space, vis, 
       hval, position, weight, density, constriction, distance,
-      predecessor, key, get_sample, select_neighborhood, init_relaxation);
+      predecessor, key, get_sample, select_neighborhood, 
+      init_relaxation, SA_init_temperature);
 
   };
   

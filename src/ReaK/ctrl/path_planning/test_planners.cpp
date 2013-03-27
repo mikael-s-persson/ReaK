@@ -195,6 +195,8 @@ int main(int argc, char** argv) {
     ("sba-potential-cutoff", po::value< double >()->default_value(0.9), "specify the potential cutoff for the SBA* algorithm")
     ("sba-density-cutoff", po::value< double >()->default_value(0.9), "specify the density cutoff for the SBA* algorithm")
     ("sba-relaxation", po::value< double >()->default_value(0.0), "specify the initial relaxation factor for the Anytime SBA* algorithm")
+    ("sba-with-voronoi-pull", "specify whether to use a Voronoi pull or not as a method to add an exploratory bias to the search")
+    ("sba-sa-temperature", po::value< double >()->default_value(-1.0), "specify the initial Simulated Annealing temperature for the SBA*-RRT* algorithms")
 #endif
     ("all-planners,a", "specify that all supported planners should be run (default if no particular planner is specified)")
   ;
@@ -1657,7 +1659,7 @@ int main(int argc, char** argv) {
                 world_map->get_start_pos(), 
                 world_map->get_goal_pos(),
                 sr_max_vertices, 
-                100,
+                10,
                 ReaK::pp::BIDIRECTIONAL_RRT,
                 ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                 ReaK::pp::DVP_BF4_TREE_KNN,
@@ -1738,13 +1740,13 @@ int main(int argc, char** argv) {
           ReaK::pp::ADJ_LIST_MOTION_GRAPH,
           ReaK::pp::DVP_BF4_TREE_KNN,
           ReaK::pp::LAZY_COLLISION_CHECKING,
-          ReaK::pp::NOMINAL_PLANNER_ONLY,
-//           ReaK::pp::PLAN_WITH_VORONOI_PULL,
+          ( vm.count("sba-with-voronoi-pull") ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
           ReaK::pp::vlist_sbmp_report< ReaK::pp::sbastar_vprinter, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > >(
             output_path_name + "/sbastar/" + world_file_name_only + "_",
             ReaK::pp::sbastar_vprinter(),
             ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(output_path_name + "/sbastar/" + world_file_name_only + "_", 5)),
-          sr_results);
+          sr_results,
+          vm["sba-sa-temperature"].as<double>());
       
       sbastar_plan.solve_path();
       

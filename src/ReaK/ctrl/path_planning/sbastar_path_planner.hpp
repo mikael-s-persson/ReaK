@@ -212,6 +212,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     double m_init_key_threshold;
     double m_init_dens_threshold;
     double m_init_relaxation;
+    double m_SA_init_temperature;
     double m_sampling_radius;
     std::size_t m_current_num_results;
     std::size_t max_num_results;
@@ -398,6 +399,17 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     void set_initial_relaxation(double aInitialRelaxation) { m_init_relaxation = aInitialRelaxation; };
     
     /**
+     * Returns the initial Simulated Annealing temperature used by this planner.
+     * \return The initial Simulated Annealing temperature used by this planner.
+     */
+    double get_initial_SA_temperature() const { return m_SA_init_temperature; };
+    /**
+     * Sets the initial Simulated Annealing temperature to be used by this planner.
+     * \param aInitialSATemperature The initial Simulated Annealing temperature to be used by this planner.
+     */
+    void set_initial_SA_temperature(double aInitialSATemperature) { m_SA_init_temperature = aInitialSATemperature; };
+    
+    /**
      * Returns the current key-value threshold used by this planner.
      * \return The current key-value threshold used by this planner.
      */
@@ -526,6 +538,10 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
      * \param aMaxResultCount The maximum number of successful start-goal connections to make before 
      *                        stopping the path planner (the higher the number the more likely that a 
      *                        good path will be found, however, running time can become much longer).
+     * \param aInitialSATemperature The initial Simulated Annealing temperature use by this planner, if the 
+     *                              added-bias is set to an exploratory bias (e.g., PLAN_WITH_VORONOI_PULL). If negative,
+     *                              then simulated annealing is not used, and the exploratory bias (if any) is applied 
+     *                              only when SBA* seaching stalls (isn't progressing anymore).
      */
     sbastar_path_planner(const shared_ptr< space_type >& aWorld = shared_ptr< space_type >(), 
                          const point_type& aStartPos = point_type(),
@@ -541,7 +557,8 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
                          std::size_t aCollisionCheckFlag = LAZY_COLLISION_CHECKING,
                          std::size_t aAddedBiasFlags = NOMINAL_PLANNER_ONLY,
                          SBPPReporter aReporter = SBPPReporter(),
-                         std::size_t aMaxResultCount = 50) :
+                         std::size_t aMaxResultCount = 50,
+                         double aInitialSATemperature = -1.0) :
                          base_type("sbastar_planner", aWorld, aMaxVertexCount, aProgressInterval),
                          m_reporter(aReporter),
                          m_start_pos(aStartPos),
@@ -549,6 +566,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
                          m_init_key_threshold(aInitialKeyThreshold),
                          m_init_dens_threshold(aInitialDensityThreshold),
                          m_init_relaxation(aInitialRelaxation),
+                         m_SA_init_temperature(aInitialSATemperature),
                          m_sampling_radius(aSamplingRadius),
                          m_current_num_results(0),
                          max_num_results(aMaxResultCount),
@@ -575,6 +593,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
         & RK_SERIAL_SAVE_WITH_NAME(m_init_key_threshold)
         & RK_SERIAL_SAVE_WITH_NAME(m_init_dens_threshold)
         & RK_SERIAL_SAVE_WITH_NAME(m_init_relaxation)
+        & RK_SERIAL_SAVE_WITH_NAME(m_SA_init_temperature)
         & RK_SERIAL_SAVE_WITH_NAME(m_sampling_radius)
         & RK_SERIAL_SAVE_WITH_NAME(max_num_results)
         & RK_SERIAL_SAVE_WITH_NAME(m_graph_kind_flag)
@@ -591,6 +610,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
         & RK_SERIAL_LOAD_WITH_NAME(m_init_key_threshold)
         & RK_SERIAL_LOAD_WITH_NAME(m_init_dens_threshold)
         & RK_SERIAL_LOAD_WITH_NAME(m_init_relaxation)
+        & RK_SERIAL_LOAD_WITH_NAME(m_SA_init_temperature)
         & RK_SERIAL_LOAD_WITH_NAME(m_sampling_radius)
         & RK_SERIAL_LOAD_WITH_NAME(max_num_results)
         & RK_SERIAL_LOAD_WITH_NAME(m_graph_kind_flag)
@@ -1078,7 +1098,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       get(&VertexProp::predecessor, motion_graph),  \
       get(&VertexProp::key_value, motion_graph),  \
       get(random_sampler, this->m_space->get_super_space()), \
-      nc_selector);
+      nc_selector, this->m_SA_init_temperature);
   
   
 #define RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION \
@@ -1093,7 +1113,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       get(&VertexProp::predecessor, motion_graph),  \
       get(&VertexProp::key_value, motion_graph),  \
       get(random_sampler, this->m_space->get_super_space()), \
-      nc_selector);
+      nc_selector, this->m_SA_init_temperature);
    
    
    
@@ -1138,7 +1158,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       get(&VertexProp::predecessor, motion_graph),  \
       get(&VertexProp::key_value, motion_graph),  \
       get(random_sampler, this->m_space->get_super_space()), \
-      nc_selector, this->m_init_relaxation);
+      nc_selector, this->m_init_relaxation, this->m_SA_init_temperature);
   
   
 #define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION \
@@ -1153,7 +1173,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       get(&VertexProp::predecessor, motion_graph),  \
       get(&VertexProp::key_value, motion_graph),  \
       get(random_sampler, this->m_space->get_super_space()), \
-      nc_selector, this->m_init_relaxation);
+      nc_selector, this->m_init_relaxation, this->m_SA_init_temperature);
  
   
   if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {

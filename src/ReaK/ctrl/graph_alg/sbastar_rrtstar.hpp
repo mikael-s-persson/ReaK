@@ -53,6 +53,7 @@
 
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/prob_distribution_concept.hpp"
+#include "path_planning/global_rng.hpp"
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
@@ -223,13 +224,59 @@ namespace graph {
         
         sba_vis.publish_path(g);
         
-        std::size_t max_vertex_count = num_vertices(g);
-        max_vertex_count += max_vertex_count / 5 + 1;
-//         max_vertex_count += 4 * (math::highest_set_bit(max_vertex_count) + 1);
-        while((num_vertices(g) < max_vertex_count) && (sba_vis.keep_going()))
+        while(( ! sba_vis.has_search_potential(Q.top(), g) ) && (sba_vis.keep_going()))
           sba_vis.add_exploratory_node(g);
         
         num_rrt_vertices = num_vertices(g) - num_sba_vertices;
+        
+      };
+      std::cout << " SBA* vertices generated = " << num_sba_vertices << std::endl;
+      std::cout << " RRT* vertices generated = " << num_rrt_vertices << std::endl;
+    };
+    
+    
+    
+    
+    template <typename Graph, //this is the actual graph, should comply to BidirectionalGraphConcept.
+              typename Vertex, //this is the type to describe a vertex in the graph.
+              typename SBARRTStarBFSVisitor, //this is a visitor class that can perform special operations at event points.
+              typename MutableQueue>
+    inline void
+    sbarrtstar_sa_search_loop
+      (Graph &g, Vertex start_vertex, SBARRTStarBFSVisitor& sba_vis, MutableQueue& Q, double initial_temperature)
+    {
+      using std::exp; using std::log;
+      std::size_t num_rrt_vertices = 0;
+      std::size_t num_sba_vertices = 0;
+      
+      while (sba_vis.keep_going()) {
+        
+        sba_vis.requeue_vertex(start_vertex,g);
+        
+        while (!Q.empty() && sba_vis.keep_going()) { 
+          double entropy = 1.0 - exp( -initial_temperature / log( double(num_vertices(g)) ) );
+          double rand_value = boost::uniform_01<ReaK::pp::global_rng_type&,double>(ReaK::pp::get_global_rng())(); // generate random-number between 0 and 1.
+          
+          if(rand_value > entropy) {
+            // if we want an greedy sample, use SBA* sampling:
+            Vertex u = Q.top(); Q.pop();
+            
+            // stop if the best node does not meet the potential threshold.
+            if( ! sba_vis.has_search_potential(u, g) )
+              break;
+            
+            sba_vis.examine_vertex(u, g);
+            // if the node still has a minimally good potential, then push it back on the OPEN queue.
+            sba_vis.requeue_vertex(u,g);
+            ++num_sba_vertices;
+          } else {
+            // else, we want an entropic (exploratory) sample, use RRT* sampling:
+            sba_vis.add_exploratory_node(g);
+            ++num_rrt_vertices;
+          };
+        }; // end while  (the queue is either empty or it contains vertices that still have low key values.
+        
+        sba_vis.publish_path(g);
         
       };
       std::cout << " SBA* vertices generated = " << num_sba_vertices << std::endl;
@@ -297,6 +344,9 @@ namespace graph {
    * \param select_neighborhood A callable object (functor) that can select a list of 
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
+   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
+   *        as the deciding factor between using RRT* or SBA* samples. If the value is negative (default),
+   *        then Simulated Annealing is not used (instead, RRT* is used only when SBA* stalls).
    */
   template <typename Graph,
             typename Vertex,
@@ -319,7 +369,8 @@ namespace graph {
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
      RandomSampler get_sample,
-     NcSelector select_neighborhood)
+     NcSelector select_neighborhood,
+     double SA_init_temperature = -1.0)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
@@ -359,7 +410,10 @@ namespace graph {
     
     put(distance, start_vertex, 0.0);
     
-    detail::sbarrtstar_search_loop(g, start_vertex, bfs_vis, Q);
+    if(SA_init_temperature <= 0.0)
+      detail::sbarrtstar_search_loop(g, start_vertex, bfs_vis, Q);
+    else
+      detail::sbarrtstar_sa_search_loop(g, start_vertex, bfs_vis, Q, SA_init_temperature);
     
   };
 
@@ -419,6 +473,9 @@ namespace graph {
    * \param select_neighborhood A callable object (functor) that can select a list of 
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
+   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
+   *        as the deciding factor between using RRT* or SBA* samples. If the value is negative (default),
+   *        then Simulated Annealing is not used (instead, RRT* is used only when SBA* stalls).
    */
   template <typename Graph,
             typename Vertex,
@@ -441,7 +498,8 @@ namespace graph {
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key,                         // properties resulting from the algorithm
      RandomSampler get_sample,
-     NcSelector select_neighborhood)
+     NcSelector select_neighborhood,
+     double SA_init_temperature = -1.0)
   {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
     //BOOST_CONCEPT_ASSERT((boost::MutablePropertyGraphConcept<Graph>));
@@ -463,7 +521,7 @@ namespace graph {
     generate_sbarrtstar_no_init(
       g, start_vertex, super_space, vis, 
       hval, position, weight, density, constriction, distance,
-      predecessor, key, get_sample, select_neighborhood);
+      predecessor, key, get_sample, select_neighborhood, SA_init_temperature);
 
   };
   
@@ -528,6 +586,9 @@ namespace graph {
    * \param select_neighborhood A callable object (functor) that can select a list of 
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
+   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
+   *        as the deciding factor between using RRT* or SBA* samples. If the value is negative (default),
+   *        then Simulated Annealing is not used (instead, RRT* is used only when SBA* stalls).
    */
   template <typename Graph,
             typename Vertex,
@@ -550,7 +611,8 @@ namespace graph {
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
      RandomSampler get_sample,
-     NcSelector select_neighborhood)
+     NcSelector select_neighborhood,
+     double SA_init_temperature = -1.0)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
@@ -590,7 +652,10 @@ namespace graph {
     
     put(distance, start_vertex, 0.0);
     
-    detail::sbarrtstar_search_loop(g, start_vertex, bfs_vis, Q);
+    if(SA_init_temperature <= 0.0)
+      detail::sbarrtstar_search_loop(g, start_vertex, bfs_vis, Q);
+    else
+      detail::sbarrtstar_sa_search_loop(g, start_vertex, bfs_vis, Q, SA_init_temperature);
     
   };
 
@@ -650,6 +715,9 @@ namespace graph {
    * \param select_neighborhood A callable object (functor) that can select a list of 
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
+   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
+   *        as the deciding factor between using RRT* or SBA* samples. If the value is negative (default),
+   *        then Simulated Annealing is not used (instead, RRT* is used only when SBA* stalls).
    */
   template <typename Graph,
             typename Vertex,
@@ -672,7 +740,8 @@ namespace graph {
      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
      PredecessorMap predecessor, KeyMap key,                         // properties resulting from the algorithm
      RandomSampler get_sample,
-     NcSelector select_neighborhood)
+     NcSelector select_neighborhood,
+     double SA_init_temperature = -1.0)
   {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
     //BOOST_CONCEPT_ASSERT((boost::MutablePropertyGraphConcept<Graph>));
@@ -694,7 +763,7 @@ namespace graph {
     generate_lazy_sbarrtstar_no_init(
       g, start_vertex, super_space, vis, 
       hval, position, weight, density, constriction, distance,
-      predecessor, key, get_sample, select_neighborhood);
+      predecessor, key, get_sample, select_neighborhood, SA_init_temperature);
 
   };
   
