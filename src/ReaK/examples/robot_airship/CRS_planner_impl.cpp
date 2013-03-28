@@ -847,8 +847,9 @@ void CRSPlannerGUI::executePlanner() {
             workspace, \
             start_point, \
             goal_point, \
-            0.9, \
-            0.9, \
+            0.02, \
+            0.0, \
+            10.0, \
             max_travel, \
             max_vertices, \
             prog_interval, \
@@ -857,7 +858,8 @@ void CRSPlannerGUI::executePlanner() {
             ReaK::pp::LAZY_COLLISION_CHECKING, \
             ReaK::pp::PLAN_WITH_VORONOI_PULL, \
             temp_reporter, \
-            max_results); \
+            max_results, \
+            10.0); \
          \
         ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
         std::cout << "The shortest distance is: " << workspace_planner.get_best_solution_distance() << std::endl; \

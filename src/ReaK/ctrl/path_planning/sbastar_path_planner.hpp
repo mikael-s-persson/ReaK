@@ -1060,120 +1060,136 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     
 #define RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION \
     ReaK::graph::generate_sbastar( \
-      motion_graph, start_node, this->m_space->get_super_space(), vis, \
-      get(&VertexProp::heuristic_value, motion_graph),  \
-      pos_map,  \
-      weight_map, \
-      get(&VertexProp::density, motion_graph),  \
-      get(&VertexProp::constriction, motion_graph),  \
-      get(&VertexProp::distance_accum, motion_graph), \
-      get(&VertexProp::predecessor, motion_graph),  \
-      get(&VertexProp::key_value, motion_graph),  \
-      nc_selector);
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, start_node, this->m_space->get_super_space(), vis, \
+        get(&VertexProp::heuristic_value, motion_graph),  \
+        pos_map,  \
+        weight_map, \
+        get(&VertexProp::density, motion_graph),  \
+        get(&VertexProp::constriction, motion_graph),  \
+        get(&VertexProp::distance_accum, motion_graph), \
+        get(&VertexProp::predecessor, motion_graph),  \
+        get(&VertexProp::key_value, motion_graph),  \
+        nc_selector)\
+      );
   
   
 #define RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION \
     ReaK::graph::generate_lazy_sbastar( \
-      motion_graph, start_node, this->m_space->get_super_space(), vis, \
-      get(&VertexProp::heuristic_value, motion_graph),  \
-      pos_map,  \
-      weight_map, \
-      get(&VertexProp::density, motion_graph),  \
-      get(&VertexProp::constriction, motion_graph),  \
-      get(&VertexProp::distance_accum, motion_graph), \
-      get(&VertexProp::predecessor, motion_graph),  \
-      get(&VertexProp::key_value, motion_graph),  \
-      nc_selector);
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, start_node, this->m_space->get_super_space(), vis, \
+        get(&VertexProp::heuristic_value, motion_graph),  \
+        pos_map,  \
+        weight_map, \
+        get(&VertexProp::density, motion_graph),  \
+        get(&VertexProp::constriction, motion_graph),  \
+        get(&VertexProp::distance_accum, motion_graph), \
+        get(&VertexProp::predecessor, motion_graph),  \
+        get(&VertexProp::key_value, motion_graph),  \
+        nc_selector)\
+      );
   
   
 #define RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_sbarrtstar( \
-      motion_graph, start_node, this->m_space->get_super_space(), vis, \
-      get(&VertexProp::heuristic_value, motion_graph),  \
-      pos_map,  \
-      weight_map, \
-      get(&VertexProp::density, motion_graph),  \
-      get(&VertexProp::constriction, motion_graph),  \
-      get(&VertexProp::distance_accum, motion_graph), \
-      get(&VertexProp::predecessor, motion_graph),  \
-      get(&VertexProp::key_value, motion_graph),  \
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, start_node, this->m_space->get_super_space(), vis, \
+        get(&VertexProp::heuristic_value, motion_graph),  \
+        pos_map,  \
+        weight_map, \
+        get(&VertexProp::density, motion_graph),  \
+        get(&VertexProp::constriction, motion_graph),  \
+        get(&VertexProp::distance_accum, motion_graph), \
+        get(&VertexProp::predecessor, motion_graph),  \
+        get(&VertexProp::key_value, motion_graph),  \
+        nc_selector), \
       get(random_sampler, this->m_space->get_super_space()), \
-      nc_selector, this->m_SA_init_temperature);
+      this->m_SA_init_temperature);
   
   
 #define RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_lazy_sbarrtstar( \
-      motion_graph, start_node, this->m_space->get_super_space(), vis, \
-      get(&VertexProp::heuristic_value, motion_graph),  \
-      pos_map,  \
-      weight_map, \
-      get(&VertexProp::density, motion_graph),  \
-      get(&VertexProp::constriction, motion_graph),  \
-      get(&VertexProp::distance_accum, motion_graph), \
-      get(&VertexProp::predecessor, motion_graph),  \
-      get(&VertexProp::key_value, motion_graph),  \
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, start_node, this->m_space->get_super_space(), vis, \
+        get(&VertexProp::heuristic_value, motion_graph),  \
+        pos_map,  \
+        weight_map, \
+        get(&VertexProp::density, motion_graph),  \
+        get(&VertexProp::constriction, motion_graph),  \
+        get(&VertexProp::distance_accum, motion_graph), \
+        get(&VertexProp::predecessor, motion_graph),  \
+        get(&VertexProp::key_value, motion_graph),  \
+        nc_selector), \
       get(random_sampler, this->m_space->get_super_space()), \
-      nc_selector, this->m_SA_init_temperature);
+      this->m_SA_init_temperature);
    
    
    
    
 #define RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION \
     ReaK::graph::generate_anytime_sbastar( \
-      motion_graph, start_node, this->m_space->get_super_space(), vis, \
-      get(&VertexProp::heuristic_value, motion_graph),  \
-      pos_map,  \
-      weight_map, \
-      get(&VertexProp::density, motion_graph),  \
-      get(&VertexProp::constriction, motion_graph),  \
-      get(&VertexProp::distance_accum, motion_graph), \
-      get(&VertexProp::predecessor, motion_graph),  \
-      get(&VertexProp::key_value, motion_graph),  \
-      nc_selector, this->m_init_relaxation);
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, start_node, this->m_space->get_super_space(), vis, \
+        get(&VertexProp::heuristic_value, motion_graph),  \
+        pos_map,  \
+        weight_map, \
+        get(&VertexProp::density, motion_graph),  \
+        get(&VertexProp::constriction, motion_graph),  \
+        get(&VertexProp::distance_accum, motion_graph), \
+        get(&VertexProp::predecessor, motion_graph),  \
+        get(&VertexProp::key_value, motion_graph),  \
+        nc_selector), \
+      this->m_init_relaxation);
   
   
 #define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION \
     ReaK::graph::generate_anytime_lazy_sbastar( \
-      motion_graph, start_node, this->m_space->get_super_space(), vis, \
-      get(&VertexProp::heuristic_value, motion_graph),  \
-      pos_map,  \
-      weight_map, \
-      get(&VertexProp::density, motion_graph),  \
-      get(&VertexProp::constriction, motion_graph),  \
-      get(&VertexProp::distance_accum, motion_graph), \
-      get(&VertexProp::predecessor, motion_graph),  \
-      get(&VertexProp::key_value, motion_graph),  \
-      nc_selector, this->m_init_relaxation);
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, start_node, this->m_space->get_super_space(), vis, \
+        get(&VertexProp::heuristic_value, motion_graph),  \
+        pos_map,  \
+        weight_map, \
+        get(&VertexProp::density, motion_graph),  \
+        get(&VertexProp::constriction, motion_graph),  \
+        get(&VertexProp::distance_accum, motion_graph), \
+        get(&VertexProp::predecessor, motion_graph),  \
+        get(&VertexProp::key_value, motion_graph),  \
+        nc_selector), \
+      this->m_init_relaxation);
   
   
 #define RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_anytime_sbarrtstar( \
-      motion_graph, start_node, this->m_space->get_super_space(), vis, \
-      get(&VertexProp::heuristic_value, motion_graph),  \
-      pos_map,  \
-      weight_map, \
-      get(&VertexProp::density, motion_graph),  \
-      get(&VertexProp::constriction, motion_graph),  \
-      get(&VertexProp::distance_accum, motion_graph), \
-      get(&VertexProp::predecessor, motion_graph),  \
-      get(&VertexProp::key_value, motion_graph),  \
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, start_node, this->m_space->get_super_space(), vis, \
+        get(&VertexProp::heuristic_value, motion_graph),  \
+        pos_map,  \
+        weight_map, \
+        get(&VertexProp::density, motion_graph),  \
+        get(&VertexProp::constriction, motion_graph),  \
+        get(&VertexProp::distance_accum, motion_graph), \
+        get(&VertexProp::predecessor, motion_graph),  \
+        get(&VertexProp::key_value, motion_graph),  \
+        nc_selector), \
       get(random_sampler, this->m_space->get_super_space()), \
-      nc_selector, this->m_init_relaxation, this->m_SA_init_temperature);
+      this->m_init_relaxation, this->m_SA_init_temperature);
   
   
 #define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_anytime_lazy_sbarrtstar( \
-      motion_graph, start_node, this->m_space->get_super_space(), vis, \
-      get(&VertexProp::heuristic_value, motion_graph),  \
-      pos_map,  \
-      weight_map, \
-      get(&VertexProp::density, motion_graph),  \
-      get(&VertexProp::constriction, motion_graph),  \
-      get(&VertexProp::distance_accum, motion_graph), \
-      get(&VertexProp::predecessor, motion_graph),  \
-      get(&VertexProp::key_value, motion_graph),  \
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, start_node, this->m_space->get_super_space(), vis, \
+        get(&VertexProp::heuristic_value, motion_graph),  \
+        pos_map,  \
+        weight_map, \
+        get(&VertexProp::density, motion_graph),  \
+        get(&VertexProp::constriction, motion_graph),  \
+        get(&VertexProp::distance_accum, motion_graph), \
+        get(&VertexProp::predecessor, motion_graph),  \
+        get(&VertexProp::key_value, motion_graph),  \
+        nc_selector), \
       get(random_sampler, this->m_space->get_super_space()), \
-      nc_selector, this->m_init_relaxation, this->m_SA_init_temperature);
+      this->m_init_relaxation, this->m_SA_init_temperature);
  
   
   if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {

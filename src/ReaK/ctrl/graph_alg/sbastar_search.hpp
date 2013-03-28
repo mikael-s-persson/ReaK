@@ -566,8 +566,7 @@ namespace graph {
               typename SBAStarBFSVisitor, //this is a visitor class that can perform special operations at event points.
               typename MutableQueue>
     inline void
-    sbastar_search_loop
-      (Graph &g, Vertex start_vertex, SBAStarBFSVisitor& sba_vis, MutableQueue& Q)
+    sbastar_search_loop(Graph &g, Vertex start_vertex, SBAStarBFSVisitor& sba_vis, MutableQueue& Q)
     { 
       while (sba_vis.keep_going()) {
         
@@ -591,8 +590,246 @@ namespace graph {
       };
     };
     
+    template <typename Graph,
+              typename SBAStarVisitor,
+              typename DistanceMap,
+              typename PredecessorMap,
+              typename KeyMap>
+    inline void initialize_sbastar_nodes(Graph &g, SBAStarVisitor vis, DistanceMap distance, 
+                                         PredecessorMap predecessor, KeyMap key) {
+      typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
+      for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
+        put(distance, *ui, std::numeric_limits<double>::infinity());
+        put(key, *ui, 0.0);
+        put(predecessor, *ui, *ui);
+        vis.initialize_vertex(*ui, g);
+      };
+    };
+    
+    
+    
+    template <typename NodeConnector,
+              typename Graph,
+              typename Vertex,
+              typename Topology,
+              typename SBAStarVisitor,
+              typename AStarHeuristicMap,
+              typename PositionMap,
+              typename WeightMap,
+              typename DensityMap,
+              typename ConstrictionMap,
+              typename DistanceMap,
+              typename PredecessorMap,
+              typename KeyMap,
+              typename NcSelector>
+    inline void
+    generate_sbastar_no_init_impl
+      (Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor vis,  // basic parameters
+      AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
+      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
+      PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
+      NcSelector select_neighborhood)
+    {
+      typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
+      typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
+      typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
+      IndexInHeapMap index_in_heap;
+      {
+        typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
+        for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
+          put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
+        };
+      };
+      
+      typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
+      MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
+      
+      detail::sbastar_bfs_visitor<
+        Topology, 
+        SBAStarVisitor,
+        NodeConnector,
+        MutableQueue, 
+        IndexInHeapMap,
+        AStarHeuristicMap, 
+        PositionMap, 
+        WeightMap,
+        DensityMap,
+        ConstrictionMap, 
+        DistanceMap,  
+        PredecessorMap,
+        KeyMap,
+        NcSelector> bfs_vis(super_space, vis, NodeConnector(), Q, index_in_heap, 
+                            hval, position, weight, 
+                            density, constriction, distance,
+                            predecessor, key, select_neighborhood);
+      
+      put(distance, start_vertex, 0.0);
+      
+      detail::sbastar_search_loop(g, start_vertex, bfs_vis, Q);
+      
+    };
+    
   
   }; //end of detail namespace.
+  
+  
+  
+  
+  template <typename Graph,
+            typename Vertex,
+            typename Topology,
+            typename SBAStarVisitor,
+            typename AStarHeuristicMap,
+            typename PositionMap,
+            typename WeightMap,
+            typename DensityMap,
+            typename ConstrictionMap,
+            typename DistanceMap,
+            typename PredecessorMap,
+            typename KeyMap,
+            typename NcSelector>
+  struct sbastar_bundle {
+    typedef Graph             graph_type;
+    typedef Vertex            vertex_type;
+    typedef Topology          topology_type;
+    typedef SBAStarVisitor    visitor_type;
+    typedef AStarHeuristicMap heuristic_map_type;
+    typedef PositionMap       position_map_type;
+    typedef WeightMap         weight_map_type;
+    typedef DensityMap        density_map_type;
+    typedef ConstrictionMap   constriction_map_type;
+    typedef DistanceMap       distance_map_type;
+    typedef PredecessorMap    predecessor_map_type;
+    typedef KeyMap            key_map_type;
+    typedef NcSelector        nc_selector_type;
+    
+    graph_type* m_g;
+    vertex_type m_start_vertex;
+    const topology_type* m_super_space;
+    visitor_type m_vis;
+    heuristic_map_type m_hval;
+    position_map_type m_position;
+    weight_map_type m_weight;
+    density_map_type m_density;
+    constriction_map_type m_constriction;
+    distance_map_type m_distance;
+    predecessor_map_type m_predecessor;
+    key_map_type m_key;
+    nc_selector_type m_select_neighborhood;
+    
+    sbastar_bundle(
+      Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor vis,
+      AStarHeuristicMap hval, PositionMap position, WeightMap weight,
+      DensityMap density, ConstrictionMap constriction, DistanceMap distance,
+      PredecessorMap predecessor, KeyMap key, NcSelector select_neighborhood) :
+      m_g(&g), m_start_vertex(m_start_vertex), m_super_space(&super_space), m_vis(vis),
+      m_hval(hval), m_position(position), m_weight(weight), 
+      m_density(density), m_constriction(constriction), m_distance(distance), 
+      m_predecessor(predecessor), m_key(key), m_select_neighborhood(select_neighborhood) { };
+    
+    
+  };
+  
+  
+  
+  
+  /**
+   * This function template creates a bundle of parameters to be fed to any of the
+   * SBA* algorithms. This is mainly to simply the interface and the code of all these 
+   * different variants of the SBA* algorithm.
+   * \tparam Graph The graph type that can store the generated roadmap, should model 
+   *         BidirectionalGraphConcept and MutableGraphConcept.
+   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
+   * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
+   * \tparam SBAStarVisitor The type of the SBA* visitor to be used, should model the SBAStarVisitorConcept.
+   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
+   *         for each vertex in the graph.
+   * \tparam PositionMap A property-map type that can store the position of each vertex. 
+   * \tparam WeightMap This property-map type is used to store the weights of the edge-properties of the 
+   *         graph (cost of travel along an edge).
+   * \tparam DensityMap A property-map type that can store the probability-measure of the expected common information 
+   *         between a new sample and the current neighborhood for each vertex.
+   * \tparam ConstrictionMap A property-map type that can store the probability-measure of sampling a colliding point 
+   *         for each vertex.
+   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex 
+   *         to the goal.
+   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
+   *         vertex together with its optimal predecessor.
+   * \tparam KeyMap This property-map type is used to store the priority-keys of the vertices of the 
+   *         graph (cost of travel along an edge).
+   * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
+   *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors). 
+   *         See classes in the topological_search.hpp header-file.
+   * 
+   * \param g A mutable graph that should initially store the starting 
+   *        vertex (if not it will be randomly generated) and will store 
+   *        the generated graph once the algorithm has finished.
+   * \param start_vertex The starting point of the algorithm, on the graph.
+   * \param super_space A topology (as defined by the Boost Graph Library). This topology 
+   *        should not include collision checking in its distance metric.
+   * \param vis A SBA* visitor implementing the FADPRMVisitorConcept. This is the 
+   *        main point of customization and recording of results that the 
+   *        user can implement.
+   * \param hval The property-map of A* heuristic function values for each vertex.
+   * \param position A mapping that implements the MutablePropertyMap Concept. Also,
+   *        the value_type of this map should be the same type as the topology's 
+   *        value_type.
+   * \param weight The property-map which stores the weight of each edge-property object (the cost of travel
+   *        along the edge).
+   * \param density A property-map that provides the expected common information associated with a sample drawn near 
+   *        to a vertex w.r.t. the current neighborhood of that vertex.
+   * \param constriction A property-map that provides the probability of a collision when a sample is drawn near to a 
+   *        vertex (i.e., that a sample near this vertex will not be in the free-space).
+   * \param distance The property-map which stores the estimated distance of each vertex to the goal.
+   * \param predecessor The property-map which will store the resulting path by connecting 
+   *        vertices together with their optimal predecessor (follow in reverse to discover the 
+   *        complete path).
+   * \param key The property-map which stores the AD* key-values associated to each vertex.
+   * \param select_neighborhood A callable object (functor) that can select a list of 
+   *        vertices of the graph that ought to be connected to a new 
+   *        vertex. The list should be sorted in order of increasing "distance".
+   */
+  template <typename Graph,
+            typename Vertex,
+            typename Topology,
+            typename SBAStarVisitor,
+            typename AStarHeuristicMap,
+            typename PositionMap,
+            typename WeightMap,
+            typename DensityMap,
+            typename ConstrictionMap,
+            typename DistanceMap,
+            typename PredecessorMap,
+            typename KeyMap,
+            typename NcSelector>
+  sbastar_bundle<Graph, Vertex, Topology, SBAStarVisitor, 
+                 AStarHeuristicMap, PositionMap, WeightMap, 
+                 DensityMap, ConstrictionMap, DistanceMap, 
+                 PredecessorMap, KeyMap, NcSelector>
+    make_sbastar_bundle(
+      Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor vis, 
+      AStarHeuristicMap hval, PositionMap position, WeightMap weight, 
+      DensityMap density, ConstrictionMap constriction, DistanceMap distance, 
+      PredecessorMap predecessor, KeyMap key, NcSelector select_neighborhood) {
+    
+    BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
+    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((SBAStarVisitorConcept<SBAStarVisitor,Graph,Topology>));
+    
+    return sbastar_bundle<Graph, Vertex, Topology, SBAStarVisitor,      
+                          AStarHeuristicMap, PositionMap, WeightMap, 
+                          DensityMap, ConstrictionMap, DistanceMap, 
+                          PredecessorMap, KeyMap, NcSelector>(
+                            g, start_vertex, super_space, vis, 
+                            hval, position, weight, 
+                            density, constriction, distance, 
+                            predecessor, key, select_neighborhood);
+  };
+  
+  
+  
+  
+  
   
   
   
@@ -665,50 +902,32 @@ namespace graph {
             typename KeyMap,
             typename NcSelector>
   inline void
-  generate_sbastar_no_init
-    (Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor vis,  // basic parameters
-     AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
-     DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
-     PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
-     NcSelector select_neighborhood)
+  generate_sbastar_no_init(
+    Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor vis,  // basic parameters
+    AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
+    DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
+    PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
+    NcSelector select_neighborhood)
   {
-    typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
-    typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
-    typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
-    IndexInHeapMap index_in_heap;
-    {
-      typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
-      for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
-        put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
-      };
-    };
-    
-    typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
-    MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
-    
-    detail::sbastar_bfs_visitor<
-      Topology, 
-      SBAStarVisitor,
-      detail::sbastar_node_connector,
-      MutableQueue, 
-      IndexInHeapMap,
-      AStarHeuristicMap, 
-      PositionMap, 
-      WeightMap,
-      DensityMap,
-      ConstrictionMap, 
-      DistanceMap,  
-      PredecessorMap,
-      KeyMap,
-      NcSelector> bfs_vis(super_space, vis, detail::sbastar_node_connector(), Q, index_in_heap, 
-                          hval, position, weight, 
-                          density, constriction, distance,
-                          predecessor, key, select_neighborhood);
-    
-    put(distance, start_vertex, 0.0);
-    
-    detail::sbastar_search_loop(g, start_vertex, bfs_vis, Q);
-    
+    detail::generate_sbastar_no_init_impl< detail::sbastar_node_connector >(
+      g, start_vertex, super_space, vis, 
+      hval, position, weight, density, constriction, 
+      distance, predecessor, key, select_neighborhood);
+  };
+  
+  
+  /**
+   * This function template generates a roadmap to connect a goal location to a start location
+   * using the SBA* algorithm, without initialization of the existing graph.
+   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+   */
+  template <typename SBAStarBundle>
+  inline void generate_sbastar_no_init(const SBAStarBundle& bdl) {
+    detail::generate_sbastar_no_init_impl< detail::sbastar_node_connector >(
+      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
+      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+      bdl.m_distance, bdl.m_predecessor, bdl.m_key, bdl.m_select_neighborhood);
   };
 
 
@@ -780,37 +999,40 @@ namespace graph {
             typename KeyMap,
             typename NcSelector>
   inline void
-  generate_sbastar
-    (Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor vis,  // basic parameters
-     AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
-     DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
-     PredecessorMap predecessor, KeyMap key,                         // properties resulting from the algorithm
-     NcSelector select_neighborhood)
+  generate_sbastar(
+    Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor vis,  // basic parameters
+    AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
+    DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
+    PredecessorMap predecessor, KeyMap key,                         // properties resulting from the algorithm
+    NcSelector select_neighborhood)
   {
     BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-    //BOOST_CONCEPT_ASSERT((boost::MutablePropertyGraphConcept<Graph>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>));
     BOOST_CONCEPT_ASSERT((SBAStarVisitorConcept<SBAStarVisitor,Graph,Topology>));
     
-    typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
-    typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
-    typedef typename Graph::vertex_bundled VertexProp;
-    
-    for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
-      put(distance, *ui, std::numeric_limits<double>::infinity());
-      put(key, *ui, 0.0);
-      put(predecessor, *ui, *ui);
-      vis.initialize_vertex(*ui, g);
-    };
+    detail::initialize_sbastar_nodes(g, vis, distance, predecessor, key);
     
     generate_sbastar_no_init(
       g, start_vertex, super_space, vis, 
       hval, position, weight, density, constriction, distance,
       predecessor, key, select_neighborhood);
-
+    
   };
   
+  /**
+   * This function template generates a roadmap to connect a goal location to a start location
+   * using the SBA* algorithm, with initialization of the existing graph to (re)start the search.
+   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+   */
+  template <typename SBAStarBundle>
+  inline void generate_sbastar(const SBAStarBundle& bdl) {
+    
+    detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
+    
+    generate_sbastar_no_init(bdl);
+    
+  };
   
   
 
