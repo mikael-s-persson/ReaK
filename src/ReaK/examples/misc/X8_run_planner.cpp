@@ -168,14 +168,18 @@ int main(int argc, char ** argv) {
 //       X8_MEAQR_space, 
 //       start_point,
 //       goal_point,
-//       0.9, 
-//       0.9, 
+//       0.02, 
+//       0.0,
+//       10.0,
 //       0.25 * X8_MEAQR_space->get_max_time_horizon() * X8_MEAQR_space->get_idle_power_cost(start_point),
 //       max_vertices, 
 //       prog_interval,
 //       knn_method,
+//       LAZY_COLLISION_CHECKING,
+//       PLAN_WITH_VORONOI_PULL,
 //       planning_report,
-//       max_results);
+//       max_results,
+//       5.0);
       
     X8_planner.solve_path();
       

@@ -651,7 +651,6 @@ struct sbastar_planner_visitor {
   Vertex m_goal_node;
   double m_space_dim;
   double m_space_Lc;
-  double m_samp_prob_norm;
   
   sbastar_planner_visitor(const shared_ptr< FreeSpaceType >& aSpace, 
                           sbastar_path_planner<FreeSpaceType,SBPPReporter>* aPlanner,
@@ -659,10 +658,7 @@ struct sbastar_planner_visitor {
                           Vertex aStartNode, Vertex aGoalNode, double aSpaceDim, double aSpaceLc) : 
                           m_space(aSpace), m_planner(aPlanner), m_nn_synchro(aNNSynchro),
                           m_start_node(aStartNode), m_goal_node(aGoalNode), 
-                          m_space_dim(aSpaceDim), m_space_Lc(aSpaceLc) {
-    using std::pow;
-    m_samp_prob_norm = pow(m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * M_PI * 2.0, -m_space_dim * 0.5);
-  };
+                          m_space_dim(aSpaceDim), m_space_Lc(aSpaceLc) { };
   
   typedef typename topology_traits<FreeSpaceType>::point_type PointType;
   typedef sbastar_edge_data<FreeSpaceType> EdgeProp;
@@ -885,7 +881,6 @@ struct sbastar_planner_visitor {
   template <typename Vertex, typename Graph>
   void initialize_vertex(Vertex u, Graph& g) const {
     typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
-    using std::exp;
     
     init_vertex_properties(u,g);
     

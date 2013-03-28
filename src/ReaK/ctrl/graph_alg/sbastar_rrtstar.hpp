@@ -312,98 +312,6 @@ namespace graph {
   }; //end of detail namespace.
   
   
-  
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the SBA*-RRT* algorithm, without initialization of the existing graph.
-   * \tparam Graph The graph type that can store the generated roadmap, should model 
-   *         BidirectionalGraphConcept and MutableGraphConcept.
-   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
-   * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-   * \tparam SBARRTStarVisitor The type of the SBA*-RRT* visitor to be used, should model the SBARRTStarVisitorConcept.
-   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
-   *         for each vertex in the graph.
-   * \tparam PositionMap A property-map type that can store the position of each vertex. 
-   * \tparam WeightMap This property-map type is used to store the weights of the edge-properties of the 
-   *         graph (cost of travel along an edge).
-   * \tparam DensityMap A property-map type that can store the probability-measure of the expected common information 
-   *         between a new sample and the current neighborhood for each vertex.
-   * \tparam ConstrictionMap A property-map type that can store the probability-measure of sampling a colliding point 
-   *         for each vertex.
-   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex 
-   *         to the goal.
-   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
-   *         vertex together with its optimal predecessor.
-   * \tparam KeyMap This property-map type is used to store the priority-keys of the vertices of the 
-   *         graph (cost of travel along an edge).
-   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
-   * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
-   *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors). 
-   *         See classes in the topological_search.hpp header-file.
-   * 
-   * \param g A mutable graph that should initially store the starting 
-   *        vertex (if not it will be randomly generated) and will store 
-   *        the generated graph once the algorithm has finished.
-   * \param start_vertex The starting point of the algorithm, on the graph.
-   * \param super_space A topology (as defined by the Boost Graph Library). This topology 
-   *        should not include collision checking in its distance metric.
-   * \param vis A SBA*-RRT* visitor implementing the SBARRTStarVisitorConcept. This is the 
-   *        main point of customization and recording of results that the 
-   *        user can implement.
-   * \param hval The property-map of A* heuristic function values for each vertex.
-   * \param position A mapping that implements the MutablePropertyMap Concept. Also,
-   *        the value_type of this map should be the same type as the topology's 
-   *        value_type.
-   * \param weight The property-map which stores the weight of each edge-property object (the cost of travel
-   *        along the edge).
-   * \param density A property-map that provides the expected common information associated with a sample drawn near 
-   *        to a vertex w.r.t. the current neighborhood of that vertex.
-   * \param constriction A property-map that provides the probability of a collision when a sample is drawn near to a 
-   *        vertex (i.e., that a sample near this vertex will not be in the free-space).
-   * \param distance The property-map which stores the estimated distance of each vertex to the goal.
-   * \param predecessor The property-map which will store the resulting path by connecting 
-   *        vertices together with their optimal predecessor (follow in reverse to discover the 
-   *        complete path).
-   * \param key The property-map which stores the AD* key-values associated to each vertex.
-   * \param get_sample A random sampler of positions in the space.
-   * \param select_neighborhood A callable object (functor) that can select a list of 
-   *        vertices of the graph that ought to be connected to a new 
-   *        vertex. The list should be sorted in order of increasing "distance".
-   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename Graph,
-            typename Vertex,
-            typename Topology,
-            typename SBARRTStarVisitor,
-            typename AStarHeuristicMap,
-            typename PositionMap,
-            typename WeightMap,
-            typename DensityMap,
-            typename ConstrictionMap,
-            typename DistanceMap,
-            typename PredecessorMap,
-            typename KeyMap,
-            typename RandomSampler,
-            typename NcSelector>
-  inline void
-  generate_sbarrtstar_no_init(
-    Graph &g, Vertex start_vertex, const Topology& super_space, SBARRTStarVisitor vis,  // basic parameters
-    AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
-    DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
-    PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
-    RandomSampler get_sample,
-    NcSelector select_neighborhood,
-    double SA_init_temperature = 1.0)
-  {
-    detail::generate_sbarrtstar_no_init_impl< detail::sbastar_node_connector >(
-      g, start_vertex, super_space, vis, 
-      hval, position, weight, density, constriction, 
-      distance, predecessor, key, get_sample, 
-      select_neighborhood, SA_init_temperature);
-  };
-  
-  
   /**
    * This function template generates a roadmap to connect a goal location to a start location
    * using the SBA*-RRT* algorithm, without initialization of the existing graph.
@@ -419,107 +327,13 @@ namespace graph {
   inline void generate_sbarrtstar_no_init(const SBAStarBundle& bdl, 
                                           RandomSampler get_sample, 
                                           double SA_init_temperature = 1.0) {
+    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+    
     detail::generate_sbarrtstar_no_init_impl< detail::sbastar_node_connector >(
       *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
       bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
       bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
       bdl.m_select_neighborhood, SA_init_temperature);
-  };
-  
-  
-   /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the SBA*-RRT* algorithm, with initialization of the existing graph to (re)start the search.
-   * \tparam Graph The graph type that can store the generated roadmap, should model 
-   *         BidirectionalGraphConcept and MutableGraphConcept.
-   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
-   * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-   * \tparam SBARRTStarVisitor The type of the SBA*-RRT* visitor to be used, should model the SBARRTStarVisitorConcept.
-   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
-   *         for each vertex in the graph.
-   * \tparam PositionMap A property-map type that can store the position of each vertex. 
-   * \tparam WeightMap This property-map type is used to store the weights of the edge-properties of the 
-   *         graph (cost of travel along an edge).
-   * \tparam DensityMap A property-map type that can store the probability-measure of the expected common information 
-   *         between a new sample and the current neighborhood for each vertex.
-   * \tparam ConstrictionMap A property-map type that can store the probability-measure of sampling a colliding point for each vertex.
-   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex 
-   *         to the goal.
-   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
-   *         vertex together with its optimal predecessor.
-   * \tparam KeyMap This property-map type is used to store the priority-keys of the vertices of the 
-   *         graph (cost of travel along an edge).
-   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
-   * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
-   *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors). 
-   *         See classes in the topological_search.hpp header-file.
-   * 
-   * \param g A mutable graph that should initially store the starting 
-   *        vertex (if not it will be randomly generated) and will store 
-   *        the generated graph once the algorithm has finished.
-   * \param start_vertex The starting point of the algorithm, on the graph.
-   * \param super_space A topology (as defined by the Boost Graph Library). This topology 
-   *        should not include collision checking in its distance metric.
-   * \param vis A SBA*-RRT* visitor implementing the SBARRTStarVisitorConcept. This is the 
-   *        main point of customization and recording of results that the 
-   *        user can implement.
-   * \param hval The property-map of A* heuristic function values for each vertex.
-   * \param position A mapping that implements the MutablePropertyMap Concept. Also,
-   *        the value_type of this map should be the same type as the topology's 
-   *        value_type.
-   * \param weight The property-map which stores the weight of each edge-property object (the cost of travel
-   *        along the edge).
-   * \param density A property-map that provides the expected common information associated with a sample drawn near 
-   *        to a vertex w.r.t. the current neighborhood of that vertex.
-   * \param constriction A property-map that provides the probability of a collision when a sample is drawn near to a 
-   *        vertex (i.e., that a sample near this vertex will not be in the free-space).
-   * \param distance The property-map which stores the estimated distance of each vertex to the goal.
-   * \param predecessor The property-map which will store the resulting path by connecting 
-   *        vertices together with their optimal predecessor (follow in reverse to discover the 
-   *        complete path).
-   * \param key The property-map which stores the AD* key-values associated to each vertex.
-   * \param get_sample A random sampler of positions in the space.
-   * \param select_neighborhood A callable object (functor) that can select a list of 
-   *        vertices of the graph that ought to be connected to a new 
-   *        vertex. The list should be sorted in order of increasing "distance".
-   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename Graph,
-            typename Vertex,
-            typename Topology,
-            typename SBARRTStarVisitor,
-            typename AStarHeuristicMap,
-            typename PositionMap,
-            typename WeightMap,
-            typename DensityMap,
-            typename ConstrictionMap,
-            typename DistanceMap,
-            typename PredecessorMap,
-            typename KeyMap,
-            typename RandomSampler,
-            typename NcSelector>
-  inline void
-  generate_sbarrtstar(
-    Graph &g, Vertex start_vertex, const Topology& super_space, SBARRTStarVisitor vis,  // basic parameters
-    AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
-    DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
-    PredecessorMap predecessor, KeyMap key,                         // properties resulting from the algorithm
-    RandomSampler get_sample,
-    NcSelector select_neighborhood,
-    double SA_init_temperature = 1.0)
-  {
-    BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<SBARRTStarVisitor,Graph,Topology>));
-    
-    detail::initialize_sbastar_nodes(g, vis, distance, predecessor, key);
-    
-    generate_sbarrtstar_no_init(
-      g, start_vertex, super_space, vis, 
-      hval, position, weight, density, constriction, distance,
-      predecessor, key, get_sample, select_neighborhood, SA_init_temperature);
-    
   };
   
   
@@ -538,105 +352,12 @@ namespace graph {
   inline void generate_sbarrtstar(const SBAStarBundle& bdl, 
                                   RandomSampler get_sample, 
                                   double SA_init_temperature = 1.0) {
+    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
     
     detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
     
     generate_sbarrtstar_no_init(bdl, get_sample, SA_init_temperature);
     
-  };
-  
-  
-  
-  
-  
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the SBA* algorithm, without initialization of the existing graph.
-   * \tparam Graph The graph type that can store the generated roadmap, should model 
-   *         BidirectionalGraphConcept and MutableGraphConcept.
-   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
-   * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-   * \tparam SBARRTStarVisitor The type of the SBA*-RRT* visitor to be used, should model the SBARRTStarVisitorConcept.
-   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
-   *         for each vertex in the graph.
-   * \tparam PositionMap A property-map type that can store the position of each vertex. 
-   * \tparam WeightMap This property-map type is used to store the weights of the edge-properties of the 
-   *         graph (cost of travel along an edge).
-   * \tparam DensityMap A property-map type that can store the probability-measure of the expected common information 
-   *         between a new sample and the current neighborhood for each vertex.
-   * \tparam ConstrictionMap A property-map type that can store the probability-measure of sampling a colliding point 
-   *         for each vertex.
-   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex 
-   *         to the goal.
-   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
-   *         vertex together with its optimal predecessor.
-   * \tparam KeyMap This property-map type is used to store the priority-keys of the vertices of the 
-   *         graph (cost of travel along an edge).
-   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
-   * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
-   *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors). 
-   *         See classes in the topological_search.hpp header-file.
-   * 
-   * \param g A mutable graph that should initially store the starting 
-   *        vertex (if not it will be randomly generated) and will store 
-   *        the generated graph once the algorithm has finished.
-   * \param start_vertex The starting point of the algorithm, on the graph.
-   * \param super_space A topology (as defined by the Boost Graph Library). This topology 
-   *        should not include collision checking in its distance metric.
-   * \param vis A SBA*-RRT* visitor implementing the SBARRTStarVisitorConcept. This is the 
-   *        main point of customization and recording of results that the 
-   *        user can implement.
-   * \param hval The property-map of A* heuristic function values for each vertex.
-   * \param position A mapping that implements the MutablePropertyMap Concept. Also,
-   *        the value_type of this map should be the same type as the topology's 
-   *        value_type.
-   * \param weight The property-map which stores the weight of each edge-property object (the cost of travel
-   *        along the edge).
-   * \param density A property-map that provides the expected common information associated with a sample drawn near 
-   *        to a vertex w.r.t. the current neighborhood of that vertex.
-   * \param constriction A property-map that provides the probability of a collision when a sample is drawn near to a 
-   *        vertex (i.e., that a sample near this vertex will not be in the free-space).
-   * \param distance The property-map which stores the estimated distance of each vertex to the goal.
-   * \param predecessor The property-map which will store the resulting path by connecting 
-   *        vertices together with their optimal predecessor (follow in reverse to discover the 
-   *        complete path).
-   * \param key The property-map which stores the AD* key-values associated to each vertex.
-   * \param get_sample A random sampler of positions in the space.
-   * \param select_neighborhood A callable object (functor) that can select a list of 
-   *        vertices of the graph that ought to be connected to a new 
-   *        vertex. The list should be sorted in order of increasing "distance".
-   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename Graph,
-            typename Vertex,
-            typename Topology,
-            typename SBARRTStarVisitor,
-            typename AStarHeuristicMap,
-            typename PositionMap,
-            typename WeightMap,
-            typename DensityMap,
-            typename ConstrictionMap,
-            typename DistanceMap,
-            typename PredecessorMap,
-            typename KeyMap,
-            typename RandomSampler,
-            typename NcSelector>
-  inline void
-  generate_lazy_sbarrtstar_no_init(
-    Graph &g, Vertex start_vertex, const Topology& super_space, SBARRTStarVisitor vis,  // basic parameters
-    AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
-    DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
-    PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
-    RandomSampler get_sample,
-    NcSelector select_neighborhood,
-    double SA_init_temperature = 1.0)
-  {
-    detail::generate_sbarrtstar_no_init_impl< detail::lazy_sbastar_node_connector >(
-      g, start_vertex, super_space, vis, 
-      hval, position, weight, density, constriction, 
-      distance, predecessor, key, get_sample, 
-      select_neighborhood, SA_init_temperature);
   };
   
   
@@ -655,6 +376,8 @@ namespace graph {
   inline void generate_lazy_sbarrtstar_no_init(const SBAStarBundle& bdl, 
                                                RandomSampler get_sample, 
                                                double SA_init_temperature = 1.0) {
+    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+    
     detail::generate_sbarrtstar_no_init_impl< detail::lazy_sbastar_node_connector >(
       *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
       bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
@@ -662,105 +385,6 @@ namespace graph {
       bdl.m_select_neighborhood, SA_init_temperature);
   };
 
-
-   /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the SBA*-RRT* algorithm, with initialization of the existing graph to (re)start the search.
-   * \tparam Graph The graph type that can store the generated roadmap, should model 
-   *         BidirectionalGraphConcept and MutableGraphConcept.
-   * \tparam Vertex The type to describe a vertex of the graph on which the search is performed.
-   * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-   * \tparam SBARRTStarVisitor The type of the SBA*-RRT* visitor to be used, should model the SBARRTStarVisitorConcept.
-   * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
-   *         for each vertex in the graph.
-   * \tparam PositionMap A property-map type that can store the position of each vertex. 
-   * \tparam WeightMap This property-map type is used to store the weights of the edge-properties of the 
-   *         graph (cost of travel along an edge).
-   * \tparam DensityMap A property-map type that can store the probability-measure of the expected common information 
-   *         between a new sample and the current neighborhood for each vertex.
-   * \tparam ConstrictionMap A property-map type that can store the probability-measure of sampling a colliding point for each vertex.
-   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex 
-   *         to the goal.
-   * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
-   *         vertex together with its optimal predecessor.
-   * \tparam KeyMap This property-map type is used to store the priority-keys of the vertices of the 
-   *         graph (cost of travel along an edge).
-   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
-   * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
-   *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors). 
-   *         See classes in the topological_search.hpp header-file.
-   * 
-   * \param g A mutable graph that should initially store the starting 
-   *        vertex (if not it will be randomly generated) and will store 
-   *        the generated graph once the algorithm has finished.
-   * \param start_vertex The starting point of the algorithm, on the graph.
-   * \param super_space A topology (as defined by the Boost Graph Library). This topology 
-   *        should not include collision checking in its distance metric.
-   * \param vis A SBA*-RRT* visitor implementing the SBARRTStarVisitorConcept. This is the 
-   *        main point of customization and recording of results that the 
-   *        user can implement.
-   * \param hval The property-map of A* heuristic function values for each vertex.
-   * \param position A mapping that implements the MutablePropertyMap Concept. Also,
-   *        the value_type of this map should be the same type as the topology's 
-   *        value_type.
-   * \param weight The property-map which stores the weight of each edge-property object (the cost of travel
-   *        along the edge).
-   * \param density A property-map that provides the expected common information associated with a sample drawn near 
-   *        to a vertex w.r.t. the current neighborhood of that vertex.
-   * \param constriction A property-map that provides the probability of a collision when a sample is drawn near to a 
-   *        vertex (i.e., that a sample near this vertex will not be in the free-space).
-   * \param distance The property-map which stores the estimated distance of each vertex to the goal.
-   * \param predecessor The property-map which will store the resulting path by connecting 
-   *        vertices together with their optimal predecessor (follow in reverse to discover the 
-   *        complete path).
-   * \param key The property-map which stores the AD* key-values associated to each vertex.
-   * \param get_sample A random sampler of positions in the space.
-   * \param select_neighborhood A callable object (functor) that can select a list of 
-   *        vertices of the graph that ought to be connected to a new 
-   *        vertex. The list should be sorted in order of increasing "distance".
-   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename Graph,
-            typename Vertex,
-            typename Topology,
-            typename SBARRTStarVisitor,
-            typename AStarHeuristicMap,
-            typename PositionMap,
-            typename WeightMap,
-            typename DensityMap,
-            typename ConstrictionMap,
-            typename DistanceMap,
-            typename PredecessorMap,
-            typename KeyMap,
-            typename RandomSampler,
-            typename NcSelector>
-  inline void
-  generate_lazy_sbarrtstar(
-    Graph &g, Vertex start_vertex, const Topology& super_space, SBARRTStarVisitor vis,  // basic parameters
-    AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
-    DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
-    PredecessorMap predecessor, KeyMap key,                         // properties resulting from the algorithm
-    RandomSampler get_sample,
-    NcSelector select_neighborhood,
-    double SA_init_temperature = 1.0)
-  {
-    BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-    //BOOST_CONCEPT_ASSERT((boost::MutablePropertyGraphConcept<Graph>));
-    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<SBARRTStarVisitor,Graph,Topology>));
-    
-    detail::initialize_sbastar_nodes(g, vis, distance, predecessor, key);
-
-    generate_lazy_sbarrtstar_no_init(
-      g, start_vertex, super_space, vis, 
-      hval, position, weight, density, constriction, distance,
-      predecessor, key, get_sample, select_neighborhood, SA_init_temperature);
-    
-  };
-  
-  
   /**
    * This function template generates a roadmap to connect a goal location to a start location
    * using the Lazy-SBA*-RRT* algorithm, with initialization of the existing graph to (re)start the search.
@@ -776,6 +400,7 @@ namespace graph {
   inline void generate_lazy_sbarrtstar(const SBAStarBundle& bdl, 
                                        RandomSampler get_sample, 
                                        double SA_init_temperature = 1.0) {
+    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
     
     detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
     
