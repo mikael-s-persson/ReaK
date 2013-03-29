@@ -420,7 +420,6 @@ namespace graph {
           put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
         };
       };
-      
       typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
       MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
       

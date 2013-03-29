@@ -722,7 +722,7 @@ namespace graph {
       AStarHeuristicMap hval, PositionMap position, WeightMap weight,
       DensityMap density, ConstrictionMap constriction, DistanceMap distance,
       PredecessorMap predecessor, KeyMap key, NcSelector select_neighborhood) :
-      m_g(&g), m_start_vertex(m_start_vertex), m_super_space(&super_space), m_vis(vis),
+      m_g(&g), m_start_vertex(start_vertex), m_super_space(&super_space), m_vis(vis),
       m_hval(hval), m_position(position), m_weight(weight), 
       m_density(density), m_constriction(constriction), m_distance(distance), 
       m_predecessor(predecessor), m_key(key), m_select_neighborhood(select_neighborhood) { };

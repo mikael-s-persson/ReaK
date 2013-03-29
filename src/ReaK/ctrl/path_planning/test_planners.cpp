@@ -31,11 +31,11 @@
 #include "topologies/ptrobot2D_test_world.hpp"
 
 
-// #define RK_ENABLE_TEST_URRT_PLANNER
-// #define RK_ENABLE_TEST_BRRT_PLANNER
+#define RK_ENABLE_TEST_URRT_PLANNER
+#define RK_ENABLE_TEST_BRRT_PLANNER
 #define RK_ENABLE_TEST_RRTSTAR_PLANNER
-// #define RK_ENABLE_TEST_PRM_PLANNER
-// #define RK_ENABLE_TEST_FADPRM_PLANNER
+#define RK_ENABLE_TEST_PRM_PLANNER
+#define RK_ENABLE_TEST_FADPRM_PLANNER
 #define RK_ENABLE_TEST_SBASTAR_PLANNER
 
 
@@ -1158,9 +1158,10 @@ int main(int argc, char** argv) {
                        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                        ReaK::pp::DVP_BF2_TREE_KNN,
                        ReaK::pp::LAZY_COLLISION_CHECKING,
-                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                       ( vm.count("sba-with-voronoi-pull") ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
+                       mc_results,
+                       vm["sba-sa-temperature"].as<double>());
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
       };
@@ -1185,9 +1186,10 @@ int main(int argc, char** argv) {
                        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                        ReaK::pp::DVP_BF4_TREE_KNN,
                        ReaK::pp::LAZY_COLLISION_CHECKING,
-                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                       ( vm.count("sba-with-voronoi-pull") ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
+                       mc_results,
+                       vm["sba-sa-temperature"].as<double>());
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
       };
@@ -1213,9 +1215,10 @@ int main(int argc, char** argv) {
                         ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                         ReaK::pp::DVP_COB2_TREE_KNN,
                         ReaK::pp::LAZY_COLLISION_CHECKING,
-                        ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                        ( vm.count("sba-with-voronoi-pull") ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
                         ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                        mc_results);
+                        mc_results,
+                        vm["sba-sa-temperature"].as<double>());
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
         };
@@ -1240,9 +1243,10 @@ int main(int argc, char** argv) {
                         ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                         ReaK::pp::DVP_COB4_TREE_KNN,
                         ReaK::pp::LAZY_COLLISION_CHECKING,
-                        ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                        ( vm.count("sba-with-voronoi-pull") ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
                         ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                        mc_results);
+                        mc_results,
+                        vm["sba-sa-temperature"].as<double>());
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
         };
@@ -1268,9 +1272,10 @@ int main(int argc, char** argv) {
                        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
                        ReaK::pp::LINEAR_SEARCH_KNN,
                        ReaK::pp::LAZY_COLLISION_CHECKING,
-                       ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                       ( vm.count("sba-with-voronoi-pull") ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
+                       mc_results,
+                       vm["sba-sa-temperature"].as<double>());
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
       };
@@ -1297,9 +1302,10 @@ int main(int argc, char** argv) {
                         ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
                         ReaK::pp::DVP_ALT_BF2_KNN,
                         ReaK::pp::LAZY_COLLISION_CHECKING,
-                        ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                        ( vm.count("sba-with-voronoi-pull") ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
                         ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                        mc_results);
+                        mc_results,
+                        vm["sba-sa-temperature"].as<double>());
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
         };
@@ -1324,9 +1330,10 @@ int main(int argc, char** argv) {
                         ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
                         ReaK::pp::DVP_ALT_BF4_KNN,
                         ReaK::pp::LAZY_COLLISION_CHECKING,
-                        ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                        ( vm.count("sba-with-voronoi-pull") ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
                         ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                        mc_results);
+                        mc_results,
+                        vm["sba-sa-temperature"].as<double>());
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
         };
@@ -1352,9 +1359,10 @@ int main(int argc, char** argv) {
                           ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
                           ReaK::pp::DVP_ALT_COB2_KNN,
                           ReaK::pp::LAZY_COLLISION_CHECKING,
-                          ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                          ( vm.count("sba-with-voronoi-pull") ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
                           ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                          mc_results);
+                          mc_results,
+                          vm["sba-sa-temperature"].as<double>());
             
             run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
           };
@@ -1379,9 +1387,10 @@ int main(int argc, char** argv) {
                           ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
                           ReaK::pp::DVP_ALT_COB4_KNN,
                           ReaK::pp::LAZY_COLLISION_CHECKING,
-                          ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                          ( vm.count("sba-with-voronoi-pull") ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
                           ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                          mc_results);
+                          mc_results,
+                          vm["sba-sa-temperature"].as<double>());
             
             run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
           };
@@ -1726,7 +1735,8 @@ int main(int argc, char** argv) {
     if(run_all_planners || vm.count("sba-star")) {
       std::cout << "Outputting SBA* with adj-list dvp-bf4..." << std::endl;
       
-      ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::vlist_sbmp_report< ReaK::pp::sbastar_vprinter, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > > 
+//       ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::vlist_sbmp_report< ReaK::pp::sbastar_vprinter, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > > 
+      ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
         sbastar_plan(
           world_map, 
           world_map->get_start_pos(), 
@@ -1741,10 +1751,11 @@ int main(int argc, char** argv) {
           ReaK::pp::DVP_BF4_TREE_KNN,
           ReaK::pp::LAZY_COLLISION_CHECKING,
           ( vm.count("sba-with-voronoi-pull") ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
-          ReaK::pp::vlist_sbmp_report< ReaK::pp::sbastar_vprinter, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > >(
-            output_path_name + "/sbastar/" + world_file_name_only + "_",
-            ReaK::pp::sbastar_vprinter(),
-            ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(output_path_name + "/sbastar/" + world_file_name_only + "_", 5)),
+//           ReaK::pp::vlist_sbmp_report< ReaK::pp::sbastar_vprinter, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > >(
+//             output_path_name + "/sbastar/" + world_file_name_only + "_",
+//             ReaK::pp::sbastar_vprinter(),
+//             ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(output_path_name + "/sbastar/" + world_file_name_only + "_", 5)),
+          ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(output_path_name + "/sbastar/" + world_file_name_only + "_", 5),
           sr_results,
           vm["sba-sa-temperature"].as<double>());
       
