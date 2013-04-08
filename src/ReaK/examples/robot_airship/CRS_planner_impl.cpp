@@ -859,7 +859,7 @@ void CRSPlannerGUI::executePlanner() {
             ReaK::pp::PLAN_WITH_VORONOI_PULL, \
             temp_reporter, \
             max_results, \
-            10.0); \
+            3.0); \
          \
         ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
         std::cout << "The shortest distance is: " << workspace_planner.get_best_solution_distance() << std::endl; \
