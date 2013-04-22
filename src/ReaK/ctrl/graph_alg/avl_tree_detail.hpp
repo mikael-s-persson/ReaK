@@ -7,11 +7,11 @@
  * only requires a strict weak ordering (comparison function, analogous to less-than).
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
- * \date June 2012
+ * \date April 2013
  */
 
 /*
- *    Copyright 2012 Sven Mikael Persson
+ *    Copyright 2013 Sven Mikael Persson
  *
  *    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
  *
@@ -151,6 +151,9 @@ class avl_tree_impl
       };
     };
     
+    bool has_left_child(vertex_type u) const { return in_degree(u,m_tree) >= 1; };
+    bool has_right_child(vertex_type u) const { return in_degree(u,m_tree) >= 2; };
+    
     vertex_type get_left_child(vertex_type u) const {
       return *(child_vertices(u, m_tree).first);
     };
@@ -165,12 +168,12 @@ class avl_tree_impl
         if(!m_compare(m_tree[cur_node], k)) {
           cur_lb = cur_node;
           // descend on the left side.
-          if(in_degree(cur_node) == 0)
+          if( !has_left_child(cur_node) )
             break;
           cur_node = get_left_child(cur_node);
         } else {
           // descend on the right side.
-          if(in_degree(cur_node) <= 1)
+          if( !has_right_child(cur_node) )
             break;
           cur_node = get_right_child(cur_node);
         };
@@ -185,12 +188,12 @@ class avl_tree_impl
         if(m_compare(k, m_tree[cur_node])) {
           cur_ub = cur_node;
           // descend on the left side.
-          if(in_degree(cur_node) == 0)
+          if( !has_left_child(cur_node) )
             break;
           cur_node = get_left_child(cur_node);
         } else {
           // descend on the right side.
-          if(in_degree(cur_node) <= 1)
+          if( !has_right_child(cur_node) )
             break;
           cur_node = get_right_child(cur_node);
         };
@@ -206,7 +209,7 @@ class avl_tree_impl
       tasks.push(std::pair< vertex_type, std::size_t >(aNode, 0));
       while(!tasks.empty()) {
         std::pair< vertex_type, std::size_t > cur_task = tasks.front(); tasks.pop();
-        if(in_degree(cur_task.first) == 0) {
+        if( !has_left_child(cur_task.first) ) {
           if(cur_task.second < result.first)
             result.first = cur_task.second;
           if(cur_task.second > result.second)
@@ -215,7 +218,7 @@ class avl_tree_impl
         };
         ++(cur_task.second);
         tasks.push(std::pair< vertex_type, std::size_t >(get_left_child(cur_task.first), cur_task.second));
-        if(in_degree(cur_task.first) > 1)
+        if( has_right_child(cur_task.first) )
           tasks.push(std::pair< vertex_type, std::size_t >(get_right_child(cur_task.first), cur_task.second));
       };
       
@@ -234,13 +237,13 @@ class avl_tree_impl
 #else
         aList.push_back(m_tree[cur_task]);
 #endif
-        if(in_degree(cur_task) == 0)
+        if( !has_left_child(cur_task) )
           continue;
         tasks.push(get_left_child(cur_task));
-        if(in_degree(cur_task.first) > 1)
+        if( has_right_child(cur_task) )
           tasks.push(get_right_child(cur_task));
       };
-      if(in_degree(aRootNode) > 1)
+      if( has_right_child(aRootNode) )
         remove_branch(get_right_child(aRootNode), m_tree);
       remove_branch(get_left_child(aRootNode), m_tree);
     };
@@ -259,13 +262,13 @@ class avl_tree_impl
           aList.push_back(m_tree[cur_task]);
 #endif
         };
-        if(in_degree(cur_task) == 0)
+        if( !has_left_child(cur_task) )
           continue;
         tasks.push(get_left_child(cur_task));
-        if(in_degree(cur_task.first) > 1)
+        if( has_right_child(cur_task))
           tasks.push(get_right_child(cur_task));
       };
-      if(in_degree(aRootNode) > 1)
+      if( has_right_child(aRootNode) )
         remove_branch(get_right_child(aRootNode), m_tree);
       remove_branch(get_left_child(aRootNode), m_tree);
     };
@@ -279,257 +282,34 @@ class avl_tree_impl
       construct_node(aRootNode, collected_nodes.begin(), collected_nodes.end());
     };
     
+    // re-balance the sub-tree rooted at the given node. Uses a "collect and re-construct" approach.
+    void rebalance_and_remove_subtree(vertex_type aRootNode, vertex_type aExcluded) {
+      // collect and remove.
+      std::vector< vertex_property > collected_nodes;
+      collect_nodes(aRootNode, collected_nodes, aExcluded);
+      // re-construct:
+      construct_node(aRootNode, collected_nodes.begin(), collected_nodes.end());
+    };
     
-    
-    
-    
-    
-    /* Does not invalidate vertices */
-    /* Does not require persistent vertices */
-    /* NOTE This is a non-recursive version. */
-    /* This is the main nearest-neighbor query function. This takes a query point, a maximum 
-     * neighborhood radius (aSigma), aNode to start recursing from, the current max-heap of neighbors,
-     * and the maximum number of neighbors. This function can be used for any kind of NN query (single, kNN, or ranged). */
-    void find_nearest_impl(
-        const point_type& aPoint, 
-        distance_type aSigma, 
-        priority_queue_type& aList, 
-        std::size_t K) const {
-      
-      std::stack< std::pair<vertex_type, distance_type> > tasks;
-      tasks.push(std::pair<vertex_type, distance_type>(m_root,0.0));
-      
-      while(!tasks.empty()) {
-        std::pair<vertex_type, distance_type> cur_node = tasks.top(); tasks.pop();
-        
-        if( cur_node.second > aSigma )
-          continue;
-        
-        distance_type current_dist = m_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,cur_node.first)), *m_space);
-        if(current_dist < aSigma) { //is the vantage point within current search bound? Yes...
-          //then add the vantage point to the NN list.
-          aList.push_back(std::pair<distance_type, vertex_type>(current_dist, cur_node.first));
-          std::push_heap(aList.begin(), aList.end(), priority_compare_type());
-          if(aList.size() > K) { //are there too many nearest neighbors? Yes... 
-            std::pop_heap(aList.begin(), aList.end(), priority_compare_type());
-            aList.pop_back(); //delete last element to keep aList with K elements
-            aSigma = aList.front().first; //distance of the last element is now the search bound aSigma.
-          };
-        };
-        out_edge_iter ei,ei_end;
-        //first, locate the partition in which aPoint is:
-        if(out_degree(cur_node.first,m_tree) == 0)
-          continue;
-        for(boost::tie(ei,ei_end) = out_edges(cur_node.first,m_tree); ei != ei_end; ++ei) {
-          if(current_dist < get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
-            break;
-        };
-        if(ei == ei_end) 
-          --ei; //back-track if the end was reached.
-        
-        std::stack< std::pair<vertex_type, distance_type> > temp_invtasks;
-        //search in the most likely node.
-        temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei,m_tree),0.0));
-        //find_nearest_impl(aPoint,aSigma,target(*ei,m_tree),aList,K); 
-        
-        out_edge_iter ei_left = ei;
-        out_edge_iter ei_right = ei; ++ei_right;
-        boost::tie(ei,ei_end) = out_edges(cur_node.first,m_tree); //find the bounds again (start and end).
-        bool left_stopped  = (ei_left == ei);
-        bool right_stopped = (ei_right == ei_end);
-        while(true) {
-          if(left_stopped) {
-            out_edge_iter ei_rightleft = ei_right; --ei_rightleft;
-            distance_type temp_dist = 0.0;
-            while((ei_right != ei_end) && 
-                  ((temp_dist = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_rightleft)) - current_dist) < aSigma)) {
-              temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), temp_dist));
-              //find_nearest_impl(aPoint,aSigma,target(*ei_right,m_tree),aList,K);
-              ++ei_rightleft; ++ei_right;
-            };
-            break;
-          } else if(right_stopped) {
-            out_edge_iter ei_leftleft = ei_left;
-            distance_type temp_dist = 0.0;
-            while((ei_left != ei) && 
-                  ((temp_dist = current_dist - get(m_mu,get(boost::edge_raw_property,m_tree,*(--ei_leftleft)))) < aSigma)) {
-              temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), temp_dist));
-              //find_nearest_impl(aPoint,aSigma,target(*ei_leftleft,m_tree),aList,K);
-              --ei_left;
-            };
-            break;
-          } else {
-            out_edge_iter ei_leftleft = ei_left; --ei_leftleft;
-            distance_type d1 = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_leftleft)); //greater than 0 if ei_leftleft should be searched.
-            out_edge_iter ei_rightleft = ei_right; --ei_rightleft;
-            distance_type d2 = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_rightleft)); //less than 0 if ei_right should be searched.
-            if(d1 + d2 > 2.0 * current_dist) { //this means that ei_leftleft's boundary is closer to aPoint.
-              if(d1 + aSigma - current_dist > 0) {
-                temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), current_dist - d1));
-                //find_nearest_impl(aPoint,aSigma,target(*ei_leftleft,m_tree),aList,K);
-                ei_left = ei_leftleft;
-                if(d2 - aSigma - current_dist < 0) {
-                  temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), d2 - current_dist));
-                  //find_nearest_impl(aPoint,aSigma,target(*ei_right,m_tree),aList,K);
-                  ++ei_right;
-                } else
-                  right_stopped = true;
-              } else
-                break;
-            } else {
-              if(d2 - aSigma - current_dist < 0) {
-                temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), d2 - current_dist));
-                //find_nearest_impl(aPoint,aSigma,target(*ei_right,m_tree),aList,K);
-                ++ei_right;
-                if(d1 + aSigma - current_dist > 0) {
-                  temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), current_dist - d1));
-                  //find_nearest_impl(aPoint,aSigma,target(*ei_leftleft,m_tree),aList,K);
-                  ei_left = ei_leftleft;
-                } else 
-                  left_stopped = true;
-              } else
-                break;
-            };
-          };
-          left_stopped  = (ei_left == ei);
-          right_stopped = (ei_right == ei_end);
-        };
-        
-        // reverse the temporary stack into the main stack.
-        while(!temp_invtasks.empty()) {
-          tasks.push(temp_invtasks.top());
-          temp_invtasks.pop();
-        };
-      };
+    // re-balance the sub-tree rooted at the given node. Uses a "collect and re-construct" approach.
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    void rebalance_and_insert_subtree(vertex_type aRootNode, vertex_property&& aAdded) {
+#else
+    void rebalance_and_insert_subtree(vertex_type aRootNode, const vertex_property& aAdded) {
+#endif
+      // collect and remove.
+      std::vector< vertex_property > collected_nodes;
+#ifdef RK_ENABLE_CXX0X_FEATURES
+      collected_nodes.emplace_back(std::move(aAdded));
+#else
+      collected_nodes.push_back(aAdded);
+#endif
+      collect_nodes(aRootNode, collected_nodes);
+      // re-construct:
+      construct_node(aRootNode, collected_nodes.begin(), collected_nodes.end());
     };
     
     
-    
-    
-    
-    /* Does not invalidate vertices */
-    /* Does not require persistent vertices */
-    /* NOTE This is a non-recursive version. */
-    /* This function does a single nearest-neighbor query to find the tree-leaf that is closest to 
-     * the given point (starts to recurse from aNode). */
-    vertex_type get_leaf(const point_type& aPoint, vertex_type aNode) const {
-      while(out_degree(aNode,m_tree) != 0) {
-        //first, locate the partition in which aPoint is:
-        distance_type current_dist = m_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,aNode)), *m_space);
-        vertex_type result = aNode;
-        out_edge_iter ei,ei_end;
-        for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
-          result = target(*ei,m_tree);
-          if(current_dist < get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
-            break;
-        };
-        aNode = result;
-      };
-      return aNode;
-    };
-    
-    /* Does not invalidate vertices */
-    /* Does not require persistent vertices */
-    /* NOTE This is a non-recursive version. */
-    /* This function finds the tree-vertex with the given key-value and position. */
-    vertex_type get_vertex(key_type aKey, const point_type& aPoint, vertex_type aNode) const {
-      while(get(m_key, get(boost::vertex_raw_property,m_tree,aNode)) != aKey) { 
-        distance_type current_dist = m_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,aNode)), *m_space);
-        //first, locate the partition in which aPoint is:
-        if(out_degree(aNode,m_tree) == 0)
-          throw int(0);
-        vertex_type result = aNode;
-        out_edge_iter ei,ei_end;
-        for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
-          result = target(*ei,m_tree);
-          if(current_dist < get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
-            break;
-        };
-        aNode = result;
-      };
-      return aNode;
-    };
-    
-    /* Does not invalidate vertices */
-    /* Does not require persistent vertices */
-    /* This function determines if a given node has no children or if all its children have no children. */
-    bool is_leaf_node(vertex_type aNode) const {
-      if(out_degree(aNode,m_tree) == 0) return true;
-      out_edge_iter ei,ei_end;
-      for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
-        if(out_degree(target(*ei,m_tree),m_tree) != 0)
-          return false;
-      };
-      return true;
-    };
-    
-    /* Does not invalidate vertices */
-    /* Does not require persistent vertices */
-    /* NOTE This is a non-recursive version. */
-    /* This function determines if a given node is the root of a balanced (and full) sub-tree. */
-    bool is_node_full(vertex_type aNode, int& depth_limit) const {
-      if(depth_limit < 0)
-        return false;
-      std::queue< std::pair< vertex_type, int > > tasks;
-      tasks.push(std::pair< vertex_type, int >(aNode, depth_limit));
-      while(!tasks.empty()) {
-        std::pair< vertex_type, int > cur_task = tasks.front(); tasks.pop();
-        
-        if(cur_task.second < depth_limit)
-          depth_limit = cur_task.second;
-        
-        if((out_degree(cur_task.first, m_tree) == 0) && (cur_task.second == 0))
-          continue;
-        
-        --(cur_task.second);
-        
-        if(((out_degree(cur_task.first, m_tree) != 0) && (cur_task.second < 0)) || 
-           (out_degree(cur_task.first, m_tree) < Arity) ||
-           ((cur_task.second > 0) && (is_leaf_node(cur_task.first))) ) {
-          depth_limit = cur_task.second;
-          return false;
-        };
-        
-        out_edge_iter ei,ei_end;
-        for(boost::tie(ei,ei_end) = out_edges(cur_task.first,m_tree); ei != ei_end; ++ei)
-          tasks.push(std::pair< vertex_type, int >(target(*ei,m_tree), cur_task.second));
-        
-      };
-      return (depth_limit == 0);
-    };
-    
-    /* Does not invalidate vertices */
-    /* Does not require persistent vertices */
-    /* NOTE This is a non-recursive version. */
-    /* This function collects the list of vertices that are in the sub-tree rooted at the given node (exclusively). */
-    void collect_vertices(std::vector<vertex_type>& aList, vertex_type aNode) const {
-      std::queue< vertex_type > tasks;
-      tasks.push(aNode);
-      while(!tasks.empty()) {
-        vertex_type current_node = tasks.front(); tasks.pop();
-        out_edge_iter ei,ei_end;
-        for(boost::tie(ei,ei_end) = out_edges(current_node,m_tree); ei != ei_end; ++ei) {
-          aList.push_back(target(*ei,m_tree));
-          tasks.push(target(*ei,m_tree));
-        };
-      };
-    };
-    
-    /* Does not invalidate vertices */
-    /* Does not require persistent vertices */
-    /* This function computes the maximum depth of the tree rooted at the given node (note: this is an 
-     * expensive operation, but is useful when debugging and testing). */
-    /* NOTE: This is a recursive function, but it isn't practical anyways, and kind of annoying to de-recursify. */
-    std::size_t get_depth(vertex_type aNode) const {
-      std::size_t max_depth = 0;
-      out_edge_iter ei,ei_end;
-      for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
-        std::size_t temp = get_depth(target(*ei,m_tree));
-        if(temp > max_depth)
-          max_depth = temp;
-      };
-      return max_depth + 1;
-    };
     
   public:
     
