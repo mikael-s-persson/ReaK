@@ -48,14 +48,14 @@ namespace graph {
 
 
 
-template <typename CompleteBinaryTree>
-class vertex_iterator {
+template <typename CompleteBinaryTree, typename ValueType>
+class bst_inorder_iterator {
   public:
-    typedef vertex_iterator<CompleteBinaryTree> self;
+    typedef bst_inorder_iterator<CompleteBinaryTree> self;
     typedef CompleteBinaryTree tree_type;
     
     typedef std::ptrdiff_t difference_type;
-    typedef typename tree_type::vertex_bundled value_type;
+    typedef ValueType value_type;
     typedef value_type* pointer;
     typedef value_type& reference;
     typedef std::bidirectional_iterator_tag iterator_category;
@@ -75,7 +75,7 @@ class vertex_iterator {
     vertex_type m_u;
     traversal_status m_status;
     
-    vertex_iterator(tree_type* aTree, vertex_type aU, traversal_status aStatus) : m_tree(aTree), m_u(aU), m_status(aStatus) { };
+    bst_inorder_iterator(tree_type* aTree, vertex_type aU, traversal_status aStatus) : m_tree(aTree), m_u(aU), m_status(aStatus) { };
     
     static vertex_type go_down_left(tree_type* aTree, vertex_type aStart) {
       std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(aStart, *aTree);
@@ -117,7 +117,55 @@ class vertex_iterator {
       };
     };
     
+    void move_up_to_prev() {
+      in_edge_iter ei, ei_end;
+      child_vertex_iter vil, vi_end;
+      m_status = OnLeftBranch;
+      vertex_type u = m_u;
+      while(true) {
+        boost::tie(ei, ei_end) = in_edges(u, *m_tree);
+        if(ei == ei_end) // at the root, so, m_u must be the beginning node.
+          return;
+        vertex_type v = source(*ei, *m_tree);
+        boost::tie(vil, vi_end) = child_vertices(v, *m_tree);
+        if(*vil == u) { // u is the left child of v.
+          u = v;
+          continue;
+        };
+        // u must be the right child of v. keep going.
+        m_u = v;
+        m_status = OnMiddleBranch;
+        return;
+      };
+    };
+    
   public:
+    
+    bst_inorder_iterator(tree_type* aTree, vertex_type aU) : m_tree(aTree), m_u(aU), m_status(OnRightBranch) {
+      // must figure out what the case is.
+      if((!m_tree) || (m_u == boost::graph_traits<tree_type>::null_vertex()))
+        return;
+      if(m_u == get_root_vertex(*m_tree)) {
+        m_status = OnMiddleBranch;
+        return;
+      };
+      // first check if there are any children:
+      std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(m_u, *m_tree);
+      if(cur_children.first != cur_children.second) {
+        m_status = OnMiddleBranch; // not on leaf.
+        return;
+      };
+      // then, check if m_u is a left or right child of its parent:
+      in_edge_iter ei, ei_end;
+      boost::tie(ei, ei_end) = in_edges(m_u, *m_tree);
+      vertex_type v = source(*ei, *m_tree);
+      child_vertex_iter vil, vi_end;
+      boost::tie(vil, vi_end) = child_vertices(v, *m_tree);
+      if(*vil == m_u) // u is the left child of v.
+        m_status = OnLeftBranch;
+      else // u must be the right child of v.
+        m_status = OnRightBranch;
+    };
     
     static self begin(tree_type* aTree) {
       if(aTree)
@@ -134,10 +182,10 @@ class vertex_iterator {
     };
     
     friend bool operator==( const self& lhs, const self& rhs) { 
-      return ((lhs.m_tree == rhs.m_tree) && (lhs.m_u == rhs.m_u));
+      return ((lhs.m_tree == rhs.m_tree) && (lhs.m_u == rhs.m_u) && (lhs.m_status == rhs.m_status));
     };
     friend bool operator!=( const self& lhs, const self& rhs) { 
-      return ((lhs.m_tree != rhs.m_tree) || (lhs.m_u != rhs.m_u));
+      return ((lhs.m_tree != rhs.m_tree) || (lhs.m_u != rhs.m_u) || (lhs.m_status != rhs.m_status));
     };
     
     self& operator++() { 
@@ -158,21 +206,74 @@ class vertex_iterator {
           // on a middle-point, must move down to the right once, and then left to the bottom.
           std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(m_u, *m_tree);
           ++(cur_children.first);
-          
-          break;
+          if(cur_children.first != cur_children.second) {
+            // go to the right child.
+            m_u = go_down_left(m_tree, *(cur_children.first));
+            if(m_u == *(cur_children.first))
+              m_status = OnRightBranch;
+            else
+              m_status = OnLeftBranch;
+            break;
+          };
+          // this means that we must move up to the next value (no right child here).
         case OnRightBranch:
-          
+          move_up_to_next();
           break;
       };
       return *this;
     };
+    
+    self& operator--() { 
+      if(!m_tree)
+        return *this;
+      switch(m_status) {
+        case OnRightBranch:
+          if(m_u == get_root_vertex(*m_tree)) {
+            // go to the left child, and down the right:
+            m_u = go_down_right(m_tree, m_u);
+            if(m_u == get_root_vertex(*m_tree))
+              m_status = OnMiddleBranch;
+            else {
+              std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(m_u, *m_tree);
+              if(cur_children.first == cur_children.second) 
+                m_status = OnRightBranch;  // on the leaf.
+              else
+                m_status = OnMiddleBranch; // not on leaf.
+            };
+            break;
+          };
+          // this means that we are either on a right-leaf or on a mis-labeled middle-node, 
+          // in either case, try the middle-branch case:
+        case OnMiddleBranch:
+          // on a middle-point or right-point, must move down to the left once (if exists), and then right to the bottom.
+          std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(m_u, *m_tree);
+          if(cur_children.first != cur_children.second) {
+            // go to the left child, and down the right:
+            m_u = go_down_right(m_tree, *(cur_children.first));
+            if(m_u == *(cur_children.first))
+              m_status = OnMiddleBranch;
+            else {
+              cur_children = child_vertices(m_u, *m_tree);
+              if(cur_children.first == cur_children.second) 
+                m_status = OnRightBranch;  // on the leaf.
+              else
+                m_status = OnMiddleBranch; // not on leaf.
+            };
+            break;
+          };
+          // this means that we must move up to the previous value (no left child here).
+        case OnLeftBranch:
+          move_up_to_prev();
+          break;
+      };
+      return *this;
+    };
+    
     self operator++(int) { self result(*this); return ++result; };
-    self& operator--() { --base; return *this; };
     self operator--(int) { self result(*this); return --result; };
     
-    value_type operator[](difference_type i) const { return base + i; };
-    reference operator*() { return base; };
-    pointer operator->() { return &base; };
+    reference operator*() { return (*m_tree)[m_u]; };
+    pointer operator->() { return &(*m_tree)[m_u]; };
 };
 
 

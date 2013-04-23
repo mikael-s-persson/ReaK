@@ -49,6 +49,10 @@
 #include "graph_alg/bgl_tree_adaptor.hpp"
 #include "graph_alg/bgl_raw_property_graph.hpp"
 
+#include "graph_alg/bst_inorder_iterator.hpp"
+
+#include <iterator>
+
 
 namespace ReaK {
 
@@ -71,6 +75,26 @@ class avl_tree_impl
     
     typedef avl_tree_impl<TreeType, Compare> self;
     
+    typedef typename TreeType::vertex_bundled value_type;
+    typedef Compare value_compare;
+    typedef value_type key_type;
+    typedef Compare key_compare;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    
+    typedef bst_inorder_iterator<const TreeType, const value_type> iterator;
+    typedef iterator const_iterator;
+    
+    typedef std::reverse_iterator<iterator> reverse_iterator;
+    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+    
+    typedef std::size_t size_type;
+    typedef std::ptrdiff_t difference_type;
+    typedef std::allocator<typename TreeType::vertex_bundled> allocator_type;
+    
+    
   private:
     
     typedef TreeType tree_indexer;
@@ -88,7 +112,7 @@ class avl_tree_impl
     
     tree_indexer m_tree;   ///< Tree storage.
     vertex_type m_root;    ///< Root node of the tree.
-    Compare m_compare;  ///< The comparison functor.
+    value_compare m_compare;  ///< The comparison functor.
     
     //non-copyable.
     avl_tree_impl(const self&);
@@ -314,143 +338,346 @@ class avl_tree_impl
   public:
     
     /**
-     * Construct the DVP-tree from a graph, position-map, topology, etc..
-     * \tparam Graph The graph type on which the vertices are taken from, should model the boost::VertexListGraphConcept.
-     * \tparam GraphPositionMap The property-map that associates position values to nodes of the graph.
-     * \param g The graph from which to take the vertices.
-     * \param aGraphPosition The property-map that takes a node of the graph and produces (or looks up) a position value.
-     * \param aTree The tree object that will be used to store the DVP structure.
-     * \param aSpace The topology on which the positions of the vertices reside.
-     * \param aDistance The distance metric to use to compute distances between points of the topology.
-     * \param aKey The key-map to use to obtain and store the key values for a given vertex-property object.
-     * \param aMu The property-map which associates a distance-value to each edge of the tree.
-     * \param aPosition The property-map that can be used to obtain and store the positions of the vertices (vertex-property objects).
-     * \param aVPChooser The vantage-point chooser functor (policy class).
+     * Creates a AVL-tree with no elements.
      */
-    template <typename Graph, typename GraphPositionMap>
-    avl_tree_impl(const Graph& g, 
-                  GraphPositionMap aGraphPosition,
-                  tree_indexer& aTree,
-                  const ReaK::shared_ptr<const Topology>& aSpace, 
-                  distance_metric aDistance,
-                  VertexKeyMap aKey,
-                  DistanceMap aMu,
-                  PositionMap aPosition,
-                  VPChooser aVPChooser) : 
-                  m_tree(aTree), m_root(boost::graph_traits<tree_indexer>::null_vertex()), 
-                  m_key(aKey), m_mu(aMu), m_position(aPosition),
-                  m_space(aSpace), m_distance(aDistance), 
-                  m_vp_chooser(aVPChooser) {
-      
-      if(num_vertices(g) == 0) return;
-      
-      typename boost::graph_traits<Graph>::vertex_iterator vi,vi_end;
-      boost::tie(vi,vi_end) = vertices(g);
-      std::vector<vertex_property> v_bin; //Copy the list of vertices to random access memory.
-      v_bin.reserve(num_vertices(g));
-      for(;vi != vi_end; ++vi) {
-        vertex_property vp;
-        put(m_key, vp, *vi);
-        put(m_position, vp, get(aGraphPosition, *vi));
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        v_bin.push_back(std::move(vp));
-#else
-        v_bin.push_back(vp);
-#endif
-      };
-      
-      construct_node(boost::graph_traits<tree_indexer>::null_vertex(), 0.0, v_bin.begin(), v_bin.end());
+    avl_tree_impl(const value_compare& comp = value_compare(), const allocator_type& = allocator_type()) : 
+                  m_tree(), m_root(boost::graph_traits<tree_indexer>::null_vertex()), m_compare(comp) { };
+    
+    /**
+     * Builds a AVL-tree from an iterator range.
+     * \param aFirst An input iterator (start of range).
+     * \param aLast An input iterator (end of range).
+     * \param comp A comparison functor.
+     */
+    template <typename InputIterator>
+    avl_tree_impl(InputIterator aFirst, InputIterator aLast, const value_compare& comp = value_compare(), const allocator_type& = allocator_type()) : 
+                  m_tree(), m_root(boost::graph_traits<tree_indexer>::null_vertex()), m_compare(comp) {
+      m_root = create_root(m_tree);
+      std::vector<value_type> v(aFirst, aLast);
+      construct_node(m_root, v.begin(), v.end());
+    };
+          
+    /**
+     * Builds a AVL-tree from an initializer_list.
+     * \param aList An std::initializer_list.
+     * \param comp A comparison functor.
+     */  
+    avl_tree_impl(std::initializer_list< value_type > aList, const value_compare& comp = value_compare(), const allocator_type& = allocator_type()) : 
+                  m_tree(), m_root(boost::graph_traits<tree_indexer>::null_vertex()), m_compare(comp) {
+      m_root = create_root(m_tree);
+      std::vector<value_type> v(aList);
+      construct_node(m_root, v.begin(), v.end());
     };
     
     
     /**
-     * Construct the DVP-tree from a range, position-map, topology, etc..
-     * \tparam ForwardIterator The forward-iterator type from which the vertices can be obtained.
-     * \tparam ElemPositionMap The property-map that associates position values to vertices in the given range.
-     * \param aBegin The start of the range from which to take the vertices.
-     * \param aEnd The end of the range from which to take the vertices (one-past-last).
-     * \param aElemPosition The property-map that takes a node in the given range and produces (or looks up) a position value.
-     * \param aTree The tree object that will be used to store the DVP structure.
-     * \param aSpace The topology on which the positions of the vertices reside.
-     * \param aDistance The distance metric to use to compute distances between points of the topology.
-     * \param aKey The key-map to use to obtain and store the key values for a given vertex-property object.
-     * \param aMu The property-map which associates a distance-value to each edge of the tree.
-     * \param aPosition The property-map that can be used to obtain and store the positions of the vertices (vertex-property objects).
-     * \param aVPChooser The vantage-point chooser functor (policy class).
-     */
-    template <typename ForwardIterator, typename ElemPositionMap>
-    dvp_tree_impl(ForwardIterator aBegin,
-                  ForwardIterator aEnd,
-                  ElemPositionMap aElemPosition,
-                  tree_indexer& aTree,
-                  const ReaK::shared_ptr<const Topology>& aSpace, 
-                  distance_metric aDistance,
-                  VertexKeyMap aKey,
-                  DistanceMap aMu,
-                  PositionMap aPosition,
-                  VPChooser aVPChooser) : 
-                  m_tree(aTree), m_root(boost::graph_traits<tree_indexer>::null_vertex()), 
-                  m_key(aKey), m_mu(aMu), m_position(aPosition),
-                  m_space(aSpace), m_distance(aDistance), 
-                  m_vp_chooser(aVPChooser) {
-      if(aBegin == aEnd) return;
-      
-      std::vector<vertex_property> v_bin; //Copy the list of vertices to random access memory.
-      for(;aBegin != aEnd; ++aBegin) {
-        vertex_property vp;
-        put(m_key, vp, *aBegin);
-        put(m_position, vp, get(aElemPosition, *aBegin));
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        v_bin.push_back(std::move(vp));
-#else
-        v_bin.push_back(vp);
-#endif
-      };
-      
-      construct_node(boost::graph_traits<tree_indexer>::null_vertex(), 0.0, v_bin.begin(), v_bin.end());
-    };
-    
-    /**
-     * Construct an empty DVP-tree from a topology, etc..
-     * \param aTree The tree object that will be used to store the DVP structure.
-     * \param aSpace The topology on which the positions of the vertices reside.
-     * \param aDistance The distance metric to use to compute distances between points of the topology.
-     * \param aKey The key-map to use to obtain and store the key values for a given vertex-property object.
-     * \param aMu The property-map which associates a distance-value to each edge of the tree.
-     * \param aPosition The property-map that can be used to obtain and store the positions of the vertices (vertex-property objects).
-     * \param aVPChooser The vantage-point chooser functor (policy class).
-     */
-    dvp_tree_impl(tree_indexer& aTree,
-                  const ReaK::shared_ptr<const Topology>& aSpace, 
-                  distance_metric aDistance,
-                  VertexKeyMap aKey,
-                  DistanceMap aMu,
-                  PositionMap aPosition,
-                  VPChooser aVPChooser) : 
-                  m_tree(aTree), m_root(boost::graph_traits<tree_indexer>::null_vertex()), 
-                  m_key(aKey), m_mu(aMu), m_position(aPosition),
-                  m_space(aSpace), m_distance(aDistance), 
-                  m_vp_chooser(aVPChooser) { };
-    
-    /**
-     * Checks if the DVP-tree is empty.
-     * \return True if the DVP-tree is empty.
+     * Checks if the AVL-tree is empty.
+     * \return True if the AVL-tree is empty.
      */
     bool empty() const { return (num_vertices(m_tree) == 0); };
     /**
-     * Returns the size of the DVP-tree (the number of vertices it contains.
-     * \return The size of the DVP-tree (the number of vertices it contains.
+     * Returns the size of the AVL-tree (the number of vertices it contains).
+     * \return The size of the AVL-tree (the number of vertices it contains).
      */
-    std::size_t size() const { return num_vertices(m_tree); };
+    size_type size() const { return num_vertices(m_tree); };
+    /**
+     * Returns the maximum size of the AVL-tree.
+     * \return The maximum size of the AVL-tree.
+     */
+    size_type max_size() const { return std::numeric_limits<size_type>::max(); };
+    
+    /**
+     * Standard swap function.
+     */
+    void swap(self& rhs) {
+      using std::swap;
+      swap(this->m_tree, rhs.m_tree);
+      swap(this->m_root, rhs.m_root);
+      swap(this->m_compare, rhs.m_compare);
+    };
+    
+    /**
+     * Standard swap function.
+     */
+    friend void swap(self& lhs, self& rhs) {
+      lhs.swap(rhs);
+    };
     
     /**
      * Returns the depth of the tree.
-     * \note This operation must recurse through all the branches of the tree (depth-first), and is 
-     * thus an expensive operation (linear-time w.r.t. the number of vertices, and linear-memory (stack) 
-     * w.r.t. the depth of tree).
      * \return The depth of the tree.
      */
-    std::size_t depth() const { return get_depth(m_root); };
+    size_type depth() const { return get_minmax_depth(m_root).second; };
+    
+    /** Returns the comparison object with which the tree was constructed.  */
+    key_compare key_comp() const { return m_compare; };
+    /** Returns the comparison object with which the tree was constructed.  */
+    value_compare value_comp() const { return m_compare; };
+    
+    /** Returns the allocator object with which the tree was constructed.  */
+    allocator_type get_allocator() const { return allocator_type(); };
+    
+    
+    
+    /**
+     * Returns a read-only (constant) iterator that points to the first element in the set. 
+     * Iteration is done in ascending order according to the keys.
+     */
+    const_iterator begin() const {
+      return const_iterator::begin(&m_tree);
+    };
+    
+    /**
+     * Returns a read-only (constant) iterator that points one past the last element in the set. 
+     * Iteration is done in ascending order according to the keys.
+     */
+    const_iterator end() const {
+      return const_iterator::end(&m_tree);
+    };
+    
+    /**
+     * Returns a read-only (constant) iterator that points to the first element in the set. 
+     * Iteration is done in ascending order according to the keys.
+     */
+    const_iterator cbegin() const { return begin(); };
+    /**
+     * Returns a read-only (constant) iterator that points one past the last element in the set. 
+     * Iteration is done in ascending order according to the keys.
+     */
+    const_iterator cend() const { return end(); };
+    
+    
+    /**
+     * Returns a read-only (constant) reverse iterator that points to the last element in the set. 
+     * Iteration is done in descending order according to the keys.
+     */
+    const_reverse_iterator rbegin() const {
+      return const_reverse_iterator(const_iterator::end(&m_tree));
+    };
+    
+    /**
+     * Returns a read-only (constant) reverse iterator that points to the last element in the set. 
+     * Iteration is done in descending order according to the keys.
+     */
+    const_reverse_iterator rend() const {
+      return const_reverse_iterator(const_iterator::begin(&m_tree));
+    };
+    
+    /**
+     * Returns a read-only (constant) reverse iterator that points to the last element in the set. 
+     * Iteration is done in descending order according to the keys.
+     */
+    const_reverse_iterator crbegin() const { return rbegin(); };
+    /**
+     * Returns a read-only (constant) reverse iterator that points to the last element in the set. 
+     * Iteration is done in descending order according to the keys.
+     */
+    const_reverse_iterator crend() const { return rend(); };
+    
+    
+    /**
+     * Tries to locate a key in a set.
+     * \param aKey Key to be located.
+     * \return Iterator pointing to sought-after element, or end() if not found.
+     */
+    const_iterator find(const key_type& aKey) const {
+      vertex_type u = find_lower_bound(aKey, m_root);
+      if(!m_compare(aKey, m_tree[u]))
+        return const_iterator(&m_tree, u);
+      else
+        return const_iterator::end(&m_tree);
+    };
+    
+    /**
+     * Finds the beginning of a subsequence matching given key.
+     * \param aKey Key to be located.
+     * \return Iterator pointing to first element equal to or greater than key, or end().
+     */
+    const_iterator lower_bound(const key_type& aKey) const {
+      vertex_type u = find_lower_bound(aKey, m_root);
+      return const_iterator(&m_tree, u);
+    };
+    
+    /**
+     * Finds the end of a subsequence matching given key.
+     * \param aKey Key to be located.
+     * \return Iterator pointing to the first element greater than key, or end().
+     */
+    const_iterator upper_bound(const key_type& aKey) const {
+      vertex_type u = find_upper_bound(aKey, m_root);
+      return const_iterator(&m_tree, u);
+    };
+    
+    /**
+     * Finds a subsequence matching given key.
+     * \param aKey Key to be located.
+     * \return Pair of iterators that possibly points to the subsequence matching given key.
+     */
+    std::pair<const_iterator,const_iterator> equal_range(const key_type& aKey) const {
+      return std::pair<const_iterator,const_iterator>(lower_bound(aKey),upper_bound(aKey));
+    };
+    
+    /**
+     * Finds the number of keys.
+     * \param aKey Key to be located.
+     * \return Number of elements with specified key.
+     */
+    size_type count(const key_type& aKey) const {
+      std::pair<const_iterator,const_iterator> er = equal_range(aKey);
+      return std::distance(er.first, er.second);
+    };
+    
+    
+    
+    
+    /**
+     * Attempts to insert an element into the set.
+     * \param aValue Element to be inserted.
+     * \return A pair, of which the first element is an iterator that points to the possibly inserted element, 
+     *         and the second is a bool that is true if the element was actually inserted.
+     */
+    std::pair< iterator, bool > insert(const value_type& aValue) {
+      
+    };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Attempts to insert an element into the set.
+     * \param aValue Element to be inserted.
+     * \return A pair, of which the first element is an iterator that points to the possibly inserted element, 
+     *         and the second is a bool that is true if the element was actually inserted.
+     */
+    std::pair< iterator, bool > insert(value_type&& aValue) {
+      
+    };
+#endif
+    
+    /**
+     * Attempts to insert an element into the set.
+     * \param aPosition An iterator that serves as a hint as to where the element should be inserted.
+     * \param aValue Element to be inserted.
+     * \return An iterator that points to the element with key of x (may or may not be the element passed in).
+     */
+    iterator insert(const_iterator aPosition, const value_type& aValue) {
+      
+    };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Attempts to insert an element into the set.
+     * \param aPosition An iterator that serves as a hint as to where the element should be inserted.
+     * \param aValue Element to be inserted.
+     * \return An iterator that points to the element with key of x (may or may not be the element passed in).
+     */
+    iterator insert(const_iterator aPosition, value_type&& aValue) {
+      
+    };
+#endif
+    
+    /**
+     * A template function that attempts to insert a range of elements.
+     * \tparam InputIterator An input-iterator type that can be dereferenced to a value-type rvalue (or rvalue-ref (C++11)).
+     * \param aFirst Iterator pointing to the start of the range to be inserted.
+     * \param aLast Iterator pointing to the end of the range.
+     */
+    template <typename InputIterator>
+    void insert(InputIterator aFirst, InputIterator aLast) {
+      
+    };
+    
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    /**
+     * Attempts to insert a list of elements into the set.
+     * \param aList A std::initializer_list of elements to be inserted.
+     */
+    void insert(std::initializer_list<value_type> aList) {
+      insert(aList.begin(), aList.end());
+    };
+    
+    /**
+     * Attempts to emplace-create an element into the set.
+     * \param args The constructor arguments required to create the element.
+     * \return A pair, of which the first element is an iterator that points to the possibly inserted element, 
+     *         and the second is a bool that is true if the element was actually inserted.
+     * \note This function does not really create the element emplace since it must first form the element to find 
+     *       its appropriate position in the set.
+     */
+    template <typename... Args>
+    std::pair< iterator, bool > emplace(Args&&... args) {
+      value_type tmp_val(std::forward<Args>(args)...);
+      return insert(std::move(tmp_val));
+    };
+    
+    /**
+     * Attempts to emplace-create an element into the set.
+     * \param aPosition An iterator that serves as a hint as to where the element should be inserted.
+     * \param args The constructor arguments required to create the element.
+     * \return A pair, of which the first element is an iterator that points to the possibly inserted element, 
+     *         and the second is a bool that is true if the element was actually inserted.
+     * \note This function does not really create the element emplace since it must first form the element to find 
+     *       its appropriate position in the set.
+     */
+    template <typename... Args>
+    iterator emplace_hint(const_iterator aPosition, Args&&... args) {
+      value_type tmp_val(std::forward<Args>(args)...);
+      return insert(aPosition, std::move(tmp_val));
+    };
+#endif
+    
+    /**
+     * Erases an element from a set.
+     * \param aPosition An iterator pointing to the element to be erased.
+     * \return An iterator pointing to the element immediately following position 
+     *         prior to the element being erased. If no such element exists, end() is returned.
+     */
+    iterator erase(const_iterator aPosition) {
+      
+    };
+    
+    /**
+     * Erases a [first,last) range of elements from a set.
+     * \param aFirst Iterator pointing to the start of the range to be erased.
+     * \param aLast Iterator pointing to the end of the range to be erased.
+     * \return New iterator to aLast.
+     */
+    iterator erase(const_iterator aFirst, const_iterator aLast) {
+      
+    };
+    
+    /**
+     * Erases elements according to the provided key.
+     * \param aKey Key of element to be erased.
+     * \return The number of elements erased.
+     */
+    size_type erase(const key_type& aKey) {
+      std::pair<const_iterator,const_iterator> er = equal_range(aKey);
+      size_type result = std::distance(er.first, er.second);
+      if(result == 0)
+        return 0;
+      erase(er.first, er.second);
+      return result;
+    };
+    
+    /**
+     * Erases all elements in a set.
+     */
+#ifdef RK_ENABLE_CXX0X_FEATURES
+    void clear() noexcept {
+#else
+    void clear() {
+#endif
+      if( num_vertices(m_tree) == 0 ) {
+        remove_branch(m_root,m_tree);
+        m_root = boost::graph_traits<tree_indexer>::null_vertex();
+      };
+    };
+    
+    
+    
+    
+    
+#if 0
+    // keeping the code below just for quick reference.
     
     /**
      * Inserts a vertex into the tree.
@@ -605,20 +832,6 @@ class avl_tree_impl
     };
     
     /**
-     * Looks up the given key-value and position from the DVP-tree.
-     * \param u_key The key-value to be removed from the DVP-tree.
-     * \param u_pt The position-value corresponding to the key-value.
-     * \return The vertex descriptor (into the tree-storage) for the given key value.
-     */
-    vertex_type get_vertex(key_type u_key, const point_type& u_pt) const {
-      try {
-        return get_vertex(u_key, u_pt, m_root);
-      } catch (int err) {
-        return boost::graph_traits<tree_indexer>::null_vertex();
-      };
-    };
-    
-    /**
      * Erases the given key-value and position from the DVP-tree.
      * Note that this function is not recommended if the vertex descriptor is known, as it will require a key-lookup.
      * \param u_key The key-value to be removed from the DVP-tree.
@@ -704,147 +917,8 @@ class avl_tree_impl
       };      
     };
     
-    /**
-     * Clears the DVP-tree. 
-     */
-    void clear() {
-      if( num_vertices(m_tree) == 0 ) {
-        remove_branch(m_root,m_tree);
-        m_root = boost::graph_traits<tree_indexer>::null_vertex();
-      };
-    }; 
     
-    /**
-     * Finds the nearest neighbor to a given position.
-     * \param aPoint The position from which to find the nearest-neighbor of.
-     * \return The vertex in the DVP-tree that is closest to the given point.
-     */
-    vertex_type find_nearest(const point_type& aPoint) const {
-      if(num_vertices(m_tree) == 0) 
-        return boost::graph_traits<tree_indexer>::null_vertex();
-      priority_queue_type Q;
-      distance_type sig = std::numeric_limits<distance_type>::infinity();
-      find_nearest_impl(aPoint,sig,Q,1);
-      return Q.front().second;
-    };
-    
-    /**
-     * Finds the nearest predecessor and successor to a given position.
-     * \param aPoint The position from which to find the nearest predecessor and successor of.
-     * \return The predecessor and successor vertex in the DVP-tree that is closest to the given point.
-     */
-    std::pair< vertex_type, vertex_type > find_nearest_pred_succ(const point_type& aPoint) const {
-      if(num_vertices(m_tree) == 0) 
-        return boost::graph_traits<tree_indexer>::null_vertex();
-      priority_queue_type Qpred, Qsucc;
-      distance_type sig = std::numeric_limits<distance_type>::infinity();
-      find_nearest_impl(aPoint, sig, Qpred, Qsucc, 1);
-      return std::pair< vertex_type, vertex_type >(Qpred.front().second, Qsucc.front().second);
-    };
-    
-    /**
-     * Finds the K nearest-neighbors to a given position.
-     * \tparam OutputIterator The forward- output-iterator type which can contain the 
-     *         list of nearest-neighbors by tree vertex descriptors.
-     * \param aPoint The position from which to find the nearest-neighbors.
-     * \param aOutputBegin An iterator to the first place where to put the sorted list of 
-     *        elements by tree vertex descriptors with the smallest distance.
-     * \param K The number of nearest-neighbors.
-     * \param R The maximum distance value for the nearest-neighbors.
-     * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
-     */
-    template <typename OutputIterator>
-    OutputIterator find_nearest(const point_type& aPoint, OutputIterator aOutputBegin, std::size_t K, distance_type R = std::numeric_limits<distance_type>::infinity()) const {
-      if(num_vertices(m_tree) == 0) 
-        return aOutputBegin;
-      priority_queue_type Q;
-      find_nearest_impl(aPoint,R,Q,K);
-      std::sort_heap(Q.begin(), Q.end(), priority_compare_type());
-      for(typename priority_queue_type::const_iterator it = Q.begin(); it != Q.end(); ++it)
-        *(aOutputBegin++) = it->second;
-      return aOutputBegin;
-    };
-    
-    /**
-     * Finds the K nearest predecessors and successors to a given position.
-     * \tparam OutputIterator The forward- output-iterator type which can contain the 
-     *         list of nearest-neighbors by tree vertex descriptors.
-     * \param aPoint The position from which to find the nearest-neighbors.
-     * \param aPredBegin An iterator to the first place where to put the sorted list of 
-     *        predecessors by tree vertex descriptors with the smallest distance.
-     * \param aSuccBegin An iterator to the first place where to put the sorted list of 
-     *        successors by tree vertex descriptors with the smallest distance.
-     * \param K The number of nearest-neighbors.
-     * \param R The maximum distance value for the nearest-neighbors.
-     * \return The output-iterators to the end of the lists of nearest predecessors and successors (starting from "output_first").
-     */
-    template <typename OutputIterator>
-    std::pair< OutputIterator, OutputIterator > find_nearest(
-        const point_type& aPoint, OutputIterator aPredBegin, OutputIterator aSuccBegin, 
-        std::size_t K, distance_type R = std::numeric_limits<distance_type>::infinity()) const {
-      if(num_vertices(m_tree) == 0) 
-        return std::pair< OutputIterator, OutputIterator >(aPredBegin, aSuccBegin);
-      priority_queue_type Qpred, Qsucc;
-      find_nearest_impl(aPoint, R, Qpred, Qsucc, K);
-      std::sort_heap(Qpred.begin(), Qpred.end(), priority_compare_type());
-      std::sort_heap(Qsucc.begin(), Qsucc.end(), priority_compare_type());
-      for(typename priority_queue_type::const_iterator it = Qpred.begin(); it != Qpred.end(); ++it)
-        *(aPredBegin++) = it->second;
-      for(typename priority_queue_type::const_iterator it = Qsucc.begin(); it != Qsucc.end(); ++it)
-        *(aSuccBegin++) = it->second;
-      return std::pair< OutputIterator, OutputIterator >(aPredBegin, aSuccBegin);
-    };
-    
-    /**
-     * Finds the nearest-neighbors to a given position within a given range (radius).
-     * \tparam OutputIterator The forward- output-iterator type which can contain the 
-     *         list of nearest-neighbors by tree vertex descriptors.
-     * \param aPoint The position from which to find the nearest-neighbors.
-     * \param aOutputBegin An iterator to the first place where to put the sorted list of 
-     *        elements by tree vertex descriptors with the smallest distance.
-     * \param R The maximum distance value for the nearest-neighbors.
-     * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
-     */
-    template <typename OutputIterator>
-    OutputIterator find_in_range(const point_type& aPoint, OutputIterator aOutputBegin, distance_type R) const {
-      if(num_vertices(m_tree) == 0) 
-        return aOutputBegin;
-      priority_queue_type Q;
-      find_nearest_impl(aPoint,R,Q,num_vertices(m_tree));
-      std::sort_heap(Q.begin(), Q.end(), priority_compare_type());
-      for(typename priority_queue_type::const_iterator it = Q.begin(); it != Q.end(); ++it)
-        *(aOutputBegin++) = it->second;
-      return aOutputBegin;
-    };
-    
-    /**
-     * Finds the nearest predecessors and successors to a given position within a given range (radius).
-     * \tparam OutputIterator The forward- output-iterator type which can contain the 
-     *         list of nearest-neighbors by tree vertex descriptors.
-     * \param aPoint The position from which to find the nearest-neighbors.
-     * \param aPredBegin An iterator to the first place where to put the sorted list of 
-     *        predecessors by tree vertex descriptors with the smallest distance.
-     * \param aSuccBegin An iterator to the first place where to put the sorted list of 
-     *        successors by tree vertex descriptors with the smallest distance.
-     * \param R The maximum distance value for the nearest-neighbors.
-     * \return The output-iterators to the end of the lists of nearest predecessors and successors (starting from "output_first").
-     */
-    template <typename OutputIterator>
-    std::pair< OutputIterator, OutputIterator > find_in_range(
-        const point_type& aPoint, OutputIterator aPredBegin, OutputIterator aSuccBegin, distance_type R) const {
-      if(num_vertices(m_tree) == 0) 
-        return std::pair< OutputIterator, OutputIterator >(aPredBegin, aSuccBegin);
-      priority_queue_type Qpred, Qsucc;
-      find_nearest_impl(aPoint, R, Qpred, Qsucc, num_vertices(m_tree));
-      std::sort_heap(Qpred.begin(), Qpred.end(), priority_compare_type());
-      std::sort_heap(Qsucc.begin(), Qsucc.end(), priority_compare_type());
-      for(typename priority_queue_type::const_iterator it = Qpred.begin(); it != Qpred.end(); ++it)
-        *(aPredBegin++) = it->second;
-      for(typename priority_queue_type::const_iterator it = Qsucc.begin(); it != Qsucc.end(); ++it)
-        *(aSuccBegin++) = it->second;
-      return std::pair< OutputIterator, OutputIterator >(aPredBegin, aSuccBegin);
-    };
-    
+#endif
     
     
     struct mutation_visitor {
