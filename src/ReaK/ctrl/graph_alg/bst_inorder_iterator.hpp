@@ -59,24 +59,20 @@ namespace detail {
   
   template <typename TreeType, typename VertexType>
   VertexType bst_go_down_left(const TreeType& aTree, VertexType aStart) {
-    typedef typename tree_traits<TreeType>::child_vertex_iterator child_vertex_iter;
-    std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(aStart, aTree);
     // look down-left until we reach the leaf:
-    while(cur_children.first != cur_children.second) {
-      aStart = *(cur_children.first);
-      cur_children = child_vertices(aStart, aTree);
-    };
+    while(out_degree(aStart, aTree))
+      aStart = *(child_vertices(aStart, aTree).first);
     return aStart;
   };
   
   template <typename TreeType, typename VertexType>
   VertexType bst_go_down_right(const TreeType& aTree, VertexType aStart) {
     typedef typename tree_traits<TreeType>::child_vertex_iterator child_vertex_iter;
-    std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(aStart, *aTree);
     // look down-right until we reach the leaf:
-    while((cur_children.first != cur_children.second) && (++(cur_children.first) != cur_children.second)) {
+    while(out_degree(aStart, aTree) > 1) {
+      std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(aStart, aTree);
+      ++(cur_children.first);
       aStart = *(cur_children.first);
-      cur_children = child_vertices(aStart, *aTree);
     };
     return aStart;
   };
@@ -91,7 +87,7 @@ namespace detail {
       boost::tie(ei, ei_end) = in_edges(aU, aTree);
       if(ei == ei_end) // at the root, go to the end (root, rightbranch)
         return;
-      vertex_type v = source(*ei, aTree);
+      VertexType v = source(*ei, aTree);
       child_vertex_iter vil, vi_end;
       boost::tie(vil, vi_end) = child_vertices(v, aTree);
       if(*vil == aU) { // u is the left child of v.
@@ -110,13 +106,13 @@ namespace detail {
     typedef typename boost::graph_traits<TreeType>::in_edge_iterator in_edge_iter;
     child_vertex_iter vil, vi_end;
     aStatus = OnLeftBranch;
-    vertex_type u = aU;
+    VertexType u = aU;
     while(true) {
       in_edge_iter ei, ei_end;
       boost::tie(ei, ei_end) = in_edges(u, aTree);
       if(ei == ei_end) // at the root, so, aU must be the beginning node.
         return;
-      vertex_type v = source(*ei, aTree);
+      VertexType v = source(*ei, aTree);
       child_vertex_iter vil, vi_end;
       boost::tie(vil, vi_end) = child_vertices(v, aTree);
       if(*vil == u) { // u is the left child of v.
@@ -137,7 +133,7 @@ namespace detail {
 template <typename CompleteBinaryTree, typename ValueType>
 class bst_inorder_iterator {
   public:
-    typedef bst_inorder_iterator<CompleteBinaryTree> self;
+    typedef bst_inorder_iterator<CompleteBinaryTree, ValueType> self;
     typedef CompleteBinaryTree tree_type;
     
     typedef std::ptrdiff_t difference_type;
@@ -158,68 +154,6 @@ class bst_inorder_iterator {
     
     bst_inorder_iterator(tree_type* aTree, vertex_type aU, detail::bst_traversal_status aStatus) : m_tree(aTree), m_u(aU), m_status(aStatus) { };
     
-    static vertex_type go_down_left(tree_type* aTree, vertex_type aStart) {
-      std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(aStart, *aTree);
-      // look down-left until we reach the leaf:
-      while(cur_children.first != cur_children.second) {
-        aStart = *(cur_children.first);
-        cur_children = child_vertices(aStart, *aTree);
-      };
-      return aStart;
-    };
-    
-    static vertex_type go_down_right(tree_type* aTree, vertex_type aStart) {
-      std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(aStart, *aTree);
-      // look down-right until we reach the leaf:
-      while((cur_children.first != cur_children.second) && (++(cur_children.first) != cur_children.second)) {
-        aStart = *(cur_children.first);
-        cur_children = child_vertices(aStart, *aTree);
-      };
-      return aStart;
-    };
-    
-    void move_up_to_next() {
-      in_edge_iter ei, ei_end;
-      child_vertex_iter vil, vi_end;
-      m_status = OnRightBranch;
-      while(true) {
-        boost::tie(ei, ei_end) = in_edges(m_u, *m_tree);
-        if(ei == ei_end) // at the root, go to the end (root, rightbranch)
-          return;
-        vertex_type v = source(*ei, *m_tree);
-        boost::tie(vil, vi_end) = child_vertices(v, *m_tree);
-        if(*vil == m_u) { // u is the left child of v.
-          m_u = v;
-          m_status = OnMiddleBranch;
-          return;
-        }
-        // u must be the right child of v. keep going.
-        m_u = v;
-      };
-    };
-    
-    void move_up_to_prev() {
-      in_edge_iter ei, ei_end;
-      child_vertex_iter vil, vi_end;
-      m_status = OnLeftBranch;
-      vertex_type u = m_u;
-      while(true) {
-        boost::tie(ei, ei_end) = in_edges(u, *m_tree);
-        if(ei == ei_end) // at the root, so, m_u must be the beginning node.
-          return;
-        vertex_type v = source(*ei, *m_tree);
-        boost::tie(vil, vi_end) = child_vertices(v, *m_tree);
-        if(*vil == u) { // u is the left child of v.
-          u = v;
-          continue;
-        };
-        // u must be the right child of v. keep going.
-        m_u = v;
-        m_status = OnMiddleBranch;
-        return;
-      };
-    };
-    
   public:
     
     vertex_type base() const { return m_u; };
@@ -233,8 +167,7 @@ class bst_inorder_iterator {
         return;
       };
       // first check if there are any children:
-      std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(m_u, *m_tree);
-      if(cur_children.first != cur_children.second) {
+      if(out_degree(m_u, *m_tree)) {
         m_status = detail::OnMiddleBranch; // not on leaf.
         return;
       };
@@ -251,14 +184,14 @@ class bst_inorder_iterator {
     };
     
     static self begin(tree_type* aTree) {
-      if(aTree)
-        return self(aTree, go_down_left(aTree, get_root_vertex(*aTree)), detail::OnLeftBranch);
+      if((aTree) && (num_vertices(*aTree)))
+        return self(aTree, detail::bst_go_down_left(*aTree, get_root_vertex(*aTree)), detail::OnLeftBranch);
       else
         return self(NULL, boost::graph_traits<tree_type>::null_vertex(), detail::OnRightBranch);
     };
     
     static self end(tree_type* aTree) {
-      if(aTree)
+      if((aTree) && (num_vertices(*aTree)))
         return self(aTree, get_root_vertex(*aTree), detail::OnRightBranch);
       else
         return self(NULL, boost::graph_traits<tree_type>::null_vertex(), detail::OnRightBranch);
@@ -277,26 +210,30 @@ class bst_inorder_iterator {
       switch(m_status) {
         case detail::OnLeftBranch:
           // on a left-leaf, must move up to the parent as a middle-point
-          std::pair<in_edge_iter, in_edge_iter> eis = in_edges(m_u, *m_tree);
-          if(eis.first == eis.second) { // at the root, go to the end (root, rightbranch).
-            m_status = detail::OnRightBranch;
-            return *this;
+          {
+            std::pair<in_edge_iter, in_edge_iter> eis = in_edges(m_u, *m_tree);
+            if(eis.first == eis.second) { // at the root, go to the end (root, rightbranch).
+              m_status = detail::OnRightBranch;
+              return *this;
+            };
+            m_u = source(*(eis.first), *m_tree);
+            m_status = detail::OnMiddleBranch;
           };
-          m_u = source(*(eis.first), *m_tree);
-          m_status = detail::OnMiddleBranch;
           break;
         case detail::OnMiddleBranch:
           // on a middle-point, must move down to the right once, and then left to the bottom.
-          std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(m_u, *m_tree);
-          ++(cur_children.first);
-          if(cur_children.first != cur_children.second) {
-            // go to the right child.
-            m_u = go_down_left(m_tree, *(cur_children.first));
-            if(m_u == *(cur_children.first))
-              m_status = detail::OnRightBranch;
-            else
-              m_status = detail::OnLeftBranch;
-            break;
+          {
+            if( out_degree(m_u, *m_tree) > 1 ) {
+              // go to the right child.
+              std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(m_u, *m_tree);
+              ++(cur_children.first);
+              m_u = detail::bst_go_down_left(*m_tree, *(cur_children.first));
+              if(m_u == *(cur_children.first))
+                m_status = detail::OnRightBranch;
+              else
+                m_status = detail::OnLeftBranch;
+              break;
+            };
           };
           // this means that we must move up to the next value (no right child here).
         case detail::OnRightBranch:
@@ -313,12 +250,11 @@ class bst_inorder_iterator {
         case detail::OnRightBranch:
           if(m_u == get_root_vertex(*m_tree)) {
             // go to the left child, and down the right:
-            m_u = go_down_right(m_tree, m_u);
+            m_u = detail::bst_go_down_right(*m_tree, m_u);
             if(m_u == get_root_vertex(*m_tree))
               m_status = detail::OnMiddleBranch;
             else {
-              std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(m_u, *m_tree);
-              if(cur_children.first == cur_children.second) 
+              if(out_degree(m_u, *m_tree) == 0) 
                 m_status = detail::OnRightBranch;  // on the leaf.
               else
                 m_status = detail::OnMiddleBranch; // not on leaf.
@@ -329,20 +265,21 @@ class bst_inorder_iterator {
           // in either case, try the middle-branch case:
         case detail::OnMiddleBranch:
           // on a middle-point or right-point, must move down to the left once (if exists), and then right to the bottom.
-          std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(m_u, *m_tree);
-          if(cur_children.first != cur_children.second) {
-            // go to the left child, and down the right:
-            m_u = go_down_right(m_tree, *(cur_children.first));
-            if(m_u == *(cur_children.first))
-              m_status = detail::OnMiddleBranch;
-            else {
-              cur_children = child_vertices(m_u, *m_tree);
-              if(cur_children.first == cur_children.second) 
-                m_status = detail::OnRightBranch;  // on the leaf.
-              else
-                m_status = detail::OnMiddleBranch; // not on leaf.
+          {
+            if(out_degree(m_u, *m_tree)) {
+              // go to the left child, and down the right:
+              std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(m_u, *m_tree);
+              m_u = detail::bst_go_down_right(*m_tree, *(cur_children.first));
+              if(m_u == *(cur_children.first))
+                m_status = detail::OnMiddleBranch;
+              else {
+                if(out_degree(m_u, *m_tree) == 0) 
+                  m_status = detail::OnRightBranch;  // on the leaf.
+                else
+                  m_status = detail::OnMiddleBranch; // not on leaf.
+              };
+              break;
             };
-            break;
           };
           // this means that we must move up to the previous value (no left child here).
         case detail::OnLeftBranch:

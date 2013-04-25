@@ -46,6 +46,7 @@
 #include <unordered_map>
 #include <vector>
 #include <stack>
+#include <queue>
 
 #include "graph_alg/tree_concepts.hpp"
 #include "graph_alg/bgl_tree_adaptor.hpp"
@@ -299,6 +300,7 @@ class avl_tree_impl
     typedef typename boost::graph_traits<tree_indexer>::edge_descriptor edge_type;
     typedef typename boost::graph_traits<tree_indexer>::out_edge_iterator out_edge_iter;
     typedef typename boost::graph_traits<tree_indexer>::in_edge_iterator in_edge_iter;
+    typedef typename tree_traits<tree_indexer>::child_vertex_iterator child_vertex_iter;
     
     typedef typename tree_indexer::vertex_property_type vertex_property;
     typedef typename tree_indexer::edge_property_type edge_property;
@@ -310,11 +312,6 @@ class avl_tree_impl
     vertex_type m_root;    ///< Root node of the tree.
     value_compare m_compare;  ///< The comparison functor.
     
-    //non-copyable.
-    avl_tree_impl(const self&);
-    self& operator=(const self&); 
-    
-    
     struct construction_task {
       typedef typename std::vector<vertex_property>::iterator PropIter;
       
@@ -325,6 +322,54 @@ class avl_tree_impl
       construction_task(vertex_type aNode, PropIter aBegin, PropIter aEnd) : 
         node(aNode), first(aBegin), last(aEnd) { };
     };
+    
+    
+    /* for debugging purposes */
+    void print_complete_tree() const {
+      using std::swap;
+      
+      if(m_root == tree_indexer::null_vertex()) {
+        std::cout << " <empty>" << std::endl;
+        return;
+      };
+      
+      std::queue<vertex_type> parents;
+      parents.push(m_root);
+      std::cout << std::setw(8) << helper_type::value_to_key(m_tree[m_root]) << std::endl;
+      bool finished = false;
+      while(!finished) {
+        // print parents and collect children:
+        std::queue<vertex_type> children;
+        finished = true;
+        while(!parents.empty()) {
+          vertex_type cur_parent = parents.front(); parents.pop();
+          
+          if((cur_parent == tree_indexer::null_vertex()) || (out_degree(cur_parent, m_tree) == 0)) {
+            std::cout << " <empty> <empty>";
+            children.push(tree_indexer::null_vertex());
+            children.push(tree_indexer::null_vertex());
+            continue; // this is a leaf node.
+          };
+          finished = false;
+          child_vertex_iter vil, vi_end;
+          boost::tie(vil, vi_end) = child_vertices(cur_parent, m_tree);
+          children.push(*vil);
+          std::cout << std::setw(8) << helper_type::value_to_key(m_tree[*vil]);
+          if(out_degree(cur_parent, m_tree) == 1) {
+            std::cout << " <empty>";
+            children.push(tree_indexer::null_vertex());
+            continue;
+          };
+          ++vil;
+          children.push(*vil);
+          std::cout << std::setw(8) << helper_type::value_to_key(m_tree[*vil]);
+        };
+        std::cout << std::endl;
+        // swap parents for children:
+        swap(parents,children);
+      };
+    };
+    
     
     
     /* NOTE Invalidates vertices */
@@ -365,14 +410,14 @@ class avl_tree_impl
         ++cur_task_median; // exclude the median.
         if(cur_task_median == cur_task.last)
           continue; // there is no right-child.
-        std::pair<vertex_type, edge_type> new_child = add_child_vertex(cur_task.node, m_tree);
+        new_child = add_child_vertex(cur_task.node, m_tree);
         tasks.push(construction_task(new_child.first, cur_task_median, cur_task.last));
         
       };
     };
     
-    bool has_left_child(vertex_type u) const { return in_degree(u,m_tree) >= 1; };
-    bool has_right_child(vertex_type u) const { return in_degree(u,m_tree) >= 2; };
+    bool has_left_child(vertex_type u) const { return out_degree(u,m_tree) >= 1; };
+    bool has_right_child(vertex_type u) const { return out_degree(u,m_tree) >= 2; };
     
     vertex_type get_left_child(vertex_type u) const {
       return *(child_vertices(u, m_tree).first);
@@ -508,12 +553,14 @@ class avl_tree_impl
       while(ei != ei_end) { // until you hit the root node.
         vertex_type p = source(*ei, m_tree);
         child_vertex_iter vil, vi_end;
-        boost::tie(vil, vi_end) = child_vertices(p, aTree);
+        boost::tie(vil, vi_end) = child_vertices(p, m_tree);
         std::pair< std::size_t, std::size_t> o_depth;
-        if(vil != u)
+        if(*vil != u)
           o_depth = get_minmax_depth(*vil);
-        else
+        else if(out_degree(p, m_tree) > 1)
           o_depth = get_minmax_depth(*(++vil));
+        else
+          o_depth = std::pair< std::size_t, std::size_t>(0,0);
         
         // check if the other branch already has compatible depth-bounds:
         if((c_depth.first >= o_depth.first) && (c_depth.second <= o_depth.second)) 
@@ -543,6 +590,7 @@ class avl_tree_impl
 #else
     std::pair< iterator, bool > insert_after_terminal_impl(vertex_type aBefore, const vertex_property& aValue) {
 #endif
+      using std::swap;
       if(out_degree(aBefore, m_tree)) { // then the before node is terminal but not a leaf, safe to insert:
 #ifdef RK_ENABLE_CXX0X_FEATURES
         std::pair<vertex_type, edge_type> new_child = add_child_vertex(aBefore, std::move(aValue), m_tree);
@@ -688,7 +736,7 @@ class avl_tree_impl
 #else
           std::pair<vertex_type, edge_type> new_child = add_child_vertex(aAfter, aValue, m_tree);
 #endif
-          swap(m_tree[new_child.first], m_tree[*(child_vertices(aAfter,m_tree).first)]);
+//           swap(m_tree[new_child.first], m_tree[*(child_vertices(aAfter,m_tree).first)]);
           swap(m_tree[aAfter], m_tree[new_child.first]);
           return std::pair< iterator, bool >(iterator(&m_tree, *(child_vertices(aAfter,m_tree).first)), true);
         };
@@ -723,9 +771,13 @@ class avl_tree_impl
      * The vertex aAfter is the "upper-bound" (the first greater element).
      */
     iterator erase_impl(iterator aBefore, iterator aAfter) {
+      std::cout << "Before erasure:" << std::endl;
+      print_complete_tree();
+      
       iterator befAfter = aAfter; --befAfter;
-      if(aBefore == aAfter)
+      if((aBefore == aAfter) || (m_root == boost::graph_traits<tree_indexer>::null_vertex()))
         return aBefore;
+      std::cout << "Attempting to erase the range: [ " << helper_type::value_to_key(*aBefore) << " ; " << helper_type::value_to_key(*befAfter) << " ]" << std::endl;
       
       key_type tmp_after_key;
       bool after_at_end = false;
@@ -752,8 +804,11 @@ class avl_tree_impl
       std::vector< vertex_property > collected_nodes;
       iterator it_near(&m_tree, detail::bst_go_down_left(m_tree, mid_root));
       iterator it_far(&m_tree, detail::bst_go_down_right(m_tree, mid_root));
+      
       while(true) {
         if(it_near == aBefore) {
+          if(it_far.base() == befAfter.base())
+            break;
           it_near = aAfter;
           continue;
         };
@@ -766,12 +821,28 @@ class avl_tree_impl
           break;
         ++it_near;
       };
+      
       if( has_right_child(mid_root) )
         remove_branch(get_right_child(mid_root), m_tree);
       remove_branch(get_left_child(mid_root), m_tree);
       
-      // re-construct:
-      construct_node(mid_root, collected_nodes.begin(), collected_nodes.end());
+      if((m_root == mid_root) && (collected_nodes.empty())) {
+        remove_branch(m_root, m_tree);
+        m_root = boost::graph_traits<tree_indexer>::null_vertex();
+        return iterator::end(&m_tree);
+      };
+      
+      if(collected_nodes.empty()) {
+        in_edge_iter ei, ei_end;
+        boost::tie(ei, ei_end) = in_edges(mid_root, m_tree);
+        vertex_type tmp_parent = source(*ei, m_tree);
+        remove_branch(mid_root, m_tree);
+        mid_root = tmp_parent;
+      } else {
+        
+        // re-construct:
+        construct_node(mid_root, collected_nodes.begin(), collected_nodes.end());
+      };
       
       while(true) {
         std::pair< vertex_type, bool > imbal_u = find_imbalance_impl(mid_root, 0);
@@ -780,6 +851,9 @@ class avl_tree_impl
         rebalance_subtree(imbal_u.first);
         mid_root = imbal_u.first;
       };
+      
+      std::cout << "After erasure:" << std::endl;
+      print_complete_tree();
       
       if(after_at_end)
         return iterator::end(&m_tree);
@@ -879,7 +953,12 @@ class avl_tree_impl
      * Returns the depth of the tree.
      * \return The depth of the tree.
      */
-    size_type depth() const { return get_minmax_depth(m_root).second; };
+    size_type depth() const { 
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex())
+        return 0;
+      else
+        return get_minmax_depth(m_root).second; 
+    };
     
     /** Returns the comparison object with which the tree was constructed.  */
     key_compare key_comp() const { return m_compare; };
@@ -953,6 +1032,8 @@ class avl_tree_impl
      * \return Iterator pointing to sought-after element, or end() if not found.
      */
     const_iterator find(const key_type& aKey) const {
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex())
+        return const_iterator::end(&m_tree);
       vertex_type u = find_lower_bound(aKey, m_root);
       if(!m_compare(aKey, m_tree[u]))
         return const_iterator(&m_tree, u);
@@ -966,6 +1047,8 @@ class avl_tree_impl
      * \return Iterator pointing to first element equal to or greater than key, or end().
      */
     const_iterator lower_bound(const key_type& aKey) const {
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex())
+        return const_iterator::end(&m_tree);
       vertex_type u = find_lower_bound(aKey, m_root);
       if(u == tree_indexer::null_vertex())
         return end();
@@ -978,6 +1061,8 @@ class avl_tree_impl
      * \return Iterator pointing to the first element greater than key, or end().
      */
     const_iterator upper_bound(const key_type& aKey) const {
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex())
+        return const_iterator::end(&m_tree);
       vertex_type u = find_upper_bound(aKey, m_root);
       if(u == tree_indexer::null_vertex())
         return end();
@@ -990,6 +1075,8 @@ class avl_tree_impl
      * \return Pair of iterators that possibly points to the subsequence matching given key.
      */
     std::pair<const_iterator,const_iterator> equal_range(const key_type& aKey) const {
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex())
+        return std::pair<const_iterator,const_iterator>(const_iterator::end(&m_tree),const_iterator::end(&m_tree));
       return std::pair<const_iterator,const_iterator>(lower_bound(aKey),upper_bound(aKey));
     };
     
@@ -999,6 +1086,8 @@ class avl_tree_impl
      * \return Number of elements with specified key.
      */
     size_type count(const key_type& aKey) const {
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex())
+        return 0;
       std::pair<const_iterator,const_iterator> er = equal_range(aKey);
       return std::distance(er.first, er.second);
     };
@@ -1013,7 +1102,12 @@ class avl_tree_impl
      *         and the second is a bool that is true if the element was actually inserted.
      */
     std::pair< iterator, bool > insert(const value_type& aValue) {
-      return insert_impl(find_lower_bound(aValue, m_root), find_upper_bound(aValue, m_root), aValue);
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex()) {
+        m_root = create_root(aValue, m_tree);
+        return std::pair<iterator, bool>(begin(), true);
+      };
+      key_type k = helper_type::value_to_key(aValue);
+      return insert_impl(find_lower_bound(k, m_root), find_upper_bound(k, m_root), aValue);
     };
     
 #ifdef RK_ENABLE_CXX0X_FEATURES
@@ -1025,7 +1119,12 @@ class avl_tree_impl
      */
     template <typename P>
     std::pair< iterator, bool > insert(P&& aValue) {
-      return insert_impl(find_lower_bound(aValue, m_root), find_upper_bound(aValue, m_root), value_type(std::forward<P>(aValue)));
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex()) {
+        m_root = create_root(value_type(std::forward<P>(aValue)), m_tree);
+        return std::pair<iterator, bool>(begin(), true);
+      };
+      key_type k = helper_type::value_to_key(aValue);
+      return insert_impl(find_lower_bound(k, m_root), find_upper_bound(k, m_root), value_type(std::forward<P>(aValue)));
     };
 #endif
     
@@ -1040,10 +1139,10 @@ class avl_tree_impl
         return insert(aValue).first;
       if(m_compare(*aPosition, aValue)) { // if position is less than value.
         const_iterator p2 = aPosition; ++p2;
-        if(!m_compare(p2, aValue)) { // if p2 if not less than value.
+        if(!m_compare(*p2, aValue)) { // if p2 if not less than value.
           // find first iterator that is greater than value:
           const_iterator p3 = p2;
-          while((p3 != end()) && (!m_compare(aValue, p3)))
+          while((p3 != end()) && (!m_compare(aValue, *p3)))
             ++p3;
           return insert_impl(p2.base(), p3.base(), aValue).first;
         };
@@ -1060,7 +1159,7 @@ class avl_tree_impl
       };
       // else, p4 is less than value. Find first iterator that is greater than value:
       const_iterator p5 = aPosition;
-      while((p5 != end()) && (!m_compare(aValue, p5)))
+      while((p5 != end()) && (!m_compare(aValue, *p5)))
         ++p5;
       return insert_impl(aPosition.base(), p5.base(), aValue).first;
     };
@@ -1078,10 +1177,10 @@ class avl_tree_impl
         return insert(std::forward<P>(aValue)).first;
       if(m_compare(*aPosition, aValue)) { // if position is less than value.
         const_iterator p2 = aPosition; ++p2;
-        if(!m_compare(p2, aValue)) { // if p2 if not less than value.
+        if(!m_compare(*p2, aValue)) { // if p2 if not less than value.
           // find first iterator that is greater than value:
           const_iterator p3 = p2;
-          while((p3 != end()) && (!m_compare(aValue, p3)))
+          while((p3 != end()) && (!m_compare(aValue, *p3)))
             ++p3;
           return insert_impl(p2.base(), p3.base(), value_type(std::forward<P>(aValue))).first;
         };
@@ -1098,7 +1197,7 @@ class avl_tree_impl
       };
       // else, p4 is less than value. Find first iterator that is greater than value:
       const_iterator p5 = aPosition;
-      while((p5 != end()) && (!m_compare(aValue, p5)))
+      while((p5 != end()) && (!m_compare(aValue, *p5)))
         ++p5;
       return insert_impl(aPosition.base(), p5.base(), value_type(std::forward<P>(aValue))).first;
     };
@@ -1112,6 +1211,12 @@ class avl_tree_impl
      */
     template <typename InputIterator>
     void insert(InputIterator aFirst, InputIterator aLast) {
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex()) {
+        m_root = create_root(m_tree);
+        std::vector<value_type> v(aFirst, aLast);
+        construct_node(m_root, v.begin(), v.end());
+        return;
+      };
       for(; aFirst != aLast; ++aFirst)
         insert(*aFirst);
     };
@@ -1200,7 +1305,7 @@ class avl_tree_impl
 #else
     void clear() {
 #endif
-      if( num_vertices(m_tree) == 0 ) {
+      if( num_vertices(m_tree) != 0 ) {
         remove_branch(m_root,m_tree);
         m_root = boost::graph_traits<tree_indexer>::null_vertex();
       };
@@ -1216,6 +1321,10 @@ class avl_tree_impl
      * \note If used on a multimap or multiset, this function will use the first match (lower-bound).
      */
     mapped_type& operator[](const key_type& k) {
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex()) {
+        iterator it = insert(helper_type::keymap_to_value(k, mapped_type()));
+        return helper_type::value_to_mapped(m_tree[it.base()]);
+      };
       vertex_type u = find_lower_bound(k, m_root);
       if(!m_compare(k, m_tree[u]))
         return helper_type::value_to_mapped(m_tree[u]);
@@ -1235,6 +1344,10 @@ class avl_tree_impl
      * \note If used on a multimap or multiset, this function will use the first match (lower-bound).
      */
     mapped_type& operator[](key_type&& k) {
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex()) {
+        iterator it = insert(helper_type::keymap_to_value(std::move(k), mapped_type()));
+        return helper_type::value_to_mapped(m_tree[it.base()]);
+      };
       vertex_type u = find_lower_bound(k, m_root);
       if(!m_compare(k, m_tree[u]))
         return helper_type::value_to_mapped(m_tree[u]);
@@ -1253,6 +1366,8 @@ class avl_tree_impl
      * \note If used on a multimap or multiset, this function will use the first match (lower-bound).
      */
     mapped_type& at(const key_type& k) {
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex())
+        throw std::out_of_range("The key does not match an element of the map!");
       vertex_type u = find_lower_bound(k, m_root);
       if(!m_compare(k, m_tree[u]))
         return helper_type::value_to_mapped(m_tree[u]);
@@ -1268,6 +1383,8 @@ class avl_tree_impl
      * \note If used on a multimap or multiset, this function will use the first match (lower-bound).
      */
     const mapped_type& at(const key_type& k) const {
+      if(m_root == boost::graph_traits<tree_indexer>::null_vertex())
+        throw std::out_of_range("The key does not match an element of the map!");
       vertex_type u = find_lower_bound(k, m_root);
       if(!m_compare(k, m_tree[u]))
         return helper_type::value_to_mapped(m_tree[u]);

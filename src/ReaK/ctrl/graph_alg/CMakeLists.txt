@@ -5,10 +5,13 @@ set(GRAPH_ALG_SOURCES
 set(GRAPH_ALG_HEADERS 
   "${RKGRAPHALGDIR}/adj_list_tree_overlay.hpp"
   "${RKGRAPHALGDIR}/adstar_search.hpp"
+  "${RKGRAPHALGDIR}/avl_tree.hpp"
+  "${RKGRAPHALGDIR}/avl_tree_detail.hpp"
   "${RKGRAPHALGDIR}/bgl_more_property_maps.hpp"
   "${RKGRAPHALGDIR}/bgl_more_property_tags.hpp"
   "${RKGRAPHALGDIR}/bgl_raw_property_graph.hpp"
   "${RKGRAPHALGDIR}/bgl_tree_adaptor.hpp"
+  "${RKGRAPHALGDIR}/bst_inorder_iterator.hpp"
   "${RKGRAPHALGDIR}/d_ary_bf_tree.hpp"
   "${RKGRAPHALGDIR}/d_ary_cob_tree.hpp"
   "${RKGRAPHALGDIR}/fadprm.hpp"
@@ -61,6 +64,10 @@ target_link_libraries(test_trees reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
 add_executable(test_graphs "${SRCROOT}${RKGRAPHALGDIR}/test_graphs.cpp")
 setup_custom_target(test_graphs "${SRCROOT}${RKGRAPHALGDIR}")
 target_link_libraries(test_graphs reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
+
+add_executable(test_assoc_containers "${SRCROOT}${RKGRAPHALGDIR}/test_assoc_containers.cpp")
+setup_custom_target(test_assoc_containers "${SRCROOT}${RKGRAPHALGDIR}")
+target_link_libraries(test_assoc_containers reak_core ${EXTRA_SYSTEM_LIBS})
 
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})

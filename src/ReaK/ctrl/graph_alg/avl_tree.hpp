@@ -64,6 +64,8 @@ namespace graph {
 template <typename T, typename Compare = std::less<T> >
 struct avlbf_set : public avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, detail::avl_set_style > {
   typedef avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, detail::avl_set_style > base_impl_type;
+  typedef typename base_impl_type::value_type value_type;
+  typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree set with no elements.
@@ -111,6 +113,8 @@ struct avlbf_set : public avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, detail::a
 template <typename T, typename Compare = std::less<T> >
 struct avlbf_multiset : public avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, detail::avl_multiset_style > {
   typedef avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, detail::avl_multiset_style > base_impl_type;
+  typedef typename base_impl_type::value_type value_type;
+  typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree multiset with no elements.
@@ -161,6 +165,8 @@ struct avlbf_multiset : public avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, deta
 template <typename Key, typename T, typename Compare = std::less<Key> >
 struct avlbf_map : public avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2>, Compare, detail::avl_map_style > {
   typedef avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2>, Compare, detail::avl_map_style > base_impl_type;
+  typedef typename base_impl_type::value_type value_type;
+  typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree map with no elements.
@@ -210,6 +216,8 @@ struct avlbf_map : public avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2>, Co
 template <typename Key, typename T, typename Compare = std::less<Key> >
 struct avlbf_multimap : public avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2>, Compare, detail::avl_multimap_style > {
   typedef avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2>, Compare, detail::avl_multimap_style > base_impl_type;
+  typedef typename base_impl_type::value_type value_type;
+  typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree multimap with no elements.
@@ -259,6 +267,8 @@ struct avlbf_multimap : public avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2
 template <typename T, typename Compare = std::less<T> >
 struct avlcob_set : public avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, detail::avl_set_style > {
   typedef avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, detail::avl_set_style > base_impl_type;
+  typedef typename base_impl_type::value_type value_type;
+  typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree set with no elements.
@@ -306,6 +316,8 @@ struct avlcob_set : public avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, detail:
 template <typename T, typename Compare = std::less<T> >
 struct avlcob_multiset : public avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, detail::avl_multiset_style > {
   typedef avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, detail::avl_multiset_style > base_impl_type;
+  typedef typename base_impl_type::value_type value_type;
+  typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree multiset with no elements.
@@ -356,6 +368,8 @@ struct avlcob_multiset : public avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, de
 template <typename Key, typename T, typename Compare = std::less<Key> >
 struct avlcob_map : public avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>, 2>, Compare, detail::avl_map_style > {
   typedef avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>, 2>, Compare, detail::avl_map_style > base_impl_type;
+  typedef typename base_impl_type::value_type value_type;
+  typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree map with no elements.
@@ -405,6 +419,8 @@ struct avlcob_map : public avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>, 2>, 
 template <typename Key, typename T, typename Compare = std::less<Key> >
 struct avlcob_multimap : public avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>, 2>, Compare, detail::avl_multimap_style > {
   typedef avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>, 2>, Compare, detail::avl_multimap_style > base_impl_type;
+  typedef typename base_impl_type::value_type value_type;
+  typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree multimap with no elements.
