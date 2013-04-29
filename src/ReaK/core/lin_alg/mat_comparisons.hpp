@@ -63,7 +63,7 @@ bool >::type is_equal_mat(const Matrix1& M1, const Matrix2& M2, typename mat_tra
   for(SizeType i = 0; i < M1.get_row_count(); ++i)
     for(SizeType j = 0; j < M1.get_col_count(); ++j)
       if( fabs(M1(i,j) - M2(i,j)) > NumTol )
-	return false;
+        return false;
   
   return true;
 };
@@ -90,7 +90,7 @@ typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
   for(SizeType i=0;i<A.get_row_count();i++)
     for(SizeType j=0;j<i;j++)
       if((fabs(A(j,i)) > NumTol) || (fabs(A(i,j)) > NumTol))
-	return false;
+        return false;
   
   return true;
 };
@@ -114,7 +114,7 @@ bool >::type is_symmetric(const Matrix& A, typename mat_traits<Matrix>::value_ty
   for(SizeType i=0;i<A.get_row_count();i++)
     for(SizeType j=0;j<i;j++)
       if(fabs(A(j,i) - A(i,j)) > NumTol)
-	return false;
+        return false;
       
   return true;
 };
@@ -139,7 +139,7 @@ typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
   for(SizeType i=0;i<A.get_row_count();i++)
     for(SizeType j=0;j<i;j++)
       if((fabs(A(j,i)) > NumTol) || (fabs(A(i,j)) > NumTol))
-	return false;
+        return false;
       
   for(SizeType i=0;i<A.get_row_count();i++)
     if(fabs(A(i,i) - ValueType(1.0)) > NumTol)
@@ -164,11 +164,131 @@ typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
   for(SizeType i = 0; i < A.get_row_count(); ++i)
     for(SizeType j = 0; j < A.get_col_count(); ++j)
       if(fabs(A(i,j)) > NumTol)
-	return false;
+        return false;
   
   return true;
 };
 
+
+/**
+ * Verifies that the matrix A is upper-triangular up to a tolerance.
+ * \tparam Matrix A readable matrix type.
+ * \param A A matrix to verify for being upper-triangular.
+ * \param NumTol The numerical tolerance to consider a value to be zero.
+ * \return true iff the matrix is upper-triangular, within the given tolerance.
+ */
+template <class Matrix>
+typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
+bool >::type is_upper_triangular(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
+  
+  typedef typename mat_traits< Matrix >::size_type SizeType;
+  using std::fabs;
+  SizeType N = A.get_row_count();
+  if(N > A.get_col_count())
+    N = A.get_col_count();
+  
+  for(SizeType i = 0; i+1 < N; i++)
+    for(SizeType j = i+1; j < A.get_row_count(); j++)
+      if(fabs(A(j,i)) > NumTol)
+        return false;
+  
+  return true;
+};
+
+/**
+ * Verifies that the matrix A is lower-triangular up to a tolerance.
+ * \tparam Matrix A readable matrix type.
+ * \param A A matrix to verify for being lower-triangular.
+ * \param NumTol The numerical tolerance to consider a value to be zero.
+ * \return true iff the matrix is lower-triangular, within the given tolerance.
+ */
+template <class Matrix>
+typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
+bool >::type is_lower_triangular(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
+  
+  typedef typename mat_traits< Matrix >::size_type SizeType;
+  using std::fabs;
+  
+  for(SizeType i = 1; i < A.get_col_count(); i++)
+    for(SizeType j = 0; (j < i) && (j < A.get_row_count()); j++)
+      if(fabs(A(j,i)) > NumTol)
+        return false;
+  
+  return true;
+};
+
+
+/**
+ * Verifies that the matrix A is upper-hessenberg up to a tolerance.
+ * \tparam Matrix A readable matrix type.
+ * \param A A matrix to verify for being upper-hessenberg.
+ * \param NumTol The numerical tolerance to consider a value to be zero.
+ * \return true iff the matrix is upper-hessenberg, within the given tolerance.
+ */
+template <class Matrix>
+typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
+bool >::type is_upper_hessenberg(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
+  
+  typedef typename mat_traits< Matrix >::size_type SizeType;
+  using std::fabs;
+  SizeType N = A.get_row_count();
+  if(N > A.get_col_count())
+    N = A.get_col_count();
+  
+  for(SizeType i = 0; i+2 < N; i++)
+    for(SizeType j = i+2; j < A.get_row_count(); j++)
+      if(fabs(A(j,i)) > NumTol)
+        return false;
+  
+  return true;
+};
+
+/**
+ * Verifies that the matrix A is lower-hessenberg up to a tolerance.
+ * \tparam Matrix A readable matrix type.
+ * \param A A matrix to verify for being lower-hessenberg.
+ * \param NumTol The numerical tolerance to consider a value to be zero.
+ * \return true iff the matrix is lower-hessenberg, within the given tolerance.
+ */
+template <class Matrix>
+typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
+bool >::type is_lower_hessenberg(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
+  
+  typedef typename mat_traits< Matrix >::size_type SizeType;
+  using std::fabs;
+  
+  for(SizeType i = 2; i < A.get_col_count(); i++)
+    for(SizeType j = 0; (j+1 < i) && (j < A.get_row_count()); j++)
+      if(fabs(A(j,i)) > NumTol)
+        return false;
+  
+  return true;
+};
+
+
+/**
+ * Verifies that the matrix A is tri-diagonal up to a tolerance.
+ * \tparam Matrix A readable matrix type.
+ * \param A A matrix to verify for being tri-diagonal.
+ * \param NumTol The numerical tolerance to consider a value to be zero.
+ * \return true iff the matrix is tri-diagonal, within the given tolerance.
+ */
+template <class Matrix>
+typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
+bool >::type is_tri_diagonal(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
+  if(A.get_row_count() != A.get_col_count())
+    return false;
+  
+  typedef typename mat_traits< Matrix >::size_type SizeType;
+  using std::fabs;
+  
+  for(SizeType i = 2; i < A.get_col_count(); i++)
+    for(SizeType j = 0; (j+1 < i); j++)
+      if((fabs(A(j,i)) > NumTol) || (fabs(A(i,j)) > NumTol))
+        return false;
+  
+  return true;
+};
 
 
 };

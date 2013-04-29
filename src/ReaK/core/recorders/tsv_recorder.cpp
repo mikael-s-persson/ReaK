@@ -28,13 +28,13 @@ namespace ReaK {
 namespace recorder {
 
 void tsv_recorder::writeRow() {
-  if((output_file.is_open()) && (rowCount > 0) && (colCount > 0)) {
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-    output_file << std::endl;
-    output_file << values_rm.front();
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+  if((out_stream) && (*out_stream) && (rowCount > 0) && (colCount > 0)) {
+    (*out_stream) << std::endl;
+    (*out_stream) << values_rm.front();
     values_rm.pop();
     for(unsigned int i=1;i<colCount;++i) {
-      output_file << "\t" << values_rm.front();
+      (*out_stream) << "\t" << values_rm.front();
       values_rm.pop();
     };
     --rowCount;
@@ -42,25 +42,28 @@ void tsv_recorder::writeRow() {
 };
 
 void tsv_recorder::writeNames() {
-  output_file << "%";
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+  if((!out_stream) || (!(*out_stream)))
+    return;
+  (*out_stream) << "%";
   std::vector<std::string>::iterator it = names.begin();
   for(;it != names.end(); ++it)
-    output_file << "\t" << (*it);
-  output_file.flush();
+    (*out_stream) << "\t" << (*it);
+  out_stream->flush();
 };
 
 
 bool tsv_extractor::readRow() {
-  if((input_file.is_open()) && (colCount > 0)) {
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+  if((in_stream) && (*in_stream) && (colCount > 0)) {
     std::string temp;
-    std::getline(input_file,temp,'\n');
+    std::getline(*in_stream, temp, '\n');
     std::stringstream ss(temp);
-    for(unsigned int i=0;i<colCount;++i) {
+    for(unsigned int i = 0; i < colCount; ++i) {
       double tmp = 0;
       ss >> tmp;
       if(!ss)
-	return false;
+        return false;
       values_rm.push(tmp);
     };
   };

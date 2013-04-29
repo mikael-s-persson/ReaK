@@ -49,38 +49,26 @@ class ssv_recorder : public data_recorder {
   protected:
     virtual void writeRow();
     virtual void writeNames();
-
-    std::ofstream output_file; ///< Holds the ascii file output stream.
+    virtual void setStreamImpl(const shared_ptr<std::ostream>& aStreamPtr);
   public:
-
+    
     /**
      * Default constructor.
      */
-    ssv_recorder() : data_recorder(),
-                     output_file() {
-      output_file.setf(std::ios::scientific, std::ios::floatfield);
-      output_file.precision(11);
-    };
-
+    ssv_recorder() : data_recorder() { };
+    
     /**
      * Constructor that opens a file with name aFileName.
      */
-    ssv_recorder(const std::string& aFileName) : data_recorder(), output_file(aFileName.c_str()) {
-      fileName = aFileName;
-      output_file.setf(std::ios::scientific, std::ios::floatfield);
-      output_file.precision(11);
+    ssv_recorder(const std::string& aFileName) : data_recorder() {
+      setFileName(aFileName);
     };
 
     /**
      * Destructor, closes the file.
      */
-    virtual ~ssv_recorder() {
-      if(output_file.is_open())
-        output_file.close();
-    };
-
-    virtual void setFileName(const std::string& aFileName);
-
+    virtual ~ssv_recorder() {};
+    
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       data_recorder::save(A,data_recorder::getStaticObjectType()->TypeVersion());
     };
@@ -101,31 +89,25 @@ class ssv_extractor : public data_extractor {
   protected:
     virtual bool readRow();
     virtual bool readNames();
-    virtual bool loadFile(const std::string& aFileName);
-
-    std::ifstream input_file; ///< Holds the binary-formatted file output stream.
+    virtual void setStreamImpl(const shared_ptr<std::istream>& aStreamPtr);
   public:
 
     /**
      * Default constructor.
      */
-    ssv_extractor() : data_extractor(), input_file() { };
+    ssv_extractor() : data_extractor() { };
 
     /**
      * Constructor that opens a file with name aFileName.
      */
-    ssv_extractor(const std::string& aFileName) : data_extractor(), input_file(aFileName.c_str()) {
-      fileName = aFileName;
-      readNames();
+    ssv_extractor(const std::string& aFileName) : data_extractor() {
+      setFileName(aFileName);
     };
 
     /**
      * Destructor, closes the file.
      */
-    virtual ~ssv_extractor() {
-      if(input_file.is_open())
-        input_file.close();
-    };
+    virtual ~ssv_extractor() { };
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       data_extractor::save(A,data_extractor::getStaticObjectType()->TypeVersion());

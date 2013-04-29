@@ -1096,9 +1096,12 @@ std::pair<
  typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::in_edge_iterator,
  typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::in_edge_iterator >
   in_edges( const typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_descriptor& v,
-	    const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>&) {
+	    const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::in_edge_iterator InIter;
-  return std::make_pair(InIter(v),InIter());
+  if(v == g.get_root_vertex())
+    return std::make_pair(InIter(),InIter());
+  else
+    return std::make_pair(InIter(v),InIter());
 };
 
 template <typename VertexProperties,

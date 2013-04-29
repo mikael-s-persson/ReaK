@@ -467,7 +467,7 @@ oarchive& RK_CALL protobuf_oarchive::saveToNewArchive_impl(const serializable_sh
   unsigned int chunk_hdr = (field_IDs.top() << 3) | 2;  // wire-type 2: length-delimited.
   if(repeat_state.top() & 0x02) {
     if(repeat_state.top() & 0x04)
-      chunk_hdr += 6;
+      chunk_hdr += 8;
     repeat_state.top() ^= 0x04;
   };
   protobuf_oarchive::save_varint(chunk_hdr);
@@ -551,7 +551,7 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable_ptr(const serializable_sh
   unsigned int chunk_hdr = (field_IDs.top() << 3) | 2;  // wire-type 2: length-delimited.
   if(repeat_state.top() & 0x02) {
     if(repeat_state.top() & 0x04)
-      chunk_hdr += 6;
+      chunk_hdr += 8;
     repeat_state.top() ^= 0x04;
   };
   protobuf_oarchive::save_varint(chunk_hdr);
@@ -632,7 +632,7 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable(const serializable& Item)
   unsigned int chunk_hdr = (field_IDs.top() << 3) | 2;  // wire-type 2: length-delimited.
   if(repeat_state.top() & 0x02) {
     if(repeat_state.top() & 0x04)
-      chunk_hdr += 6;
+      chunk_hdr += 8;
     repeat_state.top() ^= 0x04;
   };
   protobuf_oarchive::save_varint(chunk_hdr);
@@ -726,7 +726,7 @@ oarchive& RK_CALL protobuf_oarchive::save_unsigned_int(unsigned int u) {
   unsigned int chunk_hdr = (field_IDs.top() << 3);  // wire-type 0: varint.
   if(repeat_state.top() & 0x02) {
     if(repeat_state.top() & 0x04)
-      chunk_hdr += 6;
+      chunk_hdr += 8;
     repeat_state.top() ^= 0x04;
   };
   protobuf_oarchive::save_varint(chunk_hdr);
@@ -746,7 +746,7 @@ oarchive& RK_CALL protobuf_oarchive::save_float(float f) {
   unsigned int chunk_hdr = (field_IDs.top() << 3) | 5;  // wire-type 5: 32-bit.
   if(repeat_state.top() & 0x02) {
     if(repeat_state.top() & 0x04)
-      chunk_hdr += 6;
+      chunk_hdr += 8;
     repeat_state.top() ^= 0x04;
   };
   protobuf_oarchive::save_varint(chunk_hdr);
@@ -768,7 +768,7 @@ oarchive& RK_CALL protobuf_oarchive::save_double(double d) {
   unsigned int chunk_hdr = (field_IDs.top() << 3) | 1;  // wire-type 1: 64-bit.
   if(repeat_state.top() & 0x02) {
     if(repeat_state.top() & 0x04)
-      chunk_hdr += 6;
+      chunk_hdr += 8;
     repeat_state.top() ^= 0x04;
   };
   protobuf_oarchive::save_varint(chunk_hdr);
@@ -790,7 +790,7 @@ oarchive& RK_CALL protobuf_oarchive::save_bool(bool b) {
   unsigned int chunk_hdr = (field_IDs.top() << 3);  // wire-type 0: varint.
   if(repeat_state.top() & 0x02) {
     if(repeat_state.top() & 0x04)
-      chunk_hdr += 6;
+      chunk_hdr += 8;
     repeat_state.top() ^= 0x04;
   };
   protobuf_oarchive::save_varint(chunk_hdr);
@@ -812,7 +812,7 @@ oarchive& RK_CALL protobuf_oarchive::save_string(const std::string& s) {
   unsigned int chunk_hdr = (field_IDs.top() << 3) | 2;  // wire-type 2: length-delimited.
   if(repeat_state.top() & 0x02) {
     if(repeat_state.top() & 0x04)
-      chunk_hdr += 6;
+      chunk_hdr += 8;
     repeat_state.top() ^= 0x04;
   };
   protobuf_oarchive::save_varint(chunk_hdr);

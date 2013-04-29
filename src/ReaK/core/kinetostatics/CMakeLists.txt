@@ -23,14 +23,15 @@ target_link_libraries(reak_kinetostatics reak_lin_alg reak_rtti ${EXTRA_SYSTEM_L
 
 setup_headers("${KINETOSTATICS_HEADERS}" "${RKKINETOSTATICSDIR}")
 
-add_executable(test_kin "${SRCROOT}${RKKINETOSTATICSDIR}/test.cpp")
-setup_custom_target(test_kin "${SRCROOT}${RKKINETOSTATICSDIR}")
-target_link_libraries(test_kin reak_kinetostatics reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
+add_executable(unit_test_rotations "${SRCROOT}${RKKINETOSTATICSDIR}/unit_test_rotations.cpp")
+setup_custom_test_program(unit_test_rotations "${SRCROOT}${RKKINETOSTATICSDIR}")
+target_link_libraries(unit_test_rotations reak_kinetostatics reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(unit_test_rotations ${Boost_LIBRARIES})
 
-add_executable(test_quat "${SRCROOT}${RKKINETOSTATICSDIR}/test_quat.cpp")
-setup_custom_target(test_quat "${SRCROOT}${RKKINETOSTATICSDIR}")
-target_link_libraries(test_quat reak_kinetostatics reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
-
+add_executable(unit_test_quat_alg "${SRCROOT}${RKKINETOSTATICSDIR}/unit_test_quat_alg.cpp")
+setup_custom_test_program(unit_test_quat_alg "${SRCROOT}${RKKINETOSTATICSDIR}")
+target_link_libraries(unit_test_quat_alg reak_kinetostatics reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(unit_test_quat_alg ${Boost_LIBRARIES})
 
 
 

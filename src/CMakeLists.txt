@@ -20,6 +20,8 @@ endif()
 
 set(CMAKE_BUILD_TYPE Release)
 
+enable_testing()
+
 if (WIN32)
   if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox /W3 /bigobj -D_SCL_SECURE_NO_WARNINGS")
@@ -63,6 +65,11 @@ macro(setup_custom_target target_name CUSTOM_OUTPUT_PATH)
   install(TARGETS ${target_name} RUNTIME DESTINATION "${BINROOT}" LIBRARY DESTINATION "${LIBROOT}" ARCHIVE DESTINATION "${LIBROOT}")
   message(STATUS "Registered target ${target_name}.")
 endmacro(setup_custom_target)
+
+macro(setup_custom_test_program target_name CUSTOM_OUTPUT_PATH)
+  set_property(TARGET ${target_name} PROPERTY RUNTIME_OUTPUT_DIRECTORY "${BINROOT}/unit_tests")
+  add_test("${target_name}" "${BINROOT}/unit_tests/${target_name}")
+endmacro(setup_custom_test_program)
 
 macro(setup_headers HEADER_FILES HEADER_PATH)
   foreach(CURRENT_HEADER_FILE ${HEADER_FILES})

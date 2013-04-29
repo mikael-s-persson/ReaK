@@ -1,0 +1,126 @@
+
+# TODO List related to Unit testing
+
+This document contains a simple list of tasks related to creating unit-test programs for 
+various parts of the ReaK library, and noting the modules that currently do not pass some 
+of the unit-tests (i.e., possible bugs).
+
+## Overall unit-test coverage:
+
+( 
+  N/A  : Not applicable, i.e., can't really be tested (requires an explanation).
+  VOID : Does not exist, i.e., the unit-test does not exist yet, should be created in the future.
+  PART : Partial, i.e., some sub-systems have unit-tests, some are missing or failed.
+  PASS : Passed, i.e., the unit-test program exists and has been passed by the unit in question.
+  FAIL : Failed, i.e., the unit-test program exists, but the unit in question currently cannot pass it ("expected fail").
+)
+
+Core modules:
+ - core/base   ------------------------------------------------------- N/A   (too fundamental, well tested everywhere else)
+ - core/rtti   ----------------------------------------------------- VOID    (some is tested in core/serialization)
+ - core/serialization   ---------------------------------------------- PART
+  - bin-archivers   -------------------------------------------------- PASS
+  - xml-archivers   -------------------------------------------------- PASS
+  - protobuf-archivers   --------------------------------------------- PASS
+  - objtree-archivers   ---------------------------------------------- PASS
+  - protobuf-schemer   --------------------------------------------- VOID
+  - type-scheme   -------------------------------------------------- VOID
+  - scheme-builder   ----------------------------------------------- VOID
+  - objtree-editor   ----------------------------------------------- VOID
+ - core/recorders   -------------------------------------------------- PASS
+  - bin-recorder/extractor   ----------------------------------------- PASS
+  - ssv-recorder/extractor   ----------------------------------------- PASS
+  - tsv-recorder/extractor   ----------------------------------------- PASS
+  - tcp-recorder/extractor   ----------------------------------------- PASS
+ - core/sorting   ---------------------------------------------------- PASS
+ - core/root_finders   ----------------------------------------------- PART
+  - bisection_method   ----------------------------------------------- PASS
+  - secant_method   ---------------------------------------------- FAIL      (seems too prone to divergence to pass the test cases)
+  - illinois_method   ------------------------------------------------ PASS
+  - ford3_method   --------------------------------------------------- PASS
+  - brent_method   --------------------------------------------------- PASS
+  - ridders_method   ------------------------------------------------- PASS
+ - core/lin_alg   ---------------------------------------------------- PART
+  - 
+ - core/kinetostatics   ---------------------------------------------- PART
+  - 2D rotations / transforms   -------------------------------------- PASS
+  - 3D rotations / transforms   -------------------------------------- PASS
+  - quaternionic algebra   ------------------------------------------- PASS
+  - generalized coordinates   -------------------------------------- VOID    (might be too trivial to require tests, almost POD-types)
+  - 2D kinetostatic frames   --------------------------------------- VOID
+  - 3D kinetostatic frames   --------------------------------------- VOID
+  - motion jacobians   --------------------------------------------- VOID
+ - core/integrators   ---------------------------------------------- VOID    (have been tested in the past, and when using KTEs)
+  - 
+ - core/optimization   --------------------------------------------- VOID    (have been tested quite a bit, but no formal unit-tests)
+  - 
+
+Multi-body dynamics modules:
+
+
+Graph-algorithmic modules:
+
+
+Path-planning modules:
+
+
+
+
+
+## Notable issues in existing unit-tests:
+
+
+The secant_method seems to be unstable and very prone to divergence from the solution. This is 
+odd considering that most other methods (that do work well), except for bisection, are variants 
+of the same algorithm. There might a simple little bug in it. It also seems to diverge quickly, 
+in a few iterations, but it does, however work sometimes, indicating that it is somewhat working.
+
+The shell_sort method does not work. I don't really care to fix it, so, that's all I have to say about that.
+
+
+In mat_num:
+
+The Jacobi methods don't work, i.e., the pseudoinvert_Jacobi function and eigensolve_Jacobi function.
+There are better alternatives in the library already (SymQR, QR-alg, and SVD) that solve the same problem,
+so this is not such a high-priority. It would be nice to investigate a bit. The Jacobi method 
+implementations also seem to be rather slow (i.e., they should perform equal to the QR algorithms or faster,
+but instead, are more comparable to SVD, which is a much slower (heavy-duty) algorithm). The method 
+probably needs a full revision (similar to the full revision done on the QR algorithms a while back).
+
+The decompose_PLTLP function does not work.
+The decompose_TriDiagLDL function does not work.
+These are just things that I implemented on the side for no real purpose. It would be nice to fix them,
+and they are certainly very simple, but they have low priority due to not really being useful for anything 
+that I know of.
+
+CARE / DARE methods technically pass all the unit-tests, but to be honest, some of the more difficult 
+test cases have been excluded from the test-suite. The test-suite currently contains a representative 
+sample of typical problems and the methods implemented seem to solve those fairly well, although the 
+precision is not as good as in reported literature. The implementations are quite experimental in the 
+sense that they are not robust to edge-cases (e.g., ill-conditioning, singular problems, un-controllable but
+stabilizable systems, etc.), they tend to fail (by throwing a singularity exception) a bit too often, or
+loss of precision can be significant. This algorithm is one of the most complicated 
+matrix numerical method that exists, and after some research, I have been led to believe that there exists
+only one other implementation of this algorithm in the world, accessible as Slicot's "SB02OD" routine,
+which is the Fortran77 implementation by the original authors of the algorithm and its 
+variants in the early 80s, every other mathematical software that provides Riccati equation solvers 
+are known to use that very same implementation (e.g., Matlab, Octave, etc.). So, obviously, it seems 
+that developing an original and robust implementation of this algorithm is a task that very few people,
+if any, have attempted, and I can understand why, this is a very difficult algorithm to implement. 
+And it is thus not so surprising that my original implementation is still lacking a bit 
+in terms of robustness, but it is certainly usable for many "normal" problems (fairly small 
+and well-conditioned matrices, and without too strict requirements on final precision).
+
+
+
+
+
+
+
+
+
+
+
+
+
+

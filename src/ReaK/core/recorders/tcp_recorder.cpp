@@ -41,7 +41,7 @@ class tcp_server_impl {
     tcp_server_impl(std::size_t port_num) : 
       io_service(), 
       acceptor(io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port_num)),
-      socket(io_service) { 
+      socket(io_service) {
       acceptor.accept(socket);
     };
     
@@ -65,23 +65,18 @@ class tcp_client_impl {
 
 
 
-
 tcp_recorder::tcp_recorder() : data_recorder(), pimpl() { };
 
 tcp_recorder::tcp_recorder(const std::string& aFileName) {
-  fileName = aFileName;
-  std::size_t port_num = 0;
-  std::stringstream ss(fileName); ss >> port_num;
-  pimpl = shared_ptr<tcp_server_impl>(new tcp_server_impl(port_num));
+  setFileName(aFileName);
 };
 
 tcp_recorder::~tcp_recorder() { };
 
 void tcp_recorder::writeRow() {
-  shared_ptr<tcp_server_impl> pimpl_tmp = pimpl;
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-  if((pimpl_tmp) && (pimpl_tmp->socket.is_open()) && (rowCount > 0) && (colCount > 0)) {
-    std::ostream s_tmp(&(pimpl_tmp->row_buf));
+  if((pimpl) && (pimpl->socket.is_open()) && (rowCount > 0) && (colCount > 0)) {
+    std::ostream s_tmp(&(pimpl->row_buf));
     {
       for(std::size_t i = 0; i < colCount; ++i) {
         double tmp(values_rm.front());
@@ -90,24 +85,24 @@ void tcp_recorder::writeRow() {
       };
       --rowCount;
     };
-    std::size_t len = boost::asio::write(pimpl_tmp->socket, pimpl_tmp->row_buf);
-    pimpl_tmp->row_buf.consume(len);
+    std::size_t len = boost::asio::write(pimpl->socket, pimpl->row_buf);
+    pimpl->row_buf.consume(len);
   };
 };
 
 void tcp_recorder::writeNames() {
-  shared_ptr<tcp_server_impl> pimpl_tmp = pimpl;
-  if((pimpl_tmp) && (pimpl_tmp->socket.is_open())) {
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+  if((pimpl) && (pimpl->socket.is_open())) {
     std::stringstream ss;
     for(std::vector<std::string>::iterator it = names.begin(); it != names.end(); ++it)
       ss << " " << *it;
     std::string data_str = ss.str();
     uint32_t data_len = htonl(data_str.size());
-    std::ostream s_tmp(&(pimpl_tmp->row_buf));
+    std::ostream s_tmp(&(pimpl->row_buf));
     s_tmp.write(reinterpret_cast<char*>(&data_len), sizeof(uint32_t));
     s_tmp.write(data_str.c_str(), data_str.size());
-    std::size_t len = boost::asio::write(pimpl_tmp->socket, pimpl_tmp->row_buf);
-    pimpl_tmp->row_buf.consume(len);
+    std::size_t len = boost::asio::write(pimpl->socket, pimpl->row_buf);
+    pimpl->row_buf.consume(len);
   };
 };
 
@@ -116,17 +111,16 @@ void tcp_recorder::setFileName(const std::string& aFileName) {
     *this << close;
     
     ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-    fileName = aFileName;
     std::size_t port_num = 0;
-    std::stringstream ss(fileName); ss >> port_num;
+    std::stringstream ss(aFileName); ss >> port_num;
     pimpl = shared_ptr<tcp_server_impl>(new tcp_server_impl(port_num));
     colCount = names.size();
+    lock_here.unlock();
     writeNames();
   } else {
     ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-    fileName = aFileName;
     std::size_t port_num = 0;
-    std::stringstream ss(fileName); ss >> port_num;
+    std::stringstream ss(aFileName); ss >> port_num;
     pimpl = shared_ptr<tcp_server_impl>(new tcp_server_impl(port_num));
   };
 };
@@ -139,23 +133,14 @@ tcp_extractor::tcp_extractor() : data_extractor(), pimpl() { };
 
 tcp_extractor::tcp_extractor(const std::string& aFileName) : data_extractor(), pimpl() {
   setFileName(aFileName);
-/*  fileName = aFileName;
-  std::size_t i = fileName.find(':');
-  std::string ip4addr = fileName.substr(0, i);
-  std::size_t portnum = 17000;
-  if(++i < fileName.size()) {
-    std::stringstream ss( fileName.substr(i, fileName.size() - i) );
-    ss >> portnum;
-  };
-  pimpl = new tcp_client_impl(ip4addr, portnum);*/
 };
 
 tcp_extractor::~tcp_extractor() {};
 
 bool tcp_extractor::readRow() {
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   shared_ptr<tcp_client_impl> pimpl_tmp = pimpl;
   if((pimpl_tmp) && (pimpl_tmp->socket.is_open()) && (colCount > 0)) {
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     try {
       boost::asio::streambuf::mutable_buffers_type bufs = pimpl_tmp->row_buf.prepare(colCount * sizeof(double));
       std::size_t len = boost::asio::read(pimpl_tmp->socket, bufs);
@@ -200,21 +185,20 @@ bool tcp_extractor::readNames() {
   return true;
 };
 
-bool tcp_extractor::loadFile(const std::string& aFileName) {
+void tcp_extractor::setFileName(const std::string& aFileName) {
   if(colCount != 0)
     *this >> close;
 
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-  fileName = aFileName;
-  std::size_t i = fileName.find(':');
-  std::string ip4addr = fileName.substr(0, i);
+  std::size_t i = aFileName.find(':');
+  std::string ip4addr = aFileName.substr(0, i);
   std::size_t portnum = 17000;
-  if(++i < fileName.size()) {
-    std::stringstream ss( fileName.substr(i, fileName.size() - i) );
+  if(++i < aFileName.size()) {
+    std::stringstream ss( aFileName.substr(i, aFileName.size() - i) );
     ss >> portnum;
   };
   pimpl = shared_ptr<tcp_client_impl>(new tcp_client_impl(ip4addr, portnum));
-  return true;
+  readNames();
 };
 
 

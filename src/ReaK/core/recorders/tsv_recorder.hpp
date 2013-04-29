@@ -95,7 +95,7 @@ class tsv_extractor : public ssv_extractor {
     /**
      * Constructor that opens a file with name aFileName.
      */
-    tsv_extractor(const std::string& aFileName) : ssv_extractor() { };
+    tsv_extractor(const std::string& aFileName) : ssv_extractor(aFileName) { };
 
     /**
      * Destructor, closes the file.

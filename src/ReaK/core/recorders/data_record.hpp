@@ -43,6 +43,7 @@
 #include <exception>
 #include <vector>
 #include <queue>
+#include <iostream>
 
 #include "base/shared_object.hpp"
 
@@ -114,23 +115,23 @@ class data_recorder : public shared_object {
     volatile unsigned int currentColumn; ///< Holds the current column to which the next data entry will be written to.
     unsigned int flushSampleRate; ///< Holds the sample rate at which the data is automatically flushed to the file.
     unsigned int maxBufferSize; ///< Holds the maximum size for the data buffer, overload will trigger a file-flush.
-    std::string fileName; ///< Holds the filename of the data record.
     std::vector<std::string> names; ///< Holds the list of column names.
     std::queue<double> values_rm; ///< Holds the data buffer.
-
+    shared_ptr<std::ostream> out_stream; ///< Holds the output-stream of the data record.
+    
     ReaKaux::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
     ReaK::shared_ptr<ReaKaux::thread> writing_thread; ///< Holds the instance of the data writing thread.
-
+    
     /**
      * This class is used as a callable function-object for data writing thread.
      */
     struct record_process {
       public:
-	data_recorder& parent;
-	record_process(	data_recorder& aParent ) : parent(aParent) { };
-	void operator()();
+        data_recorder& parent;
+        record_process(	data_recorder& aParent ) : parent(aParent) { };
+        void operator()();
     };
-
+    
     /**
      * Overridable function which writes data to the file in whichever format specific to the derived class.
      */
@@ -139,9 +140,11 @@ class data_recorder : public shared_object {
      * Overridable function which writes column names to the file in whichever format specific to the derived class.
      */
     virtual void writeNames() { };
-
+    
+    virtual void setStreamImpl(const shared_ptr<std::ostream>& aStreamPtr) = 0;
+    
   public:
-
+    
     /// Data record-specific flags for special operations.
     enum flag {
       end_name_row, ///< Ends the definition of the column name list.
@@ -149,54 +152,67 @@ class data_recorder : public shared_object {
       flush, ///< Flushes the data buffer to the file.
       close ///< Closes the file and data buffer is flushed.
     };
-
+    
     /**
      * Default Constructor.
      */
     data_recorder() : shared_object(),
                       colCount(0),
-		      rowCount(0),
-		      currentColumn(0),
-		      flushSampleRate(50),
-		      maxBufferSize(500),
-		      fileName(),
-		      names(),
-		      values_rm(),
-		      access_mutex(),
-		      writing_thread() { };
-
+                      rowCount(0),
+                      currentColumn(0),
+                      flushSampleRate(50),
+                      maxBufferSize(500),
+                      names(),
+                      values_rm(),
+                      out_stream(),
+                      access_mutex(),
+                      writing_thread() { };
+    
     /**
      * Destructor.
      */
     virtual ~data_recorder();
-
+    
     /**
      * Operator to record a data entry.
      */
     data_recorder& operator <<(double value);
-
+    
     /**
      * Operator to record a column name.
      */
     data_recorder& operator <<(const std::string& name);
-
+    
     /**
      * Operator to issue a special operation's flag.
      */
     data_recorder& operator <<(flag some_flag);
-
+    
     /**
-     * Sets the filename for the file, overridable for the derived class which handles the file IO (or other).
+     * Sets the stream.
      */
-    virtual void setFileName(const std::string& aFileName) = 0;
-
+    void setStream(std::ostream& aStream) {
+      setStreamImpl(shared_ptr<std::ostream>(&aStream, null_deleter()));
+    };
+    
+    /**
+     * Sets the stream via a shared-pointer.
+     */
+    void setStream(const shared_ptr<std::ostream>& aStreamPtr) {
+      setStreamImpl(aStreamPtr);
+    };
+    
+    /**
+     * Sets the filename for the file.
+     */
+    virtual void setFileName(const std::string& aFilename);
+    
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(static_cast<unsigned int>(colCount))
         & RK_SERIAL_SAVE_WITH_NAME(flushSampleRate)
-	& RK_SERIAL_SAVE_WITH_NAME(maxBufferSize)
-	& RK_SERIAL_SAVE_WITH_NAME(fileName)
-	& RK_SERIAL_SAVE_WITH_NAME(names);
+        & RK_SERIAL_SAVE_WITH_NAME(maxBufferSize)
+        & RK_SERIAL_SAVE_WITH_NAME(names);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
       ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
@@ -210,20 +226,18 @@ class data_recorder : public shared_object {
       unsigned int aColCount;
       A & RK_SERIAL_LOAD_WITH_ALIAS("colCount",aColCount)
         & RK_SERIAL_LOAD_WITH_NAME(flushSampleRate)
-	& RK_SERIAL_LOAD_WITH_NAME(maxBufferSize)
-	& RK_SERIAL_LOAD_WITH_NAME(fileName)
-	& RK_SERIAL_LOAD_WITH_NAME(names);
+        & RK_SERIAL_LOAD_WITH_NAME(maxBufferSize)
+        & RK_SERIAL_LOAD_WITH_NAME(names);
       colCount = aColCount;
       rowCount = 0;
       currentColumn = 0;
       values_rm = std::queue<double>();
       lock_here.unlock();
-      setFileName(fileName);
       writing_thread = ReaK::shared_ptr<ReaKaux::thread>(new ReaKaux::thread(record_process(*this)));
     };
-
+    
     RK_RTTI_MAKE_ABSTRACT_1BASE(data_recorder,0x81100001,1,"data_recorder",shared_object)
-
+    
 };
 
 
@@ -239,10 +253,10 @@ class data_extractor : public shared_object {
     volatile unsigned int currentNameCol; ///< Holds the current column to which the next name entry will be read from.
     unsigned int flushSampleRate; ///< Holds the sample rate at which the data is automatically flushed to the file.
     unsigned int minBufferSize; ///< Holds the minimum size for the data buffer, underload will trigger a file-read.
-    std::string fileName; ///< Holds the filename of the data record.
     std::vector<std::string> names; ///< Holds the list of column names.
     std::queue<double> values_rm; ///< Holds the data buffer.
-
+    shared_ptr<std::istream> in_stream; ///< Holds the input-stream of the data record.
+    
     ReaKaux::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
     ReaK::shared_ptr<ReaKaux::thread> reading_thread; ///< Holds the instance of the data writing thread.
 
@@ -251,9 +265,9 @@ class data_extractor : public shared_object {
      */
     struct extract_process {
       public:
-	data_extractor& parent;
-	extract_process(data_extractor& aParent ) : parent(aParent) { };
-	void operator()();
+        data_extractor& parent;
+        extract_process(data_extractor& aParent ) : parent(aParent) { };
+        void operator()();
     };
 
     /**
@@ -267,8 +281,8 @@ class data_extractor : public shared_object {
     /**
      * Sets the filename for the file, overridable for the derived class which handles the file IO (or other).
      */
-    virtual bool loadFile(const std::string& aFileName) { return true; };
-
+    virtual void setStreamImpl(const shared_ptr<std::istream>& aStreamPtr) = 0;
+    
   public:
     
     /**
@@ -289,48 +303,61 @@ class data_extractor : public shared_object {
      */
     data_extractor() : shared_object(),
                       colCount(0),
-		      currentColumn(0),
-		      currentNameCol(0),
-		      flushSampleRate(50),
-		      minBufferSize(20),
-		      fileName(),
-		      names(),
-		      values_rm(),
-		      access_mutex(),
-		      reading_thread() { };
-
+                      currentColumn(0),
+                      currentNameCol(0),
+                      flushSampleRate(50),
+                      minBufferSize(20),
+                      names(),
+                      values_rm(),
+                      in_stream(),
+                      access_mutex(),
+                      reading_thread() { };
+    
     /**
      * Destructor.
      */
     virtual ~data_extractor();
-
+    
     /**
      * Operator to record a data entry.
      */
     data_extractor& operator >>(double& value);
-
+    
     /**
      * Operator to record a column name.
      */
     data_extractor& operator >>(std::string& name);
-
+    
     /**
      * Operator to issue a special operation's flag.
      */
     data_extractor& operator >>(flag some_flag);
-
+    
+    /**
+     * Sets the stream.
+     */
+    void setStream(std::istream& aStream) {
+      setStreamImpl(shared_ptr<std::istream>(&aStream, null_deleter()));
+    };
+    
+    /**
+     * Sets the stream via a shared-pointer.
+     */
+    void setStream(const shared_ptr<std::istream>& aStreamPtr) {
+      setStreamImpl(aStreamPtr);
+    };
+    
     /**
      * Sets the filename for the file, overridable for the derived class which handles the file IO (or other).
      */
-    void setFileName(const std::string& aFileName);
-
+    virtual void setFileName(const std::string& aFileName);
+    
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(static_cast<unsigned int>(colCount))
         & RK_SERIAL_SAVE_WITH_NAME(flushSampleRate)
-	& RK_SERIAL_SAVE_WITH_NAME(minBufferSize)
-	& RK_SERIAL_SAVE_WITH_NAME(fileName)
-	& RK_SERIAL_SAVE_WITH_NAME(names);
+        & RK_SERIAL_SAVE_WITH_NAME(minBufferSize)
+        & RK_SERIAL_SAVE_WITH_NAME(names);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
@@ -344,16 +371,13 @@ class data_extractor : public shared_object {
       unsigned int aColCount;
       A & RK_SERIAL_LOAD_WITH_ALIAS("colCount",aColCount)
         & RK_SERIAL_LOAD_WITH_NAME(flushSampleRate)
-	& RK_SERIAL_LOAD_WITH_NAME(minBufferSize)
-	& RK_SERIAL_LOAD_WITH_NAME(fileName)
-	& RK_SERIAL_LOAD_WITH_NAME(names);
+        & RK_SERIAL_LOAD_WITH_NAME(minBufferSize)
+        & RK_SERIAL_LOAD_WITH_NAME(names);
       colCount = aColCount;
       currentColumn = 0;
       currentNameCol = 0;
       values_rm = std::queue<double>();
       lock_here.unlock();
-      setFileName(fileName);
-      
       reading_thread = ReaK::shared_ptr<ReaKaux::thread>(new ReaKaux::thread(extract_process(*this)));
     };
 

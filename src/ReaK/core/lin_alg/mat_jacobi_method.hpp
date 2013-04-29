@@ -242,6 +242,7 @@ void >::type linlsq_Jacobi(const Matrix1& A, Matrix2& x, const Matrix3& b, typen
   mat<ValueType,mat_structure::square> S(A);
   mat<ValueType,mat_structure::diagonal> E(A.get_row_count());
   mat<ValueType,mat_structure::square, mat_alignment::column_major> Q(A.get_row_count());
+  Q = mat<ValueType, mat_structure::identity>(A.get_row_count());
   detail::eigensolve_Jacobi_impl(S,E,&Q,NumTol);
   for(SizeType i=0;i<A.get_row_count();++i)
     if(fabs(E(i,i)) > NumTol)
@@ -283,6 +284,7 @@ void >::type pseudoinvert_Jacobi(const Matrix1& A, Matrix2& A_inv, typename mat_
   mat<ValueType,mat_structure::square> S(A);
   mat<ValueType,mat_structure::diagonal> E(A.get_row_count());
   mat<ValueType,mat_structure::square, mat_alignment::column_major> Q(A.get_row_count()); 
+  Q = mat<ValueType, mat_structure::identity>(A.get_row_count());
   detail::eigensolve_Jacobi_impl(S,E,&Q,NumTol); 
   for(SizeType i=0;i<A.get_row_count();++i)
     if(fabs(E(i,i)) > NumTol)
@@ -310,6 +312,7 @@ typename mat_traits<Matrix>::value_type >::type determinant_Jacobi(const Matrix&
   mat<ValueType,mat_structure::square> S(A);
   mat<ValueType,mat_structure::diagonal> E(A.get_row_count());
   mat<ValueType,mat_structure::square> Q(A.get_row_count());
+  Q = mat<ValueType, mat_structure::identity>(A.get_row_count());
   detail::eigensolve_Jacobi_impl(S,E,&Q,NumTol);
   ValueType result(1.0);
   for(SizeType i=0;i<A.get_row_count();++i)

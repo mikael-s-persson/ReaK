@@ -30,12 +30,12 @@ namespace recorder {
 
 void ssv_recorder::writeRow() {
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-  if((output_file.is_open()) && (rowCount > 0) && (colCount > 0)) {
-    output_file << std::endl;
-    output_file << values_rm.front();
+  if((out_stream) && (*out_stream) && (rowCount > 0) && (colCount > 0)) {
+    (*out_stream) << std::endl;
+    (*out_stream) << values_rm.front();
     values_rm.pop();
-    for(unsigned int i=1;i<colCount;++i) {
-      output_file << " " << values_rm.front();
+    for(unsigned int i = 1; i < colCount; ++i) {
+      (*out_stream) << " " << values_rm.front();
       values_rm.pop();
     };
     --rowCount;
@@ -43,49 +43,51 @@ void ssv_recorder::writeRow() {
 };
 
 void ssv_recorder::writeNames() {
-  output_file << "%";
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+  if((!out_stream) || (!(*out_stream)))
+    return;
+  (*out_stream) << "%";
   std::vector<std::string>::iterator it = names.begin();
   for(;it != names.end(); ++it)
-    output_file << " " << (*it);
-  output_file.flush();
+    (*out_stream) << " " << (*it);
+  out_stream->flush();
 };
 
-void ssv_recorder::setFileName(const std::string& aFileName) {
+void ssv_recorder::setStreamImpl(const shared_ptr<std::ostream>& aStreamPtr) {
   if(colCount != 0) {
     *this << close;
-
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-    if(output_file.is_open())
-      output_file.close();
-    output_file.open(aFileName.c_str());
-    fileName = aFileName;
-    if(output_file.is_open()) {
+    if((aStreamPtr) && (*aStreamPtr)) {
+      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+      out_stream = aStreamPtr;
+      out_stream->setf(std::ios::scientific, std::ios::floatfield);
+      out_stream->precision(11);
       colCount = names.size();
+      lock_here.unlock();
       writeNames();
     };
   } else {
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-    if(output_file.is_open())
-      output_file.close();
-    output_file.open(aFileName.c_str());
-    fileName = aFileName;
+    if((aStreamPtr) && (*aStreamPtr)) {
+      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+      out_stream = aStreamPtr;
+      out_stream->setf(std::ios::scientific, std::ios::floatfield);
+      out_stream->precision(11);
+    };
   };
 };
 
 
 
-
 bool ssv_extractor::readRow() {
-  if((input_file.is_open()) && (colCount > 0)) {
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+  if((in_stream) && (*in_stream) && (colCount > 0)) {
     std::string temp;
-    std::getline(input_file,temp,'\n');
+    std::getline(*in_stream, temp, '\n');
     std::stringstream ss(temp);
-    for(unsigned int i=0;i<colCount;++i) {
+    for(unsigned int i = 0; i < colCount; ++i) {
       double tmp = 0;
       ss >> tmp;
       if(!ss)
-	return false;
+        return false;
       values_rm.push(tmp);
     };
   };
@@ -93,8 +95,11 @@ bool ssv_extractor::readRow() {
 };
 
 bool ssv_extractor::readNames() {
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+  if((!in_stream) || (!(*in_stream)))
+    return false;
   std::string temp;
-  std::getline(input_file,temp,'\n');
+  std::getline(*in_stream,temp,'\n');
   std::stringstream ss(temp);
   std::string temp_name;
   ss >> temp_name; //ignore the first %
@@ -105,23 +110,15 @@ bool ssv_extractor::readNames() {
   return true;
 };
 
-bool ssv_extractor::loadFile(const std::string& aFileName) {
-  if(colCount != 0) {
+void ssv_extractor::setStreamImpl(const shared_ptr<std::istream>& aStreamPtr) {
+  if(colCount != 0)
     *this >> close;
-
+  if((aStreamPtr) && (*aStreamPtr)) {
     ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-    if(input_file.is_open())
-      input_file.close();
-    input_file.open(aFileName.c_str());
-    fileName = aFileName;
-  } else {
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-    if(input_file.is_open())
-      input_file.close();
-    input_file.open(aFileName.c_str());
-    fileName = aFileName;
+    in_stream = aStreamPtr;
+    lock_here.unlock();
+    readNames();
   };
-  return true;
 };
 
 

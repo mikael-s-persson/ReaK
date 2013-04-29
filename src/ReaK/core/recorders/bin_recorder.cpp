@@ -29,11 +29,11 @@ namespace recorder {
 
 
 void bin_recorder::writeRow() {
-  if((output_file.is_open()) && (rowCount > 0) && (colCount > 0)) {
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+  if((out_stream) && (*out_stream) && (rowCount > 0) && (colCount > 0)) {
     for(unsigned int i=0;i<colCount;++i) {
       double tmp(values_rm.front());
-      output_file.write(reinterpret_cast<char*>(&tmp),sizeof(double));
+      out_stream->write(reinterpret_cast<char*>(&tmp),sizeof(double));
       values_rm.pop();
     };
     --rowCount;
@@ -41,45 +41,42 @@ void bin_recorder::writeRow() {
 };
 
 void bin_recorder::writeNames() {
+  if((!out_stream) || (!(*out_stream)))
+    return;
   unsigned int aColCount = colCount;
-  output_file.write(reinterpret_cast<char*>(&aColCount),sizeof(unsigned int));
+  out_stream->write(reinterpret_cast<char*>(&aColCount),sizeof(unsigned int));
   std::vector<std::string>::iterator it = names.begin();
   for(;it != names.end(); ++it)
-    output_file.write(it->c_str(),it->size() + 1);
+    out_stream->write(it->c_str(),it->size() + 1);
 };
 
-void bin_recorder::setFileName(const std::string& aFileName) {
+void bin_recorder::setStreamImpl(const shared_ptr<std::ostream>& aStreamPtr) {
   if(colCount != 0) {
     *this << close;
-
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-    if(output_file.is_open())
-      output_file.close();
-    output_file.open(aFileName.c_str(),std::ios_base::out | std::ios_base::binary);
-    fileName = aFileName;
-    if(output_file.is_open()) {
+    if((aStreamPtr) && (*aStreamPtr)) {
+      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+      out_stream = aStreamPtr;
       colCount = names.size();
       writeNames();
     };
   } else {
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-    if(output_file.is_open())
-      output_file.close();
-    output_file.open(aFileName.c_str(),std::ios_base::out | std::ios_base::binary);
-    fileName = aFileName;
+    if((aStreamPtr) && (*aStreamPtr)) {
+      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+      out_stream = aStreamPtr;
+    };
   };
 };
 
 
 
 bool bin_extractor::readRow() {
-  if((input_file.is_open()) && (colCount > 0)) {
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-    for(unsigned int i=0;i<colCount;++i) {
+  ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
+  if((in_stream) && (*in_stream) && (colCount > 0)) {
+    for(unsigned int i = 0; i < colCount; ++i) {
       double tmp = 0;
-      input_file.read(reinterpret_cast<char*>(&tmp),sizeof(double));
-      if(!input_file)
-	return false;
+      in_stream->read(reinterpret_cast<char*>(&tmp),sizeof(double));
+      if(!(*in_stream))
+        return false;
       values_rm.push(tmp);
     };
   };
@@ -87,40 +84,32 @@ bool bin_extractor::readRow() {
 };
 
 bool bin_extractor::readNames() {
+  if((!in_stream) || (!(*in_stream)))
+    return false;
   unsigned int aColCount;
-  input_file.read(reinterpret_cast<char*>(&aColCount),sizeof(unsigned int));
+  in_stream->read(reinterpret_cast<char*>(&aColCount),sizeof(unsigned int));
   colCount = aColCount;
   char temp[128];
   for(unsigned int i = 0; i < colCount; ++i) {
     char* temp_ptr = temp;
-    while((temp_ptr < temp + 128) && (input_file.read(temp_ptr,1)) && (*temp_ptr != '\0'))
+    while((temp_ptr < temp + 128) && (in_stream->read(temp_ptr,1)) && (*temp_ptr != '\0'))
       ++temp_ptr;
-    if((temp_ptr >= temp + 128) || (!input_file))
+    if((temp_ptr >= temp + 128) || (!(*in_stream)))
       return false;
     names.push_back(std::string(temp));
   };
   return true;
 };
 
-bool bin_extractor::loadFile(const std::string& aFileName) {
-  if(colCount != 0) {
+void bin_extractor::setStreamImpl(const shared_ptr<std::istream>& aStreamPtr) {
+  if(colCount != 0)
     *this >> close;
-
+  if((aStreamPtr) && (*aStreamPtr)) {
     ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-    if(input_file.is_open())
-      input_file.close();
-    input_file.open(aFileName.c_str(),std::ios_base::in | std::ios_base::binary);
-    fileName = aFileName;
-  } else {
-    ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-    if(input_file.is_open())
-      input_file.close();
-    input_file.open(aFileName.c_str(),std::ios_base::in | std::ios_base::binary);
-    fileName = aFileName;
+    in_stream = aStreamPtr;
+    readNames();
   };
-  return true;
 };
-
 
 
 };

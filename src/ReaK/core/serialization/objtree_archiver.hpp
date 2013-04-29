@@ -286,6 +286,7 @@ class objtree_editor {
     friend class xml_field_editor;
     
     const shared_ptr< object_graph >& get_object_graph() const { return obj_graph; };
+    object_node_desc get_root_node() const { return obj_graph_root; };
     
     objtree_editor();
     objtree_editor(const shared_ptr< object_graph >& aObjGraph, object_node_desc aRoot = object_node_desc(0));

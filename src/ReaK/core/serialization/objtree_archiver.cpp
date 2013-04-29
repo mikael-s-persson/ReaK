@@ -440,7 +440,7 @@ void xml_field_editor::set_field_newptr(const std::string& aName, const shared_p
 
 
 char objtree_iarchive::getNextChar() {
-  char c;
+  char c = '\0';
   current_ss->get(c);
   while((c == ' ') || (c == '\t') || (c == '\n') || (c == '\r'))
     current_ss->get(c);
@@ -490,7 +490,7 @@ bool objtree_iarchive::readNamedValue(const std::string& value_name,std::string&
   if((value_name.empty()) || (token != value_name))
     return false;
   
-  char c;
+  char c = '\0';
   current_ss->get(c);
   while(c != '\"')
     current_ss->get(c);
@@ -668,7 +668,7 @@ iarchive& RK_CALL objtree_iarchive::load_char(const std::pair<std::string, char&
 };
 
 iarchive& RK_CALL objtree_iarchive::load_unsigned_char(unsigned char& u) {
-  return objtree_iarchive::load_unsigned_char(std::pair<std::string, unsigned char& >("unsigned char",u));
+  return objtree_iarchive::load_unsigned_char(std::pair<std::string, unsigned char& >("unsigned_char",u));
 };
 
 iarchive& RK_CALL objtree_iarchive::load_unsigned_char(const std::pair<std::string, unsigned char& >& u) {
@@ -703,7 +703,7 @@ iarchive& RK_CALL objtree_iarchive::load_int(const std::pair<std::string, int& >
 };
 
 iarchive& RK_CALL objtree_iarchive::load_unsigned_int(unsigned int& u) {
-  return objtree_iarchive::load_unsigned_int(std::pair<std::string, unsigned int& >("unsigned int",u));
+  return objtree_iarchive::load_unsigned_int(std::pair<std::string, unsigned int& >("unsigned_int",u));
 };
 
 iarchive& RK_CALL objtree_iarchive::load_unsigned_int(const std::pair<std::string, unsigned int& >& u) {
@@ -816,7 +816,9 @@ objtree_oarchive::objtree_oarchive(const shared_ptr< object_graph >& aObjGraph, 
   current_node = obj_graph_root;
 };
 
-objtree_oarchive::~objtree_oarchive() { };
+objtree_oarchive::~objtree_oarchive() { 
+  save_current_stream();
+};
 
 
 oarchive& RK_CALL objtree_oarchive::saveToNewArchive_impl(const serializable_shared_pointer& Item, const std::string&) {
@@ -918,7 +920,7 @@ oarchive& RK_CALL objtree_oarchive::save_char(const std::pair<std::string, char 
 };
 
 oarchive& RK_CALL objtree_oarchive::save_unsigned_char(unsigned char u) {
-  return objtree_oarchive::save_unsigned_char(std::pair<std::string, unsigned char >("unsigned char",u));
+  return objtree_oarchive::save_unsigned_char(std::pair<std::string, unsigned char >("unsigned_char",u));
 };
 
 oarchive& RK_CALL objtree_oarchive::save_unsigned_char(const std::pair<std::string, unsigned char >& u) {
@@ -937,7 +939,7 @@ oarchive& RK_CALL objtree_oarchive::save_int(const std::pair<std::string, int >&
 };
 
 oarchive& RK_CALL objtree_oarchive::save_unsigned_int(unsigned int u) {
-  return objtree_oarchive::save_unsigned_int(std::pair<std::string, unsigned int >("unsigned int",u));
+  return objtree_oarchive::save_unsigned_int(std::pair<std::string, unsigned int >("unsigned_int",u));
 };
 
 

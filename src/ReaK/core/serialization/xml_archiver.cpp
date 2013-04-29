@@ -316,7 +316,7 @@ iarchive& RK_CALL xml_iarchive::load_char(const std::pair<std::string, char& >& 
 };
 
 iarchive& RK_CALL xml_iarchive::load_unsigned_char(unsigned char& u) {
-  return xml_iarchive::load_unsigned_char(std::pair<std::string, unsigned char& >("unsigned char",u));
+  return xml_iarchive::load_unsigned_char(std::pair<std::string, unsigned char& >("unsigned_char",u));
 };
 
 iarchive& RK_CALL xml_iarchive::load_unsigned_char(const std::pair<std::string, unsigned char& >& u) {
@@ -351,7 +351,7 @@ iarchive& RK_CALL xml_iarchive::load_int(const std::pair<std::string, int& >& i)
 };
 
 iarchive& RK_CALL xml_iarchive::load_unsigned_int(unsigned int& u) {
-  return xml_iarchive::load_unsigned_int(std::pair<std::string, unsigned int& >("unsigned int",u));
+  return xml_iarchive::load_unsigned_int(std::pair<std::string, unsigned int& >("unsigned_int",u));
 };
 
 iarchive& RK_CALL xml_iarchive::load_unsigned_int(const std::pair<std::string, unsigned int& >& u) {
@@ -626,7 +626,7 @@ oarchive& RK_CALL xml_oarchive::save_char(const std::pair<std::string, char >& i
 };
 
 oarchive& RK_CALL xml_oarchive::save_unsigned_char(unsigned char u) {
-  return xml_oarchive::save_unsigned_char(std::pair<std::string, unsigned char >("unsigned char",u));
+  return xml_oarchive::save_unsigned_char(std::pair<std::string, unsigned char >("unsigned_char",u));
 };
 
 oarchive& RK_CALL xml_oarchive::save_unsigned_char(const std::pair<std::string, unsigned char >& u) {
@@ -647,7 +647,7 @@ oarchive& RK_CALL xml_oarchive::save_int(const std::pair<std::string, int >& i) 
 };
 
 oarchive& RK_CALL xml_oarchive::save_unsigned_int(unsigned int u) {
-  return xml_oarchive::save_unsigned_int(std::pair<std::string, unsigned int >("unsigned int",u));
+  return xml_oarchive::save_unsigned_int(std::pair<std::string, unsigned int >("unsigned_int",u));
 };
 
 

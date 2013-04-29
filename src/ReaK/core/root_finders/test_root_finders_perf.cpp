@@ -168,10 +168,6 @@ int main() {
   funcs.push_back(func11); lows.push_back(0.05); his.push_back(20.0);
   funcs.push_back(func11); lows.push_back(0.004); his.push_back(200.0);
   
-  std::cout << "****************** Root-finder tests, gradient-less methods ****************" << std::endl
-            << "****************************************************************************" << std::endl
-	    << " Case  | Bisec. | Secant | Illin. | Ford-3 | Brent  | Ridder |" << std::endl;
-  
   for(unsigned int i = 0; i < funcs.size(); ++i) {
     std::cout << " " << std::setw(5) << i << " | ";
     
@@ -180,32 +176,38 @@ int main() {
     double l = lows[i]; double h = his[i];
     iteration_count = 0;
     ReaK::bisection_method(l,h,funcs[i],rel_tol);
-    std::cout << std::setw(6) << iteration_count << " | ";
+    std::cout << "Bisection found solution = " << l << " to " << h << std::endl;
+    std::cout << std::setw(6) << iteration_count << std::endl;
     
     l = lows[i]; h = his[i];
     iteration_count = 0;
-    ReaK::secant_method(l,h,funcs[i],rel_tol);
-    std::cout << std::setw(6) << iteration_count << " | ";
+    double sec_sol = ReaK::secant_method(l,h,funcs[i],rel_tol);
+    std::cout << "Secant found solution = " << sec_sol << std::endl;
+    std::cout << std::setw(6) << iteration_count << std::endl;
     
     l = lows[i]; h = his[i];
     iteration_count = 0;
     ReaK::illinois_method(l,h,funcs[i],rel_tol);
-    std::cout << std::setw(6) << iteration_count << " | ";
+    std::cout << "Illinois found solution = " << l << " to " << h << std::endl;
+    std::cout << std::setw(6) << iteration_count << std::endl;
     
     l = lows[i]; h = his[i];
     iteration_count = 0;
     ReaK::ford3_method(l,h,funcs[i],rel_tol);
-    std::cout << std::setw(6) << iteration_count << " | ";
+    std::cout << "Ford3 found solution = " << l << " to " << h << std::endl;
+    std::cout << std::setw(6) << iteration_count << std::endl;
     
     l = lows[i]; h = his[i];
     iteration_count = 0;
     ReaK::brent_method(l,h,funcs[i],rel_tol);
-    std::cout << std::setw(6) << iteration_count << " | ";
+    std::cout << "Brent found solution = " << l << " to " << h << std::endl;
+    std::cout << std::setw(6) << iteration_count << std::endl;
     
     l = lows[i]; h = his[i];
     iteration_count = 0;
     ReaK::ridders_method(l,h,funcs[i],rel_tol);
-    std::cout << std::setw(6) << iteration_count << " | ";
+    std::cout << "Ridders found solution = " << l << " to " << h << std::endl;
+    std::cout << std::setw(6) << iteration_count << std::endl;
     
     std::cout << std::endl;
   };

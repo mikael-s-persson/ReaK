@@ -324,6 +324,7 @@ class avl_tree_impl
     };
     
     
+#if 0
     /* for debugging purposes */
     void print_complete_tree() const {
       using std::swap;
@@ -369,6 +370,7 @@ class avl_tree_impl
         swap(parents,children);
       };
     };
+#endif
     
     
     
@@ -508,7 +510,8 @@ class avl_tree_impl
       };
       if( has_right_child(aRootNode) )
         remove_branch(get_right_child(aRootNode), m_tree);
-      remove_branch(get_left_child(aRootNode), m_tree);
+      if( has_left_child(aRootNode) )
+        remove_branch(get_left_child(aRootNode), m_tree);
     };
     
     // re-balance the sub-tree rooted at the given node. Uses a "collect and re-construct" approach.
@@ -771,13 +774,9 @@ class avl_tree_impl
      * The vertex aAfter is the "upper-bound" (the first greater element).
      */
     iterator erase_impl(iterator aBefore, iterator aAfter) {
-      std::cout << "Before erasure:" << std::endl;
-      print_complete_tree();
-      
       iterator befAfter = aAfter; --befAfter;
       if((aBefore == aAfter) || (m_root == boost::graph_traits<tree_indexer>::null_vertex()))
         return aBefore;
-      std::cout << "Attempting to erase the range: [ " << helper_type::value_to_key(*aBefore) << " ; " << helper_type::value_to_key(*befAfter) << " ]" << std::endl;
       
       key_type tmp_after_key;
       bool after_at_end = false;
@@ -851,9 +850,6 @@ class avl_tree_impl
         rebalance_subtree(imbal_u.first);
         mid_root = imbal_u.first;
       };
-      
-      std::cout << "After erasure:" << std::endl;
-      print_complete_tree();
       
       if(after_at_end)
         return iterator::end(&m_tree);
@@ -1322,7 +1318,7 @@ class avl_tree_impl
      */
     mapped_type& operator[](const key_type& k) {
       if(m_root == boost::graph_traits<tree_indexer>::null_vertex()) {
-        iterator it = insert(helper_type::keymap_to_value(k, mapped_type()));
+        iterator it = insert(helper_type::keymap_to_value(k, mapped_type())).first;
         return helper_type::value_to_mapped(m_tree[it.base()]);
       };
       vertex_type u = find_lower_bound(k, m_root);
@@ -1345,7 +1341,7 @@ class avl_tree_impl
      */
     mapped_type& operator[](key_type&& k) {
       if(m_root == boost::graph_traits<tree_indexer>::null_vertex()) {
-        iterator it = insert(helper_type::keymap_to_value(std::move(k), mapped_type()));
+        iterator it = insert(helper_type::keymap_to_value(std::move(k), mapped_type())).first;
         return helper_type::value_to_mapped(m_tree[it.base()]);
       };
       vertex_type u = find_lower_bound(k, m_root);

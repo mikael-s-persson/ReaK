@@ -17,6 +17,11 @@ add_executable(test_root_finders_perf "${SRCROOT}${RKROOTFINDERSDIR}/test_root_f
 setup_custom_target(test_root_finders_perf "${SRCROOT}${RKROOTFINDERSDIR}")
 target_link_libraries(test_root_finders_perf reak_rtti ${EXTRA_SYSTEM_LIBS})
 
+add_executable(unit_test_root_finders "${SRCROOT}${RKROOTFINDERSDIR}/unit_test_root_finders.cpp")
+setup_custom_test_program(unit_test_root_finders "${SRCROOT}${RKROOTFINDERSDIR}")
+target_link_libraries(unit_test_root_finders reak_rtti)
+target_link_libraries(unit_test_root_finders ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
+
 
 
 

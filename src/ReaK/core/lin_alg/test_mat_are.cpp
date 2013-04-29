@@ -34,217 +34,17 @@
 #include <sstream>
 #include <string>
 
+/*
+ * This program is just a little test program that is used temporarily to test little 
+ * bits of code here and there related to the lin-alg library. In other words, if I 
+ * don't know if a particular expression is going to compile and compute correctly, 
+ * I can just test it in this "sand-box". Useful for user-space testing as well as 
+ * debugging of new additions to the library.
+ */
+
 int main() {
 
   using namespace ReaK;
-  
-  
-  
-  std::size_t passed = 0;
-  std::size_t expected_passes = 0;
-#if 0
-  {
-  
-  std::vector< mat<double, mat_structure::rectangular> > F_list;
-  std::vector< mat<double, mat_structure::rectangular> > G_list;
-  std::vector< mat<double, mat_structure::rectangular> > R_list;
-  std::vector< mat<double, mat_structure::rectangular> > Q_list;
-  
-  std::ifstream infile("darex_data.txt");
-  while(infile) {
-    std::string str_tmp;
-    std::stringstream ss;
-    std::getline(infile,str_tmp);
-    if(!infile)
-      break;
-    std::size_t N, M;
-    ss.str(str_tmp);
-    ss >> N >> M;
-    
-    mat<double, mat_structure::rectangular> F_tmp(N,N);
-    for(std::size_t i = 0; i < N; ++i) {
-      std::getline(infile,str_tmp);
-      ss.clear();
-      ss.str(str_tmp);
-      for(std::size_t j = 0; j < N; ++j)
-        ss >> F_tmp(i,j);
-    };
-    mat<double, mat_structure::rectangular> G_tmp(N,M);
-    for(std::size_t i = 0; i < N; ++i) {
-      std::getline(infile,str_tmp);
-      ss.clear();
-      ss.str(str_tmp);
-      for(std::size_t j = 0; j < M; ++j)
-        ss >> G_tmp(i,j);
-    };
-    mat<double, mat_structure::rectangular> R_tmp(M,M);
-    for(std::size_t i = 0; i < M; ++i) {
-      std::getline(infile,str_tmp);
-      ss.clear();
-      ss.str(str_tmp);
-      for(std::size_t j = 0; j < M; ++j)
-        ss >> R_tmp(i,j);
-    };
-    mat<double, mat_structure::rectangular> Q_tmp(N,N);
-    for(std::size_t i = 0; i < N; ++i) {
-      std::getline(infile,str_tmp);
-      ss.clear();
-      ss.str(str_tmp);
-      for(std::size_t j = 0; j < N; ++j)
-        ss >> Q_tmp(i,j);
-    };
-    
-    F_list.push_back(F_tmp);
-    G_list.push_back(G_tmp);
-    R_list.push_back(R_tmp);
-    Q_list.push_back(Q_tmp);
-  };
-  
-  expected_passes += F_list.size();
-  
-  std::cout << "****** Discrete-time Algebraic Riccati Equations Tests with Tolerance of 1e-6 ****** " << std::endl;
-  
-  for(std::size_t i = 0; i < F_list.size(); ++i) {
-    
-    std::cout << "Problem " << i << ": " << std::endl;
-    
-    mat<double,mat_structure::rectangular> P(F_list[i].get_row_count(),F_list[i].get_col_count());
-    solve_dare_problem(F_list[i], G_list[i], Q_list[i], R_list[i], P, 1e-6);
-//     std::cout << "P = " << P << std::endl;
-    
-    mat<double,mat_structure::rectangular> M_tmp = R_list[i];
-    M_tmp += transpose_view(G_list[i]) * P * G_list[i];
-    mat<double,mat_structure::rectangular> M2_tmp(G_list[i].get_col_count(),F_list[i].get_col_count());
-    M2_tmp = transpose_view(G_list[i]) * P * F_list[i];
-    mat<double,mat_structure::rectangular> Msol_tmp;
-    linlsq_QR(M_tmp,Msol_tmp,M2_tmp);
-    mat<double,mat_structure::rectangular> X = 
-      (transpose_view(F_list[i]) * P * F_list[i] 
-     - transpose_view(F_list[i]) * P * G_list[i] * Msol_tmp + Q_list[i]);
-//     std::cout << "F' P F - F' P G ( R + G' P G )^-1 G' P F + Q = " 
-//               << X << std::endl;
-//     std::cout << "P_err = " 
-//               << (X - P) << std::endl;
-    double err_norm = norm_1( X - P );
-    double P_norm = norm_1(P);
-    std::cout << "\t|| Err || = " << std::setw(14) << err_norm 
-              << " relative to || P || = " << std::setw(14) << P_norm 
-              << " for a relative error of " << std::setw(14) << (err_norm / P_norm) << std::endl;
-    
-    if(err_norm > 2e-5 * P_norm) 
-      std::cout << "\tWARNING: Significant loss of precision!" << std::endl;
-    if(err_norm < 1e-3 * P_norm) 
-      ++passed;
-    else
-      std::cout << "\tERROR: Such a loss of precision indicates a failure to solve the problem!" << std::endl;
-  };
-  };
-  
-#if 1
-  // These are the benchmark tests for the Continuous-time Algebraic Riccatic Equations (CARE)
-  // NOTE So, far it seems that these are not working. Needs investigation.
-  //      It is a bit weird that it wouldn't work since DARE is exactly the same algorithm
-  {
-  
-  std::vector< mat<double, mat_structure::rectangular> > A_list;
-  std::vector< mat<double, mat_structure::rectangular> > B_list;
-  std::vector< mat<double, mat_structure::rectangular> > R_list;
-  std::vector< mat<double, mat_structure::rectangular> > Q_list;
-  
-  std::ifstream infile("carex_data.txt");
-  while(infile) {
-    std::string str_tmp;
-    std::stringstream ss;
-    std::getline(infile,str_tmp);
-    if(!infile)
-      break;
-    std::size_t N, M;
-    ss.str(str_tmp);
-    ss >> N >> M;
-    
-    mat<double, mat_structure::rectangular> A_tmp(N,N);
-    for(std::size_t i = 0; i < N; ++i) {
-      std::getline(infile,str_tmp);
-      ss.clear();
-      ss.str(str_tmp);
-      for(std::size_t j = 0; j < N; ++j)
-        ss >> A_tmp(i,j);
-    };
-    mat<double, mat_structure::rectangular> B_tmp(N,M);
-    for(std::size_t i = 0; i < N; ++i) {
-      std::getline(infile,str_tmp);
-      ss.clear();
-      ss.str(str_tmp);
-      for(std::size_t j = 0; j < M; ++j)
-        ss >> B_tmp(i,j);
-    };
-    mat<double, mat_structure::rectangular> R_tmp(M,M);
-    for(std::size_t i = 0; i < M; ++i) {
-      std::getline(infile,str_tmp);
-      ss.clear();
-      ss.str(str_tmp);
-      for(std::size_t j = 0; j < M; ++j)
-        ss >> R_tmp(i,j);
-    };
-    mat<double, mat_structure::rectangular> Q_tmp(N,N);
-    for(std::size_t i = 0; i < N; ++i) {
-      std::getline(infile,str_tmp);
-      ss.clear();
-      ss.str(str_tmp);
-      for(std::size_t j = 0; j < N; ++j)
-        ss >> Q_tmp(i,j);
-    };
-    
-    A_list.push_back(A_tmp);
-    B_list.push_back(B_tmp);
-    R_list.push_back(R_tmp);
-    Q_list.push_back(Q_tmp);
-  };
-  
-  expected_passes += A_list.size();
-  
-  std::cout << "****** Continuous-time Algebraic Riccati Equations Tests with Tolerance of 1e-6 ****** " << std::endl;
-  
-  for(std::size_t i = 0; i < A_list.size(); ++i) {
-    
-    std::cout << "Problem " << i << ": " << std::endl;
-    
-    mat<double,mat_structure::rectangular> P(A_list[i].get_row_count(),A_list[i].get_col_count());
-    solve_care_problem(A_list[i], B_list[i], Q_list[i], R_list[i], P, 1e-6);
-    //std::cout << "P = " << P << std::endl;
-    
-    mat<double,mat_structure::rectangular> M_tmp = R_list[i];
-    mat<double,mat_structure::rectangular> M2_tmp(B_list[i].get_col_count(),A_list[i].get_col_count());
-    M2_tmp = transpose_view(B_list[i]) * P;
-    mat<double,mat_structure::rectangular> Msol_tmp;
-    linlsq_QR(M_tmp,Msol_tmp,M2_tmp);
-    mat<double,mat_structure::rectangular> X = 
-      (transpose_view(A_list[i]) * P + P * A_list[i] 
-     - P * B_list[i] * Msol_tmp + Q_list[i]);
-    //std::cout << "Q + A^T P + P A - P B R^{-1} B^T P = " 
-    //          << X << std::endl;
-    double err_norm = norm_1( X );
-    double P_norm = norm_1(P);
-    std::cout << "\t|| Err || = " << std::setw(14) << err_norm 
-              << " relative to || P || = " << std::setw(14) << P_norm 
-              << " for a relative error of " << std::setw(14) << (err_norm / P_norm) << std::endl;
-              
-    if(err_norm > 2e-5 * P_norm) 
-      std::cout << "\tWARNING: Significant loss of precision!" << std::endl;
-    if(err_norm < 1e-3 * P_norm) 
-      ++passed;
-    else
-      std::cout << "\tERROR: Such a loss of precision indicates a failure to solve the problem!" << std::endl;
-  };
-  };
-#endif
-  
-  
-  std::cout << "*******************************************************************************************************" << std::endl;
-  std::cout << "Algebraic Riccati Equation Tests results: " << passed << " out of " << expected_passes << " expected successful tests." << std::endl;
-  
-  
-#endif
   
   {
   /*
@@ -351,11 +151,7 @@ int main() {
   };
   
   
-  
-  if(passed == expected_passes) { 
-    return 0;
-  } else
-    return 1;
+  return 0;
 };
 
 

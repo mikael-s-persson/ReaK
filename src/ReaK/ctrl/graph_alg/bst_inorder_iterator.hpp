@@ -270,9 +270,12 @@ class bst_inorder_iterator {
               // go to the left child, and down the right:
               std::pair<child_vertex_iter, child_vertex_iter> cur_children = child_vertices(m_u, *m_tree);
               m_u = detail::bst_go_down_right(*m_tree, *(cur_children.first));
-              if(m_u == *(cur_children.first))
-                m_status = detail::OnMiddleBranch;
-              else {
+              if(m_u == *(cur_children.first)) {
+                if(out_degree(m_u, *m_tree) == 0)
+                  m_status = detail::OnLeftBranch;
+                else
+                  m_status = detail::OnMiddleBranch;
+              } else {
                 if(out_degree(m_u, *m_tree) == 0) 
                   m_status = detail::OnRightBranch;  // on the leaf.
                 else

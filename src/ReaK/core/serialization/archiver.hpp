@@ -603,6 +603,7 @@ class iarchive : public archive {
     friend iarchive& operator >>(iarchive& in, std::map<Key,T,Compare,Allocator>& m) {
       unsigned int count;
       in >> count;
+      m.clear();
       in.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name());
       for(unsigned int i=0;i<count;++i) {
 	Key value_key;
@@ -618,6 +619,7 @@ class iarchive : public archive {
     friend iarchive& operator &(iarchive& in, const std::pair<std::string, std::map<Key,T,Compare,Allocator>& >& m) {
       unsigned int count;
       in & RK_SERIAL_LOAD_WITH_ALIAS(m.first + "_count", count);
+      m.second.clear();
       in.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name(),m.first);
       for(unsigned int i=0;i<count;++i) {
 	std::stringstream key_s_stream;
@@ -637,6 +639,7 @@ class iarchive : public archive {
     friend iarchive& operator >>(iarchive& in, std::set<T,Compare,Allocator>& v) {
       unsigned int count;
       in >> count;
+      v.clear();
       in.start_repeated_field(rtti::get_type_info<T>::type_name());
       for(unsigned int i = 0;i < count;++i) {
 	T temp;
@@ -652,10 +655,11 @@ class iarchive : public archive {
     friend iarchive& operator &(iarchive& in, const std::pair<std::string, std::set<T,Compare,Allocator>& >& v) {
       unsigned int count;
       in & RK_SERIAL_LOAD_WITH_ALIAS(v.first + "_count", count);
+      v.second.clear();
       in.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       for(unsigned int i=0; i < count;++i) {
 	std::stringstream s_stream;
-	s_stream << v.first << "_q[" << i++ << "]";
+	s_stream << v.first << "_q[" << i << "]";
 	T temp;
 	in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), temp);
 	v.second.insert(v.second.end(), temp);

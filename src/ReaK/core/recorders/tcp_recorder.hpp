@@ -52,6 +52,7 @@ class tcp_recorder : public data_recorder {
   protected:
     virtual void writeRow();
     virtual void writeNames();
+    virtual void setStreamImpl(const shared_ptr<std::ostream>& aStreamPtr) { };
 
     shared_ptr<tcp_server_impl> pimpl;
   public:
@@ -92,7 +93,7 @@ class tcp_extractor : public data_extractor {
   protected:
     virtual bool readRow();
     virtual bool readNames();
-    virtual bool loadFile(const std::string& aFileName);
+    virtual void setStreamImpl(const shared_ptr<std::istream>& aStreamPtr) { };
     
     shared_ptr<tcp_client_impl> pimpl;
   public:
@@ -111,6 +112,8 @@ class tcp_extractor : public data_extractor {
      * Destructor, closes the file.
      */
     virtual ~tcp_extractor();
+    
+    virtual void setFileName(const std::string& aFilename);
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       data_extractor::save(A,data_extractor::getStaticObjectType()->TypeVersion());

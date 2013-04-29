@@ -48,32 +48,25 @@ class bin_recorder : public data_recorder {
   protected:
     virtual void writeRow();
     virtual void writeNames();
-
-    std::ofstream output_file; ///< Holds the binary-formatted file output stream.
+    virtual void setStreamImpl(const shared_ptr<std::ostream>& aStreamPtr);
   public:
 
     /**
      * Default constructor.
      */
-    bin_recorder() : data_recorder(),
-                     output_file() { };
+    bin_recorder() : data_recorder() { };
 
     /**
      * Constructor that opens a file with name aFileName.
      */
-    bin_recorder(const std::string& aFileName) : data_recorder(), output_file(aFileName.c_str(),std::ios_base::out | std::ios_base::binary) {
-      fileName = aFileName;
+    bin_recorder(const std::string& aFileName) : data_recorder() {
+      setFileName(aFileName);
     };
 
     /**
      * Destructor, closes the file.
      */
-    virtual ~bin_recorder() {
-      if(output_file.is_open())
-        output_file.close();
-    };
-
-    virtual void setFileName(const std::string& aFileName);
+    virtual ~bin_recorder() { };
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       data_recorder::save(A,data_recorder::getStaticObjectType()->TypeVersion());
@@ -94,32 +87,26 @@ class bin_extractor : public data_extractor {
   protected:
     virtual bool readRow();
     virtual bool readNames();
-    virtual bool loadFile(const std::string& aFileName);
-
-    std::ifstream input_file; ///< Holds the binary-formatted file output stream.
+    virtual void setStreamImpl(const shared_ptr<std::istream>& aStreamPtr);
   public:
-
+    
     /**
      * Default constructor.
      */
-    bin_extractor() : data_extractor(), input_file() { };
-
+    bin_extractor() : data_extractor() { };
+    
     /**
      * Constructor that opens a file with name aFileName.
      */
-    bin_extractor(const std::string& aFileName) : data_extractor(), input_file(aFileName.c_str(),std::ios_base::in | std::ios_base::binary) {
-      fileName = aFileName;
-      readNames();
+    bin_extractor(const std::string& aFileName) : data_extractor() {
+      setFileName(aFileName);
     };
-
+    
     /**
      * Destructor, closes the file.
      */
-    virtual ~bin_extractor() {
-      if(input_file.is_open())
-        input_file.close();
-    };
-
+    virtual ~bin_extractor() {};
+    
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       data_extractor::save(A,data_extractor::getStaticObjectType()->TypeVersion());
     };

@@ -25,6 +25,8 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include <fstream>
+
 namespace ReaK {
 
 namespace recorder {
@@ -92,7 +94,9 @@ data_recorder& data_recorder::operator <<(flag some_flag) {
       throw improper_flag();
     ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     colCount = names.size();
+    lock_here.unlock();
     writeNames();
+    lock_here.lock();
     currentColumn = 0;
     rowCount = 0;
     writing_thread = ReaK::shared_ptr<ReaKaux::thread>(new ReaKaux::thread(record_process(*this)));
@@ -122,7 +126,11 @@ data_recorder& data_recorder::operator <<(flag some_flag) {
   return *this;
 };
 
-
+void data_recorder::setFileName(const std::string& aFilename) {
+  shared_ptr<std::ofstream> file_out(new std::ofstream(aFilename.c_str()));
+  if(file_out->is_open())
+    setStreamImpl(file_out);
+};
 
 
 
@@ -141,9 +149,9 @@ void data_extractor::extract_process::operator()() {
   while(parent.colCount != 0) {
     {
       if((parent.values_rm.size() < parent.minBufferSize * parent.colCount) || 
-	 (currentIter % iterStep == 0))
-	if(!parent.readRow())
-	  break;
+         (currentIter % iterStep == 0))
+        if(!parent.readRow())
+          break;
     };
     if(currentIter == 1000) {
       boost::posix_time::ptime current_time = boost::posix_time::microsec_clock::local_time();
@@ -228,6 +236,14 @@ data_extractor& data_extractor::operator >>(flag some_flag) {
   return *this;
 };
 
+
+void data_extractor::setFileName(const std::string& aFilename) {
+  shared_ptr<std::ifstream> file_in(new std::ifstream(aFilename.c_str()));
+  if(file_in->is_open())
+    setStreamImpl(file_in);
+};
+
+#if 0
 void data_extractor::setFileName(const std::string& aFileName) {
   colCount = 0;
   names.resize(0);
@@ -239,7 +255,7 @@ void data_extractor::setFileName(const std::string& aFileName) {
     reading_thread = ReaK::shared_ptr<ReaKaux::thread>(new ReaKaux::thread(extract_process(*this)));
   };
 };
-
+#endif
 
 
 

@@ -65,9 +65,9 @@ add_executable(test_graphs "${SRCROOT}${RKGRAPHALGDIR}/test_graphs.cpp")
 setup_custom_target(test_graphs "${SRCROOT}${RKGRAPHALGDIR}")
 target_link_libraries(test_graphs reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
 
-add_executable(test_assoc_containers "${SRCROOT}${RKGRAPHALGDIR}/test_assoc_containers.cpp")
-setup_custom_target(test_assoc_containers "${SRCROOT}${RKGRAPHALGDIR}")
-target_link_libraries(test_assoc_containers reak_core ${EXTRA_SYSTEM_LIBS})
+add_executable(unit_test_assoc_containers "${SRCROOT}${RKGRAPHALGDIR}/unit_test_assoc_containers.cpp")
+setup_custom_test_program(unit_test_assoc_containers "${SRCROOT}${RKGRAPHALGDIR}")
+target_link_libraries(unit_test_assoc_containers reak_core ${EXTRA_SYSTEM_LIBS})
 
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
