@@ -13,6 +13,7 @@ of the unit-tests (i.e., possible bugs).
   PART : Partial, i.e., some sub-systems have unit-tests, some are missing or failed.
   PASS : Passed, i.e., the unit-test program exists and has been passed by the unit in question.
   FAIL : Failed, i.e., the unit-test program exists, but the unit in question currently cannot pass it ("expected fail").
+  <empty-line> : it has not yet been checked if there is sufficient coverage in existing tests.
 )
 
 Core modules:
@@ -41,7 +42,83 @@ Core modules:
   - brent_method   --------------------------------------------------- PASS
   - ridders_method   ------------------------------------------------- PASS
  - core/lin_alg   ---------------------------------------------------- PART
-  - 
+  - vect_alg   ------------------------------------------------------- PASS
+  - vect_scalar   -------------------------------------------------- VOID    (a bit trivial)
+  - vect_view   ---------------------------------------------------- VOID    (a bit trivial)
+  - vect_index_iterator   ------------------------------------------ VOID    (a bit trivial)
+  - arithmetic_tuple   --------------------------------------------- VOID
+  - mat_alg   -------------------------------------------------------- PART
+   - rectangular   --------------------------------------------------- PASS
+   - square   -------------------------------------------------------- PASS
+   - symmetric   ----------------------------------------------------- PASS
+   - skew-symmetric   ------------------------------------------------ PASS
+   - identity   ------------------------------------------------------ PASS
+   - nil   ----------------------------------------------------------- PASS
+   - diagonal   ------------------------------------------------------ PASS
+   - scalar   ------------------------------------------------------ VOID
+   - permutation   ------------------------------------------------- VOID    (tested in mat-numerical methods)
+   - lower-triangular   -------------------------------------------- VOID    (not implemented)
+   - upper-triangular   -------------------------------------------- VOID    (not implemented)
+   - tri-diagonal   ------------------------------------------------ VOID    (not implemented)
+   - composite-adaptors   ------------------------------------------ VOID
+   - views   ------------------------------------------------------- VOID
+   - slices   ------------------------------------------------------ VOID
+   - transpose-view   ---------------------------------------------- VOID
+  - mat_num   -------------------------------------------------------- PART
+   - balance
+    - balance
+    - balance_pencil
+   - cholesky
+    - cholesky decomposition
+    - cholesky lin-solve
+    - cholesky invert
+    - band-cholesky decomposition
+    - band-cholesky lin-solve
+    - band-cholesky invert
+    - LDL decomposition
+    - LDL lin-solve
+    - LDL invert
+    - TriDiag-LDL decomposition
+    - TriDiag-LDL lin-solve
+    - TriDiag-LDL invert
+    - PLTLP decomposition
+    - PLTLP lin-solve
+    - PLTLP invert
+   - controllability reduction
+   - damped-matrix
+   - matrix exponential (Padé Square-and-Sum)
+   - gaussian elimination
+    - gaussian invert
+    - PLU lin-solve
+    - PLU invert
+   - Givens rotations
+   - Householder reflections
+   - Hessenberg decompositions
+    - Upper-Hessenberg decomposition
+    - Hessenberg-Triangular reduction
+   - Jacobi method
+    - Jacobi eigen-solve
+    - Jacobi linlsq-solve
+    - Jacobi pseudo-invert
+   - QR decomposition
+    - Stable-GramSchmidt orthogonalization
+    - QR decomposition
+    - QR linlsq-solve
+    - RRQR linlsq-solve
+    - QR minnorm-solve
+    - R backsub
+    - QR invert
+    - QR pseudo-invert
+   - Schur decompositions
+    - Symmetric-QR eigen-solve
+    - Symmetric-QR pseudo-invert
+    - Symmetric-QR lin-solve
+    - Real-Schur decomposition
+    - Generalized Real-Schur decomposition
+   - Star product
+   - SVD decomposition
+    - SVD decomposition
+    - SVD pseudo-invert
  - core/kinetostatics   ---------------------------------------------- PART
   - 2D rotations / transforms   -------------------------------------- PASS
   - 3D rotations / transforms   -------------------------------------- PASS
@@ -51,17 +128,106 @@ Core modules:
   - 3D kinetostatic frames   --------------------------------------- VOID
   - motion jacobians   --------------------------------------------- VOID
  - core/integrators   ---------------------------------------------- VOID    (have been tested in the past, and when using KTEs)
-  - 
+  - Euler integrator
+  - Midpoint integrator
+  - Runge-Kutta-4 integrator
+  - Runge-Kutta-5 integrator
+  - Fehlberg 4-5 integrator
+  - Dormand-Prince 4-5 integrator
+  - Adams-Bashforth-Moulton 3 integrator
+  - Adams-Bashforth-Moulton 5 integrator
+  - Modified Hamming Method integrator
+  - Iterated Modified Hamming Method integrator
  - core/optimization   --------------------------------------------- VOID    (have been tested quite a bit, but no formal unit-tests)
-  - 
+  - Augmented Lagrangian methods
+   - without constraints
+   - with equality contraints
+   - with inequality contraints
+   - with inequality-equality contraints
+  - Conjugate Gradient methods
+   - linear conjugate gradient
+   - non-linear conjugate gradient with Fletcher-Reeves
+   - non-linear conjugate gradient with Polak-Ribiere
+   - non-linear conjugate gradient with Hestenes-Stiefel
+   - non-linear conjugate gradient with Dai-Yuan
+   - non-linear conjugate gradient with Hager-Zhang
+  - Gauss-Newton method (quadratic stepping)
+   - Gauss-Newton non-linear least-square
+   - Gauss-Newton non-linear least-square with bounds
+  - Jacobian-transpose method (steepest-descent)
+   - Jacobian-transpose non-linear least-square
+   - Jacobian-transpose non-linear least-square with bounds
+  - Line-search methods
+   - Dichotomous search
+   - Golden-section search
+   - Fibonacci search
+   - Back-tracking search
+   - Expand-and-zoom search
+  - Mehrotra's method (interior-point predictor-corrector)
+   - Mehrotra's Linear-Prog. method
+   - Mehrotra's Quadratic-Prog. method
+  - Nelder-Mead method (gradient-less, simplex-method)
+  - Newton methods
+   - Line-search Newton method
+   - Line-search regulated Newton method
+   - Line-search bounded Newton method
+   - Line-search bounded regulated Newton method
+   - Trust-region Newton method
+   - Trust-region regulated Newton method
+   - Trust-region bounded Newton method
+   - Trust-region bounded regulated Newton method
+  - Non-linear Interior-point methods (penalty-barrier, SQP)
+   - Line-search NLIP Newton method
+   - Line-search NLIP Quasi-Newton(BFGS) method 
+   - Trust-region NLIP Newton method 
+   - Trust-region NLIP Quasi-Newton(SR-1) method 
+  - Quadratic-programming algorithms
+   - Null-space QP method
+   - Null-space Rank-revealing QP method
+   - Projected Conjugate-Gradient method
+  - Quasi-Newton methods (unconstrained)
+   - BFGS method
+   - Bounded BFGS method
+   - DFP method
+   - Bounded DFP method
+   - Broyden-class method
+   - Bounded Broyden-class method
+   - Symmetric Rank-1 method (trust-region)
+   - Bounded Symmetric Rank-1 method (trust-region)
+  - Sequential Quadratic-programming methods
+   - Byrd-Omojokun SQP Newton method
+   - Byrd-Omojokun SQP Quasi-Newton(SR-1) method
+  - Simplex method (linear-programming)
+ - core/tensors   -------------------------------------------------- VOID   (not implemented, only rough drafts)
 
 Multi-body dynamics modules:
+
+ - ctrl/mbd_kte
+
+ - ctrl/kte_models
+
+
+Control and estimation modules:
+
+ - ctrl/ctrl_sys
+
+ - ctrl/sys_integrators
 
 
 Graph-algorithmic modules:
 
+ - ctrl/graph_alg
+
 
 Path-planning modules:
+
+ - ctrl/interpolation
+
+ - ctrl/topologies
+
+ - ctrl/path_planning
+
+ - ctrl/heuristics   ----------------------------------------------- VOID   (not implemented, only rough drafts)
 
 
 
