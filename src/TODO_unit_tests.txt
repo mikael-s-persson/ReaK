@@ -105,8 +105,8 @@ Core modules:
     - RRQR decomposition   ------------------------------------------- PASS (used by controllability reduction)
     - QR decomposition   --------------------------------------------- PASS (used by QR pseudo-invert)
     - QR linlsq-solve   ---------------------------------------------- PASS (used by QR pseudo-invert)
-    - RRQR linlsq-solve   ------------------------------------------ VOID
-    - RRQR linlsq-solve (rank-deficient)   ------------------------- VOID
+    - RRQR linlsq-solve   -------------------------------------------- PASS
+    - RRQR linlsq-solve (rank-deficient)   --------------------------- PASS
     - RRQR minnorm-solve   ----------------------------------------- VOID
     - QR minnorm-solve   --------------------------------------------- PASS
     - R backsub   ---------------------------------------------------- PASS
@@ -122,7 +122,8 @@ Core modules:
    - SVD decomposition   --------------------------------------------- PASS
     - SVD decomposition   -------------------------------------------- PASS
     - SVD pseudo-invert   -------------------------------------------- PASS
-    - SVD pseudo-invert (min-norm)   ----------------------------- FAIL
+    - SVD pseudo-invert (rank-deficient)   --------------------------- PASS
+    - SVD pseudo-invert (min-norm)   --------------------------------- PASS
    - Algebraic Riccati Equation (ARE) Solvers   ---------------------- PART
     - Continuous-time ARE solver   ----------------------------------- PASS
     - inf.-horizon continuous-time (IHCT) LQR synthesis   ------------ PASS  (only wraps CARE algorithm)
@@ -154,8 +155,8 @@ Core modules:
   - Adams-Bashforth-Moulton 5 integrator
   - Modified Hamming Method integrator
   - Iterated Modified Hamming Method integrator
- - core/optimization   --------------------------------------------- VOID    (have been tested quite a bit, but no formal unit-tests)
-  - Augmented Lagrangian methods
+ - core/optimization   ------------------------------(INFORMAL)----- VOID    (have been tested quite a bit, but no formal unit-tests)
+  - Augmented Lagrangian methods   ------------------------------- FAIL      (sometimes slowly makes it to a solution, but usually fails, this is somewhat expected, it is a bad method)
    - without constraints
    - with equality contraints
    - with inequality contraints
@@ -167,21 +168,24 @@ Core modules:
    - non-linear conjugate gradient with Hestenes-Stiefel
    - non-linear conjugate gradient with Dai-Yuan
    - non-linear conjugate gradient with Hager-Zhang
-  - Gauss-Newton method (quadratic stepping)
-   - Gauss-Newton non-linear least-square
-   - Gauss-Newton non-linear least-square with bounds
-  - Jacobian-transpose method (steepest-descent)
-   - Jacobian-transpose non-linear least-square
-   - Jacobian-transpose non-linear least-square with bounds
+  - Gauss-Newton method (quadratic stepping)   ----------------------- PASS (INFORMAL) (very reliable, very accurate)
+   - Gauss-Newton non-linear least-square   -------------------------- PASS (INFORMAL)
+   - Gauss-Newton non-linear least-square with bounds   -------------- PASS (INFORMAL)
+  - Jacobian-transpose method (steepest-descent)   --------------- FAIL     (somewhat expected, this is a bad method)
+   - Jacobian-transpose non-linear least-square   ---------------- FAIL
+   - Jacobian-transpose non-linear least-square with bounds   ---- FAIL
+  - Levenberg-Marquardt methods (non-lin. least-square)   ------------ PASS (INFORMAL) (fails on some difficult cases, lacks precision compared to Gauss-Newton)
+   - without bounds   ------------------------------------------------ PASS (INFORMAL)
+   - with bounds   --------------------------------------------------- PASS (INFORMAL)
   - Line-search methods
-   - Dichotomous search
-   - Golden-section search
-   - Fibonacci search
-   - Back-tracking search
-   - Expand-and-zoom search
-  - Mehrotra's method (interior-point predictor-corrector)
-   - Mehrotra's Linear-Prog. method
-   - Mehrotra's Quadratic-Prog. method
+   - Dichotomous search   -------------------------------------------- PASS (INFORMAL)
+   - Golden-section search   ----------------------------------------- PASS (INFORMAL)
+   - Fibonacci search   ---------------------------------------------- PASS (INFORMAL)
+   - Back-tracking search   ---------------------------------------- VOID   (part of many "line-search" methods)
+   - Expand-and-zoom search   -------------------------------------- VOID   (part of many "line-search" methods)
+  - Mehrotra's method (interior-point predictor-corrector)   --------- PART
+   - Mehrotra's Linear-Prog. method   ------------------------------ VOID
+   - Mehrotra's Quadratic-Prog. method   ----------------------------- PASS (INFORMAL)
   - Nelder-Mead method (gradient-less, simplex-method)
   - Newton methods
    - Line-search Newton method
@@ -192,15 +196,15 @@ Core modules:
    - Trust-region regulated Newton method
    - Trust-region bounded Newton method
    - Trust-region bounded regulated Newton method
-  - Non-linear Interior-point methods (penalty-barrier, SQP)
-   - Line-search NLIP Newton method
-   - Line-search NLIP Quasi-Newton(BFGS) method 
-   - Trust-region NLIP Newton method 
-   - Trust-region NLIP Quasi-Newton(SR-1) method 
+  - Non-linear Interior-point methods (penalty-barrier, SQP)   --- FAIL
+   - Line-search NLIP Newton method   ---------------------------- FAIL    (the issue seems to be numerical stability, the solution seems to be dragged towards ill-conditioned areas and then fails)
+   - Line-search NLIP Quasi-Newton(BFGS) method   ---------------- FAIL
+   - Trust-region NLIP Newton method   --------------------------- FAIL  (INFORMAL) (works well on some problems, fails in many)
+   - Trust-region NLIP Quasi-Newton(SR-1) method   --------------- FAIL  (INFORMAL) (works well on some problems, fails in many)
   - Quadratic-programming algorithms
-   - Null-space QP method
-   - Null-space Rank-revealing QP method
-   - Projected Conjugate-Gradient method
+   - Null-space QP method   ------------------------------------------ PASS (INFORMAL)
+   - Null-space Rank-revealing QP method   ------------------------- VOID
+   - Projected Conjugate-Gradient method   --------------------------- PASS (INFORMAL)
   - Quasi-Newton methods (unconstrained)
    - BFGS method
    - Bounded BFGS method
@@ -210,10 +214,10 @@ Core modules:
    - Bounded Broyden-class method
    - Symmetric Rank-1 method (trust-region)
    - Bounded Symmetric Rank-1 method (trust-region)
-  - Sequential Quadratic-programming methods
-   - Byrd-Omojokun SQP Newton method
-   - Byrd-Omojokun SQP Quasi-Newton(SR-1) method
-  - Simplex method (linear-programming)
+  - Sequential Quadratic-programming methods   ----------------------- PASS  (INFORMAL) (the most consistent NLP methods, but only for equality constraints)
+   - Byrd-Omojokun SQP Newton method   ------------------------------- PASS
+   - Byrd-Omojokun SQP Quasi-Newton(SR-1) method   ------------------- PASS
+  - Simplex method (linear-programming)   -------------------------- VOID
  - core/tensors   -------------------------------------------------- VOID   (not implemented, only rough drafts)
 
 Multi-body dynamics modules:

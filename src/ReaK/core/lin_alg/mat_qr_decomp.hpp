@@ -738,7 +738,7 @@ void >::type linlsq_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b, typenam
         x_tmp2(j,i) = x_tmp(j,i);
     detail::backsub_R_impl(L, x_tmp2, NumTol);
     // solve the problem: Lt x3 = x2
-    detail::forwardsub_L_impl(sub(transpose_view(L))(range(0,K),range(0,K)), x_tmp2, NumTol);
+    detail::forwardsub_L_impl(transpose_view(L), x_tmp2, NumTol);
     for(SizeType i = 0; i < x_tmp.get_col_count(); ++i) { 
       for(SizeType j = 0; j < K; ++j)
         x_tmp(j,i) = x_tmp2(j,i);
@@ -929,7 +929,7 @@ void >::type pseudoinvert_QR(const Matrix1& A, Matrix2& A_pinv, typename mat_tra
 
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   
-  mat<ValueType,mat_structure::square> R(A);
+  mat<ValueType,mat_structure::rectangular> R(A);
   detail::decompose_QR_impl(R,static_cast<mat<ValueType,mat_structure::square>*>(NULL),NumTol);
 
   A_pinv = transpose(A);

@@ -106,7 +106,12 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
   using std::fabs; 
   using std::sqrt;
 
-  mat<ValueType,mat_structure::rectangular> At(A);
+  mat<ValueType,mat_structure::rectangular> At, Ut, Vt;
+  if(A.get_row_count() < A.get_col_count())
+    At = transpose_view(A);
+  else
+    At = A;
+  
   
   SizeType N = At.get_row_count();
   SizeType M = At.get_col_count();
@@ -132,20 +137,30 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
   SizeType max_iter = nct;
   if(max_iter < nrt) max_iter = nrt;
 
-  if((U.get_row_count() != N) || (U.get_col_count() != nu)) {
-    U.set_row_count(N);
-    U.set_col_count(M);
+  if((Ut.get_row_count() != N) || (Ut.get_col_count() != nu)) {
+    Ut.set_row_count(N);
+    Ut.set_col_count(nu);
     for(SizeType i = 0; i < N; ++i) {
       for(SizeType j = 0; j < M; ++j) {
 	if(i == j)
-	  U(i,i) = 1;
+	  Ut(i,i) = 1;
 	else
-	  U(i,j) = 0;
+	  Ut(i,j) = 0;
       };
     };
   };
-  if((V.get_row_count() != M) || (V.get_col_count() != M))
-    V = mat<ValueType,mat_structure::identity>(M);
+  if((Vt.get_row_count() != M) || (Vt.get_col_count() != nu)) {
+    Vt.set_row_count(M);
+    Vt.set_col_count(nu);
+    for(SizeType i = 0; i < M; ++i) {
+      for(SizeType j = 0; j < nu; ++j) {
+        if(i == j)
+          Vt(i,i) = 1;
+        else
+          Vt(i,j) = 0;
+      };
+    };
+  };
   if((E.get_row_count() != nu) || (E.get_col_count() != nu))
     E = mat<ValueType,mat_structure::identity>(nu);
   vect_n<ValueType> e(M);
@@ -195,8 +210,8 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
     if (k < nct) {
       // Place the transformation in U for subsequent back
       // multiplication.
-      for (SizeType i=k;i < N;++i)
-        U(i,k) = At(i,k);
+      for (SizeType i = k; i < N; ++i)
+        Ut(i,k) = At(i,k);
     };
     if (k < nrt) {
 
@@ -233,8 +248,8 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
         // Place the transformation in _V for subsequent
         // back multiplication.
 
-      for (SizeType i=k+1;i < M;++i)
-        V(i,k) = e[i];
+      for (SizeType i = k+1; i < M; ++i)
+        Vt(i,k) = e[i];
     };
   };
 
@@ -253,50 +268,50 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
 
   // Generate U.
 
-  for (SizeType j=nct;j < nu;++j) {
-    for (SizeType i=0;i<N;++i)
-      U(i,j) = 0.0;
-    U(j,j) = 1.0;
+  for (SizeType j = nct; j < nu; ++j) {
+    for (SizeType i = 0; i < N; ++i)
+      Ut(i,j) = 0.0;
+    Ut(j,j) = 1.0;
   };
 
   for (int k = nct-1; k >= 0;--k) {
     if (fabs(E(k,k)) > NumTol) {
-      for (SizeType j=k+1;j < nu;++j) {
+      for (SizeType j = k+1; j < nu; ++j) {
         ValueType t = 0;
-        for (SizeType i=k;i < N;++i)
-          t += U(i,k)*U(i,j);
-        t = -t/U(k,k);
-        for (SizeType i=k;i < N;++i)
-          U(i,j) += t*U(i,k);
+        for (SizeType i = k; i < N; ++i)
+          t += Ut(i,k)*Ut(i,j);
+        t = -t/Ut(k,k);
+        for (SizeType i = k; i < N; ++i)
+          Ut(i,j) += t*Ut(i,k);
       };
-      for (SizeType i=k;i < N;++i)
-        U(i,k) = -U(i,k);
-      U(k,k) = 1.0 + U(k,k);
+      for (SizeType i = k; i < N; ++i)
+        Ut(i,k) = -Ut(i,k);
+      Ut(k,k) = 1.0 + Ut(k,k);
       for (SizeType i=0;int(i) < k-1;++i)
-        U(i,k) = 0.0;
+        Ut(i,k) = 0.0;
     } else {
-      for (SizeType i=0;i < N;++i)
-        U(i,k) = 0.0;
-      U(k,k) = 1.0;
+      for (SizeType i = 0; i < N; ++i)
+        Ut(i,k) = 0.0;
+      Ut(k,k) = 1.0;
     };
   };
 
   // Generate V.
 
-  for (int k=M-1;k >= 0;--k) {
+  for (int k = nu-1; k >= 0; --k) {
     if ((SizeType(k) < nrt) & (fabs(e[k]) > NumTol)) {
       for (SizeType j=k+1;j < nu;++j) {
         ValueType t = 0;
-        for (SizeType i=k+1;i < M;++i)
-          t += V(i,k)*V(i,j);
-        t = -t/V(k+1,k);
-        for (SizeType i=k+1;i < M;++i)
-          V(i,j) += t*V(i,k);
+        for (SizeType i = k+1; i < M; ++i)
+          t += Vt(i,k)*Vt(i,j);
+        t = -t/Vt(k+1,k);
+        for (SizeType i = k+1; i < M; ++i)
+          Vt(i,j) += t*Vt(i,k);
       };
     };
-    for (SizeType i=0;i < M;++i)
-      V(i,k) = 0.0;
-    V(k,k) = 1.0;
+    for (SizeType i = 0; i < M; ++i)
+      Vt(i,k) = 0.0;
+    Vt(k,k) = 1.0;
   };
 
   // Main iteration loop for the singular values.
@@ -370,9 +385,9 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
           e[j-1] = cs*e[j-1];
         };
         for (SizeType i=0;i < M;++i) {
-          t = cs*V(i,j) + sn*V(i,p-1);
-          V(i,p-1) = -sn*V(i,j) + cs*V(i,p-1);
-          V(i,j) = t;
+          t = cs*Vt(i,j) + sn*Vt(i,p-1);
+          Vt(i,p-1) = -sn*Vt(i,j) + cs*Vt(i,p-1);
+          Vt(i,j) = t;
         };
       };
     };
@@ -391,10 +406,10 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
         f = -sn*e[j];
         e[j] = cs*e[j];
 
-        for (SizeType i=0;i < N;++i) {
-          t = cs*U(i,j) + sn*U(i,k-1);
-          U(i,k-1) = -sn*U(i,j) + cs*U(i,k-1);
-          U(i,j) = t;
+        for (SizeType i = 0; i < N; ++i) {
+          t = cs*Ut(i,j) + sn*Ut(i,k-1);
+          Ut(i,k-1) = -sn*Ut(i,j) + cs*Ut(i,k-1);
+          Ut(i,j) = t;
         };
       };
     };
@@ -443,9 +458,9 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
         E(j+1,j+1) = cs*E(j+1,j+1);
 
         for (SizeType i=0;i < M;++i) {
-          t = cs*V(i,j) + sn*V(i,j+1);
-          V(i,j+1) = -sn*V(i,j) + cs*V(i,j+1);
-          V(i,j) = t;
+          t = cs*Vt(i,j) + sn*Vt(i,j+1);
+          Vt(i,j+1) = -sn*Vt(i,j) + cs*Vt(i,j+1);
+          Vt(i,j) = t;
         };
         t = sqrt(f*f + g*g);
         cs = f/t;
@@ -456,10 +471,10 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
         g = sn*e[j+1];
         e[j+1] = cs*e[j+1];
         if (j < N-1) {
-          for (SizeType i=0;i < N;++i) {
-            t = cs*U(i,j) + sn*U(i,j+1);
-            U(i,j+1) = -sn*U(i,j) + cs*U(i,j+1);
-            U(i,j) = t;
+          for (SizeType i = 0; i < N; ++i) {
+            t = cs*Ut(i,j) + sn*Ut(i,j+1);
+            Ut(i,j+1) = -sn*Ut(i,j) + cs*Ut(i,j+1);
+            Ut(i,j) = t;
           };
         };
       };
@@ -477,7 +492,7 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
       if (E(k,k) <= 0.0) {
         E(k,k) = (E(k,k) < 0.0 ? -E(k,k) : 0.0);
         for (SizeType i=0;i <= SizeType(pp);++i)
-          V(i,k) = -V(i,k);
+          Vt(i,k) = -Vt(i,k);
       };
 
       // Order the singular values.
@@ -488,10 +503,10 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
 	swap(E(k,k),E(k+1,k+1));
         if (k < int(M-1))
           for (SizeType i = 0;i < M;++i)
-	    swap(V(i,k),V(i,k+1));
+	    swap(Vt(i,k),Vt(i,k+1));
         if (k < int(N-1))
-          for (SizeType i=0;i < N;++i)
-	    swap(U(i,k),U(i,k+1));
+          for (SizeType i = 0; i < N; ++i)
+	    swap(Ut(i,k),Ut(i,k+1));
         k++;
       };
       iter = 0;
@@ -499,6 +514,15 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
     };
       break;
     };
+  };
+  
+  
+  if(A.get_row_count() < A.get_col_count()) {
+    U = Vt;
+    V = Ut;
+  } else {
+    U = Ut;
+    V = Vt;
   };
 
   return;
@@ -593,7 +617,7 @@ typename Matrix::value_type >::type norm_2(const Matrix& A, typename Matrix::val
   int nu = (A.get_row_count() > A.get_col_count() ? A.get_col_count() : A.get_row_count());
   mat<ValueType,mat_structure::rectangular> U(A.get_row_count(),nu);
   mat<ValueType,mat_structure::diagonal> E(nu);
-  mat<ValueType,mat_structure::square> V(A.get_col_count());
+  mat<ValueType,mat_structure::rectangular> V(A.get_col_count(),nu);
 
   decompose_SVD(A,U,E,V,NumTol);
   
@@ -667,9 +691,9 @@ void >::type pseudoinvert_SVD(const Matrix1& U, const Matrix2& E, const Matrix3&
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   using std::fabs;
   
-  A_pinv.set_row_count(V.get_col_count());
+  A_pinv.set_row_count(V.get_row_count());
   A_pinv.set_col_count(U.get_row_count());
-  for(SizeType i=0;i<V.get_col_count();++i) {
+  for(SizeType i=0;i<V.get_row_count();++i) {
     for(SizeType j=0;j<U.get_row_count();++j) {
       A_pinv(i,j) = 0.0;
       for(SizeType k=0;k<E.get_row_count();++k) {
@@ -729,14 +753,14 @@ void >::type pseudoinvert_SVD(const Matrix1& A, Matrix2& A_pinv, typename mat_tr
   int nu = (A.get_row_count() > A.get_col_count() ? A.get_col_count() : A.get_row_count());
   mat<ValueType,mat_structure::rectangular> U(A.get_row_count(),nu);
   mat<ValueType,mat_structure::diagonal> E(nu);
-  mat<ValueType,mat_structure::square> V(A.get_col_count());
+  mat<ValueType,mat_structure::rectangular> V(A.get_col_count(),nu);
 
   decompose_SVD(A,U,E,V,NumTol);
 
-  A_pinv.set_row_count(V.get_col_count());
+  A_pinv.set_row_count(V.get_row_count());
   A_pinv.set_col_count(U.get_row_count());
 
-  for(SizeType i=0;i<V.get_col_count();++i) {
+  for(SizeType i=0;i<V.get_row_count();++i) {
     for(SizeType j=0;j<U.get_row_count();++j) {
       A_pinv(i,j) = 0.0;
       for(SizeType k=0;k<E.get_row_count();++k) {
@@ -762,6 +786,8 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_writable_matrix<Matrix2>::value &&
                              !is_fully_writable_matrix<Matrix2>::value, 
 void >::type pseudoinvert_SVD(const Matrix1& A, Matrix2& A_pinv, typename mat_traits<Matrix1>::value_type NumTol = 1E-15) {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  
   mat<typename mat_traits<Matrix1>::value_type, mat_structure::rectangular> A_pinv_tmp(A.get_col_count(),A.get_row_count());
   pseudoinvert_SVD(A,A_pinv_tmp,NumTol);
   A_pinv = A_pinv_tmp;
