@@ -36,6 +36,8 @@
 
 #include "mat_schur_decomp.hpp"
 
+#include "mat_ctrl_decomp.hpp"
+
 #define BOOST_TEST_DYN_LINK
 
 #define BOOST_TEST_MODULE mat_num
@@ -196,6 +198,34 @@ BOOST_AUTO_TEST_CASE( mat_decompositions_tests )
     BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), std::numeric_limits<double>::epsilon()) );
     BOOST_CHECK( is_upper_triangular(m_test_R, std::numeric_limits<double>::epsilon()) );
     BOOST_CHECK( is_null_mat((m_test_Q * m_test_R - m_test), 4.0 * std::numeric_limits<double>::epsilon()) );
+    
+    mat<double,mat_structure::rectangular> m_test_minnorm_x(3,2);
+    mat<double,mat_structure::rectangular> m_test_minnorm_b(2,2);
+    m_test_minnorm_b(0,0) = 4.0; m_test_minnorm_b(0,1) = 5.0; 
+    m_test_minnorm_b(1,0) = 7.0; m_test_minnorm_b(1,1) = 8.0; 
+    
+    BOOST_CHECK_NO_THROW( (minnorm_QR(m_test, m_test_minnorm_x, m_test_minnorm_b, 1e-6)) );
+    BOOST_CHECK( is_null_mat( m_test * m_test_minnorm_x - m_test_minnorm_b, 1e-6) );
+    
+    
+#if 0
+    // it seems that this SVD implementation cannot be used for min-norm pseudo-invert
+    mat<double,mat_structure::rectangular> m_test_svd_pinv(3,2);
+    
+    int nu = (m_test.get_row_count() > m_test.get_col_count() ? m_test.get_col_count() : m_test.get_row_count());
+    mat<double,mat_structure::square> U(m_test.get_row_count());
+    mat<double,mat_structure::diagonal> E(nu);
+    mat<double,mat_structure::square> V(m_test.get_col_count());
+    
+    decompose_SVD(m_test,U,E,V,1e-6);
+    m_test_svd_pinv = V * invert(E) * transpose(U);
+    
+//     BOOST_CHECK_NO_THROW( pseudoinvert_SVD(m_test, m_test_svd_pinv, 1e-6) );
+    mat<double,mat_structure::rectangular> m_test_svd_x = m_test_svd_pinv * m_test_minnorm_b;
+    std::cout << "A x = " << (m_test * m_test_svd_x) << std::endl;
+    BOOST_CHECK( is_null_mat( m_test * m_test_svd_x - m_test_minnorm_b, 1e-6) );
+#endif
+    
   };
   
   {
@@ -203,6 +233,11 @@ BOOST_AUTO_TEST_CASE( mat_decompositions_tests )
     m_test(0,0) = 1.0; m_test(0,1) = 3.0; m_test(0,2) = 0.0; 
     m_test(1,0) = 3.0; m_test(1,1) = 5.0; m_test(1,2) = 2.0; 
     m_test(2,0) = 0.0; m_test(2,1) = 2.0; m_test(2,2) = 4.0; 
+    
+    mat<double,mat_structure::rectangular> m_test_Gram = m_test;
+    BOOST_CHECK_NO_THROW( (orthogonalize_StableGramSchmidt(m_test_Gram, true, 1e-6)) );
+    BOOST_CHECK( is_identity_mat(m_test_Gram * transpose(m_test_Gram), 1e-6) );
+    
     mat<double,mat_structure::rectangular> m_test_R = m_test;
     mat<double,mat_structure::square> m_test_Q(mat<double,mat_structure::identity>(3));
     
@@ -306,6 +341,70 @@ BOOST_AUTO_TEST_CASE( mat_decompositions_tests )
   };
   
 };
+
+
+
+BOOST_AUTO_TEST_CASE( mat_ctrl_reduction_tests )
+{
+  
+  using namespace ReaK;
+  
+  std::size_t N = 6;
+  std::size_t M = 2;
+  
+  mat<double,mat_structure::rectangular> A(N,N);
+  mat<double,mat_structure::rectangular> B(N,M);
+  A(0,0) = 0.0; A(0,1) = 0.0; A(0,2) = 0.0; A(0,3) = 1.0; A(0,4) = 0.0; A(0,5) = 0.0;
+  A(1,0) = 0.0; A(1,1) = 0.0; A(1,2) = 0.0; A(1,3) = 0.0; A(1,4) = 1.0; A(1,5) = 0.0; 
+  A(2,0) = 0.0; A(2,1) = 0.0; A(2,2) = 0.0; A(2,3) = 0.0; A(2,4) = 0.0; A(2,5) = 1.0; 
+  A(3,0) = 0.0; A(3,1) = 0.0; A(3,2) = 0.0; A(3,3) = 0.0; A(3,4) = 0.0; A(3,5) = 0.0; 
+  A(4,0) = 0.0; A(4,1) = 0.0; A(4,2) = 0.0; A(4,3) = 0.0; A(4,4) = 0.0; A(4,5) = 0.0; 
+  A(5,0) = 0.0; A(5,1) = 0.0; A(5,2) = 0.0; A(5,3) = 0.0; A(5,4) = 0.0; A(5,5) = 0.0; 
+  
+  B(0,0) = 0.0; B(0,1) = 0.0;
+  B(1,0) = 0.0; B(1,1) = 0.0;
+  B(2,0) = 0.0; B(2,1) = 0.0;
+  B(3,0) = 0.0; B(3,1) = 0.0;
+  B(4,0) = 1.0; B(4,1) = 0.0;
+  B(5,0) = 0.0; B(5,1) = 1.0;
+  
+  mat<double,mat_structure::rectangular> Ar = A;
+  mat<double,mat_structure::rectangular> Br = B;
+  
+  mat<double,mat_structure::square> Q( (mat<double,mat_structure::identity>(N)) );
+  mat<double,mat_structure::square> Z( (mat<double,mat_structure::identity>(M)) );
+  std::size_t num_rank = N;
+  BOOST_CHECK_NO_THROW( num_rank = ctrl_reduction(Ar, Br, Q, Z, double(1E-15)) );
+  
+  // check basic structures, Q and Z being orthogonal, and equality is preserved (A = Q Ar Qt and B = Q Br Zt).
+  BOOST_CHECK( is_identity_mat(Q * transpose(Q), 4.0 * std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_identity_mat(Z * transpose(Z), 4.0 * std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( ( is_null_mat((Q * Ar * transpose(Q) - A), 10.0 * std::numeric_limits<double>::epsilon()) ) );
+  BOOST_CHECK( ( is_null_mat((Q * Br * transpose(Z) - B), 10.0 * std::numeric_limits<double>::epsilon()) ) );
+  
+  // Check the reduced controllability matrix:
+  mat<double,mat_structure::rectangular> Cr(N,M*N);
+  sub(Cr)(range(0,N-1),range(0,1))   = Br;
+  sub(Cr)(range(0,N-1),range(2,3))   = Ar * Br;
+  sub(Cr)(range(0,N-1),range(4,5))   = Ar * Ar * Br;
+  sub(Cr)(range(0,N-1),range(6,7))   = Ar * Ar * Ar * Br;
+  sub(Cr)(range(0,N-1),range(8,9))   = Ar * Ar * Ar * Ar * Br;
+  sub(Cr)(range(0,N-1),range(10,11)) = Ar * Ar * Ar * Ar * Ar * Br;
+  BOOST_CHECK_EQUAL( num_rank, 4 );
+  BOOST_CHECK( ( is_null_mat((sub(Cr)(range(num_rank,5),range(0,11))), 10.0 * std::numeric_limits<double>::epsilon()) ) );
+  
+  mat<double,mat_structure::diagonal> Er(num_rank);
+  mat<double,mat_structure::square> Ur(num_rank);
+  mat<double,mat_structure::square> Vr(M*N);
+  BOOST_CHECK_NO_THROW( decompose_SVD(sub(Cr)(range(0,num_rank-1),range(0,11)),Ur,Er,Vr,double(1E-15)) );
+  BOOST_CHECK_EQUAL( ( numrank_SVD(Er, double(1E-15)) ), num_rank );
+  
+};
+
+
+
+
+
 
 
 

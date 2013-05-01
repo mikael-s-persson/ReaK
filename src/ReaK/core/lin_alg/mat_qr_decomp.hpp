@@ -803,10 +803,10 @@ void >::type minnorm_QR(const Matrix1& A, Matrix2& x, const Matrix3& b, typename
   detail::decompose_QR_impl(R_t,static_cast<mat<ValueType,mat_structure::square>*>(NULL),NumTol);
   
   mat<ValueType,mat_structure::rectangular> b_tmp(b);
-  detail::backsub_R_impl(R_t,b_tmp,NumTol);
   detail::forwardsub_L_impl(R,b_tmp,NumTol);
+  detail::backsub_R_impl(R_t,b_tmp,NumTol);
   
-  x = transpose_view(A) * b;
+  x = transpose_view(A) * b_tmp;
 };
 
 

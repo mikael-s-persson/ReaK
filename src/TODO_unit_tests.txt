@@ -65,60 +65,76 @@ Core modules:
    - slices   ------------------------------------------------------ VOID
    - transpose-view   ---------------------------------------------- VOID
   - mat_num   -------------------------------------------------------- PART
-   - balance
-    - balance
-    - balance_pencil
-   - cholesky
-    - cholesky decomposition
-    - cholesky lin-solve
-    - cholesky invert
-    - band-cholesky decomposition
-    - band-cholesky lin-solve
-    - band-cholesky invert
-    - LDL decomposition
-    - LDL lin-solve
-    - LDL invert
-    - TriDiag-LDL decomposition
-    - TriDiag-LDL lin-solve
-    - TriDiag-LDL invert
-    - PLTLP decomposition
-    - PLTLP lin-solve
-    - PLTLP invert
-   - controllability reduction
-   - damped-matrix
-   - matrix exponential (Padé Square-and-Sum)
-   - gaussian elimination
-    - gaussian invert
-    - PLU lin-solve
-    - PLU invert
-   - Givens rotations
-   - Householder reflections
-   - Hessenberg decompositions
-    - Upper-Hessenberg decomposition
-    - Hessenberg-Triangular reduction
-   - Jacobi method
-    - Jacobi eigen-solve
-    - Jacobi linlsq-solve
-    - Jacobi pseudo-invert
-   - QR decomposition
-    - Stable-GramSchmidt orthogonalization
-    - QR decomposition
-    - QR linlsq-solve
-    - RRQR linlsq-solve
-    - QR minnorm-solve
-    - R backsub
-    - QR invert
-    - QR pseudo-invert
-   - Schur decompositions
-    - Symmetric-QR eigen-solve
-    - Symmetric-QR pseudo-invert
-    - Symmetric-QR lin-solve
-    - Real-Schur decomposition
-    - Generalized Real-Schur decomposition
-   - Star product
-   - SVD decomposition
-    - SVD decomposition
-    - SVD pseudo-invert
+   - balance   ----------------------------------------------------- VOID
+    - balance   ---------------------------------------------------- VOID
+    - balance_pencil   --------------------------------------------- VOID
+   - cholesky   ------------------------------------------------------ PART
+    - cholesky decomposition   --------------------------------------- PASS (used in cholesky invert)
+    - cholesky lin-solve   ------------------------------------------- PASS (used in cholesky invert)
+    - cholesky invert   ---------------------------------------------- PASS
+    - band-cholesky decomposition   ---------------------------------- PASS (used by band-cholesky invert)
+    - band-cholesky lin-solve   -------------------------------------- PASS (used by band-cholesky invert)
+    - band-cholesky invert   ----------------------------------------- PASS
+    - LDL decomposition   -------------------------------------------- PASS (used by LDL invert)
+    - LDL lin-solve   ------------------------------------------------ PASS (used by LDL invert)
+    - LDL invert   --------------------------------------------------- PASS
+    - TriDiag-LDL decomposition   -------------------------------- FAIL
+    - TriDiag-LDL lin-solve   -------------------------------------- VOID
+    - TriDiag-LDL invert   ----------------------------------------- VOID
+    - PLTLP decomposition   -------------------------------------- FAIL
+    - PLTLP lin-solve   -------------------------------------------- VOID
+    - PLTLP invert   ----------------------------------------------- VOID
+   - controllability reduction   ------------------------------------- PASS
+   - damped-matrix   ----------------------------------------------- VOID    (a bit trivial)
+   - matrix exponential (Padé Square-and-Sum)   -------------------- VOID
+   - gaussian elimination   ------------------------------------------ PASS
+    - gaussian invert   ---------------------------------------------- PASS
+    - PLU lin-solve   ------------------------------------------------ PASS (used by PLU invert)
+    - PLU invert   --------------------------------------------------- PASS
+   - Givens rotations   ---------------------------------------------- PASS (part of many other methods)
+   - Householder reflections   --------------------------------------- PASS (part of QR and other methods)
+   - Hessenberg decompositions   ------------------------------------- PART (part of Schur decomp)
+    - Upper-Hessenberg decomposition   ----------------------------- VOID   (part of Real-Schur)
+    - Hessenberg-Triangular reduction   ------------------------------ PASS (part of Gen. Real-Schur)
+   - Jacobi method   --------------------------------------------- FAIL
+    - Jacobi eigen-solve   --------------------------------------- FAIL
+    - Jacobi linlsq-solve   -------------------------------------- FAIL
+    - Jacobi pseudo-invert   ------------------------------------- FAIL
+   - QR decomposition   ---------------------------------------------- PART
+    - Stable-GramSchmidt orthogonalization   ------------------------- PASS
+    - RRQR decomposition   ------------------------------------------- PASS (used by controllability reduction)
+    - QR decomposition   --------------------------------------------- PASS (used by QR pseudo-invert)
+    - QR linlsq-solve   ---------------------------------------------- PASS (used by QR pseudo-invert)
+    - RRQR linlsq-solve   ------------------------------------------ VOID
+    - RRQR linlsq-solve (rank-deficient)   ------------------------- VOID
+    - RRQR minnorm-solve   ----------------------------------------- VOID
+    - QR minnorm-solve   --------------------------------------------- PASS
+    - R backsub   ---------------------------------------------------- PASS
+    - QR invert   ---------------------------------------------------- PASS
+    - QR pseudo-invert   --------------------------------------------- PASS
+   - Schur decompositions   ------------------------------------------ PART
+    - Symmetric-QR eigen-solve   ------------------------------------- PASS
+    - Symmetric-QR pseudo-invert   ----------------------------------- PASS
+    - Symmetric-QR lin-solve   --------------------------------------- PASS (used by SymQR pseudo-invert)
+    - Real-Schur decomposition   ----------------------------------- VOID
+    - Generalized Real-Schur decomposition   ------------------------- PASS (part of DARE/CARE solvers)
+   - Star product   -------------------------------------------------- PASS (only wraps SVD pseudo-invert call + matrix concatenation)
+   - SVD decomposition   --------------------------------------------- PASS
+    - SVD decomposition   -------------------------------------------- PASS
+    - SVD pseudo-invert   -------------------------------------------- PASS
+    - SVD pseudo-invert (min-norm)   ----------------------------- FAIL
+   - Algebraic Riccati Equation (ARE) Solvers   ---------------------- PART
+    - Continuous-time ARE solver   ----------------------------------- PASS
+    - inf.-horizon continuous-time (IHCT) LQR synthesis   ------------ PASS  (only wraps CARE algorithm)
+    - inf.-horizon continuous-time (IHCT) LQR with ctrl-redux   ------ PASS  (only wraps CARE algorithm + controllability reduction)
+    - inf.-horizon continuous-time (IHCT) AQR synthesis   ------------ PASS  (only wraps CARE algorithm)
+    - inf.-horizon continuous-time (IHCT) AQR with ctrl-redux   ------ PASS  (only wraps CARE algorithm + controllability reduction)
+    - inf.-horizon continuous-time (IHCT) LQG synthesis   ------------ PASS  (only wraps CARE algorithm)
+    - Discrete-time ARE solver   ------------------------------------- PASS
+    - inf.-horizon discrete-time (IHDT) LQR synthesis   -------------- PASS  (only wraps DARE algorithm)
+    - inf.-horizon discrete-time (IHDT) LQG synthesis   -------------- PASS  (only wraps DARE algorithm)
+    - Continuous-time Spectral Factorization (CTSF)   -------------- VOID
+    - Discrete-time Spectral Factorization (DTSF)   ---------------- VOID
  - core/kinetostatics   ---------------------------------------------- PART
   - 2D rotations / transforms   -------------------------------------- PASS
   - 3D rotations / transforms   -------------------------------------- PASS
