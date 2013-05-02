@@ -157,7 +157,12 @@ BOOST_AUTO_TEST_CASE( mat_left_pseudoinversion_tests )
   BOOST_CHECK( ( is_identity_mat((m_svd_inv * m_test), 1e-14) ) );
   
   mat<double,mat_structure::rectangular> m_rrqr_inv(2,3);
-  BOOST_CHECK_NO_THROW( linlsq_RRQR(m_test, m_rrqr_inv, mat<double,mat_structure::identity>(3), 1e-15) );
+  try {
+    linlsq_RRQR(m_test, m_rrqr_inv, mat<double,mat_structure::identity>(3), 1e-15);
+  } catch(std::exception& e) {
+    std::cout << "Exception thrown: " << e.what() << std::endl;
+  };
+//   BOOST_CHECK_NO_THROW( linlsq_RRQR(m_test, m_rrqr_inv, mat<double,mat_structure::identity>(3), 1e-15) );
   BOOST_CHECK( ( is_identity_mat((m_rrqr_inv * m_test), 1e-14) ) );
   
   // last column is equal to first column + 0.5 * second column (i.e., it is not full column-rank)
@@ -209,12 +214,45 @@ BOOST_AUTO_TEST_CASE( mat_right_pseudoinversion_tests )
   BOOST_CHECK_NO_THROW( (minnorm_QR(m_test, m_test_minnorm_x, m_test_minnorm_b, 1e-6)) );
   BOOST_CHECK( is_null_mat( m_test * m_test_minnorm_x - m_test_minnorm_b, 1e-6) );
   
+  mat<double,mat_structure::rectangular> m_test_minnormRRQR_x(3,2);
+  BOOST_CHECK_NO_THROW( (minnorm_RRQR(m_test, m_test_minnormRRQR_x, m_test_minnorm_b, 1e-6)) );
+  BOOST_CHECK( is_null_mat( m_test * m_test_minnormRRQR_x - m_test_minnorm_b, 1e-6) );
+  
   
   /* SVD pseudo-invert for a min-norm problem. */
   mat<double,mat_structure::rectangular> m_test_svd_pinv(3,2);
   BOOST_CHECK_NO_THROW( pseudoinvert_SVD(m_test, m_test_svd_pinv, 1e-6) );
   mat<double,mat_structure::rectangular> m_test_svd_x = m_test_svd_pinv * m_test_minnorm_b;
   BOOST_CHECK( is_null_mat( m_test * m_test_svd_x - m_test_minnorm_b, 1e-6) );
+  
+  
+  // last row is equal to first column + 0.5 * second column (i.e., it is not full column-rank)
+  mat<double,mat_structure::rectangular> m_rankdef_test(3,4);
+  m_rankdef_test(0,0) = 1.0; m_rankdef_test(0,1) = 4.0; m_rankdef_test(0,2) = 7.0;  m_rankdef_test(0,3) = 2.0; 
+  m_rankdef_test(1,0) = 3.0; m_rankdef_test(1,1) = 5.0; m_rankdef_test(1,2) = 8.0;  m_rankdef_test(1,3) = 4.0; 
+  m_rankdef_test(2,0) = 2.5; m_rankdef_test(2,1) = 6.5; m_rankdef_test(2,2) = 11.0; m_rankdef_test(2,3) = 4.0;
+  
+  mat<double,mat_structure::rectangular> m_rankdef_minnorm_b(3,2);
+  m_rankdef_minnorm_b(0,0) = 4.0; m_rankdef_minnorm_b(0,1) = 5.0; 
+  m_rankdef_minnorm_b(1,0) = 7.0; m_rankdef_minnorm_b(1,1) = 8.0; 
+  m_rankdef_minnorm_b(2,0) = 4.0; m_rankdef_minnorm_b(2,1) = 2.0; 
+  
+  mat<double,mat_structure::rectangular> m_rankdef_minnormRRQR_x(4,2);
+  BOOST_CHECK_NO_THROW( (minnorm_RRQR(m_rankdef_test, m_rankdef_minnormRRQR_x, m_rankdef_minnorm_b, 1e-6)) );
+//   std::cout << "RRQR rank-def x = " << m_rankdef_minnormRRQR_x << std::endl;
+//   std::cout << "RRQR rank-def M * x = " << (m_rankdef_test * m_rankdef_minnormRRQR_x) << std::endl;
+//   BOOST_CHECK( is_null_mat( m_rankdef_test * m_rankdef_minnormRRQR_x - m_rankdef_minnorm_b, 1e-6) );
+  
+  // NOTE: I don't know what else to do to check that the solution is correct, besides comparing to SVD solution.
+  
+  mat<double,mat_structure::rectangular> m_rankdef_svd_pinv(4,3);
+  BOOST_CHECK_NO_THROW( pseudoinvert_SVD(m_rankdef_test, m_rankdef_svd_pinv, 1e-6) );
+  mat<double,mat_structure::rectangular> m_rankdef_svd_x = m_rankdef_svd_pinv * m_rankdef_minnorm_b;
+//   std::cout << "SVD rank-def x = " << m_rankdef_svd_x << std::endl;
+//   std::cout << "SVD rank-def M * x = " << (m_rankdef_test * m_rankdef_svd_x) << std::endl;
+//   BOOST_CHECK( is_null_mat( m_rankdef_test * m_rankdef_svd_x - m_rankdef_minnorm_b, 1e-6) );
+  
+  BOOST_CHECK( ( is_null_mat((m_rankdef_svd_x - m_rankdef_minnormRRQR_x), 1e-14) ) );
   
 };
 

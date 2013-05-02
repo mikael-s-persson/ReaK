@@ -244,23 +244,27 @@ template void linlsq_QR(const mat<double,mat_structure::rectangular>& A, mat<dou
 template void linlsq_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
 template void linlsq_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
 
-template void linlsq_RRQR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
-template void linlsq_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
-template void linlsq_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
-
 template void minnorm_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
 template void minnorm_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
 template void minnorm_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
-
-template void invert_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
-template void invert_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
-template void invert_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
-template void invert_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
 
 template void pseudoinvert_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
 template void pseudoinvert_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
 template void pseudoinvert_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
 template void pseudoinvert_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
+
+template void linlsq_RRQR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+template void linlsq_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+template void linlsq_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
+
+template void minnorm_RRQR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+template void minnorm_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+template void minnorm_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
+
+template void pseudoinvert_RRQR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+template void pseudoinvert_RRQR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
+template void pseudoinvert_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+template void pseudoinvert_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
 
 
 template void decompose_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& Q, mat<float,mat_structure::rectangular>& R, float NumTol);
@@ -274,23 +278,27 @@ template void linlsq_QR(const mat<float,mat_structure::rectangular>& A, mat<floa
 template void linlsq_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
 template void linlsq_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
 
-template void linlsq_RRQR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
-template void linlsq_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
-template void linlsq_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
-
 template void minnorm_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
 template void minnorm_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
 template void minnorm_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
-
-template void invert_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
-template void invert_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
-template void invert_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
-template void invert_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
 
 template void pseudoinvert_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
 template void pseudoinvert_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
 template void pseudoinvert_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
 template void pseudoinvert_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
+
+template void linlsq_RRQR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+template void linlsq_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+template void linlsq_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
+
+template void minnorm_RRQR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+template void minnorm_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+template void minnorm_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
+
+template void pseudoinvert_RRQR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+template void pseudoinvert_RRQR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
+template void pseudoinvert_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+template void pseudoinvert_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
 
 
 

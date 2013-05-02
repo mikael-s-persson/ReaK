@@ -680,101 +680,14 @@ struct QR_linlsqsolver {
 };
 
 
+
 /**
- * Solves the linear least square problem (AX \approx B or X = min_X(||AX - B||)) via Householder 
- * reflections and a column-pivot strategy to reveal the column-rank of A.
+ * Solves the linear minimum-norm problem (AX = B with min_X(||X||)) via QR decomposition.
  *
  * \tparam Matrix1 A readable matrix type.
  * \tparam Matrix2 A fully-writable matrix type.
  * \tparam Matrix3 A readable matrix type.
- * \param A rectangular matrix with row-count >= column-count.
- * \param x stores the solution matrix as output (ColCount x ColCount2).
- * \param b stores the RHS of the linear system of equation (RowCount x ColCount2).
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- *
- * \throws std::range_error if the matrix A does not have equal-or-more rows than columns or if b's
- *                          row count does not match that of A or if x's row count does not match the
- *                          column count of A.
- *
- * \author Mikael Persson
- */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             is_fully_writable_matrix<Matrix2>::value &&
-                             is_readable_matrix<Matrix3>::value,
-void >::type linlsq_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-  if(A.get_row_count() < A.get_col_count())
-    throw std::range_error("Linear Least-square solution is only possible on a matrix with row-count >= column-count!");
-  if(A.get_row_count() != b.get_row_count())
-    throw std::range_error("Linear Least-square solution is only possible if row count of b is equal to row count of A!");
-
-  typedef typename mat_traits<Matrix1>::value_type ValueType;
-  typedef typename mat_traits<Matrix1>::size_type SizeType;
-  
-  mat<ValueType,mat_structure::rectangular> R(A);
-  mat<ValueType,mat_structure::square> Q = mat<ValueType,mat_structure::square>(mat<ValueType,mat_structure::identity>(A.get_row_count()));
-  mat<ValueType,mat_structure::permutation> P(A.get_col_count());
-  
-  mat<ValueType,mat_structure::rectangular> x_tmp = transpose_view(R) * b;
-  
-  SizeType K = detail::decompose_RRQR_impl(R,&Q,P,NumTol);
-  
-  x_tmp = transpose(P) * x_tmp;
-  
-  if(K < A.get_col_count()) {
-    // A is rank-deficient.
-    mat<ValueType,mat_structure::rectangular> L(A.get_col_count(), K);
-    for(SizeType i = 0; i < K; ++i)
-      for(SizeType j = i; j < A.get_col_count(); ++j)
-        L(j,i) = R(i,j);
-    // solve the problem L x2 = x
-    mat<ValueType,mat_structure::rectangular> x_tmp2(K,x_tmp.get_col_count());
-    mat<ValueType,mat_structure::square> LQ(mat<ValueType,mat_structure::identity>(A.get_col_count()));
-    detail::decompose_QR_impl(L,&LQ,NumTol);
-    x_tmp = transpose_view(LQ) * x_tmp;
-    for(SizeType i = 0; i < x_tmp.get_col_count(); ++i) 
-      for(SizeType j = 0; j < K; ++j)
-        x_tmp2(j,i) = x_tmp(j,i);
-    detail::backsub_R_impl(L, x_tmp2, NumTol);
-    // solve the problem: Lt x3 = x2
-    detail::forwardsub_L_impl(transpose_view(L), x_tmp2, NumTol);
-    for(SizeType i = 0; i < x_tmp.get_col_count(); ++i) { 
-      for(SizeType j = 0; j < K; ++j)
-        x_tmp(j,i) = x_tmp2(j,i);
-      for(SizeType j = K; j < x_tmp.get_row_count(); ++j)
-        x_tmp(j,i) = ValueType(0.0);
-    };
-    x_tmp = LQ * x_tmp;
-  } else {
-    // A is full-rank.
-    detail::forwardsub_L_impl(transpose_view(R),x_tmp,NumTol);
-    detail::backsub_R_impl(R,x_tmp,NumTol);
-  };
-  
-  x = P * x_tmp;
-};
-
-
-/**
- * Functor to wrap a call to a QR decomposition-based linear-least-square solver.
- */
-struct RRQR_linlsqsolver {
-  template <typename Matrix1, typename Matrix2, typename Matrix3>
-  void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-    linlsq_RRQR(A,X,B,NumTol);
-  };
-};
-
-
-
-/**
- * Solves the linear minimum-norm problem (AX = B with min_X(||X||)) via Householder reflections.
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \tparam Matrix3 A readable matrix type.
- * \param A rectangular matrix with row-count >= column-count.
+ * \param A rectangular matrix with row-count <= column-count.
  * \param x stores the solution matrix as output (ColCount x ColCount2).
  * \param b stores the RHS of the linear system of equation (RowCount x ColCount2).
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
@@ -800,13 +713,13 @@ void >::type minnorm_QR(const Matrix1& A, Matrix2& x, const Matrix3& b, typename
   
   mat<ValueType,mat_structure::rectangular> R(A);
   mat_transpose_view< mat<ValueType,mat_structure::rectangular> > R_t(R);
-  detail::decompose_QR_impl(R_t,static_cast<mat<ValueType,mat_structure::square>*>(NULL),NumTol);
+  mat<ValueType,mat_structure::square> Q = mat<ValueType,mat_structure::square>(mat<ValueType,mat_structure::identity>(A.get_col_count()));
+  detail::decompose_QR_impl(R_t, &Q, NumTol);
   
   mat<ValueType,mat_structure::rectangular> b_tmp(b);
-  detail::forwardsub_L_impl(R,b_tmp,NumTol);
-  detail::backsub_R_impl(R_t,b_tmp,NumTol);
+  detail::forwardsub_L_impl(R, b_tmp, NumTol);
+  x = sub(Q)(range(0, A.get_col_count()-1),range(0, A.get_row_count()-1)) * b_tmp;
   
-  x = transpose_view(A) * b_tmp;
 };
 
 
@@ -819,6 +732,8 @@ struct QR_minnormsolver {
     minnorm_QR(A,X,B,NumTol);
   };
 };
+
+
 
 
 /**
@@ -878,40 +793,14 @@ void >::type backsub_R(const Matrix1& R, Matrix2& x, typename mat_traits<Matrix1
 };
 
 
-
 /**
- * Computes the inverse of a matrix via Householder reflections.
+ * Computes the pseudo-inverse of a matrix via Householder reflections (left/right Moore-Penrose Pseudo-Inverse).
+ * A_pinv = (A^T A)^-1 A^T (if M >= N)
+ * A_pinv = A^T (A A^T)^-1 (if M < N)
  *
  * \tparam Matrix1 A readable matrix type.
  * \tparam Matrix2 A fully-writable matrix type.
- * \param A real rectangular matrix with row-count >= column-count.
- * \param A_pinv real rectangular matrix which is the pseudo-inverse of A.
- * \param NumTol tolerance for considering a value to be zero in avoiding divisions
- *               by zero and singularities.
- *
- * \throws std::range_error if the matrix A does not have equal-or-more rows than columns.
- *
- * \author Mikael Persson
- */
-template <typename Matrix1, typename Matrix2>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             is_fully_writable_matrix<Matrix2>::value, 
-void >::type invert_QR(const Matrix1& A, Matrix2& A_pinv, typename mat_traits<Matrix1>::value_type NumTol = 1E-8)  {
-  if(A.get_row_count() < A.get_col_count())
-    throw std::range_error("Pseudo-inverse with QR is only possible on a matrix with row-count >= column-count!");
-
-  detail::linlsq_QR_impl(A,A_pinv,mat<typename mat_traits<Matrix1>::value_type,mat_structure::identity>(A.get_row_count()),NumTol);
-};
-
-
-
-/**
- * Computes the pseudo-inverse of a matrix via Householder reflections (left-Moore-Penrose Pseudo-Inverse).
- * A_pinv = (A^T A)^-1 A^T
- *
- * \tparam Matrix1 A readable matrix type.
- * \tparam Matrix2 A fully-writable matrix type.
- * \param A real rectangular matrix with row-count >= column-count.
+ * \param A real rectangular matrix.
  * \param A_pinv real rectangular matrix which is the pseudo-inverse of A.
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
@@ -924,17 +813,188 @@ template <typename Matrix1, typename Matrix2>
 typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix2>::value, 
 void >::type pseudoinvert_QR(const Matrix1& A, Matrix2& A_pinv, typename mat_traits<Matrix1>::value_type NumTol = 1E-8)  {
-  if(A.get_row_count() < A.get_col_count())
-    throw std::range_error("Pseudo-inverse with QR is only possible on a matrix with row-count >= column-count!");
-
+  
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   
-  mat<ValueType,mat_structure::rectangular> R(A);
-  detail::decompose_QR_impl(R,static_cast<mat<ValueType,mat_structure::square>*>(NULL),NumTol);
-
-  A_pinv = transpose(A);
-  detail::backsub_Cholesky_impl(transpose_move(R),A_pinv);
+  if(A.get_row_count() < A.get_col_count()) {
+    minnorm_QR(A, A_pinv, mat<ValueType,mat_structure::identity>(A.get_row_count()), NumTol);
+  } else {
+    linlsq_QR(A, A_pinv, mat<ValueType,mat_structure::identity>(A.get_row_count()), NumTol);
+  };
+  
 };
+
+
+
+
+
+
+/**
+ * Solves the linear least square problem (AX \approx B or X = min_X(||AX - B||)) via Householder 
+ * reflections and a column-pivot strategy to reveal the column-rank of A.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \param A rectangular matrix with row-count >= column-count.
+ * \param x stores the solution matrix as output (ColCount x ColCount2).
+ * \param b stores the RHS of the linear system of equation (RowCount x ColCount2).
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix A does not have equal-or-more rows than columns or if b's
+ *                          row count does not match that of A or if x's row count does not match the
+ *                          column count of A.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
+                             is_fully_writable_matrix<Matrix2>::value &&
+                             is_readable_matrix<Matrix3>::value,
+void >::type linlsq_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  if(A.get_row_count() < A.get_col_count())
+    throw std::range_error("Linear Least-square solution is only possible on a matrix with row-count >= column-count!");
+  if(A.get_row_count() != b.get_row_count())
+    throw std::range_error("Linear Least-square solution is only possible if row count of b is equal to row count of A!");
+
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  
+  mat<ValueType,mat_structure::rectangular> R(A);
+  mat<ValueType,mat_structure::square> Q = mat<ValueType,mat_structure::square>(mat<ValueType,mat_structure::identity>(A.get_row_count()));
+  mat<ValueType,mat_structure::permutation> P(A.get_col_count());
+  
+  SizeType K = detail::decompose_RRQR_impl(R,&Q,P,NumTol);
+  mat_sub_block< mat<ValueType,mat_structure::square> > subQ(Q, A.get_row_count(), A.get_col_count());
+  mat<ValueType,mat_structure::rectangular> x_tmp(transpose_view(subQ) * b);
+  
+  if(K < A.get_col_count()) {
+    // A is rank-deficient.
+    mat<ValueType,mat_structure::rectangular> x_tmp2(R.get_col_count(), x_tmp.get_col_count());
+    minnorm_QR(sub(R)(range(0,K-1),range(0,R.get_col_count()-1)), x_tmp2, sub(x_tmp)(range(0,K-1),range(0,x_tmp.get_col_count()-1)), NumTol);
+    x_tmp = x_tmp2;
+  } else {
+    // A is full-rank.
+    detail::backsub_R_impl(R,x_tmp,NumTol);
+  };
+  
+  x = P * x_tmp;
+};
+
+
+/**
+ * Functor to wrap a call to a QR decomposition-based linear-least-square solver.
+ */
+struct RRQR_linlsqsolver {
+  template <typename Matrix1, typename Matrix2, typename Matrix3>
+  void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+    linlsq_RRQR(A,X,B,NumTol);
+  };
+};
+
+
+
+
+
+/**
+ * Solves the linear minimum-norm problem (AX = B with min_X(||X||)) via RRQR decomposition.
+ *
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \tparam Matrix3 A readable matrix type.
+ * \param A rectangular matrix with row-count <= column-count.
+ * \param x stores the solution matrix as output (ColCount x ColCount2).
+ * \param b stores the RHS of the linear system of equation (RowCount x ColCount2).
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix A does not have equal-or-more rows than columns or if b's
+ *                          row count does not match that of A or if x's row count does not match the
+ *                          column count of A.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2, typename Matrix3>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
+                             is_fully_writable_matrix<Matrix2>::value &&
+                             is_readable_matrix<Matrix3>::value,
+void >::type minnorm_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+  if(A.get_row_count() > A.get_col_count())
+    throw std::range_error("Linear Minimum-norm solution is only possible on a matrix with row-count <= column-count!");
+  if(A.get_row_count() != b.get_row_count())
+    throw std::range_error("Linear Minimum-norm solution is only possible if row count of b is equal to row count of A!");
+
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  
+  mat<ValueType,mat_structure::rectangular> R(A);
+  mat_transpose_view< mat<ValueType,mat_structure::rectangular> > R_t(R);
+  mat<ValueType,mat_structure::square> Q = mat<ValueType,mat_structure::square>(mat<ValueType,mat_structure::identity>(A.get_col_count()));
+  
+  mat<ValueType,mat_structure::permutation> P(A.get_col_count());
+  SizeType K = detail::decompose_RRQR_impl(R_t, &Q, P, NumTol);
+  
+  mat<ValueType,mat_structure::rectangular> b_tmp;
+  b_tmp = transpose(P) * b;
+  if(K < A.get_row_count()) {
+    mat<ValueType,mat_structure::rectangular> x_tmp(K, b.get_col_count());
+    detail::linlsq_QR_impl(sub(R)(range(0,A.get_row_count()-1),range(0,K-1)), x_tmp, b_tmp, NumTol);
+    for(SizeType i = 0; i < K; ++i)
+      for(SizeType j = 0; j < b_tmp.get_col_count(); ++j)
+        b_tmp(i,j) = x_tmp(i,j);
+    for(SizeType i = K; i < A.get_row_count(); ++i)
+      for(SizeType j = 0; j < b_tmp.get_col_count(); ++j)
+        b_tmp(i,j) = ValueType(0.0);
+  } else {
+    detail::forwardsub_L_impl(R, b_tmp, NumTol);
+  };
+  
+  x = sub(Q)(range(0, A.get_col_count()-1),range(0, A.get_row_count()-1)) * b_tmp;
+};
+
+
+/**
+ * Functor to wrap a call to a RRQR decomposition-based linear minimum-norm solver.
+ */
+struct RRQR_minnormsolver {
+  template <typename Matrix1, typename Matrix2, typename Matrix3>
+  void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+    minnorm_RRQR(A,X,B,NumTol);
+  };
+};
+
+/**
+ * Computes the pseudo-inverse of a matrix via RRQR decomposition.
+ * A_pinv = (A^T A)^-1 A^T (if M >= N)
+ * A_pinv = A^T (A A^T)^-1 (if M < N)
+ * 
+ * \tparam Matrix1 A readable matrix type.
+ * \tparam Matrix2 A fully-writable matrix type.
+ * \param A real rectangular matrix with row-count.
+ * \param A_pinv real rectangular matrix which is the pseudo-inverse of A.
+ * \param NumTol tolerance for considering a value to be zero in avoiding divisions
+ *               by zero and singularities.
+ *
+ * \throws std::range_error if the matrix A does not have equal-or-more rows than columns.
+ *
+ * \author Mikael Persson
+ */
+template <typename Matrix1, typename Matrix2>
+typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
+                             is_fully_writable_matrix<Matrix2>::value, 
+void >::type pseudoinvert_RRQR(const Matrix1& A, Matrix2& A_pinv, typename mat_traits<Matrix1>::value_type NumTol = 1E-8)  {
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  
+  if(A.get_row_count() < A.get_col_count()) {
+    minnorm_RRQR(A, A_pinv, mat<ValueType,mat_structure::identity>(A.get_row_count()), NumTol);
+  } else {
+    linlsq_RRQR(A, A_pinv, mat<ValueType,mat_structure::identity>(A.get_row_count()), NumTol);
+  };
+};
+
+
+
 
 
 
@@ -954,23 +1014,28 @@ extern template void linlsq_QR(const mat<double,mat_structure::rectangular>& A, 
 extern template void linlsq_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
 extern template void linlsq_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
 
-extern template void linlsq_RRQR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
-extern template void linlsq_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
-extern template void linlsq_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
-
 extern template void minnorm_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
 extern template void minnorm_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
 extern template void minnorm_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
-
-extern template void invert_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
-extern template void invert_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
-extern template void invert_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
-extern template void invert_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
 
 extern template void pseudoinvert_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
 extern template void pseudoinvert_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
 extern template void pseudoinvert_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
 extern template void pseudoinvert_QR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
+
+extern template void linlsq_RRQR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+extern template void linlsq_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+extern template void linlsq_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
+
+extern template void minnorm_RRQR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+extern template void minnorm_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& x, const mat<double,mat_structure::rectangular>& b, double NumTol);
+extern template void minnorm_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& x, const mat<double,mat_structure::square>& b, double NumTol);
+
+extern template void pseudoinvert_RRQR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+extern template void pseudoinvert_RRQR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
+extern template void pseudoinvert_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
+extern template void pseudoinvert_RRQR(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
+
 
 
 extern template void decompose_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& Q, mat<float,mat_structure::rectangular>& R, float NumTol);
@@ -984,23 +1049,27 @@ extern template void linlsq_QR(const mat<float,mat_structure::rectangular>& A, m
 extern template void linlsq_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
 extern template void linlsq_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
 
-extern template void linlsq_RRQR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
-extern template void linlsq_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
-extern template void linlsq_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
-
 extern template void minnorm_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
 extern template void minnorm_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
 extern template void minnorm_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
-
-extern template void invert_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
-extern template void invert_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
-extern template void invert_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
-extern template void invert_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
 
 extern template void pseudoinvert_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
 extern template void pseudoinvert_QR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
 extern template void pseudoinvert_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
 extern template void pseudoinvert_QR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
+
+extern template void linlsq_RRQR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+extern template void linlsq_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+extern template void linlsq_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
+
+extern template void minnorm_RRQR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+extern template void minnorm_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& x, const mat<float,mat_structure::rectangular>& b, float NumTol);
+extern template void minnorm_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& x, const mat<float,mat_structure::square>& b, float NumTol);
+
+extern template void pseudoinvert_RRQR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+extern template void pseudoinvert_RRQR(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
+extern template void pseudoinvert_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
+extern template void pseudoinvert_RRQR(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
 
 
 #endif

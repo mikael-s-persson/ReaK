@@ -100,14 +100,15 @@ Core modules:
     - Jacobi eigen-solve   --------------------------------------- FAIL
     - Jacobi linlsq-solve   -------------------------------------- FAIL
     - Jacobi pseudo-invert   ------------------------------------- FAIL
-   - QR decomposition   ---------------------------------------------- PART
+   - QR decomposition   ---------------------------------------------- PASS
     - Stable-GramSchmidt orthogonalization   ------------------------- PASS
     - RRQR decomposition   ------------------------------------------- PASS (used by controllability reduction)
     - QR decomposition   --------------------------------------------- PASS (used by QR pseudo-invert)
     - QR linlsq-solve   ---------------------------------------------- PASS (used by QR pseudo-invert)
     - RRQR linlsq-solve   -------------------------------------------- PASS
     - RRQR linlsq-solve (rank-deficient)   --------------------------- PASS
-    - RRQR minnorm-solve   ----------------------------------------- VOID
+    - RRQR minnorm-solve   ------------------------------------------- PASS
+    - RRQR minnorm-solve (rank-deficient)   -------------------------- PASS
     - QR minnorm-solve   --------------------------------------------- PASS
     - R backsub   ---------------------------------------------------- PASS
     - QR invert   ---------------------------------------------------- PASS
@@ -124,6 +125,7 @@ Core modules:
     - SVD pseudo-invert   -------------------------------------------- PASS
     - SVD pseudo-invert (rank-deficient)   --------------------------- PASS
     - SVD pseudo-invert (min-norm)   --------------------------------- PASS
+    - SVD pseudo-invert (min-norm, rank-def)   ----------------------- PASS
    - Algebraic Riccati Equation (ARE) Solvers   ---------------------- PART
     - Continuous-time ARE solver   ----------------------------------- PASS
     - inf.-horizon continuous-time (IHCT) LQR synthesis   ------------ PASS  (only wraps CARE algorithm)

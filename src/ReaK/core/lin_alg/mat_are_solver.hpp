@@ -1506,8 +1506,8 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
   
 //   std::cout << "CARE: (Before Balancing) A_aug = " << A_aug << std::endl;
 //   std::cout << "CARE: (Before Balancing) B_aug = " << B_aug << std::endl;
-  mat<ValueType, mat_structure::diagonal> Dl_aug(2*N);
-  mat<ValueType, mat_structure::diagonal> Dr_aug(2*N);
+  vect_n<int> Dl_aug(2*N);
+  vect_n<int> Dr_aug(2*N);
   if(UseBalancing)
     balance_pencil(A_aug,B_aug,Dl_aug,Dr_aug);
 //   std::cout << "CARE: norm_A = " << norm_1(A_aug) << " norm_B = " << norm_1(B_aug) << std::endl;
@@ -1547,9 +1547,8 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
   };
   
   if(UseBalancing) {
-    for(SizeType i = 0; i < N; ++i)
-      for(SizeType j = 0; j < N; ++j)
-        P(i,j) = (P(i,j) / Dr_aug(i,i)) * Dr_aug(N+j,N+j);
+    apply_right_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
+    apply_left_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
   };
   
   P += transpose(P);
@@ -2327,8 +2326,8 @@ void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G,
 //     std::cout << "DARE: (Before Balancing) A_aug = " << A_aug << std::endl;
 //     std::cout << "DARE: (Before Balancing) B_aug = " << B_aug << std::endl;
 //   };
-  mat<ValueType, mat_structure::diagonal> Dl_aug(2*N);
-  mat<ValueType, mat_structure::diagonal> Dr_aug(2*N);
+  vect_n<int> Dl_aug(2*N);
+  vect_n<int> Dr_aug(2*N);
   if(UseBalancing)
     balance_pencil(A_aug,B_aug,Dl_aug,Dr_aug);
 //   if(N < 4) {
@@ -2370,9 +2369,8 @@ void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G,
   };
   
   if(UseBalancing) {
-    for(SizeType i = 0; i < N; ++i)
-      for(SizeType j = 0; j < N; ++j)
-        P(i,j) = (P(i,j) / Dr_aug(i,i)) * Dr_aug(N+j,N+j);
+    apply_right_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
+    apply_left_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
   };
   
   P += transpose(P);
@@ -2709,8 +2707,8 @@ void >::type solve_ctsf_problem(const Matrix1& A, const Matrix2& B,
   mat<ValueType, mat_structure::square> Q_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   mat<ValueType, mat_structure::square> Z_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   
-  mat<ValueType, mat_structure::diagonal> Dl_aug(2*N);
-  mat<ValueType, mat_structure::diagonal> Dr_aug(2*N);
+  vect_n<int> Dl_aug(2*N);
+  vect_n<int> Dr_aug(2*N);
   if(UseBalancing)
     balance_pencil(A_aug,B_aug,Dl_aug,Dr_aug);
   
@@ -2730,9 +2728,8 @@ void >::type solve_ctsf_problem(const Matrix1& A, const Matrix2& B,
   };
   
   if(UseBalancing) {
-    for(SizeType i = 0; i < N; ++i)
-      for(SizeType j = 0; j < N; ++j)
-        P(i,j) = (P(i,j) / Dr_aug(i,i)) * Dr_aug(N+j,N+j);
+    apply_right_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
+    apply_left_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
   };
   
   P += transpose(P);
@@ -2830,8 +2827,8 @@ void >::type solve_dtsf_problem(const Matrix1& F, const Matrix2& G,
   mat<ValueType, mat_structure::square> Q_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   mat<ValueType, mat_structure::square> Z_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   
-  mat<ValueType, mat_structure::diagonal> Dl_aug(2*N);
-  mat<ValueType, mat_structure::diagonal> Dr_aug(2*N);
+  vect_n<int> Dl_aug(2*N);
+  vect_n<int> Dr_aug(2*N);
   if(UseBalancing)
     balance_pencil(A_aug,B_aug,Dl_aug,Dr_aug);
   
@@ -2851,9 +2848,8 @@ void >::type solve_dtsf_problem(const Matrix1& F, const Matrix2& G,
   };
   
   if(UseBalancing) {
-    for(SizeType i = 0; i < N; ++i)
-      for(SizeType j = 0; j < N; ++j)
-        P(i,j) = (P(i,j) / Dr_aug(i,i)) * Dr_aug(N+j,N+j);
+    apply_right_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
+    apply_left_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
   };
   
   P += transpose(P);
