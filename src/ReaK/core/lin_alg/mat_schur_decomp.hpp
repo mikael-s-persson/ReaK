@@ -156,6 +156,8 @@ void francis_QR_step(Matrix1& H, Matrix2* Z, typename mat_traits<Matrix1>::size_
   householder_matrix< vect<ValueType,3> > hhm;
   
   SizeType N = H.get_row_count() - Offset;
+  if(N < 3) 
+    return;
   
   ValueType s = H(Offset + N-2,N-2) + H(Offset + N-1,N-1);
   ValueType t = H(Offset + N-2,N-2) * H(Offset + N-1,N-1) 
@@ -167,7 +169,7 @@ void francis_QR_step(Matrix1& H, Matrix2* Z, typename mat_traits<Matrix1>::size_
     hhm.set(v,NumTol);
     
     SizeType q = (k == 0 ? 0 : k-1);
-    mat_sub_block< Matrix1 > subH1(H,3,Offset + N-q,Offset + k,q);
+    mat_sub_block< Matrix1 > subH1(H,3,H.get_col_count()-q,Offset + k,q);
     householder_prod(hhm,subH1);
     
     SizeType r = (k == N-3 ? N : k+4);
@@ -186,10 +188,10 @@ void francis_QR_step(Matrix1& H, Matrix2* Z, typename mat_traits<Matrix1>::size_
   };
   
   householder_matrix< vect<ValueType,2> > hhm2(vect<ValueType,2>(v[0],v[1]),NumTol);
-  mat_sub_block< Matrix1 > subH1(H,2,Offset + 3,Offset + N-2,N-3);
-  householder_prod(subH1,hhm2);
+  mat_sub_block< Matrix1 > subH1(H,2,H.get_col_count()-N+3,Offset + N-2,N-3);
+  householder_prod(hhm2,subH1);
   mat_sub_block< Matrix1 > subH2(H,Offset + N,2,0,N-2);
-  householder_prod(hhm2,subH2);
+  householder_prod(subH2,hhm2);
   
   if(Z) {
     mat_sub_block<Matrix2> subZ(*Z,Z->get_row_count(),2,0,N-2);
@@ -225,6 +227,7 @@ void schur_decomp_impl(Matrix1& T, Matrix2* Q, typename mat_traits<Matrix1>::val
   while(q > 0) {
     bool last_off_diag_was_nil = true;
     SizeType i = N-1;
+    
     //find a trailing quasi-upper-triangular sub-matrix
     for(; i > 0; --i) {
       if(fabs(T(i,i-1)) < absNumTol) {
@@ -241,7 +244,8 @@ void schur_decomp_impl(Matrix1& T, Matrix2* Q, typename mat_traits<Matrix1>::val
       break;
     
     //find the middle, biggest unreduced upper-Hessenberg matrix
-    for(i = q; i > 0; --i) {
+    p = 0;
+    for(i = q-1; i > 0; --i) {
       if(fabs(T(i,i-1)) < absNumTol) {
 	T(i,i-1) = ValueType(0.0);
 	p = i;
@@ -255,12 +259,12 @@ void schur_decomp_impl(Matrix1& T, Matrix2* Q, typename mat_traits<Matrix1>::val
 	T(i,i-1) = ValueType(0.0);
     
     if(Q) {
-      mat_sub_block<Matrix2> subQ(*Q,Q->get_row_count(),N-p,0,p);
+      mat_sub_block<Matrix2> subQ(*Q, Q->get_row_count(), Q->get_col_count() - p, 0, p);
       mat_sub_block<Matrix1> subT(T,q,N-p,0,p);
       francis_QR_step(subT,&subQ,p,absNumTol);
     } else {
-      mat_sub_block<Matrix1> subT(T,q-p,q-p,p,p);
-      francis_QR_step(subT,static_cast<Matrix2*>(NULL),0,absNumTol);
+      mat_sub_block<Matrix1> subT(T,q,N-p,0,p);
+      francis_QR_step(subT,static_cast<Matrix2*>(NULL),p,absNumTol);
     };
     
   };

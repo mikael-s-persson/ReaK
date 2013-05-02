@@ -1547,8 +1547,8 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
   };
   
   if(UseBalancing) {
-    apply_right_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
-    apply_left_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
+    apply_left_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
+    apply_right_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
   };
   
   P += transpose(P);
@@ -2369,8 +2369,8 @@ void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G,
   };
   
   if(UseBalancing) {
-    apply_right_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
-    apply_left_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
+    apply_left_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
+    apply_right_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
   };
   
   P += transpose(P);
@@ -2728,8 +2728,8 @@ void >::type solve_ctsf_problem(const Matrix1& A, const Matrix2& B,
   };
   
   if(UseBalancing) {
-    apply_right_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
-    apply_left_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
+    apply_left_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
+    apply_right_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
   };
   
   P += transpose(P);
@@ -2848,8 +2848,8 @@ void >::type solve_dtsf_problem(const Matrix1& F, const Matrix2& G,
   };
   
   if(UseBalancing) {
-    apply_right_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
-    apply_left_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
+    apply_left_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
+    apply_right_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
   };
   
   P += transpose(P);

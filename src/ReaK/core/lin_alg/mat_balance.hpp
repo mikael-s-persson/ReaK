@@ -39,83 +39,6 @@
 #include "mat_num_exceptions.hpp"
 
 namespace ReaK {
-  
-/**
- * Performs matrix balancing of a square matrix such that the sum of absolute values of row elements and 
- * column elements match in order of magnitude. This algorithm produces a diagonal matrix that can
- * scale the matrix, as A_balanced = D^-1 A D
- *
- * \param A square matrix with row-count == column-count, and stores, as output, the balanced matrix.
- * \param D holds as output, the diagonal matrix D which balances A.
- *
- * \throws std::range_error if the matrix A does not have equal row and column counts.
- *
- * \author Mikael Persson
- * 
- * Taken from Golub & Van Loan, "Matrix Computations" (3rd ed).
- */
-template <typename Matrix1, typename Matrix2>
-typename boost::enable_if_c< is_fully_writable_matrix<Matrix1>::value && 
-                             is_writable_matrix<Matrix2>::value, 
-void >::type balance(Matrix1& A, Matrix2& D)
-{  
-  if(A.get_row_count() < A.get_col_count())
-    throw std::range_error("Matrix balancing is only possible on a square matrix!");
-
-  using std::fabs;
-  typedef typename mat_traits<Matrix1>::value_type ValueType;
-  typedef typename mat_traits<Matrix1>::value_type SizeType;
-  
-  SizeType N = A.get_row_count();
-  D = mat<typename mat_traits<Matrix2>::value_type, mat_structure::identity>(N);
-
-  bool keep_going = true;
-
-  while (keep_going) {
-
-    keep_going = false;
-
-    for (SizeType i=0; i<N; ++i) {
-      ValueType row_mag = ValueType();
-      ValueType col_mag = ValueType();
-      
-      for (SizeType j=0; j<N; ++j) {
-	if (j != i) {
-	  col_mag += fabs(A(j,i));
-          row_mag += fabs(A(i,j));
-	};
-      };
-
-      if ((col_mag < std::numeric_limits<ValueType>::epsilon()) 
-	|| (row_mag < std::numeric_limits<ValueType>::epsilon())) 
-	continue;
-
-      ValueType g = row_mag / ValueType(2.0);
-      ValueType f = ValueType(1.0);
-      ValueType s = col_mag + row_mag;
-
-      while (col_mag < g) {
-	f *= ValueType(2.0);
-        col_mag *= ValueType(4.0);
-      };
-
-      g = row_mag * ValueType(2.0);
-      while (col_mag > g) {
-	f /= ValueType(2.0);
-        col_mag /= ValueType(4.0);
-      };
-
-      if ((row_mag + col_mag) < ValueType(0.95) * s * f) {
-        keep_going = true;
-        g = ValueType(1.0) / f;
-        mat_row_slice<Matrix1> row_i(A,i,0,N); row_i *= g;
-	mat_col_slice<Matrix1> col_i(A,i,0,N); col_i *= f;
-	D(i,i) *= f;
-      };
-    };
-  };
-};
-
 
 
 /**
@@ -186,9 +109,13 @@ void >::type balance(Matrix1& A, vect_n<int>& D)
       if ((row_mag + col_mag) < ValueType(0.95) * ldexp(s, f)) {
         keep_going = true;
         for(SizeType j = 0; j < N; ++j)
-          A(j,i) = ldexp(A(j,i), -f);
+          A(j,i) = ldexp(A(j,i), f);
         for(SizeType j = 0; j < N; ++j)
-          A(i,j) = ldexp(A(i,j), f);
+          A(i,j) = ldexp(A(i,j), -f);
+//         for(SizeType j = 0; j < N; ++j)
+//           A(j,i) = ldexp(A(j,i), -f);
+//         for(SizeType j = 0; j < N; ++j)
+//           A(i,j) = ldexp(A(i,j), f);
         D[i] += f;
       };
     };
@@ -408,7 +335,7 @@ void >::type balance_pencil(Matrix1& A, Matrix2& B)
 
 
 /**
- * This function applies a matrix balance factor from the right of a matrix. The 
+ * This function applies a matrix balance factor from the left of a matrix. The 
  * matrix balance factor is represented as a vector of integer base-2 exponents
  * to be applied with exact arithmetic.
  * 
@@ -422,7 +349,7 @@ void >::type balance_pencil(Matrix1& A, Matrix2& B)
 template <typename Matrix1, typename Vector1>
 typename boost::enable_if< 
   boost::mpl::and_< is_fully_writable_matrix<Matrix1>, is_readable_vector<Vector1> >,
-void >::type apply_right_bal_exp(const Vector1& D, Matrix1& A) {
+void >::type apply_left_bal_exp(const Vector1& D, Matrix1& A) {
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   using std::ldexp;
   if(A.get_row_count() != D.size())
@@ -434,7 +361,7 @@ void >::type apply_right_bal_exp(const Vector1& D, Matrix1& A) {
 };
 
 /**
- * This function applies a matrix balance factor from the left of a matrix. The 
+ * This function applies a matrix balance factor from the right of a matrix. The 
  * matrix balance factor is represented as a vector of integer base-2 exponents
  * to be applied with exact arithmetic.
  * 
@@ -448,7 +375,7 @@ void >::type apply_right_bal_exp(const Vector1& D, Matrix1& A) {
 template <typename Matrix1, typename Vector1>
 typename boost::enable_if< 
   boost::mpl::and_< is_fully_writable_matrix<Matrix1>, is_readable_vector<Vector1> >,
-void >::type apply_left_bal_exp(Matrix1& A, const Vector1& D) {
+void >::type apply_right_bal_exp(Matrix1& A, const Vector1& D) {
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   using std::ldexp;
   if(A.get_col_count() != D.size())
@@ -461,7 +388,7 @@ void >::type apply_left_bal_exp(Matrix1& A, const Vector1& D) {
 
 
 /**
- * This function applies an inverse matrix balance factor from the right of a matrix. The 
+ * This function applies an inverse matrix balance factor from the left of a matrix. The 
  * matrix balance factor is represented as a vector of integer base-2 exponents
  * to be applied with exact arithmetic, the exponents are inverted.
  * 
@@ -475,7 +402,7 @@ void >::type apply_left_bal_exp(Matrix1& A, const Vector1& D) {
 template <typename Matrix1, typename Vector1>
 typename boost::enable_if< 
   boost::mpl::and_< is_fully_writable_matrix<Matrix1>, is_readable_vector<Vector1> >,
-void >::type apply_right_bal_inv_exp(const Vector1& D, Matrix1& A) {
+void >::type apply_left_bal_inv_exp(const Vector1& D, Matrix1& A) {
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   using std::ldexp;
   if(A.get_row_count() != D.size())
@@ -487,7 +414,7 @@ void >::type apply_right_bal_inv_exp(const Vector1& D, Matrix1& A) {
 };
 
 /**
- * This function applies an inverse matrix balance factor from the left of a matrix. The 
+ * This function applies an inverse matrix balance factor from the right of a matrix. The 
  * matrix balance factor is represented as a vector of integer base-2 exponents
  * to be applied with exact arithmetic, the exponents are inverted.
  * 
@@ -501,7 +428,7 @@ void >::type apply_right_bal_inv_exp(const Vector1& D, Matrix1& A) {
 template <typename Matrix1, typename Vector1>
 typename boost::enable_if< 
   boost::mpl::and_< is_fully_writable_matrix<Matrix1>, is_readable_vector<Vector1> >,
-void >::type apply_left_bal_inv_exp(Matrix1& A, const Vector1& D) {
+void >::type apply_right_bal_inv_exp(Matrix1& A, const Vector1& D) {
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   using std::ldexp;
   if(A.get_col_count() != D.size())
@@ -520,15 +447,15 @@ void >::type apply_left_bal_inv_exp(Matrix1& A, const Vector1& D) {
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
 
-extern template void balance(mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::diagonal>& D);
-extern template void balance(mat<double,mat_structure::square>& A, mat<double,mat_structure::diagonal>& D);
+extern template void balance(mat<double,mat_structure::rectangular>& A, vect_n<int>& D);
+extern template void balance(mat<double,mat_structure::square>& A, vect_n<int>& D);
 
 extern template void balance_pencil(mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& B, mat<double,mat_structure::diagonal>& Dl, mat<double,mat_structure::diagonal>& Dr);
 extern template void balance_pencil(mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& B, mat<double,mat_structure::diagonal>& Dl, mat<double,mat_structure::diagonal>& Dr);
  
 
-extern template void balance(mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::diagonal>& D);
-extern template void balance(mat<float,mat_structure::square>& A, mat<float,mat_structure::diagonal>& D);
+extern template void balance(mat<float,mat_structure::rectangular>& A, vect_n<int>& D);
+extern template void balance(mat<float,mat_structure::square>& A, vect_n<int>& D);
 
 extern template void balance_pencil(mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& B, mat<float,mat_structure::diagonal>& Dl, mat<float,mat_structure::diagonal>& Dr);
 extern template void balance_pencil(mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& B, mat<float,mat_structure::diagonal>& Dl, mat<float,mat_structure::diagonal>& Dr);

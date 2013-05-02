@@ -81,7 +81,7 @@ void decompose_Hess_impl(Matrix1& H, Matrix2* Q, typename mat_traits<Matrix1>::v
     householder_prod(subH2,hhm); // H * P
     
     if(Q) {
-      mat_sub_block<Matrix2> subQ(*Q,N,N - i,0,i);
+      mat_sub_block<Matrix2> subQ(*Q,N,N - i - 1,0,i+1);
       householder_prod(subQ,hhm); // Q_prev * P
     };
 

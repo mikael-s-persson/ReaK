@@ -65,9 +65,9 @@ Core modules:
    - slices   ------------------------------------------------------ VOID
    - transpose-view   ---------------------------------------------- VOID
   - mat_num   -------------------------------------------------------- PART
-   - balance   ----------------------------------------------------- VOID
-    - balance   ---------------------------------------------------- VOID
-    - balance_pencil   --------------------------------------------- VOID
+   - balance   ------------------------------------------------------- PASS
+    - balance   ------------------------------------------------------ PASS
+    - balance_pencil   ----------------------------------------------- PASS
    - cholesky   ------------------------------------------------------ PART
     - cholesky decomposition   --------------------------------------- PASS (used in cholesky invert)
     - cholesky lin-solve   ------------------------------------------- PASS (used in cholesky invert)
@@ -94,7 +94,7 @@ Core modules:
    - Givens rotations   ---------------------------------------------- PASS (part of many other methods)
    - Householder reflections   --------------------------------------- PASS (part of QR and other methods)
    - Hessenberg decompositions   ------------------------------------- PART (part of Schur decomp)
-    - Upper-Hessenberg decomposition   ----------------------------- VOID   (part of Real-Schur)
+    - Upper-Hessenberg decomposition   ------------------------------- PASS 
     - Hessenberg-Triangular reduction   ------------------------------ PASS (part of Gen. Real-Schur)
    - Jacobi method   --------------------------------------------- FAIL
     - Jacobi eigen-solve   --------------------------------------- FAIL
@@ -113,11 +113,11 @@ Core modules:
     - R backsub   ---------------------------------------------------- PASS
     - QR invert   ---------------------------------------------------- PASS
     - QR pseudo-invert   --------------------------------------------- PASS
-   - Schur decompositions   ------------------------------------------ PART
+   - Schur decompositions   ------------------------------------------ PASS
     - Symmetric-QR eigen-solve   ------------------------------------- PASS
     - Symmetric-QR pseudo-invert   ----------------------------------- PASS
     - Symmetric-QR lin-solve   --------------------------------------- PASS (used by SymQR pseudo-invert)
-    - Real-Schur decomposition   ----------------------------------- VOID
+    - Real-Schur decomposition   ------------------------------------- PASS
     - Generalized Real-Schur decomposition   ------------------------- PASS (part of DARE/CARE solvers)
    - Star product   -------------------------------------------------- PASS (only wraps SVD pseudo-invert call + matrix concatenation)
    - SVD decomposition   --------------------------------------------- PASS

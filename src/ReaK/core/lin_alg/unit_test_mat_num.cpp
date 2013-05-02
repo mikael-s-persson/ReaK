@@ -38,6 +38,8 @@
 
 #include "mat_ctrl_decomp.hpp"
 
+#include "mat_balance.hpp"
+
 #define BOOST_TEST_DYN_LINK
 
 #define BOOST_TEST_MODULE mat_num
@@ -306,117 +308,136 @@ BOOST_AUTO_TEST_CASE( mat_decompositions_tests )
   
   using namespace ReaK;
   
-  {
-    mat<double,mat_structure::rectangular> m_test(3,3);
-    m_test(0,0) = 1.0; m_test(0,1) = 3.0; m_test(0,2) = 0.0; 
-    m_test(1,0) = 3.0; m_test(1,1) = 5.0; m_test(1,2) = 2.0; 
-    m_test(2,0) = 0.0; m_test(2,1) = 2.0; m_test(2,2) = 4.0; 
-    
-    mat<double,mat_structure::rectangular> m_test_Gram = m_test;
-    BOOST_CHECK_NO_THROW( (orthogonalize_StableGramSchmidt(m_test_Gram, true, 1e-6)) );
-    BOOST_CHECK( is_identity_mat(m_test_Gram * transpose(m_test_Gram), 1e-6) );
-    
-    mat<double,mat_structure::rectangular> m_test_R = m_test;
-    mat<double,mat_structure::square> m_test_Q(mat<double,mat_structure::identity>(3));
-    
-    BOOST_CHECK_NO_THROW( (detail::symmetric_QR_step(m_test_R, &m_test_Q, 1e-6)) );
-    BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), 10.0 * std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_null_mat((m_test_Q * m_test_R * transpose_view(m_test_Q) - m_test), 50.0 * std::numeric_limits<double>::epsilon()) );
-    
-    BOOST_CHECK_NO_THROW( (detail::symmetric_QR_step(m_test_R, &m_test_Q, 1e-6)) );
-    BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), 10.0 * std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_null_mat((m_test_Q * m_test_R * transpose_view(m_test_Q) - m_test), 50.0 * std::numeric_limits<double>::epsilon()) );
-    
-    BOOST_CHECK_NO_THROW( (detail::symmetric_QR_step(m_test_R, &m_test_Q, 1e-6)) );
-    BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), 10.0 * std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_null_mat((m_test_Q * m_test_R * transpose_view(m_test_Q) - m_test), 50.0 * std::numeric_limits<double>::epsilon()) );
-    
-    m_test(0,0) = 1.0; m_test(0,1) = 3.0; m_test(0,2) = 0.0; 
-    m_test(1,0) = 3.0; m_test(1,1) = 5.0; m_test(1,2) = 2.0; 
-    m_test(2,0) = 0.0; m_test(2,1) = 2.0; m_test(2,2) = 4.0;
-    m_test_R = m_test;
-    m_test_Q = mat<double,mat_structure::identity>(3);
-    BOOST_CHECK_NO_THROW( (detail::symmetric_QRalg_impl(m_test_R, &m_test_Q, 1e-6)) );
-    BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), 4.0 * std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_upper_triangular(m_test_R, std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_null_mat((m_test_Q * m_test_R * transpose_view(m_test_Q) - m_test), 1e-6) );
-    
-    m_test(0,0) = 1.0; m_test(0,1) = 3.0; m_test(0,2) = 2.0; 
-    m_test(1,0) = 3.0; m_test(1,1) = 5.0; m_test(1,2) = 2.0; 
-    m_test(2,0) = 2.0; m_test(2,1) = 2.0; m_test(2,2) = 4.0; 
-    m_test_R = m_test;
-    m_test_Q = mat<double,mat_structure::identity>(3);
-    BOOST_CHECK_NO_THROW( (detail::decompose_TriDiag_impl(m_test_R,&m_test_Q,1e-6)) );
-    BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), 4.0 * std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_tri_diagonal(m_test_R, std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_null_mat(((m_test_Q * m_test_R * transpose_view(m_test_Q)) - m_test), 1e-6) );
-    
-    m_test(0,0) = 1.0; m_test(0,1) = 3.0; m_test(0,2) = 2.0; 
-    m_test(1,0) = 3.0; m_test(1,1) = 5.0; m_test(1,2) = 2.0; 
-    m_test(2,0) = 2.0; m_test(2,1) = 2.0; m_test(2,2) = 4.0; 
-    m_test_R = m_test;
-    m_test_Q = mat<double,mat_structure::identity>(3);
-    BOOST_CHECK_NO_THROW( (detail::symmetric_QRalg_impl(m_test_R, &m_test_Q, 1e-6)) );
-    BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), 4.0 * std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_upper_triangular(m_test_R, std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_null_mat((m_test_Q * m_test_R * transpose_view(m_test_Q) - m_test), 1e-6) );
-    
-    mat<double,mat_structure::rectangular> m_test4(4,4);
-    mat<double,mat_structure::square> m_test4_Q(mat<double,mat_structure::identity>(4));
-    m_test4(0,0) = 1.0; m_test4(0,1) = 3.0; m_test4(0,2) = 2.0; m_test4(0,3) =-1.0; 
-    m_test4(1,0) = 3.0; m_test4(1,1) = 5.0; m_test4(1,2) = 2.0; m_test4(1,3) = 5.0; 
-    m_test4(2,0) = 2.0; m_test4(2,1) = 2.0; m_test4(2,2) = 4.0; m_test4(2,3) = 3.0; 
-    m_test4(3,0) =-1.0; m_test4(3,1) = 5.0; m_test4(3,2) = 3.0; m_test4(3,3) = -2.0;
-    mat<double,mat_structure::rectangular> m_test4_R = m_test4;
-    m_test4_Q = mat<double,mat_structure::identity>(4);
-    BOOST_CHECK_NO_THROW( (detail::symmetric_QRalg_impl(m_test4_R,&m_test4_Q,1e-6)) );
-    BOOST_CHECK( is_identity_mat(m_test4_Q * transpose(m_test4_Q), 4.0 * std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_upper_triangular(m_test4_R, std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_null_mat((m_test4_Q * m_test4_R * transpose_view(m_test4_Q) - m_test4), 1e-6) );
-    
-    mat<double,mat_structure::square> m_test_L(3,0.0);
-    mat<double,mat_structure::square> m_test_D(3,0.0);
-    mat<double,mat_structure::square> m_test_sqr(3,0.0);
-    mat<double,mat_structure::square> m_test_inv(3,0.0);
-    m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 2.0; 
-    m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
-    m_test_sqr(2,0) = 2.0; m_test_sqr(2,1) = 2.0; m_test_sqr(2,2) = 4.0; 
-    BOOST_CHECK_NO_THROW( (decompose_LDL(m_test_sqr,m_test_L,m_test_D,1e-6)) );
-    BOOST_CHECK( is_lower_triangular(m_test_L, std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_diagonal(m_test_D, std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_null_mat(((m_test_L * m_test_D * transpose_view(m_test_L)) - m_test_sqr), 1e-6) );
-    
-    mat<double,mat_structure::square> m_test_P(mat<double,mat_structure::identity>(3));
-    m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 2.0; 
-    m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
-    m_test_sqr(2,0) = 2.0; m_test_sqr(2,1) = 2.0; m_test_sqr(2,2) = 4.0; 
-    BOOST_CHECK_NO_THROW( (decompose_PLTLP(m_test_sqr,m_test_L,m_test_D,m_test_P,1e-6)) );
-    BOOST_CHECK( is_lower_triangular(m_test_L, std::numeric_limits<double>::epsilon()) );
-    // THIS TEST FAILS:
-    //BOOST_CHECK( is_diagonal(m_test_D, 4.0 * std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_identity_mat(m_test_P * transpose(m_test_P), 4.0 * std::numeric_limits<double>::epsilon()) );
-    // THIS TEST FAILS:
-    //BOOST_CHECK( is_null_mat(((transpose_view(m_test_P) * m_test_L * m_test_D * transpose_view(m_test_L) * m_test_P) - m_test_sqr), 1e-6) );
-    
-    m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 0.0; 
-    m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
-    m_test_sqr(2,0) = 0.0; m_test_sqr(2,1) = 2.0; m_test_sqr(2,2) = 4.0; 
-    BOOST_CHECK_NO_THROW( (decompose_BandCholesky(m_test_sqr,m_test_L,1,1e-6)) );
-    BOOST_CHECK( is_lower_triangular(m_test_L, std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_null_mat(((m_test_L * transpose_view(m_test_L)) - m_test_sqr), 1e-6) );
-    
-    m_test_D = mat<double,mat_structure::identity>(3);
-    m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 0.0; 
-    m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
-    m_test_sqr(2,0) = 0.0; m_test_sqr(2,1) = 2.0; m_test_sqr(2,2) = 4.0; 
-    BOOST_CHECK_NO_THROW( (decompose_TriDiagLDL(m_test_sqr,m_test_L,m_test_D,1e-6)) );
-    BOOST_CHECK( is_lower_triangular(m_test_L, std::numeric_limits<double>::epsilon()) );
-    BOOST_CHECK( is_diagonal(m_test_D, std::numeric_limits<double>::epsilon()) );
-    // THIS TEST FAILS:
-    //BOOST_CHECK( is_null_mat(((m_test_L * m_test_D * transpose_view(m_test_L)) - m_test_sqr), 1e-6) );
-    
-    
-  };
+  mat<double,mat_structure::rectangular> m_test(3,3);
+  m_test(0,0) = 1.0; m_test(0,1) = 3.0; m_test(0,2) = 0.0; 
+  m_test(1,0) = 3.0; m_test(1,1) = 5.0; m_test(1,2) = 2.0; 
+  m_test(2,0) = 0.0; m_test(2,1) = 2.0; m_test(2,2) = 4.0; 
+  
+  mat<double,mat_structure::rectangular> m_test_Gram = m_test;
+  BOOST_CHECK_NO_THROW( (orthogonalize_StableGramSchmidt(m_test_Gram, true, 1e-6)) );
+  BOOST_CHECK( is_identity_mat(m_test_Gram * transpose(m_test_Gram), 1e-6) );
+  
+  mat<double,mat_structure::rectangular> m_test_R = m_test;
+  mat<double,mat_structure::square> m_test_Q(mat<double,mat_structure::identity>(3));
+  
+  BOOST_CHECK_NO_THROW( (detail::symmetric_QR_step(m_test_R, &m_test_Q, 1e-6)) );
+  BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), 10.0 * std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_null_mat((m_test_Q * m_test_R * transpose_view(m_test_Q) - m_test), 50.0 * std::numeric_limits<double>::epsilon()) );
+  
+  BOOST_CHECK_NO_THROW( (detail::symmetric_QR_step(m_test_R, &m_test_Q, 1e-6)) );
+  BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), 10.0 * std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_null_mat((m_test_Q * m_test_R * transpose_view(m_test_Q) - m_test), 50.0 * std::numeric_limits<double>::epsilon()) );
+  
+  BOOST_CHECK_NO_THROW( (detail::symmetric_QR_step(m_test_R, &m_test_Q, 1e-6)) );
+  BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), 10.0 * std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_null_mat((m_test_Q * m_test_R * transpose_view(m_test_Q) - m_test), 50.0 * std::numeric_limits<double>::epsilon()) );
+  
+  m_test(0,0) = 1.0; m_test(0,1) = 3.0; m_test(0,2) = 0.0; 
+  m_test(1,0) = 3.0; m_test(1,1) = 5.0; m_test(1,2) = 2.0; 
+  m_test(2,0) = 0.0; m_test(2,1) = 2.0; m_test(2,2) = 4.0;
+  m_test_R = m_test;
+  m_test_Q = mat<double,mat_structure::identity>(3);
+  BOOST_CHECK_NO_THROW( (detail::symmetric_QRalg_impl(m_test_R, &m_test_Q, 1e-6)) );
+  BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), 4.0 * std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_upper_triangular(m_test_R, std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_null_mat((m_test_Q * m_test_R * transpose_view(m_test_Q) - m_test), 1e-6) );
+  
+  m_test(0,0) = 1.0; m_test(0,1) = 3.0; m_test(0,2) = 2.0; 
+  m_test(1,0) = 3.0; m_test(1,1) = 5.0; m_test(1,2) = 2.0; 
+  m_test(2,0) = 2.0; m_test(2,1) = 2.0; m_test(2,2) = 4.0; 
+  m_test_R = m_test;
+  m_test_Q = mat<double,mat_structure::identity>(3);
+  BOOST_CHECK_NO_THROW( (detail::decompose_TriDiag_impl(m_test_R,&m_test_Q,1e-6)) );
+  BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), 4.0 * std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_tri_diagonal(m_test_R, std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_null_mat(((m_test_Q * m_test_R * transpose_view(m_test_Q)) - m_test), 1e-6) );
+  
+  m_test(0,0) = 1.0; m_test(0,1) = 3.0; m_test(0,2) = 2.0; 
+  m_test(1,0) = 3.0; m_test(1,1) = 5.0; m_test(1,2) = 2.0; 
+  m_test(2,0) = 2.0; m_test(2,1) = 2.0; m_test(2,2) = 4.0; 
+  m_test_R = m_test;
+  m_test_Q = mat<double,mat_structure::identity>(3);
+  BOOST_CHECK_NO_THROW( (detail::symmetric_QRalg_impl(m_test_R, &m_test_Q, 1e-6)) );
+  BOOST_CHECK( is_identity_mat(m_test_Q * transpose(m_test_Q), 4.0 * std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_upper_triangular(m_test_R, std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_null_mat((m_test_Q * m_test_R * transpose_view(m_test_Q) - m_test), 1e-6) );
+  
+  mat<double,mat_structure::rectangular> m_test4(4,4);
+  mat<double,mat_structure::square> m_test4_Q(mat<double,mat_structure::identity>(4));
+  m_test4(0,0) = 1.0; m_test4(0,1) = 3.0; m_test4(0,2) = 2.0; m_test4(0,3) =-1.0; 
+  m_test4(1,0) = 3.0; m_test4(1,1) = 5.0; m_test4(1,2) = 2.0; m_test4(1,3) = 5.0; 
+  m_test4(2,0) = 2.0; m_test4(2,1) = 2.0; m_test4(2,2) = 4.0; m_test4(2,3) = 3.0; 
+  m_test4(3,0) =-1.0; m_test4(3,1) = 5.0; m_test4(3,2) = 3.0; m_test4(3,3) = -2.0;
+  mat<double,mat_structure::rectangular> m_test4_R = m_test4;
+  m_test4_Q = mat<double,mat_structure::identity>(4);
+  BOOST_CHECK_NO_THROW( (detail::symmetric_QRalg_impl(m_test4_R,&m_test4_Q,1e-6)) );
+  BOOST_CHECK( is_identity_mat(m_test4_Q * transpose(m_test4_Q), 4.0 * std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_upper_triangular(m_test4_R, std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_null_mat((m_test4_Q * m_test4_R * transpose_view(m_test4_Q) - m_test4), 1e-6) );
+  
+  
+  mat<double,mat_structure::square> m_hess_Q( mat<double,mat_structure::identity>(4) );
+  mat<double,mat_structure::square> m_hess_H( m_test4 );
+  BOOST_CHECK_NO_THROW( (decompose_Hess(m_test4, m_hess_Q, m_hess_H, 1E-6)) );
+  BOOST_CHECK( is_identity_mat(m_hess_Q * transpose(m_hess_Q), 1e-8) );
+  BOOST_CHECK( is_upper_hessenberg(m_hess_H, 1e-8) );
+  // A = Q T Q^T
+  BOOST_CHECK( is_null_mat((m_hess_Q * m_hess_H * transpose_view(m_hess_Q) - m_test4), 1e-6) );
+  
+  
+  mat<double,mat_structure::square> m_realshur_Q( mat<double,mat_structure::identity>(4) );
+  mat<double,mat_structure::square> m_realshur_T( m_test4 );
+  BOOST_CHECK_NO_THROW( (decompose_RealSchur(m_test4, m_realshur_Q, m_realshur_T, 1E-6)) );
+  BOOST_CHECK( is_identity_mat(m_realshur_Q * transpose(m_realshur_Q), 1e-8) );
+  BOOST_CHECK( is_upper_hessenberg(m_realshur_T, 1e-8) );
+  // A = Q T Q^T
+  BOOST_CHECK( is_null_mat((m_realshur_Q * m_realshur_T * transpose(m_realshur_Q) - m_test4), 1e-6) );
+  
+  
+  mat<double,mat_structure::square> m_test_L(3,0.0);
+  mat<double,mat_structure::square> m_test_D(3,0.0);
+  mat<double,mat_structure::square> m_test_sqr(3,0.0);
+  mat<double,mat_structure::square> m_test_inv(3,0.0);
+  m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 2.0; 
+  m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
+  m_test_sqr(2,0) = 2.0; m_test_sqr(2,1) = 2.0; m_test_sqr(2,2) = 4.0; 
+  BOOST_CHECK_NO_THROW( (decompose_LDL(m_test_sqr,m_test_L,m_test_D,1e-6)) );
+  BOOST_CHECK( is_lower_triangular(m_test_L, std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_diagonal(m_test_D, std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_null_mat(((m_test_L * m_test_D * transpose_view(m_test_L)) - m_test_sqr), 1e-6) );
+  
+#if 0
+  mat<double,mat_structure::square> m_test_P(mat<double,mat_structure::identity>(3));
+  m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 2.0; 
+  m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
+  m_test_sqr(2,0) = 2.0; m_test_sqr(2,1) = 2.0; m_test_sqr(2,2) = 4.0; 
+  BOOST_CHECK_NO_THROW( (decompose_PLTLP(m_test_sqr,m_test_L,m_test_D,m_test_P,1e-6)) );
+  BOOST_CHECK( is_lower_triangular(m_test_L, std::numeric_limits<double>::epsilon()) );
+  // THIS TEST FAILS:
+  //BOOST_CHECK( is_diagonal(m_test_D, 4.0 * std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_identity_mat(m_test_P * transpose(m_test_P), 4.0 * std::numeric_limits<double>::epsilon()) );
+  // THIS TEST FAILS:
+  //BOOST_CHECK( is_null_mat(((transpose_view(m_test_P) * m_test_L * m_test_D * transpose_view(m_test_L) * m_test_P) - m_test_sqr), 1e-6) );
+#endif
+  
+  m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 0.0; 
+  m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
+  m_test_sqr(2,0) = 0.0; m_test_sqr(2,1) = 2.0; m_test_sqr(2,2) = 4.0; 
+  BOOST_CHECK_NO_THROW( (decompose_BandCholesky(m_test_sqr,m_test_L,1,1e-6)) );
+  BOOST_CHECK( is_lower_triangular(m_test_L, std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_null_mat(((m_test_L * transpose_view(m_test_L)) - m_test_sqr), 1e-6) );
+  
+#if 0
+  m_test_D = mat<double,mat_structure::identity>(3);
+  m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 0.0; 
+  m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
+  m_test_sqr(2,0) = 0.0; m_test_sqr(2,1) = 2.0; m_test_sqr(2,2) = 4.0; 
+  BOOST_CHECK_NO_THROW( (decompose_TriDiagLDL(m_test_sqr,m_test_L,m_test_D,1e-6)) );
+  BOOST_CHECK( is_lower_triangular(m_test_L, std::numeric_limits<double>::epsilon()) );
+  BOOST_CHECK( is_diagonal(m_test_D, std::numeric_limits<double>::epsilon()) );
+  // THIS TEST FAILS:
+  //BOOST_CHECK( is_null_mat(((m_test_L * m_test_D * transpose_view(m_test_L)) - m_test_sqr), 1e-6) );
+#endif
   
 };
 
@@ -480,6 +501,147 @@ BOOST_AUTO_TEST_CASE( mat_ctrl_reduction_tests )
   
 };
 
+
+
+
+BOOST_AUTO_TEST_CASE( mat_balancing_tests )
+{
+  using namespace ReaK;
+  
+  mat<double,mat_structure::square> A(3);
+  A(0,0) = 1.0; A(0,1) = 0.0; A(0,2) = 1e-4;
+  A(1,0) = 1.0; A(1,1) = 1.0; A(1,2) = 1e-2;
+  A(2,0) = 1e4; A(2,1) = 1e2; A(2,2) = 1.0;
+  
+  mat<double,mat_structure::square> A_bal = A;
+  vect_n<int> D_bal(3);
+  BOOST_CHECK_NO_THROW( balance(A_bal, D_bal) );
+
+//   std::cout << " A = " << A << std::endl;
+  mat<double,mat_structure::diagonal> A_E(3);
+  mat<double,mat_structure::square> A_U(3);
+  mat<double,mat_structure::square> A_V(3);
+  BOOST_CHECK_NO_THROW( decompose_SVD(A, A_U, A_E, A_V, double(1E-15)) );
+  double cond_before = condition_number_SVD(A_E);
+//   std::cout << " cond(A) = " << cond_before << std::endl;
+  
+//   std::cout << " A_bal = " << A_bal << std::endl;
+  mat<double,mat_structure::diagonal> A_bal_E(3);
+  mat<double,mat_structure::square> A_bal_U(3);
+  mat<double,mat_structure::square> A_bal_V(3);
+  BOOST_CHECK_NO_THROW( decompose_SVD(A_bal, A_bal_U, A_bal_E, A_bal_V, double(1E-15)) );
+  double cond_after = condition_number_SVD(A_bal_E);
+//   std::cout << " cond(A_bal) = " << cond_after << std::endl;
+  
+  // The condition number must have been reduced:
+  BOOST_CHECK( cond_after < cond_before );
+  
+  // Condition number must be with the N-th power of 2 (at most the difference between 
+  // any two eigen-value is a factor of 2, so, at most, the difference between the largest
+  // and smallest eigen-value is 2^N. Here, N = 3.
+  BOOST_CHECK( cond_after < std::ldexp(1,3) );
+  
+  apply_left_bal_exp(D_bal, A_bal);
+  apply_right_bal_inv_exp(A_bal, D_bal);
+//   std::cout << " A_restored = " << A_bal << std::endl;
+  
+  // must be exact because exact floating-point arithmetic is used in balancing:
+  BOOST_CHECK( ( is_null_mat((A - A_bal), 1e-200) ) );  
+  
+  
+  
+  mat<double,mat_structure::square> B(3);
+  B(0,0) = 1.0; B(0,1) = 1e-2; B(0,2) = 1e-4;
+  B(1,0) = 1e3; B(1,1) = 1.0; B(1,2) = 1.0;
+  B(2,0) = 1e4; B(2,1) = 0.0; B(2,2) = 2.0;
+  
+  
+  mat<double,mat_structure::square> A_penbal = A;
+  mat<double,mat_structure::square> B_penbal = B;
+  vect_n<int> Dl_penbal(3);
+  vect_n<int> Dr_penbal(3);
+  BOOST_CHECK_NO_THROW( balance_pencil(A_penbal, B_penbal, Dl_penbal, Dr_penbal) );
+  
+//   std::cout << " A = " << A << std::endl;
+//   std::cout << " cond(A) = " << cond_before << std::endl;
+//   std::cout << " B = " << B << std::endl;
+  mat<double,mat_structure::diagonal> B_E(3);
+  mat<double,mat_structure::square> B_U(3);
+  mat<double,mat_structure::square> B_V(3);
+  BOOST_CHECK_NO_THROW( decompose_SVD(B, B_U, B_E, B_V, double(1E-15)) );
+  double cond_B_before = condition_number_SVD(B_E);
+//   std::cout << " cond(B) = " << cond_B_before << std::endl;
+  
+  
+  
+  mat<double, mat_structure::square> M_pen(3);
+  for(std::size_t i = 0; i < 3; ++i)
+    for(std::size_t j = 0; j < 3; ++j)
+      M_pen(i,j) = A(i,j) * A(i,j) + B(i,j) * B(i,j);
+//   std::cout << " M_pen = " << M_pen << std::endl;
+  mat<double,mat_structure::diagonal> M_pen_E(3);
+  mat<double,mat_structure::square> M_pen_U(3);
+  mat<double,mat_structure::square> M_pen_V(3);
+  BOOST_CHECK_NO_THROW( decompose_SVD(M_pen, M_pen_U, M_pen_E, M_pen_V, double(1E-15)) );
+  double cond_M_before = condition_number_SVD(M_pen_E);
+//   std::cout << " cond(M_pen) = " << cond_M_before << std::endl;
+  
+  
+//   std::cout << " A_penbal = " << A_penbal << std::endl;
+  mat<double,mat_structure::diagonal> A_penbal_E(3);
+  mat<double,mat_structure::square> A_penbal_U(3);
+  mat<double,mat_structure::square> A_penbal_V(3);
+  BOOST_CHECK_NO_THROW( decompose_SVD(A_penbal, A_penbal_U, A_penbal_E, A_penbal_V, double(1E-15)) );
+  double cond_A_penbal = condition_number_SVD(A_penbal_E);
+//   std::cout << " cond(A_penbal) = " << cond_A_penbal << std::endl;
+  
+//   std::cout << " B_penbal = " << B_penbal << std::endl;
+  mat<double,mat_structure::diagonal> B_penbal_E(3);
+  mat<double,mat_structure::square> B_penbal_U(3);
+  mat<double,mat_structure::square> B_penbal_V(3);
+  BOOST_CHECK_NO_THROW( decompose_SVD(B_penbal, B_penbal_U, B_penbal_E, B_penbal_V, double(1E-15)) );
+  double cond_B_penbal = condition_number_SVD(B_penbal_E);
+//   std::cout << " cond(B_penbal) = " << cond_B_penbal << std::endl;
+  
+  
+  mat<double, mat_structure::square> M_penbal(3);
+  for(std::size_t i = 0; i < 3; ++i)
+    for(std::size_t j = 0; j < 3; ++j)
+      M_penbal(i,j) = A_penbal(i,j) * A_penbal(i,j) + B_penbal(i,j) * B_penbal(i,j);
+//   std::cout << " M_penbal = " << M_penbal << std::endl;
+  mat<double,mat_structure::diagonal> M_penbal_E(3);
+  mat<double,mat_structure::square> M_penbal_U(3);
+  mat<double,mat_structure::square> M_penbal_V(3);
+  BOOST_CHECK_NO_THROW( decompose_SVD(M_penbal, M_penbal_U, M_penbal_E, M_penbal_V, double(1E-15)) );
+  double cond_M_after = condition_number_SVD(M_penbal_E);
+//   std::cout << " cond(M_penbal) = " << cond_M_after << std::endl;
+  
+  
+  // (A,B)_balanced = Dl^-1 (A,B) Dr
+  
+  apply_left_bal_exp(Dl_penbal, A_penbal);
+  apply_left_bal_exp(Dl_penbal, B_penbal);
+  apply_right_bal_inv_exp(A_penbal, Dr_penbal);
+  apply_right_bal_inv_exp(B_penbal, Dr_penbal);
+//   std::cout << " A_penbal_restored = " << A_penbal << std::endl;
+//   std::cout << " B_penbal_restored = " << B_penbal << std::endl;
+  
+  
+  // The condition numbers must have been reduced:
+  BOOST_CHECK( cond_A_penbal < cond_before );
+  BOOST_CHECK( cond_B_penbal < cond_B_before );
+  BOOST_CHECK( cond_M_after < cond_M_before );
+  
+  BOOST_CHECK( cond_A_penbal < 150.0 );
+  BOOST_CHECK( cond_B_penbal < 10.0 );
+  BOOST_CHECK( cond_M_after < 600.0 );
+  
+  // must be exact because exact floating-point arithmetic is used in balancing:
+  BOOST_CHECK( ( is_null_mat((A - A_penbal), 1e-200) ) );  
+  BOOST_CHECK( ( is_null_mat((B - B_penbal), 1e-200) ) );  
+  
+  
+};
 
 
 

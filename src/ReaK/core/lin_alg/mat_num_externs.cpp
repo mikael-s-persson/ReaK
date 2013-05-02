@@ -342,16 +342,15 @@ template void pseudoinvert_SVD(const mat<float,mat_structure::square>& A, mat<fl
 
 
 
-
-template void balance(mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::diagonal>& D);
-template void balance(mat<double,mat_structure::square>& A, mat<double,mat_structure::diagonal>& D);
+template void balance(mat<double,mat_structure::rectangular>& A, vect_n<int>& D);
+template void balance(mat<double,mat_structure::square>& A, vect_n<int>& D);
 
 template void balance_pencil(mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& B, mat<double,mat_structure::diagonal>& Dl, mat<double,mat_structure::diagonal>& Dr);
 template void balance_pencil(mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& B, mat<double,mat_structure::diagonal>& Dl, mat<double,mat_structure::diagonal>& Dr);
  
 
-template void balance(mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::diagonal>& D);
-template void balance(mat<float,mat_structure::square>& A, mat<float,mat_structure::diagonal>& D);
+template void balance(mat<float,mat_structure::rectangular>& A, vect_n<int>& D);
+template void balance(mat<float,mat_structure::square>& A, vect_n<int>& D);
 
 template void balance_pencil(mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& B, mat<float,mat_structure::diagonal>& Dl, mat<float,mat_structure::diagonal>& Dr);
 template void balance_pencil(mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& B, mat<float,mat_structure::diagonal>& Dl, mat<float,mat_structure::diagonal>& Dr);
