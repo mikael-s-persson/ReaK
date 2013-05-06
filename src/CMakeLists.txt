@@ -68,7 +68,7 @@ endmacro(setup_custom_target)
 
 macro(setup_custom_test_program target_name CUSTOM_OUTPUT_PATH)
   set_property(TARGET ${target_name} PROPERTY RUNTIME_OUTPUT_DIRECTORY "${BINROOT}/unit_tests")
-  add_test("${target_name}" "${BINROOT}/unit_tests/${target_name}")
+  add_test(NAME "${target_name}" WORKING_DIRECTORY "${BINROOT}/unit_tests/" COMMAND "${BINROOT}/unit_tests/${target_name}")
 endmacro(setup_custom_test_program)
 
 macro(setup_headers HEADER_FILES HEADER_PATH)

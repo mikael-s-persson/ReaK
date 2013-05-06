@@ -105,12 +105,10 @@ BOOST_AUTO_TEST_CASE( mat_fullrank_inversion_tests )
   BOOST_CHECK( ( is_null_mat(m_cholesky4_inv - m_gauss_diag_trueinv, std::numeric_limits<double>::epsilon()) ) );
   BOOST_CHECK( ( is_identity_mat((m_gauss_diag * m_cholesky4_inv), std::numeric_limits<double>::epsilon()) ) );
   
-#if 0
   mat<double,mat_structure::symmetric> m_jacobi_pinv(3);
   BOOST_CHECK_NO_THROW( pseudoinvert_Jacobi(m_gauss,m_jacobi_pinv,double(1E-15)) );
   BOOST_CHECK( ( is_null_mat(m_jacobi_pinv - m_gauss_trueinv, 32.0 * std::numeric_limits<double>::epsilon()) ) );
   BOOST_CHECK( ( is_identity_mat((m_gauss * m_jacobi_pinv), 32.0 * std::numeric_limits<double>::epsilon()) ) );
-#endif
   
   mat<double,mat_structure::square> m_qr_inv(3);
   BOOST_CHECK_NO_THROW( pseudoinvert_QR(m_gauss,m_qr_inv,double(1E-15)) );
@@ -137,6 +135,11 @@ BOOST_AUTO_TEST_CASE( mat_fullrank_inversion_tests )
   BOOST_CHECK_NO_THROW( pseudoinvert_SymQR(m_gauss,m_symqr_pinv,double(1E-15)) );
   BOOST_CHECK( ( is_null_mat(m_symqr_pinv - m_gauss_trueinv, 4.0 * std::numeric_limits<double>::epsilon()) ) );
   BOOST_CHECK( ( is_identity_mat((m_gauss * m_symqr_pinv), 4.0 * std::numeric_limits<double>::epsilon()) ) );
+  
+  mat<double,mat_structure::square> m_tridiagldl_inv(3);
+  BOOST_CHECK_NO_THROW( invert_TriDiagLDL(m_gauss,m_tridiagldl_inv,double(1E-15)) );
+  BOOST_CHECK( ( is_null_mat(m_tridiagldl_inv - m_gauss_trueinv, std::numeric_limits<double>::epsilon()) ) );
+  BOOST_CHECK( ( is_identity_mat((m_gauss * m_tridiagldl_inv), std::numeric_limits<double>::epsilon()) ) );
   
 };
 
@@ -274,21 +277,21 @@ BOOST_AUTO_TEST_CASE( mat_eigenvalues_tests )
   
   vect_n<double> m_gauss_trueeig( 1.0 / (1.0 + std::sqrt(0.5)), 2.0, 2.0 + std::sqrt(2.0));
   
-#if 0
   mat<double,mat_structure::diagonal> m_jacobi_E(3);
   mat<double,mat_structure::square> m_jacobi_Q(3);
   BOOST_CHECK_NO_THROW( eigensolve_Jacobi(m_gauss,m_jacobi_E,m_jacobi_Q,double(1E-15)) );
-  BOOST_CHECK( ( is_null_mat(m_jacobi_E - m_gauss_trueeig, std::numeric_limits<double>::epsilon()) ) );
-  BOOST_CHECK( ( is_null_mat((m_jacobi_Q * m_jacobi_E * transpose(m_jacobi_Q) - m_gauss), std::numeric_limits<double>::epsilon()) ) );
-#endif
+  vect_n<double> m_jacobi_Es(m_jacobi_E(0,0), m_jacobi_E(1,1), m_jacobi_E(2,2));
+  std::sort(m_jacobi_Es.begin(), m_jacobi_Es.end());
+  BOOST_CHECK( ( norm_inf(m_jacobi_Es - m_gauss_trueeig) < 1e-14 ) );
+  BOOST_CHECK( ( is_null_mat((m_jacobi_Q * m_jacobi_E * transpose(m_jacobi_Q) - m_gauss), 1e-14) ) );
   
   mat<double,mat_structure::diagonal> m_qr_E(3,true);
   mat<double,mat_structure::square> m_qr_Q(3);
   BOOST_CHECK_NO_THROW( eigensolve_SymQR(m_gauss,m_qr_Q,m_qr_E,double(1E-15)) );
   vect_n<double> m_qr_Es(m_qr_E(0,0), m_qr_E(1,1), m_qr_E(2,2));
   std::sort(m_qr_Es.begin(), m_qr_Es.end());
-  BOOST_CHECK( ( norm_inf(m_qr_Es - m_gauss_trueeig) < 10.0 * std::numeric_limits<double>::epsilon() ) );
-  BOOST_CHECK( ( is_null_mat((m_qr_Q * m_qr_E * transpose(m_qr_Q) - m_gauss), 10.0 * std::numeric_limits<double>::epsilon()) ) );
+  BOOST_CHECK( ( norm_inf(m_qr_Es - m_gauss_trueeig) < 1e-14 ) );
+  BOOST_CHECK( ( is_null_mat((m_qr_Q * m_qr_E * transpose(m_qr_Q) - m_gauss), 1e-14) ) );
   
   mat<double,mat_structure::diagonal> m_svd_E(3);
   mat<double,mat_structure::square> m_svd_U(3);
@@ -406,20 +409,6 @@ BOOST_AUTO_TEST_CASE( mat_decompositions_tests )
   BOOST_CHECK( is_diagonal(m_test_D, std::numeric_limits<double>::epsilon()) );
   BOOST_CHECK( is_null_mat(((m_test_L * m_test_D * transpose_view(m_test_L)) - m_test_sqr), 1e-6) );
   
-#if 0
-  mat<double,mat_structure::square> m_test_P(mat<double,mat_structure::identity>(3));
-  m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 2.0; 
-  m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
-  m_test_sqr(2,0) = 2.0; m_test_sqr(2,1) = 2.0; m_test_sqr(2,2) = 4.0; 
-  BOOST_CHECK_NO_THROW( (decompose_PLTLP(m_test_sqr,m_test_L,m_test_D,m_test_P,1e-6)) );
-  BOOST_CHECK( is_lower_triangular(m_test_L, std::numeric_limits<double>::epsilon()) );
-  // THIS TEST FAILS:
-  //BOOST_CHECK( is_diagonal(m_test_D, 4.0 * std::numeric_limits<double>::epsilon()) );
-  BOOST_CHECK( is_identity_mat(m_test_P * transpose(m_test_P), 4.0 * std::numeric_limits<double>::epsilon()) );
-  // THIS TEST FAILS:
-  //BOOST_CHECK( is_null_mat(((transpose_view(m_test_P) * m_test_L * m_test_D * transpose_view(m_test_L) * m_test_P) - m_test_sqr), 1e-6) );
-#endif
-  
   m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 0.0; 
   m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
   m_test_sqr(2,0) = 0.0; m_test_sqr(2,1) = 2.0; m_test_sqr(2,2) = 4.0; 
@@ -427,7 +416,6 @@ BOOST_AUTO_TEST_CASE( mat_decompositions_tests )
   BOOST_CHECK( is_lower_triangular(m_test_L, std::numeric_limits<double>::epsilon()) );
   BOOST_CHECK( is_null_mat(((m_test_L * transpose_view(m_test_L)) - m_test_sqr), 1e-6) );
   
-#if 0
   m_test_D = mat<double,mat_structure::identity>(3);
   m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 0.0; 
   m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
@@ -435,9 +423,7 @@ BOOST_AUTO_TEST_CASE( mat_decompositions_tests )
   BOOST_CHECK_NO_THROW( (decompose_TriDiagLDL(m_test_sqr,m_test_L,m_test_D,1e-6)) );
   BOOST_CHECK( is_lower_triangular(m_test_L, std::numeric_limits<double>::epsilon()) );
   BOOST_CHECK( is_diagonal(m_test_D, std::numeric_limits<double>::epsilon()) );
-  // THIS TEST FAILS:
-  //BOOST_CHECK( is_null_mat(((m_test_L * m_test_D * transpose_view(m_test_L)) - m_test_sqr), 1e-6) );
-#endif
+  BOOST_CHECK( is_null_mat(((m_test_L * m_test_D * transpose_view(m_test_L)) - m_test_sqr), 1e-6) );
   
 };
 

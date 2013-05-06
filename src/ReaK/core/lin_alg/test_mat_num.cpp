@@ -161,19 +161,6 @@ int main() {
   std::cout << (m_test_inv * m_test_sqr) << std::endl;
   std::cout << "Done!" << std::endl;
   
-  mat<double,mat_structure::square> m_test_P(mat<double,mat_structure::identity>(3));
-  m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 2.0; 
-  m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
-  m_test_sqr(2,0) = 2.0; m_test_sqr(2,1) = 2.0; m_test_sqr(2,2) = 4.0; 
-  std::cout << "Testing PLTLP decomposition.." << std::endl;
-  std::cout << m_test_sqr << std::endl;
-  decompose_PLTLP(m_test_sqr,m_test_L,m_test_D,m_test_P,1e-6);
-  std::cout << m_test_L << std::endl;
-  std::cout << m_test_D << std::endl;
-  std::cout << m_test_P << std::endl;
-  std::cout << (transpose_view(m_test_P) * m_test_L * m_test_D * transpose_view(m_test_L) * m_test_P) << std::endl;
-  std::cout << "Done!" << std::endl;
-  
   m_test_sqr(0,0) = 6.0; m_test_sqr(0,1) = 3.0; m_test_sqr(0,2) = 0.0; 
   m_test_sqr(1,0) = 3.0; m_test_sqr(1,1) = 5.0; m_test_sqr(1,2) = 2.0; 
   m_test_sqr(2,0) = 0.0; m_test_sqr(2,1) = 2.0; m_test_sqr(2,2) = 4.0; 

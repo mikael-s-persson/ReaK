@@ -118,11 +118,16 @@ void decompose_TriDiagLDL_impl(Matrix1& A, typename mat_traits<Matrix1>::value_t
   if(N == 0) return;
   if(fabs(A(0,0)) < NumTol)
     throw singularity_error("A");
+  if(N > 1)
+    A(1,0) /= A(0,0);
   for(SizeType i = 1; i < N; ++i) {
-    ValueType tmp = (A(i,i) -= A(i,i-1) * A(i,i-1) / A(i-1,i-1));
-    if(fabs(tmp) < NumTol)
+    ValueType v_prev = A(i, i-1) * A(i-1, i-1);
+    ValueType v = A(i,i) - A(i,i-1) * v_prev;
+    if(fabs(v) < NumTol)
       throw singularity_error("A");
-    A(i,i-1) /= tmp;
+    A(i,i) = v;
+    if(i < N-1)
+      A(i+1,i) = ( A(i+1,i) - A(i+1,i-1) * v_prev ) / v;
   };
 };
 
@@ -151,88 +156,6 @@ void decompose_LDL_impl(Matrix1& A, typename mat_traits<Matrix1>::value_type Num
   };
 };
 
-template <typename Matrix1, typename Matrix2, typename Vector1, typename Vector2>
-void decompose_PLTLP_impl(Matrix1& A, 
-                          Matrix2& L, 
-                          mat< typename mat_traits<Matrix1>::value_type, mat_structure::permutation >& P,
-                          Vector1& e, 
-                          Vector2& d, 
-                          typename mat_traits<Matrix1>::value_type NumTol) 
-{
-  typedef typename mat_traits<Matrix1>::value_type ValueType;
-  typedef typename mat_traits<Matrix1>::size_type SizeType;
-  using std::fabs; using std::swap;
-  SizeType N = A.get_row_count();
-  L = mat<ValueType, mat_structure::identity>(N);
-  P = mat<ValueType, mat_structure::permutation>(N);
-  if(N < 3) {
-    for(SizeType i = 0; i < N; ++i)
-      d[i] = A(i,i);
-    for(SizeType i = 0; i + 1 < N; ++i)
-      e[i] = A(i+1,i);
-  };
-  for(SizeType i = 1; i < N; ++i)
-    L(i,0) = 1.0;
-  vect_n<ValueType> v(N);
-  vect_n<ValueType> h(N);
-  vect_n<ValueType> l(N);
-  l[0] = 0.0; 
-  for(SizeType j = 0; j < N; ++j) {
-    // first, compute h.
-    if(j == 0) {
-      d[0] = h[0] = A(0,0);
-    } else if(j == 1) {
-      h[0] = e[0];
-      d[1] = h[1] = A(1,1);
-    } else {
-      l[j] = 1.0;
-      for(SizeType i = 1; i < j; ++i)
-        l[i] = L(j,i);
-      h[0] = l[1] * e[0];
-      h[j] = A(j,j);
-      for(SizeType i = 1; i < j; ++i) {
-        h[i] = e[i-1] * l[i-1] + d[i] * l[i] + e[i] * l[i+1];
-        h[j] -= l[i] * h[i];
-      };
-      d[j] = h[j] - e[j-1] * L(j,j-1);
-    };
-    
-    if(j < N-1) {
-      ValueType max_v = -1.0;
-      SizeType q = j+1;
-      for(SizeType i = j+1; i < N; ++i) {
-        v[i] = A(i,j);
-        for(SizeType k = 0; k < j; ++k)
-          v[i] -= L(i,k) * h[k];
-        if(fabs(v[i]) > max_v) {
-          max_v = fabs(v[i]);
-          q = i;
-        };
-      };
-      if(q != j+1) {
-        // swap everything
-        P.add_column_swap(j+1,q);
-        swap(v[j+1],v[j]);
-        for(SizeType i = 1; i <= j; ++i)
-          swap(L(j+1,i),L(q,i));
-        for(SizeType i = j+1; j < N; ++j) {
-          swap(A(j+1,i),A(q,i));
-          swap(A(i,j+1),A(i,q));
-        };
-      };
-      e[j] = v[j+1];
-    };
-    
-    if(j < N-2) {
-      for(SizeType i = j + 2; i < N; ++i)
-        L(i,j+1) = v[i];
-      if(fabs(v[j+1]) < NumTol) {
-        for(SizeType i = j + 2; i < N; ++i)
-          L(i,j+1) /= v[j+1];
-      };
-    };
-  };
-};
 
 template <typename Matrix1, typename Matrix2>
 void backsub_Cholesky_impl(const Matrix1& L, Matrix2& B) {
@@ -309,26 +232,108 @@ void backsub_TriDiagLDL_impl(const Matrix1& L, Matrix2& B) {
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   SizeType N = L.get_row_count();
   SizeType M = B.get_col_count();
-  vect_n<ValueType> d(N);
-  vect_n<ValueType> e(N-1);
-  d[0] = L(0,0);
-  for(SizeType i = 0; i < N-1; ++i) {
-    e[i] = L(i+1,i) / d[i];
-    d[i+1] = L(i+1,i+1) - L(i+1,i) * e[i];
-  };
+  
   for(SizeType j = 0; j < M; ++j) { //for every column of B
     //Start solving L * Y = B
-    for(SizeType i = 1; i < N; ++i) 
-      B(i,j) -= e[i-1] * B(i-1,j);
-    B(N-1,j) /= d[N-1];
+    for(SizeType i = 1; i < N; ++i) //for every row of L
+                                    //for every element of row i in L before the diagonal.
+      B(i,j) -= L(i,i-1) * B(i-1,j); // subtract to B(i,j) the product of L(i,k) * Y(k,j)
+    // Solve D * X = Y;
+    for(SizeType i = 0; i < N; ++i)
+      B(i,j) /= L(i,i);
     // Then solve transpose(L) * W = X
-    for(SizeType i = N-1; i > 0; ) { //for every row of L.transpose(), starting from the last
-      --i;
-      B(i,j) = B(i,j) / d[i] - e[i] * B(i+1,j); // subtract to B(i,j) the product of L(k,i) * Y(k,j)
-    };
+    for(SizeType i = N-1; i > 0; --i) //for every row of L.transpose(), starting from the last
+                                      //for every element of row i in L.tranpose(), after the diagonal.
+      B(i-1,j) -= L(i,i-1) * B(i,j); // subtract to B(i,j) the product of L(k,i) * Y(k,j)
   };
 };
 
+
+
+#if 0
+template <typename Matrix1, typename Matrix2, typename Vector1, typename Vector2>
+void decompose_PLTLP_impl(Matrix1& A, 
+                          Matrix2& L, 
+                          mat< typename mat_traits<Matrix1>::value_type, mat_structure::permutation >& P,
+                          Vector1& e, 
+                          Vector2& d, 
+                          typename mat_traits<Matrix1>::value_type NumTol) 
+{
+  typedef typename mat_traits<Matrix1>::value_type ValueType;
+  typedef typename mat_traits<Matrix1>::size_type SizeType;
+  using std::fabs; using std::swap;
+  SizeType N = A.get_row_count();
+  L = mat<ValueType, mat_structure::identity>(N);
+  P = mat<ValueType, mat_structure::permutation>(N);
+  if(N < 3) {
+    for(SizeType i = 0; i < N; ++i)
+      d[i] = A(i,i);
+    for(SizeType i = 0; i + 1 < N; ++i)
+      e[i] = A(i+1,i);
+  };
+  for(SizeType i = 1; i < N; ++i)
+    L(i,0) = 1.0;
+  vect_n<ValueType> v(N);
+  vect_n<ValueType> h(N);
+  vect_n<ValueType> l(N);
+  l[0] = 0.0; 
+  for(SizeType j = 0; j < N; ++j) {
+    // first, compute h.
+    if(j == 0) {
+      d[0] = h[0] = A(0,0);
+    } else if(j == 1) {
+      h[0] = e[0];
+      d[1] = h[1] = A(1,1);
+    } else {
+      l[j] = 1.0;
+      for(SizeType i = 1; i < j; ++i)
+        l[i] = L(j,i);
+      h[0] = l[1] * e[0];
+      h[j] = A(j,j);
+      for(SizeType k = 1; k < j; ++k) {
+        h[k] = e[k-1] * l[k-1] + d[k] * l[k] + e[k] * l[k+1];
+        h[j] -= l[k] * h[k];
+      };
+      d[j] = h[j] - e[j-1] * L(j,j-1);
+    };
+    
+    if(j < N-1) {
+      ValueType max_v = -1.0;
+      SizeType q = j+1;
+      for(SizeType i = j+1; i < N; ++i) {
+        v[i] = A(i,j);
+        for(SizeType k = 0; k <= j; ++k)
+          v[i] -= L(i,k) * h[k];
+        if(fabs(v[i]) > max_v) {
+          max_v = fabs(v[i]);
+          q = i;
+        };
+      };
+      if(q != j+1) {
+        // swap everything
+        P.add_column_swap(j+1,q);
+        swap(v[j+1],v[q]);
+        for(SizeType i = 1; i <= j; ++i)
+          swap(L(j+1,i),L(q,i));
+        for(SizeType i = j+1; i < N; ++i) {
+          swap(A(j+1,i),A(q,i));
+          swap(A(i,j+1),A(i,q));
+        };
+      };
+      e[j] = v[j+1];
+    };
+    
+    if(j < N-2) {
+      for(SizeType i = j + 2; i < N; ++i)
+        L(i,j+1) = v[i];
+      if(fabs(v[j+1]) > NumTol) {
+        for(SizeType i = j + 2; i < N; ++i)
+          L(i,j+1) /= v[j+1];
+      };
+    };
+    
+  };
+};
 
 template <typename Matrix1, typename Vector1, typename Vector2, typename Matrix2>
 void backsub_PLTLP_impl(const Matrix1& L, 
@@ -390,7 +395,7 @@ void backsub_PLTLP_impl(const Matrix1& L,
   
   B = B * transpose(P);
 };
-
+#endif
 
 };
 
@@ -1212,7 +1217,7 @@ void >::type invert_TriDiagLDL(const Matrix1& A, Matrix2& A_inv,
 
 
 
-
+#if 0
 /**
  * Performs the Permuted LTL decomposition of A (symmetric matrix).
  * returns a permutation matrix, a unit-lower-triangular matrix and 
@@ -1335,7 +1340,7 @@ void >::type invert_PLTLP(const Matrix1& A, Matrix2& A_inv,
   linsolve_PLTLP(A,result,NumTol);
   A_inv = result;
 };
-
+#endif
 
 
 

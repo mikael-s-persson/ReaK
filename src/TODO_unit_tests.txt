@@ -55,7 +55,7 @@ Core modules:
    - identity   ------------------------------------------------------ PASS
    - nil   ----------------------------------------------------------- PASS
    - diagonal   ------------------------------------------------------ PASS
-   - scalar   ------------------------------------------------------ VOID
+   - scalar   ------------------------------------------------------ VOID    (a bit trivial)
    - permutation   ------------------------------------------------- VOID    (tested in mat-numerical methods)
    - lower-triangular   -------------------------------------------- VOID    (not implemented)
    - upper-triangular   -------------------------------------------- VOID    (not implemented)
@@ -68,7 +68,7 @@ Core modules:
    - balance   ------------------------------------------------------- PASS
     - balance   ------------------------------------------------------ PASS
     - balance_pencil   ----------------------------------------------- PASS
-   - cholesky   ------------------------------------------------------ PART
+   - cholesky   ------------------------------------------------------ PASS
     - cholesky decomposition   --------------------------------------- PASS (used in cholesky invert)
     - cholesky lin-solve   ------------------------------------------- PASS (used in cholesky invert)
     - cholesky invert   ---------------------------------------------- PASS
@@ -78,12 +78,9 @@ Core modules:
     - LDL decomposition   -------------------------------------------- PASS (used by LDL invert)
     - LDL lin-solve   ------------------------------------------------ PASS (used by LDL invert)
     - LDL invert   --------------------------------------------------- PASS
-    - TriDiag-LDL decomposition   -------------------------------- FAIL
-    - TriDiag-LDL lin-solve   -------------------------------------- VOID
-    - TriDiag-LDL invert   ----------------------------------------- VOID
-    - PLTLP decomposition   -------------------------------------- FAIL
-    - PLTLP lin-solve   -------------------------------------------- VOID
-    - PLTLP invert   ----------------------------------------------- VOID
+    - TriDiag-LDL decomposition   ------------------------------------ PASS
+    - TriDiag-LDL lin-solve   ---------------------------------------- PASS (used by TriDiagLDL invert)
+    - TriDiag-LDL invert   ------------------------------------------- PASS
    - controllability reduction   ------------------------------------- PASS
    - damped-matrix   ----------------------------------------------- VOID    (a bit trivial)
    - matrix exponential (Padé Square-and-Sum)   -------------------- VOID
@@ -93,13 +90,13 @@ Core modules:
     - PLU invert   --------------------------------------------------- PASS
    - Givens rotations   ---------------------------------------------- PASS (part of many other methods)
    - Householder reflections   --------------------------------------- PASS (part of QR and other methods)
-   - Hessenberg decompositions   ------------------------------------- PART (part of Schur decomp)
+   - Hessenberg decompositions   ------------------------------------- PASS (part of Schur decomp)
     - Upper-Hessenberg decomposition   ------------------------------- PASS 
     - Hessenberg-Triangular reduction   ------------------------------ PASS (part of Gen. Real-Schur)
-   - Jacobi method   --------------------------------------------- FAIL
-    - Jacobi eigen-solve   --------------------------------------- FAIL
-    - Jacobi linlsq-solve   -------------------------------------- FAIL
-    - Jacobi pseudo-invert   ------------------------------------- FAIL
+   - Jacobi method   ------------------------------------------------- PASS
+    - Jacobi eigen-solve   ------------------------------------------- PASS
+    - Jacobi linlsq-solve   ------------------------------------------ PASS (almost identical to pinv)
+    - Jacobi pseudo-invert   ----------------------------------------- PASS
    - QR decomposition   ---------------------------------------------- PASS
     - Stable-GramSchmidt orthogonalization   ------------------------- PASS
     - RRQR decomposition   ------------------------------------------- PASS (used by controllability reduction)
@@ -126,7 +123,7 @@ Core modules:
     - SVD pseudo-invert (rank-deficient)   --------------------------- PASS
     - SVD pseudo-invert (min-norm)   --------------------------------- PASS
     - SVD pseudo-invert (min-norm, rank-def)   ----------------------- PASS
-   - Algebraic Riccati Equation (ARE) Solvers   ---------------------- PART
+   - Algebraic Riccati Equation (ARE) Solvers   ---------------------- PASS
     - Continuous-time ARE solver   ----------------------------------- PASS
     - inf.-horizon continuous-time (IHCT) LQR synthesis   ------------ PASS  (only wraps CARE algorithm)
     - inf.-horizon continuous-time (IHCT) LQR with ctrl-redux   ------ PASS  (only wraps CARE algorithm + controllability reduction)
@@ -136,8 +133,8 @@ Core modules:
     - Discrete-time ARE solver   ------------------------------------- PASS
     - inf.-horizon discrete-time (IHDT) LQR synthesis   -------------- PASS  (only wraps DARE algorithm)
     - inf.-horizon discrete-time (IHDT) LQG synthesis   -------------- PASS  (only wraps DARE algorithm)
-    - Continuous-time Spectral Factorization (CTSF)   -------------- VOID
-    - Discrete-time Spectral Factorization (DTSF)   ---------------- VOID
+    - Continuous-time Spectral Factorization (CTSF)   ---------------- PASS  (identical to CARE)
+    - Discrete-time Spectral Factorization (DTSF)   ------------------ PASS  (identical to DARE)
  - core/kinetostatics   ---------------------------------------------- PART
   - 2D rotations / transforms   -------------------------------------- PASS
   - 3D rotations / transforms   -------------------------------------- PASS

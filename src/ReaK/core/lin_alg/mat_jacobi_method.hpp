@@ -114,24 +114,30 @@ void eigensolve_Jacobi_impl(Matrix1& A, Matrix2& E, Matrix3* Q, typename mat_tra
           t = -t;
         };
         A(k,l) = 0.0; //Update off-diagonal
+        A(l,k) = 0.0; //Update off-diagonal
         E(k,k) -= t; //Update diagonal k
         E(l,l) += t; //Update diagonal l
+        A(k,k) = E(k,k);
+        A(l,l) = E(l,l);
         
         //Perform a Jacobi rotation on the symmetric matrix A.
-        // first, do the segment between k and l (row-segment (k,k) to (k,l), and column-segment (k,l) to (l,l))
-        for(SizeType i = k+1; i < l; ++i)
-          A(i,l) = A(k,i) = c * A(k,i) - s * A(i,l);
-        // then, do the row-segment from l to end.
-        for(SizeType i = l+1; i < A.get_col_count(); ++i) {
-          ValueType tmp1 = c * A(k,i) - s * A(l,i);
-          A(l,i) = s * A(k,i) + c * A(l,i);
-          A(k,i) = tmp1;
-        };
-        // finally, do the column-segment from 1 to k.
+        // first, do the column-segment from 1 to k.
         for(SizeType i = 0; i < k; ++i) {
           ValueType tmp1 = c * A(i,k) - s * A(i,l);
           A(i,l) = s * A(i,k) + c * A(i,l);
           A(i,k) = tmp1;
+        };
+        // then, do the segment between k and l (row-segment (k,k) to (k,l), and column-segment (k,l) to (l,l))
+        for(SizeType i = k+1; i < l; ++i) {
+          ValueType tmp1 = c * A(k,i) - s * A(i,l);
+          A(i,l) = s * A(k,i) + c * A(i,l);
+          A(k,i) = tmp1;
+        };
+        // finally, do the row-segment from l to end.
+        for(SizeType i = l+1; i < A.get_col_count(); ++i) {
+          ValueType tmp1 = c * A(k,i) - s * A(l,i);
+          A(l,i) = s * A(k,i) + c * A(l,i);
+          A(k,i) = tmp1;
         };
         
         //Perform a Givens rotation on the eigen vector matrix.

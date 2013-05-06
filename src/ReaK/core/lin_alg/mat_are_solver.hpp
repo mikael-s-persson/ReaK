@@ -2707,14 +2707,24 @@ void >::type solve_ctsf_problem(const Matrix1& A, const Matrix2& B,
   mat<ValueType, mat_structure::square> Q_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   mat<ValueType, mat_structure::square> Z_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   
+  bool should_interchange = false;
+  if(norm_1(A_aug) > norm_1(B_aug))
+    should_interchange = true;
+  
   vect_n<int> Dl_aug(2*N);
   vect_n<int> Dr_aug(2*N);
   if(UseBalancing)
     balance_pencil(A_aug,B_aug,Dl_aug,Dr_aug);
   
-  detail::gen_schur_decomp_impl(B_aug,A_aug,&Q_aug,&Z_aug,NumTol);
+  if(should_interchange)
+    detail::gen_schur_decomp_impl(B_aug,A_aug,&Q_aug,&Z_aug,NumTol);
+  else
+    detail::gen_schur_decomp_impl(A_aug,B_aug,&Q_aug,&Z_aug,NumTol);
   
-  detail::partition_schur_pencil_impl(B_aug,A_aug,&Q_aug,&Z_aug,detail::neg_real_val_eigen_first(),NumTol);
+  if(should_interchange)
+    detail::partition_schur_pencil_impl(B_aug,A_aug,&Q_aug,&Z_aug,detail::neg_real_val_eigen_first(),NumTol);
+  else
+    detail::partition_schur_pencil_impl(A_aug,B_aug,&Q_aug,&Z_aug,detail::neg_real_val_eigen_first(),NumTol);
   
   P.set_row_count(N);
   P.set_col_count(N);
@@ -2827,14 +2837,24 @@ void >::type solve_dtsf_problem(const Matrix1& F, const Matrix2& G,
   mat<ValueType, mat_structure::square> Q_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   mat<ValueType, mat_structure::square> Z_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   
+  bool should_interchange = false;
+  if(norm_1(A_aug) > norm_1(B_aug))
+    should_interchange = true;
+  
   vect_n<int> Dl_aug(2*N);
   vect_n<int> Dr_aug(2*N);
   if(UseBalancing)
     balance_pencil(A_aug,B_aug,Dl_aug,Dr_aug);
   
-  detail::gen_schur_decomp_impl(B_aug,A_aug,&Q_aug,&Z_aug,NumTol);
+  if(should_interchange)
+    detail::gen_schur_decomp_impl(B_aug,A_aug,&Q_aug,&Z_aug,NumTol);
+  else
+    detail::gen_schur_decomp_impl(A_aug,B_aug,&Q_aug,&Z_aug,NumTol);
   
-  detail::partition_schur_pencil_impl(B_aug,A_aug,&Q_aug,&Z_aug,detail::out_unit_circle_eigen_first(),NumTol);
+  if(should_interchange)
+    detail::partition_schur_pencil_impl(B_aug,A_aug,&Q_aug,&Z_aug,detail::out_unit_circle_eigen_first(),NumTol);
+  else
+    detail::partition_schur_pencil_impl(A_aug,B_aug,&Q_aug,&Z_aug,detail::in_unit_circle_eigen_first(),NumTol);
   
   P.set_row_count(N);
   P.set_col_count(N);
