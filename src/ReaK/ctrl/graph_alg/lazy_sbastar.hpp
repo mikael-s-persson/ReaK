@@ -122,6 +122,48 @@ namespace graph {
         for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
           if(*it == u)
             continue;
+          
+          double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[*it]), p, super_space);
+          double g_out = tentative_weight + get(distance, *it);
+          if(g_out < get(distance, v)) {
+            // edge is useful as an in-edge to v.
+            e_new = sba_vis.attempt_connecting_edge(*it, v, g);
+            if( e_new.second ) {
+              put(distance, v, g_out);
+              Vertex old_pred = get(predecessor, v);
+              put(predecessor, v, *it); 
+              sba_vis.edge_relaxed(e_new.first, g);
+              remove_edge(old_pred, v, g);
+            };
+          };
+          sba_vis.requeue_vertex(*it,g);
+        };
+        
+        sba_vis.requeue_vertex(v,g);
+        
+        for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
+          
+          double tentative_weight = get(ReaK::pp::distance_metric, super_space)(p, get(position,g[*it]), super_space);
+          double g_in  = tentative_weight + get(distance, v);
+          if(g_in < get(distance, *it)) {
+            // edge is useful as an in-edge to (*it).
+            e_new = sba_vis.attempt_connecting_edge(v, *it, g);
+            if( e_new.second ) {
+              put(distance, *it, g_in);
+              Vertex old_pred = get(predecessor, *it);
+              put(predecessor, *it, v); 
+              sba_vis.edge_relaxed(e_new.first, g);
+              remove_edge(old_pred, *it, g);
+            };
+          };
+          sba_vis.requeue_vertex(*it,g);
+        }; 
+        
+        
+#if 0
+        for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
+          if(*it == u)
+            continue;
           double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[*it]), p, super_space);
           double g_in  = tentative_weight + get(distance, v);
           double g_out = tentative_weight + get(distance, *it);
@@ -148,6 +190,7 @@ namespace graph {
           };
           sba_vis.requeue_vertex(*it,g);
         }; 
+#endif
         
         sba_vis.requeue_vertex(v,g);
         
