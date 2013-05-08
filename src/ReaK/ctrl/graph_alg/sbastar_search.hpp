@@ -61,6 +61,8 @@
 #include "bgl_more_property_tags.hpp"
 #include "bgl_raw_property_graph.hpp"
 
+#include "motion_graph_connector.hpp"
+
 #include <stack>
 
 
@@ -181,13 +183,13 @@ namespace graph {
       void edge_added(Edge, const Graph&) const { };
       
       template <typename Vertex, typename Graph>
-      void travel_explored(Vertex, Vertex, const Graph&) const { };
+      void travel_explored(Vertex, Vertex, Graph&) const { };
       
       template <typename Vertex, typename Graph>
-      void travel_succeeded(Vertex, Vertex, const Graph&) const { };
+      void travel_succeeded(Vertex, Vertex, Graph&) const { };
       
       template <typename Vertex, typename Graph>
-      void travel_failed(Vertex, Vertex, const Graph&) const { };
+      void travel_failed(Vertex, Vertex, Graph&) const { };
       
       template <typename Vertex, typename Graph>
       boost::tuple<PointType, bool, typename Graph::edge_bundled> random_walk(Vertex, const Graph&) const { 
@@ -216,6 +218,9 @@ namespace graph {
   
   namespace detail {
   
+#if 0
+    // Old version of the connector:
+    
     template <typename Topology,
               typename UniformCostVisitor,
               typename SBANodeConnector,
@@ -232,18 +237,44 @@ namespace graph {
               typename NcSelector>
     struct sbastar_bfs_visitor
     {
-      typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
 
       sbastar_bfs_visitor(const Topology& super_space, UniformCostVisitor vis, SBANodeConnector connector,
                           UpdatableQueue& Q, IndexInHeapMap index_in_heap,  
                           AStarHeuristicMap heuristic, PositionMap pos, WeightMap weight, 
                           DensityMap density, ConstrictionMap constriction, DistanceMap dist, 
                           PredecessorMap pred, KeyMap key, NcSelector select_neighborhood) : 
-                          m_super_space(super_space), m_vis(vis), m_connect_vertex(connector),
-                          m_Q(Q), m_index_in_heap(index_in_heap), 
+                          m_vis(vis), m_Q(Q), m_index_in_heap(index_in_heap), 
                           m_heuristic(heuristic), m_position(pos), m_weight(weight),
                           m_density(density), m_constriction(constriction), m_distance(dist),
-                          m_predecessor(pred), m_key(key), m_select_neighborhood(select_neighborhood) { };
+                          m_predecessor(pred), m_key(key), 
+                          m_super_space(super_space), m_connect_vertex(connector), m_select_neighborhood(select_neighborhood) { };
+#endif
+                          
+    template <typename UniformCostVisitor,
+              typename UpdatableQueue, 
+              typename IndexInHeapMap,
+              typename AStarHeuristicMap, 
+              typename PositionMap, 
+              typename WeightMap,
+              typename DensityMap,
+              typename ConstrictionMap, 
+              typename DistanceMap,  
+              typename PredecessorMap,
+              typename KeyMap>
+    struct sbastar_bfs_visitor
+    {
+
+      sbastar_bfs_visitor(UniformCostVisitor vis, UpdatableQueue& Q, IndexInHeapMap index_in_heap,  
+                          AStarHeuristicMap heuristic, PositionMap pos, WeightMap weight, 
+                          DensityMap density, ConstrictionMap constriction, 
+                          DistanceMap dist, PredecessorMap pred, KeyMap key) : 
+                          m_vis(vis), m_Q(Q), m_index_in_heap(index_in_heap), 
+                          m_heuristic(heuristic), m_position(pos), m_weight(weight),
+                          m_density(density), m_constriction(constriction), 
+                          m_distance(dist), m_predecessor(pred), m_key(key) { };
+                          
+      
+      typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
       
       template <class Graph>
       typename boost::graph_traits<Graph>::vertex_descriptor create_vertex(const PositionValue& p, Graph& g) const {
@@ -266,7 +297,50 @@ namespace graph {
         return u;
       };
       
+      template <typename Vertex, typename Graph>
+      std::pair< bool, typename Graph::edge_bundled > can_be_connected(Vertex u, Vertex v, Graph& g) const {
+        return m_vis.can_be_connected(u, v, g);
+      };
       
+      template <typename Vertex, typename Graph>
+      boost::tuple< PositionValue, bool, typename Graph::edge_bundled > random_walk(Vertex u, Graph& g) const {
+        return m_vis.random_walk(u, g);
+      };
+      
+      template <typename Edge, typename Graph>
+      void edge_added(Edge e, Graph& g) const {
+        m_vis.edge_added(e,g);
+      };
+      
+      template <typename Vertex, typename Graph>
+      void travel_explored(Vertex u, Vertex v, Graph& g) const {
+        m_vis.travel_explored(u, v, g);
+      };
+      
+      template <typename Vertex, typename Graph>
+      void travel_succeeded(Vertex u, Vertex v, Graph& g) const {
+        m_vis.travel_succeeded(u, v, g);
+      };
+      
+      template <typename Vertex, typename Graph>
+      void travel_failed(Vertex u, Vertex v, Graph& g) const {
+        m_vis.travel_failed(u, v, g);
+      };
+      
+      template <typename Vertex, typename Graph>
+      void requeue_vertex(Vertex u, Graph& g) const {
+        update_key(u,g); 
+        if( ! m_vis.should_close(u, g) ) {
+          m_Q.push_or_update(u);
+          m_vis.discover_vertex(u, g);
+        };
+      };
+      template <typename Vertex, typename Graph>
+      void affected_vertex(Vertex u, Graph& g) const { requeue_vertex(u,g); }; // same function, different name.
+      
+    
+    // Old version of the connector:
+#if 0
       template <typename Vertex, typename EdgeProp, typename Graph>
       std::pair<typename boost::graph_traits<Graph>::edge_descriptor, bool> 
           create_edge(Vertex u, Vertex v, EdgeProp& ep, Graph& g) const {
@@ -308,55 +382,6 @@ namespace graph {
           m_vis.discover_vertex(u, g);
         };
       };
-      
-      template <class Edge, class Graph>
-      void edge_relaxed(Edge e, Graph& g) const {
-        m_vis.edge_relaxed(e, g);
-      };
-      
-      template <class Vertex, class Graph>
-      void discover_vertex(Vertex u, Graph& g) const {
-        m_vis.discover_vertex(u, g);
-      };
-      
-      template <class Vertex, class Graph>
-      void examine_vertex(Vertex u, Graph& g) const {
-        typedef typename Graph::edge_bundled EdgeProp;
-        
-        m_vis.examine_vertex(u, g);
-        
-        PositionValue p_new; bool walk_succeeded; EdgeProp ep_new;
-        boost::tie(p_new, walk_succeeded, ep_new) = m_vis.random_walk(u, g);
-        if(walk_succeeded)
-          m_connect_vertex(p_new, u, ep_new, g, m_super_space, *this, 
-                           m_position, m_distance, m_predecessor, m_weight,
-                           m_select_neighborhood);
-        
-      };
-      
-      template <typename Graph>
-      void publish_path(const Graph& g) const { 
-        m_vis.publish_path(g);
-      };
-      bool keep_going() const { 
-        return m_vis.keep_going(); 
-      };
-      template <typename Vertex, typename Graph>
-      bool has_search_potential(Vertex u, const Graph& g) const { 
-        return m_vis.has_search_potential(u,g);
-      };
-      template <typename Vertex, typename Graph>
-      bool should_close(Vertex u, const Graph& g) const { 
-        return m_vis.should_close(u,g);
-      };
-      
-      template <class Vertex, typename Graph>
-      void update_key(Vertex u, Graph& g) const {
-        double g_u = get(m_distance, u);
-        double h_u = get(m_heuristic, u);
-        // Key-value for the min-heap (priority-queue):
-        put(m_key, u, (g_u + h_u) / (1.0 - get(m_constriction, u)) / (1.0 - get(m_density, u)));
-      };
 
       template <class Vertex, class Graph>
       void update_vertex(Vertex u, Graph& g) const {
@@ -385,10 +410,54 @@ namespace graph {
         };
         
       };
+      
+      template <class Vertex, class Graph>
+      void examine_vertex(Vertex u, Graph& g) const {
+        typedef typename Graph::edge_bundled EdgeProp;
+        
+        m_vis.examine_vertex(u, g);
+        
+        PositionValue p_new; bool walk_succeeded; EdgeProp ep_new;
+        boost::tie(p_new, walk_succeeded, ep_new) = m_vis.random_walk(u, g);
+        if(walk_succeeded)
+          m_connect_vertex(p_new, u, ep_new, g, m_super_space, *this, 
+                           m_position, m_distance, m_predecessor, m_weight,
+                           m_select_neighborhood);
+        
+      };
+      
+#endif
+      
+      template <class Vertex, class Graph>
+      void examine_vertex(Vertex u, Graph& g) const {
+        m_vis.examine_vertex(u, g);
+      };
+      
+      template <typename Graph>
+      void publish_path(const Graph& g) const { 
+        m_vis.publish_path(g);
+      };
+      bool keep_going() const { 
+        return m_vis.keep_going(); 
+      };
+      template <typename Vertex, typename Graph>
+      bool has_search_potential(Vertex u, const Graph& g) const { 
+        return m_vis.has_search_potential(u,g);
+      };
+      template <typename Vertex, typename Graph>
+      bool should_close(Vertex u, const Graph& g) const { 
+        return m_vis.should_close(u,g);
+      };
+      
+      template <class Vertex, typename Graph>
+      void update_key(Vertex u, Graph& g) const {
+        double g_u = get(m_distance, u);
+        double h_u = get(m_heuristic, u);
+        // Key-value for the min-heap (priority-queue):
+        put(m_key, u, (g_u + h_u) / (1.0 - get(m_constriction, u)) / (1.0 - get(m_density, u)));
+      };
 
-      const Topology& m_super_space;
       UniformCostVisitor m_vis;
-      SBANodeConnector m_connect_vertex;
       UpdatableQueue& m_Q; 
       IndexInHeapMap m_index_in_heap;
       
@@ -400,12 +469,23 @@ namespace graph {
       DistanceMap m_distance;
       PredecessorMap m_predecessor;
       KeyMap m_key;
+      
+#if 0
+      // Old version of the connector:
+      const Topology& m_super_space;
+      SBANodeConnector m_connect_vertex;
       NcSelector m_select_neighborhood;
+      
+#endif
     };
     
     
     
     
+    
+    
+#if 0
+    // Old version of the connector:
     struct sbastar_node_connector {
       
       template <typename Graph,
@@ -557,10 +637,6 @@ namespace graph {
     };
     
     
-    
-    
-    
-    
     template <typename Graph, //this is the actual graph, should comply to BidirectionalGraphConcept.
               typename Vertex, //this is the type to describe a vertex in the graph.
               typename SBAStarBFSVisitor, //this is a visitor class that can perform special operations at event points.
@@ -589,23 +665,6 @@ namespace graph {
         
       };
     };
-    
-    template <typename Graph,
-              typename SBAStarVisitor,
-              typename DistanceMap,
-              typename PredecessorMap,
-              typename KeyMap>
-    inline void initialize_sbastar_nodes(Graph &g, SBAStarVisitor vis, DistanceMap distance, 
-                                         PredecessorMap predecessor, KeyMap key) {
-      typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
-      for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
-        put(distance, *ui, std::numeric_limits<double>::infinity());
-        put(key, *ui, 0.0);
-        put(predecessor, *ui, *ui);
-        vis.initialize_vertex(*ui, g);
-      };
-    };
-    
     
     
     template <typename NodeConnector,
@@ -644,7 +703,7 @@ namespace graph {
       typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
       MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
       
-      detail::sbastar_bfs_visitor<
+      sbastar_bfs_visitor<
         Topology, 
         SBAStarVisitor,
         NodeConnector,
@@ -665,10 +724,171 @@ namespace graph {
       
       put(distance, start_vertex, 0.0);
       
-      detail::sbastar_search_loop(g, start_vertex, bfs_vis, Q);
+      sbastar_search_loop(g, start_vertex, bfs_vis, Q);
       
     };
     
+    
+    
+#endif
+    
+    
+    
+    struct sba_node_generator {
+      
+      template <typename Graph,
+                typename SBAVisitor,
+                typename PositionMap>
+      inline 
+      boost::tuple< typename boost::graph_traits<Graph>::vertex_descriptor,
+                    typename boost::property_traits<PositionMap>::value_type,
+                    typename Graph::edge_bundled > 
+        operator()(typename boost::graph_traits<Graph>::vertex_descriptor u, Graph& g, 
+                   const SBAVisitor& sba_vis, PositionMap) const {
+        
+        typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
+        typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+        typedef typename Graph::edge_bundled EdgeProp;
+        typedef boost::tuple< Vertex, PositionValue, EdgeProp > ResultType;
+        
+        PositionValue p_new; bool walk_succeeded; EdgeProp ep_new;
+        boost::tie(p_new, walk_succeeded, ep_new) = sba_vis.random_walk(u, g);
+        if( walk_succeeded )
+          return ResultType(u, p_new, ep_new);
+        
+        return ResultType(boost::graph_traits<Graph>::null_vertex(), PositionValue(), EdgeProp());
+      };
+      
+    };
+  
+    
+    
+    template <typename Graph,
+              typename Vertex,
+              typename Topology,
+              typename SBAStarVisitor,
+              typename MotionGraphConnector,
+              typename SBANodeGenerator,
+              typename MutableQueue,
+              typename NcSelector>
+    inline void
+    sbastar_search_loop(Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor& sba_vis, 
+                        MotionGraphConnector connect_vertex, SBANodeGenerator sba_generate_node,
+                        MutableQueue& Q, NcSelector select_neighborhood)
+    { 
+      typedef typename ReaK::pp::topology_traits<Topology>::point_type PositionValue;
+      typedef typename Graph::edge_bundled EdgeProp;
+      
+      while (sba_vis.keep_going()) {
+        
+        sba_vis.requeue_vertex(start_vertex,g);
+        
+        while (!Q.empty() && sba_vis.keep_going()) { 
+          Vertex u = Q.top(); Q.pop();
+          
+          // stop if the best node does not meet the potential threshold.
+          if( ! sba_vis.has_search_potential(u, g) )
+            break;
+          
+          sba_vis.examine_vertex(u, g);
+          
+          PositionValue p_new; Vertex x_near; EdgeProp eprop;
+          boost::tie(x_near, p_new, eprop) = sba_generate_node(u, g, sba_vis, sba_vis.m_position);
+          
+          if(x_near != boost::graph_traits<Graph>::null_vertex()) {
+            connect_vertex(p_new, x_near, eprop, g, 
+                           super_space, sba_vis, sba_vis.m_position, 
+                           sba_vis.m_distance, sba_vis.m_predecessor, 
+                           sba_vis.m_weight, select_neighborhood);
+          };
+          
+          // then push it back on the OPEN queue.
+          sba_vis.requeue_vertex(u,g);
+          
+        }; // end while  (the queue is either empty or it contains vertices that still have low key values.
+        
+        sba_vis.publish_path(g);
+        
+      };
+    };
+    
+    template <typename Graph,
+              typename Vertex,
+              typename Topology,
+              typename SBAStarVisitor,
+              typename NodeConnector,
+              typename AStarHeuristicMap,
+              typename PositionMap,
+              typename WeightMap,
+              typename DensityMap,
+              typename ConstrictionMap,
+              typename DistanceMap,
+              typename PredecessorMap,
+              typename KeyMap,
+              typename NcSelector>
+    inline void
+    generate_sbastar_no_init_impl
+      (Graph &g, Vertex start_vertex, const Topology& super_space, SBAStarVisitor vis,  // basic parameters
+       NodeConnector connect_vertex, AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
+       DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
+       PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
+       NcSelector select_neighborhood)
+    {
+      typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
+      typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
+      typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
+      IndexInHeapMap index_in_heap;
+      {
+        typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
+        for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
+          put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
+        };
+      };
+      
+      typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
+      MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
+      
+      sbastar_bfs_visitor<
+        SBAStarVisitor,
+        MutableQueue, 
+        IndexInHeapMap,
+        AStarHeuristicMap, 
+        PositionMap, 
+        WeightMap,
+        DensityMap,
+        ConstrictionMap, 
+        DistanceMap,  
+        PredecessorMap,
+        KeyMap> sba_bfs_vis(vis, Q, index_in_heap, hval, position, weight, 
+                            density, constriction, distance, predecessor, key);
+      
+      put(distance, start_vertex, 0.0);
+      
+      sbastar_search_loop(g, start_vertex, super_space, sba_bfs_vis, 
+                          connect_vertex, sba_node_generator(), 
+                          Q, select_neighborhood);
+      
+    };
+    
+    
+    
+    
+    
+    template <typename Graph,
+              typename SBAStarVisitor,
+              typename DistanceMap,
+              typename PredecessorMap,
+              typename KeyMap>
+    inline void initialize_sbastar_nodes(Graph &g, SBAStarVisitor vis, DistanceMap distance, 
+                                         PredecessorMap predecessor, KeyMap key) {
+      typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
+      for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
+        put(distance, *ui, std::numeric_limits<double>::infinity());
+        put(key, *ui, 0.0);
+        put(predecessor, *ui, *ui);
+        vis.initialize_vertex(*ui, g);
+      };
+    };
   
   }; //end of detail namespace.
   
@@ -836,10 +1056,19 @@ namespace graph {
    */
   template <typename SBAStarBundle>
   inline void generate_sbastar_no_init(const SBAStarBundle& bdl) {
+    
+    detail::generate_sbastar_no_init_impl(
+      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, motion_graph_connector(),
+      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+      bdl.m_distance, bdl.m_predecessor, bdl.m_key, bdl.m_select_neighborhood);
+    
+#if 0
+    // Old version of the connector:
     detail::generate_sbastar_no_init_impl< detail::sbastar_node_connector >(
       *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
       bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
       bdl.m_distance, bdl.m_predecessor, bdl.m_key, bdl.m_select_neighborhood);
+#endif
   };
   
   /**

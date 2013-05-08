@@ -286,6 +286,17 @@ class bundle_member_property_map :
 };
 
 
+
+
+
+template <typename BundleMemberMap, typename Graph>
+composite_property_map< BundleMemberMap, whole_bundle_property_map< Graph, vertex_bundle_t > > 
+  bundle_prop_to_vertex_prop(BundleMemberMap bundle_prop, Graph& g) {
+  typedef composite_property_map< BundleMemberMap, whole_bundle_property_map< Graph, vertex_bundle_t > > ResultType;
+  return ResultType(bundle_prop, whole_bundle_property_map< Graph, vertex_bundle_t >(&g));
+};      
+
+
 };
 
 

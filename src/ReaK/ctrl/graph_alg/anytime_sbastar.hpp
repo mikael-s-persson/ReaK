@@ -160,7 +160,79 @@ namespace graph {
   
   
   namespace detail {
-  
+    
+    
+    
+    template <typename UniformCostVisitor,
+              typename UpdatableQueue, 
+              typename IndexInHeapMap,
+              typename AStarHeuristicMap, 
+              typename PositionMap, 
+              typename WeightMap,
+              typename DensityMap,
+              typename ConstrictionMap, 
+              typename DistanceMap,  
+              typename PredecessorMap,
+              typename KeyMap>
+    struct anytime_sbarrtstar_bfs_visitor :
+      sbarrtstar_bfs_visitor<UniformCostVisitor, UpdatableQueue, IndexInHeapMap, 
+                             AStarHeuristicMap, PositionMap, WeightMap, DensityMap, ConstrictionMap, 
+                             DistanceMap, PredecessorMap, KeyMap>
+    {
+      typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
+      typedef sbarrtstar_bfs_visitor<UniformCostVisitor, UpdatableQueue, IndexInHeapMap, 
+                                     AStarHeuristicMap, PositionMap, WeightMap, DensityMap, ConstrictionMap, 
+                                     DistanceMap, PredecessorMap, KeyMap> base_type;
+
+      anytime_sbarrtstar_bfs_visitor(UniformCostVisitor vis, UpdatableQueue& Q, IndexInHeapMap index_in_heap,  
+                                     AStarHeuristicMap heuristic, PositionMap pos, WeightMap weight, 
+                                     DensityMap density, ConstrictionMap constriction, 
+                                     DistanceMap dist, PredecessorMap pred, KeyMap key, double current_relaxation) :
+                                     base_type(vis, Q, index_in_heap, heuristic, pos, weight, density, constriction, dist, pred, key),
+                                     m_current_relaxation(current_relaxation) { };
+      
+      template <class Vertex, typename Graph>
+      void update_key(Vertex u, Graph& g) const {
+        double g_u = get(this->m_distance, u);
+        double h_u = get(this->m_heuristic, u);
+        // Key-value for the min-heap (priority-queue):
+        put(this->m_key, u, ((g_u + h_u) / (1.0 - get(this->m_constriction, u))) / (1.0 - get(this->m_density, u)) + m_current_relaxation * h_u);
+      };
+      
+      template <typename Vertex, typename Graph>
+      void requeue_vertex(Vertex u, Graph& g) const {
+        update_key(u,g); 
+        if( ! this->m_vis.should_close(u, g) ) {
+          this->m_Q.push_or_update(u);
+          this->m_vis.discover_vertex(u, g);
+        };
+      };
+      template <typename Vertex, typename Graph>
+      void affected_vertex(Vertex u, Graph& g) const { requeue_vertex(u,g); }; // same function, different name.
+      
+      template <typename Graph>
+      void update_relaxation(const Graph& g) { 
+        m_current_relaxation = this->m_vis.adjust_relaxation(m_current_relaxation, g);
+        
+        typedef typename boost::graph_traits<Graph>::vertex_iterator VIter;
+        VIter vi, vi_end;
+        for(boost::tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
+          requeue_vertex(*vi, g);
+      };
+      
+      template <typename Graph>
+      void publish_path(const Graph& g) { 
+        this->m_vis.publish_path(g);
+        update_relaxation(g);
+      };
+      
+      double m_current_relaxation;
+    };
+    
+    
+#if 0 
+    // Old connector:
+    
     template <typename Topology,
               typename UniformCostVisitor,
               typename SBANodeConnector,
@@ -317,10 +389,10 @@ namespace graph {
       
       RRTNodeGenerator m_node_generator;
     };
+
     
     
-    
-    
+
     template <typename NodeConnector,
               typename Graph,
               typename Vertex,
@@ -451,6 +523,123 @@ namespace graph {
       
     };
     
+#endif
+    
+    
+    template <typename Graph,
+              typename Vertex,
+              typename Topology,
+              typename ASBAStarVisitor,
+              typename NodeConnector,
+              typename AStarHeuristicMap,
+              typename PositionMap,
+              typename WeightMap,
+              typename DensityMap,
+              typename ConstrictionMap,
+              typename DistanceMap,
+              typename PredecessorMap,
+              typename KeyMap,
+              typename NcSelector>
+    inline void
+    generate_anytime_sbastar_no_init_impl
+      (Graph &g, Vertex start_vertex, const Topology& super_space, ASBAStarVisitor vis,  // basic parameters
+       NodeConnector connect_vertex, AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
+       DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
+       PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
+       NcSelector select_neighborhood, double init_relaxation)
+    {
+      typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
+      typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
+      typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
+      IndexInHeapMap index_in_heap;
+      {
+        typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
+        for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
+          put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
+        };
+      };
+      
+      typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
+      MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
+      
+      anytime_sbarrtstar_bfs_visitor<
+        ASBAStarVisitor,
+        MutableQueue, 
+        IndexInHeapMap,
+        AStarHeuristicMap, 
+        PositionMap, 
+        WeightMap,
+        DensityMap,
+        ConstrictionMap, 
+        DistanceMap,  
+        PredecessorMap,
+        KeyMap> sba_bfs_vis(vis, Q, index_in_heap, hval, position, weight, 
+                            density, constriction, distance, predecessor, key, init_relaxation);
+      
+      put(distance, start_vertex, 0.0);
+      
+      sbastar_search_loop(g, start_vertex, super_space, sba_bfs_vis, 
+                          connect_vertex, sba_node_generator(), 
+                          Q, select_neighborhood);
+      
+    };
+    
+    
+    template <typename Graph,
+              typename Vertex,
+              typename Topology,
+              typename SBARRTStarVisitor,
+              typename NodeConnector,
+              typename AStarHeuristicMap,
+              typename PositionMap,
+              typename WeightMap,
+              typename DensityMap,
+              typename ConstrictionMap,
+              typename DistanceMap,
+              typename PredecessorMap,
+              typename KeyMap,
+              typename RandomSampler,
+              typename NcSelector>
+    inline void
+    generate_anytime_sbarrtstar_no_init_impl(
+      Graph &g, Vertex start_vertex, const Topology& super_space, SBARRTStarVisitor vis,  // basic parameters
+      NodeConnector connect_vertex, AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
+      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
+      PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
+      RandomSampler get_sample,
+      NcSelector select_neighborhood,
+      double init_relaxation, double SA_init_temperature = 1.0)
+    {
+      typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
+      typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
+      typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
+      IndexInHeapMap index_in_heap;
+      {
+        typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
+        for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
+          put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
+        };
+      };
+      
+      typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
+      MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
+      
+      anytime_sbarrtstar_bfs_visitor<
+        SBARRTStarVisitor, MutableQueue, IndexInHeapMap,
+        AStarHeuristicMap, PositionMap, WeightMap, 
+        DensityMap, ConstrictionMap, 
+        DistanceMap, PredecessorMap, KeyMap> sba_bfs_vis(vis, Q, index_in_heap, hval, position, weight, 
+                                                         density, constriction, distance, predecessor, key, init_relaxation);
+      
+      put(distance, start_vertex, 0.0);
+      
+      sbarrtstar_search_loop(g, start_vertex, super_space, sba_bfs_vis, connect_vertex, sba_node_generator(), 
+                             rrg_node_generator<Topology, RandomSampler, NcSelector>(&super_space, get_sample, select_neighborhood), 
+                             Q, select_neighborhood, SA_init_temperature);
+      
+    };
+    
+    
     
   }; //end of detail namespace.
   
@@ -468,8 +657,8 @@ namespace graph {
   inline void generate_anytime_sbastar_no_init(const SBAStarBundle& bdl, double init_relaxation) {
     BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
     
-    detail::generate_anytime_sbastar_no_init_impl< detail::sbastar_node_connector >(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
+    detail::generate_anytime_sbastar_no_init_impl(
+      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, motion_graph_connector(), 
       bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
       bdl.m_distance, bdl.m_predecessor, bdl.m_key, 
       bdl.m_select_neighborhood, init_relaxation);
@@ -508,8 +697,8 @@ namespace graph {
   inline void generate_anytime_lazy_sbastar_no_init(const SBAStarBundle& bdl, double init_relaxation) {
     BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
     
-    detail::generate_anytime_sbastar_no_init_impl< detail::lazy_sbastar_node_connector >(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
+    detail::generate_anytime_sbastar_no_init_impl(
+      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, lazy_node_connector(), 
       bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
       bdl.m_distance, bdl.m_predecessor, bdl.m_key, 
       bdl.m_select_neighborhood, init_relaxation);
@@ -558,8 +747,8 @@ namespace graph {
     BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
     BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
     
-    detail::generate_anytime_sbarrtstar_no_init_impl< detail::sbastar_node_connector >(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
+    detail::generate_anytime_sbarrtstar_no_init_impl(
+      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, motion_graph_connector(), 
       bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
       bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
       bdl.m_select_neighborhood, init_relaxation, SA_init_temperature);
@@ -613,8 +802,8 @@ namespace graph {
     BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
     BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
     
-    detail::generate_anytime_sbarrtstar_no_init_impl< detail::lazy_sbastar_node_connector >(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
+    detail::generate_anytime_sbarrtstar_no_init_impl(
+      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, lazy_node_connector(), 
       bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
       bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
       bdl.m_select_neighborhood, init_relaxation, SA_init_temperature);

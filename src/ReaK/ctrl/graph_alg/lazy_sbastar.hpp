@@ -66,6 +66,8 @@
 #include "bgl_more_property_tags.hpp"
 #include "bgl_raw_property_graph.hpp"
 
+#include "lazy_connector.hpp"
+
 #include <stack>
 
 
@@ -74,6 +76,10 @@ namespace ReaK {
 
 /** Main namespace for ReaK.Graph */
 namespace graph {
+  
+  
+#if 0
+    // Old version of the connector:
   
   namespace detail {
     
@@ -318,6 +324,8 @@ namespace graph {
     
   }; //end of detail namespace.
 
+#endif
+  
   
   /**
    * This function template generates a roadmap to connect a goal location to a start location
@@ -327,10 +335,19 @@ namespace graph {
    */
   template <typename SBAStarBundle>
   inline void generate_lazy_sbastar_no_init(const SBAStarBundle& bdl) {
+    
+    detail::generate_sbastar_no_init_impl(
+      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, lazy_node_connector(), 
+      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+      bdl.m_distance, bdl.m_predecessor, bdl.m_key, bdl.m_select_neighborhood);
+    
+#if 0
+    // Old version of the connector:
     detail::generate_sbastar_no_init_impl< detail::lazy_sbastar_node_connector >(
       *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
       bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
       bdl.m_distance, bdl.m_predecessor, bdl.m_key, bdl.m_select_neighborhood);
+#endif
   };
 
   /**
