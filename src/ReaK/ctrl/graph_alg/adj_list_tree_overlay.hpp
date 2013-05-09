@@ -800,7 +800,7 @@ class alt_graph_view {
 
     void remove_vertex_impl(vertex_descriptor v, vertex_property_type& vp) {
       vp = m_alt->m_tree[ m_alt->m_adj_list[v].tree_vertex ].user_data;
-      remove_vertex(v);
+      remove_vertex_impl(v);
     };
 
     std::pair<edge_descriptor, bool> add_edge_impl(vertex_descriptor u, vertex_descriptor v, const edge_property_type& ep) {
