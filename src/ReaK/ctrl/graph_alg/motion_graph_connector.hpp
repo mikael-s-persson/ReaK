@@ -198,28 +198,23 @@ struct motion_graph_connector {
     typedef typename Graph::edge_bundled EdgeProp;
     typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
     
-    
-    typedef boost::composite_property_map< 
-      PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-    GraphPositionMap g_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
-    
     std::vector<Vertex> Nc;
-    select_neighborhood(p, std::back_inserter(Nc), g, super_space, g_position); 
+    select_neighborhood(p, std::back_inserter(Nc), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
     
     Vertex v = conn_vis.create_vertex(p, g);
     
     Vertex x_near_original = x_near;
     conn_vis.travel_explored(x_near, v, g);
     conn_vis.travel_succeeded(x_near, v, g);
-    double d_near = get(distance, x_near) + get(weight, eprop);
+    double d_near = get(distance, g[x_near]) + get(weight, eprop);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     std::pair<Edge, bool> e_new = add_edge(x_near, v, std::move(eprop), g);
 #else
     std::pair<Edge, bool> e_new = add_edge(x_near, v, eprop, g);
 #endif
     if(e_new.second) {
-      put(distance, v, d_near);
-      put(predecessor, v, x_near);
+      put(distance, g[v], d_near);
+      put(predecessor, g[v], x_near);
       conn_vis.edge_added(e_new.first, g);
       conn_vis.affected_vertex(x_near,g);
     };
@@ -234,7 +229,7 @@ struct motion_graph_connector {
       conn_vis.travel_explored(v, *it, g);
       if(can_connect) {
         conn_vis.travel_succeeded(v, *it, g);
-        double d_in = get(distance, *it) + get(weight, eprop2);
+        double d_in = get(distance, g[*it]) + get(weight, eprop2);
 #ifdef RK_ENABLE_CXX0X_FEATURES
         e_new = add_edge(v, *it, std::move(eprop2), g);
 #else
@@ -244,8 +239,8 @@ struct motion_graph_connector {
           if(d_in < d_near) {
             d_near = d_in;
             x_near = *it;
-            put(distance, v, d_in);
-            put(predecessor, v, *it);
+            put(distance, g[v], d_in);
+            put(predecessor, g[v], *it);
           };
           conn_vis.edge_added(e_new.first, g);
         };
@@ -267,9 +262,9 @@ struct motion_graph_connector {
         Vertex t = target(*eo, g);
         if(t == s)
           t = source(*eo, g);
-        if(s != get(predecessor, t))
+        if(s != get(predecessor, g[t]))
           continue;
-        put(distance, t, get(distance, s) + get(weight, g[*eo]));
+        put(distance, g[t], get(distance, g[s]) + get(weight, g[*eo]));
         conn_vis.affected_vertex(t,g);  // affected by changed distance value.
         incons.push(t);
       };
@@ -348,27 +343,23 @@ struct motion_graph_connector {
     typedef typename Graph::edge_bundled EdgeProp;
     typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
     
-    typedef boost::composite_property_map< 
-      PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-    GraphPositionMap g_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
-    
     std::vector<Vertex> Pred, Succ;
-    select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, super_space, g_position); 
+    select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
     
     Vertex v = conn_vis.create_vertex(p, g);
     
     Vertex x_near_original = x_near;
     conn_vis.travel_explored(x_near, v, g);
     conn_vis.travel_succeeded(x_near, v, g);
-    double d_near = get(distance, x_near) + get(weight, eprop);
+    double d_near = get(distance, g[x_near]) + get(weight, eprop);
 #ifdef RK_ENABLE_CXX0X_FEATURES
     std::pair<Edge, bool> e_new = add_edge(x_near, v, std::move(eprop), g);
 #else
     std::pair<Edge, bool> e_new = add_edge(x_near, v, eprop, g);
 #endif
     if(e_new.second) {
-      put(distance, v, d_near);
-      put(predecessor, v, x_near);
+      put(distance, g[v], d_near);
+      put(predecessor, g[v], x_near);
       conn_vis.edge_added(e_new.first, g);
       conn_vis.affected_vertex(x_near,g);
     };
@@ -383,7 +374,7 @@ struct motion_graph_connector {
       conn_vis.travel_explored(*it, v, g);
       if(can_connect) {
         conn_vis.travel_succeeded(*it, v, g);
-        double d_in = get(distance, *it) + get(weight, eprop2);
+        double d_in = get(distance, g[*it]) + get(weight, eprop2);
 #ifdef RK_ENABLE_CXX0X_FEATURES
         e_new = add_edge(*it, v, std::move(eprop2), g);
 #else
@@ -393,8 +384,8 @@ struct motion_graph_connector {
           if(d_in < d_near) {
             d_near = d_in;
             x_near = *it;
-            put(distance, v, d_in);
-            put(predecessor, v, *it);
+            put(distance, g[v], d_in);
+            put(predecessor, g[v], *it);
           };
           conn_vis.edge_added(e_new.first, g);
         };
@@ -435,9 +426,9 @@ struct motion_graph_connector {
         Vertex t = target(*eo, g);
         if(t == s)
           t = source(*eo, g);
-        if(s != get(predecessor, t))
+        if(s != get(predecessor, g[t]))
           continue;
-        put(distance, t, get(distance, s) + get(weight, g[*eo]));
+        put(distance, g[t], get(distance, g[s]) + get(weight, g[*eo]));
         conn_vis.affected_vertex(t,g);  // affected by changed distance value.
         incons.push(t);
       };

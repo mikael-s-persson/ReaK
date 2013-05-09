@@ -987,6 +987,21 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
   typedef boost::data_member_property_map<PointType, VertexProp > PositionMap;
   PositionMap pos_map = PositionMap(&VertexProp::position);
   
+  typedef boost::data_member_property_map<double, VertexProp> DensityMap;
+  DensityMap dens_map = DensityMap(&VertexProp::density);
+  
+  typedef boost::data_member_property_map<double, VertexProp> ConstrictionMap;
+  ConstrictionMap cons_map = ConstrictionMap(&VertexProp::constriction);
+  
+  typedef boost::data_member_property_map<double, VertexProp> DistanceMap;
+  DistanceMap dist_map = DistanceMap(&VertexProp::distance_accum);
+  
+  typedef boost::data_member_property_map<double, VertexProp> HeuristicMap;
+  HeuristicMap heuristic_map = HeuristicMap(&VertexProp::heuristic_value);
+  
+  typedef boost::data_member_property_map<std::size_t, VertexProp> PredecessorMap;
+  PredecessorMap pred_map = PredecessorMap(&VertexProp::predecessor);
+  
   typedef boost::data_member_property_map<double, EdgeProp > WeightMap;
   WeightMap weight_map = WeightMap(&EdgeProp::astar_weight);
   
@@ -1057,13 +1072,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     ReaK::graph::generate_sbastar( \
       ReaK::graph::make_sbastar_bundle( \
         motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        get(&VertexProp::heuristic_value, motion_graph),  \
+        heuristic_map,  \
         pos_map,  \
         weight_map, \
-        get(&VertexProp::density, motion_graph),  \
-        get(&VertexProp::constriction, motion_graph),  \
-        get(&VertexProp::distance_accum, motion_graph), \
-        get(&VertexProp::predecessor, motion_graph),  \
+        dens_map,  \
+        cons_map,  \
+        dist_map, \
+        pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector)\
       );
@@ -1073,13 +1088,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     ReaK::graph::generate_lazy_sbastar( \
       ReaK::graph::make_sbastar_bundle( \
         motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        get(&VertexProp::heuristic_value, motion_graph),  \
+        heuristic_map,  \
         pos_map,  \
         weight_map, \
-        get(&VertexProp::density, motion_graph),  \
-        get(&VertexProp::constriction, motion_graph),  \
-        get(&VertexProp::distance_accum, motion_graph), \
-        get(&VertexProp::predecessor, motion_graph),  \
+        dens_map,  \
+        cons_map,  \
+        dist_map, \
+        pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector)\
       );
@@ -1089,13 +1104,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     ReaK::graph::generate_sbarrtstar( \
       ReaK::graph::make_sbastar_bundle( \
         motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        get(&VertexProp::heuristic_value, motion_graph),  \
+        heuristic_map,  \
         pos_map,  \
         weight_map, \
-        get(&VertexProp::density, motion_graph),  \
-        get(&VertexProp::constriction, motion_graph),  \
-        get(&VertexProp::distance_accum, motion_graph), \
-        get(&VertexProp::predecessor, motion_graph),  \
+        dens_map,  \
+        cons_map,  \
+        dist_map, \
+        pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector), \
       get(random_sampler, this->m_space->get_super_space()), \
@@ -1106,13 +1121,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     ReaK::graph::generate_lazy_sbarrtstar( \
       ReaK::graph::make_sbastar_bundle( \
         motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        get(&VertexProp::heuristic_value, motion_graph),  \
+        heuristic_map,  \
         pos_map,  \
         weight_map, \
-        get(&VertexProp::density, motion_graph),  \
-        get(&VertexProp::constriction, motion_graph),  \
-        get(&VertexProp::distance_accum, motion_graph), \
-        get(&VertexProp::predecessor, motion_graph),  \
+        dens_map,  \
+        cons_map,  \
+        dist_map, \
+        pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector), \
       get(random_sampler, this->m_space->get_super_space()), \
@@ -1125,13 +1140,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     ReaK::graph::generate_anytime_sbastar( \
       ReaK::graph::make_sbastar_bundle( \
         motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        get(&VertexProp::heuristic_value, motion_graph),  \
+        heuristic_map,  \
         pos_map,  \
         weight_map, \
-        get(&VertexProp::density, motion_graph),  \
-        get(&VertexProp::constriction, motion_graph),  \
-        get(&VertexProp::distance_accum, motion_graph), \
-        get(&VertexProp::predecessor, motion_graph),  \
+        dens_map,  \
+        cons_map,  \
+        dist_map, \
+        pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector), \
       this->m_init_relaxation);
@@ -1141,13 +1156,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     ReaK::graph::generate_anytime_lazy_sbastar( \
       ReaK::graph::make_sbastar_bundle( \
         motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        get(&VertexProp::heuristic_value, motion_graph),  \
+        heuristic_map,  \
         pos_map,  \
         weight_map, \
-        get(&VertexProp::density, motion_graph),  \
-        get(&VertexProp::constriction, motion_graph),  \
-        get(&VertexProp::distance_accum, motion_graph), \
-        get(&VertexProp::predecessor, motion_graph),  \
+        dens_map,  \
+        cons_map,  \
+        dist_map, \
+        pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector), \
       this->m_init_relaxation);
@@ -1157,13 +1172,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     ReaK::graph::generate_anytime_sbarrtstar( \
       ReaK::graph::make_sbastar_bundle( \
         motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        get(&VertexProp::heuristic_value, motion_graph),  \
+        heuristic_map,  \
         pos_map,  \
         weight_map, \
-        get(&VertexProp::density, motion_graph),  \
-        get(&VertexProp::constriction, motion_graph),  \
-        get(&VertexProp::distance_accum, motion_graph), \
-        get(&VertexProp::predecessor, motion_graph),  \
+        dens_map,  \
+        cons_map,  \
+        dist_map, \
+        pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector), \
       get(random_sampler, this->m_space->get_super_space()), \
@@ -1174,13 +1189,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     ReaK::graph::generate_anytime_lazy_sbarrtstar( \
       ReaK::graph::make_sbastar_bundle( \
         motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        get(&VertexProp::heuristic_value, motion_graph),  \
+        heuristic_map,  \
         pos_map,  \
         weight_map, \
-        get(&VertexProp::density, motion_graph),  \
-        get(&VertexProp::constriction, motion_graph),  \
-        get(&VertexProp::distance_accum, motion_graph), \
-        get(&VertexProp::predecessor, motion_graph),  \
+        dens_map,  \
+        cons_map,  \
+        dist_map, \
+        pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector), \
       get(random_sampler, this->m_space->get_super_space()), \

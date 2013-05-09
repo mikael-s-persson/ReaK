@@ -72,6 +72,8 @@ struct MEAQR_rrtstar_vdata {
   
   PointType position;
   double distance_accum;
+  /// The predecessor associated to the vertex, i.e., following the predecessor links starting at the goal node yields a backward trace of the optimal path.
+  std::size_t predecessor;
   
   MEAQR_rrtstar_vdata() : position(PointType()), distance_accum(0.0) { };
 };
@@ -422,7 +424,7 @@ struct MEAQR_rrtstar_visitor {
   };
   
   template <typename Vertex, typename Graph>
-  std::pair<bool,EdgeProp> can_be_connected(Vertex u, Vertex v, const Graph& g) {
+  std::pair<bool,EdgeProp> can_be_connected(Vertex u, Vertex v, const Graph& g) const {
     typedef typename EdgeProp::steer_record_type SteerRec;
     typedef std::pair<bool,EdgeProp> ResultType;
     
@@ -469,6 +471,9 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
   typedef boost::data_member_property_map<PointType, MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler> > PositionMap;
   PositionMap pos_map = PositionMap(&MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler>::position);
   
+  typedef boost::data_member_property_map<std::size_t, MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler> > PredecessorMap;
+  PredecessorMap pred_map = PredecessorMap(&MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler>::predecessor);
+  
   typedef boost::data_member_property_map<double, MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler> > CostMap;
   CostMap cost_map = CostMap(&MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler>::distance_accum);
   
@@ -507,6 +512,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
       vis, 
       pos_map, 
       cost_map,
+      pred_map,
       weight_map,
       ReaK::graph::rrg_node_generator<
         SuperSpace, 
@@ -517,7 +523,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
           ReaK::graph::fixed_neighborhood< linear_pred_succ_search<> >(
             linear_pred_succ_search<>(), 
             5, std::numeric_limits<double>::infinity())),
-      get(distance_metric, this->m_space->get_super_space()),
+//       get(distance_metric, this->m_space->get_super_space()),
       ReaK::graph::star_neighborhood< linear_pred_succ_search<> >(
         linear_pred_succ_search<>(), 
         1, 3.0 * space_Lc), 
@@ -545,6 +551,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
       vis, 
       pos_map, 
       cost_map,
+      pred_map,
       weight_map,
       ReaK::graph::rrg_node_generator<
         SuperSpace, 
@@ -555,7 +562,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
           ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
             nn_finder, 
             5, std::numeric_limits<double>::infinity())),
-      get(distance_metric, this->m_space->get_super_space()),
+//       get(distance_metric, this->m_space->get_super_space()),
       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
         nn_finder, 
         1, 3.0 * space_Lc),
@@ -582,6 +589,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
       vis, 
       pos_map, 
       cost_map,
+      pred_map,
       weight_map,
       ReaK::graph::rrg_node_generator<
         SuperSpace, 
@@ -592,7 +600,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
           ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
             nn_finder, 
             5, std::numeric_limits<double>::infinity())),
-      get(distance_metric, this->m_space->get_super_space()),
+//       get(distance_metric, this->m_space->get_super_space()),
       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
         nn_finder, 
         1, 3.0 * space_Lc), 
@@ -620,6 +628,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
       vis, 
       pos_map, 
       cost_map,
+      pred_map,
       weight_map,
       ReaK::graph::rrg_node_generator<
         SuperSpace, 
@@ -630,7 +639,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
           ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
             nn_finder, 
             5, std::numeric_limits<double>::infinity())),
-      get(distance_metric, this->m_space->get_super_space()),
+//       get(distance_metric, this->m_space->get_super_space()),
       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
         nn_finder, 
         1, 3.0 * space_Lc), 
@@ -659,6 +668,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
       vis, 
       pos_map, 
       cost_map,
+      pred_map,
       weight_map,
       ReaK::graph::rrg_node_generator<
         SuperSpace, 
@@ -669,7 +679,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
           ReaK::graph::fixed_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
             nn_finder, 
             5, std::numeric_limits<double>::infinity())),
-      get(distance_metric, this->m_space->get_super_space()),
+//       get(distance_metric, this->m_space->get_super_space()),
       ReaK::graph::star_neighborhood< multi_dvp_tree_pred_succ_search<MotionGraphType, SpacePartType> >(
         nn_finder, 
         1, 3.0 * space_Lc), 

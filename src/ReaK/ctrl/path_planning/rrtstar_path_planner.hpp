@@ -558,7 +558,7 @@ struct rrtstar_planner_visitor {
   };
   
   template <typename Vertex, typename Graph>
-  std::pair<bool, EdgeProp> can_be_connected(Vertex u, Vertex v, const Graph& g) {
+  std::pair<bool, EdgeProp> can_be_connected(Vertex u, Vertex v, const Graph& g) const {
     double dist = get(distance_metric, *m_space)(g[u].position, g[v].position, *m_space);
     return std::pair<bool, EdgeProp>((dist < std::numeric_limits<double>::infinity()), EdgeProp(dist));
   };
@@ -628,7 +628,7 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
           pred_map,
           weight_map,
           get(random_sampler, this->m_space->get_super_space()), 
-          get(distance_metric, this->m_space->get_super_space()),
+//           get(distance_metric, this->m_space->get_super_space()),
           ReaK::graph::star_neighborhood< linear_neighbor_search<> >(
             linear_neighbor_search<>(), 
             space_dim, 3.0 * space_Lc), 
@@ -654,7 +654,7 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
           pred_map,
           weight_map,
           get(random_sampler, this->m_space->get_super_space()), 
-          get(distance_metric, this->m_space->get_super_space()),
+//           get(distance_metric, this->m_space->get_super_space()),
           ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
             nn_finder, 
             space_dim, 3.0 * space_Lc), 
@@ -680,7 +680,7 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
           pred_map,
           weight_map,
           get(random_sampler, this->m_space->get_super_space()), 
-          get(distance_metric, this->m_space->get_super_space()),
+//           get(distance_metric, this->m_space->get_super_space()),
           ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
             nn_finder, 
             space_dim, 3.0 * space_Lc), 
@@ -706,7 +706,7 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
           pred_map,
           weight_map,
           get(random_sampler, this->m_space->get_super_space()), 
-          get(distance_metric, this->m_space->get_super_space()),
+//           get(distance_metric, this->m_space->get_super_space()),
           ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
             nn_finder, 
             space_dim, 3.0 * space_Lc), 
@@ -732,7 +732,7 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
           pred_map,
           weight_map,
           get(random_sampler, this->m_space->get_super_space()), 
-          get(distance_metric, this->m_space->get_super_space()),
+//           get(distance_metric, this->m_space->get_super_space()),
           ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
             nn_finder, 
             space_dim, 3.0 * space_Lc), 
@@ -778,7 +778,7 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
           pred_map,
           weight_map,
           get(random_sampler, this->m_space->get_super_space()), 
-          get(distance_metric, this->m_space->get_super_space()),
+//           get(distance_metric, this->m_space->get_super_space()),
           ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
             nn_finder, 
             space_dim, 3.0 * space_Lc), 
@@ -820,7 +820,7 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
           pred_map,
           weight_map,
           get(random_sampler, this->m_space->get_super_space()), 
-          get(distance_metric, this->m_space->get_super_space()),
+//           get(distance_metric, this->m_space->get_super_space()),
           ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
             nn_finder, 
             space_dim, 3.0 * space_Lc), 
@@ -862,7 +862,7 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
           pred_map,
           weight_map,
           get(random_sampler, this->m_space->get_super_space()), 
-          get(distance_metric, this->m_space->get_super_space()),
+//           get(distance_metric, this->m_space->get_super_space()),
           ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
             nn_finder, 
             space_dim, 3.0 * space_Lc), 
@@ -904,7 +904,7 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
           pred_map,
           weight_map,
           get(random_sampler, this->m_space->get_super_space()), 
-          get(distance_metric, this->m_space->get_super_space()),
+//           get(distance_metric, this->m_space->get_super_space()),
           ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
             nn_finder, 
             space_dim, 3.0 * space_Lc), 

@@ -79,7 +79,7 @@ struct lazy_node_connector {
             typename DistanceMap,
             typename PredecessorMap,
             typename WeightMap>
-  typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_predecessor(
+  void connect_predecessor(
       Vertex v, 
       Vertex x_near, 
       EdgeProp& eprop, 
@@ -96,7 +96,7 @@ struct lazy_node_connector {
     Vertex x_near_original = x_near;
     conn_vis.travel_explored(x_near, v, g);
     conn_vis.travel_succeeded(x_near, v, g);
-    double d_near = get(distance, x_near) + get(weight, eprop);
+    double d_near = get(distance, g[x_near]) + get(weight, eprop);
     conn_vis.affected_vertex(x_near, g);
     
     for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
@@ -104,7 +104,7 @@ struct lazy_node_connector {
         continue;
       
       double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[*it]), get(position,g[v]), super_space);
-      double d_out = tentative_weight + get(distance, *it);
+      double d_out = tentative_weight + get(distance, g[*it]);
       if(d_out < d_near) {
         // edge could be useful as an in-edge to v.
         EdgeProp eprop2; bool can_connect;
@@ -132,8 +132,8 @@ struct lazy_node_connector {
     std::pair<Edge, bool> e_new = add_edge(x_near, v, eprop, g);
 #endif
     if(e_new.second) {
-      put(distance, v, d_near);
-      put(predecessor, v, x_near);
+      put(distance, g[v], d_near);
+      put(predecessor, g[v], x_near);
       conn_vis.edge_added(e_new.first, g);
       conn_vis.affected_vertex(x_near,g);
     };
@@ -151,7 +151,7 @@ struct lazy_node_connector {
             typename DistanceMap,
             typename PredecessorMap,
             typename WeightMap>
-  typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_successors(
+  void connect_successors(
       Vertex v, 
       Vertex x_near, 
       Graph& g,
@@ -171,8 +171,8 @@ struct lazy_node_connector {
         continue;
       
       double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[v]), get(position,g[*it]), super_space);
-      double d_in  = tentative_weight + get(distance, v);
-      if(d_in < get(distance, *it)) {
+      double d_in  = tentative_weight + get(distance, g[v]);
+      if(d_in < get(distance, g[*it])) {
         // edge is useful as an in-edge to (*it).
         EdgeProp eprop2; bool can_connect;
         boost::tie(can_connect, eprop2) = conn_vis.can_be_connected(v, *it, g);
@@ -185,9 +185,9 @@ struct lazy_node_connector {
           std::pair<Edge, bool> e_new = add_edge(v, *it, eprop2, g);
 #endif
           if(e_new.second) {
-            put(distance, *it, d_in);
-            Vertex old_pred = get(predecessor, *it);
-            put(predecessor, *it, v); 
+            put(distance, g[*it], d_in);
+            Vertex old_pred = get(predecessor, g[*it]);
+            put(predecessor, g[*it], v); 
             conn_vis.edge_added(e_new.first, g);
             remove_edge(old_pred, *it, g);
           };
@@ -210,9 +210,9 @@ struct lazy_node_connector {
         Vertex t = target(*eo, g);
         if(t == s)
           t = source(*eo, g);
-        if(s != get(predecessor, t))
+        if(s != get(predecessor, g[t]))
           continue;
-        put(distance, t, get(distance, s) + get(weight, g[*eo]));
+        put(distance, g[t], get(distance, g[s]) + get(weight, g[*eo]));
         
         conn_vis.affected_vertex(t,g);  // affected by changed distance value.
         
@@ -289,16 +289,9 @@ struct lazy_node_connector {
     BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
     
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-    typedef typename Graph::edge_bundled EdgeProp;
-    typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
-    
-    typedef boost::composite_property_map< 
-      PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-    GraphPositionMap g_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
     
     std::vector<Vertex> Nc;
-    select_neighborhood(p, std::back_inserter(Nc), g, super_space, g_position); 
+    select_neighborhood(p, std::back_inserter(Nc), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
     
     Vertex v = conn_vis.create_vertex(p, g);
     
@@ -375,15 +368,9 @@ struct lazy_node_connector {
     BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
     
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-    typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
-    
-    typedef boost::composite_property_map< 
-      PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-    GraphPositionMap g_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
     
     std::vector<Vertex> Pred, Succ;
-    select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, super_space, g_position); 
+    select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
     
     Vertex v = conn_vis.create_vertex(p, g);
     

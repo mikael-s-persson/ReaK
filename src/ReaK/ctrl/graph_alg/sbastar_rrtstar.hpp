@@ -409,7 +409,7 @@ namespace graph {
           };
           
           if((x_near != boost::graph_traits<Graph>::null_vertex()) && 
-             (get(sba_vis.m_distance, x_near) != std::numeric_limits<double>::infinity())) {
+             (get(sba_vis.m_distance, g[x_near]) != std::numeric_limits<double>::infinity())) {
             connect_vertex(p_new, x_near, eprop, g, 
                            super_space, sba_vis, sba_vis.m_position, 
                            sba_vis.m_distance, sba_vis.m_predecessor, 
@@ -476,7 +476,7 @@ namespace graph {
         DistanceMap, PredecessorMap, KeyMap> sba_bfs_vis(vis, Q, index_in_heap, hval, position, weight, 
                                                          density, constriction, distance, predecessor, key);
       
-      put(distance, start_vertex, 0.0);
+      put(distance, g[start_vertex], 0.0);
       
       sbarrtstar_search_loop(g, start_vertex, super_space, sba_bfs_vis, connect_vertex, sba_node_generator(), 
                              rrg_node_generator<Topology, RandomSampler, NcSelector>(&super_space, get_sample, select_neighborhood), 

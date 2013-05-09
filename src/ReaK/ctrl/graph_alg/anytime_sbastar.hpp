@@ -193,10 +193,10 @@ namespace graph {
       
       template <class Vertex, typename Graph>
       void update_key(Vertex u, Graph& g) const {
-        double g_u = get(this->m_distance, u);
-        double h_u = get(this->m_heuristic, u);
+        double g_u = get(this->m_distance, g[u]);
+        double h_u = get(this->m_heuristic, g[u]);
         // Key-value for the min-heap (priority-queue):
-        put(this->m_key, u, ((g_u + h_u) / (1.0 - get(this->m_constriction, u))) / (1.0 - get(this->m_density, u)) + m_current_relaxation * h_u);
+        put(this->m_key, u, ((g_u + h_u) / (1.0 - get(this->m_constriction, g[u]))) / (1.0 - get(this->m_density, g[u])) + m_current_relaxation * h_u);
       };
       
       template <typename Vertex, typename Graph>
@@ -576,7 +576,7 @@ namespace graph {
         KeyMap> sba_bfs_vis(vis, Q, index_in_heap, hval, position, weight, 
                             density, constriction, distance, predecessor, key, init_relaxation);
       
-      put(distance, start_vertex, 0.0);
+      put(distance, g[start_vertex], 0.0);
       
       sbastar_search_loop(g, start_vertex, super_space, sba_bfs_vis, 
                           connect_vertex, sba_node_generator(), 
@@ -631,7 +631,7 @@ namespace graph {
         DistanceMap, PredecessorMap, KeyMap> sba_bfs_vis(vis, Q, index_in_heap, hval, position, weight, 
                                                          density, constriction, distance, predecessor, key, init_relaxation);
       
-      put(distance, start_vertex, 0.0);
+      put(distance, g[start_vertex], 0.0);
       
       sbarrtstar_search_loop(g, start_vertex, super_space, sba_bfs_vis, connect_vertex, sba_node_generator(), 
                              rrg_node_generator<Topology, RandomSampler, NcSelector>(&super_space, get_sample, select_neighborhood), 

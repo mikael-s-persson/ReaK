@@ -283,16 +283,16 @@ namespace graph {
         
         VertexProp up;
         put(m_position, up, p);
+        put(m_distance, up, std::numeric_limits<double>::infinity());
 #ifdef RK_ENABLE_CXX0X_FEATURES
         Vertex u = add_vertex(std::move(up), g);
 #else
         Vertex u = add_vertex(up, g);
 #endif
+        put(m_predecessor, g[u], u);
         m_vis.vertex_added(u,g);
         put(m_index_in_heap, u, static_cast<std::size_t>(-1));
-        put(m_distance, u, std::numeric_limits<double>::infinity());
         put(m_key, u, 0.0);
-        put(m_predecessor, u, u);
         
         return u;
       };
@@ -451,10 +451,10 @@ namespace graph {
       
       template <class Vertex, typename Graph>
       void update_key(Vertex u, Graph& g) const {
-        double g_u = get(m_distance, u);
-        double h_u = get(m_heuristic, u);
+        double g_u = get(m_distance, g[u]);
+        double h_u = get(m_heuristic, g[u]);
         // Key-value for the min-heap (priority-queue):
-        put(m_key, u, (g_u + h_u) / (1.0 - get(m_constriction, u)) / (1.0 - get(m_density, u)));
+        put(m_key, u, (g_u + h_u) / (1.0 - get(m_constriction, g[u])) / (1.0 - get(m_density, g[u])));
       };
 
       UniformCostVisitor m_vis;
@@ -862,7 +862,7 @@ namespace graph {
         KeyMap> sba_bfs_vis(vis, Q, index_in_heap, hval, position, weight, 
                             density, constriction, distance, predecessor, key);
       
-      put(distance, start_vertex, 0.0);
+      put(distance, g[start_vertex], 0.0);
       
       sbastar_search_loop(g, start_vertex, super_space, sba_bfs_vis, 
                           connect_vertex, sba_node_generator(), 
@@ -883,9 +883,9 @@ namespace graph {
                                          PredecessorMap predecessor, KeyMap key) {
       typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
       for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
-        put(distance, *ui, std::numeric_limits<double>::infinity());
+        put(distance, g[*ui], std::numeric_limits<double>::infinity());
         put(key, *ui, 0.0);
-        put(predecessor, *ui, *ui);
+        put(predecessor, g[*ui], *ui);
         vis.initialize_vertex(*ui, g);
       };
     };
@@ -964,17 +964,17 @@ namespace graph {
    * \tparam SBAStarVisitor The type of the SBA* visitor to be used, should model the SBAStarVisitorConcept.
    * \tparam AStarHeuristicMap This property-map type is used to obtain the heuristic-function values 
    *         for each vertex in the graph.
-   * \tparam PositionMap A property-map type that can store the position of each vertex. 
+   * \tparam PositionMap A property-map type that can store the position of each vertex-property object. 
    * \tparam WeightMap This property-map type is used to store the weights of the edge-properties of the 
    *         graph (cost of travel along an edge).
    * \tparam DensityMap A property-map type that can store the probability-measure of the expected common information 
-   *         between a new sample and the current neighborhood for each vertex.
+   *         between a new sample and the current neighborhood for each vertex-property object.
    * \tparam ConstrictionMap A property-map type that can store the probability-measure of sampling a colliding point 
-   *         for each vertex.
-   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex 
+   *         for each vertex-property object.
+   * \tparam DistanceMap This property-map type is used to store the estimated distance of each vertex-property object
    *         to the goal.
    * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
-   *         vertex together with its optimal predecessor.
+   *         vertex-property object together with its optimal predecessor.
    * \tparam KeyMap This property-map type is used to store the priority-keys of the vertices of the 
    *         graph (cost of travel along an edge).
    * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
