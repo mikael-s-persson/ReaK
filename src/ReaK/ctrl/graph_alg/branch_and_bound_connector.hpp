@@ -41,10 +41,11 @@
 
 #include "path_planning/metric_space_concept.hpp"
 
-#include "motion_graph_connector.hpp"
+#include "lazy_connector.hpp"
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
+#include <boost/graph/detail/d_ary_heap.hpp>
 
 #include "bgl_more_property_maps.hpp"
 #include "bgl_more_property_tags.hpp"
@@ -60,155 +61,105 @@ namespace ReaK {
 namespace graph {
   
   
+/**
+  * This concept class defines the valid expressions required of a class to be used as a visitor 
+  * class for a branch-and-bound connection strategies. A visitor class is essentially a class that regroups a number of 
+  * callback functions that can be used to inject customization into a branch-and-bound connection strategy. In other 
+  * words, the visitor pattern in generic programming is an implementation of IoC 
+  * (Inversion of Control), since the connection strategy is in control of execution, but custom behavior can
+  * be injected in several places, even blocking the algorithm if needed.
+  * 
+  * Required concepts:
+  * 
+  * The visitor class should model the MotionGraphConnectorVisitorConcept.
+  * 
+  * Valid expressions:
+  * 
+  * conn_vis.vertex_to_be_removed(u, g);  This function is called just before a vertex is removed from the motion-graph (i.e., pruned by the branch-and-bound heuristic).
+  * 
+  * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
+  * \tparam Graph The graph type on which the visitor should be able to act.
+  * \tparam Topology The topology type on which the visitor class is required to work with.
+  */
+template <typename ConnectorVisitor, typename Graph, typename Topology>
+struct BNBConnectorVisitorConcept : MotionGraphConnectorVisitorConcept<ConnectorVisitor, Graph, Topology> {
+  BOOST_CONCEPT_USAGE(BNBConnectorVisitorConcept)
+  {
+    this->conn_vis.vertex_to_be_removed(this->u, this->g);
+  }
+};
+
+  
   
 /**
  * This callable class template implements a Lazy Branch-and-bound Motion-graph Connector. 
  * A Lazy Branch-and-bound Connector uses the accumulated distance to assess the local optimality of the wirings 
  * on a motion-graph and prunes away any node that cannot yield a better path than the current best path.
  * The call operator accepts a visitor object to provide customized behavior because it can be used in many 
- * different sampling-based motion-planners. The visitor must model the MotionGraphConnectorVisitorConcept concept.
+ * different sampling-based motion-planners. The visitor must model the BNBConnectorVisitorConcept concept.
  */
+template <typename Graph>
 struct branch_and_bound_connector {
   
+  typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+  typedef typename Graph::edge_bundled EdgeProp;
+  typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
+  
+  typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
+  typedef boost::vector_property_map<double> KeyMap;
+  typedef std::greater<double> KeyCompareType;  // <---- this is a max-heap.
+  typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
+  
+  Vertex start_vertex;
+  Vertex goal_vertex;
+  
+  lazy_node_connector node_connector;
+  
+  IndexInHeapMap index_in_heap;
+  KeyMap key;
+  MutableQueue Q; //priority queue holding the OPEN set.
   
   
-  template <typename Vertex, 
-            typename EdgeProp,
-            typename Graph,
-            typename Topology,
-            typename ConnectorVisitor,
-            typename PositionMap,
-            typename DistanceMap,
-            typename PredecessorMap,
-            typename WeightMap>
-  void connect_predecessor(
-      Vertex v, 
-      Vertex x_near, 
-      EdgeProp& eprop, 
-      Graph& g,
-      const Topology& super_space,
-      const ConnectorVisitor& conn_vis,
-      PositionMap position,
-      DistanceMap distance,
-      PredecessorMap predecessor,
-      WeightMap weight,
-      std::vector<Vertex>& Pred) const {
-    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+  
+  branch_and_bound_connector(Graph& g,
+                             Vertex aStartVertex, 
+                             Vertex aGoalVertex) : 
+                             start_vertex(aStartVertex), 
+                             goal_vertex(aGoalVertex),
+                             node_connector(),
+                             index_in_heap(), key(),
+                             Q(key, index_in_heap, KeyCompareType()) { 
     
-    Vertex x_near_original = x_near;
-    conn_vis.travel_explored(x_near, v, g);
-    conn_vis.travel_succeeded(x_near, v, g);
-    double d_near = get(distance, g[x_near]) + get(weight, eprop);
-    conn_vis.affected_vertex(x_near, g);
-    
-    for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
-      if(*it == x_near_original)
-        continue;
-      
-      double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[*it]), get(position,g[v]), super_space);
-      double d_out = tentative_weight + get(distance, g[*it]);
-      if(d_out < d_near) {
-        // edge could be useful as an in-edge to v.
-        EdgeProp eprop2; bool can_connect;
-        boost::tie(can_connect, eprop2) = conn_vis.can_be_connected(*it, v, g);
-        conn_vis.travel_explored(*it, v, g);
-        if(can_connect) {
-          conn_vis.travel_succeeded(*it, v, g);
-          x_near = *it;
-          d_near = d_out;
-#ifdef RK_ENABLE_CXX11_FEATURES
-          eprop  = std::move(eprop2);
-#else
-          eprop  = eprop2;
-#endif
-        } else {
-          conn_vis.travel_failed(*it, v, g);
-        };
-        conn_vis.affected_vertex(*it, g);  // affected by travel attempts.
-      };
-    };
-    
-#ifdef RK_ENABLE_CXX0X_FEATURES
-    std::pair<Edge, bool> e_new = add_edge(x_near, v, std::move(eprop), g);
-#else
-    std::pair<Edge, bool> e_new = add_edge(x_near, v, eprop, g);
-#endif
-    if(e_new.second) {
-      put(distance, g[v], d_near);
-      put(predecessor, g[v], x_near);
-      conn_vis.edge_added(e_new.first, g);
-      conn_vis.affected_vertex(x_near,g);
-    };
-    conn_vis.affected_vertex(v,g);  // affected by travel attempts and new in-going edge.
+    typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
+    for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui)
+      put(index_in_heap,*ui, static_cast<std::size_t>(-1));
     
   };
   
   
-  
-  template <typename Vertex, 
-            typename Graph,
-            typename Topology,
+  template <typename Topology,
             typename ConnectorVisitor,
             typename PositionMap,
             typename DistanceMap,
             typename PredecessorMap,
             typename WeightMap>
-  void connect_successors(
+  void update_successors(
       Vertex v, 
-      Vertex x_near, 
       Graph& g,
       const Topology& super_space,
       const ConnectorVisitor& conn_vis,
       PositionMap position,
       DistanceMap distance,
       PredecessorMap predecessor,
-      WeightMap weight,
-      std::vector<Vertex>& Succ) const {
-    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-    typedef typename Graph::edge_bundled EdgeProp;
-    typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
-    
-    for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-      if(*it == x_near)
-        continue;
-      
-      double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[v]), get(position,g[*it]), super_space);
-      double d_in  = tentative_weight + get(distance, g[v]);
-      if(d_in < get(distance, g[*it])) {
-        // edge is useful as an in-edge to (*it).
-        EdgeProp eprop2; bool can_connect;
-        boost::tie(can_connect, eprop2) = conn_vis.can_be_connected(v, *it, g);
-        conn_vis.travel_explored(v, *it, g);
-        if(can_connect) {
-          conn_vis.travel_succeeded(v, *it, g);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-          std::pair<Edge, bool> e_new = add_edge(v, *it, std::move(eprop2), g);
-#else
-          std::pair<Edge, bool> e_new = add_edge(v, *it, eprop2, g);
-#endif
-          if(e_new.second) {
-            put(distance, g[*it], d_in);
-            Vertex old_pred = get(predecessor, g[*it]);
-            put(predecessor, g[*it], v); 
-            conn_vis.edge_added(e_new.first, g);
-            remove_edge(old_pred, *it, g);
-          };
-        } else {
-          conn_vis.travel_failed(*it, v, g);
-        };
-        conn_vis.affected_vertex(*it, g);  // affected by travel attempts.
-      };
-    };     
-    
-    conn_vis.affected_vertex(v,g);  // affected by travel attempts and new out-going edges.
+      WeightMap weight) {
     
     // need to update all the children of the v node:
-    std::stack<Vertex> incons;
+    std::stack< Vertex > incons;
     incons.push(v);
     while(!incons.empty()) {
       Vertex s = incons.top(); incons.pop();
       OutEdgeIter eo, eo_end;
-      for(boost::tie(eo,eo_end) = out_edges(s,g); eo != eo_end; ++eo) {
+      for(boost::tie(eo,eo_end) = out_edges(s, g); eo != eo_end; ++eo) {
         Vertex t = target(*eo, g);
         if(t == s)
           t = source(*eo, g);
@@ -218,10 +169,25 @@ struct branch_and_bound_connector {
         
         conn_vis.affected_vertex(t,g);  // affected by changed distance value.
         
+        put(key, t, get(distance, g[t]) + get(ReaK::pp::distance_metric, super_space)(get(position, g[t]), get(position, g[goal_vertex]), super_space) );
+        Q.update(t);
+        
         incons.push(t);
       };
     };
+    
+    // prune all the worst nodes:
+    double top_value = get(key, Q.top());
+    while(top_value > get(distance, g[goal_vertex])) {
+      conn_vis.vertex_to_be_removed(Q.top(), g);
+      clear_vertex(Q.top(), g);
+      remove_vertex(Q.top(), g);
+      Q.pop();
+      top_value = get(key, Q.top());
+    };
+    
   };
+  
   
   
   /**
@@ -234,7 +200,7 @@ struct branch_and_bound_connector {
    * \tparam Graph The graph type that can store the generated roadmap, should model 
    *         BidirectionalGraphConcept and MutableGraphConcept.
    * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-   * \tparam SBAStarVisitor The type of the node-connector visitor to be used, should model the MotionGraphConnectorVisitorConcept.
+   * \tparam SBAStarVisitor The type of the node-connector visitor to be used, should model the BNBConnectorVisitorConcept.
    * \tparam PositionMap A property-map type that can store the position of each vertex. 
    * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
    *         vertex together with its optimal predecessor.
@@ -252,7 +218,7 @@ struct branch_and_bound_connector {
    *        the generated graph once the algorithm has finished.
    * \param super_space A topology (as defined by the Boost Graph Library). This topology 
    *        should not include collision checking in its distance metric.
-   * \param conn_vis A node-connector visitor implementing the MotionGraphConnectorVisitorConcept. This is the 
+   * \param conn_vis A node-connector visitor implementing the BNBConnectorVisitorConcept. This is the 
    *        main point of customization and recording of results that the user can implement.
    * \param position A mapping that implements the MutablePropertyMap Concept. Also,
    *        the value_type of this map should be the same type as the topology's point_type.
@@ -266,8 +232,7 @@ struct branch_and_bound_connector {
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
    */
-  template <typename Graph,
-            typename Topology,
+  template <typename Topology,
             typename ConnectorVisitor,
             typename PositionMap,
             typename DistanceMap,
@@ -276,8 +241,8 @@ struct branch_and_bound_connector {
             typename NcSelector>
   typename boost::enable_if< boost::is_undirected_graph<Graph> >::type operator()(
       const typename boost::property_traits<PositionMap>::value_type& p, 
-      typename boost::graph_traits<Graph>::vertex_descriptor& x_near, 
-      typename Graph::edge_bundled& eprop, 
+      Vertex& x_near, 
+      EdgeProp& eprop, 
       Graph& g,
       const Topology& super_space,
       const ConnectorVisitor& conn_vis,
@@ -288,17 +253,33 @@ struct branch_and_bound_connector {
       NcSelector select_neighborhood) const {
     
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
+    BOOST_CONCEPT_ASSERT((BNBConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
     
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    double dist_from_start = get(ReaK::pp::distance_metric, super_space)(get(position, g[start_vertex]), p, super_space);
+    double dist_to_goal = get(ReaK::pp::distance_metric, super_space)(p, get(position, g[goal_vertex]), super_space);
+    
+    if(dist_from_start + dist_to_goal > get(distance, g[goal_vertex]))
+      return;
     
     std::vector<Vertex> Nc;
     select_neighborhood(p, std::back_inserter(Nc), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
     
     Vertex v = conn_vis.create_vertex(p, g);
     
-    connect_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
-    connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
+    node_connector.connect_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
+    
+    if(get(distance, g[v]) + dist_to_goal > get(distance, g[goal_vertex])) {
+      conn_vis.vertex_to_be_removed(v, g);
+      clear_vertex(v, g);
+      remove_vertex(v, g);
+      return;
+    };
+    
+    put(key, v, get(distance, g[v]) + dist_to_goal );
+    Q.push(v);
+    
+    node_connector.connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
+    update_successors(v, g, super_space, conn_vis, position, distance, predecessor, weight);
     
   };
   
@@ -313,7 +294,7 @@ struct branch_and_bound_connector {
    * \tparam Graph The graph type that can store the generated roadmap, should model 
    *         BidirectionalGraphConcept and MutableGraphConcept.
    * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
-   * \tparam SBAStarVisitor The type of the node-connector visitor to be used, should model the MotionGraphConnectorVisitorConcept.
+   * \tparam SBAStarVisitor The type of the node-connector visitor to be used, should model the BNBConnectorVisitorConcept.
    * \tparam PositionMap A property-map type that can store the position of each vertex. 
    * \tparam PredecessorMap This property-map type is used to store the resulting path by connecting 
    *         vertex together with its optimal predecessor.
@@ -331,7 +312,7 @@ struct branch_and_bound_connector {
    *        the generated graph once the algorithm has finished.
    * \param super_space A topology (as defined by the Boost Graph Library). This topology 
    *        should not include collision checking in its distance metric.
-   * \param conn_vis A node-connector visitor implementing the MotionGraphConnectorVisitorConcept. This is the 
+   * \param conn_vis A node-connector visitor implementing the BNBConnectorVisitorConcept. This is the 
    *        main point of customization and recording of results that the user can implement.
    * \param position A mapping that implements the MutablePropertyMap Concept. Also,
    *        the value_type of this map should be the same type as the topology's point_type.
@@ -345,8 +326,7 @@ struct branch_and_bound_connector {
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
    */
-  template <typename Graph,
-            typename Topology,
+  template <typename Topology,
             typename ConnectorVisitor,
             typename PositionMap,
             typename DistanceMap,
@@ -355,8 +335,8 @@ struct branch_and_bound_connector {
             typename NcSelector>
   typename boost::enable_if< boost::is_directed_graph<Graph> >::type operator()(
       const typename boost::property_traits<PositionMap>::value_type& p, 
-      typename boost::graph_traits<Graph>::vertex_descriptor& x_near, 
-      typename Graph::edge_bundled& eprop, 
+      Vertex& x_near, 
+      EdgeProp& eprop, 
       Graph& g,
       const Topology& super_space,
       const ConnectorVisitor& conn_vis,
@@ -367,17 +347,33 @@ struct branch_and_bound_connector {
       NcSelector select_neighborhood) const {
     
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
+    BOOST_CONCEPT_ASSERT((BNBConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
     
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    double dist_from_start = get(ReaK::pp::distance_metric, super_space)(get(position, g[start_vertex]), p, super_space);
+    double dist_to_goal = get(ReaK::pp::distance_metric, super_space)(p, get(position, g[goal_vertex]), super_space);
+    
+    if(dist_from_start + dist_to_goal > get(distance, g[goal_vertex]))
+      return;
     
     std::vector<Vertex> Pred, Succ;
     select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
     
     Vertex v = conn_vis.create_vertex(p, g);
     
-    connect_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Pred);
-    connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Succ);
+    node_connector.connect_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Pred);
+    
+    if(get(distance, g[v]) + dist_to_goal > get(distance, g[goal_vertex])) {
+      conn_vis.vertex_to_be_removed(v, g);
+      clear_vertex(v, g);
+      remove_vertex(v, g);
+      return;
+    };
+    
+    put(key, v, get(distance, g[v]) + dist_to_goal );
+    Q.push(v);
+    
+    node_connector.connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Succ);
+    update_successors(v, g, conn_vis, position, distance, predecessor, weight);
     
   };
   

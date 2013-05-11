@@ -518,6 +518,11 @@ struct rrtstar_planner_visitor {
                                get(&rrtstar_vertex_data<FreeSpaceType>::position,g2));
   };
   
+  template <typename Vertex, typename Graph>
+  void vertex_to_be_removed(Vertex u, Graph& g) const {
+    m_nn_synchro.remove_vertex(u,g);
+  };
+  
   template <typename EdgeType, typename Graph>
   void edge_added(EdgeType e, Graph& g) const {
     typedef typename boost::graph_traits<Graph>::vertex_descriptor VertexType;

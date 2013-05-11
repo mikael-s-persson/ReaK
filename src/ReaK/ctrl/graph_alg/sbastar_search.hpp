@@ -179,6 +179,9 @@ namespace graph {
       template <typename Vertex, typename Graph>
       void vertex_added(Vertex, const Graph&) const { };
       
+      template <typename Vertex, typename Graph>
+      void vertex_to_be_removed(Vertex, Graph&) const;
+      
       template <typename Edge, typename Graph>
       void edge_added(Edge, const Graph&) const { };
       
@@ -305,6 +308,11 @@ namespace graph {
       template <typename Vertex, typename Graph>
       boost::tuple< PositionValue, bool, typename Graph::edge_bundled > random_walk(Vertex u, Graph& g) const {
         return m_vis.random_walk(u, g);
+      };
+      
+      template <typename Vertex, typename Graph>
+      void vertex_to_be_removed(Vertex u, Graph& g) const {
+        m_vis.vertex_to_be_removed(u,g);
       };
       
       template <typename Edge, typename Graph>

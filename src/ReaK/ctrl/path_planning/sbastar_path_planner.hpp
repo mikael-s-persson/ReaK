@@ -782,6 +782,11 @@ struct sbastar_planner_visitor {
       m_planner->create_solution_path(m_start_node, m_goal_node, g);
   };
   
+  template <typename Vertex, typename Graph>
+  void vertex_to_be_removed(Vertex u, Graph& g) const {
+    m_nn_synchro.remove_vertex(u,g);
+  };
+  
   template <typename EdgeType, typename Graph>
   void edge_added(EdgeType e, Graph& g) const { };
   

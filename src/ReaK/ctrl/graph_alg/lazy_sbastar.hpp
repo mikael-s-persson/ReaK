@@ -67,6 +67,7 @@
 #include "bgl_raw_property_graph.hpp"
 
 #include "lazy_connector.hpp"
+#include "branch_and_bound_connector.hpp"
 
 #include <stack>
 
@@ -366,6 +367,41 @@ namespace graph {
   };
   
   
+  /**
+   * This function template generates a roadmap to connect a goal location to a start location
+   * using the Lazy-SBA* algorithm, without initialization of the existing graph.
+   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+   */
+  template <typename SBAStarBundle>
+  inline void generate_lazy_bnb_sbastar_no_init(const SBAStarBundle& bdl, typename SBAStarBundle::vertex_type goal_vertex) {
+    
+    detail::generate_sbastar_no_init_impl(
+      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
+      branch_and_bound_connector<typename SBAStarBundle::graph_type>(
+        *(bdl.m_g),
+        bdl.m_start_vertex, 
+        goal_vertex
+      ), 
+      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+      bdl.m_distance, bdl.m_predecessor, bdl.m_key, bdl.m_select_neighborhood);
+    
+  };
+
+  /**
+   * This function template generates a roadmap to connect a goal location to a start location
+   * using the Lazy-SBA* algorithm, with initialization of the existing graph to (re)start the search.
+   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+   */
+  template <typename SBAStarBundle>
+  inline void generate_lazy_bnb_sbastar(const SBAStarBundle& bdl, typename SBAStarBundle::vertex_type goal_vertex) {
+    
+    detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
+    
+    generate_lazy_bnb_sbastar_no_init(bdl, goal_vertex);
+    
+  };
   
 
 };

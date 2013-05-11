@@ -723,6 +723,50 @@ namespace graph {
   };
   
   
+  /**
+   * This function template generates a roadmap to connect a goal location to a start location
+   * using the Anytime-Lazy-SBA* algorithm, without initialization of the existing graph.
+   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
+   *        Should be greater than 0, the recommeded value is 10.
+   */
+  template <typename SBAStarBundle>
+  inline void generate_anytime_lazy_bnb_sbastar_no_init(const SBAStarBundle& bdl, typename SBAStarBundle::vertex_type goal_vertex, double init_relaxation) {
+    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+    
+    detail::generate_anytime_sbastar_no_init_impl(
+      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
+      branch_and_bound_connector<typename SBAStarBundle::graph_type>(
+        *(bdl.m_g),
+        bdl.m_start_vertex, 
+        goal_vertex
+      ), 
+      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+      bdl.m_distance, bdl.m_predecessor, bdl.m_key, 
+      bdl.m_select_neighborhood, init_relaxation);
+  };
+  
+  /**
+   * This function template generates a roadmap to connect a goal location to a start location
+   * using the Anytime-Lazy-SBA* algorithm, with initialization of the existing graph to (re)start the search.
+   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+   * \param init_relaxation The initial temperature of the Simulated Annealing when used 
+   *        as the deciding factor between using RRT* or SBA* samples.
+   */
+  template <typename SBAStarBundle>
+  inline void generate_anytime_lazy_bnb_sbastar(const SBAStarBundle& bdl, typename SBAStarBundle::vertex_type goal_vertex, double init_relaxation) {
+    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+    
+    detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
+    
+    generate_anytime_lazy_bnb_sbastar_no_init(bdl, goal_vertex, init_relaxation);
+    
+  };
+  
+  
+  
   
   
   
@@ -834,6 +878,70 @@ namespace graph {
     generate_anytime_lazy_sbarrtstar_no_init(bdl, get_sample, init_relaxation, SA_init_temperature);
     
   };
+  
+  
+  /**
+   * This function template generates a roadmap to connect a goal location to a start location
+   * using the Anytime-SBA*-RRT* algorithm, without initialization of the existing graph.
+   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
+   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+   * \param get_sample A random sampler of positions in the space.
+   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
+   *        Should be greater than 0, the recommeded value is 10.
+   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
+   *        as the deciding factor between using RRT* or SBA* samples.
+   */
+  template <typename SBAStarBundle, 
+            typename RandomSampler>
+  inline void generate_anytime_lazy_bnb_sbarrtstar_no_init(const SBAStarBundle& bdl, 
+                                                           typename SBAStarBundle::vertex_type goal_vertex,
+                                                           RandomSampler get_sample, 
+                                                           double init_relaxation,
+                                                           double SA_init_temperature = 1.0) {
+    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+    
+    detail::generate_anytime_sbarrtstar_no_init_impl(
+      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
+      branch_and_bound_connector<typename SBAStarBundle::graph_type>(
+        *(bdl.m_g),
+        bdl.m_start_vertex, 
+        goal_vertex
+      ), 
+      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+      bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
+      bdl.m_select_neighborhood, init_relaxation, SA_init_temperature);
+  };
+  
+  /**
+   * This function template generates a roadmap to connect a goal location to a start location
+   * using the Anytime-Lazy-SBA*-RRT* algorithm, with initialization of the existing graph to (re)start the search.
+   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+   * \param get_sample A random sampler of positions in the space.
+   * \param init_relaxation The initial temperature of the Simulated Annealing when used 
+   *        as the deciding factor between using RRT* or SBA* samples.
+   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
+   *        as the deciding factor between using RRT* or SBA* samples.
+   */
+  template <typename SBAStarBundle,
+            typename RandomSampler>
+  inline void generate_anytime_lazy_bnb_sbarrtstar(const SBAStarBundle& bdl, 
+                                                   typename SBAStarBundle::vertex_type goal_vertex,
+                                                   RandomSampler get_sample, 
+                                                   double init_relaxation,
+                                                   double SA_init_temperature = 1.0) {
+    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+    
+    detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
+    
+    generate_anytime_lazy_bnb_sbarrtstar_no_init(bdl, goal_vertex, get_sample, init_relaxation, SA_init_temperature);
+    
+  };
+  
+  
   
   
   

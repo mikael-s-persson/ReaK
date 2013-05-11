@@ -164,7 +164,6 @@ struct lazy_node_connector {
       std::vector<Vertex>& Succ) const {
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
     typedef typename Graph::edge_bundled EdgeProp;
-    typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
     
     for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
       if(*it == x_near)
@@ -199,6 +198,25 @@ struct lazy_node_connector {
     };     
     
     conn_vis.affected_vertex(v,g);  // affected by travel attempts and new out-going edges.
+    
+  };
+  
+  
+  
+  template <typename Vertex, 
+            typename Graph,
+            typename ConnectorVisitor,
+            typename DistanceMap,
+            typename PredecessorMap,
+            typename WeightMap>
+  void update_successors(
+      Vertex v, 
+      Graph& g,
+      const ConnectorVisitor& conn_vis,
+      DistanceMap distance,
+      PredecessorMap predecessor,
+      WeightMap weight) const {
+    typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
     
     // need to update all the children of the v node:
     std::stack<Vertex> incons;
@@ -297,6 +315,7 @@ struct lazy_node_connector {
     
     connect_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
     connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
+    update_successors(v, g, conn_vis, distance, predecessor, weight);
     
   };
   
@@ -376,6 +395,7 @@ struct lazy_node_connector {
     
     connect_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Pred);
     connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Succ);
+    update_successors(v, g, conn_vis, distance, predecessor, weight);
     
   };
   

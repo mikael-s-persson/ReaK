@@ -216,7 +216,7 @@ namespace graph {
       };
       
       
-
+      
       typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
       typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
       typedef boost::color_traits<ColorValue> Color;
@@ -224,12 +224,12 @@ namespace graph {
       typedef typename boost::property_traits<WeightMap>::value_type weight_type;
       typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
 
-      fadprm_bfs_visitor(const Topology& free_space, AStarHeuristicMap h, UniformCostVisitor vis,
+      fadprm_bfs_visitor(const Topology& super_space, AStarHeuristicMap h, UniformCostVisitor vis,
                          UpdatableQueue& Q, List& I, IndexInHeapMap index_in_heap, 
                          PredecessorMap p, KeyMap k, DistanceMap d, RHSMap rhs, WeightMap w,
                          DensityMap dens, PositionMap pos, NcSelector select_neighborhood, ColorMap col, 
                          double& beta)
-        : m_free_space(free_space), m_h(h), m_vis(vis), m_Q(Q), m_I(I),
+        : m_super_space(super_space), m_h(h), m_vis(vis), m_Q(Q), m_I(I),
           m_index_in_heap(index_in_heap), m_predecessor(p), m_key(k),
           m_distance(d), m_rhs(rhs), m_weight(w), m_density(dens), m_position(pos), 
           m_select_neighborhood(select_neighborhood), m_color(col), m_beta(beta) { };
@@ -246,6 +246,39 @@ namespace graph {
       void inconsistent_vertex(Vertex u, Graph& g) const {
         m_vis.inconsistent_vertex(u, g);
       };
+      
+      
+      template <class Graph>
+      typename boost::graph_traits<Graph>::vertex_descriptor create_vertex(const PositionValue& p, Graph& g) const {
+        typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+        typedef typename Graph::vertex_bundled VertexProp;
+        
+        VertexProp up;
+        put(m_position, up, p);
+    #ifdef RK_ENABLE_CXX0X_FEATURES
+        Vertex u = add_vertex(std::move(up), g);
+    #else
+        Vertex u = add_vertex(up, g);
+    #endif
+        m_vis.vertex_added(u,g);
+        put(m_color, u, Color::white());
+        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
+        put(m_distance, u, std::numeric_limits<double>::infinity());
+        put(m_rhs, u, std::numeric_limits<double>::infinity());
+        put(m_key, u, KeyValue(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()));
+        put(m_predecessor, u, u);
+        
+        return u;
+      };
+      
+      template <typename Edge, typename Graph>
+      void edge_added(Edge e, Graph& g) const { 
+        m_vis.edge_added(e, g); 
+      };
+      
+      
+#if 0
+      // Old connection strategy:
       template <class Graph>
       typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
         typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
@@ -257,46 +290,21 @@ namespace graph {
         GraphPositionMap g_position = GraphPositionMap(m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
         
         std::vector<Vertex> Nc;
-        m_select_neighborhood(p, std::back_inserter(Nc), g, m_free_space, g_position); 
+        m_select_neighborhood(p, std::back_inserter(Nc), g, m_super_space, g_position); 
         
-        VertexProp up;
-        put(m_position, up, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        Vertex u = add_vertex(std::move(up), g);
-#else
-        Vertex u = add_vertex(up, g);
-#endif
-        m_vis.vertex_added(u,g);                  //RK_NOTICE(1," reached!");
-        put(m_color, u, Color::white());
-        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
-        put(m_distance, u, std::numeric_limits<double>::infinity());
-        put(m_rhs, u, std::numeric_limits<double>::infinity());
-        put(m_key, u, KeyValue(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()));
-        put(m_predecessor, u, u);
+        Vertex u = create_vertex(p, g);
         
-        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
-        //RK_NOTICE(1," reached!");
-        
-        std::size_t max_node_degree = 10;
-//         std::size_t max_node_degree = math::highest_set_bit(num_vertices(g)) + 1;
-        std::size_t i = 0;
-        for(typename std::vector<Vertex>::iterator it = Nc.begin(); (it != Nc.end()) && (i < max_node_degree / 2); ++it, ++i) {
-          //RK_NOTICE(1," reached!");
+        for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
           if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
             //this means that u is reachable from *it.
             std::pair<Edge, bool> ep = add_edge(*it,u,g); 
             if(ep.second) { 
               m_vis.edge_added(ep.first, g); 
-              update_key(*it,g); 
-              update_vertex(*it,g);
-              //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+              affected_vertex(*it,g); 
             };
           };
         }; 
-        //RK_NOTICE(1," reached!");
-        update_key(u,g);       //RK_NOTICE(1," reached!");
-        update_vertex(u,g);    //RK_NOTICE(1," reached!");
-        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+        affected_vertex(u,g);
       };
       template <class Graph>
       typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
@@ -311,20 +319,7 @@ namespace graph {
         std::vector<Vertex> Pred, Succ;
         m_select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, m_free_space, g_position); 
         
-        VertexProp up;
-        put(m_position, up, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-        Vertex u = add_vertex(std::move(up), g);
-#else
-        Vertex u = add_vertex(up, g);
-#endif
-        m_vis.vertex_added(u,g); 
-        put(m_color, u, Color::white());
-        put(m_index_in_heap, u, static_cast<std::size_t>(-1));
-        put(m_distance, u, std::numeric_limits<double>::infinity());
-        put(m_rhs, u, std::numeric_limits<double>::infinity());
-        put(m_key, u, KeyValue(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()));
-        put(m_predecessor, u, u);
+        Vertex u = create_vertex(p, g);
         
         for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
           if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
@@ -332,59 +327,47 @@ namespace graph {
             std::pair<Edge, bool> ep = add_edge(*it, u, g); 
             if(ep.second) {
               m_vis.edge_added(ep.first, g); 
-              update_key(*it, g); 
-              update_vertex(*it, g);
+              affected_vertex(*it, g); 
             };
           };
         };
         
-        update_key(u, g); 
-        update_vertex(u, g);
+        affected_vertex(u, g); 
         for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
           if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(p, get(m_position,g[*it]), m_free_space) != std::numeric_limits<double>::infinity())) {
             //this means that u is reachable from *it.
             std::pair<Edge, bool> ep = add_edge(u, *it, g); 
             if(ep.second) {
               m_vis.edge_added(ep.first, g); 
-              update_key(*it, g); 
-              update_vertex(*it, g);
+              affected_vertex(*it, g);
             };
           };
         }; 
       };
+#endif
+      
       
       template <class Vertex, class Graph>
       void examine_vertex(Vertex u, Graph& g) {
         typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+        typedef typename Graph::edge_bundled EdgeProp;
         
         m_vis.examine_vertex(u, g);
         
-        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
+        prm_node_connector connect_vertex;
         
         std::size_t max_node_degree = 10;
         if(out_degree(u, g) >= max_node_degree)
           return;
         max_node_degree = (max_node_degree - out_degree(u, g)) / 2;
-        //std::size_t max_node_degree = math::highest_set_bit(num_vertices(g)) + 1;
         for(std::size_t i = 0; i < max_node_degree; ++i) {
-        //while(out_degree(u, g) < max_node_degree) {
-        //do {
-          //RK_NOTICE(1," reached!");
-          PositionValue p_rnd; bool expanding_worked;
-          boost::tie(p_rnd, expanding_worked) = m_vis.random_walk(u, g);
-          //RK_NOTICE(1," reached!");
+          PositionValue p_rnd; bool expanding_worked; EdgeProp ep;
+          boost::tie(p_rnd, expanding_worked, ep) = m_vis.random_walk(u, g);
           if(expanding_worked)
-            connect_vertex(p_rnd, g);
+            connect_vertex(p_rnd, u, ep, g, m_super_space, *this, m_position, m_select_neighborhood);
           else
             break;
-          //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
-          //RK_NOTICE(1," reached!");
-        };// while(out_degree(u, g) < max_node_degree);
-        //RK_NOTICE(1," reached!");
-        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
-        update_key(u,g);
-        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
-        //RK_NOTICE(1," reached!");
+        };
       };
       
       template <class Edge, class Graph>
@@ -427,7 +410,7 @@ namespace graph {
       
       template <class Vertex, typename Graph>
       void update_key(Vertex u, Graph& g) const {
-        m_vis.update_density(u, g);
+        m_vis.affected_vertex(u, g);
         distance_type g_u = get(m_distance, u);
         distance_type rhs_u = get(m_rhs, u);
         distance_type h_u = get(m_h, u);
@@ -474,21 +457,14 @@ namespace graph {
           if(pred_u != get(m_predecessor, u))                          m_vis.edge_relaxed(pred_e, g);
         };
         
-        //RK_NOTICE(1," reached!");
-        //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
-        
         if(rhs_u != g_u) { 
           if((col_u != Color::black()) && (col_u != Color::red())) {
             update_key(u,g); 
             m_Q.push_or_update(u); 
             put(m_color, u, Color::gray());                            m_vis.discover_vertex(u, g);
-            //RK_NOTICE(1," reached!");
-            //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
           } else if(col_u == Color::black()) {
             m_I.push_back(u); 
             put(m_color, u, Color::red());                             m_vis.inconsistent_vertex(u,g);
-            //RK_NOTICE(1," reached!");
-            //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
           };
         } else if(m_Q.contains(u)) {
           put(m_key, u, KeyValue(0.0,0.0)); 
@@ -496,12 +472,49 @@ namespace graph {
           m_Q.pop(); //remove from OPEN set
           update_key(u,g); 
           put(m_color, u, Color::green());                             m_vis.forget_vertex(u, g);
-          //RK_NOTICE(1," reached!");
-          //RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP
         }; 
       };
-
-      const Topology& m_free_space;
+      
+      
+      template <typename Vertex, typename Graph>
+      void travel_explored(Vertex u, Vertex v, Graph& g) const {
+        m_vis.travel_explored(u, v, g);
+      };
+      
+      template <typename Vertex, typename Graph>
+      void travel_succeeded(Vertex u, Vertex v, Graph& g) const {
+        m_vis.travel_succeeded(u, v, g);
+      };
+      
+      template <typename Vertex, typename Graph>
+      void travel_failed(Vertex u, Vertex v, Graph& g) const {
+        m_vis.travel_failed(u, v, g);
+      };
+      
+      template <typename Vertex, typename Graph>
+      void affected_vertex(Vertex u, Graph& g) { 
+        update_key(u, g); 
+        update_vertex(u, g);
+      };
+      
+      
+      template <typename Vertex, typename Graph>
+      std::pair< bool, typename Graph::edge_bundled > can_be_connected(Vertex u, Vertex v, Graph& g) const {
+        return m_vis.can_be_connected(u, v, g);
+      };
+      
+      template <typename Vertex, typename Graph>
+      boost::tuple< PositionValue, bool, typename Graph::edge_bundled > random_walk(Vertex u, Graph& g) const {
+        return m_vis.random_walk(u, g);
+      };
+      
+      bool is_position_free(const PositionValue& p) const {
+        return m_vis.is_position_free(p);
+      };
+      
+      
+      
+      const Topology& m_super_space;
       AStarHeuristicMap m_h;
       UniformCostVisitor m_vis;
       UpdatableQueue& m_Q; 
@@ -731,7 +744,7 @@ namespace graph {
     //BOOST_CONCEPT_ASSERT((boost::MutablePropertyGraphConcept<Graph>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::PointDistributionConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((FADPRMVisitorConcept<FADPRMVisitor,Graph,Topology>));
+//     BOOST_CONCEPT_ASSERT((FADPRMVisitorConcept<FADPRMVisitor,Graph,Topology>));
     
     typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
     typedef boost::color_traits<ColorValue> Color;
