@@ -47,14 +47,15 @@
 #define REAK_ANYTIME_SBASTAR_HPP
 
 #include <functional>
+#include <utility>
+#include <boost/tuple/tuple.hpp>
 #include <boost/utility/enable_if.hpp>
 
 #include "path_planning/metric_space_concept.hpp"
-#include "path_planning/prob_distribution_concept.hpp"
+#include "path_planning/random_sampler_concept.hpp"
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
-#include <boost/graph/exception.hpp>
 #include <boost/graph/detail/d_ary_heap.hpp>
 
 #include "bgl_more_property_maps.hpp"
@@ -62,10 +63,9 @@
 #include "bgl_raw_property_graph.hpp"
 
 #include "sbastar_search.hpp"
-#include "lazy_sbastar.hpp"
 #include "sbastar_rrtstar.hpp"
-
-#include <stack>
+#include "lazy_connector.hpp"
+#include "branch_and_bound_connector.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -73,878 +73,558 @@ namespace ReaK {
 /** Main namespace for ReaK.Graph */
 namespace graph {
 
-  /**
-   * This concept class defines the valid expressions required of a class to be used as a visitor 
-   * class for the ASBA* algorithm. A visitor class is essentially a class that regroups a number of 
-   * callback functions that can be used to inject customization into the ASBA* algorithm. In other 
-   * words, the visitor pattern in generic programming is an implementation of IoC 
-   * (Inversion of Control), since the ASBA* algorithm is in control of execution, but custom behavior can
-   * be injected in several places, even blocking the algorithm if needed.
-   * 
-   * Required concepts:
-   * 
-   * The visitor class should model the SBAStarVisitorConcept.
-   * 
-   * Valid expressions:
-   * 
-   * d = vis.adjust_relaxation(d, g);  This function should return a new value for the relaxation factor used in the ASBA* algorithm.
-   * 
-   * \tparam Visitor The visitor class to be tested for modeling an ASBA* visitor concept.
-   * \tparam Graph The graph type on which the visitor should be able to act.
-   * \tparam Topology The topology type on which the visitor class is required to work with.
-   */
-  template <typename Visitor, typename Graph, typename Topology>
-  struct ASBAStarVisitorConcept : SBAStarVisitorConcept<Visitor, Graph, Topology> {
-    BOOST_CONCEPT_USAGE(ASBAStarVisitorConcept)
-    {
-      d = this->vis.adjust_relaxation(d, this->g); 
-    }
-    double d;
+/**
+  * This concept class defines the valid expressions required of a class to be used as a visitor 
+  * class for the ASBA* algorithm. A visitor class is essentially a class that regroups a number of 
+  * callback functions that can be used to inject customization into the ASBA* algorithm. In other 
+  * words, the visitor pattern in generic programming is an implementation of IoC 
+  * (Inversion of Control), since the ASBA* algorithm is in control of execution, but custom behavior can
+  * be injected in several places, even blocking the algorithm if needed.
+  * 
+  * Required concepts:
+  * 
+  * The visitor class should model SBAStarVisitorConcept, and AnytimeHeuristicVisitorConcept.
+  * 
+  * \tparam Visitor The visitor class to be tested for modeling an ASBA* visitor concept.
+  * \tparam Graph The graph type on which the visitor should be able to act.
+  * \tparam Topology The topology type on which the visitor class is required to work with.
+  */
+template <typename Visitor, typename Graph, typename Topology>
+struct ASBAStarVisitorConcept : 
+  SBAStarVisitorConcept<Visitor, Graph, Topology>, 
+  AnytimeHeuristicVisitorConcept<Visitor,Graph> { };
+
+/**
+  * This class is simply an archetype visitor for the ASBA* algorithm. 
+  */
+template <typename Topology>
+struct asbastar_visitor_archetype : 
+  sbastar_visitor_archetype<Topology>,
+  anytime_heuristic_visitor_archetype { };
+
+
+/**
+  * This concept class defines the valid expressions required of a class to be used as a visitor 
+  * class for the ASBA*-RRT* algorithm. A visitor class is essentially a class that regroups a number of 
+  * callback functions that can be used to inject customization into the ASBA*-RRT* algorithm. In other 
+  * words, the visitor pattern in generic programming is an implementation of IoC 
+  * (Inversion of Control), since the ASBA*-RRT* algorithm is in control of execution, but custom behavior can
+  * be injected in several places, even blocking the algorithm if needed.
+  * 
+  * Required concepts:
+  * 
+  * The visitor class should model SBARRTStarVisitorConcept, and AnytimeHeuristicVisitorConcept.
+  * 
+  * \tparam Visitor The visitor class to be tested for modeling an ASBA*-RRT* visitor concept.
+  * \tparam Graph The graph type on which the visitor should be able to act.
+  * \tparam Topology The topology type on which the visitor class is required to work with.
+  */
+template <typename Visitor, typename Graph, typename Topology>
+struct ASBARRTStarVisitorConcept : 
+  SBARRTStarVisitorConcept<Visitor, Graph, Topology>, 
+  AnytimeHeuristicVisitorConcept<Visitor,Graph> { };
+
+/**
+  * This class is simply an archetype visitor for the ASBA*-RRT* algorithm. 
+  */
+template <typename Topology>
+struct asbarrtstar_visitor_archetype : 
+  sbarrtstar_visitor_archetype<Topology>,
+  anytime_heuristic_visitor_archetype { };
+
+
+
+
+namespace detail {
+  
+  
+  
+  template <typename UniformCostVisitor,
+            typename UpdatableQueue, 
+            typename IndexInHeapMap,
+            typename AStarHeuristicMap, 
+            typename PositionMap, 
+            typename WeightMap,
+            typename DensityMap,
+            typename ConstrictionMap, 
+            typename DistanceMap,  
+            typename PredecessorMap,
+            typename KeyMap>
+  struct anytime_sbarrtstar_bfs_visitor :
+    sbastar_bfs_visitor<UniformCostVisitor, UpdatableQueue, IndexInHeapMap, 
+                        AStarHeuristicMap, PositionMap, WeightMap, DensityMap, ConstrictionMap, 
+                        DistanceMap, PredecessorMap, KeyMap>
+  {
+    typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
+    typedef sbastar_bfs_visitor<UniformCostVisitor, UpdatableQueue, IndexInHeapMap, 
+                                AStarHeuristicMap, PositionMap, WeightMap, DensityMap, ConstrictionMap, 
+                                DistanceMap, PredecessorMap, KeyMap> base_type;
+
+    anytime_sbarrtstar_bfs_visitor(UniformCostVisitor vis, UpdatableQueue& Q, IndexInHeapMap index_in_heap,  
+                                    AStarHeuristicMap heuristic, PositionMap pos, WeightMap weight, 
+                                    DensityMap density, ConstrictionMap constriction, 
+                                    DistanceMap dist, PredecessorMap pred, KeyMap key, double current_relaxation) :
+                                    base_type(vis, Q, index_in_heap, heuristic, pos, weight, density, constriction, dist, pred, key),
+                                    m_current_relaxation(current_relaxation) { };
+    
+    template <class Vertex, typename Graph>
+    void update_key(Vertex u, Graph& g) const {
+      this->m_vis.affected_vertex(u,g);
+      double g_u = get(this->m_distance, g[u]);
+      double h_u = get(this->m_heuristic, g[u]);
+      // Key-value for the min-heap (priority-queue):
+      put(this->m_key, u, ((g_u + h_u) / (1.0 - get(this->m_constriction, g[u]))) / (1.0 - get(this->m_density, g[u])) + m_current_relaxation * h_u);
+    };
+    
+    template <typename Vertex, typename Graph>
+    void requeue_vertex(Vertex u, Graph& g) const {
+      update_key(u,g); 
+      if( ! this->m_vis.should_close(u, g) ) {
+        this->m_Q.push_or_update(u);
+        this->m_vis.discover_vertex(u, g);
+      };
+    };
+    template <typename Vertex, typename Graph>
+    void affected_vertex(Vertex u, Graph& g) const { requeue_vertex(u,g); }; // same function, different name.
+    
+    template <typename Graph>
+    void update_relaxation(const Graph& g) { 
+      m_current_relaxation = this->m_vis.adjust_relaxation(m_current_relaxation, g);
+      
+      typedef typename boost::graph_traits<Graph>::vertex_iterator VIter;
+      VIter vi, vi_end;
+      for(boost::tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
+        requeue_vertex(*vi, g);
+    };
+    
+    template <typename Graph>
+    void publish_path(const Graph& g) { 
+      this->m_vis.publish_path(g);
+      update_relaxation(g);
+    };
+    
+    double m_current_relaxation;
   };
   
   
-  /**
-   * This concept class defines the valid expressions required of a class to be used as a visitor 
-   * class for the ASBA*-RRT* algorithm. A visitor class is essentially a class that regroups a number of 
-   * callback functions that can be used to inject customization into the ASBA*-RRT* algorithm. In other 
-   * words, the visitor pattern in generic programming is an implementation of IoC 
-   * (Inversion of Control), since the ASBA*-RRT* algorithm is in control of execution, but custom behavior can
-   * be injected in several places, even blocking the algorithm if needed.
-   * 
-   * Required concepts:
-   * 
-   * The visitor class should model the SBARRTStarVisitorConcept.
-   * 
-   * Valid expressions:
-   * 
-   * d = vis.adjust_relaxation(d, g);  This function should return a new value for the relaxation factor used in the ASBA* algorithm.
-   * 
-   * \tparam Visitor The visitor class to be tested for modeling an ASBA*-RRT* visitor concept.
-   * \tparam Graph The graph type on which the visitor should be able to act.
-   * \tparam Topology The topology type on which the visitor class is required to work with.
-   */
-  template <typename Visitor, typename Graph, typename Topology>
-  struct ASBARRTStarVisitorConcept : SBARRTStarVisitorConcept<Visitor, Graph, Topology> {
-    BOOST_CONCEPT_USAGE(ASBARRTStarVisitorConcept)
+  template <typename Graph,
+            typename Vertex,
+            typename Topology,
+            typename ASBAStarVisitor,
+            typename NodeConnector,
+            typename AStarHeuristicMap,
+            typename PositionMap,
+            typename WeightMap,
+            typename DensityMap,
+            typename ConstrictionMap,
+            typename DistanceMap,
+            typename PredecessorMap,
+            typename KeyMap,
+            typename NcSelector>
+  inline void
+  generate_anytime_sbastar_no_init_impl
+    (Graph &g, Vertex start_vertex, const Topology& super_space, ASBAStarVisitor vis,
+      NodeConnector connect_vertex, AStarHeuristicMap hval, PositionMap position, WeightMap weight,
+      DensityMap density, ConstrictionMap constriction, DistanceMap distance,
+      PredecessorMap predecessor, KeyMap key, NcSelector select_neighborhood, double init_relaxation)
+  {
+    typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
+    typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
+    typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
+    IndexInHeapMap index_in_heap;
     {
-      d = this->vis.adjust_relaxation(d, this->g); 
-    }
-    double d;
+      typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
+      for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
+        put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
+      };
+    };
+    
+    typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
+    MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
+    
+    anytime_sbarrtstar_bfs_visitor<
+      ASBAStarVisitor,
+      MutableQueue, 
+      IndexInHeapMap,
+      AStarHeuristicMap, 
+      PositionMap, 
+      WeightMap,
+      DensityMap,
+      ConstrictionMap, 
+      DistanceMap,  
+      PredecessorMap,
+      KeyMap> sba_bfs_vis(vis, Q, index_in_heap, hval, position, weight, 
+                          density, constriction, distance, predecessor, key, init_relaxation);
+    
+    put(distance, g[start_vertex], 0.0);
+    
+    sbastar_search_loop(g, start_vertex, super_space, sba_bfs_vis, 
+                        connect_vertex, sba_node_generator(), 
+                        Q, select_neighborhood);
+    
   };
   
   
-  /**
-   * This class is simply a "null" visitor for the ASBA* algorithm. It is null in the sense that it
-   * will do nothing on all accounts.
-   */
-  template <typename Topology>
-  class default_asbastar_visitor : public default_sbastar_visitor<Topology> {
-    public:
-      typedef typename default_sbastar_visitor<Topology>::PointType PointType;
-      
-      default_asbastar_visitor() : default_sbastar_visitor<Topology>() {};
-      
-      template <typename Graph>
-      double initialize_vertex(double d, const Graph&) const { return d; };
-      
-      template <typename Vertex, typename Graph>
-      boost::tuple<PointType, bool, typename Graph::edge_bundled> steer_towards_position(const PointType&, Vertex, const Graph&) const { 
-        typedef typename Graph::edge_bundled EdgeProp;
-        typedef boost::tuple<PointType, bool, EdgeProp> ResultType;
-        return ResultType(PointType(), false, EdgeProp()); 
-      };
-  };
-  
-  
-  
-  
-  
-  namespace detail {
-    
-    
-    
-    template <typename UniformCostVisitor,
-              typename UpdatableQueue, 
-              typename IndexInHeapMap,
-              typename AStarHeuristicMap, 
-              typename PositionMap, 
-              typename WeightMap,
-              typename DensityMap,
-              typename ConstrictionMap, 
-              typename DistanceMap,  
-              typename PredecessorMap,
-              typename KeyMap>
-    struct anytime_sbarrtstar_bfs_visitor :
-      sbarrtstar_bfs_visitor<UniformCostVisitor, UpdatableQueue, IndexInHeapMap, 
-                             AStarHeuristicMap, PositionMap, WeightMap, DensityMap, ConstrictionMap, 
-                             DistanceMap, PredecessorMap, KeyMap>
+  template <typename Graph,
+            typename Vertex,
+            typename Topology,
+            typename SBARRTStarVisitor,
+            typename NodeConnector,
+            typename AStarHeuristicMap,
+            typename PositionMap,
+            typename WeightMap,
+            typename DensityMap,
+            typename ConstrictionMap,
+            typename DistanceMap,
+            typename PredecessorMap,
+            typename KeyMap,
+            typename RandomSampler,
+            typename NcSelector>
+  inline void
+  generate_anytime_sbarrtstar_no_init_impl(
+    Graph &g, Vertex start_vertex, const Topology& super_space, SBARRTStarVisitor vis,
+    NodeConnector connect_vertex, AStarHeuristicMap hval, PositionMap position, WeightMap weight,
+    DensityMap density, ConstrictionMap constriction, DistanceMap distance,
+    PredecessorMap predecessor, KeyMap key,
+    RandomSampler get_sample,
+    NcSelector select_neighborhood,
+    double init_relaxation, double SA_init_temperature = 1.0)
+  {
+    typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
+    typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
+    typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
+    IndexInHeapMap index_in_heap;
     {
-      typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
-      typedef sbarrtstar_bfs_visitor<UniformCostVisitor, UpdatableQueue, IndexInHeapMap, 
-                                     AStarHeuristicMap, PositionMap, WeightMap, DensityMap, ConstrictionMap, 
-                                     DistanceMap, PredecessorMap, KeyMap> base_type;
-
-      anytime_sbarrtstar_bfs_visitor(UniformCostVisitor vis, UpdatableQueue& Q, IndexInHeapMap index_in_heap,  
-                                     AStarHeuristicMap heuristic, PositionMap pos, WeightMap weight, 
-                                     DensityMap density, ConstrictionMap constriction, 
-                                     DistanceMap dist, PredecessorMap pred, KeyMap key, double current_relaxation) :
-                                     base_type(vis, Q, index_in_heap, heuristic, pos, weight, density, constriction, dist, pred, key),
-                                     m_current_relaxation(current_relaxation) { };
-      
-      template <class Vertex, typename Graph>
-      void update_key(Vertex u, Graph& g) const {
-        double g_u = get(this->m_distance, g[u]);
-        double h_u = get(this->m_heuristic, g[u]);
-        // Key-value for the min-heap (priority-queue):
-        put(this->m_key, u, ((g_u + h_u) / (1.0 - get(this->m_constriction, g[u]))) / (1.0 - get(this->m_density, g[u])) + m_current_relaxation * h_u);
+      typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
+      for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
+        put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
       };
-      
-      template <typename Vertex, typename Graph>
-      void requeue_vertex(Vertex u, Graph& g) const {
-        update_key(u,g); 
-        if( ! this->m_vis.should_close(u, g) ) {
-          this->m_Q.push_or_update(u);
-          this->m_vis.discover_vertex(u, g);
-        };
-      };
-      template <typename Vertex, typename Graph>
-      void affected_vertex(Vertex u, Graph& g) const { requeue_vertex(u,g); }; // same function, different name.
-      
-      template <typename Graph>
-      void update_relaxation(const Graph& g) { 
-        m_current_relaxation = this->m_vis.adjust_relaxation(m_current_relaxation, g);
-        
-        typedef typename boost::graph_traits<Graph>::vertex_iterator VIter;
-        VIter vi, vi_end;
-        for(boost::tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
-          requeue_vertex(*vi, g);
-      };
-      
-      template <typename Graph>
-      void publish_path(const Graph& g) { 
-        this->m_vis.publish_path(g);
-        update_relaxation(g);
-      };
-      
-      double m_current_relaxation;
     };
     
+    typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
+    MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
     
-#if 0 
-    // Old connector:
+    anytime_sbarrtstar_bfs_visitor<
+      SBARRTStarVisitor, MutableQueue, IndexInHeapMap,
+      AStarHeuristicMap, PositionMap, WeightMap, 
+      DensityMap, ConstrictionMap, 
+      DistanceMap, PredecessorMap, KeyMap> sba_bfs_vis(vis, Q, index_in_heap, hval, position, weight, 
+                                                        density, constriction, distance, predecessor, key, init_relaxation);
     
-    template <typename Topology,
-              typename UniformCostVisitor,
-              typename SBANodeConnector,
-              typename UpdatableQueue, 
-              typename IndexInHeapMap,
-              typename AStarHeuristicMap, 
-              typename PositionMap, 
-              typename WeightMap,
-              typename DensityMap,
-              typename ConstrictionMap, 
-              typename DistanceMap,  
-              typename PredecessorMap,
-              typename KeyMap,
-              typename NcSelector>
-    struct anytime_sbastar_bfs_visitor : 
-      sbastar_bfs_visitor<Topology, UniformCostVisitor, SBANodeConnector, 
-                          UpdatableQueue, IndexInHeapMap, AStarHeuristicMap, 
-                          PositionMap, WeightMap, DensityMap, ConstrictionMap, 
-                          DistanceMap, PredecessorMap, KeyMap, NcSelector>
-    {
-      typedef sbastar_bfs_visitor<Topology, UniformCostVisitor, SBANodeConnector, 
-                                  UpdatableQueue, IndexInHeapMap, AStarHeuristicMap, 
-                                  PositionMap, WeightMap, DensityMap, ConstrictionMap, 
-                                  DistanceMap, PredecessorMap, KeyMap, NcSelector> base_type;
-      
-      typedef typename base_type::PositionValue PositionValue;
-
-      anytime_sbastar_bfs_visitor(const Topology& super_space, UniformCostVisitor vis, SBANodeConnector connector,
-                                  UpdatableQueue& Q, IndexInHeapMap index_in_heap,  
-                                  AStarHeuristicMap heuristic, PositionMap pos, WeightMap weight, 
-                                  DensityMap density, ConstrictionMap constriction, DistanceMap dist, 
-                                  PredecessorMap pred, KeyMap key, NcSelector select_neighborhood,
-                                  double current_relaxation) : 
-                                  base_type(super_space, vis, connector, Q, index_in_heap, heuristic, 
-                                            pos, weight, density, constriction, dist, pred, key, select_neighborhood),
-                                  m_current_relaxation(current_relaxation) { };
-      
-      template <typename Vertex, typename Graph>
-      void requeue_vertex(Vertex u, const Graph& g) const { 
-        update_key(u,g); 
-        if( ! this->m_vis.should_close(u, g) ) {
-          this->m_Q.push_or_update(u);
-          this->m_vis.discover_vertex(u, g);
-        };
-      };
-      
-      template <class Vertex, class Graph>
-      void examine_vertex(Vertex u, Graph& g) const {
-        typedef typename Graph::edge_bundled EdgeProp;
-        
-        this->m_vis.examine_vertex(u, g);
-        
-        PositionValue p_new; bool walk_succeeded; EdgeProp ep_new;
-        boost::tie(p_new, walk_succeeded, ep_new) = this->m_vis.random_walk(u, g);
-        if(walk_succeeded)
-          this->m_connect_vertex(p_new, u, ep_new, g, this->m_super_space, *this, 
-                                 this->m_position, this->m_distance, this->m_predecessor, this->m_weight,
-                                 this->m_select_neighborhood);
-        
-      };
-      
-      template <class Vertex, typename Graph>
-      void update_key(Vertex u, Graph& g) const {
-        double g_u = get(this->m_distance, u);
-        double h_u = get(this->m_heuristic, u);
-        // Key-value for the min-heap (priority-queue):
-//         put(this->m_key, u, ((g_u + h_u) / (1.0 - get(this->m_constriction, u)) + m_current_relaxation * h_u) / (1.0 - get(this->m_density, u)));
-        put(this->m_key, u, ((g_u + h_u) / (1.0 - get(this->m_constriction, u))) / (1.0 - get(this->m_density, u)) + m_current_relaxation * h_u);
-      };
-      
-      template <typename Graph>
-      void update_relaxation(const Graph& g) { 
-        m_current_relaxation = this->m_vis.adjust_relaxation(m_current_relaxation, g);
-        
-        typedef typename boost::graph_traits<Graph>::vertex_iterator VIter;
-        VIter vi, vi_end;
-        for(boost::tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
-          requeue_vertex(*vi, g);
-      };
-      
-      template <typename Graph>
-      void publish_path(const Graph& g) { 
-        this->m_vis.publish_path(g);
-        update_relaxation(g);
-      };
-      
-      template <typename Vertex, typename Graph>
-      bool has_search_potential(Vertex u, const Graph& g) const { 
-        return this->m_vis.has_search_potential(u,g);
-      };
-      
-      double m_current_relaxation;
-    };
+    put(distance, g[start_vertex], 0.0);
     
-    
-    template <typename Topology,
-              typename UniformCostVisitor,
-              typename SBANodeConnector,
-              typename RRTNodeGenerator,
-              typename UpdatableQueue, 
-              typename IndexInHeapMap,
-              typename AStarHeuristicMap, 
-              typename PositionMap, 
-              typename WeightMap,
-              typename DensityMap,
-              typename ConstrictionMap, 
-              typename DistanceMap,  
-              typename PredecessorMap,
-              typename KeyMap,
-              typename NcSelector>
-    struct anytime_sbarrtstar_bfs_visitor :
-      anytime_sbastar_bfs_visitor<Topology, UniformCostVisitor, SBANodeConnector, UpdatableQueue, IndexInHeapMap, 
-                                  AStarHeuristicMap, PositionMap, WeightMap, DensityMap, ConstrictionMap, 
-                                  DistanceMap, PredecessorMap, KeyMap, NcSelector>
-    {
-      typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
-      typedef anytime_sbastar_bfs_visitor<Topology, UniformCostVisitor, SBANodeConnector, UpdatableQueue, IndexInHeapMap, 
-                                          AStarHeuristicMap, PositionMap, WeightMap, DensityMap, ConstrictionMap, 
-                                          DistanceMap, PredecessorMap, KeyMap, NcSelector> base_type;
-
-      anytime_sbarrtstar_bfs_visitor(const Topology& super_space, UniformCostVisitor vis, 
-                                     SBANodeConnector connector, RRTNodeGenerator generator,
-                                     UpdatableQueue& Q, IndexInHeapMap index_in_heap,  
-                                     AStarHeuristicMap heuristic, PositionMap pos, WeightMap weight, 
-                                     DensityMap density, ConstrictionMap constriction, DistanceMap dist, 
-                                     PredecessorMap pred, KeyMap key, NcSelector select_neighborhood,
-                                     double current_relaxation) : 
-                                     base_type(super_space, vis, connector, Q, index_in_heap, 
-                                               heuristic, pos, weight, density, constriction, 
-                                               dist, pred, key, select_neighborhood, current_relaxation),
-                                     m_node_generator(generator) { };
-      
-      template <typename Graph>
-      void add_exploratory_node(Graph& g) const {
-        typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-        typedef typename Graph::edge_bundled EdgeProp;
-        
-        typedef boost::composite_property_map< 
-          PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-        GraphPositionMap g_position = GraphPositionMap(this->m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
-        
-        while (true) {
-          boost::tuple< Vertex, PositionValue, EdgeProp > gen_result = m_node_generator(g, this->m_vis, g_position);
-          
-          if(get(this->m_distance, get<0>(gen_result)) != std::numeric_limits<double>::infinity()) {
-            this->m_connect_vertex(get<1>(gen_result), get<0>(gen_result), get<2>(gen_result), 
-                                   g, this->m_super_space, *this, 
-                                   this->m_position, this->m_distance, this->m_predecessor, this->m_weight,
-                                   this->m_select_neighborhood);
-            return;
-          };
-        };
-      };
-      
-      RRTNodeGenerator m_node_generator;
-    };
-
-    
-    
-
-    template <typename NodeConnector,
-              typename Graph,
-              typename Vertex,
-              typename Topology,
-              typename ASBAStarVisitor,
-              typename AStarHeuristicMap,
-              typename PositionMap,
-              typename WeightMap,
-              typename DensityMap,
-              typename ConstrictionMap,
-              typename DistanceMap,
-              typename PredecessorMap,
-              typename KeyMap,
-              typename NcSelector>
-    inline void
-    generate_anytime_sbastar_no_init_impl(
-      Graph &g, Vertex start_vertex, const Topology& super_space, ASBAStarVisitor vis,  // basic parameters
-      AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
-      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
-      PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
-      NcSelector select_neighborhood, double init_relaxation)
-    {
-      typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
-      typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
-      typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
-      IndexInHeapMap index_in_heap;
-      {
-        typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
-        for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
-          put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
-        };
-      };
-      
-      typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
-      MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
-      
-      detail::anytime_sbastar_bfs_visitor<
-        Topology, 
-        ASBAStarVisitor,
-        NodeConnector,
-        MutableQueue, 
-        IndexInHeapMap,
-        AStarHeuristicMap, 
-        PositionMap, 
-        WeightMap,
-        DensityMap,
-        ConstrictionMap, 
-        DistanceMap,  
-        PredecessorMap,
-        KeyMap,
-        NcSelector> bfs_vis(super_space, vis, NodeConnector(), Q, index_in_heap, 
-                            hval, position, weight, 
-                            density, constriction, distance,
-                            predecessor, key, select_neighborhood, init_relaxation);
-      
-      put(distance, start_vertex, 0.0);
-      
-      detail::sbastar_search_loop(g, start_vertex, bfs_vis, Q);
-      
-    };
-    
-    
-    
-    template <typename NodeConnector,
-              typename Graph,
-              typename Vertex,
-              typename Topology,
-              typename SBARRTStarVisitor,
-              typename AStarHeuristicMap,
-              typename PositionMap,
-              typename WeightMap,
-              typename DensityMap,
-              typename ConstrictionMap,
-              typename DistanceMap,
-              typename PredecessorMap,
-              typename KeyMap,
-              typename RandomSampler,
-              typename NcSelector>
-    inline void
-    generate_anytime_sbarrtstar_no_init_impl(
-      Graph &g, Vertex start_vertex, const Topology& super_space, SBARRTStarVisitor vis,  // basic parameters
-      AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
-      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
-      PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
-      RandomSampler get_sample,
-      NcSelector select_neighborhood, 
-      double init_relaxation,
-      double SA_init_temperature)
-    {
-      typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
-      typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
-      typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
-      IndexInHeapMap index_in_heap;
-      {
-        typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
-        for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
-          put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
-        };
-      };
-      typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
-      MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
-      
-      detail::anytime_sbarrtstar_bfs_visitor<
-        Topology, 
-        SBARRTStarVisitor,
-        NodeConnector,
-        rrg_node_generator<Topology, RandomSampler, NcSelector>,
-        MutableQueue, 
-        IndexInHeapMap,
-        AStarHeuristicMap, 
-        PositionMap, 
-        WeightMap,
-        DensityMap,
-        ConstrictionMap, 
-        DistanceMap,  
-        PredecessorMap,
-        KeyMap,
-        NcSelector> bfs_vis(super_space, vis, NodeConnector(), 
+    sbarrtstar_search_loop(g, start_vertex, super_space, sba_bfs_vis, connect_vertex, sba_node_generator(), 
                             rrg_node_generator<Topology, RandomSampler, NcSelector>(&super_space, get_sample, select_neighborhood), 
-                            Q, index_in_heap, 
-                            hval, position, weight, 
-                            density, constriction, distance,
-                            predecessor, key, select_neighborhood, init_relaxation);
-      
-      put(distance, start_vertex, 0.0);
-      
-      detail::sbarrtstar_search_loop(g, start_vertex, bfs_vis, Q, SA_init_temperature);
-      
-    };
-    
-#endif
-    
-    
-    template <typename Graph,
-              typename Vertex,
-              typename Topology,
-              typename ASBAStarVisitor,
-              typename NodeConnector,
-              typename AStarHeuristicMap,
-              typename PositionMap,
-              typename WeightMap,
-              typename DensityMap,
-              typename ConstrictionMap,
-              typename DistanceMap,
-              typename PredecessorMap,
-              typename KeyMap,
-              typename NcSelector>
-    inline void
-    generate_anytime_sbastar_no_init_impl
-      (Graph &g, Vertex start_vertex, const Topology& super_space, ASBAStarVisitor vis,  // basic parameters
-       NodeConnector connect_vertex, AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
-       DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
-       PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
-       NcSelector select_neighborhood, double init_relaxation)
-    {
-      typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
-      typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
-      typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
-      IndexInHeapMap index_in_heap;
-      {
-        typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
-        for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
-          put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
-        };
-      };
-      
-      typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
-      MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
-      
-      anytime_sbarrtstar_bfs_visitor<
-        ASBAStarVisitor,
-        MutableQueue, 
-        IndexInHeapMap,
-        AStarHeuristicMap, 
-        PositionMap, 
-        WeightMap,
-        DensityMap,
-        ConstrictionMap, 
-        DistanceMap,  
-        PredecessorMap,
-        KeyMap> sba_bfs_vis(vis, Q, index_in_heap, hval, position, weight, 
-                            density, constriction, distance, predecessor, key, init_relaxation);
-      
-      put(distance, g[start_vertex], 0.0);
-      
-      sbastar_search_loop(g, start_vertex, super_space, sba_bfs_vis, 
-                          connect_vertex, sba_node_generator(), 
-                          Q, select_neighborhood);
-      
-    };
-    
-    
-    template <typename Graph,
-              typename Vertex,
-              typename Topology,
-              typename SBARRTStarVisitor,
-              typename NodeConnector,
-              typename AStarHeuristicMap,
-              typename PositionMap,
-              typename WeightMap,
-              typename DensityMap,
-              typename ConstrictionMap,
-              typename DistanceMap,
-              typename PredecessorMap,
-              typename KeyMap,
-              typename RandomSampler,
-              typename NcSelector>
-    inline void
-    generate_anytime_sbarrtstar_no_init_impl(
-      Graph &g, Vertex start_vertex, const Topology& super_space, SBARRTStarVisitor vis,  // basic parameters
-      NodeConnector connect_vertex, AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
-      DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
-      PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
-      RandomSampler get_sample,
-      NcSelector select_neighborhood,
-      double init_relaxation, double SA_init_temperature = 1.0)
-    {
-      typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
-      typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
-      typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
-      IndexInHeapMap index_in_heap;
-      {
-        typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
-        for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
-          put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
-        };
-      };
-      
-      typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
-      MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
-      
-      anytime_sbarrtstar_bfs_visitor<
-        SBARRTStarVisitor, MutableQueue, IndexInHeapMap,
-        AStarHeuristicMap, PositionMap, WeightMap, 
-        DensityMap, ConstrictionMap, 
-        DistanceMap, PredecessorMap, KeyMap> sba_bfs_vis(vis, Q, index_in_heap, hval, position, weight, 
-                                                         density, constriction, distance, predecessor, key, init_relaxation);
-      
-      put(distance, g[start_vertex], 0.0);
-      
-      sbarrtstar_search_loop(g, start_vertex, super_space, sba_bfs_vis, connect_vertex, sba_node_generator(), 
-                             rrg_node_generator<Topology, RandomSampler, NcSelector>(&super_space, get_sample, select_neighborhood), 
-                             Q, select_neighborhood, SA_init_temperature);
-      
-    };
-    
-    
-    
-  }; //end of detail namespace.
-  
-  
-  
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the Anytime-SBA* algorithm, without initialization of the existing graph.
-   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
-   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
-   *        Should be greater than 0, the recommeded value is 10.
-   */
-  template <typename SBAStarBundle>
-  inline void generate_anytime_sbastar_no_init(const SBAStarBundle& bdl, double init_relaxation) {
-    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    
-    detail::generate_anytime_sbastar_no_init_impl(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, motion_graph_connector(), 
-      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
-      bdl.m_distance, bdl.m_predecessor, bdl.m_key, 
-      bdl.m_select_neighborhood, init_relaxation);
-  };
-  
-  
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the Anytime-SBA* algorithm, with initialization of the existing graph to (re)start the search.
-   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
-   * \param init_relaxation The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename SBAStarBundle>
-  inline void generate_anytime_sbastar(const SBAStarBundle& bdl, double init_relaxation) {
-    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    
-    detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
-    
-    generate_anytime_sbastar_no_init(bdl, init_relaxation);
+                            Q, select_neighborhood, SA_init_temperature);
     
   };
   
   
   
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the Anytime-Lazy-SBA* algorithm, without initialization of the existing graph.
-   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
-   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
-   *        Should be greater than 0, the recommeded value is 10.
-   */
-  template <typename SBAStarBundle>
-  inline void generate_anytime_lazy_sbastar_no_init(const SBAStarBundle& bdl, double init_relaxation) {
-    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    
-    detail::generate_anytime_sbastar_no_init_impl(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, lazy_node_connector(), 
-      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
-      bdl.m_distance, bdl.m_predecessor, bdl.m_key, 
-      bdl.m_select_neighborhood, init_relaxation);
-  };
+}; //end of detail namespace.
+
+
+
+/**
+  * This function template generates a roadmap to connect a goal location to a start location
+  * using the Anytime-SBA* algorithm, without initialization of the existing graph.
+  * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+  * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+  * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
+  *        Should be greater than 0, the recommeded value is 10.
+  */
+template <typename SBAStarBundle>
+inline void generate_anytime_sbastar_no_init(const SBAStarBundle& bdl, double init_relaxation) {
+  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the Anytime-Lazy-SBA* algorithm, with initialization of the existing graph to (re)start the search.
-   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
-   * \param init_relaxation The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename SBAStarBundle>
-  inline void generate_anytime_lazy_sbastar(const SBAStarBundle& bdl, double init_relaxation) {
-    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    
-    detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
-    
-    generate_anytime_lazy_sbastar_no_init(bdl, init_relaxation);
-    
-  };
+  detail::generate_anytime_sbastar_no_init_impl(
+    *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, motion_graph_connector(), 
+    bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+    bdl.m_distance, bdl.m_predecessor, bdl.m_key, 
+    bdl.m_select_neighborhood, init_relaxation);
+};
+
+
+/**
+  * This function template generates a roadmap to connect a goal location to a start location
+  * using the Anytime-SBA* algorithm, with initialization of the existing graph to (re)start the search.
+  * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+  * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+  * \param init_relaxation The initial temperature of the Simulated Annealing when used 
+  *        as the deciding factor between using RRT* or SBA* samples.
+  */
+template <typename SBAStarBundle>
+inline void generate_anytime_sbastar(const SBAStarBundle& bdl, double init_relaxation) {
+  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
+  detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
   
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the Anytime-Lazy-SBA* algorithm, without initialization of the existing graph.
-   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
-   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
-   *        Should be greater than 0, the recommeded value is 10.
-   */
-  template <typename SBAStarBundle>
-  inline void generate_anytime_lazy_bnb_sbastar_no_init(const SBAStarBundle& bdl, typename SBAStarBundle::vertex_type goal_vertex, double init_relaxation) {
-    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    
-    detail::generate_anytime_sbastar_no_init_impl(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
-      branch_and_bound_connector<typename SBAStarBundle::graph_type>(
-        *(bdl.m_g),
-        bdl.m_start_vertex, 
-        goal_vertex
-      ), 
-      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
-      bdl.m_distance, bdl.m_predecessor, bdl.m_key, 
-      bdl.m_select_neighborhood, init_relaxation);
-  };
+  generate_anytime_sbastar_no_init(bdl, init_relaxation);
   
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the Anytime-Lazy-SBA* algorithm, with initialization of the existing graph to (re)start the search.
-   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
-   * \param init_relaxation The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename SBAStarBundle>
-  inline void generate_anytime_lazy_bnb_sbastar(const SBAStarBundle& bdl, typename SBAStarBundle::vertex_type goal_vertex, double init_relaxation) {
-    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    
-    detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
-    
-    generate_anytime_lazy_bnb_sbastar_no_init(bdl, goal_vertex, init_relaxation);
-    
-  };
+};
+
+
+
+/**
+  * This function template generates a roadmap to connect a goal location to a start location
+  * using the Anytime-Lazy-SBA* algorithm, without initialization of the existing graph.
+  * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+  * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+  * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
+  *        Should be greater than 0, the recommeded value is 10.
+  */
+template <typename SBAStarBundle>
+inline void generate_anytime_lazy_sbastar_no_init(const SBAStarBundle& bdl, double init_relaxation) {
+  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
+  detail::generate_anytime_sbastar_no_init_impl(
+    *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, lazy_node_connector(), 
+    bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+    bdl.m_distance, bdl.m_predecessor, bdl.m_key, 
+    bdl.m_select_neighborhood, init_relaxation);
+};
+
+/**
+  * This function template generates a roadmap to connect a goal location to a start location
+  * using the Anytime-Lazy-SBA* algorithm, with initialization of the existing graph to (re)start the search.
+  * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+  * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+  * \param init_relaxation The initial temperature of the Simulated Annealing when used 
+  *        as the deciding factor between using RRT* or SBA* samples.
+  */
+template <typename SBAStarBundle>
+inline void generate_anytime_lazy_sbastar(const SBAStarBundle& bdl, double init_relaxation) {
+  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
+  detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
   
+  generate_anytime_lazy_sbastar_no_init(bdl, init_relaxation);
   
+};
+
+
+/**
+  * This function template generates a roadmap to connect a goal location to a start location
+  * using the Anytime-Lazy-SBA* algorithm, without initialization of the existing graph.
+  * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+  * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+  * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
+  *        Should be greater than 0, the recommeded value is 10.
+  */
+template <typename SBAStarBundle>
+inline void generate_anytime_lazy_bnb_sbastar_no_init(const SBAStarBundle& bdl, typename SBAStarBundle::vertex_type goal_vertex, double init_relaxation) {
+  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
+  detail::generate_anytime_sbastar_no_init_impl(
+    *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
+    branch_and_bound_connector<typename SBAStarBundle::graph_type>(
+      *(bdl.m_g),
+      bdl.m_start_vertex, 
+      goal_vertex
+    ), 
+    bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+    bdl.m_distance, bdl.m_predecessor, bdl.m_key, 
+    bdl.m_select_neighborhood, init_relaxation);
+};
+
+/**
+  * This function template generates a roadmap to connect a goal location to a start location
+  * using the Anytime-Lazy-SBA* algorithm, with initialization of the existing graph to (re)start the search.
+  * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+  * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+  * \param init_relaxation The initial temperature of the Simulated Annealing when used 
+  *        as the deciding factor between using RRT* or SBA* samples.
+  */
+template <typename SBAStarBundle>
+inline void generate_anytime_lazy_bnb_sbastar(const SBAStarBundle& bdl, typename SBAStarBundle::vertex_type goal_vertex, double init_relaxation) {
+  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the Anytime-SBA*-RRT* algorithm, without initialization of the existing graph.
-   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
-   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
-   * \param get_sample A random sampler of positions in the space.
-   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
-   *        Should be greater than 0, the recommeded value is 10.
-   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename SBAStarBundle, 
-            typename RandomSampler>
-  inline void generate_anytime_sbarrtstar_no_init(const SBAStarBundle& bdl, 
+  detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
+  
+  generate_anytime_lazy_bnb_sbastar_no_init(bdl, goal_vertex, init_relaxation);
+  
+};
+
+
+
+
+
+
+/**
+  * This function template generates a roadmap to connect a goal location to a start location
+  * using the Anytime-SBA*-RRT* algorithm, without initialization of the existing graph.
+  * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+  * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
+  * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+  * \param get_sample A random sampler of positions in the space.
+  * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
+  *        Should be greater than 0, the recommeded value is 10.
+  * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
+  *        as the deciding factor between using RRT* or SBA* samples.
+  */
+template <typename SBAStarBundle, 
+          typename RandomSampler>
+inline void generate_anytime_sbarrtstar_no_init(const SBAStarBundle& bdl, 
+                                                RandomSampler get_sample, 
+                                                double init_relaxation,
+                                                double SA_init_temperature = 1.0) {
+  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+  
+  detail::generate_anytime_sbarrtstar_no_init_impl(
+    *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, motion_graph_connector(), 
+    bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+    bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
+    bdl.m_select_neighborhood, init_relaxation, SA_init_temperature);
+};
+
+/**
+  * This function template generates a roadmap to connect a goal location to a start location
+  * using the Anytime-SBA*-RRT* algorithm, with initialization of the existing graph to (re)start the search.
+  * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+  * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+  * \param get_sample A random sampler of positions in the space.
+  * \param init_relaxation The initial temperature of the Simulated Annealing when used 
+  *        as the deciding factor between using RRT* or SBA* samples.
+  * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
+  *        as the deciding factor between using RRT* or SBA* samples.
+  */
+template <typename SBAStarBundle,
+          typename RandomSampler>
+inline void generate_anytime_sbarrtstar(const SBAStarBundle& bdl, 
+                                        RandomSampler get_sample, 
+                                        double init_relaxation,
+                                        double SA_init_temperature = 1.0) {
+  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+  
+  detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
+  
+  generate_anytime_sbarrtstar_no_init(bdl, get_sample, init_relaxation, SA_init_temperature);
+  
+};
+
+
+/**
+  * This function template generates a roadmap to connect a goal location to a start location
+  * using the Anytime-SBA*-RRT* algorithm, without initialization of the existing graph.
+  * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+  * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
+  * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+  * \param get_sample A random sampler of positions in the space.
+  * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
+  *        Should be greater than 0, the recommeded value is 10.
+  * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
+  *        as the deciding factor between using RRT* or SBA* samples.
+  */
+template <typename SBAStarBundle, 
+          typename RandomSampler>
+inline void generate_anytime_lazy_sbarrtstar_no_init(const SBAStarBundle& bdl, 
+                                                      RandomSampler get_sample, 
+                                                      double init_relaxation,
+                                                      double SA_init_temperature = 1.0) {
+  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+  
+  detail::generate_anytime_sbarrtstar_no_init_impl(
+    *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, lazy_node_connector(), 
+    bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+    bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
+    bdl.m_select_neighborhood, init_relaxation, SA_init_temperature);
+};
+
+/**
+  * This function template generates a roadmap to connect a goal location to a start location
+  * using the Anytime-Lazy-SBA*-RRT* algorithm, with initialization of the existing graph to (re)start the search.
+  * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+  * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+  * \param get_sample A random sampler of positions in the space.
+  * \param init_relaxation The initial temperature of the Simulated Annealing when used 
+  *        as the deciding factor between using RRT* or SBA* samples.
+  * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
+  *        as the deciding factor between using RRT* or SBA* samples.
+  */
+template <typename SBAStarBundle,
+          typename RandomSampler>
+inline void generate_anytime_lazy_sbarrtstar(const SBAStarBundle& bdl, 
+                                              RandomSampler get_sample, 
+                                              double init_relaxation,
+                                              double SA_init_temperature = 1.0) {
+  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+  
+  detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
+  
+  generate_anytime_lazy_sbarrtstar_no_init(bdl, get_sample, init_relaxation, SA_init_temperature);
+  
+};
+
+
+/**
+  * This function template generates a roadmap to connect a goal location to a start location
+  * using the Anytime-SBA*-RRT* algorithm, without initialization of the existing graph.
+  * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+  * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
+  * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+  * \param get_sample A random sampler of positions in the space.
+  * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
+  *        Should be greater than 0, the recommeded value is 10.
+  * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
+  *        as the deciding factor between using RRT* or SBA* samples.
+  */
+template <typename SBAStarBundle, 
+          typename RandomSampler>
+inline void generate_anytime_lazy_bnb_sbarrtstar_no_init(const SBAStarBundle& bdl, 
+                                                          typename SBAStarBundle::vertex_type goal_vertex,
+                                                          RandomSampler get_sample, 
+                                                          double init_relaxation,
+                                                          double SA_init_temperature = 1.0) {
+  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+  
+  detail::generate_anytime_sbarrtstar_no_init_impl(
+    *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
+    branch_and_bound_connector<typename SBAStarBundle::graph_type>(
+      *(bdl.m_g),
+      bdl.m_start_vertex, 
+      goal_vertex
+    ), 
+    bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+    bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
+    bdl.m_select_neighborhood, init_relaxation, SA_init_temperature);
+};
+
+/**
+  * This function template generates a roadmap to connect a goal location to a start location
+  * using the Anytime-Lazy-SBA*-RRT* algorithm, with initialization of the existing graph to (re)start the search.
+  * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
+  * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
+  * \param get_sample A random sampler of positions in the space.
+  * \param init_relaxation The initial temperature of the Simulated Annealing when used 
+  *        as the deciding factor between using RRT* or SBA* samples.
+  * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
+  *        as the deciding factor between using RRT* or SBA* samples.
+  */
+template <typename SBAStarBundle,
+          typename RandomSampler>
+inline void generate_anytime_lazy_bnb_sbarrtstar(const SBAStarBundle& bdl, 
+                                                  typename SBAStarBundle::vertex_type goal_vertex,
                                                   RandomSampler get_sample, 
                                                   double init_relaxation,
                                                   double SA_init_temperature = 1.0) {
-    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    
-    detail::generate_anytime_sbarrtstar_no_init_impl(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, motion_graph_connector(), 
-      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
-      bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
-      bdl.m_select_neighborhood, init_relaxation, SA_init_temperature);
-  };
+  BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
+  BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the Anytime-SBA*-RRT* algorithm, with initialization of the existing graph to (re)start the search.
-   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
-   * \param get_sample A random sampler of positions in the space.
-   * \param init_relaxation The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename SBAStarBundle,
-            typename RandomSampler>
-  inline void generate_anytime_sbarrtstar(const SBAStarBundle& bdl, 
-                                          RandomSampler get_sample, 
-                                          double init_relaxation,
-                                          double SA_init_temperature = 1.0) {
-    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    
-    detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
-    
-    generate_anytime_sbarrtstar_no_init(bdl, get_sample, init_relaxation, SA_init_temperature);
-    
-  };
+  detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
   
+  generate_anytime_lazy_bnb_sbarrtstar_no_init(bdl, goal_vertex, get_sample, init_relaxation, SA_init_temperature);
   
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the Anytime-SBA*-RRT* algorithm, without initialization of the existing graph.
-   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
-   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
-   * \param get_sample A random sampler of positions in the space.
-   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
-   *        Should be greater than 0, the recommeded value is 10.
-   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename SBAStarBundle, 
-            typename RandomSampler>
-  inline void generate_anytime_lazy_sbarrtstar_no_init(const SBAStarBundle& bdl, 
-                                                       RandomSampler get_sample, 
-                                                       double init_relaxation,
-                                                       double SA_init_temperature = 1.0) {
-    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    
-    detail::generate_anytime_sbarrtstar_no_init_impl(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, lazy_node_connector(), 
-      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
-      bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
-      bdl.m_select_neighborhood, init_relaxation, SA_init_temperature);
-  };
-  
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the Anytime-Lazy-SBA*-RRT* algorithm, with initialization of the existing graph to (re)start the search.
-   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
-   * \param get_sample A random sampler of positions in the space.
-   * \param init_relaxation The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename SBAStarBundle,
-            typename RandomSampler>
-  inline void generate_anytime_lazy_sbarrtstar(const SBAStarBundle& bdl, 
-                                               RandomSampler get_sample, 
-                                               double init_relaxation,
-                                               double SA_init_temperature = 1.0) {
-    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    
-    detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
-    
-    generate_anytime_lazy_sbarrtstar_no_init(bdl, get_sample, init_relaxation, SA_init_temperature);
-    
-  };
-  
-  
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the Anytime-SBA*-RRT* algorithm, without initialization of the existing graph.
-   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
-   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
-   * \param get_sample A random sampler of positions in the space.
-   * \param init_relaxation The initial relaxation factor to use when computing the ASBA* key values.
-   *        Should be greater than 0, the recommeded value is 10.
-   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename SBAStarBundle, 
-            typename RandomSampler>
-  inline void generate_anytime_lazy_bnb_sbarrtstar_no_init(const SBAStarBundle& bdl, 
-                                                           typename SBAStarBundle::vertex_type goal_vertex,
-                                                           RandomSampler get_sample, 
-                                                           double init_relaxation,
-                                                           double SA_init_temperature = 1.0) {
-    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    
-    detail::generate_anytime_sbarrtstar_no_init_impl(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
-      branch_and_bound_connector<typename SBAStarBundle::graph_type>(
-        *(bdl.m_g),
-        bdl.m_start_vertex, 
-        goal_vertex
-      ), 
-      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
-      bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
-      bdl.m_select_neighborhood, init_relaxation, SA_init_temperature);
-  };
-  
-  /**
-   * This function template generates a roadmap to connect a goal location to a start location
-   * using the Anytime-Lazy-SBA*-RRT* algorithm, with initialization of the existing graph to (re)start the search.
-   * \tparam SBAStarBundle A SBA* bundle type (see make_sbastar_bundle()).
-   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
-   * \param get_sample A random sampler of positions in the space.
-   * \param init_relaxation The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-   *        as the deciding factor between using RRT* or SBA* samples.
-   */
-  template <typename SBAStarBundle,
-            typename RandomSampler>
-  inline void generate_anytime_lazy_bnb_sbarrtstar(const SBAStarBundle& bdl, 
-                                                   typename SBAStarBundle::vertex_type goal_vertex,
-                                                   RandomSampler get_sample, 
-                                                   double init_relaxation,
-                                                   double SA_init_temperature = 1.0) {
-    BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    BOOST_CONCEPT_ASSERT((ASBAStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
-    
-    detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
-    
-    generate_anytime_lazy_bnb_sbarrtstar_no_init(bdl, goal_vertex, get_sample, init_relaxation, SA_init_temperature);
-    
-  };
-  
-  
-  
-  
-  
+};
+
+
+
+
+
 
 };
 

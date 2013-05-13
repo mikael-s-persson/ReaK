@@ -492,14 +492,6 @@ struct rrt_planner_visitor {
     m_planner->report_progress(g);
   };
   
-  template <typename Vertex, typename Graph>
-  void vertex_added(Vertex u, Graph& g1, Graph& g2) const {
-    m_nn_synchro.added_vertex(u,g1);
-    
-    // Call progress reporter...
-    m_planner->report_progress(g1,g2);
-  };
-  
   template <typename EdgeType, typename Graph>
   void edge_added(EdgeType e, Graph& g) const {
     typedef typename boost::graph_traits<Graph>::vertex_descriptor VertexType;
@@ -508,18 +500,11 @@ struct rrt_planner_visitor {
     
     g[v].distance_accum = g[u].distance_accum + get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space());
     
-    // Check if a straight path to goal is possible...
-    m_planner->check_goal_connection(g[v].position,v,g);
+    if(m_planner->get_bidir_flag() == UNIDIRECTIONAL_RRT) {
+      // Check if a straight path to goal is possible...
+      m_planner->check_goal_connection(g[v].position,v,g);
+    };
     
-  };
-  
-  template <typename EdgeType, typename Graph>
-  void edge_added(EdgeType e, Graph& g1, Graph& g2) const {
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor VertexType;
-    VertexType u = source(e,g1);
-    VertexType v = target(e,g1);
-    
-    g1[v].distance_accum = g1[u].distance_accum + get(distance_metric, m_space->get_super_space())(g1[u].position, g1[v].position, m_space->get_super_space());
   };
   
   bool is_position_free(PointType p) const {

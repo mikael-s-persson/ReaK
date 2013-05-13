@@ -148,41 +148,6 @@ namespace graph {
       PositionMap m_position;
   };
 
-  /**
-   * This class is a composite visitor class template. It can be used to glue together two classes
-   * which model the ADStarVisitorConcept and PRMVisitorConcept, respectively. Note that it 
-   * is preferred to use the make_composite_fadprm_visitor function template to let the 
-   * compiler deduce the type instead of providing the template arguments manually.
-   * \tparam ADStarVisitor The visitor type which models the ADStarVisitorConcept.
-   * \tparam PRMVisitor The visitor type which models the PRMVisitorConcept.
-   */
-  template <typename ADStarVisitor, typename PRMVisitor>
-  struct composite_fadprm_visitor : public ADStarVisitor, public PRMVisitor {
-    composite_fadprm_visitor(ADStarVisitor aVis_adstar, PRMVisitor aVis_prm) : ADStarVisitor(aVis_adstar), PRMVisitor(aVis_prm) { };
-    composite_fadprm_visitor(const composite_fadprm_visitor<ADStarVisitor,PRMVisitor>& aVis) : ADStarVisitor(aVis), PRMVisitor(aVis) { };
-    
-    bool keep_going() const {
-      return PRMVisitor::keep_going();
-    };
-  };
-  
-  
-  /**
-   * This function template creates a composite visitor class. It can be used to glue together two classes
-   * which model the ADStarVisitorConcept and PRMVisitorConcept, respectively.
-   * \tparam ADStarVisitor The visitor type which models the ADStarVisitorConcept.
-   * \tparam PRMVisitor The visitor type which models the PRMVisitorConcept.
-   * \param aVis_adstar The visitor object for the AD* functions.
-   * \param aVis_prm The visitor object for the PRM functions.
-   */
-  template <typename ADStarVisitor, typename PRMVisitor>
-  inline composite_fadprm_visitor<ADStarVisitor,PRMVisitor> make_composite_fadprm_visitor(ADStarVisitor aVis_adstar, PRMVisitor aVis_prm) {
-    return composite_fadprm_visitor<ADStarVisitor,PRMVisitor>(aVis_adstar,aVis_prm);
-  };
-  
-  
-  
-  
   
   
   
@@ -275,77 +240,6 @@ namespace graph {
       void edge_added(Edge e, Graph& g) const { 
         m_vis.edge_added(e, g); 
       };
-      
-      
-#if 0
-      // Old connection strategy:
-      template <class Graph>
-      typename boost::enable_if< boost::is_undirected_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
-        typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-        typedef typename Graph::vertex_bundled VertexProp;
-        
-        typedef boost::composite_property_map< 
-          PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-        GraphPositionMap g_position = GraphPositionMap(m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
-        
-        std::vector<Vertex> Nc;
-        m_select_neighborhood(p, std::back_inserter(Nc), g, m_super_space, g_position); 
-        
-        Vertex u = create_vertex(p, g);
-        
-        for(typename std::vector<Vertex>::iterator it = Nc.begin(); it != Nc.end(); ++it) {
-          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
-            //this means that u is reachable from *it.
-            std::pair<Edge, bool> ep = add_edge(*it,u,g); 
-            if(ep.second) { 
-              m_vis.edge_added(ep.first, g); 
-              affected_vertex(*it,g); 
-            };
-          };
-        }; 
-        affected_vertex(u,g);
-      };
-      template <class Graph>
-      typename boost::enable_if< boost::is_directed_graph<Graph> >::type connect_vertex(const PositionValue& p, Graph& g) {
-        typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-        typedef typename Graph::vertex_bundled VertexProp;
-        
-        typedef boost::composite_property_map< 
-          PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-        GraphPositionMap g_position = GraphPositionMap(m_position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
-        
-        std::vector<Vertex> Pred, Succ;
-        m_select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, m_free_space, g_position); 
-        
-        Vertex u = create_vertex(p, g);
-        
-        for(typename std::vector<Vertex>::iterator it = Pred.begin(); it != Pred.end(); ++it) {
-          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(get(m_position,g[*it]), p, m_free_space) != std::numeric_limits<double>::infinity())) {
-            //this means that u is reachable from *it.
-            std::pair<Edge, bool> ep = add_edge(*it, u, g); 
-            if(ep.second) {
-              m_vis.edge_added(ep.first, g); 
-              affected_vertex(*it, g); 
-            };
-          };
-        };
-        
-        affected_vertex(u, g); 
-        for(typename std::vector<Vertex>::iterator it = Succ.begin(); it != Succ.end(); ++it) {
-          if((u != *it) && (get(ReaK::pp::distance_metric, m_free_space)(p, get(m_position,g[*it]), m_free_space) != std::numeric_limits<double>::infinity())) {
-            //this means that u is reachable from *it.
-            std::pair<Edge, bool> ep = add_edge(u, *it, g); 
-            if(ep.second) {
-              m_vis.edge_added(ep.first, g); 
-              affected_vertex(*it, g);
-            };
-          };
-        }; 
-      };
-#endif
-      
       
       template <class Vertex, class Graph>
       void examine_vertex(Vertex u, Graph& g) {

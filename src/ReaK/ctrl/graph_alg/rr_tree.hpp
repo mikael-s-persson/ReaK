@@ -57,14 +57,10 @@
 #ifndef REAK_RR_TREE_HPP
 #define REAK_RR_TREE_HPP
 
-#include <functional>
-#include <vector>
-#include <boost/limits.hpp>
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
+#include <utility>
+#include <boost/tuple/tuple.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
-#include <boost/graph/adjacency_list.hpp>
 
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/random_sampler_concept.hpp"
@@ -72,238 +68,11 @@
 #include "graph_alg/bgl_tree_adaptor.hpp"
 #include "graph_alg/bgl_more_property_maps.hpp"
 
+#include "graph_alg/sbmp_visitor_concepts.hpp"
 
 namespace ReaK {
   
 namespace graph {
-
-  /**
-   * This concept class defines what is required of a class to serve as a visitor to the RRT algorithm.
-   * 
-   * Required concepts:
-   * 
-   * the visitor should model the boost::CopyConstructibleConcept.
-   * 
-   * Valid expressions:
-   * 
-   * vis.vertex_added(u, g);  This function is called whenever a new vertex (u) has been added to the graph (g), but not yet connected.
-   * 
-   * vis.edge_added(e, g);  This function is called whenever a new edge (e) has been created between the last created vertex and its nearest neighbor in the graph (g).
-   *
-   * tie(p,b,ep) = vis.steer_towards_position(p,u,g);  This function is called to attempt to steer from vertex u to position p, it returns a std::pair with the position that could be reached and a boolean value to indicate whether any significant motion occurred (collision-free).
-   * 
-   * bool b = vis.is_position_free(p);  This function is called to query whether a particular configuration (position, p) is free.
-   * 
-   * bool b = vis.keep_going();  This function is called at each attempt to expand the graph to verify that the user still wants more vertices to be generated in the tree. 
-   *
-   * \tparam Visitor The visitor class to be checked for modeling this concept.
-   * \tparam Graph The graph on which the visitor class is required to work with.
-   * \tparam PositionMap The position property-map that provides the position descriptors with which the visitor class is required to work.
-   */
-  template <typename Visitor, typename Graph, typename PositionMap>
-  struct RRTVisitorConcept {
-    Visitor vis;
-    Graph g;
-    typename boost::graph_traits<Graph>::vertex_descriptor u;
-    typename boost::graph_traits<Graph>::edge_descriptor e;
-    typename boost::property_traits<PositionMap>::value_type p;
-    typename Graph::edge_bundled ep;
-    bool b;
-    
-    BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
-    
-    BOOST_CONCEPT_USAGE(RRTVisitorConcept) {
-      vis.vertex_added(u, g); 
-      vis.edge_added(e, g); 
-      boost::tie(p,b,ep) = vis.steer_towards_position(p,u,g);
-      b = vis.is_position_free(p);
-      b = vis.keep_going(); 
-    };
-  };
-
-  /**
-   * This class is simply a "null" visitor for the RRT algorithm. It is null in the sense that it
-   * will do nothing (except return true on the is_position_free(p) and keep_going() callbacks).
-   */
-  struct default_rrt_visitor {
-    template <typename Vertex, typename Graph>
-    void vertex_added(Vertex,Graph&) { };
-    template <typename Edge, typename Graph>
-    void edge_added(Edge,Graph&) { };
-    template <typename PositionValue, typename Vertex, typename Graph>
-    boost::tuple<PositionValue,bool,typename Graph::edge_bundled> steer_towards_position(const PositionValue& p,Vertex,Graph&) { 
-      typedef typename Graph::edge_bundled EdgeProp;
-      typedef boost::tuple<PositionValue,bool,EdgeProp> ResultType;
-      return ResultType(p,true,EdgeProp()); 
-    };
-    template <typename PositionValue>
-    bool is_position_free(const PositionValue&) { return true; };
-    bool keep_going() { return true; };
-  };
-
-  /**
-   * This class is a composite visitor class template. It can be used to glue together a function pointer (or functor)
-   * for each of the functions of the RRTVisitorConcept so that it can be used as a light-weight,
-   * copyable visitor object for the RRT algorithm (it is especially recommend to use the 
-   * make_composite_rrt_visitor function template).
-   */
-  template <typename VertexAddedCallback,
-            typename EdgeAddedCallback,
-            typename SteerFunction,
-            typename IsFreeQuery,
-            typename KeepGoingQuery>
-  struct composite_rrt_visitor {
-    VertexAddedCallback vertex_added;
-    EdgeAddedCallback edge_added;
-    SteerFunction steer_towards_position;
-    IsFreeQuery is_position_free;
-    KeepGoingQuery keep_going;
-    composite_rrt_visitor(VertexAddedCallback aVertexAdded,
-                          EdgeAddedCallback aEdgeAdded,
-                          SteerFunction aSteerTowardsPosition,
-                          IsFreeQuery aIsFree,
-                          KeepGoingQuery aKeepGoing) :
-                          vertex_added(aVertexAdded), edge_added(aEdgeAdded), steer_towards_position(aSteerTowardsPosition), is_position_free(aIsFree), keep_going(aKeepGoing) { };
-  };
-
-  /**
-   * This is a function template that is used to create an object of a class of the composite_rrt_visitor
-   * class template. This is particularly convenient to avoid explicitely providing the list of template
-   * arguments and let the compiler resolved them from the function parameter types.
-   */
-  template <typename VertexAddedCallback,
-            typename EdgeAddedCallback,
-            typename SteerFunction,
-            typename IsFreeQuery,
-            typename KeepGoingQuery>
-  inline composite_rrt_visitor<VertexAddedCallback, EdgeAddedCallback, SteerFunction, IsFreeQuery, KeepGoingQuery>
-    make_composite_rrt_visitor(VertexAddedCallback aVertexAdded,
-                               EdgeAddedCallback aEdgeAdded,
-                               SteerFunction aSteerTowardsPosition,
-                               IsFreeQuery aIsFree,
-                               KeepGoingQuery aKeepGoing) {
-    return composite_rrt_visitor<VertexAddedCallback, EdgeAddedCallback, SteerFunction, IsFreeQuery, KeepGoingQuery>(aVertexAdded,aEdgeAdded,aSteerTowardsPosition,aIsFree,aKeepGoing);
-  };
-
-
-  /**
-   * This concept class defines what is required of a class to serve as a visitor to the Bi-RRT algorithm.
-   * 
-   * Required concepts:
-   * 
-   * the visitor should model the boost::CopyConstructibleConcept.
-   * 
-   * Valid expressions:
-   * 
-   * vis.vertex_added(u1, g1, g2);  This function is called whenever a new vertex (u) has been added to the graph (g), but not yet connected.
-   * 
-   * vis.edge_added(e, g1, g2);  This function is called whenever a new edge (e) has been created between the last created vertex and its nearest neighbor in the graph (g).
-   *
-   * tie(p,b,ep) = vis.steer_towards_position(p,u,g);  This function is called to attempt to steer from vertex u to position p, it returns a std::pair with the position that could be reached and a boolean value to indicate whether any significant motion occurred (collision-free).
-   * 
-   * bool b = vis.is_position_free(p);  This function is called to query whether a particular configuration (position, p) is free.
-   * 
-   * vis.joining_vertex_found(u1, u2, g1, g2);  This function is called by the bidirectional RRT algorithm when two vertices (u1,u2) of two graphs (g1,g2) is found that meet each other.
-   * 
-   * bool b = vis.keep_going();  This function is called at each attempt to expand the graph to verify that the user still wants more vertices to be generated in the tree. 
-   *
-   * \tparam Visitor The visitor class to be checked for modeling this concept.
-   * \tparam Graph The graph on which the visitor class is required to work with.
-   * \tparam PositionMap The position property-map that provides the position descriptors with which the visitor class is required to work.
-   */
-  template <typename Visitor, typename Graph, typename PositionMap>
-  struct BiRRTVisitorConcept {
-    Visitor vis;
-    Graph g;
-    typename boost::graph_traits<Graph>::vertex_descriptor u;
-    typename boost::graph_traits<Graph>::edge_descriptor e;
-    typename boost::property_traits<PositionMap>::value_type p;
-    typename Graph::edge_bundled ep;
-    bool b;
-    
-    BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
-    
-    BOOST_CONCEPT_USAGE(BiRRTVisitorConcept) {
-      vis.vertex_added(u, g, g); 
-      vis.edge_added(e, g, g); 
-      boost::tie(p,b,ep) = vis.steer_towards_position(p,u,g);
-      b = vis.is_position_free(p);
-      vis.joining_vertex_found(u, u, g, g); 
-      b = vis.keep_going(); 
-    };
-  };
-
-  /**
-   * This class is simply a "null" visitor for the Bi-RRT algorithm. It is null in the sense that it
-   * will do nothing (except return true on the is_position_free(p) and keep_going() callbacks).
-   */
-  struct default_birrt_visitor {
-    template <typename Vertex, typename Graph>
-    void vertex_added(Vertex, Graph&, Graph&) { };
-    template <typename Edge, typename Graph>
-    void edge_added(Edge, Graph&, Graph&) { };
-    template <typename PositionValue, typename Vertex, typename Graph>
-    boost::tuple<PositionValue,bool,typename Graph::edge_bundled> steer_towards_position(const PositionValue& p,Vertex,Graph&) { 
-      typedef typename Graph::edge_bundled EdgeProp;
-      typedef boost::tuple<PositionValue,bool,EdgeProp> ResultType;
-      return ResultType(p,true,EdgeProp()); 
-    };
-    template <typename PositionValue>
-    bool is_position_free(const PositionValue&) { return true; };
-    template <typename Vertex, typename Graph>
-    void joining_vertex_found(Vertex, Vertex, Graph&, Graph&) { };
-    bool keep_going() { return true; };
-  };
-
-  /**
-   * This class is a composite visitor class template. It can be used to glue together a function pointer (or functor)
-   * for each of the functions of the BiRRTVisitorConcept so that it can be used as a light-weight,
-   * copyable visitor object for the Bi-RRT algorithm (it is especially recommend to use the 
-   * make_composite_rrt_visitor function template).
-   */
-  template <typename VertexAddedCallback,
-            typename EdgeAddedCallback,
-            typename SteerFunction,
-            typename IsFreeQuery,
-            typename JoiningVertexFoundCallback,
-            typename KeepGoingQuery>
-  struct composite_birrt_visitor {
-    VertexAddedCallback vertex_added;
-    EdgeAddedCallback edge_added;
-    SteerFunction steer_towards_position;
-    IsFreeQuery is_position_free;
-    JoiningVertexFoundCallback joining_vertex_found;
-    KeepGoingQuery keep_going;
-    composite_birrt_visitor(VertexAddedCallback aVertexAdded,
-                            EdgeAddedCallback aEdgeAdded,
-                            SteerFunction aSteerTowardsPosition,
-                            IsFreeQuery aIsFree,
-                            JoiningVertexFoundCallback aJoiningVertexFound,
-                            KeepGoingQuery aKeepGoing) :
-                            vertex_added(aVertexAdded), edge_added(aEdgeAdded), steer_towards_position(aSteerTowardsPosition), is_position_free(aIsFree), joining_vertex_found(aJoiningVertexFound), keep_going(aKeepGoing) { };
-  };
-
-  /**
-   * This is a function template that is used to create an object of a class of the composite_rrt_visitor
-   * class template. This is particularly convenient to avoid explicitely providing the list of template
-   * arguments and let the compiler resolved them from the function parameter types.
-   */
-  template <typename VertexAddedCallback,
-            typename EdgeAddedCallback,
-            typename SteerFunction,
-            typename IsFreeQuery,
-            typename JoiningVertexFoundCallback,
-            typename KeepGoingQuery>
-  inline composite_birrt_visitor<VertexAddedCallback, EdgeAddedCallback, SteerFunction, IsFreeQuery, JoiningVertexFoundCallback, KeepGoingQuery>
-    make_composite_birrt_visitor(VertexAddedCallback aVertexAdded,
-                                 EdgeAddedCallback aEdgeAdded,
-                                 SteerFunction aSteerTowardsPosition,
-                                 IsFreeQuery aIsFree,
-                                 JoiningVertexFoundCallback aJoiningVertexFound,
-                                 KeepGoingQuery aKeepGoing) {
-    return composite_birrt_visitor<VertexAddedCallback, EdgeAddedCallback, SteerFunction, IsFreeQuery, JoiningVertexFoundCallback, KeepGoingQuery>(aVertexAdded,aEdgeAdded,aSteerTowardsPosition,aIsFree,aJoiningVertexFound,aKeepGoing);
-  };
-
 
 
 namespace detail {
@@ -340,37 +109,34 @@ namespace detail {
     return std::make_pair(u,reached_new);
   };
   
-  template <typename Graph,
-            typename Topology,
-            typename BiRRTVisitor,
+  
+  template <typename Graph, 
+            typename Topology, 
+            typename RRTVisitor,
+            typename RandomSampler,
             typename PositionMap>
-  inline std::pair< typename boost::graph_traits<Graph>::vertex_descriptor, bool>
-    expand_birrt_vertex(Graph& g1, Graph& g2, const Topology& space, 
-                        BiRRTVisitor vis, PositionMap position,
-                        typename boost::graph_traits<Graph>::vertex_descriptor u,
-                        const typename boost::property_traits<PositionMap>::value_type& p_target) {
+  typename boost::graph_traits<Graph>::vertex_descriptor rrt_get_or_create_root(Graph& g, const Topology& space, RRTVisitor vis, RandomSampler get_sample, PositionMap position) {
+    
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename Graph::vertex_bundled VertexProp;
-    typedef typename Graph::edge_bundled EdgeProp;
-    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
     
-    bool reached_new; PositionValue p_v; EdgeProp ep;
-    boost::tie(p_v, reached_new, ep) = vis.steer_towards_position(p_target,u,g1);
-    if(reached_new) {  // i.e., a new position was reached, collision-free.
-      VertexProp vp; 
-      put(position, vp, p_v);
-      Vertex v; Edge e;
+    if(num_vertices(g) == 0) {
+      PositionValue p = get_sample(space);
+      while(!vis.is_position_free(p))
+        p = get_sample(space);
+      VertexProp up;
+      put(position, up, p);
 #ifdef RK_ENABLE_CXX0X_FEATURES
-      boost::tie(v,e) = add_child_vertex(u, std::move(vp), std::move(ep), g1);
+      Vertex u = create_root(std::move(up),g);
 #else
-      boost::tie(v,e) = add_child_vertex(u, vp, ep, g1);
+      Vertex u = create_root(up,g);
 #endif
-      vis.vertex_added(v, g1, g2);
-      vis.edge_added(e, g1, g2);
-      u = v;
+      vis.vertex_added(u, g);
+      return u;
+    } else {
+      return get_root_vertex(g);
     };
-    return std::make_pair(u,reached_new);
   };
   
 }; //namespace detail
@@ -423,35 +189,17 @@ namespace detail {
                            RandomSampler get_sample,
                            NNFinder find_nearest_neighbor,
                            unsigned int max_vertex_count) {
-    BOOST_CONCEPT_ASSERT((RRTVisitorConcept<RRTVisitor,Graph,PositionMap>));
+    BOOST_CONCEPT_ASSERT((RRTVisitorConcept<RRTVisitor,Graph,Topology>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
     
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-    typedef typename Graph::vertex_bundled VertexProp;
     
-    typedef boost::composite_property_map< 
-      PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-    GraphPositionMap g_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
-
-    if(num_vertices(g) == 0) {
-      PositionValue p = get_sample(space);
-      while(!vis.is_position_free(p))
-        p = get_sample(space);
-      VertexProp up;
-      put(position, up, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      Vertex u = create_root(std::move(up),g);
-#else
-      Vertex u = create_root(up,g);
-#endif
-      vis.vertex_added(u, g);
-    };
-
+    detail::rrt_get_or_create_root(g, space, vis, get_sample, position);
+    
     while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
       PositionValue p_rnd = get_sample(space);
-      Vertex u = find_nearest_neighbor(p_rnd, g, space, g_position);
+      Vertex u = find_nearest_neighbor(p_rnd, g, space, boost::bundle_prop_to_vertex_prop(position, g));
       detail::expand_rrt_vertex(g, space, vis, position, u, p_rnd);
     };
 
@@ -522,68 +270,27 @@ namespace detail {
                                          RandomSampler get_sample,
                                          NNFinder find_nearest_neighbor,
                                          unsigned int max_vertex_count) {
-    BOOST_CONCEPT_ASSERT((BiRRTVisitorConcept<BiRRTVisitor,Graph,PositionMap>));
+    BOOST_CONCEPT_ASSERT((BiRRTVisitorConcept<BiRRTVisitor,Graph,Topology>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
     
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
-    typedef typename Graph::vertex_bundled VertexProp;
     
-    typedef boost::composite_property_map< 
-      PositionMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphPositionMap;
-    GraphPositionMap g1_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g1));
-    GraphPositionMap g2_position = GraphPositionMap(position, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g2));
+    std::pair<Vertex,bool> v_target2( 
+      detail::rrt_get_or_create_root(g1, space, vis, get_sample, position),
+      true);
+    PositionValue p_target2 = get(position, g1[v_target2.first]);
     
+    std::pair<Vertex,bool> v_target1( 
+      detail::rrt_get_or_create_root(g2, space, vis, get_sample, position),
+      true);
+    PositionValue p_target1 = get(position, g2[v_target1.first]);
     
-    PositionValue p_target1; std::pair<Vertex,bool> v_target1;
-    PositionValue p_target2; std::pair<Vertex,bool> v_target2;
-
-    if(num_vertices(g1) == 0) {
-      PositionValue p = get_sample(space);
-      while(!vis.is_position_free(p))
-        p = get_sample(space);
-      VertexProp up;
-      put(position, up, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      Vertex u = create_root(std::move(up), g1);
-#else
-      Vertex u = create_root(up, g1);
-#endif
-      p_target2 = p;
-      v_target2.first = u; v_target2.second = true;
-      vis.vertex_added(u, g1, g2);
-    } else {
-      Vertex u = get_root_vertex(g1);
-      p_target2 = get(position, g1[u]);
-      v_target2.first = u; v_target2.second = true;
-    };
-
-    if(num_vertices(g2) == 0) {
-      PositionValue p = get_sample(space);
-      while(!vis.is_position_free(p))
-        p = get_sample(space);
-      VertexProp up;
-      put(position, up, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
-      Vertex u = create_root(std::move(up), g2);
-#else
-      Vertex u = create_root(up, g2);
-#endif
-      p_target1 = p;
-      v_target1.first = u; v_target1.second = true;
-      vis.vertex_added(u, g2, g1);
-    } else {
-      Vertex u = get_root_vertex(g2);
-      p_target1 = get(position, g2[u]);
-      v_target1.first = u; v_target1.second = true;
-    };
-
     while((num_vertices(g1) + num_vertices(g2) < max_vertex_count) && (vis.keep_going())) {
       //first, expand the first graph towards its target:
-      Vertex u1 = find_nearest_neighbor(p_target1, g1, space, g1_position);
+      Vertex u1 = find_nearest_neighbor(p_target1, g1, space, boost::bundle_prop_to_vertex_prop(position, g1));
       std::pair< Vertex, bool> v1 =
-        detail::expand_birrt_vertex(g1,g2,space,vis,position,u1,p_target1);
+        detail::expand_rrt_vertex(g1,space,vis,position,u1,p_target1);
       if((v1.second) && (v_target1.second)) {
         //joining vertex has been reached!
         vis.joining_vertex_found(v1.first, v_target1.first, g1, g2);
@@ -600,9 +307,9 @@ namespace detail {
       };
 
       //then, expand the second graph towards its target:
-      Vertex u2 = find_nearest_neighbor(p_target2, g2, space, g2_position);
+      Vertex u2 = find_nearest_neighbor(p_target2, g2, space, boost::bundle_prop_to_vertex_prop(position, g2));
       std::pair< Vertex, bool> v2 =
-        detail::expand_birrt_vertex(g2,g1,space,vis,position,u2,p_target2);
+        detail::expand_rrt_vertex(g2,space,vis,position,u2,p_target2);
       if((v2.second) && (v_target2.second)) {
         //joining vertex has been reached!
         vis.joining_vertex_found(v_target2.first, v2.first, g1, g2);

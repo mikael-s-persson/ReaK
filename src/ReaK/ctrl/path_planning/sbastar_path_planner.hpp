@@ -819,6 +819,12 @@ struct sbastar_planner_visitor {
     register_failed_sample(v,g,samp_sim);
     
   };
+  
+  template <typename Vertex, typename Graph>
+  void affected_vertex(Vertex, Graph&) const { 
+    // nothing to do.
+  };
+  
       
   
   bool keep_going() const {
@@ -902,6 +908,8 @@ struct sbastar_planner_visitor {
   void discover_vertex(Vertex, const Graph&) const { };
   template <typename Vertex, typename Graph>
   void examine_vertex(Vertex, const Graph&) const { };
+  template <class Edge, class Graph>
+  void examine_edge(Edge e, Graph& g) const { };
   template <typename Edge, typename Graph>
   void edge_relaxed(Edge, const Graph&) const { };
   
@@ -1012,8 +1020,6 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
   
   double space_dim = double((to_vect<double>(this->m_space->get_super_space().difference(this->m_goal_pos,this->m_start_pos))).size()); 
   double space_Lc = get(distance_metric,this->m_space->get_super_space())(this->m_start_pos, this->m_goal_pos, this->m_space->get_super_space());
-  
-  double max_radius = m_sampling_radius;
   
   
   // Some MACROs to reduce the size of the code below.
@@ -1226,7 +1232,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
 //       ReaK::graph::fixed_neighborhood< linear_neighbor_search<> > nc_selector(
 //         linear_neighbor_search<>(), 
-//         10, max_radius);
+//         10, m_sampling_radius);
       ReaK::graph::star_neighborhood< linear_neighbor_search<> > nc_selector(
         linear_neighbor_search<>(), 
         space_dim, 3.0 * space_Lc);
@@ -1323,7 +1329,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
 //       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
 //         nn_finder, 
-//         10, max_radius);
+//         10, m_sampling_radius);
       
       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
         nn_finder, 
@@ -1372,7 +1378,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
 //       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
 //         nn_finder, 
-//         10, max_radius);
+//         10, m_sampling_radius);
       
       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
         nn_finder, 
@@ -1419,13 +1425,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node, space_dim, space_Lc);
       
-      ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
-        nn_finder, 
-        10, max_radius);
-      
-//       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+//       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
 //         nn_finder, 
-//         space_dim, 3.0 * space_Lc);
+//         10, m_sampling_radius);
+      
+      ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> > nc_selector(
+        nn_finder, 
+        space_dim, 3.0 * space_Lc);
       
       if(this->m_init_relaxation < 1e-6) {
         if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
@@ -1487,7 +1493,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
 //       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
 //         nn_finder, 
-//         10, max_radius);
+//         10, m_sampling_radius);
       
       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
         nn_finder, 
@@ -1549,7 +1555,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
 //       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
 //         nn_finder, 
-//         10, max_radius);
+//         10, m_sampling_radius);
       
       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
         nn_finder, 
@@ -1611,7 +1617,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
 //       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
 //         nn_finder, 
-//         10, max_radius);
+//         10, m_sampling_radius);
       
       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
         nn_finder, 
@@ -1673,7 +1679,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
       
 //       ReaK::graph::fixed_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
 //         nn_finder, 
-//         10, max_radius);
+//         10, m_sampling_radius);
       
       ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> > nc_selector(
         nn_finder, 

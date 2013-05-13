@@ -35,12 +35,14 @@
 #ifndef REAK_LAZY_CONNECTOR_HPP
 #define REAK_LAZY_CONNECTOR_HPP
 
-#include <functional>
+#include <utility>
+#include <iterator>
+#include <boost/tuple/tuple.hpp>
 #include <boost/utility/enable_if.hpp>
 
 #include "path_planning/metric_space_concept.hpp"
 
-#include "motion_graph_connector.hpp"
+#include "sbmp_visitor_concepts.hpp"
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
@@ -49,6 +51,7 @@
 #include "bgl_more_property_tags.hpp"
 #include "bgl_raw_property_graph.hpp"
 
+#include <vector>
 #include <stack>
 
 
@@ -307,9 +310,10 @@ struct lazy_node_connector {
     BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
     
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    using std::back_inserter;
     
     std::vector<Vertex> Nc;
-    select_neighborhood(p, std::back_inserter(Nc), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
+    select_neighborhood(p, back_inserter(Nc), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
     
     Vertex v = conn_vis.create_vertex(p, g);
     
@@ -387,9 +391,10 @@ struct lazy_node_connector {
     BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
     
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    using std::back_inserter;
     
     std::vector<Vertex> Pred, Succ;
-    select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
+    select_neighborhood(p, back_inserter(Pred), back_inserter(Succ), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
     
     Vertex v = conn_vis.create_vertex(p, g);
     

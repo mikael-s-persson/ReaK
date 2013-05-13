@@ -1,7 +1,9 @@
 /**
  * \file node_generators.hpp
  * 
- * This library contains
+ * This library contains a node generator that can be used in RRT-like algorithms. 
+ * Essentially, the node generator is a callable object that will perform a "Voronoi-pull"
+ * operation, characteristic of RRT-style algorithms.
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date February 2013
@@ -32,21 +34,16 @@
 #ifndef REAK_NODE_GENERATORS_HPP
 #define REAK_NODE_GENERATORS_HPP
 
-#include <functional>
+#include <utility>
 #include <vector>
 #include <iterator>
-#include <boost/limits.hpp>
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/utility/enable_if.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
-#include <boost/graph/adjacency_list.hpp>
 
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/random_sampler_concept.hpp"
-
-#include "rr_tree.hpp"
 
 namespace ReaK {
   
@@ -91,7 +88,14 @@ namespace detail {
   
 };
   
-
+/**
+ * This node generator that can be used in RRT-like algorithms. 
+ * Essentially, the node generator is a callable object that will perform a "Voronoi-pull"
+ * operation, characteristic of RRT-style algorithms.
+ * \tparam Topology The topology type on which the planning is performed (i.e., the configuration space type).
+ * \tparam RandomSampler The type of the random-sampler that can generate random points in the configuration space, should model ReaK::pp::RandomSamplerConcept.
+ * \tparam NcSelector The type of a functor that can be used to perform nearest-neighbor queries.
+ */
 template <typename Topology, typename RandomSampler, typename NcSelector>
 struct rrg_node_generator {
   

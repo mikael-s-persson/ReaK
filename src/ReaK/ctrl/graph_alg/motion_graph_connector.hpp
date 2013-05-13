@@ -35,10 +35,14 @@
 #ifndef REAK_MOTION_GRAPH_CONNECTOR_HPP
 #define REAK_MOTION_GRAPH_CONNECTOR_HPP
 
-#include <functional>
+#include <utility>
+#include <iterator>
+#include <boost/tuple/tuple.hpp>
 #include <boost/utility/enable_if.hpp>
 
 #include "path_planning/metric_space_concept.hpp"
+
+#include "sbmp_visitor_concepts.hpp"
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
@@ -47,6 +51,7 @@
 #include "bgl_more_property_tags.hpp"
 #include "bgl_raw_property_graph.hpp"
 
+#include <vector>
 #include <stack>
 
 
@@ -55,70 +60,8 @@ namespace ReaK {
 
 /** Main namespace for ReaK.Graph */
 namespace graph {
-  
-  
-  
-  
-/**
-  * This concept class defines the valid expressions required of a class to be used as a visitor 
-  * class for the connection strategies. A visitor class is essentially a class that regroups a number of 
-  * callback functions that can be used to inject customization into the connection strategy. In other 
-  * words, the visitor pattern in generic programming is an implementation of IoC 
-  * (Inversion of Control), since the connection strategy is in control of execution, but custom behavior can
-  * be injected in several places, even blocking the algorithm if needed.
-  * 
-  * Required concepts:
-  * 
-  * The visitor class should model the boost::CopyConstructibleConcept.
-  * 
-  * Valid expressions:
-  * 
-  * tie(b, ep) = conn_vis.can_be_connected(u,v,g);  This function is called to attempt to steer from vertex u to vertex v, it returns true if a local path exists and is collision-free, and it also returns the edge-property of the edge that could connect those two vertices.
-  * 
-  * u = conn_vis.create_vertex(pt, g);  This function is called to request the visitor to create a new vertex (u) to the graph (g), with position (pt).
-  * 
-  * conn_vis.edge_added(e, g);  This function is called whenever a new edge (e) has been created between the last created vertex and its neighbor in the graph (g).
-  * 
-  * conn_vis.travel_explored(u, v, g);  This function is called whenever a source-destination pair of vertices have been matched for a potential edge between them.
-  * 
-  * conn_vis.travel_succeeded(u, v, g);  This function is called whenever a source-destination pair of vertices led to a successful travel.
-  * 
-  * conn_vis.travel_failed(u, v, g);  This function is called whenever a source-destination pair of vertices led to a failure to travel (e.g., a collision occurred).
-  * 
-  * conn_vis.affected_vertex(u,g);  This function is called to notify the visitor that something about the vertex might have changed (possibly nothing).
-  * 
-  * \tparam Visitor The visitor class to be tested for modeling an AD* visitor concept.
-  * \tparam Graph The graph type on which the visitor should be able to act.
-  * \tparam Topology The topology type on which the visitor class is required to work with.
-  */
-template <typename ConnectorVisitor, typename Graph, typename Topology>
-struct MotionGraphConnectorVisitorConcept {
-  BOOST_CONCEPT_USAGE(MotionGraphConnectorVisitorConcept)
-  {
-    BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<ConnectorVisitor>));
-    
-    boost::tie(b, ep) = conn_vis.can_be_connected(u, v, g);  // also part of RRG visitor
-    u = conn_vis.create_vertex(pt, g);
-    conn_vis.edge_added(e, g);  // also part of RRT visitor
-    
-    conn_vis.travel_explored(u, v, g);
-    conn_vis.travel_succeeded(u, v, g);
-    conn_vis.travel_failed(u, v, g);
-    
-    conn_vis.affected_vertex(u,g);  // affected by travel attempts and new out-going edges.
-    
-  }
-  ConnectorVisitor conn_vis;
-  Graph g;
-  typename boost::graph_traits<Graph>::vertex_descriptor u, v;
-  typename boost::graph_traits<Graph>::edge_descriptor e;
-  typename Graph::edge_bundled ep;
-  typename ReaK::pp::topology_traits<Topology>::point_type pt;
-  bool b;
-};
-  
-  
-  
+
+
 /**
  * This callable class template implements a Motion-graph Connector. 
  * A connector uses the accumulated distance to assess the local optimality of the wirings on a motion-graph.
@@ -197,9 +140,10 @@ struct motion_graph_connector {
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
     typedef typename Graph::edge_bundled EdgeProp;
     typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
+    using std::back_inserter;
     
     std::vector<Vertex> Nc;
-    select_neighborhood(p, std::back_inserter(Nc), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
+    select_neighborhood(p, back_inserter(Nc), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
     
     Vertex v = conn_vis.create_vertex(p, g);
     
@@ -342,9 +286,10 @@ struct motion_graph_connector {
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
     typedef typename Graph::edge_bundled EdgeProp;
     typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
+    using std::back_inserter;
     
     std::vector<Vertex> Pred, Succ;
-    select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
+    select_neighborhood(p, back_inserter(Pred), back_inserter(Succ), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
     
     Vertex v = conn_vis.create_vertex(p, g);
     
