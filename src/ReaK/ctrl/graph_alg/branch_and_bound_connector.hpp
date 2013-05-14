@@ -83,9 +83,13 @@ namespace graph {
   */
 template <typename ConnectorVisitor, typename Graph, typename Topology>
 struct BNBConnectorVisitorConcept : MotionGraphConnectorVisitorConcept<ConnectorVisitor, Graph, Topology> {
+  ConnectorVisitor conn_vis;
+  Graph g;
+  typename boost::graph_traits<Graph>::vertex_descriptor u;
+  
   BOOST_CONCEPT_USAGE(BNBConnectorVisitorConcept)
   {
-    this->conn_vis.vertex_to_be_removed(this->u, this->g);
+    conn_vis.vertex_to_be_removed(u, g);
   }
 };
 
@@ -115,9 +119,9 @@ struct branch_and_bound_connector {
   
   lazy_node_connector node_connector;
   
-  IndexInHeapMap index_in_heap;
-  KeyMap key;
-  MutableQueue Q; //priority queue holding the OPEN set.
+  mutable IndexInHeapMap index_in_heap;
+  mutable KeyMap key;
+  mutable MutableQueue Q; //priority queue holding the OPEN set.
   
   
   
@@ -151,7 +155,7 @@ struct branch_and_bound_connector {
       PositionMap position,
       DistanceMap distance,
       PredecessorMap predecessor,
-      WeightMap weight) {
+      WeightMap weight) const {
     
     // need to update all the children of the v node:
     std::stack< Vertex > incons;
@@ -170,7 +174,7 @@ struct branch_and_bound_connector {
         conn_vis.affected_vertex(t,g);  // affected by changed distance value.
         
         put(key, t, get(distance, g[t]) + get(ReaK::pp::distance_metric, super_space)(get(position, g[t]), get(position, g[goal_vertex]), super_space) );
-        Q.update(t);
+        Q.push_or_update(t);
         
         incons.push(t);
       };
@@ -185,7 +189,6 @@ struct branch_and_bound_connector {
       Q.pop();
       top_value = get(key, Q.top());
     };
-    
   };
   
   
@@ -197,7 +200,7 @@ struct branch_and_bound_connector {
    * connects that new vertex to the motion-graph using a lazy and pruned strategy.
    * \note This version applies to a undirected graph (and undirected / symmetric distance metric).
    * 
-   * \tparam Graph The graph type that can store the generated roadmap, should model 
+   * \tparam Graph2 The graph type that can store the generated roadmap, should model 
    *         BidirectionalGraphConcept and MutableGraphConcept.
    * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
    * \tparam SBAStarVisitor The type of the node-connector visitor to be used, should model the BNBConnectorVisitorConcept.
@@ -232,18 +235,19 @@ struct branch_and_bound_connector {
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
    */
-  template <typename Topology,
+  template <typename Graph2,
+            typename Topology,
             typename ConnectorVisitor,
             typename PositionMap,
             typename DistanceMap,
             typename PredecessorMap,
             typename WeightMap,
             typename NcSelector>
-  typename boost::enable_if< boost::is_undirected_graph<Graph> >::type operator()(
+  typename boost::enable_if< boost::is_undirected_graph<Graph2> >::type operator()(
       const typename boost::property_traits<PositionMap>::value_type& p, 
       Vertex& x_near, 
       EdgeProp& eprop, 
-      Graph& g,
+      Graph2& g,
       const Topology& super_space,
       const ConnectorVisitor& conn_vis,
       PositionMap position,
@@ -253,7 +257,7 @@ struct branch_and_bound_connector {
       NcSelector select_neighborhood) const {
     
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((BNBConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
+    BOOST_CONCEPT_ASSERT((BNBConnectorVisitorConcept<ConnectorVisitor,Graph2,Topology>));
     
     double dist_from_start = get(ReaK::pp::distance_metric, super_space)(get(position, g[start_vertex]), p, super_space);
     double dist_to_goal = get(ReaK::pp::distance_metric, super_space)(p, get(position, g[goal_vertex]), super_space);
@@ -265,6 +269,7 @@ struct branch_and_bound_connector {
     select_neighborhood(p, std::back_inserter(Nc), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
     
     Vertex v = conn_vis.create_vertex(p, g);
+    put(index_in_heap,v, static_cast<std::size_t>(-1));
     
     node_connector.connect_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
     
@@ -291,7 +296,7 @@ struct branch_and_bound_connector {
    * connects that new vertex to the motion-graph using a lazy and pruned strategy.
    * \note This version applies to a directed graph (and directed / asymmetric distance metric).
    * 
-   * \tparam Graph The graph type that can store the generated roadmap, should model 
+   * \tparam Graph2 The graph type that can store the generated roadmap, should model 
    *         BidirectionalGraphConcept and MutableGraphConcept.
    * \tparam Topology The topology type that represents the free-space, should model BGL's Topology concept.
    * \tparam SBAStarVisitor The type of the node-connector visitor to be used, should model the BNBConnectorVisitorConcept.
@@ -326,18 +331,19 @@ struct branch_and_bound_connector {
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
    */
-  template <typename Topology,
+  template <typename Graph2,
+            typename Topology,
             typename ConnectorVisitor,
             typename PositionMap,
             typename DistanceMap,
             typename PredecessorMap,
             typename WeightMap,
             typename NcSelector>
-  typename boost::enable_if< boost::is_directed_graph<Graph> >::type operator()(
+  typename boost::enable_if< boost::is_directed_graph<Graph2> >::type operator()(
       const typename boost::property_traits<PositionMap>::value_type& p, 
       Vertex& x_near, 
       EdgeProp& eprop, 
-      Graph& g,
+      Graph2& g,
       const Topology& super_space,
       const ConnectorVisitor& conn_vis,
       PositionMap position,
@@ -347,7 +353,7 @@ struct branch_and_bound_connector {
       NcSelector select_neighborhood) const {
     
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((BNBConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
+    BOOST_CONCEPT_ASSERT((BNBConnectorVisitorConcept<ConnectorVisitor,Graph2,Topology>));
     
     double dist_from_start = get(ReaK::pp::distance_metric, super_space)(get(position, g[start_vertex]), p, super_space);
     double dist_to_goal = get(ReaK::pp::distance_metric, super_space)(p, get(position, g[goal_vertex]), super_space);
@@ -359,6 +365,7 @@ struct branch_and_bound_connector {
     select_neighborhood(p, std::back_inserter(Pred), std::back_inserter(Succ), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
     
     Vertex v = conn_vis.create_vertex(p, g);
+    put(index_in_heap,v, static_cast<std::size_t>(-1));
     
     node_connector.connect_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Pred);
     

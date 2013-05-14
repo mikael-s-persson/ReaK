@@ -1778,7 +1778,9 @@ int main(int argc, char** argv) {
                     sr_max_vertices, 
                     10,
                     ReaK::pp::UNIDIRECTIONAL_RRT,
+//                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH, 
                     ReaK::pp::ADJ_LIST_MOTION_GRAPH,
+//                     ReaK::pp::DVP_ALT_BF4_KNN, 
                     ReaK::pp::DVP_BF4_TREE_KNN,
                     ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(output_path_name + "/rrt_star/" + world_file_name_only + "_", 5),
                     sr_results);

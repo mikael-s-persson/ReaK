@@ -191,7 +191,8 @@ struct lazy_node_connector {
             Vertex old_pred = get(predecessor, g[*it]);
             put(predecessor, g[*it], v); 
             conn_vis.edge_added(e_new.first, g);
-            remove_edge(old_pred, *it, g);
+            if( ( old_pred != *it ) && ( old_pred != boost::graph_traits<Graph>::null_vertex() ) )
+              remove_edge(old_pred, *it, g);
           };
         } else {
           conn_vis.travel_failed(*it, v, g);

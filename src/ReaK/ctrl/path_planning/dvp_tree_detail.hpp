@@ -266,7 +266,7 @@ class dvp_tree_impl
         if(out_degree(cur_node.first,m_tree) == 0)
           continue;
         for(boost::tie(ei,ei_end) = out_edges(cur_node.first,m_tree); ei != ei_end; ++ei) {
-          if(current_dist < get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
+          if(current_dist <= get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
             break;
         };
         if(ei == ei_end) 
@@ -415,7 +415,7 @@ class dvp_tree_impl
         if(out_degree(cur_node.first,m_tree) == 0)
           continue;
         for(boost::tie(ei,ei_end) = out_edges(cur_node.first,m_tree); ei != ei_end; ++ei) {
-          if(current_dist < get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
+          if(current_dist <= get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
             break;
         };
         if(ei == ei_end) 
@@ -513,7 +513,7 @@ class dvp_tree_impl
         out_edge_iter ei,ei_end;
         for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
           result = target(*ei,m_tree);
-          if(current_dist < get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
+          if(current_dist <= get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
             break;
         };
         aNode = result;
@@ -535,7 +535,7 @@ class dvp_tree_impl
         out_edge_iter ei,ei_end;
         for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
           result = target(*ei,m_tree);
-          if(current_dist < get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
+          if(current_dist <= get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
             break;
         };
         aNode = result;
@@ -922,10 +922,13 @@ class dvp_tree_impl
       } else {
         remove_branch(u_node, back_inserter(prop_list), m_tree);
         u_node = u_parent;
-        if(u_parent == m_root)
+        if(u_parent == m_root) {
+          e_dist = 0.0;
           u_parent = boost::graph_traits<tree_indexer>::null_vertex();
-        else
+        } else {
+          e_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*(in_edges(u_node,m_tree).first)));
           u_parent = source(*(in_edges(u_node,m_tree).first), m_tree);
+        };
         remove_branch(u_node, back_inserter(prop_list), m_tree);
       };
       construct_node(u_parent, e_dist, prop_list.begin() + 1 /* skip first node (u_node) */, prop_list.end());
@@ -956,6 +959,7 @@ class dvp_tree_impl
       try {
         u_node = get_vertex(u_key, u_pt, m_root);
       } catch (int err) {
+        std::cout << " Could not find the node to be removed from the DVP tree!" << std::endl;
         return;
       };
       erase(u_node);

@@ -121,14 +121,14 @@ class pooled_adjacency_list {
       
       vertex_iterator& operator++() { 
         ++base;
-        while( (*p_graph)[*base].which() == 1 )
+        while( (base != vertices(*p_graph).second) && ((*p_graph)[*base].which() == 1) )
           ++base;
         return *this;
       };
       vertex_iterator operator++(int) { vertex_iterator result(*this); ++(*this); return result; };
       vertex_iterator& operator--() { 
         --base;
-        while( (*p_graph)[*base].which() == 1 )
+        while( (base != vertices(*p_graph).first) && ((*p_graph)[*base].which() == 1) )
           --base;
         return *this;
       };

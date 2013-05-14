@@ -193,37 +193,44 @@ class rrtstar_path_planner : public sample_based_planner< path_planner_base<Free
      * This function constructs a solution path (if one is found) and invokes the path-planning 
      * reporter to report on that solution path.
      * \note This function is for internal use by the path-planning algorithm (a visitor callback).
-     * \param p_u The latest added position.
-     * \param u The latest added node in the motion-graph.
+     * \param start_node The start node in the motion-graph.
+     * \param goal_node The goal node in the motion-graph.
      * \param g The current motion-graph.
      */
     template <typename Vertex, typename Graph>
-    void check_goal_connection(const point_type& p_u, Vertex u, Graph& g) {
-      point_type result_p = this->m_space->move_position_toward(p_u, 1.0, m_goal_pos);
-      double best_case_dist = get(distance_metric, this->m_space->get_super_space())(p_u, m_goal_pos, this->m_space->get_super_space());
-      double actual_dist = get(distance_metric, this->m_space->get_super_space())(p_u, result_p, this->m_space->get_super_space());
+    void create_solution_path(Vertex start_node, Vertex goal_node, Graph& g) {
       
-      if(actual_dist < 0.99 * best_case_dist)
-        return;
+      double goal_distance = g[goal_node].distance_accum;
       
-      double solutions_total_dist = actual_dist + g[u].distance_accum;
-      if((m_solutions.size()) && (solutions_total_dist >= m_solutions.begin()->first))
-        return;
+      if(goal_distance < std::numeric_limits<double>::infinity()) {
+        //Draw the edges of the current best solution:
+        
+        shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
+        shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("rrtstar_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
+        point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
+        std::set<Vertex> path;
+        
+        Vertex v = goal_node;
+        point_type p_v = g[v].position;
+        Vertex u = g[v].predecessor;
+        point_type p_u = g[u].position;
+        
+        waypoints.push_front(p_v);
+        waypoints.push_front(p_u);
+        path.insert(v);
       
-      shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
-      shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("rrt_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
-      point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
-      
-      waypoints.push_front(m_goal_pos);
-      waypoints.push_front(p_u);
-      
-      while(g[u].predecessor != Graph::null_vertex()) {
-        u = g[u].predecessor;
-        waypoints.push_front(g[u].position);
+        while((u != start_node) && (path.insert(u).second)) {
+          v = u; p_v = p_u;
+          u = g[v].predecessor; 
+          p_u = g[u].position; 
+          waypoints.push_front(p_u);
+        };
+        
+        if(u == start_node) {
+          m_solutions[goal_distance] = new_sol;
+          m_reporter.draw_solution(*(this->m_space), m_solutions[goal_distance]);
+        };
       };
-      
-      m_solutions[solutions_total_dist] = new_sol;
-      m_reporter.draw_solution(*(this->m_space), m_solutions[solutions_total_dist]);
     };
     
     /**
@@ -249,13 +256,13 @@ class rrtstar_path_planner : public sample_based_planner< path_planner_base<Free
       point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
       
       waypoints.push_front(g1[u1].position);
-      while(g1[u1].predecessor != Graph::null_vertex()) {
+      while( ( g1[u1].predecessor != Graph::null_vertex() ) && ( g1[u1].predecessor != u1 ) ) {
         u1 = g1[u1].predecessor;
         waypoints.push_front(g1[u1].position);
       };
       
       waypoints.push_back(g2[u2].position);
-      while(g2[u2].predecessor != Graph::null_vertex()) {
+      while( ( g2[u2].predecessor != Graph::null_vertex() ) && ( g2[u2].predecessor != u2 ) ) {
         u2 = g2[u2].predecessor;
         waypoints.push_back(g2[u2].position);
       };
@@ -285,24 +292,6 @@ class rrtstar_path_planner : public sample_based_planner< path_planner_base<Free
       if(num_vertices(g) % this->m_progress_interval == 0)
         m_reporter.draw_motion_graph(*(this->m_space), g, g_pos);
       has_reached_max_vertices = (num_vertices(g) >= this->m_max_vertex_count);
-    };
-    
-    /**
-     * This function invokes the path-planning reporter to report on the progress of the path-planning
-     * solver. This is the bi-directional version (i.e., two motion-graphs).
-     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
-     * \param g1 The first motion-graph.
-     * \param g2 The second motion-graph.
-     * \param g1_pos The position map for the vertices of the first motion-graph.
-     * \param g2_pos The position map for the vertices of the second motion-graph.
-     */
-    template <typename Graph, typename PositionMap>
-    void report_progress(Graph& g1, Graph& g2, PositionMap g1_pos, PositionMap g2_pos) {
-      if((num_vertices(g1) + num_vertices(g2)) % this->m_progress_interval == 0) {
-        m_reporter.draw_motion_graph(*(this->m_space), g1, g1_pos);
-        m_reporter.draw_motion_graph(*(this->m_space), g2, g2_pos);
-      };
-      has_reached_max_vertices = (num_vertices(g1) + num_vertices(g2) >= this->m_max_vertex_count);
     };
     
     /**
@@ -485,16 +474,22 @@ class rrtstar_path_planner : public sample_based_planner< path_planner_base<Free
  * collected as member functions of an algorithm visitor class that implement the problem-specific 
  * behaviors (random-walks / local-planning, progress reporting, completion criteria, etc.). 
  */
-template <typename FreeSpaceType, typename NNFinderSynchro, typename SBPPReporter = no_sbmp_report>
+template <typename FreeSpaceType, typename MotionGraph, typename NNFinderSynchro, typename SBPPReporter = no_sbmp_report>
 struct rrtstar_planner_visitor {
+  typedef typename boost::graph_traits<MotionGraph>::vertex_descriptor Vertex;
+  
   shared_ptr< FreeSpaceType > m_space;
   rrtstar_path_planner<FreeSpaceType,SBPPReporter>* m_planner;
   NNFinderSynchro m_nn_synchro;
+  Vertex m_start_node;
+  Vertex m_goal_node;
   
   rrtstar_planner_visitor(const shared_ptr< FreeSpaceType >& aSpace, 
                           rrtstar_path_planner<FreeSpaceType,SBPPReporter>* aPlanner,
-                          NNFinderSynchro aNNSynchro) : 
-                          m_space(aSpace), m_planner(aPlanner), m_nn_synchro(aNNSynchro) { };
+                          NNFinderSynchro aNNSynchro,
+                          Vertex aStartNode, Vertex aGoalNode) : 
+                          m_space(aSpace), m_planner(aPlanner), m_nn_synchro(aNNSynchro),
+                          m_start_node(aStartNode), m_goal_node(aGoalNode) { };
   
   typedef typename topology_traits<FreeSpaceType>::point_type PointType;
   typedef rrtstar_edge_data<FreeSpaceType> EdgeProp;
@@ -502,41 +497,21 @@ struct rrtstar_planner_visitor {
   template <typename Vertex, typename Graph>
   void vertex_added(Vertex u, Graph& g) const {
     m_nn_synchro.added_vertex(u,g);
-    //std::cout << "reached this point." << std::endl;
-//     std::cout << "\r" << std::setw(10) << num_vertices(g) << std::flush;
     
     // Call progress reporter...
     m_planner->report_progress(g, get(&rrtstar_vertex_data<FreeSpaceType>::position,g));
-  };
-  
-  template <typename Vertex, typename Graph>
-  void vertex_added(Vertex u, Graph& g1, Graph& g2) const {
-    m_nn_synchro.added_vertex(u,g1);
     
-    // Call progress reporter...
-    m_planner->report_progress(g1, g2, 
-                               get(&rrtstar_vertex_data<FreeSpaceType>::position,g1), 
-                               get(&rrtstar_vertex_data<FreeSpaceType>::position,g2));
+    if((in_degree(m_goal_node,g)) && (g[m_goal_node].distance_accum < m_planner->get_best_solution_distance()))
+      m_planner->create_solution_path(m_start_node, m_goal_node, g);
   };
   
   template <typename Vertex, typename Graph>
   void vertex_to_be_removed(Vertex u, Graph& g) const {
-    m_nn_synchro.remove_vertex(u,g);
+    m_nn_synchro.removed_vertex(u,g);
   };
   
   template <typename EdgeType, typename Graph>
-  void edge_added(EdgeType e, Graph& g) const {
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor VertexType;
-    VertexType v = target(e,g);
-    
-    // Check if a straight path to goal is possible...
-    m_planner->check_goal_connection(g[v].position,v,g);
-    
-  };
-  
-  template <typename EdgeType, typename Graph>
-  void edge_added(EdgeType e, Graph& g1, Graph& g2) const {
-  };
+  void edge_added(EdgeType e, Graph& g) const { };
   
   bool is_position_free(PointType p) const {
     return m_space->is_free(p);
@@ -600,6 +575,51 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
   double space_Lc = get(distance_metric,this->m_space->get_super_space())(this->m_start_pos, this->m_goal_pos, this->m_space->get_super_space());
   
   
+#define RK_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE \
+      rrtstar_vertex_data<FreeSpaceType> vs_p; \
+      vs_p.position = this->m_start_pos; \
+      Vertex vs = add_vertex(vs_p, motion_graph); \
+      motion_graph[vs].distance_accum = 0.0; \
+      motion_graph[vs].predecessor = vs; \
+      rrtstar_vertex_data<FreeSpaceType> vg_p; \
+      vg_p.position = this->m_goal_pos; \
+      Vertex vg = add_vertex(vg_p, motion_graph); \
+      motion_graph[vg].distance_accum = std::numeric_limits<double>::infinity(); \
+      motion_graph[vg].predecessor = vg;
+  
+  
+#define RK_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION \
+        ReaK::graph::generate_rrt_star( \
+          motion_graph, \
+          this->m_space->get_super_space(), \
+          vis, \
+          pos_map, \
+          cost_map, \
+          pred_map, \
+          weight_map, \
+          get(random_sampler, this->m_space->get_super_space()), \
+          ReaK::graph::star_neighborhood< NNFinderType >( \
+            nn_finder, \
+            space_dim, 3.0 * space_Lc), \
+          this->m_max_vertex_count);
+
+#define RK_RRTSTAR_PLANNER_CALL_RRTSTAR_BNB_FUNCTION \
+        ReaK::graph::generate_bnb_rrt_star( \
+          motion_graph, \
+          vs, vg, \
+          this->m_space->get_super_space(), \
+          vis, \
+          pos_map, \
+          cost_map, \
+          pred_map, \
+          weight_map, \
+          get(random_sampler, this->m_space->get_super_space()), \
+          ReaK::graph::star_neighborhood< NNFinderType >( \
+            nn_finder, \
+            space_dim, 3.0 * space_Lc), \
+          this->m_max_vertex_count);
+  
+  
   if(m_bidir_flag == UNIDIRECTIONAL_RRT) {
     
     if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {
@@ -619,29 +639,16 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
       MotionGraphType motion_graph;
       GraphPositionMap g_pos_map = GraphPositionMap(pos_map, boost::whole_bundle_property_map< MotionGraphType, boost::vertex_bundle_t >(&motion_graph));
       
-      rrtstar_vertex_data<FreeSpaceType> v_p;
-      v_p.position = this->m_start_pos;
-      v_p.distance_accum = 0.0;
-      v_p.predecessor = MotionGraphType::null_vertex();
-      add_vertex(v_p, motion_graph);
+      RK_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE
       
       if(m_knn_flag == LINEAR_SEARCH_KNN) {
-        rrtstar_planner_visitor<FreeSpaceType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro());
         
-        ReaK::graph::generate_rrt_star(
-          motion_graph, 
-          this->m_space->get_super_space(),
-          vis, 
-          pos_map, 
-          cost_map,
-          pred_map,
-          weight_map,
-          get(random_sampler, this->m_space->get_super_space()), 
-//           get(distance_metric, this->m_space->get_super_space()),
-          ReaK::graph::star_neighborhood< linear_neighbor_search<> >(
-            linear_neighbor_search<>(), 
-            space_dim, 3.0 * space_Lc), 
-          this->m_max_vertex_count);
+        typedef linear_neighbor_search<> NNFinderType;
+        NNFinderType nn_finder;
+        
+        rrtstar_planner_visitor<FreeSpaceType, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), vs, vg);
+        
+        RK_RRTSTAR_PLANNER_CALL_RRTSTAR_BNB_FUNCTION
         
       } else if(m_knn_flag == DVP_BF2_TREE_KNN) {
         
@@ -649,25 +656,13 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
                          random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<2> > SpacePartType;
         SpacePartType space_part(motion_graph, ReaK::shared_ptr<const SuperSpace>(&(this->m_space->get_super_space()),null_deleter()), g_pos_map);
         
-        multi_dvp_tree_search<MotionGraphType, SpacePartType> nn_finder;
+        typedef multi_dvp_tree_search<MotionGraphType, SpacePartType> NNFinderType;
+        NNFinderType nn_finder;
         nn_finder.graph_tree_map[&motion_graph] = &space_part;
         
-        rrtstar_planner_visitor<FreeSpaceType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder);
+        rrtstar_planner_visitor<FreeSpaceType, MotionGraphType, NNFinderType, SBPPReporter> vis(this->m_space, this, nn_finder, vs, vg);
         
-        ReaK::graph::generate_rrt_star(
-          motion_graph, 
-          this->m_space->get_super_space(),
-          vis, 
-          pos_map, 
-          cost_map,
-          pred_map,
-          weight_map,
-          get(random_sampler, this->m_space->get_super_space()), 
-//           get(distance_metric, this->m_space->get_super_space()),
-          ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
-            nn_finder, 
-            space_dim, 3.0 * space_Lc), 
-          this->m_max_vertex_count);
+        RK_RRTSTAR_PLANNER_CALL_RRTSTAR_BNB_FUNCTION
         
       } else if(m_knn_flag == DVP_BF4_TREE_KNN) {
         
@@ -675,25 +670,13 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
                          random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<4> > SpacePartType;
         SpacePartType space_part(motion_graph, ReaK::shared_ptr<const SuperSpace>(&(this->m_space->get_super_space()),null_deleter()), g_pos_map);
         
-        multi_dvp_tree_search<MotionGraphType, SpacePartType> nn_finder;
+        typedef multi_dvp_tree_search<MotionGraphType, SpacePartType> NNFinderType;
+        NNFinderType nn_finder;
         nn_finder.graph_tree_map[&motion_graph] = &space_part;
         
-        rrtstar_planner_visitor<FreeSpaceType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder);
+        rrtstar_planner_visitor<FreeSpaceType, MotionGraphType, NNFinderType, SBPPReporter> vis(this->m_space, this, nn_finder, vs, vg);
         
-        ReaK::graph::generate_rrt_star(
-          motion_graph, 
-          this->m_space->get_super_space(),
-          vis, 
-          pos_map, 
-          cost_map,
-          pred_map,
-          weight_map,
-          get(random_sampler, this->m_space->get_super_space()), 
-//           get(distance_metric, this->m_space->get_super_space()),
-          ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
-            nn_finder, 
-            space_dim, 3.0 * space_Lc), 
-          this->m_max_vertex_count);
+        RK_RRTSTAR_PLANNER_CALL_RRTSTAR_BNB_FUNCTION
         
       } else if(m_knn_flag == DVP_COB2_TREE_KNN) {
         
@@ -701,25 +684,13 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
                          random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<2> > SpacePartType;
         SpacePartType space_part(motion_graph, ReaK::shared_ptr<const SuperSpace>(&(this->m_space->get_super_space()),null_deleter()), g_pos_map);
         
-        multi_dvp_tree_search<MotionGraphType, SpacePartType> nn_finder;
+        typedef multi_dvp_tree_search<MotionGraphType, SpacePartType> NNFinderType;
+        NNFinderType nn_finder;
         nn_finder.graph_tree_map[&motion_graph] = &space_part;
         
-        rrtstar_planner_visitor<FreeSpaceType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder);
+        rrtstar_planner_visitor<FreeSpaceType, MotionGraphType, NNFinderType, SBPPReporter> vis(this->m_space, this, nn_finder, vs, vg);
         
-        ReaK::graph::generate_rrt_star(
-          motion_graph, 
-          this->m_space->get_super_space(),
-          vis, 
-          pos_map, 
-          cost_map,
-          pred_map,
-          weight_map,
-          get(random_sampler, this->m_space->get_super_space()), 
-//           get(distance_metric, this->m_space->get_super_space()),
-          ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
-            nn_finder, 
-            space_dim, 3.0 * space_Lc), 
-          this->m_max_vertex_count);
+        RK_RRTSTAR_PLANNER_CALL_RRTSTAR_BNB_FUNCTION
         
       } else if(m_knn_flag == DVP_COB4_TREE_KNN) {
         
@@ -727,25 +698,13 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
                          random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<4> > SpacePartType;
         SpacePartType space_part(motion_graph, ReaK::shared_ptr<const SuperSpace>(&(this->m_space->get_super_space()),null_deleter()), g_pos_map);
         
-        multi_dvp_tree_search<MotionGraphType, SpacePartType> nn_finder;
+        typedef multi_dvp_tree_search<MotionGraphType, SpacePartType> NNFinderType;
+        NNFinderType nn_finder;
         nn_finder.graph_tree_map[&motion_graph] = &space_part;
         
-        rrtstar_planner_visitor<FreeSpaceType, multi_dvp_tree_search<MotionGraphType, SpacePartType>, SBPPReporter> vis(this->m_space, this, nn_finder);
+        rrtstar_planner_visitor<FreeSpaceType, MotionGraphType, NNFinderType, SBPPReporter> vis(this->m_space, this, nn_finder, vs, vg);
         
-        ReaK::graph::generate_rrt_star(
-          motion_graph, 
-          this->m_space->get_super_space(),
-          vis, 
-          pos_map, 
-          cost_map,
-          pred_map,
-          weight_map,
-          get(random_sampler, this->m_space->get_super_space()), 
-//           get(distance_metric, this->m_space->get_super_space()),
-          ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraphType, SpacePartType> >(
-            nn_finder, 
-            space_dim, 3.0 * space_Lc), 
-          this->m_max_vertex_count);
+        RK_RRTSTAR_PLANNER_CALL_RRTSTAR_BNB_FUNCTION
         
       };
       
@@ -764,34 +723,19 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
         ALTGraph space_part(ReaK::shared_ptr<const SuperSpace>(&(this->m_space->get_super_space()),null_deleter()), pos_map);
         
         typedef typename ALTGraph::adj_list_type MotionGraph;
+        typedef typename boost::graph_traits<MotionGraph>::vertex_descriptor Vertex;
         
         MotionGraph motion_graph = space_part.get_adjacency_list();
         
-        rrtstar_vertex_data<FreeSpaceType> v_p;
-        v_p.position = this->m_start_pos;
-        v_p.distance_accum = 0.0;
-        v_p.predecessor = MotionGraph::null_vertex();
-        add_vertex(v_p, motion_graph);
+        RK_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE
         
-        multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
+        typedef multi_dvp_tree_search<MotionGraph, ALTGraph> NNFinderType;
+        NNFinderType nn_finder;
         nn_finder.graph_tree_map[&motion_graph] = &space_part;
         
-        rrtstar_planner_visitor<FreeSpaceType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro());
+        rrtstar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), vs, vg);
         
-        ReaK::graph::generate_rrt_star(
-          motion_graph, 
-          this->m_space->get_super_space(),
-          vis, 
-          pos_map, 
-          cost_map,
-          pred_map,
-          weight_map,
-          get(random_sampler, this->m_space->get_super_space()), 
-//           get(distance_metric, this->m_space->get_super_space()),
-          ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
-            nn_finder, 
-            space_dim, 3.0 * space_Lc), 
-          this->m_max_vertex_count);
+        RK_RRTSTAR_PLANNER_CALL_RRTSTAR_BNB_FUNCTION
         
       } else if(m_knn_flag == DVP_ALT_BF4_KNN) {
         
@@ -806,34 +750,19 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
         ALTGraph space_part(ReaK::shared_ptr<const SuperSpace>(&(this->m_space->get_super_space()),null_deleter()), pos_map);
         
         typedef typename ALTGraph::adj_list_type MotionGraph;
+        typedef typename boost::graph_traits<MotionGraph>::vertex_descriptor Vertex;
         
         MotionGraph motion_graph = space_part.get_adjacency_list();
         
-        rrtstar_vertex_data<FreeSpaceType> v_p;
-        v_p.position = this->m_start_pos;
-        v_p.distance_accum = 0.0;
-        v_p.predecessor = MotionGraph::null_vertex();
-        add_vertex(v_p, motion_graph);
+        RK_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE
         
-        multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
+        typedef multi_dvp_tree_search<MotionGraph, ALTGraph> NNFinderType;
+        NNFinderType nn_finder;
         nn_finder.graph_tree_map[&motion_graph] = &space_part;
         
-        rrtstar_planner_visitor<FreeSpaceType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro());
+        rrtstar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), vs, vg);
         
-        ReaK::graph::generate_rrt_star(
-          motion_graph, 
-          this->m_space->get_super_space(),
-          vis, 
-          pos_map, 
-          cost_map,
-          pred_map,
-          weight_map,
-          get(random_sampler, this->m_space->get_super_space()), 
-//           get(distance_metric, this->m_space->get_super_space()),
-          ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
-            nn_finder, 
-            space_dim, 3.0 * space_Lc), 
-          this->m_max_vertex_count);
+        RK_RRTSTAR_PLANNER_CALL_RRTSTAR_BNB_FUNCTION
         
       } else if(m_knn_flag == DVP_ALT_COB2_KNN) {
         
@@ -848,34 +777,19 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
         ALTGraph space_part(ReaK::shared_ptr<const SuperSpace>(&(this->m_space->get_super_space()),null_deleter()), pos_map);
         
         typedef typename ALTGraph::adj_list_type MotionGraph;
+        typedef typename boost::graph_traits<MotionGraph>::vertex_descriptor Vertex;
         
         MotionGraph motion_graph = space_part.get_adjacency_list();
         
-        rrtstar_vertex_data<FreeSpaceType> v_p;
-        v_p.position = this->m_start_pos;
-        v_p.distance_accum = 0.0;
-        v_p.predecessor = MotionGraph::null_vertex();
-        add_vertex(v_p, motion_graph);
+        RK_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE
         
-        multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
+        typedef multi_dvp_tree_search<MotionGraph, ALTGraph> NNFinderType;
+        NNFinderType nn_finder;
         nn_finder.graph_tree_map[&motion_graph] = &space_part;
         
-        rrtstar_planner_visitor<FreeSpaceType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro());
+        rrtstar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), vs, vg);
         
-        ReaK::graph::generate_rrt_star(
-          motion_graph, 
-          this->m_space->get_super_space(),
-          vis, 
-          pos_map, 
-          cost_map,
-          pred_map,
-          weight_map,
-          get(random_sampler, this->m_space->get_super_space()), 
-//           get(distance_metric, this->m_space->get_super_space()),
-          ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
-            nn_finder, 
-            space_dim, 3.0 * space_Lc), 
-          this->m_max_vertex_count);
+        RK_RRTSTAR_PLANNER_CALL_RRTSTAR_BNB_FUNCTION
         
       } else if(m_knn_flag == DVP_ALT_COB4_KNN) {
         
@@ -890,34 +804,19 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
         ALTGraph space_part(ReaK::shared_ptr<const SuperSpace>(&(this->m_space->get_super_space()),null_deleter()), pos_map);
         
         typedef typename ALTGraph::adj_list_type MotionGraph;
+        typedef typename boost::graph_traits<MotionGraph>::vertex_descriptor Vertex;
         
         MotionGraph motion_graph = space_part.get_adjacency_list();
         
-        rrtstar_vertex_data<FreeSpaceType> v_p;
-        v_p.position = this->m_start_pos;
-        v_p.distance_accum = 0.0;
-        v_p.predecessor = MotionGraph::null_vertex();
-        add_vertex(v_p, motion_graph);
+        RK_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE
         
-        multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
+        typedef multi_dvp_tree_search<MotionGraph, ALTGraph> NNFinderType;
+        NNFinderType nn_finder;
         nn_finder.graph_tree_map[&motion_graph] = &space_part;
         
-        rrtstar_planner_visitor<FreeSpaceType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro());
+        rrtstar_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), vs, vg);
         
-        ReaK::graph::generate_rrt_star(
-          motion_graph, 
-          this->m_space->get_super_space(),
-          vis, 
-          pos_map, 
-          cost_map,
-          pred_map,
-          weight_map,
-          get(random_sampler, this->m_space->get_super_space()), 
-//           get(distance_metric, this->m_space->get_super_space()),
-          ReaK::graph::star_neighborhood< multi_dvp_tree_search<MotionGraph, ALTGraph> >(
-            nn_finder, 
-            space_dim, 3.0 * space_Lc), 
-          this->m_max_vertex_count);
+        RK_RRTSTAR_PLANNER_CALL_RRTSTAR_BNB_FUNCTION
         
       };
       
@@ -1211,6 +1110,9 @@ shared_ptr< seq_path_base< typename rrtstar_path_planner<FreeSpaceType,SBPPRepor
     };
 #endif
   };
+  
+#undef RK_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION
+#undef RK_RRTSTAR_PLANNER_CALL_RRTSTAR_BNB_FUNCTION
   
   if(m_solutions.size())
     return m_solutions.begin()->second;

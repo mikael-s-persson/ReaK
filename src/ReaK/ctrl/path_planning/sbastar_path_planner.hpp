@@ -785,7 +785,7 @@ struct sbastar_planner_visitor {
   
   template <typename Vertex, typename Graph>
   void vertex_to_be_removed(Vertex u, Graph& g) const {
-    m_nn_synchro.remove_vertex(u,g);
+    m_nn_synchro.removed_vertex(u,g);
   };
   
   template <typename EdgeType, typename Graph>
