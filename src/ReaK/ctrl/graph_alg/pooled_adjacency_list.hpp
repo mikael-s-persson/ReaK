@@ -45,6 +45,7 @@
 #include <boost/property_map/property_map.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/variant.hpp>
 
 #include "bgl_more_property_tags.hpp"
 #include "bgl_more_property_maps.hpp"
@@ -69,8 +70,20 @@ class pooled_adjacency_list {
   public:
     typedef pooled_adjacency_list< DirectedS, VertexProperty, EdgeProperty, GraphProperty, EdgeListS > self;
     
-    typedef adjacency_list< vecS, vecS, DirectedS, VertexProperty, EdgeProperty, GraphProperty, EdgeListS > graph_type;
+    struct hole_descriptor {
+      std::size_t value;
+      explicit hole_descriptor(std::size_t aValue = 0) : value(aValue) { };
+    };
     
+    // PropertyGraph traits:
+    typedef EdgeProperty edge_property_type;
+    typedef VertexProperty vertex_property_type;
+    typedef variant<VertexProperty, hole_descriptor> raw_vertex_property_type;
+    
+    typedef edge_property_type edge_bundled;
+    typedef VertexProperty vertex_bundled;
+    
+    typedef adjacency_list< vecS, vecS, DirectedS, raw_vertex_property_type, edge_property_type, GraphProperty, EdgeListS > graph_type;
     
     // Graph traits:
     typedef typename graph_traits< graph_type >::vertex_descriptor vertex_descriptor;
@@ -78,59 +91,84 @@ class pooled_adjacency_list {
     typedef typename graph_traits< graph_type >::directed_category directed_category;
     typedef typename graph_traits< graph_type >::edge_parallel_category edge_parallel_category;
     typedef typename graph_traits< graph_type >::traversal_category traversal_category;
-
+    
     static vertex_descriptor null_vertex() { return graph_traits< graph_type >::null_vertex(); };
-
+    
     // IncidenceGraph traits:
     typedef typename graph_traits< graph_type >::out_edge_iterator out_edge_iterator;
     typedef typename graph_traits< graph_type >::degree_size_type degree_size_type;
-
+    
     // BidirectionalGraph traits:
     typedef typename graph_traits< graph_type >::in_edge_iterator in_edge_iterator;
-
+    
     // VertexListGraph traits:
-    typedef typename graph_traits< graph_type >::vertex_iterator vertex_iterator;
+    struct vertex_iterator {
+      typedef std::ptrdiff_t difference_type;
+      typedef vertex_descriptor value_type;
+      typedef vertex_descriptor* pointer;
+      typedef vertex_descriptor& reference;
+      typedef std::bidirectional_iterator_tag iterator_category;
+      typedef typename graph_traits< graph_type >::vertex_iterator base_iterator;
+      
+      base_iterator base;
+      const graph_type* p_graph;
+      vertex_iterator(const graph_type* aPGraph = NULL,
+                      const base_iterator& aBase = base_iterator()) : 
+                      base(aBase), p_graph(aPGraph) { };
+      
+      friend bool operator==(const vertex_iterator& lhs, const vertex_iterator& rhs) { return lhs.base == rhs.base; };
+      friend bool operator!=(const vertex_iterator& lhs, const vertex_iterator& rhs) { return lhs.base != rhs.base; };
+      
+      vertex_iterator& operator++() { 
+        ++base;
+        while( (*p_graph)[*base].which() == 1 )
+          ++base;
+        return *this;
+      };
+      vertex_iterator operator++(int) { vertex_iterator result(*this); ++(*this); return result; };
+      vertex_iterator& operator--() { 
+        --base;
+        while( (*p_graph)[*base].which() == 1 )
+          --base;
+        return *this;
+      };
+      vertex_iterator operator--(int) { vertex_iterator result(*this); --(*this); return result; };
+      
+      value_type operator*() const { return *base; };
+//       pointer operator->() { return &(*base); };
+    };
+    
+    
     typedef typename graph_traits< graph_type >::vertices_size_type vertices_size_type;
-
+    
     // EdgeListGraph traits:
     typedef typename graph_traits< graph_type >::edge_iterator edge_iterator;
     typedef typename graph_traits< graph_type >::edges_size_type edges_size_type;
-
+    
     // AdjacencyGraph traits:
     typedef typename graph_traits< graph_type >::adjacency_iterator adjacency_iterator;
-
-    // PropertyGraph traits:
-    typedef typename graph_type::edge_bundled edge_property_type;
-    typedef typename graph_type::vertex_bundled vertex_property_type;
-
-    typedef edge_property_type edge_bundled;
-    typedef vertex_property_type vertex_bundled;
-
+    
     typedef typename graph_type::graph_bundled graph_bundled;
-
+    
   private:
-
+    
     graph_type m_graph;
     
-    typedef std::priority_queue<
-      vertex_descriptor,
-      std::vector< vertex_descriptor >,
-      std::greater< vertex_descriptor > > nodes_avail_queue;
-
-    nodes_avail_queue m_available_nodes;
-
+    hole_descriptor m_first_hole;
+    vertices_size_type m_num_vertices;
+    
   public:
     
-    alt_graph_view() : m_graph() { };
+    pooled_adjacency_list() : m_graph(), m_first_hole(null_vertex()), m_num_vertices(0) { };
     
-
+    
     // Bundled Property-map functions (used by the property_map< self, T Bundle::* > classes).
-
+    
     vertex_bundled& operator[]( const vertex_descriptor& v_i) {
-      return m_graph[v_i];
+      return get<vertex_bundled>(m_graph[v_i]);
     };
     const vertex_bundled& operator[]( const vertex_descriptor& v_i) const {
-      return m_graph[v_i];
+      return get<vertex_bundled>(m_graph[v_i]);
     };
     edge_bundled& operator[]( const edge_descriptor& e_i) {
       return m_graph[e_i];
@@ -208,10 +246,12 @@ class pooled_adjacency_list {
     // VertexListGraph concept
 
     std::pair< vertex_iterator, vertex_iterator > vertices_impl() const {
-      return vertices(m_graph);
+      typedef typename graph_traits< graph_type >::vertex_iterator VIter;
+      std::pair< VIter, VIter > tmp = vertices(m_graph);
+      return std::pair< vertex_iterator, vertex_iterator >(vertex_iterator(&m_graph,tmp.first), vertex_iterator(&m_graph,tmp.second));
     };
     vertices_size_type num_vertices_impl() const {
-      return num_vertices(m_graph);
+      return m_num_vertices;
     };
 
     // EdgeListGraph concept
@@ -233,15 +273,16 @@ class pooled_adjacency_list {
     
     vertex_descriptor add_vertex_impl() {
       vertex_descriptor v;
-      if( m_available_nodes.empty() ) {
+      if( m_first_hole.value == null_vertex() ) {
         // add a new node in the graph (this is safe, it will not invalidate vertex descriptors).
         v = add_vertex(m_graph);
       } else {
         // resurrect a node from the graveyard.
-        v = m_available_nodes.top();
-        m_available_nodes.pop();
+        v = m_first_hole.value;
+        m_first_hole = get< hole_descriptor >(m_graph[v]);
       };
       m_graph[v] = vertex_property_type();
+      ++m_num_vertices;
       return v;
     };
 
@@ -251,7 +292,9 @@ class pooled_adjacency_list {
 
     void remove_vertex_impl(vertex_descriptor v) {
       clear_vertex(v, m_graph);
-      m_available_nodes.push(v);  // add it to the graveyard.
+      m_graph[v] = m_first_hole;
+      m_first_hole.value = v;
+      --m_num_vertices;
     };
 
     std::pair<edge_descriptor, bool> add_edge_impl(vertex_descriptor u, vertex_descriptor v) {
@@ -274,15 +317,16 @@ class pooled_adjacency_list {
 
     vertex_descriptor add_vertex_impl(const vertex_property_type& vp) {
       vertex_descriptor v;
-      if( m_available_nodes.empty() ) {
+      if( m_first_hole.value == null_vertex() ) {
         // add a new node in the graph (this is safe, it will not invalidate vertex descriptors).
         v = add_vertex(m_graph);
       } else {
         // resurrect a node from the graveyard.
-        v = m_available_nodes.top();
-        m_available_nodes.pop();
+        v = m_first_hole.value;
+        m_first_hole = get< hole_descriptor >(m_graph[v]);
       };
       m_graph[v] = vp;
+      ++m_num_vertices;
       return v;
     };
 
@@ -310,15 +354,16 @@ class pooled_adjacency_list {
 #ifdef RK_ENABLE_CXX0X_FEATURES
     vertex_descriptor add_vertex_impl(vertex_property_type&& vp) {
       vertex_descriptor v;
-      if( m_available_nodes.empty() ) {
+      if( m_first_hole.value == null_vertex() ) {
         // add a new node in the graph (this is safe, it will not invalidate vertex descriptors).
         v = add_vertex(m_graph);
       } else {
         // resurrect a node from the graveyard.
-        v = m_available_nodes.top();
-        m_available_nodes.pop();
+        v = m_first_hole.value;
+        m_first_hole = get< hole_descriptor >(m_graph[v]);
       };
       m_graph[v] = std::move(vp);
+      ++m_num_vertices;
       return v;
     };
 
@@ -330,7 +375,7 @@ class pooled_adjacency_list {
     // NonCompactGraphConcept
 
     bool is_vertex_valid_impl(vertex_descriptor u) const {
-      if( ( u != null_vertex() ) )
+      if( ( u != null_vertex() ) && ( m_graph[u].which() == 0 ) )
         return true;
       else
         return false;

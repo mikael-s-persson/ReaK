@@ -61,6 +61,7 @@
 #include "graph_alg/d_ary_cob_tree.hpp"
 #include "graph_alg/bgl_tree_adaptor.hpp"
 #include "graph_alg/bgl_more_property_maps.hpp"
+#include "graph_alg/pooled_adjacency_list.hpp"
 #include "dvp_layout_adjacency_list.hpp"
 #include "metric_space_search.hpp"
 #include "topological_search.hpp"
@@ -1215,9 +1216,10 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
   
   if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {
     
-    typedef boost::adjacency_list< 
-      boost::vecS, boost::vecS, boost::undirectedS,
-      VertexProp, EdgeProp, boost::listS> MotionGraphType;
+    typedef boost::pooled_adjacency_list< 
+      boost::undirectedS, VertexProp, EdgeProp, 
+      boost::no_property, boost::listS> MotionGraphType;
+    
     typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
     typedef boost::composite_property_map< 
       PositionMap, boost::whole_bundle_property_map< MotionGraphType, boost::vertex_bundle_t > > GraphPositionMap;

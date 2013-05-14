@@ -32,6 +32,8 @@
 #include "topologies/hyperbox_topology.hpp"
 #include "lin_alg/vect_alg.hpp"
 
+#include "graph_alg/pooled_adjacency_list.hpp"
+
 
 typedef ReaK::pp::hyperbox_topology< ReaK::vect<double,2> > TopologyType;
   
@@ -191,6 +193,17 @@ int main() {
   WorldGrid2BF g2_ls = dvp2_ls.get_adjacency_list();
   
   if(!test_propgraph_functions(g2_ls))
+    return 1;
+  
+  
+  typedef boost::pooled_adjacency_list<
+    boost::bidirectionalS,
+    WorldGridVertexProperties,
+    WorldGridEdgeProperties> WorldGridPooled;
+  
+  WorldGridPooled g_pooled;
+  
+  if(!test_propgraph_functions(g_pooled))
     return 1;
   
   
