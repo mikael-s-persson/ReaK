@@ -91,6 +91,8 @@ namespace po = boost::program_options;
 double sba_potential_cutoff;
 double sba_density_cutoff;
 double sba_relaxation;
+double sba_sa_temperature;
+bool sba_use_voronoi_pull;
 
 
 template <typename SpaceType>
@@ -204,15 +206,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
         rrt_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                ReaK::pp::UNIDIRECTIONAL_RRT,
-                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                ReaK::pp::DVP_BF2_TREE_KNN,
-                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                mc_results);
+                 world_map->get_start_pos(), 
+                 world_map->get_goal_pos(),
+                 mc_max_vertices, 
+                 mc_prog_interval,
+                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
+                 ReaK::pp::UNIDIRECTIONAL_PLANNING,
+                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                 mc_results);
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
     };
@@ -226,15 +227,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
         rrt_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                ReaK::pp::UNIDIRECTIONAL_RRT,
-                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                ReaK::pp::DVP_BF4_TREE_KNN,
-                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                mc_results);
+                 world_map->get_start_pos(), 
+                 world_map->get_goal_pos(),
+                 mc_max_vertices, 
+                 mc_prog_interval,
+                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
+                 ReaK::pp::UNIDIRECTIONAL_PLANNING,
+                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                 mc_results);
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
     };
@@ -249,15 +249,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
           rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::UNIDIRECTIONAL_RRT,
-                  ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_COB2_TREE_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   mc_max_vertices, 
+                   mc_prog_interval,
+                   ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
+                   ReaK::pp::UNIDIRECTIONAL_PLANNING,
+                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                   mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
@@ -270,15 +269,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
           rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::UNIDIRECTIONAL_RRT,
-                  ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_COB4_TREE_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   mc_max_vertices, 
+                   mc_prog_interval,
+                   ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
+                   ReaK::pp::UNIDIRECTIONAL_PLANNING,
+                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                   mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
@@ -293,15 +291,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
         rrt_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                ReaK::pp::UNIDIRECTIONAL_RRT,
-                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                ReaK::pp::LINEAR_SEARCH_KNN,
-                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                mc_results);
+                 world_map->get_start_pos(), 
+                 world_map->get_goal_pos(),
+                 mc_max_vertices, 
+                 mc_prog_interval,
+                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::LINEAR_SEARCH_KNN,
+                 ReaK::pp::UNIDIRECTIONAL_PLANNING,
+                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                 mc_results);
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
     };
@@ -316,15 +313,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
           rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::UNIDIRECTIONAL_RRT,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_BF2_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   mc_max_vertices, 
+                   mc_prog_interval,
+                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
+                   ReaK::pp::UNIDIRECTIONAL_PLANNING,
+                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                   mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
@@ -338,15 +334,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
           rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::UNIDIRECTIONAL_RRT,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_BF4_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   mc_max_vertices, 
+                   mc_prog_interval,
+                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
+                   ReaK::pp::UNIDIRECTIONAL_PLANNING,
+                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                   mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
@@ -361,15 +356,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           
           ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
             rrt_plan(world_map, 
-                    world_map->get_start_pos(), 
-                    world_map->get_goal_pos(),
-                    mc_max_vertices, 
-                    mc_prog_interval,
-                    ReaK::pp::UNIDIRECTIONAL_RRT,
-                    ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                    ReaK::pp::DVP_ALT_COB2_KNN,
-                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                    mc_results);
+                     world_map->get_start_pos(), 
+                     world_map->get_goal_pos(),
+                     mc_max_vertices, 
+                     mc_prog_interval,
+                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
+                     ReaK::pp::UNIDIRECTIONAL_PLANNING,
+                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                     mc_results);
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
         };
@@ -383,15 +377,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           
           ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
             rrt_plan(world_map, 
-                    world_map->get_start_pos(), 
-                    world_map->get_goal_pos(),
-                    mc_max_vertices, 
-                    mc_prog_interval,
-                    ReaK::pp::UNIDIRECTIONAL_RRT,
-                    ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                    ReaK::pp::DVP_ALT_COB4_KNN,
-                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                    mc_results);
+                     world_map->get_start_pos(), 
+                     world_map->get_goal_pos(),
+                     mc_max_vertices, 
+                     mc_prog_interval,
+                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
+                     ReaK::pp::UNIDIRECTIONAL_PLANNING,
+                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                     mc_results);
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
         };
@@ -424,15 +417,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
         rrt_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                ReaK::pp::BIDIRECTIONAL_RRT,
-                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                ReaK::pp::DVP_BF2_TREE_KNN,
-                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                mc_results);
+                 world_map->get_start_pos(), 
+                 world_map->get_goal_pos(),
+                 mc_max_vertices, 
+                 mc_prog_interval,
+                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
+                 ReaK::pp::BIDIRECTIONAL_PLANNING,
+                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                 mc_results);
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
     };
@@ -446,15 +438,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
         rrt_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                ReaK::pp::BIDIRECTIONAL_RRT,
-                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                ReaK::pp::DVP_BF4_TREE_KNN,
-                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                mc_results);
+                 world_map->get_start_pos(), 
+                 world_map->get_goal_pos(),
+                 mc_max_vertices, 
+                 mc_prog_interval,
+                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
+                 ReaK::pp::BIDIRECTIONAL_PLANNING,
+                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                 mc_results);
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
     };
@@ -469,15 +460,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
           rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::BIDIRECTIONAL_RRT,
-                  ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_COB2_TREE_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   mc_max_vertices, 
+                   mc_prog_interval,
+                   ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
+                   ReaK::pp::BIDIRECTIONAL_PLANNING,
+                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                   mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
@@ -491,15 +481,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
           rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::BIDIRECTIONAL_RRT,
-                  ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_COB4_TREE_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   mc_max_vertices, 
+                   mc_prog_interval,
+                   ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
+                   ReaK::pp::BIDIRECTIONAL_PLANNING,
+                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                   mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
@@ -514,15 +503,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
         rrt_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                ReaK::pp::BIDIRECTIONAL_RRT,
-                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                ReaK::pp::LINEAR_SEARCH_KNN,
-                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                mc_results);
+                 world_map->get_start_pos(), 
+                 world_map->get_goal_pos(),
+                 mc_max_vertices, 
+                 mc_prog_interval,
+                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::LINEAR_SEARCH_KNN,
+                 ReaK::pp::BIDIRECTIONAL_PLANNING,
+                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                 mc_results);
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
     };
@@ -538,15 +526,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
           rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::BIDIRECTIONAL_RRT,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_BF2_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   mc_max_vertices, 
+                   mc_prog_interval,
+                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
+                   ReaK::pp::BIDIRECTIONAL_PLANNING,
+                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                   mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
@@ -560,15 +547,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
           rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::BIDIRECTIONAL_RRT,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_BF4_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   mc_max_vertices, 
+                   mc_prog_interval,
+                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
+                   ReaK::pp::BIDIRECTIONAL_PLANNING,
+                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                   mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
       };
@@ -583,15 +569,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           
           ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
             rrt_plan(world_map, 
-                    world_map->get_start_pos(), 
-                    world_map->get_goal_pos(),
-                    mc_max_vertices, 
-                    mc_prog_interval,
-                    ReaK::pp::BIDIRECTIONAL_RRT,
-                    ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                    ReaK::pp::DVP_ALT_COB2_KNN,
-                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                    mc_results);
+                     world_map->get_start_pos(), 
+                     world_map->get_goal_pos(),
+                     mc_max_vertices, 
+                     mc_prog_interval,
+                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
+                     ReaK::pp::BIDIRECTIONAL_PLANNING,
+                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                     mc_results);
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
         };
@@ -605,15 +590,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           
           ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
             rrt_plan(world_map, 
-                    world_map->get_start_pos(), 
-                    world_map->get_goal_pos(),
-                    mc_max_vertices, 
-                    mc_prog_interval,
-                    ReaK::pp::BIDIRECTIONAL_RRT,
-                    ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                    ReaK::pp::DVP_ALT_COB4_KNN,
-                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                    mc_results);
+                     world_map->get_start_pos(), 
+                     world_map->get_goal_pos(),
+                     mc_max_vertices, 
+                     mc_prog_interval,
+                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
+                     ReaK::pp::BIDIRECTIONAL_PLANNING,
+                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                     mc_results);
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
         };
@@ -647,14 +631,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
         prm_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                ReaK::pp::DVP_BF2_TREE_KNN,
-                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                mc_results);
+                 world_map->get_start_pos(), 
+                 world_map->get_goal_pos(),
+                 mc_max_vertices, 
+                 mc_prog_interval,
+                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
+                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                 mc_results);
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
     };
@@ -668,14 +651,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
         prm_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                ReaK::pp::DVP_BF4_TREE_KNN,
-                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                mc_results);
+                 world_map->get_start_pos(), 
+                 world_map->get_goal_pos(),
+                 mc_max_vertices, 
+                 mc_prog_interval,
+                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
+                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                 mc_results);
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
     };
@@ -690,14 +672,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
           prm_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_COB2_TREE_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   mc_max_vertices, 
+                   mc_prog_interval,
+                   ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
+                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                   mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
       };
@@ -711,14 +692,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
           prm_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_COB4_TREE_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   mc_max_vertices, 
+                   mc_prog_interval,
+                   ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
+                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                   mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
       };
@@ -733,14 +713,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
         prm_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                ReaK::pp::LINEAR_SEARCH_KNN,
-                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                mc_results);
+                 world_map->get_start_pos(), 
+                 world_map->get_goal_pos(),
+                 mc_max_vertices, 
+                 mc_prog_interval,
+                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::LINEAR_SEARCH_KNN,
+                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                 mc_results);
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
     };
@@ -757,14 +736,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
           prm_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_BF2_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   mc_max_vertices, 
+                   mc_prog_interval,
+                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
+                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                   mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
       };
@@ -778,14 +756,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
           prm_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                  ReaK::pp::DVP_ALT_BF4_KNN,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+                   world_map->get_start_pos(), 
+                   world_map->get_goal_pos(),
+                   mc_max_vertices, 
+                   mc_prog_interval,
+                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
+                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                   mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
       };
@@ -800,14 +777,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           
           ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
             prm_plan(world_map, 
-                    world_map->get_start_pos(), 
-                    world_map->get_goal_pos(),
-                    mc_max_vertices, 
-                    mc_prog_interval,
-                    ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                    ReaK::pp::DVP_ALT_COB2_KNN,
-                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                    mc_results);
+                     world_map->get_start_pos(), 
+                     world_map->get_goal_pos(),
+                     mc_max_vertices, 
+                     mc_prog_interval,
+                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
+                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                     mc_results);
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
         };
@@ -821,14 +797,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           
           ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
             prm_plan(world_map, 
-                    world_map->get_start_pos(), 
-                    world_map->get_goal_pos(),
-                    mc_max_vertices, 
-                    mc_prog_interval,
-                    ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                    ReaK::pp::DVP_ALT_COB4_KNN,
-                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                    mc_results);
+                     world_map->get_start_pos(), 
+                     world_map->get_goal_pos(),
+                     mc_max_vertices, 
+                     mc_prog_interval,
+                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
+                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                     mc_results);
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
         };
@@ -867,8 +842,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           10.0,
           mc_max_vertices, 
           mc_prog_interval,
-          ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-          ReaK::pp::DVP_BF2_TREE_KNN,
+          ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
           ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
           mc_results);
       
@@ -891,8 +865,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           10.0,
           mc_max_vertices, 
           mc_prog_interval,
-          ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-          ReaK::pp::DVP_BF4_TREE_KNN,
+          ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
           ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
           mc_results);
       
@@ -915,8 +888,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
             10.0,
             mc_max_vertices, 
             mc_prog_interval,
-            ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-            ReaK::pp::DVP_COB2_TREE_KNN,
+            ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
             ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
             mc_results);
         
@@ -938,8 +910,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
             10.0,
             mc_max_vertices, 
             mc_prog_interval,
-            ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-            ReaK::pp::DVP_COB4_TREE_KNN,
+            ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
             ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
             mc_results);
         
@@ -962,8 +933,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           10.0,
           mc_max_vertices, 
           mc_prog_interval,
-          ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-          ReaK::pp::LINEAR_SEARCH_KNN,
+          ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::LINEAR_SEARCH_KNN,
           ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
           mc_results);
       
@@ -988,8 +958,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
             10.0,
             mc_max_vertices, 
             mc_prog_interval,
-            ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-            ReaK::pp::DVP_ALT_BF2_KNN,
+            ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
             ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
             mc_results);
         
@@ -1011,8 +980,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
             10.0,
             mc_max_vertices, 
             mc_prog_interval,
-            ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-            ReaK::pp::DVP_ALT_BF4_KNN,
+            ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
             ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
             mc_results);
         
@@ -1035,8 +1003,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
               10.0,
               mc_max_vertices, 
               mc_prog_interval,
-              ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-              ReaK::pp::DVP_ALT_COB2_KNN,
+              ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
               ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
               mc_results);
           
@@ -1058,8 +1025,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
               10.0,
               mc_max_vertices, 
               mc_prog_interval,
-              ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-              ReaK::pp::DVP_ALT_COB4_KNN,
+              ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
               ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
               mc_results);
           
@@ -1095,18 +1061,18 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         sbastar_plan(world_map, 
                       world_map->get_start_pos(), 
                       world_map->get_goal_pos(),
-                      sba_potential_cutoff,
-                      sba_density_cutoff,
-                      sba_relaxation,
-                      world_map->get_max_edge_length(),
                       mc_max_vertices, 
                       mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_BF2_TREE_KNN,
-                      ReaK::pp::LAZY_COLLISION_CHECKING,
-                      ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                      ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
+                      ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                       mc_results);
+      
+      sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
+      sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
+      sbastar_plan.set_initial_relaxation(sba_relaxation);
+      sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
+      sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
     };
@@ -1122,18 +1088,18 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         sbastar_plan(world_map, 
                       world_map->get_start_pos(), 
                       world_map->get_goal_pos(),
-                      sba_potential_cutoff,
-                      sba_density_cutoff,
-                      sba_relaxation,
-                      world_map->get_max_edge_length(),
                       mc_max_vertices, 
                       mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_BF4_TREE_KNN,
-                      ReaK::pp::LAZY_COLLISION_CHECKING,
-                      ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                      ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
+                      ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                       mc_results);
+      
+      sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
+      sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
+      sbastar_plan.set_initial_relaxation(sba_relaxation);
+      sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
+      sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
     };
@@ -1148,20 +1114,20 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      sba_potential_cutoff,
-                      sba_density_cutoff,
-                      sba_relaxation,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_COB2_TREE_KNN,
-                      ReaK::pp::LAZY_COLLISION_CHECKING,
-                      ReaK::pp::PLAN_WITH_VORONOI_PULL,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                        world_map->get_start_pos(), 
+                        world_map->get_goal_pos(),
+                        mc_max_vertices, 
+                        mc_prog_interval,
+                        ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
+                        ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
+                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                        mc_results);
+        
+        sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
+        sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
+        sbastar_plan.set_initial_relaxation(sba_relaxation);
+        sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
+        sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
       };
@@ -1175,20 +1141,20 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      sba_potential_cutoff,
-                      sba_density_cutoff,
-                      sba_relaxation,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_COB4_TREE_KNN,
-                      ReaK::pp::LAZY_COLLISION_CHECKING,
-                      ReaK::pp::PLAN_WITH_VORONOI_PULL,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                        world_map->get_start_pos(), 
+                        world_map->get_goal_pos(),
+                        mc_max_vertices, 
+                        mc_prog_interval,
+                        ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
+                        ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
+                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                        mc_results);
+        
+        sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
+        sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
+        sbastar_plan.set_initial_relaxation(sba_relaxation);
+        sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
+        sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
       };
@@ -1205,18 +1171,18 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         sbastar_plan(world_map, 
                       world_map->get_start_pos(), 
                       world_map->get_goal_pos(),
-                      sba_potential_cutoff,
-                      sba_density_cutoff,
-                      sba_relaxation,
-                      world_map->get_max_edge_length(),
                       mc_max_vertices, 
                       mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::LINEAR_SEARCH_KNN,
-                      ReaK::pp::LAZY_COLLISION_CHECKING,
-                      ReaK::pp::PLAN_WITH_VORONOI_PULL,
+                      ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::LINEAR_SEARCH_KNN,
+                      ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
                       mc_results);
+      
+      sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
+      sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
+      sbastar_plan.set_initial_relaxation(sba_relaxation);
+      sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
+      sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
     };
@@ -1232,20 +1198,20 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      sba_potential_cutoff,
-                      sba_density_cutoff,
-                      sba_relaxation,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_ALT_BF2_KNN,
-                      ReaK::pp::LAZY_COLLISION_CHECKING,
-                      ReaK::pp::PLAN_WITH_VORONOI_PULL,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                        world_map->get_start_pos(), 
+                        world_map->get_goal_pos(),
+                        mc_max_vertices, 
+                        mc_prog_interval,
+                        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
+                        ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
+                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                        mc_results);
+        
+        sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
+        sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
+        sbastar_plan.set_initial_relaxation(sba_relaxation);
+        sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
+        sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
       };
@@ -1259,20 +1225,20 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
           sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      sba_potential_cutoff,
-                      sba_density_cutoff,
-                      sba_relaxation,
-                      world_map->get_max_edge_length(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_ALT_BF4_KNN,
-                      ReaK::pp::LAZY_COLLISION_CHECKING,
-                      ReaK::pp::PLAN_WITH_VORONOI_PULL,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                        world_map->get_start_pos(), 
+                        world_map->get_goal_pos(),
+                        mc_max_vertices, 
+                        mc_prog_interval,
+                        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
+                        ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
+                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                        mc_results);
+        
+        sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
+        sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
+        sbastar_plan.set_initial_relaxation(sba_relaxation);
+        sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
+        sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
       };
@@ -1287,20 +1253,20 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           
           ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
             sbastar_plan(world_map, 
-                        world_map->get_start_pos(), 
-                        world_map->get_goal_pos(),
-                        sba_potential_cutoff,
-                        sba_density_cutoff,
-                        sba_relaxation,
-                        world_map->get_max_edge_length(),
-                        mc_max_vertices, 
-                        mc_prog_interval,
-                        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                        ReaK::pp::DVP_ALT_COB2_KNN,
-                        ReaK::pp::LAZY_COLLISION_CHECKING,
-                        ReaK::pp::PLAN_WITH_VORONOI_PULL,
-                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                        mc_results);
+                          world_map->get_start_pos(), 
+                          world_map->get_goal_pos(),
+                          mc_max_vertices, 
+                          mc_prog_interval,
+                          ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
+                          ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
+                          ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                          mc_results);
+          
+          sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
+          sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
+          sbastar_plan.set_initial_relaxation(sba_relaxation);
+          sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
+          sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
         };
@@ -1314,20 +1280,20 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           
           ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
             sbastar_plan(world_map, 
-                        world_map->get_start_pos(), 
-                        world_map->get_goal_pos(),
-                        sba_potential_cutoff,
-                        sba_density_cutoff,
-                        sba_relaxation,
-                        world_map->get_max_edge_length(),
-                        mc_max_vertices, 
-                        mc_prog_interval,
-                        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                        ReaK::pp::DVP_ALT_COB4_KNN,
-                        ReaK::pp::LAZY_COLLISION_CHECKING,
-                        ReaK::pp::PLAN_WITH_VORONOI_PULL,
-                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                        mc_results);
+                          world_map->get_start_pos(), 
+                          world_map->get_goal_pos(),
+                          mc_max_vertices, 
+                          mc_prog_interval,
+                          ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
+                          ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
+                          ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                          mc_results);
+          
+          sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
+          sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
+          sbastar_plan.set_initial_relaxation(sba_relaxation);
+          sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
+          sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
         };
@@ -1361,15 +1327,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
         rrtstar_plan(world_map, 
-                    world_map->get_start_pos(), 
-                    world_map->get_goal_pos(),
-                    mc_max_vertices, 
-                    mc_prog_interval,
-                    ReaK::pp::UNIDIRECTIONAL_RRT,
-                    ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                    ReaK::pp::DVP_BF2_TREE_KNN,
-                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                    mc_results);
+                     world_map->get_start_pos(), 
+                     world_map->get_goal_pos(),
+                     mc_max_vertices, 
+                     mc_prog_interval,
+                     ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
+                     ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
+                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                     mc_results);
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
     };
@@ -1383,15 +1348,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
         rrtstar_plan(world_map, 
-                    world_map->get_start_pos(), 
-                    world_map->get_goal_pos(),
-                    mc_max_vertices, 
-                    mc_prog_interval,
-                    ReaK::pp::UNIDIRECTIONAL_RRT,
-                    ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                    ReaK::pp::DVP_BF4_TREE_KNN,
-                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                    mc_results);
+                     world_map->get_start_pos(), 
+                     world_map->get_goal_pos(),
+                     mc_max_vertices, 
+                     mc_prog_interval,
+                     ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
+                     ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
+                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                     mc_results);
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
     };
@@ -1406,15 +1370,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
           rrtstar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::UNIDIRECTIONAL_RRT,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_COB2_TREE_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
+                       ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
       };
@@ -1428,15 +1391,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
           rrtstar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::UNIDIRECTIONAL_RRT,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_COB4_TREE_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
+                       ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
       };
@@ -1451,15 +1413,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
         rrtstar_plan(world_map, 
-                    world_map->get_start_pos(), 
-                    world_map->get_goal_pos(),
-                    mc_max_vertices, 
-                    mc_prog_interval,
-                    ReaK::pp::UNIDIRECTIONAL_RRT,
-                    ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-                    ReaK::pp::LINEAR_SEARCH_KNN,
-                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                    mc_results);
+                     world_map->get_start_pos(), 
+                     world_map->get_goal_pos(),
+                     mc_max_vertices, 
+                     mc_prog_interval,
+                     ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::LINEAR_SEARCH_KNN,
+                     ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
+                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                     mc_results);
       
       run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
     };
@@ -1475,15 +1436,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
           rrtstar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::UNIDIRECTIONAL_RRT,
-                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_ALT_BF2_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
+                       ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
       };
@@ -1497,15 +1457,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
         
         ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
           rrtstar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::UNIDIRECTIONAL_RRT,
-                      ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                      ReaK::pp::DVP_ALT_BF4_KNN,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                       world_map->get_start_pos(), 
+                       world_map->get_goal_pos(),
+                       mc_max_vertices, 
+                       mc_prog_interval,
+                       ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
+                       ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
+                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                       mc_results);
         
         run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
       };
@@ -1520,15 +1479,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           
           ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
             rrtstar_plan(world_map, 
-                        world_map->get_start_pos(), 
-                        world_map->get_goal_pos(),
-                        mc_max_vertices, 
-                        mc_prog_interval,
-                        ReaK::pp::UNIDIRECTIONAL_RRT,
-                        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                        ReaK::pp::DVP_ALT_COB2_KNN,
-                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                        mc_results);
+                         world_map->get_start_pos(), 
+                         world_map->get_goal_pos(),
+                         mc_max_vertices, 
+                         mc_prog_interval,
+                         ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
+                         ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
+                         ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                         mc_results);
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
         };
@@ -1542,15 +1500,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           
           ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
             rrtstar_plan(world_map, 
-                        world_map->get_start_pos(), 
-                        world_map->get_goal_pos(),
-                        mc_max_vertices, 
-                        mc_prog_interval,
-                        ReaK::pp::UNIDIRECTIONAL_RRT,
-                        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH,
-                        ReaK::pp::DVP_ALT_COB4_KNN,
-                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                        mc_results);
+                         world_map->get_start_pos(), 
+                         world_map->get_goal_pos(),
+                         mc_max_vertices, 
+                         mc_prog_interval,
+                         ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
+                         ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
+                         ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                         mc_results);
           
           run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
         };
@@ -1618,6 +1575,8 @@ int main(int argc, char** argv) {
     ("sba-potential-cutoff", po::value< double >()->default_value(0.0), "specify the potential cutoff for the SBA* algorithm")
     ("sba-density-cutoff", po::value< double >()->default_value(0.5), "specify the density cutoff for the SBA* algorithm")
     ("sba-relaxation", po::value< double >()->default_value(0.0), "specify the initial relaxation factor for the Anytime SBA* algorithm")
+    ("sba-with-voronoi-pull", "specify whether to use a Voronoi pull or not as a method to add an exploratory bias to the search")
+    ("sba-sa-temperature", po::value< double >()->default_value(-1.0), "specify the initial Simulated Annealing temperature for the SBA*-RRT* algorithms")
 #endif
     ("all-planners,a", "specify that all supported planners should be run (default if no particular planner is specified)")
   ;
@@ -1651,6 +1610,8 @@ int main(int argc, char** argv) {
   sba_potential_cutoff = vm["sba-potential-cutoff"].as<double>();
   sba_density_cutoff   = vm["sba-density-cutoff"].as<double>();
   sba_relaxation       = vm["sba-relaxation"].as<double>();
+  sba_sa_temperature   = vm["sba-sa-temperature"].as<double>();
+  sba_use_voronoi_pull = vm.count("sba-with-voronoi-pull");
 #endif
   
   std::size_t mc_flags = 0;

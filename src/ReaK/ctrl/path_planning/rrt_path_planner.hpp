@@ -154,9 +154,6 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
     point_type m_goal_pos;
     std::size_t max_num_results;
     bool has_reached_max_vertices;
-    std::size_t m_bidir_flag;
-    std::size_t m_graph_kind_flag;
-    std::size_t m_knn_flag;
     
     std::map<double, shared_ptr< seq_path_base< super_space_type > > > m_solutions;
     
@@ -347,39 +344,6 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
      */
     void set_max_result_count(std::size_t aMaxResultCount) { max_num_results = aMaxResultCount; };
     
-    /**
-     * Returns the integer flag that identifies whether to use a uni-directional or bi-directional method (see path_planner_options.hpp).
-     * \return The integer flag that identifies whether to use a uni-directional or bi-directional method (see path_planner_options.hpp).
-     */
-    std::size_t get_bidir_flag() const { return m_bidir_flag; };
-    /**
-     * Sets the integer flag that identifies whether to use a uni-directional or bi-directional method (see path_planner_options.hpp).
-     * \param aBidirFlag The integer flag that identifies whether to use a uni-directional or bi-directional method (see path_planner_options.hpp).
-     */
-    void set_bidir_flag(std::size_t aBidirFlag) { m_bidir_flag = aBidirFlag; };
-    
-    /**
-     * Returns the integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
-     * \return The integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
-     */
-    std::size_t get_graph_kind_flag() const { return m_graph_kind_flag; };
-    /**
-     * Sets the integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
-     * \param aGraphKindFlag The integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
-     */
-    void set_graph_kind_flag(std::size_t aGraphKindFlag) { m_graph_kind_flag = aGraphKindFlag; };
-    
-    /**
-     * Returns the integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
-     * \return The integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
-     */
-    std::size_t get_knn_flag() const { return m_knn_flag; };
-    /**
-     * Sets the integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
-     * \param aKNNMethodFlag The integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
-     */
-    void set_knn_flag(std::size_t aKNNMethodFlag) { m_knn_flag = aKNNMethodFlag; };
-    
     
     /**
      * Parametrized constructor.
@@ -388,16 +352,15 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
      * \param aGoalPos The position value of the goal location.
      * \param aMaxVertexCount The maximum number of samples to generate during the motion planning.
      * \param aProgressInterval The number of new samples between each "progress report".
-     * \param aBiDirFlag An integer flag representing the directionality of the RRT algorithm 
-     *                   used (either UNIDIRECTIONAL_RRT or BIDIRECTIONAL_RRT).
-     * \param aGraphKindFlag An integer flag representing the kind of motion graph to use in the 
-     *                       RRT algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
-     * \param aKNNMethodFlag An integer flag representing the kind of KNN method to use for nearest
-     *                       neighbor queries in the graph. Can be LINEAR_SEARCH_KNN, DVP_BF2_TREE_KNN,
-     *                       DVP_BF4_TREE_KNN, DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN when the 
-     *                       motion graph is of kind ADJ_LIST_MOTION_GRAPH. Can be DVP_ALT_BF2_TREE_KNN,
-     *                       DVP_ALT_BF4_TREE_KNN, DVP_ALT_COB2_TREE_KNN, or DVP_ALT_COB4_TREE_KNN when 
-     *                       the motion graph is of kind DVP_ADJ_LIST_MOTION_GRAPH.
+     * \param aDataStructureFlags An integer flags representing the kind of motion graph data-structure to use in the 
+     *                            planning algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
+     *                            Any combination of those two and of KNN method flags to use for nearest
+     *                            neighbor queries in the graph. KNN method flags can be LINEAR_SEARCH_KNN, 
+     *                            DVP_BF2_TREE_KNN, DVP_BF4_TREE_KNN, DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN.
+     *                            See path_planner_options.hpp documentation.
+     * \param aPlanningMethodFlags The integer flags that identify various options to use with this planner.
+     *                             The options available include only UNIDIRECTIONAL_PLANNING or BIDIRECTIONAL_PLANNING. 
+     *                             See path_planner_options.hpp documentation.
      * \param aReporter The SBPP reporter object to use to report results and progress.
      * \param aMaxResultCount The maximum number of successful start-goal connections to make before 
      *                        stopping the path planner (the higher the number the more likely that a 
@@ -405,23 +368,19 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
      */
     rrt_path_planner(const shared_ptr< space_type >& aWorld = shared_ptr< space_type >(), 
                      const point_type& aStartPos = point_type(),
-		     const point_type& aGoalPos = point_type(),
-		     std::size_t aMaxVertexCount = 5000, 
+                     const point_type& aGoalPos = point_type(),
+                     std::size_t aMaxVertexCount = 5000, 
                      std::size_t aProgressInterval = 100,
-		     std::size_t aBiDirFlag = BIDIRECTIONAL_RRT,
-		     std::size_t aGraphKindFlag = ADJ_LIST_MOTION_GRAPH,
-		     std::size_t aKNNMethodFlag = DVP_BF2_TREE_KNN,
-		     SBPPReporter aReporter = SBPPReporter(),
-		     std::size_t aMaxResultCount = 50) :
-                     base_type("rrt_planner", aWorld, aMaxVertexCount, aProgressInterval),
+                     std::size_t aDataStructureFlags = ADJ_LIST_MOTION_GRAPH | DVP_BF2_TREE_KNN,
+                     std::size_t aPlanningMethodFlags = BIDIRECTIONAL_PLANNING,
+                     SBPPReporter aReporter = SBPPReporter(),
+                     std::size_t aMaxResultCount = 50) :
+                     base_type("rrt_planner", aWorld, aMaxVertexCount, aProgressInterval, aDataStructureFlags, aPlanningMethodFlags),
                      m_reporter(aReporter),
                      m_start_pos(aStartPos),
                      m_goal_pos(aGoalPos),
                      max_num_results(aMaxResultCount),
                      has_reached_max_vertices(false),
-                     m_bidir_flag(aBiDirFlag),
-                     m_graph_kind_flag(aGraphKindFlag),
-                     m_knn_flag(aKNNMethodFlag),
                      m_solutions() { };
     
     virtual ~rrt_path_planner() { };
@@ -435,10 +394,7 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
       A & RK_SERIAL_SAVE_WITH_NAME(m_reporter)
         & RK_SERIAL_SAVE_WITH_NAME(m_start_pos)
         & RK_SERIAL_SAVE_WITH_NAME(m_goal_pos)
-        & RK_SERIAL_SAVE_WITH_NAME(max_num_results)
-        & RK_SERIAL_SAVE_WITH_NAME(m_bidir_flag)
-        & RK_SERIAL_SAVE_WITH_NAME(m_graph_kind_flag)
-        & RK_SERIAL_SAVE_WITH_NAME(m_knn_flag);
+        & RK_SERIAL_SAVE_WITH_NAME(max_num_results);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
@@ -446,10 +402,7 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
       A & RK_SERIAL_LOAD_WITH_NAME(m_reporter)
         & RK_SERIAL_LOAD_WITH_NAME(m_start_pos)
         & RK_SERIAL_LOAD_WITH_NAME(m_goal_pos)
-        & RK_SERIAL_LOAD_WITH_NAME(max_num_results)
-        & RK_SERIAL_LOAD_WITH_NAME(m_bidir_flag)
-        & RK_SERIAL_LOAD_WITH_NAME(m_graph_kind_flag)
-        & RK_SERIAL_LOAD_WITH_NAME(m_knn_flag);
+        & RK_SERIAL_LOAD_WITH_NAME(max_num_results);
       has_reached_max_vertices = false;
       m_solutions.clear();
     };
@@ -500,7 +453,7 @@ struct rrt_planner_visitor {
     
     g[v].distance_accum = g[u].distance_accum + get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space());
     
-    if(m_planner->get_bidir_flag() == UNIDIRECTIONAL_RRT) {
+    if((m_planner->get_planning_method_flags() & PLANNING_DIRECTIONALITY_MASK) == UNIDIRECTIONAL_PLANNING) {
       // Check if a straight path to goal is possible...
       m_planner->check_goal_connection(g[v].position,v,g);
     };
@@ -554,9 +507,9 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
   typedef boost::data_member_property_map<PointType, rrt_vertex_data<FreeSpaceType> > PositionMap;
   PositionMap pos_map = PositionMap(&rrt_vertex_data<FreeSpaceType>::position);
   
-  if(m_bidir_flag == UNIDIRECTIONAL_RRT) {
+  if((this->m_planning_method_flags & PLANNING_DIRECTIONALITY_MASK) == UNIDIRECTIONAL_PLANNING) {
     
-    if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {
+    if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
       
       typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
                              rrt_vertex_data<FreeSpaceType>,
@@ -575,14 +528,14 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
       v_p.distance_accum = 0.0;
       create_root(v_p, motion_graph);
       
-      if(m_knn_flag == LINEAR_SEARCH_KNN) {
+      if((this->m_data_structure_flags & KNN_METHOD_MASK) == LINEAR_SEARCH_KNN) {
         rrt_planner_visitor<FreeSpaceType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro());
         
         ReaK::graph::generate_rrt(motion_graph, this->m_space->get_super_space(),
                                   vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
                                   linear_neighbor_search<>(), this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_BF2_TREE_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
         
         typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 2, 
                          random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<2> > SpacePartType;
@@ -597,7 +550,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
                                   vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
                                   nn_finder, this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_BF4_TREE_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
         
         typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 4, 
                          random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<4> > SpacePartType;
@@ -612,7 +565,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
                                   vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
                                   nn_finder, this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_COB2_TREE_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
         typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 2, 
                          random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<2> > SpacePartType;
@@ -627,7 +580,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
                                   vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
                                   nn_finder, this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_COB4_TREE_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
         
         typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 4, 
                          random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<4> > SpacePartType;
@@ -644,9 +597,9 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
         
       };
       
-    } else if(m_graph_kind_flag == DVP_ADJ_LIST_MOTION_GRAPH) {
+    } else if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == DVP_ADJ_LIST_MOTION_GRAPH) {
       
-      if(m_knn_flag == DVP_ALT_BF2_KNN) {
+      if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
         
         typedef dvp_adjacency_list<
           rrt_vertex_data<FreeSpaceType>,
@@ -676,7 +629,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
                                   vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
                                   nn_finder, this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_ALT_BF4_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
         
         typedef dvp_adjacency_list<
           rrt_vertex_data<FreeSpaceType>,
@@ -706,7 +659,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
                                   vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
                                   nn_finder, this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_ALT_COB2_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
         typedef dvp_adjacency_list<
           rrt_vertex_data<FreeSpaceType>,
@@ -736,7 +689,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
                                   vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
                                   nn_finder, this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_ALT_COB4_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
         
         typedef dvp_adjacency_list<
           rrt_vertex_data<FreeSpaceType>,
@@ -772,7 +725,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
     
   } else {
     
-    if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {
+    if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
       
       typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
                              rrt_vertex_data<FreeSpaceType>,
@@ -795,7 +748,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
       motion_graph2[v2].position = this->m_goal_pos;
       motion_graph2[v2].distance_accum = 0.0;
       
-      if(m_knn_flag == LINEAR_SEARCH_KNN) {
+      if((this->m_data_structure_flags & KNN_METHOD_MASK) == LINEAR_SEARCH_KNN) {
         rrt_planner_visitor<FreeSpaceType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro());
         
         ReaK::graph::generate_bidirectional_rrt(
@@ -803,7 +756,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
           vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
           linear_neighbor_search<>(), this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_BF2_TREE_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
         
         typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 2, 
                          random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<2> > SpacePartType;
@@ -825,7 +778,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
           vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
           nn_finder, this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_BF4_TREE_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
         
         typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 4, 
                          random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<4> > SpacePartType;
@@ -847,7 +800,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
           vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
           nn_finder, this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_COB2_TREE_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
         typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 2, 
                          random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<2> > SpacePartType;
@@ -869,7 +822,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
           vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
           nn_finder, this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_COB4_TREE_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
         
         typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 4, 
                          random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<4> > SpacePartType;
@@ -893,9 +846,9 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
         
       };
       
-    } else if(m_graph_kind_flag == DVP_ADJ_LIST_MOTION_GRAPH) {
+    } else if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == DVP_ADJ_LIST_MOTION_GRAPH) {
       
-      if(m_knn_flag == DVP_ALT_BF2_KNN) {
+      if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
         
         typedef dvp_adjacency_list<
           rrt_vertex_data<FreeSpaceType>,
@@ -936,7 +889,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
           vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
           nn_finder, this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_ALT_BF4_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
         
         typedef dvp_adjacency_list<
           rrt_vertex_data<FreeSpaceType>,
@@ -975,7 +928,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
           vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
           nn_finder, this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_ALT_COB2_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
         typedef dvp_adjacency_list<
           rrt_vertex_data<FreeSpaceType>,
@@ -1014,7 +967,7 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
           vis, pos_map, get(random_sampler, this->m_space->get_super_space()), 
           nn_finder, this->m_max_vertex_count);
         
-      } else if(m_knn_flag == DVP_ALT_COB4_KNN) {
+      } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
         
         typedef dvp_adjacency_list<
           rrt_vertex_data<FreeSpaceType>,

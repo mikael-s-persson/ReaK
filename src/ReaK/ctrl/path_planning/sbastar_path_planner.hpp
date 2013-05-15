@@ -218,16 +218,14 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     std::size_t m_current_num_results;
     std::size_t max_num_results;
     bool has_reached_max_vertices;
-    std::size_t m_graph_kind_flag;
-    std::size_t m_knn_flag;
-    std::size_t m_collision_check_flag;
-    std::size_t m_added_bias_flags;
     
     double m_current_key_threshold;
     double m_current_dens_threshold;
     double m_current_relaxation;
     
     std::map<double, shared_ptr< seq_path_base< super_space_type > > > m_solutions;
+    
+    std::size_t m_iteration_count;
     
   public:
     
@@ -259,9 +257,10 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
      */
     template <typename Graph>
     void report_progress(Graph& g) {
-      if(num_vertices(g) % this->m_progress_interval == 0)
+      m_iteration_count++;
+      if(m_iteration_count % this->m_progress_interval == 0)
         m_reporter.draw_motion_graph(*(this->m_space), g, get(&sbastar_vertex_data<FreeSpaceType>::position,g));
-      has_reached_max_vertices = (num_vertices(g) >= this->m_max_vertex_count);
+      has_reached_max_vertices = (m_iteration_count >= this->m_max_vertex_count);
     };
     
     /**
@@ -400,12 +399,18 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     void set_initial_relaxation(double aInitialRelaxation) { m_init_relaxation = aInitialRelaxation; };
     
     /**
-     * Returns the initial Simulated Annealing temperature used by this planner.
+     * Returns the initial Simulated Annealing temperature use by this planner, if the 
+     * added-bias is set to an exploratory bias (e.g., PLAN_WITH_VORONOI_PULL). If negative,
+     * then simulated annealing is not used, and the exploratory bias (if any) is applied 
+     * only when SBA* seaching stalls (isn't progressing anymore).
      * \return The initial Simulated Annealing temperature used by this planner.
      */
     double get_initial_SA_temperature() const { return m_SA_init_temperature; };
     /**
-     * Sets the initial Simulated Annealing temperature to be used by this planner.
+     * Sets the initial Simulated Annealing temperature use by this planner, if the 
+     * added-bias is set to an exploratory bias (e.g., PLAN_WITH_VORONOI_PULL). If negative,
+     * then simulated annealing is not used, and the exploratory bias (if any) is applied 
+     * only when SBA* seaching stalls (isn't progressing anymore).
      * \param aInitialSATemperature The initial Simulated Annealing temperature to be used by this planner.
      */
     void set_initial_SA_temperature(double aInitialSATemperature) { m_SA_init_temperature = aInitialSATemperature; };
@@ -445,13 +450,13 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     
     
     /**
-     * Returns the sampling radius (in the topology's distance metric) used by this planner.
+     * Returns the sampling radius (in the topology's distance metric) used by this planner when doing random walks.
      * \return The sampling radius used by this planner.
      */
     double get_sampling_radius() const { return m_sampling_radius; };
     /**
-     * Sets the sampling radius (in the topology's distance metric) to be used by this planner.
-     * \param aSamplingRadius The sampling radius to be used by this planner.
+     * Sets the sampling radius (in the topology's distance metric) to be used by this planner when doing random walks.
+     * \param aSamplingRadius The sampling radius to be used by this planner when doing random walks.
      */
     void set_sampling_radius(double aSamplingRadius) { m_sampling_radius = aSamplingRadius; };
     
@@ -471,114 +476,53 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
     void set_max_result_count(std::size_t aMaxResultCount) { max_num_results = aMaxResultCount; };
     
     /**
-     * Returns the integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
-     * \return The integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
-     */
-    std::size_t get_graph_kind_flag() const { return m_graph_kind_flag; };
-    /**
-     * Sets the integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
-     * \param aGraphKindFlag The integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
-     */
-    void set_graph_kind_flag(std::size_t aGraphKindFlag) { m_graph_kind_flag = aGraphKindFlag; };
-    
-    /**
-     * Returns the integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
-     * \return The integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
-     */
-    std::size_t get_knn_flag() const { return m_knn_flag; };
-    /**
-     * Sets the integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
-     * \param aKNNMethodFlag The integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
-     */
-    void set_knn_flag(std::size_t aKNNMethodFlag) { m_knn_flag = aKNNMethodFlag; };
-    
-    /**
-     * Returns the integer flag that identifies the kind of collision-checking to use (eager or lazy) (see path_planner_options.hpp).
-     * \return The integer flag that identifies the kind of collision-checking to use (eager or lazy) (see path_planner_options.hpp).
-     */
-    std::size_t get_collision_check_flag() const { return m_collision_check_flag; };
-    /**
-     * Sets the integer flag that identifies the kind of collision-checking to use (eager or lazy) (see path_planner_options.hpp).
-     * \param aCollisionCheckFlag The integer flag that identifies the kind of collision-checking to use (eager or lazy) (see path_planner_options.hpp).
-     */
-    void set_collision_check_flag(std::size_t aCollisionCheckFlag) { m_collision_check_flag = aCollisionCheckFlag; };
-    
-    /**
-     * Returns the integer flag that identifies the kind of added bias to use (no-bias, RRT*, etc.) (see path_planner_options.hpp).
-     * \return The integer flag that identifies the kind of added bias to use (no-bias, RRT*, etc.) (see path_planner_options.hpp).
-     */
-    std::size_t get_added_bias_flags() const { return m_added_bias_flags; };
-    /**
-     * Sets the integer flag that identifies the kind of added bias to use (no-bias, RRT*, etc.) (see path_planner_options.hpp).
-     * \param aAddedBiasFlags The integer flag that identifies the kind of added bias to use (no-bias, RRT*, etc.) (see path_planner_options.hpp).
-     */
-    void set_added_bias_flags(std::size_t aAddedBiasFlags) { m_added_bias_flags = aAddedBiasFlags; };
-    
-    /**
      * Parametrized constructor.
      * \param aWorld A topology which represents the C-free (obstacle-free configuration space).
      * \param aStartPos The position value of the starting location.
      * \param aGoalPos The position value of the goal location.
-     * \param aInitialKeyThreshold The initial key-value threshold for exploring nodes, should be somewhere between 0 and 1.
-     * \param aInitialDensityThreshold The initial density-value threshold for exploring nodes, should be somewhere between 0 (reject no points based on density) and 1 (reject all points, requires zero density).
-     * \param aInitialRelaxation The initial relaxation factor for exploring nodes, should be greater than 0 (if equal to or less than 0, then the plain SBA* algorithms are used instead of the Anytime SBA* algorithms).
-     * \param aSamplingRadius The radius of the sampled space around a given point when doing random walks.
      * \param aMaxVertexCount The maximum number of samples to generate during the motion planning.
      * \param aProgressInterval The number of new samples between each "progress report".
-     * \param aGraphKindFlag An integer flag representing the kind of motion graph to use in the 
-     *                       planning algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
-     * \param aKNNMethodFlag An integer flag representing the kind of KNN method to use for nearest
-     *                       neighbor queries in the graph. Can be LINEAR_SEARCH_KNN, DVP_BF2_TREE_KNN,
-     *                       DVP_BF4_TREE_KNN, DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN when the 
-     *                       motion graph is of kind ADJ_LIST_MOTION_GRAPH. Can be DVP_ALT_BF2_TREE_KNN,
-     *                       DVP_ALT_BF4_TREE_KNN, DVP_ALT_COB2_TREE_KNN, or DVP_ALT_COB4_TREE_KNN when 
-     *                       the motion graph is of kind DVP_ADJ_LIST_MOTION_GRAPH.
-     * \param aCollisionCheckFlag The integer flag that identifies the kind of collision-checking to use (eager or lazy) (see path_planner_options.hpp).
-     * \param aAddedBiasFlags The integer flag that identifies the kind of added bias to use (no-bias, RRT*, etc.) (see path_planner_options.hpp).
+     * \param aDataStructureFlags An integer flags representing the kind of motion graph data-structure to use in the 
+     *                            planning algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
+     *                            Any combination of those two and of KNN method flags to use for nearest
+     *                            neighbor queries in the graph. KNN method flags can be LINEAR_SEARCH_KNN, 
+     *                            DVP_BF2_TREE_KNN, DVP_BF4_TREE_KNN, DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN.
+     *                            See path_planner_options.hpp documentation.
+     * \param aPlanningMethodFlags The integer flags that identify various options to use with this planner.
+     *                             The options available include EAGER_COLLISION_CHECKING or LAZY_COLLISION_CHECKING,
+     *                             NOMINAL_PLANNER_ONLY or any combination of PLAN_WITH_VORONOI_PULL and PLAN_WITH_ANYTIME_HEURISTIC,
+     *                             and USE_BRANCH_AND_BOUND_PRUNING_FLAG. See path_planner_options.hpp documentation.
      * \param aReporter The SBPP reporter object to use to report results and progress.
      * \param aMaxResultCount The maximum number of successful start-goal connections to make before 
      *                        stopping the path planner (the higher the number the more likely that a 
      *                        good path will be found, however, running time can become much longer).
-     * \param aInitialSATemperature The initial Simulated Annealing temperature use by this planner, if the 
-     *                              added-bias is set to an exploratory bias (e.g., PLAN_WITH_VORONOI_PULL). If negative,
-     *                              then simulated annealing is not used, and the exploratory bias (if any) is applied 
-     *                              only when SBA* seaching stalls (isn't progressing anymore).
      */
     sbastar_path_planner(const shared_ptr< space_type >& aWorld = shared_ptr< space_type >(), 
                          const point_type& aStartPos = point_type(),
                          const point_type& aGoalPos = point_type(),
-                         double aInitialKeyThreshold = 0.8,
-                         double aInitialDensityThreshold = 0.8,
-                         double aInitialRelaxation = 0.0,
-                         double aSamplingRadius = 1.0,
                          std::size_t aMaxVertexCount = 5000, 
                          std::size_t aProgressInterval = 100,
-                         std::size_t aGraphKindFlag = ADJ_LIST_MOTION_GRAPH,
-                         std::size_t aKNNMethodFlag = DVP_BF2_TREE_KNN,
-                         std::size_t aCollisionCheckFlag = LAZY_COLLISION_CHECKING,
-                         std::size_t aAddedBiasFlags = NOMINAL_PLANNER_ONLY,
+                         std::size_t aDataStructureFlags = ADJ_LIST_MOTION_GRAPH | DVP_BF2_TREE_KNN,
+                         std::size_t aPlanningMethodFlags = LAZY_COLLISION_CHECKING | NOMINAL_PLANNER_ONLY,
                          SBPPReporter aReporter = SBPPReporter(),
-                         std::size_t aMaxResultCount = 50,
-                         double aInitialSATemperature = -1.0) :
-                         base_type("sbastar_planner", aWorld, aMaxVertexCount, aProgressInterval),
+                         std::size_t aMaxResultCount = 50) :
+                         base_type("sbastar_planner", aWorld, aMaxVertexCount, aProgressInterval, aDataStructureFlags, aPlanningMethodFlags),
                          m_reporter(aReporter),
                          m_start_pos(aStartPos),
                          m_goal_pos(aGoalPos),
-                         m_init_key_threshold(aInitialKeyThreshold),
-                         m_init_dens_threshold(aInitialDensityThreshold),
-                         m_init_relaxation(aInitialRelaxation),
-                         m_SA_init_temperature(aInitialSATemperature),
-                         m_sampling_radius(aSamplingRadius),
+                         m_init_key_threshold(0.8),
+                         m_init_dens_threshold(0.8),
+                         m_init_relaxation(0.0),
+                         m_SA_init_temperature(-1.0),
+                         m_sampling_radius(1.0),
                          m_current_num_results(0),
                          max_num_results(aMaxResultCount),
                          has_reached_max_vertices(false),
-                         m_graph_kind_flag(aGraphKindFlag),
-                         m_knn_flag(aKNNMethodFlag),
-                         m_collision_check_flag(aCollisionCheckFlag), 
-                         m_added_bias_flags(aAddedBiasFlags),
                          m_current_key_threshold(m_init_key_threshold),
                          m_current_dens_threshold(m_init_dens_threshold),
-                         m_current_relaxation(m_init_relaxation) { };
+                         m_current_relaxation(m_init_relaxation),
+                         m_solutions(),
+                         m_iteration_count(0) { };
     
     virtual ~sbastar_path_planner() { };
     
@@ -596,11 +540,7 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
         & RK_SERIAL_SAVE_WITH_NAME(m_init_relaxation)
         & RK_SERIAL_SAVE_WITH_NAME(m_SA_init_temperature)
         & RK_SERIAL_SAVE_WITH_NAME(m_sampling_radius)
-        & RK_SERIAL_SAVE_WITH_NAME(max_num_results)
-        & RK_SERIAL_SAVE_WITH_NAME(m_graph_kind_flag)
-        & RK_SERIAL_SAVE_WITH_NAME(m_knn_flag)
-        & RK_SERIAL_SAVE_WITH_NAME(m_collision_check_flag)
-        & RK_SERIAL_SAVE_WITH_NAME(m_added_bias_flags);
+        & RK_SERIAL_SAVE_WITH_NAME(max_num_results);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
@@ -613,17 +553,14 @@ class sbastar_path_planner : public sample_based_planner< path_planner_base<Free
         & RK_SERIAL_LOAD_WITH_NAME(m_init_relaxation)
         & RK_SERIAL_LOAD_WITH_NAME(m_SA_init_temperature)
         & RK_SERIAL_LOAD_WITH_NAME(m_sampling_radius)
-        & RK_SERIAL_LOAD_WITH_NAME(max_num_results)
-        & RK_SERIAL_LOAD_WITH_NAME(m_graph_kind_flag)
-        & RK_SERIAL_LOAD_WITH_NAME(m_knn_flag)
-        & RK_SERIAL_LOAD_WITH_NAME(m_collision_check_flag)
-        & RK_SERIAL_LOAD_WITH_NAME(m_added_bias_flags);
+        & RK_SERIAL_LOAD_WITH_NAME(max_num_results);
       has_reached_max_vertices = false;
       m_solutions.clear();
       m_current_num_results = 0;
       m_current_key_threshold = m_init_key_threshold;
       m_current_dens_threshold = m_init_dens_threshold;
       m_current_relaxation = m_init_relaxation;
+      m_iteration_count = 0;
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC246000C,1,"sbastar_path_planner",base_type)
@@ -992,6 +929,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
   this->m_current_key_threshold = this->m_init_key_threshold;
   this->m_current_dens_threshold = this->m_init_dens_threshold;
   this->m_current_relaxation = this->m_init_relaxation;
+  this->m_iteration_count = 0;
   
   typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpace;
   typedef typename topology_traits<SuperSpace>::point_type PointType;
@@ -1212,9 +1150,41 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nc_selector), \
       get(random_sampler, this->m_space->get_super_space()), \
       this->m_init_relaxation, this->m_SA_init_temperature);
- 
+      
+    
+#define RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION \
+      if(((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_ANYTIME_HEURISTIC) && (this->m_init_relaxation > 1e-6)) { \
+        if((this->m_planning_method_flags & COLLISION_CHECKING_POLICY_MASK) == EAGER_COLLISION_CHECKING) { \
+          if((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) { \
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION \
+          } else { /* assume nominal method only. */ \
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION \
+          }; \
+        } else { /* assume lazy collision checking */ \
+          if((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) { \
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION \
+          } else { /* assume nominal method only. */ \
+            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION \
+          }; \
+        }; \
+      } else { \
+        if((this->m_planning_method_flags & COLLISION_CHECKING_POLICY_MASK) == EAGER_COLLISION_CHECKING) { \
+          if((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) { \
+            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION \
+          } else { /* assume nominal method only. */ \
+            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION \
+          }; \
+        } else { /* assume lazy collision checking */ \
+          if((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) { \
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION \
+          } else { /* assume nominal method only. */ \
+            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION \
+          }; \
+        }; \
+      };
   
-  if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {
+  
+  if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
     
     typedef boost::pooled_adjacency_list< 
       boost::undirectedS, VertexProp, EdgeProp, 
@@ -1229,7 +1199,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     
     RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
     
-    if(m_knn_flag == LINEAR_SEARCH_KNN) {
+    if((this->m_data_structure_flags & KNN_METHOD_MASK) == LINEAR_SEARCH_KNN) {
       sbastar_planner_visitor<FreeSpaceType, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node, space_dim, space_Lc);
       
 //       ReaK::graph::fixed_neighborhood< linear_neighbor_search<> > nc_selector(
@@ -1239,37 +1209,9 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         linear_neighbor_search<>(), 
         space_dim, 3.0 * space_Lc);
       
-      if(this->m_init_relaxation < 1e-6) {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      } else {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      };
+      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
       
-    } else if(m_knn_flag == DVP_BF2_TREE_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
       
       typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 2, 
                        random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<2> > SpacePartType;
@@ -1288,37 +1230,9 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(this->m_init_relaxation < 1e-6) {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      } else {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      };
+      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
       
-    } else if(m_knn_flag == DVP_BF4_TREE_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
       
       typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 4, 
                        random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<4> > SpacePartType;
@@ -1337,37 +1251,9 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(this->m_init_relaxation < 1e-6) {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      } else {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      };
+      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
       
-    } else if(m_knn_flag == DVP_COB2_TREE_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
       
       typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 2, 
                        random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<2> > SpacePartType;
@@ -1386,37 +1272,9 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(this->m_init_relaxation < 1e-6) {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      } else {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      };
+      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
       
-    } else if(m_knn_flag == DVP_COB4_TREE_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
       
       typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 4, 
                        random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<4> > SpacePartType;
@@ -1435,41 +1293,13 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(this->m_init_relaxation < 1e-6) {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      } else {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      };
+      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
       
     };
     
-  } else if(m_graph_kind_flag == DVP_ADJ_LIST_MOTION_GRAPH) {
+  } else if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == DVP_ADJ_LIST_MOTION_GRAPH) {
     
-    if(m_knn_flag == DVP_ALT_BF2_KNN) {
+    if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
       
       typedef dvp_adjacency_list<
         VertexProp,
@@ -1501,37 +1331,9 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(this->m_init_relaxation < 1e-6) {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      } else {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      };
+      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
       
-    } else if(m_knn_flag == DVP_ALT_BF4_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
       
       typedef dvp_adjacency_list<
         VertexProp,
@@ -1563,37 +1365,9 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(this->m_init_relaxation < 1e-6) {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      } else {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      };
+      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
       
-    } else if(m_knn_flag == DVP_ALT_COB2_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
       
       typedef dvp_adjacency_list<
         VertexProp,
@@ -1625,37 +1399,9 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(this->m_init_relaxation < 1e-6) {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      } else {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      };
+      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
       
-    } else if(m_knn_flag == DVP_ALT_COB4_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
       
       typedef dvp_adjacency_list<
         VertexProp,
@@ -1687,35 +1433,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nn_finder, 
         space_dim, 3.0 * space_Lc);
       
-      if(this->m_init_relaxation < 1e-6) {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      } else {
-        if(m_collision_check_flag == EAGER_COLLISION_CHECKING) {
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
-          };
-        } else { // assume lazy collision checking
-          if(m_added_bias_flags == PLAN_WITH_VORONOI_PULL) {
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
-          } else { // assume nominal method only.
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
-          };
-        };
-      };
+      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
       
     };
     
@@ -1730,6 +1448,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
 #undef RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
 #undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
 #undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
   
   if(m_solutions.size())
     return m_solutions.begin()->second;

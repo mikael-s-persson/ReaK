@@ -160,7 +160,8 @@ int main(int argc, char ** argv) {
       goal_point,
       max_vertices, 
       prog_interval,
-      knn_method,
+      ReaK::pp::ADJ_LIST_MOTION_GRAPH | knn_method,
+      ReaK::pp::UNIDIRECTIONAL_PLANNING,
       planning_report,
       max_results);
       
@@ -168,18 +169,18 @@ int main(int argc, char ** argv) {
 //       X8_MEAQR_space, 
 //       start_point,
 //       goal_point,
-//       0.02, 
-//       0.0,
-//       10.0,
-//       0.25 * X8_MEAQR_space->get_max_time_horizon() * X8_MEAQR_space->get_idle_power_cost(start_point),
 //       max_vertices, 
 //       prog_interval,
-//       knn_method,
-//       LAZY_COLLISION_CHECKING,
-//       PLAN_WITH_VORONOI_PULL,
+//       ReaK::pp::ADJ_LIST_MOTION_GRAPH | knn_method,
+//       LAZY_COLLISION_CHECKING | PLAN_WITH_VORONOI_PULL,
 //       planning_report,
-//       max_results,
-//       5.0);
+//       max_results);
+//     X8_planner.set_initial_key_threshold(0.02);
+//     X8_planner.set_initial_density_threshold(0.0);
+//     X8_planner.set_initial_relaxation(10.0);
+//     X8_planner.set_initial_SA_temperature(5.0);
+//     X8_planner.set_sampling_radius( 0.25 * X8_MEAQR_space->get_max_time_horizon() * X8_MEAQR_space->get_idle_power_cost(start_point) );
+      
       
     X8_planner.solve_path();
       

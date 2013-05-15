@@ -47,6 +47,8 @@
 #include "trajectory_base.hpp"
 #include "seq_path_base.hpp"
 
+#include "path_planner_options.hpp"
+
 namespace ReaK {
   
 namespace pp {
@@ -203,6 +205,8 @@ class sample_based_planner : public BaseType {
     
     std::size_t m_max_vertex_count;
     std::size_t m_progress_interval;
+    std::size_t m_data_structure_flags;
+    std::size_t m_planning_method_flags;
     
     
   public:
@@ -235,6 +239,44 @@ class sample_based_planner : public BaseType {
       m_progress_interval = aProgressInterval;
     };
     
+    /**
+     * Returns the integer flags that identify the kind of motion-graph data-structure to use.
+     * Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH. Any combination of those two and of KNN method flags to use 
+     * for nearest-neighbor queries in the graph. KNN method flags can be LINEAR_SEARCH_KNN, DVP_BF2_TREE_KNN, DVP_BF4_TREE_KNN, 
+     * DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN. 
+     * See path_planner_options.hpp documentation.
+     * \return The integer flags that identify the kind of motion-graph data-structure to use (see path_planner_options.hpp).
+     */
+    std::size_t get_data_structure_flags() const { return m_data_structure_flags; };
+    /**
+     * Sets the integer flags that identify the kind of motion-graph data-structure to use.
+     * Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH. Any combination of those two and of KNN method flags to use 
+     * for nearest-neighbor queries in the graph. KNN method flags can be LINEAR_SEARCH_KNN, DVP_BF2_TREE_KNN, DVP_BF4_TREE_KNN, 
+     * DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN. 
+     * See path_planner_options.hpp documentation.
+     * \param aDataStructureFlags The integer flags that identify the kind of motion-graph data-structure to use (see path_planner_options.hpp).
+     */
+    virtual void set_data_structure_flags(std::size_t aDataStructureFlags) { m_data_structure_flags = aDataStructureFlags; };
+    
+    /**
+     * Returns the integer flags that identify various options to use with this planner.
+     * The options available include EAGER_COLLISION_CHECKING or LAZY_COLLISION_CHECKING, NOMINAL_PLANNER_ONLY or any 
+     * combination of PLAN_WITH_VORONOI_PULL, PLAN_WITH_NARROW_PASSAGE_PUSH and PLAN_WITH_ANYTIME_HEURISTIC,
+     * UNIDIRECTIONAL_PLANNING or BIDIRECTIONAL_PLANNING, and USE_BRANCH_AND_BOUND_PRUNING_FLAG. 
+     * See path_planner_options.hpp documentation.
+     * \return The integer flags that identify various options to use with this planner (see path_planner_options.hpp).
+     */
+    std::size_t get_planning_method_flags() const { return m_planning_method_flags; };
+    /**
+     * Sets the integer flags that identify various options to use with this planner.
+     * The options available include EAGER_COLLISION_CHECKING or LAZY_COLLISION_CHECKING, NOMINAL_PLANNER_ONLY or any 
+     * combination of PLAN_WITH_VORONOI_PULL, PLAN_WITH_NARROW_PASSAGE_PUSH and PLAN_WITH_ANYTIME_HEURISTIC,
+     * UNIDIRECTIONAL_PLANNING or BIDIRECTIONAL_PLANNING, and USE_BRANCH_AND_BOUND_PRUNING_FLAG. 
+     * See path_planner_options.hpp documentation.
+     * \param aPlanningMethodFlags The integer flags that identify various options to use with this planner (see path_planner_options.hpp).
+     */
+    virtual void set_planning_method_flags(std::size_t aPlanningMethodFlags) { m_planning_method_flags = aPlanningMethodFlags; };
+    
     
     /**
      * Parametrized constructor.
@@ -242,14 +284,29 @@ class sample_based_planner : public BaseType {
      * \param aWorld A topology which represents the C-free (obstacle-free configuration space).
      * \param aMaxVertexCount The maximum number of samples to generate during the motion planning.
      * \param aProgressInterval The number of new samples between each "progress report".
+     * \param aDataStructureFlags An integer flags representing the kind of motion graph data-structure to use in the 
+     *                            planning algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
+     *                            Any combination of those two and of KNN method flags to use for nearest
+     *                            neighbor queries in the graph. KNN method flags can be LINEAR_SEARCH_KNN, 
+     *                            DVP_BF2_TREE_KNN, DVP_BF4_TREE_KNN, DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN.
+     *                            See path_planner_options.hpp documentation.
+     * \param aPlanningMethodFlags The integer flags that identify various options to use with this planner.
+     *                             The options available include EAGER_COLLISION_CHECKING or LAZY_COLLISION_CHECKING, 
+     *                             NOMINAL_PLANNER_ONLY or any combination of PLAN_WITH_VORONOI_PULL, 
+     *                             PLAN_WITH_NARROW_PASSAGE_PUSH and PLAN_WITH_ANYTIME_HEURISTIC, UNIDIRECTIONAL_PLANNING 
+     *                             or BIDIRECTIONAL_PLANNING, and USE_BRANCH_AND_BOUND_PRUNING_FLAG. 
      */
     sample_based_planner(const std::string& aName,
                          const shared_ptr< typename base_type::space_type >& aWorld, 
                          std::size_t aMaxVertexCount = 0, 
-                         std::size_t aProgressInterval = 0) :
+                         std::size_t aProgressInterval = 0,
+                         std::size_t aDataStructureFlags = ADJ_LIST_MOTION_GRAPH | DVP_BF2_TREE_KNN,
+                         std::size_t aPlanningMethodFlags = 0) :
                          base_type(aName,aWorld), 
                          m_max_vertex_count(aMaxVertexCount), 
-                         m_progress_interval(aProgressInterval) { };
+                         m_progress_interval(aProgressInterval),
+                         m_data_structure_flags(aDataStructureFlags),
+                         m_planning_method_flags(aPlanningMethodFlags) { };
     
     virtual ~sample_based_planner() { };
     
@@ -260,13 +317,17 @@ class sample_based_planner : public BaseType {
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       base_type::save(A,base_type::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(m_max_vertex_count)
-        & RK_SERIAL_SAVE_WITH_NAME(m_progress_interval);
+        & RK_SERIAL_SAVE_WITH_NAME(m_progress_interval)
+        & RK_SERIAL_SAVE_WITH_NAME(m_data_structure_flags)
+        & RK_SERIAL_SAVE_WITH_NAME(m_planning_method_flags);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(m_max_vertex_count)
-        & RK_SERIAL_LOAD_WITH_NAME(m_progress_interval);
+        & RK_SERIAL_LOAD_WITH_NAME(m_progress_interval)
+        & RK_SERIAL_LOAD_WITH_NAME(m_data_structure_flags)
+        & RK_SERIAL_LOAD_WITH_NAME(m_planning_method_flags);
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460002,1,"sample_based_planner",base_type)

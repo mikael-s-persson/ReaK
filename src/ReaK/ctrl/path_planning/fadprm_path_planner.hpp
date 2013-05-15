@@ -191,8 +191,6 @@ class fadprm_path_planner : public sample_based_planner< path_planner_base<FreeS
     double m_initial_relaxation;
     std::size_t max_num_results;
     bool has_reached_max_vertices;
-    std::size_t m_graph_kind_flag;
-    std::size_t m_knn_flag;
     
     std::map<double, shared_ptr< seq_path_base< super_space_type > > > m_solutions;
     
@@ -367,28 +365,6 @@ class fadprm_path_planner : public sample_based_planner< path_planner_base<FreeS
      */
     void set_max_result_count(std::size_t aMaxResultCount) { max_num_results = aMaxResultCount; };
     
-    /**
-     * Returns the integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
-     * \return The integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
-     */
-    std::size_t get_graph_kind_flag() const { return m_graph_kind_flag; };
-    /**
-     * Sets the integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
-     * \param aGraphKindFlag The integer flag that identifies the kind of motion-graph to use (see path_planner_options.hpp).
-     */
-    void set_graph_kind_flag(std::size_t aGraphKindFlag) { m_graph_kind_flag = aGraphKindFlag; };
-    
-    /**
-     * Returns the integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
-     * \return The integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
-     */
-    std::size_t get_knn_flag() const { return m_knn_flag; };
-    /**
-     * Sets the integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
-     * \param aKNNMethodFlag The integer flag that identifies the kind of K-nearest-neighbor method to use (see path_planner_options.hpp).
-     */
-    void set_knn_flag(std::size_t aKNNMethodFlag) { m_knn_flag = aKNNMethodFlag; };
-    
     
     /**
      * Parametrized constructor.
@@ -398,14 +374,12 @@ class fadprm_path_planner : public sample_based_planner< path_planner_base<FreeS
      * \param aInitialRelaxation The initial relaxation factor, should be above 1 (1.0 means strict A* bias to the goal, > 1.0 means relaxed A* bias to the goal).
      * \param aMaxVertexCount The maximum number of samples to generate during the motion planning.
      * \param aProgressInterval The number of new samples between each "progress report".
-     * \param aGraphKindFlag An integer flag representing the kind of motion graph to use in the 
-     *                       FADPRM algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
-     * \param aKNNMethodFlag An integer flag representing the kind of KNN method to use for nearest
-     *                       neighbor queries in the graph. Can be LINEAR_SEARCH_KNN, DVP_BF2_TREE_KNN,
-     *                       DVP_BF4_TREE_KNN, DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN when the 
-     *                       motion graph is of kind ADJ_LIST_MOTION_GRAPH. Can be DVP_ALT_BF2_TREE_KNN,
-     *                       DVP_ALT_BF4_TREE_KNN, DVP_ALT_COB2_TREE_KNN, or DVP_ALT_COB4_TREE_KNN when 
-     *                       the motion graph is of kind DVP_ADJ_LIST_MOTION_GRAPH.
+     * \param aDataStructureFlags An integer flags representing the kind of motion graph data-structure to use in the 
+     *                            planning algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
+     *                            Any combination of those two and of KNN method flags to use for nearest
+     *                            neighbor queries in the graph. KNN method flags can be LINEAR_SEARCH_KNN, 
+     *                            DVP_BF2_TREE_KNN, DVP_BF4_TREE_KNN, DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN.
+     *                            See path_planner_options.hpp documentation.
      * \param aReporter The SBPP reporter object to use to report results and progress.
      * \param aMaxResultCount The maximum number of successful start-goal connections to make before 
      *                        stopping the path planner (the higher the number the more likely that a 
@@ -417,19 +391,16 @@ class fadprm_path_planner : public sample_based_planner< path_planner_base<FreeS
                         double aInitialRelaxation = 0.5,
                         std::size_t aMaxVertexCount = 5000, 
                         std::size_t aProgressInterval = 100,
-                        std::size_t aGraphKindFlag = ADJ_LIST_MOTION_GRAPH,
-                        std::size_t aKNNMethodFlag = DVP_BF2_TREE_KNN,
+                        std::size_t aDataStructureFlags = ADJ_LIST_MOTION_GRAPH | DVP_BF2_TREE_KNN,
                         SBPPReporter aReporter = SBPPReporter(),
                         std::size_t aMaxResultCount = 50) :
-                        base_type("fadprm_planner", aWorld, aMaxVertexCount, aProgressInterval),
+                        base_type("fadprm_planner", aWorld, aMaxVertexCount, aProgressInterval, aDataStructureFlags, 0),
                         m_reporter(aReporter),
                         m_start_pos(aStartPos),
                         m_goal_pos(aGoalPos),
                         m_initial_relaxation( ( aInitialRelaxation > 1.0 ? 1.0 : aInitialRelaxation ) ),
                         max_num_results(aMaxResultCount),
-                        has_reached_max_vertices(false),
-                        m_graph_kind_flag(aGraphKindFlag),
-                        m_knn_flag(aKNNMethodFlag) { };
+                        has_reached_max_vertices(false) { };
     
     virtual ~fadprm_path_planner() { };
     
@@ -443,9 +414,7 @@ class fadprm_path_planner : public sample_based_planner< path_planner_base<FreeS
         & RK_SERIAL_SAVE_WITH_NAME(m_start_pos)
         & RK_SERIAL_SAVE_WITH_NAME(m_goal_pos)
         & RK_SERIAL_SAVE_WITH_NAME(m_initial_relaxation)
-        & RK_SERIAL_SAVE_WITH_NAME(max_num_results)
-        & RK_SERIAL_SAVE_WITH_NAME(m_graph_kind_flag)
-        & RK_SERIAL_SAVE_WITH_NAME(m_knn_flag);
+        & RK_SERIAL_SAVE_WITH_NAME(max_num_results);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
@@ -454,9 +423,7 @@ class fadprm_path_planner : public sample_based_planner< path_planner_base<FreeS
         & RK_SERIAL_LOAD_WITH_NAME(m_start_pos)
         & RK_SERIAL_LOAD_WITH_NAME(m_goal_pos)
         & RK_SERIAL_LOAD_WITH_NAME(m_initial_relaxation)
-        & RK_SERIAL_LOAD_WITH_NAME(max_num_results)
-        & RK_SERIAL_LOAD_WITH_NAME(m_graph_kind_flag)
-        & RK_SERIAL_LOAD_WITH_NAME(m_knn_flag);
+        & RK_SERIAL_LOAD_WITH_NAME(max_num_results);
       has_reached_max_vertices = false;
       m_solutions.clear();
     };
@@ -705,10 +672,48 @@ shared_ptr< seq_path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReport
 
 #endif
   
+    
+    
+#define RK_FADPRM_MAKE_GENERATE_CALL_FIXED_NEIGHBORHOOD \
+      ReaK::graph::generate_fadprm( \
+        motion_graph, goal_node, *(this->m_space), \
+        get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph),  \
+        vis, \
+        get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph),  \
+        get(&fadprm_vertex_data<FreeSpaceType>::distance_accum, motion_graph),  \
+        get(&fadprm_vertex_data<FreeSpaceType>::astar_rhs_value, motion_graph),  \
+        get(&fadprm_vertex_data<FreeSpaceType>::astar_key_value, motion_graph),  \
+        get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph),  \
+        get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph),  \
+        pos_map,  \
+        ReaK::graph::fixed_neighborhood< NNFinderType >( \
+          nn_finder,  \
+          10, max_radius), \
+        get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph),  \
+        this->m_initial_relaxation);
+  
+  
+#define RK_FADPRM_MAKE_GENERATE_CALL_STAR_NEIGHBORHOOD \
+      ReaK::graph::generate_fadprm( \
+        motion_graph, goal_node, *(this->m_space), \
+        get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph),  \
+        vis, \
+        get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph),  \
+        get(&fadprm_vertex_data<FreeSpaceType>::distance_accum, motion_graph),  \
+        get(&fadprm_vertex_data<FreeSpaceType>::astar_rhs_value, motion_graph),  \
+        get(&fadprm_vertex_data<FreeSpaceType>::astar_key_value, motion_graph),  \
+        get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph),  \
+        get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph),  \
+        pos_map,  \
+        ReaK::graph::star_neighborhood< NNFinderType >( \
+          nn_finder,  \
+          space_dim, 3.0 * space_Lc), \
+        get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph),  \
+        this->m_initial_relaxation);
   
   
   
-  if(m_graph_kind_flag == ADJ_LIST_MOTION_GRAPH) {
+  if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
     
     typedef boost::adjacency_list< 
       boost::vecS, boost::vecS, boost::undirectedS,
@@ -724,33 +729,15 @@ shared_ptr< seq_path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReport
     
     RK_FADPRM_INITIALIZE_START_AND_GOAL
     
-    if(m_knn_flag == LINEAR_SEARCH_KNN) {
+    if((this->m_data_structure_flags & KNN_METHOD_MASK) == LINEAR_SEARCH_KNN) {
       fadprm_planner_visitor<FreeSpaceType, MotionGraphType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node);
       
       typedef linear_neighbor_search<> NNFinderType;
       NNFinderType nn_finder;
       
-      ReaK::graph::generate_fadprm(
-        motion_graph, goal_node, *(this->m_space),
-        get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
-        vis,
-        get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::distance_accum, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_rhs_value, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_key_value, motion_graph), 
-        get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
-        pos_map, 
-        ReaK::graph::fixed_neighborhood< NNFinderType >(
-          nn_finder, 
-          10, max_radius),
-//         ReaK::graph::star_neighborhood< NNFinderType >(
-//           nn_finder, 
-//           space_dim, 3.0 * space_Lc),
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
-        this->m_initial_relaxation);
+      RK_FADPRM_MAKE_GENERATE_CALL_FIXED_NEIGHBORHOOD
       
-    } else if(m_knn_flag == DVP_BF2_TREE_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
       
       typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 2, 
                        random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<2> > SpacePartType;
@@ -762,27 +749,9 @@ shared_ptr< seq_path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReport
       
       fadprm_planner_visitor<FreeSpaceType, MotionGraphType, NNFinderType, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node);
       
-      ReaK::graph::generate_fadprm(
-        motion_graph, goal_node, *(this->m_space),
-        get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
-        vis,
-        get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::distance_accum, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_rhs_value, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_key_value, motion_graph), 
-        get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
-        pos_map, 
-        ReaK::graph::fixed_neighborhood< NNFinderType >(
-          nn_finder, 
-          10, max_radius),
-//         ReaK::graph::star_neighborhood< NNFinderType >(
-//           nn_finder, 
-//           space_dim, 3.0 * space_Lc),
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
-        this->m_initial_relaxation);
+      RK_FADPRM_MAKE_GENERATE_CALL_FIXED_NEIGHBORHOOD
       
-    } else if(m_knn_flag == DVP_BF4_TREE_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
       
       typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 4, 
                        random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<4> > SpacePartType;
@@ -794,27 +763,9 @@ shared_ptr< seq_path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReport
       
       fadprm_planner_visitor<FreeSpaceType, MotionGraphType, NNFinderType, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node);
       
-      ReaK::graph::generate_fadprm(
-        motion_graph, goal_node, *(this->m_space),
-        get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
-        vis,
-        get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::distance_accum, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_rhs_value, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_key_value, motion_graph), 
-        get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
-        pos_map, 
-        ReaK::graph::fixed_neighborhood< NNFinderType >(
-          nn_finder, 
-          10, max_radius),
-//         ReaK::graph::star_neighborhood< NNFinderType >(
-//           nn_finder, 
-//           space_dim, 3.0 * space_Lc),
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
-        this->m_initial_relaxation);
+      RK_FADPRM_MAKE_GENERATE_CALL_FIXED_NEIGHBORHOOD
       
-    } else if(m_knn_flag == DVP_COB2_TREE_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
       
       typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 2, 
                        random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<2> > SpacePartType;
@@ -826,27 +777,9 @@ shared_ptr< seq_path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReport
       
       fadprm_planner_visitor<FreeSpaceType, MotionGraphType, NNFinderType, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node);
       
-      ReaK::graph::generate_fadprm(
-        motion_graph, goal_node, *(this->m_space),
-        get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
-        vis,
-        get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::distance_accum, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_rhs_value, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_key_value, motion_graph), 
-        get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
-        pos_map, 
-        ReaK::graph::fixed_neighborhood< NNFinderType >(
-          nn_finder, 
-          10, max_radius),
-//         ReaK::graph::star_neighborhood< NNFinderType >(
-//           nn_finder, 
-//           space_dim, 3.0 * space_Lc),
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
-        this->m_initial_relaxation);
+      RK_FADPRM_MAKE_GENERATE_CALL_FIXED_NEIGHBORHOOD
       
-    } else if(m_knn_flag == DVP_COB4_TREE_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
       
       typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 4, 
                        random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<4> > SpacePartType;
@@ -858,31 +791,13 @@ shared_ptr< seq_path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReport
       
       fadprm_planner_visitor<FreeSpaceType, MotionGraphType, NNFinderType, SBPPReporter> vis(this->m_space, this, nn_finder, start_node, goal_node);
       
-      ReaK::graph::generate_fadprm(
-        motion_graph, goal_node, *(this->m_space),
-        get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
-        vis,
-        get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::distance_accum, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_rhs_value, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_key_value, motion_graph), 
-        get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
-        pos_map, 
-        ReaK::graph::fixed_neighborhood< NNFinderType >(
-          nn_finder, 
-          10, max_radius),
-//         ReaK::graph::star_neighborhood< NNFinderType >(
-//           nn_finder, 
-//           space_dim, 3.0 * space_Lc),
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
-        this->m_initial_relaxation);
+      RK_FADPRM_MAKE_GENERATE_CALL_FIXED_NEIGHBORHOOD
       
     };
     
-  } else if(m_graph_kind_flag == DVP_ADJ_LIST_MOTION_GRAPH) {
+  } else if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == DVP_ADJ_LIST_MOTION_GRAPH) {
     
-    if(m_knn_flag == DVP_ALT_BF2_KNN) {
+    if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
       
       typedef dvp_adjacency_list<
         fadprm_vertex_data<FreeSpaceType>,
@@ -907,27 +822,9 @@ shared_ptr< seq_path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReport
       
       fadprm_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node);
       
-      ReaK::graph::generate_fadprm(
-        motion_graph, goal_node, *(this->m_space),
-        get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
-        vis,
-        get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::distance_accum, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_rhs_value, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_key_value, motion_graph), 
-        get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
-        pos_map, 
-        ReaK::graph::fixed_neighborhood< NNFinderType >(
-          nn_finder, 
-          10, max_radius),
-//         ReaK::graph::star_neighborhood< NNFinderType >(
-//           nn_finder, 
-//           space_dim, 3.0 * space_Lc),
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
-        this->m_initial_relaxation);
+      RK_FADPRM_MAKE_GENERATE_CALL_FIXED_NEIGHBORHOOD
       
-    } else if(m_knn_flag == DVP_ALT_BF4_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
       
       typedef dvp_adjacency_list<
         fadprm_vertex_data<FreeSpaceType>,
@@ -952,27 +849,9 @@ shared_ptr< seq_path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReport
       
       fadprm_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node);
       
-      ReaK::graph::generate_fadprm(
-        motion_graph, goal_node, *(this->m_space),
-        get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
-        vis,
-        get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::distance_accum, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_rhs_value, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_key_value, motion_graph), 
-        get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
-        pos_map, 
-        ReaK::graph::fixed_neighborhood< NNFinderType >(
-          nn_finder, 
-          10, max_radius),
-//         ReaK::graph::star_neighborhood< NNFinderType >(
-//           nn_finder, 
-//           space_dim, 3.0 * space_Lc),
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
-        this->m_initial_relaxation);
+      RK_FADPRM_MAKE_GENERATE_CALL_FIXED_NEIGHBORHOOD
       
-    } else if(m_knn_flag == DVP_ALT_COB2_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
       
       typedef dvp_adjacency_list<
         fadprm_vertex_data<FreeSpaceType>,
@@ -997,27 +876,9 @@ shared_ptr< seq_path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReport
       
       fadprm_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node);
       
-      ReaK::graph::generate_fadprm(
-        motion_graph, goal_node, *(this->m_space),
-        get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
-        vis,
-        get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::distance_accum, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_rhs_value, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_key_value, motion_graph), 
-        get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
-        pos_map, 
-        ReaK::graph::fixed_neighborhood< NNFinderType >(
-          nn_finder, 
-          10, max_radius),
-//         ReaK::graph::star_neighborhood< NNFinderType >(
-//           nn_finder, 
-//           space_dim, 3.0 * space_Lc),
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
-        this->m_initial_relaxation);
+      RK_FADPRM_MAKE_GENERATE_CALL_FIXED_NEIGHBORHOOD
       
-    } else if(m_knn_flag == DVP_ALT_COB4_KNN) {
+    } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
       
       typedef dvp_adjacency_list<
         fadprm_vertex_data<FreeSpaceType>,
@@ -1042,29 +903,15 @@ shared_ptr< seq_path_base< typename fadprm_path_planner<FreeSpaceType,SBPPReport
       
       fadprm_planner_visitor<FreeSpaceType, MotionGraph, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro(), start_node, goal_node);
       
-      ReaK::graph::generate_fadprm(
-        motion_graph, goal_node, *(this->m_space),
-        get(&fadprm_vertex_data<FreeSpaceType>::heuristic_value, motion_graph), 
-        vis,
-        get(&fadprm_vertex_data<FreeSpaceType>::predecessor, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::distance_accum, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_rhs_value, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_key_value, motion_graph), 
-        get(&fadprm_edge_data<FreeSpaceType>::astar_weight, motion_graph), 
-        get(&fadprm_vertex_data<FreeSpaceType>::density, motion_graph), 
-        pos_map, 
-        ReaK::graph::fixed_neighborhood< NNFinderType >(
-          nn_finder, 
-          10, max_radius),
-//         ReaK::graph::star_neighborhood< NNFinderType >(
-//           nn_finder, 
-//           space_dim, 3.0 * space_Lc),
-        get(&fadprm_vertex_data<FreeSpaceType>::astar_color, motion_graph), 
-        this->m_initial_relaxation);
+      RK_FADPRM_MAKE_GENERATE_CALL_FIXED_NEIGHBORHOOD
       
     };
     
   };
+  
+#undef RK_FADPRM_INITIALIZE_START_AND_GOAL
+#undef RK_FADPRM_MAKE_GENERATE_CALL_FIXED_NEIGHBORHOOD
+#undef RK_FADPRM_MAKE_GENERATE_CALL_STAR_NEIGHBORHOOD
   
   if(m_solutions.size())
     return m_solutions.begin()->second;

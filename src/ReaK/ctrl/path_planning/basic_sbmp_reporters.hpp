@@ -126,6 +126,7 @@ struct differ_sbmp_report_to_space : public shared_object {
   /// Holds the file-path where to output the reports.
   std::string file_path;
   
+  mutable std::size_t progress_count;
   mutable std::size_t solution_count;
   
   explicit differ_sbmp_report_to_space(const std::string& aFilePath = "", 
@@ -134,6 +135,7 @@ struct differ_sbmp_report_to_space : public shared_object {
                                        next_reporter(aNextReporter),
                                        interval_size(aIntervalSize),
                                        file_path(aFilePath),
+                                       progress_count(0),
                                        solution_count(0) { };
   
   /**
@@ -163,7 +165,7 @@ struct differ_sbmp_report_to_space : public shared_object {
     };
     
     std::stringstream ss;
-    ss << std::setw(6) << std::setfill('0') << num_vertices(g);
+    ss << std::setw(6) << std::setfill('0') << (progress_count++);
     free_space.save_output(file_path + "progress_" + ss.str());
     
     next_reporter.draw_motion_graph(free_space, g, pos);
@@ -207,7 +209,7 @@ struct differ_sbmp_report_to_space : public shared_object {
     };
     
     std::stringstream ss;
-    ss << std::setw(6) << std::setfill('0') << num_vertices(g);
+    ss << std::setw(6) << std::setfill('0') << (progress_count++);
     free_space.save_output(file_path + "progress_" + ss.str());
     
     next_reporter.draw_motion_graph(free_space, g, steer_rec);

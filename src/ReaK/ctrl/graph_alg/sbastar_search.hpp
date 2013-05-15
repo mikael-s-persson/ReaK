@@ -189,6 +189,9 @@ namespace detail {
     
     template <typename Vertex, typename Graph>
     void vertex_to_be_removed(Vertex u, Graph& g) const {
+      put(m_key, u, -std::numeric_limits<double>::infinity());
+      m_Q.push_or_update(u);
+      m_Q.pop();
       m_vis.vertex_to_be_removed(u,g);
     };
     

@@ -163,26 +163,28 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
         goal_point,
         r_info->X8_plan_params.max_vertices, 
         r_info->X8_plan_params.prog_interval,
+        ReaK::pp::ADJ_LIST_MOTION_GRAPH | r_info->X8_plan_params.knn_method,
+        ReaK::pp::UNIDIRECTIONAL_PLANNING,
         r_info->X8_plan_params.knn_method,
         temp_reporter,
         r_info->X8_plan_params.max_results);
       
-//       X8_sbastar_planner_type X8_planner(
-//         r_info->X8_MEAQR_space, 
-//         start_point,
-//         goal_point,
-//         0.02, 
-//         0.0,
-//         10.0,
-//         0.25 * r_info->X8_MEAQR_space->get_max_time_horizon() * r_info->X8_MEAQR_space->get_idle_power_cost(start_point),
-//         r_info->X8_plan_params.max_vertices, 
-//         r_info->X8_plan_params.prog_interval,
-//         r_info->X8_plan_params.knn_method,
-//         LAZY_COLLISION_CHECKING,
-//         PLAN_WITH_VORONOI_PULL,
-//         temp_reporter,
-//         r_info->X8_plan_params.max_results,
-//         5.0);
+//     X8_sbastar_planner_type X8_planner(
+//       r_info->X8_MEAQR_space, 
+//       start_point,
+//       goal_point,
+//       r_info->X8_plan_params.max_vertices, 
+//       r_info->X8_plan_params.prog_interval,
+//       ReaK::pp::ADJ_LIST_MOTION_GRAPH | r_info->X8_plan_params.knn_method,
+//       LAZY_COLLISION_CHECKING | PLAN_WITH_VORONOI_PULL,
+//       temp_reporter,
+//       r_info->X8_plan_params.max_results);
+//     X8_planner.set_initial_key_threshold(0.02);
+//     X8_planner.set_initial_density_threshold(0.0);
+//     X8_planner.set_initial_relaxation(10.0);
+//     X8_planner.set_initial_SA_temperature(5.0);
+//     X8_planner.set_sampling_radius( 0.25 * r_info->X8_MEAQR_space->get_max_time_horizon() * r_info->X8_MEAQR_space->get_idle_power_cost(start_point) );
+      
       
       X8_planner.solve_path();
       

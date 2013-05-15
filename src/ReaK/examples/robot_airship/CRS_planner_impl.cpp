@@ -543,9 +543,9 @@ void CRSPlannerGUI::executePlanner() {
   std::size_t prog_interval = configs.progress_interval_spinbox->value();
   std::size_t max_results = configs.maxsolutions_spinbox->value();
   
-  std::size_t rrt_dir = ReaK::pp::UNIDIRECTIONAL_RRT;
+  std::size_t rrt_dir = ReaK::pp::UNIDIRECTIONAL_PLANNING;
   if(configs.direction_selection->currentIndex())
-    rrt_dir = ReaK::pp::BIDIRECTIONAL_RRT;
+    rrt_dir = ReaK::pp::BIDIRECTIONAL_PLANNING;
   
   std::size_t store_policy = ReaK::pp::ADJ_LIST_MOTION_GRAPH;
   if(configs.graph_storage_selection->currentIndex())
@@ -554,28 +554,16 @@ void CRSPlannerGUI::executePlanner() {
   std::size_t knn_method = ReaK::pp::LINEAR_SEARCH_KNN;
   switch(configs.KNN_method_selection->currentIndex()) {
     case 1:
-      if(store_policy == ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH)
-        knn_method = ReaK::pp::DVP_ALT_BF2_KNN;
-      else
-        knn_method = ReaK::pp::DVP_BF2_TREE_KNN;
+      knn_method = ReaK::pp::DVP_BF2_TREE_KNN;
       break;
     case 2:
-      if(store_policy == ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH)
-        knn_method = ReaK::pp::DVP_ALT_BF4_KNN;
-      else
-        knn_method = ReaK::pp::DVP_BF4_TREE_KNN;
+      knn_method = ReaK::pp::DVP_BF4_TREE_KNN;
       break;
     case 3:
-      if(store_policy == ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH)
-        knn_method = ReaK::pp::DVP_ALT_COB2_KNN;
-      else
-        knn_method = ReaK::pp::DVP_COB2_TREE_KNN;
+      knn_method = ReaK::pp::DVP_COB2_TREE_KNN;
       break;
     case 4:
-      if(store_policy == ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH)
-        knn_method = ReaK::pp::DVP_ALT_COB4_KNN;
-      else
-        knn_method = ReaK::pp::DVP_COB4_TREE_KNN;
+      knn_method = ReaK::pp::DVP_COB4_TREE_KNN;
       break;
     default:
       break;
@@ -694,9 +682,8 @@ void CRSPlannerGUI::executePlanner() {
             goal_point, \
             max_vertices, \
             prog_interval, \
+            store_policy | knn_method, \
             rrt_dir, \
-            store_policy, \
-            knn_method, \
             temp_reporter,  \
             max_results); \
          \
@@ -733,9 +720,8 @@ void CRSPlannerGUI::executePlanner() {
             goal_point, \
             max_vertices, \
             prog_interval, \
+            store_policy | knn_method, \
             rrt_dir, \
-            store_policy, \
-            knn_method, \
             temp_reporter, \
             max_results); \
          \
@@ -772,8 +758,7 @@ void CRSPlannerGUI::executePlanner() {
             goal_point, \
             max_vertices, \
             prog_interval, \
-            store_policy, \
-            knn_method, \
+            store_policy | knn_method, \
             temp_reporter, \
             max_results); \
          \
@@ -811,8 +796,7 @@ void CRSPlannerGUI::executePlanner() {
             0.1, \
             max_vertices, \
             prog_interval, \
-            store_policy, \
-            knn_method, \
+            store_policy | knn_method, \
             temp_reporter, \
             max_results); \
          \
@@ -847,19 +831,18 @@ void CRSPlannerGUI::executePlanner() {
             workspace, \
             start_point, \
             goal_point, \
-            0.02, \
-            0.0, \
-            10.0, \
-            max_travel, \
             max_vertices, \
             prog_interval, \
-            store_policy, \
-            knn_method, \
-            ReaK::pp::LAZY_COLLISION_CHECKING, \
-            ReaK::pp::PLAN_WITH_VORONOI_PULL, \
+            store_policy | knn_method, \
+            ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ReaK::pp::PLAN_WITH_VORONOI_PULL, \
             temp_reporter, \
-            max_results, \
-            3.0); \
+            max_results); \
+         \
+        sbastar_plan.set_initial_key_threshold(0.02); \
+        sbastar_plan.set_initial_density_threshold(0.0); \
+        sbastar_plan.set_initial_relaxation(10.0); \
+        sbastar_plan.set_initial_SA_temperature(3.0); \
+        sbastar_plan.set_sampling_radius( max_travel ); \
          \
         ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
         std::cout << "The shortest distance is: " << workspace_planner.get_best_solution_distance() << std::endl; \

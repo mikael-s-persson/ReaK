@@ -244,19 +244,6 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
       jt_space,
       0.05);
     temp_reporter.add_traced_frame(r_info->builder.arm_joint_6_end);
-    /*
-    ReaK::pp::rrt_path_planner<workspace_type, frame_reporter_type>
-      workspace_planner(
-        workspace,
-        start_point,
-        goal_point,
-        2000,
-        1000,
-        ReaK::pp::UNIDIRECTIONAL_RRT,
-        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-        ReaK::pp::DVP_BF2_TREE_KNN,
-        temp_reporter,
-        5);*/
     
     ReaK::pp::rrtstar_path_planner<workspace_type, frame_reporter_type>
       workspace_planner(
@@ -265,9 +252,8 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
         goal_point,
         3000,
         1000,
-        ReaK::pp::UNIDIRECTIONAL_RRT,
-        ReaK::pp::ADJ_LIST_MOTION_GRAPH,
-        ReaK::pp::DVP_BF2_TREE_KNN,
+        ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
+        ReaK::pp::UNIDIRECTIONAL_PLANNING,
         temp_reporter,
         100);
     

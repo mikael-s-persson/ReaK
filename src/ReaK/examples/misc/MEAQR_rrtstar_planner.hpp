@@ -246,14 +246,15 @@ class MEAQR_rrtstar_planner : public sample_based_planner< path_planner_base< ME
      * \param aProgressInterval The number of new samples between each "progress report".
      * \param aBiDirFlag An integer flag representing the directionality of the RRT algorithm 
      *                   used (either UNIDIRECTIONAL_RRT or BIDIRECTIONAL_RRT).
-     * \param aGraphKindFlag An integer flag representing the kind of motion graph to use in the 
-     *                       RRT algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
-     * \param aKNNMethodFlag An integer flag representing the kind of KNN method to use for nearest
-     *                       neighbor queries in the graph. Can be LINEAR_SEARCH_KNN, DVP_BF2_TREE_KNN,
-     *                       DVP_BF4_TREE_KNN, DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN when the 
-     *                       motion graph is of kind ADJ_LIST_MOTION_GRAPH. Can be DVP_ALT_BF2_TREE_KNN,
-     *                       DVP_ALT_BF4_TREE_KNN, DVP_ALT_COB2_TREE_KNN, or DVP_ALT_COB4_TREE_KNN when 
-     *                       the motion graph is of kind DVP_ADJ_LIST_MOTION_GRAPH.
+     * \param aDataStructureFlags An integer flags representing the kind of motion graph data-structure to use in the 
+     *                            planning algorithm. Can be ADJ_LIST_MOTION_GRAPH or DVP_ADJ_LIST_MOTION_GRAPH.
+     *                            Any combination of those two and of KNN method flags to use for nearest
+     *                            neighbor queries in the graph. KNN method flags can be LINEAR_SEARCH_KNN, 
+     *                            DVP_BF2_TREE_KNN, DVP_BF4_TREE_KNN, DVP_COB2_TREE_KNN, or DVP_COB4_TREE_KNN.
+     *                            See path_planner_options.hpp documentation.
+     * \param aPlanningMethodFlags The integer flags that identify various options to use with this planner.
+     *                             The options available include only USE_BRANCH_AND_BOUND_PRUNING_FLAG. 
+     *                             See path_planner_options.hpp documentation.
      * \param aReporter The SBPP reporter object to use to report results and progress.
      * \param aMaxResultCount The maximum number of successful start-goal connections to make before 
      *                        stopping the path planner (the higher the number the more likely that a 
@@ -264,16 +265,16 @@ class MEAQR_rrtstar_planner : public sample_based_planner< path_planner_base< ME
                           const point_type& aGoalPos = point_type(),
                           std::size_t aMaxVertexCount = 5000, 
                           std::size_t aProgressInterval = 100,
-                          std::size_t aKNNMethodFlag = DVP_BF2_TREE_KNN,
+                          std::size_t aDataStructureFlags = ADJ_LIST_MOTION_GRAPH | DVP_BF2_TREE_KNN,
+                          std::size_t aPlanningMethodFlags = UNIDIRECTIONAL_PLANNING,
                           SBPPReporter aReporter = SBPPReporter(),
                           std::size_t aMaxResultCount = 50) :
-                          base_type("MEAQR_rrtstar_planner", aWorld, aMaxVertexCount, aProgressInterval),
+                          base_type("MEAQR_rrtstar_planner", aWorld, aMaxVertexCount, aProgressInterval, aDataStructureFlags, aPlanningMethodFlags),
                           m_reporter(aReporter),
                           m_start_pos(aStartPos),
                           m_goal_pos(aGoalPos),
                           max_num_results(aMaxResultCount),
                           has_reached_max_vertices(false),
-                          m_knn_flag(aKNNMethodFlag),
                           m_solutions() { };
     
     virtual ~MEAQR_rrtstar_planner() { };
@@ -290,9 +291,6 @@ class MEAQR_rrtstar_planner : public sample_based_planner< path_planner_base< ME
     std::size_t get_max_result_count() const { return max_num_results; };
     void set_max_result_count(std::size_t aMaxResultCount) { max_num_results = aMaxResultCount; };
     
-    std::size_t get_knn_flag() const { return m_knn_flag; };
-    void set_knn_flag(std::size_t aKNNMethodFlag) { m_knn_flag = aKNNMethodFlag; };
-    
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
@@ -303,8 +301,7 @@ class MEAQR_rrtstar_planner : public sample_based_planner< path_planner_base< ME
       A & RK_SERIAL_SAVE_WITH_NAME(m_reporter)
         & RK_SERIAL_SAVE_WITH_NAME(m_start_pos)
         & RK_SERIAL_SAVE_WITH_NAME(m_goal_pos)
-        & RK_SERIAL_SAVE_WITH_NAME(max_num_results)
-        & RK_SERIAL_SAVE_WITH_NAME(m_knn_flag);
+        & RK_SERIAL_SAVE_WITH_NAME(max_num_results);
     };
     
     // NOTE: This is the same as rrtstar_path_planner
@@ -313,8 +310,7 @@ class MEAQR_rrtstar_planner : public sample_based_planner< path_planner_base< ME
       A & RK_SERIAL_LOAD_WITH_NAME(m_reporter)
         & RK_SERIAL_LOAD_WITH_NAME(m_start_pos)
         & RK_SERIAL_LOAD_WITH_NAME(m_goal_pos)
-        & RK_SERIAL_LOAD_WITH_NAME(max_num_results)
-        & RK_SERIAL_LOAD_WITH_NAME(m_knn_flag);
+        & RK_SERIAL_LOAD_WITH_NAME(max_num_results);
       has_reached_max_vertices = false;
       m_solutions.clear();
     };
@@ -503,7 +499,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
   v_p.distance_accum = 0.0;
   add_vertex(v_p, motion_graph);
   
-  if(this->m_knn_flag == LINEAR_SEARCH_KNN) {
+  if((this->m_data_structure_flags & KNN_METHOD_MASK) == LINEAR_SEARCH_KNN) {
     MEAQR_rrtstar_visitor<StateSpace, StateSpaceSystem, StateSpaceSampler, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro());
     
     ReaK::graph::detail::generate_rrt_star_loop(
@@ -532,7 +528,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
 //         5, std::numeric_limits<double>::infinity()),
       this->m_max_vertex_count);
     
-  } else if(this->m_knn_flag == DVP_BF2_TREE_KNN) {
+  } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
     
     typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 2, 
                      random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<2>, 
@@ -571,7 +567,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
 //         5, std::numeric_limits<double>::infinity()),
       this->m_max_vertex_count);
     
-  } else if(this->m_knn_flag == DVP_BF4_TREE_KNN) {
+  } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
     
     typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 4, 
                      random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<4>, 
@@ -609,7 +605,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
 //         5, std::numeric_limits<double>::infinity()),
       this->m_max_vertex_count);
     
-  } else if(this->m_knn_flag == DVP_COB2_TREE_KNN) {
+  } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
     
     typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 2, 
                      random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<2>, 
@@ -648,7 +644,7 @@ shared_ptr< seq_path_base< typename MEAQR_rrtstar_planner<StateSpace, StateSpace
 //         5, std::numeric_limits<double>::infinity()),
       this->m_max_vertex_count);
     
-  } else if(this->m_knn_flag == DVP_COB4_TREE_KNN) {
+  } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
     
     
     typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, 4, 
