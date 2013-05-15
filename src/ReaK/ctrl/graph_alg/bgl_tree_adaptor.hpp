@@ -40,45 +40,30 @@
 #include <vector>
 
 #include "tree_concepts.hpp"
+#include "pooled_adjacency_list.hpp"
 
 
 namespace ReaK {
 
 namespace graph {
 
-struct bgl_tree_storage { };
 
-template <typename VertexProperty, 
-          typename EdgeProperty = boost::no_property, 
-	  typename TreeStorage = bgl_tree_storage>
-struct tree_storage {
-  typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
-                                 VertexProperty,
-		                 EdgeProperty,
-		                 boost::vecS> type;
-};
-
-template <typename TreeStorage = bgl_tree_storage>
-struct tree_storage_traits :
-  boost::adjacency_list_traits< boost::vecS, boost::listS, boost::bidirectionalS, boost::vecS > { };
-
-template <typename VertexProperty, typename EdgeProperty>
-struct tree_traits< boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
-                                           VertexProperty, EdgeProperty, boost::vecS> > {
-  class child_vertex_iterator {
+namespace detail {
+  
+  template <typename Graph>
+  class child_vertex_iter_impl {
     public:
-      typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
-                                   VertexProperty, EdgeProperty, boost::vecS> graph_type;
+      typedef Graph graph_type;
       typedef typename boost::graph_traits< graph_type >::out_edge_iterator out_edge_iter;
     private:
       out_edge_iter ei;
       graph_type const * g;
     public:
       
-      child_vertex_iterator() : ei(), g(NULL) { };
-      child_vertex_iterator(const out_edge_iter& aEi, graph_type const * aG) : ei(aEi), g(aG) { };
+      child_vertex_iter_impl() : ei(), g(NULL) { };
+      child_vertex_iter_impl(const out_edge_iter& aEi, graph_type const * aG) : ei(aEi), g(aG) { };
       
-      typedef child_vertex_iterator self;
+      typedef child_vertex_iter_impl<Graph> self;
       
       typedef std::ptrdiff_t difference_type;
       typedef typename boost::graph_traits< graph_type >::vertex_descriptor value_type;
@@ -99,13 +84,13 @@ struct tree_traits< boost::adjacency_list< boost::vecS, boost::listS, boost::bid
       self operator--(int) { self result(*this); --ei; return result; };
       
       friend self operator+(const self& lhs, difference_type i) {
-	return self(lhs.ei + i, lhs.g);
+        return self(lhs.ei + i, lhs.g);
       };
       friend self operator+(difference_type i, const self& rhs) {
-	return self(rhs.ei + i, rhs.g);
+        return self(rhs.ei + i, rhs.g);
       };
       friend self operator-(const self& lhs, difference_type i) {
-	return self(lhs.ei - i, lhs.g);
+        return self(lhs.ei - i, lhs.g);
       };
       friend difference_type operator-(const self& lhs, const self& rhs) {
         return difference_type(lhs.ei - rhs.ei);
@@ -119,6 +104,48 @@ struct tree_traits< boost::adjacency_list< boost::vecS, boost::listS, boost::bid
       pointer operator->() { return &target(*ei, *g); };
       
   };
+  
+  
+};
+
+
+struct bgl_tree_storage { };
+
+template <typename VertexProperty, 
+          typename EdgeProperty = boost::no_property, 
+	  typename TreeStorage = bgl_tree_storage>
+struct tree_storage {
+  typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
+                                 VertexProperty,
+		                 EdgeProperty,
+                                 boost::no_property,
+		                 boost::listS> type;
+};
+
+template <typename TreeStorage = bgl_tree_storage>
+struct tree_storage_traits :
+  boost::adjacency_list_traits< boost::vecS, boost::listS, boost::bidirectionalS, boost::listS > { };
+
+template <typename VertexProperty, typename EdgeProperty>
+struct tree_traits< boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
+                                           VertexProperty, EdgeProperty, boost::no_property, boost::listS> > {
+  typedef detail::child_vertex_iter_impl< boost::adjacency_list< 
+    boost::vecS, boost::listS, boost::bidirectionalS,
+    VertexProperty, EdgeProperty, boost::no_property, boost::listS> > child_vertex_iterator;
+};
+
+
+
+struct bgl_pooled_tree_storage { };
+
+template <typename VertexProperty, typename EdgeProperty>
+struct tree_storage< VertexProperty, EdgeProperty, bgl_pooled_tree_storage > {
+  typedef boost::pooled_adjacency_list< boost::bidirectionalS, VertexProperty, EdgeProperty> type;
+};
+
+template <typename VertexProperty, typename EdgeProperty>
+struct tree_traits< boost::pooled_adjacency_list< boost::bidirectionalS, VertexProperty, EdgeProperty> > {
+  typedef detail::child_vertex_iter_impl< boost::pooled_adjacency_list< boost::bidirectionalS, VertexProperty, EdgeProperty> > child_vertex_iterator;
 };
 
 

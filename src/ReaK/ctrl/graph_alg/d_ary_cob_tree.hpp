@@ -160,7 +160,7 @@ namespace detail {
 template <typename VertexProperties,
           std::size_t Arity = 2,
           typename EdgeProperties = boost::no_property,
-	  std::size_t CuttingDepth = 8 >
+	  std::size_t CuttingDepth = 4 >
 class d_ary_cob_tree
 {
   public:
@@ -1163,7 +1163,7 @@ std::pair<
   vertices( const d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>& g) {
   typedef typename d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::vertex_iterator VIter;
   return std::make_pair(VIter(0),
-			VIter(g.capacity()));
+			VIter(g.capacity() / d_ary_cob_tree<VertexProperties,Arity,EdgeProperties,CuttingDepth>::BlockVertexCount));
 };
 
 template <typename VertexProperties,
