@@ -1049,6 +1049,21 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nc_selector)\
       );
   
+#define RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBASTAR_FUNCTION \
+    ReaK::graph::generate_lazy_bnb_sbastar( \
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, start_node, this->m_space->get_super_space(), vis, \
+        heuristic_map,  \
+        pos_map,  \
+        weight_map, \
+        dens_map,  \
+        cons_map,  \
+        dist_map, \
+        pred_map,  \
+        get(&VertexProp::key_value, motion_graph),  \
+        nc_selector), \
+      goal_node \
+      );
   
 #define RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_sbarrtstar( \
@@ -1082,10 +1097,28 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nc_selector), \
       get(random_sampler, this->m_space->get_super_space()), \
       this->m_SA_init_temperature);
+  
+  
+#define RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBARRTSTAR_FUNCTION \
+    ReaK::graph::generate_lazy_bnb_sbarrtstar( \
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, start_node, this->m_space->get_super_space(), vis, \
+        heuristic_map,  \
+        pos_map,  \
+        weight_map, \
+        dens_map,  \
+        cons_map,  \
+        dist_map, \
+        pred_map,  \
+        get(&VertexProp::key_value, motion_graph),  \
+        nc_selector), \
+      goal_node, \
+      get(random_sampler, this->m_space->get_super_space()), \
+      this->m_SA_init_temperature);
    
-   
-   
-   
+  
+  
+  
 #define RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION \
     ReaK::graph::generate_anytime_sbastar( \
       ReaK::graph::make_sbastar_bundle( \
@@ -1115,6 +1148,23 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector), \
+      this->m_init_relaxation);
+  
+  
+#define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBASTAR_FUNCTION \
+    ReaK::graph::generate_anytime_lazy_bnb_sbastar( \
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, start_node, this->m_space->get_super_space(), vis, \
+        heuristic_map,  \
+        pos_map,  \
+        weight_map, \
+        dens_map,  \
+        cons_map,  \
+        dist_map, \
+        pred_map,  \
+        get(&VertexProp::key_value, motion_graph),  \
+        nc_selector), \
+      goal_node, \
       this->m_init_relaxation);
   
   
@@ -1150,8 +1200,26 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         nc_selector), \
       get(random_sampler, this->m_space->get_super_space()), \
       this->m_init_relaxation, this->m_SA_init_temperature);
-      
-    
+  
+  
+#define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBARRTSTAR_FUNCTION \
+    ReaK::graph::generate_anytime_lazy_bnb_sbarrtstar( \
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, start_node, this->m_space->get_super_space(), vis, \
+        heuristic_map,  \
+        pos_map,  \
+        weight_map, \
+        dens_map,  \
+        cons_map,  \
+        dist_map, \
+        pred_map,  \
+        get(&VertexProp::key_value, motion_graph),  \
+        nc_selector), \
+      goal_node, \
+      get(random_sampler, this->m_space->get_super_space()), \
+      this->m_init_relaxation, this->m_SA_init_temperature);
+  
+  
 #define RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION \
       if(((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_ANYTIME_HEURISTIC) && (this->m_init_relaxation > 1e-6)) { \
         if((this->m_planning_method_flags & COLLISION_CHECKING_POLICY_MASK) == EAGER_COLLISION_CHECKING) { \
@@ -1162,9 +1230,17 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
           }; \
         } else { /* assume lazy collision checking */ \
           if((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) { \
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION \
+            if(this->m_planning_method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) { \
+              RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBARRTSTAR_FUNCTION \
+            } else { /* assume nominal method only. */ \
+              RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION \
+            }; \
           } else { /* assume nominal method only. */ \
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION \
+            if(this->m_planning_method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) { \
+              RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBASTAR_FUNCTION \
+            } else { /* assume nominal method only. */ \
+              RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION \
+            }; \
           }; \
         }; \
       } else { \
@@ -1176,9 +1252,17 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
           }; \
         } else { /* assume lazy collision checking */ \
           if((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) { \
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION \
+            if(this->m_planning_method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) { \
+              RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBARRTSTAR_FUNCTION \
+            } else { /* assume nominal method only. */ \
+              RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION \
+            }; \
           } else { /* assume nominal method only. */ \
-            RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION \
+            if(this->m_planning_method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) { \
+              RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBASTAR_FUNCTION \
+            } else { /* assume nominal method only. */ \
+              RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION \
+            }; \
           }; \
         }; \
       };

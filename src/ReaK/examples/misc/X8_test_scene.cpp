@@ -165,7 +165,6 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
         r_info->X8_plan_params.prog_interval,
         ReaK::pp::ADJ_LIST_MOTION_GRAPH | r_info->X8_plan_params.knn_method,
         ReaK::pp::UNIDIRECTIONAL_PLANNING,
-        r_info->X8_plan_params.knn_method,
         temp_reporter,
         r_info->X8_plan_params.max_results);
       

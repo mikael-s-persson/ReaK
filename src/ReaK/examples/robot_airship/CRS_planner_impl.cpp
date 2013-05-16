@@ -838,11 +838,11 @@ void CRSPlannerGUI::executePlanner() {
             temp_reporter, \
             max_results); \
          \
-        sbastar_plan.set_initial_key_threshold(0.02); \
-        sbastar_plan.set_initial_density_threshold(0.0); \
-        sbastar_plan.set_initial_relaxation(10.0); \
-        sbastar_plan.set_initial_SA_temperature(3.0); \
-        sbastar_plan.set_sampling_radius( max_travel ); \
+        workspace_planner.set_initial_key_threshold(0.02); \
+        workspace_planner.set_initial_density_threshold(0.0); \
+        workspace_planner.set_initial_relaxation(10.0); \
+        workspace_planner.set_initial_SA_temperature(3.0); \
+        workspace_planner.set_sampling_radius( max_travel ); \
          \
         ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
         std::cout << "The shortest distance is: " << workspace_planner.get_best_solution_distance() << std::endl; \
