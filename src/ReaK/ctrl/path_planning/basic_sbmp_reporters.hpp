@@ -556,7 +556,7 @@ struct least_cost_sbmp_report : public shared_object {
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
     shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
     A & RK_SERIAL_LOAD_WITH_NAME(next_reporter);
-    current_best = std::numeric_limits<double>::infinity();
+    current_best = 1e10;
   };
   
   RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460010,1,"least_cost_sbmp_report",shared_object)

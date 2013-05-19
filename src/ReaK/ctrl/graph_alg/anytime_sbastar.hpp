@@ -193,8 +193,10 @@ namespace detail {
       
       typedef typename boost::graph_traits<Graph>::vertex_iterator VIter;
       VIter vi, vi_end;
-      for(boost::tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
-        requeue_vertex(*vi, g);
+      for(boost::tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
+        if(is_vertex_valid(*vi,g))
+          requeue_vertex(*vi, g);
+      };
     };
     
     template <typename Graph>

@@ -55,6 +55,10 @@ add_executable(unit_test_trees "${SRCROOT}${RKGRAPHALGDIR}/unit_test_trees.cpp")
 setup_custom_test_program(unit_test_trees "${SRCROOT}${RKGRAPHALGDIR}")
 target_link_libraries(unit_test_trees reak_core ${EXTRA_SYSTEM_LIBS})
 
+add_executable(unit_test_graphs "${SRCROOT}${RKGRAPHALGDIR}/unit_test_graphs.cpp")
+setup_custom_test_program(unit_test_graphs "${SRCROOT}${RKGRAPHALGDIR}")
+target_link_libraries(unit_test_graphs reak_core ${EXTRA_SYSTEM_LIBS})
+
 add_executable(unit_test_assoc_containers "${SRCROOT}${RKGRAPHALGDIR}/unit_test_assoc_containers.cpp")
 setup_custom_test_program(unit_test_assoc_containers "${SRCROOT}${RKGRAPHALGDIR}")
 target_link_libraries(unit_test_assoc_containers reak_core ${EXTRA_SYSTEM_LIBS})

@@ -71,40 +71,53 @@ namespace po = boost::program_options;
 typedef ReaK::pp::ptrobot2D_test_world TestTopology;
 typedef ReaK::pp::timing_sbmp_report< ReaK::pp::least_cost_sbmp_report<> > MCReporterType;
 
+template <typename PlannerType>
 void run_monte_carlo_tests(
     std::size_t mc_run_count,
     std::size_t mc_num_records,
-    ReaK::pp::sample_based_planner< ReaK::pp::path_planner_base<TestTopology> >& planner,
+//     ReaK::pp::sample_based_planner< ReaK::pp::path_planner_base<TestTopology> >& planner,
+    const PlannerType& planner,
     std::stringstream& time_rec_ss,
     std::stringstream& cost_rec_ss,
     std::ostream& result_output) {
-  std::vector< std::size_t > vertex_counts(mc_num_records, 0);
+  std::vector< double > vertex_counts(mc_num_records, 0.0);
   std::vector< std::size_t > num_remaining_planners(mc_num_records, 0);
   std::vector< std::size_t > num_successful_planners(mc_num_records, 0);
   
   std::vector< double > time_values(mc_num_records, 0.0);
-  std::vector< double > best_costs(mc_num_records, 0.0);
-  std::vector< double > worst_costs(mc_num_records, 1.0e10);
+  std::vector< double > best_costs(mc_num_records, 1.0e10);
+  std::vector< double > worst_costs(mc_num_records, 0.0);
   std::vector< double > avg_costs(mc_num_records, 0.0);
   
+  cost_rec_ss << std::fixed;
+  
   for(std::size_t i = 0; i < mc_run_count; ++i) {
+    time_rec_ss.clear();
+    time_rec_ss.seekg(0, time_rec_ss.end);
+    cost_rec_ss.clear();
+    cost_rec_ss.seekg(0, cost_rec_ss.end);
     
-    planner.solve_path();
+    PlannerType planner_tmp = planner;
     
-    std::size_t v_count, t_val; 
+    planner_tmp.solve_path();
+    
+    std::size_t v_count = 0, t_val = 0; 
+    std::string tmp;
     std::size_t j = 0;
-    while(time_rec_ss >> v_count) {
-      time_rec_ss >> t_val;
-      vertex_counts[j] = v_count;
+    while( std::getline(time_rec_ss, tmp) && (tmp.size()) ) {
+      std::stringstream ss_tmp(tmp);
+      ss_tmp >> v_count >> t_val;
+      vertex_counts[j] = (double(v_count) + double(num_remaining_planners[j]) * vertex_counts[j]) / double(num_remaining_planners[j] + 1);
       time_values[j] = (double(t_val) + double(num_remaining_planners[j]) * time_values[j]) / double(num_remaining_planners[j] + 1);
       num_remaining_planners[j] += 1; 
       ++j;
     };
     
-    double c_val;
+    double c_val = 1e10;
     j = 0;
-    while(cost_rec_ss >> v_count) {
-      cost_rec_ss >> c_val;
+    while( std::getline(cost_rec_ss, tmp) && (tmp.size()) ) {
+      std::stringstream ss_tmp(tmp);
+      ss_tmp >> v_count >> c_val;
       if(c_val < best_costs[j])
         best_costs[j] = c_val;
       if(c_val > worst_costs[j])
@@ -129,7 +142,8 @@ void run_monte_carlo_tests(
     };
   };
   for(std::size_t i = 0; i < mc_num_records; ++i) {
-    result_output << std::setw(9) << vertex_counts[i] 
+    result_output << std::setw(9) << i 
+           << " " << std::setw(9) << vertex_counts[i] 
            << " " << std::setw(9) << num_remaining_planners[i] 
            << " " << std::setw(9) << num_successful_planners[i] 
            << " " << std::setw(9) << time_values[i] 

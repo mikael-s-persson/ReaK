@@ -62,6 +62,7 @@
 #include "graph_alg/bgl_tree_adaptor.hpp"
 #include "graph_alg/bgl_more_property_maps.hpp"
 #include "graph_alg/pooled_adjacency_list.hpp"
+#include "graph_alg/bgl_tree_adaptor.hpp"
 #include "dvp_layout_adjacency_list.hpp"
 #include "metric_space_search.hpp"
 #include "topological_search.hpp"

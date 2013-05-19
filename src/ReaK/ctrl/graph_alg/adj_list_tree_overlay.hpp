@@ -848,7 +848,7 @@ class alt_graph_view {
     bool is_vertex_valid_impl(vertex_descriptor u) const {
       if( ( u != null_vertex() ) &&
 	  ( m_alt->m_adj_list[u].tree_vertex != m_alt->m_tree.null_vertex() ) &&
-	  is_vertex_valid(m_alt->m_adj_list[u].tree_vertex) )
+	  is_vertex_valid(m_alt->m_adj_list[u].tree_vertex, m_alt->m_tree) )
 	return true;
       else
 	return false;
@@ -887,7 +887,7 @@ class alt_graph_view {
 	vertex_descriptor v_end = reinterpret_cast<vertex_descriptor>(num_vertices(m_alt->m_adj_list));
 	while(!m_alt->m_available_pnodes.empty()) {
 	  vertex_descriptor v = m_alt->m_available_pnodes.top();
-	  while( ( v_end > v ) && ( !is_vertex_valid(--v_end) ) )
+	  while( ( v_end > v ) && ( !is_vertex_valid_impl(--v_end) ) )
 	    /* nothing */;
 	  if(v > v_end) {
 	    ++v_end;

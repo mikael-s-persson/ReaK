@@ -343,15 +343,15 @@ namespace detail {
         PositionValue p_new; Vertex x_near; EdgeProp eprop;
         boost::tie(x_near, p_new, eprop) = sba_generate_node(u, g, sba_vis, sba_vis.m_position);
         
+        // then push it back on the OPEN queue.
+        sba_vis.requeue_vertex(u,g);
+        
         if(x_near != boost::graph_traits<Graph>::null_vertex()) {
           connect_vertex(p_new, x_near, eprop, g, 
                           super_space, sba_vis, sba_vis.m_position, 
                           sba_vis.m_distance, sba_vis.m_predecessor, 
                           sba_vis.m_weight, select_neighborhood);
         };
-        
-        // then push it back on the OPEN queue.
-        sba_vis.requeue_vertex(u,g);
         
       }; // end while  (the queue is either empty or it contains vertices that still have low key values.
       

@@ -526,17 +526,40 @@ class dvp_tree_impl
     /* NOTE This is a non-recursive version. */
     /* This function finds the tree-vertex with the given key-value and position. */
     vertex_type get_vertex(key_type aKey, const point_type& aPoint, vertex_type aNode) const {
+      vertex_type aAlternateBranch = boost::graph_traits<tree_indexer>::null_vertex();
+//       std::cout << "\n ------ Looking for node " << aKey << " at position: " << aPoint << std::endl;
       while(get(m_key, get(boost::vertex_raw_property,m_tree,aNode)) != aKey) { 
         distance_type current_dist = m_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,aNode)), *m_space);
+//         std::cout << " ---- Looking at node " << get(m_key, get(boost::vertex_raw_property,m_tree,aNode)) 
+//                   << " at position: " << get(m_position, get(boost::vertex_raw_property,m_tree,aNode))
+//                   << " at distance " << current_dist << std::endl;
         //first, locate the partition in which aPoint is:
-        if(out_degree(aNode,m_tree) == 0)
-          throw int(0);
+        if(out_degree(aNode,m_tree) == 0) {
+          if(aAlternateBranch != boost::graph_traits<tree_indexer>::null_vertex()) {
+            aNode = aAlternateBranch;
+            aAlternateBranch = boost::graph_traits<tree_indexer>::null_vertex();
+            continue;
+          } else
+            throw int(0);
+        };
         vertex_type result = aNode;
         out_edge_iter ei,ei_end;
         for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
+          if( ! is_edge_valid(*ei, m_tree) )
+            continue;
           result = target(*ei,m_tree);
-          if(current_dist <= get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
+//           std::cout << " -- Looking at child " << std::setw(6) << get(m_key, get(boost::vertex_raw_property, m_tree, result)) 
+//                     << " at distance " << get(m_mu, get(boost::edge_raw_property, m_tree, *ei)) << std::endl;
+          if(current_dist < get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
             break;
+          if(current_dist == get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) {
+            ++ei;
+            while( (ei != ei_end) && (!is_edge_valid(*ei, m_tree)) )
+              ++ei;
+            if(ei != ei_end)
+              aAlternateBranch = target(*ei,m_tree);
+            break;
+          };
         };
         aNode = result;
       };
@@ -914,7 +937,6 @@ class dvp_tree_impl
         u_parent = source(*(in_edges(u_node,m_tree).first), m_tree);
       };
       
-      out_edge_iter ei, ei_end;
       std::vector<vertex_property> prop_list;
       if( (out_degree(u_node, m_tree) > 0) ||
           (u_parent == boost::graph_traits<tree_indexer>::null_vertex()) ) {
@@ -959,7 +981,7 @@ class dvp_tree_impl
       try {
         u_node = get_vertex(u_key, u_pt, m_root);
       } catch (int err) {
-        std::cout << " Could not find the node to be removed from the DVP tree!" << std::endl;
+//         std::cout << " Could not find the node to be removed from the DVP tree!" << std::endl;
         return;
       };
       erase(u_node);
