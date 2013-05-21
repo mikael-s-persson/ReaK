@@ -111,49 +111,58 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Minimum Travel Interval (seconds):</string>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Allowed Travel Interval</string>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QDoubleSpinBox" name="min_interval_spinbox">
-         <property name="minimum">
-          <double>0.010000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>20.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.010000000000000</double>
-         </property>
-         <property name="value">
-          <double>0.100000000000000</double>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Maximum Travel Interval (seconds):</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QDoubleSpinBox" name="max_interval_spinbox">
-         <property name="minimum">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>100.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="value">
-          <double>1.000000000000000</double>
-         </property>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Minimum (seconds):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Maximum (seconds):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="min_interval_spinbox">
+            <property name="minimum">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>20.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.010000000000000</double>
+            </property>
+            <property name="value">
+             <double>0.100000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="max_interval_spinbox">
+            <property name="minimum">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>100.000000000000000</double>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>1.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
@@ -252,6 +261,69 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Motion-Graph Storage Policy:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="graph_storage_selection">
+         <property name="currentIndex">
+          <number>1</number>
+         </property>
+         <item>
+          <property name="text">
+           <string>Adjacency-List Graph</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Adjacency-List / DVP-Tree Overlay</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>Nearest-Neighbor Method:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="KNN_method_selection">
+         <property name="currentIndex">
+          <number>2</number>
+         </property>
+         <item>
+          <property name="text">
+           <string>Linear Search</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Binary Breadth-first DVP-Tree</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Quaternary Breadth-first DVP-Tree</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Binary Cache-Oblivious DVP-tree</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Quaternary Cache-Oblivious DVP-tree</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label_5">
          <property name="text">
           <string>Motion Planning Method:</string>
@@ -285,215 +357,244 @@
            <string>Flexible Anytime-Dynamic PRM (FADPRM)</string>
           </property>
          </item>
-         <item>
-          <property name="text">
-           <string>Lazy Sampling-based A* (LSBA*)</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>Directionality of the Planner:</string>
+        <widget class="QGroupBox" name="gen_option_group">
+         <property name="title">
+          <string>General Planner Options</string>
          </property>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_11">
+            <property name="text">
+             <string>Maximum Num. of Solutions:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Maximum Number of Nodes:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Progress-Report Interval:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QSpinBox" name="maxvertices_spinbox">
+            <property name="minimum">
+             <number>100</number>
+            </property>
+            <property name="maximum">
+             <number>20000</number>
+            </property>
+            <property name="singleStep">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>2000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="progress_interval_spinbox">
+            <property name="minimum">
+             <number>100</number>
+            </property>
+            <property name="maximum">
+             <number>10000</number>
+            </property>
+            <property name="singleStep">
+             <number>100</number>
+            </property>
+            <property name="value">
+             <number>500</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QSpinBox" name="maxsolutions_spinbox">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>200</number>
+            </property>
+            <property name="singleStep">
+             <number>5</number>
+            </property>
+            <property name="value">
+             <number>50</number>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="direction_selection">
-         <item>
-          <property name="text">
-           <string>Uni-directional</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Bi-directional</string>
-          </property>
-         </item>
+        <widget class="QGroupBox" name="spec_option_group">
+         <property name="title">
+          <string>Specific Planner Options</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="check_bidir">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Bi-directional</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_sa_temp">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>        Init. SA Temperature:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QCheckBox" name="check_bnb">
+            <property name="text">
+             <string>Use Branch-and-bound</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="check_lazy_collision">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Lazy Collision Checking</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="check_voronoi_pull">
+            <property name="text">
+             <string>Add a Voronoi Pull</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QDoubleSpinBox" name="init_sa_temp_spinbox">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>2.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="check_anytime_heuristic">
+            <property name="text">
+             <string>Anytime Heuristic</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_relaxation">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>        Init. Relaxation:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QDoubleSpinBox" name="init_relax_spinbox">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="singleStep">
+             <double>0.100000000000000</double>
+            </property>
+            <property name="value">
+             <double>5.000000000000000</double>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>Motion-Graph Storage Policy:</string>
+        <widget class="QGroupBox" name="prog_report_group">
+         <property name="title">
+          <string>Progress Report Options</string>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="graph_storage_selection">
-         <item>
-          <property name="text">
-           <string>Adjacency-List Graph</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Adjacency-List / DVP-Tree Overlay</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_8">
-         <property name="text">
-          <string>Nearest-Neighbor Method:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="KNN_method_selection">
-         <item>
-          <property name="text">
-           <string>Linear Search</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Binary Breadth-first DVP-Tree</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Quaternary Breadth-first DVP-Tree</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Binary Cache-Oblivious DVP-tree</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Quaternary Cache-Oblivious DVP-tree</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_9">
-         <property name="text">
-          <string>Maximum Number of Nodes:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSpinBox" name="maxvertices_spinbox">
-         <property name="minimum">
-          <number>100</number>
-         </property>
-         <property name="maximum">
-          <number>20000</number>
-         </property>
-         <property name="singleStep">
-          <number>100</number>
-         </property>
-         <property name="value">
-          <number>2000</number>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_10">
-         <property name="text">
-          <string>Progress-Report Interval (node-count):</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSpinBox" name="progress_interval_spinbox">
-         <property name="minimum">
-          <number>100</number>
-         </property>
-         <property name="maximum">
-          <number>10000</number>
-         </property>
-         <property name="singleStep">
-          <number>100</number>
-         </property>
-         <property name="value">
-          <number>500</number>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>Maximum Number of Solutions:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QSpinBox" name="maxsolutions_spinbox">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>200</number>
-         </property>
-         <property name="singleStep">
-          <number>5</number>
-         </property>
-         <property name="value">
-          <number>50</number>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_12">
-         <property name="text">
-          <string>Progress to be reported:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="check_print_timing">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Timing (printed to terminal)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="check_print_counter">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Node counter (printed to terminal)</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="check_print_graph">
-         <property name="text">
-          <string>Motion-graph (end-effector trace)</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="check_print_best">
-         <property name="text">
-          <string>Best Solution (end-effector trace)</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="check_print_allsol">
-         <property name="text">
-          <string>All Solutions (end-effector traces)</string>
-         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <item>
+           <widget class="QCheckBox" name="check_print_timing">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Timing (printed to terminal)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="check_print_counter">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
+            <property name="text">
+             <string>Node counter (printed to terminal)</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="check_print_graph">
+            <property name="text">
+             <string>Motion-graph (end-effector trace)</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="check_print_best">
+            <property name="text">
+             <string>Best Solution (end-effector trace)</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
@@ -971,6 +1072,11 @@
   <action name="actionSolutionsVisibleToggle">
    <property name="text">
     <string>SolutionsVisibleToggle</string>
+   </property>
+  </action>
+  <action name="actionUpdateAvailOptions">
+   <property name="text">
+    <string>UpdateAvailOptions</string>
    </property>
   </action>
  </widget>
@@ -1481,6 +1587,86 @@
     <hint type="sourcelabel">
      <x>178</x>
      <y>169</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_voronoi_pull</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>init_sa_temp_spinbox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>96</x>
+     <y>379</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>260</x>
+     <y>405</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_voronoi_pull</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_sa_temp</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>96</x>
+     <y>379</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>96</x>
+     <y>405</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_anytime_heuristic</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>label_relaxation</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>96</x>
+     <y>424</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>96</x>
+     <y>447</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_anytime_heuristic</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>init_relax_spinbox</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>96</x>
+     <y>424</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>260</x>
+     <y>447</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>planning_algo_selection</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>actionUpdateAvailOptions</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>132</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>

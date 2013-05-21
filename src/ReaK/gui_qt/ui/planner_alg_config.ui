@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PlannerAlgConfig</class>
+ <widget class="QWidget" name="PlannerAlgConfig">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>360</width>
+    <height>728</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Planning Algorithm Configuration</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>Motion-Graph Storage Policy:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="graph_storage_selection">
+     <item>
+      <property name="text">
+       <string>Adjacency-List Graph</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Adjacency-List / DVP-Tree Overlay</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_8">
+     <property name="text">
+      <string>Nearest-Neighbor Method:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="KNN_method_selection">
+     <item>
+      <property name="text">
+       <string>Linear Search</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Binary Breadth-first DVP-Tree</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Quaternary Breadth-first DVP-Tree</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Binary Cache-Oblivious DVP-tree</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Quaternary Cache-Oblivious DVP-tree</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>Motion Planning Method:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="planning_algo_selection">
+     <item>
+      <property name="text">
+       <string>Rapidly-Exploring Random Tree (RRT)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Rapidly-Exploring Random Tree Star (RRT*)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Probabilistic Road-Map (PRM)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Sampling-based A* (SBA*)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Flexible Anytime-Dynamic PRM (FADPRM)</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Lazy Sampling-based A* (LSBA*)</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="general_option_group">
+     <property name="title">
+      <string>General Planner Options</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Maximum Number of Nodes:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>Progress-Report Interval:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>Maximum Num. of Solutions:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="maxvertices_spinbox">
+        <property name="minimum">
+         <number>100</number>
+        </property>
+        <property name="maximum">
+         <number>20000</number>
+        </property>
+        <property name="singleStep">
+         <number>100</number>
+        </property>
+        <property name="value">
+         <number>2000</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QSpinBox" name="progress_interval_spinbox">
+        <property name="minimum">
+         <number>100</number>
+        </property>
+        <property name="maximum">
+         <number>10000</number>
+        </property>
+        <property name="singleStep">
+         <number>100</number>
+        </property>
+        <property name="value">
+         <number>500</number>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QSpinBox" name="maxsolutions_spinbox">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>200</number>
+        </property>
+        <property name="singleStep">
+         <number>5</number>
+        </property>
+        <property name="value">
+         <number>50</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Specific Planner Options</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Directionality:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="direction_selection">
+        <item>
+         <property name="text">
+          <string>Uni-directional</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Bi-directional</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Progress-Report Options</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QCheckBox" name="check_print_timing">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Timing (printed to terminal)</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="check_print_counter">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Node counter (printed to terminal)</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="check_print_graph">
+        <property name="text">
+         <string>Motion-graph (end-effector trace)</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="check_print_best">
+        <property name="text">
+         <string>Best Solution (end-effector trace)</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="check_print_allsol">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="text">
+         <string>All Solutions (end-effector traces)</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="execute_button">
+     <property name="text">
+      <string>Execute Motion Planning...</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>203</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+  <action name="actionExecute_Planner">
+   <property name="text">
+    <string>Execute_Planner</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>execute_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionExecute_Planner</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>179</x>
+     <y>501</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

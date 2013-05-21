@@ -2,6 +2,7 @@
 if(QT_FOUND)
   
   include( ${QT_USE_FILE} )
+  include_directories( AFTER "${CMAKE_BINARY_DIR}${RKGUIQTDIR}" )
   
 #   add_library(reak_gui_qt STATIC ${RKGUIQT_SOURCES})
 #   setup_custom_target(reak_gui_qt "${SRCROOT}${RKGUIQTDIR}")
@@ -39,7 +40,6 @@ if(QT_FOUND)
 #    "${RKGUIQTDIR}/objtree_qtmodel.hpp"
   )
     
-  include_directories( AFTER "${CMAKE_BINARY_DIR}${RKGUIQTDIR}" )
   
   add_library(reak_gui_qt STATIC ${RKGUIQT_SOURCES} ${RKGUIQT_MOC_SRCS} ${RKGUIQT_UI_HDRS})
   setup_custom_target(reak_gui_qt "${SRCROOT}${RKGUIQTDIR}")
@@ -53,6 +53,31 @@ if(QT_FOUND)
   target_link_libraries(test_objtreewidget reak_gui_qt reak_topologies reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
   target_link_libraries(test_objtreewidget ${QT_LIBRARIES})
   target_link_libraries(test_objtreewidget ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
+
+
+  if(COIN3D_FOUND)
+    set( PLANNER_3DVIEWER_UIS
+      "${SRCROOT}${RKGUIQTDIR}/ui/planner_3Dview.ui" 
+      "${SRCROOT}${RKGUIQTDIR}/ui/planner_space_config.ui"
+      "${SRCROOT}${RKGUIQTDIR}/ui/planner_alg_config.ui"
+    )
+    QT4_WRAP_UI( PLANNER_3DVIEWER_UI_HDRS ${PLANNER_3DVIEWER_UIS} )
+    set( PLANNER_3DVIEWER_MOC_HDRS
+      "${SRCROOT}${RKGUIQTDIR}/planner_3Dviewer.h"
+    )
+    QT4_WRAP_CPP( PLANNER_3DVIEWER_MOC_SRCS ${PLANNER_3DVIEWER_MOC_HDRS} )
+
+    set(PLANNER_3DVIEWER_SOURCES 
+      "${SRCROOT}${RKGUIQTDIR}/planner_3Dviewer.cpp"
+    )
+    
+    add_executable(planner_3Dviewer ${PLANNER_3DVIEWER_SOURCES} ${PLANNER_3DVIEWER_MOC_SRCS} ${PLANNER_3DVIEWER_UI_HDRS})
+    setup_custom_target(planner_3Dviewer "${SRCROOT}${RKGUIQTDIR}")
+    target_link_libraries(planner_3Dviewer reak_gui_qt reak_kte_coin reak_geom_coin reak_topologies reak_interp reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
+    target_link_libraries(planner_3Dviewer ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
+    target_link_libraries(planner_3Dviewer ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
+    
+  endif()
   
 endif()
 

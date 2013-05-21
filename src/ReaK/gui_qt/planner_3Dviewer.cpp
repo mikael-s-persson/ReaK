@@ -21,16 +21,16 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "CRS_planner_impl.h"
+#include "planner_3Dviewer.h"
 
 
 #include <QApplication>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QMainWindow>
+#include <QDir>
 
 
-
-#include "CRS_A465_geom_model.hpp"
 
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
@@ -57,100 +57,109 @@
 #include "kte_models/manip_dynamics_model.hpp"
 
 #include "serialization/xml_archiver.hpp"
+#include "serialization/bin_archiver.hpp"
+#include "serialization/protobuf_archiver.hpp"
 
+#include "topologies/joint_space_limits.hpp"
+
+/*
 #include "CRS_workspaces.hpp"
 #include "CRS_rrt_planners.hpp"
 #include "CRS_rrtstar_planners.hpp"
 #include "CRS_prm_planners.hpp"
 #include "CRS_fadprm_planners.hpp"
 #include "CRS_sbastar_planners.hpp"
+*/
 
 #include "optimization/optim_exceptions.hpp"
 
-#include <chrono>
+#include "base/chrono_incl.hpp"
 
-struct all_robot_info {
-  SoQtExaminerViewer * eviewer;
-  SoSeparator* sg_root;
-  ReaK::geom::oi_scene_graph* sg_robot_geom;
-  SoSwitch* sw_robot_geom;
-  ReaK::geom::oi_scene_graph* sg_robot_kin;
-  SoSwitch* sw_robot_kin;
-  ReaK::geom::oi_scene_graph* sg_airship_geom;
-  SoSwitch* sw_airship_geom;
-  ReaK::geom::oi_scene_graph* sg_lab_geom;
-  SoSwitch* sw_lab_geom;
-  ReaK::geom::oi_scene_graph* sg_proxy_geom;
-  SoSwitch* sw_proxy_geom;
+
+struct env_element {
+  ReaK::shared_ptr< ReaK::frame_3D<double> > mdl_base;
+  ReaK::shared_ptr< ReaK::kte::kte_map_chain > mdl_kin_chain;
+  ReaK::geom::oi_scene_graph* mdl_kin_chain_sg;
+  SoSwitch* mdl_kin_chain_sw;
+  ReaK::shared_ptr< ReaK::geom::colored_model_3D > mdl_render;
+  ReaK::geom::oi_scene_graph* mdl_render_sg;
+  SoSwitch* mdl_render_switch;
+  ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > mdl_proxy;
+};
+
+struct robot_element {
+  ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model > mdl_kin_model;
+  ReaK::shared_ptr< ReaK::pp::joint_limits_collection<double> > mdl_jt_limits;
+};
+
+struct plan_result_record {
   SoSwitch* sw_motion_graph;
   SoSwitch* sw_solutions;
-  ReaK::robot_airship::CRS_A465_geom_builder builder;
-  ReaK::shared_ptr< ReaK::kte::kte_map_chain > kin_chain;
-  ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model > manip_kin_mdl;
-  ReaK::shared_ptr< ReaK::pp::joint_limits_collection<double> > manip_jt_limits;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > robot_proxy;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > lab_proxy;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_pair_3D > robot_lab_proxy;
-  ReaK::shared_ptr< ReaK::frame_3D<double> > airship_frame;
-  ReaK::pose_3D<double> target_frame;
-  ReaK::shared_ptr< ReaK::kte::kte_map_chain > airship_chain;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > airship_proxy;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_pair_3D > robot_airship_proxy;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_pair_3D > lab_airship_proxy;
-  SoCoordinate3* l_r_proxy_line;
-  SoCoordinate3* r_a_proxy_line;
-  SoCoordinate3* l_a_proxy_line;
-  
-  std::vector< ReaK::vect<double,7> > bestsol_trajectory;
-  SoTimerSensor* animation_timer;
-  std::size_t animation_progress;
-  std::chrono::high_resolution_clock::time_point animation_last_render;
-} r_info;
+};
 
-
-void CRSPlannerGUI_animate_bestsol_trajectory(void*, SoSensor*) {
-  if(r_info.animation_progress < r_info.bestsol_trajectory.size()) {
-    if(std::chrono::high_resolution_clock::now() - r_info.animation_last_render >= std::chrono::milliseconds(100)) {
-      const ReaK::vect<double,7>& cur_pos = r_info.bestsol_trajectory[r_info.animation_progress];
-      std::cout << "animate point: " << cur_pos << std::endl;
-      r_info.builder.track_joint_coord->q = cur_pos[0];
-      r_info.builder.arm_joint_1_coord->q = cur_pos[1];
-      r_info.builder.arm_joint_2_coord->q = cur_pos[2];
-      r_info.builder.arm_joint_3_coord->q = cur_pos[3];
-      r_info.builder.arm_joint_4_coord->q = cur_pos[4]; 
-      r_info.builder.arm_joint_5_coord->q = cur_pos[5]; 
-      r_info.builder.arm_joint_6_coord->q = cur_pos[6]; 
-      r_info.kin_chain->doMotion();
-      r_info.animation_progress++;
-      r_info.animation_last_render = std::chrono::high_resolution_clock::now();
-    };
-  } else {
-    r_info.animation_timer->unschedule();
-    r_info.animation_progress = 0;
-    r_info.animation_last_render = std::chrono::high_resolution_clock::now();
-  };
+struct plan_animation {
+  ReaK::shared_ptr< robot_element > target;
+  std::vector< ReaK::vect_n<double> > anim_best_traj;
+  SoTimerSensor* animn_timer;
+  std::size_t anim_progress;
+  ReaKaux::chrono::high_resolution_clock::time_point anim_last_render;
 };
 
 
+static QString last_used_path;
 
-CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainWindow(parent,flags),
-                                                                          configs() {
+static ReaK::shared_ptr< ReaK::named_object > workspace;
+
+
+
+#if 0
+void Planner3DWindow_animate_best_traj(void* p_obj, SoSensor*) {
+  plan_animation* p_anim = static_cast<plan_animation*>(p_obj);
+  
+  if(p_anim->anim_progress < p_anim->anim_best_traj.size()) {
+    if(ReaKaux::chrono::high_resolution_clock::now() - p_anim->anim_last_render >= ReaKaux::chrono::milliseconds(100)) {
+      const ReaK::vect_n<double>& cur_pos = p_anim->anim_best_traj[p_anim->anim_progress];
+      std::cout << "animate point: " << cur_pos << std::endl;
+      p_anim->target->mdl_kin_model->setJointPositions(cur_pos);
+      p_anim->target->mdl_kin_model->doDirectMotion();
+      p_anim->anim_progress++;
+      p_anim->anim_last_render = ReaKaux::chrono::high_resolution_clock::now();
+    };
+  } else {
+    p_anim->anim_timer->unschedule();
+    p_anim->anim_progress = 0;
+    p_anim->anim_last_render = ReaKaux::chrono::high_resolution_clock::now();
+  };
+};
+#endif
+
+
+Planner3DWindow::Planner3DWindow( QWidget * parent, Qt::WindowFlags flags ) : 
+                                  QMainWindow(parent,flags),
+                                  space_configs(),
+                                  alg_configs() {
   setupUi(this);
   using namespace ReaK;
   
-  //connect(actionRun, SIGNAL(triggered()), this, SLOT(startPlanner()));
-  //connect(actionStop_4, SIGNAL(triggered()), this, SLOT(stopPlanner()));
-  //connect(actionLoad_World, SIGNAL(triggered()), this, SLOT(launchPlayerStage()));
-  //connect(actionLoad_Planner, SIGNAL(triggered()), this, SLOT(loadPathPlanner()));
-  //connect(actionLoad_Map, SIGNAL(triggered()), this, SLOT(loadWorldMap()));
-  //connect(actionClose_Map, SIGNAL(triggered()), this, SLOT(closeTestScenario()));
-  //connect(actionProperties, SIGNAL(triggered()), this, SLOT(setPlannerProperties()));
-  //onnect(actionSave_Results, SIGNAL(triggered()), this, SLOT(saveResults()));
+  space_configs_dock = new QDockWidget(tr("Topology"), this);
+  addDockWidget(Qt::LeftDockWidgetArea, space_configs_dock);
+  space_configs_widget = new QWidget(space_configs_dock);
+  space_configs_dock->setWidget(space_configs_widget);
+  space_configs.setupUi(space_configs_dock->widget());
   
-  //actionClose_Map->setEnabled(false);
-  //actionStart_Robot->setEnabled(false);
+  alg_configs_dock = new QDockWidget(tr("Planner"), this);
+  addDockWidget(Qt::LeftDockWidgetArea, alg_configs_dock);
+  alg_configs_widget = new QWidget(alg_configs_dock);
+  alg_configs_dock->setWidget(alg_configs_widget);
+  alg_configs.setupUi(alg_configs_dock->widget());
   
-  configs.setupUi(this->config_dock->widget());
+  tabifyDockWidget(space_configs_dock, alg_configs_dock);
+  
+  
+  connect(alg_configs.actionExecute_Planner, SIGNAL(triggered()), this, SLOT(executePlanner()));
+  
+  
+  /*
   connect(configs.actionStart_Robot, SIGNAL(triggered()), this, SLOT(startRobot()));
   connect(configs.actionExecutePlanner, SIGNAL(triggered()), this, SLOT(executePlanner()));
   connect(configs.actionJointChange, SIGNAL(triggered()), this, SLOT(onJointChange()));
@@ -163,10 +172,18 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   connect(configs.actionProxyVisibleToggle, SIGNAL(triggered()), this, SLOT(onProxyVisible()));
   connect(configs.actionMGVisibleToggle, SIGNAL(triggered()), this, SLOT(onMGVisible()));
   connect(configs.actionSolutionsVisibleToggle, SIGNAL(triggered()), this, SLOT(onSolutionsVisible()));
+  */
   
-  connect(configs.actionUpdateAvailOptions, SIGNAL(triggered()), this, SLOT(onUpdateAvailableOptions()));
+  connect(actionLoad_topology, SIGNAL(triggered()), this, SLOT(onLoadTopology()));
+  connect(actionLoad_robot, SIGNAL(triggered()), this, SLOT(onLoadRobotModel()));
   
   
+  SoQt::init(this->centralwidget);
+  
+  sg_root = new SoSeparator;
+  sg_root->ref();
+  
+#if 0
   r_info.animation_progress = 0;
   r_info.animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_bestsol_trajectory, NULL);
   
@@ -222,10 +239,7 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   
   
   
-  SoQt::init(this->centralwidget);
   
-  r_info.sg_root = new SoSeparator;
-  r_info.sg_root->ref();
   
   
   r_info.sw_robot_geom = new SoSwitch();
@@ -237,7 +251,7 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   r_info.sw_robot_geom->addChild(r_info.sg_robot_geom->getSceneGraph());
   r_info.sw_robot_geom->whichChild.setValue((configs.check_show_geom->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
   
-  r_info.sg_root->addChild(r_info.sw_robot_geom);
+  sg_root->addChild(r_info.sw_robot_geom);
   
   
   r_info.sw_robot_kin = new SoSwitch();
@@ -249,7 +263,7 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   r_info.sw_robot_kin->addChild(r_info.sg_robot_kin->getSceneGraph());
   r_info.sw_robot_kin->whichChild.setValue((configs.check_show_kinmdl->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
   
-  r_info.sg_root->addChild(r_info.sw_robot_kin);
+  sg_root->addChild(r_info.sw_robot_kin);
   
   
   r_info.sw_airship_geom = new SoSwitch();
@@ -261,7 +275,7 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   r_info.sw_airship_geom->addChild(r_info.sg_airship_geom->getSceneGraph());
   r_info.sw_airship_geom->whichChild.setValue((configs.check_show_target->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
   
-  r_info.sg_root->addChild(r_info.sw_airship_geom);
+  sg_root->addChild(r_info.sw_airship_geom);
   
   
   r_info.sw_lab_geom = new SoSwitch();
@@ -272,17 +286,17 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   r_info.sw_lab_geom->addChild(r_info.sg_lab_geom->getSceneGraph());
   r_info.sw_lab_geom->whichChild.setValue((configs.check_show_env->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
   
-  r_info.sg_root->addChild(r_info.sw_lab_geom);
+  sg_root->addChild(r_info.sw_lab_geom);
   
   
   r_info.sw_motion_graph = new SoSwitch();
   r_info.sw_motion_graph->whichChild.setValue((configs.check_show_motiongraph->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  r_info.sg_root->addChild(r_info.sw_motion_graph);
+  sg_root->addChild(r_info.sw_motion_graph);
   
   
   r_info.sw_solutions = new SoSwitch();
   r_info.sw_solutions->whichChild.setValue((configs.check_show_sol->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  r_info.sg_root->addChild(r_info.sw_solutions);
+  sg_root->addChild(r_info.sw_solutions);
   
   
   
@@ -368,25 +382,36 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   r_info.sw_proxy_geom->addChild(sep_la_pline);
   
   
-  r_info.sg_root->addChild(r_info.sw_proxy_geom);
+  sg_root->addChild(r_info.sw_proxy_geom);
   
   
   
   onJointChange();
   onTargetChange();
+#endif
   
+  eviewer = new SoQtExaminerViewer(this->centralwidget);
+  eviewer->setSceneGraph(sg_root);
+  eviewer->show();
   
-  r_info.eviewer = new SoQtExaminerViewer(this->centralwidget);
-  r_info.eviewer->setSceneGraph(r_info.sg_root);
-  r_info.eviewer->show();
+#if 0
   
   r_info.sg_robot_geom->enableAnchorUpdates();
   r_info.sg_robot_kin->enableAnchorUpdates();
   r_info.sg_airship_geom->enableAnchorUpdates();
+  
+#endif
 };
 
 
-CRSPlannerGUI::~CRSPlannerGUI() {
+Planner3DWindow::~Planner3DWindow() {
+  
+  delete space_configs_widget;
+  delete space_configs_dock;
+  delete alg_configs_widget;
+  delete alg_configs_dock;
+  
+#if 0
   
   r_info.sg_robot_geom->disableAnchorUpdates();
   r_info.sg_robot_kin->disableAnchorUpdates();
@@ -398,14 +423,19 @@ CRSPlannerGUI::~CRSPlannerGUI() {
   delete r_info.sg_lab_geom;
   
   delete r_info.animation_timer;
+#endif
   
-  delete r_info.eviewer;
-  r_info.sg_root->unref();
+  delete eviewer;
+  sg_root->unref();
+  
   SoQt::done();
+  
 };
 
 
-void CRSPlannerGUI::onJointChange() {
+#if 0
+
+void Planner3DWindow::onJointChange() {
   r_info.builder.track_joint_coord->q = double(configs.track_pos->value()) * 0.001;
   r_info.builder.arm_joint_1_coord->q = double(configs.joint1_pos->value()) * 0.001;
   r_info.builder.arm_joint_2_coord->q = double(configs.joint2_pos->value()) * 0.001;
@@ -417,7 +447,7 @@ void CRSPlannerGUI::onJointChange() {
   onProxyChange();
 };
 
-void CRSPlannerGUI::onTargetChange() {
+void Planner3DWindow::onTargetChange() {
   r_info.airship_frame->Position = ReaK::vect<double,3>(
     double(configs.target_x->value()) * 0.001, 
     double(configs.target_y->value()) * 0.001, 
@@ -446,35 +476,35 @@ void CRSPlannerGUI::onTargetChange() {
   onProxyChange();
 };
 
-void CRSPlannerGUI::onRobotVisible() {
+void Planner3DWindow::onRobotVisible() {
   r_info.sw_robot_geom->whichChild.setValue((configs.check_show_geom->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
-void CRSPlannerGUI::onRobotKinVisible() {
+void Planner3DWindow::onRobotKinVisible() {
   r_info.sw_robot_kin->whichChild.setValue((configs.check_show_kinmdl->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
-void CRSPlannerGUI::onTargetVisible() {
+void Planner3DWindow::onTargetVisible() {
   r_info.sw_airship_geom->whichChild.setValue((configs.check_show_target->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
-void CRSPlannerGUI::onEnvVisible() {
+void Planner3DWindow::onEnvVisible() {
   r_info.sw_lab_geom->whichChild.setValue((configs.check_show_env->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
-void CRSPlannerGUI::onProxyVisible() {
+void Planner3DWindow::onProxyVisible() {
   r_info.sw_proxy_geom->whichChild.setValue((configs.check_show_proxy->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
-void CRSPlannerGUI::onMGVisible() {
+void Planner3DWindow::onMGVisible() {
   r_info.sw_motion_graph->whichChild.setValue((configs.check_show_motiongraph->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
-void CRSPlannerGUI::onSolutionsVisible() {
+void Planner3DWindow::onSolutionsVisible() {
   r_info.sw_solutions->whichChild.setValue((configs.check_show_sol->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
-void CRSPlannerGUI::onProxyChange() {
+void Planner3DWindow::onProxyChange() {
   ReaK::shared_ptr< ReaK::geom::proximity_finder_3D > lr_pline = r_info.robot_lab_proxy->findMinimumDistance();
   if(lr_pline) {
     r_info.l_r_proxy_line->point.set1Value(0, lr_pline->getLastResult().mPoint1[0], lr_pline->getLastResult().mPoint1[1], lr_pline->getLastResult().mPoint1[2]);
@@ -494,9 +524,12 @@ void CRSPlannerGUI::onProxyChange() {
   };
 };
 
+#endif
 
 
-void CRSPlannerGUI::executePlanner() {
+void Planner3DWindow::executePlanner() {
+  
+#if 0
   
   ReaK::vect_n<double> jt_desired(7,0.0);
   if(configs.check_ik_goal->isChecked()) {
@@ -545,29 +578,9 @@ void CRSPlannerGUI::executePlanner() {
   std::size_t prog_interval = configs.progress_interval_spinbox->value();
   std::size_t max_results = configs.maxsolutions_spinbox->value();
   
-  std::size_t planning_options = ReaK::pp::UNIDIRECTIONAL_PLANNING;
-  
-  if(configs.check_bidir->isChecked())
-    planning_options |= ReaK::pp::BIDIRECTIONAL_PLANNING;
-  
-  if(configs.check_lazy_collision->isChecked())
-    planning_options |= ReaK::pp::LAZY_COLLISION_CHECKING;
-  
-  double init_SA_temp = -1.0;
-  if(configs.check_voronoi_pull->isChecked()) {
-    planning_options |= ReaK::pp::PLAN_WITH_VORONOI_PULL;
-    init_SA_temp = configs.init_sa_temp_spinbox->value();
-  };
-  
-  double init_relax = 0.0;
-  if(configs.check_anytime_heuristic->isChecked()) {
-    planning_options |= ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC;
-    init_relax = configs.init_relax_spinbox->value();
-  };
-  
-  if(configs.check_bnb->isChecked())
-    planning_options |= ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG;
-  
+  std::size_t rrt_dir = ReaK::pp::UNIDIRECTIONAL_PLANNING;
+  if(configs.direction_selection->currentIndex())
+    rrt_dir = ReaK::pp::BIDIRECTIONAL_PLANNING;
   
   std::size_t store_policy = ReaK::pp::ADJ_LIST_MOTION_GRAPH;
   if(configs.graph_storage_selection->currentIndex())
@@ -705,7 +718,7 @@ void CRSPlannerGUI::executePlanner() {
             max_vertices, \
             prog_interval, \
             store_policy | knn_method, \
-            planning_options, \
+            rrt_dir, \
             temp_reporter,  \
             max_results); \
          \
@@ -743,7 +756,7 @@ void CRSPlannerGUI::executePlanner() {
             max_vertices, \
             prog_interval, \
             store_policy | knn_method, \
-            planning_options, \
+            rrt_dir, \
             temp_reporter, \
             max_results); \
          \
@@ -856,14 +869,14 @@ void CRSPlannerGUI::executePlanner() {
             max_vertices, \
             prog_interval, \
             store_policy | knn_method, \
-            planning_options, \
+            ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ReaK::pp::PLAN_WITH_VORONOI_PULL, \
             temp_reporter, \
             max_results); \
          \
         workspace_planner.set_initial_key_threshold(0.02); \
         workspace_planner.set_initial_density_threshold(0.0); \
-        workspace_planner.set_initial_relaxation(init_relax); \
-        workspace_planner.set_initial_SA_temperature(init_SA_temp); \
+        workspace_planner.set_initial_relaxation(10.0); \
+        workspace_planner.set_initial_SA_temperature(3.0); \
         workspace_planner.set_sampling_radius( max_travel ); \
          \
         ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
@@ -1084,93 +1097,116 @@ void CRSPlannerGUI::executePlanner() {
   };
   
   r_info.sw_solutions->removeAllChildren();
-  if((configs.check_print_best->isChecked()) && (sol_seps.size())) {
+  if(configs.check_print_allsol->isChecked()) {
+    for(std::size_t i = 0; i < sol_seps.size(); ++i) {
+      r_info.sw_solutions->addChild(sol_seps[i]);
+      sol_seps[i]->unref();
+    };
+  } else if((configs.check_print_best->isChecked()) && (sol_seps.size())) {
     r_info.sw_solutions->addChild(sol_seps[0]);
     sol_seps[0]->unref();
   };
   
+#endif
+  
 };
 
-void CRSPlannerGUI::startRobot() {
+#if 0
+void Planner3DWindow::startRobot() {
   r_info.animation_progress = 0;
   r_info.animation_last_render = std::chrono::high_resolution_clock::now();
   r_info.animation_timer->schedule();
 };
+#endif
 
 
-void CRSPlannerGUI::onUpdateAvailableOptions() {
-  int plan_alg = configs.planning_algo_selection->currentIndex();
+void Planner3DWindow::onLoadTopology() {
+  QString fileName = QFileDialog::getOpenFileName(
+    this, 
+    tr("Open Topology..."),
+    last_used_path,
+    tr("ReaK Topologies (*.topo.rkx *.topo.rkb *.topo.pbuf)"));
   
-  switch(plan_alg) {
-    case 1:  // RRT*
-      configs.check_lazy_collision->setEnabled(false);
-      configs.check_lazy_collision->setChecked(true);
-      break;
-    case 3:  // SBA*
-      configs.check_lazy_collision->setEnabled(true);
-      configs.check_lazy_collision->setChecked(true);
-      break;
-    case 0:  // RRT
-    case 2:  // PRM
-    case 4:  // FADPRM
-    default:
-      configs.check_lazy_collision->setEnabled(false);
-      configs.check_lazy_collision->setChecked(false);
-      break;
+  QFileInfo fileInf(fileName);
+  
+  last_used_path = fileInf.absolutePath();
+  
+  QString fileExt = fileInf.completeSuffix();
+  
+  if( fileExt == tr("topo.rkx") ) {
+    ReaK::serialization::xml_iarchive in(fileName.toStdString());
+    
+    in >> workspace;
+    
+  } else if( fileExt == tr("topo.rkb") ) {
+    ReaK::serialization::bin_iarchive in(fileName.toStdString());
+    
+    in >> workspace;
+    
+  } else if( fileExt == tr("topo.pbuf") ) {
+    ReaK::serialization::protobuf_iarchive in(fileName.toStdString());
+    
+    in >> workspace;
+    
+  } else {
+    QMessageBox::information(this,
+                "File Type Not Supported!",
+                "Sorry, this file-type is not supported!",
+                QMessageBox::Ok);
   };
   
-  switch(plan_alg) {
-    case 0:  // RRT
-      configs.check_bidir->setEnabled(true);
-      break;
-    case 1:  // RRT*
-    case 2:  // PRM
-    case 3:  // SBA*
-    case 4:  // FADPRM
-    default:
-      configs.check_bidir->setEnabled(false);
-      configs.check_bidir->setChecked(false);
-      break;
-  };
+  refreshTopoData();
   
-  switch(plan_alg) {
-    case 3:  // SBA*
-      configs.check_voronoi_pull->setEnabled(true);
-      configs.check_anytime_heuristic->setEnabled(true);
-      break;
-    case 0:  // RRT
-    case 1:  // RRT*
-    case 2:  // PRM
-    case 4:  // FADPRM
-    default:
-      configs.check_voronoi_pull->setEnabled(false);
-      configs.check_voronoi_pull->setChecked(false);
-      configs.check_anytime_heuristic->setEnabled(false);
-      configs.check_anytime_heuristic->setChecked(false);
-      break;
-  };
+};
+
+
+void Planner3DWindow::onLoadRobotModel() {
   
-  switch(plan_alg) {
-    case 1:  // RRT*
-    case 3:  // SBA*
-      configs.check_bnb->setEnabled(true);
-      break;
-    case 0:  // RRT
-    case 2:  // PRM
-    case 4:  // FADPRM
-    default:
-      configs.check_bnb->setEnabled(false);
-      configs.check_bnb->setChecked(false);
-      break;
+  
+};
+
+
+
+void Planner3DWindow::refreshTopoData() {
+  using namespace ReaK;
+  
+  if(workspace) {
+    
+    
+    
+    
+    
+  } else {
+    // reset to defaults:
+    /*
+    vect<double,1> low = vect<double,1>();
+    vect<double,1> hi  = vect<double,1>();
+    low[0] = 0.0; hi[0] = 1.0;
+    
+    shared_ptr< pp::Ndof_space< double, 1, 0>::type > ws_tmp(
+      new pp::Ndof_space< double, 1, 0>::type(
+        pp::make_Ndof_space<1>(low, hi);
+      )
+    );
+    */
   };
   
 };
+
+
+
+
+
+
 
 
 
 int main(int argc, char** argv) {
   QApplication app(argc,argv);
-  CRSPlannerGUI window;
+  
+  last_used_path = QDir::currentPath();
+  
+  Planner3DWindow window;
   window.show();
   // Pop up the main window.
   SoQt::show(&window);

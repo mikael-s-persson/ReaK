@@ -25,20 +25,27 @@
 #define REAK_CRS_PLANNER_IMPL_H
 
 
-#include "ui_CRS_planner_window.h"
-#include "ui_CRS_planner_config.h"
+#include "ui_planner_3Dview.h"
+#include "ui_planner_space_config.h"
+#include "ui_planner_alg_config.h"
+
+#include <QDockWidget>
+
+class SoSeparator;
+class SoQtExaminerViewer;
 
 
-class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
+class Planner3DWindow : public QMainWindow, private Ui::Planner3DView {
     Q_OBJECT
   
   public:
-    CRSPlannerGUI( QWidget * parent = 0, Qt::WindowFlags flags = 0 );
-    ~CRSPlannerGUI();
+    Planner3DWindow( QWidget * parent = 0, Qt::WindowFlags flags = 0 );
+    ~Planner3DWindow();
     
   private slots:
     
     void executePlanner();
+#if 0
     void startRobot();
     void onJointChange();
     void onTargetChange();
@@ -50,14 +57,27 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     void onProxyVisible();
     void onMGVisible();
     void onSolutionsVisible();
+#endif
     
-    void onUpdateAvailableOptions();
+    void onLoadTopology();
+    void onLoadRobotModel();
     
   private:
     
+    void refreshTopoData();
+    
     void onProxyChange();
     
-    Ui::CRSPlannerConfig configs;
+    Ui::PlannerSpaceConfig space_configs;
+    QDockWidget* space_configs_dock;
+    QWidget* space_configs_widget;
+    Ui::PlannerAlgConfig alg_configs;
+    QDockWidget* alg_configs_dock;
+    QWidget* alg_configs_widget;
+    
+    
+    SoQtExaminerViewer* eviewer;
+    SoSeparator* sg_root;
     
   
 };
