@@ -906,7 +906,7 @@ struct sbastar_planner_visitor {
   template <typename Graph>
   double adjust_relaxation(double, const Graph& g) const {
     m_planner->set_current_relaxation(m_planner->get_current_relaxation() * 0.5);
-    std::cout << " new relaxation =\t" << m_planner->get_current_relaxation() << std::endl;
+//     std::cout << " new relaxation =\t" << m_planner->get_current_relaxation() << std::endl;
     return m_planner->get_current_relaxation();
   };
   

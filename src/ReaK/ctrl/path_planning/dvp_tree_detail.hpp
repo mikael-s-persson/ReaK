@@ -981,7 +981,7 @@ class dvp_tree_impl
       try {
         u_node = get_vertex(u_key, u_pt, m_root);
       } catch (int err) {
-//         std::cout << " Could not find the node to be removed from the DVP tree!" << std::endl;
+        std::cout << " Could not find the node to be removed from the DVP tree!" << std::endl;
         return;
       };
       erase(u_node);
