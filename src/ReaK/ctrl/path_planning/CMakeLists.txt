@@ -53,6 +53,7 @@ target_link_libraries(test_planners ${Boost_LIBRARIES})
 add_executable(test_hidim_planners "${SRCROOT}${RKPATHPLANNINGDIR}/test_hidim_planners.cpp")
 setup_custom_target(test_hidim_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
 target_link_libraries(test_hidim_planners reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_hidim_planners ${Boost_LIBRARIES})
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")

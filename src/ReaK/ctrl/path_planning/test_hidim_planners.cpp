@@ -68,8 +68,10 @@
 
 
 #include <boost/program_options.hpp>
+#include <boost/filesystem.hpp>
 
 namespace po = boost::program_options;
+namespace fs = boost::filesystem;
 
 
 
@@ -88,48 +90,82 @@ namespace po = boost::program_options;
 
 
 
-double sba_potential_cutoff;
-double sba_density_cutoff;
-double sba_relaxation;
-double sba_sa_temperature;
-bool sba_use_voronoi_pull;
+
+std::size_t mc_run_count = 0;
+std::size_t mc_max_vertices = 0;
+std::size_t mc_prog_interval = 0;
+std::size_t mc_max_vertices_100 = 0;
+std::size_t mc_results = 0;
+std::size_t mc_flags = 0;
+
+std::size_t data_struct_flags = 0;
+std::string data_struct_str = "";
 
 
-template <typename SpaceType>
+#ifdef RK_ENABLE_TEST_FADPRM_PLANNER
+double fadprm_relaxation = 0.0;
+#endif
+
+#ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
+std::size_t rrtstar_opt_flags = ReaK::pp::UNIDIRECTIONAL_PLANNING;
+std::string rrtstar_qualifier = "";
+#endif
+
+#ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
+double sba_potential_cutoff = 0.0;
+double sba_density_cutoff = 0.0;
+double sba_relaxation = 0.0;
+double sba_sa_temperature = 0.0;
+bool sba_use_voronoi_pull = false;
+std::size_t sba_opt_flags = ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::LAZY_COLLISION_CHECKING;
+std::string sba_qualifier = "_lazy";
+#endif
+
+
+template <typename PlannerType>
 void run_monte_carlo_tests(
-    std::size_t mc_run_count,
-    std::size_t mc_num_records,
-    ReaK::pp::sample_based_planner< ReaK::pp::path_planner_base<SpaceType> >& planner,
+    const PlannerType& planner,
     std::stringstream& time_rec_ss,
     std::stringstream& cost_rec_ss,
     std::ostream& result_output) {
-  std::vector< std::size_t > vertex_counts(mc_num_records, 0);
-  std::vector< std::size_t > num_remaining_planners(mc_num_records, 0);
-  std::vector< std::size_t > num_successful_planners(mc_num_records, 0);
+  std::vector< double > vertex_counts(mc_max_vertices_100, 0.0);
+  std::vector< std::size_t > num_remaining_planners(mc_max_vertices_100, 0);
+  std::vector< std::size_t > num_successful_planners(mc_max_vertices_100, 0);
   
-  std::vector< double > time_values(mc_num_records, 0.0);
-  std::vector< double > best_costs(mc_num_records, 0.0);
-  std::vector< double > worst_costs(mc_num_records, 1.0e10);
-  std::vector< double > avg_costs(mc_num_records, 0.0);
+  std::vector< double > time_values(mc_max_vertices_100, 0.0);
+  std::vector< double > best_costs(mc_max_vertices_100, 1.0e10);
+  std::vector< double > worst_costs(mc_max_vertices_100, 0.0);
+  std::vector< double > avg_costs(mc_max_vertices_100, 0.0);
+  
+  cost_rec_ss << std::fixed;
   
   for(std::size_t i = 0; i < mc_run_count; ++i) {
+    time_rec_ss.clear();
+    time_rec_ss.seekg(0, time_rec_ss.end);
+    cost_rec_ss.clear();
+    cost_rec_ss.seekg(0, cost_rec_ss.end);
     
-    planner.solve_path();
+    PlannerType planner_tmp = planner;
     
-    std::size_t v_count, t_val; 
+    planner_tmp.solve_path();
+    
+    std::size_t v_count = 0, t_val = 0; 
+    std::string tmp;
     std::size_t j = 0;
-    while(time_rec_ss >> v_count) {
-      time_rec_ss >> t_val;
-      vertex_counts[j] = v_count;
+    while( std::getline(time_rec_ss, tmp) && (tmp.size()) ) {
+      std::stringstream ss_tmp(tmp);
+      ss_tmp >> v_count >> t_val;
+      vertex_counts[j] = (double(v_count) + double(num_remaining_planners[j]) * vertex_counts[j]) / double(num_remaining_planners[j] + 1);
       time_values[j] = (double(t_val) + double(num_remaining_planners[j]) * time_values[j]) / double(num_remaining_planners[j] + 1);
       num_remaining_planners[j] += 1; 
       ++j;
     };
     
-    double c_val;
+    double c_val = 1e10;
     j = 0;
-    while(cost_rec_ss >> v_count) {
-      cost_rec_ss >> c_val;
+    while( std::getline(cost_rec_ss, tmp) && (tmp.size()) ) {
+      std::stringstream ss_tmp(tmp);
+      ss_tmp >> v_count >> c_val;
       if(c_val < best_costs[j])
         best_costs[j] = c_val;
       if(c_val > worst_costs[j])
@@ -141,7 +177,7 @@ void run_monte_carlo_tests(
       ++j;
     };
     
-    while(j < mc_num_records) {
+    while(j < mc_max_vertices_100) {
       if(c_val < best_costs[j])
         best_costs[j] = c_val;
       if(c_val > worst_costs[j])
@@ -153,8 +189,9 @@ void run_monte_carlo_tests(
       ++j;
     };
   };
-  for(std::size_t i = 0; i < mc_num_records; ++i) {
-    result_output << std::setw(9) << vertex_counts[i] 
+  for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
+    result_output << std::setw(9) << i 
+           << " " << std::setw(9) << vertex_counts[i] 
            << " " << std::setw(9) << num_remaining_planners[i] 
            << " " << std::setw(9) << num_successful_planners[i] 
            << " " << std::setw(9) << time_values[i] 
@@ -167,18 +204,9 @@ void run_monte_carlo_tests(
 
 
 
-
-
 template <typename SpaceType>
 void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, 
-                            std::ostream& timing_output,
-                            std::size_t mc_run_count, 
-                            std::size_t mc_max_vertices, 
-                            std::size_t mc_prog_interval,
-                            std::size_t mc_results,
-                            std::size_t mc_flags) {
-  
-  std::size_t mc_max_vertices_100 = mc_max_vertices / mc_prog_interval;
+                            std::ostream& timing_output) {
   
   std::cout << "*****************************************************************" << std::endl
             << "*            Running tests on '" << world_map->getName() << "'" << std::endl
@@ -191,206 +219,26 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
   
   if(mc_flags & RK_HIDIM_PLANNER_DO_RRT) {
     
-    /**********************************************************************************
-    * 
-    * 
-    *     Unidirectional Rapidly-exploring Random Tree Path-Planners
-    * 
-    * 
-    * *******************************************************************************/
-
-    std::cout << "Running RRT with Uni-dir, adj-list, dvp-bf2..." << std::endl;
-    timing_output << "RRT, Uni-dir, adj-list, dvp-bf2" << std::endl;
+    std::cout << "Running RRT with Uni-dir, " << data_struct_str << std::endl;
+    timing_output << "RRT, Uni-dir, " << data_struct_str << std::endl;
     {
       std::stringstream ss, ss2;
       
       ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
         rrt_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 mc_max_vertices, 
-                 mc_prog_interval,
-                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
-                 ReaK::pp::UNIDIRECTIONAL_PLANNING,
-                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                 mc_results);
+                world_map->get_start_pos(), 
+                world_map->get_goal_pos(),
+                mc_max_vertices, 
+                mc_prog_interval,
+                data_struct_flags,
+                ReaK::pp::UNIDIRECTIONAL_PLANNING,
+                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                mc_results);
       
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
+      run_monte_carlo_tests(rrt_plan,ss,ss2,timing_output);
     };
     std::cout << "Done!" << std::endl;
     
-    
-    std::cout << "Running RRT with Uni-dir, adj-list, dvp-bf4..." << std::endl;
-    timing_output << "RRT, Uni-dir, adj-list, dvp-bf4" << std::endl;
-    {
-      std::stringstream ss, ss2;
-      
-      ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-        rrt_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 mc_max_vertices, 
-                 mc_prog_interval,
-                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
-                 ReaK::pp::UNIDIRECTIONAL_PLANNING,
-                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                 mc_results);
-      
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-    };
-    std::cout << "Done!" << std::endl;
-    
-    
-    if(mc_flags & RK_HIDIM_PLANNER_DO_COB) {
-      std::cout << "Running RRT with Uni-dir, adj-list, dvp-cob2..." << std::endl;
-      timing_output << "RRT, Uni-dir, adj-list, dvp-cob2" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-          rrt_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   mc_max_vertices, 
-                   mc_prog_interval,
-                   ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
-                   ReaK::pp::UNIDIRECTIONAL_PLANNING,
-                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                   mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      std::cout << "Running RRT with Uni-dir, adj-list, dvp-cob4..." << std::endl;
-      timing_output << "RRT, Uni-dir, adj-list, dvp-cob4" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-          rrt_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   mc_max_vertices, 
-                   mc_prog_interval,
-                   ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
-                   ReaK::pp::UNIDIRECTIONAL_PLANNING,
-                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                   mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-    };
-    
-    
-    std::cout << "Running RRT with Uni-dir, adj-list, linear-search..." << std::endl;
-    timing_output << "RRT, Uni-dir, adj-list, linear-search" << std::endl;
-    {
-      std::stringstream ss, ss2;
-      
-      ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-        rrt_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 mc_max_vertices, 
-                 mc_prog_interval,
-                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::LINEAR_SEARCH_KNN,
-                 ReaK::pp::UNIDIRECTIONAL_PLANNING,
-                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                 mc_results);
-      
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-    };
-    std::cout << "Done!" << std::endl;
-    
-    
-    if(mc_flags & RK_HIDIM_PLANNER_DO_ALT) {
-      std::cout << "Running RRT with Uni-dir, dvp-adj-list-bf2..." << std::endl;
-      timing_output << "RRT, Uni-dir, dvp-adj-list-bf2" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-          rrt_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   mc_max_vertices, 
-                   mc_prog_interval,
-                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
-                   ReaK::pp::UNIDIRECTIONAL_PLANNING,
-                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                   mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT with Uni-dir, dvp-adj-list-bf4..." << std::endl;
-      timing_output << "RRT, Uni-dir, dvp-adj-list-bf4" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-          rrt_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   mc_max_vertices, 
-                   mc_prog_interval,
-                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
-                   ReaK::pp::UNIDIRECTIONAL_PLANNING,
-                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                   mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      if(mc_flags & RK_HIDIM_PLANNER_DO_COB) {
-        std::cout << "Running RRT with Uni-dir, dvp-adj-list-cob2..." << std::endl;
-        timing_output << "RRT, Uni-dir, dvp-adj-list-cob2" << std::endl;
-        {
-          std::stringstream ss, ss2;
-          
-          ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-            rrt_plan(world_map, 
-                     world_map->get_start_pos(), 
-                     world_map->get_goal_pos(),
-                     mc_max_vertices, 
-                     mc_prog_interval,
-                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
-                     ReaK::pp::UNIDIRECTIONAL_PLANNING,
-                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                     mc_results);
-          
-          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-        };
-        std::cout << "Done!" << std::endl;
-        
-        
-        std::cout << "Running RRT with Uni-dir, dvp-adj-list-cob4..." << std::endl;
-        timing_output << "RRT, Uni-dir, dvp-adj-list-cob4" << std::endl;
-        {
-          std::stringstream ss, ss2;
-          
-          ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-            rrt_plan(world_map, 
-                     world_map->get_start_pos(), 
-                     world_map->get_goal_pos(),
-                     mc_max_vertices, 
-                     mc_prog_interval,
-                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
-                     ReaK::pp::UNIDIRECTIONAL_PLANNING,
-                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                     mc_results);
-          
-          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-        };
-        std::cout << "Done!" << std::endl;
-      };
-    };
   };
   
 #endif
@@ -398,212 +246,28 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
   
 #ifdef RK_ENABLE_TEST_BRRT_PLANNER
   
-  
   if(mc_flags & RK_HIDIM_PLANNER_DO_BIRRT) {
     
-    /**********************************************************************************
-    * 
-    * 
-    *     Bidirectional Rapidly-exploring Random Tree Path-Planners
-    * 
-    * 
-    * *******************************************************************************/
-    
-    
-    std::cout << "Running RRT with Bi-dir, adj-list, dvp-bf2..." << std::endl;
-    timing_output << "RRT, Bi-dir, adj-list, dvp-bf2" << std::endl;
+    std::cout << "Running RRT with Bi-dir, " << data_struct_str << std::endl;
+    timing_output << "RRT, Bi-dir, " << data_struct_str << std::endl;
     {
       std::stringstream ss, ss2;
       
       ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
         rrt_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 mc_max_vertices, 
-                 mc_prog_interval,
-                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
-                 ReaK::pp::BIDIRECTIONAL_PLANNING,
-                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                 mc_results);
+                world_map->get_start_pos(), 
+                world_map->get_goal_pos(),
+                mc_max_vertices, 
+                mc_prog_interval,
+                data_struct_flags,
+                ReaK::pp::BIDIRECTIONAL_PLANNING,
+                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                mc_results);
       
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
+      run_monte_carlo_tests(rrt_plan,ss,ss2,timing_output);
     };
     std::cout << "Done!" << std::endl;
     
-    
-    std::cout << "Running RRT with Bi-dir, adj-list, dvp-bf4..." << std::endl;
-    timing_output << "RRT, Bi-dir, adj-list, dvp-bf4" << std::endl;
-    {
-      std::stringstream ss, ss2;
-      
-      ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-        rrt_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 mc_max_vertices, 
-                 mc_prog_interval,
-                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
-                 ReaK::pp::BIDIRECTIONAL_PLANNING,
-                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                 mc_results);
-      
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-    };
-    std::cout << "Done!" << std::endl;
-    
-    
-    if(mc_flags & RK_HIDIM_PLANNER_DO_COB) {
-      std::cout << "Running RRT with Bi-dir, adj-list, dvp-cob2..." << std::endl;
-      timing_output << "RRT, Bi-dir, adj-list, dvp-cob2" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-          rrt_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   mc_max_vertices, 
-                   mc_prog_interval,
-                   ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
-                   ReaK::pp::BIDIRECTIONAL_PLANNING,
-                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                   mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT with Bi-dir, adj-list, dvp-cob4..." << std::endl;
-      timing_output << "RRT, Bi-dir, adj-list, dvp-cob4" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-          rrt_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   mc_max_vertices, 
-                   mc_prog_interval,
-                   ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
-                   ReaK::pp::BIDIRECTIONAL_PLANNING,
-                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                   mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-    };
-    
-    
-    std::cout << "Running RRT with Bi-dir, adj-list, linear-search..." << std::endl;
-    timing_output << "RRT, Bi-dir, adj-list, linear-search" << std::endl;
-    {
-      std::stringstream ss, ss2;
-      
-      ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-        rrt_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 mc_max_vertices, 
-                 mc_prog_interval,
-                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::LINEAR_SEARCH_KNN,
-                 ReaK::pp::BIDIRECTIONAL_PLANNING,
-                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                 mc_results);
-      
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-    };
-    std::cout << "Done!" << std::endl;
-    
-    
-    
-    if(mc_flags & RK_HIDIM_PLANNER_DO_ALT) {
-      std::cout << "Running RRT with Bi-dir, dvp-adj-list-bf2..." << std::endl;
-      timing_output << "RRT, Bi-dir, dvp-adj-list-bf2" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-          rrt_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   mc_max_vertices, 
-                   mc_prog_interval,
-                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
-                   ReaK::pp::BIDIRECTIONAL_PLANNING,
-                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                   mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT with Bi-dir, dvp-adj-list-bf4..." << std::endl;
-      timing_output << "RRT, Bi-dir, dvp-adj-list-bf4" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-          rrt_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   mc_max_vertices, 
-                   mc_prog_interval,
-                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
-                   ReaK::pp::BIDIRECTIONAL_PLANNING,
-                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                   mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      if(mc_flags & RK_HIDIM_PLANNER_DO_COB) {
-        std::cout << "Running RRT with Bi-dir, dvp-adj-list-cob2..." << std::endl;
-        timing_output << "RRT, Bi-dir, dvp-adj-list-cob2" << std::endl;
-        {
-          std::stringstream ss, ss2;
-          
-          ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-            rrt_plan(world_map, 
-                     world_map->get_start_pos(), 
-                     world_map->get_goal_pos(),
-                     mc_max_vertices, 
-                     mc_prog_interval,
-                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
-                     ReaK::pp::BIDIRECTIONAL_PLANNING,
-                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                     mc_results);
-          
-          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-        };
-        std::cout << "Done!" << std::endl;
-        
-        
-        std::cout << "Running RRT with Bi-dir, dvp-adj-list-cob4..." << std::endl;
-        timing_output << "RRT, Bi-dir, dvp-adj-list-cob4" << std::endl;
-        {
-          std::stringstream ss, ss2;
-          
-          ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-            rrt_plan(world_map, 
-                     world_map->get_start_pos(), 
-                     world_map->get_goal_pos(),
-                     mc_max_vertices, 
-                     mc_prog_interval,
-                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
-                     ReaK::pp::BIDIRECTIONAL_PLANNING,
-                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                     mc_results);
-          
-          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
-        };
-        std::cout << "Done!" << std::endl;
-      };
-    };
   };
   
 #endif
@@ -612,204 +276,27 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
   
 #ifdef RK_ENABLE_TEST_PRM_PLANNER
   
-  
   if(mc_flags & RK_HIDIM_PLANNER_DO_PRM) {
     
-    /**********************************************************************************
-    * 
-    * 
-    *     Probabilistic Roadmap Path-Planners
-    * 
-    * 
-    * *******************************************************************************/
-    
-    
-    std::cout << "Running PRM with adj-list, dvp-bf2..." << std::endl;
-    timing_output << "PRM, adj-list, dvp-bf2" << std::endl;
+    std::cout << "Running PRM with " << data_struct_str << std::endl;
+    timing_output << "PRM, " << data_struct_str << std::endl;
     {
       std::stringstream ss, ss2;
       
       ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
         prm_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 mc_max_vertices, 
-                 mc_prog_interval,
-                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
-                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                 mc_results);
+                world_map->get_start_pos(), 
+                world_map->get_goal_pos(),
+                mc_max_vertices, 
+                mc_prog_interval,
+                data_struct_flags,
+                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                mc_results);
       
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
+      run_monte_carlo_tests(prm_plan,ss,ss2,timing_output);
     };
     std::cout << "Done!" << std::endl;
     
-    
-    std::cout << "Running PRM with adj-list, dvp-bf4..." << std::endl;
-    timing_output << "PRM, adj-list, dvp-bf4" << std::endl;
-    {
-      std::stringstream ss, ss2;
-      
-      ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
-        prm_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 mc_max_vertices, 
-                 mc_prog_interval,
-                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
-                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                 mc_results);
-      
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
-    };
-    std::cout << "Done!" << std::endl;
-    
-    
-    if(mc_flags & RK_HIDIM_PLANNER_DO_COB) {
-      std::cout << "Running PRM with adj-list, dvp-cob2..." << std::endl;
-      timing_output << "PRM, adj-list, dvp-cob2" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
-          prm_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   mc_max_vertices, 
-                   mc_prog_interval,
-                   ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
-                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                   mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running PRM with adj-list, dvp-cob4..." << std::endl;
-      timing_output << "PRM, adj-list, dvp-cob4" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
-          prm_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   mc_max_vertices, 
-                   mc_prog_interval,
-                   ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
-                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                   mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-    };
-    
-    
-    std::cout << "Running PRM with adj-list, linear-search..." << std::endl;
-    timing_output << "PRM, adj-list, linear-search" << std::endl;
-    {
-      std::stringstream ss, ss2;
-      
-      ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
-        prm_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 mc_max_vertices, 
-                 mc_prog_interval,
-                 ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::LINEAR_SEARCH_KNN,
-                 ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                 mc_results);
-      
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
-    };
-    std::cout << "Done!" << std::endl;
-    
-    
-    
-    
-    if(mc_flags & RK_HIDIM_PLANNER_DO_ALT) {
-      std::cout << "Running PRM with dvp-adj-list-bf2..." << std::endl;
-      timing_output << "PRM, dvp-adj-list-bf2" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
-          prm_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   mc_max_vertices, 
-                   mc_prog_interval,
-                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
-                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                   mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running PRM with dvp-adj-list-bf4..." << std::endl;
-      timing_output << "PRM, dvp-adj-list-bf4" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
-          prm_plan(world_map, 
-                   world_map->get_start_pos(), 
-                   world_map->get_goal_pos(),
-                   mc_max_vertices, 
-                   mc_prog_interval,
-                   ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
-                   ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                   mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      if(mc_flags & RK_HIDIM_PLANNER_DO_COB) {
-        std::cout << "Running PRM with dvp-adj-list-cob2..." << std::endl;
-        timing_output << "PRM, dvp-adj-list-cob2" << std::endl;
-        {
-          std::stringstream ss, ss2;
-          
-          ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
-            prm_plan(world_map, 
-                     world_map->get_start_pos(), 
-                     world_map->get_goal_pos(),
-                     mc_max_vertices, 
-                     mc_prog_interval,
-                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
-                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                     mc_results);
-          
-          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
-        };
-        std::cout << "Done!" << std::endl;
-        
-        
-        std::cout << "Running PRM with dvp-adj-list-cob4..." << std::endl;
-        timing_output << "PRM, dvp-adj-list-cob4" << std::endl;
-        {
-          std::stringstream ss, ss2;
-          
-          ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
-            prm_plan(world_map, 
-                     world_map->get_start_pos(), 
-                     world_map->get_goal_pos(),
-                     mc_max_vertices, 
-                     mc_prog_interval,
-                     ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
-                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                     mc_results);
-          
-          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
-        };
-        std::cout << "Done!" << std::endl;
-      };
-    };
   };
   
 #endif
@@ -820,17 +307,8 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
   
   if(mc_flags & RK_HIDIM_PLANNER_DO_FADPRM) {
     
-    /**********************************************************************************
-    * 
-    * 
-    *     Flexible Anytime-Dynamic Probabilistic Roadmap Path-Planners
-    * 
-    * 
-    * *******************************************************************************/
-
-    
-    std::cout << "Running FADPRM with adj-list, dvp-bf2..." << std::endl;
-    timing_output << "FADPRM, adj-list, dvp-bf2" << std::endl;
+    std::cout << "Running FADPRM with " << data_struct_str << std::endl;
+    timing_output << "FADPRM, " << data_struct_str << std::endl;
     {
       std::stringstream ss, ss2;
       
@@ -839,201 +317,17 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
           world_map, 
           world_map->get_start_pos(),
           world_map->get_goal_pos(),
-          10.0,
+          fadprm_relaxation,
           mc_max_vertices, 
           mc_prog_interval,
-          ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
+          data_struct_flags,
           ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
           mc_results);
       
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
+      run_monte_carlo_tests(fadprm_plan,ss,ss2,timing_output);
     };
     std::cout << "Done!" << std::endl;
     
-    
-    
-    std::cout << "Running FADPRM with adj-list, dvp-bf4..." << std::endl;
-    timing_output << "FADPRM, adj-list, dvp-bf4" << std::endl;
-    {
-      std::stringstream ss, ss2;
-      
-      ReaK::pp::fadprm_path_planner< SpaceType, ReporterType > 
-        fadprm_plan(
-          world_map, 
-          world_map->get_start_pos(), 
-          world_map->get_goal_pos(),
-          10.0,
-          mc_max_vertices, 
-          mc_prog_interval,
-          ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
-          ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-          mc_results);
-      
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
-    };
-    std::cout << "Done!" << std::endl;
-    
-    
-    if(mc_flags & RK_HIDIM_PLANNER_DO_COB) {
-      std::cout << "Running FADPRM with adj-list, dvp-cob2..." << std::endl;
-      timing_output << "FADPRM, adj-list, dvp-cob2" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::fadprm_path_planner< SpaceType, ReporterType > 
-          fadprm_plan(
-            world_map, 
-            world_map->get_start_pos(), 
-            world_map->get_goal_pos(),
-            10.0,
-            mc_max_vertices, 
-            mc_prog_interval,
-            ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
-            ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-            mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running FADPRM with adj-list, dvp-cob4..." << std::endl;
-      timing_output << "FADPRM, adj-list, dvp-cob4" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::fadprm_path_planner< SpaceType, ReporterType > 
-          fadprm_plan(
-            world_map, 
-            world_map->get_start_pos(), 
-            world_map->get_goal_pos(),
-            10.0,
-            mc_max_vertices, 
-            mc_prog_interval,
-            ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
-            ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-            mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-    };
-    
-    
-    std::cout << "Running FADPRM with adj-list, linear-search..." << std::endl;
-    timing_output << "FADPRM, adj-list, linear-search" << std::endl;
-    {
-      std::stringstream ss, ss2;
-      
-      ReaK::pp::fadprm_path_planner< SpaceType, ReporterType > 
-        fadprm_plan(
-          world_map, 
-          world_map->get_start_pos(), 
-          world_map->get_goal_pos(),
-          10.0,
-          mc_max_vertices, 
-          mc_prog_interval,
-          ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::LINEAR_SEARCH_KNN,
-          ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-          mc_results);
-      
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
-    };
-    std::cout << "Done!" << std::endl;
-    
-    
-    
-    
-    if(mc_flags & RK_HIDIM_PLANNER_DO_ALT) {
-      std::cout << "Running FADPRM with dvp-adj-list-bf2..." << std::endl;
-      timing_output << "FADPRM, dvp-adj-list-bf2" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::fadprm_path_planner< SpaceType, ReporterType > 
-          fadprm_plan(
-            world_map, 
-            world_map->get_start_pos(), 
-            world_map->get_goal_pos(),
-            10.0,
-            mc_max_vertices, 
-            mc_prog_interval,
-            ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
-            ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-            mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running FADPRM with dvp-adj-list-bf4..." << std::endl;
-      timing_output << "FADPRM, dvp-adj-list-bf4" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::fadprm_path_planner< SpaceType, ReporterType > 
-          fadprm_plan(
-            world_map, 
-            world_map->get_start_pos(), 
-            world_map->get_goal_pos(),
-            10.0,
-            mc_max_vertices, 
-            mc_prog_interval,
-            ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
-            ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-            mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      if(mc_flags & RK_HIDIM_PLANNER_DO_COB) {
-        std::cout << "Running FADPRM with dvp-adj-list-cob2..." << std::endl;
-        timing_output << "FADPRM, dvp-adj-list-cob2" << std::endl;
-        {
-          std::stringstream ss, ss2;
-          
-          ReaK::pp::fadprm_path_planner< SpaceType, ReporterType > 
-            fadprm_plan(
-              world_map, 
-              world_map->get_start_pos(), 
-              world_map->get_goal_pos(),
-              10.0,
-              mc_max_vertices, 
-              mc_prog_interval,
-              ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
-              ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-              mc_results);
-          
-          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
-        };
-        std::cout << "Done!" << std::endl;
-        
-        
-        std::cout << "Running FADPRM with dvp-adj-list-cob4..." << std::endl;
-        timing_output << "FADPRM, dvp-adj-list-cob4" << std::endl;
-        {
-          std::stringstream ss, ss2;
-          
-          ReaK::pp::fadprm_path_planner< SpaceType, ReporterType > 
-            fadprm_plan(
-              world_map, 
-              world_map->get_start_pos(), 
-              world_map->get_goal_pos(),
-              10.0,
-              mc_max_vertices, 
-              mc_prog_interval,
-              ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
-              ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-              mc_results);
-          
-          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
-        };
-        std::cout << "Done!" << std::endl;
-      };
-    };
   };
   
 #endif
@@ -1044,29 +338,21 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
   
   if(mc_flags & RK_HIDIM_PLANNER_DO_SBASTAR) {
     
-    /**********************************************************************************
-    * 
-    * 
-    *    Sampling-based A-Star Path-Planners
-    * 
-    * 
-    * *******************************************************************************/
-    
-    std::cout << "Running SBA* with adj-list, dvp-bf2..." << std::endl;
-    timing_output << "SBA*, adj-list, dvp-bf2" << std::endl;
+    std::cout << "Running SBA* with " << data_struct_str << std::endl;
+    timing_output << "SBA*, " << data_struct_str << std::endl;
     {
       std::stringstream ss, ss2;
       
       ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
         sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
-                      ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    data_struct_flags,
+                    sba_opt_flags,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
       
       sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
       sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
@@ -1074,446 +360,39 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
       sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
       
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
+      run_monte_carlo_tests(sbastar_plan,ss,ss2,timing_output);
     };
     std::cout << "Done!" << std::endl;
     
-    
-    std::cout << "Running SBA* with adj-list, dvp-bf4..." << std::endl;
-    timing_output << "SBA*, adj-list, dvp-bf4" << std::endl;
-    {
-      std::stringstream ss, ss2;
-      
-      ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
-        sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
-                      ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
-      
-      sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
-      sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
-      sbastar_plan.set_initial_relaxation(sba_relaxation);
-      sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
-      sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
-      
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
-    };
-    std::cout << "Done!" << std::endl;
-    
-    
-    if(mc_flags & RK_HIDIM_PLANNER_DO_COB) {
-      std::cout << "Running SBA* with adj-list, dvp-cob2..." << std::endl;
-      timing_output << "SBA*, adj-list, dvp-cob2" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
-          sbastar_plan(world_map, 
-                        world_map->get_start_pos(), 
-                        world_map->get_goal_pos(),
-                        mc_max_vertices, 
-                        mc_prog_interval,
-                        ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
-                        ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
-                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                        mc_results);
-        
-        sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
-        sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
-        sbastar_plan.set_initial_relaxation(sba_relaxation);
-        sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
-        sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running SBA* with adj-list, dvp-cob4..." << std::endl;
-      timing_output << "SBA*, adj-list, dvp-cob4" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
-          sbastar_plan(world_map, 
-                        world_map->get_start_pos(), 
-                        world_map->get_goal_pos(),
-                        mc_max_vertices, 
-                        mc_prog_interval,
-                        ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
-                        ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
-                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                        mc_results);
-        
-        sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
-        sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
-        sbastar_plan.set_initial_relaxation(sba_relaxation);
-        sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
-        sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-    };
-    
-    
-    std::cout << "Running SBA* with adj-list, linear-search..." << std::endl;
-    timing_output << "SBA*, adj-list, linear-search" << std::endl;
-    {
-      std::stringstream ss, ss2;
-      
-      ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
-        sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::LINEAR_SEARCH_KNN,
-                      ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
-      
-      sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
-      sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
-      sbastar_plan.set_initial_relaxation(sba_relaxation);
-      sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
-      sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
-      
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
-    };
-    std::cout << "Done!" << std::endl;
-    
-    
-    
-    if(mc_flags & RK_HIDIM_PLANNER_DO_ALT) {
-      std::cout << "Running SBA* with dvp-adj-list-bf2..." << std::endl;
-      timing_output << "SBA*, dvp-adj-list-bf2" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
-          sbastar_plan(world_map, 
-                        world_map->get_start_pos(), 
-                        world_map->get_goal_pos(),
-                        mc_max_vertices, 
-                        mc_prog_interval,
-                        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
-                        ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
-                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                        mc_results);
-        
-        sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
-        sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
-        sbastar_plan.set_initial_relaxation(sba_relaxation);
-        sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
-        sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running SBA* with dvp-adj-list-bf4..." << std::endl;
-      timing_output << "SBA*, dvp-adj-list-bf4" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
-          sbastar_plan(world_map, 
-                        world_map->get_start_pos(), 
-                        world_map->get_goal_pos(),
-                        mc_max_vertices, 
-                        mc_prog_interval,
-                        ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
-                        ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
-                        ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                        mc_results);
-        
-        sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
-        sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
-        sbastar_plan.set_initial_relaxation(sba_relaxation);
-        sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
-        sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      if(mc_flags & RK_HIDIM_PLANNER_DO_COB) {
-        std::cout << "Running SBA* with dvp-adj-list-cob2..." << std::endl;
-        timing_output << "SBA*, dvp-adj-list-cob2" << std::endl;
-        {
-          std::stringstream ss, ss2;
-          
-          ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
-            sbastar_plan(world_map, 
-                          world_map->get_start_pos(), 
-                          world_map->get_goal_pos(),
-                          mc_max_vertices, 
-                          mc_prog_interval,
-                          ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
-                          ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
-                          ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                          mc_results);
-          
-          sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
-          sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
-          sbastar_plan.set_initial_relaxation(sba_relaxation);
-          sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
-          sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
-          
-          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
-        };
-        std::cout << "Done!" << std::endl;
-        
-        
-        std::cout << "Running SBA* with dvp-adj-list-cob4..." << std::endl;
-        timing_output << "SBA*, dvp-adj-list-cob4" << std::endl;
-        {
-          std::stringstream ss, ss2;
-          
-          ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
-            sbastar_plan(world_map, 
-                          world_map->get_start_pos(), 
-                          world_map->get_goal_pos(),
-                          mc_max_vertices, 
-                          mc_prog_interval,
-                          ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
-                          ReaK::pp::LAZY_COLLISION_CHECKING | ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC | ( sba_use_voronoi_pull ? ReaK::pp::PLAN_WITH_VORONOI_PULL : ReaK::pp::NOMINAL_PLANNER_ONLY ),
-                          ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                          mc_results);
-          
-          sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
-          sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
-          sbastar_plan.set_initial_relaxation(sba_relaxation);
-          sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
-          sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
-          
-          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
-        };
-        std::cout << "Done!" << std::endl;
-      };
-    };
   };
     
 #endif
-  
-  
-  
   
   
 #ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
   
   if(mc_flags & RK_HIDIM_PLANNER_DO_RRTSTAR) {
     
-    /**********************************************************************************
-    * 
-    * 
-    *     Unidirectional Rapidly-exploring Random Tree Star Path-Planners
-    * 
-    * 
-    * *******************************************************************************/
-    
-    std::cout << "Running RRT* with Uni-dir, adj-list, dvp-bf2..." << std::endl;
-    timing_output << "RRT*, Uni-dir, adj-list, dvp-bf2" << std::endl;
+    std::cout << "Running RRT* with Uni-dir, " << data_struct_str << std::endl;
+    timing_output << "RRT*, Uni-dir, " << data_struct_str << std::endl;
     {
       std::stringstream ss, ss2;
       
       ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
         rrtstar_plan(world_map, 
-                     world_map->get_start_pos(), 
-                     world_map->get_goal_pos(),
-                     mc_max_vertices, 
-                     mc_prog_interval,
-                     ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
-                     ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
-                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                     mc_results);
+                    world_map->get_start_pos(), 
+                    world_map->get_goal_pos(),
+                    mc_max_vertices, 
+                    mc_prog_interval,
+                    data_struct_flags,
+                    rrtstar_opt_flags,
+                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
+                    mc_results);
       
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
+      run_monte_carlo_tests(rrtstar_plan,ss,ss2,timing_output);
     };
     std::cout << "Done!" << std::endl;
     
-    
-    std::cout << "Running RRT* with Uni-dir, adj-list, dvp-bf4..." << std::endl;
-    timing_output << "RRT*, Uni-dir, adj-list, dvp-bf4" << std::endl;
-    {
-      std::stringstream ss, ss2;
-      
-      ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
-        rrtstar_plan(world_map, 
-                     world_map->get_start_pos(), 
-                     world_map->get_goal_pos(),
-                     mc_max_vertices, 
-                     mc_prog_interval,
-                     ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
-                     ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
-                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                     mc_results);
-      
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
-    };
-    std::cout << "Done!" << std::endl;
-    
-    
-    if(mc_flags & RK_HIDIM_PLANNER_DO_COB) {
-      std::cout << "Running RRT* with Uni-dir, adj-list, dvp-cob2..." << std::endl;
-      timing_output << "RRT*, Uni-dir, adj-list, dvp-cob2" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
-          rrtstar_plan(world_map, 
-                       world_map->get_start_pos(), 
-                       world_map->get_goal_pos(),
-                       mc_max_vertices, 
-                       mc_prog_interval,
-                       ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
-                       ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
-                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT* with Uni-dir, adj-list, dvp-cob4..." << std::endl;
-      timing_output << "RRT*, Uni-dir, adj-list, dvp-cob4" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
-          rrtstar_plan(world_map, 
-                       world_map->get_start_pos(), 
-                       world_map->get_goal_pos(),
-                       mc_max_vertices, 
-                       mc_prog_interval,
-                       ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
-                       ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
-                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-    };
-    
-    
-    std::cout << "Running RRT* with Uni-dir, adj-list, linear-search..." << std::endl;
-    timing_output << "RRT*, Uni-dir, adj-list, linear-search" << std::endl;
-    {
-      std::stringstream ss, ss2;
-      
-      ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
-        rrtstar_plan(world_map, 
-                     world_map->get_start_pos(), 
-                     world_map->get_goal_pos(),
-                     mc_max_vertices, 
-                     mc_prog_interval,
-                     ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::LINEAR_SEARCH_KNN,
-                     ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
-                     ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                     mc_results);
-      
-      run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
-    };
-    std::cout << "Done!" << std::endl;
-    
-    
-    
-    if(mc_flags & RK_HIDIM_PLANNER_DO_ALT) {
-      std::cout << "Running RRT* with Uni-dir, dvp-adj-list-bf2..." << std::endl;
-      timing_output << "RRT*, Uni-dir, dvp-adj-list-bf2" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
-          rrtstar_plan(world_map, 
-                       world_map->get_start_pos(), 
-                       world_map->get_goal_pos(),
-                       mc_max_vertices, 
-                       mc_prog_interval,
-                       ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
-                       ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
-                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      std::cout << "Running RRT* with Uni-dir, dvp-adj-list-bf4..." << std::endl;
-      timing_output << "RRT*, Uni-dir, dvp-adj-list-bf4" << std::endl;
-      {
-        std::stringstream ss, ss2;
-        
-        ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
-          rrtstar_plan(world_map, 
-                       world_map->get_start_pos(), 
-                       world_map->get_goal_pos(),
-                       mc_max_vertices, 
-                       mc_prog_interval,
-                       ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF4_TREE_KNN,
-                       ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
-                       ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                       mc_results);
-        
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
-      };
-      std::cout << "Done!" << std::endl;
-      
-      
-      if(mc_flags & RK_HIDIM_PLANNER_DO_COB) {
-        std::cout << "Running RRT* with Uni-dir, dvp-adj-list-cob2..." << std::endl;
-        timing_output << "RRT*, Uni-dir, dvp-adj-list-cob2" << std::endl;
-        {
-          std::stringstream ss, ss2;
-          
-          ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
-            rrtstar_plan(world_map, 
-                         world_map->get_start_pos(), 
-                         world_map->get_goal_pos(),
-                         mc_max_vertices, 
-                         mc_prog_interval,
-                         ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB2_TREE_KNN,
-                         ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
-                         ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                         mc_results);
-          
-          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
-        };
-        std::cout << "Done!" << std::endl;
-        
-        
-        std::cout << "Running RRT* with Uni-dir, dvp-adj-list-cob4..." << std::endl;
-        timing_output << "RRT*, Uni-dir, dvp-adj-list-cob4" << std::endl;
-        {
-          std::stringstream ss, ss2;
-          
-          ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
-            rrtstar_plan(world_map, 
-                         world_map->get_start_pos(), 
-                         world_map->get_goal_pos(),
-                         mc_max_vertices, 
-                         mc_prog_interval,
-                         ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_COB4_TREE_KNN,
-                         ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG,
-                         ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                         mc_results);
-          
-          run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
-        };
-        std::cout << "Done!" << std::endl;
-      };
-    };
   };
     
 #endif
@@ -1549,8 +428,7 @@ int main(int argc, char** argv) {
     ("mc-vertices", po::value< std::size_t >()->default_value(20000), "maximum number of vertices during monte-carlo runs")
     ("mc-prog-interval", po::value< std::size_t >()->default_value(100), "number of vertices between progress reports during monte-carlo runs")
     ("mc-results", po::value< std::size_t >()->default_value(5), "maximum number of result-paths during monte-carlo runs")
-    ("mc-dvp-alt", "do monte-carlo runs with the DVP-adjacency-list-tree layout (default is not)")
-    ("mc-cob-tree", "do monte-carlo runs with cache-oblivious b-trees (default is not)")
+    ("mc-space", po::value< std::string >()->default_value("e3"), "the type of configuration space to use for the monte-carlo runs (default: e3 (euclidean-3)), can range from e3 to e20.")
   ;
   
   po::options_description planner_select_options("Planner selection options");
@@ -1563,12 +441,14 @@ int main(int argc, char** argv) {
 #endif
 #ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
     ("rrt-star", "specify that the RRT* algorithm should be run")
+    ("rrt-star-with-bnb", "specify whether to use a Branch-and-bound or not during RRT* as a method to prune useless nodes from the motion-graph")
 #endif
 #ifdef RK_ENABLE_TEST_PRM_PLANNER
     ("prm", "specify that the PRM algorithm should be run")
 #endif
 #ifdef RK_ENABLE_TEST_FADPRM_PLANNER
     ("fadprm", "specify that the FADPRM algorithm should be run")
+    ("fadprm-relaxation", po::value< double >()->default_value(10.0), "specify the initial relaxation factor for the FADPRM algorithm (default: 10.0)")
 #endif
 #ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
     ("sba-star", "specify that the SBA* algorithm should be run")
@@ -1577,8 +457,11 @@ int main(int argc, char** argv) {
     ("sba-relaxation", po::value< double >()->default_value(0.0), "specify the initial relaxation factor for the Anytime SBA* algorithm")
     ("sba-with-voronoi-pull", "specify whether to use a Voronoi pull or not as a method to add an exploratory bias to the search")
     ("sba-sa-temperature", po::value< double >()->default_value(-1.0), "specify the initial Simulated Annealing temperature for the SBA*-RRT* algorithms")
+    ("sba-with-bnb", "specify whether to use a Branch-and-bound or not during SBA* as a method to prune useless nodes from the motion-graph")
 #endif
     ("all-planners,a", "specify that all supported planners should be run (default if no particular planner is specified)")
+    ("knn-method", po::value< std::string >()->default_value("bf2"), "specify the KNN method to use (options: linear, bf2, bf4, cob2, cob4) (default: bf2)")
+    ("mg-storage", po::value< std::string >()->default_value("adj-list"), "specify the KNN method to use (options: adj-list, dvp-adj-list) (default: adj-list)")
   ;
   
   po::options_description cmdline_options;
@@ -1597,16 +480,76 @@ int main(int argc, char** argv) {
   while(output_path_name[output_path_name.length()-1] == '/') 
     output_path_name.erase(output_path_name.length()-1, 1);
   
+  fs::create_directory(output_path_name.c_str());
+  
   bool run_all_planners = false;
   if(vm.count("all-planners") || (vm.count("rrt") + vm.count("bi-rrt") + vm.count("rrt-star") + vm.count("prm") + vm.count("fadprm") + vm.count("sba-star") == 0)) 
     run_all_planners = true;
   
-  std::size_t mc_run_count        = vm["mc-runs"].as<std::size_t>();
-  std::size_t mc_max_vertices     = vm["mc-vertices"].as<std::size_t>();
-  std::size_t mc_prog_interval    = vm["mc-prog-interval"].as<std::size_t>();
-  std::size_t mc_results          = vm["mc-results"].as<std::size_t>();
+  
+  data_struct_flags = 0;
+  std::string knn_method_str = "bf2";
+  if((vm["knn-method"].as<std::string>() == "linear") && (vm["mg-storage"].as<std::string>() == "adj-list")) {
+    data_struct_flags |= ReaK::pp::LINEAR_SEARCH_KNN;
+    knn_method_str = "linear";
+  } else if(vm["knn-method"].as<std::string>() == "bf4") {
+    data_struct_flags |= ReaK::pp::DVP_BF4_TREE_KNN;
+    knn_method_str = "bf4";
+  } else if(vm["knn-method"].as<std::string>() == "cob2") {
+    data_struct_flags |= ReaK::pp::DVP_COB2_TREE_KNN;
+    knn_method_str = "cob2";
+  } else if(vm["knn-method"].as<std::string>() == "cob4") {
+    data_struct_flags |= ReaK::pp::DVP_COB4_TREE_KNN;
+    knn_method_str = "cob4";
+  } else {
+    data_struct_flags |= ReaK::pp::DVP_BF2_TREE_KNN;
+  };
+  
+  std::string mg_storage_str = "adj-list";
+  if(vm["mg-storage"].as<std::string>() == "dvp-adj-list") {
+    data_struct_flags |= ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH;
+    mg_storage_str = "dvp-adj-list";
+  } else {
+    data_struct_flags |= ReaK::pp::ADJ_LIST_MOTION_GRAPH;
+  };
+  
+  data_struct_str = mg_storage_str + ", " + knn_method_str;
+  
+  
+#ifdef RK_ENABLE_TEST_FADPRM_PLANNER
+  fadprm_relaxation       = vm["fadprm-relaxation"].as<double>();
+#endif
+  
+#ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
+  rrtstar_opt_flags = ReaK::pp::UNIDIRECTIONAL_PLANNING;
+  rrtstar_qualifier = "";
+  
+  if( vm.count("rrt-star-with-bnb") ) {
+    rrtstar_opt_flags |= ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG;
+    rrtstar_qualifier += "_bnb";
+  };
+#endif
+  
   
 #ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
+  sba_opt_flags = ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::LAZY_COLLISION_CHECKING;
+  sba_qualifier = "_lazy";
+  
+  if(vm["sba-relaxation"].as<double>() > 1e-6) {
+    sba_opt_flags |= ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC;
+    sba_qualifier += "_any";
+  };
+  
+  if( vm.count("sba-with-voronoi-pull") ) {
+    sba_opt_flags |= ReaK::pp::PLAN_WITH_VORONOI_PULL;
+    sba_qualifier += "_sa";
+  };
+  
+  if( vm.count("sba-with-bnb") ) {
+    sba_opt_flags |= ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG;
+    sba_qualifier += "_bnb";
+  };
+  
   sba_potential_cutoff = vm["sba-potential-cutoff"].as<double>();
   sba_density_cutoff   = vm["sba-density-cutoff"].as<double>();
   sba_relaxation       = vm["sba-relaxation"].as<double>();
@@ -1614,7 +557,15 @@ int main(int argc, char** argv) {
   sba_use_voronoi_pull = vm.count("sba-with-voronoi-pull");
 #endif
   
-  std::size_t mc_flags = 0;
+  
+  
+  mc_run_count        = vm["mc-runs"].as<std::size_t>();
+  mc_max_vertices     = vm["mc-vertices"].as<std::size_t>();
+  mc_prog_interval    = vm["mc-prog-interval"].as<std::size_t>();
+  mc_max_vertices_100 = mc_max_vertices / mc_prog_interval;
+  mc_results          = vm["mc-results"].as<std::size_t>();
+  
+  
 #ifdef RK_ENABLE_TEST_URRT_PLANNER
   if(run_all_planners || vm.count("rrt"))
     mc_flags |= RK_HIDIM_PLANNER_DO_RRT;
@@ -1639,36 +590,341 @@ int main(int argc, char** argv) {
   if(run_all_planners || vm.count("sba-star"))
     mc_flags |= RK_HIDIM_PLANNER_DO_SBASTAR;
 #endif
-  if(vm.count("mc-cob-tree"))
-    mc_flags |= RK_HIDIM_PLANNER_DO_COB;
-  if(vm.count("mc-dvp-alt"))
-    mc_flags |= RK_HIDIM_PLANNER_DO_ALT;
   
   
+  
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 3> > > World3DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 4> > > World4DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 5> > > World5DType;
   typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 6> > > World6DType;
-  ReaK::shared_ptr< World6DType > world_6D =
-    ReaK::shared_ptr< World6DType >(
-      new World6DType(
-        "world_6D_no_obstacles",
-        ReaK::pp::hyperbox_topology< ReaK::vect<double, 6> >("world_6D",
-                                                             ReaK::vect<double,6>(0.0,0.0,0.0,0.0,0.0,0.0),
-                                                             ReaK::vect<double,6>(1.0,1.0,1.0,1.0,1.0,1.0)),
-        0.1));
-  world_6D->set_start_pos(ReaK::vect<double,6>(0.05,0.05,0.05,0.05,0.05,0.05));
-  world_6D->set_goal_pos(ReaK::vect<double,6>(0.95,0.95,0.95,0.95,0.95,0.95));
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 7> > > World7DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 8> > > World8DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 9> > > World9DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,10> > > World10DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,11> > > World11DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,12> > > World12DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,13> > > World13DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,14> > > World14DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,15> > > World15DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,16> > > World16DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,17> > > World17DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,18> > > World18DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,19> > > World19DType;
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,20> > > World20DType;
   
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 12> > > World12DType;
-  ReaK::shared_ptr< World12DType > world_12D =
-    ReaK::shared_ptr< World12DType >(
-      new World12DType(
-        "world_12D_no_obstacles",
-        ReaK::pp::hyperbox_topology< ReaK::vect<double, 12> >("world_12D",
-                                                              ReaK::vect<double,12>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                              ReaK::vect<double,12>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-        0.5));
-  world_12D->set_start_pos(ReaK::vect<double,12>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-  world_12D->set_goal_pos( ReaK::vect<double,12>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
   
+  if(vm["mc-space"].as<std::string>() == "e3") {
+    ReaK::shared_ptr< World3DType > world_3D =
+      ReaK::shared_ptr< World3DType >(
+        new World3DType(
+          "world_3D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 3> >("world_3D",
+                                                              ReaK::vect<double,3>(0.0,0.0,0.0),
+                                                              ReaK::vect<double,3>(1.0,1.0,1.0)),
+          0.1 * std::sqrt(3.0)));
+    world_3D->set_start_pos(ReaK::vect<double,3>(0.05,0.05,0.05));
+    world_3D->set_goal_pos(ReaK::vect<double,3>(0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e3_times.txt");
+    
+    test_planners_on_space(world_3D, timing_output);
+    
+  } else if(vm["mc-space"].as<std::string>() == "e4") {
+    ReaK::shared_ptr< World4DType > world_4D =
+      ReaK::shared_ptr< World4DType >(
+        new World4DType(
+          "world_4D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 4> >("world_4D",
+                                                              ReaK::vect<double,4>(0.0,0.0,0.0,0.0),
+                                                              ReaK::vect<double,4>(1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(4.0)));
+    world_4D->set_start_pos(ReaK::vect<double,4>(0.05,0.05,0.05,0.05));
+    world_4D->set_goal_pos(ReaK::vect<double,4>(0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e4_times.txt");
+    
+    test_planners_on_space(world_4D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e5") {
+    ReaK::shared_ptr< World5DType > world_5D =
+      ReaK::shared_ptr< World5DType >(
+        new World5DType(
+          "world_5D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 5> >("world_5D",
+                                                              ReaK::vect<double,5>(0.0,0.0,0.0,0.0,0.0),
+                                                              ReaK::vect<double,5>(1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(5.0)));
+    world_5D->set_start_pos(ReaK::vect<double,5>(0.05,0.05,0.05,0.05,0.05));
+    world_5D->set_goal_pos(ReaK::vect<double,5>(0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e5_times.txt");
+    
+    test_planners_on_space(world_5D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e6") {
+    ReaK::shared_ptr< World6DType > world_6D =
+      ReaK::shared_ptr< World6DType >(
+        new World6DType(
+          "world_6D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 6> >("world_6D",
+                                                              ReaK::vect<double,6>(0.0,0.0,0.0,0.0,0.0,0.0),
+                                                              ReaK::vect<double,6>(1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(6.0)));
+    world_6D->set_start_pos(ReaK::vect<double,6>(0.05,0.05,0.05,0.05,0.05,0.05));
+    world_6D->set_goal_pos(ReaK::vect<double,6>(0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e6_times.txt");
+    
+    test_planners_on_space(world_6D, timing_output);
+    
+    
+  }
+#if 0
+  else if(vm["mc-space"].as<std::string>() == "e7") {
+    ReaK::shared_ptr< World7DType > world_7D =
+      ReaK::shared_ptr< World7DType >(
+        new World7DType(
+          "world_7D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 7> >("world_7D",
+                                                              ReaK::vect<double,7>(0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                              ReaK::vect<double,7>(1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(7.0)));
+    world_7D->set_start_pos(ReaK::vect<double,7>(0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_7D->set_goal_pos(ReaK::vect<double,7>(0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e7_times.txt");
+    
+    test_planners_on_space(world_7D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e8") {
+    ReaK::shared_ptr< World8DType > world_8D =
+      ReaK::shared_ptr< World8DType >(
+        new World8DType(
+          "world_8D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 8> >("world_8D",
+                                                              ReaK::vect<double,8>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                              ReaK::vect<double,8>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(8.0)));
+    world_8D->set_start_pos(ReaK::vect<double,8>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_8D->set_goal_pos(ReaK::vect<double,8>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e8_times.txt");
+    
+    test_planners_on_space(world_8D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e9") {
+    ReaK::shared_ptr< World9DType > world_9D =
+      ReaK::shared_ptr< World9DType >(
+        new World9DType(
+          "world_9D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 9> >("world_9D",
+                                                              ReaK::vect<double,9>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                              ReaK::vect<double,9>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(9.0)));
+    world_9D->set_start_pos(ReaK::vect<double,9>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_9D->set_goal_pos(ReaK::vect<double,9>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e9_times.txt");
+    
+    test_planners_on_space(world_9D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e10") {
+    ReaK::shared_ptr< World10DType > world_10D =
+      ReaK::shared_ptr< World10DType >(
+        new World10DType(
+          "world_10D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 10> >("world_10D",
+                                                              ReaK::vect<double,10>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                              ReaK::vect<double,10>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(10.0)));
+    world_10D->set_start_pos(ReaK::vect<double,10>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_10D->set_goal_pos(ReaK::vect<double,10>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e10_times.txt");
+    
+    test_planners_on_space(world_10D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e11") {
+    ReaK::shared_ptr< World11DType > world_11D =
+      ReaK::shared_ptr< World11DType >(
+        new World11DType(
+          "world_11D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 11> >("world_11D",
+                                                                ReaK::vect<double,11>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                                ReaK::vect<double,11>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(11.0)));
+    world_11D->set_start_pos(ReaK::vect<double,11>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_11D->set_goal_pos( ReaK::vect<double,11>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e11_times.txt");
+    
+    test_planners_on_space(world_11D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e12") {
+    ReaK::shared_ptr< World12DType > world_12D =
+      ReaK::shared_ptr< World12DType >(
+        new World12DType(
+          "world_12D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 12> >("world_12D",
+                                                                ReaK::vect<double,12>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                                ReaK::vect<double,12>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(12.0)));
+    world_12D->set_start_pos(ReaK::vect<double,12>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_12D->set_goal_pos( ReaK::vect<double,12>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e12_times.txt");
+    
+    test_planners_on_space(world_12D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e13") {
+    ReaK::shared_ptr< World13DType > world_13D =
+      ReaK::shared_ptr< World13DType >(
+        new World13DType(
+          "world_13D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 13> >("world_13D",
+                                                                ReaK::vect<double,13>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                                ReaK::vect<double,13>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(13.0)));
+    world_13D->set_start_pos(ReaK::vect<double,13>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_13D->set_goal_pos( ReaK::vect<double,13>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e13_times.txt");
+    
+    test_planners_on_space(world_13D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e14") {
+    ReaK::shared_ptr< World14DType > world_14D =
+      ReaK::shared_ptr< World14DType >(
+        new World14DType(
+          "world_14D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 14> >("world_14D",
+                                                                ReaK::vect<double,14>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                                ReaK::vect<double,14>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(14.0)));
+    world_14D->set_start_pos(ReaK::vect<double,14>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_14D->set_goal_pos( ReaK::vect<double,14>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e14_times.txt");
+    
+    test_planners_on_space(world_14D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e15") {
+    ReaK::shared_ptr< World15DType > world_15D =
+      ReaK::shared_ptr< World15DType >(
+        new World15DType(
+          "world_15D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 15> >("world_15D",
+                                                                ReaK::vect<double,15>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                                ReaK::vect<double,15>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(15.0)));
+    world_15D->set_start_pos(ReaK::vect<double,15>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_15D->set_goal_pos( ReaK::vect<double,15>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e15_times.txt");
+    
+    test_planners_on_space(world_15D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e16") {
+    ReaK::shared_ptr< World16DType > world_16D =
+      ReaK::shared_ptr< World16DType >(
+        new World16DType(
+          "world_16D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 16> >("world_16D",
+                                                                ReaK::vect<double,16>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                                ReaK::vect<double,16>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(16.0)));
+    world_16D->set_start_pos(ReaK::vect<double,16>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_16D->set_goal_pos( ReaK::vect<double,16>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e16_times.txt");
+    
+    test_planners_on_space(world_16D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e17") {
+    ReaK::shared_ptr< World17DType > world_17D =
+      ReaK::shared_ptr< World17DType >(
+        new World17DType(
+          "world_17D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 17> >("world_17D",
+                                                                ReaK::vect<double,17>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                                ReaK::vect<double,17>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(17.0)));
+    world_17D->set_start_pos(ReaK::vect<double,17>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_17D->set_goal_pos( ReaK::vect<double,17>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e17_times.txt");
+    
+    test_planners_on_space(world_17D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e18") {
+    ReaK::shared_ptr< World18DType > world_18D =
+      ReaK::shared_ptr< World18DType >(
+        new World18DType(
+          "world_18D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 18> >("world_18D",
+                                                                ReaK::vect<double,18>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                                ReaK::vect<double,18>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(18.0)));
+    world_18D->set_start_pos(ReaK::vect<double,18>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_18D->set_goal_pos( ReaK::vect<double,18>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e18_times.txt");
+    
+    test_planners_on_space(world_18D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e19") {
+    ReaK::shared_ptr< World19DType > world_19D =
+      ReaK::shared_ptr< World19DType >(
+        new World19DType(
+          "world_19D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 19> >("world_19D",
+                                                                ReaK::vect<double,19>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                                ReaK::vect<double,19>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(19.0)));
+    world_19D->set_start_pos(ReaK::vect<double,19>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_19D->set_goal_pos( ReaK::vect<double,19>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e19_times.txt");
+    
+    test_planners_on_space(world_19D, timing_output);
+    
+    
+  } else if(vm["mc-space"].as<std::string>() == "e20") {
+    ReaK::shared_ptr< World20DType > world_20D =
+      ReaK::shared_ptr< World20DType >(
+        new World20DType(
+          "world_20D_no_obstacles",
+          ReaK::pp::hyperbox_topology< ReaK::vect<double, 20> >("world_20D",
+                                                                ReaK::vect<double,20>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
+                                                                ReaK::vect<double,20>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
+          0.1 * std::sqrt(20.0)));
+    world_20D->set_start_pos(ReaK::vect<double,20>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
+    world_20D->set_goal_pos( ReaK::vect<double,20>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
+    
+    std::ofstream timing_output(output_path_name + "/e20_times.txt");
+    
+    test_planners_on_space(world_20D, timing_output);
+    
+    
+  };
+#endif
+  
+  
+#if 0
   typedef ReaK::pp::no_obstacle_space< typename ReaK::pp::se3_1st_order_rl_topology<double>::type > WorldRLSE3Type;
   ReaK::shared_ptr< WorldRLSE3Type > world_RLSE3 =
     ReaK::shared_ptr< WorldRLSE3Type >(
@@ -1692,26 +948,7 @@ int main(int argc, char** argv) {
   world_RLSE3->set_goal_pos(
     rlse3_point(rlp3_point(ReaK::vect<double,3>( 9.5, 9.5, 9.5),ReaK::vect<double,3>()),rlq3_point())
   );
-  
-  
-  {
-    std::ofstream timing_output(output_path_name + "/" + world_6D->getName() + "_times.txt");
-    
-    test_planners_on_space(world_6D, timing_output, mc_run_count, mc_max_vertices, mc_prog_interval, mc_results, mc_flags);
-  };
-  
-  {
-    std::ofstream timing_output(output_path_name + "/" + world_12D->getName() + "_times.txt");
-    
-    test_planners_on_space(world_12D, timing_output, mc_run_count, mc_max_vertices, mc_prog_interval, mc_results, mc_flags);
-  };
-  
-  {
-    std::ofstream timing_output(output_path_name + "/" + world_RLSE3->getName() + "_times.txt");
-    
-    test_planners_on_space(world_RLSE3, timing_output, mc_run_count, mc_max_vertices, mc_prog_interval, mc_results, mc_flags);
-  };
-  
+#endif
   
   
   return 0;
