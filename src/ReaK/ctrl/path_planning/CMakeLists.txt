@@ -50,10 +50,15 @@ setup_custom_target(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
 target_link_libraries(test_planners reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
 target_link_libraries(test_planners ${Boost_LIBRARIES})
 
-add_executable(test_hidim_planners "${SRCROOT}${RKPATHPLANNINGDIR}/test_hidim_planners.cpp")
-setup_custom_target(test_hidim_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
-target_link_libraries(test_hidim_planners reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
-target_link_libraries(test_hidim_planners ${Boost_LIBRARIES})
+
+foreach(HIDIM_COUNTER 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
+  add_executable(test_hidim_planners_e${HIDIM_COUNTER} "${SRCROOT}${RKPATHPLANNINGDIR}/test_hidim_planners.cpp")
+  setup_custom_target(test_hidim_planners_e${HIDIM_COUNTER} "${SRCROOT}${RKPATHPLANNINGDIR}")
+  set_target_properties(test_hidim_planners_e${HIDIM_COUNTER} PROPERTIES COMPILE_DEFINITIONS "RK_HIDIM_PLANNER_N=${HIDIM_COUNTER}")
+  target_link_libraries(test_hidim_planners_e${HIDIM_COUNTER} reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
+  target_link_libraries(test_hidim_planners_e${HIDIM_COUNTER} ${Boost_LIBRARIES})
+endforeach(HIDIM_COUNTER)
+
 
 include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")

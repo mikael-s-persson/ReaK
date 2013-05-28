@@ -85,8 +85,10 @@ namespace fs = boost::filesystem;
 #define RK_HIDIM_PLANNER_DO_SBASTAR 0x00000010
 #define RK_HIDIM_PLANNER_DO_RRTSTAR 0x00000020
 
-#define RK_HIDIM_PLANNER_DO_COB 0x00000100
-#define RK_HIDIM_PLANNER_DO_ALT 0x00000200
+
+#ifndef RK_HIDIM_PLANNER_N
+#define RK_HIDIM_PLANNER_N 3
+#endif
 
 
 
@@ -428,7 +430,7 @@ int main(int argc, char** argv) {
     ("mc-vertices", po::value< std::size_t >()->default_value(20000), "maximum number of vertices during monte-carlo runs")
     ("mc-prog-interval", po::value< std::size_t >()->default_value(100), "number of vertices between progress reports during monte-carlo runs")
     ("mc-results", po::value< std::size_t >()->default_value(5), "maximum number of result-paths during monte-carlo runs")
-    ("mc-space", po::value< std::string >()->default_value("e3"), "the type of configuration space to use for the monte-carlo runs (default: e3 (euclidean-3)), can range from e3 to e20.")
+//    ("mc-space", po::value< std::string >()->default_value("e3"), "the type of configuration space to use for the monte-carlo runs (default: e3 (euclidean-3)), can range from e3 to e20.")
   ;
   
   po::options_description planner_select_options("Planner selection options");
@@ -591,7 +593,44 @@ int main(int argc, char** argv) {
     mc_flags |= RK_HIDIM_PLANNER_DO_SBASTAR;
 #endif
   
+    
+    
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, RK_HIDIM_PLANNER_N > > > WorldNDType;
   
+  std::string world_ND_name = "world_";
+  { std::stringstream ss_tmp;
+    ss_tmp << RK_HIDIM_PLANNER_N << "D";
+    world_ND_name += ss_tmp.str();
+  };
+  std::string space_ND_name = "e";
+  { std::stringstream ss_tmp;
+    ss_tmp << RK_HIDIM_PLANNER_N;
+    space_ND_name += ss_tmp.str();
+  };
+  
+  ReaK::vect<double, RK_HIDIM_PLANNER_N > lb, ub, start_pt, goal_pt;
+  for(std::size_t i = 0; i < RK_HIDIM_PLANNER_N; ++i) {
+    lb[i] = 0.0;
+    ub[i] = 1.0;
+    start_pt[i] = 0.05;
+    goal_pt[i] = 0.95;
+  };
+  
+  ReaK::shared_ptr< WorldNDType > world_ND =
+    ReaK::shared_ptr< WorldNDType >(
+      new WorldNDType(
+        world_ND_name + "_no_obstacles",
+        ReaK::pp::hyperbox_topology< ReaK::vect<double, RK_HIDIM_PLANNER_N > >(world_ND_name, lb, ub),
+        0.2 * std::sqrt(double(RK_HIDIM_PLANNER_N))));
+  world_ND->set_start_pos(start_pt);
+  world_ND->set_goal_pos(goal_pt);
+  
+  std::ofstream timing_output(output_path_name + "/" + space_ND_name + "_times.txt");
+  
+  test_planners_on_space(world_ND, timing_output);
+  
+
+#if 0
   
   typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 3> > > World3DType;
   typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 4> > > World4DType;
@@ -921,6 +960,8 @@ int main(int argc, char** argv) {
     
     
   };
+#endif
+  
 #endif
   
   
