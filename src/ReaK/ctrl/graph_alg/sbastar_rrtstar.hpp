@@ -121,8 +121,8 @@ namespace detail {
             typename RRTNodeGenerator,
             typename MutableQueue,
             typename NcSelector>
-  inline void
-  sbarrtstar_search_loop(Graph &g, Vertex start_vertex, const Topology& super_space, 
+  void
+  sbarrtstar_search_loop(Graph &g, Vertex start_vertex, Vertex goal_vertex, const Topology& super_space, 
                           SBARRTStarVisitor& sba_vis, MotionGraphConnector connect_vertex, 
                           SBANodeGenerator sba_generate_node, RRTNodeGenerator rrt_generate_node, 
                           MutableQueue& Q, NcSelector select_neighborhood, double initial_temperature)
@@ -138,12 +138,17 @@ namespace detail {
       sba_vis.requeue_vertex(start_vertex,g);
       
       while (!Q.empty() && sba_vis.keep_going()) { 
-        double entropy = 1.0 - exp( -initial_temperature / log( double(num_vertices(g)) ) );
-        double rand_value = boost::uniform_01<ReaK::pp::global_rng_type&,double>(ReaK::pp::get_global_rng())(); // generate random-number between 0 and 1.
+        bool use_sba_sampling = false;
+        if(initial_temperature > 0.0) {
+          double entropy = 1.0 - exp( -initial_temperature / log( double(num_vertices(g)) ) );
+          double rand_value = boost::uniform_01<ReaK::pp::global_rng_type&,double>(ReaK::pp::get_global_rng())(); // generate random-number between 0 and 1.
+          use_sba_sampling = (rand_value > entropy);
+        } else {
+          use_sba_sampling = (get(sba_vis.m_distance, g[goal_vertex]) != std::numeric_limits<double>::infinity());
+        };
         
         PositionValue p_new; Vertex x_near; EdgeProp eprop;
-        
-        if(rand_value > entropy) {
+        if(use_sba_sampling) {
           Vertex u = Q.top(); Q.pop();
           sba_vis.examine_vertex(u, g);
           
@@ -184,6 +189,7 @@ namespace detail {
   
   
   
+  
   template <typename Graph,
             typename Vertex,
             typename Topology,
@@ -199,15 +205,15 @@ namespace detail {
             typename KeyMap,
             typename RandomSampler,
             typename NcSelector>
-  inline void
+  void
   generate_sbarrtstar_no_init_impl(
-    Graph &g, Vertex start_vertex, const Topology& super_space, SBARRTStarVisitor vis,  // basic parameters
+    Graph &g, Vertex start_vertex, Vertex goal_vertex, const Topology& super_space, SBARRTStarVisitor vis,  // basic parameters
     NodeConnector connect_vertex, AStarHeuristicMap hval, PositionMap position, WeightMap weight,                 // properties provided by the caller.
     DensityMap density, ConstrictionMap constriction, DistanceMap distance,       // properties needed by the algorithm, filled by the visitor.
     PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
     RandomSampler get_sample,
     NcSelector select_neighborhood,
-    double SA_init_temperature = 1.0)
+    double SA_init_temperature = -1.0)
   {
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
@@ -232,11 +238,12 @@ namespace detail {
     
     put(distance, g[start_vertex], 0.0);
     
-    sbarrtstar_search_loop(g, start_vertex, super_space, sba_bfs_vis, connect_vertex, sba_node_generator(), 
+    sbarrtstar_search_loop(g, start_vertex, goal_vertex, super_space, sba_bfs_vis, connect_vertex, sba_node_generator(), 
                            rrg_node_generator<Topology, RandomSampler, NcSelector>(&super_space, get_sample, select_neighborhood), 
                            Q, select_neighborhood, SA_init_temperature);
     
   };
+  
   
   
 }; //end of detail namespace.
@@ -250,17 +257,20 @@ namespace detail {
   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the space.
   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-  *        as the deciding factor between using RRT* or SBA* samples.
+  *        as the deciding factor between using RRT* or SBA* samples. When the value is negative,
+  *        the RRT* algorithm is used until a solution is found, and then the algorithm switches 
+  *        to SBA*.
   */
 template <typename SBAStarBundle,
           typename RandomSampler>
 inline void generate_sbarrtstar_no_init(const SBAStarBundle& bdl, 
+                                        typename SBAStarBundle::vertex_type goal_vertex,
                                         RandomSampler get_sample, 
-                                        double SA_init_temperature = 1.0) {
+                                        double SA_init_temperature = -1.0) {
   BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
   detail::generate_sbarrtstar_no_init_impl(
-    *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, motion_graph_connector(), 
+    *(bdl.m_g), bdl.m_start_vertex, goal_vertex, *(bdl.m_super_space), bdl.m_vis, motion_graph_connector(), 
     bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
     bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
     bdl.m_select_neighborhood, SA_init_temperature);
@@ -275,18 +285,21 @@ inline void generate_sbarrtstar_no_init(const SBAStarBundle& bdl,
   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the space.
   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-  *        as the deciding factor between using RRT* or SBA* samples.
+  *        as the deciding factor between using RRT* or SBA* samples. When the value is negative,
+  *        the RRT* algorithm is used until a solution is found, and then the algorithm switches 
+  *        to SBA*.
   */
 template <typename SBAStarBundle,
           typename RandomSampler>
 inline void generate_sbarrtstar(const SBAStarBundle& bdl, 
+                                typename SBAStarBundle::vertex_type goal_vertex,
                                 RandomSampler get_sample, 
-                                double SA_init_temperature = 1.0) {
+                                double SA_init_temperature = -1.0) {
   BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
   detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
   
-  generate_sbarrtstar_no_init(bdl, get_sample, SA_init_temperature);
+  generate_sbarrtstar_no_init(bdl, goal_vertex, get_sample, SA_init_temperature);
   
 };
 
@@ -299,17 +312,20 @@ inline void generate_sbarrtstar(const SBAStarBundle& bdl,
   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the space.
   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-  *        as the deciding factor between using RRT* or SBA* samples.
+  *        as the deciding factor between using RRT* or SBA* samples. When the value is negative,
+  *        the RRT* algorithm is used until a solution is found, and then the algorithm switches 
+  *        to SBA*.
   */
 template <typename SBAStarBundle,
           typename RandomSampler>
 inline void generate_lazy_sbarrtstar_no_init(const SBAStarBundle& bdl, 
-                                              RandomSampler get_sample, 
-                                              double SA_init_temperature = 1.0) {
+                                             typename SBAStarBundle::vertex_type goal_vertex,
+                                             RandomSampler get_sample, 
+                                             double SA_init_temperature = -1.0) {
   BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
   detail::generate_sbarrtstar_no_init_impl(
-    *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, lazy_node_connector(), 
+    *(bdl.m_g), bdl.m_start_vertex, goal_vertex, *(bdl.m_super_space), bdl.m_vis, lazy_node_connector(), 
     bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
     bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
     bdl.m_select_neighborhood, SA_init_temperature);
@@ -323,18 +339,21 @@ inline void generate_lazy_sbarrtstar_no_init(const SBAStarBundle& bdl,
   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the space.
   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-  *        as the deciding factor between using RRT* or SBA* samples.
+  *        as the deciding factor between using RRT* or SBA* samples. When the value is negative,
+  *        the RRT* algorithm is used until a solution is found, and then the algorithm switches 
+  *        to SBA*.
   */
 template <typename SBAStarBundle,
           typename RandomSampler>
 inline void generate_lazy_sbarrtstar(const SBAStarBundle& bdl, 
-                                      RandomSampler get_sample, 
-                                      double SA_init_temperature = 1.0) {
+                                     typename SBAStarBundle::vertex_type goal_vertex,
+                                     RandomSampler get_sample, 
+                                     double SA_init_temperature = -1.0) {
   BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
   detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);
   
-  generate_lazy_sbarrtstar_no_init(bdl, get_sample, SA_init_temperature);
+  generate_lazy_sbarrtstar_no_init(bdl, goal_vertex, get_sample, SA_init_temperature);
   
 };
 
@@ -347,18 +366,20 @@ inline void generate_lazy_sbarrtstar(const SBAStarBundle& bdl,
   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the space.
   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-  *        as the deciding factor between using RRT* or SBA* samples.
+  *        as the deciding factor between using RRT* or SBA* samples. When the value is negative,
+  *        the RRT* algorithm is used until a solution is found, and then the algorithm switches 
+  *        to SBA*.
   */
 template <typename SBAStarBundle,
           typename RandomSampler>
 inline void generate_lazy_bnb_sbarrtstar_no_init(const SBAStarBundle& bdl, 
-                                                  typename SBAStarBundle::vertex_type goal_vertex,
-                                                  RandomSampler get_sample, 
-                                                  double SA_init_temperature = 1.0) {
+                                                 typename SBAStarBundle::vertex_type goal_vertex,
+                                                 RandomSampler get_sample, 
+                                                 double SA_init_temperature = -1.0) {
   BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
   detail::generate_sbarrtstar_no_init_impl(
-    *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
+    *(bdl.m_g), bdl.m_start_vertex, goal_vertex, *(bdl.m_super_space), bdl.m_vis, 
     branch_and_bound_connector<typename SBAStarBundle::graph_type>(
       *(bdl.m_g),
       bdl.m_start_vertex, 
@@ -377,14 +398,16 @@ inline void generate_lazy_bnb_sbarrtstar_no_init(const SBAStarBundle& bdl,
   * \param bdl A const-reference to a SBA* bundle of parameters, see make_sbastar_bundle().
   * \param get_sample A random sampler of positions in the space.
   * \param SA_init_temperature The initial temperature of the Simulated Annealing when used 
-  *        as the deciding factor between using RRT* or SBA* samples.
+  *        as the deciding factor between using RRT* or SBA* samples. When the value is negative,
+  *        the RRT* algorithm is used until a solution is found, and then the algorithm switches 
+  *        to SBA*.
   */
 template <typename SBAStarBundle,
           typename RandomSampler>
 inline void generate_lazy_bnb_sbarrtstar(const SBAStarBundle& bdl, 
-                                          typename SBAStarBundle::vertex_type goal_vertex,
-                                          RandomSampler get_sample, 
-                                          double SA_init_temperature = 1.0) {
+                                         typename SBAStarBundle::vertex_type goal_vertex,
+                                         RandomSampler get_sample, 
+                                         double SA_init_temperature = -1.0) {
   BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
   detail::initialize_sbastar_nodes(*(bdl.m_g), bdl.m_vis, bdl.m_distance, bdl.m_predecessor, bdl.m_key);

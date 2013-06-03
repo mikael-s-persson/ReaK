@@ -1079,6 +1079,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector), \
+      goal_node, \
       get(random_sampler, this->m_space->get_super_space()), \
       this->m_SA_init_temperature);
   
@@ -1096,6 +1097,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector), \
+      goal_node, \
       get(random_sampler, this->m_space->get_super_space()), \
       this->m_SA_init_temperature);
   
@@ -1182,6 +1184,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector), \
+      goal_node, \
       get(random_sampler, this->m_space->get_super_space()), \
       this->m_init_relaxation, this->m_SA_init_temperature);
   
@@ -1199,6 +1202,7 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
         pred_map,  \
         get(&VertexProp::key_value, motion_graph),  \
         nc_selector), \
+      goal_node, \
       get(random_sampler, this->m_space->get_super_space()), \
       this->m_init_relaxation, this->m_SA_init_temperature);
   
@@ -1524,21 +1528,26 @@ shared_ptr< seq_path_base< typename sbastar_path_planner<FreeSpaceType,SBPPRepor
     
   };
   
-#undef RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
-#undef RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
-  
   if(m_solutions.size())
     return m_solutions.begin()->second;
   else
     return shared_ptr< seq_path_base< SuperSpace > >();
+  
+#undef RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
+#undef RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBASTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBARRTSTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBASTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBARRTSTAR_FUNCTION
+#undef RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
+  
 };
 
 
