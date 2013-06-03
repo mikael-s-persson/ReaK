@@ -748,7 +748,7 @@ void CRSPlannerGUI::executePlanner() {
             max_results); \
          \
         ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
-         \
+        std::cout << "The shortest distance is: " << workspace_planner.get_best_solution_distance() << std::endl; \
         r_info.bestsol_trajectory.clear(); \
         if(bestsol_rlpath) { \
           typedef ReaK::pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
