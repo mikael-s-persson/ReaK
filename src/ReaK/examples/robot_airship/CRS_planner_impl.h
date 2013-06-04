@@ -53,6 +53,15 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     void onUpdateAvailableOptions();
     
+    void onConfigsChanged();
+    void updateConfigs();
+    
+    void savePositions();
+    void loadPositions();
+    
+    void savePlannerConfig();
+    void loadPlannerConfig();
+    
   private:
     
     void onProxyChange();

@@ -27,6 +27,10 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionLoad_Positions"/>
+    <addaction name="actionSave_Positions"/>
+    <addaction name="actionLoad_Planner"/>
+    <addaction name="actionSave_Planner"/>
     <addaction name="actionQuit"/>
    </widget>
    <addaction name="menuFile"/>
@@ -41,6 +45,26 @@
   <action name="actionQuit">
    <property name="text">
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionLoad_Positions">
+   <property name="text">
+    <string>Load Positions...</string>
+   </property>
+  </action>
+  <action name="actionSave_Positions">
+   <property name="text">
+    <string>Save Positions...</string>
+   </property>
+  </action>
+  <action name="actionLoad_Planner">
+   <property name="text">
+    <string>Load Planner...</string>
+   </property>
+  </action>
+  <action name="actionSave_Planner">
+   <property name="text">
+    <string>Save Planner...</string>
    </property>
   </action>
  </widget>

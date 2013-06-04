@@ -68,6 +68,14 @@ class manip_3R3R_kinematics : public inverse_kinematics_model {
     vect_n<double> joint_lower_bounds;
     vect_n<double> joint_upper_bounds;
     
+    double getBaseToShoulder() const { return base_to_shoulder; };
+    double getShoulderToElbow() const { return shoulder_to_elbow; };
+    double getElbowToJoint4() const { return elbow_to_joint_4; };
+    double getJoint4ToWrist() const { return joint_4_to_wrist; };
+    double getWristToFlange() const { return wrist_to_flange; };
+    
+    shared_ptr< kte_map_chain > getKTEChain() const { return m_chain; };
+    
     /**
      * Default constructor.
      */
