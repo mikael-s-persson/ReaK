@@ -37,7 +37,6 @@ namespace kte {
 //     shared_ptr< frame_3D<double> > m_base_frame;
 //     shared_ptr< gen_coord<double> > m_track_coord;
 //     shared_ptr< joint_dependent_frame_3D > m_output_frame;
-//     vect<double,3> m_track_direction;
 //     double m_track_lower_bound;
 //     double m_track_upper_bound;
 //     
@@ -46,7 +45,6 @@ namespace kte {
 
 manip_P3R3R_kinematics::manip_P3R3R_kinematics(const std::string& aName,
                                                const shared_ptr< frame_3D<double> >& aBaseFrame,
-                                               const vect<double,3>& aTrackDirection,
                                                double aBaseToShoulder, 
                                                double aShoulderToElbow,
                                                double aElbowToJoint4, 
@@ -58,7 +56,6 @@ manip_P3R3R_kinematics::manip_P3R3R_kinematics(const std::string& aName,
                                                m_base_frame(aBaseFrame),
                                                m_track_coord(new gen_coord<double>(), scoped_deleter()),
                                                m_output_frame(new frame_3D<double>(), scoped_deleter()),
-                                               m_track_direction(aTrackDirection),
                                                m_track_lower_bound(aJointLowerBounds[0]),
                                                m_track_upper_bound(aJointUpperBounds[0]),
                                                m_arm_model(
@@ -82,7 +79,7 @@ manip_P3R3R_kinematics::manip_P3R3R_kinematics(const std::string& aName,
   shared_ptr< kte::prismatic_joint_3D > track_joint(new kte::prismatic_joint_3D(
       "manip_P3R3R_track",
       m_track_coord,
-      m_track_direction,
+      vect<double,3>(1.0,0.0,0.0),
       m_base_frame,
       m_output_frame,
       track_jacobian),
@@ -133,22 +130,76 @@ void manip_P3R3R_kinematics::doInverseMotion() {
   double s2e_dist_sqr = m_arm_model.getShoulderToElbow() * m_arm_model.getShoulderToElbow();
   double e2w_dist_sqr = elbow_to_wrist_dist * elbow_to_wrist_dist;
   
-  double x_center = (wrist_pos * m_track_direction) / (m_track_direction * m_track_direction);
-  vect<double,3> perp_wrist_pos = wrist_pos - x_center * m_track_direction;
-  double perp_wrist_dist = norm_2(perp_wrist_pos);
-  
   /*
    * find the maximum wrist to base distance, x_max and verifies if the required
    * position of the end-effector is within limits
    */
   /*Extended arm*/
-  double c2_max = cos(m_arm_model.joint_upper_bounds[1]);
+  if(wrist_pos[1] * wrist_pos[1] + wrist_pos[2] * wrist_pos[2] > (shoulder_to_wrist - extend_epsilon) * (shoulder_to_wrist - extend_epsilon))
+    throw optim::infeasible_problem("Inverse kinematics problem is infeasible! End-effector pose is out-of-reach! Desired wrist position is outside the cylindrical workspace envelope (fully-extended arm).");
+  
+  
+  double c2_max = 1.0;
+  if(m_arm_model.joint_upper_bounds[1] < 0.0)
+    c2_max = cos(m_arm_model.joint_upper_bounds[1]);
+  if(m_arm_model.joint_lower_bounds[1] > 0.0)
+    c2_max = cos(m_arm_model.joint_lower_bounds[1]);
+  double c2_min = -1.0;
+  if((m_arm_model.joint_upper_bounds[1] < M_PI) && (m_arm_model.joint_lower_bounds[1] > -M_PI)) {
+    if(M_PI - m_arm_model.joint_upper_bounds[1] > M_PI + m_arm_model.joint_lower_bounds[1])
+      c2_min = cos(m_arm_model.joint_lower_bounds[1]);
+    else
+      c2_min = cos(m_arm_model.joint_upper_bounds[1]);
+  };
+  
+  double c3_max = 1.0;
+  if(m_arm_model.joint_upper_bounds[2] < 0.0)
+    c3_max = cos(m_arm_model.joint_upper_bounds[2]);
+  if(m_arm_model.joint_lower_bounds[2] > 0.0)
+    c3_max = cos(m_arm_model.joint_lower_bounds[2]);
+  double c3_min = -1.0;
+  if((m_arm_model.joint_upper_bounds[2] < M_PI) && (m_arm_model.joint_lower_bounds[2] > -M_PI)) {
+    if(M_PI - m_arm_model.joint_upper_bounds[2] > M_PI + m_arm_model.joint_lower_bounds[2])
+      c3_min = cos(m_arm_model.joint_lower_bounds[2]);
+    else
+      c3_min = cos(m_arm_model.joint_upper_bounds[2]);
+  };
+  
+  double j23_lower_bound = m_arm_model.joint_lower_bounds[1] + m_arm_model.joint_lower_bounds[2];
+  double j23_upper_bound = m_arm_model.joint_upper_bounds[1] + m_arm_model.joint_upper_bounds[2];
+  double c23_max = 1.0;
+  if(j23_upper_bound < 0.0)
+    c23_max = cos(j23_upper_bound);
+  if(j23_lower_bound > 0.0)
+    c23_max = cos(j23_lower_bound);
+  double c23_min = -1.0;
+  if((j23_upper_bound < M_PI) && (j23_lower_bound > -M_PI)) {
+    if(M_PI - j23_upper_bound > M_PI + j23_lower_bound)
+      c3_min = cos(j23_lower_bound);
+    else
+      c3_min = cos(j23_upper_bound);
+  };
+  
+  if(wrist_pos[2] >= 0.0) {
+    double elbow_to_desired_height_min = wrist_pos[2] - A465_params.shoulder_to_elbow_dist * c2_max;
+    if(elbow_to_desired_height_min > (elbow_to_wrist_dist - extend_epsilon) * c23_max)
+      throw optim::infeasible_problem("Inverse kinematics problem is infeasible! End-effector pose is out-of-reach! Desired wrist position is too high for the manipulator to reach.");
+    
+  } else if(wrist_pos[2] < 0.0) {
+    double elbow_to_desired_height_min = wrist_pos[2] - A465_params.shoulder_to_elbow_dist * c2_min;
+    if(elbow_to_desired_height_min < (elbow_to_wrist_dist - extend_epsilon) * c23_min)
+      throw optim::infeasible_problem("Inverse kinematics problem is infeasible! End-effector pose is out-of-reach! Desired wrist position is too low for the manipulator to reach.");
+    
+  };
+  
+  
+  double s2_max = 1.0;
+  if(m_arm_model.joint_upper_bounds[1] < 0.0
   double s2_max = sin(m_arm_model.joint_upper_bounds[1]);
+  
   
   double x_max = 0.0;
   if (wrist_pos[2] > (shoulder_to_wrist - extend_epsilon) * c2_max) {
-    if (wrist_pos[1] * wrist_pos[1] + wrist_pos[2] * wrist_pos[2] > (shoulder_to_wrist - extend_epsilon) * (shoulder_to_wrist - extend_epsilon))
-      throw optim::infeasible_problem("Inverse kinematics problem is infeasible! End-effector pose is out-of-reach! Desired wrist position is outside the cylindrical workspace envelope (fully-extended arm).");
     x_max = sqrt( shoulder_to_wrist * shoulder_to_wrist - wrist_pos[1] * wrist_pos[1] - wrist_pos[2] * wrist_pos[2]);
   } else /*Bent arm*/ {
     // Verifies that the location can be reached, as far as height (z) is concerned

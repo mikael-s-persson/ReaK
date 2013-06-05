@@ -53,14 +53,14 @@ namespace kte {
  * \note In the zero-configuration (all joints at zero), the arm is pointing straight up (z-axis),
  * and, at that configuration, joints 1, 4 and 6 turn about the positive z-axis and joints 2, 3, and 5
  * turn about the negative y-axis, leading to the end-effector (flange) to have its local z-axis pointing 
- * outwards from the flange and its local y-axis pointing to the side.
+ * outwards from the flange and its local y-axis pointing to the side. The track is aligned with the 
+ * positive x-axis of the base-frame.
  */
 class manip_P3R3R_kinematics : public inverse_kinematics_model {
   private:
     shared_ptr< frame_3D<double> > m_base_frame;
     shared_ptr< gen_coord<double> > m_track_coord;
     shared_ptr< frame_3D<double> > m_output_frame;
-    vect<double,3> m_track_direction;
     double m_track_lower_bound;
     double m_track_upper_bound;
     
@@ -76,7 +76,6 @@ class manip_P3R3R_kinematics : public inverse_kinematics_model {
      */
     manip_P3R3R_kinematics(const std::string& aName = "",
                            const shared_ptr< frame_3D<double> >& aBaseFrame = shared_ptr< frame_3D<double> >(),
-                           const vect<double,3>& aTrackDirection = (vect<double,3>(1.0,0.0,0.0)),
                            double aBaseToShoulder = 0.0, 
                            double aShoulderToElbow = 1.0,
                            double aElbowToJoint4 = 0.5, 
