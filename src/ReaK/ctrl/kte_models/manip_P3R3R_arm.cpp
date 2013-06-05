@@ -133,13 +133,17 @@ void manip_P3R3R_kinematics::doInverseMotion() {
   double s2e_dist_sqr = m_arm_model.getShoulderToElbow() * m_arm_model.getShoulderToElbow();
   double e2w_dist_sqr = elbow_to_wrist_dist * elbow_to_wrist_dist;
   
+  double x_center = (wrist_pos * m_track_direction) / (m_track_direction * m_track_direction);
+  vect<double,3> perp_wrist_pos = wrist_pos - x_center * m_track_direction;
+  double perp_wrist_dist = norm_2(perp_wrist_pos);
+  
   /*
    * find the maximum wrist to base distance, x_max and verifies if the required
    * position of the end-effector is within limits
    */
   /*Extended arm*/
-  double c2_max = cos(joint_upper_bounds[1]);
-  double s2_max = sin(joint_upper_bounds[1]);
+  double c2_max = cos(m_arm_model.joint_upper_bounds[1]);
+  double s2_max = sin(m_arm_model.joint_upper_bounds[1]);
   
   double x_max = 0.0;
   if (wrist_pos[2] > (shoulder_to_wrist - extend_epsilon) * c2_max) {
@@ -148,7 +152,7 @@ void manip_P3R3R_kinematics::doInverseMotion() {
     x_max = sqrt( shoulder_to_wrist * shoulder_to_wrist - wrist_pos[1] * wrist_pos[1] - wrist_pos[2] * wrist_pos[2]);
   } else /*Bent arm*/ {
     // Verifies that the location can be reached, as far as height (z) is concerned
-    double max_j23_angle = joint_upper_bounds[1] + joint_upper_bounds[2];
+    double max_j23_angle = m_arm_model.joint_upper_bounds[1] + m_arm_model.joint_upper_bounds[2];
     if(max_j23_angle > M_PI)
       max_j23_angle = M_PI;
     double low_elbow_to_desired_height = wrist_pos[2] - A465_params.shoulder_to_elbow_dist * c2_max;
