@@ -11,6 +11,7 @@
 #include "kte_models/inverse_kinematics_model.hpp"
 #include "kte_models/manip_ERA_arm.hpp"
 #include "kte_models/manip_SSRMS_arm.hpp"
+#include "kte_models/manip_P3R3R_arm.hpp"
 
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
@@ -35,7 +36,8 @@ using namespace ReaK;
 
 struct all_robot_info {
 //   kte::manip_ERA_kinematics builder;
-  kte::manip_SSRMS_kinematics builder;
+//   kte::manip_SSRMS_kinematics builder;
+  kte::manip_P3R3R_kinematics builder;
   shared_ptr< kte::kte_map_chain > kin_chain;
   shared_ptr< frame_3D<double> > target_frame;
 };
@@ -51,60 +53,60 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
   
   if( SO_KEY_PRESS_EVENT(event, Q) ) {
     j_pos[0] += 0.01;
-    if(j_pos[0] > r_info->builder.joint_upper_bounds[0])
-      j_pos[0] = r_info->builder.joint_upper_bounds[0];
+//     if(j_pos[0] > r_info->builder.joint_upper_bounds[0])
+//       j_pos[0] = r_info->builder.joint_upper_bounds[0];
   } else if( SO_KEY_PRESS_EVENT(event, A) ) {
     j_pos[0] -= 0.01;
-    if(j_pos[0] < r_info->builder.joint_lower_bounds[0])
-      j_pos[0] = r_info->builder.joint_lower_bounds[0];
+//     if(j_pos[0] < r_info->builder.joint_lower_bounds[0])
+//       j_pos[0] = r_info->builder.joint_lower_bounds[0];
   } else if( SO_KEY_PRESS_EVENT(event, W) ) {
     j_pos[1] += 0.01;
-    if(j_pos[1] > r_info->builder.joint_upper_bounds[1])
-      j_pos[1] = r_info->builder.joint_upper_bounds[1];
+//     if(j_pos[1] > r_info->builder.joint_upper_bounds[1])
+//       j_pos[1] = r_info->builder.joint_upper_bounds[1];
   } else if( SO_KEY_PRESS_EVENT(event, S) ) {
     j_pos[1] -= 0.01;
-    if(j_pos[1] < r_info->builder.joint_lower_bounds[1])
-      j_pos[1] = r_info->builder.joint_lower_bounds[1];
+//     if(j_pos[1] < r_info->builder.joint_lower_bounds[1])
+//       j_pos[1] = r_info->builder.joint_lower_bounds[1];
   } else if( SO_KEY_PRESS_EVENT(event, E) ) {
     j_pos[2] += 0.01;
-    if(j_pos[2] > r_info->builder.joint_upper_bounds[2])
-      j_pos[2] = r_info->builder.joint_upper_bounds[2];
+//     if(j_pos[2] > r_info->builder.joint_upper_bounds[2])
+//       j_pos[2] = r_info->builder.joint_upper_bounds[2];
   } else if( SO_KEY_PRESS_EVENT(event, D) ) {
     j_pos[2] -= 0.01;
-    if(j_pos[2] < r_info->builder.joint_lower_bounds[2])
-      j_pos[2] = r_info->builder.joint_lower_bounds[2];
+//     if(j_pos[2] < r_info->builder.joint_lower_bounds[2])
+//       j_pos[2] = r_info->builder.joint_lower_bounds[2];
   } else if( SO_KEY_PRESS_EVENT(event, R) ) {
     j_pos[3] += 0.01;
-    if(j_pos[3] > r_info->builder.joint_upper_bounds[3])
-      j_pos[3] = r_info->builder.joint_upper_bounds[3];
+//     if(j_pos[3] > r_info->builder.joint_upper_bounds[3])
+//       j_pos[3] = r_info->builder.joint_upper_bounds[3];
   } else if( SO_KEY_PRESS_EVENT(event, F) ) {
     j_pos[3] -= 0.01;
-    if(j_pos[3] < r_info->builder.joint_lower_bounds[3])
-      j_pos[3] = r_info->builder.joint_lower_bounds[3];
+//     if(j_pos[3] < r_info->builder.joint_lower_bounds[3])
+//       j_pos[3] = r_info->builder.joint_lower_bounds[3];
   } else if( SO_KEY_PRESS_EVENT(event, T) ) {
     j_pos[4] += 0.01; 
-    if(j_pos[4] > r_info->builder.joint_upper_bounds[4])
-      j_pos[4] = r_info->builder.joint_upper_bounds[4];
+//     if(j_pos[4] > r_info->builder.joint_upper_bounds[4])
+//       j_pos[4] = r_info->builder.joint_upper_bounds[4];
   } else if( SO_KEY_PRESS_EVENT(event, G) ) {
     j_pos[4] -= 0.01; 
-    if(j_pos[4] < r_info->builder.joint_lower_bounds[4])
-      j_pos[4] = r_info->builder.joint_lower_bounds[4];
+//     if(j_pos[4] < r_info->builder.joint_lower_bounds[4])
+//       j_pos[4] = r_info->builder.joint_lower_bounds[4];
   } else if( SO_KEY_PRESS_EVENT(event, Y) ) {
     j_pos[5] += 0.01; 
-    if(j_pos[5] > r_info->builder.joint_upper_bounds[5])
-      j_pos[5] = r_info->builder.joint_upper_bounds[5];
+//     if(j_pos[5] > r_info->builder.joint_upper_bounds[5])
+//       j_pos[5] = r_info->builder.joint_upper_bounds[5];
   } else if( SO_KEY_PRESS_EVENT(event, H) ) {
     j_pos[5] -= 0.01; 
-    if(j_pos[5] < r_info->builder.joint_lower_bounds[5])
-      j_pos[5] = r_info->builder.joint_lower_bounds[5];
+//     if(j_pos[5] < r_info->builder.joint_lower_bounds[5])
+//       j_pos[5] = r_info->builder.joint_lower_bounds[5];
   } else if( SO_KEY_PRESS_EVENT(event, U) ) {
     j_pos[6] += 0.01;
-    if(j_pos[6] > r_info->builder.joint_upper_bounds[6])
-      j_pos[6] = r_info->builder.joint_upper_bounds[6];
+//     if(j_pos[6] > r_info->builder.joint_upper_bounds[6])
+//       j_pos[6] = r_info->builder.joint_upper_bounds[6];
   } else if( SO_KEY_PRESS_EVENT(event, J) ) {
     j_pos[6] -= 0.01;
-    if(j_pos[6] < r_info->builder.joint_lower_bounds[6])
-      j_pos[6] = r_info->builder.joint_lower_bounds[6];
+//     if(j_pos[6] < r_info->builder.joint_lower_bounds[6])
+//       j_pos[6] = r_info->builder.joint_lower_bounds[6];
   } else if( SO_KEY_PRESS_EVENT(event, Z) ) {
     r_info->target_frame->Position[2] -= 0.01;
   } else if( SO_KEY_PRESS_EVENT(event, X) ) {

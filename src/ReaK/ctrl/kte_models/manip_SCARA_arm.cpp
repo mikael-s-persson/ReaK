@@ -55,6 +55,9 @@ manip_SCARA_kinematics::manip_SCARA_kinematics(const std::string& aName,
                                                m_link1_length(aLink1Length), 
                                                m_link2_length(aLink2Length),
                                                m_link3_height(aLink3Height) {
+  if(!m_base_frame)
+    m_base_frame = shared_ptr< frame_3D<double> >(new frame_3D<double>(), scoped_deleter());
+  
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
@@ -200,7 +203,7 @@ void manip_SCARA_kinematics::doInverseMotion() {
   mat<double,mat_structure::rectangular> b(2,1);
   b(0,0) = EE_fr.Velocity[0]; b(1,0) = EE_fr.Velocity[1];
   mat<double,mat_structure::rectangular> jt_vel(2,1);
-  linlsq_QR(A, jt_vel, b); // solve for the joint velocities.
+  linlsq_RRQR(A, jt_vel, b); // solve for the joint velocities.
   
   m_joints[0]->q      = a1;
   m_joints[0]->q_dot  = jt_vel(0,0);

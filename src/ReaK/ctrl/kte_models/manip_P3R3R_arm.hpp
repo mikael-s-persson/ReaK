@@ -37,6 +37,7 @@
 #include "base/defs.hpp"
 #include "inverse_kinematics_model.hpp"
 #include "mbd_kte/kte_map_chain.hpp"
+#include "mbd_kte/prismatic_joint.hpp"
 
 #include "manip_3R3R_arm.hpp"
 
@@ -61,6 +62,7 @@ class manip_P3R3R_kinematics : public inverse_kinematics_model {
     shared_ptr< frame_3D<double> > m_base_frame;
     shared_ptr< gen_coord<double> > m_track_coord;
     shared_ptr< frame_3D<double> > m_output_frame;
+    shared_ptr< prismatic_joint_3D > m_track_joint;
     double m_track_lower_bound;
     double m_track_upper_bound;
     

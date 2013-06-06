@@ -50,6 +50,9 @@ manip_3R_2D_kinematics::manip_3R_2D_kinematics(const std::string& aName,
                                                m_link1_length(aLink1Length), 
                                                m_link2_length(aLink2Length), 
                                                m_link3_length(aLink3Length) {
+  if(!m_base_frame)
+    m_base_frame = shared_ptr< frame_2D<double> >(new frame_2D<double>(), scoped_deleter());
+  
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
@@ -202,7 +205,7 @@ void manip_3R_2D_kinematics::doInverseMotion() {
   mat<double,mat_structure::rectangular> b(3,1);
   b(0,0) = EE_fr.Velocity[0]; b(1,0) = EE_fr.Velocity[1]; b(2,0) = EE_fr.AngVelocity;
   mat<double,mat_structure::rectangular> jt_vel(3,1);
-  linlsq_QR(A, jt_vel, b); // solve for the joint velocities.
+  linlsq_RRQR(A, jt_vel, b); // solve for the joint velocities.
   
   m_joints[0]->q = a1;
   m_joints[0]->q_dot = jt_vel(0,0);
@@ -366,6 +369,9 @@ manip_3R_3D_kinematics::manip_3R_3D_kinematics(const std::string& aName,
                                                m_link2_dz(aLink2DZ), 
                                                m_link3_length(aLink3Length), 
                                                m_link3_dz(aLink3DZ) {
+  if(!m_base_frame)
+    m_base_frame = shared_ptr< frame_3D<double> >(new frame_3D<double>(), scoped_deleter());
+  
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
@@ -522,7 +528,7 @@ void manip_3R_3D_kinematics::doInverseMotion() {
   mat<double,mat_structure::rectangular> b(3,1);
   b(0,0) = EE_fr.Velocity[0]; b(1,0) = EE_fr.Velocity[1]; b(2,0) = EE_fr.AngVelocity[2];
   mat<double,mat_structure::rectangular> jt_vel(3,1);
-  linlsq_QR(A, jt_vel, b); // solve for the joint velocities.
+  linlsq_RRQR(A, jt_vel, b); // solve for the joint velocities.
   
   m_joints[0]->q = a1;
   m_joints[0]->q_dot = jt_vel(0,0);

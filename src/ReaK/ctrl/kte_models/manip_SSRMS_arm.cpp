@@ -56,6 +56,9 @@ manip_SSRMS_kinematics::manip_SSRMS_kinematics(const std::string& aName,
                                                joint_offsets(aJointOffsets),
                                                joint_lower_bounds(aJointLowerBounds),
                                                joint_upper_bounds(aJointUpperBounds) {
+  if(!m_base_frame)
+    m_base_frame = shared_ptr< frame_3D<double> >(new frame_3D<double>(), scoped_deleter());
+  
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
   m_joints.push_back(shared_ptr< gen_coord<double> >(new gen_coord<double>(), scoped_deleter()));
@@ -477,7 +480,7 @@ void manip_SSRMS_kinematics::doInverseMotion() {
   mat<double,mat_structure::rectangular> b(6,1);
   b(0,0) = EE_fr.Velocity[0];    b(1,0) = EE_fr.Velocity[1];    b(2,0) = EE_fr.Velocity[2];
   b(3,0) = EE_fr.AngVelocity[0]; b(4,0) = EE_fr.AngVelocity[1]; b(5,0) = EE_fr.AngVelocity[2];
-  minnorm_QR(jac, x, b, pos_epsilon);  // NOTE: this would be better with RRQR.
+  minnorm_RRQR(jac, x, b, pos_epsilon);
   
   m_joints[0]->q_dot = x(0,0);
   m_joints[1]->q_dot = x(1,0);
