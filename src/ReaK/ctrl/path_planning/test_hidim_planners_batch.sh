@@ -19,7 +19,7 @@ do
   echo "${MC_OPTIONS}"
   LAUNCH_PLANNER_CMD="./test_hidim_planners_"$SPACE_NAME
   
-  for STORAGE_I in 1 2
+  for STORAGE_I in 1
   do
     STORAGE="adj-list"
     STORAGE_SHORT="a"
@@ -39,9 +39,9 @@ do
 #       ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --knn-method=$KNN_METHOD --mg-storage=$STORAGE
 #       mv ${OUTPUT_DIRECTORY}/${SPACE_NAME}_times.txt ${OUTPUT_DIRECTORY}/sbastar_lazy_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_times.txt
 #       echo "$MC_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/$1/sbastar_lazy_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
-#       ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --knn-method=$KNN_METHOD --mg-storage=$STORAGE
-#       mv ${OUTPUT_DIRECTORY}/${SPACE_NAME}_times.txt ${OUTPUT_DIRECTORY}/sbastar_lazy_any_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_times.txt
-#       echo "$MC_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/$1/sbastar_lazy_any_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
+      ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-potential-cutoff=0.0 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --knn-method=$KNN_METHOD --mg-storage=$STORAGE
+      mv ${OUTPUT_DIRECTORY}/${SPACE_NAME}_times.txt ${OUTPUT_DIRECTORY}/sbastar_lazy_any_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_times.txt
+      echo "$MC_OPTIONS --sba-star --sba-potential-cutoff=0.0 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/$1/sbastar_lazy_any_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
 #       ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --sba-with-bnb --knn-method=$KNN_METHOD --mg-storage=$STORAGE
 #       mv ${OUTPUT_DIRECTORY}/${SPACE_NAME}_times.txt ${OUTPUT_DIRECTORY}/sbastar_lazy_any_bnb_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_times.txt
 #       echo "$MC_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --sba-with-bnb --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/$1/sbastar_lazy_any_bnb_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt

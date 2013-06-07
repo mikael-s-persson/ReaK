@@ -618,19 +618,20 @@ struct sbastar_planner_visitor {
   double compute_sample_similarity(double travel_dist, double event_radius) const {
     using std::exp; using std::log;
     
-//     if(travel_dist > m_planner->get_sampling_radius())
-//       return 0.0;
-    double sig2_n = 0.25 * m_planner->get_sampling_radius() * m_planner->get_sampling_radius();
-    double sig2_x = 0.25 * event_radius * event_radius;
+//     double sig2_n = 0.25 * m_planner->get_sampling_radius() * m_planner->get_sampling_radius();
+//     double sig2_x = 0.25 * event_radius * event_radius;
+    
+    double sig2_n = m_planner->get_sampling_radius() * m_planner->get_sampling_radius();
+    double sig2_x = event_radius * event_radius;
+    
     return exp(-travel_dist * travel_dist / (sig2_x * 2.0) - 0.5 * m_space_dim * ( sig2_n / sig2_x - 1.0 - log(sig2_n / sig2_x) ) );
   };
   
   double compute_sample_similarity(double travel_dist) const {
     using std::exp;
     
-//     if(travel_dist > m_planner->get_sampling_radius())
-//       return 0.0;
-    return exp(-travel_dist * travel_dist / (0.25 * m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
+//     return exp(-travel_dist * travel_dist / (0.25 * m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
+    return exp(-travel_dist * travel_dist / (m_planner->get_sampling_radius() * m_planner->get_sampling_radius() * 2.0));
   };
   
 #if 0
@@ -679,12 +680,12 @@ struct sbastar_planner_visitor {
   
   template <typename Vertex, typename Graph>
   void register_explored_sample(Vertex u, Graph& g, double samp_sim) const {
-    g[u].density = g[u].density * (1.0 - samp_sim) + samp_sim * samp_sim;
+    g[u].density = g[u].density * (1.0 - samp_sim / m_space_dim) + samp_sim * samp_sim / m_space_dim / m_space_dim;
 //     std::cout << " Vertex " << u << " has density: " << g[u].density << std::endl;
   };
   template <typename Vertex, typename Graph>
   void register_failed_sample(Vertex u, Graph& g, double samp_sim) const {
-    g[u].constriction = g[u].constriction * (1.0 - samp_sim) + samp_sim * samp_sim;
+    g[u].constriction = g[u].constriction * (1.0 - samp_sim / m_space_dim) + samp_sim * samp_sim / m_space_dim / m_space_dim;
 //     std::cout << " Vertex " << u << " has constriction: " << g[u].constriction << std::endl;
   };
 #endif

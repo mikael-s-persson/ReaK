@@ -37,6 +37,8 @@
 
 #include <boost/tuple/tuple.hpp>
 
+#include <boost/mpl/prior.hpp>
+
 namespace ReaK {
 
 namespace kte {
@@ -76,7 +78,7 @@ namespace detail {
 template <typename Tuple, typename Visitor>
 void visit_kte(Visitor& vis, kte_map& aModel) {
   
-  detail::try_visit_kte< Tuple, boost::tuples::length< Tuple >, Visitor >(vis, aModel);
+  detail::try_visit_kte< Tuple, boost::mpl::size_t< boost::tuples::length< Tuple >::value >, Visitor >(vis, aModel);
   
 };
 

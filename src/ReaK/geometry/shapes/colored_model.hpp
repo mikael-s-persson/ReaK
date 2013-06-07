@@ -44,20 +44,42 @@ namespace ReaK {
 /** Main namespace for ReaK.Geometry */
 namespace geom {
 
+  
+class colored_geometry_2D : public shared_object {
+  public:
+    color mColor;
+    shared_ptr< geometry_2D > mGeom;
+    
+    colored_geometry_2D(const color& aColor = color(),
+                        const shared_ptr< geometry_2D >& aGeom = shared_ptr< geometry_2D >()) :
+                        mColor(aColor), mGeom(aGeom) { };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(mColor)
+        & RK_SERIAL_SAVE_WITH_NAME(mGeom);
+    };
 
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(mColor)
+        & RK_SERIAL_LOAD_WITH_NAME(mGeom);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(colored_geometry_2D,0xC3100022,1,"colored_geometry_2D",shared_object)
+    
+};
+  
+  
 /** This class defines a colored model for 2D geometries. */
 class colored_model_2D : public named_object {
   public:
-    struct element {
-      color mColor;
-      shared_ptr< geometry_2D > mGeom;
-      element(const color& aColor = color(), 
-              const shared_ptr< geometry_2D >& aGeom = shared_ptr< geometry_2D >()) : 
-              mColor(aColor), mGeom(aGeom) { };
-    };
-    
     std::vector< shared_ptr< pose_2D<double> > > mAnchorList;
-    std::vector< element > mGeomList;
+    std::vector< colored_geometry_2D > mGeomList;
     
     
     /**
@@ -77,7 +99,7 @@ class colored_model_2D : public named_object {
     };
     
     colored_model_2D& addElement(const color& aColor, const shared_ptr< geometry_2D >& aGeom) {
-      mGeomList.push_back(element(aColor, aGeom));
+      mGeomList.push_back(colored_geometry_2D(aColor, aGeom));
       return *this;
     };
     
@@ -90,38 +112,14 @@ class colored_model_2D : public named_object {
     
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mAnchorList);
-      A & RK_SERIAL_SAVE_WITH_ALIAS("GeomCount",mGeomList.size());
-      for(std::size_t i = 0; i < mGeomList.size(); ++i) {
-        { std::stringstream s_stream;
-        s_stream << "color[" << i << "]";
-        A & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), mGeomList[i].mColor);
-        };
-        
-        { std::stringstream s_stream;
-        s_stream << "geom[" << i << "]";
-        A & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), mGeomList[i].mGeom);
-        };
-      };
+      A & RK_SERIAL_SAVE_WITH_NAME(mAnchorList)
+        & RK_SERIAL_SAVE_WITH_NAME(mGeomList);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mAnchorList);
-      std::size_t geom_count = 0;
-      A & RK_SERIAL_LOAD_WITH_ALIAS("GeomCount",geom_count);
-      mGeomList.resize(geom_count);
-      for(std::size_t i = 0; i < mGeomList.size(); ++i) {
-        { std::stringstream s_stream;
-        s_stream << "color[" << i << "]";
-        A & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), mGeomList[i].mColor);
-        };
-        
-        { std::stringstream s_stream;
-        s_stream << "geom[" << i << "]";
-        A & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), mGeomList[i].mGeom);
-        };
-      };
+      A & RK_SERIAL_LOAD_WITH_NAME(mAnchorList)
+        & RK_SERIAL_LOAD_WITH_NAME(mGeomList);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(colored_model_2D,0xC3100020,1,"colored_model_2D",named_object)
@@ -130,20 +128,41 @@ class colored_model_2D : public named_object {
 };
 
 
+class colored_geometry_3D : public shared_object {
+  public:
+    color mColor;
+    shared_ptr< geometry_3D > mGeom;
+    
+    colored_geometry_3D(const color& aColor = color(),
+                        const shared_ptr< geometry_3D >& aGeom = shared_ptr< geometry_3D >()) :
+                        mColor(aColor), mGeom(aGeom) { };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(mColor)
+        & RK_SERIAL_SAVE_WITH_NAME(mGeom);
+    };
+
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(mColor)
+        & RK_SERIAL_LOAD_WITH_NAME(mGeom);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(colored_geometry_3D,0xC3100023,1,"colored_geometry_3D",shared_object)
+    
+};
+
 
 /** This class defines a colored model for 3D geometries. */
 class colored_model_3D : public named_object {
   public:
-    struct element {
-      color mColor;
-      shared_ptr< geometry_3D > mGeom;
-      element(const color& aColor = color(), 
-              const shared_ptr< geometry_3D >& aGeom = shared_ptr< geometry_3D >()) : 
-              mColor(aColor), mGeom(aGeom) { };
-    };
-    
     std::vector< shared_ptr< pose_3D<double> > > mAnchorList;
-    std::vector< element > mGeomList;
+    std::vector< colored_geometry_3D > mGeomList;
     
     
     /**
@@ -163,7 +182,7 @@ class colored_model_3D : public named_object {
     };
     
     colored_model_3D& addElement(const color& aColor, const shared_ptr< geometry_3D >& aGeom) {
-      mGeomList.push_back(element(aColor, aGeom));
+      mGeomList.push_back(colored_geometry_3D(aColor, aGeom));
       return *this;
     };
     
@@ -176,38 +195,14 @@ class colored_model_3D : public named_object {
     
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mAnchorList);
-      A & RK_SERIAL_SAVE_WITH_ALIAS("GeomCount",mGeomList.size());
-      for(std::size_t i = 0; i < mGeomList.size(); ++i) {
-        { std::stringstream s_stream;
-        s_stream << "color[" << i << "]";
-        A & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), mGeomList[i].mColor);
-        };
-        
-        { std::stringstream s_stream;
-        s_stream << "geom[" << i << "]";
-        A & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), mGeomList[i].mGeom);
-        };
-      };
+      A & RK_SERIAL_SAVE_WITH_NAME(mAnchorList)
+        & RK_SERIAL_SAVE_WITH_NAME(mGeomList);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mAnchorList);
-      std::size_t geom_count = 0;
-      A & RK_SERIAL_LOAD_WITH_ALIAS("GeomCount",geom_count);
-      mGeomList.resize(geom_count);
-      for(std::size_t i = 0; i < mGeomList.size(); ++i) {
-        { std::stringstream s_stream;
-        s_stream << "color[" << i << "]";
-        A & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), mGeomList[i].mColor);
-        };
-        
-        { std::stringstream s_stream;
-        s_stream << "geom[" << i << "]";
-        A & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), mGeomList[i].mGeom);
-        };
-      };
+      A & RK_SERIAL_LOAD_WITH_NAME(mAnchorList)
+        & RK_SERIAL_LOAD_WITH_NAME(mGeomList);
     };
     
     RK_RTTI_MAKE_CONCRETE_1BASE(colored_model_3D,0xC3100021,1,"colored_model_3D",named_object)
