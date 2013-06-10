@@ -29,6 +29,8 @@
 
 #include "mbd_kte/rigid_link.hpp"
 #include "mbd_kte/inertia.hpp"
+#include "mbd_kte/revolute_joint.hpp"
+#include "mbd_kte/prismatic_joint.hpp"
 
 #include <string>
 #include <map>
@@ -42,8 +44,8 @@ namespace geom {
 
 namespace detail {
   
-  typedef boost::tuple< kte::rigid_link_2D, kte::inertia_2D > kte_geom_visit_2D_types;
-  typedef boost::tuple< kte::rigid_link_3D, kte::inertia_3D > kte_geom_visit_3D_types;
+  typedef boost::tuple< kte::rigid_link_2D, kte::prismatic_joint_2D, kte::revolute_joint_2D, kte::inertia_2D > kte_geom_visit_2D_types;
+  typedef boost::tuple< kte::rigid_link_3D, kte::prismatic_joint_3D, kte::revolute_joint_3D, kte::inertia_3D > kte_geom_visit_3D_types;
   
   
   struct kte_geom_2D_visitor {
@@ -51,18 +53,73 @@ namespace detail {
     
     kte_geom_2D_visitor(const kte_chain_geometry_2D* aParent) : parent(aParent) { };
     
-    void operator()(const kte::rigid_link_2D& aObj) {
+    template <typename KTEType>
+    void connect_to_base_or_end(const KTEType& aObj) {
       std::string obj_name = aObj.getName();
-      std::map< std::string, colored_geometry_2D >::const_iterator it = parent->mGeomList.find(obj_name);
-      if((it != parent->mGeomList.end()) && (it->second.mGeom))
-        it->second.mGeom->setAnchor(aObj.BaseFrame());
+      
+      std::map< std::string, std::vector< colored_geometry_2D > >::const_iterator it = parent->mGeomList.find(obj_name + "_base");
+      if((it != parent->mGeomList.end()) && (it->second.size())) {
+        for(std::size_t i = 0; i < it->second.size(); ++i) {
+          if(it->second[i].mGeom)
+            it->second[i].mGeom->setAnchor(aObj.BaseFrame());
+        };
+      };
+      
+      std::map< std::string, std::vector< shared_ptr< shape_2D > > >::const_iterator it_prox = parent->mProxyShapeList.find(obj_name + "_base");
+      if((it_prox != parent->mProxyShapeList.end()) && (it_prox->second.size())) {
+        for(std::size_t i = 0; i < it_prox->second.size(); ++i) {
+          if(it_prox->second[i])
+            it_prox->second[i]->setAnchor(aObj.BaseFrame());
+        };
+      };
+      
+      it = parent->mGeomList.find(obj_name + "_end");
+      if((it != parent->mGeomList.end()) && (it->second.size())) {
+        for(std::size_t i = 0; i < it->second.size(); ++i) {
+          if(it->second[i].mGeom)
+            it->second[i].mGeom->setAnchor(aObj.EndFrame());
+        };
+      };
+      
+      it_prox = parent->mProxyShapeList.find(obj_name + "_end");
+      if((it_prox != parent->mProxyShapeList.end()) && (it_prox->second.size())) {
+        for(std::size_t i = 0; i < it_prox->second.size(); ++i) {
+          if(it_prox->second[i])
+            it_prox->second[i]->setAnchor(aObj.EndFrame());
+        };
+      };
+    };
+    
+    void operator()(const kte::rigid_link_2D& aObj) {
+      connect_to_base_or_end(aObj);
+    };
+    
+    void operator()(const kte::prismatic_joint_2D& aObj) {
+      connect_to_base_or_end(aObj);
+    };
+    
+    void operator()(const kte::revolute_joint_2D& aObj) {
+      connect_to_base_or_end(aObj);
     };
     
     void operator()(const kte::inertia_2D& aObj) {
       std::string obj_name = aObj.getName();
-      std::map< std::string, colored_geometry_2D >::const_iterator it = parent->mGeomList.find(obj_name);
-      if((it != parent->mGeomList.end()) && (it->second.mGeom))
-        it->second.mGeom->setAnchor(aObj.CenterOfMass()->mFrame);
+      
+      std::map< std::string, std::vector< colored_geometry_2D > >::const_iterator it = parent->mGeomList.find(obj_name);
+      if((it != parent->mGeomList.end()) && (it->second.size())) {
+        for(std::size_t i = 0; i < it->second.size(); ++i) {
+          if(it->second[i].mGeom)
+            it->second[i].mGeom->setAnchor(aObj.CenterOfMass()->mFrame);
+        };
+      };
+      
+      std::map< std::string, std::vector< shared_ptr< shape_2D > > >::const_iterator it_prox = parent->mProxyShapeList.find(obj_name);
+      if((it_prox != parent->mProxyShapeList.end()) && (it_prox->second.size())) {
+        for(std::size_t i = 0; i < it_prox->second.size(); ++i) {
+          if(it_prox->second[i])
+            it_prox->second[i]->setAnchor(aObj.CenterOfMass()->mFrame);
+        };
+      };
     };
     
   };
@@ -73,18 +130,78 @@ namespace detail {
     
     kte_geom_3D_visitor(const kte_chain_geometry_3D* aParent) : parent(aParent) { };
     
-    void operator()(const kte::rigid_link_3D& aObj) {
+    template <typename KTEType>
+    void connect_to_base_or_end(const KTEType& aObj) {
       std::string obj_name = aObj.getName();
-      std::map< std::string, colored_geometry_3D >::const_iterator it = parent->mGeomList.find(obj_name);
-      if((it != parent->mGeomList.end()) && (it->second.mGeom))
-        it->second.mGeom->setAnchor(aObj.BaseFrame());
+      
+      std::map< std::string, std::vector< colored_geometry_3D > >::const_iterator it = parent->mGeomList.find(obj_name + "_base");
+      if((it != parent->mGeomList.end()) && (it->second.size())) {
+        for(std::size_t i = 0; i < it->second.size(); ++i) {
+          if(it->second[i].mGeom) {
+            it->second[i].mGeom->setAnchor(aObj.BaseFrame());
+          };
+        };
+      };
+      
+      std::map< std::string, std::vector< shared_ptr< shape_3D > > >::const_iterator it_prox = parent->mProxyShapeList.find(obj_name + "_base");
+      if((it_prox != parent->mProxyShapeList.end()) && (it_prox->second.size())) {
+        for(std::size_t i = 0; i < it_prox->second.size(); ++i) {
+          if(it_prox->second[i]) {
+            it_prox->second[i]->setAnchor(aObj.BaseFrame());
+          };
+        };
+      };
+      
+      it = parent->mGeomList.find(obj_name + "_end");
+      if((it != parent->mGeomList.end()) && (it->second.size())) {
+        for(std::size_t i = 0; i < it->second.size(); ++i) {
+          if(it->second[i].mGeom) {
+            it->second[i].mGeom->setAnchor(aObj.EndFrame());
+          };
+        };
+      };
+      
+      it_prox = parent->mProxyShapeList.find(obj_name + "_end");
+      if((it_prox != parent->mProxyShapeList.end()) && (it_prox->second.size())) {
+        for(std::size_t i = 0; i < it_prox->second.size(); ++i) {
+          if(it_prox->second[i]) {
+            it_prox->second[i]->setAnchor(aObj.EndFrame());
+          };
+        };
+      };
+      
+    };
+    
+    void operator()(const kte::rigid_link_3D& aObj) {
+      connect_to_base_or_end(aObj);
+    };
+    
+    void operator()(const kte::prismatic_joint_3D& aObj) {
+      connect_to_base_or_end(aObj);
+    };
+    
+    void operator()(const kte::revolute_joint_3D& aObj) {
+      connect_to_base_or_end(aObj);
     };
     
     void operator()(const kte::inertia_3D& aObj) {
       std::string obj_name = aObj.getName();
-      std::map< std::string, colored_geometry_3D >::const_iterator it = parent->mGeomList.find(obj_name);
-      if((it != parent->mGeomList.end()) && (it->second.mGeom))
-        it->second.mGeom->setAnchor(aObj.CenterOfMass()->mFrame);
+      
+      std::map< std::string, std::vector< colored_geometry_3D > >::const_iterator it = parent->mGeomList.find(obj_name);
+      if((it != parent->mGeomList.end()) && (it->second.size())) {
+        for(std::size_t i = 0; i < it->second.size(); ++i) {
+          if(it->second[i].mGeom)
+            it->second[i].mGeom->setAnchor(aObj.CenterOfMass()->mFrame);
+        };
+      };
+      
+      std::map< std::string, std::vector< shared_ptr< shape_3D > > >::const_iterator it_prox = parent->mProxyShapeList.find(obj_name);
+      if((it_prox != parent->mProxyShapeList.end()) && (it_prox->second.size())) {
+        for(std::size_t i = 0; i < it_prox->second.size(); ++i) {
+          if(it_prox->second[i])
+            it_prox->second[i]->setAnchor(aObj.CenterOfMass()->mFrame);
+        };
+      };
     };
     
   };
@@ -93,74 +210,68 @@ namespace detail {
 };
 
 
-shared_ptr< colored_model_2D > kte_chain_geometry_2D::attachGeomToKTEChain(const kte::kte_map_chain& aKTEChain) const {
+std::pair< shared_ptr< colored_model_2D >, shared_ptr< proxy_query_model_2D > > kte_chain_geometry_2D::attachToKTEChain(const kte::kte_map_chain& aKTEChain) const {
   // first, visit the KTE chain to associated each geometry to its KTE-related anchor.
   detail::kte_geom_2D_visitor vis = detail::kte_geom_2D_visitor(this);
   kte::visit_kte_chain< detail::kte_geom_visit_2D_types >(vis, aKTEChain);
   
   // then, construct the colored_model_2D from the resulting (attached) geometries:
-  shared_ptr< colored_model_2D > result = shared_ptr< colored_model_2D >(new colored_model_2D(aKTEChain.getName() + "_geom"), scoped_deleter());
-  for(std::map< std::string, colored_geometry_2D >::const_iterator it = mGeomList.begin(); it != mGeomList.end(); ++it) {
-    if(it->second.mGeom) {
-      result->addAnchor(it->second.mGeom->getAnchor());
-      result->addElement(it->second.mColor, it->second.mGeom);
+  shared_ptr< colored_model_2D > result_geom = shared_ptr< colored_model_2D >(new colored_model_2D(aKTEChain.getName() + "_geom"), scoped_deleter());
+  for(std::map< std::string, std::vector< colored_geometry_2D > >::const_iterator it = mGeomList.begin(); it != mGeomList.end(); ++it) {
+    for(std::size_t i = 0; i < it->second.size(); ++i) {
+      if(it->second[i].mGeom) {
+        result_geom->addAnchor(it->second[i].mGeom->getAnchor());
+        result_geom->addElement(it->second[i].mColor, it->second[i].mGeom);
+      };
     };
   };
-  return result;
-};
-
-
-shared_ptr< proxy_query_model_2D > kte_chain_geometry_2D::attachProxyToKTEChain(const kte::kte_map_chain& aKTEChain) const {
-  // first, visit the KTE chain to associated each geometry to its KTE-related anchor.
-  detail::kte_geom_2D_visitor vis = detail::kte_geom_2D_visitor(this);
-  kte::visit_kte_chain< detail::kte_geom_visit_2D_types >(vis, aKTEChain);
   
   // then, construct the proxy_query_model_2D from the resulting (attached) geometries:
-  shared_ptr< proxy_query_model_2D > result = shared_ptr< proxy_query_model_2D >(new proxy_query_model_2D(aKTEChain.getName() + "_geom"), scoped_deleter());
-  for(std::map< std::string, colored_geometry_2D >::const_iterator it = mGeomList.begin(); it != mGeomList.end(); ++it) {
-    if(it->second.mGeom) {
-      shared_ptr< shape_2D > p_shape = rtti::rk_dynamic_ptr_cast< shape_2D >(it->second.mGeom);
-      if(p_shape)
-        result->addShape(p_shape);
+  shared_ptr< proxy_query_model_2D > result_prox = shared_ptr< proxy_query_model_2D >(new proxy_query_model_2D(aKTEChain.getName() + "_proxy"), scoped_deleter());
+  for(std::map< std::string, std::vector< shared_ptr< shape_2D > > >::const_iterator it = mProxyShapeList.begin(); it != mProxyShapeList.end(); ++it) {
+    for(std::size_t i = 0; i < it->second.size(); ++i) {
+      if(it->second[i]) {
+        result_prox->addShape(it->second[i]);
+      };
     };
   };
-  return result;
+  
+  return std::pair< shared_ptr< colored_model_2D >, shared_ptr< proxy_query_model_2D > >(result_geom, result_prox);
 };
 
 
 
 
-shared_ptr< colored_model_3D > kte_chain_geometry_3D::attachGeomToKTEChain(const kte::kte_map_chain& aKTEChain) const {
+
+std::pair< shared_ptr< colored_model_3D >, shared_ptr< proxy_query_model_3D > > kte_chain_geometry_3D::attachToKTEChain(const kte::kte_map_chain& aKTEChain) const {
   detail::kte_geom_3D_visitor vis = detail::kte_geom_3D_visitor(this);
   kte::visit_kte_chain< detail::kte_geom_visit_3D_types >(vis, aKTEChain);
   
   // then, construct the colored_model_3D from the resulting (attached) geometries:
-  shared_ptr< colored_model_3D > result = shared_ptr< colored_model_3D >(new colored_model_3D(aKTEChain.getName() + "_geom"), scoped_deleter());
-  for(std::map< std::string, colored_geometry_3D >::const_iterator it = mGeomList.begin(); it != mGeomList.end(); ++it) {
-    if(it->second.mGeom) {
-      result->addAnchor(it->second.mGeom->getAnchor());
-      result->addElement(it->second.mColor, it->second.mGeom);
+  shared_ptr< colored_model_3D > result_geom = shared_ptr< colored_model_3D >(new colored_model_3D(aKTEChain.getName() + "_geom"), scoped_deleter());
+  for(std::map< std::string, std::vector< colored_geometry_3D > >::const_iterator it = mGeomList.begin(); it != mGeomList.end(); ++it) {
+    for(std::size_t i = 0; i < it->second.size(); ++i) {
+      if(it->second[i].mGeom) {
+        result_geom->addAnchor(it->second[i].mGeom->getAnchor());
+        result_geom->addElement(it->second[i].mColor, it->second[i].mGeom);
+      };
     };
   };
-  return result;
-};
-
-
-shared_ptr< proxy_query_model_3D > kte_chain_geometry_3D::attachProxyToKTEChain(const kte::kte_map_chain& aKTEChain) const {
-  detail::kte_geom_3D_visitor vis = detail::kte_geom_3D_visitor(this);
-  kte::visit_kte_chain< detail::kte_geom_visit_3D_types >(vis, aKTEChain);
   
   // then, construct the proxy_query_model_3D from the resulting (attached) geometries:
-  shared_ptr< proxy_query_model_3D > result = shared_ptr< proxy_query_model_3D >(new proxy_query_model_3D(aKTEChain.getName() + "_geom"), scoped_deleter());
-  for(std::map< std::string, colored_geometry_3D >::const_iterator it = mGeomList.begin(); it != mGeomList.end(); ++it) {
-    if(it->second.mGeom) {
-      shared_ptr< shape_3D > p_shape = rtti::rk_dynamic_ptr_cast< shape_3D >(it->second.mGeom);
-      if(p_shape)
-        result->addShape(p_shape);
+  shared_ptr< proxy_query_model_3D > result_prox = shared_ptr< proxy_query_model_3D >(new proxy_query_model_3D(aKTEChain.getName() + "_proxy"), scoped_deleter());
+  for(std::map< std::string, std::vector< shared_ptr< shape_3D > > >::const_iterator it = mProxyShapeList.begin(); it != mProxyShapeList.end(); ++it) {
+    for(std::size_t i = 0; i < it->second.size(); ++i) {
+      if(it->second[i]) {
+        result_prox->addShape(it->second[i]);
+      };
     };
   };
-  return result;
+  
+  return std::pair< shared_ptr< colored_model_3D >, shared_ptr< proxy_query_model_3D > >(result_geom, result_prox);
 };
+
+
 
 
 

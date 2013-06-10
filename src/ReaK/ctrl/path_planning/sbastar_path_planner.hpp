@@ -680,12 +680,16 @@ struct sbastar_planner_visitor {
   
   template <typename Vertex, typename Graph>
   void register_explored_sample(Vertex u, Graph& g, double samp_sim) const {
-    g[u].density = g[u].density * (1.0 - samp_sim / m_space_dim) + samp_sim * samp_sim / m_space_dim / m_space_dim;
+    using std::pow;
+    double correct_factor = 1.0 / pow(2.0 * M_PI, (m_space_dim - 1.0) / 2.0);
+    g[u].density = g[u].density * (1.0 - correct_factor * samp_sim) + correct_factor * samp_sim * samp_sim;
 //     std::cout << " Vertex " << u << " has density: " << g[u].density << std::endl;
   };
   template <typename Vertex, typename Graph>
   void register_failed_sample(Vertex u, Graph& g, double samp_sim) const {
-    g[u].constriction = g[u].constriction * (1.0 - samp_sim / m_space_dim) + samp_sim * samp_sim / m_space_dim / m_space_dim;
+    using std::pow;
+    double correct_factor = 1.0 / pow(2.0 * M_PI, (m_space_dim - 1.0) / 2.0);
+    g[u].constriction = g[u].constriction * (1.0 - correct_factor * samp_sim) + correct_factor * samp_sim * samp_sim;
 //     std::cout << " Vertex " << u << " has constriction: " << g[u].constriction << std::endl;
   };
 #endif

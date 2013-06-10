@@ -74,11 +74,17 @@ namespace detail {
   
 };
 
+template <typename Tuple, typename Visitor>
+void visit_kte_chain(Visitor& vis, const kte_map_chain& aChain);
 
 template <typename Tuple, typename Visitor>
 void visit_kte(Visitor& vis, kte_map& aModel) {
   
   detail::try_visit_kte< Tuple, boost::mpl::size_t< boost::tuples::length< Tuple >::value >, Visitor >(vis, aModel);
+  
+  if(aModel.castTo(kte_map_chain::getStaticObjectType())) {
+    visit_kte_chain<Tuple,Visitor>(vis, static_cast<kte_map_chain&>(aModel));
+  };
   
 };
 

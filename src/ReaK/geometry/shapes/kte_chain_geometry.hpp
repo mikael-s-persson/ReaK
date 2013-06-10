@@ -33,6 +33,8 @@
 #define REAK_KTE_CHAIN_GEOMETRY_HPP
 
 #include "colored_model.hpp"
+#include "shape_2D.hpp"
+#include "shape_3D.hpp"
 #include "proximity/proxy_query_model.hpp"
 #include "mbd_kte/kte_map_chain.hpp"
 
@@ -49,12 +51,13 @@ namespace geom {
 /** This class defines a colored model for 2D geometries. */
 class kte_chain_geometry_2D : public named_object {
   public:
-    std::map< std::string, colored_geometry_2D > mGeomList;
+    std::map< std::string, std::vector< colored_geometry_2D > > mGeomList;
+    std::map< std::string, std::vector< shared_ptr< shape_2D > > > mProxyShapeList;
     
     /**
      * Default constructor.
      */
-    kte_chain_geometry_2D(const std::string& aName = "") : named_object(), mGeomList() { this->setName(aName); };
+    kte_chain_geometry_2D(const std::string& aName = "") : named_object(), mGeomList(), mProxyShapeList() { this->setName(aName); };
     
     /**
      * Default destructor.
@@ -62,13 +65,16 @@ class kte_chain_geometry_2D : public named_object {
     virtual ~kte_chain_geometry_2D() { };
     
     kte_chain_geometry_2D& addElement(const std::string& aKTEObjName, const color& aColor, const shared_ptr< geometry_2D >& aGeom) {
-      mGeomList[aKTEObjName] = colored_geometry_2D(aColor, aGeom);
+      mGeomList[aKTEObjName].push_back(colored_geometry_2D(aColor, aGeom));
       return *this;
     };
     
-    shared_ptr< colored_model_2D > attachGeomToKTEChain(const kte::kte_map_chain& aKTEChain) const;
+    kte_chain_geometry_2D& addShape(const std::string& aKTEObjName, const shared_ptr< shape_2D >& aShape) {
+      mProxyShapeList[aKTEObjName].push_back(aShape);
+      return *this;
+    };
     
-    shared_ptr< proxy_query_model_2D > attachProxyToKTEChain(const kte::kte_map_chain& aKTEChain) const;
+    std::pair< shared_ptr< colored_model_2D >, shared_ptr< proxy_query_model_2D > > attachToKTEChain(const kte::kte_map_chain& aKTEChain) const;
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -76,12 +82,14 @@ class kte_chain_geometry_2D : public named_object {
     
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mGeomList);
+      A & RK_SERIAL_SAVE_WITH_NAME(mGeomList)
+        & RK_SERIAL_SAVE_WITH_NAME(mProxyShapeList);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mGeomList);
+      A & RK_SERIAL_LOAD_WITH_NAME(mGeomList)
+        & RK_SERIAL_LOAD_WITH_NAME(mProxyShapeList);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(kte_chain_geometry_2D,0xC3100024,1,"kte_chain_geometry_2D",named_object)
@@ -92,12 +100,13 @@ class kte_chain_geometry_2D : public named_object {
 /** This class defines a colored model for 3D geometries. */
 class kte_chain_geometry_3D : public named_object {
   public:
-    std::map< std::string, colored_geometry_3D > mGeomList;
+    std::map< std::string, std::vector< colored_geometry_3D > > mGeomList;
+    std::map< std::string, std::vector< shared_ptr< shape_3D > > > mProxyShapeList;
     
     /**
      * Default constructor.
      */
-    kte_chain_geometry_3D(const std::string& aName = "") : named_object(), mGeomList() { this->setName(aName); };
+    kte_chain_geometry_3D(const std::string& aName = "") : named_object(), mGeomList(), mProxyShapeList() { this->setName(aName); };
     
     /**
      * Default destructor.
@@ -105,13 +114,16 @@ class kte_chain_geometry_3D : public named_object {
     virtual ~kte_chain_geometry_3D() { };
     
     kte_chain_geometry_3D& addElement(const std::string& aKTEObjName, const color& aColor, const shared_ptr< geometry_3D >& aGeom) {
-      mGeomList[aKTEObjName] = colored_geometry_3D(aColor, aGeom);
+      mGeomList[aKTEObjName].push_back(colored_geometry_3D(aColor, aGeom));
       return *this;
     };
     
-    shared_ptr< colored_model_3D > attachGeomToKTEChain(const kte::kte_map_chain& aKTEChain) const;
+    kte_chain_geometry_3D& addShape(const std::string& aKTEObjName, const shared_ptr< shape_3D >& aShape) {
+      mProxyShapeList[aKTEObjName].push_back(aShape);
+      return *this;
+    };
     
-    shared_ptr< proxy_query_model_3D > attachProxyToKTEChain(const kte::kte_map_chain& aKTEChain) const;
+    std::pair< shared_ptr< colored_model_3D >, shared_ptr< proxy_query_model_3D > > attachToKTEChain(const kte::kte_map_chain& aKTEChain) const;
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -119,12 +131,14 @@ class kte_chain_geometry_3D : public named_object {
     
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mGeomList);
+      A & RK_SERIAL_SAVE_WITH_NAME(mGeomList)
+        & RK_SERIAL_SAVE_WITH_NAME(mProxyShapeList);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mGeomList);
+      A & RK_SERIAL_LOAD_WITH_NAME(mGeomList)
+        & RK_SERIAL_LOAD_WITH_NAME(mProxyShapeList);
     };
     
     RK_RTTI_MAKE_CONCRETE_1BASE(kte_chain_geometry_3D,0xC3100025,1,"kte_chain_geometry_3D",named_object)
