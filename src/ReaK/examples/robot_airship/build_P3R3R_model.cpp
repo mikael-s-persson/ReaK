@@ -18,6 +18,8 @@
 
 #include "topologies/joint_space_limits.hpp"
 
+#include "topologies/manip_P3R3R_workspaces.hpp"
+
 #include "serialization/xml_archiver.hpp"
 #include "serialization/bin_archiver.hpp"
 #include "serialization/protobuf_archiver.hpp"
@@ -214,43 +216,52 @@ int main(int argc, char ** argv) {
         1.83259571459,
         3.14159265359)));
     
-    pp::joint_limits_collection<double> joint_rate_limits;
+    shared_ptr< pp::joint_limits_collection<double> > joint_rate_limits(new pp::joint_limits_collection<double>());
 
-    joint_rate_limits.gen_speed_limits.resize(7);
-    joint_rate_limits.gen_speed_limits[0] = 0.8;
-    joint_rate_limits.gen_speed_limits[1] = 3.14159265359;
-    joint_rate_limits.gen_speed_limits[2] = 3.14159265359;
-    joint_rate_limits.gen_speed_limits[3] = 3.14159265359;
-    joint_rate_limits.gen_speed_limits[4] = 2.98451302091;
-    joint_rate_limits.gen_speed_limits[5] = 3.01941960595;
-    joint_rate_limits.gen_speed_limits[6] = 2.98451302091;
+    joint_rate_limits->gen_speed_limits.resize(7);
+    joint_rate_limits->gen_speed_limits[0] = 0.8;
+    joint_rate_limits->gen_speed_limits[1] = 3.14159265359;
+    joint_rate_limits->gen_speed_limits[2] = 3.14159265359;
+    joint_rate_limits->gen_speed_limits[3] = 3.14159265359;
+    joint_rate_limits->gen_speed_limits[4] = 2.98451302091;
+    joint_rate_limits->gen_speed_limits[5] = 3.01941960595;
+    joint_rate_limits->gen_speed_limits[6] = 2.98451302091;
     
-    joint_rate_limits.gen_accel_limits.resize(7);
-    joint_rate_limits.gen_accel_limits[0] = 3.0;
-    joint_rate_limits.gen_accel_limits[1] = 12.5663706144;
-    joint_rate_limits.gen_accel_limits[2] = 12.5663706144;
-    joint_rate_limits.gen_accel_limits[3] = 12.5663706144;
-    joint_rate_limits.gen_accel_limits[4] = 24.9582083035;
-    joint_rate_limits.gen_accel_limits[5] = 24.9582083035;
-    joint_rate_limits.gen_accel_limits[6] = 24.9582083035;
+    joint_rate_limits->gen_accel_limits.resize(7);
+    joint_rate_limits->gen_accel_limits[0] = 3.0;
+    joint_rate_limits->gen_accel_limits[1] = 12.5663706144;
+    joint_rate_limits->gen_accel_limits[2] = 12.5663706144;
+    joint_rate_limits->gen_accel_limits[3] = 12.5663706144;
+    joint_rate_limits->gen_accel_limits[4] = 24.9582083035;
+    joint_rate_limits->gen_accel_limits[5] = 24.9582083035;
+    joint_rate_limits->gen_accel_limits[6] = 24.9582083035;
     
-    joint_rate_limits.gen_jerk_limits.resize(7);
-    joint_rate_limits.gen_jerk_limits[0] = 12.0;
-    joint_rate_limits.gen_jerk_limits[1] = 125.663706144;
-    joint_rate_limits.gen_jerk_limits[2] = 125.663706144;
-    joint_rate_limits.gen_jerk_limits[3] = 125.663706144;
-    joint_rate_limits.gen_jerk_limits[4] = 249.582083035;
-    joint_rate_limits.gen_jerk_limits[5] = 249.582083035;
-    joint_rate_limits.gen_jerk_limits[6] = 249.582083035;
+    joint_rate_limits->gen_jerk_limits.resize(7);
+    joint_rate_limits->gen_jerk_limits[0] = 12.0;
+    joint_rate_limits->gen_jerk_limits[1] = 125.663706144;
+    joint_rate_limits->gen_jerk_limits[2] = 125.663706144;
+    joint_rate_limits->gen_jerk_limits[3] = 125.663706144;
+    joint_rate_limits->gen_jerk_limits[4] = 249.582083035;
+    joint_rate_limits->gen_jerk_limits[5] = 249.582083035;
+    joint_rate_limits->gen_jerk_limits[6] = 249.582083035;
     
-    joint_rate_limits.frame2D_speed_limits.resize(0);
-    joint_rate_limits.frame2D_accel_limits.resize(0);
-    joint_rate_limits.frame2D_jerk_limits.resize(0);
-    joint_rate_limits.frame3D_speed_limits.resize(0);
-    joint_rate_limits.frame3D_accel_limits.resize(0);
-    joint_rate_limits.frame3D_jerk_limits.resize(0);
+    joint_rate_limits->frame2D_speed_limits.resize(0);
+    joint_rate_limits->frame2D_accel_limits.resize(0);
+    joint_rate_limits->frame2D_jerk_limits.resize(0);
+    joint_rate_limits->frame3D_speed_limits.resize(0);
+    joint_rate_limits->frame3D_accel_limits.resize(0);
+    joint_rate_limits->frame3D_jerk_limits.resize(0);
     
-    // TODO: save kte_model and joint_rate_limits together in one file (kte_model first).
+    
+    shared_ptr< pp::manip_static_workspace< manip_P3R3R_kinematics, pp::linear_interpolation_tag >::rl_o0_workspace_type >
+      workspace = pp::make_manip_o0_static_workspace< pp::linear_interpolation_tag >(
+        kte_model, joint_rate_limits, 0.1, 1.0
+      );
+    
+    
+    
+    
+    // Save kte_model and joint_rate_limits together in one file (kte_model first).
     if(vm.count("kte-model")) {
       if(vm["format"].as<std::string>() == "bin") {
         serialization::bin_oarchive out(output_path_name + "/" + output_base_name + ".kte_ik.rkb");

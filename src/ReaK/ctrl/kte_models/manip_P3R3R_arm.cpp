@@ -29,6 +29,7 @@
 #include "lin_alg/vect_alg.hpp"
 #include "optimization/optim_exceptions.hpp"
 #include <cmath>
+#include <algorithm>
 
 namespace ReaK {
 
@@ -289,6 +290,33 @@ void manip_P3R3R_kinematics::getJacobianMatrixAndDerivative(mat<double,mat_struc
     for(std::size_t j = 0; j < 6; ++j)
       JacDot(j,i+1) = JacDot_manip(j,i);
   
+};
+
+
+vect_n<double> manip_P3R3R_kinematics::getJointPositionLowerBounds() const {
+  vect_n<double> result = m_arm_model.getJointPositionLowerBounds();
+  result.resize(7);
+  std::rotate(result.begin(), result.begin() + 6, result.end());
+  result[0] = m_track_lower_bound;
+  return result;
+};
+
+void manip_P3R3R_kinematics::setJointPositionLowerBounds(const vect_n<double>& aJointLowerBounds) {
+  m_track_lower_bound = aJointLowerBounds[0];
+  m_arm_model.setJointPositionLowerBounds(vect_n<double>(aJointLowerBounds.begin()+1, aJointLowerBounds.end()));
+};
+
+vect_n<double> manip_P3R3R_kinematics::getJointPositionUpperBounds() const {
+  vect_n<double> result = m_arm_model.getJointPositionUpperBounds();
+  result.resize(7);
+  std::rotate(result.begin(), result.begin() + 6, result.end());
+  result[0] = m_track_upper_bound;
+  return result;
+};
+
+void manip_P3R3R_kinematics::setJointPositionUpperBounds(const vect_n<double>& aJointUpperBounds) {
+  m_track_upper_bound = aJointUpperBounds[0];
+  m_arm_model.setJointPositionUpperBounds(vect_n<double>(aJointUpperBounds.begin()+1, aJointUpperBounds.end()));
 };
 
 vect_n<double> manip_P3R3R_kinematics::getJointPositions() const {

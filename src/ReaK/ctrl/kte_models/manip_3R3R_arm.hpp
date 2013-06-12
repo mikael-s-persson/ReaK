@@ -123,6 +123,14 @@ class manip_3R3R_kinematics : public inverse_kinematics_model {
     
     virtual void getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, mat<double,mat_structure::rectangular>& JacDot) const;
     
+    virtual vect_n<double> getJointPositionLowerBounds() const { return joint_lower_bounds; };
+    
+    virtual void setJointPositionLowerBounds(const vect_n<double>& aJointLowerBounds) { joint_lower_bounds = aJointLowerBounds; };
+    
+    virtual vect_n<double> getJointPositionUpperBounds() const { return joint_upper_bounds; };
+    
+    virtual void setJointPositionUpperBounds(const vect_n<double>& aJointUpperBounds) { joint_upper_bounds = aJointUpperBounds; };
+    
     virtual vect_n<double> getJointPositions() const;
     
     virtual void setJointPositions(const vect_n<double>& aJointPositions);

@@ -101,6 +101,14 @@ class manip_3R_2D_kinematics : public inverse_kinematics_model {
     
     virtual void getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, mat<double,mat_structure::rectangular>& JacDot) const;
     
+    virtual vect_n<double> getJointPositionLowerBounds() const { return vect_n<double>(-std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity()); };
+    
+    virtual void setJointPositionLowerBounds(const vect_n<double>& aJointLowerBounds) { };
+    
+    virtual vect_n<double> getJointPositionUpperBounds() const { return vect_n<double>(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()); };
+    
+    virtual void setJointPositionUpperBounds(const vect_n<double>& aJointUpperBounds) { };
+    
     virtual vect_n<double> getJointPositions() const;
     
     virtual void setJointPositions(const vect_n<double>& aJointPositions);
@@ -197,6 +205,14 @@ class manip_3R_3D_kinematics : public inverse_kinematics_model {
     virtual void getJacobianMatrix(mat<double,mat_structure::rectangular>& Jac) const;
     
     virtual void getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, mat<double,mat_structure::rectangular>& JacDot) const;
+    
+    virtual vect_n<double> getJointPositionLowerBounds() const { return vect_n<double>(-std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity()); };
+    
+    virtual void setJointPositionLowerBounds(const vect_n<double>& aJointLowerBounds) { };
+    
+    virtual vect_n<double> getJointPositionUpperBounds() const { return vect_n<double>(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()); };
+    
+    virtual void setJointPositionUpperBounds(const vect_n<double>& aJointUpperBounds) { };
     
     virtual vect_n<double> getJointPositions() const;
     

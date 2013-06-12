@@ -219,6 +219,30 @@ class direct_kinematics_model : public virtual named_object {
     virtual void getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, mat<double,mat_structure::rectangular>& JacDot) const { };
     
     /**
+     * Obtain a vector that contains all the joint position lower-bounds concatenated into one vector.
+     * \return All the joint position lower-bounds concatenated into one vector.
+     */
+    virtual vect_n<double> getJointPositionLowerBounds() const { return vect_n<double>(); };
+    
+    /**
+     * Sets all the joint position lower-bounds concatenated into one vector.
+     * \param aJointLowerBounds All the joint position lower-bounds concatenated into one vector.
+     */
+    virtual void setJointPositionLowerBounds(const vect_n<double>& aJointLowerBounds) { };
+    
+    /**
+     * Obtain a vector that contains all the joint position upper-bounds concatenated into one vector.
+     * \return All the joint position upper-bounds concatenated into one vector.
+     */
+    virtual vect_n<double> getJointPositionUpperBounds() const { return vect_n<double>(); };
+    
+    /**
+     * Sets all the joint position lower-bounds concatenated into one vector.
+     * \param aJointUpperBounds All the joint position lower-bounds concatenated into one vector.
+     */
+    virtual void setJointPositionUpperBounds(const vect_n<double>& aJointUpperBounds) { };
+    
+    /**
      * Obtain a vector that contains all the joint positions concatenated into one vector.
      * The ordering in the vector is as follows: ( Generalized Coordinates, 2D Poses, 3D Poses ), 
      * where the joints are sorted in the same order as in the container returned by getCoord(), 
