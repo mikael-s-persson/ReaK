@@ -65,6 +65,7 @@
 
 
 #include "basic_sbmp_reporters.hpp"
+#include "vlist_sbmp_report.hpp"
 
 
 #include <boost/program_options.hpp>
@@ -100,6 +101,10 @@ std::size_t mc_max_vertices_100 = 0;
 std::size_t mc_results = 0;
 std::size_t mc_flags = 0;
 
+std::size_t sr_max_vertices = 0;
+std::size_t sr_prog_interval = 0;
+std::size_t sr_results = 0;
+
 std::size_t data_struct_flags = 0;
 std::string data_struct_str = "";
 
@@ -122,6 +127,227 @@ bool sba_use_voronoi_pull = false;
 std::size_t sba_opt_flags = ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::LAZY_COLLISION_CHECKING;
 std::string sba_qualifier = "_lazy";
 #endif
+
+
+
+
+
+
+
+template <typename SpaceType>
+void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const std::string& aFilePath, const std::string& aSpaceName) {
+  
+  using namespace ReaK;
+  using namespace pp;
+  
+  std::cout << "*****************************************************************" << std::endl
+            << "*            Running single runs on '" << world_map->getName() << "'" << std::endl
+            << "*****************************************************************" << std::endl;
+  
+  
+  typedef print_sbmp_progress< least_cost_sbmp_report<> > InnerReporterType;
+  
+#ifdef RK_ENABLE_TEST_URRT_PLANNER
+  
+  if(mc_flags & RK_HIDIM_PLANNER_DO_RRT) {
+    
+    typedef vlist_sbmp_report< rrt_vprinter, InnerReporterType> ReporterType;
+    
+    std::cout << "Running RRT with Uni-dir, " << data_struct_str << std::endl;
+    {
+      
+      fs::create_directory((aFilePath + "/rrt/").c_str());
+      
+      rrt_path_planner< SpaceType, ReporterType > 
+        rrt_plan(world_map, 
+                world_map->get_start_pos(), 
+                world_map->get_goal_pos(),
+                mc_max_vertices, 
+                mc_prog_interval,
+                data_struct_flags,
+                UNIDIRECTIONAL_PLANNING,
+                ReporterType(aFilePath + "/rrt/" + aSpaceName + "_"),
+                mc_results);
+      
+      rrt_plan.solve_path();
+      
+    };
+    std::cout << "Done!" << std::endl;
+    
+  };
+  
+#endif
+  
+  
+#ifdef RK_ENABLE_TEST_BRRT_PLANNER
+  
+  if(mc_flags & RK_HIDIM_PLANNER_DO_BIRRT) {
+    
+    typedef vlist_sbmp_report< rrt_vprinter, InnerReporterType> ReporterType;
+    
+    std::cout << "Running RRT with Bi-dir, " << data_struct_str << std::endl;
+    {
+      
+      fs::create_directory((aFilePath + "/birrt/").c_str());
+      
+      rrt_path_planner< SpaceType, ReporterType > 
+        rrt_plan(world_map, 
+                 world_map->get_start_pos(), 
+                 world_map->get_goal_pos(),
+                 mc_max_vertices, 
+                 mc_prog_interval,
+                 data_struct_flags,
+                 BIDIRECTIONAL_PLANNING,
+                 ReporterType(aFilePath + "/birrt/" + aSpaceName + "_"),
+                 mc_results);
+      
+      rrt_plan.solve_path();
+      
+    };
+    std::cout << "Done!" << std::endl;
+    
+  };
+  
+#endif
+  
+  
+  
+#ifdef RK_ENABLE_TEST_PRM_PLANNER
+  
+  if(mc_flags & RK_HIDIM_PLANNER_DO_PRM) {
+    
+    typedef vlist_sbmp_report< prm_vprinter, InnerReporterType> ReporterType;
+    
+    std::cout << "Running PRM with " << data_struct_str << std::endl;
+    {
+      
+      fs::create_directory((aFilePath + "/prm/").c_str());
+      
+      prm_path_planner< SpaceType, ReporterType > 
+        prm_plan(world_map, 
+                 world_map->get_start_pos(), 
+                 world_map->get_goal_pos(),
+                 mc_max_vertices, 
+                 mc_prog_interval,
+                 data_struct_flags,
+                 ReporterType(aFilePath + "/prm/" + aSpaceName + "_"),
+                 mc_results);
+      
+      prm_plan.solve_path();
+    };
+    std::cout << "Done!" << std::endl;
+    
+  };
+  
+#endif
+  
+  
+  
+#ifdef RK_ENABLE_TEST_FADPRM_PLANNER
+  
+  if(mc_flags & RK_HIDIM_PLANNER_DO_FADPRM) {
+    
+    typedef vlist_sbmp_report< fadprm_vprinter, InnerReporterType> ReporterType;
+    
+    std::cout << "Running FADPRM with " << data_struct_str << std::endl;
+    {
+      
+      fs::create_directory((aFilePath + "/fadprm/").c_str());
+      
+      fadprm_path_planner< SpaceType, ReporterType > 
+        fadprm_plan(
+          world_map, 
+          world_map->get_start_pos(),
+          world_map->get_goal_pos(),
+          fadprm_relaxation,
+          mc_max_vertices, 
+          mc_prog_interval,
+          data_struct_flags,
+          ReporterType(aFilePath + "/fadprm/" + aSpaceName + "_"),
+          mc_results);
+      
+      fadprm_plan.solve_path();
+    };
+    std::cout << "Done!" << std::endl;
+    
+  };
+  
+#endif
+  
+  
+  
+#ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
+  
+  if(mc_flags & RK_HIDIM_PLANNER_DO_SBASTAR) {
+    
+    typedef vlist_sbmp_report< sbastar_vprinter, InnerReporterType> ReporterType;
+    
+    std::cout << "Running SBA* with " << data_struct_str << std::endl;
+    {
+      
+      fs::create_directory((aFilePath + "/sbastar" + sba_qualifier + "/").c_str());
+      
+      sbastar_path_planner< SpaceType, ReporterType > 
+        sbastar_plan(world_map, 
+                     world_map->get_start_pos(), 
+                     world_map->get_goal_pos(),
+                     mc_max_vertices, 
+                     mc_prog_interval,
+                     data_struct_flags,
+                     sba_opt_flags,
+                     ReporterType(aFilePath + "/sbastar" + sba_qualifier + "/" + aSpaceName + "_"),
+                     mc_results);
+      
+      sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
+      sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
+      sbastar_plan.set_initial_relaxation(sba_relaxation);
+      sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
+      sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
+      
+      sbastar_plan.solve_path();
+    };
+    std::cout << "Done!" << std::endl;
+    
+  };
+    
+#endif
+  
+  
+#ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
+  
+  if(mc_flags & RK_HIDIM_PLANNER_DO_RRTSTAR) {
+    
+    typedef vlist_sbmp_report< rrtstar_vprinter, InnerReporterType> ReporterType;
+    
+    std::cout << "Running RRT* with Uni-dir, " << data_struct_str << std::endl;
+    {
+      
+      fs::create_directory((aFilePath + "/rrt_star" + rrtstar_qualifier + "/").c_str());
+      
+      rrtstar_path_planner< SpaceType, ReporterType > 
+        rrtstar_plan(world_map, 
+                     world_map->get_start_pos(), 
+                     world_map->get_goal_pos(),
+                     mc_max_vertices, 
+                     mc_prog_interval,
+                     data_struct_flags,
+                     rrtstar_opt_flags,
+                     ReporterType(aFilePath + "/rrt_star" + rrtstar_qualifier + "/" + aSpaceName + "_"),
+                     mc_results);
+      
+      rrtstar_plan.solve_path();
+    };
+    std::cout << "Done!" << std::endl;
+    
+  };
+    
+#endif
+  
+  
+};
+
+
+
 
 
 template <typename PlannerType>
@@ -202,8 +428,6 @@ void run_monte_carlo_tests(
            << " " << std::setw(9) << avg_costs[i] << std::endl; 
   };
 };
-
-
 
 
 template <typename SpaceType>
@@ -426,11 +650,19 @@ int main(int argc, char** argv) {
   
   po::options_description mc_options("Monte-Carlo options");
   mc_options.add_options()
+    ("monte-carlo,m", "specify that monte-carlo runs should be performed (default is not)")
     ("mc-runs", po::value< std::size_t >()->default_value(500), "number of monte-carlo runs to average out")
     ("mc-vertices", po::value< std::size_t >()->default_value(20000), "maximum number of vertices during monte-carlo runs")
     ("mc-prog-interval", po::value< std::size_t >()->default_value(100), "number of vertices between progress reports during monte-carlo runs")
     ("mc-results", po::value< std::size_t >()->default_value(5), "maximum number of result-paths during monte-carlo runs")
-//    ("mc-space", po::value< std::string >()->default_value("e3"), "the type of configuration space to use for the monte-carlo runs (default: e3 (euclidean-3)), can range from e3 to e20.")
+  ;
+  
+  po::options_description single_options("Single-run options");
+  single_options.add_options()
+    ("single-run,s", "specify that single runs should be performed (default is not)")
+    ("max-vertices", po::value< std::size_t >()->default_value(5000), "maximum number of vertices during single runs (default is 5000)")
+    ("max-results", po::value< std::size_t >()->default_value(50), "maximum number of result-paths during single runs (default is 50)")
+    ("prog-interval", po::value< std::size_t >()->default_value(10), "number of vertices between progress reports during single runs (default is 10)")
   ;
   
   po::options_description planner_select_options("Planner selection options");
@@ -467,7 +699,7 @@ int main(int argc, char** argv) {
   ;
   
   po::options_description cmdline_options;
-  cmdline_options.add(generic_options).add(io_options).add(mc_options).add(planner_select_options);
+  cmdline_options.add(generic_options).add(io_options).add(mc_options).add(single_options).add(planner_select_options);
   
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
@@ -561,13 +793,6 @@ int main(int argc, char** argv) {
   
   
   
-  mc_run_count        = vm["mc-runs"].as<std::size_t>();
-  mc_max_vertices     = vm["mc-vertices"].as<std::size_t>();
-  mc_prog_interval    = vm["mc-prog-interval"].as<std::size_t>();
-  mc_max_vertices_100 = mc_max_vertices / mc_prog_interval;
-  mc_results          = vm["mc-results"].as<std::size_t>();
-  
-  
 #ifdef RK_ENABLE_TEST_URRT_PLANNER
   if(run_all_planners || vm.count("rrt"))
     mc_flags |= RK_HIDIM_PLANNER_DO_RRT;
@@ -593,9 +818,16 @@ int main(int argc, char** argv) {
     mc_flags |= RK_HIDIM_PLANNER_DO_SBASTAR;
 #endif
   
-    
-    
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, RK_HIDIM_PLANNER_N > > > WorldNDType;
+  
+  mc_run_count        = vm["mc-runs"].as<std::size_t>();
+  mc_max_vertices     = vm["mc-vertices"].as<std::size_t>();
+  mc_prog_interval    = vm["mc-prog-interval"].as<std::size_t>();
+  mc_max_vertices_100 = mc_max_vertices / mc_prog_interval;
+  mc_results          = vm["mc-results"].as<std::size_t>();
+  
+  sr_max_vertices     = vm["max-vertices"].as<std::size_t>();
+  sr_prog_interval    = vm["prog-interval"].as<std::size_t>();
+  sr_results          = vm["max-results"].as<std::size_t>();
   
   std::string world_ND_name = "world_";
   { std::stringstream ss_tmp;
@@ -616,6 +848,8 @@ int main(int argc, char** argv) {
     goal_pt[i] = 0.95;
   };
   
+  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, RK_HIDIM_PLANNER_N > > > WorldNDType;
+  
   ReaK::shared_ptr< WorldNDType > world_ND =
     ReaK::shared_ptr< WorldNDType >(
       new WorldNDType(
@@ -625,371 +859,16 @@ int main(int argc, char** argv) {
   world_ND->set_start_pos(start_pt);
   world_ND->set_goal_pos(goal_pt);
   
-  std::ofstream timing_output(output_path_name + "/" + space_ND_name + "_times.txt");
-  
-  test_planners_on_space(world_ND, timing_output);
-  
-
-#if 0
-  
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 3> > > World3DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 4> > > World4DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 5> > > World5DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 6> > > World6DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 7> > > World7DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 8> > > World8DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, 9> > > World9DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,10> > > World10DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,11> > > World11DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,12> > > World12DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,13> > > World13DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,14> > > World14DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,15> > > World15DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,16> > > World16DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,17> > > World17DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,18> > > World18DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,19> > > World19DType;
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double,20> > > World20DType;
-  
-  
-  if(vm["mc-space"].as<std::string>() == "e3") {
-    ReaK::shared_ptr< World3DType > world_3D =
-      ReaK::shared_ptr< World3DType >(
-        new World3DType(
-          "world_3D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 3> >("world_3D",
-                                                              ReaK::vect<double,3>(0.0,0.0,0.0),
-                                                              ReaK::vect<double,3>(1.0,1.0,1.0)),
-          0.1 * std::sqrt(3.0)));
-    world_3D->set_start_pos(ReaK::vect<double,3>(0.05,0.05,0.05));
-    world_3D->set_goal_pos(ReaK::vect<double,3>(0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e3_times.txt");
-    
-    test_planners_on_space(world_3D, timing_output);
-    
-  } else if(vm["mc-space"].as<std::string>() == "e4") {
-    ReaK::shared_ptr< World4DType > world_4D =
-      ReaK::shared_ptr< World4DType >(
-        new World4DType(
-          "world_4D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 4> >("world_4D",
-                                                              ReaK::vect<double,4>(0.0,0.0,0.0,0.0),
-                                                              ReaK::vect<double,4>(1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(4.0)));
-    world_4D->set_start_pos(ReaK::vect<double,4>(0.05,0.05,0.05,0.05));
-    world_4D->set_goal_pos(ReaK::vect<double,4>(0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e4_times.txt");
-    
-    test_planners_on_space(world_4D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e5") {
-    ReaK::shared_ptr< World5DType > world_5D =
-      ReaK::shared_ptr< World5DType >(
-        new World5DType(
-          "world_5D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 5> >("world_5D",
-                                                              ReaK::vect<double,5>(0.0,0.0,0.0,0.0,0.0),
-                                                              ReaK::vect<double,5>(1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(5.0)));
-    world_5D->set_start_pos(ReaK::vect<double,5>(0.05,0.05,0.05,0.05,0.05));
-    world_5D->set_goal_pos(ReaK::vect<double,5>(0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e5_times.txt");
-    
-    test_planners_on_space(world_5D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e6") {
-    ReaK::shared_ptr< World6DType > world_6D =
-      ReaK::shared_ptr< World6DType >(
-        new World6DType(
-          "world_6D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 6> >("world_6D",
-                                                              ReaK::vect<double,6>(0.0,0.0,0.0,0.0,0.0,0.0),
-                                                              ReaK::vect<double,6>(1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(6.0)));
-    world_6D->set_start_pos(ReaK::vect<double,6>(0.05,0.05,0.05,0.05,0.05,0.05));
-    world_6D->set_goal_pos(ReaK::vect<double,6>(0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e6_times.txt");
-    
-    test_planners_on_space(world_6D, timing_output);
-    
-    
-  }
-#if 0
-  else if(vm["mc-space"].as<std::string>() == "e7") {
-    ReaK::shared_ptr< World7DType > world_7D =
-      ReaK::shared_ptr< World7DType >(
-        new World7DType(
-          "world_7D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 7> >("world_7D",
-                                                              ReaK::vect<double,7>(0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                              ReaK::vect<double,7>(1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(7.0)));
-    world_7D->set_start_pos(ReaK::vect<double,7>(0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_7D->set_goal_pos(ReaK::vect<double,7>(0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e7_times.txt");
-    
-    test_planners_on_space(world_7D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e8") {
-    ReaK::shared_ptr< World8DType > world_8D =
-      ReaK::shared_ptr< World8DType >(
-        new World8DType(
-          "world_8D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 8> >("world_8D",
-                                                              ReaK::vect<double,8>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                              ReaK::vect<double,8>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(8.0)));
-    world_8D->set_start_pos(ReaK::vect<double,8>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_8D->set_goal_pos(ReaK::vect<double,8>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e8_times.txt");
-    
-    test_planners_on_space(world_8D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e9") {
-    ReaK::shared_ptr< World9DType > world_9D =
-      ReaK::shared_ptr< World9DType >(
-        new World9DType(
-          "world_9D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 9> >("world_9D",
-                                                              ReaK::vect<double,9>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                              ReaK::vect<double,9>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(9.0)));
-    world_9D->set_start_pos(ReaK::vect<double,9>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_9D->set_goal_pos(ReaK::vect<double,9>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e9_times.txt");
-    
-    test_planners_on_space(world_9D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e10") {
-    ReaK::shared_ptr< World10DType > world_10D =
-      ReaK::shared_ptr< World10DType >(
-        new World10DType(
-          "world_10D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 10> >("world_10D",
-                                                              ReaK::vect<double,10>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                              ReaK::vect<double,10>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(10.0)));
-    world_10D->set_start_pos(ReaK::vect<double,10>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_10D->set_goal_pos(ReaK::vect<double,10>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e10_times.txt");
-    
-    test_planners_on_space(world_10D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e11") {
-    ReaK::shared_ptr< World11DType > world_11D =
-      ReaK::shared_ptr< World11DType >(
-        new World11DType(
-          "world_11D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 11> >("world_11D",
-                                                                ReaK::vect<double,11>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                                ReaK::vect<double,11>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(11.0)));
-    world_11D->set_start_pos(ReaK::vect<double,11>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_11D->set_goal_pos( ReaK::vect<double,11>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e11_times.txt");
-    
-    test_planners_on_space(world_11D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e12") {
-    ReaK::shared_ptr< World12DType > world_12D =
-      ReaK::shared_ptr< World12DType >(
-        new World12DType(
-          "world_12D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 12> >("world_12D",
-                                                                ReaK::vect<double,12>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                                ReaK::vect<double,12>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(12.0)));
-    world_12D->set_start_pos(ReaK::vect<double,12>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_12D->set_goal_pos( ReaK::vect<double,12>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e12_times.txt");
-    
-    test_planners_on_space(world_12D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e13") {
-    ReaK::shared_ptr< World13DType > world_13D =
-      ReaK::shared_ptr< World13DType >(
-        new World13DType(
-          "world_13D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 13> >("world_13D",
-                                                                ReaK::vect<double,13>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                                ReaK::vect<double,13>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(13.0)));
-    world_13D->set_start_pos(ReaK::vect<double,13>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_13D->set_goal_pos( ReaK::vect<double,13>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e13_times.txt");
-    
-    test_planners_on_space(world_13D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e14") {
-    ReaK::shared_ptr< World14DType > world_14D =
-      ReaK::shared_ptr< World14DType >(
-        new World14DType(
-          "world_14D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 14> >("world_14D",
-                                                                ReaK::vect<double,14>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                                ReaK::vect<double,14>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(14.0)));
-    world_14D->set_start_pos(ReaK::vect<double,14>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_14D->set_goal_pos( ReaK::vect<double,14>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e14_times.txt");
-    
-    test_planners_on_space(world_14D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e15") {
-    ReaK::shared_ptr< World15DType > world_15D =
-      ReaK::shared_ptr< World15DType >(
-        new World15DType(
-          "world_15D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 15> >("world_15D",
-                                                                ReaK::vect<double,15>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                                ReaK::vect<double,15>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(15.0)));
-    world_15D->set_start_pos(ReaK::vect<double,15>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_15D->set_goal_pos( ReaK::vect<double,15>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e15_times.txt");
-    
-    test_planners_on_space(world_15D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e16") {
-    ReaK::shared_ptr< World16DType > world_16D =
-      ReaK::shared_ptr< World16DType >(
-        new World16DType(
-          "world_16D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 16> >("world_16D",
-                                                                ReaK::vect<double,16>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                                ReaK::vect<double,16>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(16.0)));
-    world_16D->set_start_pos(ReaK::vect<double,16>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_16D->set_goal_pos( ReaK::vect<double,16>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e16_times.txt");
-    
-    test_planners_on_space(world_16D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e17") {
-    ReaK::shared_ptr< World17DType > world_17D =
-      ReaK::shared_ptr< World17DType >(
-        new World17DType(
-          "world_17D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 17> >("world_17D",
-                                                                ReaK::vect<double,17>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                                ReaK::vect<double,17>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(17.0)));
-    world_17D->set_start_pos(ReaK::vect<double,17>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_17D->set_goal_pos( ReaK::vect<double,17>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e17_times.txt");
-    
-    test_planners_on_space(world_17D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e18") {
-    ReaK::shared_ptr< World18DType > world_18D =
-      ReaK::shared_ptr< World18DType >(
-        new World18DType(
-          "world_18D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 18> >("world_18D",
-                                                                ReaK::vect<double,18>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                                ReaK::vect<double,18>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(18.0)));
-    world_18D->set_start_pos(ReaK::vect<double,18>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_18D->set_goal_pos( ReaK::vect<double,18>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e18_times.txt");
-    
-    test_planners_on_space(world_18D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e19") {
-    ReaK::shared_ptr< World19DType > world_19D =
-      ReaK::shared_ptr< World19DType >(
-        new World19DType(
-          "world_19D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 19> >("world_19D",
-                                                                ReaK::vect<double,19>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                                ReaK::vect<double,19>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(19.0)));
-    world_19D->set_start_pos(ReaK::vect<double,19>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_19D->set_goal_pos( ReaK::vect<double,19>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e19_times.txt");
-    
-    test_planners_on_space(world_19D, timing_output);
-    
-    
-  } else if(vm["mc-space"].as<std::string>() == "e20") {
-    ReaK::shared_ptr< World20DType > world_20D =
-      ReaK::shared_ptr< World20DType >(
-        new World20DType(
-          "world_20D_no_obstacles",
-          ReaK::pp::hyperbox_topology< ReaK::vect<double, 20> >("world_20D",
-                                                                ReaK::vect<double,20>(0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0),
-                                                                ReaK::vect<double,20>(1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0)),
-          0.1 * std::sqrt(20.0)));
-    world_20D->set_start_pos(ReaK::vect<double,20>(0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05,0.05));
-    world_20D->set_goal_pos( ReaK::vect<double,20>(0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95,0.95));
-    
-    std::ofstream timing_output(output_path_name + "/e20_times.txt");
-    
-    test_planners_on_space(world_20D, timing_output);
-    
-    
+  if(vm.count("single-run")) {
+    single_run_planners_on_space(world_ND, output_path_name, space_ND_name);
   };
-#endif
   
-#endif
+  if(vm.count("monte-carlo")) {
+    std::ofstream timing_output(output_path_name + "/" + space_ND_name + "_times.txt");
+    
+    test_planners_on_space(world_ND, timing_output);
+  };
   
-  
-#if 0
-  typedef ReaK::pp::no_obstacle_space< typename ReaK::pp::se3_1st_order_rl_topology<double>::type > WorldRLSE3Type;
-  ReaK::shared_ptr< WorldRLSE3Type > world_RLSE3 =
-    ReaK::shared_ptr< WorldRLSE3Type >(
-      new WorldRLSE3Type(
-        "world_RLSE3_no_obstacles",
-        ReaK::pp::make_rl_se3_space("world_RLSE3", 
-                                    ReaK::vect<double,3>(-10.0, -10.0, -10.0),
-                                    ReaK::vect<double,3>( 10.0,  10.0,  10.0),
-                                    2.0,
-                                    1.5,
-                                    0.2,
-                                    0.1),
-        0.5));
-  typedef ReaK::arithmetic_tuple< ReaK::arithmetic_tuple< ReaK::vect<double,3>,    ReaK::vect<double,3> >,
-                                  ReaK::arithmetic_tuple< ReaK::unit_quat<double>, ReaK::vect<double,3> > > rlse3_point;
-  typedef ReaK::arithmetic_tuple< ReaK::vect<double,3>,    ReaK::vect<double,3> > rlp3_point;
-  typedef ReaK::arithmetic_tuple< ReaK::unit_quat<double>, ReaK::vect<double,3> > rlq3_point;
-  world_RLSE3->set_start_pos(
-    rlse3_point(rlp3_point(ReaK::vect<double,3>(-9.5,-9.5,-9.5),ReaK::vect<double,3>()),rlq3_point())
-  );
-  world_RLSE3->set_goal_pos(
-    rlse3_point(rlp3_point(ReaK::vect<double,3>( 9.5, 9.5, 9.5),ReaK::vect<double,3>()),rlq3_point())
-  );
-#endif
   
   
   return 0;
