@@ -77,6 +77,28 @@ if(QT_FOUND)
     target_link_libraries(planner_3Dviewer ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
     target_link_libraries(planner_3Dviewer ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
     
+    
+    
+    set( KTE_MODEL_VIEWER_UIS
+      "${SRCROOT}${RKGUIQTDIR}/ui/kte_model_viewer.ui" 
+    )
+    QT4_WRAP_UI( KTE_MODEL_VIEWER_UI_HDRS ${KTE_MODEL_VIEWER_UIS} )
+    set( KTE_MODEL_VIEWER_MOC_HDRS
+      "${SRCROOT}${RKGUIQTDIR}/kte_model_viewer.h"
+    )
+    QT4_WRAP_CPP( KTE_MODEL_VIEWER_MOC_SRCS ${KTE_MODEL_VIEWER_MOC_HDRS} OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED)
+
+    set(KTE_MODEL_VIEWER_SOURCES 
+      "${SRCROOT}${RKGUIQTDIR}/kte_model_viewer.cpp"
+    )
+    
+    add_executable(kte_model_viewer ${KTE_MODEL_VIEWER_SOURCES} ${KTE_MODEL_VIEWER_MOC_SRCS} ${KTE_MODEL_VIEWER_UI_HDRS})
+    setup_custom_target(kte_model_viewer "${SRCROOT}${RKGUIQTDIR}")
+    target_link_libraries(kte_model_viewer reak_gui_qt reak_kte_coin reak_geom_coin reak_topologies reak_interp reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
+    target_link_libraries(kte_model_viewer ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
+    target_link_libraries(kte_model_viewer ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
+    
+
   endif()
   
 endif()

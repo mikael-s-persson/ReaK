@@ -54,25 +54,25 @@ struct manip_pp_traits {
   BOOST_STATIC_CONSTANT(std::size_t, degrees_of_freedom = ManipMdlType::degrees_of_freedom);
   
 //   Ndof_rl_space<double, ManipMdlType::degrees_of_freedom, 0>::type
-  typedef ManipMdlType::rl_o0_jt_space_type rl_o0_jt_space_type;
+  typedef typename ManipMdlType::rl_o0_jt_space_type rl_o0_jt_space_type;
 //   Ndof_space<double, ManipMdlType::degrees_of_freedom, 0>::type
-  typedef ManipMdlType::o0_jt_space_type o0_jt_space_type;
+  typedef typename ManipMdlType::o0_jt_space_type o0_jt_space_type;
 //   se3_0th_order_topology<double>::type
-  typedef ManipMdlType::o0_ee_space_type o0_ee_space_type;
+  typedef typename ManipMdlType::o0_ee_space_type o0_ee_space_type;
   
 //   Ndof_rl_space<double, ManipMdlType::degrees_of_freedom, 1>::type
-  typedef ManipMdlType::rl_o1_jt_space_type rl_o1_jt_space_type;
+  typedef typename ManipMdlType::rl_o1_jt_space_type rl_o1_jt_space_type;
 //   Ndof_space<double, ManipMdlType::degrees_of_freedom, 1>::type
-  typedef ManipMdlType::o1_jt_space_type o1_jt_space_type;
+  typedef typename ManipMdlType::o1_jt_space_type o1_jt_space_type;
 //   se3_1st_order_topology<double>::type
-  typedef ManipMdlType::o1_ee_space_type o1_ee_space_type;
+  typedef typename ManipMdlType::o1_ee_space_type o1_ee_space_type;
   
 //   Ndof_rl_space<double, ManipMdlType::degrees_of_freedom, 2>::type
-  typedef ManipMdlType::rl_o2_jt_space_type rl_o2_jt_space_type;
+  typedef typename ManipMdlType::rl_o2_jt_space_type rl_o2_jt_space_type;
 //   Ndof_space<double, ManipMdlType::degrees_of_freedom, 2>::type
-  typedef ManipMdlType::o2_jt_space_type o2_jt_space_type;
+  typedef typename ManipMdlType::o2_jt_space_type o2_jt_space_type;
 //   se3_2nd_order_topology<double>::type
-  typedef ManipMdlType::o2_ee_space_type o2_ee_space_type;
+  typedef typename ManipMdlType::o2_ee_space_type o2_ee_space_type;
 };
 
 
