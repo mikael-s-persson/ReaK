@@ -90,6 +90,7 @@ if(QT_FOUND)
 
     set(KTE_MODEL_VIEWER_SOURCES 
       "${SRCROOT}${RKGUIQTDIR}/kte_model_viewer.cpp"
+      "${SRCROOT}${RKGUIQTDIR}/kte_mv_kte_loader.cpp"
     )
     
     add_executable(kte_model_viewer ${KTE_MODEL_VIEWER_SOURCES} ${KTE_MODEL_VIEWER_MOC_SRCS} ${KTE_MODEL_VIEWER_UI_HDRS})

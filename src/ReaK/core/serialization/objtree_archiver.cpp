@@ -216,17 +216,11 @@ void xml_field_editor::set_complete_src(const std::string& aXMLSrc) {
 };
 
 std::string xml_field_editor::get_object_name(object_node_desc aNode) const {
-  shared_ptr< named_object > item_ptr = rtti::rk_dynamic_ptr_cast<named_object>((*(p_parent->get_object_graph()))[aNode].p_obj);
-  std::stringstream ss;
-  if(item_ptr)
-    ss << item_ptr->getName() << " (ID:" << aNode << ")";
-  else
-    ss << "Object (ID:" << aNode << ")";
-  return ss.str();
+  return p_parent->get_object_name(aNode);
 };
 
 std::string xml_field_editor::get_object_name() const {
-  return get_object_name(node);
+  return p_parent->get_object_name(node);
 };
 
 xml_field_editor::xml_field_editor(objtree_editor* aParent, 
@@ -1063,21 +1057,24 @@ void objtree_editor::replace_child(object_node_desc aParent, object_node_desc aN
   };
 };
 
+std::string objtree_editor::get_object_name(object_node_desc aNode) const {
+  shared_ptr< named_object > item_ptr = rtti::rk_dynamic_ptr_cast<named_object>((*obj_graph)[aNode].p_obj);
+  std::stringstream ss;
+  if(item_ptr)
+    ss << item_ptr->getName() << " (ID:" << aNode << ")";
+  else
+    ss << "Object (ID:" << aNode << ")";
+  return ss.str();
+};
+
 std::vector< std::string > objtree_editor::get_objects_derived_from(const shared_ptr< rtti::so_type >& aType) const {
   boost::graph_traits< serialization::object_graph >::vertex_iterator vi, vi_end;
   boost::tie(vi,vi_end) = vertices(*obj_graph);
   std::vector< std::string > result;
   for(; vi != vi_end; ++vi) {
     shared_ptr< serialization::serializable > p_obj = (*obj_graph)[*vi].p_obj;
-    if((p_obj) && (p_obj->castTo(aType))) {
-      shared_ptr< named_object > item_ptr = rtti::rk_dynamic_ptr_cast<named_object>(p_obj);
-      std::stringstream ss;
-      if(item_ptr)
-        ss << item_ptr->getName() << " (ID:" << (*vi) << ")";
-      else
-        ss << "Object (ID:" << (*vi) << ")";
-      result.push_back(ss.str());
-    };
+    if((p_obj) && (p_obj->castTo(aType)))
+      result.push_back(get_object_name(*vi));
   };
   return result;
 };

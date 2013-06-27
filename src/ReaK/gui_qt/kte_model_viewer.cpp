@@ -48,6 +48,7 @@
 #include "kte_models/direct_kinematics_model.hpp"
 #include "kte_models/inverse_kinematics_model.hpp"
 #include "kte_models/inverse_dynamics_model.hpp"
+#include "kte_models/manip_P3R3R_arm.hpp"
 
 #include "topologies/joint_space_limits.hpp"
 
@@ -78,10 +79,10 @@ KTEModelViewerEditor::KTEModelViewerEditor(QWidget * parent, Qt::WindowFlags fla
                                            QMainWindow(parent,flags),
                                            objtree_graph(ReaK::shared_ptr< ReaK::serialization::object_graph >(new ReaK::serialization::object_graph())),
                                            objtree_root(add_vertex(*objtree_graph)),
-                                           objtree_out_arc(objtree_graph, objtree_root),
                                            objtree_sch_bld(),
                                            objtree(objtree_graph, objtree_root),
-                                           propedit(&(objtree.mdl)) {
+                                           propedit(&(objtree.mdl)),
+                                           objtree_edit(propedit.mdl.get_object_editor()) {
   setupUi(this);
   using namespace ReaK;
   
@@ -153,27 +154,6 @@ KTEModelViewerEditor::~KTEModelViewerEditor() {
 };
 
 
-void KTEModelViewerEditor::loadFromArchive(ReaK::serialization::iarchive& in, QString fileContentExt) {
-  
-  if( (fileContentExt == tr("kte_ik")) || (fileContentExt == tr("kte_dk")) ) {
-    ReaK::shared_ptr< ReaK::pose_3D<double> > base_frame;
-    
-    
-    
-    
-  } else if( fileContentExt == tr("kte_dyn") ) {
-    
-    
-  } else if( fileContentExt == tr("geom") ) {
-    
-    
-  } else if( fileContentExt == tr("model") ) {
-    
-    
-  };
-  
-};
-
 
 void KTEModelViewerEditor::onLoad() {
   QString fileName = QFileDialog::getOpenFileName(
@@ -195,16 +175,17 @@ Complete Model (*.model.rkx *.model.rkb *.model.pbuf)"));
   
   QString fileExt = fileInf.completeSuffix();
   QString fileType = fileInf.suffix();
-  QString fileContentExt = fileExt.left(fileContentExt.lastIndexOf('.'));
+  QString fileContentExt = fileExt;
+  fileContentExt.chop(fileType.length() + 1);
   
   
-  if( fileExt == tr("rkx") ) {
+  if( fileType == tr("rkx") ) {
     ReaK::serialization::xml_iarchive in(fileName.toStdString());
     loadFromArchive(in, fileContentExt);
-  } else if( fileExt == tr("rkb") ) {
+  } else if( fileType == tr("rkb") ) {
     ReaK::serialization::bin_iarchive in(fileName.toStdString());
     loadFromArchive(in, fileContentExt);
-  } else if( fileExt == tr("pbuf") ) {
+  } else if( fileType == tr("pbuf") ) {
     ReaK::serialization::protobuf_iarchive in(fileName.toStdString());
     loadFromArchive(in, fileContentExt);
   } else {

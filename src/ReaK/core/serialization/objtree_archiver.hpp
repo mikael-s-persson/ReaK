@@ -353,6 +353,8 @@ class objtree_editor {
       return xml_field_editor(this, aNode);
     };
     
+    std::string get_object_name(object_node_desc aNode) const;
+    
     /**
      * This function returns the list of objects in the object graph which are derived from 
      * the given type identifier pointer. The vector of strings returned by this function contain

@@ -88,6 +88,7 @@ class ObjPropertiesQtModel : public QAbstractTableModel {
      * \return The shared-pointer to the object-graph wrapped by this model.
      */ 
     const serialization::objtree_editor& get_object_editor() const { return obj_graph_editor; };
+    serialization::objtree_editor& get_object_editor() { return obj_graph_editor; };
     /**
      * This function returns the root node of the object-graph wrapped by this model.
      * \return The root node of the object-graph wrapped by this model.

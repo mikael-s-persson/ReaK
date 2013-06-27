@@ -78,11 +78,12 @@ class KTEModelViewerEditor : public QMainWindow, private Ui::KTEModelView {
     ReaK::shared_ptr< ReaK::serialization::object_graph > objtree_graph;
     ReaK::serialization::object_node_desc objtree_root;
     
-    ReaK::serialization::objtree_oarchive objtree_out_arc;
     ReaK::serialization::scheme_builder objtree_sch_bld;
     
     ReaK::rkqt::ObjectTreeWidget objtree;
     ReaK::rkqt::PropEditorWidget propedit;
+    
+    ReaK::serialization::objtree_editor& objtree_edit;
     
     SoQtExaminerViewer* eviewer;
     SoSeparator* sg_root;
