@@ -45,7 +45,7 @@ class View3DMenu : public QMenu {
     
   public:
     
-    void addDisplayGroup(const std::string& aGroupName);
+    void addDisplayGroup(const std::string& aGroupName, bool initChecked = true);
     void addSwitchToGroup(const std::string& aGroupName, SoSwitch* aSwitch);
     void removeDisplayGroup(const std::string& aGroupName);
     void removeSwitchFromGroup(const std::string& aGroupName, SoSwitch* aSwitch);
@@ -56,7 +56,7 @@ class View3DMenu : public QMenu {
       QAction* selector;
       std::vector<SoSwitch*> switches;
       
-      display_group(QAction* aSelector) : selector(aSelector), switches() { };
+      display_group(QAction* aSelector = NULL) : selector(aSelector), switches() { };
     };
     
     std::map< std::string, display_group > display_items;

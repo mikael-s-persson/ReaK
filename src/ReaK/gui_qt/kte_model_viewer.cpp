@@ -82,7 +82,8 @@ KTEModelViewerEditor::KTEModelViewerEditor(QWidget * parent, Qt::WindowFlags fla
                                            objtree_sch_bld(),
                                            objtree(objtree_graph, objtree_root),
                                            propedit(&(objtree.mdl)),
-                                           objtree_edit(propedit.mdl.get_object_editor()) {
+                                           objtree_edit(propedit.mdl.get_object_editor()),
+                                           view3d_menu(this) {
   setupUi(this);
   using namespace ReaK;
   
@@ -91,6 +92,9 @@ KTEModelViewerEditor::KTEModelViewerEditor(QWidget * parent, Qt::WindowFlags fla
   addDockWidget(Qt::LeftDockWidgetArea, &propedit);
   
   tabifyDockWidget(&objtree, &propedit);
+  
+  
+  menubar->addMenu(&view3d_menu);
   
   
   /*

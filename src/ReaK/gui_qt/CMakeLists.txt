@@ -26,6 +26,7 @@ if(QT_FOUND)
      "${SRCROOT}${RKGUIQTDIR}/obj_properties_qtmodel.hpp"
      "${SRCROOT}${RKGUIQTDIR}/rk_object_tree_widget.hpp"
      "${SRCROOT}${RKGUIQTDIR}/rk_prop_editor_widget.hpp"
+     "${SRCROOT}${RKGUIQTDIR}/rk_view3d_menu.hpp"
   )
   QT4_WRAP_CPP( RKGUIQT_MOC_SRCS ${RKGUIQT_MOC_HDRS} OPTIONS "-DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED")
   
@@ -34,6 +35,7 @@ if(QT_FOUND)
     "${SRCROOT}${RKGUIQTDIR}/obj_properties_qtmodel.cpp"
     "${SRCROOT}${RKGUIQTDIR}/rk_object_tree_widget.cpp"
     "${SRCROOT}${RKGUIQTDIR}/rk_prop_editor_widget.cpp"
+    "${SRCROOT}${RKGUIQTDIR}/rk_view3d_menu.cpp"
   )
   
   set(RKGUIQT_HEADERS 
@@ -44,7 +46,7 @@ if(QT_FOUND)
   add_library(reak_gui_qt STATIC ${RKGUIQT_SOURCES} ${RKGUIQT_MOC_SRCS} ${RKGUIQT_UI_HDRS})
   setup_custom_target(reak_gui_qt "${SRCROOT}${RKGUIQTDIR}")
   setup_headers("${RKGUIQT_HEADERS}" "${RKGUIQTDIR}")
-  target_link_libraries(reak_gui_qt reak_topologies reak_mbd_kte reak_core)
+  target_link_libraries(reak_gui_qt reak_kte_coin reak_geom_coin reak_topologies reak_mbd_kte reak_geom_prox reak_geom reak_core)
   target_link_libraries(reak_gui_qt ${QT_LIBRARIES})
   target_link_libraries(reak_gui_qt ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
   

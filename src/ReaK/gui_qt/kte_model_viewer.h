@@ -28,6 +28,7 @@
 #include "ui_kte_model_viewer.h"
 #include "rk_object_tree_widget.hpp"
 #include "rk_prop_editor_widget.hpp"
+#include "rk_view3d_menu.hpp"
 #include "serialization/scheme_builder.hpp"
 
 #include <map>
@@ -88,6 +89,8 @@ class KTEModelViewerEditor : public QMainWindow, private Ui::KTEModelView {
     
     SoQtExaminerViewer* eviewer;
     SoSeparator* sg_root;
+    
+    ReaK::rkqt::View3DMenu view3d_menu;
     
     std::map< std::string, ReaK::shared_ptr< ReaK::geom::kte_chain_geometry_3D > > geometries;
     std::map< std::string, ReaK::shared_ptr< ReaK::pose_3D<double> > > mdl_base_frames;
