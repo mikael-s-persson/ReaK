@@ -368,6 +368,12 @@ class objtree_editor {
 };
 
 
+std::string get_objtree_name(const object_graph& obj_graph, object_node_desc node_id);
+
+object_node_desc get_objtree_node_id(const object_graph& obj_graph, const std::string& obj_name);
+
+
+
 }; //serialization
 
 }; //ReaK

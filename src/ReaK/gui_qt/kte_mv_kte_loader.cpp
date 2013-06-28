@@ -94,6 +94,8 @@ void KTEModelViewerEditor::loadFromArchive(ReaK::serialization::iarchive& in, QS
     if(kin_ik_mdl) 
       ik_models[objtree_edit.get_object_name(kin_mdl_id)] = kin_ik_mdl;
     
+    
+    
   } else if( fileContentExt == tr("kte_dyn") ) {
     
     

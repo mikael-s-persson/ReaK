@@ -80,14 +80,7 @@ QVariant ObjTreeQtModel::data(const QModelIndex &index, int role) const {
   serialization::object_node_desc item(obj_tree[obj_indirect_node_desc(index.internalId())].g_node);
   
   if(index.column() == 0) {
-    shared_ptr< named_object > item_ptr = rtti::rk_dynamic_ptr_cast<named_object>((*obj_graph)[item].p_obj);
-    if(item_ptr)
-      return QVariant(QString(item_ptr->getName().c_str()));
-    else {
-      std::stringstream ss;
-      ss << "Object (ID:" << item << ")";
-      return QVariant(QString(ss.str().c_str()));
-    };
+    return QVariant(QString::fromStdString(serialization::get_objtree_name(*obj_graph, item)));
   } else {  // column 1
     shared_ptr< serialization::serializable > item_ptr = (*obj_graph)[item].p_obj;
     std::string s_tmp = item_ptr->getObjectType()->TypeName();

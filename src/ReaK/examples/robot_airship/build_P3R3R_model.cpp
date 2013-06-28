@@ -216,7 +216,7 @@ int main(int argc, char ** argv) {
         1.83259571459,
         3.14159265359)));
     
-    shared_ptr< pp::joint_limits_collection<double> > joint_rate_limits(new pp::joint_limits_collection<double>());
+    shared_ptr< pp::joint_limits_collection<double> > joint_rate_limits(new pp::joint_limits_collection<double>("CRS_A465_joint_limits"));
 
     joint_rate_limits->gen_speed_limits.resize(7);
     joint_rate_limits->gen_speed_limits[0] = 0.8;

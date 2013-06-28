@@ -1058,13 +1058,7 @@ void objtree_editor::replace_child(object_node_desc aParent, object_node_desc aN
 };
 
 std::string objtree_editor::get_object_name(object_node_desc aNode) const {
-  shared_ptr< named_object > item_ptr = rtti::rk_dynamic_ptr_cast<named_object>((*obj_graph)[aNode].p_obj);
-  std::stringstream ss;
-  if(item_ptr)
-    ss << item_ptr->getName() << " (ID:" << aNode << ")";
-  else
-    ss << "Object (ID:" << aNode << ")";
-  return ss.str();
+  return get_objtree_name(*obj_graph, aNode);
 };
 
 std::vector< std::string > objtree_editor::get_objects_derived_from(const shared_ptr< rtti::so_type >& aType) const {
@@ -1078,6 +1072,28 @@ std::vector< std::string > objtree_editor::get_objects_derived_from(const shared
   };
   return result;
 };
+
+
+
+std::string get_objtree_name(const object_graph& obj_graph, object_node_desc node_id) {
+  shared_ptr< named_object > item_ptr = rtti::rk_dynamic_ptr_cast<named_object>(obj_graph[node_id].p_obj);
+  std::stringstream ss;
+  if(item_ptr)
+    ss << item_ptr->getName() << " (ID:" << node_id << ")";
+  else
+    ss << "Object (ID:" << node_id << ")";
+  return ss.str();
+};
+
+object_node_desc get_objtree_node_id(const object_graph& obj_graph, const std::string& obj_name) {
+  std::string node_id_str = obj_name.substr(obj_name.find("(ID:") + 4);
+  node_id_str = node_id_str.substr(0, node_id_str.find(")"));
+  std::stringstream ss(node_id_str);
+  std::size_t result = 0;
+  ss >> result;
+  return result;
+};
+
 
 
 }; //serialization
