@@ -65,6 +65,7 @@
 #include <Inventor/nodes/SoLineSet.h>   // for SoLineSet
 #include <Inventor/nodes/SoRotation.h>  // for SoRotation
 #include <Inventor/nodes/SoSeparator.h>  // for SoSeparator
+#include <Inventor/nodes/SoSwitch.h>  // for SoSwitch
 #include <Inventor/nodes/SoSphere.h>    // for SoSphere
 #include <Inventor/nodes/SoTransform.h>  // for SoTransform
 #include <Inventor/nodes/SoTranslation.h>  // for SoTranslation
@@ -100,6 +101,9 @@ void oi_scene_graph::update_anchors(void* aData, SoSensor*) {
     SG->mUpdateFuncs[i]();
 };
 
+void oi_scene_graph::setVisibility(bool aVisible) {
+  mRootSwitch->whichChild.setValue((aVisible ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+};
 
 void oi_scene_graph::enableAnchorUpdates() {
   mTimer->schedule();
@@ -122,9 +126,12 @@ double oi_scene_graph::computeCharacteristicLength() {
 
 
 
-oi_scene_graph::oi_scene_graph() : mRoot(NULL), mTimer(NULL), mAnchor2DMap(), mAnchor3DMap() {
+oi_scene_graph::oi_scene_graph() : mRoot(NULL), mTimer(NULL), mCharacteristicLength(1.0), mAnchor2DMap(), mAnchor3DMap() {
   mRoot = new SoSeparator;
   mRoot->ref();
+  mRootSwitch = new SoSwitch;
+  mRoot->addChild(mRootSwitch);
+  setVisibility(true);
   mTimer = new SoTimerSensor(oi_scene_graph::update_anchors, this);
 };
 
@@ -147,7 +154,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const shared_ptr< pose_2D<double
   aSG.mAnchor2DMap[aAnchor] = std::pair<SoSeparator*,SoTransform*>(sep,trans);
   
   if(aAnchor->Parent.expired()) {
-    aSG.mRoot->addChild(sep);
+    aSG.mRootSwitch->addChild(sep);
   } else {
     aSG.mAnchor2DMap[aAnchor->Parent.lock()].first->addChild(sep);
   };
@@ -168,7 +175,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const shared_ptr< pose_3D<double
   aSG.mAnchor3DMap[aAnchor] = std::pair<SoSeparator*,SoTransform*>(sep,trans);
   
   if(aAnchor->Parent.expired()) {
-    aSG.mRoot->addChild(sep);
+    aSG.mRootSwitch->addChild(sep);
   } else {
     aSG.mAnchor3DMap[aAnchor->Parent.lock()].first->addChild(sep);
   };
@@ -351,7 +358,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
   };
   
   if(!aGeom2D.getAnchor()) {
-    aSG.mRoot->addChild(sep);
+    aSG.mRootSwitch->addChild(sep);
   } else {
     if(aSG.mAnchor2DMap.find(aGeom2D.getAnchor()) == aSG.mAnchor2DMap.end())
       aSG << aGeom2D.getAnchor();
@@ -590,7 +597,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
   };
   
   if(!aGeom3D.getAnchor()) {
-    aSG.mRoot->addChild(sep);
+    aSG.mRootSwitch->addChild(sep);
   } else {
     if(aSG.mAnchor3DMap.find(aGeom3D.getAnchor()) == aSG.mAnchor3DMap.end())
       aSG << aGeom3D.getAnchor();

@@ -41,7 +41,10 @@ class SoSeparator;
 class SoQtExaminerViewer;
 
 namespace ReaK {
-  namespace geom { class kte_chain_geometry_3D; };
+  namespace geom { 
+    class kte_chain_geometry_3D;
+    class oi_scene_graph;
+  };
   
   template <typename T>
   class pose_3D;
@@ -73,6 +76,8 @@ class KTEModelViewerEditor : public QMainWindow, private Ui::KTEModelView {
     void onSaveAs();
     void onCloseAll();
     
+    void onRefreshView();
+    
   private:
     
     void loadFromArchive(ReaK::serialization::iarchive& in, QString fileContentExt);
@@ -93,6 +98,8 @@ class KTEModelViewerEditor : public QMainWindow, private Ui::KTEModelView {
     ReaK::rkqt::View3DMenu view3d_menu;
     
     std::map< std::string, ReaK::shared_ptr< ReaK::geom::kte_chain_geometry_3D > > geometries;
+    std::map< std::string, ReaK::shared_ptr< ReaK::geom::oi_scene_graph > > scene_graphs;
+    
     std::map< std::string, ReaK::shared_ptr< ReaK::pose_3D<double> > > mdl_base_frames;
     std::map< std::string, ReaK::shared_ptr< ReaK::pp::joint_limits_collection<double> > > mdl_jt_limits;
     std::map< std::string, ReaK::shared_ptr< ReaK::kte::direct_kinematics_model > > dk_models;

@@ -124,11 +124,15 @@ KTEModelViewerEditor::KTEModelViewerEditor(QWidget * parent, Qt::WindowFlags fla
   actionQuit->setIcon( style()->standardIcon( QStyle::SP_DialogCloseButton, NULL, actionQuit->menu() ) );
   
   
+  connect(&propedit.mdl, SIGNAL(sourceDataChanged()), this, SLOT(onRefreshView()));
+  
   
   SoQt::init(this->centralwidget);
   
   sg_root = new SoSeparator;
   sg_root->ref();
+  
+  view3d_menu.setRoot(sg_root);
   
   // insert some code here.  Add geometries.
   
@@ -152,6 +156,8 @@ KTEModelViewerEditor::~KTEModelViewerEditor() {
   
   delete eviewer;
   sg_root->unref();
+  view3d_menu.setRoot(NULL);
+  scene_graphs.clear();
   
   SoQt::done();
   
@@ -217,7 +223,13 @@ void KTEModelViewerEditor::onCloseAll() {
   
 };
 
-
+void KTEModelViewerEditor::onRefreshView() {
+  
+  for(std::map< std::string, ReaK::shared_ptr< ReaK::kte::direct_kinematics_model > >::iterator it = dk_models.begin(); it != dk_models.end(); ++it) {
+    it->second->doDirectMotion();
+  };
+  
+};
 
 
 

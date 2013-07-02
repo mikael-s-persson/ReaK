@@ -38,6 +38,8 @@
 #include "kinetostatics/kinetostatics.hpp"
 #include "mbd_kte/jacobian_joint_map.hpp"
 #include "lin_alg/mat_alg.hpp"
+#include "mbd_kte/kte_map_chain.hpp"
+
 
 namespace ReaK {
 
@@ -54,6 +56,12 @@ namespace kte {
  */
 class direct_kinematics_model : public virtual named_object {
   public:
+    
+    /**
+     * Returns a pointer to the KTE-chain that represents this direct kinematics model.
+     * \return A pointer to the KTE-chain that represents this direct kinematics model.
+     */
+    virtual shared_ptr< kte_map_chain > getKTEChain() const { return shared_ptr< kte_map_chain >(); };
     
     /**
      * Default constructor.

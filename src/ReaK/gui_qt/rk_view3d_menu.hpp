@@ -29,6 +29,7 @@
 #include <string>
 
 class SoSwitch;
+class SoSeparator;
 
 namespace ReaK {
   
@@ -38,27 +39,29 @@ class View3DMenu : public QMenu {
     Q_OBJECT
   
   public:
-    View3DMenu( QWidget * parent = 0 );
+    View3DMenu( QWidget * parent = 0, SoSeparator* aRoot = NULL );
     ~View3DMenu();
     
   private slots:
     
+    void toggleDisplayGroup(bool isChecked);
+    
   public:
     
-    void addDisplayGroup(const std::string& aGroupName, bool initChecked = true);
-    void addSwitchToGroup(const std::string& aGroupName, SoSwitch* aSwitch);
+    void setRoot(SoSeparator* aRoot);
+    SoSwitch* getDisplayGroup(const std::string& aGroupName, bool initChecked = true);
     void removeDisplayGroup(const std::string& aGroupName);
-    void removeSwitchFromGroup(const std::string& aGroupName, SoSwitch* aSwitch);
     
   private:
     
     struct display_group {
       QAction* selector;
-      std::vector<SoSwitch*> switches;
+      SoSwitch* display_switch;
       
-      display_group(QAction* aSelector = NULL) : selector(aSelector), switches() { };
+      display_group(QAction* aSelector = NULL, SoSwitch* aDisplaySwitch = NULL) : selector(aSelector), display_switch(aDisplaySwitch) { };
     };
     
+    SoSeparator* root_sep;
     std::map< std::string, display_group > display_items;
     
 };

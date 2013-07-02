@@ -52,6 +52,7 @@
 #include <Inventor/fields/SoSFVec3f.h>  // for SoSFVec3f
 #include <Inventor/fields/SoSubField.h>  // for SoMFColor::operator=, etc
 #include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoBaseColor.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoCylinder.h>
@@ -221,7 +222,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(arrow_cyl);
     
     if(!rev_joint.BaseFrame()) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor3DMap.find(rev_joint.BaseFrame()) == aSG.mAnchor3DMap.end())
         aSG << rev_joint.BaseFrame();
@@ -260,7 +261,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(rect_face);
     
     if(!rev_joint.BaseFrame()) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor2DMap.find(rev_joint.BaseFrame()) == aSG.mAnchor2DMap.end())
         aSG << rev_joint.BaseFrame();
@@ -313,7 +314,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(arrow_cyl);
     
     if(!pri_joint.BaseFrame()) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor3DMap.find(pri_joint.BaseFrame()) == aSG.mAnchor3DMap.end())
         aSG << pri_joint.BaseFrame();
@@ -357,7 +358,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(rect_face);
     
     if(!pri_joint.BaseFrame()) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor2DMap.find(pri_joint.BaseFrame()) == aSG.mAnchor2DMap.end())
         aSG << pri_joint.BaseFrame();
@@ -438,7 +439,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(rect_face);
     
     if(!fr_joint.BaseFrame()) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor3DMap.find(fr_joint.BaseFrame()) == aSG.mAnchor3DMap.end())
         aSG << fr_joint.BaseFrame();
@@ -477,7 +478,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(rect_face);
     
     if(!fr_joint.BaseFrame()) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor2DMap.find(fr_joint.BaseFrame()) == aSG.mAnchor2DMap.end())
         aSG << fr_joint.BaseFrame();
@@ -526,7 +527,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(core_cyl);
     
     if(!lnk_obj.BaseFrame()) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor3DMap.find(lnk_obj.BaseFrame()) == aSG.mAnchor3DMap.end())
         aSG << lnk_obj.BaseFrame();
@@ -562,7 +563,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(rod_face);
     
     if(!lnk_obj.BaseFrame()) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor2DMap.find(lnk_obj.BaseFrame()) == aSG.mAnchor2DMap.end())
         aSG << lnk_obj.BaseFrame();
@@ -630,7 +631,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     spr_cyl->height = 2.0;
     sep->addChild(spr_cyl);
     */
-    aSG.mRoot->addChild(sep); // always at the root because "trans" is a global transformation.
+    aSG.mRootSwitch->addChild(sep); // always at the root because "trans" is a global transformation.
     
   } else if(aModel.castTo(kte::spring_2D::getStaticObjectType())) {
     const kte::spring_2D& spr_obj = static_cast<const kte::spring_2D&>(aModel);
@@ -677,7 +678,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     rect_face->numVertices.set1Value(0, 4);
     sep->addChild(rect_face);
     
-    aSG.mRoot->addChild(sep); // always at the root because "trans" is a global transformation.
+    aSG.mRootSwitch->addChild(sep); // always at the root because "trans" is a global transformation.
     
   } else if(aModel.castTo(kte::damper_3D::getStaticObjectType())) {
     const kte::damper_3D& dmp_obj = static_cast<const kte::damper_3D&>(aModel);
@@ -745,7 +746,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(dmp_in_cyl);
     
     
-    aSG.mRoot->addChild(sep); // always at the root because "trans" is a global transformation.
+    aSG.mRootSwitch->addChild(sep); // always at the root because "trans" is a global transformation.
     
   } else if(aModel.castTo(kte::damper_2D::getStaticObjectType())) {
     const kte::damper_2D& dmp_obj = static_cast<const kte::damper_2D&>(aModel);
@@ -792,7 +793,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     rect_face->numVertices.set1Value(0, 4);
     sep->addChild(rect_face);
     
-    aSG.mRoot->addChild(sep); // always at the root because "trans" is a global transformation.
+    aSG.mRootSwitch->addChild(sep); // always at the root because "trans" is a global transformation.
     
   } else if(aModel.castTo(kte::torsion_spring_3D::getStaticObjectType())) {
     const kte::torsion_spring_3D& tor_spr = static_cast<const kte::torsion_spring_3D&>(aModel);
@@ -827,7 +828,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(rect_face);
     
     if(!tor_spr.Anchor1()) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor3DMap.find(tor_spr.Anchor1()) == aSG.mAnchor3DMap.end())
         aSG << tor_spr.Anchor1();
@@ -867,7 +868,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(rect_face);
     
     if(!tor_spr.Anchor1()) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor2DMap.find(tor_spr.Anchor1()) == aSG.mAnchor2DMap.end())
         aSG << tor_spr.Anchor1();
@@ -907,7 +908,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(rect_face);
     
     if(!tor_dmp.Anchor1()) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor3DMap.find(tor_dmp.Anchor1()) == aSG.mAnchor3DMap.end())
         aSG << tor_dmp.Anchor1();
@@ -947,7 +948,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(rect_face);
     
     if(!tor_dmp.Anchor1()) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor2DMap.find(tor_dmp.Anchor1()) == aSG.mAnchor2DMap.end())
         aSG << tor_dmp.Anchor1();
@@ -972,7 +973,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(core_ball);
     
     if(!cm_obj.CenterOfMass()->mFrame) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor3DMap.find(cm_obj.CenterOfMass()->mFrame) == aSG.mAnchor3DMap.end())
         aSG << cm_obj.CenterOfMass()->mFrame;
@@ -997,7 +998,7 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     sep->addChild(core_ball);
     
     if(!cm_obj.CenterOfMass()->mFrame) {
-      aSG.mRoot->addChild(sep);
+      aSG.mRootSwitch->addChild(sep);
     } else {
       if(aSG.mAnchor2DMap.find(cm_obj.CenterOfMass()->mFrame) == aSG.mAnchor2DMap.end())
         aSG << cm_obj.CenterOfMass()->mFrame;

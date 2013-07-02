@@ -25,6 +25,10 @@
 
 #include <QMessageBox>
 
+#include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoSwitch.h>
+#include <Inventor/nodes/SoCube.h>
 
 #include "shapes/oi_scene_graph.hpp"
 #include "shapes/kte_chain_geometry.hpp"
@@ -94,7 +98,23 @@ void KTEModelViewerEditor::loadFromArchive(ReaK::serialization::iarchive& in, QS
     if(kin_ik_mdl) 
       ik_models[objtree_edit.get_object_name(kin_mdl_id)] = kin_ik_mdl;
     
-    
+    ReaK::shared_ptr< const ReaK::kte::kte_map_chain > kin_mdl_chain = kin_mdl->getKTEChain();
+    if(kin_mdl_chain) {
+      kin_mdl->doDirectMotion();
+      std::string sg_name = objtree_edit.get_object_name(kin_mdl_id) + " | kte_chain";
+      ReaK::shared_ptr< ReaK::geom::oi_scene_graph > sg(new ReaK::geom::oi_scene_graph());
+      scene_graphs[sg_name] = sg;
+      (*sg) << (*kin_mdl_chain);
+      sg->setVisibility(true);
+      
+      SoSwitch* sw = view3d_menu.getDisplayGroup("Kinematics Models", true);
+      if(sw) {
+        sw->addChild(sg->getSceneGraph());
+      } else
+        sg_root->addChild(sg->getSceneGraph());
+      
+      sg->enableAnchorUpdates();
+    };
     
   } else if( fileContentExt == tr("kte_dyn") ) {
     

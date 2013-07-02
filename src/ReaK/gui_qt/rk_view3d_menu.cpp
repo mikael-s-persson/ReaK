@@ -23,6 +23,7 @@
 
 #include "rk_view3d_menu.hpp"
 
+#include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
 
 
@@ -30,41 +31,64 @@ namespace ReaK {
   
 namespace rkqt {
 
-View3DMenu::View3DMenu( QWidget * parent ) : QMenu(tr("View"), parent) {
+View3DMenu::View3DMenu( QWidget * parent, SoSeparator* aRoot ) : QMenu(tr("View"), parent), root_sep(aRoot) {
   // addAction("Some General Option");
   addSeparator();
+  
+  if(root_sep)
+    root_sep->ref();
 };
 
 View3DMenu::~View3DMenu() {
-  for(std::map< std::string, display_group >::iterator it = display_items.begin(); it != display_items.end(); ++it)
-    for(std::vector< SoSwitch* >::iterator sit = it->second.switches.begin(); sit != it->second.switches.end(); ++sit)
-      (*sit)->unref();
+  if(root_sep)
+    root_sep->unref();
 };
 
 
-void View3DMenu::addDisplayGroup(const std::string& aGroupName, bool initChecked) {
-  std::map< std::string, display_group >::iterator it = display_items.find(aGroupName);
-  if(it != display_items.end())
+void View3DMenu::toggleDisplayGroup(bool isChecked) {
+  QAction* snder = static_cast<QAction*>(sender());
+  
+  std::string snder_name = snder->text().toStdString();
+  std::map< std::string, display_group >::iterator it = display_items.find(snder_name);
+  if(it == display_items.end())
     return;
   
+  it->second.display_switch->whichChild.setValue((isChecked ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  
+};
+
+void View3DMenu::setRoot(SoSeparator* aRoot) {
+  if((root_sep) && (aRoot)) {
+    for(std::map< std::string, display_group >::iterator it = display_items.begin(); it != display_items.end(); ++it) {
+      aRoot->addChild(it->second.display_switch);
+      root_sep->removeChild(it->second.display_switch);
+    };
+  };
+  if(root_sep)
+    root_sep->unref();
+  root_sep = aRoot;
+  if(root_sep)
+    root_sep->ref();
+};
+
+SoSwitch* View3DMenu::getDisplayGroup(const std::string& aGroupName, bool initChecked) {
+  std::map< std::string, display_group >::iterator it = display_items.find(aGroupName);
+  if(it != display_items.end())
+    return it->second.display_switch;
+  if(!root_sep)
+    return NULL;
+  
   display_group& dg = display_items[aGroupName];
-  dg = display_group(addAction(QString::fromStdString(aGroupName)));
+  dg.display_switch = new SoSwitch;
+  dg.display_switch->whichChild.setValue((initChecked ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  root_sep->addChild(dg.display_switch);
+  dg.selector = addAction(QString::fromStdString(aGroupName));
   dg.selector->setCheckable(true);
   dg.selector->setChecked(initChecked);
   
-};
-
-void View3DMenu::addSwitchToGroup(const std::string& aGroupName, SoSwitch* aSwitch) {
-  if( ! aSwitch )
-    return;
+  connect(dg.selector, SIGNAL(toggled(bool)), this, SLOT(toggleDisplayGroup(bool)));
   
-  std::map< std::string, display_group >::iterator it = display_items.find(aGroupName);
-  if(it == display_items.end())
-    addDisplayGroup(aGroupName, true);
-  
-  aSwitch->ref();
-  display_items[aGroupName].switches.push_back(aSwitch);
-  
+  return dg.display_switch;
 };
 
 void View3DMenu::removeDisplayGroup(const std::string& aGroupName) {
@@ -72,25 +96,9 @@ void View3DMenu::removeDisplayGroup(const std::string& aGroupName) {
   if(it == display_items.end())
     return;
   
-  for(std::vector< SoSwitch* >::iterator sit = it->second.switches.begin(); sit != it->second.switches.end(); ++sit)
-    (*sit)->unref();
-  
+  root_sep->removeChild(it->second.display_switch);
   removeAction(it->second.selector);
   display_items.erase(it);
-  
-};
-
-void View3DMenu::removeSwitchFromGroup(const std::string& aGroupName, SoSwitch* aSwitch) {
-  std::map< std::string, display_group >::iterator it = display_items.find(aGroupName);
-  if(it == display_items.end())
-    return;
-  
-  std::vector< SoSwitch* >::iterator sit = std::find(it->second.switches.begin(), it->second.switches.end(), aSwitch);
-  if( sit == it->second.switches.end() )
-    return;
-  
-  (*sit)->unref();
-  it->second.switches.erase(sit);
   
 };
 

@@ -66,6 +66,7 @@
 
 // forward-declarations of the open-inventory node classes:
 class SoSeparator;
+class SoSwitch;
 class SoTransform;
 class SoSensor;
 class SoTimerSensor;
@@ -104,6 +105,7 @@ class geometry_3D;
 class oi_scene_graph {
   protected:
     SoSeparator* mRoot;
+    SoSwitch* mRootSwitch;
     SoTimerSensor* mTimer;
     color mCurrentColor;
     double mCharacteristicLength;
@@ -122,6 +124,8 @@ class oi_scene_graph {
   public:
     
     SoSeparator* getSceneGraph() const { return mRoot; };
+    
+    void setVisibility(bool aVisible);
     
     /**
      * Enable the internal sensor-mechanism that will update all the transformations in the scene-graph
