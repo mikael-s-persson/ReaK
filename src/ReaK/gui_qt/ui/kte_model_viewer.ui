@@ -29,7 +29,6 @@
     </property>
     <addaction name="actionLoad"/>
     <addaction name="actionSave"/>
-    <addaction name="actionSave_as"/>
     <addaction name="actionClose_all"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>

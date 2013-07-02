@@ -633,6 +633,25 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_3D& aModel) 
 
 
 
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const proxy_query_model_2D& aModel) {
+  
+  aSG << color(0.9, 0.9, 0.9);
+  for(std::size_t i = 0; i < aModel.mShapeList.size(); ++i)
+    aSG << *(aModel.mShapeList[i]);
+  
+  return aSG;
+};
+    
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const proxy_query_model_3D& aModel) {
+  
+  aSG << color(0.9, 0.9, 0.9);
+  for(std::size_t i = 0; i < aModel.mShapeList.size(); ++i)
+    aSG << *(aModel.mShapeList[i]);
+  
+  return aSG;
+};
+
+
 };
 
 

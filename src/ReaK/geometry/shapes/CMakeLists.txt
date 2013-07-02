@@ -83,7 +83,7 @@ if(COIN3D_FOUND AND QT_FOUND)
   setup_custom_target(test_oisg "${SRCROOT}${RKSHAPESDIR}")
   
   target_link_libraries(test_oisg ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
-  target_link_libraries(test_oisg reak_geom_coin reak_geom reak_core)
+  target_link_libraries(test_oisg reak_geom_coin reak_geom_prox reak_geom reak_core)
   
 endif()
 

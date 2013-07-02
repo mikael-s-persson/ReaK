@@ -55,6 +55,8 @@
 #include "mbd_kte/kte_map.hpp"          // for kte_map
 #include "mbd_kte/kte_map_chain.hpp"
 
+#include "proximity/proxy_query_model.hpp"
+
 #include <map>
 #include <vector>
 
@@ -275,6 +277,22 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_2D& aModel);
  * \return The Open-Inventor scene-graph given as the first parameter, by reference.
  */
 oi_scene_graph& operator<<(oi_scene_graph& aSG, const colored_model_3D& aModel);
+
+/**
+ * This operator adds a 2D proximity-query model to an Open-Inventor scene-graph.
+ * \param aSG An Open-Inventor scene-graph to add the proximity-query model to.
+ * \param aModel The 2D proximity-query model to add to the scene-graph.
+ * \return The Open-Inventor scene-graph given as the first parameter, by reference.
+ */
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const proxy_query_model_2D& aModel);
+    
+/**
+ * This operator adds a 3D proximity-query model to an Open-Inventor scene-graph.
+ * \param aSG An Open-Inventor scene-graph to add the proximity-query model to.
+ * \param aModel The 3D proximity-query model to add to the scene-graph.
+ * \return The Open-Inventor scene-graph given as the first parameter, by reference.
+ */
+oi_scene_graph& operator<<(oi_scene_graph& aSG, const proxy_query_model_3D& aModel);
 
 /**
  * This operator adds a KTE model to an Open-Inventor scene-graph.

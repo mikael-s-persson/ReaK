@@ -44,6 +44,8 @@ namespace ReaK {
   namespace geom { 
     class kte_chain_geometry_3D;
     class oi_scene_graph;
+    class colored_model_3D;
+    class proxy_query_model_3D;
   };
   
   template <typename T>
@@ -73,14 +75,23 @@ class KTEModelViewerEditor : public QMainWindow, private Ui::KTEModelView {
     
     void onLoad();
     void onSave();
-    void onSaveAs();
     void onCloseAll();
     
     void onRefreshView();
     
   private:
     
+    std::string loadKinModelFromArchive(ReaK::serialization::iarchive& in);
+    std::string addGeometricModel(const ReaK::shared_ptr< ReaK::geom::colored_model_3D >& mdl_geom);
+    std::string addProximityModel(const ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D >& mdl_prox);
     void loadFromArchive(ReaK::serialization::iarchive& in, QString fileContentExt);
+    
+    void saveKTEChainGeometry(ReaK::serialization::oarchive& out, const std::string& mdl_name, const ReaK::shared_ptr< ReaK::geom::kte_chain_geometry_3D >& kte_geom);
+    void saveGeometricModel(ReaK::serialization::oarchive& out, const std::string& mdl_name, const ReaK::shared_ptr< ReaK::geom::colored_model_3D >& geom_mdl);
+    void saveProximityModel(ReaK::serialization::oarchive& out, const std::string& mdl_name, const ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D >& prox_mdl);
+    void saveDirectKinModel(ReaK::serialization::oarchive& out, const std::string& mdl_name, const ReaK::shared_ptr< ReaK::kte::direct_kinematics_model >& dk_mdl);
+    void saveInverseKinModel(ReaK::serialization::oarchive& out, const std::string& mdl_name, const ReaK::shared_ptr< ReaK::kte::inverse_kinematics_model >& ik_mdl);
+    void saveDynamicsModel(ReaK::serialization::oarchive& out, const std::string& mdl_name, const ReaK::shared_ptr< ReaK::kte::inverse_dynamics_model >& dyn_mdl);
     
     ReaK::shared_ptr< ReaK::serialization::object_graph > objtree_graph;
     ReaK::serialization::object_node_desc objtree_root;
@@ -97,14 +108,20 @@ class KTEModelViewerEditor : public QMainWindow, private Ui::KTEModelView {
     
     ReaK::rkqt::View3DMenu view3d_menu;
     
-    std::map< std::string, ReaK::shared_ptr< ReaK::geom::kte_chain_geometry_3D > > geometries;
     std::map< std::string, ReaK::shared_ptr< ReaK::geom::oi_scene_graph > > scene_graphs;
+    
+    std::map< std::string, ReaK::shared_ptr< ReaK::geom::kte_chain_geometry_3D > > kte_geometries;
+    std::map< std::string, ReaK::shared_ptr< ReaK::geom::colored_model_3D > > geom_models;
+    std::map< std::string, ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > > proxy_models;
     
     std::map< std::string, ReaK::shared_ptr< ReaK::pose_3D<double> > > mdl_base_frames;
     std::map< std::string, ReaK::shared_ptr< ReaK::pp::joint_limits_collection<double> > > mdl_jt_limits;
     std::map< std::string, ReaK::shared_ptr< ReaK::kte::direct_kinematics_model > > dk_models;
     std::map< std::string, ReaK::shared_ptr< ReaK::kte::inverse_kinematics_model > > ik_models;
     std::map< std::string, ReaK::shared_ptr< ReaK::kte::inverse_dynamics_model > > dyn_models;
+    
+    std::map< std::string, std::string > mdl_to_base;
+    std::map< std::string, std::string > mdl_to_jt_lim;
     
 };
 
