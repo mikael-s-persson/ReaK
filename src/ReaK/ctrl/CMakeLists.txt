@@ -36,5 +36,11 @@ add_subdirectory("${SRCROOT}${CURRENT_RKCTRLSUBDIR}")
 endforeach(CURRENT_RKCTRLSUBDIR)
 
 
+add_library(reak_kte STATIC $<TARGET_OBJECTS:reakobj_mbd_kte> $<TARGET_OBJECTS:reakobj_kte_models>)
+setup_custom_target(reak_kte "${SRCROOT}${RKCTRLDIR}")
+target_link_libraries(reak_kte reak_core)
+
+
+
 
 

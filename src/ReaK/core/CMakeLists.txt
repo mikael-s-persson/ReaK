@@ -43,21 +43,12 @@ configure_doxyfile(ReaKmath
                    "${DOXTOSRCDIR}${RKBASEDIR} ${DOXTOSRCDIR}${RKLINALGDIR} ${DOXTOSRCDIR}${RKKINETOSTATICSDIR} ${DOXTOSRCDIR}${RKINTEGRATORSDIR} ${DOXTOSRCDIR}${RKROOTFINDERSDIR} ${DOXTOSRCDIR}${RKOPTIMDIR} ${DOXTOSRCDIR}${RKTENSORSDIR} ${DOXTOSRCDIR}${RKSORTINGDIR}")
 add_doxygen_target(ReaKmath)
 
-include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
-include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
-
 # Add the sub-directories to cmake process.
 foreach(CURRENT_RKCORESUBDIR ${RKCORESUBDIRS})
 add_subdirectory("${SRCROOT}${CURRENT_RKCORESUBDIR}")
 endforeach(CURRENT_RKCORESUBDIR)
 
-get_target_property(RKRTTISOURCES reak_rtti SOURCES)
-get_target_property(RKRECORDERSSOURCES reak_recorders SOURCES)
-get_target_property(RKSERIALIZATIONSOURCES reak_serialization SOURCES)
-get_target_property(RKLINALGSOURCES reak_lin_alg SOURCES)
-get_target_property(RKKINETOSTATICSSOURCES reak_kinetostatics SOURCES)
-add_library(reak_core STATIC ${RKRTTISOURCES} ${RKRECORDERSSOURCES} ${RKSERIALIZATIONSOURCES} ${RKLINALGSOURCES} ${RKKINETOSTATICSSOURCES})
-#target_link_libraries(reak_core reak_rtti reak_serialization reak_recorders)
+add_library(reak_core STATIC $<TARGET_OBJECTS:reakobj_rtti> $<TARGET_OBJECTS:reakobj_recorders> $<TARGET_OBJECTS:reakobj_serialization> $<TARGET_OBJECTS:reakobj_lin_alg> $<TARGET_OBJECTS:reakobj_kinetostatics>)
 setup_custom_target(reak_core "${SRCROOT}${RKCOREDIR}")
 target_link_libraries(reak_core ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
 

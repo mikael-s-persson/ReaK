@@ -29,14 +29,9 @@ set(KTEMODELS_HEADERS
   "${RKKTEMODELSDIR}/manip_ERA_arm.hpp"
 )
 
-add_library(reak_kte_models STATIC ${KTEMODELS_SOURCES})
-setup_custom_target(reak_kte_models "${SRCROOT}${RKKTEMODELSDIR}")
+add_library(reakobj_kte_models OBJECT ${KTEMODELS_SOURCES})
+
 setup_headers("${KTEMODELS_HEADERS}" "${RKKTEMODELSDIR}")
-target_link_libraries(reak_kte_models reak_mbd_kte reak_core ${EXTRA_SYSTEM_LIBS})
-
-include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
-
-include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 
 
 

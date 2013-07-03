@@ -55,7 +55,7 @@ int main() {
   
   ReaK::quaternion<double> room_orientation = invert(Room2Global_quat);
   
-  ReaK::serialization::xml_oarchive out_file("airship3D_transforms.xml");
+  ReaK::serialization::xml_oarchive out_file("models/airship3D_transforms.xml");
   
   out_file & RK_SERIAL_SAVE_WITH_NAME(IMU_orientation)
            & RK_SERIAL_SAVE_WITH_NAME(IMU_location)

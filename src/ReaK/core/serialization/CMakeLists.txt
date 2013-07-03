@@ -17,16 +17,13 @@ set(SERIALIZATION_HEADERS
   "${RKSERIALIZATIONDIR}/type_schemes.hpp"
 )
 
-add_library(reak_serialization STATIC ${SERIALIZATION_SOURCES})
-setup_custom_target(reak_serialization "${SRCROOT}${RKSERIALIZATIONDIR}")
-target_link_libraries(reak_serialization ${EXTRA_SYSTEM_LIBS})
+add_library(reakobj_serialization OBJECT ${SERIALIZATION_SOURCES})
 
 setup_headers("${SERIALIZATION_HEADERS}" "${RKSERIALIZATIONDIR}")
 
 add_executable(unit_test_serialization "${SRCROOT}${RKSERIALIZATIONDIR}/unit_test_serialization.cpp")
 setup_custom_test_program(unit_test_serialization "${SRCROOT}${RKSERIALIZATIONDIR}")
-target_link_libraries(unit_test_serialization reak_serialization reak_rtti)
-target_link_libraries(unit_test_serialization ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(unit_test_serialization reak_core)
 
 
 

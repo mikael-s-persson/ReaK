@@ -59,17 +59,6 @@
 #include "optimization/optim_exceptions.hpp"
 
 
-struct env_element {
-  ReaK::shared_ptr< ReaK::frame_3D<double> > mdl_base;
-  ReaK::shared_ptr< ReaK::kte::kte_map_chain > mdl_kin_chain;
-  ReaK::geom::oi_scene_graph* mdl_kin_chain_sg;
-  SoSwitch* mdl_kin_chain_sw;
-  ReaK::shared_ptr< ReaK::geom::colored_model_3D > mdl_render;
-  ReaK::geom::oi_scene_graph* mdl_render_sg;
-  SoSwitch* mdl_render_switch;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > mdl_proxy;
-};
-
 
 static QString last_used_path;
 
@@ -171,7 +160,9 @@ void KTEModelViewerEditor::onLoad() {
     tr("\
 Kinematics Model (*.kte_dk.rkx *.kte_dk.rkb *.kte_dk.pbuf *.kte_ik.rkx *.kte_ik.rkb *.kte_ik.pbuf);;\
 Dynamics Model (*.kte_dyn.rkx *.kte_dyn.rkb *.kte_dyn.pbuf);;\
-KTE-chain Geometry Specification (*.geom.rkx *.geom.rkb *.geom.pbuf *.prox_mdl.rkx *.prox_mdl.rkb *.prox_mdl.pbuf);;\
+KTE-chain Geometry Specification (*.geom.rkx *.geom.rkb *.geom.pbuf);;\
+Geometric Model (*.geom_mdl.rkx *.geom_mdl.rkb *.geom_mdl.pbuf);;\
+Proximity Model (*.prox_mdl.rkx *.prox_mdl.rkb *.prox_mdl.pbuf);;\
 Complete Model (*.model.rkx *.model.rkb *.model.pbuf)"));
   
   if(fileName.isEmpty())
@@ -217,19 +208,28 @@ void KTEModelViewerEditor::onSave() {
   std::map< std::string, ReaK::shared_ptr< ReaK::geom::kte_chain_geometry_3D > >::iterator kte_geom_it = kte_geometries.find(current_obj_name);
   if(kte_geom_it != kte_geometries.end()) {
     diag_title = tr("Save KTE-chain Geometry...");
-    diag_filter = tr("KTE-chain Geometry Specification (*.geom.rkx *.geom.rkb *.geom.pbuf)");
+    diag_filter = tr("\
+KTE-chain Geometry Specification - XML (*.geom.rkx);;\
+KTE-chain Geometry Specification - Binary (*.geom.rkb);;\
+KTE-chain Geometry Specification - Protobuf (*.geom.pbuf)");
   };
   
   std::map< std::string, ReaK::shared_ptr< ReaK::geom::colored_model_3D > >::iterator geom_it = geom_models.find(current_obj_name);
   if(geom_it != geom_models.end()) {
     diag_title = tr("Save Geometric Model...");
-    diag_filter = tr("Geometric Model (*.geom_mdl.rkx *.geom_mdl.rkb *.geom_mdl.pbuf)");
+    diag_filter = tr("\
+Geometric Model - XML (*.geom_mdl.rkx);;\
+Geometric Model - Binary (*.geom_mdl.rkb);;\
+Geometric Model - Protobuf (*.geom_mdl.pbuf)");
   };
   
   std::map< std::string, ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > >::iterator prox_it = proxy_models.find(current_obj_name);
   if(prox_it != proxy_models.end()) {
     diag_title = tr("Save Proximity Model...");
-    diag_filter = tr("Proximity Model (*.prox_mdl.rkx *.prox_mdl.rkb *.prox_mdl.pbuf)");
+    diag_filter = tr("\
+Proximity Model - XML (*.prox_mdl.rkx);;\
+Proximity Model - Binary (*.prox_mdl.rkb);;\
+Proximity Model - Protobuf (*.prox_mdl.pbuf)");
   };
   
   std::map< std::string, ReaK::shared_ptr< ReaK::kte::inverse_dynamics_model > >::iterator dyn_it = dyn_models.find(current_obj_name);
@@ -238,20 +238,33 @@ void KTEModelViewerEditor::onSave() {
   
   if(dyn_it != dyn_models.end()) {
     diag_title = tr("Save Dynamics Model...");
-    diag_filter = tr("Dynamics Model (*.kte_dyn.rkx *.kte_dyn.rkb *.kte_dyn.pbuf)");
+    diag_filter = tr("\
+Dynamics Model - XML (*.kte_dyn.rkx);;\
+Dynamics Model - Binary (*.kte_dyn.rkb);;\
+Dynamics Model - Protobuf (*.kte_dyn.pbuf)");
   } else if(ik_it != ik_models.end()) {
     diag_title = tr("Save Kinematics Model...");
     diag_filter = tr("\
-Inverse Kinematics Model (*.kte_ik.rkx *.kte_ik.rkb *.kte_ik.pbuf);;\
-Direct Kinematics Model (*.kte_dk.rkx *.kte_dk.rkb *.kte_dk.pbuf)");
+Inverse Kinematics Model - XML (*.kte_ik.rkx);;\
+Inverse Kinematics Model - Binary (*.kte_ik.rkb);;\
+Inverse Kinematics Model - Protobuf (*.kte_ik.pbuf);;\
+Direct Kinematics Model - XML (*.kte_dk.rkx);;\
+Direct Kinematics Model - Binary (*.kte_dk.rkb);;\
+Direct Kinematics Model - Protobuf (*.kte_dk.pbuf)");
   } else if(dk_it != dk_models.end()) {
     diag_title = tr("Save Kinematics Model...");
-    diag_filter = tr("Direct Kinematics Model (*.kte_dk.rkx *.kte_dk.rkb *.kte_dk.pbuf)");
+    diag_filter = tr("\
+Direct Kinematics Model - XML (*.kte_dk.rkx);;\
+Direct Kinematics Model - Binary (*.kte_dk.rkb);;\
+Direct Kinematics Model - Protobuf (*.kte_dk.pbuf)");
   };
   
   if( diag_title.isEmpty() ) {
     diag_title = tr("Save in ReaK Archive...");
-    diag_filter = tr("ReaK Archive (*.rkx *.rkb *.pbuf)");
+    diag_filter = tr("\
+ReaK Archive - XML (*.rkx);;\
+ReaK Archive - Binary (*.rkb);;\
+ReaK Archive - Protobuf (*.pbuf)");
   };
   
   QString fileName = QFileDialog::getSaveFileName(
@@ -296,17 +309,7 @@ Direct Kinematics Model (*.kte_dk.rkx *.kte_dk.rkb *.kte_dk.pbuf)");
 };
 
 void KTEModelViewerEditor::onCloseAll() {
-  /*
-  ReaK::shared_ptr< ReaK::serialization::object_graph > objtree_graph;
-  ReaK::serialization::object_node_desc objtree_root;
   
-  ReaK::serialization::scheme_builder objtree_sch_bld;
-  
-  ReaK::rkqt::ObjectTreeWidget objtree;
-  ReaK::rkqt::PropEditorWidget propedit;
-  
-  ReaK::serialization::objtree_editor& objtree_edit;
-  */
   objtree_edit.remove_object(objtree_root);
   objtree.mdl.refreshObjTree();
   propedit.mdl.selectObject(objtree_root);

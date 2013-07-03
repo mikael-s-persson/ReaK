@@ -62,19 +62,17 @@ set(PROXIMITY_HEADERS
   "${RKPROXIMITYDIR}/proxy_query_model.hpp"
 )
 
-add_library(reak_geom_prox STATIC ${PROXIMITY_SOURCES})
+add_library(reakobj_proximity OBJECT ${PROXIMITY_SOURCES})
+
+add_library(reak_geom_prox STATIC $<TARGET_OBJECTS:reakobj_proximity> $<TARGET_OBJECTS:reakobj_geom>)
 setup_custom_target(reak_geom_prox "${SRCROOT}${RKPROXIMITYDIR}")
+target_link_libraries(reak_geom_prox reak_core)
+
 setup_headers("${PROXIMITY_HEADERS}" "${RKPROXIMITYDIR}")
-target_link_libraries(reak_geom_prox reak_geom reak_core)
 
 add_executable(test_nlp_proximity "${SRCROOT}${RKPROXIMITYDIR}/test_nlp_proximity.cpp")
 setup_custom_target(test_nlp_proximity "${SRCROOT}${RKPROXIMITYDIR}")
-target_link_libraries(test_nlp_proximity reak_geom_prox reak_geom reak_core)
-
-include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
-
-include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
-include_directories(AFTER "${SRCROOT}${RKGEOMETRYDIR}")
+target_link_libraries(test_nlp_proximity reak_geom_prox reak_core)
 
 
 

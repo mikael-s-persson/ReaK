@@ -17,21 +17,13 @@ set(RECORDERS_HEADERS
 
 
 
-add_library(reak_recorders STATIC ${RECORDERS_SOURCES})
-setup_custom_target(reak_recorders "${SRCROOT}${RKRECORDERSDIR}")
-target_link_libraries(reak_recorders ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
-
+add_library(reakobj_recorders OBJECT ${RECORDERS_SOURCES})
 
 setup_headers("${RECORDERS_HEADERS}" "${RKRECORDERSDIR}")
 
 add_executable(unit_test_recorders "${SRCROOT}${RKRECORDERSDIR}/unit_test_recorders.cpp")
 setup_custom_test_program(unit_test_recorders "${SRCROOT}${RKRECORDERSDIR}")
-target_link_libraries(unit_test_recorders reak_recorders reak_rtti)
-target_link_libraries(unit_test_recorders ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
-
-include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
-include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
-
+target_link_libraries(unit_test_recorders reak_core)
 
 
 

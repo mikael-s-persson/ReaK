@@ -16,8 +16,7 @@ setup_headers("${INTEGRATORS_HEADERS}" "${RKINTEGRATORSDIR}")
 
 add_executable(unit_test_integrators "${SRCROOT}${RKINTEGRATORSDIR}/unit_test_integrators.cpp")
 setup_custom_test_program(unit_test_integrators "${SRCROOT}${RKINTEGRATORSDIR}")
-target_link_libraries(unit_test_integrators reak_lin_alg reak_rtti)
-target_link_libraries(unit_test_integrators ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(unit_test_integrators reak_core)
 get_target_property(UNIT_TEST_INTEGRATORS_LOCATION unit_test_integrators LOCATION)
 get_filename_component(UNIT_TEST_INTEGRATORS_PATH ${UNIT_TEST_INTEGRATORS_LOCATION} PATH)
 add_custom_command(TARGET unit_test_integrators PRE_BUILD
@@ -38,10 +37,6 @@ add_custom_command(TARGET unit_test_integrators PRE_BUILD
 add_custom_command(TARGET unit_test_integrators PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E 
                      copy "${SRCROOT}${RKINTEGRATORSDIR}/integ_records/vanderpol.pbuf" "${UNIT_TEST_INTEGRATORS_PATH}/integ_records/")
-
-
-include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
-include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 
 
 

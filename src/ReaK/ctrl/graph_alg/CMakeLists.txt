@@ -31,42 +31,21 @@ setup_headers("${GRAPH_ALG_HEADERS}" "${RKGRAPHALGDIR}")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-if(NOT WIN32)
-
-  if()
-#  if( FreeImage_FOUND )
-    add_executable(test_adstar "${SRCROOT}${RKGRAPHALGDIR}/test_adstar.cpp")
-    setup_custom_target(test_adstar "${SRCROOT}${RKGRAPHALGDIR}")
-    #target_link_libraries(test_adstar ${Boost_LIBRARIES})
-    target_link_libraries(test_adstar ${FreeImage_LIB})
-    target_link_libraries(test_adstar reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
-  endif()
-
-  if( OpenCV_FOUND )
-
-  endif()
-endif()
-
 add_executable(test_graphs "${SRCROOT}${RKGRAPHALGDIR}/test_graphs.cpp")
 setup_custom_target(test_graphs "${SRCROOT}${RKGRAPHALGDIR}")
-target_link_libraries(test_graphs reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_graphs reak_topologies reak_core)
 
 add_executable(unit_test_trees "${SRCROOT}${RKGRAPHALGDIR}/unit_test_trees.cpp")
 setup_custom_test_program(unit_test_trees "${SRCROOT}${RKGRAPHALGDIR}")
-target_link_libraries(unit_test_trees reak_core ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(unit_test_trees reak_core)
 
 add_executable(unit_test_graphs "${SRCROOT}${RKGRAPHALGDIR}/unit_test_graphs.cpp")
 setup_custom_test_program(unit_test_graphs "${SRCROOT}${RKGRAPHALGDIR}")
-target_link_libraries(unit_test_graphs reak_core ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(unit_test_graphs reak_core)
 
 add_executable(unit_test_assoc_containers "${SRCROOT}${RKGRAPHALGDIR}/unit_test_assoc_containers.cpp")
 setup_custom_test_program(unit_test_assoc_containers "${SRCROOT}${RKGRAPHALGDIR}")
-target_link_libraries(unit_test_assoc_containers reak_core ${EXTRA_SYSTEM_LIBS})
-
-
-include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
-include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
-include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")
+target_link_libraries(unit_test_assoc_containers reak_core)
 
 
 

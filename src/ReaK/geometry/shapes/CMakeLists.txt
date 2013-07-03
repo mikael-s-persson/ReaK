@@ -49,41 +49,35 @@ set(SHAPES_HEADERS
   "${RKSHAPESDIR}/sphere.hpp"
 )
 
-add_library(reak_geom STATIC ${SHAPES_SOURCES})
-setup_custom_target(reak_geom "${SRCROOT}${RKSHAPESDIR}")
-setup_headers("${SHAPES_HEADERS}" "${RKSHAPESDIR}")
-target_link_libraries(reak_geom reak_core)
-
-#add_library(reak_geom_nr STATIC "${SRCROOT}${RKSHAPESDIR}/no_render_pimples.cpp")
-#setup_custom_target(reak_geom_nr "${SRCROOT}${RKSHAPESDIR}")
-#target_link_libraries(reak_geom_nr reak_geom reak_core)
-
+add_library(reakobj_geom OBJECT ${SHAPES_SOURCES})
 
 
 if(COIN3D_FOUND AND QT_FOUND)
-
-  add_library(reak_geom_coin STATIC "${SRCROOT}${RKSHAPESDIR}/oi_scene_graph.cpp" "${SRCROOT}${RKSHAPESDIR}/oi_reader.cpp" "${SRCROOT}${RKSHAPESDIR}/frame_tracer_coin3d_impl.cpp")
-  setup_custom_target(reak_geom_coin "${SRCROOT}${RKSHAPESDIR}")
-  target_link_libraries(reak_geom_coin ${COIN3D_LIBRARIES} reak_mbd_kte reak_core)
   
-  add_library(reak_kte_coin STATIC "${SRCROOT}${RKSHAPESDIR}/oi_scene_graph_kte.cpp")
-  setup_custom_target(reak_kte_coin "${SRCROOT}${RKSHAPESDIR}")
-  target_link_libraries(reak_kte_coin ${COIN3D_LIBRARIES} reak_mbd_kte reak_core)
+  set(MBDCOIN_SOURCES
+    "${SRCROOT}${RKSHAPESDIR}/oi_scene_graph.cpp"
+    "${SRCROOT}${RKSHAPESDIR}/oi_reader.cpp"
+    "${SRCROOT}${RKSHAPESDIR}/frame_tracer_coin3d_impl.cpp"
+    "${SRCROOT}${RKSHAPESDIR}/oi_scene_graph_kte.cpp"
+  )
+  
+  add_library(reak_mbd_coin STATIC ${MBDCOIN_SOURCES} $<TARGET_OBJECTS:reakobj_geom> $<TARGET_OBJECTS:reakobj_proximity> $<TARGET_OBJECTS:reakobj_mbd_kte> $<TARGET_OBJECTS:reakobj_kte_models>)
+  setup_custom_target(reak_mbd_coin "${SRCROOT}${RKSHAPESDIR}")
+  target_link_libraries(reak_mbd_coin ${COIN3D_LIBRARIES} reak_core ${Boost_LIBRARIES})
+  
   
   include( ${QT_USE_FILE} )
   
   add_executable(test_coin3d "${SRCROOT}${RKSHAPESDIR}/test_coin3d.cpp")
   setup_custom_target(test_coin3d "${SRCROOT}${RKSHAPESDIR}")
-  
   target_link_libraries(test_coin3d ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
-#  target_link_libraries(test_coin3d reak_mbd_kte reak_core)
+#  target_link_libraries(test_coin3d reak_mbd reak_core)
   
   
   add_executable(test_oisg "${SRCROOT}${RKSHAPESDIR}/test_oisg.cpp")
   setup_custom_target(test_oisg "${SRCROOT}${RKSHAPESDIR}")
-  
-  target_link_libraries(test_oisg ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
-  target_link_libraries(test_oisg reak_geom_coin reak_geom_prox reak_geom reak_core)
+  target_link_libraries(test_oisg reak_mbd_coin reak_geom_prox reak_core)
+  target_link_libraries(test_oisg ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
   
 endif()
 
@@ -92,18 +86,9 @@ if(COIN3D_FOUND)
   
   add_executable(vrml2reak "${SRCROOT}${RKSHAPESDIR}/vrml2reak.cpp")
   setup_custom_target(vrml2reak "${SRCROOT}${RKSHAPESDIR}")
-  
-  target_link_libraries(vrml2reak reak_geom_coin reak_geom_prox reak_geom reak_core)
-  target_link_libraries(vrml2reak ${COIN3D_LIBRARIES} ${Boost_LIBRARIES})
+  target_link_libraries(vrml2reak reak_mbd_coin reak_geom_prox reak_core)
   
 endif()
-
-#target_link_libraries(test_mbd_basic ${Boost_LIBRARIES})
-#target_link_libraries(test_mbd_basic reak_mbd_kte reak_core)
-
-include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
-
-include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 
 
 

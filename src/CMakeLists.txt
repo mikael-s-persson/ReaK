@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.8)
 
 
 set(CODEROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")

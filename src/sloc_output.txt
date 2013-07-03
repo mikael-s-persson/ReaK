@@ -1,14 +1,14 @@
 Have a non-directory at the top, so creating directory top_dir
-Adding /media/S_M_P_2/ReaK_github/src/./ReaK/CMakeLists.txt to top_dir
-Adding /media/S_M_P_2/ReaK_github/src/./ReaK/PyReaK.cmake to top_dir
-Adding /media/S_M_P_2/ReaK_github/src/./ReaK/README to top_dir
-Adding /media/S_M_P_2/ReaK_github/src/./ReaK/TypeIDList.txt to top_dir
+Adding /media/S_M_P_3/ReaK_github/src/ReaK//CMakeLists.txt to top_dir
+Adding /media/S_M_P_3/ReaK_github/src/ReaK//PyReaK.cmake to top_dir
+Adding /media/S_M_P_3/ReaK_github/src/ReaK//README to top_dir
+Adding /media/S_M_P_3/ReaK_github/src/ReaK//TypeIDList.txt to top_dir
 Creating filelist for core
 Creating filelist for ctrl
 Creating filelist for examples
 Creating filelist for geometry
 Creating filelist for gui_qt
-Adding /media/S_M_P_2/ReaK_github/src/./ReaK/reak_py_bindings.cpp to top_dir
+Adding /media/S_M_P_3/ReaK_github/src/ReaK//reak_py_bindings.cpp to top_dir
 Categorizing files.
 Finding a working MD5 command....
 Found a working MD5 command.
@@ -16,27 +16,29 @@ Computing results.
 
 
 SLOC	Directory	SLOC-by-Language (Sorted)
-64237   ctrl            cpp=64237
-53605   core            cpp=53605
-13099   examples        cpp=13099
-6167    geometry        cpp=6167
-686     gui_qt          cpp=686
+64019   ctrl            cpp=63873,sh=146
+55198   core            cpp=55108,xml=90
+13657   examples        cpp=13657
+6429    geometry        cpp=6429
+2257    gui_qt          cpp=2257
 17      top_dir         cpp=17
 
 
 Totals grouped by language (dominant language first):
-cpp:         137811 (100.00%)
+cpp:         141341 (99.83%)
+sh:             146 (0.10%)
+xml:             90 (0.06%)
 
 
 
 
-Total Physical Source Lines of Code (SLOC)                = 137,811
-Development Effort Estimate, Person-Years (Person-Months) = 35.26 (423.12)
+Total Physical Source Lines of Code (SLOC)                = 141,577
+Development Effort Estimate, Person-Years (Person-Months) = 36.27 (435.26)
  (Basic COCOMO model, Person-Months = 2.4 * (KSLOC**1.05))
-Schedule Estimate, Years (Months)                         = 2.07 (24.89)
+Schedule Estimate, Years (Months)                         = 2.10 (25.16)
  (Basic COCOMO model, Months = 2.5 * (person-months**0.38))
-Estimated Average Number of Developers (Effort/Schedule)  = 17.00
-Total Estimated Cost to Develop                           = $ 4,763,100
+Estimated Average Number of Developers (Effort/Schedule)  = 17.30
+Total Estimated Cost to Develop                           = $ 4,899,863
  (average salary = $56,286/year, overhead = 2.40).
 SLOCCount, Copyright (C) 2001-2004 David A. Wheeler
 SLOCCount is Open Source Software/Free Software, licensed under the GNU GPL.

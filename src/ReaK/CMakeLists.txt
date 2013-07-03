@@ -38,17 +38,6 @@ if( NOT WIN32 )
     message(WARNING "OpenCV was not detected on this system, some test programs will not be built!")
   endif()
 
-  find_library(FreeImage_LIB NAMES freeimage)
-
-  if(FreeImage_LIB)
-    set(FreeImage_FOUND TRUE)
-    message(STATUS "FreeImage library was found: '${FreeImage_LIB}'")
-    add_definitions( "-DREAK_HAS_FREEIMAGE" )
-  else()
-    set(FreeImage_FOUND FALSE)
-    message(WARNING "FreeImage library was not detected on this system, some test programs will not be built!")
-  endif()
-
 else()
   
   find_library( WINSOCK_LIB wsock32 PATHS "C:/Program Files (x86)/Microsoft SDKs/Windows/v7.0A/Lib")
@@ -131,6 +120,7 @@ include_directories(BEFORE SYSTEM ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
 include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")
 include_directories(AFTER "${SRCROOT}${RKGEOMETRYDIR}")
+include_directories(AFTER "${SRCROOT}${RKGUIQTDIR}")
 
 
 # Add the sub-directories to cmake process.

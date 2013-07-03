@@ -20,8 +20,8 @@ if(PYTHONLIBS_FOUND)
     include_directories(BEFORE SYSTEM ${PYTHON_INCLUDE_DIRS})
     
     add_library(reak_py SHARED ${PYREAK_SOURCES})
-    setup_custom_target(reak_py "${SRCROOT}${RKRECORDERSDIR}")
-    target_link_libraries(reak_py ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} reak_mbd_kte reak_core)
+    setup_custom_target(reak_py "${SRCROOT}")
+    target_link_libraries(reak_py ${PYTHON_LIBRARIES} reak_mbd reak_core)
   
   endif()
   set(Boost_FOUND ${original_Boost_FOUND})

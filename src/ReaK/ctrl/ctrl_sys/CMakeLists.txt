@@ -43,13 +43,6 @@ setup_headers("${CTRL_SYS_HEADERS}" "${RKCTRLSYSDIR}")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
-include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
-include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
-include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")
-
-
-
-
 
 
 

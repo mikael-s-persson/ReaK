@@ -31,14 +31,10 @@
 #include "quick_sort.hpp"
 #include "intro_sort.hpp"
 
-
-#ifdef RK_ENABLE_CXX0X_FEATURES
-
+#include "base/chrono_incl.hpp"
 
 #include <ctime>
 #include <cmath>
-
-#include <chrono>
 #include <sstream>
 #include <fstream>
 #include <iomanip>
@@ -83,7 +79,7 @@ void generate_partly_sorted(int* first, int* last) {
 template <typename SortFunction, typename GenFunction>
 std::size_t sort_and_get_us(std::size_t SIZE, SortFunction func, GenFunction gen) {
   
-  using namespace std::chrono;
+  using namespace ReaKaux::chrono;
   
   int* tmp_array = new int[SIZE];
   
@@ -125,80 +121,53 @@ int main(int argc, char** argv) {
                               &generate_almost_reversed,
                               &generate_partly_sorted};
   
-  std::ofstream out("sorting_results.txt");
-  
   for(std::size_t i = 0; i < 4; ++i) {
     for(std::size_t j = 10; j < max_size; j *= 2) {
-      out << std::setw(10) << j;
-      std::cout << "\r" << std::setw(20) << j;
-      std::cout.flush();
+      std::cout << std::setw(10) << j;
       
       if(j < 10000) {
-        out << std::setw(10) << sort_and_get_us(j, selection_sort<int*>, generators[i]);
+        std::cout << std::setw(10) << sort_and_get_us(j, selection_sort<int*>, generators[i]);
         
-        out << std::setw(10) << sort_and_get_us(j, insertion_sort<int*>, generators[i]);
+        std::cout << std::setw(10) << sort_and_get_us(j, insertion_sort<int*>, generators[i]);
         
-        out << std::setw(10) << sort_and_get_us(j, bubble_sort<int*>, generators[i]);
+        std::cout << std::setw(10) << sort_and_get_us(j, bubble_sort<int*>, generators[i]);
       } else {
-        out << std::setw(10) << 0;
-        out << std::setw(10) << 0;
-        out << std::setw(10) << 0;
+        std::cout << std::setw(10) << 0;
+        std::cout << std::setw(10) << 0;
+        std::cout << std::setw(10) << 0;
       };
       
-      //std::cout << "Standard sort: ";
-      out << std::setw(10) << sort_and_get_us(j, std::sort<int*>, generators[i]);
+      std::cout << std::setw(10) << sort_and_get_us(j, std::sort<int*>, generators[i]);
       
-      //std::cout << "Merge sort: ";
-      out << std::setw(10) << sort_and_get_us(j, merge_sort<int*>, generators[i]);
+      std::cout << std::setw(10) << sort_and_get_us(j, merge_sort<int*>, generators[i]);
       
-      //std::cout << "Shell sort: ";
-      out << std::setw(10) << sort_and_get_us(j, shell_sort<int*>, generators[i]);
+      std::cout << std::setw(10) << sort_and_get_us(j, shell_sort<int*>, generators[i]);
       
-      //std::cout << "Comb sort: ";
-      out << std::setw(10) << sort_and_get_us(j, comb_sort<int*>, generators[i]);
+      std::cout << std::setw(10) << sort_and_get_us(j, comb_sort<int*>, generators[i]);
       
-      //std::cout << "Heap sort: ";
-      out << std::setw(10) << sort_and_get_us(j, heap_sort<int*>, generators[i]);
+      std::cout << std::setw(10) << sort_and_get_us(j, heap_sort<int*>, generators[i]);
       
-      //std::cout << "Quick sort (median-of-3): ";
-      out << std::setw(10) << sort_and_get_us(j, quick_sort<int*>, generators[i]);
+      std::cout << std::setw(10) << sort_and_get_us(j, quick_sort<int*>, generators[i]);
       
-      //std::cout << "Quick sort (random-pivot): ";
-      out << std::setw(10) << sort_and_get_us(j, std::bind(quick_sort<int*,std::less<int>,random_pivot>,std::placeholders::_1,std::placeholders::_2,std::less<int>(),random_pivot()), generators[i]);
+      std::cout << std::setw(10) << sort_and_get_us(j, std::bind(quick_sort<int*,std::less<int>,random_pivot>,std::placeholders::_1,std::placeholders::_2,std::less<int>(),random_pivot()), generators[i]);
       
-      //std::cout << "Quick sort (first-pivot): ";
-      out << std::setw(10) << sort_and_get_us(j, std::bind(quick_sort<int*,std::less<int>,first_pivot>,std::placeholders::_1,std::placeholders::_2,std::less<int>(),first_pivot()), generators[i]);
+      std::cout << std::setw(10) << sort_and_get_us(j, std::bind(quick_sort<int*,std::less<int>,first_pivot>,std::placeholders::_1,std::placeholders::_2,std::less<int>(),first_pivot()), generators[i]);
       
-      //std::cout << "QuickSelect sort: ";
-      out << std::setw(10) << sort_and_get_us(j, quickselect_sort<int*>, generators[i]);
+      std::cout << std::setw(10) << sort_and_get_us(j, quickselect_sort<int*>, generators[i]);
       
-      //std::cout << "Intro sort (median-of-3): ";
-      out << std::setw(10) << sort_and_get_us(j, intro_sort<int*>, generators[i]);
+      std::cout << std::setw(10) << sort_and_get_us(j, intro_sort<int*>, generators[i]);
       
-      //std::cout << "Intro sort (random-pivot): ";
-      out << std::setw(10) << sort_and_get_us(j, std::bind(intro_sort<int*,std::less<int>,random_pivot>,std::placeholders::_1,std::placeholders::_2,std::less<int>(),random_pivot()), generators[i]);
+      std::cout << std::setw(10) << sort_and_get_us(j, std::bind(intro_sort<int*,std::less<int>,random_pivot>,std::placeholders::_1,std::placeholders::_2,std::less<int>(),random_pivot()), generators[i]);
       
-      //std::cout << "Intro sort (first-pivot): ";
-      out << std::setw(10) << sort_and_get_us(j, std::bind(intro_sort<int*,std::less<int>,first_pivot>,std::placeholders::_1,std::placeholders::_2,std::less<int>(),first_pivot()), generators[i]);
+      std::cout << std::setw(10) << sort_and_get_us(j, std::bind(intro_sort<int*,std::less<int>,first_pivot>,std::placeholders::_1,std::placeholders::_2,std::less<int>(),first_pivot()), generators[i]);
       
-      out << std::endl;
+      std::cout << std::endl;
     };
   };
-  out << std::flush;
+  std::cout << std::flush;
   
   return 0;
 };
-
-#else
-
-int main() {
-  std::cout << "Tests only supported under C++0x/C++11!" << std::endl;
-  return 1;
-};
-
-#endif
-
-
 
 
 

@@ -35,34 +35,25 @@ set(PATH_PLANNING_HEADERS
 #setup_custom_target(reak_path_planning "${SRCROOT}${RKPATHPLANNINGDIR}")
 setup_headers("${PATH_PLANNING_HEADERS}" "${RKPATHPLANNINGDIR}")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
 add_executable(test_vp_tree "${SRCROOT}${RKPATHPLANNINGDIR}/test_vp_tree.cpp")
 setup_custom_target(test_vp_tree "${SRCROOT}${RKPATHPLANNINGDIR}")
-target_link_libraries(test_vp_tree reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_vp_tree reak_topologies reak_core)
 
 add_executable(test_dvp_adj_list "${SRCROOT}${RKPATHPLANNINGDIR}/test_dvp_adj_list.cpp")
 setup_custom_target(test_dvp_adj_list "${SRCROOT}${RKPATHPLANNINGDIR}")
-target_link_libraries(test_dvp_adj_list reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_dvp_adj_list reak_topologies reak_core)
 
 add_executable(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}/test_planners.cpp")
 setup_custom_target(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
-target_link_libraries(test_planners reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
-target_link_libraries(test_planners ${Boost_LIBRARIES})
+target_link_libraries(test_planners reak_topologies reak_core)
 
 
 foreach(HIDIM_COUNTER 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
   add_executable(test_hidim_planners_e${HIDIM_COUNTER} "${SRCROOT}${RKPATHPLANNINGDIR}/test_hidim_planners.cpp")
   setup_custom_target(test_hidim_planners_e${HIDIM_COUNTER} "${SRCROOT}${RKPATHPLANNINGDIR}")
   set_target_properties(test_hidim_planners_e${HIDIM_COUNTER} PROPERTIES COMPILE_DEFINITIONS "RK_HIDIM_PLANNER_N=${HIDIM_COUNTER}")
-  target_link_libraries(test_hidim_planners_e${HIDIM_COUNTER} reak_topologies reak_core ${EXTRA_SYSTEM_LIBS})
-  target_link_libraries(test_hidim_planners_e${HIDIM_COUNTER} ${Boost_LIBRARIES})
+  target_link_libraries(test_hidim_planners_e${HIDIM_COUNTER} reak_topologies reak_core)
 endforeach(HIDIM_COUNTER)
-
-
-include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
-include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
-include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")
 
 if()
 #if(${QT_FOUND})
@@ -85,9 +76,7 @@ if()
   include_directories(${PLAYERCPP_INCLUDE_DIRS})
   message(STATUS "PlayerC++ was found at '${PLAYERCPP_INCLUDE_DIRS}'")
   PLAYER_ADD_PLAYERCPP_CLIENT(pptester SOURCES "${SRCROOT}${RKPATHPLANNINGDIR}/qt_ui/pptester_impl.cpp" ${PATHPLANNING_PPTESTER_MOC_SRCS} ${PATHPLANNING_PPTESTER_UI_HDRS} LINKFLAGS ${replaceLib})
-  target_link_libraries(pptester ${QT_LIBRARIES})
-  target_link_libraries(pptester ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
-  target_link_libraries(pptester ${OpenCV_LIBS})
+  target_link_libraries(pptester ${OpenCV_LIBS} ${QT_LIBRARIES})
   target_link_libraries(pptester reak_topologies reak_core)
   setup_custom_target(pptester "${SRCROOT}${RKPATHPLANNINGDIR}")
 endif()

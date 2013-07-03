@@ -95,7 +95,7 @@ int main() {
                      << airship2D_inertia;
   
   {
-    serialization::xml_oarchive out("airship2D_basic.xml");
+    serialization::xml_oarchive out("models/airship2D_basic.xml");
     out << airship2D_frame
         << airship2D_position
         << airship2D_rotation
@@ -105,7 +105,7 @@ int main() {
   };
   
   {
-    serialization::xml_oarchive out("airship2D_init.xml");
+    serialization::xml_oarchive out("models/airship2D_init.xml");
     out & RK_SERIAL_SAVE_WITH_ALIAS("initial_motion",*airship2D_frame);
   };
   
@@ -114,7 +114,7 @@ int main() {
     Qu(0,0) = 0.1;
     Qu(1,1) = 0.1;
     Qu(2,2) = 0.1;
-    serialization::xml_oarchive out("airship2D_Qu.xml");
+    serialization::xml_oarchive out("models/airship2D_Qu.xml");
     out & RK_SERIAL_SAVE_WITH_ALIAS("input_disturbance",Qu);
   };
   
@@ -124,7 +124,7 @@ int main() {
     R(1,1) = 0.01;
     R(2,2) = 0.01;
     R(3,3) = 0.01;
-    serialization::xml_oarchive out("airship2D_R.xml");
+    serialization::xml_oarchive out("models/airship2D_R.xml");
     out & RK_SERIAL_SAVE_WITH_ALIAS("measurement_noise",R);
   };
   

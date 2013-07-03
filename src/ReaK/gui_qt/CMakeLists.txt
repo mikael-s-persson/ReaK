@@ -7,13 +7,13 @@ if(QT_FOUND)
 #   add_library(reak_gui_qt STATIC ${RKGUIQT_SOURCES})
 #   setup_custom_target(reak_gui_qt "${SRCROOT}${RKGUIQTDIR}")
 #   setup_headers("${RKGUIQT_HEADERS}" "${RKGUIQTDIR}")
-#   target_link_libraries(reak_gui_qt reak_topologies reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
+#   target_link_libraries(reak_gui_qt reak_topologies reak_mbd reak_core)
 #   target_link_libraries(reak_gui_qt ${QT_LIBRARIES})
   
 #   add_executable(test_CRS_planning "${SRCROOT}${RKROBOTAIRSHIPDIR}/test_CRS_planning.cpp")
 #   setup_custom_target(test_CRS_planning "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-#   target_link_libraries(test_CRS_planning reak_topologies reak_kte_coin reak_geom_coin reak_robot_airship reak_mbd_kte reak_geom_prox reak_geom reak_core)
-#   target_link_libraries(test_CRS_planning ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
+#   target_link_libraries(test_CRS_planning reak_topologies reak_robot_airship reak_mbd_coin reak_core)
+#   target_link_libraries(test_CRS_planning ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
   
   set( RKGUIQT_UIS
      "${SRCROOT}${RKGUIQTDIR}/ui/rk_class_select.ui" 
@@ -46,15 +46,13 @@ if(QT_FOUND)
   add_library(reak_gui_qt STATIC ${RKGUIQT_SOURCES} ${RKGUIQT_MOC_SRCS} ${RKGUIQT_UI_HDRS})
   setup_custom_target(reak_gui_qt "${SRCROOT}${RKGUIQTDIR}")
   setup_headers("${RKGUIQT_HEADERS}" "${RKGUIQTDIR}")
-  target_link_libraries(reak_gui_qt reak_kte_coin reak_geom_coin reak_topologies reak_mbd_kte reak_geom_prox reak_geom reak_core)
+  target_link_libraries(reak_gui_qt reak_mbd_coin reak_topologies reak_core)
   target_link_libraries(reak_gui_qt ${QT_LIBRARIES})
-  target_link_libraries(reak_gui_qt ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
   
   add_executable(test_objtreewidget "${SRCROOT}${RKGUIQTDIR}/test_objtreewidget.cpp")
   setup_custom_target(test_objtreewidget "${SRCROOT}${RKGUIQTDIR}")
-  target_link_libraries(test_objtreewidget reak_gui_qt reak_topologies reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
+  target_link_libraries(test_objtreewidget reak_gui_qt reak_topologies reak_mbd reak_core)
   target_link_libraries(test_objtreewidget ${QT_LIBRARIES})
-  target_link_libraries(test_objtreewidget ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
 
 
   if(COIN3D_FOUND)
@@ -75,9 +73,8 @@ if(QT_FOUND)
     
     add_executable(planner_3Dviewer ${PLANNER_3DVIEWER_SOURCES} ${PLANNER_3DVIEWER_MOC_SRCS} ${PLANNER_3DVIEWER_UI_HDRS})
     setup_custom_target(planner_3Dviewer "${SRCROOT}${RKGUIQTDIR}")
-    target_link_libraries(planner_3Dviewer reak_gui_qt reak_kte_coin reak_geom_coin reak_topologies reak_interp reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
-    target_link_libraries(planner_3Dviewer ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
-    target_link_libraries(planner_3Dviewer ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
+    target_link_libraries(planner_3Dviewer reak_gui_qt reak_topologies reak_interp reak_mbd_coin reak_core)
+    target_link_libraries(planner_3Dviewer ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
     
     
     
@@ -97,22 +94,13 @@ if(QT_FOUND)
     
     add_executable(kte_model_viewer ${KTE_MODEL_VIEWER_SOURCES} ${KTE_MODEL_VIEWER_MOC_SRCS} ${KTE_MODEL_VIEWER_UI_HDRS})
     setup_custom_target(kte_model_viewer "${SRCROOT}${RKGUIQTDIR}")
-    target_link_libraries(kte_model_viewer reak_gui_qt reak_kte_coin reak_geom_coin reak_topologies reak_interp reak_kte_models reak_mbd_kte reak_geom_prox reak_geom reak_core)
-    target_link_libraries(kte_model_viewer ${SOQT4_LIBRARIES} ${COIN3D_LIBRARIES} ${QT_LIBRARIES})
-    target_link_libraries(kte_model_viewer ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
+    target_link_libraries(kte_model_viewer reak_gui_qt reak_topologies reak_interp reak_mbd_coin reak_core)
+    target_link_libraries(kte_model_viewer ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
     
 
   endif()
   
 endif()
-
-include_directories(BEFORE ${BOOST_INCLUDE_DIRS})
-
-include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
-include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")
-include_directories(AFTER "${SRCROOT}${RKGEOMETRYDIR}")
-include_directories(AFTER "${SRCROOT}${RKGUIQTDIR}")
-
 
 
 

@@ -59,43 +59,37 @@ set(LINALG_HEADERS
                  "${RKLINALGDIR}/vect_views.hpp"
 )
 
-add_library(reak_lin_alg STATIC ${LINALG_SOURCES})
-setup_custom_target(reak_lin_alg "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(reak_lin_alg reak_serialization reak_rtti ${EXTRA_SYSTEM_LIBS})
-
+add_library(reakobj_lin_alg OBJECT ${LINALG_SOURCES})
 
 setup_headers("${LINALG_HEADERS}" "${RKLINALGDIR}")
 
 add_executable(unit_test_vect_alg "${SRCROOT}${RKLINALGDIR}/unit_test_vect_alg.cpp")
 setup_custom_test_program(unit_test_vect_alg "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(unit_test_vect_alg reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
-target_link_libraries(unit_test_vect_alg ${Boost_LIBRARIES})
+target_link_libraries(unit_test_vect_alg reak_core)
 
 add_executable(test_mat_alg "${SRCROOT}${RKLINALGDIR}/test_mat_alg.cpp")
 setup_custom_target(test_mat_alg "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(test_mat_alg reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_mat_alg reak_core)
 
 add_executable(unit_test_mat_alg "${SRCROOT}${RKLINALGDIR}/unit_test_mat_alg.cpp")
 setup_custom_test_program(unit_test_mat_alg "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(unit_test_mat_alg reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
-target_link_libraries(unit_test_mat_alg ${Boost_LIBRARIES})
+target_link_libraries(unit_test_mat_alg reak_core)
 
 add_executable(test_mat_num "${SRCROOT}${RKLINALGDIR}/test_mat_num.cpp")
 setup_custom_target(test_mat_num "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(test_mat_num reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_mat_num reak_core)
 
 add_executable(unit_test_mat_num "${SRCROOT}${RKLINALGDIR}/unit_test_mat_num.cpp")
 setup_custom_test_program(unit_test_mat_num "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(unit_test_mat_num reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
-target_link_libraries(unit_test_mat_num ${Boost_LIBRARIES})
+target_link_libraries(unit_test_mat_num reak_core)
 
 add_executable(test_mat_num_perf "${SRCROOT}${RKLINALGDIR}/test_mat_num_perf.cpp")
 setup_custom_target(test_mat_num_perf "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(test_mat_num_perf reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_mat_num_perf reak_core)
 
 add_executable(test_mat_are "${SRCROOT}${RKLINALGDIR}/test_mat_are.cpp")
 setup_custom_target(test_mat_are "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(test_mat_are reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_mat_are reak_core)
 
 add_executable(unit_test_mat_are "${SRCROOT}${RKLINALGDIR}/unit_test_mat_are.cpp")
 setup_custom_test_program(unit_test_mat_are "${SRCROOT}${RKLINALGDIR}")
@@ -110,12 +104,11 @@ add_custom_command(TARGET unit_test_mat_are PRE_BUILD
 add_custom_command(TARGET unit_test_mat_are PRE_BUILD
                    COMMAND ${CMAKE_COMMAND} -E 
                      copy "${SRCROOT}${RKLINALGDIR}/darex_m/darex_data.txt" "${UNIT_TEST_MAT_ARE_PATH}/are_data/")
-target_link_libraries(unit_test_mat_are reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
-target_link_libraries(unit_test_mat_are ${Boost_LIBRARIES})
+target_link_libraries(unit_test_mat_are reak_core)
 
 add_executable(test_mat_views "${SRCROOT}${RKLINALGDIR}/test_views.cpp")
 setup_custom_target(test_mat_views "${SRCROOT}${RKLINALGDIR}")
-target_link_libraries(test_mat_views reak_lin_alg reak_rtti ${EXTRA_SYSTEM_LIBS})
+target_link_libraries(test_mat_views reak_core)
 
 
 
