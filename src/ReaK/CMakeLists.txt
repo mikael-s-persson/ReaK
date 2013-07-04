@@ -75,7 +75,7 @@ if (NOT WIN32)
 
 endif()
 
-find_package(Boost 1.42 COMPONENTS thread date_time system program_options unit_test_framework filesystem REQUIRED)
+find_package(Boost 1.50 COMPONENTS thread date_time system program_options unit_test_framework filesystem chrono REQUIRED)
 if(Boost_FOUND)
   include_directories(SYSTEM ${Boost_INCLUDE_DIR})
   link_directories(${Boost_LIBRARY_DIRS})

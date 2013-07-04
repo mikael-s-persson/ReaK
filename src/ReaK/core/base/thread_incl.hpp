@@ -38,13 +38,16 @@
 #include "defs.hpp"
 
 
-#if ( defined(__GNUC__) && !defined(_WIN32) )
+#if ( ( defined(__GNUC__) || defined(__clang__) ) && !defined(_WIN32) )
 
 // if under g++, with c++0x, with gcc version >= 4.7.0
 #if ( defined(RK_ENABLE_CXX11_FEATURES) \
-   && ( (__GNUC__ > 4) \
-     || ( (__GNUC__ == 4) \
-       && (__GNUC_MINOR__ >= 7) ) ) )
+   && ( ( (__GNUC__ > 4) \
+       || ( (__GNUC__ == 4) \
+         && (__GNUC_MINOR__ >= 7) ) ) \
+     || ( (__clang_major__ > 3) \
+       || ( (__clang_major__ == 3) \
+         && (__clang_minor__ > 4) ) ) ) )
 
 #define RK_ENABLE_CXX11_THREAD_LIB
 
@@ -143,18 +146,8 @@ namespace ReaKaux {
 
     using boost::this_thread::get_id;
     using boost::this_thread::yield;
-
-    template <typename RelativeTime>
-    inline
-    void sleep_for(const RelativeTime& rel_time) {
-      boost::this_thread::sleep(rel_time);
-    };
-
-    template <typename AbsoluteTime>
-    inline
-    void sleep_until(const AbsoluteTime& abs_time) {
-      boost::this_thread::sleep(abs_time);
-    };
+    using boost::this_thread::sleep_until;
+    using boost::this_thread::sleep_for;
 
   };
 
