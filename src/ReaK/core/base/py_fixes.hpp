@@ -40,6 +40,8 @@
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
 
+#if (BOOST_VERSION >= 105300)
+
 namespace std {
   
   template <typename T>
@@ -48,6 +50,8 @@ namespace std {
   };
   
 };
+
+#endif
 
 #endif
 

@@ -29,7 +29,7 @@ configure_doxyfile(ReaK "\"ReaK Library - All libraries\"" "\"A complete library
 add_doxygen_target(ReaK)
 
 if( NOT WIN32 )
-  find_package(OpenCV REQUIRED core highgui imgproc)
+  find_package(OpenCV)
 
   if(OpenCV_FOUND)
     message(STATUS "OpenCV library components were found: '${OpenCV_LIBS}'")
@@ -50,7 +50,7 @@ else()
 endif()
 
 
-set(Boost_ADDITIONAL_VERSIONS "1.45" "1.45.0" "1.46" "1.46.0" "1.46.1" "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0")
+set(Boost_ADDITIONAL_VERSIONS "1.45" "1.45.0" "1.46" "1.46.0" "1.46.1" "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0" "1.54" "1.54.0")
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 

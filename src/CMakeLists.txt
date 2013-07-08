@@ -8,6 +8,10 @@ set(SRCROOT "${CODEROOT}/src")
 set(DOXROOT "${CODEROOT}/dox")
 set(DOXTOSRCDIR "../src")
 
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${SRCROOT}/CMakeMods)
+
+
 if(NOT EXISTS "${DOXROOT}")
   file(MAKE_DIRECTORY "${DOXROOT}")
 endif()
@@ -56,6 +60,7 @@ else()
   set(PRINT_VERSION_COMMAND ${CMAKE_COMMAND} -E echo unknown version)
   set(PRINT_FILE_DATE_COMMAND_STR "${CMAKE_COMMAND} -E echo")
 endif()
+
 
 # Now set the global macros for setting up targets.
 macro(setup_custom_target target_name CUSTOM_OUTPUT_PATH)
