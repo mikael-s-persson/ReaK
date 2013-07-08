@@ -21,11 +21,13 @@ add_library(reakobj_recorders OBJECT ${RECORDERS_SOURCES})
 
 setup_headers("${RECORDERS_HEADERS}" "${RKRECORDERSDIR}")
 
+if(Boost_CHRONO_FOUND)
+
 add_executable(unit_test_recorders "${SRCROOT}${RKRECORDERSDIR}/unit_test_recorders.cpp")
 setup_custom_test_program(unit_test_recorders "${SRCROOT}${RKRECORDERSDIR}")
 target_link_libraries(unit_test_recorders reak_core)
 
-
+endif()
 
 
 

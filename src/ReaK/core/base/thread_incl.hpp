@@ -146,8 +146,10 @@ namespace ReaKaux {
 
     using boost::this_thread::get_id;
     using boost::this_thread::yield;
+#if (BOOST_VERSION >= 105000)
     using boost::this_thread::sleep_until;
     using boost::this_thread::sleep_for;
+#endif
 
   };
 

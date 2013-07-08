@@ -56,6 +56,9 @@ if(QT_FOUND)
 
 
   if(COIN3D_FOUND)
+
+  if(Boost_CHRONO_FOUND)
+
     set( PLANNER_3DVIEWER_UIS
       "${SRCROOT}${RKGUIQTDIR}/ui/planner_3Dview.ui" 
       "${SRCROOT}${RKGUIQTDIR}/ui/planner_space_config.ui"
@@ -75,6 +78,9 @@ if(QT_FOUND)
     setup_custom_target(planner_3Dviewer "${SRCROOT}${RKGUIQTDIR}")
     target_link_libraries(planner_3Dviewer reak_gui_qt reak_topologies reak_interp reak_mbd_coin reak_core)
     target_link_libraries(planner_3Dviewer ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
+    
+
+  endif()
     
     
     
@@ -97,7 +103,7 @@ if(QT_FOUND)
     target_link_libraries(kte_model_viewer reak_gui_qt reak_topologies reak_interp reak_mbd_coin reak_core)
     target_link_libraries(kte_model_viewer ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
     
-
+  
   endif()
   
 endif()

@@ -85,6 +85,8 @@ namespace ReaKaux {
 #else
 
 
+#if (BOOST_VERSION >= 104700)
+
 // must use the Boost.Chrono library, because there was some indication that the gnu implementation is broken.
 #include <boost/chrono/chrono.hpp>
 
@@ -111,6 +113,9 @@ namespace ReaKaux {
   };
 
 };
+
+#endif
+
 #endif
 
 

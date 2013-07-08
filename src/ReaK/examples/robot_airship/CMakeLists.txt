@@ -94,6 +94,9 @@ if(COIN3D_FOUND AND QT_FOUND)
   target_link_libraries(test_CRS_planning ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
   
 #if() #disabling CRS_planner target because it is too heavy to even compile.
+
+if(Boost_CHRONO_FOUND)
+
   include( ${QT_USE_FILE} )
   set( ROBOTAIRSHIP_CRSPLANNER_UIS
      "${SRCROOT}${RKROBOTAIRSHIPDIR}/uis/CRS_planner_window.ui" 
@@ -110,6 +113,9 @@ if(COIN3D_FOUND AND QT_FOUND)
   setup_custom_target(CRS_planner "${SRCROOT}${RKROBOTAIRSHIPDIR}")
   target_link_libraries(CRS_planner reak_robot_airship reak_topologies reak_interp reak_mbd_coin reak_core)
   target_link_libraries(CRS_planner ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
+
+endif()
+
 #endif()
   
 endif()
