@@ -35,6 +35,7 @@
 
 #include "defs.hpp"
 
+#include <boost/version.hpp>
 #include <boost/python.hpp>
 
 

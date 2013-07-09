@@ -84,6 +84,7 @@ namespace ReaKaux {
 
 #else
 
+#include <boost/version.hpp>
 
 #if (BOOST_VERSION >= 104700)
 

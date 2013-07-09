@@ -133,6 +133,7 @@ namespace ReaKaux {
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/once.hpp>
 #include <boost/thread/condition_variable.hpp>
+#include <boost/version.hpp>
 
 
 namespace ReaKaux {
