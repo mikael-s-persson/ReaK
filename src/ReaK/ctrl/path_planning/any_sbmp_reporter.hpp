@@ -131,13 +131,13 @@ namespace detail {
   template <bool IsSteerable, typename FreeSpaceType>
   struct get_sbmp_reporter_any_property_type {
     typedef typename topology_traits<FreeSpaceType>::point_type type;
-    static std::string name() { return "position"; };
+    static std::string name() { return "vertex_position"; };
   };
   
   template <typename FreeSpaceType>
   struct get_sbmp_reporter_any_property_type<true> {
     typedef typename steerable_space_traits<FreeSpaceType>::steer_record_type type;
-    static std::string name() { return "steer_rec"; };
+    static std::string name() { return "edge_steer_rec"; };
   };
   
 };

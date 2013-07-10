@@ -50,7 +50,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_map_test, Map, intint_maptest_types )
 {
   typedef typename Map::key_type KeyType;
   typedef typename Map::mapped_type MappedType;
-  typedef typename Map::value_type ValueType;
+//   typedef typename Map::value_type ValueType;
+  typedef std::pair< KeyType, MappedType > ValueType;
   typedef typename Map::iterator Iter;
   typedef typename Map::const_iterator ConstIter;
   typedef typename Map::reverse_iterator RevIter;
