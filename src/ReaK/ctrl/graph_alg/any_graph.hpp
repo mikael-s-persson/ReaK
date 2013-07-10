@@ -33,6 +33,7 @@
 #define RK_ANY_GRAPH_HPP
 
 #include <string>
+#include <stdexcept>
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/graph/graph_concepts.hpp>
@@ -62,11 +63,15 @@ class any_graph {
     struct vertex_descriptor {
       any_descriptor base;
       explicit vertex_descriptor(const any_descriptor& aBase) : base(aBase) { };
+      operator any_descriptor&() { return base; };
+      operator const any_descriptor&() const { return base; };
     };
     
     struct edge_descriptor {
       any_descriptor base;
       explicit edge_descriptor(const any_descriptor& aBase) : base(aBase) { };
+      operator any_descriptor&() { return base; };
+      operator const any_descriptor&() const { return base; };
     };
     
     typedef boost::any any_bundled;
@@ -91,8 +96,8 @@ class any_graph {
     
   protected:
     
-    virtual void* get_property_by_ptr(const std::string& aProperty, const any_descriptor& aElement) const = 0;
-    virtual boost::any get_property_by_any(const std::string& aProperty, const any_descriptor& aElement) const = 0;
+    virtual void* get_property_by_ptr(const std::string& aProperty, const boost::any& aElement) const = 0;
+    virtual boost::any get_property_by_any(const std::string& aProperty, const boost::any& aElement) const = 0;
     
     virtual vertex_bundled get_vertex_bundled(const vertex_descriptor& aVertex) const = 0;
     virtual edge_bundled get_edge_bundled(const edge_descriptor& aEdge) const = 0;
@@ -637,12 +642,22 @@ class type_erased_graph : public any_graph {
     
     Graph* p_graph;
     
+    virtual void* get_property_by_ptr(const std::string& aProperty, const boost::any&) const {
+      std::string err_message = "Unknown property: " + aProperty;
+      throw std::invalid_argument(err_message.c_str());
+    };
+    
+    virtual boost::any get_property_by_any(const std::string& aProperty, const boost::any& aElement) const {
+      std::string err_message = "Unknown property: " + aProperty;
+      throw std::invalid_argument(err_message.c_str());
+    };
+    
     virtual vertex_bundled get_vertex_bundled(const vertex_descriptor& aVertex) const {
-      return vertex_bundled((*p_graph)[boost::any_cast<real_vertex_desc>(aVertex)]);
+      return vertex_bundled((*p_graph)[boost::any_cast<real_vertex_desc>(aVertex.base)]);
     };
     
     virtual edge_bundled get_edge_bundled(const edge_descriptor& aEdge) const {
-      return edge_bundled((*p_graph)[boost::any_cast<real_edge_desc>(aEdge)]);
+      return edge_bundled((*p_graph)[boost::any_cast<real_edge_desc>(aEdge.base)]);
     };
     
   public:
