@@ -78,7 +78,7 @@ class any_graph {
     typedef any_bundled vertex_bundled;
     typedef any_bundled edge_bundled;
     
-    typedef boost::any_range<edge_descriptor, boost::forward_pass_traversal_tag, edge_descriptor, std::ptrdiff_t > edge_range;
+    typedef boost::any_range<edge_descriptor, boost::forward_traversal_tag, edge_descriptor, std::ptrdiff_t > edge_range;
     typedef edge_range out_edge_range;
     typedef edge_range in_edge_range;
     
@@ -86,7 +86,7 @@ class any_graph {
     typedef edge_iterator out_edge_iterator;
     typedef edge_iterator in_edge_iterator;
     
-    typedef boost::any_range<vertex_descriptor, boost::forward_pass_traversal_tag, vertex_descriptor, std::ptrdiff_t > vertex_range;
+    typedef boost::any_range<vertex_descriptor, boost::forward_traversal_tag, vertex_descriptor, std::ptrdiff_t > vertex_range;
     
     typedef vertex_range::iterator vertex_iterator;
     
@@ -132,6 +132,8 @@ class any_graph {
     virtual std::pair<edge_descriptor, bool> add_edge(const vertex_descriptor& aU, const vertex_descriptor& aV) const = 0;
     virtual void remove_edge(const edge_descriptor& aEdge) const = 0;
     
+    virtual ~any_graph() { };
+    
   public:
     
     
@@ -170,7 +172,7 @@ class any_graph {
       
       property_map_by_any(const any_graph* aParentPtr, const std::string& aProperty) : p_parent(aParentPtr), prop_name(aProperty) { };
       reference operator[](const key_type& k) const { 
-        return boost::any_cast< ValueType >(p_parent->get_property_by_any(prop_name, aElement));
+        return boost::any_cast< ValueType >(p_parent->get_property_by_any(prop_name, k));
       };
       
     };
@@ -180,14 +182,14 @@ class any_graph {
 
 
 template <typename ValueType>
-boost::enable_if< boost::is_reference< ValueType >,
+typename boost::enable_if< boost::is_reference< ValueType >,
 any_graph::property_map_by_ptr< typename boost::remove_reference< ValueType >::type > >::type 
   get(const std::string& aProperty, const any_graph& aGraph) {
   return any_graph::property_map_by_ptr< typename boost::remove_reference< ValueType >::type >(&aGraph, aProperty);
 };
 
 template <typename ValueType>
-boost::disable_if< boost::is_reference< ValueType >,
+typename boost::disable_if< boost::is_reference< ValueType >,
 any_graph::property_map_by_any< ValueType > >::type get(const std::string& aProperty, const any_graph& aGraph) {
   return any_graph::property_map_by_any< ValueType >(&aGraph, aProperty);
 };
@@ -200,7 +202,7 @@ any_graph::property_map_by_any< ValueType > >::type get(const std::string& aProp
 
 std::pair< any_graph::out_edge_iterator, any_graph::out_edge_iterator > out_edges(any_graph::vertex_descriptor v, const any_graph& g) {
   any_graph::out_edge_range er = g.out_edges(v);
-  return std::pair< any_graph::out_edge_iterator, any_graph::out_edge_iterator >(begin(er), end(er));
+  return std::pair< any_graph::out_edge_iterator, any_graph::out_edge_iterator >(boost::begin(er), boost::end(er));
 };
 
 any_graph::vertex_descriptor source(any_graph::edge_descriptor e, const any_graph& g) {
@@ -222,7 +224,7 @@ any_graph::degree_size_type out_degree(any_graph::vertex_descriptor v, const any
 
 std::pair< any_graph::in_edge_iterator, any_graph::in_edge_iterator > in_edges(any_graph::vertex_descriptor v, const any_graph& g) {
   any_graph::in_edge_range er = g.in_edges(v);
-  return std::pair< any_graph::in_edge_iterator, any_graph::in_edge_iterator >(begin(er), end(er));
+  return std::pair< any_graph::in_edge_iterator, any_graph::in_edge_iterator >(boost::begin(er), boost::end(er));
 };
 
 any_graph::degree_size_type in_degree(any_graph::vertex_descriptor v, const any_graph& g) {
@@ -240,7 +242,7 @@ any_graph::degree_size_type degree(any_graph::edge_descriptor e, const any_graph
 
 std::pair< any_graph::vertex_iterator, any_graph::vertex_iterator > vertices(const any_graph& g) {
   any_graph::vertex_range vr = g.vertices();
-  return std::pair< any_graph::vertex_iterator, any_graph::vertex_iterator >(begin(vr), end(vr));
+  return std::pair< any_graph::vertex_iterator, any_graph::vertex_iterator >(boost::begin(vr), boost::end(vr));
 };
 
 any_graph::vertices_size_type num_vertices(const any_graph& g) {
@@ -254,7 +256,7 @@ any_graph::vertices_size_type num_vertices(const any_graph& g) {
 
 std::pair< any_graph::edge_iterator, any_graph::edge_iterator > edges(const any_graph& g) {
   any_graph::edge_range er = g.edges();
-  return std::pair< any_graph::edge_iterator, any_graph::edge_iterator >(begin(er), end(er));
+  return std::pair< any_graph::edge_iterator, any_graph::edge_iterator >(boost::begin(er), boost::end(er));
 };
 
 any_graph::edges_size_type num_edges(const any_graph& g) {
@@ -319,7 +321,7 @@ namespace detail {
     public boost::iterator_facade< 
       type_erased_graph_iterator<ErasedDesc, Iterator>,
       ErasedDesc, 
-      typename std::iterator_traits<ContIterator>::iterator_category,
+      typename std::iterator_traits<Iterator>::iterator_category,
       ErasedDesc
     > {
     public:
@@ -358,9 +360,9 @@ namespace detail {
   
   template <typename Graph>
   typename boost::enable_if< boost::is_edge_list_graph<Graph>,
-  boost::any_range< any_graph::edge_descriptor, boost::forward_pass_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > >::type 
+  boost::any_range< any_graph::edge_descriptor, boost::forward_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > >::type 
     try_get_edges(const Graph& g) {
-    typedef boost::any_range< any_graph::edge_descriptor, boost::forward_pass_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > ResultType;
+    typedef boost::any_range< any_graph::edge_descriptor, boost::forward_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > ResultType;
     typedef typename boost::graph_traits< Graph >::edge_iterator EdgeIter;
     typedef type_erased_graph_iterator<any_graph::edge_descriptor, EdgeIter> ErasedEdgeIter;
     std::pair< EdgeIter, EdgeIter > real_range = edges(g);
@@ -369,9 +371,9 @@ namespace detail {
   
   template <typename Graph>
   typename boost::disable_if< boost::is_edge_list_graph<Graph>,
-  boost::any_range< any_graph::edge_descriptor, boost::forward_pass_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > >::type 
+  boost::any_range< any_graph::edge_descriptor, boost::forward_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > >::type 
     try_get_edges(const Graph&) {
-    return boost::any_range< any_graph::edge_descriptor, boost::forward_pass_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t >();
+    return boost::any_range< any_graph::edge_descriptor, boost::forward_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t >();
   };
   
   
@@ -439,9 +441,9 @@ namespace detail {
   
   template <typename Graph>
   typename boost::enable_if< boost::is_incidence_graph<Graph>,
-  boost::any_range< any_graph::edge_descriptor, boost::forward_pass_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > >::type 
+  boost::any_range< any_graph::edge_descriptor, boost::forward_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > >::type 
     try_get_out_edges(const any_graph::vertex_descriptor& u, const Graph& g) {
-    typedef boost::any_range< any_graph::edge_descriptor, boost::forward_pass_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > ResultType;
+    typedef boost::any_range< any_graph::edge_descriptor, boost::forward_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > ResultType;
     typedef typename boost::graph_traits< Graph >::out_edge_iterator EdgeIter;
     typedef type_erased_graph_iterator<any_graph::edge_descriptor, EdgeIter> ErasedEdgeIter;
     typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
@@ -451,9 +453,9 @@ namespace detail {
   
   template <typename Graph>
   typename boost::disable_if< boost::is_incidence_graph<Graph>,
-  boost::any_range< any_graph::edge_descriptor, boost::forward_pass_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > >::type 
+  boost::any_range< any_graph::edge_descriptor, boost::forward_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > >::type 
     try_get_out_edges(const any_graph::vertex_descriptor&, const Graph&) {
-    return boost::any_range< any_graph::edge_descriptor, boost::forward_pass_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t >();
+    return boost::any_range< any_graph::edge_descriptor, boost::forward_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t >();
   };
   
   
@@ -486,9 +488,9 @@ namespace detail {
   
   template <typename Graph>
   typename boost::enable_if< boost::is_bidirectional_graph<Graph>,
-  boost::any_range< any_graph::edge_descriptor, boost::forward_pass_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > >::type 
+  boost::any_range< any_graph::edge_descriptor, boost::forward_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > >::type 
     try_get_in_edges(const any_graph::vertex_descriptor& u, const Graph& g) {
-    typedef boost::any_range< any_graph::edge_descriptor, boost::forward_pass_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > ResultType;
+    typedef boost::any_range< any_graph::edge_descriptor, boost::forward_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > ResultType;
     typedef typename boost::graph_traits< Graph >::in_edge_iterator EdgeIter;
     typedef type_erased_graph_iterator<any_graph::edge_descriptor, EdgeIter> ErasedEdgeIter;
     typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
@@ -498,9 +500,9 @@ namespace detail {
   
   template <typename Graph>
   typename boost::disable_if< boost::is_bidirectional_graph<Graph>,
-  boost::any_range< any_graph::edge_descriptor, boost::forward_pass_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > >::type 
+  boost::any_range< any_graph::edge_descriptor, boost::forward_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t > >::type 
     try_get_in_edges(const any_graph::vertex_descriptor&, const Graph&) {
-    return boost::any_range< any_graph::edge_descriptor, boost::forward_pass_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t >();
+    return boost::any_range< any_graph::edge_descriptor, boost::forward_traversal_tag, any_graph::edge_descriptor, std::ptrdiff_t >();
   };
   
   
@@ -520,9 +522,9 @@ namespace detail {
   
   template <typename Graph>
   typename boost::enable_if< boost::is_vertex_list_graph<Graph>,
-  boost::any_range< any_graph::vertex_descriptor, boost::forward_pass_traversal_tag, any_graph::vertex_descriptor, std::ptrdiff_t > >::type 
+  boost::any_range< any_graph::vertex_descriptor, boost::forward_traversal_tag, any_graph::vertex_descriptor, std::ptrdiff_t > >::type 
     try_get_vertices(const Graph& g) {
-    typedef boost::any_range< any_graph::vertex_descriptor, boost::forward_pass_traversal_tag, any_graph::vertex_descriptor, std::ptrdiff_t > ResultType;
+    typedef boost::any_range< any_graph::vertex_descriptor, boost::forward_traversal_tag, any_graph::vertex_descriptor, std::ptrdiff_t > ResultType;
     typedef typename boost::graph_traits< Graph >::vertex_iterator VertexIter;
     typedef type_erased_graph_iterator<any_graph::vertex_descriptor, VertexIter> ErasedVertexIter;
     std::pair< VertexIter, VertexIter > real_range = vertices(g);
@@ -531,9 +533,9 @@ namespace detail {
   
   template <typename Graph>
   typename boost::disable_if< boost::is_vertex_list_graph<Graph>,
-  boost::any_range< any_graph::vertex_descriptor, boost::forward_pass_traversal_tag, any_graph::vertex_descriptor, std::ptrdiff_t > >::type 
+  boost::any_range< any_graph::vertex_descriptor, boost::forward_traversal_tag, any_graph::vertex_descriptor, std::ptrdiff_t > >::type 
     try_get_vertices(const Graph&) {
-    return boost::any_range< any_graph::vertex_descriptor, boost::forward_pass_traversal_tag, any_graph::vertex_descriptor, std::ptrdiff_t >();
+    return boost::any_range< any_graph::vertex_descriptor, boost::forward_traversal_tag, any_graph::vertex_descriptor, std::ptrdiff_t >();
   };
   
   
@@ -580,18 +582,18 @@ namespace detail {
   
   template <typename Graph>
   typename boost::enable_if< boost::is_mutable_graph<Graph>,
-  std::pair<any_graph::edge_descriptor, bool> >::type try_add_edge(const any_graph::vertex_descriptor& u, const any_graph::vertex_descriptor& v, Graph& g) const {
+  std::pair<any_graph::edge_descriptor, bool> >::type try_add_edge(const any_graph::vertex_descriptor& u, const any_graph::vertex_descriptor& v, Graph& g) {
     typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
     typedef typename boost::graph_traits< Graph >::edge_descriptor Edge;
-    std::pair<edge, bool> result = add_edge(boost::any_cast<Vertex>(u), boost::any_cast<Vertex>(v), g);
+    std::pair<Edge, bool> result = add_edge(boost::any_cast<Vertex>(u), boost::any_cast<Vertex>(v), g);
     return std::pair<any_graph::edge_descriptor, bool>(any_graph::edge_descriptor(boost::any(result.first)), result.second);
   };
   
   template <typename Graph>
   typename boost::disable_if< boost::is_mutable_graph<Graph>,
-  std::pair<any_graph::edge_descriptor, bool> >::type try_add_edge(const any_graph::vertex_descriptor&, const any_graph::vertex_descriptor&, Graph&) const {
+  std::pair<any_graph::edge_descriptor, bool> >::type try_add_edge(const any_graph::vertex_descriptor&, const any_graph::vertex_descriptor&, Graph&) {
     typedef typename boost::graph_traits< Graph >::edge_descriptor Edge;
-    return std::pair<any_graph::edge_descriptor, bool>(edge_descriptor(boost::any(Edge())), false);
+    return std::pair<any_graph::edge_descriptor, bool>(any_graph::edge_descriptor(boost::any(Edge())), false);
   };
   
   

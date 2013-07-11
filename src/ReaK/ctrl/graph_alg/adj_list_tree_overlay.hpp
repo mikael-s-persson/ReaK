@@ -448,7 +448,7 @@ template <typename AdjListOnTreeType, typename T, typename Bundle>
 struct property_map< ReaK::graph::alt_tree_view<AdjListOnTreeType>, T Bundle::* > {
   typedef typename remove_const< Bundle >::type non_const_Bundle;
   typedef typename remove_const< T >::type non_const_T;
-  typedef is_same< non_const_Bundle, typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::vertex_bundled > is_vertex_bundle;
+  typedef is_convertible< typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::vertex_bundled*, non_const_Bundle* > is_vertex_bundle;
   typedef bundle_member_property_map< non_const_T, ReaK::graph::alt_tree_view<AdjListOnTreeType>,
     typename mpl::if_< is_vertex_bundle, vertex_bundle_t, edge_bundle_t >::type > type;
   typedef bundle_member_property_map< const non_const_T, const ReaK::graph::alt_tree_view<AdjListOnTreeType>,
@@ -1516,7 +1516,7 @@ template <typename AdjListOnTreeType, typename T, typename Bundle>
 struct property_map< ReaK::graph::alt_graph_view<AdjListOnTreeType>, T Bundle::* > {
   typedef typename remove_const< Bundle >::type non_const_Bundle;
   typedef typename remove_const< T >::type non_const_T;
-  typedef is_same< non_const_Bundle, typename ReaK::graph::alt_graph_view<AdjListOnTreeType>::vertex_bundled > is_vertex_bundle;
+  typedef is_convertible< typename ReaK::graph::alt_graph_view<AdjListOnTreeType>::vertex_bundled*, non_const_Bundle* > is_vertex_bundle;
   typedef bundle_member_property_map< non_const_T, ReaK::graph::alt_graph_view<AdjListOnTreeType>,
     typename mpl::if_< is_vertex_bundle, vertex_bundle_t, edge_bundle_t >::type > type;
   typedef bundle_member_property_map< const non_const_T, const ReaK::graph::alt_graph_view<AdjListOnTreeType>,

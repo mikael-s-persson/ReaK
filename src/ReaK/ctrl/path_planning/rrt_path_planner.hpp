@@ -58,69 +58,13 @@
 #include "metric_space_search.hpp"
 #include "topological_search.hpp"
 #include "path_planner_options.hpp"
+#include "any_motion_graphs.hpp"
 
 #include "lin_alg/arithmetic_tuple.hpp"
 
 namespace ReaK {
   
 namespace pp {
-  
-
-
-/**
- * This POD type contains the data required on a per-vertex basis for the RRT path-planning algorithm.
- * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger configuration space.
- */
-template <typename FreeSpaceType>
-struct rrt_vertex_data {
-  /// The position associated to the vertex.
-  typename topology_traits<FreeSpaceType>::point_type position;
-  /// The travel-distance accumulated in the vertex, i.e., the travel-distance from the start vertex to this vertex.
-  double distance_accum;
-};
-
-/**
- * This POD type contains the data required on a per-edge basis for the RRT path-planning algorithm.
- * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger configuration space.
- */
-template <typename FreeSpaceType>
-struct rrt_edge_data { };
-
-/**
- * This stateless functor type can be used to print out the information about a given RRT vertex.
- * This functor type can be used as a printing policy type for the vlist_sbmp_report class 
- * template that prints the list of vertices to a file.
- * \note This is mostly useful for debugging purposes (recording all information about the 
- *       motion-graph), it should not be used as the "output" of the path-planner.
- */
-struct rrt_vprinter : serialization::serializable {
-  
-  /**
-   * This call operator prints all the RRT information about a given vertex 
-   * to a given output-stream.
-   * \tparam Vertex The vertex-descriptor type for the motion-graph.
-   * \tparam Graph The motion-graph type used by the RRT planning algorithm.
-   * \param out The output-stream to which to print the RRT information about the vertex.
-   * \param u The vertex whose information is to be printed.
-   * \param g The motion-graph to which the vertex belongs.
-   */
-  template <typename Vertex, typename Graph>
-  void operator()(std::ostream& out, Vertex u, const Graph& g) const {
-    using ReaK::to_vect;
-    vect_n<double> v_pos = to_vect<double>(g[u].position);
-    for(std::size_t i = 0; i < v_pos.size(); ++i)
-      out << " " << std::setw(10) << v_pos[i];
-    out << " " << std::setw(10) << g[u].distance_accum << std::endl;
-  };
-  
-  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
-  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
-  
-  RK_RTTI_MAKE_ABSTRACT_1BASE(rrt_vprinter,0xC2460013,1,"rrt_vprinter",serialization::serializable)
-};
-
-
-
 
 
 /**
@@ -153,7 +97,6 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
     point_type m_start_pos;
     point_type m_goal_pos;
     std::size_t max_num_results;
-    bool has_reached_max_vertices;
     
     std::map<double, shared_ptr< seq_path_base< super_space_type > > > m_solutions;
     
@@ -180,31 +123,34 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
      */
     template <typename Vertex, typename Graph>
     void check_goal_connection(const point_type& p_u, Vertex u, Graph& g) {
+      shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
+      
       point_type result_p = this->m_space->move_position_toward(p_u, 1.0, m_goal_pos);
-      double best_case_dist = get(distance_metric, this->m_space->get_super_space())(p_u, m_goal_pos, this->m_space->get_super_space());
-      double actual_dist = get(distance_metric, this->m_space->get_super_space())(p_u, result_p, this->m_space->get_super_space());
+      double best_case_dist = get(distance_metric, *sup_space_ptr)(p_u, m_goal_pos, *sup_space_ptr);
+      double actual_dist = get(distance_metric, *sup_space_ptr)(p_u, result_p, *sup_space_ptr);
       
       if(actual_dist < 0.99 * best_case_dist)
         return;
       
-      double solutions_total_dist = actual_dist + g[u].distance_accum;
-//       if(solutions_total_dist >= m_solutions.begin()->first)
-//         return;
+      double solutions_total_dist = actual_dist;
       
-      shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
-      shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("rrt_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
+      shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("rrt_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, *sup_space_ptr))));
       point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
       
       waypoints.push_front(m_goal_pos);
       waypoints.push_front(p_u);
       
       while(in_degree(u, g)) {
-        u = source(*(in_edges(u,g).first),g);
-        waypoints.push_front(g[u].position);
+        Vertex v = source(*(in_edges(u,g).first),g);
+        solutions_total_dist += get(distance_metric, *sup_space_ptr)(g[v].position, g[u].position, *sup_space_ptr);
+        waypoints.push_front(g[v].position);
+        u = v;
       };
       
-      m_solutions[solutions_total_dist] = new_sol;
-      m_reporter.draw_solution(*(this->m_space), m_solutions[solutions_total_dist]);
+      if(solutions_total_dist < get_best_solution_distance()) {
+        m_solutions[solutions_total_dist] = new_sol;
+        m_reporter.draw_solution(*(this->m_space), m_solutions[solutions_total_dist]);
+      };
     };
     
     /**
@@ -219,30 +165,33 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
      */
     template <typename Vertex, typename Graph>
     void joining_vertex_found(Vertex u1, Vertex u2, Graph& g1, Graph& g2) {
-      double total_dist = g1[u1].distance_accum + g2[u2].distance_accum
-        + get(distance_metric, this->m_space->get_super_space())(g1[u1].position, g2[u2].position, this->m_space->get_super_space());
-      
-//       if(total_dist >= m_solutions.begin()->first)
-//         return;
-      
       shared_ptr< super_space_type > sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
-      shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("birrt_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, this->m_space->get_super_space()))));
+      
+      double solutions_total_dist = get(distance_metric, *sup_space_ptr)(g1[u1].position, g2[u2].position, *sup_space_ptr);
+      
+      shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("birrt_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, *sup_space_ptr))));
       point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
       
       waypoints.push_front(g1[u1].position);
       while(in_degree(u1, g1)) {
-        u1 = source(*(in_edges(u1,g1).first),g1);
-        waypoints.push_front(g1[u1].position);
+        Vertex v1 = source(*(in_edges(u1,g1).first),g1);
+        solutions_total_dist += get(distance_metric, *sup_space_ptr)(g1[v1].position, g1[u1].position, *sup_space_ptr);
+        waypoints.push_front(g1[v1].position);
+        u1 = v1;
       };
       
       waypoints.push_back(g2[u2].position);
       while(in_degree(u2, g2)) {
-        u2 = source(*(in_edges(u2,g2).first),g2);
-        waypoints.push_back(g2[u2].position);
+        Vertex v2 = source(*(in_edges(u2,g2).first),g2);
+        solutions_total_dist += get(distance_metric, *sup_space_ptr)(g2[v2].position, g2[u2].position, *sup_space_ptr);
+        waypoints.push_back(g2[v2].position);
+        u2 = v2;
       };
       
-      m_solutions[total_dist] = new_sol;
-      m_reporter.draw_solution(*(this->m_space), m_solutions[total_dist]);
+      if(solutions_total_dist < get_best_solution_distance()) {
+        m_solutions[solutions_total_dist] = new_sol;
+        m_reporter.draw_solution(*(this->m_space), m_solutions[solutions_total_dist]);
+      };
     };
     
     /**
@@ -251,7 +200,7 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
      * \return True if the solver should keep on going trying to solve the path-planning problem.
      */
     bool keep_going() const {
-      return (max_num_results > m_solutions.size()) && !has_reached_max_vertices;
+      return (max_num_results > m_solutions.size()) && !(this->has_reached_max_iterations());
     };
     
     /**
@@ -259,31 +208,15 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
      * solver.
      * \note This function is for internal use by the path-planning algorithm (a visitor callback).
      * \param g The current motion-graph.
-     * \param g_pos The position map for the vertices of the motion-graph.
      */
     template <typename Graph>
-    void report_progress(Graph& g) {
-      if(num_vertices(g) % this->m_progress_interval == 0)
-        m_reporter.draw_motion_graph(*(this->m_space), g, get(&rrt_vertex_data<FreeSpaceType>::position,g));
-      has_reached_max_vertices = (num_vertices(g) >= this->m_max_vertex_count);
+    void register_progress(Graph& g) {
+      this->report_progress(g, m_reporter);
     };
     
-    /**
-     * This function invokes the path-planning reporter to report on the progress of the path-planning
-     * solver. This is the bi-directional version (i.e., two motion-graphs).
-     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
-     * \param g1 The first motion-graph.
-     * \param g2 The second motion-graph.
-     * \param g1_pos The position map for the vertices of the first motion-graph.
-     * \param g2_pos The position map for the vertices of the second motion-graph.
-     */
-    template <typename Graph>
-    void report_progress(Graph& g1, Graph& g2) {
-      if((num_vertices(g1) + num_vertices(g2)) % this->m_progress_interval == 0) {
-        m_reporter.draw_motion_graph(*(this->m_space), g1, get(&rrt_vertex_data<FreeSpaceType>::position,g1));
-        m_reporter.draw_motion_graph(*(this->m_space), g2, get(&rrt_vertex_data<FreeSpaceType>::position,g2));
-      };
-      has_reached_max_vertices = (num_vertices(g1) + num_vertices(g2) >= this->m_max_vertex_count);
+    virtual void reset_internal_state() {
+      base_type::reset_internal_state();
+      m_solutions.clear();
     };
     
     /**
@@ -380,7 +313,6 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
                      m_start_pos(aStartPos),
                      m_goal_pos(aGoalPos),
                      max_num_results(aMaxResultCount),
-                     has_reached_max_vertices(false),
                      m_solutions() { };
     
     virtual ~rrt_path_planner() { };
@@ -403,7 +335,6 @@ class rrt_path_planner : public sample_based_planner< path_planner_base<FreeSpac
         & RK_SERIAL_LOAD_WITH_NAME(m_start_pos)
         & RK_SERIAL_LOAD_WITH_NAME(m_goal_pos)
         & RK_SERIAL_LOAD_WITH_NAME(max_num_results);
-      has_reached_max_vertices = false;
       m_solutions.clear();
     };
 
@@ -435,14 +366,14 @@ struct rrt_planner_visitor {
                       m_space(aSpace), m_planner(aPlanner), m_nn_synchro(aNNSynchro) { };
   
   typedef typename topology_traits<FreeSpaceType>::point_type PointType;
-  typedef rrt_edge_data<FreeSpaceType> EdgeProp;
+  typedef mg_edge_data<FreeSpaceType> EdgeProp;
   
   template <typename Vertex, typename Graph>
   void vertex_added(Vertex u, Graph& g) const {
     m_nn_synchro.added_vertex(u,g);
     
     // Call progress reporter...
-    m_planner->report_progress(g);
+    m_planner->register_progress(g);
   };
   
   template <typename EdgeType, typename Graph>
@@ -450,8 +381,6 @@ struct rrt_planner_visitor {
     typedef typename boost::graph_traits<Graph>::vertex_descriptor VertexType;
     VertexType u = source(e,g);
     VertexType v = target(e,g);
-    
-    g[v].distance_accum = g[u].distance_accum + get(distance_metric, m_space->get_super_space())(g[u].position, g[v].position, m_space->get_super_space());
     
     if((m_planner->get_planning_method_flags() & PLANNING_DIRECTIONALITY_MASK) == UNIDIRECTIONAL_PLANNING) {
       // Check if a straight path to goal is possible...
@@ -499,21 +428,20 @@ template <typename FreeSpaceType,
 shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>::super_space_type > > 
   rrt_path_planner<FreeSpaceType,SBPPReporter>::solve_path() {
   
-  this->has_reached_max_vertices = false;
   this->m_solutions.clear();
   
   typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpace;
   typedef typename topology_traits<SuperSpace>::point_type PointType;
-  typedef boost::data_member_property_map<PointType, rrt_vertex_data<FreeSpaceType> > PositionMap;
-  PositionMap pos_map = PositionMap(&rrt_vertex_data<FreeSpaceType>::position);
+  typedef boost::data_member_property_map<PointType, mg_vertex_data<FreeSpaceType> > PositionMap;
+  PositionMap pos_map = PositionMap(&mg_vertex_data<FreeSpaceType>::position);
   
   if((this->m_planning_method_flags & PLANNING_DIRECTIONALITY_MASK) == UNIDIRECTIONAL_PLANNING) {
     
     if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
       
       typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
-                             rrt_vertex_data<FreeSpaceType>,
-                             rrt_edge_data<FreeSpaceType>,
+                             mg_vertex_data<FreeSpaceType>,
+                             mg_edge_data<FreeSpaceType>,
                              boost::vecS> MotionGraphType;
       typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
       typedef typename MotionGraphType::vertex_property_type VertexProp;
@@ -523,9 +451,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
       MotionGraphType motion_graph;
       GraphPositionMap g_pos_map = GraphPositionMap(pos_map, boost::whole_bundle_property_map< MotionGraphType, boost::vertex_bundle_t >(&motion_graph));
       
-      rrt_vertex_data<FreeSpaceType> v_p;
+      mg_vertex_data<FreeSpaceType> v_p;
       v_p.position = this->m_start_pos;
-      v_p.distance_accum = 0.0;
       create_root(v_p, motion_graph);
       
       if((this->m_data_structure_flags & KNN_METHOD_MASK) == LINEAR_SEARCH_KNN) {
@@ -602,8 +529,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
       if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
         
         typedef dvp_adjacency_list<
-          rrt_vertex_data<FreeSpaceType>,
-          rrt_edge_data<FreeSpaceType>,
+          mg_vertex_data<FreeSpaceType>,
+          mg_edge_data<FreeSpaceType>,
           SuperSpace,
           PositionMap,
           2, random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<2>,
@@ -615,9 +542,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
         
         MotionGraph motion_graph = space_part.get_adjacency_list();
         
-        rrt_vertex_data<FreeSpaceType> v_p;
+        mg_vertex_data<FreeSpaceType> v_p;
         v_p.position = this->m_start_pos;
-        v_p.distance_accum = 0.0;
         create_root(v_p, motion_graph);
         
         multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
@@ -632,8 +558,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
         
         typedef dvp_adjacency_list<
-          rrt_vertex_data<FreeSpaceType>,
-          rrt_edge_data<FreeSpaceType>,
+          mg_vertex_data<FreeSpaceType>,
+          mg_edge_data<FreeSpaceType>,
           SuperSpace,
           PositionMap,
           4, random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<4>,
@@ -645,9 +571,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
         
         MotionGraph motion_graph = space_part.get_adjacency_list();
         
-        rrt_vertex_data<FreeSpaceType> v_p;
+        mg_vertex_data<FreeSpaceType> v_p;
         v_p.position = this->m_start_pos;
-        v_p.distance_accum = 0.0;
         create_root(v_p, motion_graph);
         
         multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
@@ -662,8 +587,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
         typedef dvp_adjacency_list<
-          rrt_vertex_data<FreeSpaceType>,
-          rrt_edge_data<FreeSpaceType>,
+          mg_vertex_data<FreeSpaceType>,
+          mg_edge_data<FreeSpaceType>,
           SuperSpace,
           PositionMap,
           2, random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<2>,
@@ -675,9 +600,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
         
         MotionGraph motion_graph = space_part.get_adjacency_list();
         
-        rrt_vertex_data<FreeSpaceType> v_p;
+        mg_vertex_data<FreeSpaceType> v_p;
         v_p.position = this->m_start_pos;
-        v_p.distance_accum = 0.0;
         create_root(v_p, motion_graph);
         
         multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
@@ -692,8 +616,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
         
         typedef dvp_adjacency_list<
-          rrt_vertex_data<FreeSpaceType>,
-          rrt_edge_data<FreeSpaceType>,
+          mg_vertex_data<FreeSpaceType>,
+          mg_edge_data<FreeSpaceType>,
           SuperSpace,
           PositionMap,
           4, random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<4>,
@@ -705,9 +629,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
         
         MotionGraph motion_graph = space_part.get_adjacency_list();
         
-        rrt_vertex_data<FreeSpaceType> v_p;
+        mg_vertex_data<FreeSpaceType> v_p;
         v_p.position = this->m_start_pos;
-        v_p.distance_accum = 0.0;
         create_root(v_p, motion_graph);
         
         multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
@@ -728,8 +651,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
     if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
       
       typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
-                             rrt_vertex_data<FreeSpaceType>,
-                             rrt_edge_data<FreeSpaceType>,
+                             mg_vertex_data<FreeSpaceType>,
+                             mg_edge_data<FreeSpaceType>,
                              boost::vecS> MotionGraphType;
       typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
       
@@ -740,13 +663,11 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
       GraphPositionMap g1_pos_map = GraphPositionMap(pos_map, boost::whole_bundle_property_map< MotionGraphType, boost::vertex_bundle_t >(&motion_graph1));
       Vertex v1 = add_vertex(motion_graph1);
       motion_graph1[v1].position = this->m_start_pos;
-      motion_graph1[v1].distance_accum = 0.0;
       
       MotionGraphType motion_graph2;
       GraphPositionMap g2_pos_map = GraphPositionMap(pos_map, boost::whole_bundle_property_map< MotionGraphType, boost::vertex_bundle_t >(&motion_graph2));
       Vertex v2 = add_vertex(motion_graph2);
       motion_graph2[v2].position = this->m_goal_pos;
-      motion_graph2[v2].distance_accum = 0.0;
       
       if((this->m_data_structure_flags & KNN_METHOD_MASK) == LINEAR_SEARCH_KNN) {
         rrt_planner_visitor<FreeSpaceType, no_NNfinder_synchro, SBPPReporter> vis(this->m_space, this, no_NNfinder_synchro());
@@ -851,8 +772,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
       if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
         
         typedef dvp_adjacency_list<
-          rrt_vertex_data<FreeSpaceType>,
-          rrt_edge_data<FreeSpaceType>,
+          mg_vertex_data<FreeSpaceType>,
+          mg_edge_data<FreeSpaceType>,
           SuperSpace,
           PositionMap,
           2, random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<2>,
@@ -867,15 +788,13 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
         typedef typename ALTGraph::adj_list_type MotionGraph;
         
         MotionGraph motion_graph1 = space_part1.get_adjacency_list();
-        rrt_vertex_data<FreeSpaceType> v1_p;
+        mg_vertex_data<FreeSpaceType> v1_p;
         v1_p.position = this->m_start_pos;
-        v1_p.distance_accum = 0.0;
         create_root(v1_p, motion_graph1);
         
         MotionGraph motion_graph2 = space_part2.get_adjacency_list();
-        rrt_vertex_data<FreeSpaceType> v2_p;
+        mg_vertex_data<FreeSpaceType> v2_p;
         v2_p.position = this->m_goal_pos;
-        v2_p.distance_accum = 0.0;
         create_root(v2_p, motion_graph2);
         
         multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
@@ -892,8 +811,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
         
         typedef dvp_adjacency_list<
-          rrt_vertex_data<FreeSpaceType>,
-          rrt_edge_data<FreeSpaceType>,
+          mg_vertex_data<FreeSpaceType>,
+          mg_edge_data<FreeSpaceType>,
           SuperSpace,
           PositionMap,
           4, random_vp_chooser, ReaK::graph::d_ary_bf_tree_storage<4>,
@@ -906,15 +825,13 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
         typedef typename ALTGraph::adj_list_type MotionGraph;
         
         MotionGraph motion_graph1 = space_part1.get_adjacency_list();
-        rrt_vertex_data<FreeSpaceType> v1_p;
+        mg_vertex_data<FreeSpaceType> v1_p;
         v1_p.position = this->m_start_pos;
-        v1_p.distance_accum = 0.0;
         create_root(v1_p, motion_graph1);
         
         MotionGraph motion_graph2 = space_part2.get_adjacency_list();
-        rrt_vertex_data<FreeSpaceType> v2_p;
+        mg_vertex_data<FreeSpaceType> v2_p;
         v2_p.position = this->m_goal_pos;
-        v2_p.distance_accum = 0.0;
         create_root(v2_p, motion_graph2);
         
         multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
@@ -931,8 +848,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
         typedef dvp_adjacency_list<
-          rrt_vertex_data<FreeSpaceType>,
-          rrt_edge_data<FreeSpaceType>,
+          mg_vertex_data<FreeSpaceType>,
+          mg_edge_data<FreeSpaceType>,
           SuperSpace,
           PositionMap,
           2, random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<2>,
@@ -945,15 +862,13 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
         typedef typename ALTGraph::adj_list_type MotionGraph;
         
         MotionGraph motion_graph1 = space_part1.get_adjacency_list();
-        rrt_vertex_data<FreeSpaceType> v1_p;
+        mg_vertex_data<FreeSpaceType> v1_p;
         v1_p.position = this->m_start_pos;
-        v1_p.distance_accum = 0.0;
         create_root(v1_p, motion_graph1);
         
         MotionGraph motion_graph2 = space_part2.get_adjacency_list();
-        rrt_vertex_data<FreeSpaceType> v2_p;
+        mg_vertex_data<FreeSpaceType> v2_p;
         v2_p.position = this->m_goal_pos;
-        v2_p.distance_accum = 0.0;
         create_root(v2_p, motion_graph2);
         
         multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;
@@ -970,8 +885,8 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
         
         typedef dvp_adjacency_list<
-          rrt_vertex_data<FreeSpaceType>,
-          rrt_edge_data<FreeSpaceType>,
+          mg_vertex_data<FreeSpaceType>,
+          mg_edge_data<FreeSpaceType>,
           SuperSpace,
           PositionMap,
           4, random_vp_chooser, ReaK::graph::d_ary_cob_tree_storage<4>,
@@ -984,15 +899,13 @@ shared_ptr< seq_path_base< typename rrt_path_planner<FreeSpaceType,SBPPReporter>
         typedef typename ALTGraph::adj_list_type MotionGraph;
         
         MotionGraph motion_graph1 = space_part1.get_adjacency_list();
-        rrt_vertex_data<FreeSpaceType> v1_p;
+        mg_vertex_data<FreeSpaceType> v1_p;
         v1_p.position = this->m_start_pos;
-        v1_p.distance_accum = 0.0;
         create_root(v1_p, motion_graph1);
         
         MotionGraph motion_graph2 = space_part2.get_adjacency_list();
-        rrt_vertex_data<FreeSpaceType> v2_p;
+        mg_vertex_data<FreeSpaceType> v2_p;
         v2_p.position = this->m_goal_pos;
-        v2_p.distance_accum = 0.0;
         create_root(v2_p, motion_graph2);
         
         multi_dvp_tree_search<MotionGraph, ALTGraph> nn_finder;

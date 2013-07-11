@@ -41,6 +41,7 @@
 #include "base/named_object.hpp"
 
 #include "metric_space_concept.hpp"
+#include "steerable_space_concept.hpp"
 #include "random_sampler_concept.hpp"
 #include "subspace_concept.hpp"
 
@@ -48,6 +49,7 @@
 #include "seq_path_base.hpp"
 
 #include "path_planner_options.hpp"
+#include "any_motion_graphs.hpp"
 
 namespace ReaK {
   
@@ -89,6 +91,11 @@ class motion_planner_base : public named_object {
      * \return The trajectory object that can be used to map out the motion in time.
      */
     virtual shared_ptr< trajectory_base< super_space_type > > solve_motion() = 0;
+    
+    /**
+     * This function is called to reset the internal state of the planner.
+     */
+    virtual void reset_internal_state() = 0;
     
     /**
      * Parametrized constructor.
@@ -159,6 +166,11 @@ class path_planner_base : public named_object {
     virtual shared_ptr< seq_path_base< super_space_type > > solve_path() = 0;
     
     /**
+     * This function is called to reset the internal state of the planner.
+     */
+    virtual void reset_internal_state() = 0;
+    
+    /**
      * Parametrized constructor.
      * \param aName The name for this object.
      * \param aWorld A topology which represents the C-free (obstacle-free configuration space).
@@ -189,6 +201,27 @@ class path_planner_base : public named_object {
 };
 
 
+
+namespace detail {
+  
+  template <typename Topology, typename Graph, typename Reporter>
+  typename boost::enable_if< is_steerable_space< Topology >,
+  void >::type do_report_progress_impl(const Topology& space, Graph& g, Reporter& reporter) {
+    reporter.draw_motion_graph(space, g, get(&mg_edge_data<Topology>::steer_record, g));
+  };
+  
+  template <typename Topology, typename Graph, typename Reporter>
+  typename boost::disable_if< is_steerable_space< Topology >,
+  void >::type do_report_progress_impl(const Topology& space, Graph& g, Reporter& reporter) {
+    reporter.draw_motion_graph(space, g, get(&mg_vertex_data<Topology>::position,g));
+  };
+  
+  
+};
+
+
+
+
 /**
  * This class is the basic OOP interface for a sampling-based motion planner. 
  * OOP-style planners are useful to hide away
@@ -201,10 +234,12 @@ template <typename BaseType>
 class sample_based_planner : public BaseType {
   protected:
     typedef BaseType base_type;
+    typedef typename base_type::space_type space_type;
     typedef sample_based_planner<BaseType> self;
     
     std::size_t m_max_vertex_count;
     std::size_t m_progress_interval;
+    std::size_t m_iteration_count;
     std::size_t m_data_structure_flags;
     std::size_t m_planning_method_flags;
     
@@ -279,6 +314,37 @@ class sample_based_planner : public BaseType {
     
     
     /**
+     * This function invokes the path-planning reporter to report on the progress of the path-planning
+     * solver.
+     * \note This function is for internal use by the path-planning algorithm (a visitor callback).
+     * \param g The current motion-graph.
+     * \param reporter The path-planning reporter used to report on the progress of the path-planning solver.
+     */
+    template <typename Graph, typename Reporter>
+    void report_progress(Graph& g, Reporter& reporter) {
+      m_iteration_count++;
+      if(m_iteration_count % m_progress_interval == 0)
+        detail::do_report_progress_impl(*(this->m_space), g, reporter);
+    };
+    
+    /**
+     * Returns true if the solver has reached the maximum number of iterations.
+     * \return True if the solver has reached the maximum number of iterations.
+     */
+    bool has_reached_max_iterations() const {
+      return (m_iteration_count >= m_max_vertex_count);
+    };
+    
+    
+    /**
+     * This function is called to reset the internal state of the planner.
+     */
+    virtual void reset_internal_state() {
+      m_iteration_count = 0;
+    };
+    
+    
+    /**
      * Parametrized constructor.
      * \param aName The name for this object.
      * \param aWorld A topology which represents the C-free (obstacle-free configuration space).
@@ -305,6 +371,7 @@ class sample_based_planner : public BaseType {
                          base_type(aName,aWorld), 
                          m_max_vertex_count(aMaxVertexCount), 
                          m_progress_interval(aProgressInterval),
+                         m_iteration_count(0),
                          m_data_structure_flags(aDataStructureFlags),
                          m_planning_method_flags(aPlanningMethodFlags) { };
     
@@ -328,6 +395,7 @@ class sample_based_planner : public BaseType {
         & RK_SERIAL_LOAD_WITH_NAME(m_progress_interval)
         & RK_SERIAL_LOAD_WITH_NAME(m_data_structure_flags)
         & RK_SERIAL_LOAD_WITH_NAME(m_planning_method_flags);
+      m_iteration_count = 0;
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460002,1,"sample_based_planner",base_type)

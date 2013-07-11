@@ -34,8 +34,10 @@
 
 #include "graph_alg/any_graph.hpp"
 
-#include "metric_space_concepts.hpp"
+#include "metric_space_concept.hpp"
 #include "steerable_space_concept.hpp"
+
+#include "lin_alg/arithmetic_tuple.hpp"
 
 namespace ReaK {
 
@@ -59,11 +61,20 @@ namespace detail {
   
   
   template <typename Topology, bool IsSteerable>
-  struct mg_edge_data_base { };
+  struct mg_edge_data_base { 
+    mg_edge_data_base() { };
+  };
   
   template <typename Topology>
   struct mg_edge_data_base<Topology,true> { 
-    typename steerable_space_traits<Topology>::steer_record_type steer_record;
+    typedef typename steerable_space_traits<Topology>::steer_record_type SteerRecType;
+    SteerRecType steer_record;
+    
+    mg_edge_data_base() : steer_record() { };
+    mg_edge_data_base(const SteerRecType& aRec) : steer_record(aRec) { };
+#ifdef RK_ENABLE_CXX11_FEATURES
+    mg_edge_data_base(SteerRecType&& aRec) : steer_record(std::move(aRec)) { };
+#endif
   };
   
   
@@ -87,7 +98,50 @@ struct mg_vertex_data {
  * \tparam Topology The topology type on which the planning is performed.
  */
 template <typename Topology>
-struct mg_edge_data : detail::mg_edge_data_base<Topology, is_steerable_space<Topology>::value > { };
+struct mg_edge_data : detail::mg_edge_data_base<Topology, is_steerable_space<Topology>::value > { 
+  typedef detail::mg_edge_data_base<Topology, is_steerable_space<Topology>::value > base_type;
+  
+  mg_edge_data() : base_type() { };
+  
+  template <typename SteerRec>
+  mg_edge_data(const SteerRec& aRec) : base_type(aRec) { };
+#ifdef RK_ENABLE_CXX11_FEATURES
+  template <typename SteerRec>
+  mg_edge_data(SteerRec&& aRec) : base_type(std::move(aRec)) { };
+#endif
+};
+
+
+
+/**
+ * This stateless functor type can be used to print out the information about a basic motion-graph vertex.
+ * This is a printing policy type for the vlist_sbmp_report class.
+ */
+struct mg_vprinter : serialization::serializable {
+  
+  /**
+   * This call operator prints the basic information about a given vertex to a given output-stream.
+   * \tparam Vertex The vertex-descriptor type for the motion-graph.
+   * \tparam Graph The motion-graph type used by the planning algorithm.
+   * \param out The output-stream to which to print the information about the vertex.
+   * \param u The vertex whose information is to be printed.
+   * \param g The motion-graph to which the vertex belongs.
+   */
+  template <typename Vertex, typename Graph>
+  void operator()(std::ostream& out, Vertex u, const Graph& g) const {
+    using ReaK::to_vect;
+    vect_n<double> v_pos = to_vect<double>(g[u].position);
+    for(std::size_t i = 0; i < v_pos.size(); ++i)
+      out << " " << std::setw(10) << v_pos[i];
+    out << std::endl;
+  };
+  
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
+  
+  RK_RTTI_MAKE_ABSTRACT_1BASE(mg_vprinter,0xC2460012,1,"mg_vprinter",serialization::serializable)
+};
+
 
 
 
@@ -154,6 +208,47 @@ template <typename Topology>
 struct optimal_mg_edge : mg_edge_data<Topology> {
   /// The travel-distance associated to the edge (from source to target).
   double weight;
+  
+  explicit optimal_mg_edge(double aWeight = 0.0) : mg_edge_data<Topology>(), weight(aWeight) { };
+  
+  template <typename SteerRec>
+  optimal_mg_edge(double aWeight, const SteerRec& aRec) : mg_edge_data<Topology>(aRec), weight(aWeight) { };
+#ifdef RK_ENABLE_CXX11_FEATURES
+  template <typename SteerRec>
+  optimal_mg_edge(double aWeight, SteerRec&& aRec) : mg_edge_data<Topology>(std::move(aRec)), weight(aWeight) { };
+#endif
+};
+
+
+
+
+/**
+ * This stateless functor type can be used to print out the information about an optimal motion-graph vertex.
+ * This is a printing policy type for the vlist_sbmp_report class.
+ */
+struct optimal_mg_vprinter : serialization::serializable {
+  
+  /**
+   * This call operator prints all the information about a given vertex to a given output-stream.
+   * \tparam Vertex The vertex-descriptor type for the motion-graph.
+   * \tparam Graph The motion-graph type used by the planning algorithm.
+   * \param out The output-stream to which to print the information about the vertex.
+   * \param u The vertex whose information is to be printed.
+   * \param g The motion-graph to which the vertex belongs.
+   */
+  template <typename Vertex, typename Graph>
+  void operator()(std::ostream& out, Vertex u, const Graph& g) const {
+    using ReaK::to_vect;
+    vect_n<double> v_pos = to_vect<double>(g[u].position);
+    for(std::size_t i = 0; i < v_pos.size(); ++i)
+      out << " " << std::setw(10) << v_pos[i];
+    out << " " << std::setw(10) << g[u].distance_accum << std::endl;
+  };
+  
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
+  
+  RK_RTTI_MAKE_ABSTRACT_1BASE(optimal_mg_vprinter,0xC2460013,1,"optimal_mg_vprinter",serialization::serializable)
 };
 
 
@@ -223,7 +318,51 @@ struct astar_mg_vertex : optimal_mg_vertex<Topology> {
  * \tparam Topology The topology type on which the planning is performed.
  */
 template <typename Topology>
-struct astar_mg_edge : optimal_mg_edge<Topology> { };
+struct astar_mg_edge : optimal_mg_edge<Topology> { 
+  
+  explicit astar_mg_edge(double aWeight = 0.0) : optimal_mg_edge<Topology>(aWeight) { };
+  
+  template <typename SteerRec>
+  astar_mg_edge(double aWeight, const SteerRec& aRec) : optimal_mg_edge<Topology>(aWeight,aRec) { };
+#ifdef RK_ENABLE_CXX11_FEATURES
+  template <typename SteerRec>
+  astar_mg_edge(double aWeight, SteerRec&& aRec) : optimal_mg_edge<Topology>(aWeight,std::move(aRec)) { };
+#endif
+};
+
+
+
+/**
+ * This stateless functor type can be used to print out the information about an A*-like motion-graph vertex.
+ * This is a printing policy type for the vlist_sbmp_report class.
+ */
+struct astar_mg_vprinter : serialization::serializable {
+  
+  /**
+   * This call operator prints all the information about a given vertex to a given output-stream.
+   * \tparam Vertex The vertex-descriptor type for the motion-graph.
+   * \tparam Graph The motion-graph type used by the planning algorithm.
+   * \param out The output-stream to which to print the information about the vertex.
+   * \param u The vertex whose information is to be printed.
+   * \param g The motion-graph to which the vertex belongs.
+   */
+  template <typename Vertex, typename Graph>
+  void operator()(std::ostream& out, Vertex u, const Graph& g) const {
+    using ReaK::to_vect;
+    vect_n<double> v_pos = to_vect<double>(g[u].position);
+    for(std::size_t i = 0; i < v_pos.size(); ++i)
+      out << " " << std::setw(10) << v_pos[i];
+    out << " " << std::setw(10) << g[u].distance_accum
+        << " " << std::setw(10) << g[u].heuristic_value 
+        << " " << std::setw(10) << g[u].key_value << std::endl;
+  };
+  
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
+  
+  RK_RTTI_MAKE_ABSTRACT_1BASE(astar_mg_vprinter,0xC2460014,1,"astar_mg_vprinter",serialization::serializable)
+};
+
 
 
 /**

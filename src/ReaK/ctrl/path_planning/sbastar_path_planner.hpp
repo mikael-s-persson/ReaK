@@ -170,7 +170,7 @@ struct sbastar_vprinter : serialization::serializable {
   virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
   
-  RK_RTTI_MAKE_ABSTRACT_1BASE(sbastar_vprinter,0xC2460012,1,"sbastar_vprinter",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(sbastar_vprinter,0xC2460016,1,"sbastar_vprinter",serialization::serializable)
 };
 
 

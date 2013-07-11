@@ -153,7 +153,7 @@ struct fadprm_vprinter : serialization::serializable {
   virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
   
-  RK_RTTI_MAKE_ABSTRACT_1BASE(fadprm_vprinter,0xC2460016,1,"fadprm_vprinter",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(fadprm_vprinter,0xC246001A,1,"fadprm_vprinter",serialization::serializable)
 };
 
 

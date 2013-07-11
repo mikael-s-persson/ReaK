@@ -720,7 +720,7 @@ template <typename DirectedS, typename VertexProperty, typename EdgeProperty, ty
 struct property_map< pooled_adjacency_list<DirectedS, VertexProperty, EdgeProperty, GraphProperty, EdgeListS>, T Bundle::* > {
   typedef typename remove_const< Bundle >::type non_const_Bundle;
   typedef typename remove_const< T >::type non_const_T;
-  typedef is_same< non_const_Bundle, typename pooled_adjacency_list<DirectedS, VertexProperty, EdgeProperty, GraphProperty, EdgeListS>::vertex_bundled > is_vertex_bundle;
+  typedef is_convertible< typename pooled_adjacency_list<DirectedS, VertexProperty, EdgeProperty, GraphProperty, EdgeListS>::vertex_bundled*, non_const_Bundle* > is_vertex_bundle;
   typedef bundle_member_property_map< non_const_T, pooled_adjacency_list<DirectedS, VertexProperty, EdgeProperty, GraphProperty, EdgeListS>,
     typename mpl::if_< is_vertex_bundle, vertex_bundle_t, edge_bundle_t >::type > type;
   typedef bundle_member_property_map< const non_const_T, const pooled_adjacency_list<DirectedS, VertexProperty, EdgeProperty, GraphProperty, EdgeListS>,

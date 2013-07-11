@@ -431,14 +431,15 @@ MEAQR_sbastar_planner       0xC246000E   bin: 1100 0010 0100 0110 0000 0000 0000
 sbmp_point_recorder         0xC246000F   bin: 1100 0010 0100 0110 0000 0000 0000 1111  D-R
 least_cost_sbmp_report      0xC2460010   bin: 1100 0010 0100 0110 0000 0000 0001 0000  D-R
 vlist_sbmp_report           0xC2460011   bin: 1100 0010 0100 0110 0000 0000 0001 0001  D-R
-sbastar_vprinter            0xC2460012   bin: 1100 0010 0100 0110 0000 0000 0001 0010  D-R
-rrt_vprinter                0xC2460013   bin: 1100 0010 0100 0110 0000 0000 0001 0011  D-R
-rrtstar_vprinter            0xC2460014   bin: 1100 0010 0100 0110 0000 0000 0001 0100  D-R
+mg_vprinter                 0xC2460012   bin: 1100 0010 0100 0110 0000 0000 0001 0010  D-R
+optimal_mg_vprinter         0xC2460013   bin: 1100 0010 0100 0110 0000 0000 0001 0011  D-R
+astar_mg_vprinter           0xC2460014   bin: 1100 0010 0100 0110 0000 0000 0001 0100  D-R
 prm_vprinter                0xC2460015   bin: 1100 0010 0100 0110 0000 0000 0001 0101  D-R
-fadprm_vprinter             0xC2460016   bin: 1100 0010 0100 0110 0000 0000 0001 0110  D-R
+sbastar_vprinter            0xC2460016   bin: 1100 0010 0100 0110 0000 0000 0001 0110  D-R
 any_sbmp_reporter           0xC2460017   bin: 1100 0010 0100 0110 0000 0000 0001 0111  D-R
 type_erased_sbmp_reporter   0xC2460018   bin: 1100 0010 0100 0110 0000 0000 0001 1000  D-R
 any_sbmp_reporter_chain     0xC2460019   bin: 1100 0010 0100 0110 0000 0000 0001 1001  D-R
+fadprm_vprinter             0xC246001A   bin: 1100 0010 0100 0110 0000 0000 0001 1010  D-R
 
 
 
