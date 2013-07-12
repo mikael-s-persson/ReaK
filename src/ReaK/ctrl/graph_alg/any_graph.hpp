@@ -102,6 +102,9 @@ class any_graph {
     virtual vertex_bundled get_vertex_bundled(const vertex_descriptor& aVertex) const = 0;
     virtual edge_bundled get_edge_bundled(const edge_descriptor& aEdge) const = 0;
     
+    virtual bool equal_vertex_descriptors(const vertex_descriptor& aU, const vertex_descriptor& aV) const = 0;
+    virtual bool equal_edge_descriptors(const edge_descriptor& aE, const edge_descriptor& aF) const = 0;
+    
   public:
     
     vertex_bundled operator[](const vertex_descriptor& aVertex) const { return get_vertex_bundled(aVertex); };
@@ -131,6 +134,15 @@ class any_graph {
     
     virtual std::pair<edge_descriptor, bool> add_edge(const vertex_descriptor& aU, const vertex_descriptor& aV) const = 0;
     virtual void remove_edge(const edge_descriptor& aEdge) const = 0;
+    
+    
+    bool equal_descriptors(const vertex_descriptor& aU, const vertex_descriptor& aV) const {
+      
+    };
+    bool equal_descriptors(const edge_descriptor& aE, const edge_descriptor& aF) const {
+      
+    };
+    
     
     virtual ~any_graph() { };
     
@@ -661,6 +673,15 @@ class type_erased_graph : public any_graph {
     virtual edge_bundled get_edge_bundled(const edge_descriptor& aEdge) const {
       return edge_bundled((*p_graph)[boost::any_cast<real_edge_desc>(aEdge.base)]);
     };
+    
+    virtual bool equal_vertex_descriptors(const vertex_descriptor& aU, const vertex_descriptor& aV) const {
+      return (boost::any_cast<real_vertex_desc>(aU.base) == boost::any_cast<real_vertex_desc>(aV.base));
+    };
+    
+    virtual bool equal_edge_descriptors(const edge_descriptor& aE, const edge_descriptor& aF) const {
+      return (boost::any_cast<real_edge_desc>(aE.base) == boost::any_cast<real_edge_desc>(aF.base));
+    };
+    
     
   public:
     
