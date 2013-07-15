@@ -388,7 +388,9 @@ struct is_metric_space< temporal_space<Topology, TimeTopology, TemporalDistanceM
 template <typename Topology, typename TimeTopology, typename TemporalDistanceMetric>
 struct is_point_distribution< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > : boost::mpl::and_< is_point_distribution<Topology>, is_point_distribution<TimeTopology> > { };
 
-
+template <typename Topology, typename TimeTopology, typename TemporalDistanceMetric>
+struct is_temporal_space< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > : 
+       is_metric_space< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > { };
 
 
 };

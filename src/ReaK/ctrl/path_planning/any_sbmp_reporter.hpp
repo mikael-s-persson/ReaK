@@ -154,7 +154,7 @@ template <typename FreeSpaceType, typename Reporter>
 class type_erased_sbmp_reporter : public any_sbmp_reporter<FreeSpaceType> {
   public:
     typedef any_sbmp_reporter<FreeSpaceType> base_type;
-    typedef type_erased_sbmp_reporter<FreeSpaceType, MotionGraph, Reporter> self;
+    typedef type_erased_sbmp_reporter<FreeSpaceType, Reporter> self;
     typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpaceType;
     
   protected:

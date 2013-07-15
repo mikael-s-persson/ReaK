@@ -111,37 +111,14 @@ struct mg_edge_data : detail::mg_edge_data_base<Topology, is_steerable_space<Top
 #endif
 };
 
-
-
-/**
- * This stateless functor type can be used to print out the information about a basic motion-graph vertex.
- * This is a printing policy type for the vlist_sbmp_report class.
- */
-struct mg_vprinter : serialization::serializable {
-  
-  /**
-   * This call operator prints the basic information about a given vertex to a given output-stream.
-   * \tparam Vertex The vertex-descriptor type for the motion-graph.
-   * \tparam Graph The motion-graph type used by the planning algorithm.
-   * \param out The output-stream to which to print the information about the vertex.
-   * \param u The vertex whose information is to be printed.
-   * \param g The motion-graph to which the vertex belongs.
-   */
-  template <typename Vertex, typename Graph>
-  void operator()(std::ostream& out, Vertex u, const Graph& g) const {
-    using ReaK::to_vect;
-    vect_n<double> v_pos = to_vect<double>(g[u].position);
-    for(std::size_t i = 0; i < v_pos.size(); ++i)
-      out << " " << std::setw(10) << v_pos[i];
-    out << std::endl;
-  };
-  
-  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
-  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
-  
-  RK_RTTI_MAKE_ABSTRACT_1BASE(mg_vprinter,0xC2460012,1,"mg_vprinter",serialization::serializable)
+template <typename Topology>
+void print_mg_vertex(std::ostream& out, const mg_vertex_data<Topology>& vp) const {
+  using ReaK::to_vect;
+  vect_n<double> v_pos = to_vect<double>(vp.position);
+  for(std::size_t i = 0; i < v_pos.size(); ++i)
+    out << " " << std::setw(10) << v_pos[i];
+  out << std::endl;
 };
-
 
 
 
@@ -219,36 +196,13 @@ struct optimal_mg_edge : mg_edge_data<Topology> {
 #endif
 };
 
-
-
-
-/**
- * This stateless functor type can be used to print out the information about an optimal motion-graph vertex.
- * This is a printing policy type for the vlist_sbmp_report class.
- */
-struct optimal_mg_vprinter : serialization::serializable {
-  
-  /**
-   * This call operator prints all the information about a given vertex to a given output-stream.
-   * \tparam Vertex The vertex-descriptor type for the motion-graph.
-   * \tparam Graph The motion-graph type used by the planning algorithm.
-   * \param out The output-stream to which to print the information about the vertex.
-   * \param u The vertex whose information is to be printed.
-   * \param g The motion-graph to which the vertex belongs.
-   */
-  template <typename Vertex, typename Graph>
-  void operator()(std::ostream& out, Vertex u, const Graph& g) const {
-    using ReaK::to_vect;
-    vect_n<double> v_pos = to_vect<double>(g[u].position);
-    for(std::size_t i = 0; i < v_pos.size(); ++i)
-      out << " " << std::setw(10) << v_pos[i];
-    out << " " << std::setw(10) << g[u].distance_accum << std::endl;
-  };
-  
-  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
-  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
-  
-  RK_RTTI_MAKE_ABSTRACT_1BASE(optimal_mg_vprinter,0xC2460013,1,"optimal_mg_vprinter",serialization::serializable)
+template <typename Topology>
+void print_mg_vertex(std::ostream& out, const optimal_mg_vertex<Topology>& vp) const {
+  using ReaK::to_vect;
+  vect_n<double> v_pos = to_vect<double>(vp.position);
+  for(std::size_t i = 0; i < v_pos.size(); ++i)
+    out << " " << std::setw(10) << v_pos[i];
+  out << " " << std::setw(10) << vp.distance_accum << std::endl;
 };
 
 
@@ -311,56 +265,20 @@ struct astar_mg_vertex : optimal_mg_vertex<Topology> {
   double heuristic_value;
   /// The key-value associated to the vertex, computed by the algorithm (usually a combination of accumulated and heuristic distances).
   double key_value;
+  /// The color-value associated to the vertex, computed by the algorithm.
+  boost::default_color_type astar_color;
 };
 
-/**
- * This struct contains the data required on a per-edge basis for any A*-like path-planning algorithm (heuristically driven).
- * \tparam Topology The topology type on which the planning is performed.
- */
+
 template <typename Topology>
-struct astar_mg_edge : optimal_mg_edge<Topology> { 
-  
-  explicit astar_mg_edge(double aWeight = 0.0) : optimal_mg_edge<Topology>(aWeight) { };
-  
-  template <typename SteerRec>
-  astar_mg_edge(double aWeight, const SteerRec& aRec) : optimal_mg_edge<Topology>(aWeight,aRec) { };
-#ifdef RK_ENABLE_CXX11_FEATURES
-  template <typename SteerRec>
-  astar_mg_edge(double aWeight, SteerRec&& aRec) : optimal_mg_edge<Topology>(aWeight,std::move(aRec)) { };
-#endif
-};
-
-
-
-/**
- * This stateless functor type can be used to print out the information about an A*-like motion-graph vertex.
- * This is a printing policy type for the vlist_sbmp_report class.
- */
-struct astar_mg_vprinter : serialization::serializable {
-  
-  /**
-   * This call operator prints all the information about a given vertex to a given output-stream.
-   * \tparam Vertex The vertex-descriptor type for the motion-graph.
-   * \tparam Graph The motion-graph type used by the planning algorithm.
-   * \param out The output-stream to which to print the information about the vertex.
-   * \param u The vertex whose information is to be printed.
-   * \param g The motion-graph to which the vertex belongs.
-   */
-  template <typename Vertex, typename Graph>
-  void operator()(std::ostream& out, Vertex u, const Graph& g) const {
-    using ReaK::to_vect;
-    vect_n<double> v_pos = to_vect<double>(g[u].position);
-    for(std::size_t i = 0; i < v_pos.size(); ++i)
-      out << " " << std::setw(10) << v_pos[i];
-    out << " " << std::setw(10) << g[u].distance_accum
-        << " " << std::setw(10) << g[u].heuristic_value 
-        << " " << std::setw(10) << g[u].key_value << std::endl;
-  };
-  
-  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
-  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
-  
-  RK_RTTI_MAKE_ABSTRACT_1BASE(astar_mg_vprinter,0xC2460014,1,"astar_mg_vprinter",serialization::serializable)
+void print_mg_vertex(std::ostream& out, const astar_mg_vertex<Topology>& vp) const {
+  using ReaK::to_vect;
+  vect_n<double> v_pos = to_vect<double>(vp.position);
+  for(std::size_t i = 0; i < v_pos.size(); ++i)
+    out << " " << std::setw(10) << v_pos[i];
+  out << " " << std::setw(10) << vp.distance_accum
+      << " " << std::setw(10) << vp.heuristic_value 
+      << " " << std::setw(10) << vp.key_value << std::endl;
 };
 
 
@@ -384,6 +302,8 @@ class any_astar_motion_graph : public any_optimal_motion_graph<Topology, Graph> 
         return static_cast<void*>(&((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].heuristic_value));
       if(aProperty == "vertex_key_value")
         return static_cast<void*>(&((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].key_value));
+      if(aProperty == "vertex_astar_color")
+        return static_cast<void*>(&((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].astar_color));
       
       return base_type::get_property_by_ptr(aProperty, aElement);
     };
@@ -394,6 +314,8 @@ class any_astar_motion_graph : public any_optimal_motion_graph<Topology, Graph> 
         return boost::any((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].heuristic_value);
       if(aProperty == "vertex_key_value")
         return boost::any((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].key_value);
+      if(aProperty == "vertex_astar_color")
+        return boost::any((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].astar_color);
       
       return base_type::get_property_by_any(aProperty, aElement);
     };
@@ -404,6 +326,168 @@ class any_astar_motion_graph : public any_optimal_motion_graph<Topology, Graph> 
     
 };
 
+
+
+
+
+/**
+ * This struct contains the data required on a per-vertex basis for calculating the density
+ * from a survey (non-recursive) of the neighborhood.
+ * \tparam BaseVertex The type of the underlying vertex.
+ */
+template <typename BaseVertex>
+struct dense_mg_vertex : BaseVertex {
+  /// The density-value associated to the vertex, calculated by a survey of the neighborhood.
+  double density;
+};
+
+template <typename BaseVertex>
+void print_mg_vertex(std::ostream& out, const dense_mg_vertex<BaseVertex>& vp) const {
+  print_mg_vertex(out, static_cast<const BaseVertex&>(vp));
+  out << " " << std::setw(10) << vp.density;
+};
+
+/**
+ * This class template can be used as a type-erased encapsulation of a graph used 
+ * by a path-planning algorithm that uses a (non-recursive) density metric.
+ * \tparam BaseMotionGraph The type-erased motion-graph base-type used.
+ */
+template <typename BaseMotionGraph>
+class any_dense_motion_graph : public BaseMotionGraph {
+  protected:
+    typedef any_dense_motion_graph<BaseMotionGraph> self;
+    typedef BaseMotionGraph base_type;
+    typedef typename BaseMotionGraph::real_vertex_desc real_vertex_desc;
+    typedef typename BaseMotionGraph::real_edge_desc real_edge_desc;
+    
+    virtual void* get_property_by_ptr(const std::string& aProperty, const boost::any& aElement) const {
+      
+      if(aProperty == "vertex_density")
+        return static_cast<void*>(&((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].density));
+      
+      return base_type::get_property_by_ptr(aProperty, aElement);
+    };
+    
+    virtual boost::any get_property_by_any(const std::string& aProperty, const boost::any& aElement) const {
+      
+      if(aProperty == "vertex_density")
+        return boost::any((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].density);
+      
+      return base_type::get_property_by_any(aProperty, aElement);
+    };
+    
+  public:
+    
+    any_dense_motion_graph(Graph* aPGraph) : base_type(aPGraph) { };
+    
+};
+
+
+/**
+ * This struct contains the data required on a per-vertex basis for calculating the density
+ * from a recursive accumulation of the neighborhood statistics (e.g., recursive KL-divergence).
+ * \tparam BaseVertex The type of the underlying vertex.
+ */
+template <typename BaseVertex>
+struct recursive_dense_mg_vertex : BaseVertex {
+  /// The density associated to the vertex, which represents the probability that a sample drawn from the neighborhood of the vertex will not yield any information gain.
+  double density;
+  /// Keeps track of the number of neighbors of the vertex.
+  std::size_t expansion_trials;
+  /// The constriction associated to the vertex, which represents the probability that a sample drawn from the neighborhood of the vertex will be colliding (or unreachable by a collision-free path).
+  double constriction;
+  /// Keeps track of the number of neighbors of the vertex that could not be connected to it due to a collision.
+  std::size_t collision_count;
+};
+
+template <typename BaseVertex>
+void print_mg_vertex(std::ostream& out, const recursive_dense_mg_vertex<BaseVertex>& vp) const {
+  print_mg_vertex(out, static_cast<const BaseVertex&>(vp));
+  out << " " << std::setw(10) << vp.density
+      << " " << std::setw(10) << vp.expansion_trials
+      << " " << std::setw(10) << vp.constriction
+      << " " << std::setw(10) << vp.collision_count;
+};
+
+/**
+ * This class template can be used as a type-erased encapsulation of a graph used 
+ * by a path-planning algorithm that uses a recursive density metric.
+ * \tparam BaseMotionGraph The type-erased motion-graph base-type used.
+ */
+template <typename BaseMotionGraph>
+class any_recursive_dense_mg : public BaseMotionGraph {
+  protected:
+    typedef any_recursive_dense_mg<BaseMotionGraph> self;
+    typedef BaseMotionGraph base_type;
+    typedef typename BaseMotionGraph::real_vertex_desc real_vertex_desc;
+    typedef typename BaseMotionGraph::real_edge_desc real_edge_desc;
+    
+    virtual void* get_property_by_ptr(const std::string& aProperty, const boost::any& aElement) const {
+      
+      if(aProperty == "vertex_density")
+        return static_cast<void*>(&((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].density));
+      if(aProperty == "vertex_constriction")
+        return static_cast<void*>(&((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].constriction));
+      if(aProperty == "vertex_expansion_trials")
+        return static_cast<void*>(&((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].expansion_trials));
+      if(aProperty == "vertex_collision_count")
+        return static_cast<void*>(&((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].collision_count));
+      
+      return base_type::get_property_by_ptr(aProperty, aElement);
+    };
+    
+    virtual boost::any get_property_by_any(const std::string& aProperty, const boost::any& aElement) const {
+      
+      if(aProperty == "vertex_density")
+        return boost::any((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].density);
+      if(aProperty == "vertex_constriction")
+        return boost::any((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].constriction);
+      if(aProperty == "vertex_expansion_trials")
+        return boost::any((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].expansion_trials);
+      if(aProperty == "vertex_collision_count")
+        return boost::any((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].collision_count);
+      
+      return base_type::get_property_by_any(aProperty, aElement);
+    };
+    
+  public:
+    
+    any_recursive_dense_mg(Graph* aPGraph) : base_type(aPGraph) { };
+    
+};
+
+
+
+
+
+
+
+
+/**
+ * This stateless functor type can be used to print out the information about an A*-like motion-graph vertex.
+ * This is a printing policy type for the vlist_sbmp_report class.
+ */
+struct mg_vertex_printer : serialization::serializable {
+  
+  /**
+   * This call operator prints all the information about a given vertex to a given output-stream.
+   * \tparam Vertex The vertex-descriptor type for the motion-graph.
+   * \tparam Graph The motion-graph type used by the planning algorithm.
+   * \param out The output-stream to which to print the information about the vertex.
+   * \param u The vertex whose information is to be printed.
+   * \param g The motion-graph to which the vertex belongs.
+   */
+  template <typename Vertex, typename Graph>
+  void operator()(std::ostream& out, Vertex u, const Graph& g) const {
+    print_mg_vertex(out, g[u]);
+    out << std::endl;
+  };
+  
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
+  
+  RK_RTTI_MAKE_ABSTRACT_1BASE(mg_vertex_printer,0xC2460014,1,"mg_vertex_printer",serialization::serializable)
+};
 
 
 

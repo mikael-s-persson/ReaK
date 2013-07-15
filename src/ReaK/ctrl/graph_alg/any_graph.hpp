@@ -685,6 +685,9 @@ class type_erased_graph : public any_graph {
     
   public:
     
+    Graph& base() { return *p_graph; };
+    const Graph& base() const { return *p_graph; };
+    
     type_erased_graph(Graph* aPGraph) : p_graph(aPGraph) { };
     
     virtual edge_range edges() const {

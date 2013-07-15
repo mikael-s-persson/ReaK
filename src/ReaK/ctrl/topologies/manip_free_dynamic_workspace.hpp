@@ -340,6 +340,9 @@ struct is_metric_space< manip_dynamic_env<RateLimitedJointSpace, InterpMethodTag
 template <typename RateLimitedJointSpace, typename InterpMethodTag>
 struct is_point_distribution< manip_dynamic_env<RateLimitedJointSpace, InterpMethodTag> > : boost::mpl::true_ { };
 
+template <typename RateLimitedJointSpace, typename InterpMethodTag>
+struct is_temporal_space< manip_dynamic_env<RateLimitedJointSpace, InterpMethodTag> > : boost::mpl::true_ { };
+
 
 
 

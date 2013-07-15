@@ -50,82 +50,11 @@
 
 #include "path_planner_options.hpp"
 #include "any_motion_graphs.hpp"
+#include "planning_queries.hpp"
 
 namespace ReaK {
   
 namespace pp {
-
-/**
- * This class is the basic OOP interface for a motion planner. 
- * OOP-style planners are useful to hide away
- * the cumbersome details of calling the underlying planning algorithms which are 
- * generic programming (GP) style and thus provide a lot more flexibility but are difficult
- * to deal with in the user-space. The OOP planners are meant to offer a much simpler interface,
- * i.e., a member function that "solves the problem" and returns the solution path or trajectory.
- */
-template <typename FreeSpaceType>
-class motion_planner_base : public named_object {
-  public:
-    typedef motion_planner_base<FreeSpaceType> self;
-    typedef FreeSpaceType space_type;
-    typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
-    
-    BOOST_CONCEPT_ASSERT((SubSpaceConcept<FreeSpaceType>));
-    
-    typedef typename topology_traits< super_space_type >::point_type point_type;
-    typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
-    
-
-  protected:
-    
-    shared_ptr< space_type > m_space;
-    
-  public:
-    
-    /**
-     * This function computes a valid trajectory in the C-free. If it cannot 
-     * achieve a valid trajectory, an exception will be thrown. This algorithmic
-     * motion solver class is such that any settings that ought to be set for the 
-     * motion planning algorithm should be set before calling this function, otherwise
-     * the function is likely to fail.
-     * \return The trajectory object that can be used to map out the motion in time.
-     */
-    virtual shared_ptr< trajectory_base< super_space_type > > solve_motion() = 0;
-    
-    /**
-     * This function is called to reset the internal state of the planner.
-     */
-    virtual void reset_internal_state() = 0;
-    
-    /**
-     * Parametrized constructor.
-     * \param aName The name for this object.
-     * \param aWorld A topology which represents the C-free (obstacle-free configuration space).
-     */
-    motion_planner_base(const std::string& aName,
-                        const shared_ptr< space_type >& aWorld) :
-                        named_object(),
-                        m_space(aWorld) { setName(aName); };
-    
-    virtual ~motion_planner_base() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(m_space);
-    };
-
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(m_space);
-    };
-
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460000,1,"motion_planner_base",named_object)
-};
 
 
 /**
@@ -137,9 +66,9 @@ class motion_planner_base : public named_object {
  * i.e., a member function that "solves the problem" and returns the solution path or trajectory.
  */
 template <typename FreeSpaceType>
-class path_planner_base : public named_object {
+class planner_base : public named_object {
   public:
-    typedef path_planner_base<FreeSpaceType> self;
+    typedef planner_base<FreeSpaceType> self;
     typedef FreeSpaceType space_type;
     typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
     
@@ -148,7 +77,6 @@ class path_planner_base : public named_object {
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
     
-
   protected:
     
     shared_ptr< space_type > m_space;
@@ -161,9 +89,10 @@ class path_planner_base : public named_object {
      * path solver class is such that any settings that ought to be set for the 
      * path planning algorithm should be set before calling this function, otherwise
      * the function is likely to fail.
-     * \return The path object that can be used to map out the path.
+     * \param aQuery The query object that defines as input the parameters of the query, 
+     *               and as output, the recorded solutions.
      */
-    virtual shared_ptr< seq_path_base< super_space_type > > solve_path() = 0;
+    virtual void solve_planning_query(planning_query<FreeSpaceType>& aQuery) = 0;
     
     /**
      * This function is called to reset the internal state of the planner.
@@ -171,16 +100,22 @@ class path_planner_base : public named_object {
     virtual void reset_internal_state() = 0;
     
     /**
+     * Returns true if the solver should keep on going trying to solve the path-planning problem.
+     * \return True if the solver should keep on going trying to solve the path-planning problem.
+     */
+    virtual bool keep_going() const { return true; };
+    
+    /**
      * Parametrized constructor.
      * \param aName The name for this object.
      * \param aWorld A topology which represents the C-free (obstacle-free configuration space).
      */
-    path_planner_base(const std::string& aName,
-                        const shared_ptr< space_type >& aWorld) :
-                        named_object(),
-                        m_space(aWorld) { setName(aName); };
+    planner_base(const std::string& aName,
+                 const shared_ptr< space_type >& aWorld) :
+                 named_object(),
+                 m_space(aWorld) { setName(aName); };
     
-    virtual ~path_planner_base() { };
+    virtual ~planner_base() { };
     
     
 /*******************************************************************************
@@ -197,7 +132,7 @@ class path_planner_base : public named_object {
       A & RK_SERIAL_LOAD_WITH_NAME(m_space);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460001,1,"path_planner_base",named_object)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460001,1,"planner_base",named_object)
 };
 
 
@@ -230,12 +165,14 @@ namespace detail {
  * to deal with in the user-space. The OOP planners are meant to offer a much simpler interface,
  * i.e., a member function that "solves the problem" and returns the solution path or trajectory.
  */
-template <typename BaseType>
-class sample_based_planner : public BaseType {
+template <typename FreeSpaceType>
+class sample_based_planner : public planner_base<FreeSpaceType> {
   protected:
-    typedef BaseType base_type;
+    typedef planner_base<FreeSpaceType> base_type;
     typedef typename base_type::space_type space_type;
-    typedef sample_based_planner<BaseType> self;
+    typedef sample_based_planner<FreeSpaceType> self;
+    
+    typedef typename base_type::solution_record_ptr solution_record_ptr;
     
     std::size_t m_max_vertex_count;
     std::size_t m_progress_interval;
@@ -243,6 +180,12 @@ class sample_based_planner : public BaseType {
     std::size_t m_data_structure_flags;
     std::size_t m_planning_method_flags;
     
+    double m_steer_progress_tol;
+    double m_connection_tol;
+    double m_sampling_radius;
+    std::size_t m_space_dimensionality;
+    
+    any_sbmp_reporter_chain<space_type> m_reporter;
     
   public:
     
@@ -314,17 +257,78 @@ class sample_based_planner : public BaseType {
     
     
     /**
+     * Returns the steer progress tolerance (in the topology's distance metric) used by this planner when steering.
+     * \return The steer progress tolerance used by this planner.
+     */
+    double get_steer_progress_tolerance() const { return m_steer_progress_tol; };
+    /**
+     * Sets the steer progress tolerance (in the topology's distance metric) to be used by this planner when steering.
+     * \param aSteerProgressTolerance The steer progress tolerance to be used by this planner when making connections.
+     */
+    void set_steer_progress_tolerance(double aSteerProgressTolerance) { m_steer_progress_tol = aSteerProgressTolerance; };
+    
+    /**
+     * Returns the connection tolerance (in the topology's distance metric) used by this planner when making connections.
+     * \return The connection tolerance used by this planner.
+     */
+    double get_connection_tolerance() const { return m_connection_tol; };
+    /**
+     * Sets the connection tolerance (in the topology's distance metric) to be used by this planner when making connections.
+     * \param aConnectionTolerance The connection tolerance to be used by this planner when making connections.
+     */
+    void set_connection_tolerance(double aConnectionTolerance) { m_connection_tol = aConnectionTolerance; };
+    
+    /**
+     * Returns the sampling radius (in the topology's distance metric) used by this planner when doing random walks.
+     * \return The sampling radius used by this planner.
+     */
+    double get_sampling_radius() const { return m_sampling_radius; };
+    /**
+     * Sets the sampling radius (in the topology's distance metric) to be used by this planner when doing random walks.
+     * \param aSamplingRadius The sampling radius to be used by this planner when doing random walks.
+     */
+    void set_sampling_radius(double aSamplingRadius) { m_sampling_radius = aSamplingRadius; };
+    
+    /**
+     * Returns the dimensionality of the space used by this planner.
+     * \return The dimensionality of the space used by this planner.
+     */
+    std::size_t get_space_dimensionality() const { return m_space_dimensionality; };
+    /**
+     * Sets the dimensionality of the space used by this planner.
+     * \param aSpaceDimensionality The dimensionality of the space used by this planner.
+     */
+    void set_space_dimensionality(std::size_t aSpaceDimensionality) { m_space_dimensionality = aSpaceDimensionality; };
+    
+    
+    /**
+     * Returns a const-reference to the path-planning reporter used by this planner.
+     * \return A const-reference to the path-planning reporter used by this planner.
+     */
+    const any_sbmp_reporter_chain<space_type>& get_reporter() const { return m_reporter; };
+    /**
+     * Sets the path-planning reporter to be used by this planner.
+     * \param aNewReporter The path-planning reporter to be used by this planner.
+     */
+    void set_reporter(const any_sbmp_reporter_chain<space_type>& aNewReporter = any_sbmp_reporter_chain<space_type>()) { m_reporter = aNewReporter; };
+    
+    
+    /**
      * This function invokes the path-planning reporter to report on the progress of the path-planning
      * solver.
      * \note This function is for internal use by the path-planning algorithm (a visitor callback).
      * \param g The current motion-graph.
      * \param reporter The path-planning reporter used to report on the progress of the path-planning solver.
      */
-    template <typename Graph, typename Reporter>
-    void report_progress(Graph& g, Reporter& reporter) {
+    template <typename Graph>
+    void report_progress(Graph& g) {
       m_iteration_count++;
       if(m_iteration_count % m_progress_interval == 0)
-        detail::do_report_progress_impl(*(this->m_space), g, reporter);
+        detail::do_report_progress_impl(*(this->m_space), g, m_reporter);
+    };
+    
+    virtual void report_solution(const solution_record_ptr& srp) {
+      m_reporter.draw_solution(*(this->m_space), srp);
     };
     
     /**
@@ -342,6 +346,12 @@ class sample_based_planner : public BaseType {
     virtual void reset_internal_state() {
       m_iteration_count = 0;
     };
+    
+    /**
+     * Returns true if the solver should keep on going trying to solve the path-planning problem.
+     * \return True if the solver should keep on going trying to solve the path-planning problem.
+     */
+    virtual bool keep_going() const { return !has_reached_max_iterations(); };
     
     
     /**
@@ -361,19 +371,34 @@ class sample_based_planner : public BaseType {
      *                             NOMINAL_PLANNER_ONLY or any combination of PLAN_WITH_VORONOI_PULL, 
      *                             PLAN_WITH_NARROW_PASSAGE_PUSH and PLAN_WITH_ANYTIME_HEURISTIC, UNIDIRECTIONAL_PLANNING 
      *                             or BIDIRECTIONAL_PLANNING, and USE_BRANCH_AND_BOUND_PRUNING_FLAG. 
+     * \param aSteerProgressTolerance The steer progress tolerance to be used by this planner when making connections.
+     * \param aConnectionTolerance The connection tolerance to be used by this planner when making connections.
+     * \param aSamplingRadius The sampling radius to be used by this planner when doing random walks.
+     * \param aSpaceDimensionality The dimensionality of the space used by this planner.
+     * \param aReporter The path-planning reporter to be used by this planner.
      */
     sample_based_planner(const std::string& aName,
                          const shared_ptr< typename base_type::space_type >& aWorld, 
                          std::size_t aMaxVertexCount = 0, 
                          std::size_t aProgressInterval = 0,
                          std::size_t aDataStructureFlags = ADJ_LIST_MOTION_GRAPH | DVP_BF2_TREE_KNN,
-                         std::size_t aPlanningMethodFlags = 0) :
+                         std::size_t aPlanningMethodFlags = 0,
+                         double aSteerProgressTolerance = 0.1,
+                         double aConnectionTolerance = 0.1,
+                         double aSamplingRadius = 1.0,
+                         std::size_t aSpaceDimensionality = 1,
+                         const any_sbmp_reporter_chain<space_type>& aReporter = any_sbmp_reporter_chain<space_type>()) :
                          base_type(aName,aWorld), 
                          m_max_vertex_count(aMaxVertexCount), 
                          m_progress_interval(aProgressInterval),
                          m_iteration_count(0),
                          m_data_structure_flags(aDataStructureFlags),
-                         m_planning_method_flags(aPlanningMethodFlags) { };
+                         m_planning_method_flags(aPlanningMethodFlags),
+                         m_steer_progress_tol(aSteerProgressTolerance),
+                         m_connection_tol(aConnectionTolerance),
+                         m_sampling_radius(aSamplingRadius),
+                         m_space_dimensionality(aSpaceDimensionality),
+                         m_reporter(aReporter) { };
     
     virtual ~sample_based_planner() { };
     
@@ -386,7 +411,12 @@ class sample_based_planner : public BaseType {
       A & RK_SERIAL_SAVE_WITH_NAME(m_max_vertex_count)
         & RK_SERIAL_SAVE_WITH_NAME(m_progress_interval)
         & RK_SERIAL_SAVE_WITH_NAME(m_data_structure_flags)
-        & RK_SERIAL_SAVE_WITH_NAME(m_planning_method_flags);
+        & RK_SERIAL_SAVE_WITH_NAME(m_planning_method_flags)
+        & RK_SERIAL_SAVE_WITH_NAME(m_steer_progress_tol)
+        & RK_SERIAL_SAVE_WITH_NAME(m_connection_tol)
+        & RK_SERIAL_SAVE_WITH_NAME(m_sampling_radius)
+        & RK_SERIAL_SAVE_WITH_NAME(m_space_dimensionality)
+        & RK_SERIAL_SAVE_WITH_NAME(m_reporter);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
@@ -394,7 +424,12 @@ class sample_based_planner : public BaseType {
       A & RK_SERIAL_LOAD_WITH_NAME(m_max_vertex_count)
         & RK_SERIAL_LOAD_WITH_NAME(m_progress_interval)
         & RK_SERIAL_LOAD_WITH_NAME(m_data_structure_flags)
-        & RK_SERIAL_LOAD_WITH_NAME(m_planning_method_flags);
+        & RK_SERIAL_LOAD_WITH_NAME(m_planning_method_flags)
+        & RK_SERIAL_LOAD_WITH_NAME(m_steer_progress_tol)
+        & RK_SERIAL_LOAD_WITH_NAME(m_connection_tol)
+        & RK_SERIAL_LOAD_WITH_NAME(m_sampling_radius)
+        & RK_SERIAL_LOAD_WITH_NAME(m_space_dimensionality)
+        & RK_SERIAL_LOAD_WITH_NAME(m_reporter);
       m_iteration_count = 0;
     };
 

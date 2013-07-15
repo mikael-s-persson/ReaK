@@ -97,6 +97,9 @@ struct TemporalSpaceConcept : public TopologyConcept< TemporalSpace > {
   
 };
 
+template <typename TemporalSpace>
+struct is_temporal_space : boost::mpl::false_ { };
+
 
 };
 

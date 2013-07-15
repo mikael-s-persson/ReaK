@@ -74,10 +74,23 @@ class planning_query : public named_object {
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
     
+    typedef typename boost::if_< is_temporal_space<space_type>,
+      trajectory_base< super_space_type >,
+      seq_path_base< super_space_type > >::type solution_base_type;
+    
+    typedef shared_ptr< solution_base_type > solution_record_ptr;
     
   public:
     
     shared_ptr< space_type > space;
+    
+    /**
+     * Returns the best solution distance registered in this query object.
+     * \return The best solution distance registered in this query object.
+     */
+    virtual double get_best_solution_distance() const {
+      return std::numeric_limits<double>::infinity();
+    };
     
     /**
      * Returns true if the solver should keep on going trying to solve the path-planning problem.
@@ -90,29 +103,56 @@ class planning_query : public named_object {
      */
     virtual void reset_solution_records() { };
     
+    virtual const point_type& get_start_position() const = 0;
+    
+    /**
+     * This function returns the distance of the collision-free travel from the given point to the 
+     * goal region.
+     * \param pos The position from which to try and reach the goal.
+     * \return The distance of the collision-free travel from the given point to the goal region.
+     */
+    virtual double get_distance_to_goal(const point_type& pos) { return std::numeric_limits<double>::infinity(); };
+    
+    /**
+     * This function returns the heuristic distance of the bird-flight travel from the given 
+     * point to the goal region.
+     * \param pos The position from which to reach the goal.
+     * \return The heuristic distance of the bird-flight travel from the given 
+     * point to the goal region.
+     */
+    virtual double get_heuristic_to_goal(const point_type& pos) { return std::numeric_limits<double>::infinity(); };
+    
   protected:
     
-    virtual bool register_solution_from_optimal_mg(graph::any_graph::vertex_descriptor start_node, 
-                                                   graph::any_graph::vertex_descriptor goal_node, 
-                                                   graph::any_graph& g) = 0;
+    virtual solution_record_ptr 
+      register_solution_from_optimal_mg(graph::any_graph::vertex_descriptor start_node, 
+                                        graph::any_graph::vertex_descriptor goal_node, 
+                                        double goal_distance,
+                                        graph::any_graph& g) = 0;
     
-    virtual bool register_solution_from_basic_mg(graph::any_graph::vertex_descriptor start_node, 
-                                                 graph::any_graph::vertex_descriptor goal_node, 
-                                                 graph::any_graph& g) = 0;
+    virtual solution_record_ptr 
+      register_solution_from_basic_mg(graph::any_graph::vertex_descriptor start_node, 
+                                      graph::any_graph::vertex_descriptor goal_node, 
+                                      double goal_distance,
+                                      graph::any_graph& g) = 0;
     
-    virtual bool register_joining_point_from_optimal_mg(graph::any_graph::vertex_descriptor start_node, 
-                                                        graph::any_graph::vertex_descriptor goal_node, 
-                                                        graph::any_graph::vertex_descriptor join1_node, 
-                                                        graph::any_graph::vertex_descriptor join2_node, 
-                                                        graph::any_graph& g1, 
-                                                        graph::any_graph& g2) = 0;
+    virtual solution_record_ptr 
+      register_joining_point_from_optimal_mg(graph::any_graph::vertex_descriptor start_node, 
+                                             graph::any_graph::vertex_descriptor goal_node, 
+                                             graph::any_graph::vertex_descriptor join1_node, 
+                                             graph::any_graph::vertex_descriptor join2_node, 
+                                             double goal_distance,
+                                             graph::any_graph& g1, 
+                                             graph::any_graph& g2) = 0;
     
-    virtual bool register_joining_point_from_basic_mg(graph::any_graph::vertex_descriptor start_node, 
-                                                      graph::any_graph::vertex_descriptor goal_node, 
-                                                      graph::any_graph::vertex_descriptor join1_node, 
-                                                      graph::any_graph::vertex_descriptor join2_node, 
-                                                      graph::any_graph& g1, 
-                                                      graph::any_graph& g2) = 0;
+    virtual solution_record_ptr 
+      register_joining_point_from_basic_mg(graph::any_graph::vertex_descriptor start_node, 
+                                           graph::any_graph::vertex_descriptor goal_node, 
+                                           graph::any_graph::vertex_descriptor join1_node, 
+                                           graph::any_graph::vertex_descriptor join2_node, 
+                                           double goal_distance,
+                                           graph::any_graph& g1, 
+                                           graph::any_graph& g2) = 0;
     
   public:
     
@@ -127,7 +167,7 @@ class planning_query : public named_object {
      */
     template <typename Vertex, typename Graph>
     typename boost::enable_if< boost::is_convertible< typename Graph::vertex_bundled*, optimal_mg_vertex< FreeSpaceType >* >,
-    bool >::type register_solution(Vertex start_node, Vertex goal_node, Graph& g) {
+    solution_record_ptr >::type register_solution(Vertex start_node, Vertex goal_node, double goal_distance, Graph& g) {
       typedef any_optimal_motion_graph<FreeSpaceType, Graph> TEGraph;
       typedef typename boost::graph_traits<TEGraph>::vertex_descriptor TEVertex;
       
@@ -135,7 +175,7 @@ class planning_query : public named_object {
       TEVertex te_start = TEVertex( boost::any( start_node) );
       TEVertex te_goal  = TEVertex( boost::any( goal_node ) );
       
-      return register_solution_from_optimal_mg(te_start, te_goal, te_g);
+      return register_solution_from_optimal_mg(te_start, te_goal, goal_distance, te_g);
     };
     
     /**
@@ -149,7 +189,7 @@ class planning_query : public named_object {
      */
     template <typename Vertex, typename Graph>
     typename boost::disable_if< boost::is_convertible< typename Graph::vertex_bundled*, optimal_mg_vertex< FreeSpaceType >* >,
-    bool >::type register_solution(Vertex start_node, Vertex goal_node, Graph& g) {
+    solution_record_ptr >::type register_solution(Vertex start_node, Vertex goal_node, double goal_distance, Graph& g) {
       typedef any_motion_graph<FreeSpaceType, Graph> TEGraph;
       typedef typename boost::graph_traits<TEGraph>::vertex_descriptor TEVertex;
       
@@ -157,7 +197,7 @@ class planning_query : public named_object {
       TEVertex te_start = TEVertex( boost::any( start_node) );
       TEVertex te_goal  = TEVertex( boost::any( goal_node ) );
       
-      return register_solution_from_optimal_mg(te_start, te_goal, te_g);
+      return register_solution_from_optimal_mg(te_start, te_goal, goal_distance, te_g);
     };
     
     
@@ -173,8 +213,9 @@ class planning_query : public named_object {
      */
     template <typename Vertex, typename Graph>
     typename boost::enable_if< boost::is_convertible< typename Graph::vertex_bundled*, optimal_mg_vertex< FreeSpaceType >* >,
-    bool >::type register_joining_point(Vertex start_node, Vertex goal_node, 
+    solution_record_ptr >::type register_joining_point(Vertex start_node, Vertex goal_node, 
                                         Vertex join1_node, Vertex join2_node, 
+                                        double joining_distance, 
                                         Graph& g1, Graph& g2) {
       typedef any_optimal_motion_graph<FreeSpaceType, Graph> TEGraph;
       typedef typename boost::graph_traits<TEGraph>::vertex_descriptor TEVertex;
@@ -186,7 +227,7 @@ class planning_query : public named_object {
       TEVertex te_join1 = TEVertex( boost::any( join1_node) );
       TEVertex te_join2 = TEVertex( boost::any( join2_node) );
       
-      return register_joining_point_from_optimal_mg(te_start, te_goal, te_join1, te_join2, te_g1, te_g2);
+      return register_joining_point_from_optimal_mg(te_start, te_goal, te_join1, te_join2, joining_distance, te_g1, te_g2);
     };
     
     /**
@@ -200,7 +241,10 @@ class planning_query : public named_object {
      */
     template <typename Vertex, typename Graph>
     typename boost::disable_if< boost::is_convertible< typename Graph::vertex_bundled*, optimal_mg_vertex< FreeSpaceType >* >,
-    bool >::type register_joining_point(Vertex start_node, Vertex goal_node, Graph& g) {
+    solution_record_ptr >::type register_joining_point(Vertex start_node, Vertex goal_node, 
+                                        Vertex join1_node, Vertex join2_node, 
+                                        double joining_distance, 
+                                        Graph& g1, Graph& g2) {
       typedef any_motion_graph<FreeSpaceType, Graph> TEGraph;
       typedef typename boost::graph_traits<TEGraph>::vertex_descriptor TEVertex;
       
@@ -211,7 +255,7 @@ class planning_query : public named_object {
       TEVertex te_join1 = TEVertex( boost::any( join1_node) );
       TEVertex te_join2 = TEVertex( boost::any( join2_node) );
       
-      return register_joining_point_from_basic_mg(te_start, te_goal, te_join1, te_join2, te_g1, te_g2);
+      return register_joining_point_from_basic_mg(te_start, te_goal, te_join1, te_join2, joining_distance, te_g1, te_g2);
     };
     
     
@@ -257,14 +301,17 @@ namespace detail {
   
   template <typename FreeSpaceType>
   typename boost::enable_if< is_steerable_space< FreeSpaceType >,
-  bool >::type register_basic_solution_path_impl(const FreeSpaceType& space, 
-                                                 const graph::any_graph& g, 
-                                                 graph::any_graph::vertex_descriptor start_node, 
-                                                 graph::any_graph::vertex_descriptor goal_node,
-                                                 const typename topology_traits< FreeSpaceType >::point_type& goal_pos,
-                                                 std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
+  shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
+    register_basic_solution_path_impl(const FreeSpaceType& space, 
+                                      const graph::any_graph& g, 
+                                      graph::any_graph::vertex_descriptor start_node, 
+                                      graph::any_graph::vertex_descriptor goal_node,
+                                      const typename topology_traits< FreeSpaceType >::point_type& goal_pos,
+                                      double goal_distance,
+                                      std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
     typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
-    typedef typename topology_traits< super_space_type >::point_type point_type;
+    typedef shared_ptr< seq_path_base< super_space_type > > solution_record_ptr;
+    typedef typename topology_traits< super_space_type >::point_type PointType;
     typedef graph::any_graph::vertex_descriptor Vertex;
     typedef graph::any_graph::edge_descriptor Edge;
     typedef typename steerable_space_traits< super_space_type >::steer_record_type SteerRecordType;
@@ -272,45 +319,54 @@ namespace detail {
     
     shared_ptr< super_space_type > sup_space_ptr(&(space.get_super_space()),null_deleter());
     
-    any_graph::property_map_by_ptr< const point_type >      position     = get<const point_type&>("vertex_position", g);
+    any_graph::property_map_by_ptr< const PointType >      position     = get<const PointType&>("vertex_position", g);
     any_graph::property_map_by_ptr< const SteerRecordType > steer_record = get<const SteerRecordType&>("edge_steer_record", g);
     
-    double solutions_total_dist = get(distance_metric, *sup_space_ptr)(position[goal_node], goal_pos, *sup_space_ptr);
+    double solutions_total_dist = goal_distance;
     
     shared_ptr< seq_path_wrapper< discrete_point_path<super_space_type> > > new_sol(new seq_path_wrapper< discrete_point_path<super_space_type> >("planning_solution", discrete_point_path<super_space_type>(sup_space_ptr,get(distance_metric, *sup_space_ptr))));
     discrete_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
     
-    Vertex v = goal_node;
-    waypoints.push_front(position[v]);
+    if(goal_distance > 0.0) {
+      std::pair< PointType, SteerRecordType > goal_steer_result = space.steer_position_toward(position[goal_node], 1.0, goal_pos);
+      waypoints.push_front(goal_pos);
+      for(SteerIter it = goal_steer_result.second.end_fraction_travel(); it != goal_steer_result.second.begin_fraction_travel(); it -= 1.0)
+        waypoints.push_front( PointType(*it) );
+    };
     
-    while((in_degree(v, g)) && (!g.equal_descriptors(v, start_node))) {
-      Edge e = *(in_edges(v, g).first);
+    waypoints.push_front(position[goal_node]);
+    
+    while((in_degree(goal_node, g)) && (!g.equal_descriptors(goal_node, start_node))) {
+      Edge e = *(in_edges(goal_node, g).first);
       Vertex u = source(e, g);
       const SteerRecordType& sr = steer_record[e];
       for(SteerIter it = sr.end_fraction_travel(); it != sr.begin_fraction_travel(); it -= 1.0)
-        waypoints.push_front( point_type(*it) );
-      solutions_total_dist += get(distance_metric, *sup_space_ptr)(position[u], position[v], *sup_space_ptr);
-      v = u;
-      waypoints.push_front(position[v]);
+        waypoints.push_front( PointType(*it) );
+      solutions_total_dist += get(distance_metric, *sup_space_ptr)(position[u], position[goal_node], *sup_space_ptr);
+      goal_node = u;
+      waypoints.push_front(position[goal_node]);
     };
     
-    if( g.equal_descriptors(v, start_node) && ((solutions.empty()) || (solutions_total_dist < solutions.begin()->first))) {
+    if( g.equal_descriptors(goal_node, start_node) && ((solutions.empty()) || (solutions_total_dist < solutions.begin()->first))) {
       solutions[solutions_total_dist] = new_sol;
-      return true;
+      return new_sol;
     };
     
-    return false;
+    return solution_record_ptr();
   };
   
   template <typename FreeSpaceType>
   typename boost::disable_if< is_steerable_space< FreeSpaceType >,
-  bool >::type register_basic_solution_path_impl(const FreeSpaceType& space, 
-                                                 const graph::any_graph& g, 
-                                                 graph::any_graph::vertex_descriptor start_node, 
-                                                 graph::any_graph::vertex_descriptor goal_node,
-                                                 const typename topology_traits< FreeSpaceType >::point_type& goal_pos,
-                                                 std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
+  shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
+    register_basic_solution_path_impl(const FreeSpaceType& space, 
+                                      const graph::any_graph& g, 
+                                      graph::any_graph::vertex_descriptor start_node, 
+                                      graph::any_graph::vertex_descriptor goal_node,
+                                      const typename topology_traits< FreeSpaceType >::point_type& goal_pos,
+                                      double goal_distance,
+                                      std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
     typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    typedef shared_ptr< seq_path_base< super_space_type > > solution_record_ptr;
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef graph::any_graph::vertex_descriptor Vertex;
     
@@ -318,12 +374,14 @@ namespace detail {
     
     any_graph::property_map_by_ptr< const point_type > position = get<const point_type&>("vertex_position", g);
     
-    double solutions_total_dist = get(distance_metric, *sup_space_ptr)(position[goal_node], goal_pos, *sup_space_ptr);
+    double solutions_total_dist = goal_distance;
     
     shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("planning_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, *sup_space_ptr))));
     point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
     
-    waypoints.push_front(goal_pos);
+    if(goal_distance > 0.0)
+      waypoints.push_front(goal_pos);
+    
     waypoints.push_front(position[goal_node]);
     
     while(in_degree(goal_node, g) && (!g.equal_descriptors(goal_node, start_node))) {
@@ -335,23 +393,26 @@ namespace detail {
     
     if( g.equal_descriptors(goal_node, start_node) && ((solutions.empty()) || (solutions_total_dist < solutions.begin()->first))) {
       solutions[solutions_total_dist] = new_sol;
-      return true;
+      return new_sol;
     };
     
-    return false;
+    return solution_record_ptr();
   };
   
   
   
   template <typename FreeSpaceType>
   typename boost::enable_if< is_steerable_space< FreeSpaceType >,
-  bool >::type register_optimal_solution_path_impl(const FreeSpaceType& space, 
-                                                   const graph::any_graph& g, 
-                                                   graph::any_graph::vertex_descriptor start_node, 
-                                                   graph::any_graph::vertex_descriptor goal_node,
-                                                   const typename topology_traits< FreeSpaceType >::point_type& goal_pos,
-                                                   std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
+  shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
+    register_optimal_solution_path_impl(const FreeSpaceType& space, 
+                                        const graph::any_graph& g, 
+                                        graph::any_graph::vertex_descriptor start_node, 
+                                        graph::any_graph::vertex_descriptor goal_node,
+                                        const typename topology_traits< FreeSpaceType >::point_type& goal_pos,
+                                        double goal_distance,
+                                        std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
     typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    typedef shared_ptr< seq_path_base< super_space_type > > solution_record_ptr;
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef typename boost::graph_traits< Graph >::in_edge_iterator InEdgeIter;
     typedef typename steerable_space_traits< super_space_type >::steer_record_type SteerRecordType;
@@ -365,50 +426,59 @@ namespace detail {
     any_graph::property_map_by_ptr< const double >          distance_accum = get<const double&>("vertex_distance_accum", g);
     any_graph::property_map_by_ptr< const SteerRecordType > steer_record   = get<const SteerRecordType&>("edge_steer_record", g);
     
-    double solutions_total_dist = distance_accum[goal_node] + get(distance_metric, *sup_space_ptr)(position[goal_node], goal_pos, *sup_space_ptr);
+    double solutions_total_dist = distance_accum[goal_node] + goal_distance;
     
     if( ! (solutions_total_dist < std::numeric_limits<double>::infinity()) ||
         ( (!solutions.empty()) && (solutions_total_dist >= solutions.begin()->first) ) )
-      return false;
+      return solution_record_ptr();
     
     shared_ptr< seq_path_wrapper< discrete_point_path<super_space_type> > > new_sol(new seq_path_wrapper< discrete_point_path<super_space_type> >("planning_solution", discrete_point_path<super_space_type>(sup_space_ptr,get(distance_metric, *sup_space_ptr))));
     discrete_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
     
-    Vertex u = goal_node;
-    waypoints.push_front(position[u]);
+    if(goal_distance > 0.0) {
+      std::pair< PointType, SteerRecordType > goal_steer_result = space.steer_position_toward(position[goal_node], 1.0, goal_pos);
+      waypoints.push_front(goal_pos);
+      for(SteerIter it = goal_steer_result.second.end_fraction_travel(); it != goal_steer_result.second.begin_fraction_travel(); it -= 1.0)
+        waypoints.push_front( PointType(*it) );
+    };
     
-    while(!g.equal_descriptors(u, start_node)) {
-      std::pair<InEdgeIter,InEdgeIter> er = in_edges(u, g);
-      u = Vertex( boost::any( predecessor[u] ) ); 
-      while( ( er.first != er.second ) && ( !g.equal_descriptors(u, source(*(er.first), g)) ) )
+    waypoints.push_front(position[goal_node]);
+    
+    while(!g.equal_descriptors(goal_node, start_node)) {
+      std::pair<InEdgeIter,InEdgeIter> er = in_edges(goal_node, g);
+      goal_node = Vertex( boost::any( predecessor[goal_node] ) ); 
+      while( ( er.first != er.second ) && ( !g.equal_descriptors(goal_node, source(*(er.first), g)) ) )
         ++(er.first);
       if(er.first == er.second)
         break;
       const SteerRecordType& sr = steer_record[*(er.first)];
       for(SteerIter it = sr.end_fraction_travel(); it != sr.begin_fraction_travel(); it -= 1.0)
         waypoints.push_front( point_type(*it) );
-      waypoints.push_front(position[u]);
+      waypoints.push_front(position[goal_node]);
     };
     
-    if(g.equal_descriptors(u, start_node)) {
+    if(g.equal_descriptors(goal_node, start_node)) {
       solutions[solutions_total_dist] = new_sol;
-      return true;
+      return new_sol;
     };
     
-    return false;
+    return solution_record_ptr();
   };
   
   
   
   template <typename FreeSpaceType>
   typename boost::disable_if< is_steerable_space< FreeSpaceType >,
-  bool >::type register_optimal_solution_path_impl(const FreeSpaceType& space, 
-                                                   const graph::any_graph& g, 
-                                                   graph::any_graph::vertex_descriptor start_node, 
-                                                   graph::any_graph::vertex_descriptor goal_node,
-                                                   const typename topology_traits< FreeSpaceType >::point_type& goal_pos,
-                                                   std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
+  shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
+    register_optimal_solution_path_impl(const FreeSpaceType& space, 
+                                        const graph::any_graph& g, 
+                                        graph::any_graph::vertex_descriptor start_node, 
+                                        graph::any_graph::vertex_descriptor goal_node,
+                                        const typename topology_traits< FreeSpaceType >::point_type& goal_pos,
+                                        double goal_distance,
+                                        std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
     typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    typedef shared_ptr< seq_path_base< super_space_type > > solution_record_ptr;
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef graph::any_graph::vertex_descriptor Vertex;
     
@@ -418,29 +488,31 @@ namespace detail {
     any_graph::property_map_by_ptr< const std::size_t > predecessor    = get<const std::size_t&>("vertex_predecessor", g);
     any_graph::property_map_by_ptr< const double >      distance_accum = get<const double&>("vertex_distance_accum", g);
     
-    double solutions_total_dist = distance_accum[goal_node] + get(distance_metric, *sup_space_ptr)(position[goal_node], goal_pos, *sup_space_ptr);
+    double solutions_total_dist = distance_accum[goal_node] + goal_distance;
     
     if( ! (solutions_total_dist < std::numeric_limits<double>::infinity()) ||
         ( (!solutions.empty()) && (solutions_total_dist >= solutions.begin()->first) ) )
-      return false;
+      return solution_record_ptr();
     
     shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("planning_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, *sup_space_ptr))));
     point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
     
+    if(goal_distance > 0.0)
+      waypoints.push_front(goal_pos);
+    
     waypoints.push_front(position[goal_node]);
-    Vertex u = goal_node;
     
-    while(!g.equal_descriptors(u, start_node)) {
-      u = Vertex( boost::any( predecessor[u] ) ); 
-      waypoints.push_front( position[u] );
+    while(!g.equal_descriptors(goal_node, start_node)) {
+      goal_node = Vertex( boost::any( predecessor[goal_node] ) ); 
+      waypoints.push_front( position[goal_node] );
     };
     
-    if(g.equal_descriptors(u, start_node)) {
+    if(g.equal_descriptors(goal_node, start_node)) {
       solutions[solutions_total_dist] = new_sol;
-      return true;
+      return new_sol;
     };
     
-    return false;
+    return solution_record_ptr();
   };
   
   
@@ -451,15 +523,18 @@ namespace detail {
   
   template <typename FreeSpaceType>
   typename boost::enable_if< is_steerable_space< FreeSpaceType >,
-  bool >::type register_basic_solution_path_impl(const FreeSpaceType& space, 
-                                                 const graph::any_graph& g1, 
-                                                 const graph::any_graph& g2, 
-                                                 graph::any_graph::vertex_descriptor start_node, 
-                                                 graph::any_graph::vertex_descriptor goal_node, 
-                                                 graph::any_graph::vertex_descriptor join1_node, 
-                                                 graph::any_graph::vertex_descriptor join2_node,
-                                                 std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
+  shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
+    register_basic_solution_path_impl(const FreeSpaceType& space, 
+                                      const graph::any_graph& g1, 
+                                      const graph::any_graph& g2, 
+                                      graph::any_graph::vertex_descriptor start_node, 
+                                      graph::any_graph::vertex_descriptor goal_node, 
+                                      graph::any_graph::vertex_descriptor join1_node, 
+                                      graph::any_graph::vertex_descriptor join2_node,
+                                      double joining_distance,
+                                      std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
     typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    typedef shared_ptr< seq_path_base< super_space_type > > solution_record_ptr;
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef graph::any_graph::vertex_descriptor Vertex;
     typedef graph::any_graph::edge_descriptor Edge;
@@ -473,10 +548,16 @@ namespace detail {
     any_graph::property_map_by_ptr< const point_type >      position2     = get<const point_type&>("vertex_position", g2);
     any_graph::property_map_by_ptr< const SteerRecordType > steer_record2 = get<const SteerRecordType&>("edge_steer_record", g2);
     
-    double solutions_total_dist = get(distance_metric, *sup_space_ptr)(position1[join1_node], position2[join2_node], *sup_space_ptr);
+    double solutions_total_dist = joining_distance;
     
     shared_ptr< seq_path_wrapper< discrete_point_path<super_space_type> > > new_sol(new seq_path_wrapper< discrete_point_path<super_space_type> >("planning_solution", discrete_point_path<super_space_type>(sup_space_ptr,get(distance_metric, *sup_space_ptr))));
     discrete_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
+    
+    if(joining_distance > 0.0) {
+      std::pair< PointType, SteerRecordType > join_steer_result = space.steer_position_toward(position1[join1_node], 1.0, position2[join2_node]);
+      for(SteerIter it = join_steer_result.second.end_fraction_travel(); it != join_steer_result.second.begin_fraction_travel(); it -= 1.0)
+        waypoints.push_front( PointType(*it) );
+    };
     
     waypoints.push_front(position1[join1_node]);
     
@@ -509,23 +590,26 @@ namespace detail {
         g2.equal_descriptors(join2_node, goal_node) && 
         ( (solutions.empty()) || (solutions_total_dist < solutions.begin()->first) ) ) {
       solutions[solutions_total_dist] = new_sol;
-      return true;
+      return new_sol;
     };
     
-    return false;
+    return solution_record_ptr();
   };
   
   template <typename FreeSpaceType>
   typename boost::disable_if< is_steerable_space< FreeSpaceType >,
-  bool >::type register_basic_solution_path_impl(const FreeSpaceType& space, 
-                                                 const graph::any_graph& g1, 
-                                                 const graph::any_graph& g2, 
-                                                 graph::any_graph::vertex_descriptor start_node, 
-                                                 graph::any_graph::vertex_descriptor goal_node, 
-                                                 graph::any_graph::vertex_descriptor join1_node, 
-                                                 graph::any_graph::vertex_descriptor join2_node,
-                                                 std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
+  shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
+    register_basic_solution_path_impl(const FreeSpaceType& space, 
+                                      const graph::any_graph& g1, 
+                                      const graph::any_graph& g2, 
+                                      graph::any_graph::vertex_descriptor start_node, 
+                                      graph::any_graph::vertex_descriptor goal_node, 
+                                      graph::any_graph::vertex_descriptor join1_node, 
+                                      graph::any_graph::vertex_descriptor join2_node,
+                                      double joining_distance,
+                                      std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
     typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    typedef shared_ptr< seq_path_base< super_space_type > > solution_record_ptr;
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef graph::any_graph::vertex_descriptor Vertex;
     
@@ -534,7 +618,7 @@ namespace detail {
     any_graph::property_map_by_ptr< const point_type > position1 = get<const point_type&>("vertex_position", g1);
     any_graph::property_map_by_ptr< const point_type > position2 = get<const point_type&>("vertex_position", g2);
     
-    double solutions_total_dist = get(distance_metric, *sup_space_ptr)(position1[join1_node], position2[join2_node], *sup_space_ptr);
+    double solutions_total_dist = joining_distance;
     
     shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("planning_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, *sup_space_ptr))));
     point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
@@ -561,25 +645,28 @@ namespace detail {
         g2.equal_descriptors(join2_node, goal_node) && 
         ( (solutions.empty()) || (solutions_total_dist < solutions.begin()->first) ) ) {
       solutions[solutions_total_dist] = new_sol;
-      return true;
+      return new_sol;
     };
     
-    return false;
+    return solution_record_ptr();
   };
   
   
   
   template <typename FreeSpaceType>
   typename boost::enable_if< is_steerable_space< FreeSpaceType >,
-  bool >::type register_optimal_solution_path_impl(const FreeSpaceType& space, 
-                                                   const graph::any_graph& g1, 
-                                                   const graph::any_graph& g2, 
-                                                   graph::any_graph::vertex_descriptor start_node, 
-                                                   graph::any_graph::vertex_descriptor goal_node, 
-                                                   graph::any_graph::vertex_descriptor join1_node, 
-                                                   graph::any_graph::vertex_descriptor join2_node,
-                                                   std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
+  shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
+    register_optimal_solution_path_impl(const FreeSpaceType& space, 
+                                        const graph::any_graph& g1, 
+                                        const graph::any_graph& g2, 
+                                        graph::any_graph::vertex_descriptor start_node, 
+                                        graph::any_graph::vertex_descriptor goal_node, 
+                                        graph::any_graph::vertex_descriptor join1_node, 
+                                        graph::any_graph::vertex_descriptor join2_node,
+                                        double joining_distance,
+                                        std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
     typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    typedef shared_ptr< seq_path_base< super_space_type > > solution_record_ptr;
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef typename boost::graph_traits< Graph >::in_edge_iterator InEdgeIter;
     typedef typename steerable_space_traits< super_space_type >::steer_record_type SteerRecordType;
@@ -597,16 +684,20 @@ namespace detail {
     any_graph::property_map_by_ptr< const double >          distance_accum2 = get<const double&>("vertex_distance_accum", g2);
     any_graph::property_map_by_ptr< const SteerRecordType > steer_record2   = get<const SteerRecordType&>("edge_steer_record", g2);
     
-    double solutions_total_dist = distance_accum1[join1_node] + distance_accum2[join2_node]
-                                + get(distance_metric, *sup_space_ptr)(position1[join1_node], position2[join2_node], *sup_space_ptr);
+    double solutions_total_dist = distance_accum1[join1_node] + distance_accum2[join2_node] + joining_distance;
     
     if( ! (solutions_total_dist < std::numeric_limits<double>::infinity()) ||
         ( (!solutions.empty()) && (solutions_total_dist >= solutions.begin()->first) ) )
-      return false;
+      return solution_record_ptr();
     
     shared_ptr< seq_path_wrapper< discrete_point_path<super_space_type> > > new_sol(new seq_path_wrapper< discrete_point_path<super_space_type> >("planning_solution", discrete_point_path<super_space_type>(sup_space_ptr,get(distance_metric, *sup_space_ptr))));
     discrete_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
     
+    if(joining_distance > 0.0) {
+      std::pair< PointType, SteerRecordType > join_steer_result = space.steer_position_toward(position1[join1_node], 1.0, position2[join2_node]);
+      for(SteerIter it = join_steer_result.second.end_fraction_travel(); it != join_steer_result.second.begin_fraction_travel(); it -= 1.0)
+        waypoints.push_front( PointType(*it) );
+    };
     
     waypoints.push_front(position1[join1_node]);
     
@@ -641,25 +732,28 @@ namespace detail {
     
     if(g1.equal_descriptors(join1_node, start_node) && g2.equal_descriptors(join2_node, goal_node)) {
       solutions[solutions_total_dist] = new_sol;
-      return true;
+      return new_sol;
     };
     
-    return false;
+    return solution_record_ptr();
   };
   
   
   
   template <typename FreeSpaceType>
   typename boost::disable_if< is_steerable_space< FreeSpaceType >,
-  bool >::type register_optimal_solution_path_impl(const FreeSpaceType& space, 
-                                                   const graph::any_graph& g1, 
-                                                   const graph::any_graph& g2, 
-                                                   graph::any_graph::vertex_descriptor start_node, 
-                                                   graph::any_graph::vertex_descriptor goal_node, 
-                                                   graph::any_graph::vertex_descriptor join1_node, 
-                                                   graph::any_graph::vertex_descriptor join2_node,
-                                                   std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
+  shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
+    register_optimal_solution_path_impl(const FreeSpaceType& space, 
+                                        const graph::any_graph& g1, 
+                                        const graph::any_graph& g2, 
+                                        graph::any_graph::vertex_descriptor start_node, 
+                                        graph::any_graph::vertex_descriptor goal_node, 
+                                        graph::any_graph::vertex_descriptor join1_node, 
+                                        graph::any_graph::vertex_descriptor join2_node,
+                                        double joining_distance,
+                                        std::map<double, shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >& solutions) {
     typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    typedef shared_ptr< seq_path_base< super_space_type > > solution_record_ptr;
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef graph::any_graph::vertex_descriptor Vertex;
     
@@ -672,12 +766,11 @@ namespace detail {
     any_graph::property_map_by_ptr< const std::size_t > predecessor2    = get<const std::size_t&>("vertex_predecessor", g2);
     any_graph::property_map_by_ptr< const double >      distance_accum2 = get<const double&>("vertex_distance_accum", g2);
     
-    double solutions_total_dist = distance_accum1[join1_node] + distance_accum2[join2_node] 
-                                + get(distance_metric, *sup_space_ptr)(position1[join1_node], position2[join2_node], *sup_space_ptr);
+    double solutions_total_dist = distance_accum1[join1_node] + distance_accum2[join2_node] + joining_distance;
     
     if( ! (solutions_total_dist < std::numeric_limits<double>::infinity()) ||
         ( (!solutions.empty()) && (solutions_total_dist >= solutions.begin()->first) ) )
-      return false;
+      return solution_record_ptr();
     
     shared_ptr< seq_path_wrapper< point_to_point_path<super_space_type> > > new_sol(new seq_path_wrapper< point_to_point_path<super_space_type> >("planning_solution", point_to_point_path<super_space_type>(sup_space_ptr,get(distance_metric, *sup_space_ptr))));
     point_to_point_path<super_space_type>& waypoints = new_sol->get_underlying_path();
@@ -698,10 +791,10 @@ namespace detail {
     
     if(g1.equal_descriptors(join1_node, start_node) && g2.equal_descriptors(join2_node, goal_node)) {
       solutions[solutions_total_dist] = new_sol;
-      return true;
+      return new_sol;
     };
     
-    return false;
+    return solution_record_ptr();
   };
   
   
@@ -730,20 +823,22 @@ class path_planning_p2p_query : public planning_query<FreeSpaceType> {
     typedef typename base_type::point_type point_type;
     typedef typename base_type::point_difference_type point_difference_type;
     
+    typedef typename base_type::solution_record_ptr solution_record_ptr;
+    
   public:
     
     point_type start_pos;
     point_type goal_pos;
     std::size_t max_num_results;
     
-    std::map<double, shared_ptr< seq_path_base< super_space_type > > > solutions;
+    std::map<double, solution_record_ptr > solutions;
     
     
     /**
      * Returns the best solution distance registered in this query object.
      * \return The best solution distance registered in this query object.
      */
-    double get_best_solution_distance() const {
+    virtual double get_best_solution_distance() const {
       if(solutions.size() == 0)
         return std::numeric_limits<double>::infinity();
       else
@@ -765,36 +860,54 @@ class path_planning_p2p_query : public planning_query<FreeSpaceType> {
       solutions.clear();
     };
     
+    virtual const point_type& get_start_position() const { return start_pos; };
+    
+    virtual double get_distance_to_goal(const point_type& pos) { 
+      return get(distance_metric, *(this->space))(pos, goal_pos, *(this->space));
+    };
+    
+    virtual double get_heuristic_to_goal(const point_type& pos) { 
+      return get(distance_metric, this->space->get_super_space())(pos, goal_pos, this->space->get_super_space());
+    };
+    
   protected:
     
-    virtual bool register_solution_from_optimal_mg(graph::any_graph::vertex_descriptor start_node, 
-                                                   graph::any_graph::vertex_descriptor goal_node, 
-                                                   graph::any_graph& g) {
-      return detail::register_optimal_solution_path_impl(*(this->space), g, start_node, goal_node, goal_pos, solutions);
+    virtual solution_record_ptr 
+      register_solution_from_optimal_mg(graph::any_graph::vertex_descriptor start_node, 
+                                        graph::any_graph::vertex_descriptor goal_node, 
+                                        double goal_distance,
+                                        graph::any_graph& g) {
+      return detail::register_optimal_solution_path_impl(*(this->space), g, start_node, goal_node, goal_pos, goal_distance, solutions);
     };
     
-    virtual bool register_solution_from_basic_mg(graph::any_graph::vertex_descriptor start_node, 
-                                                 graph::any_graph::vertex_descriptor goal_node, 
-                                                 graph::any_graph& g) {
-      return detail::register_basic_solution_path_impl(*(this->space), g, start_node, goal_node, goal_pos, solutions);
+    virtual solution_record_ptr 
+      register_solution_from_basic_mg(graph::any_graph::vertex_descriptor start_node, 
+                                      graph::any_graph::vertex_descriptor goal_node, 
+                                      double goal_distance,
+                                      graph::any_graph& g) {
+      return detail::register_basic_solution_path_impl(*(this->space), g, start_node, goal_node, goal_pos, goal_distance, solutions);
     };
     
-    virtual bool register_joining_point_from_optimal_mg(graph::any_graph::vertex_descriptor start_node, 
-                                                        graph::any_graph::vertex_descriptor goal_node, 
-                                                        graph::any_graph::vertex_descriptor join1_node, 
-                                                        graph::any_graph::vertex_descriptor join2_node, 
-                                                        graph::any_graph& g1, 
-                                                        graph::any_graph& g2) {
-      return detail::register_optimal_solution_path_impl(*(this->space), g1, g2, start_node, goal_node, join1_node, join2_node, solutions);
+    virtual solution_record_ptr 
+      register_joining_point_from_optimal_mg(graph::any_graph::vertex_descriptor start_node, 
+                                             graph::any_graph::vertex_descriptor goal_node, 
+                                             graph::any_graph::vertex_descriptor join1_node, 
+                                             graph::any_graph::vertex_descriptor join2_node, 
+                                             double joining_distance,
+                                             graph::any_graph& g1, 
+                                             graph::any_graph& g2) {
+      return detail::register_optimal_solution_path_impl(*(this->space), g1, g2, start_node, goal_node, join1_node, join2_node, joining_distance, solutions);
     };
     
-    virtual bool register_joining_point_from_basic_mg(graph::any_graph::vertex_descriptor start_node, 
-                                                      graph::any_graph::vertex_descriptor goal_node, 
-                                                      graph::any_graph::vertex_descriptor join1_node, 
-                                                      graph::any_graph::vertex_descriptor join2_node, 
-                                                      graph::any_graph& g1, 
-                                                      graph::any_graph& g2) {
-      return detail::register_basic_solution_path_impl(*(this->space), g1, g2, start_node, goal_node, join1_node, join2_node, solutions);
+    virtual solution_record_ptr 
+      register_joining_point_from_basic_mg(graph::any_graph::vertex_descriptor start_node, 
+                                           graph::any_graph::vertex_descriptor goal_node, 
+                                           graph::any_graph::vertex_descriptor join1_node, 
+                                           graph::any_graph::vertex_descriptor join2_node, 
+                                           double joining_distance,
+                                           graph::any_graph& g1, 
+                                           graph::any_graph& g2) {
+      return detail::register_basic_solution_path_impl(*(this->space), g1, g2, start_node, goal_node, join1_node, join2_node, joining_distance, solutions);
     };
     
     
