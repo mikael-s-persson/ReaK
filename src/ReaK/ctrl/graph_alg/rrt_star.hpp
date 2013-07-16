@@ -171,13 +171,12 @@ namespace detail {
                                      MotionGraphConnector connect_vertex,
                                      PositionMap position,
                                      NodeGenerator node_generator_func,
-                                     NcSelector select_neighborhood,
-                                     std::size_t max_vertex_count) {
+                                     NcSelector select_neighborhood) {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename Graph::edge_bundled EdgeProp;
     
-    while((num_vertices(g) < max_vertex_count) && (conn_vis.keep_going())) {
+    while(conn_vis.keep_going()) {
       
       PositionValue p_new; Vertex x_near; EdgeProp eprop;
       boost::tie(x_near, p_new, eprop) = node_generator_func(g, conn_vis, boost::bundle_prop_to_vertex_prop(position, g));
@@ -212,14 +211,13 @@ namespace detail {
                                      PredecessorMap pred,
                                      WeightMap weight,
                                      NodeGenerator node_generator_func,
-                                     NcSelector select_neighborhood,
-                                     std::size_t max_vertex_count) {
+                                     NcSelector select_neighborhood) {
     
     rrt_conn_visitor<RRGVisitor, PositionMap, WeightMap, CostMap, PredecessorMap> 
       conn_vis(vis, position, weight, cost, pred);
     
     generate_rrt_star_loop(g, super_space, conn_vis, lazy_node_connector(),
-                           position, node_generator_func, select_neighborhood, max_vertex_count);
+                           position, node_generator_func, select_neighborhood);
     
   };
   
@@ -261,8 +259,6 @@ namespace detail {
   * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
   * \param select_neighborhood A callable object (functor) which can perform a 
   *        nearest neighbor search of a point to a graph in the topology. (see star_neighborhood)
-  * \param max_vertex_count The maximum number of vertices beyond which the algorithm 
-  *        should stop regardless of whether the resulting tree is satisfactory or not.
   * 
   */
 template <typename Graph,
@@ -282,8 +278,7 @@ inline void generate_rrt_star(Graph& g,
                               PredecessorMap pred,
                               WeightMap weight,
                               RandomSampler get_sample,
-                              NcSelector select_neighborhood,
-                              unsigned int max_vertex_count) {
+                              NcSelector select_neighborhood) {
   BOOST_CONCEPT_ASSERT((RRGVisitorConcept<RRGVisitor,Graph,Topology>));
   BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
   BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
@@ -316,7 +311,7 @@ inline void generate_rrt_star(Graph& g,
     lazy_node_connector(),
     position,
     rrg_node_generator<Topology, RandomSampler, NcSelector>(&super_space, get_sample, select_neighborhood),
-    select_neighborhood, max_vertex_count);
+    select_neighborhood);
   
 };
 
@@ -355,8 +350,6 @@ inline void generate_rrt_star(Graph& g,
   * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
   * \param select_neighborhood A callable object (functor) which can perform a 
   *        nearest neighbor search of a point to a graph in the topology. (see star_neighborhood)
-  * \param max_vertex_count The maximum number of vertices beyond which the algorithm 
-  *        should stop regardless of whether the resulting tree is satisfactory or not.
   * 
   */
 template <typename Graph,
@@ -378,8 +371,7 @@ inline void generate_bnb_rrt_star(Graph& g,
                                   PredecessorMap pred,
                                   WeightMap weight,
                                   RandomSampler get_sample,
-                                  NcSelector select_neighborhood,
-                                  unsigned int max_vertex_count) {
+                                  NcSelector select_neighborhood) {
   BOOST_CONCEPT_ASSERT((RRGVisitorConcept<RRGVisitor,Graph,Topology>));
   BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
   BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
@@ -391,7 +383,7 @@ inline void generate_bnb_rrt_star(Graph& g,
   if( (num_vertices(g) == 0) ||
       ( start_vertex == boost::graph_traits<Graph>::null_vertex() ) ||
       ( goal_vertex  == boost::graph_traits<Graph>::null_vertex() ) ) {
-    generate_rrt_star(g,super_space,vis,position,cost,pred,weight,get_sample,select_neighborhood,max_vertex_count);
+    generate_rrt_star(g,super_space,vis,position,cost,pred,weight,get_sample,select_neighborhood);
     return;
   };
   
@@ -407,7 +399,7 @@ inline void generate_bnb_rrt_star(Graph& g,
     ), 
     position,
     rrg_node_generator<Topology, RandomSampler, NcSelector>(&super_space, get_sample, select_neighborhood),
-    select_neighborhood, max_vertex_count);
+    select_neighborhood);
   
 };
 

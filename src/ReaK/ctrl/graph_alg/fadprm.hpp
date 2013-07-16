@@ -102,31 +102,21 @@ namespace graph {
       
       // AD* visitor functions:
       template <typename Vertex, typename Graph>
-      void initialize_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      void initialize_vertex(Vertex u, const Graph& g) const { };
       template <typename Vertex, typename Graph>
-      void discover_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      void discover_vertex(Vertex u, const Graph& g) const { };
       template <typename Vertex, typename Graph>
-      void inconsistent_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
-      template <typename Vertex, typename Graph>
-      void examine_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      void examine_vertex(Vertex u, const Graph& g) const { };
       template <typename Edge, typename Graph>
-      void examine_edge(Edge e, const Graph& g) const { RK_UNUSED(e); RK_UNUSED(g); };
-      template <typename Edge, typename Graph>
-      void edge_relaxed(Edge e, const Graph& g) const { RK_UNUSED(e); RK_UNUSED(g); };
-      template <typename Vertex, typename Graph>
-      void forget_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
-      template <typename Vertex, typename Graph>
-      void finish_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
-      template <typename Vertex, typename Graph>
-      void recycle_vertex(Vertex u, const Graph& g) const { RK_UNUSED(u); RK_UNUSED(g); };
+      void examine_edge(Edge e, const Graph& g) const { };
       template <typename Graph>
-      void publish_path(const Graph& g) const { RK_UNUSED(g); };
+      void publish_path(const Graph& g) const { };
       template <typename EdgeIter, typename Graph>
       std::pair<double, EdgeIter> detect_edge_change(EdgeIter ei, const Graph& g) const { RK_UNUSED(g);
         return std::pair<double, EdgeIter>(0.0, ei);
       };
       template <typename Graph>
-      double adjust_epsilon(double old_eps, double w_change, const Graph& g) const { RK_UNUSED(w_change); RK_UNUSED(g);
+      double adjust_relaxation(double old_eps, const Graph&) const {
         return old_eps;
       };
       
@@ -171,17 +161,6 @@ namespace graph {
     struct fadprm_bfs_visitor
     {
       
-      
-#define RK_FADPRM_VISITOR_PRINT_CURRENT_GRAPH_HEAP \
-      {\
-        typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;\
-        for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {\
-          std::cout << "Vertex " << (*ui) << " has index is heap is: " << get(m_index_in_heap, *ui) << " for a heap size of: " << m_Q.size() << std::endl;\
-        };\
-      };
-      
-      
-      
       typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
       typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
       typedef boost::color_traits<ColorValue> Color;
@@ -208,9 +187,7 @@ namespace graph {
         m_vis.discover_vertex(u, g);
       };
       template <class Vertex, class Graph>
-      void inconsistent_vertex(Vertex u, Graph& g) const {
-        m_vis.inconsistent_vertex(u, g);
-      };
+      void inconsistent_vertex(Vertex u, Graph& g) const {};
       
       
       template <class Graph>
@@ -271,17 +248,11 @@ namespace graph {
         m_vis.examine_edge(e, g);
       };
       template <class Vertex, class Graph>
-      void forget_vertex(Vertex u, Graph& g) const {
-        m_vis.forget_vertex(u, g);
-      };
+      void forget_vertex(Vertex u, Graph& g) const { };
       template <class Vertex, class Graph>
-      void finish_vertex(Vertex u, Graph& g) const {
-        m_vis.finish_vertex(u, g);
-      };
+      void finish_vertex(Vertex u, Graph& g) const { };
       template <class Vertex, class Graph>
-      void recycle_vertex(Vertex u, Graph& g) const {
-        m_vis.recycle_vertex(u, g);
-      };
+      void recycle_vertex(Vertex u, Graph& g) const {};
       
       template <typename Graph>
       void publish_path(const Graph& g) const { 
@@ -298,8 +269,8 @@ namespace graph {
       };
       
       template <typename Graph>
-      double adjust_epsilon(double old_eps, double w_change, const Graph& g) const {
-        return m_vis.adjust_epsilon(old_eps, w_change, g);
+      double adjust_epsilon(double old_eps, double, const Graph& g) const {
+        return m_vis.adjust_relaxation(old_eps, g);
       };
       
       template <class Vertex, typename Graph>
@@ -347,8 +318,7 @@ namespace graph {
               pred_e = *ei;
             };
           };
-          rhs_u = get(m_rhs, u); 
-          if(pred_u != get(m_predecessor, u))                          m_vis.edge_relaxed(pred_e, g);
+          rhs_u = get(m_rhs, u);
         };
         
         if(rhs_u != g_u) { 
@@ -358,14 +328,14 @@ namespace graph {
             put(m_color, u, Color::gray());                            m_vis.discover_vertex(u, g);
           } else if(col_u == Color::black()) {
             m_I.push_back(u); 
-            put(m_color, u, Color::red());                             m_vis.inconsistent_vertex(u,g);
+            put(m_color, u, Color::red());
           };
         } else if(m_Q.contains(u)) {
           put(m_key, u, KeyValue(0.0,0.0)); 
           m_Q.update(u); 
           m_Q.pop(); //remove from OPEN set
           update_key(u,g); 
-          put(m_color, u, Color::green());                             m_vis.forget_vertex(u, g);
+          put(m_color, u, Color::green());
         }; 
       };
       
@@ -449,8 +419,6 @@ namespace graph {
    *         to the goal.
    * \tparam RHSMap This property-map type is used to store the inconsistent estimated distance of 
    *         each vertex to the goal (internal use to AD*).
-   * \tparam KeyMap This property-map type is used to store the weights of the edges of the 
-   *         graph (cost of travel along an edge).
    * \tparam WeightMap This property-map type is used to store the weights of the edges of the 
    *         graph (cost of travel along an edge).
    * \tparam PositionMap A property-map type that can store the position of each vertex. 
@@ -480,7 +448,6 @@ namespace graph {
    * \param distance The property-map which stores the estimated distance of each vertex to the goal.
    * \param rhs The property-map which stores the inconsistent estimated distance of each vertex to the 
    *        goal (for internal use).
-   * \param key The property-map which stores the AD* key-values associated to each vertex.
    * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
    *        along the edge).
    * \param density A property-map that provides the density values assiciated to each vertex.
@@ -504,7 +471,6 @@ namespace graph {
 	    typename PredecessorMap,
             typename DistanceMap,
 	    typename RHSMap,
-	    typename KeyMap,
             typename WeightMap,
             typename PositionMap,
             typename DensityMap,
@@ -515,33 +481,37 @@ namespace graph {
     (Graph &g, Vertex start_vertex, const Topology& free_space,
      AStarHeuristicMap hval, FADPRMVisitor vis,
      PredecessorMap predecessor, DistanceMap distance,
-     RHSMap rhs, KeyMap key, WeightMap weight, DensityMap density, PositionMap position, 
+     RHSMap rhs, WeightMap weight, DensityMap density, PositionMap position, 
      NcSelector select_neighborhood, ColorMap color, double epsilon)
   {
-    typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
+    typedef adstar_key_value< double > KeyValue;
     typedef typename adstar_key_traits<KeyValue>::compare_type KeyCompareType;
+    typedef boost::vector_property_map< KeyValue > KeyValueMap;
+    KeyValueMap key_map;
+    
     typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
     IndexInHeapMap index_in_heap;
     {
       typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
       for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
         put(index_in_heap,*ui, static_cast<std::size_t>(-1)); 
+        put(key_map, *ui, KeyValue(std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity()));
       };
     };
     
-    typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyMap, KeyCompareType> MutableQueue;
-    MutableQueue Q(key, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
+    typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, KeyValueMap, KeyCompareType> MutableQueue;
+    MutableQueue Q(key_map, index_in_heap, KeyCompareType()); //priority queue holding the OPEN set.
     std::vector<Vertex> I; //list holding the INCONS set (inconsistent nodes).
     
     detail::fadprm_bfs_visitor<Topology, AStarHeuristicMap, FADPRMVisitor,
         MutableQueue, std::vector<Vertex>,
-        IndexInHeapMap, PredecessorMap, KeyMap, DistanceMap, RHSMap,
+        IndexInHeapMap, PredecessorMap, KeyValueMap, DistanceMap, RHSMap,
         WeightMap, DensityMap, PositionMap, NcSelector, ColorMap>
-      bfs_vis(free_space, hval, vis, Q, I, index_in_heap, predecessor, key, distance, 
+      bfs_vis(free_space, hval, vis, Q, I, index_in_heap, predecessor, key_map, distance, 
               rhs, weight, density, position, select_neighborhood, color, epsilon);
     
     detail::adstar_search_loop(
-      g, start_vertex, hval, bfs_vis, predecessor, distance, rhs, key, weight, color, 
+      g, start_vertex, hval, bfs_vis, predecessor, distance, rhs, key_map, weight, color, 
       index_in_heap, Q, I, epsilon, std::numeric_limits<double>::infinity(), 0.0, 
       std::less<double>(), std::equal_to<double>(), std::plus<double>(), std::multiplies<double>());
     
@@ -565,8 +535,6 @@ namespace graph {
    *         to the goal.
    * \tparam RHSMap This property-map type is used to store the inconsistent estimated distance of 
    *         each vertex to the goal (internal use to AD*).
-   * \tparam KeyMap This property-map type is used to store the weights of the edges of the 
-   *         graph (cost of travel along an edge).
    * \tparam WeightMap This property-map type is used to store the weights of the edges of the 
    *         graph (cost of travel along an edge).
    * \tparam PositionMap A property-map type that can store the position of each vertex. 
@@ -596,7 +564,6 @@ namespace graph {
    * \param distance The property-map which stores the estimated distance of each vertex to the goal.
    * \param rhs The property-map which stores the inconsistent estimated distance of each vertex to the 
    *        goal (for internal use).
-   * \param key The property-map which stores the AD* key-values associated to each vertex.
    * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
    *        along the edge).
    * \param density A property-map that provides the density values assiciated to each vertex.
@@ -620,7 +587,6 @@ namespace graph {
             typename PredecessorMap, //this is the map that stores the preceeding edge for each vertex.
             typename DistanceMap, //this is the map of distance values associated with each vertex.
             typename RHSMap,
-            typename KeyMap, //this is the map of key values associated to each vertex.
             typename WeightMap, //this is the map of edge weight (or cost) associated to each edge of the graph.
             typename DensityMap,
             typename PositionMap,
@@ -630,7 +596,7 @@ namespace graph {
   generate_fadprm
     (Graph &g, Vertex start_vertex, const Topology& free_space,
      AStarHeuristicMap hval, FADPRMVisitor vis,
-     PredecessorMap predecessor, DistanceMap distance, RHSMap rhs, KeyMap key, 
+     PredecessorMap predecessor, DistanceMap distance, RHSMap rhs, 
      WeightMap weight, DensityMap density, PositionMap position, NcSelector select_neighborhood,
      ColorMap color, double epsilon)
   {
@@ -664,14 +630,13 @@ namespace graph {
       put(color, *ui, Color::white());
       put(distance, *ui, std::numeric_limits<double>::infinity());
       put(rhs, *ui, std::numeric_limits<double>::infinity());
-      put(key, *ui, KeyValue(std::numeric_limits<double>::infinity(),std::numeric_limits<double>::infinity()));
       put(predecessor, *ui, *ui);
       vis.initialize_vertex(*ui, g);
     };
 
     generate_fadprm_no_init
       (g, start_vertex, free_space, hval, vis, predecessor, distance, rhs, 
-       key, weight, density, position, select_neighborhood, color, epsilon);
+       weight, density, position, select_neighborhood, color, epsilon);
 
   };
   

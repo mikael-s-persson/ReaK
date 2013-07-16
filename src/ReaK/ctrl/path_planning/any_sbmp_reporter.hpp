@@ -87,7 +87,7 @@ class any_sbmp_reporter : public shared_object {
      */
     template <typename MotionGraph, typename PositionMap>
     void draw_motion_graph(const FreeSpaceType& space, const MotionGraph& g, PositionMap) const {
-      type_erased_graph<MotionGraph> teg(const_cast<MotionGraph*>(&g));
+      graph::type_erased_graph<MotionGraph> teg(const_cast<MotionGraph*>(&g));
       this->draw_any_motion_graph(space, teg);
     };
     
@@ -135,7 +135,7 @@ namespace detail {
   };
   
   template <typename FreeSpaceType>
-  struct get_sbmp_reporter_any_property_type<true> {
+  struct get_sbmp_reporter_any_property_type<true, FreeSpaceType> {
     typedef typename steerable_space_traits<FreeSpaceType>::steer_record_type type;
     static std::string name() { return "edge_steer_rec"; };
   };
@@ -161,14 +161,12 @@ class type_erased_sbmp_reporter : public any_sbmp_reporter<FreeSpaceType> {
     
     typedef is_steerable_space<FreeSpaceType> has_steering_record;
     
-    BOOST_STATIC_CONSTANT(bool, use_steering_record = has_steering_record::type::value);
-    
     Reporter reporter;
     
   public:
     
     virtual void draw_any_motion_graph(const FreeSpaceType& space, const graph::any_graph& g) const { 
-      typedef get_sbmp_reporter_any_property_type<use_steering_record, FreeSpaceType> PropType;
+      typedef detail::get_sbmp_reporter_any_property_type<has_steering_record::type::value, FreeSpaceType> PropType;
       reporter.draw_motion_graph(space, g, get< const typename PropType::type& >(PropType::name(), g));
     };
     virtual void draw_trajectory(const FreeSpaceType& space, const shared_ptr< trajectory_base< SuperSpaceType > >& traj) const { 
@@ -243,7 +241,7 @@ class any_sbmp_reporter_chain : public shared_object {
      */
     template <typename MotionGraph, typename PositionMap>
     void draw_motion_graph(const FreeSpaceType& space, const MotionGraph& g, PositionMap) const {
-      type_erased_graph<MotionGraph> teg(const_cast<MotionGraph*>(&g));
+      graph::type_erased_graph<MotionGraph> teg(const_cast<MotionGraph*>(&g));
       for(typename std::vector< pointer_type >::const_iterator it = reporters.begin(); it != reporters.end(); ++it)
         (*it)->draw_any_motion_graph(space, teg);
     };

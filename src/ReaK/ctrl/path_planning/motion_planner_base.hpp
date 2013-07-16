@@ -51,6 +51,7 @@
 #include "path_planner_options.hpp"
 #include "any_motion_graphs.hpp"
 #include "planning_queries.hpp"
+#include "any_sbmp_reporter.hpp"
 
 namespace ReaK {
   

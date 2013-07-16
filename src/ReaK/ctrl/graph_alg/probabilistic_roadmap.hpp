@@ -100,7 +100,7 @@ namespace detail {
 #else
       Vertex u = add_vertex(up, g);
 #endif
-      put(m_cc_root, g[u], u);
+      put(m_cc_root, u, u);
       m_cc_set.insert(u);
       m_vis.vertex_added(u,g);
       put(m_index_in_heap, u, static_cast<std::size_t>(-1));
@@ -112,12 +112,12 @@ namespace detail {
     void shortcut_cc_root(Vertex u, Graph& g) const {
       std::stack<Vertex> u_trace;
       u_trace.push(u);
-      while( get(m_cc_root, g[u]) != u ) {
-        u = get(m_cc_root, g[u]);
+      while( get(m_cc_root, u) != u ) {
+        u = get(m_cc_root, u);
         u_trace.push(u);
       };
       while(!u_trace.empty()) {
-        put(m_cc_root, g[u_trace.top()], u);
+        put(m_cc_root, u_trace.top(), u);
         u_trace.pop();
       };
     };
@@ -126,19 +126,22 @@ namespace detail {
     void edge_added(Edge e, Graph& g) const { 
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       
+      m_vis.edge_added(e,g); 
+      
       Vertex u = source(e, g);
       Vertex v = target(e, g);
       shortcut_cc_root(u, g);
       shortcut_cc_root(v, g);
-      if(get(m_cc_root, g[v]) != get(m_cc_root, g[u])) {
-        Vertex r1 = get(m_cc_root, g[u]);
-        Vertex r2 = get(m_cc_root, g[v]);
-        put(m_cc_root, g[r2], r1);
-        put(m_cc_root, g[v], r1);
+      if(get(m_cc_root, v) != get(m_cc_root, u)) {
+        Vertex r1 = get(m_cc_root, u);
+        Vertex r2 = get(m_cc_root, v);
+        put(m_cc_root, r2, r1);
+        put(m_cc_root, v, r1);
         m_cc_set.erase(r2);
+        
+        if(m_cc_set.size() < 2)
+          m_vis.publish_path(g);
       };
-      
-      m_vis.edge_added(e,g); 
     };
     
     template <typename Vertex, typename Graph>
@@ -210,13 +213,12 @@ namespace detail {
                                 MutableQueue Q,
                                 NodeConnector connect_vertex,
                                 const NcSelector& select_neighborhood,
-                                std::size_t max_vertex_count,
                                 double expand_probability) {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename Graph::edge_bundled EdgeProp;
     
-    while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
+    while(vis.keep_going()) {
       
       double rand_value = boost::uniform_01<ReaK::pp::global_rng_type&,double>(ReaK::pp::get_global_rng())(); // generate random-number between 0 and 1.
       
@@ -257,57 +259,49 @@ namespace detail {
   
 
 /**
-  * This function is the basic PRM algorithm (as of "Geraerts and Overmars, 2002"). Note that 
-  * all the design decisions (how to generate vertices, how to select the neighborhood, how to 
-  * check the collision) have been externalized via the provided free_space topology, visitor 
-  * object, and neighborhood selection functor.
-  * 
-  * \tparam Graph A mutable graph type that can store the roadmap, should model boost::MutableGraphConcept 
-  *         and boost::VertexListGraphConcept (either bidirectional or undirected graph, the algorithm 
-  *         will deal with either cases as appropriate).
-  * \tparam Topology A topology type on which the vertex positions lie, should model the TopologyConcept,
-  *         the MetricSpaceConcept (has an attached distance-metric) and the PointDistributionConcept (has 
-  *         an attached random-sampler functor).
-  * \tparam PRMVisitor A PRM visitor type, should model the PRMVisitorConcept.
-  * \tparam PositionMap A property-map type that can store the position of each vertex. 
-  * \tparam DensityMap A property-map type that can store the density-measures for each vertex.
-  * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
-  *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors). 
-  *         See classes in the topological_search.hpp header-file.
-  * \tparam CompareFunction A functor type that can be used to compare density values (strict weak-ordering).
-  * \param g A mutable graph that should initially store the starting 
-  *        vertex (if not it will be randomly generated) and will store 
-  *        the generated graph once the algorithm has finished.
-  * \param free_space A topology (as defined by the Boost Graph Library). Note 
-  *        that it is required to generate only random points in 
-  *        the free-space and to only allow interpolation within the free-space.
-  * \param vis A PRM visitor implementing the PRMVisitorConcept. This is the 
-  *        main point of customization and recording of results that the 
-  *        user can implement.
-  * \param position A mapping that implements the MutablePropertyMap Concept. Also,
-  *        the value_type of this map should be the same type as the topology's 
-  *        value_type.
-  * \param density A property-map that provides the density values assiciated to each vertex.
-  * \param select_neighborhood A callable object (functor) that can select a list of 
-  *        vertices of the graph that ought to be connected to a new 
-  *        vertex. The list should be sorted in order of increasing "distance".
-  * \param max_vertex_count The maximum number of vertices beyond which the algorithm 
-  *        should stop regardless of whether the resulting graph is satisfactory or not.
-  * \param num_constructed_vertices The number of vertices to generate in the PRM construction
-  *        phase (i.e. vertices are randomly generated all over the free-space).
-  * \param num_expanded_vertices The number of vertices to generate in the PRM expansion phase 
-  *        where the priority-queue (sorted by density and compare) is used to select vertices for 
-  *        expansion (the expansion is done with vis.expand_vertex(u,g,v), see PRMVisitorConcept).
-  * \param compare A functor used to compare density values (strict weak-ordering) in the priority-queue 
-  *        for expansion of the vertices.
-  */
+ * This function is the basic PRM algorithm (as of "Geraerts and Overmars, 2002"). Note that 
+ * all the design decisions (how to generate vertices, how to select the neighborhood, how to 
+ * check the collision) have been externalized via the provided free_space topology, visitor 
+ * object, and neighborhood selection functor.
+ * 
+ * \tparam Graph A mutable graph type that can store the roadmap, should model boost::MutableGraphConcept 
+ *         and boost::VertexListGraphConcept (either bidirectional or undirected graph, the algorithm 
+ *         will deal with either cases as appropriate).
+ * \tparam Topology A topology type on which the vertex positions lie, should model the TopologyConcept,
+ *         the MetricSpaceConcept (has an attached distance-metric) and the PointDistributionConcept (has 
+ *         an attached random-sampler functor).
+ * \tparam PRMVisitor A PRM visitor type, should model the PRMVisitorConcept.
+ * \tparam PositionMap A property-map type that can store the position of each vertex. 
+ * \tparam DensityMap A property-map type that can store the density-measures for each vertex.
+ * \tparam NcSelector A functor type that can select a list of vertices of the graph that are 
+ *         the nearest-neighbors of a given vertex (or some other heuristic to select the neighbors). 
+ *         See classes in the topological_search.hpp header-file.
+ * \tparam CompareFunction A functor type that can be used to compare density values (strict weak-ordering).
+ * \param g A mutable graph that should initially store the starting 
+ *        vertex (if not it will be randomly generated) and will store 
+ *        the generated graph once the algorithm has finished.
+ * \param super_space A topology (as defined by ReaK) that represents the configuration-space
+ *        used for the planning (a space with no obstacles).
+ * \param vis A PRM visitor implementing the PRMVisitorConcept. This is the 
+ *        main point of customization and recording of results that the 
+ *        user can implement.
+ * \param position A mapping that implements the MutablePropertyMap Concept. Also,
+ *        the value_type of this map should be the same type as the topology's 
+ *        value_type.
+ * \param get_sample A random sampler of positions in the super-space (obstacle-free topology).
+ * \param density A property-map that provides the density values assiciated to each vertex.
+ * \param select_neighborhood A callable object (functor) that can select a list of 
+ *        vertices of the graph that ought to be connected to a new 
+ *        vertex. The list should be sorted in order of increasing "distance".
+ * \param expand_probability The probability (between 0 and 1) that an expansion will be 
+ *        performed as opposed to a general sampling from the free-space.
+ */
 template <typename Graph,
           typename Topology,
           typename PRMVisitor,
           typename PositionMap,
           typename RandomSampler,
           typename DensityMap,
-          typename CCRootMap,
           typename NcSelector>
 inline void generate_prm(Graph& g,
                          const Topology& super_space,
@@ -315,9 +309,7 @@ inline void generate_prm(Graph& g,
                          PositionMap position,
                          RandomSampler get_sample,
                          DensityMap density,
-                         CCRootMap cc_root,
                          const NcSelector& select_neighborhood,
-                         std::size_t max_vertex_count,
                          double expand_probability) {
   BOOST_CONCEPT_ASSERT((PRMVisitorConcept<PRMVisitor,Graph,Topology>));
   BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>)); // for the distance-metric.
@@ -327,6 +319,19 @@ inline void generate_prm(Graph& g,
   typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
   typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
   typedef typename Graph::vertex_bundled VertexProp;
+  
+  typedef boost::vector_property_map<Vertex> CCRootMap;
+  CCRootMap cc_root;
+  std::set<Vertex> cc_set;
+  
+  typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
+  IndexInHeapMap index_in_heap;
+  
+  typedef boost::composite_property_map< DensityMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphDensityMap;
+  GraphDensityMap g_density = GraphDensityMap(density, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
+  
+  typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, GraphDensityMap, std::less<double> > MutableQueue;
+  MutableQueue Q(g_density, index_in_heap, std::less<double>()); //priority queue holding the "expandable" vertices.
   
   if(num_vertices(g) == 0) {
     PositionValue p = get_sample(super_space);
@@ -339,41 +344,48 @@ inline void generate_prm(Graph& g,
 #else
     Vertex u = add_vertex(up, g);
 #endif
-    put(cc_root, g[u], u);
+    put(cc_root, u, u);
     vis.vertex_added(u, g);
-  };
-  
-  typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
-  IndexInHeapMap index_in_heap;
-  
-  typedef boost::composite_property_map< 
-    DensityMap, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t > > GraphDensityMap;
-  GraphDensityMap g_density = GraphDensityMap(density, boost::whole_bundle_property_map< Graph, boost::vertex_bundle_t >(&g));
-  
-  typedef boost::d_ary_heap_indirect<Vertex, 4, IndexInHeapMap, GraphDensityMap, std::less<double> > MutableQueue;
-  MutableQueue Q(g_density, index_in_heap, std::less<double>()); //priority queue holding the "expandable" vertices.
-  
-  std::set<Vertex> cc_set;
-  {
+    cc_set.insert(u);
+  } else {
+    
     typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
     for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
       vis.affected_vertex(*ui,g);
       Q.push(*ui);
-      Vertex u = *ui;
-      while(get(cc_root, g[u]) != u)
-        u = get(cc_root, g[u]);
-      cc_set.insert(u);
+      put(cc_root, *ui, *ui);
     };
+    
+    for (boost::tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
+      if( get(cc_root, *ui) != *ui )
+        continue;
+      cc_set.insert(*ui);
+      std::stack<Vertex> u_trace;
+      u_trace.push(*ui);
+      while(!u_trace.empty()) {
+        Vertex v = u_trace.top(); u_trace.pop();
+        if(get(cc_root, v) == *ui)
+          continue;
+        put(cc_root, v, *ui);
+        typename boost::graph_traits<Graph>::out_edge_iterator ei, ei_end;
+        for(boost::tie(ei, ei_end) = out_edges(v,g); ei != ei_end; ++ei) {
+          if(target(*ei, g) == v)
+            u_trace.push(source(*ei, g));
+          else
+            u_trace.push(target(*ei, g));
+        };
+      };
+    };
+    
   };
   
   detail::prm_conn_visitor<PRMVisitor, MutableQueue, IndexInHeapMap, PositionMap, CCRootMap>
     prm_conn_vis(vis, Q, index_in_heap, position, cc_root, cc_set);
   
-  detail::generate_prm_impl(
-    g, super_space, prm_conn_vis, position, get_sample, Q, prm_node_connector(),
-    select_neighborhood, max_vertex_count, expand_probability);
+  detail::generate_prm_impl( g, super_space, prm_conn_vis, position, get_sample, Q, prm_node_connector(), select_neighborhood, expand_probability);
   
 };
+
 
 
 

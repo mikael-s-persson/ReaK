@@ -327,7 +327,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   
   
 #define RK_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE) \
-  typedef boost::property_map< MotionGraphType, PointType VertexProp::* >::type GraphPositionMap; \
+  typedef typename boost::property_map< MotionGraphType, PointType VertexProp::* >::type GraphPositionMap; \
   typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, TREE_STORAGE > SpacePartType; \
   SpacePartType space_part(motion_graph, sup_space_ptr, get(&VertexProp::position, motion_graph)); \
     \
@@ -348,13 +348,13 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
     VertexProp, EdgeProp, SuperSpace, PositionMap, \
     ARITY, random_vp_chooser, TREE_STORAGE, \
     boost::vecS, boost::undirectedS, boost::listS > ALTGraph; \
-  typedef typename ALTGraph::adj_list_type MotionGraph; \
-  typedef typename boost::graph_traits<MotionGraph>::vertex_descriptor Vertex; \
+  typedef typename ALTGraph::adj_list_type MotionGraphType; \
+  typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex; \
    \
   ALTGraph space_part(sup_space_ptr, pos_map); \
-  MotionGraph motion_graph = space_part.get_adjacency_list(); \
+  MotionGraphType motion_graph = space_part.get_adjacency_list(); \
    \
-  typedef multi_dvp_tree_search<MotionGraph, ALTGraph> NNFinderType; \
+  typedef multi_dvp_tree_search<MotionGraphType, ALTGraph> NNFinderType; \
   NNFinderType nn_finder; \
   nn_finder.graph_tree_map[&motion_graph] = &space_part; \
    \

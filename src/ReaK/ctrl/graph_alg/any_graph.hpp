@@ -137,10 +137,10 @@ class any_graph {
     
     
     bool equal_descriptors(const vertex_descriptor& aU, const vertex_descriptor& aV) const {
-      
+      return equal_vertex_descriptors(aU, aV);
     };
     bool equal_descriptors(const edge_descriptor& aE, const edge_descriptor& aF) const {
-      
+      return equal_edge_descriptors(aE, aF);
     };
     
     
@@ -651,10 +651,11 @@ class type_erased_graph : public any_graph {
     
   protected:
     
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor real_vertex_desc;
-    typedef typename boost::graph_traits<Graph>::edge_descriptor real_edge_desc;
+    typedef Graph real_graph_type;
+    typedef typename boost::graph_traits<real_graph_type>::vertex_descriptor real_vertex_desc;
+    typedef typename boost::graph_traits<real_graph_type>::edge_descriptor real_edge_desc;
     
-    Graph* p_graph;
+    real_graph_type* p_graph;
     
     virtual void* get_property_by_ptr(const std::string& aProperty, const boost::any&) const {
       std::string err_message = "Unknown property: " + aProperty;
@@ -685,10 +686,10 @@ class type_erased_graph : public any_graph {
     
   public:
     
-    Graph& base() { return *p_graph; };
-    const Graph& base() const { return *p_graph; };
+    real_graph_type& base() { return *p_graph; };
+    const real_graph_type& base() const { return *p_graph; };
     
-    type_erased_graph(Graph* aPGraph) : p_graph(aPGraph) { };
+    type_erased_graph(real_graph_type* aPGraph) : p_graph(aPGraph) { };
     
     virtual edge_range edges() const {
       return detail::try_get_edges(*p_graph);

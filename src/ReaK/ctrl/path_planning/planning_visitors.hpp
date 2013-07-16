@@ -38,11 +38,13 @@
 #include "motion_planner_base.hpp"
 #include "planning_queries.hpp"
 #include "any_sbmp_reporter.hpp"
-#include "any_motion_graph.hpp"
+#include "any_motion_graphs.hpp"
 #include "any_knn_synchro.hpp"
 
 #include "metric_space_concept.hpp"
 #include "subspace_concept.hpp"
+
+#include <boost/mpl/if.hpp>
 
 namespace ReaK {
   
@@ -61,15 +63,13 @@ struct planning_visitor_base {
   typedef typename topology_traits<space_type>::point_type point_type;
   typedef typename topology_traits<space_type>::point_difference_type point_difference_type;
   
-  typedef typename boost::if_< is_temporal_space<space_type>,
+  typedef typename boost::mpl::if_< is_temporal_space<space_type>,
     trajectory_base< super_space_type >,
     seq_path_base< super_space_type > >::type solution_base_type;
   
   typedef shared_ptr< solution_base_type > solution_record_ptr;
   
-  typedef typename boost::if_< is_temporal_space<space_type>,
-    sample_based_planner< motion_planner_base<space_type> >,
-    sample_based_planner< path_planner_base<space_type> > >::type planner_base_type;
+  typedef sample_based_planner<space_type> planner_base_type;
   
   typedef planning_query<space_type> query_type;
   
@@ -115,9 +115,10 @@ struct planning_visitor_base {
   template <typename Graph>
   void publish_path(const Graph& g) const {
     if(!m_goal_node.empty()) {
+      typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+      Vertex goal_node = boost::any_cast<Vertex>(m_goal_node);
       dispatched_register_solution(boost::any_cast<Vertex>(m_start_node), 
-                                   boost::any_cast<Vertex>(m_goal_node), 
-                                   boost::any_cast<Vertex>(m_goal_node), g, g[u]);
+                                   goal_node, goal_node, g, g[goal_node]);
     };
   };
   
@@ -147,6 +148,8 @@ struct planning_visitor_base {
   
   template <typename Edge, typename Graph>
   void edge_added(Edge e, Graph& g) const { 
+    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    
     if( ((m_planner->get_planning_method_flags() & PLANNING_DIRECTIONALITY_MASK) == BIDIRECTIONAL_PLANNING) ||
         (!m_goal_node.empty()) )
       return;  // do not check goal connection for a bi-directional planner (wait for "joining vertex") or a planner that contains the goal node.
@@ -292,7 +295,7 @@ struct planning_visitor_base {
   template <typename Vertex, typename Graph>
   boost::tuple<point_type, bool, typename Graph::edge_bundled> random_walk(Vertex u, Graph& g) const {
     typedef typename Graph::edge_bundled EdgeProp;
-    typedef boost::tuple<PointType, bool, EdgeProp > ResultType;
+    typedef boost::tuple<point_type, bool, EdgeProp > ResultType;
     
     const super_space_type& sup_space = m_query->space->get_super_space();
     typename point_distribution_traits< super_space_type >::random_sampler_type get_sample = get(random_sampler, sup_space);
@@ -306,7 +309,7 @@ struct planning_visitor_base {
       p_rnd = sup_space.adjust(g[u].position, dp_rnd);
       double dist = get(distance_metric, sup_space)(g[u].position, p_rnd, sup_space);
       double target_dist = boost::uniform_01<global_rng_type&,double>(get_global_rng())() * m_planner->get_sampling_radius();
-      double traveled_dist = dispatched_steer_towards_position(*(m_query->space), g[u].position, g[v].position, 
+      double traveled_dist = dispatched_steer_towards_position(*(m_query->space), g[u].position, p_rnd, 
                                                                get<0>(result), target_dist / dist, get<2>(result));
       if( traveled_dist > m_planner->get_steer_progress_tolerance() * target_dist ) {
         get<1>(result) = true;

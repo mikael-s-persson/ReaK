@@ -210,7 +210,7 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   };
   
 #define RK_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE) \
-  typedef boost::property_map< MotionGraphType, PointType VertexProp::* >::type GraphPositionMap; \
+  typedef typename boost::property_map< MotionGraphType, PointType VertexProp::* >::type GraphPositionMap; \
   typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, TREE_STORAGE > SpacePartType; \
   SpacePartType space_part(motion_graph, sup_space_ptr, get(&VertexProp::position, motion_graph)); \
    \
@@ -252,8 +252,7 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
     get(random_sampler, *sup_space_ptr), \
     ReaK::graph::star_neighborhood< NNFinderType >( \
       nn_finder, \
-      space_dim, 3.0 * space_Lc), \
-    this->get_max_vertex_count());
+      space_dim, 3.0 * space_Lc));
 
 #define RK_RRTSTAR_PLANNER_CALL_RRTSTAR_BNB_FUNCTION \
   ReaK::graph::generate_bnb_rrt_star( \
@@ -269,8 +268,7 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
     get(random_sampler, *sup_space_ptr), \
     ReaK::graph::star_neighborhood< NNFinderType >( \
       nn_finder, \
-      space_dim, 3.0 * space_Lc), \
-    this->get_max_vertex_count());
+      space_dim, 3.0 * space_Lc));
   
   
 #define RK_RRTSTAR_PLANNER_CALL_APPROPRIATE_RRTSTAR_PLANNER_FUNCTION \
@@ -399,7 +397,7 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
     
     
 #define RK_RRTSTAR_PLANNER_SETUP_BIDIR_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE) \
-  typedef boost::property_map< MotionGraphType, PointType VertexProp::* >::type GraphPositionMap; \
+  typedef typename boost::property_map< MotionGraphType, PointType VertexProp::* >::type GraphPositionMap; \
   typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, TREE_STORAGE > SpacePartType; \
    \
   SpacePartType space_part1(motion_graph1, sup_space_ptr, get(&VertexProp::position, motion_graph1)); \
@@ -449,8 +447,7 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
     get(random_sampler, *sup_space_ptr), \
     ReaK::graph::star_neighborhood< NNFinderType >( \
       nn_finder, \
-      space_dim, 3.0 * space_Lc), \
-    this->get_max_vertex_count());
+      space_dim, 3.0 * space_Lc));
   
   
     

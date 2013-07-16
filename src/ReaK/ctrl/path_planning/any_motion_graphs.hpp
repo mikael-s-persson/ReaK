@@ -112,7 +112,7 @@ struct mg_edge_data : detail::mg_edge_data_base<Topology, is_steerable_space<Top
 };
 
 template <typename Topology>
-void print_mg_vertex(std::ostream& out, const mg_vertex_data<Topology>& vp) const {
+void print_mg_vertex(std::ostream& out, const mg_vertex_data<Topology>& vp) {
   using ReaK::to_vect;
   vect_n<double> v_pos = to_vect<double>(vp.position);
   for(std::size_t i = 0; i < v_pos.size(); ++i)
@@ -132,8 +132,9 @@ class any_motion_graph : public graph::type_erased_graph<Graph> {
   protected:
     typedef any_motion_graph<Topology, Graph> self;
     typedef graph::type_erased_graph<Graph> base_type;
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor real_vertex_desc;
-    typedef typename boost::graph_traits<Graph>::edge_descriptor real_edge_desc;
+    typedef typename base_type::real_graph_type real_graph_type;
+    typedef typename base_type::real_vertex_desc real_vertex_desc;
+    typedef typename base_type::real_edge_desc real_edge_desc;
     
     virtual void* get_property_by_ptr(const std::string& aProperty, const boost::any& aElement) const {
       
@@ -157,7 +158,7 @@ class any_motion_graph : public graph::type_erased_graph<Graph> {
     
   public:
     
-    any_motion_graph(Graph* aPGraph) : base_type(aPGraph) { };
+    any_motion_graph(real_graph_type* aPGraph) : base_type(aPGraph) { };
     
 };
 
@@ -197,7 +198,7 @@ struct optimal_mg_edge : mg_edge_data<Topology> {
 };
 
 template <typename Topology>
-void print_mg_vertex(std::ostream& out, const optimal_mg_vertex<Topology>& vp) const {
+void print_mg_vertex(std::ostream& out, const optimal_mg_vertex<Topology>& vp) {
   using ReaK::to_vect;
   vect_n<double> v_pos = to_vect<double>(vp.position);
   for(std::size_t i = 0; i < v_pos.size(); ++i)
@@ -217,8 +218,9 @@ class any_optimal_motion_graph : public any_motion_graph<Topology, Graph> {
   protected:
     typedef any_optimal_motion_graph<Topology, Graph> self;
     typedef any_motion_graph<Topology, Graph> base_type;
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor real_vertex_desc;
-    typedef typename boost::graph_traits<Graph>::edge_descriptor real_edge_desc;
+    typedef typename base_type::real_graph_type real_graph_type;
+    typedef typename base_type::real_vertex_desc real_vertex_desc;
+    typedef typename base_type::real_edge_desc real_edge_desc;
     
     virtual void* get_property_by_ptr(const std::string& aProperty, const boost::any& aElement) const {
       
@@ -246,7 +248,7 @@ class any_optimal_motion_graph : public any_motion_graph<Topology, Graph> {
     
   public:
     
-    any_optimal_motion_graph(Graph* aPGraph) : base_type(aPGraph) { };
+    any_optimal_motion_graph(real_graph_type* aPGraph) : base_type(aPGraph) { };
     
 };
 
@@ -271,7 +273,7 @@ struct astar_mg_vertex : optimal_mg_vertex<Topology> {
 
 
 template <typename Topology>
-void print_mg_vertex(std::ostream& out, const astar_mg_vertex<Topology>& vp) const {
+void print_mg_vertex(std::ostream& out, const astar_mg_vertex<Topology>& vp) {
   using ReaK::to_vect;
   vect_n<double> v_pos = to_vect<double>(vp.position);
   for(std::size_t i = 0; i < v_pos.size(); ++i)
@@ -293,8 +295,9 @@ class any_astar_motion_graph : public any_optimal_motion_graph<Topology, Graph> 
   protected:
     typedef any_astar_motion_graph<Topology, Graph> self;
     typedef any_optimal_motion_graph<Topology, Graph> base_type;
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor real_vertex_desc;
-    typedef typename boost::graph_traits<Graph>::edge_descriptor real_edge_desc;
+    typedef typename base_type::real_graph_type real_graph_type;
+    typedef typename base_type::real_vertex_desc real_vertex_desc;
+    typedef typename base_type::real_edge_desc real_edge_desc;
     
     virtual void* get_property_by_ptr(const std::string& aProperty, const boost::any& aElement) const {
       
@@ -322,7 +325,7 @@ class any_astar_motion_graph : public any_optimal_motion_graph<Topology, Graph> 
     
   public:
     
-    any_astar_motion_graph(Graph* aPGraph) : base_type(aPGraph) { };
+    any_astar_motion_graph(real_graph_type* aPGraph) : base_type(aPGraph) { };
     
 };
 
@@ -342,7 +345,7 @@ struct dense_mg_vertex : BaseVertex {
 };
 
 template <typename BaseVertex>
-void print_mg_vertex(std::ostream& out, const dense_mg_vertex<BaseVertex>& vp) const {
+void print_mg_vertex(std::ostream& out, const dense_mg_vertex<BaseVertex>& vp) {
   print_mg_vertex(out, static_cast<const BaseVertex&>(vp));
   out << " " << std::setw(10) << vp.density;
 };
@@ -357,8 +360,9 @@ class any_dense_motion_graph : public BaseMotionGraph {
   protected:
     typedef any_dense_motion_graph<BaseMotionGraph> self;
     typedef BaseMotionGraph base_type;
-    typedef typename BaseMotionGraph::real_vertex_desc real_vertex_desc;
-    typedef typename BaseMotionGraph::real_edge_desc real_edge_desc;
+    typedef typename base_type::real_graph_type real_graph_type;
+    typedef typename base_type::real_vertex_desc real_vertex_desc;
+    typedef typename base_type::real_edge_desc real_edge_desc;
     
     virtual void* get_property_by_ptr(const std::string& aProperty, const boost::any& aElement) const {
       
@@ -378,7 +382,7 @@ class any_dense_motion_graph : public BaseMotionGraph {
     
   public:
     
-    any_dense_motion_graph(Graph* aPGraph) : base_type(aPGraph) { };
+    any_dense_motion_graph(real_graph_type* aPGraph) : base_type(aPGraph) { };
     
 };
 
@@ -401,7 +405,7 @@ struct recursive_dense_mg_vertex : BaseVertex {
 };
 
 template <typename BaseVertex>
-void print_mg_vertex(std::ostream& out, const recursive_dense_mg_vertex<BaseVertex>& vp) const {
+void print_mg_vertex(std::ostream& out, const recursive_dense_mg_vertex<BaseVertex>& vp) {
   print_mg_vertex(out, static_cast<const BaseVertex&>(vp));
   out << " " << std::setw(10) << vp.density
       << " " << std::setw(10) << vp.expansion_trials
@@ -419,8 +423,9 @@ class any_recursive_dense_mg : public BaseMotionGraph {
   protected:
     typedef any_recursive_dense_mg<BaseMotionGraph> self;
     typedef BaseMotionGraph base_type;
-    typedef typename BaseMotionGraph::real_vertex_desc real_vertex_desc;
-    typedef typename BaseMotionGraph::real_edge_desc real_edge_desc;
+    typedef typename base_type::real_graph_type real_graph_type;
+    typedef typename base_type::real_vertex_desc real_vertex_desc;
+    typedef typename base_type::real_edge_desc real_edge_desc;
     
     virtual void* get_property_by_ptr(const std::string& aProperty, const boost::any& aElement) const {
       
@@ -452,7 +457,7 @@ class any_recursive_dense_mg : public BaseMotionGraph {
     
   public:
     
-    any_recursive_dense_mg(Graph* aPGraph) : base_type(aPGraph) { };
+    any_recursive_dense_mg(real_graph_type* aPGraph) : base_type(aPGraph) { };
     
 };
 

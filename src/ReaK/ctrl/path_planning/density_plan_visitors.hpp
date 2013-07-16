@@ -161,9 +161,6 @@ struct density_plan_visitor : planning_visitor_base< density_plan_visitor<FreeSp
                 NeighborhoodTrackingVisitorConcept
 ***************************************************/
   
-  template <typename Vertex, typename Graph>
-  void travel_succeeded(Vertex, Vertex, Graph&) const { };
-  
   template <typename BaseType, typename Vertex, typename Graph>
   void dispatched_travel_succeeded(dense_mg_vertex<BaseType>&, Vertex, Vertex, Graph&) const { };
   
@@ -176,7 +173,7 @@ struct density_plan_visitor : planning_visitor_base< density_plan_visitor<FreeSp
   
   template <typename Vertex, typename Graph>
   void travel_succeeded(Vertex u, Vertex v, Graph& g) const { 
-    dispatched_travel_explored(g[u], u, v, g);
+    dispatched_travel_succeeded(g[u], u, v, g);
   };
   
   

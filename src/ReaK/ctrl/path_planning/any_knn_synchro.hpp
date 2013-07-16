@@ -70,7 +70,7 @@ class any_knn_synchro : public shared_object {
      */
     template <typename Vertex, typename Graph>
     void added_vertex(Vertex v, Graph& g) const {
-      type_erased_graph<Graph> teg(&g);
+      graph::type_erased_graph<Graph> teg(&g);
       this->added_vertex_impl(graph::any_graph::vertex_descriptor(boost::any(v)), teg);
     };
     
@@ -83,7 +83,7 @@ class any_knn_synchro : public shared_object {
      */
     template <typename Vertex, typename Graph>
     void removed_vertex(Vertex v, Graph& g) const {
-      type_erased_graph<Graph> teg(&g);
+      graph::type_erased_graph<Graph> teg(&g);
       this->removed_vertex_impl(graph::any_graph::vertex_descriptor(boost::any(v)), teg);
     };
     

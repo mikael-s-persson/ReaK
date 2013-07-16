@@ -167,13 +167,6 @@ namespace detail {
    * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
    * \param find_nearest_neighbor A callable object (functor) which can perform a 
    *        nearest neighbor search of a point to a graph in the topology. (see topological_search.hpp)
-   * \param max_vertex_count The maximum number of vertices beyond which the algorithm 
-   *        should stop regardless of whether the resulting tree is satisfactory or not.
-   * \param max_edge_distance The maximum length (w.r.t. the topology) of an edge.
-   * \param min_edge_distance The minimum length (w.r.t. the topology) of an edge. If a free-space 
-   *        edge cannot be made longer than this number, it will not be added. This 
-   *        parameter also serves as the minimum resolution of the free-query (i.e. 
-   *        the collision detection).
    * 
    */
   template <typename Graph,
@@ -187,8 +180,7 @@ namespace detail {
                            RRTVisitor vis,
                            PositionMap position,
                            RandomSampler get_sample,
-                           NNFinder find_nearest_neighbor,
-                           unsigned int max_vertex_count) {
+                           NNFinder find_nearest_neighbor) {
     BOOST_CONCEPT_ASSERT((RRTVisitorConcept<RRTVisitor,Graph,Topology>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
     
@@ -197,7 +189,7 @@ namespace detail {
     
     detail::rrt_get_or_create_root(g, space, vis, get_sample, position);
     
-    while((num_vertices(g) < max_vertex_count) && (vis.keep_going())) {
+    while(vis.keep_going()) {
       PositionValue p_rnd = get_sample(space);
       Vertex u = find_nearest_neighbor(p_rnd, g, space, boost::bundle_prop_to_vertex_prop(position, g));
       detail::expand_rrt_vertex(g, space, vis, position, u, p_rnd);
@@ -218,9 +210,8 @@ namespace detail {
                     RRTVisitor vis,
                     PositionMap position,
                     RandomSampler get_sample,
-                    NNFinder find_nearest_neighbor,
-                    unsigned int max_vertex_count) {
-      generate_rrt(g,space,vis,position,get_sample,find_nearest_neighbor,max_vertex_count);
+                    NNFinder find_nearest_neighbor) {
+      generate_rrt(g,space,vis,position,get_sample,find_nearest_neighbor);
     };
   };
 
@@ -253,8 +244,6 @@ namespace detail {
    * \param find_nearest_neighbor A callable object (functor) which can perform a 
    *        nearest neighbor search of a point to a graph in the 
    *        topology. (see topological_search.hpp)
-   * \param max_vertex_count The maximum number of vertices beyond which the algorithm 
-   *        should stop regardless of whether the resulting tree is satisfactory or not.
    * 
    */
   template <typename Graph,
@@ -268,8 +257,7 @@ namespace detail {
                                          BiRRTVisitor vis,
                                          PositionMap position,
                                          RandomSampler get_sample,
-                                         NNFinder find_nearest_neighbor,
-                                         unsigned int max_vertex_count) {
+                                         NNFinder find_nearest_neighbor) {
     BOOST_CONCEPT_ASSERT((BiRRTVisitorConcept<BiRRTVisitor,Graph,Topology>));
     BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
     
@@ -286,7 +274,7 @@ namespace detail {
       true);
     PositionValue p_target1 = get(position, g2[v_target1.first]);
     
-    while((num_vertices(g1) + num_vertices(g2) < max_vertex_count) && (vis.keep_going())) {
+    while(vis.keep_going()) {
       //first, expand the first graph towards its target:
       Vertex u1 = find_nearest_neighbor(p_target1, g1, space, boost::bundle_prop_to_vertex_prop(position, g1));
       std::pair< Vertex, bool> v1 =
@@ -340,9 +328,8 @@ namespace detail {
                     BiRRTVisitor vis,
                     PositionMap position,
                     RandomSampler get_sample,
-                    NNFinder find_nearest_neighbor,
-                    unsigned int max_vertex_count) {
-      generate_bidirectional_rrt(g1,g2,space,vis,position,get_sample,find_nearest_neighbor,max_vertex_count);
+                    NNFinder find_nearest_neighbor) {
+      generate_bidirectional_rrt(g1,g2,space,vis,position,get_sample,find_nearest_neighbor);
     };
   };
 

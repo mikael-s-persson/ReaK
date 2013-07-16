@@ -348,22 +348,17 @@ namespace graph {
         
         if(!m_equal_compare(rhs_u,m_zero)) { //if u is not the start node.
           rhs_u = m_inf; //This was in the original code!
-          //Vertex pred_u = u;
-          //Vertex pred_u = get(m_predecessor, u); //this alone, works. Because it doesn't make anything inconsistent!
           typename GTraits::edge_descriptor pred_e;
           for(tie(ei,ei_end) = in_edges(u,g); ei != ei_end; ++ei) {
             distance_type rhs_tmp = m_combine(get(m_weight, *ei), get(m_distance, source(*ei,g)));
             if(m_compare(rhs_tmp, rhs_u)) {
               rhs_u = rhs_tmp;
-              //pred_u = source(*ei,g);
               put(m_rhs, u, rhs_u);  //this was the original code!
               put(m_predecessor, u, source(*ei,g));
               pred_e = *ei;
             };
           };
-          rhs_u = get(m_rhs, u); //put(m_rhs, u, rhs_u);
-          //if(pred_u != get(m_predecessor, u))                          m_vis.edge_relaxed(pred_e, g);
-          //put(m_predecessor, u, pred_u);
+          rhs_u = get(m_rhs, u);
         };
         
         if(!m_equal_compare(rhs_u,g_u)) {
@@ -376,11 +371,9 @@ namespace graph {
             put(m_color, u, Color::red());                             m_vis.inconsistent_vertex(u,g);
           };
         } else if(m_Q.contains(u)) { //if u is in the OPEN set, then remove it.
-          //KeyValue k = get(m_key, u);
           put(m_key, u, KeyValue(-m_inf,-m_inf,m_compare,m_equal_compare));
           m_Q.update(u);
           m_Q.pop(); //remove from OPEN set
-          //put(m_key, u, k);
           update_key(u, g); //this was the original code!
           put(m_color, u, Color::green());                             m_vis.forget_vertex(u, g);
         };
@@ -454,21 +447,8 @@ namespace graph {
       put(rhs, s, zero);
       put(predecessor, s, s);
       bfs_vis.update_key(s,g);
-      
-#define RK_ADSTAR_LOOP_PRINT_CURRENT_GRAPH_HEAP \
-      {\
-        typename graph_traits<VertexListGraph>::vertex_iterator ui, ui_end;\
-        for (tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {\
-          std::cout << "Vertex " << (*ui) << " has index is heap is: " << get(index_in_heap, *ui) << " for a heap size of: " << Q.size() << std::endl;\
-        };\
-      };
-      
-      //RK_ADSTAR_LOOP_PRINT_CURRENT_GRAPH_HEAP
-    
       put(color, s, Color::gray());                          bfs_vis.discover_vertex(s, g);
       Q.push(s);
-      
-      //RK_ADSTAR_LOOP_PRINT_CURRENT_GRAPH_HEAP
       
       std::vector<Edge> affected_edges;
       
@@ -477,60 +457,33 @@ namespace graph {
         typename graph_traits<VertexListGraph>::out_edge_iterator eig, eig_end;
         typename graph_traits<VertexListGraph>::in_edge_iterator eii, eii_end;
 
-        //put(color, s, Color::gray());                          bfs_vis.discover_vertex(s, g);
-        //Q.push(s);              //this was in the original code!
-        while (! Q.empty()) {  //RK_NOTICE(1," reached!");
+        while (! Q.empty()) {
           Vertex u = Q.top(); Q.pop();  
-          //RK_ADSTAR_LOOP_PRINT_CURRENT_GRAPH_HEAP
           bfs_vis.examine_vertex(u, g);
-          //RK_ADSTAR_LOOP_PRINT_CURRENT_GRAPH_HEAP
-          //put(color, u, Color::green());   /*this was an addition from working version*/   
           DistanceValue g_u = get(distance, u); //RK_NOTICE(1," reached!");
           DistanceValue rhs_u = get(rhs,u);
-          //if( KeyCompareType()(get(key,s), get(key,u)) && equal_compare(get(rhs,s),get(distance,s)) ) {
           if( equal_compare(get(hval, u), zero) && equal_compare(g_u,rhs_u) ) { //if we have a consistent node at the goal
             break;
           };
-          //RK_NOTICE(1," reached!");
-          //RK_ADSTAR_LOOP_PRINT_CURRENT_GRAPH_HEAP
           if(compare(rhs_u, g_u)) { //if g_u is greater than rhs_u, then make u consistent and close it.
-            //RK_NOTICE(1," reached!");
             put(distance, u, rhs_u);
             g_u = rhs_u; 
             put(color, u, Color::black());                     bfs_vis.finish_vertex(u, g);
-            //RK_NOTICE(1," reached!");
-            //RK_ADSTAR_LOOP_PRINT_CURRENT_GRAPH_HEAP
           } else { 
-            //RK_NOTICE(1," reached!");
             put(distance, u, inf);
             bfs_vis.update_vertex(u, g); 
-            //RK_NOTICE(1," reached!");
-            //RK_ADSTAR_LOOP_PRINT_CURRENT_GRAPH_HEAP
           };
-          //RK_NOTICE(1," reached!");
-          for (tie(eig, eig_end) = out_edges(u, g); eig != eig_end; ++eig) {  //RK_NOTICE(1," reached!");
-            bfs_vis.examine_edge(*eig, g);                                    //RK_NOTICE(1," reached!");
-            bfs_vis.update_vertex(target(*eig, g), g);                        //RK_NOTICE(1," reached!");
+          for (tie(eig, eig_end) = out_edges(u, g); eig != eig_end; ++eig) {
+            bfs_vis.examine_edge(*eig, g);
+            bfs_vis.update_vertex(target(*eig, g), g);
           };
-          //RK_NOTICE(1," reached!");
-          //RK_ADSTAR_LOOP_PRINT_CURRENT_GRAPH_HEAP
         }; // end while
         
-        //RK_NOTICE(1," reached!");
         bfs_vis.publish_path(g);
         
-        //RK_NOTICE(1," reached!");
         affected_edges.clear();
         WeightValue max_w_change = bfs_vis.detect_edge_change(std::back_inserter(affected_edges), g).first;
         
-        //RK_NOTICE(1," reached!");
-        //s = get_start();          //this was in the original code, but the way it was, it had no effect (I mean none at all).
-        //put(distance, s, inf);
-        //put(rhs, s, zero);
-        //put(predecessor, s, s);
-        //bfs_vis.update_key(s,g);
-        
-        //RK_NOTICE(1," reached!");
         //update all nodes that were affected.
         for(typename std::vector<Edge>::iterator ei = affected_edges.begin(); ei != affected_edges.end(); ++ei) {
           if( get(color, source(*ei,g)) == Color::black() )
@@ -541,10 +494,8 @@ namespace graph {
           bfs_vis.update_vertex(target(*ei, g), g);
         };
         
-        //RK_NOTICE(1," reached!");
         epsilon = bfs_vis.adjust_epsilon(epsilon, max_w_change, g);
         
-        //RK_NOTICE(1," reached!");
         //merge the OPEN and INCONS sets
         for(typename InconsList::iterator ui = I.begin(); ui != I.end(); ++ui) {
           bfs_vis.update_key(*ui,g);
@@ -553,22 +504,20 @@ namespace graph {
         };
         I.clear();
         
-        //RK_NOTICE(1," reached!");
         //update keys for all OPEN nodes, and change all black nodes to green (empty the CLOSED set).
         {
           typename graph_traits<VertexListGraph>::vertex_iterator ui, ui_end;
-          for (tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) { //RK_NOTICE(1," reached!");
-            ColorValue u_color = get(color, *ui);                   //RK_NOTICE(1," reached!");
-            if( Q.contains(*ui) ) {                                 //RK_NOTICE(1," reached!");
-              bfs_vis.update_key(*ui,g);                            //RK_NOTICE(1," reached!");
-              Q.update(*ui);                                        //RK_NOTICE(1," reached!");
-              put(color, *ui, Color::gray());                  bfs_vis.discover_vertex(*ui, g);  //RK_NOTICE(1," reached!");
-            } else if( u_color == Color::black() ) {                //RK_NOTICE(1," reached!");
-              put(color, *ui, Color::green());                 bfs_vis.recycle_vertex(*ui, g);   //RK_NOTICE(1," reached!");
+          for (tie(ui, ui_end) = vertices(g); ui != ui_end; ++ui) {
+            ColorValue u_color = get(color, *ui);
+            if( Q.contains(*ui) ) {
+              bfs_vis.update_key(*ui,g);
+              Q.update(*ui);
+              put(color, *ui, Color::gray());                  bfs_vis.discover_vertex(*ui, g);
+            } else if( u_color == Color::black() ) {
+              put(color, *ui, Color::green());                 bfs_vis.recycle_vertex(*ui, g);
             };
           };
         };
-        //RK_NOTICE(1," reached!");
       };
     };
     
